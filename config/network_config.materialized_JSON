@@ -1,0 +1,1560 @@
+{
+  "topologies": [
+    {
+      "topology": {
+        "name": "Lab 48",
+        "nodes": [
+          {
+            "name": "terra121.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:11:12:01",
+            "pop_node": false,
+            "site_name": "12x.f1.tb"
+          },
+          {
+            "name": "terra311.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9D:1F",
+            "pop_node": false,
+            "site_name": "31x.f1.ta"
+          },
+          {
+            "name": "terra324.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:06",
+            "pop_node": false,
+            "site_name": "32x.f1.tb"
+          },
+          {
+            "name": "terra123.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:FA",
+            "pop_node": false,
+            "site_name": "12x.f1.tb"
+          },
+          {
+            "name": "terra214.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:00:F5",
+            "pop_node": false,
+            "site_name": "21x.f1.ta"
+          },
+          {
+            "name": "terra124.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:14",
+            "pop_node": false,
+            "site_name": "12x.f1.tb"
+          },
+          {
+            "name": "terra214.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:F6",
+            "pop_node": false,
+            "site_name": "21x.f1.tb"
+          },
+          {
+            "name": "terra213.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:01:21:03",
+            "pop_node": false,
+            "site_name": "21x.f1.ta"
+          },
+          {
+            "name": "terra212.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:30",
+            "pop_node": false,
+            "site_name": "21x.f1.tb"
+          },
+          {
+            "name": "terra314.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:02",
+            "pop_node": false,
+            "site_name": "31x.f1.ta"
+          },
+          {
+            "name": "terra114.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:01:0B",
+            "pop_node": false,
+            "site_name": "11x.f1.ta"
+          },
+          {
+            "name": "terra323.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:18",
+            "pop_node": false,
+            "site_name": "32x.f1.tb"
+          },
+          {
+            "name": "terra312.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:F8",
+            "pop_node": false,
+            "site_name": "31x.f1.ta"
+          },
+          {
+            "name": "terra112.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:DE",
+            "pop_node": false,
+            "site_name": "11x.f1.tb"
+          },
+          {
+            "name": "terra322.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:0E",
+            "pop_node": false,
+            "site_name": "32x.f1.ta"
+          },
+          {
+            "name": "terra121.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9C:BC",
+            "pop_node": false,
+            "site_name": "12x.f1.ta"
+          },
+          {
+            "name": "terra321.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9D:E8",
+            "pop_node": false,
+            "site_name": "32x.f1.ta"
+          },
+          {
+            "name": "terra313.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:01:27",
+            "pop_node": false,
+            "site_name": "31x.f1.ta"
+          },
+          {
+            "name": "terra321.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9D:8B",
+            "pop_node": false,
+            "site_name": "32x.f1.tb"
+          },
+          {
+            "name": "terra314.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:00:F9",
+            "pop_node": false,
+            "site_name": "31x.f1.tb"
+          },
+          {
+            "name": "terra213.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:5E",
+            "pop_node": false,
+            "site_name": "21x.f1.tb"
+          },
+          {
+            "name": "terra224.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:22",
+            "pop_node": false,
+            "site_name": "22x.f1.ta"
+          },
+          {
+            "name": "terra111.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:36",
+            "pop_node": false,
+            "site_name": "11x.f1.tb"
+          },
+          {
+            "name": "terra111.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9D:AC",
+            "pop_node": true,
+            "site_name": "11x.f1.ta"
+          },
+          {
+            "name": "terra221.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:B7",
+            "pop_node": false,
+            "site_name": "22x.f1.ta"
+          },
+          {
+            "name": "terra222.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:24",
+            "pop_node": false,
+            "site_name": "22x.f1.ta"
+          },
+          {
+            "name": "terra211.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:5D",
+            "pop_node": false,
+            "site_name": "21x.f1.ta"
+          },
+          {
+            "name": "terra324.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:01:32:04",
+            "pop_node": false,
+            "site_name": "32x.f1.ta"
+          },
+          {
+            "name": "terra212.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:08",
+            "pop_node": false,
+            "site_name": "21x.f1.ta"
+          },
+          {
+            "name": "terra323.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:00:FB",
+            "pop_node": false,
+            "site_name": "32x.f1.ta"
+          },
+          {
+            "name": "terra124.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:50",
+            "pop_node": false,
+            "site_name": "12x.f1.ta"
+          },
+          {
+            "name": "terra221.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:11:22:01",
+            "pop_node": false,
+            "site_name": "22x.f1.tb"
+          },
+          {
+            "name": "terra113.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:4A",
+            "pop_node": false,
+            "site_name": "11x.f1.ta"
+          },
+          {
+            "name": "terra122.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:58",
+            "pop_node": false,
+            "site_name": "12x.f1.ta"
+          },
+          {
+            "name": "terra211.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9D:91",
+            "pop_node": false,
+            "site_name": "21x.f1.tb"
+          },
+          {
+            "name": "terra312.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:0A",
+            "pop_node": false,
+            "site_name": "31x.f1.tb"
+          },
+          {
+            "name": "terra123.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:00:FF",
+            "pop_node": false,
+            "site_name": "12x.f1.ta"
+          },
+          {
+            "name": "terra311.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:11:31:01",
+            "pop_node": false,
+            "site_name": "31x.f1.tb"
+          },
+          {
+            "name": "terra112.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:2E",
+            "pop_node": false,
+            "site_name": "11x.f1.ta"
+          },
+          {
+            "name": "terra223.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:42",
+            "pop_node": false,
+            "site_name": "22x.f1.tb"
+          },
+          {
+            "name": "terra113.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:64",
+            "pop_node": false,
+            "site_name": "11x.f1.tb"
+          },
+          {
+            "name": "terra223.f1.ta.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:4C",
+            "pop_node": false,
+            "site_name": "22x.f1.ta"
+          },
+          {
+            "name": "terra114.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9E:F0",
+            "pop_node": false,
+            "site_name": "11x.f1.tb"
+          },
+          {
+            "name": "terra122.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:10",
+            "pop_node": false,
+            "site_name": "12x.f1.tb"
+          },
+          {
+            "name": "terra224.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:50:C2:C9:9F:16",
+            "pop_node": false,
+            "site_name": "22x.f1.tb"
+          },
+          {
+            "name": "terra313.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:01:25",
+            "pop_node": false,
+            "site_name": "31x.f1.tb"
+          },
+          {
+            "name": "terra322.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:01:1F",
+            "pop_node": false,
+            "site_name": "32x.f1.tb"
+          },
+          {
+            "name": "terra222.f1.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "38:3A:21:B0:01:23",
+            "pop_node": false,
+            "site_name": "22x.f1.tb"
+          }
+        ],
+        "links": [
+          {
+            "name": "link-terra121.f1.tb.a404-if-terra222.f1.tb.a404-if",
+            "a_node_name": "terra121.f1.tb.a404-if",
+            "z_node_name": "terra222.f1.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f1.tb.a404-if-terra123.f1.tb.a404-if",
+            "a_node_name": "terra121.f1.tb.a404-if",
+            "z_node_name": "terra123.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra121.f1.tb.a404-if-terra124.f1.tb.a404-if",
+            "a_node_name": "terra121.f1.tb.a404-if",
+            "z_node_name": "terra124.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra121.f1.tb.a404-if-terra122.f1.tb.a404-if",
+            "a_node_name": "terra121.f1.tb.a404-if",
+            "z_node_name": "terra122.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra311.f1.ta.a404-if-terra314.f1.ta.a404-if",
+            "a_node_name": "terra311.f1.ta.a404-if",
+            "z_node_name": "terra314.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra311.f1.ta.a404-if-terra312.f1.ta.a404-if",
+            "a_node_name": "terra311.f1.ta.a404-if",
+            "z_node_name": "terra312.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra311.f1.ta.a404-if-terra313.f1.ta.a404-if",
+            "a_node_name": "terra311.f1.ta.a404-if",
+            "z_node_name": "terra313.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra214.f1.ta.a404-if-terra223.f1.ta.a404-if",
+            "a_node_name": "terra214.f1.ta.a404-if",
+            "z_node_name": "terra223.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra214.f1.tb.a404-if-terra223.f1.tb.a404-if",
+            "a_node_name": "terra214.f1.tb.a404-if",
+            "z_node_name": "terra223.f1.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra314.f1.ta.a404-if-terra323.f1.ta.a404-if",
+            "a_node_name": "terra314.f1.ta.a404-if",
+            "z_node_name": "terra323.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra114.f1.ta.a404-if-terra123.f1.ta.a404-if",
+            "a_node_name": "terra114.f1.ta.a404-if",
+            "z_node_name": "terra123.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f1.ta.a404-if-terra222.f1.ta.a404-if",
+            "a_node_name": "terra121.f1.ta.a404-if",
+            "z_node_name": "terra222.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f1.ta.a404-if-terra124.f1.ta.a404-if",
+            "a_node_name": "terra121.f1.ta.a404-if",
+            "z_node_name": "terra124.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra121.f1.ta.a404-if-terra122.f1.ta.a404-if",
+            "a_node_name": "terra121.f1.ta.a404-if",
+            "z_node_name": "terra122.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra121.f1.ta.a404-if-terra123.f1.ta.a404-if",
+            "a_node_name": "terra121.f1.ta.a404-if",
+            "z_node_name": "terra123.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra321.f1.ta.a404-if-terra322.f1.ta.a404-if",
+            "a_node_name": "terra321.f1.ta.a404-if",
+            "z_node_name": "terra322.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra321.f1.ta.a404-if-terra324.f1.ta.a404-if",
+            "a_node_name": "terra321.f1.ta.a404-if",
+            "z_node_name": "terra324.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra321.f1.ta.a404-if-terra323.f1.ta.a404-if",
+            "a_node_name": "terra321.f1.ta.a404-if",
+            "z_node_name": "terra323.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra321.f1.tb.a404-if-terra324.f1.tb.a404-if",
+            "a_node_name": "terra321.f1.tb.a404-if",
+            "z_node_name": "terra324.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra321.f1.tb.a404-if-terra323.f1.tb.a404-if",
+            "a_node_name": "terra321.f1.tb.a404-if",
+            "z_node_name": "terra323.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra321.f1.tb.a404-if-terra322.f1.tb.a404-if",
+            "a_node_name": "terra321.f1.tb.a404-if",
+            "z_node_name": "terra322.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra314.f1.tb.a404-if-terra323.f1.tb.a404-if",
+            "a_node_name": "terra314.f1.tb.a404-if",
+            "z_node_name": "terra323.f1.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra213.f1.tb.a404-if-terra224.f1.ta.a404-if",
+            "a_node_name": "terra213.f1.tb.a404-if",
+            "z_node_name": "terra224.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra111.f1.tb.a404-if-terra212.f1.tb.a404-if",
+            "a_node_name": "terra111.f1.tb.a404-if",
+            "z_node_name": "terra212.f1.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra111.f1.tb.a404-if-terra112.f1.tb.a404-if",
+            "a_node_name": "terra111.f1.tb.a404-if",
+            "z_node_name": "terra112.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra111.f1.tb.a404-if-terra113.f1.tb.a404-if",
+            "a_node_name": "terra111.f1.tb.a404-if",
+            "z_node_name": "terra113.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra111.f1.tb.a404-if-terra114.f1.tb.a404-if",
+            "a_node_name": "terra111.f1.tb.a404-if",
+            "z_node_name": "terra114.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra111.f1.ta.a404-if-terra212.f1.ta.a404-if",
+            "a_node_name": "terra111.f1.ta.a404-if",
+            "z_node_name": "terra212.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra111.f1.ta.a404-if-terra114.f1.ta.a404-if",
+            "a_node_name": "terra111.f1.ta.a404-if",
+            "z_node_name": "terra114.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra111.f1.ta.a404-if-terra113.f1.ta.a404-if",
+            "a_node_name": "terra111.f1.ta.a404-if",
+            "z_node_name": "terra113.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra111.f1.ta.a404-if-terra112.f1.ta.a404-if",
+            "a_node_name": "terra111.f1.ta.a404-if",
+            "z_node_name": "terra112.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f1.ta.a404-if-terra322.f1.ta.a404-if",
+            "a_node_name": "terra221.f1.ta.a404-if",
+            "z_node_name": "terra322.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f1.ta.a404-if-terra224.f1.ta.a404-if",
+            "a_node_name": "terra221.f1.ta.a404-if",
+            "z_node_name": "terra224.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f1.ta.a404-if-terra222.f1.ta.a404-if",
+            "a_node_name": "terra221.f1.ta.a404-if",
+            "z_node_name": "terra222.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f1.ta.a404-if-terra223.f1.ta.a404-if",
+            "a_node_name": "terra221.f1.ta.a404-if",
+            "z_node_name": "terra223.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f1.ta.a404-if-terra312.f1.ta.a404-if",
+            "a_node_name": "terra211.f1.ta.a404-if",
+            "z_node_name": "terra312.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra211.f1.ta.a404-if-terra214.f1.ta.a404-if",
+            "a_node_name": "terra211.f1.ta.a404-if",
+            "z_node_name": "terra214.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f1.ta.a404-if-terra213.f1.ta.a404-if",
+            "a_node_name": "terra211.f1.ta.a404-if",
+            "z_node_name": "terra213.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f1.ta.a404-if-terra212.f1.ta.a404-if",
+            "a_node_name": "terra211.f1.ta.a404-if",
+            "z_node_name": "terra212.f1.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f1.tb.a404-if-terra322.f1.tb.a404-if",
+            "a_node_name": "terra221.f1.tb.a404-if",
+            "z_node_name": "terra322.f1.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f1.tb.a404-if-terra223.f1.tb.a404-if",
+            "a_node_name": "terra221.f1.tb.a404-if",
+            "z_node_name": "terra223.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f1.tb.a404-if-terra224.f1.tb.a404-if",
+            "a_node_name": "terra221.f1.tb.a404-if",
+            "z_node_name": "terra224.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f1.tb.a404-if-terra222.f1.tb.a404-if",
+            "a_node_name": "terra221.f1.tb.a404-if",
+            "z_node_name": "terra222.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f1.tb.a404-if-terra312.f1.tb.a404-if",
+            "a_node_name": "terra211.f1.tb.a404-if",
+            "z_node_name": "terra312.f1.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra211.f1.tb.a404-if-terra214.f1.tb.a404-if",
+            "a_node_name": "terra211.f1.tb.a404-if",
+            "z_node_name": "terra214.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f1.tb.a404-if-terra212.f1.tb.a404-if",
+            "a_node_name": "terra211.f1.tb.a404-if",
+            "z_node_name": "terra212.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f1.tb.a404-if-terra213.f1.tb.a404-if",
+            "a_node_name": "terra211.f1.tb.a404-if",
+            "z_node_name": "terra213.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra311.f1.tb.a404-if-terra314.f1.tb.a404-if",
+            "a_node_name": "terra311.f1.tb.a404-if",
+            "z_node_name": "terra314.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra311.f1.tb.a404-if-terra312.f1.tb.a404-if",
+            "a_node_name": "terra311.f1.tb.a404-if",
+            "z_node_name": "terra312.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra311.f1.tb.a404-if-terra313.f1.tb.a404-if",
+            "a_node_name": "terra311.f1.tb.a404-if",
+            "z_node_name": "terra313.f1.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra113.f1.tb.a404-if-terra124.f1.ta.a404-if",
+            "a_node_name": "terra113.f1.tb.a404-if",
+            "z_node_name": "terra124.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra114.f1.tb.a404-if-terra123.f1.tb.a404-if",
+            "a_node_name": "terra114.f1.tb.a404-if",
+            "z_node_name": "terra123.f1.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra313.f1.tb.a404-if-terra324.f1.ta.a404-if",
+            "a_node_name": "terra313.f1.tb.a404-if",
+            "z_node_name": "terra324.f1.ta.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          }
+        ],
+        "sites": [
+          {
+            "name": "11x.f1.ta",
+            "latitude": 37.484946,
+            "longitude": -122.1475237,
+            "altitude": 0
+          },
+          {
+            "name": "12x.f1.ta",
+            "latitude": 37.484946,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "11x.f1.tb",
+            "latitude": 37.484946,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "12x.f1.tb",
+            "latitude": 37.484946,
+            "longitude": -122.1466237,
+            "altitude": 0
+          },
+          {
+            "name": "21x.f1.ta",
+            "latitude": 37.484746,
+            "longitude": -122.1475237,
+            "altitude": 0
+          },
+          {
+            "name": "22x.f1.ta",
+            "latitude": 37.484746,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "21x.f1.tb",
+            "latitude": 37.484746,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "22x.f1.tb",
+            "latitude": 37.484746,
+            "longitude": -122.1466237,
+            "altitude": 0
+          },
+          {
+            "name": "31x.f1.ta",
+            "latitude": 37.484546,
+            "longitude": -122.1475237,
+            "altitude": 0
+          },
+          {
+            "name": "32x.f1.ta",
+            "latitude": 37.484546,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "31x.f1.tb",
+            "latitude": 37.484546,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "32x.f1.tb",
+            "latitude": 37.484546,
+            "longitude": -122.1466237,
+            "altitude": 0
+          }
+        ]
+      },
+      "latitude": 37.484494,
+      "longitude": -122.1483976,
+      "zoom_level": 17,
+      "controller_ip": "2620:10d:c089:e00a:250:c2ff:fec9:9dab"
+    },
+    {
+      "topology": {
+        "name": "Lab F8 B",
+        "nodes": [
+          {
+            "name": "terra111.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:40",
+            "pop_node": true,
+            "site_name": "A"
+          },
+          {
+            "name": "terra114.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:41",
+            "pop_node": false,
+            "site_name": "A"
+          },
+          {
+            "name": "terra121.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:42",
+            "pop_node": false,
+            "site_name": "F"
+          },
+          {
+            "name": "terra123.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:43",
+            "pop_node": false,
+            "site_name": "F"
+          },
+          {
+            "name": "terra211.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:44",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra212.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:45",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra214.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:46",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra221.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:47",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra222.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:48",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra223.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:49",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra312.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:4a",
+            "pop_node": false,
+            "site_name": "C"
+          },
+          {
+            "name": "terra314.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:4b",
+            "pop_node": false,
+            "site_name": "C"
+          },
+          {
+            "name": "terra322.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:4c",
+            "pop_node": false,
+            "site_name": "D"
+          },
+          {
+            "name": "terra323.f5.tb.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0b:4d",
+            "pop_node": false,
+            "site_name": "D"
+          }
+        ],
+        "links": [
+          {
+            "name": "link-terra111.f5.tb.a404-if-terra212.f5.tb.a404-if",
+            "a_node_name": "terra111.f5.tb.a404-if",
+            "z_node_name": "terra212.f5.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra111.f5.tb.a404-if-terra114.f5.tb.a404-if",
+            "a_node_name": "terra111.f5.tb.a404-if",
+            "z_node_name": "terra114.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra114.f5.tb.a404-if-terra123.f5.tb.a404-if",
+            "a_node_name": "terra114.f5.tb.a404-if",
+            "z_node_name": "terra123.f5.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f5.tb.a404-if-terra222.f5.tb.a404-if",
+            "a_node_name": "terra121.f5.tb.a404-if",
+            "z_node_name": "terra222.f5.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f5.tb.a404-if-terra123.f5.tb.a404-if",
+            "a_node_name": "terra121.f5.tb.a404-if",
+            "z_node_name": "terra123.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f5.tb.a404-if-terra312.f5.tb.a404-if",
+            "a_node_name": "terra211.f5.tb.a404-if",
+            "z_node_name": "terra312.f5.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra211.f5.tb.a404-if-terra212.f5.tb.a404-if",
+            "a_node_name": "terra211.f5.tb.a404-if",
+            "z_node_name": "terra212.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f5.tb.a404-if-terra214.f5.tb.a404-if",
+            "a_node_name": "terra211.f5.tb.a404-if",
+            "z_node_name": "terra214.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra214.f5.tb.a404-if-terra223.f5.tb.a404-if",
+            "a_node_name": "terra214.f5.tb.a404-if",
+            "z_node_name": "terra223.f5.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f5.tb.a404-if-terra322.f5.tb.a404-if",
+            "a_node_name": "terra221.f5.tb.a404-if",
+            "z_node_name": "terra322.f5.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f5.tb.a404-if-terra222.f5.tb.a404-if",
+            "a_node_name": "terra221.f5.tb.a404-if",
+            "z_node_name": "terra222.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f5.tb.a404-if-terra223.f5.tb.a404-if",
+            "a_node_name": "terra221.f5.tb.a404-if",
+            "z_node_name": "terra223.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra312.f5.tb.a404-if-terra314.f5.tb.a404-if",
+            "a_node_name": "terra312.f5.tb.a404-if",
+            "z_node_name": "terra314.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra314.f5.tb.a404-if-terra323.f5.tb.a404-if",
+            "a_node_name": "terra314.f5.tb.a404-if",
+            "z_node_name": "terra323.f5.tb.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra322.f5.tb.a404-if-terra323.f5.tb.a404-if",
+            "a_node_name": "terra322.f5.tb.a404-if",
+            "z_node_name": "terra323.f5.tb.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          }
+        ],
+        "sites": [
+          {
+            "name": "A",
+            "latitude": 37.484946,
+            "longitude": -122.1475237,
+            "altitude": 0
+          },
+          {
+            "name": "B",
+            "latitude": 37.484946,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "C",
+            "latitude": 37.484946,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "D",
+            "latitude": 37.484746,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "E",
+            "latitude": 37.484746,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "F",
+            "latitude": 37.484746,
+            "longitude": -122.1475237,
+            "altitude": 0
+          }
+        ]
+      },
+      "latitude": 37.484494,
+      "longitude": -122.1483976,
+      "zoom_level": 17,
+      "controller_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a"
+    },
+    {
+      "topology": {
+        "name": "Lab F8 C",
+        "nodes": [
+          {
+            "name": "terra111.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:40",
+            "pop_node": true,
+            "site_name": "A"
+          },
+          {
+            "name": "terra114.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:41",
+            "pop_node": false,
+            "site_name": "A"
+          },
+          {
+            "name": "terra121.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:42",
+            "pop_node": false,
+            "site_name": "F"
+          },
+          {
+            "name": "terra123.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:43",
+            "pop_node": false,
+            "site_name": "F"
+          },
+          {
+            "name": "terra211.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:44",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra212.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:45",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra214.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:46",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra221.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:47",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra222.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:48",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra223.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:49",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra312.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:4a",
+            "pop_node": false,
+            "site_name": "C"
+          },
+          {
+            "name": "terra314.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:4b",
+            "pop_node": false,
+            "site_name": "C"
+          },
+          {
+            "name": "terra322.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:4c",
+            "pop_node": false,
+            "site_name": "D"
+          },
+          {
+            "name": "terra323.f5.tc.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0c:4d",
+            "pop_node": false,
+            "site_name": "D"
+          }
+        ],
+        "links": [
+          {
+            "name": "link-terra111.f5.tc.a404-if-terra212.f5.tc.a404-if",
+            "a_node_name": "terra111.f5.tc.a404-if",
+            "z_node_name": "terra212.f5.tc.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra111.f5.tc.a404-if-terra114.f5.tc.a404-if",
+            "a_node_name": "terra111.f5.tc.a404-if",
+            "z_node_name": "terra114.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra114.f5.tc.a404-if-terra123.f5.tc.a404-if",
+            "a_node_name": "terra114.f5.tc.a404-if",
+            "z_node_name": "terra123.f5.tc.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f5.tc.a404-if-terra222.f5.tc.a404-if",
+            "a_node_name": "terra121.f5.tc.a404-if",
+            "z_node_name": "terra222.f5.tc.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f5.tc.a404-if-terra123.f5.tc.a404-if",
+            "a_node_name": "terra121.f5.tc.a404-if",
+            "z_node_name": "terra123.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f5.tc.a404-if-terra312.f5.tc.a404-if",
+            "a_node_name": "terra211.f5.tc.a404-if",
+            "z_node_name": "terra312.f5.tc.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra211.f5.tc.a404-if-terra212.f5.tc.a404-if",
+            "a_node_name": "terra211.f5.tc.a404-if",
+            "z_node_name": "terra212.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f5.tc.a404-if-terra214.f5.tc.a404-if",
+            "a_node_name": "terra211.f5.tc.a404-if",
+            "z_node_name": "terra214.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra214.f5.tc.a404-if-terra223.f5.tc.a404-if",
+            "a_node_name": "terra214.f5.tc.a404-if",
+            "z_node_name": "terra223.f5.tc.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f5.tc.a404-if-terra322.f5.tc.a404-if",
+            "a_node_name": "terra221.f5.tc.a404-if",
+            "z_node_name": "terra322.f5.tc.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f5.tc.a404-if-terra222.f5.tc.a404-if",
+            "a_node_name": "terra221.f5.tc.a404-if",
+            "z_node_name": "terra222.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f5.tc.a404-if-terra223.f5.tc.a404-if",
+            "a_node_name": "terra221.f5.tc.a404-if",
+            "z_node_name": "terra223.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra312.f5.tc.a404-if-terra314.f5.tc.a404-if",
+            "a_node_name": "terra312.f5.tc.a404-if",
+            "z_node_name": "terra314.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra314.f5.tc.a404-if-terra323.f5.tc.a404-if",
+            "a_node_name": "terra314.f5.tc.a404-if",
+            "z_node_name": "terra323.f5.tc.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra322.f5.tc.a404-if-terra323.f5.tc.a404-if",
+            "a_node_name": "terra322.f5.tc.a404-if",
+            "z_node_name": "terra323.f5.tc.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          }
+        ],
+        "sites": [
+          {
+            "name": "A",
+            "latitude": 37.484946,
+            "longitude": -122.1475237,
+            "altitude": 0
+          },
+          {
+            "name": "B",
+            "latitude": 37.484946,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "C",
+            "latitude": 37.484946,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "D",
+            "latitude": 37.484746,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "E",
+            "latitude": 37.484746,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "F",
+            "latitude": 37.484746,
+            "longitude": -122.1475237,
+            "altitude": 0
+          }
+        ]
+      },
+      "latitude": 37.484494,
+      "longitude": -122.1483976,
+      "zoom_level": 17,
+      "controller_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52"
+    },
+    {
+      "topology": {
+        "name": "Lab F8 D",
+        "nodes": [
+          {
+            "name": "terra111.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:40",
+            "pop_node": true,
+            "site_name": "A"
+          },
+          {
+            "name": "terra114.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:41",
+            "pop_node": false,
+            "site_name": "A"
+          },
+          {
+            "name": "terra121.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:42",
+            "pop_node": false,
+            "site_name": "F"
+          },
+          {
+            "name": "terra123.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:43",
+            "pop_node": false,
+            "site_name": "F"
+          },
+          {
+            "name": "terra211.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:44",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra212.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:45",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra214.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:46",
+            "pop_node": false,
+            "site_name": "B"
+          },
+          {
+            "name": "terra221.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:47",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra222.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:48",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra223.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:49",
+            "pop_node": false,
+            "site_name": "E"
+          },
+          {
+            "name": "terra312.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:4a",
+            "pop_node": false,
+            "site_name": "C"
+          },
+          {
+            "name": "terra314.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:4b",
+            "pop_node": false,
+            "site_name": "C"
+          },
+          {
+            "name": "terra322.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:4c",
+            "pop_node": false,
+            "site_name": "D"
+          },
+          {
+            "name": "terra323.f5.td.a404-if",
+            "node_type": 2,
+            "mac_addr": "00:00:00:10:0d:4d",
+            "pop_node": false,
+            "site_name": "D"
+          }
+        ],
+        "links": [
+          {
+            "name": "link-terra111.f5.td.a404-if-terra212.f5.td.a404-if",
+            "a_node_name": "terra111.f5.td.a404-if",
+            "z_node_name": "terra212.f5.td.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra111.f5.td.a404-if-terra114.f5.td.a404-if",
+            "a_node_name": "terra111.f5.td.a404-if",
+            "z_node_name": "terra114.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra114.f5.td.a404-if-terra123.f5.td.a404-if",
+            "a_node_name": "terra114.f5.td.a404-if",
+            "z_node_name": "terra123.f5.td.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f5.td.a404-if-terra222.f5.td.a404-if",
+            "a_node_name": "terra121.f5.td.a404-if",
+            "z_node_name": "terra222.f5.td.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra121.f5.td.a404-if-terra123.f5.td.a404-if",
+            "a_node_name": "terra121.f5.td.a404-if",
+            "z_node_name": "terra123.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f5.td.a404-if-terra312.f5.td.a404-if",
+            "a_node_name": "terra211.f5.td.a404-if",
+            "z_node_name": "terra312.f5.td.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra211.f5.td.a404-if-terra212.f5.td.a404-if",
+            "a_node_name": "terra211.f5.td.a404-if",
+            "z_node_name": "terra212.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra211.f5.td.a404-if-terra214.f5.td.a404-if",
+            "a_node_name": "terra211.f5.td.a404-if",
+            "z_node_name": "terra214.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra214.f5.td.a404-if-terra223.f5.td.a404-if",
+            "a_node_name": "terra214.f5.td.a404-if",
+            "z_node_name": "terra223.f5.td.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f5.td.a404-if-terra322.f5.td.a404-if",
+            "a_node_name": "terra221.f5.td.a404-if",
+            "z_node_name": "terra322.f5.td.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra221.f5.td.a404-if-terra222.f5.td.a404-if",
+            "a_node_name": "terra221.f5.td.a404-if",
+            "z_node_name": "terra222.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra221.f5.td.a404-if-terra223.f5.td.a404-if",
+            "a_node_name": "terra221.f5.td.a404-if",
+            "z_node_name": "terra223.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra312.f5.td.a404-if-terra314.f5.td.a404-if",
+            "a_node_name": "terra312.f5.td.a404-if",
+            "z_node_name": "terra314.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          },
+          {
+            "name": "link-terra314.f5.td.a404-if-terra323.f5.td.a404-if",
+            "a_node_name": "terra314.f5.td.a404-if",
+            "z_node_name": "terra323.f5.td.a404-if",
+            "link_type": 1,
+            "is_alive": false
+          },
+          {
+            "name": "link-terra322.f5.td.a404-if-terra323.f5.td.a404-if",
+            "a_node_name": "terra322.f5.td.a404-if",
+            "z_node_name": "terra323.f5.td.a404-if",
+            "link_type": 2,
+            "is_alive": true
+          }
+        ],
+        "sites": [
+          {
+            "name": "A",
+            "latitude": 37.484946,
+            "longitude": -122.1475237,
+            "altitude": 0
+          },
+          {
+            "name": "B",
+            "latitude": 37.484946,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "C",
+            "latitude": 37.484946,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "D",
+            "latitude": 37.484746,
+            "longitude": -122.1469237,
+            "altitude": 0
+          },
+          {
+            "name": "E",
+            "latitude": 37.484746,
+            "longitude": -122.1472237,
+            "altitude": 0
+          },
+          {
+            "name": "F",
+            "latitude": 37.484746,
+            "longitude": -122.1475237,
+            "altitude": 0
+          }
+        ]
+      },
+      "latitude": 37.484494,
+      "longitude": -122.1483976,
+      "zoom_level": 17,
+      "controller_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7"
+    }
+  ]
+}
