@@ -4,7 +4,6 @@ Just enough to show the very basics.
 ## Install and Running
 `git clone https://github.com/pmccut/tgnms.git`
 
-npm install
-npm start
-
-Visit http://IP
+1. npm install
+2. npm start
+3. Visit http://IP
