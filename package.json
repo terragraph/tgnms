@@ -7,8 +7,7 @@
     "type": "git",
     "url": "https://github.com/pmccut/tgnms.git"
   },
-  "keywords": [
-  ],
+  "keywords": [],
   "author": "Paul McCutcheon",
   "license": "MIT",
   "bugs": {
@@ -36,7 +35,8 @@
     "react-dom": "^0.14.3",
     "react-leaflet": "^1.0.0-rc.3",
     "react-router": "^3.0.0",
-    "react-timeseries-charts": "^0.10.2"
+    "react-timeseries-charts": "^0.10.2",
+    "zmq": "^2.15.3"
   },
   "devDependencies": {
     "autoprefixer": "^6.0.3",

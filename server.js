@@ -9,6 +9,7 @@ const config = require('./webpack.config.js');
 const isDeveloping = process.env.NODE_ENV !== 'production';
 const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
 const app = express();
+const fs = require('fs');
 const zmq = require('zmq');
 // db
 const Influx = require('influx');
