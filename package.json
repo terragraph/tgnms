@@ -1,6 +1,6 @@
 {
   "name": "tg-nms",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "Terragraph NMS",
   "main": "server.js",
   "repository": {

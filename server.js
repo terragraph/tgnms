@@ -7,7 +7,7 @@ const webpackMiddleware = require('webpack-dev-middleware');
 const webpackHotMiddleware = require('webpack-hot-middleware');
 const config = require('./webpack.config.js');
 const isDeveloping = process.env.NODE_ENV !== 'production';
-const port = isDeveloping ? 80 : process.env.PORT;
+const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
 const app = express();
 const zmq = require('zmq');
 // db
@@ -29,36 +29,6 @@ const influx = new Influx.InfluxDB({
     }
   ]
 });
-// thrift decoding
-const thrift = require('thrift');
-const topottypes = require('./thrift/gen-nodejs/Topology_types');
-const ncttypes = require('./thrift/gen-nodejs/NetworkConfig_types');
-const fs = require('fs');
-
-// zmq
-let socket = zmq.socket('dealer');
-socket.identity = 'NMS_APP';
-socket.connect('tcp://[2620:10d:c089:e00b:250:c2ff:fec9:9d5a]:17077');
-console.log('connected');
-socket.send("");
-socket.send("NMS_APP");
-socket.send("ctrl-app-TOPOLOGY_APP");
-console.log('sent');
-socket.on('message', function(data) {
-  console.log(socket.identity + ': answer data ' + data);
-});
-
-socket.on('connect', function(fd, ep) {console.log('connect, endpoint:', ep);});
-socket.on('connect_delay', function(fd, ep) {console.log('connect_delay, endpoint:', ep);});
-socket.on('connect_retry', function(fd, ep) {console.log('connect_retry, endpoint:', ep);});
-socket.on('listen', function(fd, ep) {console.log('listen, endpoint:', ep);});
-socket.on('bind_error', function(fd, ep) {console.log('bind_error, endpoint:', ep);});
-socket.on('accept', function(fd, ep) {console.log('accept, endpoint:', ep);});
-socket.on('accept_error', function(fd, ep) {console.log('accept_error, endpoint:', ep);});
-socket.on('close', function(fd, ep) {console.log('close, endpoint:', ep);});
-socket.on('close_error', function(fd, ep) {console.log('close_error, endpoint:', ep);});
-socket.on('disconnect', function(fd, ep) {console.log('disconnect, endpoint:', ep);});
-
 
 if (isDeveloping) {
   const compiler = webpack(config);
