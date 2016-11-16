@@ -87,7 +87,6 @@ if (isDeveloping) {
   app.use(webpackHotMiddleware(compiler));
   // single node, multiple terms
   app.get(/\/influx\/([a-z0-9\:]+)\/([a-z0-9_\,\.]+)$/i, function (req, res, next) {
-    console.log("app.get influx");
     let nodeMac = req.params[0];
     let metricNames = req.params[1].split(",");
     // split node macs
@@ -106,7 +105,6 @@ if (isDeveloping) {
     });
   });
   app.get(/\/topology\/static$/, function(req, res, next) {
-    console.log("app.get topology static");
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
       // unable to open file, exit
       if (err) {
@@ -119,7 +117,6 @@ if (isDeveloping) {
     });
   });
   app.get(/\/topology\/list$/, function(req, res, next) {
-    console.log("app.get topology list");
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
       // unable to open file, exit
       if (err) {
@@ -142,7 +139,6 @@ if (isDeveloping) {
     });
   });
   app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
-    console.log("app.get topology get");
     let reqConfigName = req.params[0];
 
     var connection = thrift.createConnection('localhost', 9330);
@@ -158,8 +154,6 @@ if (isDeveloping) {
         console.error(err);
         _readTopologyFromFile(reqConfigName, res);
       } else {
-        console.log("getNetworkState");
-        console.log(response);
         res.json(response);
         return;
       }
@@ -168,14 +162,12 @@ if (isDeveloping) {
   });
 
   app.get('^$/', function response(req, res) {
-    console.log("app.get $");
     res.write(middleware.fileSystem.readFileSync(path.join(__dirname, 'dist/index.html')));
     res.end();
   });
 } else {
   app.use(express.static(__dirname + '/dist'));
   app.get('*', function response(req, res) {
-    console.log("app.get topology *");
     res.sendFile(path.join(__dirname, 'dist/index.html'));
   });
 }
