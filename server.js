@@ -31,6 +31,41 @@ const influx = new Influx.InfluxDB({
   ]
 });
 
+function _readTopologyFromFile(reqConfigName, res) {
+  // read from file
+  fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
+    // unable to open file, exit
+    if (err) {
+      console.error(err);
+      res.status(500).send(err.stack);
+      return;
+    }
+    // serialize some example
+    let networkConfig = JSON.parse(data);
+    if ('topologies' in networkConfig) {
+      let topologies = networkConfig['topologies'];
+      Object.keys(topologies).forEach(function(key) {
+        let topologyConfig = topologies[key];
+        //console.log(topologyConfig);
+        let topology = topologyConfig['topology'];
+        let nodes = topology['nodes'];
+        let configName = topology['name'];
+        if (configName == reqConfigName) {
+          res.json(topologyConfig);
+          return;
+        }
+      });
+    }
+    // return error on unknown topology
+    res.status(404).end("No such topology\n");
+  });
+}
+
+
+const thrift = require('thrift');
+var ControllerProxyService = require('./thrift/gen-nodejs/ControllerProxyService');
+var ControllerProxyTypes = require('./thrift/gen-nodejs/ControllerProxy_types');
+
 if (isDeveloping) {
   const compiler = webpack(config);
   const middleware = webpackMiddleware(compiler, {
@@ -52,6 +87,7 @@ if (isDeveloping) {
   app.use(webpackHotMiddleware(compiler));
   // single node, multiple terms
   app.get(/\/influx\/([a-z0-9\:]+)\/([a-z0-9_\,\.]+)$/i, function (req, res, next) {
+    console.log("app.get influx");
     let nodeMac = req.params[0];
     let metricNames = req.params[1].split(",");
     // split node macs
@@ -70,6 +106,7 @@ if (isDeveloping) {
     });
   });
   app.get(/\/topology\/static$/, function(req, res, next) {
+    console.log("app.get topology static");
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
       // unable to open file, exit
       if (err) {
@@ -82,6 +119,7 @@ if (isDeveloping) {
     });
   });
   app.get(/\/topology\/list$/, function(req, res, next) {
+    console.log("app.get topology list");
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
       // unable to open file, exit
       if (err) {
@@ -104,42 +142,40 @@ if (isDeveloping) {
     });
   });
   app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
+    console.log("app.get topology get");
     let reqConfigName = req.params[0];
-    // read the main config
-    fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
-      // unable to open file, exit
+
+    var connection = thrift.createConnection('localhost', 9330);
+    var client = thrift.createClient(ControllerProxyService, connection);
+
+    connection.on('error', function(err) {
+      console.error(err);
+      _readTopologyFromFile(reqConfigName, res);
+    });
+
+    client.getNetworkState(reqConfigName, function(err, response) {
       if (err) {
         console.error(err);
-        res.status(500).send(err.stack);
+        _readTopologyFromFile(reqConfigName, res);
+      } else {
+        console.log("getNetworkState");
+        console.log(response);
+        res.json(response);
         return;
       }
-      // serialize some example
-      let networkConfig = JSON.parse(data);
-      if ('topologies' in networkConfig) {
-        let topologies = networkConfig['topologies'];
-        Object.keys(topologies).forEach(function(key) {
-          let topologyConfig = topologies[key];
-          let topology = topologyConfig['topology'];
-          let nodes = topology['nodes'];
-          let configName = topology['name'];
-          if (configName == reqConfigName) {
-            res.json(topologyConfig);
-            return;
-          }
-        });
-      }
-      // return error on unknown topology
       res.status(404).end("No such topology\n");
     });
   });
 
   app.get('^$/', function response(req, res) {
+    console.log("app.get $");
     res.write(middleware.fileSystem.readFileSync(path.join(__dirname, 'dist/index.html')));
     res.end();
   });
 } else {
   app.use(express.static(__dirname + '/dist'));
   app.get('*', function response(req, res) {
+    console.log("app.get topology *");
     res.sendFile(path.join(__dirname, 'dist/index.html'));
   });
 }

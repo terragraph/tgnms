@@ -87,6 +87,10 @@
     "thrift": "^0.9.3",
     "webpack": "^1.12.2",
     "webpack-dev-middleware": "^1.2.0",
-    "webpack-hot-middleware": "^2.2.0"
+    "webpack-hot-middleware": "^2.2.0",
+    "react-sortable-table": "^1.3.0",
+    "react-split-pane": "^0.1.52",
+    "react-tabs": "^0.8.2",
+    "react-bootstrap-table": "^2.5.8"
   }
 }
