@@ -31,6 +31,26 @@ const influx = new Influx.InfluxDB({
   ]
 });
 
+// test module
+const t = require('./thrift-wrap/build/Release/test');
+let dealer = zmq.socket('dealer');
+dealer.identity = 'NMS_WEB';
+dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
+dealer.connect('tcp://[2620:10d:c089:e00c:20C:29FF:FE69:6C10]:17077');
+dealer.send("", zmq.ZMQ_SNDMORE);
+dealer.send("ctrl-app-TOPOLOGY_APP", zmq.ZMQ_SNDMORE);
+dealer.send("NMS_WEB", zmq.ZMQ_SNDMORE);
+const buffer = Buffer.alloc(100);
+let tt = t.getTopologyReq(buffer);
+dealer.send(buffer);
+dealer.on('message', function (receiver, senderApp, msg) {
+  const encoding = require('encoding');
+//  let c = encoding.convert(msg, 'ASCII', 'UTF-8');
+//  const b = Buffer.from(msg);
+//  console.log('length: ' + msg.length + ', new: ' + c.length);
+//  let json = t.getTopologyJson(b);
+});
+
 if (isDeveloping) {
   const compiler = webpack(config);
   const middleware = webpackMiddleware(compiler, {
@@ -51,6 +71,15 @@ if (isDeveloping) {
   app.use(middleware);
   app.use(webpackHotMiddleware(compiler));
   // single node, multiple terms
+  app.get(/\/topology\/refresh$/, function (req, res, next) {
+    let dealer = zmq.socket('dealer');
+    dealer.connect('tcp://[2620:10d:c089:e00c:20C:29FF:FE69:6C10]:17077');
+    dealer.send('');
+    dealer.send('ctrl-app-TOPOLOGY_APP');
+    dealer.send('NMS_WEB');
+    let topologyReq = t.getTopologyReq();
+    dealer.send(topologyReq);
+  });
   app.get(/\/influx\/([a-z0-9\:]+)\/([a-z0-9_\,\.]+)$/i, function (req, res, next) {
     let nodeMac = req.params[0];
     let metricNames = req.params[1].split(",");
@@ -132,15 +161,10 @@ if (isDeveloping) {
       res.status(404).end("No such topology\n");
     });
   });
-
-  app.get('^$/', function response(req, res) {
-    res.write(middleware.fileSystem.readFileSync(path.join(__dirname, 'dist/index.html')));
-    res.end();
-  });
 } else {
   app.use(express.static(__dirname + '/dist'));
   app.get('*', function response(req, res) {
-    res.sendFile(path.join(__dirname, 'dist/index.html'));
+    res.sendFile(path.join(__dirname, 'dist/map.html'));
   });
 }
 

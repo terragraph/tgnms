@@ -6,10 +6,16 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   devtool: 'eval-source-map',
-  entry: [
-    'webpack-hot-middleware/client?reload=true',
-    path.join(__dirname, 'app/main.js')
-  ],
+  entry: {
+    map: [
+      'webpack-hot-middleware/client?reload=true',
+      path.join(__dirname, 'app/main.js')
+    ],
+    dashboard: [
+      'webpack-hot-middleware/client?reload=true',
+      path.join(__dirname, 'app/dashboard.js')
+    ],
+  },
   output: {
     path: path.join(__dirname, '/dist/'),
     filename: '[name].js',
@@ -18,8 +24,13 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: 'app/index.tpl.html',
-      inject: 'body',
+      inject: false,
       filename: 'index.html'
+    }),
+    new HtmlWebpackPlugin({
+      template: 'app/dashboard.tpl.html',
+      inject: false,
+      filename: 'dashboard.html'
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),

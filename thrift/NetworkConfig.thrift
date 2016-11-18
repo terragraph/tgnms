@@ -1,3 +1,6 @@
+namespace cpp2 facebook.terragraph.thrift
+namespace php CXL_Terragraph
+namespace py terragraph_thrift.Controller
 include "Topology.thrift"
 
 # list the available configs for the UI
