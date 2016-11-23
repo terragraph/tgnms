@@ -1,3 +1,7 @@
+namespace cpp2 facebook.terragraph.thrift
+namespace php CXL_Terragraph
+namespace py terragraph_thrift.Controller
+
 enum NodeType {
     CN = 1
     DN = 2
