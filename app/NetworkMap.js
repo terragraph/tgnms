@@ -50,7 +50,7 @@ export default class NetworkMap extends React.Component {
     this.dispatchToken = Dispatcher.register(this.handleDispatchEvent.bind(this));
   }
 
-  _getNodesRows(nodes, status_dump): Array<{name:string,
+  _getNodesRows(nodes): Array<{name:string,
                           mac_addr:string,
                           node_type:string,
                           ignited:boolean,
@@ -63,15 +63,6 @@ export default class NetworkMap extends React.Component {
       let node = nodes[nodeName];
       var version = 'Not Available';
       var ipv6 = 'Not Available';
-      if (status_dump && status_dump.statusReports) {
-        if (status_dump.statusReports[node.mac_addr]) {
-          version = status_dump.statusReports[node.mac_addr].version;
-          version = version.split("Release ")[1];
-        }
-        if (status_dump.statusReports[node.mac_addr]) {
-          ipv6 = status_dump.statusReports[node.mac_addr].ipv6Address;
-        }
-      }
       rows.push(
         {
           name: node.name,
@@ -113,28 +104,29 @@ export default class NetworkMap extends React.Component {
     switch (payload.actionType) {
       case 'topologySelected':
         self = this;
-        function doSomething() {
-          let topoGetFetch = new Request('/topology/get/' + payload.topologyName);
+        function getNetworkStatus() {
+          let topoGetFetch = new Request('/topology/get/' +
+              payload.topologyName);
           fetch(topoGetFetch).then(function(response) {
+
             if (response.status == 200) {
               response.json().then(function(json) {
                 // index nodes by name
                 let nodesByName = {};
-                Object.keys(json.topology.nodes).map(nodeIndex => {
-                  let node = json.topology.nodes[nodeIndex];
+                Object.keys(json.nodes).map(nodeIndex => {
+                  let node = json.nodes[nodeIndex];
                   nodesByName[node.name] = node;
                 });
                 let sitesByName = {};
-                Object.keys(json.topology.sites).map(siteIndex => {
-                  let site = json.topology.sites[siteIndex];
+                Object.keys(json.sites).map(siteIndex => {
+                  let site = json.sites[siteIndex];
                   sitesByName[site.name] = site;
                 });
-
                 self.setState({
                   topology: json,
                   topologyName: payload.topologyName,
-                  nodesTableData: self._getNodesRows(json.topology.nodes, json.status_dump),
-                  linksTableData: self._getLinksRows(json.topology.links),
+                  nodesTableData: self._getNodesRows(json.nodes),
+                  linksTableData: self._getLinksRows(json.links),
                   nodesByName: nodesByName,
                   sitesByName: sitesByName,
                 });
@@ -146,8 +138,8 @@ export default class NetworkMap extends React.Component {
         if (this.state.intervalId) {
           clearInterval(this.state.intervalId);
         }
-        doSomething();
-        var intervalId = setInterval(doSomething, 3000);
+        getNetworkStatus();
+        var intervalId = setInterval(getNetworkStatus, 2000);
         this.setState({intervalId: intervalId});
         break;
     }
@@ -164,8 +156,14 @@ export default class NetworkMap extends React.Component {
     fetch(topoListFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
+          let topologyToIpMap = {};
+          Object.keys(json).map(topologyIndex => {
+            let topology = json[topologyIndex];
+            topologyToIpMap[topology.name] = topology.controller_ip;
+          });
           this.setState({
             topologies: json,
+            topologyToIpMap: topologyToIpMap,
           });
         }.bind(this));
       }
@@ -205,7 +203,7 @@ export default class NetworkMap extends React.Component {
     // generate menu content
     let menuContent = [];
     for (let i = 0; i < this.state.topologies.length; i++) {
-      let menuName = this.state.topologies[i];
+      let menuName = this.state.topologies[i].name;
       menuContent.push({
         icon: 'dashboard',
         label: menuName,
@@ -219,16 +217,21 @@ export default class NetworkMap extends React.Component {
       </div>;
     let siteComponents = [];
     let linkComponents = [];
-    if (this.state.topology.topology && this.state.topology.topology.sites) {
+    if (this.state.topology && this.state.topology.sites) {
 
-      Object.keys(this.state.topology.topology.sites).map(siteIndex => {
-        let site = this.state.topology.topology.sites[siteIndex];
-        let siteCoords = [site.latitude, site.longitude];
+      Object.keys(this.state.topology.sites).map(siteIndex => {
+        let site = this.state.topology.sites[siteIndex];
+        if (!site.location) {
+          site.location = {};
+          site.location.latitude = 0;
+          site.location.longitude = 0;
+        }
+        let siteCoords = [site.location.latitude, site.location.longitude];
 
         let healthyCount = 0;
         let totalCount = 0;
-        Object.keys(this.state.topology.topology.nodes).map(nodeIndex => {
-          let node = this.state.topology.topology.nodes[nodeIndex];
+        Object.keys(this.state.topology.nodes).map(nodeIndex => {
+          let node = this.state.topology.nodes[nodeIndex];
           if (node.site_name == site.name) {
             totalCount++;
             healthyCount += node.is_ignited ? 1 : 0;
@@ -261,16 +264,21 @@ export default class NetworkMap extends React.Component {
           </Marker>
         );
       });
-      Object.keys(this.state.topology.topology.links).map(linkName => {
-        let link = this.state.topology.topology.links[linkName];
+      Object.keys(this.state.topology.links).map(linkName => {
+        let link = this.state.topology.links[linkName];
         if (link.link_type != 1) {
           return;
         }
-        let aNode = this.state.sitesByName[this.state.nodesByName[link.a_node_name].site_name];
-        let zNode = this.state.sitesByName[this.state.nodesByName[link.z_node_name].site_name]
+        let aNodeSite = this.state.sitesByName[this.state.nodesByName[link.a_node_name].site_name];
+        let zNodeSite = this.state.sitesByName[this.state.nodesByName[link.z_node_name].site_name];
+
+        if (!aNodeSite.location || !zNodeSite.location) {
+          return;
+        }
+
         const linkCoords = [
-          [aNode.latitude, aNode.longitude],
-          [zNode.latitude, zNode.longitude],
+          [aNodeSite.location.latitude, aNodeSite.location.longitude],
+          [zNodeSite.location.latitude, zNodeSite.location.longitude],
         ];
         var color = link.is_alive ? 'green' : 'blue';
         linkComponents.push(
@@ -286,9 +294,9 @@ export default class NetworkMap extends React.Component {
     let siteMarkers = [];
     if (this.state.selectedNode != null) {
       let site = this.state.sitesByName[this.state.selectedNode.site_name];
-      if (site) {
+      if (site && site.location) {
         siteMarkers =
-          <Circle center={[site.latitude, site.longitude]}
+          <Circle center={[site.location.latitude, site.location.longitude]}
                   radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
                   color='red'/>;
       }
@@ -298,12 +306,12 @@ export default class NetworkMap extends React.Component {
       if (node_a && node_z) {
         let site_a = this.state.sitesByName[node_a.site_name];
         let site_z = this.state.sitesByName[node_z.site_name];
-        if (site_a && site_z) {
+        if (site_a && site_z && site_a.location && site_z.location) {
           siteMarkers = [
-            <Circle center={[site_a.latitude, site_a.longitude]}
+            <Circle center={[site_a.location.latitude, site_a.location.longitude]}
                     radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
                     color='red'/>,
-            <Circle center={[site_z.latitude, site_z.longitude]}
+            <Circle center={[site_z.location.latitude, site_z.location.longitude]}
                     radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
                     color='red'/>];
         }
@@ -365,7 +373,7 @@ export default class NetworkMap extends React.Component {
                   <TableHeaderColumn width="100" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
                   <TableHeaderColumn width="100" dataSort={true} dataField="ignited">Ignited</TableHeaderColumn>
                   <TableHeaderColumn width="100" dataSort={true} dataField="site_name">Site ID</TableHeaderColumn>
-                  <TableHeaderColumn width="100" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
+                  <TableHeaderColumn width="120" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
                   <TableHeaderColumn width="700" dataSort={true} dataField="version">Version</TableHeaderColumn>
                 </BootstrapTable>
               </TabPanel>

@@ -12,6 +12,8 @@ Adjacency = module.exports.Adjacency = function(args) {
   this.nextHopV4 = null;
   this.metric = null;
   this.adjLabel = 0;
+  this.isOverloaded = false;
+  this.rtt = null;
   if (args) {
     if (args.otherNodeName !== undefined) {
       this.otherNodeName = args.otherNodeName;
@@ -30,6 +32,12 @@ Adjacency = module.exports.Adjacency = function(args) {
     }
     if (args.adjLabel !== undefined) {
       this.adjLabel = args.adjLabel;
+    }
+    if (args.isOverloaded !== undefined) {
+      this.isOverloaded = args.isOverloaded;
+    }
+    if (args.rtt !== undefined) {
+      this.rtt = args.rtt;
     }
   }
 };
@@ -91,6 +99,20 @@ Adjacency.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 7:
+      if (ftype == Thrift.Type.BOOL) {
+        this.isOverloaded = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 8:
+      if (ftype == Thrift.Type.I32) {
+        this.rtt = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -132,6 +154,16 @@ Adjacency.prototype.write = function(output) {
     output.writeI32(this.adjLabel);
     output.writeFieldEnd();
   }
+  if (this.isOverloaded !== null && this.isOverloaded !== undefined) {
+    output.writeFieldBegin('isOverloaded', Thrift.Type.BOOL, 7);
+    output.writeBool(this.isOverloaded);
+    output.writeFieldEnd();
+  }
+  if (this.rtt !== null && this.rtt !== undefined) {
+    output.writeFieldBegin('rtt', Thrift.Type.I32, 8);
+    output.writeI32(this.rtt);
+    output.writeFieldEnd();
+  }
   output.writeFieldStop();
   output.writeStructEnd();
   return;
@@ -139,11 +171,15 @@ Adjacency.prototype.write = function(output) {
 
 AdjacencyDatabase = module.exports.AdjacencyDatabase = function(args) {
   this.thisNodeName = null;
+  this.isOverloaded = false;
   this.adjacencies = null;
   this.nodeLabel = null;
   if (args) {
     if (args.thisNodeName !== undefined) {
       this.thisNodeName = args.thisNodeName;
+    }
+    if (args.isOverloaded !== undefined) {
+      this.isOverloaded = args.isOverloaded;
     }
     if (args.adjacencies !== undefined) {
       this.adjacencies = args.adjacencies;
@@ -170,6 +206,13 @@ AdjacencyDatabase.prototype.read = function(input) {
       case 1:
       if (ftype == Thrift.Type.STRING) {
         this.thisNodeName = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.BOOL) {
+        this.isOverloaded = input.readBool();
       } else {
         input.skip(ftype);
       }
@@ -216,6 +259,11 @@ AdjacencyDatabase.prototype.write = function(output) {
   if (this.thisNodeName !== null && this.thisNodeName !== undefined) {
     output.writeFieldBegin('thisNodeName', Thrift.Type.STRING, 1);
     output.writeString(this.thisNodeName);
+    output.writeFieldEnd();
+  }
+  if (this.isOverloaded !== null && this.isOverloaded !== undefined) {
+    output.writeFieldBegin('isOverloaded', Thrift.Type.BOOL, 2);
+    output.writeBool(this.isOverloaded);
     output.writeFieldEnd();
   }
   if (this.adjacencies !== null && this.adjacencies !== undefined) {

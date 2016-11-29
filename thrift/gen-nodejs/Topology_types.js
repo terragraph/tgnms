@@ -167,21 +167,13 @@ Location.prototype.write = function(output) {
 
 Site = module.exports.Site = function(args) {
   this.name = null;
-  this.latitude = null;
-  this.longitude = null;
-  this.altitude = null;
+  this.location = null;
   if (args) {
     if (args.name !== undefined) {
       this.name = args.name;
     }
-    if (args.latitude !== undefined) {
-      this.latitude = args.latitude;
-    }
-    if (args.longitude !== undefined) {
-      this.longitude = args.longitude;
-    }
-    if (args.altitude !== undefined) {
-      this.altitude = args.altitude;
+    if (args.location !== undefined) {
+      this.location = args.location;
     }
   }
 };
@@ -207,22 +199,9 @@ Site.prototype.read = function(input) {
       }
       break;
       case 2:
-      if (ftype == Thrift.Type.DOUBLE) {
-        this.latitude = input.readDouble();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 3:
-      if (ftype == Thrift.Type.DOUBLE) {
-        this.longitude = input.readDouble();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 4:
-      if (ftype == Thrift.Type.DOUBLE) {
-        this.altitude = input.readDouble();
+      if (ftype == Thrift.Type.STRUCT) {
+        this.location = new ttypes.Location();
+        this.location.read(input);
       } else {
         input.skip(ftype);
       }
@@ -243,19 +222,9 @@ Site.prototype.write = function(output) {
     output.writeString(this.name);
     output.writeFieldEnd();
   }
-  if (this.latitude !== null && this.latitude !== undefined) {
-    output.writeFieldBegin('latitude', Thrift.Type.DOUBLE, 2);
-    output.writeDouble(this.latitude);
-    output.writeFieldEnd();
-  }
-  if (this.longitude !== null && this.longitude !== undefined) {
-    output.writeFieldBegin('longitude', Thrift.Type.DOUBLE, 3);
-    output.writeDouble(this.longitude);
-    output.writeFieldEnd();
-  }
-  if (this.altitude !== null && this.altitude !== undefined) {
-    output.writeFieldBegin('altitude', Thrift.Type.DOUBLE, 4);
-    output.writeDouble(this.altitude);
+  if (this.location !== null && this.location !== undefined) {
+    output.writeFieldBegin('location', Thrift.Type.STRUCT, 2);
+    this.location.write(output);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
