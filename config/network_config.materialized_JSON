@@ -717,75 +717,99 @@
         "sites": [
           {
             "name": "11x.f1.ta",
-            "latitude": 37.484946,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           },
           {
             "name": "12x.f1.ta",
-            "latitude": 37.484946,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "11x.f1.tb",
-            "latitude": 37.484946,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "12x.f1.tb",
-            "latitude": 37.484946,
-            "longitude": -122.1466237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1466237,
+              "altitude": 0
+            }
           },
           {
             "name": "21x.f1.ta",
-            "latitude": 37.484746,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           },
           {
             "name": "22x.f1.ta",
-            "latitude": 37.484746,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "21x.f1.tb",
-            "latitude": 37.484746,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "22x.f1.tb",
-            "latitude": 37.484746,
-            "longitude": -122.1466237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1466237,
+              "altitude": 0
+            }
           },
           {
             "name": "31x.f1.ta",
-            "latitude": 37.484546,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484546,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           },
           {
             "name": "32x.f1.ta",
-            "latitude": 37.484546,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484546,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "31x.f1.tb",
-            "latitude": 37.484546,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484546,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "32x.f1.tb",
-            "latitude": 37.484546,
-            "longitude": -122.1466237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484546,
+              "longitude": -122.1466237,
+              "altitude": 0
+            }
           }
         ]
       },
@@ -1007,39 +1031,51 @@
         "sites": [
           {
             "name": "A",
-            "latitude": 37.484946,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           },
           {
             "name": "B",
-            "latitude": 37.484946,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "C",
-            "latitude": 37.484946,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "D",
-            "latitude": 37.484746,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "E",
-            "latitude": 37.484746,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "F",
-            "latitude": 37.484746,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           }
         ]
       },
@@ -1261,39 +1297,51 @@
         "sites": [
           {
             "name": "A",
-            "latitude": 37.484946,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           },
           {
             "name": "B",
-            "latitude": 37.484946,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "C",
-            "latitude": 37.484946,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "D",
-            "latitude": 37.484746,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "E",
-            "latitude": 37.484746,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "F",
-            "latitude": 37.484746,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           }
         ]
       },
@@ -1515,39 +1563,51 @@
         "sites": [
           {
             "name": "A",
-            "latitude": 37.484946,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           },
           {
             "name": "B",
-            "latitude": 37.484946,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "C",
-            "latitude": 37.484946,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484946,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "D",
-            "latitude": 37.484746,
-            "longitude": -122.1469237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1469237,
+              "altitude": 0
+            }
           },
           {
             "name": "E",
-            "latitude": 37.484746,
-            "longitude": -122.1472237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1472237,
+              "altitude": 0
+            }
           },
           {
             "name": "F",
-            "latitude": 37.484746,
-            "longitude": -122.1475237,
-            "altitude": 0
+            "location": {
+              "latitude": 37.484746,
+              "longitude": -122.1475237,
+              "altitude": 0
+            }
           }
         ]
       },
