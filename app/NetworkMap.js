@@ -61,8 +61,8 @@ export default class NetworkMap extends React.Component {
     const rows = [];
     Object.keys(nodes).forEach(nodeName => {
       let node = nodes[nodeName];
-      var version = 'Not Available';
-      var ipv6 = 'Not Available';
+      var ipv6 = node.status ? node.status.ipv6Address : 'Not Available';
+      var version = node.status ? node.status.version.slice(28) : 'Not Available';
       rows.push(
         {
           name: node.name,
