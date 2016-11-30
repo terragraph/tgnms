@@ -6,11 +6,6 @@ import { Map, Marker, Polyline, Popup, TileLayer, Circle} from 'react-leaflet';
 // graphs
 import MetricGraph from './MetricGraph.js';
 import styles from './App.css';
-// side bar
-import Sidebar from 'react-sidebar';
-// menu
-import MetisMenu from 'react-metismenu';
-import TopologyConfigItem from './TopologyConfigItem.js';
 // dispatcher
 import Dispatcher from './MapDispatcher.js';
 
@@ -47,7 +42,8 @@ export default class NetworkMap extends React.Component {
 
   constructor(props) {
     super(props);
-    this.dispatchToken = Dispatcher.register(this.handleDispatchEvent.bind(this));
+    this.dispatchToken = Dispatcher.register(
+      this.handleDispatchEvent.bind(this));
   }
 
   _getNodesRows(nodes): Array<{name:string,
@@ -147,27 +143,9 @@ export default class NetworkMap extends React.Component {
 
   componentWillMount() {
     this.setState({
-      topologies: {},
       topology: {},
       nodesTableData: [],
     });
-    // fetch topology config
-    let topoListFetch = new Request('/topology/list');
-    fetch(topoListFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          let topologyToIpMap = {};
-          Object.keys(json).map(topologyIndex => {
-            let topology = json[topologyIndex];
-            topologyToIpMap[topology.name] = topology.controller_ip;
-          });
-          this.setState({
-            topologies: json,
-            topologyToIpMap: topologyToIpMap,
-          });
-        }.bind(this));
-      }
-    }.bind(this));
   }
 
   componentDidMount() {
@@ -207,26 +185,10 @@ export default class NetworkMap extends React.Component {
   }
 
   render() {
-    const position = [37.484494, -122.1483976];
-    // generate menu content
-    let menuContent = [];
-    for (let i = 0; i < this.state.topologies.length; i++) {
-      let menuName = this.state.topologies[i].name;
-      menuContent.push({
-        icon: 'dashboard',
-        label: menuName,
-        to: menuName,
-      });
-    }
-    let menu =
-      <div>
-        Select a topology
-        <MetisMenu content={menuContent} LinkComponent={TopologyConfigItem} />
-      </div>;
+    const centerPosition = [37.484494, -122.1483976];
     let siteComponents = [];
     let linkComponents = [];
     if (this.state.topology && this.state.topology.sites) {
-
       Object.keys(this.state.topology.sites).map(siteIndex => {
         let site = this.state.topology.sites[siteIndex];
         if (!site.location) {
@@ -262,11 +224,6 @@ export default class NetworkMap extends React.Component {
             <Popup>
               <div>
                 Some nodes here..
-                <MetricGraph
-                  title="terra111.f1.xx"
-                  node="00:00:00:10:0c:40"
-                  metric="bandwidth"
-                />
               </div>
             </Popup>
           </Marker>
@@ -343,73 +300,69 @@ export default class NetworkMap extends React.Component {
     };
 
     return (
-        <Sidebar sidebar={menu}
-          open={true}
-          sidebarClassName="menu"
-          docked={true}>
-          <SplitPane
-            split="horizontal"
-            defaultSize="50%"
-            onChange={this._paneChange.bind(this)}>
-            <Map
-              ref='map'
-              onZoom={this._onMapZoom.bind(this)}
-              center={position} zoom={18}>
-              <TileLayer
-                url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-                attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              />
-              {siteComponents}
-              {linkComponents}
-              {siteMarkers}
-            </Map>
-            <Tabs
-              onSelect={this._handleTabSelect.bind(this)}
-              selectedIndex={this.state.selectedTabIndex}
-            >
-              <TabList>
-                <Tab>Nodes</Tab>
-                <Tab>Links</Tab>
-                <Tab>Test</Tab>
-              </TabList>
-              <TabPanel>
-                <BootstrapTable
-                    height="400"
-                    key="nodesTable"
-                    data={this.state.nodesTableData}
-                    striped={true} hover={true}
-                    selectRow={nodesSelectRowProp}>
-                  <TableHeaderColumn width="200" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-                  <TableHeaderColumn width="200" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
-                  <TableHeaderColumn width="200" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
-                  <TableHeaderColumn width="100" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
-                  <TableHeaderColumn width="100" dataSort={true} dataField="ignited">Ignited</TableHeaderColumn>
-                  <TableHeaderColumn width="100" dataSort={true} dataField="site_name">Site ID</TableHeaderColumn>
-                  <TableHeaderColumn width="120" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
-                  <TableHeaderColumn width="700" dataSort={true} dataField="version">Version</TableHeaderColumn>
-                </BootstrapTable>
-              </TabPanel>
-              <TabPanel>
-                <BootstrapTable
-                    height="400"
-                    key="linksTable"
-                    data={this.state.linksTableData}
-                    striped={true} hover={true}
-                    selectRow={linksSelectRowProp}>
-                  <TableHeaderColumn width="400" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-                  <TableHeaderColumn width="200" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
-                  <TableHeaderColumn width="200" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
-                  <TableHeaderColumn width="100" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
-                  <TableHeaderColumn width="100" dataSort={true} dataField="type">Type</TableHeaderColumn>
-                </BootstrapTable>
-              </TabPanel>
-              <TabPanel>
+      <div>
+        <SplitPane
+          split="horizontal"
+          defaultSize="50%"
+          onChange={this._paneChange.bind(this)}>
+          <Map
+            ref='map'
+            onZoom={this._onMapZoom.bind(this)}
+            center={centerPosition} zoom={18}>
+            <TileLayer
+              url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+              attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            />
+            {siteComponents}
+            {linkComponents}
+            {siteMarkers}
+          </Map>
+          <Tabs
+            onSelect={this._handleTabSelect.bind(this)}
+            selectedIndex={this.state.selectedTabIndex}
+          >
+            <TabList>
+              <Tab>Nodes</Tab>
+              <Tab>Links</Tab>
+              <Tab>Test</Tab>
+            </TabList>
+            <TabPanel>
+              <BootstrapTable
+                  height="400"
+                  key="nodesTable"
+                  data={this.state.nodesTableData}
+                  striped={true} hover={true}
+                  selectRow={nodesSelectRowProp}>
+                <TableHeaderColumn width="200" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
+                <TableHeaderColumn width="200" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
+                <TableHeaderColumn width="200" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
+                <TableHeaderColumn width="100" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
+                <TableHeaderColumn width="100" dataSort={true} dataField="ignited">Ignited</TableHeaderColumn>
+                <TableHeaderColumn width="100" dataSort={true} dataField="site_name">Site ID</TableHeaderColumn>
+                <TableHeaderColumn width="120" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
+                <TableHeaderColumn width="700" dataSort={true} dataField="version">Version</TableHeaderColumn>
+              </BootstrapTable>
+            </TabPanel>
+            <TabPanel>
+              <BootstrapTable
+                  height="400"
+                  key="linksTable"
+                  data={this.state.linksTableData}
+                  striped={true} hover={true}
+                  selectRow={linksSelectRowProp}>
+                <TableHeaderColumn width="400" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
+                <TableHeaderColumn width="200" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
+                <TableHeaderColumn width="200" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
+                <TableHeaderColumn width="100" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
+                <TableHeaderColumn width="100" dataSort={true} dataField="type">Type</TableHeaderColumn>
+              </BootstrapTable>
+            </TabPanel>
+            <TabPanel>
 
-              </TabPanel>
-            </Tabs>
-          </SplitPane>
-        </Sidebar>
-
+            </TabPanel>
+          </Tabs>
+        </SplitPane>
+      </div>
     );
   }
 }

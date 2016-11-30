@@ -1,23 +1,18 @@
 import React from 'react';
 // leaflet maps
 import { render } from 'react-dom';
-import Leaflet from 'leaflet';
-import { Map, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
 // graphs
-import MetricGraph from './MetricGraph.js';
-import styles from './App.css';
-// side bar
-import Sidebar from 'react-sidebar';
-// menu
-import MetisMenu from 'react-metismenu';
-import TopologyConfigItem from './TopologyConfigItem.js';
+import ReactGraph from './ReactGraph.js';
 // dispatcher
 import Dispatcher from './MapDispatcher.js';
+// layout components
+import { SpringGrid } from 'react-stonecutter';
 
 export default class NetworkDashboard extends React.Component {
   constructor(props) {
     super(props);
-    this.dispatchToken = Dispatcher.register(this.handleDispatchEvent.bind(this));
+    this.dispatchToken = Dispatcher.register(
+      this.handleDispatchEvent.bind(this));
   }
 
   handleDispatchEvent(payload) {
@@ -40,113 +35,70 @@ export default class NetworkDashboard extends React.Component {
 
   componentWillMount() {
     this.setState({
-      topologies: {},
       topology: {},
     });
-    // fetch topology config
-    let topoListFetch = new Request('/topology/list');
-    fetch(topoListFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          this.setState({
-            topologies: json,
-          });
-        }.bind(this));
-      }
-    }.bind(this));
   }
 
   render() {
-    // generate menu content
-    let menuContent = [];
-    for (let i = 0; i < this.state.topologies.length; i++) {
-      let menuName = this.state.topologies[i];
-      menuContent.push({
-        icon: 'dashboard',
-        label: menuName,
-        to: menuName,
-      });
-    }
-    let menu =
-      <div>
-        Select a topology
-        <MetisMenu content={menuContent} LinkComponent={TopologyConfigItem} />
-      </div>;
-    let siteComponents = [];
-    let linkComponents = [];
+    let gridComponents = [];
     if (this.state.topology.topology && this.state.topology.topology.sites) {
       // index nodes by name
-      let nodesByName = {};
+      let nodeMacList = [];
       Object.keys(this.state.topology.topology.nodes).map(nodeIndex => {
         let node = this.state.topology.topology.nodes[nodeIndex];
-        nodesByName[node.name] = node;
+        nodeMacList.push(node.mac_addr);
       });
-      let sitesByName = {};
-      Object.keys(this.state.topology.topology.sites).map(siteIndex => {
-        let site = this.state.topology.topology.sites[siteIndex];
-        sitesByName[site.name] = site;
-      });
-      // sites
-      let siteIcon = Leaflet.icon({
-        iconUrl: '/static/images/unknown.png',
-        iconSize: [15, 17],
-        iconAnchor: [7, 8],
-      });
-      Object.keys(this.state.topology.topology.sites).map(siteName => {
-        let site = this.state.topology.topology.sites[siteName];
-        let siteCoords = [site.latitude, site.longitude];
-        // show all nodes
-        siteComponents.push(
-          <Marker
-            icon={siteIcon}
-            key={siteName}
-            position={siteCoords}>
-            <Popup>
-              <div>
-                Some nodes here..
-                <MetricGraph
-                  title="terra111.f1.xx"
-                  node="00:00:00:10:0c:40"
-                  metric="bandwidth"
-                />
-              </div>
-            </Popup>
-          </Marker>
-        );
-      });
-      Object.keys(this.state.topology.topology.links).map(linkName => {
-        let link = this.state.topology.topology.links[linkName];
-        if (link.link_type != 1) {
-          return;
-        }
-        let aNode = sitesByName[nodesByName[link.a_node_name].site_name];
-        let zNode = sitesByName[nodesByName[link.z_node_name].site_name]
-        const linkCoords = [
-          [aNode.latitude, aNode.longitude],
-          [zNode.latitude, zNode.longitude],
-        ];
-        linkComponents.push(
-          <Polyline
-            key={link.name}
-            positions={linkCoords}
+      let nodeMacListStr = nodeMacList.join(",");
+/*      gridComponents.push(
+        <li key="bandwidth-agg">
+          <ReactGraph
+            key="bandwidth-agg"
+            title="Aggregate RF Bandwidth"
+            node={nodeMacListStr}
+            metric="traffic_sum"
+            size="large"
+          />
+        </li>);*/
+      const aggGraphs = [
+        ["nodes_traffic_tx", "nodes-traffic-tx", "Node Bandwidth (TX)"],
+        ["nodes_traffic_rx", "nodes-traffic-rx", "Node Bandwidth (RX)"],
+        ["traffic_sum", "traffic-sum", "Aggregate RF Bandwidth"],
+      ];
+      gridComponents = aggGraphs.map(graph => {
+        return (
+          <li key={graph[1] + "-li"}>
+            <ReactGraph
+              key={graph[1]}
+              title={graph[2]}
+              node={nodeMacListStr}
+              metric={graph[0]}
+              size="large"
             />
+          </li>
         );
       });
+/*      gridComponents.push(
+        <li key="nodes-traffix-tx">
+          <ReactGraph
+            key="nodes-traffic-tx"
+            title="Node Bandwidth (TX)"
+            node={nodeMacListStr}
+            metric="nodes_traffic_tx"
+            size="large"
+          />
+        </li>);*/
     }
     return (
-        <Sidebar sidebar={menu}
-          open={true}
-          sidebarClassName="menu"
-          docked={true}>
-          <Map center={position} zoom={18}>
-            <TileLayer
-              url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-              attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            />
-            {siteComponents}
-            {linkComponents}
-          </Map>
-        </Sidebar>
+      <SpringGrid
+        component="ul"
+        className="dashboard-grid"
+        columns={4}
+        columnWidth={400}
+        gutterWidth={5}
+        gutterHeight={5}
+        itemHeight={300}>
+        {gridComponents}
+      </SpringGrid>
     );
   }
 }
