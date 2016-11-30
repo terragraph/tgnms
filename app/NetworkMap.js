@@ -220,7 +220,6 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-
   _siteSortFunc(a, b, order) {   // order is desc or asc
     if (this.state.selectedSiteName) {
       if (a.site_name == this.state.selectedSiteName) {
@@ -295,6 +294,11 @@ export default class NetworkMap extends React.Component {
             siteIndex={siteIndex}
             onclick={this._handleMarkerClick.bind(this)}
             position={siteCoords}>
+            <Popup>
+              <div>
+                Some nodes here..
+              </div>
+            </Popup>
           </Marker>
         );
       });
@@ -393,52 +397,7 @@ export default class NetworkMap extends React.Component {
             {linkComponents}
             {siteMarkers}
           </Map>
-          <Tabs
-            onSelect={this._handleTabSelect.bind(this)}
-            selectedIndex={this.state.selectedTabIndex}
-          >
-            <TabList>
-              <Tab>Nodes</Tab>
-              <Tab>Links</Tab>
-              <Tab>Test</Tab>
-            </TabList>
-            <TabPanel>
-              <BootstrapTable
-                  height={this.state.tableHeight + 'px'}
-                  key="nodesTable"
-                  data={this.state.nodesTableData}
-                  options={ tableOptions }
-                  striped={true} hover={true}
-                  selectRow={nodesSelectRowProp}>
-                <TableHeaderColumn width="180" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-                <TableHeaderColumn width="170" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
-                <TableHeaderColumn width="180" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
-                <TableHeaderColumn width="80" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
-                <TableHeaderColumn width="80" dataSort={true} dataField="ignited">Ignited</TableHeaderColumn>
-                <TableHeaderColumn width="80" dataSort={true}
-                    sortFunc={this._siteSortFunc} dataField="site_name">Site ID</TableHeaderColumn>
-                <TableHeaderColumn width="100" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
-                <TableHeaderColumn dataSort={true} dataField="version">Version</TableHeaderColumn>
-              </BootstrapTable>
-            </TabPanel>
-            <TabPanel>
-              <BootstrapTable
-                  height={this.state.tableHeight + 'px'}
-                  key="linksTable"
-                  data={this.state.linksTableData}
-                  striped={true} hover={true}
-                  selectRow={linksSelectRowProp}>
-                <TableHeaderColumn width="350" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-                <TableHeaderColumn width="180" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
-                <TableHeaderColumn width="180" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
-                <TableHeaderColumn width="80" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
-                <TableHeaderColumn dataSort={true} dataField="type">Type</TableHeaderColumn>
-              </BootstrapTable>
-            </TabPanel>
-            <TabPanel>
-
-            </TabPanel>
-          </Tabs>
+          <NetworkDataTable />
         </SplitPane>
       </div>
     );
