@@ -52,6 +52,7 @@ function getTopology(index) {
   let dealer = zmq.socket('dealer');
   dealer.identity = 'NMS_WEB_TOPO';
   dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
+  dealer.setsockopt(zmq.ZMQ_LINGER, 0);
   dealer.connect('tcp://[' + config.controller_ip +']:17077');
   dealer.on('message', function (receiver, senderApp, msg) {
     clearTimeout(timeout);
@@ -105,6 +106,7 @@ function getStatusDump(index) {
   let dealer = zmq.socket('dealer');
   dealer.identity = 'NMS_WEB_STATUS';
   dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
+  dealer.setsockopt(zmq.ZMQ_LINGER, 0);
   dealer.connect('tcp://[' + config.controller_ip +']:17077');
   dealer.on('message', function (receiver, senderApp, msg) {
     clearTimeout(timeout);
