@@ -37,6 +37,10 @@ export default class MetricGraph extends React.Component {
       if (!data[i].length) {
         continue;
       }
+      // drop the first and last data point from being graphed, since it
+      // won't represent the sum for a whole window
+      data[i].splice(0, 1);
+      data[i].splice(data[i].length - 1, 1);
       switch (this.props.metric) {
         case 'bandwidth':
           switch (data[i][0].name) {
@@ -57,11 +61,20 @@ export default class MetricGraph extends React.Component {
       // no data
       return;
     }
+    // small
+    let width = 250;
+    let height = 200;
+    switch (this.props.size) {
+      case 'large':
+        width = 400;
+        height = 300;
+        break;
+    }
     MG.data_graphic({
         title: this.props.title,
         data: data,
-        width: 250,
-        height: 200,
+        width: width,
+        height: height,
         right: 80,
         target: '#' + this.getContainerId(),
         legend: keyNames,
@@ -79,7 +92,17 @@ export default class MetricGraph extends React.Component {
       default:
         console.error('Unknown metric type: ' + this.props.metric);
     }
-    var dataFetch = new Request('/influx/' + this.props.node + '/' + metricNames);
+    // prop type = {single, aggregate}
+    let viewUrl = '';
+    switch (this.props.view) {
+      case 'single':
+        viewUrl = '/influx/';
+        break;
+      case 'aggregate':
+        viewUrl = '/influx_agg/';
+        break;
+    }
+    var dataFetch = new Request(viewUrl + this.props.node + '/' + metricNames);
     fetch(dataFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -104,5 +127,7 @@ export default class MetricGraph extends React.Component {
 MetricGraph.propTypes = {
   node: React.PropTypes.string.isRequired,
   metric: React.PropTypes.string.isRequired,
-  title: React.PropTypes.string.isRequired
+  title: React.PropTypes.string.isRequired,
+  size: React.PropTypes.string.isRequired,
+  view: React.PropTypes.string.isRequired,
 };

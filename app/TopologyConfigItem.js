@@ -7,8 +7,6 @@ export default class TopologyConfigItem extends React.Component {
   }
 
   topologySelected(e) {
-    console.log(e);
-    console.log(this.props);
     let topologyName = this.props.to;
     // dispatch event
     Dispatcher.dispatch({

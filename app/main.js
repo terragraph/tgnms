@@ -1,5 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import NetworkSplit from './NetworkSplit.js';
 import NetworkMap from './NetworkMap.js';
 
-ReactDOM.render(<NetworkMap />, document.getElementById('root'));
+ReactDOM.render(
+  <NetworkSplit>
+    <NetworkMap />
+  </NetworkSplit>, document.getElementById('root'));

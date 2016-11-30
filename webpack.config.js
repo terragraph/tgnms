@@ -11,10 +11,6 @@ module.exports = {
       'webpack-hot-middleware/client?reload=true',
       path.join(__dirname, 'app/main.js')
     ],
-    dashboard: [
-      'webpack-hot-middleware/client?reload=true',
-      path.join(__dirname, 'app/dashboard.js')
-    ],
   },
   output: {
     path: path.join(__dirname, '/dist/'),
@@ -24,13 +20,8 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: 'app/index.tpl.html',
-      inject: false,
+      inject: true,
       filename: 'index.html'
-    }),
-    new HtmlWebpackPlugin({
-      template: 'app/dashboard.tpl.html',
-      inject: false,
-      filename: 'dashboard.html'
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),

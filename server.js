@@ -11,29 +11,12 @@ const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
 const app = express();
 const fs = require('fs');
 const zmq = require('zmq');
+const influxHelper = require('./influx');
+
+// thrift serialization
 const thrift = require('thrift');
 var Topology_ttypes = require('./thrift/gen-nodejs/Topology_types');
 var Controller_ttypes = require('./thrift/gen-nodejs/Controller_types');
-
-// db
-const Influx = require('influx');
-const influx = new Influx.InfluxDB({
-  host: 'localhost',
-  database: 'cxl',
-  schema: [
-    {
-      measurement: 'value',
-      fields: {
-        name: Influx.FieldType.STRING,
-        node: Influx.FieldType.STRING,
-      },
-      tags: [
-        'name',
-        'node',
-      ]
-    }
-  ]
-});
 
 var fileTopologies = [];
 var configs = [];
@@ -202,24 +185,19 @@ if (isDeveloping) {
   app.use('/static', express.static(path.join(__dirname, 'static')));
   app.use(middleware);
   app.use(webpackHotMiddleware(compiler));
-
-  app.get(/\/influx\/([a-z0-9\:]+)\/([a-z0-9_\,\.]+)$/i, function (req, res, next) {
-    let nodeMac = req.params[0];
-    let metricNames = req.params[1].split(",");
-    // split node macs
-    let queries = metricNames.map(metric => {
-      let query =
-        "SELECT \"name\",\"value\" FROM \"system\" WHERE \"name\" = '" +
-        metric + "' AND (\"node\" = '" + nodeMac + "') " +
-        "AND time > (NOW() - 5m)";
-      return query;
-    });
-    influx.query(queries).then(result => {
-      res.json(result);
-    }).catch(err => {
-      console.log(err);
-      res.status(500).send(err.stack);
-    });
+  // single node
+  app.get(/\/influx\/([a-z_]+)\/([a-z0-9\:\,]+)$/i, function (req, res, next) {
+    influxHelper.query(req, res, next);
+  });
+  // single node, multiple terms
+  app.get(/\/topology\/refresh$/, function (req, res, next) {
+    let dealer = zmq.socket('dealer');
+    dealer.connect('tcp://[2620:10d:c089:e00c:20C:29FF:FE69:6C10]:17077');
+    dealer.send('');
+    dealer.send('ctrl-app-TOPOLOGY_APP');
+    dealer.send('NMS_WEB');
+    let topologyReq = t.getTopologyReq();
+    dealer.send(topologyReq);
   });
   app.get(/\/topology\/static$/, function(req, res, next) {
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
@@ -258,7 +236,9 @@ if (isDeveloping) {
         res.json(topology);
         return;
       }
+      // return error on unknown topology
     }
+    res.status(404).end("No such topology\n");
   });
 } else {
   app.use(express.static(__dirname + '/dist'));
