@@ -170,6 +170,10 @@ export default class NetworkMap extends React.Component {
     }.bind(this));
   }
 
+  componentDidMount() {
+    this.refs.map.leafletElement.invalidateSize();
+  }
+
   _nodesOnRowSelect(row, isSelected){
     this.setState({
       selectedNode: row,
@@ -196,6 +200,10 @@ export default class NetworkMap extends React.Component {
     this.setState({
       zoomLevel: data.target._zoom,
     });
+  }
+
+  _paneChange(newSize) {
+    this.refs.map.leafletElement.invalidateSize();
   }
 
   render() {
@@ -339,8 +347,12 @@ export default class NetworkMap extends React.Component {
           open={true}
           sidebarClassName="menu"
           docked={true}>
-          <SplitPane split="horizontal" defaultSize="50%">
+          <SplitPane
+            split="horizontal"
+            defaultSize="50%"
+            onChange={this._paneChange.bind(this)}>
             <Map
+              ref='map'
               onZoom={this._onMapZoom.bind(this)}
               center={position} zoom={18}>
               <TileLayer
