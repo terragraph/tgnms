@@ -38,6 +38,7 @@ export default class NetworkMap extends React.Component {
     selectedNode: null,
     selectedLink: null,
     zoomLevel: 18,
+    tableHeight: window.innerHeight/2 - 50,
   };
 
   constructor(props) {
@@ -182,6 +183,9 @@ export default class NetworkMap extends React.Component {
 
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
+    this.setState({
+      tableHeight: window.innerHeight - newSize - 50,
+    });
   }
 
   render() {
@@ -328,33 +332,33 @@ export default class NetworkMap extends React.Component {
             </TabList>
             <TabPanel>
               <BootstrapTable
-                  height="400"
+                  height={this.state.tableHeight + 'px'}
                   key="nodesTable"
                   data={this.state.nodesTableData}
                   striped={true} hover={true}
                   selectRow={nodesSelectRowProp}>
-                <TableHeaderColumn width="200" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-                <TableHeaderColumn width="200" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
-                <TableHeaderColumn width="200" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
-                <TableHeaderColumn width="100" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
-                <TableHeaderColumn width="100" dataSort={true} dataField="ignited">Ignited</TableHeaderColumn>
-                <TableHeaderColumn width="100" dataSort={true} dataField="site_name">Site ID</TableHeaderColumn>
-                <TableHeaderColumn width="120" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
-                <TableHeaderColumn width="700" dataSort={true} dataField="version">Version</TableHeaderColumn>
+                <TableHeaderColumn width="180" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
+                <TableHeaderColumn width="170" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
+                <TableHeaderColumn width="180" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
+                <TableHeaderColumn width="80" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
+                <TableHeaderColumn width="80" dataSort={true} dataField="ignited">Ignited</TableHeaderColumn>
+                <TableHeaderColumn width="80" dataSort={true} dataField="site_name">Site ID</TableHeaderColumn>
+                <TableHeaderColumn width="100" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
+                <TableHeaderColumn dataSort={true} dataField="version">Version</TableHeaderColumn>
               </BootstrapTable>
             </TabPanel>
             <TabPanel>
               <BootstrapTable
-                  height="400"
+                  height={this.state.tableHeight + 'px'}
                   key="linksTable"
                   data={this.state.linksTableData}
                   striped={true} hover={true}
                   selectRow={linksSelectRowProp}>
-                <TableHeaderColumn width="400" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-                <TableHeaderColumn width="200" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
-                <TableHeaderColumn width="200" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
-                <TableHeaderColumn width="100" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
-                <TableHeaderColumn width="100" dataSort={true} dataField="type">Type</TableHeaderColumn>
+                <TableHeaderColumn width="350" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
+                <TableHeaderColumn width="180" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
+                <TableHeaderColumn width="180" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
+                <TableHeaderColumn width="80" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
+                <TableHeaderColumn dataSort={true} dataField="type">Type</TableHeaderColumn>
               </BootstrapTable>
             </TabPanel>
             <TabPanel>
