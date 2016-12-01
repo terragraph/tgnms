@@ -35,16 +35,22 @@ const HEALTHY_MARKER = Leaflet.icon({
 
 export default class NetworkMap extends React.Component {
   state = {
-    selectedNode: null,
+    selectedNodeSite: null,
     selectedLink: null,
     zoomLevel: 18,
     tableHeight: window.innerHeight/2 - 50,
+    sortName: undefined,
+    sortOrder: undefined,
+    selectedSiteName: undefined,
+    nodesSelected: [],
   };
 
   constructor(props) {
     super(props);
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    this.onSortChange = this.onSortChange.bind(this);
+    this._siteSortFunc = this._siteSortFunc.bind(this);
   }
 
   _getNodesRows(nodes): Array<{name:string,
@@ -100,6 +106,11 @@ export default class NetworkMap extends React.Component {
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case 'topologySelected':
+        this.setState({
+          nodesSelected: [],
+          selectedNodeSite: null,
+          selectedLink: null,
+        });
         self = this;
         function getNetworkStatus() {
           let topoGetFetch = new Request('/topology/get/' +
@@ -155,14 +166,15 @@ export default class NetworkMap extends React.Component {
 
   _nodesOnRowSelect(row, isSelected){
     this.setState({
-      selectedNode: row,
+      nodesSelected: [row.name],
+      selectedNodeSite: row.site_name,
       selectedLink: null,
     });
   }
 
   _linksOnRowSelect(row, isSelected){
     this.setState({
-      selectedNode: null,
+      selectedNodeSite: null,
       selectedLink:  row,
     });
   }
@@ -170,8 +182,28 @@ export default class NetworkMap extends React.Component {
   _handleTabSelect(index, last) {
     this.setState({
       selectedTabIndex: index,
-      selectedNode: null,
+      nodesSelected: [],
+      selectedNodeSite: null,
       selectedLink: null,
+    });
+  }
+
+  _handleMarkerClick(ev) {
+    let site = this.state.topology.sites[ev.target.options.siteIndex];
+    var selectedRows = [];
+
+    Object.keys(this.state.topology.nodes).map(nodeIndex => {
+      let node = this.state.topology.nodes[nodeIndex];
+      if (node.site_name == site.name) {
+        selectedRows.push(node.name);
+      }
+    });
+    this.setState({
+      sortName: "site_name",
+      sortOrder: "desc",
+      selectedSiteName: site.name,
+      nodesSelected: selectedRows,
+      selectedNodeSite: site.name
     });
   }
 
@@ -185,6 +217,42 @@ export default class NetworkMap extends React.Component {
     this.refs.map.leafletElement.invalidateSize();
     this.setState({
       tableHeight: window.innerHeight - newSize - 50,
+    });
+  }
+
+
+  _siteSortFunc(a, b, order) {   // order is desc or asc
+    if (this.state.selectedSiteName) {
+      if (a.site_name == this.state.selectedSiteName) {
+        return -1;
+      } else if (b.site_name == this.state.selectedSiteName) {
+        return 1;
+      }
+    }
+
+    if (order === 'desc') {
+      if (a.site_name > b.site_name) {
+        return -1;
+      } else if (a.site_name < b.site_name) {
+        return 1;
+      }
+      return 0;
+    } else {
+      if (a.site_name < b.site_name) {
+        return -1;
+      } else if (a.site_name > b.site_name) {
+        return 1;
+      }
+      return 0;
+    }
+  }
+
+  onSortChange(sortName, sortOrder) {
+    console.info('onSortChange', arguments);
+    this.setState({
+      sortName,
+      sortOrder,
+      selectedSiteName: undefined
     });
   }
 
@@ -224,12 +292,9 @@ export default class NetworkMap extends React.Component {
           <Marker
             icon={contextualMarker}
             key={siteIndex}
+            siteIndex={siteIndex}
+            onclick={this._handleMarkerClick.bind(this)}
             position={siteCoords}>
-            <Popup>
-              <div>
-                Some nodes here..
-              </div>
-            </Popup>
           </Marker>
         );
       });
@@ -261,8 +326,8 @@ export default class NetworkMap extends React.Component {
     }
 
     let siteMarkers = [];
-    if (this.state.selectedNode != null) {
-      let site = this.state.sitesByName[this.state.selectedNode.site_name];
+    if (this.state.selectedNodeSite != null) {
+      let site = this.state.sitesByName[this.state.selectedNodeSite];
       if (site && site.location) {
         siteMarkers =
           <Circle center={[site.location.latitude, site.location.longitude]}
@@ -288,11 +353,12 @@ export default class NetworkMap extends React.Component {
     }
 
     var nodesSelectRowProp = {
-      mode: "radio",
+      mode: "checkbox",
       clickToSelect: true,
       hideSelectColumn: true,
       bgColor: "rgb(238, 193, 213)",
-      onSelect: this._nodesOnRowSelect.bind(this)
+      onSelect: this._nodesOnRowSelect.bind(this),
+      selected: this.state.nodesSelected
     };
 
     var linksSelectRowProp = {
@@ -301,6 +367,12 @@ export default class NetworkMap extends React.Component {
       hideSelectColumn: true,
       bgColor: "rgb(238, 193, 213)",
       onSelect: this._linksOnRowSelect.bind(this)
+    };
+
+    const tableOptions = {
+      sortName: this.state.sortName,
+      sortOrder: this.state.sortOrder,
+      onSortChange: this.onSortChange
     };
 
     return (
@@ -335,6 +407,7 @@ export default class NetworkMap extends React.Component {
                   height={this.state.tableHeight + 'px'}
                   key="nodesTable"
                   data={this.state.nodesTableData}
+                  options={ tableOptions }
                   striped={true} hover={true}
                   selectRow={nodesSelectRowProp}>
                 <TableHeaderColumn width="180" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
@@ -342,7 +415,8 @@ export default class NetworkMap extends React.Component {
                 <TableHeaderColumn width="180" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
                 <TableHeaderColumn width="80" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
                 <TableHeaderColumn width="80" dataSort={true} dataField="ignited">Ignited</TableHeaderColumn>
-                <TableHeaderColumn width="80" dataSort={true} dataField="site_name">Site ID</TableHeaderColumn>
+                <TableHeaderColumn width="80" dataSort={true}
+                    sortFunc={this._siteSortFunc} dataField="site_name">Site ID</TableHeaderColumn>
                 <TableHeaderColumn width="100" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
                 <TableHeaderColumn dataSort={true} dataField="version">Version</TableHeaderColumn>
               </BootstrapTable>
