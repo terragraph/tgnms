@@ -122,6 +122,7 @@ var self = {
       default:
         console.error('Undefined metric:', metricType);
     }
+    console.log(queries);
     influx.queryRaw(queries).then(result => {
       // output post-processing
       switch (metricType) {
