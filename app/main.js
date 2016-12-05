@@ -1,9 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import NetworkSplit from './NetworkSplit.js';
-import NetworkMap from './NetworkMap.js';
+import NetworkUI from './NetworkUI.js';
 
-ReactDOM.render(
-  <NetworkSplit>
-    <NetworkMap />
-  </NetworkSplit>, document.getElementById('root'));
+ReactDOM.render(<NetworkUI />, document.getElementById('root'));

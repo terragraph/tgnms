@@ -12,7 +12,7 @@ import Dispatcher from './NetworkDispatcher.js';
 import NetworkDashboard from './NetworkDashboard.js';
 import NetworkMap from './NetworkMap.js';
 
-export default class NetworkSplit extends React.Component {
+export default class NetworkUI extends React.Component {
   state = {
     view: 'map',
     topologyName: null,
@@ -22,12 +22,11 @@ export default class NetworkSplit extends React.Component {
 
   constructor(props) {
     super(props);
-    // default to map pane
     // register for menu changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
     // refresh network config
-    setInterval(this.getNetworkStatusPeriodic.bind(this), 10000);
+    setInterval(this.getNetworkStatusPeriodic.bind(this), 2000);
   }
 
   getNetworkStatusPeriodic() {

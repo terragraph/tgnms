@@ -3,15 +3,11 @@ import React from 'react';
 import { render } from 'react-dom';
 import Leaflet from 'leaflet';
 import { Map, Marker, Polyline, Popup, TileLayer, Circle} from 'react-leaflet';
-// graphs
-import MetricGraph from './MetricGraph.js';
-import styles from './App.css';
 // dispatcher
-import Dispatcher from './MapDispatcher.js';
-
+import Dispatcher from './NetworkDispatcher.js';
 import SplitPane from 'react-split-pane';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import NetworkDataTable from './NetworkDataTable.js';
+import NetworkStore from './NetworkStore.js';
 
 // markers to show health of sectors on a site
 const UNKNOWN_MARKER = Leaflet.icon({
@@ -37,174 +33,94 @@ export default class NetworkMap extends React.Component {
   state = {
     selectedNodeSite: null,
     selectedLink: null,
+    nodesSelected: [],
+    topologyName: null,
+    topologyJson: {},
     zoomLevel: 18,
-    tableHeight: window.innerHeight/2 - 50,
+    // sorting
     sortName: undefined,
     sortOrder: undefined,
     selectedSiteName: undefined,
-    nodesSelected: [],
-  };
+  }
 
   constructor(props) {
     super(props);
+  }
+
+  componentWillMount() {
+    // register once we're visible
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    this.onSortChange = this.onSortChange.bind(this);
-    this._siteSortFunc = this._siteSortFunc.bind(this);
+    // update default state from the store
+    if (NetworkStore.topologyName && NetworkStore.topologyJson) {
+      this.setState(this.updateTopologyState(NetworkStore.topologyJson));
+    }
   }
 
-  _getNodesRows(nodes): Array<{name:string,
-                          mac_addr:string,
-                          node_type:string,
-                          ignited:boolean,
-                          site_name:string,
-                          pop_node:string,
-                          ipv6:string,
-                          version:string}>  {
-    const rows = [];
-    Object.keys(nodes).forEach(nodeName => {
-      let node = nodes[nodeName];
-      var ipv6 = node.status ? node.status.ipv6Address : 'Not Available';
-      var version = node.status ? node.status.version.slice(28) : 'Not Available';
-      rows.push(
-        {
-          name: node.name,
-          mac_addr: node.mac_addr,
-          node_type: node.node_type == 2 ? 'DN' : 'CN',
-          ignited: node.is_ignited,
-          site_name: node.site_name,
-          pop_node: node.pop_node ? 'true' : 'false',
-          ipv6: ipv6,
-          version: version,
-          key: node.name,
-        },
-      );
-    });
-    return rows;
-  }
-
-  _getLinksRows(links): Array<{name:string,
-                          a_node_name:string,
-                          z_node_name:string,
-                          alive:boolean}> {
-    const rows = [];
-    links.forEach(link => {
-      rows.push(
-        {
-          name: link.name,
-          a_node_name: link.a_node_name,
-          z_node_name: link.z_node_name,
-          alive: link.is_alive,
-          type: link.link_type == 1 ? 'Wireless' : 'Wired',
-          key: link.name,
-        },
-      );
-    });
-    return rows;
+  componentWillUnmount() {
+    // un-register if we're no longer visible
+    Dispatcher.unregister(this.dispatchToken);
   }
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
+      // TODO - do we need to know the name?
       case 'topologySelected':
+        // update selected topology name
+        this.setState({
+          topologyName: payload.topologyName,
+        });
+        break;
+      case 'topologyUpdated':
+        // update the topology
+        this.setState(this.updateTopologyState(payload.topologyJson))
+        break;
+      case 'nodesSelected':
+        let lastSelectedNodeSite = payload.nodesSelected.length ?
+          this.state.nodesByName[
+            payload.nodesSelected[payload.nodesSelected.length - 1]].site_name :
+          null;
+        this.setState({
+          nodesSelected: payload.nodesSelected,
+          selectedNodeSite: lastSelectedNodeSite,
+        });
+        break;
+      case 'linkSelected':
+        this.setState({
+          selectedLink: payload.link,
+        });
+        break;
+      case 'clearSelectedNodeLink':
         this.setState({
           nodesSelected: [],
           selectedNodeSite: null,
           selectedLink: null,
         });
-        self = this;
-        function getNetworkStatus() {
-          let topoGetFetch = new Request('/topology/get/' +
-              payload.topologyName);
-          fetch(topoGetFetch).then(function(response) {
-
-            if (response.status == 200) {
-              response.json().then(function(json) {
-                // index nodes by name
-                let nodesByName = {};
-                Object.keys(json.nodes).map(nodeIndex => {
-                  let node = json.nodes[nodeIndex];
-                  nodesByName[node.name] = node;
-                });
-                let sitesByName = {};
-                Object.keys(json.sites).map(siteIndex => {
-                  let site = json.sites[siteIndex];
-                  sitesByName[site.name] = site;
-                });
-                self.setState({
-                  topology: json,
-                  topologyName: payload.topologyName,
-                  nodesTableData: self._getNodesRows(json.nodes),
-                  linksTableData: self._getLinksRows(json.links),
-                  nodesByName: nodesByName,
-                  sitesByName: sitesByName,
-                });
-              }.bind(self));
-            }
-          }.bind(self));
-        }
-
-        if (this.state.intervalId) {
-          clearInterval(this.state.intervalId);
-        }
-        getNetworkStatus();
-        var intervalId = setInterval(getNetworkStatus, 2000);
-        this.setState({intervalId: intervalId});
         break;
     }
   }
 
-  componentWillMount() {
-    this.setState({
-      topology: {},
-      nodesTableData: [],
+  updateTopologyState(topologyJson) {
+    let nodesByName = {};
+    Object.keys(topologyJson.nodes).map(nodeIndex => {
+      let node = topologyJson.nodes[nodeIndex];
+      nodesByName[node.name] = node;
     });
+    // index sites by name
+    let sitesByName = {};
+    Object.keys(topologyJson.sites).map(siteIndex => {
+      let site = topologyJson.sites[siteIndex];
+      sitesByName[site.name] = site;
+    });
+    return {
+      topologyJson: topologyJson,
+      nodesByName: nodesByName,
+      sitesByName: sitesByName,
+    }
   }
 
   componentDidMount() {
     this.refs.map.leafletElement.invalidateSize();
-  }
-
-  _nodesOnRowSelect(row, isSelected){
-    this.setState({
-      nodesSelected: [row.name],
-      selectedNodeSite: row.site_name,
-      selectedLink: null,
-    });
-  }
-
-  _linksOnRowSelect(row, isSelected){
-    this.setState({
-      selectedNodeSite: null,
-      selectedLink:  row,
-    });
-  }
-
-  _handleTabSelect(index, last) {
-    this.setState({
-      selectedTabIndex: index,
-      nodesSelected: [],
-      selectedNodeSite: null,
-      selectedLink: null,
-    });
-  }
-
-  _handleMarkerClick(ev) {
-    let site = this.state.topology.sites[ev.target.options.siteIndex];
-    var selectedRows = [];
-
-    Object.keys(this.state.topology.nodes).map(nodeIndex => {
-      let node = this.state.topology.nodes[nodeIndex];
-      if (node.site_name == site.name) {
-        selectedRows.push(node.name);
-      }
-    });
-    this.setState({
-      sortName: "site_name",
-      sortOrder: "desc",
-      selectedSiteName: site.name,
-      nodesSelected: selectedRows,
-      selectedNodeSite: site.name
-    });
   }
 
   _onMapZoom(data){
@@ -215,12 +131,32 @@ export default class NetworkMap extends React.Component {
 
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
+  }
+
+  _handleMarkerClick(ev) {
+    let site = this.state.topologyJson.sites[ev.target.options.siteIndex];
+    var selectedRows = [];
+
+    Object.keys(this.state.topologyJson.nodes).map(nodeIndex => {
+      let node = this.state.topologyJson.nodes[nodeIndex];
+      if (node.site_name == site.name) {
+        selectedRows.push(node.name);
+      }
+    });
     this.setState({
-      tableHeight: window.innerHeight - newSize - 50,
+      sortName: "site_name",
+      sortOrder: "desc",
+      selectedSiteName: site.name,
+      selectedNodeSite: site.name
+    });
+    // dispatch to update all UIs
+    Dispatcher.dispatch({
+      actionType: 'nodesSelected',
+      nodesSelected: selectedRows,
     });
   }
 
-  _siteSortFunc(a, b, order) {   // order is desc or asc
+ _siteSortFunc(a, b, order) {   // order is desc or asc
     if (this.state.selectedSiteName) {
       if (a.site_name == this.state.selectedSiteName) {
         return -1;
@@ -259,9 +195,9 @@ export default class NetworkMap extends React.Component {
     const centerPosition = [37.484494, -122.1483976];
     let siteComponents = [];
     let linkComponents = [];
-    if (this.state.topology && this.state.topology.sites) {
-      Object.keys(this.state.topology.sites).map(siteIndex => {
-        let site = this.state.topology.sites[siteIndex];
+    if (this.state.topologyJson && this.state.topologyJson.sites) {
+      Object.keys(this.state.topologyJson.sites).map(siteIndex => {
+        let site = this.state.topologyJson.sites[siteIndex];
         if (!site.location) {
           site.location = {};
           site.location.latitude = 0;
@@ -271,8 +207,8 @@ export default class NetworkMap extends React.Component {
 
         let healthyCount = 0;
         let totalCount = 0;
-        Object.keys(this.state.topology.nodes).map(nodeIndex => {
-          let node = this.state.topology.nodes[nodeIndex];
+        Object.keys(this.state.topologyJson.nodes).map(nodeIndex => {
+          let node = this.state.topologyJson.nodes[nodeIndex];
           if (node.site_name == site.name) {
             totalCount++;
             healthyCount += node.is_ignited ? 1 : 0;
@@ -294,16 +230,11 @@ export default class NetworkMap extends React.Component {
             siteIndex={siteIndex}
             onclick={this._handleMarkerClick.bind(this)}
             position={siteCoords}>
-            <Popup>
-              <div>
-                Some nodes here..
-              </div>
-            </Popup>
           </Marker>
         );
       });
-      Object.keys(this.state.topology.links).map(linkName => {
-        let link = this.state.topology.links[linkName];
+      Object.keys(this.state.topologyJson.links).map(linkName => {
+        let link = this.state.topologyJson.links[linkName];
         if (link.link_type != 1) {
           return;
         }
@@ -348,43 +279,26 @@ export default class NetworkMap extends React.Component {
           siteMarkers = [
             <Circle center={[site_a.location.latitude, site_a.location.longitude]}
                     radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
-                    color='red'/>,
-            <Circle center={[site_z.location.latitude, site_z.location.longitude]}
-                    radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
+                    key="a_node"
                     color='red'/>];
+          if (site_a.name != site_z.name) {
+            siteMarkers.push(
+              <Circle center={[site_z.location.latitude, site_z.location.longitude]}
+                      radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
+                      key="z_node"
+                      color='red'/>);
+          }
         }
       }
     }
-
-    var nodesSelectRowProp = {
-      mode: "checkbox",
-      clickToSelect: true,
-      hideSelectColumn: true,
-      bgColor: "rgb(238, 193, 213)",
-      onSelect: this._nodesOnRowSelect.bind(this),
-      selected: this.state.nodesSelected
-    };
-
-    var linksSelectRowProp = {
-      mode: "radio",
-      clickToSelect: true,
-      hideSelectColumn: true,
-      bgColor: "rgb(238, 193, 213)",
-      onSelect: this._linksOnRowSelect.bind(this)
-    };
-
-    const tableOptions = {
-      sortName: this.state.sortName,
-      sortOrder: this.state.sortOrder,
-      onSortChange: this.onSortChange
-    };
 
     return (
       <div>
         <SplitPane
           split="horizontal"
           defaultSize="50%"
-          onChange={this._paneChange.bind(this)}>
+          onChange={this._paneChange.bind(this)}
+        >
           <Map
             ref='map'
             onZoom={this._onMapZoom.bind(this)}

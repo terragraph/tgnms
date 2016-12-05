@@ -4,48 +4,54 @@ import { render } from 'react-dom';
 // graphs
 import ReactGraph from './ReactGraph.js';
 // dispatcher
-import Dispatcher from './MapDispatcher.js';
+import Dispatcher from './NetworkDispatcher.js';
+import NetworkStore from './NetworkStore.js';
 // layout components
 import { SpringGrid } from 'react-stonecutter';
 
 export default class NetworkDashboard extends React.Component {
+  state = {
+    topologyJson: {},
+  }
+
   constructor(props) {
     super(props);
+  }
+
+  componentWillMount() {
+    // register to receive topology updates
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    // update default state from the store
+    if (NetworkStore.topologyName && NetworkStore.topologyJson) {
+      this.setState({
+        topologyJson: NetworkStore.topologyJson,
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    // un-register once hidden
+    Dispatcher.unregister(this.dispatchToken);
   }
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case 'topologySelected':
-        // update selected
-        let topoGetFetch = new Request('/topology/get/' + payload.topologyName);
-        fetch(topoGetFetch).then(function(response) {
-          if (response.status == 200) {
-            response.json().then(function(json) {
-              this.setState({
-                topology: json
-              });
-            }.bind(this));
-          }
-        }.bind(this));
+      case 'topologyUpdated':
+        this.setState({
+          topologyJson: payload.topologyJson,
+        });
         break;
     }
   }
 
-  componentWillMount() {
-    this.setState({
-      topology: {},
-    });
-  }
-
   render() {
     let gridComponents = [];
-    if (this.state.topology.topology && this.state.topology.topology.sites) {
+    if (this.state.topologyJson && this.state.topologyJson.sites) {
       // index nodes by name
       let nodeMacList = [];
-      Object.keys(this.state.topology.topology.nodes).map(nodeIndex => {
-        let node = this.state.topology.topology.nodes[nodeIndex];
+      Object.keys(this.state.topologyJson.nodes).map(nodeIndex => {
+        let node = this.state.topologyJson.nodes[nodeIndex];
         nodeMacList.push(node.mac_addr);
       });
       let nodeMacListStr = nodeMacList.join(",");

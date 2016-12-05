@@ -1,5 +1,5 @@
 import React from 'react';
-import Dispatcher from './MapDispatcher.js';
+import Dispatcher from './NetworkDispatcher.js';
 
 export default class TopologyConfigItem extends React.Component {
   constructor(props) {
