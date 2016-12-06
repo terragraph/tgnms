@@ -1,4 +1,6 @@
 import React from 'react';
+
+import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 
 export default class TopologyMenuItem extends React.Component {
@@ -23,7 +25,7 @@ export default class TopologyMenuItem extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case 'topologyUpdated':
+      case Actions.TOPOLOGY_REFRESHED:
         // mark everything as loaded
         this.setState({
           loading: false,
@@ -40,7 +42,7 @@ export default class TopologyMenuItem extends React.Component {
     } else {
       // dispatch event
       Dispatcher.dispatch({
-        actionType: 'topologySelected',
+        actionType: Actions.TOPOLOGY_SELECTED,
         topologyName: topologyName
       });
       this.setState({

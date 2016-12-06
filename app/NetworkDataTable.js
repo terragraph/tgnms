@@ -2,6 +2,7 @@ import React from 'react';
 // leaflet maps
 import { render } from 'react-dom';
 // dispatcher
+import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
@@ -33,13 +34,13 @@ export default class NetworkDataTable extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case 'topologyUpdated':
+      case Actions.TOPOLOGY_REFRESHED:
         // topology refreshed
         this.setState({
           topology: payload.topologyJson,
         });
         break;
-      case 'nodesSelected':
+      case Actions.NODE_SELECTED:
         this.setState({
           nodesSelected: payload.nodesSelected,
         });
@@ -109,7 +110,7 @@ export default class NetworkDataTable extends React.Component {
     }
     // dispatch event for the map
     Dispatcher.dispatch({
-      actionType: 'nodesSelected',
+      actionType: Actions.NODE_SELECTED,
       nodesSelected: nodesSelectedTmp,
     });
   }
@@ -119,7 +120,7 @@ export default class NetworkDataTable extends React.Component {
       selectedLink:  row,
     });
     Dispatcher.dispatch({
-      actionType: 'linkSelected',
+      actionType: Actions.LINK_SELECTED,
       link: row,
     });
   }
@@ -131,7 +132,7 @@ export default class NetworkDataTable extends React.Component {
     });
     // TODO - should we null the selected node?
     Dispatcher.dispatch({
-      actionType: 'clearSelectedNodeLink',
+      actionType: Actions.CLEAR_NODE_LINK_SELECTED,
     });
   }
 

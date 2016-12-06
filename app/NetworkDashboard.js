@@ -4,6 +4,7 @@ import { render } from 'react-dom';
 // graphs
 import ReactGraph from './ReactGraph.js';
 // dispatcher
+import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
 // layout components
@@ -37,7 +38,7 @@ export default class NetworkDashboard extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case 'topologyUpdated':
+      case Actions.TOPOLOGY_REFRESHED:
         this.setState({
           topologyJson: payload.topologyJson,
         });

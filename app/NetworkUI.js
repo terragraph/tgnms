@@ -8,6 +8,7 @@ import MetisMenu from 'react-metismenu';
 import TopologyMenuItem from './TopologyMenuItem.js';
 import PaneMenuItem from './PaneMenuItem.js';
 // dispatcher
+import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkDashboard from './NetworkDashboard.js';
 import NetworkMap from './NetworkMap.js';
@@ -46,7 +47,7 @@ export default class NetworkUI extends React.Component {
           });
           // dispatch the updated topology json
           Dispatcher.dispatch({
-            actionType: 'topologyUpdated',
+            actionType: Actions.TOPOLOGY_REFRESHED,
             topologyJson: json,
           });
         }.bind(this));
@@ -56,7 +57,7 @@ export default class NetworkUI extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case 'viewSelected':
+      case Actions.VIEW_SELECTED:
         let viewName = payload.viewName;
         // ignore the menu
         if (viewName == '#') {
@@ -66,7 +67,7 @@ export default class NetworkUI extends React.Component {
           view: viewName,
         });
         break;
-      case 'topologySelected':
+      case Actions.TOPOLOGY_SELECTED:
         // update selected topology
         this.getNetworkStatus(payload.topologyName);
         this.setState({

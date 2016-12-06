@@ -1,3 +1,4 @@
+import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 
 class NetworkStoreI {
@@ -9,12 +10,12 @@ const NetworkStore = new NetworkStoreI();
 
 Dispatcher.register(function(payload) {
   switch (payload.actionType) {
-    case 'topologySelected':
+    case Actions.TOPOLOGY_SELECTED:
       NetworkStore.topologyName = payload.topologyName;
       // wipe topology
       NetworkStore.topologyJson = {};
       break;
-    case 'topologyUpdated':
+    case Actions.TOPOLOGY_REFRESHED:
       NetworkStore.topologyJson = payload.topologyJson;
       break;
   }

@@ -1,4 +1,6 @@
 import React from 'react';
+
+import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 
 export default class PaneMenuItem extends React.Component {
@@ -17,7 +19,7 @@ export default class PaneMenuItem extends React.Component {
     } else {
       // dispatch event
       Dispatcher.dispatch({
-        actionType: 'viewSelected',
+        actionType: Actions.VIEW_SELECTED,
         viewName: viewName,
       });
     }

@@ -1,13 +1,15 @@
 import React from 'react';
-// leaflet maps
 import { render } from 'react-dom';
+// leaflet maps
 import Leaflet from 'leaflet';
 import { Map, Marker, Polyline, Popup, TileLayer, Circle} from 'react-leaflet';
 // dispatcher
+import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
-import SplitPane from 'react-split-pane';
-import NetworkDataTable from './NetworkDataTable.js';
 import NetworkStore from './NetworkStore.js';
+// ui components
+import NetworkDataTable from './NetworkDataTable.js';
+import SplitPane from 'react-split-pane';
 
 // markers to show health of sectors on a site
 const UNKNOWN_MARKER = Leaflet.icon({
@@ -65,17 +67,17 @@ export default class NetworkMap extends React.Component {
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       // TODO - do we need to know the name?
-      case 'topologySelected':
+      case Actions.TOPOLOGY_SELECTED:
         // update selected topology name
         this.setState({
           topologyName: payload.topologyName,
         });
         break;
-      case 'topologyUpdated':
+      case Actions.TOPOLOGY_REFRESHED:
         // update the topology
         this.setState(this.updateTopologyState(payload.topologyJson))
         break;
-      case 'nodesSelected':
+      case Actions.NODE_SELECTED:
         let lastSelectedNodeSite = payload.nodesSelected.length ?
           this.state.nodesByName[
             payload.nodesSelected[payload.nodesSelected.length - 1]].site_name :
@@ -85,12 +87,12 @@ export default class NetworkMap extends React.Component {
           selectedNodeSite: lastSelectedNodeSite,
         });
         break;
-      case 'linkSelected':
+      case Actions.LINK_SELECTED:
         this.setState({
           selectedLink: payload.link,
         });
         break;
-      case 'clearSelectedNodeLink':
+      case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
           nodesSelected: [],
           selectedNodeSite: null,
@@ -151,7 +153,7 @@ export default class NetworkMap extends React.Component {
     });
     // dispatch to update all UIs
     Dispatcher.dispatch({
-      actionType: 'nodesSelected',
+      actionType: Actions.NODE_SELECTED,
       nodesSelected: selectedRows,
     });
   }
