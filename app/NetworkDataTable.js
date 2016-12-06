@@ -15,10 +15,13 @@ export default class NetworkDataTable extends React.Component {
     nodesSelected: [],
     selectedLink: null,
     topology: {},
+    tableHeight: window.innerHeight/2 - 50,
   }
 
   constructor(props) {
     super(props);
+    this.onSortChange = this.onSortChange.bind(this);
+    this._siteSortFunc = this._siteSortFunc.bind(this);
   }
 
   componentWillMount() {
@@ -43,6 +46,32 @@ export default class NetworkDataTable extends React.Component {
       case Actions.NODE_SELECTED:
         this.setState({
           nodesSelected: payload.nodesSelected,
+        });
+        break;
+      case Actions.SITE_SELECTED:
+        var selectedRows = [];
+        Object.keys(this.state.topology.nodes).map(nodeIndex => {
+          let node = this.state.topology.nodes[nodeIndex];
+          if (node.site_name == payload.siteSelected) {
+            selectedRows.push(node.name);
+          }
+        });
+        this.setState({
+          sortName: "site_name",
+          sortOrder: "desc",
+          selectedSiteName: payload.siteSelected,
+          selectedNodeSite: payload.siteSelected,
+          nodesSelected: selectedRows,
+        });
+        break;
+      case Actions.PANE_CHANGED:
+        this.setState({
+          tableHeight: window.innerHeight - payload.newSize - 50,
+        });
+      case Actions.CLEAR_NODE_LINK_SELECTED:
+        this.setState({
+          nodesSelected: null,
+          selectedLink: null,
         });
         break;
     }
@@ -99,19 +128,10 @@ export default class NetworkDataTable extends React.Component {
   }
 
   _nodesOnRowSelect(row, isSelected) {
-    let nodesSelectedTmp = this.state.nodesSelected;
-    if (isSelected) {
-      nodesSelectedTmp.push(row.name);
-    } else {
-      let nameIndex = nodesSelectedTmp.indexOf(row.name);
-      if (nameIndex != -1) {
-        nodesSelectedTmp.splice(nameIndex, 1);
-      }
-    }
     // dispatch event for the map
     Dispatcher.dispatch({
       actionType: Actions.NODE_SELECTED,
-      nodesSelected: nodesSelectedTmp,
+      nodesSelected: [row.name],
     });
   }
 
@@ -133,6 +153,41 @@ export default class NetworkDataTable extends React.Component {
     // TODO - should we null the selected node?
     Dispatcher.dispatch({
       actionType: Actions.CLEAR_NODE_LINK_SELECTED,
+    });
+  }
+
+  _siteSortFunc(a, b, order) {   // order is desc or asc
+    if (this.state.selectedSiteName) {
+      if (a.site_name == this.state.selectedSiteName) {
+        return -1;
+      } else if (b.site_name == this.state.selectedSiteName) {
+        return 1;
+      }
+    }
+
+    if (order === 'desc') {
+      if (a.site_name > b.site_name) {
+        return -1;
+      } else if (a.site_name < b.site_name) {
+        return 1;
+      }
+      return 0;
+    } else {
+      if (a.site_name < b.site_name) {
+        return -1;
+      } else if (a.site_name > b.site_name) {
+        return 1;
+      }
+      return 0;
+    }
+  }
+
+  onSortChange(sortName, sortOrder) {
+    console.info('onSortChange', arguments);
+    this.setState({
+      sortName,
+      sortOrder,
+      selectedSiteName: undefined
     });
   }
 
@@ -181,42 +236,43 @@ export default class NetworkDataTable extends React.Component {
         </TabList>
         <TabPanel>
           <BootstrapTable
-              height="400"
+              height={this.state.tableHeight + 'px'}
               key="nodesTable"
+              options={ tableOptions }
               data={this._getNodesRows(nodesData)}
               striped={true} hover={true}
               selectRow={nodesSelectRowProp}>
-            <TableHeaderColumn width="200" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-            <TableHeaderColumn width="200" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
-            <TableHeaderColumn width="200" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
-            <TableHeaderColumn width="100" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
-            <TableHeaderColumn width="100"
+            <TableHeaderColumn width="180" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
+            <TableHeaderColumn width="170" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
+            <TableHeaderColumn width="180" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
+            <TableHeaderColumn width="80" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
+            <TableHeaderColumn width="80"
                                dataSort={true}
                                dataField="ignited">
               Ignited
             </TableHeaderColumn>
-            <TableHeaderColumn width="100"
+            <TableHeaderColumn width="80"
                                dataSort={true}
                                dataField="site_name"
                                sortFunc={this._siteSortFunc}>
               Site ID
             </TableHeaderColumn>
-            <TableHeaderColumn width="120" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
-            <TableHeaderColumn width="700" dataSort={true} dataField="version">Version</TableHeaderColumn>
+            <TableHeaderColumn width="100" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
+            <TableHeaderColumn dataSort={true} dataField="version">Version</TableHeaderColumn>
           </BootstrapTable>
         </TabPanel>
         <TabPanel>
           <BootstrapTable
-              height="400"
+              height={this.state.tableHeight + 'px'}
               key="linksTable"
               data={this._getLinksRows(linksData)}
               striped={true} hover={true}
               selectRow={linksSelectRowProp}>
-            <TableHeaderColumn width="400" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-            <TableHeaderColumn width="200" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
-            <TableHeaderColumn width="200" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
-            <TableHeaderColumn width="100" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
-            <TableHeaderColumn width="100" dataSort={true} dataField="type">Type</TableHeaderColumn>
+            <TableHeaderColumn width="350" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
+            <TableHeaderColumn width="180" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
+            <TableHeaderColumn width="180" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
+            <TableHeaderColumn width="80" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
+            <TableHeaderColumn dataSort={true} dataField="type">Type</TableHeaderColumn>
           </BootstrapTable>
         </TabPanel>
         <TabPanel>

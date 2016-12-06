@@ -35,7 +35,6 @@ export default class NetworkMap extends React.Component {
   state = {
     selectedNodeSite: null,
     selectedLink: null,
-    nodesSelected: [],
     topologyName: null,
     topologyJson: {},
     zoomLevel: 18,
@@ -83,7 +82,6 @@ export default class NetworkMap extends React.Component {
             payload.nodesSelected[payload.nodesSelected.length - 1]].site_name :
           null;
         this.setState({
-          nodesSelected: payload.nodesSelected,
           selectedNodeSite: lastSelectedNodeSite,
         });
         break;
@@ -92,9 +90,13 @@ export default class NetworkMap extends React.Component {
           selectedLink: payload.link,
         });
         break;
+      case Actions.SITE_SELECTED:
+        this.setState({
+          selectedNodeSite: payload.siteSelected,
+        });
+        break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
-          nodesSelected: [],
           selectedNodeSite: null,
           selectedLink: null,
         });
@@ -133,28 +135,19 @@ export default class NetworkMap extends React.Component {
 
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
+    // dispatch to update all UIs
+    Dispatcher.dispatch({
+      actionType: Actions.PANE_CHANGED,
+      newSize: newSize,
+    });
   }
 
   _handleMarkerClick(ev) {
     let site = this.state.topologyJson.sites[ev.target.options.siteIndex];
-    var selectedRows = [];
-
-    Object.keys(this.state.topologyJson.nodes).map(nodeIndex => {
-      let node = this.state.topologyJson.nodes[nodeIndex];
-      if (node.site_name == site.name) {
-        selectedRows.push(node.name);
-      }
-    });
-    this.setState({
-      sortName: "site_name",
-      sortOrder: "desc",
-      selectedSiteName: site.name,
-      selectedNodeSite: site.name
-    });
     // dispatch to update all UIs
     Dispatcher.dispatch({
-      actionType: Actions.NODE_SELECTED,
-      nodesSelected: selectedRows,
+      actionType: Actions.SITE_SELECTED,
+      siteSelected: site.name,
     });
   }
 
