@@ -75,43 +75,43 @@ var self = {
   query: function (req, res, next) {
     let metricType = req.params[0];
     let nodeNames = req.params[1].split(",").join("' OR \"node\" = '");
-    console.log('Querying for', metricType, 'node macs', req.params[1]);
+    let timeAgo = '1h';
     let queries = [];
     switch (metricType) {
       case 'traffic_sum':
         // show an aggregate of traffic (TX + RX) for the whole network
         // next parameter should be a list of nodes
         queries.push(
-          "SELECT SUM(\"value\") AS \"value\" FROM \"system\" " +
-          "WHERE (\"node\" = '" + nodeNames + "') " +
-          "AND (\"name\" = 'terra0.rx_bytes' " + 
-            "OR \"name\" = 'terra0.tx_bytes') " +
-          "AND \"time\" > (NOW() - 30m) " +
-          "GROUP BY \"name\", TIME(30s)");
+          "SELECT SUM(\"value\") AS \"value\" FROM \"tg_stats\" " +
+          "WHERE (\"mac\" = '" + nodeNames + "') " +
+          "AND (\"key\" = 'terra0.rx_bytes' " + 
+            "OR \"key\" = 'terra0.tx_bytes') " +
+          "AND \"time\" > (NOW() - " + timeAgo + ") " +
+          "GROUP BY \"key\", TIME(30s)");
         break;
       case 'nodes_traffic_tx':
         // show traffic per host
         queries.push(
-          "SELECT SUM(\"value\") AS \"value\" FROM \"system\" " +
-          "WHERE (\"node\" = '" + nodeNames + "') " +
-          "AND \"name\" = 'terra0.tx_bytes' " + 
-          "AND \"time\" > (NOW() - 30m) " +
-          "GROUP BY \"node\", TIME(30s)");
+          "SELECT SUM(\"value\") AS \"value\" FROM \"tg_stats\" " +
+          "WHERE (\"mac\" = '" + nodeNames + "') " +
+          "AND \"key\" = 'terra0.tx_bytes' " + 
+          "AND \"time\" > (NOW() - " + timeAgo + ") " +
+          "GROUP BY \"mac\", TIME(30s)");
         break;
       case 'nodes_traffic_rx':
         // show traffic per host
         queries.push(
-          "SELECT SUM(\"value\") AS \"value\" FROM \"system\" " +
-          "WHERE (\"node\" = '" + nodeNames + "') " +
-          "AND \"name\" = 'terra0.rx_bytes' " + 
-          "AND \"time\" > (NOW() - 30m) " +
-          "GROUP BY \"node\", TIME(30s)");
+          "SELECT SUM(\"value\") AS \"value\" FROM \"tg_stats\" " +
+          "WHERE (\"mac\" = '" + nodeNames + "') " +
+          "AND \"key\" = 'terra0.rx_bytes' " + 
+          "AND \"time\" > (NOW() - " + timeAgo + ") " +
+          "GROUP BY \"mac\", TIME(30s)");
         break;
       case 'nodes_reporting':
         // this is not yet supported by influxdb, so we need a way of storing
         // hosts online
 /*        queries.push(
-          "SELECT COUNT(\"node\") AS \"count\" FROM \"system\" " +
+          "SELECT COUNT(\"node\") AS \"count\" FROM \"tg_stats\" " +
           "WHERE (\"node\" = '" + nodeNames + "') " +
           "AND \"name\" = 'terra0.rx_bytes' " + 
           "AND \"time\" > (NOW() - 1m) " +
@@ -122,16 +122,15 @@ var self = {
       default:
         console.error('Undefined metric:', metricType);
     }
-    console.log(queries);
     influx.queryRaw(queries).then(result => {
       // output post-processing
       switch (metricType) {
         case 'traffic_sum':
-          res.json(self.formatStats(result, 'name'));
+          res.json(self.formatStats(result, 'key'));
           break;
         case 'nodes_traffic_tx':
         case 'nodes_traffic_rx':
-          res.json(self.formatStats(result, 'node'));
+          res.json(self.formatStats(result, 'mac'));
           break;
         default:
           // push raw json
