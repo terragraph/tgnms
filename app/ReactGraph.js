@@ -3,12 +3,15 @@ import { Dispatcher } from 'flux';
 import { Charts, ChartContainer, ChartRow, YAxis, AreaChart, LineChart,
          Legend, styler } from "react-timeseries-charts";
 import { Index, TimeSeries, TimeRange } from "pondjs";
+import { format } from "d3-format";
+import { timeFormat } from "d3-time-format";
  
 export default class ReactGraph extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
       data: '',
+      tracker: null,
     };
   }
 
@@ -18,6 +21,16 @@ export default class ReactGraph extends React.Component {
 
   componentWillUnmount() {
     clearTimeout(this.lastTimer);
+  }
+  
+  formatSpeed(bps) {
+    if (bps > 1000000) {
+      return Math.round(bps/1000000) + ' mbps'
+    }
+    if (bps > 1000) {
+      return Math.round(bps/1000) + ' kbps';
+    }
+    return bps + ' bps';
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -29,7 +42,7 @@ export default class ReactGraph extends React.Component {
       // something changed in the props, force a data fetch
       this.refreshData();
     }
-    return false;
+    return true;
   }
 
   nextColor(index) {
@@ -37,6 +50,14 @@ export default class ReactGraph extends React.Component {
                     "#0A112E", "#192246", "#3F496F", "#5D6689",
                     "#51747E", "#355B66", "#123640", "#05222A"];
     return colors.length > index ? colors[index] : "#000000";
+  }
+
+  handleTrackerChanged(tracker) {
+    this.setState({tracker});
+  }
+
+  handleTimeRangeChange(timerange) {
+    this.setState({timerange});
   }
 
   refreshData() {
@@ -68,19 +89,46 @@ export default class ReactGraph extends React.Component {
     let timeRange = TimeRange.lastDay();
     let minValue = Number.MAX_VALUE;
     let maxValue = 0;
+    let width = 350;
+    let height = 300;
+    switch (this.props.size) {
+      case 'large':
+        width = 800;
+        height = 500;
+        break;
+    }
+    // legend
+    let legendNames = this.props.names;
+    switch (this.props.metric) {
+      case 'traffic_sum':
+        legendNames = ['TX Bytes', 'RX Bytes'];
+        break;
+    }
+
     if (this.state.data &&
         this.state.data.points &&
         this.state.data.points.length > 1) {
       let timeSeries = new TimeSeries(this.state.data);
       let columnNames = this.state.data.columns.slice(1);
       for (let i = 0; i < columnNames.length; i++) {
-        let name = columnNames[i];
-        legend.push({
-          key: name,
-          label: name,
-        });
+        let macAddr = columnNames[i];
+        let nodeName = legendNames[i];
+        if (this.state.tracker) {
+          const index = timeSeries.bisect(this.state.tracker);
+          const trackerEvent = timeSeries.at(index);
+          legend.push({
+            key: macAddr,
+            label: nodeName,
+            value: this.formatSpeed(trackerEvent.get(macAddr)),
+          });
+        } else {
+          legend.push({
+            key: macAddr,
+            label: nodeName,
+          });
+        }
         legendStyle.push({
-            key: name,
+            key: macAddr,
             color: this.nextColor(i),
             width: 2,
         });
@@ -89,9 +137,15 @@ export default class ReactGraph extends React.Component {
         <LineChart
           axis="a1"
           series={timeSeries}
+          key={name}
           columns={columnNames}
           style={styler(legendStyle)}
-          key={name} />);
+          highlight={this.state.highlight}
+          onHighlightChange={highlight => this.setState({highlight})}
+          selection={this.state.selection}
+          onSelectionChange={selection => this.setState({selection})}
+          interpolation="curveBasis"
+        />);
       columnNames.forEach(name => {
         maxValue = Math.max(maxValue, timeSeries.max(name));
         minValue = Math.min(minValue, timeSeries.min(name));
@@ -103,20 +157,52 @@ export default class ReactGraph extends React.Component {
     if (minValue == Number.MAX_VALUE) {
       minValue = 0;
     }
-    return (
-      <div>
+    const f = format("$,.2f");
+    const df = timeFormat("%b %d %Y %X");
+    const timeStyle = {
+      fontSize: "1.2rem",
+      color: "#999"
+    };
+    let legendComponent;
+    if (legendNames.length <= 5) {
+      legendComponent =
         <div id="legend">
           <Legend
             type="line"
+            align="right"
+            type="dot"
             style={styler(legendStyle)}
-            categories={legend} />
+            onSelectionChange={selection => this.setState({selection})}
+            selection={this.state.selection}
+            onHighlightChange={highlight => this.setState({highlight})}
+            highlight={this.state.highlight}
+            categories={legend}
+          />
+        </div>;
+    }
+    return (
+      <div>
+        <div className="row" style={{height: 28}}>
+          <div className="col-md-6" style={timeStyle}>
+            {this.state.tracker ? `${df(this.state.tracker)}` : ""}
+          </div>
+          {legendComponent}
         </div>
+        <hr/>
         <div id="chart">
-          <ChartContainer timeRange={timeRange} width={400}>
-            <ChartRow height="250">
+          <ChartContainer
+            timeRange={timeRange}
+            trackerPosition={this.state.tracker}
+            onTrackerChanged={this.handleTrackerChanged.bind(this)}
+            onBackgroundClick={() => this.setState({selection: null})}
+            enablePanZoom={true}
+            onTimeRangeChanged={this.handleTimeRangeChange.bind(this)}
+            minDuration={1000 * 60 * 60 * 5} /* 5 min */
+            width={width}>
+            <ChartRow height={height}>
               <YAxis
                 id="a1"
-                label="BW"
+                label="Throughput"
                 width="70"
                 min={minValue}
                 max={maxValue} />
@@ -134,6 +220,7 @@ export default class ReactGraph extends React.Component {
 ReactGraph.propTypes = {
   // comma separated list of node ids
   node: React.PropTypes.string.isRequired,
+  names: React.PropTypes.array.isRequired,
   // bandwidth, nodes_reporting, ...
   metric: React.PropTypes.string.isRequired,
   title: React.PropTypes.string.isRequired,

@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "babel-cli": "^6.4.0",
+    "d3-format": "^1.0.2",
+    "d3-time-format": "^2.0.3",
     "encoding": "^0.1.12",
     "flux": "^3.1.0",
     "flux-react": "^3.0.0",

@@ -51,9 +51,11 @@ export default class NetworkDashboard extends React.Component {
     if (this.state.topologyJson && this.state.topologyJson.sites) {
       // index nodes by name
       let nodeMacList = [];
+      let nodeNameList = [];
       Object.keys(this.state.topologyJson.nodes).map(nodeIndex => {
         let node = this.state.topologyJson.nodes[nodeIndex];
         nodeMacList.push(node.mac_addr);
+        nodeNameList.push(node.name);
       });
       let nodeMacListStr = nodeMacList.join(",");
 /*      gridComponents.push(
@@ -78,8 +80,9 @@ export default class NetworkDashboard extends React.Component {
               key={graph[1]}
               title={graph[2]}
               node={nodeMacListStr}
+              names={nodeNameList}
               metric={graph[0]}
-              size="large"
+              size="small"
             />
           </li>
         );
@@ -100,7 +103,7 @@ export default class NetworkDashboard extends React.Component {
         component="ul"
         className="dashboard-grid"
         columns={4}
-        columnWidth={400}
+        columnWidth={350}
         gutterWidth={5}
         gutterHeight={5}
         itemHeight={300}>
