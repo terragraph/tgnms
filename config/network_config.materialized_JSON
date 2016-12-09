@@ -816,7 +816,8 @@
       "latitude": 37.484494,
       "longitude": -122.1483976,
       "zoom_level": 17,
-      "controller_ip": "2620:10d:c089:e00a:250:c2ff:fec9:9dab"
+      "controller_ip": "2620:10d:c089:e00a:250:c2ff:fec9:9dab",
+      "aggregator_ip": "2620:10d:c089:e00a:250:c2ff:fec9:9dab"
     },
     {
       "topology": {
@@ -1082,7 +1083,8 @@
       "latitude": 37.484494,
       "longitude": -122.1483976,
       "zoom_level": 17,
-      "controller_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a"
+      "controller_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a",
+      "aggregator_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a"
     },
     {
       "topology": {
@@ -1348,7 +1350,8 @@
       "latitude": 37.484494,
       "longitude": -122.1483976,
       "zoom_level": 17,
-      "controller_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52"
+      "controller_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52",
+      "aggregator_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52"
     },
     {
       "topology": {
@@ -1614,7 +1617,8 @@
       "latitude": 37.484494,
       "longitude": -122.1483976,
       "zoom_level": 17,
-      "controller_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7"
+      "controller_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7",
+      "aggregator_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7"
     }
   ]
 }

@@ -19,6 +19,7 @@ export default class NetworkUI extends React.Component {
     topologyName: null,
     topologyJson: {},
     topologies: {},
+    routing:{},
   }
 
   constructor(props) {
@@ -27,12 +28,13 @@ export default class NetworkUI extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
     // refresh network config
-    setInterval(this.getNetworkStatusPeriodic.bind(this), 2000);
+    setInterval(this.getNetworkStatusPeriodic.bind(this), 5000);
   }
 
   getNetworkStatusPeriodic() {
     if (this.state.topologyName != null) {
       this.getNetworkStatus(this.state.topologyName);
+      this.getAggregatorDump(this.state.topologyName);
     }
   }
 
@@ -55,6 +57,25 @@ export default class NetworkUI extends React.Component {
     }.bind(this));
   }
 
+  getAggregatorDump(topologyName) {
+    let aggregatorDumpFetch = new Request('/aggregator/get/' +
+      topologyName);
+    fetch(aggregatorDumpFetch).then(function(response) {
+      if (response.status == 200) {
+        response.json().then(function(json) {
+          this.setState({
+            routing: json,
+          });
+          // dispatch the updated topology json
+          Dispatcher.dispatch({
+            actionType: Actions.AGGREGATOR_DUMP_REFRESHED,
+            routing: json,
+          });
+        }.bind(this));
+      }
+    }.bind(this));
+  }
+
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case Actions.VIEW_SELECTED:
@@ -70,6 +91,7 @@ export default class NetworkUI extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology
         this.getNetworkStatus(payload.topologyName);
+        this.getAggregatorDump(payload.topologyName);
         this.setState({
           topologyName: payload.topologyName,
         });
@@ -126,7 +148,7 @@ export default class NetworkUI extends React.Component {
         label: menuName,
         to: menuName,
       });
-   } 
+   }
     topologyContent.push({
       icon: 'dashboard',
       label: 'Topology',

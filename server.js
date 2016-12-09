@@ -12,17 +12,20 @@ const app = express();
 const fs = require('fs');
 const influxHelper = require('./influx');
 const controllerProxy = require('./controllerProxy');
+const aggregatorProxy = require('./aggregatorProxy');
 
 var fileTopologies = [];
 var configs = [];
 var topologies_index = 0;
 var receivedTopologies = [];
-var statusDumps = [];
+var ctrlStatusDumps = [];
+var aggrStatusDumps = [];
 
 function periodicNetworkStatus() {
   for (var i = 0, len = configs.length; i < len; i++) {
     controllerProxy.getTopology(i, configs, receivedTopologies);
-    controllerProxy.getStatusDump(i, configs, statusDumps);
+    controllerProxy.getStatusDump(i, configs, ctrlStatusDumps);
+    aggregatorProxy.getStatusDump(i, configs, aggrStatusDumps);
   }
 }
 
@@ -57,7 +60,8 @@ if (isDeveloping) {
         let topology = topologyConfig['topology'];
         let config = {
             name: topology['name'],
-            controller_ip: topologyConfig['controller_ip']
+            controller_ip: topologyConfig['controller_ip'],
+            aggregator_ip: topologyConfig['aggregator_ip']
         };
         configs.push(config);
         fileTopologies.push(topology);
@@ -102,7 +106,7 @@ if (isDeveloping) {
         } else {
           topology = fileTopologies[i];
         }
-        let status = statusDumps[i];
+        let status = ctrlStatusDumps[i];
         let nodes = topology.nodes;
         for (var j = 0; j < nodes.length; j++) {
           if (status && status.statusReports) {
@@ -113,6 +117,21 @@ if (isDeveloping) {
         return;
       }
       // return error on unknown topology
+    }
+    res.status(404).end("No such topology\n");
+  });
+
+  app.get(/\/aggregator\/get\/(.+)$/i, function (req, res, next) {
+    let topologyName = req.params[0];
+    for (var i = 0, len = configs.length; i < len; i++) {
+      if(topologyName == configs[i].name) {
+        let statusDump = {};
+        if (aggrStatusDumps[i]) {
+          statusDump = aggrStatusDumps[i];
+        }
+        res.json(statusDump);
+        return;
+      }
     }
     res.status(404).end("No such topology\n");
   });

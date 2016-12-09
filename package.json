@@ -100,6 +100,9 @@
     "react-sortable-table": "^1.3.0",
     "react-split-pane": "^0.1.52",
     "react-tabs": "^0.8.2",
-    "react-bootstrap-table": "^2.5.8"
+    "react-bootstrap-table": "^2.5.8",
+    "react-contextmenu": "^2.0.0-beta.1",
+    "react-grid-layout": "^0.13.9",
+    "ipaddr.js": "^1.2.0"
   }
 }

@@ -4,6 +4,9 @@
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
 var Thrift = require('thrift').Thrift;
+var Lsdb_ttypes = require('./Lsdb_types');
+var IpPrefix_ttypes = require('./IpPrefix_types');
+
 var ttypes = module.exports = {};
 ttypes.AggrMessageType = {
 'GET_STATUS_DUMP' : 101,
@@ -332,4 +335,3 @@ AggrMessage.prototype.write = function(output) {
   output.writeStructEnd();
   return;
 };
-

@@ -4,6 +4,8 @@
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
 var Thrift = require('thrift').Thrift;
+var IpPrefix_ttypes = require('./IpPrefix_types');
+
 var ttypes = module.exports = {};
 Adjacency = module.exports.Adjacency = function(args) {
   this.otherNodeName = null;
@@ -378,4 +380,3 @@ PrefixDatabase.prototype.write = function(output) {
   output.writeStructEnd();
   return;
 };
-
