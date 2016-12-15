@@ -62,7 +62,7 @@ export default class ReactGraph extends React.Component {
 
   refreshData() {
     // prop type = {single, aggregate}
-    var dataFetch = new Request("/influx/" + this.props.metric + "/" +
+    var dataFetch = new Request("/chart/" + this.props.metric + "/" +
                                 this.props.node);
     fetch(dataFetch).then(response => {
       if (response.status == 200) {
@@ -79,7 +79,7 @@ export default class ReactGraph extends React.Component {
         console.error("Error fetching: HTTP ", response.status);
       }
     });
-    this.lastTimer = setTimeout(this.refreshData.bind(this), 5000);
+    this.lastTimer = setTimeout(this.refreshData.bind(this), 15000);
   }
 
   render() {
@@ -89,8 +89,8 @@ export default class ReactGraph extends React.Component {
     let timeRange = TimeRange.lastDay();
     let minValue = Number.MAX_VALUE;
     let maxValue = 0;
-    let width = 350;
-    let height = 300;
+    let width = 450;
+    let height = 250;
     switch (this.props.size) {
       case 'large':
         width = 800;
@@ -157,6 +157,8 @@ export default class ReactGraph extends React.Component {
     if (minValue == Number.MAX_VALUE) {
       minValue = 0;
     }
+    // just use min as 0 for now
+    minValue = 0;
     const f = format("$,.2f");
     const df = timeFormat("%b %d %Y %X");
     const timeStyle = {
@@ -202,7 +204,7 @@ export default class ReactGraph extends React.Component {
             <ChartRow height={height}>
               <YAxis
                 id="a1"
-                label="Throughput"
+                label={this.props.label}
                 width="70"
                 min={minValue}
                 max={maxValue} />
@@ -224,6 +226,7 @@ ReactGraph.propTypes = {
   // bandwidth, nodes_reporting, ...
   metric: React.PropTypes.string.isRequired,
   title: React.PropTypes.string.isRequired,
+  label: React.PropTypes.string.isRequired,
   // small, large
   size: React.PropTypes.string.isRequired,
 };

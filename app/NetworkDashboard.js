@@ -58,20 +58,11 @@ export default class NetworkDashboard extends React.Component {
         nodeNameList.push(node.name);
       });
       let nodeMacListStr = nodeMacList.join(",");
-/*      gridComponents.push(
-        <li key="bandwidth-agg">
-          <ReactGraph
-            key="bandwidth-agg"
-            title="Aggregate RF Bandwidth"
-            node={nodeMacListStr}
-            metric="traffic_sum"
-            size="large"
-          />
-        </li>);*/
       const aggGraphs = [
-        ["nodes_traffic_tx", "nodes-traffic-tx", "Node Bandwidth (TX)"],
-        ["nodes_traffic_rx", "nodes-traffic-rx", "Node Bandwidth (RX)"],
-        ["traffic_sum", "traffic-sum", "Aggregate RF Bandwidth"],
+        ["nodes_traffic_tx", "nodes-traffic-tx", "Node Bandwidth (TX)", "Throughput"],
+        ["nodes_traffic_rx", "nodes-traffic-rx", "Node Bandwidth (RX)", "Throughput"],
+        ["traffic_sum", "traffic-sum", "Aggregate RF Bandwidth", "Throughput"],
+        ["nodes_reporting", "nodes-reporting", "Nodes Reporting", "Nodes Reporting"],
       ];
       gridComponents = aggGraphs.map(graph => {
         return (
@@ -82,31 +73,22 @@ export default class NetworkDashboard extends React.Component {
               node={nodeMacListStr}
               names={nodeNameList}
               metric={graph[0]}
+              label={graph[3]}
               size="small"
             />
           </li>
         );
       });
-/*      gridComponents.push(
-        <li key="nodes-traffix-tx">
-          <ReactGraph
-            key="nodes-traffic-tx"
-            title="Node Bandwidth (TX)"
-            node={nodeMacListStr}
-            metric="nodes_traffic_tx"
-            size="large"
-          />
-        </li>);*/
     }
     return (
       <SpringGrid
         component="ul"
         className="dashboard-grid"
-        columns={4}
-        columnWidth={350}
+        columns={2}
+        columnWidth={450}
         gutterWidth={5}
         gutterHeight={5}
-        itemHeight={300}>
+        itemHeight={350}>
         {gridComponents}
       </SpringGrid>
     );

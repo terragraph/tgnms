@@ -1,6 +1,7 @@
 /* eslint no-console: 0 */
 
 const path = require('path');
+const request = require('request');
 const express = require('express');
 const webpack = require('webpack');
 const webpackMiddleware = require('webpack-dev-middleware');
@@ -10,7 +11,10 @@ const isDeveloping = process.env.NODE_ENV !== 'production';
 const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
 const app = express();
 const fs = require('fs');
-const influxHelper = require('./influx');
+const data = require('./data');
+const charts = require('./charts');
+// load the initial node ids
+data.refreshNodeIds();
 const controllerProxy = require('./controllerProxy');
 const aggregatorProxy = require('./aggregatorProxy');
 
@@ -70,14 +74,31 @@ if (isDeveloping) {
     setInterval(periodicNetworkStatus, 5000);
   });
 
-
+  // datadb write proxy
+  app.use(/\/write$/i, function (req, res, next) {
+    let dbName = req.query.db;
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // relay the msg to datadb
+      if (!httpPostData.length) {
+        return;
+      }
+      // update mysql time series db
+      res.status(200).end("Submitted");
+      data.writeData(httpPostData);
+    });
+  });
   // serve static js + css
   app.use('/static', express.static(path.join(__dirname, 'static')));
   app.use(middleware);
   app.use(webpackHotMiddleware(compiler));
+
   // single node
-  app.get(/\/influx\/([a-z_]+)\/([a-z0-9\:\,]+)$/i, function (req, res, next) {
-    influxHelper.query(req, res, next);
+  app.get(/\/chart\/([a-z_]+)\/([a-z0-9\:\,]+)$/i, function (req, res, next) {
+    charts.query(req, res, next);
   });
   app.get(/\/topology\/static$/, function(req, res, next) {
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
@@ -88,6 +109,7 @@ if (isDeveloping) {
       }
       // serialize some example
       let networkConfig = JSON.parse(data);
+
       res.json(networkConfig);
     });
   });
