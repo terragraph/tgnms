@@ -15,15 +15,26 @@ const data = require('./data');
 const charts = require('./charts');
 // load the initial node ids
 data.refreshNodeIds();
+const elasticHelper = require('./elastic');
 const controllerProxy = require('./controllerProxy');
 const aggregatorProxy = require('./aggregatorProxy');
+const ipaddr = require('ipaddr.js');
+const expressWs = require('express-ws')(app);
+const os = require('os');
+const pty = require('pty.js');
 
 var fileTopologies = [];
 var configs = [];
+var elasticTables = {};
 var topologies_index = 0;
 var receivedTopologies = [];
 var ctrlStatusDumps = [];
 var aggrStatusDumps = [];
+
+var terminals = {},
+    logs = {};
+
+var tgNodeIp = null;
 
 function periodicNetworkStatus() {
   for (var i = 0, len = configs.length; i < len; i++) {
@@ -91,14 +102,110 @@ if (isDeveloping) {
       data.writeData(httpPostData);
     });
   });
+  // Read list of event logging Tables
+  fs.readFile('./config/event_logging_tables.json', 'utf-8', (err, data) => {
+    // unable to open file, exit
+    if (err) {
+      res.status(500).send(err.stack);
+      return;
+    }
+    // serialize some example
+    elasticTables = JSON.parse(data);
+  });
+
   // serve static js + css
   app.use('/static', express.static(path.join(__dirname, 'static')));
   app.use(middleware);
   app.use(webpackHotMiddleware(compiler));
 
+  app.use('/xterm', express.static(path.join(__dirname, 'xterm')));
+  app.get('/xterm/:ip', function(req, res){
+    if (req.params.ip &&
+        ipaddr.IPv6.isValid(req.params.ip)) {
+      tgNodeIp = req.params.ip;
+      res.sendFile(__dirname + '/xterm/index.html');
+    } else {
+      res.sendFile(__dirname + '/xterm/invalid.html');
+    }
+  });
+  app.get('/style.css', function(req, res){
+    res.sendFile(__dirname + '/xterm/style.css');
+  });
+  app.get('/main.js', function(req, res){
+    res.sendFile(__dirname + '/xterm/main.js');
+  });
+
+  app.post('/terminals', function (req, res) {
+    var cols = parseInt(req.query.cols),
+        rows = parseInt(req.query.rows),
+        term = pty.spawn(process.platform === 'win32' ? 'cmd.exe' : './term.sh', [], {
+          name: 'xterm-color',
+          cols: cols || 80,
+          rows: rows || 24,
+          cwd: process.env.PWD,
+          env: process.env
+        });
+
+    term.write(tgNodeIp + '\r');
+    tgNodeIp = null;
+
+    terminals[term.pid] = term;
+    logs[term.pid] = '';
+    term.on('data', function(data) {
+      logs[term.pid] += data;
+    });
+    res.send(term.pid.toString());
+    res.end();
+  });
+
+  app.post('/terminals/:pid/size', function (req, res) {
+    var pid = parseInt(req.params.pid),
+        cols = parseInt(req.query.cols),
+        rows = parseInt(req.query.rows),
+        term = terminals[pid];
+
+    term.resize(cols, rows);
+    console.log('Resized terminal ' + pid + ' to ' + cols + ' cols and ' + rows + ' rows.');
+    res.end();
+  });
+
+  app.ws('/terminals/:pid', function (ws, req) {
+    var term = terminals[parseInt(req.params.pid)];
+    console.log('Connected to terminal ' + term.pid);
+    ws.send(logs[term.pid]);
+
+    term.on('data', function(data) {
+      try {
+        ws.send(data);
+      } catch (ex) {
+        // The WebSocket is not open, ignore
+      }
+    });
+    ws.on('message', function(msg) {
+      term.write(msg);
+    });
+    ws.on('close', function () {
+      try {
+        process.kill(term.pid);
+      } catch (e) {
+        console.log("Terminal already closed");
+      }
+      console.log('Closed terminal ' + term.pid);
+      // Clean things up
+      delete terminals[term.pid];
+      delete logs[term.pid];
+    });
+  });
+
   // single node
   app.get(/\/chart\/([a-z_]+)\/([a-z0-9\:\,]+)$/i, function (req, res, next) {
     charts.query(req, res, next);
+  });
+  app.get(/\/elastic\/getTables/, function(req, res, next) {
+    res.json(elasticTables);
+  });
+  app.get(/\/elastic\/execute\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
+    elasticHelper.execute(elasticTables, req, res, next);
   });
   app.get(/\/topology\/static$/, function(req, res, next) {
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {

@@ -8,6 +8,7 @@ import NetworkNodesTable from './NetworkNodesTable.js';
 import NetworkLinksTable from './NetworkLinksTable.js';
 import NetworkAdjacencyTable from './NetworkAdjacencyTable.js';
 import NetworkRoutingTable from './NetworkRoutingTable.js';
+
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
@@ -53,7 +54,7 @@ export default class NetworkDataTable extends React.Component {
         break;
       case Actions.PANE_CHANGED:
         this.setState({
-          componentHeight: window.innerHeight - payload.newSize - 50,
+          componentHeight: window.innerHeight - payload.newSize - 60,
         });
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({

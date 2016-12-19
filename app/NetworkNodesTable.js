@@ -20,6 +20,7 @@ export default class NetworkNodesTable extends React.Component {
     this.getTableRows = this.getTableRows.bind(this);
     this.tableOnRowMouseOver = this.tableOnRowMouseOver.bind(this);
     this.contextMenuOnShow = this.contextMenuOnShow.bind(this);
+    this.contextMenuHandleRightClick = this.contextMenuHandleRightClick.bind(this);
   }
 
   componentWillMount() {
@@ -149,6 +150,11 @@ export default class NetworkNodesTable extends React.Component {
   }
 
   contextMenuHandleRightClick(e, data) {
+    if (data.cmd == "terminal") {
+      let myRequest = new Request('/xterm/'+this.state.nodesRowMouseOver.ipv6);
+      window.open(myRequest.url, '_blank');
+      window.focus();
+    }
   }
 
   contextMenuOnShow(e) {
@@ -181,6 +187,7 @@ export default class NetworkNodesTable extends React.Component {
       sortOrder: this.state.sortOrder,
       onSortChange: this.tableOnSortChange,
       onRowMouseOver: this.tableOnRowMouseOver,
+      trClassName: 'break-word',
     };
 
     let nodesData = [];
@@ -198,12 +205,13 @@ export default class NetworkNodesTable extends React.Component {
             options={ tableOptions }
             data={this.getTableRows(nodesData)}
             striped={true} hover={true}
-            selectRow={selectRowProp}>
-          <TableHeaderColumn width="180" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-          <TableHeaderColumn width="170" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
+            selectRow={selectRowProp}
+            trClassName= 'break-word'>
+          <TableHeaderColumn width="170" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
+          <TableHeaderColumn width="160" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
           <TableHeaderColumn width="180" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
           <TableHeaderColumn width="80" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
-          <TableHeaderColumn width="80"
+          <TableHeaderColumn width="90"
                              dataSort={true}
                              dataField="ignited">
             Ignited
@@ -212,18 +220,15 @@ export default class NetworkNodesTable extends React.Component {
                              dataSort={true}
                              dataField="site_name"
                              sortFunc={this.siteSortFunc}>
-            Site ID
+            Site
           </TableHeaderColumn>
-          <TableHeaderColumn width="100" dataSort={true} dataField="pop_node">Pop Node</TableHeaderColumn>
-          <TableHeaderColumn dataSort={true} dataField="version">Version</TableHeaderColumn>
+          <TableHeaderColumn width="80" dataSort={true} dataField="pop_node">Pop?</TableHeaderColumn>
+          <TableHeaderColumn width="700" dataSort={true} dataField="version">Version</TableHeaderColumn>
         </BootstrapTable>
       </ContextMenuTrigger>
       <ContextMenu id="nodesTableContextMenu" onShow={this.contextMenuOnShow}>
-        <MenuItem data={Object(1)} onClick={this.contextMenuHandleRightClick}>
-          ContextMenu Item 1
-        </MenuItem>
-        <MenuItem data={Object(2)} onClick={this.contextMenuHandleRightClick}>
-          ContextMenu Item 2
+        <MenuItem data={JSON.parse('{"cmd":"terminal"}')} onClick={this.contextMenuHandleRightClick}>
+          Connect To Terminal
         </MenuItem>
       </ContextMenu>
       </div>

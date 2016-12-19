@@ -1,0 +1,164 @@
+{
+  "tables": [
+    {
+      "name": "CLI Usage",
+      "search": {
+        "index": "terragraph_cli_usage",
+        "type": "tg",
+        "body": {
+          "from" : 0, "size" : 50,
+          "query" : {
+            "match_all": {}
+          },
+          "sort" : [
+            {"time" : "desc"}
+          ]
+        }
+      },
+      "display": {
+        "columns": [
+          {
+            "field": "cmd",
+            "label": "Command",
+            "width": "180"
+          },
+          {
+            "field": "time",
+            "label": "Time",
+            "width": "170",
+            "format": "TIME_MS"
+          },
+          {
+            "field": "user",
+            "label": "User",
+            "width": "80"
+          },
+          {
+            "field": "host_ip",
+            "label": "Host IP",
+            "width": "180"
+          },
+          {
+            "field": "host_name",
+            "label": "Host Name",
+            "width": "100"
+          },
+          {
+            "field": "version",
+            "label": "Host IP"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Node Status",
+      "search": {
+        "index": "terragraph_event_logs",
+        "type": "perfpipe_terragraph_node_status",
+        "body": {
+          "from" : 0, "size" : 500,
+          "query" : {
+            "match_all": {}
+          },
+          "sort" : [
+            {"int.time" : "desc"}
+          ]
+        }
+      },
+      "display": {
+        "columns": [
+          {
+            "field": "int.time",
+            "label": "Time",
+            "width": "180",
+            "format": "TIME_S"
+          },
+          {
+            "field": "normal.topology",
+            "label": "Topology",
+            "width": "180"
+          },
+          {
+            "field": "normal.node_name",
+            "label": "Name",
+            "width": "180"
+          },
+          {
+            "field": "normal.node_mac",
+            "label": "MAC",
+            "width": "170"
+          },
+          {
+            "field": "normal.ipv6",
+            "label": "IP",
+            "width": "180"
+          },
+          {
+            "field": "normal.is_connected",
+            "label": "Connected?",
+            "width": "100"
+          },
+          {
+            "field": "normal.upgrade_status",
+            "label": "Upgrade Status",
+            "width": "100"
+          },
+          {
+            "field": "normal.curr_version",
+            "label": "Version"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Link Status",
+      "search": {
+        "index": "terragraph_event_logs",
+        "type": "perfpipe_terragraph_link_status",
+        "body": {
+          "from" : 0, "size" : 500,
+          "query" : {
+            "match_all": {}
+          },
+          "sort" : [
+            {"int.time" : "desc"}
+          ]
+        }
+      },
+      "display": {
+        "columns": [
+          {
+            "field": "int.time",
+            "label": "Time",
+            "width": "180",
+            "format": "TIME_S"
+          },
+          {
+            "field": "normal.topology",
+            "label": "Topology",
+            "width": "180"
+          },
+          {
+            "field": "normal.a_node_name",
+            "label": "A Node",
+            "width": "180"
+          },
+          {
+            "field": "normal.z_node_name",
+            "label": "Z Node",
+            "width": "180"
+          },
+          {
+            "field": "normal.is_alive",
+            "label": "Alive?",
+            "width": "100"
+          },
+          {
+            "field": "normal.message_type",
+            "label": "Message Type"
+          }
+        ]
+      }
+    }
+  ]
+}
