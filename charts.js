@@ -42,6 +42,9 @@ var self = {
     result.forEach(row => {
       dataPoints.push([row.time * 1000, row.value]);
     });
+    // drop the first and last data point since they're incomplete
+    dataPoints.splice(0, 1);
+    dataPoints.splice(-1, 1);
     const endpointResults = {
       name: "Traffic",
       columns: ["time", "value"],
@@ -76,6 +79,9 @@ var self = {
     let columnDisplayNames = columnNamesArr.map(name => {
       return self.columnName(name);
     });
+    // drop the first and last data point since they're incomplete
+    dataPoints.splice(0, 1);
+    dataPoints.splice(-1, 1);
     const endpointResults = {
       name: "Traffic",
       columns: ["time"].concat(columnDisplayNames),
@@ -84,13 +90,21 @@ var self = {
     return endpointResults;
   },
 
-  query: function (req, res, next) {
-    let metricType = req.params[0];
-    let nodeNames = req.params[1].split(",");
-    let timeAgo = '1 hour';
+  queryObj: function(res, postDataJSON) {
+    let postData = JSON.parse(postDataJSON);
+    if ('chart_data' in postData && 'metric' in postData) {
+      // construct query for node src <-> dst
+      self.fetch(res, postData.chart_data, postData.metric);
+    } else {
+      console.error("No chart data and/or metric specified in POST", postData);
+    }
+  },
+
+  fetch: function(res, chartData, metricName) {
     let query;
     let fields = [];
-    switch (metricType) {
+    let nodeMacs = Object.keys(chartData.nodes);
+    switch (metricName) {
       case 'traffic_sum':
         // show an aggregate of traffic (TX + RX) for the whole network
         // next parameter should be a list of nodes
@@ -103,7 +117,7 @@ var self = {
           "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
           "GROUP BY `key`, UNIX_TIMESTAMP(time) DIV 30";
         fields = [
-          [nodeNames],
+          [nodeMacs],
           [['terra0.tx_bytes', 'terra0.rx_bytes']]
         ];
         break;
@@ -118,7 +132,7 @@ var self = {
                 "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
                 "GROUP BY `mac`, UNIX_TIMESTAMP(time) DIV 30"
         fields = [
-          [nodeNames],
+          [nodeMacs],
           ['terra0.tx_bytes'],
         ];
         break;
@@ -132,7 +146,7 @@ var self = {
                 "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
                 "GROUP BY `mac`, UNIX_TIMESTAMP(time) DIV 30"
         fields = [
-          [nodeNames],
+          [nodeMacs],
           ['terra0.rx_bytes'],
         ];
         break;
@@ -145,12 +159,12 @@ var self = {
                 "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
                 "GROUP BY UNIX_TIMESTAMP(time) DIV 30 " +
                 "ORDER BY time ASC";
-        fields = [[nodeNames], ['terra0.tx_bytes']];
+        fields = [[nodeMacs], ['terra0.tx_bytes']];
         break;
       case 'snr_by_node':
         break;
       default:
-        console.error('Undefined metric:', metricType);
+        console.error('Undefined metric:', metricName);
     }
     if (!query) {
       console.log('Query undefined');
@@ -170,17 +184,14 @@ var self = {
           console.log('Error', err);
           return;
         }
-        self.processResults(res, metricType, results);
+        self.processResults(res, metricName, results);
       });
-      if (metricType == 'nodes_reporting') {
-        //console.log(sqlQuery.sql);
-      }
     });
-      // output post-processing
+    // output post-processing
   },
 
-  processResults: function(res, metricType, result) {
-    switch (metricType) {
+  processResults: function(res, metricName, result) {
+    switch (metricName) {
       case 'traffic_sum':
         res.json(self.formatStatsGroup(result, 'key'));
         break;

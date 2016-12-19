@@ -59,21 +59,64 @@ export default class NetworkDashboard extends React.Component {
       });
       let nodeMacListStr = nodeMacList.join(",");
       const aggGraphs = [
-        ["nodes_traffic_tx", "nodes-traffic-tx", "Node Bandwidth (TX)", "Throughput"],
-        ["nodes_traffic_rx", "nodes-traffic-rx", "Node Bandwidth (RX)", "Throughput"],
-        ["traffic_sum", "traffic-sum", "Aggregate RF Bandwidth", "Throughput"],
-        ["nodes_reporting", "nodes-reporting", "Nodes Reporting", "Nodes Reporting"],
+        ["nodes_traffic_tx", "nodes-traffic-tx",
+         "Node Bandwidth (TX)", "Throughput"],
+        ["nodes_traffic_rx", "nodes-traffic-rx",
+         "Node Bandwidth (RX)", "Throughput"],
+        ["traffic_sum", "traffic-sum",
+         "Aggregate RF Bandwidth", "Throughput"],
+        ["nodes_reporting", "nodes-reporting",
+         "Nodes Reporting", "Nodes Reporting"],
       ];
+      // nodes list
+      let nodes = {};
+      this.state.topologyJson.nodes.forEach(node => {
+        nodes[node.mac_addr] = {
+          'name':     node.name,
+          'version':  'Unknown',
+        };
+      });
+      // index nodes
+      let nodesByName = {};
+      this.state.topologyJson.nodes.forEach(node => {
+        nodesByName[node.name] = node;
+      });
+      // construct links
+      let links = [];
+      this.state.topologyJson.links.forEach(link => {
+        if (link.link_type != 2) {
+          return;
+        }
+        links.push({
+          'a_node': {
+            'name': link.a_node_name,
+            'mac':  nodesByName[link.a_node_name].mac_addr,
+          },
+          'z_node': {
+            'name': link.z_node_name,
+            'mac':  nodesByName[link.z_node_name].mac_addr,
+          },
+        });
+      });
+      // 'mac': {
+      //    name,
+      //    version,
+      //    ..
+      // }
+      // shared chart data across all graphs
+      let chartData = {
+        'nodes':  nodes,
+        'links':  links,
+      };
       gridComponents = aggGraphs.map(graph => {
         return (
           <li key={graph[1] + "-li"}>
             <ReactGraph
               key={graph[1]}
-              title={graph[2]}
-              node={nodeMacListStr}
-              names={nodeNameList}
               metric={graph[0]}
+              title={graph[2]}
               label={graph[3]}
+              chart_data={chartData}
               size="small"
             />
           </li>

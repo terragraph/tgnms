@@ -5,22 +5,30 @@ import { Charts, ChartContainer, ChartRow, YAxis, AreaChart, LineChart,
 import { Index, TimeSeries, TimeRange } from "pondjs";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
+import equals from "equals";
  
 export default class ReactGraph extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
-      data: '',
+      data: undefined,
       tracker: null,
+      indicator: 'IDLE',
     };
+    this.chartRequest = undefined;
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.refreshData();
+    // schedule fixed interval refresh
+    this.timer = setInterval(this.refreshData.bind(this), 10000);
   }
 
   componentWillUnmount() {
-    clearTimeout(this.lastTimer);
+    if (this.chartRequest) {
+      this.chartRequest.abort();
+    }
+    clearInterval(this.timer);
   }
   
   formatSpeed(bps) {
@@ -33,16 +41,24 @@ export default class ReactGraph extends React.Component {
     return bps + ' bps';
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    // re-render if props change
-    if (this.props.metric !== nextProps.metric ||
-        this.props.node !== nextProps.node ||
-        this.props.size !== nextProps.size ||
-        this.props.title !== nextProps.title) {
-      // something changed in the props, force a data fetch
+  componentWillReceiveProps(nextProps) {
+    if (!equals(this.props.chart_data.nodes, nextProps.chart_data.nodes)) {
+      // cancel any pending requests
+      if (this.chartRequest) {
+        this.chartRequest.abort();
+      }
+      // reset state
+      this.setState({
+        data: undefined,
+        indicator: 'LOAD_DATA',
+      });
+    }
+  }
+  componentDidUpdate(prevProps, prevtate) {
+    if (!equals(this.props.chart_data.nodes, prevProps.chart_data.nodes)) {
+      // fetch data for the new nodes
       this.refreshData();
     }
-    return true;
   }
 
   nextColor(index) {
@@ -61,25 +77,47 @@ export default class ReactGraph extends React.Component {
   }
 
   refreshData() {
-    // prop type = {single, aggregate}
-    var dataFetch = new Request("/chart/" + this.props.metric + "/" +
-                                this.props.node);
-    fetch(dataFetch).then(response => {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          this.setState({
-            data: json
-          });
-          // force update without checking for prop changes
-          // TODO - figure out a way to cancel the in-flight request when
-          // we're unmounted
-          this.forceUpdate();
-        }.bind(this));
-      } else {
-        console.error("Error fetching: HTTP ", response.status);
+    // chart request
+    let request = {
+      'chart_data': this.props.chart_data,
+      'metric':     this.props.metric,
+    };
+    // submit request
+    this.chartRequest = new XMLHttpRequest();
+    this.chartRequest.onload = function() {
+      // TODO - handle http status codes
+      if (!this.chartRequest.responseText.length) {
+        // no data to display, should show a different indicator
+        this.setState({
+          data: undefined,
+          indicator: 'NO_DATA',
+        });
+        return;
       }
-    });
-    this.lastTimer = setTimeout(this.refreshData.bind(this), 15000);
+      try {
+        let jsonResp = JSON.parse(this.chartRequest.responseText);
+        this.setState({
+          data: jsonResp,
+          indicator: jsonResp.points.length ? 'LOADED' : 'NO_DATA',
+        });
+      } catch (e) {
+        console.log('Unable to parse json', e, this.chartRequest.responseText.length);
+      }
+    }.bind(this);
+    // handle failed requests
+    this.chartRequest.onreadystatechange = function(chartEvent) {
+      if (this.chartRequest.readyState == 4 &&
+          this.chartRequest.status == 0) {
+        this.setState({
+          data: undefined,
+          indicator: 'FAILED',
+        });
+      }
+    }.bind(this);
+    try {
+      this.chartRequest.open('POST', '/chart/', true);
+      this.chartRequest.send(JSON.stringify(request));
+    } catch (e) {}
   }
 
   render() {
@@ -98,61 +136,79 @@ export default class ReactGraph extends React.Component {
         break;
     }
     // legend
-    let legendNames = this.props.names;
+    let legendNames = Object.keys(this.props.chart_data.nodes);
     switch (this.props.metric) {
       case 'traffic_sum':
         legendNames = ['TX Bytes', 'RX Bytes'];
         break;
     }
 
-    if (this.state.data &&
-        this.state.data.points &&
-        this.state.data.points.length > 1) {
-      let timeSeries = new TimeSeries(this.state.data);
-      let columnNames = this.state.data.columns.slice(1);
-      for (let i = 0; i < columnNames.length; i++) {
-        let macAddr = columnNames[i];
-        let nodeName = legendNames[i];
-        if (this.state.tracker) {
-          const index = timeSeries.bisect(this.state.tracker);
-          const trackerEvent = timeSeries.at(index);
-          legend.push({
-            key: macAddr,
-            label: nodeName,
-            value: this.formatSpeed(trackerEvent.get(macAddr)),
-          });
-        } else {
-          legend.push({
-            key: macAddr,
-            label: nodeName,
-          });
-        }
-        legendStyle.push({
-            key: macAddr,
-            color: this.nextColor(i),
-            width: 2,
+    // show indicator if graph is loading, failed, etc
+    if (!this.state.data ||
+        !this.state.data.points ||
+        this.state.data.points.length <= 1) {
+      // display a loading indicator when data has yet to arrive
+      //    // show indicator if graph is loading, failed, etc
+      let indicatorImg = "/static/images/loading-graphs.gif";
+      switch (this.state.indicator) {
+        case 'NO_DATA':
+          indicatorImg = "/static/images/empty-trash.gif";
+          break;
+        case 'FAILED':
+          indicatorImg = "/static/images/cancel-file.png";
+          break;
+      }
+      return (
+        <div className="loading-indicator">
+          <img src={indicatorImg} />
+        </div>
+      );
+    }
+    // we have data to process
+    let timeSeries = new TimeSeries(this.state.data);
+    let columnNames = this.state.data.columns.slice(1);
+    for (let i = 0; i < columnNames.length; i++) {
+      let macAddr = columnNames[i];
+      let nodeName = legendNames[i];
+      if (this.state.tracker) {
+        const index = timeSeries.bisect(this.state.tracker);
+        const trackerEvent = timeSeries.at(index);
+        legend.push({
+          key: macAddr,
+          label: nodeName,
+          value: this.formatSpeed(trackerEvent.get(macAddr)),
+        });
+      } else {
+        legend.push({
+          key: macAddr,
+          label: nodeName,
         });
       }
-      lineCharts.push(
-        <LineChart
-          axis="a1"
-          series={timeSeries}
-          key={name}
-          columns={columnNames}
-          style={styler(legendStyle)}
-          highlight={this.state.highlight}
-          onHighlightChange={highlight => this.setState({highlight})}
-          selection={this.state.selection}
-          onSelectionChange={selection => this.setState({selection})}
-          interpolation="curveBasis"
-        />);
-      columnNames.forEach(name => {
-        maxValue = Math.max(maxValue, timeSeries.max(name));
-        minValue = Math.min(minValue, timeSeries.min(name));
+      legendStyle.push({
+          key: macAddr,
+          color: this.nextColor(i),
+          width: 2,
       });
-      // update time range
-      timeRange = timeSeries.range();
     }
+    lineCharts.push(
+      <LineChart
+        axis="a1"
+        series={timeSeries}
+        key={name}
+        columns={columnNames}
+        style={styler(legendStyle)}
+        highlight={this.state.highlight}
+        onHighlightChange={highlight => this.setState({highlight})}
+        selection={this.state.selection}
+        onSelectionChange={selection => this.setState({selection})}
+        interpolation="curveBasis"
+      />);
+    columnNames.forEach(name => {
+      maxValue = Math.max(maxValue, timeSeries.max(name));
+      minValue = Math.min(minValue, timeSeries.min(name));
+    });
+    // update time range
+    timeRange = timeSeries.range();
     // reset min value if no topology
     if (minValue == Number.MAX_VALUE) {
       minValue = 0;
@@ -221,12 +277,13 @@ export default class ReactGraph extends React.Component {
 
 ReactGraph.propTypes = {
   // comma separated list of node ids
-  node: React.PropTypes.string.isRequired,
-  names: React.PropTypes.array.isRequired,
-  // bandwidth, nodes_reporting, ...
-  metric: React.PropTypes.string.isRequired,
   title: React.PropTypes.string.isRequired,
+  // y-axis label
   label: React.PropTypes.string.isRequired,
   // small, large
   size: React.PropTypes.string.isRequired,
+  // metric name to display
+  metric: React.PropTypes.string.isRequired,
+  // chart data
+  chart_data: React.PropTypes.object.isRequired,
 };

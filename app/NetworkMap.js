@@ -178,7 +178,6 @@ export default class NetworkMap extends React.Component {
   }
 
   onSortChange(sortName, sortOrder) {
-    console.info('onSortChange', arguments);
     this.setState({
       sortName,
       sortOrder,
