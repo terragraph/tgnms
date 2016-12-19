@@ -4,6 +4,8 @@ import { render } from 'react-dom';
 // dispatcher
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import NetworkStore from './NetworkStore.js';
+
 import NetworkNodesTable from './NetworkNodesTable.js';
 import NetworkLinksTable from './NetworkLinksTable.js';
 import NetworkAdjacencyTable from './NetworkAdjacencyTable.js';
@@ -28,6 +30,9 @@ export default class NetworkDataTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    if (NetworkStore.topologyName && NetworkStore.topologyJson) {
+      this.setState({topology: NetworkStore.topologyJson});
+    }
   }
 
   componentDidMount() {

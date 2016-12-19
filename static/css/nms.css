@@ -1,0 +1,7 @@
+/* loading image is 40x40, column width is 450, height = 350 */
+.loading-indicator {
+  width: 100%;
+  text-align: center;
+  margin-left: 205px;
+  margin-top: 155px;
+}

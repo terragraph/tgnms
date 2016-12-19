@@ -207,6 +207,19 @@ if (isDeveloping) {
   app.get(/\/elastic\/execute\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
     elasticHelper.execute(elasticTables, req, res, next);
   });
+
+  // all charting
+  app.post(/\/chart\/$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // push query
+      charts.queryObj(res, httpPostData);
+    });
+  });
+
   app.get(/\/topology\/static$/, function(req, res, next) {
     fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
       // unable to open file, exit
