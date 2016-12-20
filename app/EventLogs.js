@@ -31,7 +31,6 @@ export default class EventLogs extends React.Component {
     this.selectChange = this.selectChange.bind(this);
     this.getConfigs = this.getConfigs.bind(this);
     this.diveClick = this.diveClick.bind(this);
-    this.executeSearch = this.executeSearch.bind(this);
     this.findprop = this.findprop.bind(this);
     this.renderTableColumns = this.renderTableColumns.bind(this);
     this.renderDataTable = this.renderDataTable.bind(this);
@@ -65,6 +64,8 @@ export default class EventLogs extends React.Component {
             });
             resolve();
           }.bind(this));
+        } else {
+          reject();
         }
       }.bind(this));
     });
