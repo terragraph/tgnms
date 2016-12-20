@@ -67,6 +67,14 @@ export default class NetworkDashboard extends React.Component {
          "Aggregate RF Bandwidth", "Throughput"],
         ["nodes_reporting", "nodes-reporting",
          "Nodes Reporting", "Nodes Reporting"],
+        ["errors_sum", "errors-sum",
+         "Error Rate", "Errors/sec"],
+        ["drops_sum", "drops-sum",
+         "Drop Rate", "Drops/sec"],
+        ["load", "load",
+         "Load Avg", "CPU Load"],
+        ["mem_util", "mem-util",
+        "Memory Utilization", "Memory Utilization %"],
       ];
       // nodes list
       let nodes = {};
@@ -127,7 +135,7 @@ export default class NetworkDashboard extends React.Component {
       <SpringGrid
         component="ul"
         className="dashboard-grid"
-        columns={2}
+        columns={3}
         columnWidth={450}
         gutterWidth={5}
         gutterHeight={5}

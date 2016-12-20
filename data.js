@@ -63,12 +63,21 @@ var self = {
       return d;
     } else {
 //      console.log('bad time', timeInNs, row);
-      return -1;
+      // just use current time
+      return new Date();
     }
   },
 
   writeData: function(postData) {
-    let usedKeys = new Set(['terra0.tx_bytes', 'terra0.rx_bytes']);
+    let usedKeys = new Set(['terra0.tx_bytes', 'terra0.rx_bytes',
+                            'uptime',
+                            'procs.total',
+                            'mount.util:/',
+                            'load-1', 'load-5', 'load-15',
+                            'mem.free', 'mem.total', 'mem.util',
+                            'terra0.tx_dropped', 'terra0.rx_dropped',
+                            'terra0.tx_errors', 'terra0.rx_errors']);
+    let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'spostSNRdB']);
     let rows = [];
     let rowsUnused = [];
     let unknownMacs = new Set();
@@ -127,7 +136,14 @@ var self = {
         if (usedKeys.has(keyName)) {
           rows.push(row);
         } else {
-          rowsUnused.push(row);
+          // fw stats
+          let keyNameSplit = keyName.split(".");
+          if (keyNameSplit.length == 4 &&
+              allowedTgSuffix.has(keyNameSplit[3])) {
+            rows.push(row);
+          } else {
+            rowsUnused.push(row);
+          }
         }
       } else if (macAddr) {
         noMac++;
