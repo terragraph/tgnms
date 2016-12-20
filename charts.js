@@ -10,13 +10,40 @@ const pool = mysql.createPool({
     waitForConnections: false,
 });
 
+SUM_BY_KEY = "SELECT `key`, (FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) " +
+             "AS time, SUM(value) AS value FROM time_series " +
+             "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
+             "WHERE `mac` IN ? " +
+             "AND `key` IN ? " +
+             "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+             "GROUP BY `key`, UNIX_TIMESTAMP(time) DIV 30";
+SUM_BY_MAC = "SELECT `mac`, " +
+              "(FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) AS time, " +
+              "SUM(value) AS value FROM time_series " +
+              "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
+              "WHERE `mac` IN ? " +
+              "AND `key` IN ? " +
+              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+              "GROUP BY `mac`, UNIX_TIMESTAMP(time) DIV 30";
 var self = {
   columnName: function (metricName) {
     switch (metricName) {
       case 'terra0.tx_bytes':
-        return "TX Bytes";
+        return 'TX Bytes';
       case 'terra0.rx_bytes':
-        return "RX Bytes";
+        return 'RX Bytes';
+      case 'terra0.tx_errors':
+        return 'TX Errors';
+      case 'terra0.rx_errors':
+        return 'RX Errors';
+      case 'terra0.tx_dropped':
+        return 'TX Dropped';
+      case 'terra0.rx_dropped':
+        return 'RX Dropped';
+      case 'load-1':
+        return '1-Minute Load Avg';
+      case 'mem.util':
+        return 'Memory Utilization';
       default:
         return metricName;
     }
@@ -108,14 +135,7 @@ var self = {
       case 'traffic_sum':
         // show an aggregate of traffic (TX + RX) for the whole network
         // next parameter should be a list of nodes
-        query =
-          "SELECT `key`, (FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) " +
-            "AS time, SUM(value) AS value FROM time_series " +
-          "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
-          "WHERE `mac` IN ? " +
-          "AND `key` IN ? " +
-          "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
-          "GROUP BY `key`, UNIX_TIMESTAMP(time) DIV 30";
+        query = SUM_BY_KEY;
         fields = [
           [nodeMacs],
           [['terra0.tx_bytes', 'terra0.rx_bytes']]
@@ -123,31 +143,45 @@ var self = {
         break;
       case 'nodes_traffic_tx':
         // show traffic per host
-        query = "SELECT `mac`, " +
-                "(FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) AS time, " +
-                "SUM(value) AS value FROM time_series " +
-                "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
-                "WHERE `mac` IN ? " +
-                "AND `key` = ? " +
-                "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
-                "GROUP BY `mac`, UNIX_TIMESTAMP(time) DIV 30"
+        query = SUM_BY_MAC;
         fields = [
           [nodeMacs],
-          ['terra0.tx_bytes'],
+          [['terra0.tx_bytes']],
         ];
         break;
       case 'nodes_traffic_rx':
-        query = "SELECT `mac`, " +
-                "(FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) AS time, " +
-                "SUM(value) AS value FROM time_series " +
-                "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
-                "WHERE `mac` IN ? " +
-                "AND `key` = ? " +
-                "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
-                "GROUP BY `mac`, UNIX_TIMESTAMP(time) DIV 30"
+        query = SUM_BY_MAC;
         fields = [
           [nodeMacs],
-          ['terra0.rx_bytes'],
+          [['terra0.rx_bytes']],
+        ];
+        break;
+      case 'errors_sum':
+        query = SUM_BY_KEY;
+        fields = [
+          [nodeMacs],
+          [['terra0.tx_errors', 'terra0.rx_errors']],
+        ];
+        break;
+      case 'drops_sum':
+        query = SUM_BY_KEY;
+        fields = [
+          [nodeMacs],
+          [['terra0.tx_dropped', 'terra0.rx_dropped']],
+        ];
+        break;
+      case 'mem_util':
+        query = SUM_BY_MAC;
+        fields = [
+          [nodeMacs],
+          [['mem.util']],
+        ];
+        break;
+      case 'load':
+        query = SUM_BY_MAC;
+        fields = [
+          [nodeMacs],
+          [['load-1']],
         ];
         break;
       case 'nodes_reporting':
@@ -156,7 +190,7 @@ var self = {
                 "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
                 "WHERE `mac` IN ? " +
                 "AND `key` = ? " +
-                "AND `time` > DATE_SUB(NOW(), INTERVAL 30 MINUTE) " +
+                "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
                 "GROUP BY UNIX_TIMESTAMP(time) DIV 30 " +
                 "ORDER BY time ASC";
         fields = [[nodeMacs], ['terra0.tx_bytes']];
@@ -193,10 +227,14 @@ var self = {
   processResults: function(res, metricName, result) {
     switch (metricName) {
       case 'traffic_sum':
+      case 'errors_sum':
+      case 'drops_sum':
         res.json(self.formatStatsGroup(result, 'key'));
         break;
       case 'nodes_traffic_tx':
       case 'nodes_traffic_rx':
+      case 'mem_util':
+      case 'load':
         res.json(self.formatStatsGroup(result, 'mac'));
         break;
       case 'nodes_reporting':

@@ -135,13 +135,6 @@ export default class ReactGraph extends React.Component {
         height = 500;
         break;
     }
-    // legend
-    let legendNames = Object.keys(this.props.chart_data.nodes);
-    switch (this.props.metric) {
-      case 'traffic_sum':
-        legendNames = ['TX Bytes', 'RX Bytes'];
-        break;
-    }
 
     // show indicator if graph is loading, failed, etc
     if (!this.state.data ||
@@ -168,24 +161,23 @@ export default class ReactGraph extends React.Component {
     let timeSeries = new TimeSeries(this.state.data);
     let columnNames = this.state.data.columns.slice(1);
     for (let i = 0; i < columnNames.length; i++) {
-      let macAddr = columnNames[i];
-      let nodeName = legendNames[i];
+      let columnName = columnNames[i];
       if (this.state.tracker) {
         const index = timeSeries.bisect(this.state.tracker);
         const trackerEvent = timeSeries.at(index);
         legend.push({
-          key: macAddr,
-          label: nodeName,
-          value: this.formatSpeed(trackerEvent.get(macAddr)),
+          key: columnName,
+          label: columnName,
+          value: this.formatSpeed(trackerEvent.get(columnName)),
         });
       } else {
         legend.push({
-          key: macAddr,
-          label: nodeName,
+          key: columnName,
+          label: columnName,
         });
       }
       legendStyle.push({
-          key: macAddr,
+          key: columnName,
           color: this.nextColor(i),
           width: 2,
       });
@@ -222,7 +214,7 @@ export default class ReactGraph extends React.Component {
       color: "#999"
     };
     let legendComponent;
-    if (legendNames.length <= 5) {
+    if (this.state.data.columns.length <= 5) {
       legendComponent =
         <div id="legend">
           <Legend
