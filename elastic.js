@@ -23,6 +23,7 @@ var self = {
           return;
         }, function (err) {
             console.trace(err.message);
+            res.status(404).end("Elasticsearch error\n");
         });
       }
     }

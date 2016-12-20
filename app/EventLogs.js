@@ -243,6 +243,9 @@ export default class EventLogs extends React.Component {
                 text='Dive!'
                 pendingText='Searching...'
                 fulFilledText='Dive!'
+                fulFilledClass="btn-success"                
+                rejectedText='Dive!'
+                rejectedClass="btn-danger"
                 onClick={this.diveClick}>
                 {
                   ({ buttonText, isPending }) => (
