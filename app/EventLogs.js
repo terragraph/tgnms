@@ -9,6 +9,13 @@ import AsyncButton from 'react-async-button';
 import Dropdown from 'react-dropdown'
 import NumericInput from 'react-numeric-input';
 
+const Spinner = () => (
+  <div className='spinner'>
+    <div className='double-bounce1'></div>
+    <div className='double-bounce2'></div>
+  </div>
+)
+
 export default class EventLogs extends React.Component {
   state = {
     tables: [],
@@ -47,23 +54,20 @@ export default class EventLogs extends React.Component {
     }.bind(this));
   }
 
-  executeSearch(tableName) {
-    let exec = new Request('/elastic/execute/'+ tableName+'/'+this.state.from+'/'+this.state.size);
-    fetch(exec).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          this.setState({
-            searchResult: json,
-          });
-        }.bind(this));
-      }
-    }.bind(this));
-  }
-
-  diveClick() {
-    if (this.state.selectedTableName) {
-      this.executeSearch(this.state.selectedTableName);
-    }
+  diveClick(e) {
+    return new Promise((resolve, reject) => {
+      let exec = new Request('/elastic/execute/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size);
+      fetch(exec).then(function(response) {
+        if (response.status == 200) {
+          response.json().then(function(json) {
+            this.setState({
+              searchResult: json,
+            });
+            resolve();
+          }.bind(this));
+        }
+      }.bind(this));
+    });
   }
 
   selectChange(val) {
@@ -234,11 +238,19 @@ export default class EventLogs extends React.Component {
             </td>
             <td>
               <AsyncButton
-                type="button"
                 className="btn btn-primary"
                 text='Dive!'
                 pendingText='Searching...'
+                fulFilledText='Dive!'
                 onClick={this.diveClick}>
+                {
+                  ({ buttonText, isPending }) => (
+                    <span>
+                      { isPending && <Spinner />}
+                      <span>{buttonText}</span>
+                    </span>
+                  )
+                }
               </AsyncButton>
             </td>
           </tr>
