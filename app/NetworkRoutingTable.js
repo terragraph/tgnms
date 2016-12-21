@@ -4,12 +4,10 @@ import { render } from 'react-dom';
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 
+import ipaddr from 'ipaddr.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-var ipaddr = require('ipaddr.js');
-
-var WidthProvider = require('react-grid-layout').WidthProvider;
-var ReactGridLayout = require('react-grid-layout');
-ReactGridLayout = WidthProvider(ReactGridLayout);
+import ReactGridLayout, { WidthProvider } from 'react-grid-layout';
+const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
 export default class NetworkRoutingTable extends React.Component {
   state = {
@@ -74,8 +72,26 @@ export default class NetworkRoutingTable extends React.Component {
   }
 
   getRoutingTableRows(routing): Array<{name:string,
-                          via:string,
-                          interface:string}> {
+                                       via:string,
+                                       interface:string}> {
+    // node ip -> name
+    let ipToName = {};
+    this.props.topology.nodes.forEach(node => {
+      if (node.status &&
+          node.status.ipv6Address &&
+          node.status.ipv6Address.length) {
+        let nodeParts = ipaddr.parse(node.status.ipv6Address);
+        if (nodeParts.parts.length != 8) {
+          return;
+        }
+        // only use the first 64 bits
+        for (let i = 4; i < 8; i++ ) {
+          nodeParts.parts[i] = 0;
+        }
+        ipToName[nodeParts.toString()] = node.name;
+      }
+    });
+
     const rows = [];
     if (!routing || !this.state.selectedMac) {
       return rows;
@@ -94,17 +110,20 @@ export default class NetworkRoutingTable extends React.Component {
     for (let i = 0; i < routes.length; i++) {
       let dest = routes[i].dest;
       let nexthops = routes[i].nexthops;
-      var dest_addr = ipaddr.fromByteArray(Buffer.from(dest.prefixAddress.addr, 'ASCII'));
+      let destAddr = ipaddr.fromByteArray(Buffer.from(dest.prefixAddress.addr, 'ASCII')).toString();
+      let destHost = destAddr in ipToName ? ipToName[destAddr] : '';
       for (let j = 0; j < nexthops.length; j++) {
         let nextHop = nexthops[j];
-        var nextHop_addr = ipaddr.fromByteArray(Buffer.from(nextHop.addr, 'ASCII'));
+        let nextHopAddr = ipaddr.fromByteArray(Buffer.from(nextHop.addr, 'ASCII')).toString();
+        // match dest to a node address
         rows.push(
           {
-            ip: j==0 ? dest_addr : "",
-            n_ip: nextHop_addr,
+            dst_ip: j==0 ? destAddr : "",
+            dst_host: destHost,
+            n_ip: nextHopAddr,
             n_ifName: nextHop.ifName,
             n_port: nextHop.port,
-            key: dest_addr+j,
+            key: destAddr+j,
           },
         );
       }
@@ -144,15 +163,23 @@ export default class NetworkRoutingTable extends React.Component {
       {i: 'b', x: 2, y: 0, w: 10, h: 1, static: true}
     ];
     return (
-      <ReactGridLayout className="layout" layout={layout} cols={12} rowHeight={this.props.height-30}>
+      <ReactGridLayoutWidthProvider
+          className="layout"
+          layout={layout}
+          cols={12}
+          rowHeight={this.props.height-30}>
         <div key={'a'}>
           <BootstrapTable
               height={(this.props.height-50)+'px'}
               key="nodeSelectTable"
               data={this.getTableRows(this.props.topology.nodes)}
               selectRow={selectRowProp}>
-            <TableHeaderColumn width="180" dataField="name" isKey>Name</TableHeaderColumn>
-            <TableHeaderColumn width="180" dataField="mac" hidden>Mac</TableHeaderColumn>
+            <TableHeaderColumn width="180" dataField="name" isKey>
+              Name
+            </TableHeaderColumn>
+            <TableHeaderColumn width="180" dataField="mac" hidden>
+              Mac
+            </TableHeaderColumn>
           </BootstrapTable>
         </div>
         <div key={'b'}>
@@ -160,14 +187,33 @@ export default class NetworkRoutingTable extends React.Component {
             height={(this.props.height-50)+'px'}
             key="routingTable"
             data={this.getRoutingTableRows(this.props.routing)}>
-          <TableHeaderColumn width="180" dataField="key" isKey hidden>key</TableHeaderColumn>
-          <TableHeaderColumn width="180" dataField="ip">Destination</TableHeaderColumn>
-          <TableHeaderColumn width="180" dataField="n_ip">Via</TableHeaderColumn>
-          <TableHeaderColumn width="80" dataField="n_port">Port</TableHeaderColumn>
-          <TableHeaderColumn dataField="n_ifName">Interface</TableHeaderColumn>
+          <TableHeaderColumn width="180" dataField="key" isKey hidden>
+            key
+          </TableHeaderColumn>
+          <TableHeaderColumn width="180" dataField="dst_ip">
+            Destination IP
+          </TableHeaderColumn>
+          <TableHeaderColumn width="180" dataField="dst_host">
+            Destination Host
+          </TableHeaderColumn>
+          <TableHeaderColumn width="180" dataField="n_ip">
+            Via
+          </TableHeaderColumn>
+          <TableHeaderColumn width="80" dataField="n_port">
+            Port
+          </TableHeaderColumn>
+          <TableHeaderColumn dataField="n_ifName">
+            Interface
+          </TableHeaderColumn>
         </BootstrapTable>
         </div>
-      </ReactGridLayout>
+      </ReactGridLayoutWidthProvider>
     );
   }
 }
+
+NetworkRoutingTable.propTypes = {
+  height: React.PropTypes.number.isRequired,
+  topology: React.PropTypes.object.isRequired,
+  routing: React.PropTypes.object,
+};

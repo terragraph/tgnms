@@ -35,10 +35,6 @@ export default class NetworkDataTable extends React.Component {
     }
   }
 
-  componentDidMount() {
-
-  }
-
   componentWillUnmount() {
     // un-register once hidden
     Dispatcher.unregister(this.dispatchToken);
