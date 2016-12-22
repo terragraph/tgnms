@@ -1,0 +1,52 @@
+{
+  "topologies": [
+    {
+      "topology_file": "lab_48_ab.json",
+      "latitude": 37.484742908595706,
+      "longitude": -122.14704215534768,
+      "zoom_level": 18,
+      "controller_ip": "2620:10d:c089:e00c:20c:29ff:fe9a:8702",
+      "aggregator_ip": "2620:10d:c089:e00c:20c:29ff:fe9a:8702"
+    },
+    {
+      "topology_file": "lab_f8_b.json",
+      "latitude": 37.4848280435154,
+      "longitude": -122.1472245455607,
+      "zoom_level": 18,
+      "controller_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a",
+      "aggregator_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a"
+    },
+    {
+      "topology_file": "lab_f8_c.json",
+      "latitude": 37.4848280435154,
+      "longitude": -122.1472245455607,
+      "zoom_level": 18,
+      "controller_ip": "2620:10d:c089:e00c:20C:29FF:FE69:6C10",
+      "aggregator_ip": "2620:10d:c089:e00c:20C:29FF:FE69:6C10"
+    },
+    {
+      "topology_file": "lab_f8_d.json",
+      "latitude": 37.4848280435154,
+      "longitude": -122.1472245455607,
+      "zoom_level": 18,
+      "controller_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7",
+      "aggregator_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7"
+    },
+    {
+      "topology_file": "lab_f8_e.json",
+      "latitude": 37.4848280435154,
+      "longitude": -122.1472245455607,
+      "zoom_level": 18,
+      "controller_ip": "",
+      "aggregator_ip": ""
+    },
+    {
+      "topology_file": "sjc_area1.json",
+      "latitude": 37.333057579551586,
+      "longitude": -121.88882589372953,
+      "zoom_level": 16,
+      "controller_ip": "",
+      "aggregator_ip": ""
+    }
+  ]
+}

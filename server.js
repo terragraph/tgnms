@@ -23,6 +23,9 @@ const expressWs = require('express-ws')(app);
 const os = require('os');
 const pty = require('pty.js');
 
+const NETWORK_CONFIG_PATH = './config/networks/';
+const NETWORK_CONFIG = 'networks.json';
+
 var fileTopologies = [];
 var configs = [];
 var elasticTables = {};
@@ -60,7 +63,7 @@ if (isDeveloping) {
   });
 
   // Read list of networks and start timer to pull network status/topology
-  fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
+  fs.readFile(NETWORK_CONFIG_PATH + NETWORK_CONFIG, 'utf-8', (err, data) => {
     // unable to open file, exit
     if (err) {
       res.status(500).send(err.stack);
@@ -72,11 +75,15 @@ if (isDeveloping) {
       let topologies = networkConfig['topologies'];
       Object.keys(topologies).forEach(function(key) {
         let topologyConfig = topologies[key];
-        let topology = topologyConfig['topology'];
+        let topology = JSON.parse(fs.readFileSync(
+          NETWORK_CONFIG_PATH + topologyConfig.topology_file));
         let config = {
             name: topology['name'],
             controller_ip: topologyConfig['controller_ip'],
-            aggregator_ip: topologyConfig['aggregator_ip']
+            aggregator_ip: topologyConfig['aggregator_ip'],
+            latitude: topologyConfig['latitude'],
+            longitude: topologyConfig['longitude'],
+            zoom_level: topologyConfig['zoom_level'],
         };
         configs.push(config);
         fileTopologies.push(topology);
@@ -221,7 +228,7 @@ if (isDeveloping) {
   });
 
   app.get(/\/topology\/static$/, function(req, res, next) {
-    fs.readFile('./config/network_config.materialized_JSON', 'utf-8', (err, data) => {
+    fs.readFile(NETWORK_CONFIG_PATH + NETWORK_CONFIG, 'utf-8', (err, data) => {
       // unable to open file, exit
       if (err) {
         res.status(500).send(err.stack);
@@ -255,7 +262,9 @@ if (isDeveloping) {
             topology.nodes[j]["status"] = status.statusReports[nodes[j].mac_addr];
           }
         }
-        res.json(topology);
+        let networkConfig = Object.assign({}, configs[i]);
+        networkConfig.topology = topology;
+        res.json(networkConfig);
         return;
       }
       // return error on unknown topology

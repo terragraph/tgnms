@@ -24,9 +24,9 @@ export default class NetworkDashboard extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
     // update default state from the store
-    if (NetworkStore.topologyName && NetworkStore.topologyJson) {
+    if (NetworkStore.topologyName && NetworkStore.networkConfig) {
       this.setState({
-        topologyJson: NetworkStore.topologyJson,
+        topologyJson: NetworkStore.networkConfig.topology,
       });
     }
   }
@@ -40,7 +40,7 @@ export default class NetworkDashboard extends React.Component {
     switch (payload.actionType) {
       case Actions.TOPOLOGY_REFRESHED:
         this.setState({
-          topologyJson: payload.topologyJson,
+          topologyJson: payload.networkConfig.topology,
         });
         break;
     }

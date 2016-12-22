@@ -1,4 +1,3 @@
-namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph.aquaman.Lsdb
 
 include "IpPrefix.thrift"

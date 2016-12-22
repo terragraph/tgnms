@@ -1,4 +1,3 @@
-namespace cpp2 facebook.terragraph.thrift
 namespace php CXL_Terragraph
 namespace py terragraph_thrift.Controller
 include "Topology.thrift"
@@ -6,10 +5,10 @@ include "Topology.thrift"
 # list the available configs for the UI
 
 struct NetworkConfig {
-  1: Topology.Topology topology
+  1: string topology_file
 
   // map defaults - center coordinates
-  10: double latitude,
+  10: double latitude
   11: double longitude
   12: i64 zoom_level
 

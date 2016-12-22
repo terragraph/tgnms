@@ -30,8 +30,10 @@ export default class NetworkDataTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    if (NetworkStore.topologyName && NetworkStore.topologyJson) {
-      this.setState({topology: NetworkStore.topologyJson});
+    if (NetworkStore.networkName && NetworkStore.networkConfig) {
+      this.setState({
+        topology: NetworkStore.networkConfig.topology
+      });
     }
   }
 
@@ -45,7 +47,7 @@ export default class NetworkDataTable extends React.Component {
       case Actions.TOPOLOGY_REFRESHED:
         // topology refreshed
         this.setState({
-          topology: payload.topologyJson,
+          topology: payload.networkConfig.topology,
         });
         break;
       case Actions.AGGREGATOR_DUMP_REFRESHED:

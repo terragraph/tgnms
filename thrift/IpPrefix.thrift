@@ -1,7 +1,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 namespace cpp facebook.terragraph.thrift
-namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph.aquaman.IpPrefix
 
 # fbstring uses the small internal buffer to store the data

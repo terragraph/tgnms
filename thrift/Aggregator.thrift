@@ -1,4 +1,3 @@
-namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.Aggregator
 
 include "Lsdb.thrift"

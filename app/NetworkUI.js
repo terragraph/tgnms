@@ -18,7 +18,7 @@ export default class NetworkUI extends React.Component {
   state = {
     view: 'map',
     topologyName: null,
-    topologyJson: {},
+    networkConfig: {},
     topologies: {},
     routing:{},
   }
@@ -46,12 +46,12 @@ export default class NetworkUI extends React.Component {
       if (response.status == 200) {
         response.json().then(function(json) {
           this.setState({
-            topologyJson: json,
+            networkConfig: json,
           });
           // dispatch the updated topology json
           Dispatcher.dispatch({
             actionType: Actions.TOPOLOGY_REFRESHED,
-            topologyJson: json,
+            networkConfig: json,
           });
         }.bind(this));
       }

@@ -35,8 +35,9 @@ export default class NetworkMap extends React.Component {
   state = {
     selectedNodeSite: null,
     selectedLink: null,
-    topologyName: null,
-    topologyJson: {},
+    networkName: null,
+    networkConfig: undefined,
+    // reset zoom level to a topologies default
     zoomLevel: 18,
     // sorting
     sortName: undefined,
@@ -46,6 +47,8 @@ export default class NetworkMap extends React.Component {
 
   constructor(props) {
     super(props);
+    // reset zoom on next refresh is set once a new topology is selected
+    this.resetZoomOnNextRefresh = true;
   }
 
   componentWillMount() {
@@ -53,8 +56,10 @@ export default class NetworkMap extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
     // update default state from the store
-    if (NetworkStore.topologyName && NetworkStore.topologyJson) {
-      this.setState(this.updateTopologyState(NetworkStore.topologyJson));
+    if (NetworkStore.networkName && NetworkStore.networkConfig) {
+      this.setState(
+        this.updateTopologyState(NetworkStore.networkConfig)
+      );
     }
   }
 
@@ -67,14 +72,16 @@ export default class NetworkMap extends React.Component {
     switch (payload.actionType) {
       // TODO - do we need to know the name?
       case Actions.TOPOLOGY_SELECTED:
-        // update selected topology name
+        // update selected topology name and wipe the zoom level
+        // we'll 
+        this.resetZoomOnNextRefresh = true;
         this.setState({
-          topologyName: payload.topologyName,
+          networkName: payload.networkName,
         });
         break;
       case Actions.TOPOLOGY_REFRESHED:
         // update the topology
-        this.setState(this.updateTopologyState(payload.topologyJson))
+        this.setState(this.updateTopologyState(payload.networkConfig))
         break;
       case Actions.NODE_SELECTED:
         let lastSelectedNodeSite = payload.nodesSelected.length ?
@@ -104,7 +111,8 @@ export default class NetworkMap extends React.Component {
     }
   }
 
-  updateTopologyState(topologyJson) {
+  updateTopologyState(networkConfig) {
+    let topologyJson = networkConfig.topology;
     let nodesByName = {};
     Object.keys(topologyJson.nodes).map(nodeIndex => {
       let node = topologyJson.nodes[nodeIndex];
@@ -116,21 +124,30 @@ export default class NetworkMap extends React.Component {
       let site = topologyJson.sites[siteIndex];
       sitesByName[site.name] = site;
     });
+    // reset the zoom when a new topology is selected
+    let resetZoom = this.resetZoomOnNextRefresh;
+    this.resetZoomOnNextRefresh = false;
     return {
-      topologyJson: topologyJson,
       nodesByName: nodesByName,
       sitesByName: sitesByName,
-    }
+      networkConfig: networkConfig,
+      zoomLevel: resetZoom ? networkConfig.zoom_level :
+                             this.state.zoomLevel,
+    };
   }
 
   componentDidMount() {
     this.refs.map.leafletElement.invalidateSize();
   }
 
-  _onMapZoom(data){
+  _onMapZoom(data) {
     this.setState({
       zoomLevel: data.target._zoom,
     });
+  }
+
+  _onClick(evt) {
+    console.log('click event @', evt.latlng.lat, evt.latlng.lng);
   }
 
   _paneChange(newSize) {
@@ -143,7 +160,8 @@ export default class NetworkMap extends React.Component {
   }
 
   _handleMarkerClick(ev) {
-    let site = this.state.topologyJson.sites[ev.target.options.siteIndex];
+    let site = this.state.networkConfig.topology.sites[
+      ev.target.options.siteIndex];
     // dispatch to update all UIs
     Dispatcher.dispatch({
       actionType: Actions.SITE_SELECTED,
@@ -186,12 +204,19 @@ export default class NetworkMap extends React.Component {
   }
 
   render() {
-    const centerPosition = [37.484494, -122.1483976];
+    // use the center position from the topology if set
+    const centerPosition = this.state.networkConfig ? 
+      [this.state.networkConfig.latitude,
+       this.state.networkConfig.longitude] :
+      [37.484494, -122.1483976];
     let siteComponents = [];
     let linkComponents = [];
-    if (this.state.topologyJson && this.state.topologyJson.sites) {
-      Object.keys(this.state.topologyJson.sites).map(siteIndex => {
-        let site = this.state.topologyJson.sites[siteIndex];
+    if (this.state.networkConfig &&
+        this.state.networkConfig.topology &&
+        this.state.networkConfig.topology.sites) {
+      let topology = this.state.networkConfig.topology;
+      Object.keys(topology.sites).map(siteIndex => {
+        let site = topology.sites[siteIndex];
         if (!site.location) {
           site.location = {};
           site.location.latitude = 0;
@@ -201,8 +226,8 @@ export default class NetworkMap extends React.Component {
 
         let healthyCount = 0;
         let totalCount = 0;
-        Object.keys(this.state.topologyJson.nodes).map(nodeIndex => {
-          let node = this.state.topologyJson.nodes[nodeIndex];
+        Object.keys(topology.nodes).map(nodeIndex => {
+          let node = topology.nodes[nodeIndex];
           if (node.site_name == site.name) {
             totalCount++;
             healthyCount += node.is_ignited ? 1 : 0;
@@ -227,13 +252,15 @@ export default class NetworkMap extends React.Component {
           </Marker>
         );
       });
-      Object.keys(this.state.topologyJson.links).map(linkName => {
-        let link = this.state.topologyJson.links[linkName];
+      Object.keys(topology.links).map(linkName => {
+        let link = topology.links[linkName];
         if (link.link_type != 1) {
           return;
         }
-        let aNodeSite = this.state.sitesByName[this.state.nodesByName[link.a_node_name].site_name];
-        let zNodeSite = this.state.sitesByName[this.state.nodesByName[link.z_node_name].site_name];
+        let aNodeSite = this.state.sitesByName[
+          this.state.nodesByName[link.a_node_name].site_name];
+        let zNodeSite = this.state.sitesByName[
+          this.state.nodesByName[link.z_node_name].site_name];
 
         if (!aNodeSite.location || !zNodeSite.location) {
           return;
@@ -271,13 +298,15 @@ export default class NetworkMap extends React.Component {
         let site_z = this.state.sitesByName[node_z.site_name];
         if (site_a && site_z && site_a.location && site_z.location) {
           siteMarkers = [
-            <Circle center={[site_a.location.latitude, site_a.location.longitude]}
+            <Circle center={[site_a.location.latitude,
+                             site_a.location.longitude]}
                     radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
                     key="a_node"
                     color='red'/>];
           if (site_a.name != site_z.name) {
             siteMarkers.push(
-              <Circle center={[site_z.location.latitude, site_z.location.longitude]}
+              <Circle center={[site_z.location.latitude,
+                               site_z.location.longitude]}
                       radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
                       key="z_node"
                       color='red'/>);
@@ -296,7 +325,8 @@ export default class NetworkMap extends React.Component {
           <Map
             ref='map'
             onZoom={this._onMapZoom.bind(this)}
-            center={centerPosition} zoom={18}>
+            onClick={this._onClick.bind(this)}
+            center={centerPosition} zoom={this.state.zoomLevel}>
             <TileLayer
               url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
               attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
