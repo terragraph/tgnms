@@ -146,10 +146,6 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  _onClick(evt) {
-    console.log('click event @', evt.latlng.lat, evt.latlng.lng);
-  }
-
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
     // dispatch to update all UIs
@@ -325,7 +321,6 @@ export default class NetworkMap extends React.Component {
           <Map
             ref='map'
             onZoom={this._onMapZoom.bind(this)}
-            onClick={this._onClick.bind(this)}
             center={centerPosition} zoom={this.state.zoomLevel}>
             <TileLayer
               url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
