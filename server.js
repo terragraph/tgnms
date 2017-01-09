@@ -84,6 +84,8 @@ if (isDeveloping) {
             latitude: topologyConfig['latitude'],
             longitude: topologyConfig['longitude'],
             zoom_level: topologyConfig['zoom_level'],
+            controller_online: false,
+            aggregator_online: false,
         };
         configs.push(config);
         fileTopologies.push(topology);
@@ -224,6 +226,17 @@ if (isDeveloping) {
     req.on('end', function() {
       // push query
       charts.queryObj(res, httpPostData);
+    });
+  });
+  // NEWer charting, for multi-linechart/row
+  app.post(/\/multi_chart\/$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // push query
+      charts.queryMulti(res, httpPostData);
     });
   });
 

@@ -43,13 +43,10 @@
   overflow: hidden;
 }
 .metismenu-container .metismenu-item .metismenu-link span {
-  padding-left: .5em;
+  padding-left: 18px;
 }
 .metismenu-container .metismenu-container .metismenu-link {
-  padding-left: 1em;
-}
-.metismenu-container .metismenu-container .metismenu-container .metismenu-link {
-  padding-left: 2em;
+  padding-left: 10px;
 }
 .metismenu-container.visible {
   padding: .5em 0;
@@ -72,6 +69,11 @@
   color: #f7f7f7;
   text-decoration: none;
 }
+img.leftNav {
+  width: 21px;
+  height: 21px;
+}
+// icons 
 .metismenu-link-active, .metismenu-link-active:hover {
   background: #3E525C;
 }

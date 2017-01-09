@@ -8,6 +8,7 @@ const pool = mysql.createPool({
     database:           'cxl',
     queueLimit:         10,
     waitForConnections: false,
+    multipleStatements: true,
 });
 
 SUM_BY_KEY = "SELECT `key`, (FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) " +
@@ -25,6 +26,13 @@ SUM_BY_MAC = "SELECT `mac`, " +
               "AND `key` IN ? " +
               "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
               "GROUP BY `mac`, UNIX_TIMESTAMP(time) DIV 30";
+LINK_METRIC = "SELECT `key`, (FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) " +
+             "AS time, SUM(value) AS value FROM time_series " +
+             "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
+             "WHERE `mac` IN ? " +
+             "AND `key` IN ? " +
+             "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+             "GROUP BY `key`, UNIX_TIMESTAMP(time) DIV 30";
 var self = {
   columnName: function (metricName) {
     switch (metricName) {
@@ -121,16 +129,31 @@ var self = {
     let postData = JSON.parse(postDataJSON);
     if ('chart_data' in postData && 'metric' in postData) {
       // construct query for node src <-> dst
-      self.fetch(res, postData.chart_data, postData.metric);
+      let nodeMacs = Object.keys(postData.chart_data.nodes);
+      self.fetch(res, nodeMacs, postData.metric);
     } else {
       console.error("No chart data and/or metric specified in POST", postData);
     }
   },
 
-  fetch: function(res, chartData, metricName) {
+  queryMulti: function(res, postDataJSON) {
+    let postData = JSON.parse(postDataJSON);
+    console.log(postData);
+    let queries = postData.map(row => {
+      let nodeMacs = row.nodes.map(node => {
+        // we have no data for the F8s we care about :(
+        return '38:3A:21:B0:0A:35';
+//        return node.mac_addr;
+      });
+      return [nodeMacs, row.key];
+    });
+//    console.log(queries);
+    self.fetchMulti(res, postData);
+  },
+
+  makeQuery: function(nodeMacs, metricName) {
     let query;
     let fields = [];
-    let nodeMacs = Object.keys(chartData.nodes);
     switch (metricName) {
       case 'traffic_sum':
         // show an aggregate of traffic (TX + RX) for the whole network
@@ -177,6 +200,8 @@ var self = {
           [['mem.util']],
         ];
         break;
+      case 'uptime':
+      case 'load-1':
       case 'load':
         query = SUM_BY_MAC;
         fields = [
@@ -195,7 +220,9 @@ var self = {
                 "ORDER BY time ASC";
         fields = [[nodeMacs], ['terra0.tx_bytes']];
         break;
-      case 'snr_by_node':
+      case 'snr':
+        query = LINK_METRIC;
+        fields = [[]];
         break;
       default:
         console.error('Undefined metric:', metricName);
@@ -205,6 +232,10 @@ var self = {
       res.status(500).end();
       return;
     }
+    return mysql.format(query, fields);
+  },
+
+  fetch: function(res, nodeMacs, metricName) {
     // execute query
     pool.getConnection(function(err, conn) {
       if (!conn) {
@@ -212,37 +243,75 @@ var self = {
         res.status(500).end();
         return;
       }
-      let sqlQuery = conn.query(query, fields, function(err, results) {
+      let query = self.makeQuery(nodeMacs, metricName);
+      let sqlQuery = conn.query(query, function(err, results) {
         conn.release();
         if (err) {
           console.log('Error', err);
           return;
         }
-        self.processResults(res, metricName, results);
+        res.json(self.processResults(results));
       });
     });
     // output post-processing
   },
 
-  processResults: function(res, metricName, result) {
+  fetchMulti: function(res, queries) {
+    // execute query
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+      let sqlQueries = queries.map(query => {
+        let nodeMacs = query.nodes.map(node => {
+          // TODO - use the mac once the F8s have data
+          return '38:3A:21:B0:0A:35';
+        });
+        return self.makeQuery(nodeMacs, query.key);
+      });
+//      console.log('all queries', sqlQueries);
+      let sqlQuery = conn.query(sqlQueries.join("; "), function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+        let retResults = [];
+        if (sqlQueries.length > 1) {
+          results.forEach(result => {
+            retResults.push(self.processResults(result));
+          });
+        } else {
+          retResults.push(self.processResults(results));
+        }
+        res.json(retResults);
+      });
+    });
+    // output post-processing
+  },
+
+  processResults: function(result) {
+    let metricName = 'load';
     switch (metricName) {
       case 'traffic_sum':
       case 'errors_sum':
       case 'drops_sum':
-        res.json(self.formatStatsGroup(result, 'key'));
+        return self.formatStatsGroup(result, 'key');
         break;
       case 'nodes_traffic_tx':
       case 'nodes_traffic_rx':
       case 'mem_util':
       case 'load':
-        res.json(self.formatStatsGroup(result, 'mac'));
+        return self.formatStatsGroup(result, 'mac');
         break;
       case 'nodes_reporting':
-        res.json(self.formatStats(result));
+        return self.formatStats(result);
         break;
       default:
         // push raw json
-        res.json(result);
+        return result;
     }
   },
 }

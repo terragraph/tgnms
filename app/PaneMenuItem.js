@@ -30,8 +30,17 @@ export default class PaneMenuItem extends React.Component {
     let className = this.props.active ?
       "metismenu-link metismenu-link-active" :
       "metismenu-link";
+    if (this.props.hasSubMenu) {
+      return (
+        <a onClick={this.viewSelected.bind(this)} className={className}>
+          {this.props.children}
+        </a>
+      );
+    }
     return (
       <a onClick={this.viewSelected.bind(this)} className={className}>
+        <img src={"/static/images/" + this.props.to + ".png"}
+             className="leftNav" />
         {this.props.children}
       </a>
     );

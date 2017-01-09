@@ -11,6 +11,7 @@ var self = {
     // guard against hanging
     var timeout = setTimeout(function(){
       receivedTopologies[index] = {};
+      config.controller_online = false;
       dealer.close();
     }, 1000);
 
@@ -34,6 +35,7 @@ var self = {
       var receivedTopology = new Topology_ttypes.Topology();
       receivedTopology.read(tProtocol);
       receivedTopologies[index] = receivedTopology;
+      config.controller_online = true;
       dealer.close();
     });
 

@@ -2,7 +2,9 @@ const Actions = {
   // topology actions
   TOPOLOGY_SELECTED: 100,
   TOPOLOGY_REFRESHED: 101,
-  AGGREGATOR_DUMP_REFRESHED: 102,
+  TOPOLOGY_LIST_REFRESHED: 102,
+  // nms aggregator
+  AGGREGATOR_DUMP_REFRESHED: 150,
   // map/table selections
   NODE_SELECTED: 200,
   LINK_SELECTED: 201,

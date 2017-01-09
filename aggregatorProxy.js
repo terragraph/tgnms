@@ -10,6 +10,7 @@ var self = {
     // guard against hanging
     var timeout = setTimeout(function(){
       statusDumps[index] = {};
+      config.aggregator_online = false;
       dealer.close();
     }, 2000);
 
@@ -34,6 +35,7 @@ var self = {
       var statusDump = new Aggregator_ttypes.AggrStatusDump();
       statusDump.read(tProtocol);
       statusDumps[index] = statusDump;
+      config.aggregator_online = true;
       dealer.close();
     });
 
