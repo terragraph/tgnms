@@ -2,19 +2,9 @@
   "tables": [
     {
       "name": "CLI Usage",
-      "search": {
-        "index": "terragraph_cli_usage",
-        "type": "tg",
-        "body": {
-          "from" : 0, "size" : 50,
-          "query" : {
-            "match_all": {}
-          },
-          "sort" : [
-            {"time" : "desc"}
-          ]
-        }
-      },
+      "index": "terragraph_cli_usage",
+      "type": "tg",
+      "time": "time",
       "display": {
         "columns": [
           {
@@ -36,7 +26,7 @@
           {
             "field": "host_ip",
             "label": "Host IP",
-            "width": "180"
+            "width": "200"
           },
           {
             "field": "host_name",
@@ -45,26 +35,16 @@
           },
           {
             "field": "version",
-            "label": "Host IP"
+            "label": "Version"
           }
         ]
       }
     },
     {
       "name": "Node Status",
-      "search": {
-        "index": "terragraph_event_logs",
-        "type": "perfpipe_terragraph_node_status",
-        "body": {
-          "from" : 0, "size" : 500,
-          "query" : {
-            "match_all": {}
-          },
-          "sort" : [
-            {"int.time" : "desc"}
-          ]
-        }
-      },
+      "index": "terragraph_event_logs",
+      "type": "perfpipe_terragraph_node_status",
+      "time": "int.time",
       "display": {
         "columns": [
           {
@@ -112,19 +92,9 @@
     },
     {
       "name": "Link Status",
-      "search": {
-        "index": "terragraph_event_logs",
-        "type": "perfpipe_terragraph_link_status",
-        "body": {
-          "from" : 0, "size" : 500,
-          "query" : {
-            "match_all": {}
-          },
-          "sort" : [
-            {"int.time" : "desc"}
-          ]
-        }
-      },
+      "index": "terragraph_event_logs",
+      "type": "perfpipe_terragraph_link_status",
+      "time": "int.time",
       "display": {
         "columns": [
           {

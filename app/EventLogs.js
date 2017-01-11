@@ -16,6 +16,48 @@ const Spinner = () => (
   </div>
 )
 
+const conditions = [ 'must', 'must_not'];
+
+class ListEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    this.updateData = this.updateData.bind(this);
+    this.state = { selectedItem: null };
+  }
+  focus() {
+
+  }
+  updateData() {
+    if (this.state.selectedItem) {
+      this.props.onUpdate({ item: this.state.selectedItem });
+    } else if (this.props.items) {
+      this.props.onUpdate({ item: this.props.items[0] });
+    }
+  }
+  selectChange(val) {
+    this.setState({
+      selectedItem: val.label,
+    });
+  }
+  render() {
+    return (
+      <span>
+        <select
+         value={this.state.selectedItem}
+         onChange={ (ev) => { this.setState({ selectedItem: ev.currentTarget.value }); } } >
+         { this.props.items.map(keyName => (<option key={ keyName } value={ keyName }>{ keyName }</option>)) }
+        </select>
+        <button
+          className='btn btn-info btn-xs textarea-save-btn'
+          onClick={ this.updateData }>
+          save
+        </button>
+      </span>
+    );
+  }
+}
+
+
 export default class EventLogs extends React.Component {
   state = {
     tables: [],
@@ -24,6 +66,8 @@ export default class EventLogs extends React.Component {
     searchResult: [],
     from: 0,
     size: 500,
+    filterTerms: [],
+    filtersSelected: [],
   }
 
   constructor(props) {
@@ -36,6 +80,7 @@ export default class EventLogs extends React.Component {
     this.renderDataTable = this.renderDataTable.bind(this);
     this.handleSizeChange = this.handleSizeChange.bind(this);
     this.handleFromChange = this.handleFromChange.bind(this);
+    this.filterOnRowSelect = this.filterOnRowSelect.bind(this);
 
     this.getConfigs();
   }
@@ -54,8 +99,31 @@ export default class EventLogs extends React.Component {
   }
 
   diveClick(e) {
+    var must = "[";
+    var must_not = "[";
+    if(this.state.filterTerms) {
+      this.state.filterTerms.forEach( filter => {
+        if (filter.condition && filter.condition.item == "must" &&
+            filter.key && filter.key.item != "null" &&
+            filter.value.length > 0) {
+          if (must.length > 1) {
+            must += ","
+          }
+          must += "{ \"match_phrase\" : { \"" + filter.key.item + "\" : \"" + filter.value +"\"}}";
+        } else if (filter.condition && filter.condition.item == "must_not" &&
+                   filter.key && filter.key.item != "null" &&
+                   filter.value.length > 0) {
+          if (must_not.length > 1) {
+            must_not += ","
+          }
+          must_not += "{ \"match_phrase\" : { \"" + filter.key.item + "\" : \"" + filter.value +"\"}}";
+        }
+      });
+    }
+    must += "]";
+    must_not += "]";
     return new Promise((resolve, reject) => {
-      let exec = new Request('/elastic/execute/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size);
+      let exec = new Request('/elastic/execute/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+must+'/'+must_not);
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
@@ -190,7 +258,68 @@ export default class EventLogs extends React.Component {
     });
   }
 
+  addFilterRow () {
+    let rows = this.state.filterTerms;
+    var row = {
+      "_id": rows.length,
+      "key": null,
+      "value": "",
+      "condition": null,
+    };
+    rows.push(row);
+    this.setState({
+      filterTerms: rows,
+    });
+  }
+
+  deleteFilterRows () {
+    let rows = this.state.filterTerms;
+    var newRows = [];
+    var newId = 0;
+    rows.forEach(row => {
+      var selected = false;
+      this.state.filtersSelected.forEach(id => {
+        if (id == row._id) {
+          selected = true;
+        }
+      });
+
+      if(!selected) {
+        row._id = newId;
+        newId++;
+        newRows.push(row);
+      }
+    });
+    this.setState({
+      filterTerms: newRows,
+      filtersSelected: [],
+    });
+  }
+
+  cellListFormatter(cell, row) {
+    if (cell) {
+      return cell.item;
+    }
+    return 'null';
+  }
+
+  filterOnRowSelect(row, isSelected) {
+    if (isSelected) {
+      this.setState({
+        filtersSelected: [ ...this.state.filtersSelected, row._id ]
+      });
+    } else {
+      this.setState({ filtersSelected: this.state.filtersSelected.filter(it => it !== row._id) });
+    }
+  }
+
   render() {
+    const createListEditor = (onUpdate, props) => (<ListEditor onUpdate={ onUpdate } {...props}/>);
+    const filtersCellEditProp = {
+      mode: 'click',
+      blurToSave: true
+    };
+
     var options = [];
     if (this.state.tables) {
       Object(this.state.tables).forEach(table => {
@@ -200,6 +329,23 @@ export default class EventLogs extends React.Component {
             label: table.name
           },
         );
+      });
+    }
+
+    var filtersSelectRowProp = {
+      mode: "checkbox",
+      clickToSelect: true,
+      bgColor: "rgb(150, 150, 250)",
+      onSelect: this.filterOnRowSelect,
+      selected: this.state.filtersSelected,
+    };
+
+    var filterKeys = [];
+    if (this.state.selectedTable && this.state.tables) {
+      let table = this.state.selectedTable;
+      let columns = table.display.columns;
+      Object(columns).forEach(column => {
+        filterKeys.push(column.field);
       });
     }
 
@@ -243,7 +389,7 @@ export default class EventLogs extends React.Component {
                 text='Dive!'
                 pendingText='Searching...'
                 fulFilledText='Dive!'
-                fulFilledClass="btn-success"                
+                fulFilledClass="btn-success"
                 rejectedText='Dive!'
                 rejectedClass="btn-danger"
                 onClick={this.diveClick}>
@@ -260,6 +406,25 @@ export default class EventLogs extends React.Component {
           </tr>
          </tbody>
         </table>
+        <div>
+          <button onClick={this.addFilterRow.bind(this)}>Add Source Filter</button>
+          <button onClick={this.deleteFilterRows.bind(this)}>Delete Filters</button>
+          <div style={{width:700}}>
+          <BootstrapTable
+              data={ this.state.filterTerms }
+              cellEdit={ filtersCellEditProp }
+              selectRow={filtersSelectRowProp}>
+            <TableHeaderColumn dataField='_id' hidden isKey={ true }>id</TableHeaderColumn>
+            <TableHeaderColumn width="200" editable dataField='condition'
+            dataFormat={ this.cellListFormatter }
+            customEditor={ { getElement: createListEditor, customEditorParameters: { items: conditions } } }>Condition</TableHeaderColumn>
+            <TableHeaderColumn width="200" editable dataField='key'
+            dataFormat={ this.cellListFormatter }
+            customEditor={ { getElement: createListEditor, customEditorParameters: { items: filterKeys } } }>Key</TableHeaderColumn>
+            <TableHeaderColumn width="200" editable dataField='value'>Value</TableHeaderColumn>
+          </BootstrapTable>
+          </div>
+        </div>
         <div>
           {this.renderDataTable()}
         </div>

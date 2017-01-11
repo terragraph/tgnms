@@ -213,7 +213,7 @@ if (isDeveloping) {
   app.get(/\/elastic\/getTables/, function(req, res, next) {
     res.json(elasticTables);
   });
-  app.get(/\/elastic\/execute\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
+  app.get(/\/elastic\/execute\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (req, res, next) {
     elasticHelper.execute(elasticTables, req, res, next);
   });
 
