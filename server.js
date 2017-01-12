@@ -107,7 +107,7 @@ if (isDeveloping) {
         return;
       }
       // update mysql time series db
-      res.status(200).end("Submitted");
+      res.status(204).end("Submitted");
       data.writeData(httpPostData);
     });
   });

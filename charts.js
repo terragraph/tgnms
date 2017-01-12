@@ -138,20 +138,39 @@ var self = {
 
   queryMulti: function(res, postDataJSON) {
     let postData = JSON.parse(postDataJSON);
-    console.log(postData);
-    let queries = postData.map(row => {
-      let nodeMacs = row.nodes.map(node => {
-        // we have no data for the F8s we care about :(
-        return '38:3A:21:B0:0A:35';
-//        return node.mac_addr;
-      });
-      return [nodeMacs, row.key];
-    });
-//    console.log(queries);
     self.fetchMulti(res, postData);
   },
 
-  makeQuery: function(nodeMacs, metricName) {
+  makeLinkQuery: function(aNode, zNode, metricNames) {
+    let query;
+    let fields = [];
+    // map metric short names to the fully qualified key
+    let keyNames = metricNames.map(metricName => {
+      switch (metricName) {
+        case 'rssi':
+          // tgf.38:3a:21:b0:0b:11.phystatus.srssi
+          return 'tgf.' + zNode.mac + '.phystatus.srssi';
+        case 'snr':
+          // tgf.38:3a:21:b0:08:49.phystatus.spostSNRdB
+          return 'tgf.' + zNode.mac + '.phystatus.spostSNRdB';
+        default:
+          console.error('Undefined metric:', metricName);
+          return metricName;
+      }
+    });
+    query = SUM_BY_MAC;
+    fields = [
+      [[aNode.mac]],
+      [keyNames],
+    ];
+    if (!query) {
+      console.log('Query undefined for metric:', metricName);
+      return;
+    }
+    return mysql.format(query, fields);
+  },
+
+  makeNodeQuery: function(nodeMacs, metricName) {
     let query;
     let fields = [];
     switch (metricName) {
@@ -200,7 +219,6 @@ var self = {
           [['mem.util']],
         ];
         break;
-      case 'uptime':
       case 'load-1':
       case 'load':
         query = SUM_BY_MAC;
@@ -220,16 +238,11 @@ var self = {
                 "ORDER BY time ASC";
         fields = [[nodeMacs], ['terra0.tx_bytes']];
         break;
-      case 'snr':
-        query = LINK_METRIC;
-        fields = [[]];
-        break;
       default:
         console.error('Undefined metric:', metricName);
     }
     if (!query) {
       console.log('Query undefined');
-      res.status(500).end();
       return;
     }
     return mysql.format(query, fields);
@@ -243,17 +256,16 @@ var self = {
         res.status(500).end();
         return;
       }
-      let query = self.makeQuery(nodeMacs, metricName);
+      let query = self.makeNodeQuery(nodeMacs, metricName);
       let sqlQuery = conn.query(query, function(err, results) {
         conn.release();
         if (err) {
           console.log('Error', err);
           return;
         }
-        res.json(self.processResults(results));
+        res.json(self.processResults(results, {}, metricName));
       });
     });
-    // output post-processing
   },
 
   fetchMulti: function(res, queries) {
@@ -264,14 +276,22 @@ var self = {
         res.status(500).end();
         return;
       }
+      // generate sql queries
       let sqlQueries = queries.map(query => {
-        let nodeMacs = query.nodes.map(node => {
-          // TODO - use the mac once the F8s have data
-          return '38:3A:21:B0:0A:35';
-        });
-        return self.makeQuery(nodeMacs, query.key);
+        switch (query.type) {
+          case 'node':
+            let nodeMacs = query.nodes.map(node => {
+              return node.mac_addr;
+            });
+            return self.makeNodeQuery(nodeMacs, query.key);
+            break;
+          case 'link':
+            return self.makeLinkQuery(query.a_node, query.z_node, query.keys);
+            break;
+          default:
+            console.error('Unknown query type:', query.type);
+        }
       });
-//      console.log('all queries', sqlQueries);
       let sqlQuery = conn.query(sqlQueries.join("; "), function(err, results) {
         conn.release();
         if (err) {
@@ -280,31 +300,30 @@ var self = {
         }
         let retResults = [];
         if (sqlQueries.length > 1) {
-          results.forEach(result => {
-            retResults.push(self.processResults(result));
-          });
+          for (let i = 0; i < results.length; i++) {
+            // TODO - need to fix this static metric setting, doesn't make sense for links
+            retResults.push(self.processResults(results[i], queries[i], 'load'));
+          }
         } else {
-          retResults.push(self.processResults(results));
+          retResults.push(self.processResults(results, queries, 'load'));
         }
         res.json(retResults);
       });
     });
-    // output post-processing
   },
 
-  processResults: function(result) {
-    let metricName = 'load';
+  processResults: function(result, query, metricName) {
     switch (metricName) {
       case 'traffic_sum':
       case 'errors_sum':
       case 'drops_sum':
-        return self.formatStatsGroup(result, 'key');
+        return self.formatStatsGroup(result, 'key', query);
         break;
       case 'nodes_traffic_tx':
       case 'nodes_traffic_rx':
       case 'mem_util':
       case 'load':
-        return self.formatStatsGroup(result, 'mac');
+        return self.formatStatsGroup(result, 'mac', query);
         break;
       case 'nodes_reporting':
         return self.formatStats(result);

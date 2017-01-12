@@ -36,6 +36,7 @@ export default class ReactMultiGraph extends React.Component {
   }
   
   formatSpeed(bps) {
+    return bps;
     if (bps > 1000000) {
       return Math.round(bps/1000000) + ' mbps'
     }
@@ -45,35 +46,32 @@ export default class ReactMultiGraph extends React.Component {
     return bps + ' bps';
   }
 
-  componentWillReceiveProps(nextProps) {
-/*    if (!equals(this.props.chart_data.nodes, nextProps.chart_data.nodes)) {
-      // cancel any pending requests
-      if (this.chartRequest) {
-        this.chartRequest.abort();
+  componentDidUpdate(nextProps, nextState) {
+    // compare list of nodes and key names only for each list item
+    // the 'status' item for each node has a timestamp, so this gets changed
+    // each iteration
+    let changed = (this.props.options.length != nextProps.options.length) &&
+                  (this.props.options.length);
+    if (!changed) {
+      for (let i = 0; i < this.props.options.length; i++) {
+        let curOpts = this.props.options[i];
+        let newOpts = nextProps.options[i];
+        if (!equals(curOpts, newOpts)) {
+          changed = true;
+          break;
+        }
       }
-      // reset state
-      this.setState({
-        data: undefined,
-        indicator: 'LOAD_DATA',
-      });
-    }*/
-  }
-  componentDidUpdate(prevProps, prevState) {
-    console.log('componentDidUpdate', prevProps, this.props);
-    this.cancelAsyncRequests();
-    this.timer = setInterval(this.refreshData.bind(this), 10000);
-    this.refreshData();
-//    if (!equals(this.props.options.nodes
-/*    if (!equals(this.props.chart_data.nodes, prevProps.chart_data.nodes)) {
-      // fetch data for the new nodes
+    }
+    if (changed) {
+      this.cancelAsyncRequests();
+      this.timer = setInterval(this.refreshData.bind(this), 10000);
       this.refreshData();
-    }*/
+    }
   }
 
   nextColor(index) {
-    const colors = ["#A48C53", "#67501B", "#443207", "#67411B",
-                    "#0A112E", "#192246", "#3F496F", "#5D6689",
-                    "#51747E", "#355B66", "#123640", "#05222A"];
+    const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3",
+                    "#ff7f00", "#ffff33", "#a65628", "#f781bf"];
     return colors.length > index ? colors[index] : "#000000";
   }
 
@@ -105,7 +103,6 @@ export default class ReactMultiGraph extends React.Component {
       }
       let jsonResp = '';
       try {
-        console.log('Got new data', jsonResp);
         let respTxt = this.chartRequest.responseText;
         jsonResp = JSON.parse(respTxt);
       } catch (e) {
@@ -140,128 +137,100 @@ export default class ReactMultiGraph extends React.Component {
     // initial processing of time series, maybe handle
     // SUM vs. individual graphs here?
     let reqIdx = 0;
-    if (opts.length != this.state.data.length) {
-      return (<div>Data unavailable</div>);
-    }
-    opts.forEach(rowOpts => {
-      //let lineCharts = [];
-      // add chart rows (node vs link)
-      switch (rowOpts.type) {
-        case 'node':
-          // make list of queries per metric
-          // nodes, key
-          // make request for nodes, keys, group by standard
-          if (this.state.data[reqIdx] != undefined) {
-            // we have data, let's render
-            console.log('Data to render', rowOpts, this.state.data[reqIdx]);
-            let timeSeries = new TimeSeries(this.state.data[reqIdx]);
-            let columnNames = this.state.data[reqIdx].columns.slice(1);
-            let legend = [];
-            let legendStyle = [];
-            for (let i = 0; i < columnNames.length; i++) {
-              let columnName = columnNames[i];
-              let labelName = columnName.replace(":", "");
-/*              if (this.state.tracker) {
-                const index = timeSeries.bisect(this.state.tracker);
-                const trackerEvent = timeSeries.at(index);
-                legend.push({
-                  key: columnName,
-                  label: labelName,
-                  value: this.formatSpeed(trackerEvent.get(columnName)),
-                });
-              } else {*/
-                legend.push({
-                  key: columnName,
-                  label: labelName,
-                });
-//              }
-              legendStyle.push({
-                  key: columnName,
-                  color: this.nextColor(i),
-                  width: 2,
-              });
-            }
-            let minValue = Number.MAX_VALUE;
-            let maxValue = Number.MIN_VALUE;
-            columnNames.forEach(name => {
-              maxValue = Math.max(maxValue, timeSeries.max(name));
-              minValue = Math.min(minValue, timeSeries.min(name));
-            });
-            // update time range
-            timeRange = timeSeries.range();
-            // reset min value if no topology
-            if (minValue == Number.MAX_VALUE) {
-              minValue = 0;
-            }
-            console.log('time', timeRange, minValue, maxValue);
-            // just use min as 0 for now
-            minValue = 0;
-            const f = format("$,.2f");
-            const df = timeFormat("%b %d %Y %X");
-            const name = rowOpts.key.replace("-", "");
-                /*<YAxis
-                  id={name}
-                  label={name}
-                  width={70}
-                  min={minValue}
-                  max={maxValue} />*/
-            chartRows.push(
-              <ChartRow height={200} key={"cr" + name}>
-                <Charts>
-                  <LineChart
-                    axis={name}
-                    series={timeSeries}
-                    key={"lc" + name}
-                    columns={["derp"]}
-                    style={styler(legendStyle)}
-                    interpolation="curveBasis"
-                  />);
-                </Charts>
-              </ChartRow>
-            );
-            console.log('row name:', name, 'columns:', columnNames);
-            console.log('min', minValue, 'max', maxValue);
-            console.log('series', timeSeries);
-                    /*highlight={this.state.highlight}
-                    onHighlightChange={highlight => this.setState({highlight})}
-                    selection={this.state.selection}
-                    onSelectionChange={selection => this.setState({selection})}*/
-          } else {
-            console.log('waiting on data for node', rowOpts);
-          }
-          break;
-        case 'link':
-          // needs a combo of [(node, key), (node, key), ...]
-          console.log('link', rowOpts);
-          break;
-        default:
-          console.error('Unhandled type', opts.type);
-      }
-      reqIdx++;
-    });
-    let lineCharts = [];
     let legend = [];
+    let legendLabels = new Set();
     let legendStyle = [];
     let timeRange = TimeRange.lastDay();
     let minValue = Number.MAX_VALUE;
     let maxValue = 0;
     let width = 450;
     let height = 250;
+    // reduce legend selectors
+    // {key, {label, [time series?]}}
     switch (this.props.size) {
       case 'large':
         width = 800;
         height = 500;
         break;
     }
-
-    const timeStyle = {
-      fontSize: "1.2rem",
-      color: "#999"
-    };
+    opts.forEach(rowOpts => {
+      if (this.state.data[reqIdx] != undefined &&
+          this.state.data[reqIdx].points.length) {
+        // we have data, let's render
+        let timeSeries = new TimeSeries(this.state.data[reqIdx]);
+        let columnNames = this.state.data[reqIdx].columns.slice(1);
+        for (let i = 0; i < columnNames.length; i++) {
+          let columnName = columnNames[i];
+          let labelName = rowOpts.label ? rowOpts.label : columnName;
+          if (!legendLabels.has(columnName)) {
+            if (this.state.tracker) {
+              const index = timeSeries.bisect(this.state.tracker);
+              const trackerEvent = timeSeries.at(index);
+              legend.push({
+                key: columnName,
+                label: labelName,
+                value: this.formatSpeed(trackerEvent.get(columnName)),
+              });
+            } else {
+              legend.push({
+                key: columnName,
+                label: labelName,
+              });
+            }
+            legendLabels.add(columnName);
+          }
+          legendStyle.push({
+              key: columnName,
+              color: this.nextColor(i),
+              width: 2,
+          });
+        }
+        let minValue = Number.MAX_VALUE;
+        let maxValue = Number.MIN_VALUE;
+        columnNames.forEach(name => {
+          maxValue = Math.max(maxValue, timeSeries.max(name));
+          minValue = Math.min(minValue, timeSeries.min(name));
+        });
+        // update time range
+        timeRange = timeSeries.range();
+        // reset min value if no topology
+        if (minValue == Number.MAX_VALUE) {
+          minValue = 0;
+        }
+        // just use min as 0 for now
+        if (minValue > 0) {
+          minValue = 0;
+        }
+        //const name = rowOpts.key.replace("-", "");
+        chartRows.push(
+          <ChartRow height={200} key={"cr" + name}>
+            <YAxis
+              id="a1"
+              label={name}
+              width="70"
+              min={minValue}
+              max={maxValue} />
+            <Charts>
+              <LineChart
+                axis="a1"
+                series={timeSeries}
+                key={"lc" + name}
+                columns={columnNames}
+                style={styler(legendStyle)}
+                interpolation="curveBasis"
+                highlight={this.state.highlight}
+                onHighlightChange={highlight => this.setState({highlight})}
+                selection={this.state.selection}
+                onSelectionChange={selection => this.setState({selection})}
+              />
+            </Charts>
+          </ChartRow>
+        );
+      }
+      reqIdx++;
+    });
     // show indicator if graph is loading, failed, etc
-/*    if (!this.state.data ||
-        !this.state.data.points ||
-        this.state.data.points.length <= 1) {
+    if (!this.props.options.length || !chartRows.length) {
       // display a loading indicator when data has yet to arrive
       //    // show indicator if graph is loading, failed, etc
       let indicatorImg = "/static/images/loading-graphs.gif";
@@ -272,30 +241,49 @@ export default class ReactMultiGraph extends React.Component {
         case 'FAILED':
           indicatorImg = "/static/images/cancel-file.png";
           break;
+        default:
+          if (!chartRows.length) {
+            indicatorImg = "/static/images/empty-trash.gif";
+          }
       }
       return (
         <div className="loading-indicator">
           <img src={indicatorImg} />
         </div>
       );
-    }*/
-    console.log('final time range', timeRange, chartRows.length);
-/*          <div className="col-md-6" style={timeStyle}>
-            {this.state.tracker ? `${df(this.state.tracker)}` : ""}
-          </div>
-            trackerPosition={this.state.tracker}
-            onTrackerChanged={this.handleTrackerChanged.bind(this)}
-            onBackgroundClick={() => this.setState({selection: null})}
-            enablePanZoom={true}
-            onTimeRangeChanged={this.handleTimeRangeChange.bind(this)}*/
+    }
+    const f = format("$,.2f");
+    const df = timeFormat("%b %d %Y %X");
+    const timeStyle = {
+      fontSize: "1.2rem",
+      color: "#999",
+    };
     return (
-      <div>
-        <div className="row" style={{height: 28}}>
+      <div width="700">
+        <div className="col-md-6" style={timeStyle}>
+          {this.state.tracker ? `${df(this.state.tracker)}` : ""}
         </div>
-        <hr/>
+        <div id="legend">
+          <Legend
+            type="line"
+            align="right"
+            type="dot"
+            style={styler(legendStyle)}
+            onSelectionChange={selection => this.setState({selection})}
+            selection={this.state.selection}
+            onHighlightChange={highlight => this.setState({highlight})}
+            highlight={this.state.highlight}
+            categories={legend}
+          />
+        </div>
         <div id="chart">
           <ChartContainer
               timeRange={timeRange}
+              trackerPosition={this.state.tracker}
+              onTrackerChanged={this.handleTrackerChanged.bind(this)}
+              onBackgroundClick={() => this.setState({selection: null})}
+              enablePanZoom={true}
+              onTimeRangeChanged={this.handleTimeRangeChange.bind(this)}
               minDuration={1000 * 60 * 60 * 5} /* 5 min */
               width={width}>
             {chartRows}

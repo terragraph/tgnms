@@ -62,9 +62,8 @@ export default class ReactGraph extends React.Component {
   }
 
   nextColor(index) {
-    const colors = ["#A48C53", "#67501B", "#443207", "#67411B",
-                    "#0A112E", "#192246", "#3F496F", "#5D6689",
-                    "#51747E", "#355B66", "#123640", "#05222A"];
+    const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3",
+                    "#ff7f00", "#ffff33", "#a65628", "#f781bf"];
     return colors.length > index ? colors[index] : "#000000";
   }
 
