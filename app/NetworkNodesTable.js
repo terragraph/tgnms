@@ -177,7 +177,7 @@ export default class NetworkNodesTable extends React.Component {
       mode: "checkbox",
       clickToSelect: true,
       hideSelectColumn: true,
-      bgColor: "rgb(238, 193, 213)",
+      bgColor: "rgb(183,210,255)",
       onSelect: this.tableOnRowSelect,
       selected: this.state.nodesSelected,
     };

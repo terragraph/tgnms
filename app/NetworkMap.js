@@ -73,7 +73,7 @@ export default class NetworkMap extends React.Component {
       // TODO - do we need to know the name?
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology name and wipe the zoom level
-        // we'll 
+        // we'll
         this.resetZoomOnNextRefresh = true;
         this.setState({
           networkName: payload.networkName,
@@ -201,7 +201,7 @@ export default class NetworkMap extends React.Component {
 
   render() {
     // use the center position from the topology if set
-    const centerPosition = this.state.networkConfig ? 
+    const centerPosition = this.state.networkConfig ?
       [this.state.networkConfig.latitude,
        this.state.networkConfig.longitude] :
       [37.484494, -122.1483976];
@@ -284,7 +284,7 @@ export default class NetworkMap extends React.Component {
         siteMarkers =
           <Circle center={[site.location.latitude, site.location.longitude]}
                   radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
-                  color='red'/>;
+                  color="rgb(30,116,255)"/>;
       }
     } else if (this.state.selectedLink != null) {
       let node_a = this.state.nodesByName[this.state.selectedLink.a_node_name];
@@ -298,14 +298,14 @@ export default class NetworkMap extends React.Component {
                              site_a.location.longitude]}
                     radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
                     key="a_node"
-                    color='red'/>];
+                    color="rgb(30,116,255)"/>];
           if (site_a.name != site_z.name) {
             siteMarkers.push(
               <Circle center={[site_z.location.latitude,
                                site_z.location.longitude]}
                       radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
                       key="z_node"
-                      color='red'/>);
+                      color="rgb(30,116,255)"/>);
           }
         }
       }
