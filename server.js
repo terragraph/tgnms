@@ -28,7 +28,8 @@ const NETWORK_CONFIG = 'networks.json';
 
 var fileTopologies = [];
 var configs = [];
-var elasticTables = {};
+var elasticEventLogsTables = {};
+var elasticSystemLogsSources = {};
 var topologies_index = 0;
 var receivedTopologies = [];
 var ctrlStatusDumps = [];
@@ -118,8 +119,17 @@ if (isDeveloping) {
       res.status(500).send(err.stack);
       return;
     }
-    // serialize some example
-    elasticTables = JSON.parse(data);
+    elasticEventLogsTables = JSON.parse(data);
+  });
+
+  // Read list of system logging sources
+  fs.readFile('./config/system_logging_sources.json', 'utf-8', (err, data) => {
+    // unable to open file, exit
+    if (err) {
+      res.status(500).send(err.stack);
+      return;
+    }
+    elasticSystemLogsSources = JSON.parse(data);
   });
 
   // serve static js + css
@@ -210,11 +220,17 @@ if (isDeveloping) {
   app.get(/\/chart\/([a-z_]+)\/([a-z0-9\:\,]+)$/i, function (req, res, next) {
     charts.query(req, res, next);
   });
-  app.get(/\/elastic\/getTables/, function(req, res, next) {
-    res.json(elasticTables);
+  app.get(/\/elastic\/getEventLogsTables/, function(req, res, next) {
+    res.json(elasticEventLogsTables);
   });
-  app.get(/\/elastic\/execute\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (req, res, next) {
-    elasticHelper.execute(elasticTables, req, res, next);
+  app.get(/\/elastic\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (req, res, next) {
+    elasticHelper.getEventLogs(elasticEventLogsTables, req, res, next);
+  });
+  app.get(/\/elastic\/getSystemLogsSources/, function(req, res, next) {
+    res.json(elasticSystemLogsSources);
+  });
+  app.get(/\/elastic\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)$/i, function (req, res, next) {
+    elasticHelper.getSystemLogs(elasticSystemLogsSources, req, res, next);
   });
 
   // all charting

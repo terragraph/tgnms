@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "name": "Kernel Logs",
+      "index": "terragraph_kern_logs"
+    },
+    {
+      "name": "minion Logs",
+      "index": "terragraph_minion_logs"
+    },
+    {
+      "name": "Aquaman Logs",
+      "index": "terragraph_aquaman_logs"
+    }
+  ]
+}

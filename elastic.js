@@ -20,27 +20,54 @@ var searchTemplate = {
 };
 
 var self = {
-  execute: function (elasticTables, req, res, next) {
+  getEventLogs: function (elasticEventLogsTables, req, res, next) {
     let tableName = req.params[0];
     let from = req.params[1];
     let size = req.params[2];
     let must =  req.params[3];
     let must_not =  req.params[4];
 
-    for (var i = 0, len = elasticTables.tables.length; i < len; i++) {
-      if(tableName == elasticTables.tables[i].name) {
+    for (var i = 0, len = elasticEventLogsTables.tables.length; i < len; i++) {
+      if(tableName == elasticEventLogsTables.tables[i].name) {
         var search = searchTemplate;
-        search.index = elasticTables.tables[i].index;
-        search.type = elasticTables.tables[i].type;
+        search.index = elasticEventLogsTables.tables[i].index;
+        search.type = elasticEventLogsTables.tables[i].type;
         var sortItem = {};
         var sortItems = [];
-        sortItem[elasticTables.tables[i].time] = "desc";
+        sortItem[elasticEventLogsTables.tables[i].time] = "desc";
         sortItems.push(sortItem);
         search.body.sort = sortItems;
         search.body.from = from;
         search.body.size = size;
         search.body.query.bool.must = JSON.parse(must);
         search.body.query.bool.must_not = JSON.parse(must_not);
+
+        client.search(search).then(function (resp) {
+          var hits = resp.hits.hits;
+          res.json(hits);
+          return;
+        }, function (err) {
+            console.trace(err.message);
+            res.status(404).end("Elasticsearch error\n");
+        });
+      }
+    }
+  },
+
+  getSystemLogs: function (elasticSystemLogsSources, req, res, next) {
+    let sourceName = req.params[0];
+    let from = req.params[1];
+    let size = req.params[2];
+    let node =  req.params[3];
+
+    for (var i = 0, len = elasticSystemLogsSources.sources.length; i < len; i++) {
+      if(sourceName == elasticSystemLogsSources.sources[i].name) {
+        var search = searchTemplate;
+        search.index = elasticSystemLogsSources.sources[i].index;
+        search.type = node;
+        search.body.sort = JSON.parse("[{\"timestamp\" : \"desc\"}]");
+        search.body.from = from;
+        search.body.size = size;
 
         client.search(search).then(function (resp) {
           var hits = resp.hits.hits;

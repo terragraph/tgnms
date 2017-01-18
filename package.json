@@ -117,6 +117,8 @@
     "xterm": "^2.2.1",
     "react-dropdown": "^1.2.0",
     "react-async-button": "^0.0.5",
-    "react-numeric-input": "^2.0.6"
+    "react-numeric-input": "^2.0.6",
+    "react-highlight-words": "^0.6.0",
+    "latinize": "^0.2.0"
   }
 }

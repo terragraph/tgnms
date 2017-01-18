@@ -14,6 +14,7 @@ import NetworkDashboard from './NetworkDashboard.js';
 import NetworkLinkDashboard from './NetworkLinkDashboard.js';
 import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
+import SystemLogs from './SystemLogs.js';
 
 export default class NetworkUI extends React.Component {
   state = {
@@ -168,6 +169,11 @@ export default class NetworkUI extends React.Component {
           label: 'EventLogs',
           to: 'eventlogs',
         },
+        {
+          icon: 'dashboard',
+          label: 'SystemLogs',
+          to: 'systemlogs',
+        },
       ],
     });
     let topologyList = [];
@@ -209,6 +215,9 @@ export default class NetworkUI extends React.Component {
         break;
       case 'eventlogs':
         paneComponent = <EventLogs />;
+        break;
+      case 'systemlogs':
+        paneComponent = <SystemLogs />;
         break;
       case 'link_dashboard':
         paneComponent = <NetworkLinkDashboard />;

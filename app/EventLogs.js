@@ -86,7 +86,7 @@ export default class EventLogs extends React.Component {
   }
 
   getConfigs() {
-    let getTables = new Request('/elastic/getTables');
+    let getTables = new Request('/elastic/getEventLogsTables');
     fetch(getTables).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -123,7 +123,7 @@ export default class EventLogs extends React.Component {
     must += "]";
     must_not += "]";
     return new Promise((resolve, reject) => {
-      let exec = new Request('/elastic/execute/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+must+'/'+must_not);
+      let exec = new Request('/elastic/getEventLogs/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+must+'/'+must_not);
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
