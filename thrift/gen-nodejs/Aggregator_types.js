@@ -17,7 +17,8 @@ ttypes.AggrMessageType = {
   'GET_ROUTING_ADJ' : 102,
   'STATUS_DUMP' : 201,
   'ROUTING_ADJ' : 202,
-  'STATUS_REPORT' : 401
+  'STATUS_REPORT' : 401,
+  'STATS_REPORT' : 402
 };
 AggrGetStatusDump = module.exports.AggrGetStatusDump = function(args) {
 };
@@ -264,6 +265,164 @@ AggrStatusReport.prototype.write = function(output) {
       {
         iter27 = this.routes[iter27];
         iter27.write(output);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AggrStat = module.exports.AggrStat = function(args) {
+  this.key = null;
+  this.timestamp = null;
+  this.value = null;
+  if (args) {
+    if (args.key !== undefined && args.key !== null) {
+      this.key = args.key;
+    }
+    if (args.timestamp !== undefined && args.timestamp !== null) {
+      this.timestamp = args.timestamp;
+    }
+    if (args.value !== undefined && args.value !== null) {
+      this.value = args.value;
+    }
+  }
+};
+AggrStat.prototype = {};
+AggrStat.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.key = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.I64) {
+        this.timestamp = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.DOUBLE) {
+        this.value = input.readDouble();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrStat.prototype.write = function(output) {
+  output.writeStructBegin('AggrStat');
+  if (this.key !== null && this.key !== undefined) {
+    output.writeFieldBegin('key', Thrift.Type.STRING, 1);
+    output.writeString(this.key);
+    output.writeFieldEnd();
+  }
+  if (this.timestamp !== null && this.timestamp !== undefined) {
+    output.writeFieldBegin('timestamp', Thrift.Type.I64, 2);
+    output.writeI64(this.timestamp);
+    output.writeFieldEnd();
+  }
+  if (this.value !== null && this.value !== undefined) {
+    output.writeFieldBegin('value', Thrift.Type.DOUBLE, 3);
+    output.writeDouble(this.value);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AggrStatsReport = module.exports.AggrStatsReport = function(args) {
+  this.stats = null;
+  if (args) {
+    if (args.stats !== undefined && args.stats !== null) {
+      this.stats = Thrift.copyList(args.stats, [ttypes.AggrStat]);
+    }
+  }
+};
+AggrStatsReport.prototype = {};
+AggrStatsReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.LIST) {
+        var _size28 = 0;
+        var _rtmp332;
+        this.stats = [];
+        var _etype31 = 0;
+        _rtmp332 = input.readListBegin();
+        _etype31 = _rtmp332.etype;
+        _size28 = _rtmp332.size;
+        for (var _i33 = 0; _i33 < _size28; ++_i33)
+        {
+          var elem34 = null;
+          elem34 = new ttypes.AggrStat();
+          elem34.read(input);
+          this.stats.push(elem34);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrStatsReport.prototype.write = function(output) {
+  output.writeStructBegin('AggrStatsReport');
+  if (this.stats !== null && this.stats !== undefined) {
+    output.writeFieldBegin('stats', Thrift.Type.LIST, 1);
+    output.writeListBegin(Thrift.Type.STRUCT, this.stats.length);
+    for (var iter35 in this.stats)
+    {
+      if (this.stats.hasOwnProperty(iter35))
+      {
+        iter35 = this.stats[iter35];
+        iter35.write(output);
       }
     }
     output.writeListEnd();

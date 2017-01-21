@@ -248,6 +248,7 @@ Node = module.exports.Node = function(args) {
   this.site_name = null;
   this.ant_azimuth = null;
   this.ant_elevation = null;
+  this.has_cpe = null;
   if (args) {
     if (args.name !== undefined && args.name !== null) {
       this.name = args.name;
@@ -281,6 +282,9 @@ Node = module.exports.Node = function(args) {
     }
     if (args.ant_elevation !== undefined && args.ant_elevation !== null) {
       this.ant_elevation = args.ant_elevation;
+    }
+    if (args.has_cpe !== undefined && args.has_cpe !== null) {
+      this.has_cpe = args.has_cpe;
     }
   }
 };
@@ -376,6 +380,13 @@ Node.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 103:
+      if (ftype == Thrift.Type.BOOL) {
+        this.has_cpe = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -440,6 +451,11 @@ Node.prototype.write = function(output) {
   if (this.ant_elevation !== null && this.ant_elevation !== undefined) {
     output.writeFieldBegin('ant_elevation', Thrift.Type.DOUBLE, 102);
     output.writeDouble(this.ant_elevation);
+    output.writeFieldEnd();
+  }
+  if (this.has_cpe !== null && this.has_cpe !== undefined) {
+    output.writeFieldBegin('has_cpe', Thrift.Type.BOOL, 103);
+    output.writeBool(this.has_cpe);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

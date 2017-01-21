@@ -14,6 +14,8 @@ enum AggrMessageType {
   ROUTING_ADJ = 202,
   // Messages originated (by agent)
   STATUS_REPORT = 401,
+  STATS_REPORT = 402,
+
 }
 
 #############  StatusApp ##############
@@ -29,6 +31,16 @@ struct AggrStatusReport {
   1: i64 timeStamp;  // timestamp at which this response was generated
   2: string ipv6Address;
   3: list<IpPrefix.UnicastRoute> routes;
+}
+
+struct AggrStat {
+  1: string key;
+  2: i64 timestamp;
+  3: double value;
+}
+
+struct AggrStatsReport {
+  1: list<AggrStat> stats;
 }
 
 ############# Common #############

@@ -29,8 +29,8 @@ var self = {
 
 
       // Deserialize body
-      msg = msg.slice(6);
-      tTransport = new thrift.TFramedTransport(msg);
+      tTransport = new thrift.TFramedTransport(
+        Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
       var statusDump = new Aggregator_ttypes.AggrStatusDump();
       statusDump.read(tProtocol);
