@@ -28,9 +28,7 @@ var self = {
       var receivedMessage = new Controller_ttypes.Message();
       receivedMessage.read(tProtocol);
 
-      // Deserialize body
-      msg = msg.slice(6);
-      tTransport = new thrift.TFramedTransport(msg);
+      tTransport = new thrift.TFramedTransport(Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
       var receivedTopology = new Topology_ttypes.Topology();
       receivedTopology.read(tProtocol);
@@ -83,9 +81,7 @@ var self = {
       var receivedMessage = new Controller_ttypes.Message();
       receivedMessage.read(tProtocol);
 
-      // Deserialize body
-      msg = msg.slice(6);
-      tTransport = new thrift.TFramedTransport(msg);
+      tTransport = new thrift.TFramedTransport(Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
       var statusDump = new Controller_ttypes.StatusDump();
       statusDump.read(tProtocol);

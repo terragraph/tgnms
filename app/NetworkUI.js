@@ -15,7 +15,7 @@ import NetworkLinkDashboard from './NetworkLinkDashboard.js';
 import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
-
+import NetworkAlerts from './NetworkAlerts.js';
 export default class NetworkUI extends React.Component {
   state = {
     view: 'map',
@@ -61,7 +61,7 @@ export default class NetworkUI extends React.Component {
   }
 
   getAggregatorDump(networkName) {
-    let aggregatorDumpFetch = new Request('/aggregator/get/' +
+    let aggregatorDumpFetch = new Request('/aggregator/getStatusDump/' +
       networkName);
     fetch(aggregatorDumpFetch).then(function(response) {
       if (response.status == 200) {
@@ -174,6 +174,11 @@ export default class NetworkUI extends React.Component {
           label: 'SystemLogs',
           to: 'systemlogs',
         },
+        {
+          icon: 'dashboard',
+          label: 'Alerts',
+          to: 'alerts',
+        },
       ],
     });
     let topologyList = [];
@@ -221,6 +226,9 @@ export default class NetworkUI extends React.Component {
         break;
       case 'link_dashboard':
         paneComponent = <NetworkLinkDashboard />;
+        break;
+      case 'alerts':
+        paneComponent = <NetworkAlerts />;
         break;
       default:
         paneComponent = <NetworkMap />;

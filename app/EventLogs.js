@@ -1,5 +1,4 @@
 import React from 'react';
-// leaflet maps
 import { render } from 'react-dom';
 // dispatcher
 import Actions from './NetworkActionConstants.js';
@@ -8,15 +7,6 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import AsyncButton from 'react-async-button';
 import Dropdown from 'react-dropdown'
 import NumericInput from 'react-numeric-input';
-
-const Spinner = () => (
-  <div className='spinner'>
-    <div className='double-bounce1'></div>
-    <div className='double-bounce2'></div>
-  </div>
-)
-
-const conditions = [ 'must', 'must_not'];
 
 class ListEditor extends React.Component {
   constructor(props) {
@@ -57,6 +47,14 @@ class ListEditor extends React.Component {
   }
 }
 
+const Spinner = () => (
+  <div className='spinner'>
+    <div className='double-bounce1'></div>
+    <div className='double-bounce2'></div>
+  </div>
+)
+
+const conditions = [ 'must', 'must_not'];
 
 export default class EventLogs extends React.Component {
   state = {

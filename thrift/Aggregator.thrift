@@ -1,3 +1,4 @@
+namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.Aggregator
 
 include "Lsdb.thrift"
@@ -14,6 +15,13 @@ enum AggrMessageType {
   ROUTING_ADJ = 202,
   // Messages originated (by agent)
   STATUS_REPORT = 401,
+  STATS_REPORT = 402,
+
+  GET_ALERTS_CONFIG = 501,
+  GET_ALERTS_CONFIG_RESP = 502,
+  SET_ALERTS_CONFIG = 503,
+
+  ACK = 601,
 }
 
 #############  StatusApp ##############
@@ -31,9 +39,52 @@ struct AggrStatusReport {
   3: list<IpPrefix.UnicastRoute> routes;
 }
 
+#############  StatusApp ##############
+
+struct AggrStat {
+  1: string key;
+  2: i64 timestamp;
+  3: double value;
+}
+
+struct AggrStatsReport {
+  1: list<AggrStat> stats;
+}
+
+enum AggrAlertComparator {
+  ALERT_GT  = 0,
+  ALERT_GTE = 1,
+  ALERT_LT  = 2,
+  ALERT_LTE = 3,
+}
+
+enum AggrAlertLevel {
+  ALERT_INFO  = 0,
+  ALERT_WARNING = 1,
+  ALERT_CRITICAL  = 2,
+}
+
+struct AggrAlertConf {
+  1: string id;
+  2: string key;
+  3: double threshold;
+  4: AggrAlertComparator comp;
+  5: AggrAlertLevel level;
+  6: optional string node_mac;
+}
+
+struct AggrAlertConfList {
+  1: list<AggrAlertConf> alerts;
+}
+
 ############# Common #############
 
 struct AggrMessage {
   1: AggrMessageType mType;
   2: binary value;
+}
+
+struct AggrAck {
+  1: bool success;
+  2: string message;
 }

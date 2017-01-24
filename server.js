@@ -232,6 +232,9 @@ if (isDeveloping) {
   app.get(/\/elastic\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)$/i, function (req, res, next) {
     elasticHelper.getSystemLogs(elasticSystemLogsSources, req, res, next);
   });
+  app.get(/\/elastic\/getAlerts\/(.+)$/i, function (req, res, next) {
+    elasticHelper.getAlerts(req, res, next);
+  });
 
   // all charting
   app.post(/\/chart\/$/i, function (req, res, next) {
@@ -301,7 +304,7 @@ if (isDeveloping) {
     res.status(404).end("No such topology\n");
   });
 
-  app.get(/\/aggregator\/get\/(.+)$/i, function (req, res, next) {
+  app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
     let topologyName = req.params[0];
     for (var i = 0, len = configs.length; i < len; i++) {
       if(topologyName == configs[i].name) {
@@ -314,6 +317,13 @@ if (isDeveloping) {
       }
     }
     res.status(404).end("No such topology\n");
+  });
+
+  app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
+    aggregatorProxy.getAlertsConfig(configs, req, res, next);
+  });
+  app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next) {
+    aggregatorProxy.setAlertsConfig(configs, req, res, next);
   });
 } else {
   app.use(express.static(__dirname + '/dist'));

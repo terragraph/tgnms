@@ -71,6 +71,7 @@ var self = {
 
         client.search(search).then(function (resp) {
           var hits = resp.hits.hits;
+          //console.log(hits);
           res.json(hits);
           return;
         }, function (err) {
@@ -79,6 +80,27 @@ var self = {
         });
       }
     }
+  },
+
+  getAlerts: function (req, res, next) {
+    let networkName = req.params[0];
+
+    var search = searchTemplate;
+    search.index = "terragraph_alerts";
+    search.body.sort = JSON.parse("[{\"timestamp\" : \"desc\"}]");
+    search.body.from = 0;
+    search.body.size = 500;
+    search.body.query.bool.must = JSON.parse("{ \"match_phrase\" : { \"network\" : \"" + networkName +"\"}}");
+
+    client.search(search).then(function (resp) {
+      var hits = resp.hits.hits;
+//      console.log(hits);
+      res.json(hits);
+      return;
+    }, function (err) {
+        console.trace(err.message);
+        res.status(404).end("Elasticsearch error\n");
+    });
   }
 }
 
