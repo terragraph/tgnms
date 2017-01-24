@@ -80,7 +80,7 @@ SlotInfo.prototype.write = function(output) {
   return;
 };
 
-BwAllocationMap = module.exports.BwAllocationMap = function(args) {
+NodeBwAlloc = module.exports.NodeBwAlloc = function(args) {
   this.frmCfgType = null;
   this.sframesPerBWGD = null;
   this.slotsPerFrame = null;
@@ -108,8 +108,8 @@ BwAllocationMap = module.exports.BwAllocationMap = function(args) {
     }
   }
 };
-BwAllocationMap.prototype = {};
-BwAllocationMap.prototype.read = function(input) {
+NodeBwAlloc.prototype = {};
+NodeBwAlloc.prototype.read = function(input) {
   input.readStructBegin();
   while (true)
   {
@@ -226,8 +226,8 @@ BwAllocationMap.prototype.read = function(input) {
   return;
 };
 
-BwAllocationMap.prototype.write = function(output) {
-  output.writeStructBegin('BwAllocationMap');
+NodeBwAlloc.prototype.write = function(output) {
+  output.writeStructBegin('NodeBwAlloc');
   if (this.frmCfgType !== null && this.frmCfgType !== undefined) {
     output.writeFieldBegin('frmCfgType', Thrift.Type.I16, 1);
     output.writeI16(this.frmCfgType);
@@ -293,16 +293,16 @@ BwAllocationMap.prototype.write = function(output) {
   return;
 };
 
-BwAllocationMapConfigs = module.exports.BwAllocationMapConfigs = function(args) {
-  this.nodeBwAllocationMaps = null;
+NetworkBwAlloc = module.exports.NetworkBwAlloc = function(args) {
+  this.nodeBwAllocMap = null;
   if (args) {
-    if (args.nodeBwAllocationMaps !== undefined && args.nodeBwAllocationMaps !== null) {
-      this.nodeBwAllocationMaps = Thrift.copyMap(args.nodeBwAllocationMaps, [ttypes.BwAllocationMap]);
+    if (args.nodeBwAllocMap !== undefined && args.nodeBwAllocMap !== null) {
+      this.nodeBwAllocMap = Thrift.copyMap(args.nodeBwAllocMap, [ttypes.NodeBwAlloc]);
     }
   }
 };
-BwAllocationMapConfigs.prototype = {};
-BwAllocationMapConfigs.prototype.read = function(input) {
+NetworkBwAlloc.prototype = {};
+NetworkBwAlloc.prototype.read = function(input) {
   input.readStructBegin();
   while (true)
   {
@@ -319,7 +319,7 @@ BwAllocationMapConfigs.prototype.read = function(input) {
       if (ftype == Thrift.Type.MAP) {
         var _size30 = 0;
         var _rtmp334;
-        this.nodeBwAllocationMaps = {};
+        this.nodeBwAllocMap = {};
         var _ktype31 = 0;
         var _vtype32 = 0;
         _rtmp334 = input.readMapBegin();
@@ -331,9 +331,9 @@ BwAllocationMapConfigs.prototype.read = function(input) {
           var key36 = null;
           var val37 = null;
           key36 = input.readString();
-          val37 = new ttypes.BwAllocationMap();
+          val37 = new ttypes.NodeBwAlloc();
           val37.read(input);
-          this.nodeBwAllocationMaps[key36] = val37;
+          this.nodeBwAllocMap[key36] = val37;
         }
         input.readMapEnd();
       } else {
@@ -352,16 +352,16 @@ BwAllocationMapConfigs.prototype.read = function(input) {
   return;
 };
 
-BwAllocationMapConfigs.prototype.write = function(output) {
-  output.writeStructBegin('BwAllocationMapConfigs');
-  if (this.nodeBwAllocationMaps !== null && this.nodeBwAllocationMaps !== undefined) {
-    output.writeFieldBegin('nodeBwAllocationMaps', Thrift.Type.MAP, 1);
-    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.nodeBwAllocationMaps));
-    for (var kiter38 in this.nodeBwAllocationMaps)
+NetworkBwAlloc.prototype.write = function(output) {
+  output.writeStructBegin('NetworkBwAlloc');
+  if (this.nodeBwAllocMap !== null && this.nodeBwAllocMap !== undefined) {
+    output.writeFieldBegin('nodeBwAllocMap', Thrift.Type.MAP, 1);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.nodeBwAllocMap));
+    for (var kiter38 in this.nodeBwAllocMap)
     {
-      if (this.nodeBwAllocationMaps.hasOwnProperty(kiter38))
+      if (this.nodeBwAllocMap.hasOwnProperty(kiter38))
       {
-        var viter39 = this.nodeBwAllocationMaps[kiter38];
+        var viter39 = this.nodeBwAllocMap[kiter38];
         output.writeString(kiter38);
         viter39.write(output);
       }
@@ -520,16 +520,16 @@ LinkAirtime.prototype.write = function(output) {
   return;
 };
 
-BwAllocationAirtimeConfig = module.exports.BwAllocationAirtimeConfig = function(args) {
-  this.airtimes = null;
+NodeAirtime = module.exports.NodeAirtime = function(args) {
+  this.linkAirtimes = null;
   if (args) {
-    if (args.airtimes !== undefined && args.airtimes !== null) {
-      this.airtimes = Thrift.copyList(args.airtimes, [ttypes.LinkAirtime]);
+    if (args.linkAirtimes !== undefined && args.linkAirtimes !== null) {
+      this.linkAirtimes = Thrift.copyList(args.linkAirtimes, [ttypes.LinkAirtime]);
     }
   }
 };
-BwAllocationAirtimeConfig.prototype = {};
-BwAllocationAirtimeConfig.prototype.read = function(input) {
+NodeAirtime.prototype = {};
+NodeAirtime.prototype.read = function(input) {
   input.readStructBegin();
   while (true)
   {
@@ -546,7 +546,7 @@ BwAllocationAirtimeConfig.prototype.read = function(input) {
       if (ftype == Thrift.Type.LIST) {
         var _size40 = 0;
         var _rtmp344;
-        this.airtimes = [];
+        this.linkAirtimes = [];
         var _etype43 = 0;
         _rtmp344 = input.readListBegin();
         _etype43 = _rtmp344.etype;
@@ -556,7 +556,7 @@ BwAllocationAirtimeConfig.prototype.read = function(input) {
           var elem46 = null;
           elem46 = new ttypes.LinkAirtime();
           elem46.read(input);
-          this.airtimes.push(elem46);
+          this.linkAirtimes.push(elem46);
         }
         input.readListEnd();
       } else {
@@ -575,20 +575,101 @@ BwAllocationAirtimeConfig.prototype.read = function(input) {
   return;
 };
 
-BwAllocationAirtimeConfig.prototype.write = function(output) {
-  output.writeStructBegin('BwAllocationAirtimeConfig');
-  if (this.airtimes !== null && this.airtimes !== undefined) {
-    output.writeFieldBegin('airtimes', Thrift.Type.LIST, 1);
-    output.writeListBegin(Thrift.Type.STRUCT, this.airtimes.length);
-    for (var iter47 in this.airtimes)
+NodeAirtime.prototype.write = function(output) {
+  output.writeStructBegin('NodeAirtime');
+  if (this.linkAirtimes !== null && this.linkAirtimes !== undefined) {
+    output.writeFieldBegin('linkAirtimes', Thrift.Type.LIST, 1);
+    output.writeListBegin(Thrift.Type.STRUCT, this.linkAirtimes.length);
+    for (var iter47 in this.linkAirtimes)
     {
-      if (this.airtimes.hasOwnProperty(iter47))
+      if (this.linkAirtimes.hasOwnProperty(iter47))
       {
-        iter47 = this.airtimes[iter47];
+        iter47 = this.linkAirtimes[iter47];
         iter47.write(output);
       }
     }
     output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+NetworkAirtime = module.exports.NetworkAirtime = function(args) {
+  this.nodeAirtimeMap = null;
+  if (args) {
+    if (args.nodeAirtimeMap !== undefined && args.nodeAirtimeMap !== null) {
+      this.nodeAirtimeMap = Thrift.copyMap(args.nodeAirtimeMap, [ttypes.NodeAirtime]);
+    }
+  }
+};
+NetworkAirtime.prototype = {};
+NetworkAirtime.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.MAP) {
+        var _size48 = 0;
+        var _rtmp352;
+        this.nodeAirtimeMap = {};
+        var _ktype49 = 0;
+        var _vtype50 = 0;
+        _rtmp352 = input.readMapBegin();
+        _ktype49 = _rtmp352.ktype;
+        _vtype50 = _rtmp352.vtype;
+        _size48 = _rtmp352.size;
+        for (var _i53 = 0; _i53 < _size48; ++_i53)
+        {
+          var key54 = null;
+          var val55 = null;
+          key54 = input.readString();
+          val55 = new ttypes.NodeAirtime();
+          val55.read(input);
+          this.nodeAirtimeMap[key54] = val55;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+NetworkAirtime.prototype.write = function(output) {
+  output.writeStructBegin('NetworkAirtime');
+  if (this.nodeAirtimeMap !== null && this.nodeAirtimeMap !== undefined) {
+    output.writeFieldBegin('nodeAirtimeMap', Thrift.Type.MAP, 1);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.nodeAirtimeMap));
+    for (var kiter56 in this.nodeAirtimeMap)
+    {
+      if (this.nodeAirtimeMap.hasOwnProperty(kiter56))
+      {
+        var viter57 = this.nodeAirtimeMap[kiter56];
+        output.writeString(kiter56);
+        viter57.write(output);
+      }
+    }
+    output.writeMapEnd();
     output.writeFieldEnd();
   }
   output.writeFieldStop();

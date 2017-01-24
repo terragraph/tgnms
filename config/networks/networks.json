@@ -2,6 +2,7 @@
   "topologies": [
     {
       "topology_file": "lab_48_ab.json",
+      "site_coords_override": true,
       "latitude": 37.484742908595706,
       "longitude": -122.14704215534768,
       "zoom_level": 18,
@@ -42,11 +43,12 @@
     },
     {
       "topology_file": "sjc_lab_area1.json",
-      "latitude": 37.4848280435154,
-      "longitude": -122.1472245455607,
-      "zoom_level": 18,
-      "controller_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:78f",
-      "aggregator_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:78f"
+      "site_coords_override": true,
+      "latitude": 37.333057579551586,
+      "longitude": -121.88882589372953,
+      "zoom_level": 16,
+      "controller_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d",
+      "aggregator_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d"
     },
     {
       "topology_file": "sjc_area1.json",

@@ -41,9 +41,10 @@ struct Node {
     6: bool is_ignited  # modified by controller
     7: optional PolarityType polarity
     8: optional GolayIdx golay_idx # default golay for all links from this node
-    100: string site_name  # not used in e2e
+    100: string site_name  
     101: double ant_azimuth  # not used in e2e
     102: double ant_elevation  # not used in e2e
+    103: optional bool has_cpe  # node has attached CPE
 }
 
 struct Link {

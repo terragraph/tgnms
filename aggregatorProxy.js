@@ -27,7 +27,9 @@ var self = {
       var receivedMessage = new Aggregator_ttypes.AggrMessage();
       receivedMessage.read(tProtocol);
 
-      tTransport = new thrift.TFramedTransport(Buffer.from(receivedMessage.value, 'ASCII'));
+      // Deserialize body
+      tTransport = new thrift.TFramedTransport(
+          Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
       var statusDump = new Aggregator_ttypes.AggrStatusDump();
       statusDump.read(tProtocol);
@@ -93,7 +95,8 @@ var self = {
       var receivedMessage = new Aggregator_ttypes.AggrMessage();
       receivedMessage.read(tProtocol);
 
-      tTransport = new thrift.TFramedTransport(Buffer.from(receivedMessage.value, 'ASCII'));
+      tTransport = new thrift.TFramedTransport(
+          Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
       var alertsConfList = new Aggregator_ttypes.AggrAlertConfList();
       alertsConfList.read(tProtocol);
@@ -159,7 +162,8 @@ var self = {
       var receivedMessage = new Aggregator_ttypes.AggrMessage();
       receivedMessage.read(tProtocol);
 
-      tTransport = new thrift.TFramedTransport(Buffer.from(receivedMessage.value, 'ASCII'));
+      tTransport = new thrift.TFramedTransport(
+          Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
       var ackMsg = new Aggregator_ttypes.AggrAck();
       ackMsg.read(tProtocol);

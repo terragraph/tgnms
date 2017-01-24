@@ -87,6 +87,7 @@ if (isDeveloping) {
             zoom_level: topologyConfig['zoom_level'],
             controller_online: false,
             aggregator_online: false,
+            site_coords_override: topologyConfig['site_coords_override'],
         };
         configs.push(config);
         fileTopologies.push(topology);
@@ -282,10 +283,18 @@ if (isDeveloping) {
     for (var i = 0, len = configs.length; i < len; i++) {
       if(topologyName == configs[i].name) {
         let topology = {};
-        if (receivedTopologies[i] && receivedTopologies[i].name) {
+        // ensure received topology looks valid-ish before using
+        if (receivedTopologies[i] && receivedTopologies[i].nodes) {
           topology = receivedTopologies[i];
         } else {
           topology = fileTopologies[i];
+        }
+        // over-ride the topology name since many don't use
+        if (!topology.name) {
+          console.error('No topology name received from controller for',
+                        configs[i].name, '[', configs[i].controller_ip, ']');
+          // force the original name if the controller has no name
+          topology.name = fileTopologies[i].name;
         }
         let status = ctrlStatusDumps[i];
         let nodes = topology.nodes;
@@ -296,6 +305,10 @@ if (isDeveloping) {
         }
         let networkConfig = Object.assign({}, configs[i]);
         networkConfig.topology = topology;
+        if (configs[i].site_coords_override) {
+          // swap site data
+          networkConfig.topology.sites = fileTopologies[i].sites;
+        }
         res.json(networkConfig);
         return;
       }

@@ -14,7 +14,7 @@ struct SlotInfo {
   2: SlotAttrib attrib;
 }
 
-struct BwAllocationMap {
+struct NodeBwAlloc {
   1: i16 frmCfgType;                   // Frame configuration type
   2: i16 sframesPerBWGD;               // No. superframes per BWGD
   3: i16 slotsPerFrame;                // No. slots per TDD frame (Tx/Rx)
@@ -23,8 +23,8 @@ struct BwAllocationMap {
   6: map<SlotIdx, SlotInfo> rxSlotMap; // Rx slot map
 }
 
-struct BwAllocationMapConfigs {
-  1: map<string, BwAllocationMap> nodeBwAllocationMaps;  // bwmap keyed on node
+struct NetworkBwAlloc {
+  1: map<string, NodeBwAlloc> nodeBwAllocMap;  // keyed on node name
 }
 
 struct LinkAirtime {
@@ -37,7 +37,10 @@ struct LinkAirtime {
   7: i16 rxMax;         // Max RX airtime from link. Unit: 1/100%.
 }
 
-// Note: This is a per node message for each DN.
-struct BwAllocationAirtimeConfig {
-  1: list<LinkAirtime> airtimes; // Link airtime for each peer DN and peer CN.
+struct NodeAirtime {
+  1: list<LinkAirtime> linkAirtimes; // for each peer DN and peer CN.
+}
+
+struct NetworkAirtime {
+  1: map<string, NodeAirtime> nodeAirtimeMap;  // keyed on node name
 }
