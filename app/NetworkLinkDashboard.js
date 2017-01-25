@@ -344,7 +344,7 @@ export default class NetworkLinkDashboard extends React.Component {
         <button onClick={this.showModal.bind(this)}>Edit Graphs</button>
         <ReactMultiGraph
           options={graphOptions}
-          size="large" />
+          size="small" />
         <ScaleModal ref="selector" modalStyle={modalStyle}>
           <h2 style={{textAlign: 'center'}}>Metric Selector</h2>
           <SpringGrid

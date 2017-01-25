@@ -217,7 +217,7 @@ export default class ReactMultiGraph extends React.Component {
                 key={"lc" + name}
                 columns={columnNames}
                 style={styler(legendStyle)}
-                interpolation="curveBasis"
+                interpolation="curveBasisOpen"
                 highlight={this.state.highlight}
                 onHighlightChange={highlight => this.setState({highlight})}
                 selection={this.state.selection}
@@ -266,7 +266,7 @@ export default class ReactMultiGraph extends React.Component {
         <div id="legend">
           <Legend
             type="line"
-            align="right"
+            align="left"
             type="dot"
             style={styler(legendStyle)}
             onSelectionChange={selection => this.setState({selection})}
