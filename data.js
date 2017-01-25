@@ -1,3 +1,5 @@
+// aggregate data points in buckets for easier grouping
+const AGG_BUCKET_SECONDS = 30;
 const mysql = require('mysql');
 const pool = mysql.createPool({
     connectionLimit:    50,
@@ -58,13 +60,16 @@ var self = {
     let max = 1500000000000000000;
     if (timeInNs < max && timeInNs > min) {
       // looks like the time format we're expecting, proceed
-      let d = new Date(timeInNs / 1000000);
-      // set timezone offset
+      let d = new Date(
+        Math.ceil(timeInNs / 1000000 / AGG_BUCKET_SECONDS * 1000)
+        * AGG_BUCKET_SECONDS * 1000);
       return d;
     } else {
 //      console.log('bad time', timeInNs, row);
       // just use current time
-      return new Date();
+      return new Date(
+        Math.ceil(new Date().getTime() / AGG_BUCKET_SECONDS * 1000)
+        * AGG_BUCKET_SECONDS * 1000);
     }
   },
 
@@ -79,7 +84,6 @@ var self = {
                             'terra0.tx_errors', 'terra0.rx_errors']);
     let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'spostSNRdB']);
     let rows = [];
-    let rowsUnused = [];
     let unknownMacs = new Set();
     let macAddr;
     let postDataLines = postData.split("\n");
@@ -141,8 +145,6 @@ var self = {
           if (keyNameSplit.length == 4 &&
               allowedTgSuffix.has(keyNameSplit[3])) {
             rows.push(row);
-          } else {
-            rowsUnused.push(row);
           }
         }
       } else if (macAddr) {
@@ -173,32 +175,19 @@ var self = {
           }
         );
       });
-      console.log("Inserted", rows.length, "rows into", tableName, 
+      console.log("Inserted", rows.length, "rows into", tableName,
                   ",", remain, "remaining");
     };
-    if (rows.length || rowsUnused.length) {
-      if (rows.length) {
-        let bucketSize = 10000;
-        let remainRows = rows;
-        while (remainRows.length > bucketSize) {
-          // slice rows into buckets of 10k rows
-          let sliceRows = remainRows.slice(0, bucketSize);
-          insertRows('time_series', sliceRows, remainRows.length);
-          remainRows = remainRows.splice(bucketSize);
-        }
-        insertRows('time_series', remainRows, 0);
+    if (rows.length) {
+      let bucketSize = 10000;
+      let remainRows = rows;
+      while (remainRows.length > bucketSize) {
+        // slice rows into buckets of 10k rows
+        let sliceRows = remainRows.slice(0, bucketSize);
+        insertRows('time_series', sliceRows, remainRows.length);
+        remainRows = remainRows.splice(bucketSize);
       }
-      if (rowsUnused.length) {
-        let bucketSize = 10000;
-        let remainRows = rowsUnused;
-        while (remainRows.length > bucketSize) {
-          // slice rows into buckets of 10k rows
-          let sliceRows = remainRows.slice(0, bucketSize);
-          insertRows('time_series_unused', sliceRows, remainRows.length);
-          remainRows = remainRows.splice(bucketSize);
-        }
-        insertRows('time_series_unused', remainRows, 0);
-      }
+      insertRows('time_series', remainRows, 0);
     } else {
       console.log('writeData request with', postData.length, 'bytes and',
                   postDataLines.length, 'lines had:', noColumns,

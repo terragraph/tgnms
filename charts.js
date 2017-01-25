@@ -11,28 +11,28 @@ const pool = mysql.createPool({
     multipleStatements: true,
 });
 
-SUM_BY_KEY = "SELECT `key`, (FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) " +
-             "AS time, SUM(value) AS value FROM time_series " +
+SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
+             "SUM(value) AS value FROM time_series " +
              "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
              "WHERE `mac` IN ? " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
-             "GROUP BY `key`, UNIX_TIMESTAMP(time) DIV 30";
+             "GROUP BY `key`, `time`";
 SUM_BY_MAC = "SELECT `mac`, " +
-              "(FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) AS time, " +
+              "UNIX_TIMESTAMP(`time`) AS time, " +
               "SUM(value) AS value FROM time_series " +
               "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
               "WHERE `mac` IN ? " +
               "AND `key` IN ? " +
               "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
-              "GROUP BY `mac`, UNIX_TIMESTAMP(time) DIV 30";
-LINK_METRIC = "SELECT `key`, (FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) " +
-             "AS time, SUM(value) AS value FROM time_series " +
+              "GROUP BY `mac`, `time`";
+LINK_METRIC = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
+             "SUM(value) AS value FROM time_series " +
              "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
              "WHERE `mac` IN ? " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
-             "GROUP BY `key`, UNIX_TIMESTAMP(time) DIV 30";
+             "GROUP BY `key`, `time`";
 var self = {
   columnName: function (metricName) {
     switch (metricName) {
@@ -53,7 +53,8 @@ var self = {
       case 'mem.util':
         return 'Memory Utilization';
       default:
-        return metricName;
+        // remove periods
+        return metricName.replace(/\./g, "");
     }
   },
 
@@ -118,7 +119,7 @@ var self = {
     dataPoints.splice(0, 1);
     dataPoints.splice(-1, 1);
     const endpointResults = {
-      name: "Traffic",
+      name: groupBy,
       columns: ["time"].concat(columnDisplayNames),
       points: dataPoints,
     };
@@ -158,7 +159,7 @@ var self = {
           return metricName;
       }
     });
-    query = SUM_BY_MAC;
+    query = LINK_METRIC;
     fields = [
       [[aNode.mac]],
       [keyNames],
@@ -228,14 +229,14 @@ var self = {
         ];
         break;
       case 'nodes_reporting':
-        query = "SELECT (FLOOR(UNIX_TIMESTAMP(time) / 30) * 30) AS time, " +
+        query = "SELECT UNIX_TIMESTAMP(`time`) AS time, " +
                 "COUNT(DISTINCT node_id) AS value FROM time_series " +
                 "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
                 "WHERE `mac` IN ? " +
                 "AND `key` = ? " +
                 "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
-                "GROUP BY UNIX_TIMESTAMP(time) DIV 30 " +
-                "ORDER BY time ASC";
+                "GROUP BY `time` " +
+                "ORDER BY `time` ASC";
         fields = [[nodeMacs], ['terra0.tx_bytes']];
         break;
       default:
@@ -301,11 +302,10 @@ var self = {
         let retResults = [];
         if (sqlQueries.length > 1) {
           for (let i = 0; i < results.length; i++) {
-            // TODO - need to fix this static metric setting, doesn't make sense for links
-            retResults.push(self.processResults(results[i], queries[i], 'load'));
+            retResults.push(self.processResults(results[i], queries[i], 'unused'));
           }
         } else {
-          retResults.push(self.processResults(results, queries, 'load'));
+          retResults.push(self.processResults(results, queries[0], 'unused'));
         }
         res.json(retResults);
       });
@@ -313,7 +313,37 @@ var self = {
   },
 
   processResults: function(result, query, metricName) {
-    switch (metricName) {
+    switch (query.type) {
+      case 'link':
+        return self.formatStatsGroup(result, 'key', query);
+        break;
+      case 'node':
+        switch (query.key) {
+          case 'traffic_sum':
+          case 'errors_sum':
+          case 'drops_sum':
+            return self.formatStatsGroup(result, 'key', query);
+            break;
+          case 'nodes_traffic_tx':
+          case 'nodes_traffic_rx':
+          case 'mem_util':
+          case 'load-1':
+          case 'load':
+            return self.formatStatsGroup(result, 'mac', query);
+            break;
+          case 'nodes_reporting':
+            return self.formatStats(result);
+            break;
+          default:
+            // push raw json
+            throw "Undefined key for node: " + query.key;
+        }
+        break;
+      default:
+        throw "Undefined query type: " + query.type;
+    }
+/*    switch (metricName) {
+      case 'key':
       case 'traffic_sum':
       case 'errors_sum':
       case 'drops_sum':
@@ -331,7 +361,7 @@ var self = {
       default:
         // push raw json
         return result;
-    }
+    }*/
   },
 }
 
