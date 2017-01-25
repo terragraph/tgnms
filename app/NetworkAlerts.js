@@ -300,9 +300,9 @@ export default class NetworkAlerts extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
     if (NetworkStore.networkName && NetworkStore.networkConfig) {
-      this.setState({
-        topology: NetworkStore.networkConfig.topology
-      });
+      this.setState(
+        this.updateTopologyState(NetworkStore.networkConfig)
+      );
       this.refreshAlerts();
     }
     //schedule fixed interval refresh
@@ -317,14 +317,33 @@ export default class NetworkAlerts extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
+      case Actions.TOPOLOGY_SELECTED:
+        this.setState({
+          alertsJson: null,
+          alertsConfigJson: null,
+          alertsConfigRows: [],
+          alertsConfigSelected: [],
+        });
+        break;
       case Actions.TOPOLOGY_REFRESHED:
         // topology refreshed
-        this.setState({
-          topology: payload.networkConfig.topology,
-        });
+        this.setState(this.updateTopologyState(payload.networkConfig));
         this.refreshAlerts();
         break;
     }
+  }
+
+  updateTopologyState(networkConfig) {
+    let topologyJson = networkConfig.topology;
+    let nodesByMac = {};
+    Object.keys(topologyJson.nodes).map(nodeIndex => {
+      let node = topologyJson.nodes[nodeIndex];
+      nodesByMac[node.mac_addr] = node;
+    });
+    return {
+      topology: topologyJson,
+      nodesByMac: nodesByMac,
+    };
   }
 
   _handleTabSelect(index, last) {
@@ -338,11 +357,15 @@ export default class NetworkAlerts extends React.Component {
     var id = 0;
     if (this.state.alertsJson) {
       this.state.alertsJson.forEach(alert => {
+        var time = new Date(alert._source.timestamp*1000).toISOString()
+            .replace(/T/, ' ').replace(/\..+/, '');
+        var node = this.state.nodesByMac[alert._source.mac];
+        var nodeName = node.name ? node.name : "";
         rows.push(
           {
             _id: id,
-            timestamp: alert._source.timestamp,
-            node_name: alert._source.mac,
+            timestamp: time,
+            node_name: nodeName + " (" + alert._source.mac + ")",
             alert_id: alert._source.id,
             alert_key: alert._source.key,
             alert_value: alert._source.value,
