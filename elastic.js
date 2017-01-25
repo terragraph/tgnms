@@ -3,21 +3,9 @@ var client = new elasticsearch.Client({
   host: '[2620:10d:c089:e009:1a66:daff:fee8:de0]:9200'
 });
 
-var searchTemplate = {
-  "index": "",
-  "type": "",
-  "body": {
-    "from" : 0,
-    "size" : 50,
-    "query" : {
-      "bool": {
-        "must": [],
-        "must_not": []
-      }
-    },
-    "sort" : []
-  }
-};
+const searchTemplate = '{"index": "", "type": "", "body":\
+    {"from" : 0, "size" : 50, "query" :\
+    {"bool": { "must": [], "must_not": [] } }, "sort" : [] } }';
 
 var self = {
   getEventLogs: function (elasticEventLogsTables, req, res, next) {
@@ -29,14 +17,11 @@ var self = {
 
     for (var i = 0, len = elasticEventLogsTables.tables.length; i < len; i++) {
       if(tableName == elasticEventLogsTables.tables[i].name) {
-        var search = searchTemplate;
+        var search = JSON.parse(searchTemplate);
         search.index = elasticEventLogsTables.tables[i].index;
         search.type = elasticEventLogsTables.tables[i].type;
-        var sortItem = {};
-        var sortItems = [];
-        sortItem[elasticEventLogsTables.tables[i].time] = "desc";
-        sortItems.push(sortItem);
-        search.body.sort = sortItems;
+        search.body.sort = JSON.parse(
+            '[{"' + elasticEventLogsTables.tables[i].time +'" : "desc"}]');
         search.body.from = from;
         search.body.size = size;
         search.body.query.bool.must = JSON.parse(must);
@@ -62,10 +47,10 @@ var self = {
 
     for (var i = 0, len = elasticSystemLogsSources.sources.length; i < len; i++) {
       if(sourceName == elasticSystemLogsSources.sources[i].name) {
-        var search = searchTemplate;
+        var search = JSON.parse(searchTemplate);
         search.index = elasticSystemLogsSources.sources[i].index;
         search.type = node;
-        search.body.sort = JSON.parse("[{\"timestamp\" : \"desc\"}]");
+        search.body.sort = JSON.parse('[{"timestamp" : "desc"}]');
         search.body.from = from;
         search.body.size = size;
 
@@ -85,16 +70,16 @@ var self = {
   getAlerts: function (req, res, next) {
     let networkName = req.params[0];
 
-    var search = searchTemplate;
+    var search = JSON.parse(searchTemplate);
     search.index = "terragraph_alerts";
-    search.body.sort = JSON.parse("[{\"timestamp\" : \"desc\"}]");
+    search.body.sort = JSON.parse('[{"timestamp" : "desc"}]');
     search.body.from = 0;
     search.body.size = 500;
-    search.body.query.bool.must = JSON.parse("{ \"match_phrase\" : { \"network\" : \"" + networkName +"\"}}");
+    search.body.query.bool.must =
+        JSON.parse('{"match_phrase" : { "network" : "' + networkName + '"}}');
 
     client.search(search).then(function (resp) {
       var hits = resp.hits.hits;
-//      console.log(hits);
       res.json(hits);
       return;
     }, function (err) {
