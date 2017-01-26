@@ -165,11 +165,11 @@ var self = {
       tTransport = new thrift.TFramedTransport(
           Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
-      var ackMsg = new Aggregator_ttypes.AggrAck();
-      ackMsg.read(tProtocol);
+      var respMsg = new Aggregator_ttypes.AggrSetAlertsConfigResp();
+      respMsg.read(tProtocol);
       config.aggregator_online = true;
       dealer.close();
-      res.json(ackMsg);
+      res.json(respMsg);
     });
 
     dealer.on('error', function(err) {

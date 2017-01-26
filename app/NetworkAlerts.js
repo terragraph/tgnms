@@ -193,7 +193,11 @@ export default class NetworkAlerts extends React.Component {
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             response.json().then(function(json) {
-              resolve();
+              if (json.success) {
+                resolve();
+              } else {
+                reject();
+              }
             }.bind(this));
           } else {
             reject();
@@ -367,8 +371,9 @@ export default class NetworkAlerts extends React.Component {
             timestamp: time,
             node_name: nodeName + " (" + alert._source.mac + ")",
             alert_id: alert._source.id,
-            alert_key: alert._source.key,
-            alert_value: alert._source.value,
+            alert_key: alert._source.alert_key,
+            stat_key: alert._source.stat_key,
+            stat_value: alert._source.value,
             alert_comp: alert._source.comp,
             alert_threshold: alert._source.threshold,
             alert_level: alert._source.level,
@@ -425,8 +430,9 @@ export default class NetworkAlerts extends React.Component {
             <TableHeaderColumn width="180" dataField="timestamp">Time</TableHeaderColumn>
             <TableHeaderColumn width="180" dataSort={true} dataField="node_name">Node</TableHeaderColumn>
             <TableHeaderColumn width="200" dataSort={true} dataField="alert_id">ID</TableHeaderColumn>
-            <TableHeaderColumn width="200" dataSort={true} dataField="alert_key">Key</TableHeaderColumn>
-            <TableHeaderColumn width="100" dataSort={true} dataField="alert_value">Value</TableHeaderColumn>
+            <TableHeaderColumn width="200" dataSort={true} dataField="alert_key">RegEx</TableHeaderColumn>
+            <TableHeaderColumn width="200" dataSort={true} dataField="stat_key">Key</TableHeaderColumn>
+            <TableHeaderColumn width="100" dataSort={true} dataField="stat_value">Value</TableHeaderColumn>
             <TableHeaderColumn width="120" dataSort={true} dataField="alert_comp">Comparator</TableHeaderColumn>
             <TableHeaderColumn width="100" dataSort={true} dataField="alert_threshold">Threshold</TableHeaderColumn>
             <TableHeaderColumn width="140" dataSort={true} dataField="alert_level">Level</TableHeaderColumn>
@@ -493,7 +499,7 @@ export default class NetworkAlerts extends React.Component {
               selectRow={ alertsConfigSelectRowProp }>
             <TableHeaderColumn dataField='_id' hidden isKey={ true }>_id</TableHeaderColumn>
             <TableHeaderColumn width="200" dataField='id' editable >ID</TableHeaderColumn>
-            <TableHeaderColumn width="200" editable dataField='key'>Key</TableHeaderColumn>
+            <TableHeaderColumn width="200" editable dataField='key'>Key RegEx</TableHeaderColumn>
             <TableHeaderColumn width="120" editable dataField='comp'
             dataFormat={ this.cellListFormatter }
             customEditor={ { getElement: createListEditor, customEditorParameters: { items: alertComparators } } }>Comparator</TableHeaderColumn>

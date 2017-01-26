@@ -19,7 +19,7 @@ ttypes.AggrMessageType = {
 'GET_ALERTS_CONFIG' : 501,
 'GET_ALERTS_CONFIG_RESP' : 502,
 'SET_ALERTS_CONFIG' : 503,
-'ACK' : 601
+'SET_ALERTS_CONFIG_RESP' : 504
 };
 ttypes.AggrAlertComparator = {
 'ALERT_GT' : 0,
@@ -651,6 +651,59 @@ AggrAlertConfList.prototype.write = function(output) {
   return;
 };
 
+AggrSetAlertsConfigResp = module.exports.AggrSetAlertsConfigResp = function(args) {
+  this.success = null;
+  if (args) {
+    if (args.success !== undefined) {
+      this.success = args.success;
+    }
+  }
+};
+AggrSetAlertsConfigResp.prototype = {};
+AggrSetAlertsConfigResp.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.BOOL) {
+        this.success = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrSetAlertsConfigResp.prototype.write = function(output) {
+  output.writeStructBegin('AggrSetAlertsConfigResp');
+  if (this.success !== null && this.success !== undefined) {
+    output.writeFieldBegin('success', Thrift.Type.BOOL, 1);
+    output.writeBool(this.success);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 AggrMessage = module.exports.AggrMessage = function(args) {
   this.mType = null;
   this.value = null;
@@ -710,72 +763,6 @@ AggrMessage.prototype.write = function(output) {
   if (this.value !== null && this.value !== undefined) {
     output.writeFieldBegin('value', Thrift.Type.STRING, 2);
     output.writeString(this.value);
-    output.writeFieldEnd();
-  }
-  output.writeFieldStop();
-  output.writeStructEnd();
-  return;
-};
-
-AggrAck = module.exports.AggrAck = function(args) {
-  this.success = null;
-  this.message = null;
-  if (args) {
-    if (args.success !== undefined) {
-      this.success = args.success;
-    }
-    if (args.message !== undefined) {
-      this.message = args.message;
-    }
-  }
-};
-AggrAck.prototype = {};
-AggrAck.prototype.read = function(input) {
-  input.readStructBegin();
-  while (true)
-  {
-    var ret = input.readFieldBegin();
-    var fname = ret.fname;
-    var ftype = ret.ftype;
-    var fid = ret.fid;
-    if (ftype == Thrift.Type.STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      case 1:
-      if (ftype == Thrift.Type.BOOL) {
-        this.success = input.readBool();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 2:
-      if (ftype == Thrift.Type.STRING) {
-        this.message = input.readString();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      default:
-        input.skip(ftype);
-    }
-    input.readFieldEnd();
-  }
-  input.readStructEnd();
-  return;
-};
-
-AggrAck.prototype.write = function(output) {
-  output.writeStructBegin('AggrAck');
-  if (this.success !== null && this.success !== undefined) {
-    output.writeFieldBegin('success', Thrift.Type.BOOL, 1);
-    output.writeBool(this.success);
-    output.writeFieldEnd();
-  }
-  if (this.message !== null && this.message !== undefined) {
-    output.writeFieldBegin('message', Thrift.Type.STRING, 2);
-    output.writeString(this.message);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

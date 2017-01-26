@@ -20,8 +20,7 @@ enum AggrMessageType {
   GET_ALERTS_CONFIG = 501,
   GET_ALERTS_CONFIG_RESP = 502,
   SET_ALERTS_CONFIG = 503,
-
-  ACK = 601,
+  SET_ALERTS_CONFIG_RESP = 504,
 }
 
 #############  StatusApp ##############
@@ -39,7 +38,7 @@ struct AggrStatusReport {
   3: list<IpPrefix.UnicastRoute> routes;
 }
 
-#############  StatusApp ##############
+#############  StatsApp ##############
 
 struct AggrStat {
   1: string key;
@@ -77,14 +76,13 @@ struct AggrAlertConfList {
   1: list<AggrAlertConf> alerts;
 }
 
+struct AggrSetAlertsConfigResp {
+  1: bool success;
+}
+
 ############# Common #############
 
 struct AggrMessage {
   1: AggrMessageType mType;
   2: binary value;
-}
-
-struct AggrAck {
-  1: bool success;
-  2: string message;
 }
