@@ -94,10 +94,10 @@ export default class NetworkAlerts extends React.Component {
   state = {
     selectedTabIndex: 0,
     topology: {},
-    pending: true,
-    alertsJson: null,
     alertsConfigJson: null,
+    alertsRows: [],
     alertsConfigRows: [],
+    alertsSelected: [],
     alertsConfigSelected: [],
   }
 
@@ -107,6 +107,8 @@ export default class NetworkAlerts extends React.Component {
     this.setConfigClick = this.setConfigClick.bind(this);
     this.refreshAlerts = this.refreshAlerts.bind(this);
     this.alertsConfigOnRowSelect = this.alertsConfigOnRowSelect.bind(this);
+    this.alertsOnRowSelect = this.alertsOnRowSelect.bind(this);
+    this.updateAlertsTableRows = this.updateAlertsTableRows.bind(this);
   }
 
   getConfigClick(e) {
@@ -233,16 +235,10 @@ export default class NetworkAlerts extends React.Component {
     fetch(exec).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
-          this.setState({
-            alertsJson: json,
-            pending: false,
-          });
+          this.updateAlertsTableRows(json);
         }.bind(this));
       } else {
-        this.setState({
-          alertsJson: null,
-          pending: false,
-        });
+        this.updateAlertsTableRows(null);
       }
     }.bind(this));
 
@@ -289,6 +285,36 @@ export default class NetworkAlerts extends React.Component {
     });
   }
 
+  deleteSelectedAlerts () {
+    var networkName = NetworkStore.networkName;
+    if (this.state.topology && this.state.topology.name) {
+      networkName = this.state.topology.name;
+    }
+    var alertIds = []
+    if(this.state.alertsSelected && this.state.alertsSelected.length > 0) {
+      this.state.alertsSelected.forEach( id => {
+        alertIds.push(id);
+      });
+      let exec = new Request('/elastic/deleteAlerts/'+ networkName+'/'+JSON.stringify(alertIds));
+      fetch(exec);
+      this.setState({
+        alertsSelected: [],
+      });
+    }
+  }
+
+  clearAllAlerts () {
+    var networkName = NetworkStore.networkName;
+    if (this.state.topology && this.state.topology.name) {
+      networkName = this.state.topology.name;
+    }
+    let exec = new Request('/elastic/clearAlerts/'+ networkName);
+    fetch(exec);
+    this.setState({
+      alertsSelected: [],
+    });
+  }
+
   alertsConfigOnRowSelect(row, isSelected) {
     if (isSelected) {
       this.setState({
@@ -296,6 +322,16 @@ export default class NetworkAlerts extends React.Component {
       });
     } else {
       this.setState({ alertsConfigSelected: this.state.alertsConfigSelected.filter(it => it !== row._id) });
+    }
+  }
+
+  alertsOnRowSelect(row, isSelected) {
+    if (isSelected) {
+      this.setState({
+        alertsSelected: [ ...this.state.alertsSelected, row._id ]
+      });
+    } else {
+      this.setState({ alertsSelected: this.state.alertsSelected.filter(it => it !== row._id) });
     }
   }
 
@@ -323,9 +359,10 @@ export default class NetworkAlerts extends React.Component {
     switch (payload.actionType) {
       case Actions.TOPOLOGY_SELECTED:
         this.setState({
-          alertsJson: null,
           alertsConfigJson: null,
+          alertsRows: [],
           alertsConfigRows: [],
+          alertsSelected: [],
           alertsConfigSelected: [],
         });
         break;
@@ -356,18 +393,17 @@ export default class NetworkAlerts extends React.Component {
     });
   }
 
-  getAlertsTableRows() {
+  updateAlertsTableRows(alertsJson) {
     const rows = [];
-    var id = 0;
-    if (this.state.alertsJson) {
-      this.state.alertsJson.forEach(alert => {
+    if (alertsJson) {
+      alertsJson.forEach(alert => {
         var time = new Date(alert._source.timestamp*1000).toISOString()
             .replace(/T/, ' ').replace(/\..+/, '');
         var node = this.state.nodesByMac[alert._source.mac];
         var nodeName = node.name ? node.name : "";
         rows.push(
           {
-            _id: id,
+            _id: alert._id,
             timestamp: time,
             node_name: nodeName + " (" + alert._source.mac + ")",
             alert_id: alert._source.id,
@@ -379,10 +415,11 @@ export default class NetworkAlerts extends React.Component {
             alert_level: alert._source.level,
           },
         );
-        id++;
       });
     }
-    return rows;
+    this.setState({
+      alertsRows: rows,
+    });
   }
 
   columnClassNameFormat(row, rowIdx) {
@@ -412,6 +449,14 @@ export default class NetworkAlerts extends React.Component {
       selected: this.state.alertsConfigSelected,
     };
 
+    var alertsSelectRowProp = {
+      mode: "checkbox",
+      clickToSelect: true,
+      bgColor: "rgb(150, 150, 250)",
+      onSelect: this.alertsOnRowSelect,
+      selected: this.state.alertsSelected,
+    };
+
     return (
       <Tabs
         onSelect={this._handleTabSelect.bind(this)}
@@ -422,10 +467,25 @@ export default class NetworkAlerts extends React.Component {
           <Tab>Config</Tab>
         </TabList>
         <TabPanel>
+          <div>
+            <table style={{"borderCollapse":"separate", "borderSpacing": "10px"}}>
+             <tbody>
+              <tr>
+                <td>
+                  <button className="btn btn-primary" onClick={this.deleteSelectedAlerts.bind(this)}>Delete Selected</button>
+                </td>
+                <td>
+                  <button className="btn btn-primary" onClick={this.clearAllAlerts.bind(this)}>Clear All</button>
+                </td>
+              </tr>
+             </tbody>
+            </table>
+          </div>
           <BootstrapTable
               key="alertsTable"
               trClassName={this.columnClassNameFormat}
-              data={this.getAlertsTableRows()}>
+              data={this.state.alertsRows}
+              selectRow={ alertsSelectRowProp }>
             <TableHeaderColumn width="350" dataSort={true} dataField="_id" isKey hidden>Id</TableHeaderColumn>
             <TableHeaderColumn width="180" dataField="timestamp">Time</TableHeaderColumn>
             <TableHeaderColumn width="180" dataSort={true} dataField="node_name">Node</TableHeaderColumn>

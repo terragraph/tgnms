@@ -86,6 +86,44 @@ var self = {
         console.trace(err.message);
         res.status(404).end("Elasticsearch error\n");
     });
+  },
+
+  clearAlerts: function (req, res, next) {
+    let networkName = req.params[0];
+
+    client.deleteByQuery({
+      index: "terragraph_alerts",
+      body: {
+        query: {
+          match_phrase : { network : networkName}}
+      }
+    }).then(function (resp) {
+      res.json(resp);
+      return;
+    }, function (err) {
+        console.trace(err.message);
+        res.status(404).end("Elasticsearch error\n");
+    });
+  },
+
+  deleteAlerts: function (req, res, next) {
+    let networkName = req.params[0];
+    let ids = JSON.parse(req.params[1]);
+
+    var body = [];
+    Object(ids).forEach(function(id) {
+      body.push({ delete: { _index: "terragraph_alerts", _type: "level", _id: id } });
+    });
+
+    client.bulk({
+      body: body
+    }).then(function (resp) {
+      res.json(resp);
+      return;
+    }, function (err) {
+      console.trace(err.message);
+      res.status(404).end("Elasticsearch error\n");
+    });
   }
 }
 

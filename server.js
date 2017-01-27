@@ -236,6 +236,12 @@ if (isDeveloping) {
   app.get(/\/elastic\/getAlerts\/(.+)$/i, function (req, res, next) {
     elasticHelper.getAlerts(req, res, next);
   });
+  app.get(/\/elastic\/clearAlerts\/(.+)$/i, function (req, res, next) {
+    elasticHelper.clearAlerts(req, res, next);
+  });
+  app.get(/\/elastic\/deleteAlerts\/(.+)\/(.+)$/i, function (req, res, next) {
+    elasticHelper.deleteAlerts(req, res, next);
+  });
 
   // all charting
   app.post(/\/chart\/$/i, function (req, res, next) {
