@@ -56,7 +56,8 @@ ttypes.MessageType = {
   'HELLO' : 1002,
   'E2E_ACK' : 1003,
   'TEST' : 1004,
-  'DR_RESP' : 1005
+  'DR_RESP' : 1005,
+  'DR_STAT_PUSH' : 1006
 };
 ttypes.LinkActionType = {
   'LINK_UP' : 1,
@@ -621,6 +622,7 @@ StatusReport = module.exports.StatusReport = function(args) {
   this.timeStamp = null;
   this.ipv6Address = null;
   this.version = null;
+  this.uboot_version = null;
   this.isConnected = null;
   this.upgradeStatus = null;
   if (args) {
@@ -632,6 +634,9 @@ StatusReport = module.exports.StatusReport = function(args) {
     }
     if (args.version !== undefined && args.version !== null) {
       this.version = args.version;
+    }
+    if (args.uboot_version !== undefined && args.uboot_version !== null) {
+      this.uboot_version = args.uboot_version;
     }
     if (args.isConnected !== undefined && args.isConnected !== null) {
       this.isConnected = args.isConnected;
@@ -676,6 +681,13 @@ StatusReport.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 6:
+      if (ftype == Thrift.Type.STRING) {
+        this.uboot_version = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       case 4:
       if (ftype == Thrift.Type.BOOL) {
         this.isConnected = input.readBool();
@@ -715,6 +727,11 @@ StatusReport.prototype.write = function(output) {
   if (this.version !== null && this.version !== undefined) {
     output.writeFieldBegin('version', Thrift.Type.STRING, 3);
     output.writeString(this.version);
+    output.writeFieldEnd();
+  }
+  if (this.uboot_version !== null && this.uboot_version !== undefined) {
+    output.writeFieldBegin('uboot_version', Thrift.Type.STRING, 6);
+    output.writeString(this.uboot_version);
     output.writeFieldEnd();
   }
   if (this.isConnected !== null && this.isConnected !== undefined) {

@@ -243,18 +243,7 @@ if (isDeveloping) {
     elasticHelper.deleteAlerts(req, res, next);
   });
 
-  // all charting
-  app.post(/\/chart\/$/i, function (req, res, next) {
-    let httpPostData = '';
-    req.on('data', function(chunk) {
-      httpPostData += chunk.toString();
-    });
-    req.on('end', function() {
-      // push query
-      charts.queryObj(res, httpPostData);
-    });
-  });
-  // NEWer charting, for multi-linechart/row
+  // newer charting, for multi-linechart/row
   app.post(/\/multi_chart\/$/i, function (req, res, next) {
     let httpPostData = '';
     req.on('data', function(chunk) {
@@ -262,8 +251,41 @@ if (isDeveloping) {
     });
     req.on('end', function() {
       // push query
-      charts.queryMulti(res, httpPostData);
+      charts.queryMulti(res, httpPostData, 'chart');
     });
+  });
+
+  // raw stats data
+  app.get(/\/health\/(.+)$/i, function (req, res, next) {
+    let topologyName = req.params[0];
+    let topology = {};
+    for (var i = 0, len = configs.length; i < len; i++) {
+      if (topologyName == configs[i].name) {
+        // ensure received topology looks valid-ish before using
+        if (receivedTopologies[i] && receivedTopologies[i].nodes) {
+          topology = receivedTopologies[i];
+        } else {
+          topology = fileTopologies[i];
+        }
+      }
+    }
+    if (!topology) {
+      res.status(500).send('No topology data for: ' + topologyName);
+      return;
+    }
+    charts.makeTableQuery(res, topology);
+  });
+
+  // proxy requests for OSM to a v6 endpoint
+  app.get(/^\/tile\/(.+)\/(.+)\/(.+)\/(.+)\.png$/, function(req, res, next) {
+    let s = req.params[0];
+    let z = req.params[1];
+    let x = req.params[2];
+    let y = req.params[3];
+    // fetch png
+    let tileUrl = 'http://orm.openstreetmap.org/' + z + '/' + x +
+                  '/' + y + '.png';
+    request(tileUrl).pipe(res);
   });
 
   app.get(/\/topology\/static$/, function(req, res, next) {

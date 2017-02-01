@@ -33,6 +33,21 @@ LINK_METRIC = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
              "GROUP BY `key`, `time`";
+
+COUNT_ALIVE = "SELECT `mac`, `key`, COUNT(*) AS total FROM time_series " +
+              "JOIN (`nodes`) ON (`time_series`.node_id=`nodes`.id) " +
+              "WHERE `mac` IN ? " +
+              "AND `key` IN ? " +
+              "AND `time` > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
+              "GROUP BY `mac`";
+COUNT_SNR_OK = "SELECT `mac`, `key`, COUNT(*) AS total FROM time_series " +
+               "JOIN (`nodes`) ON (`time_series`.node_id=`nodes`.id) " +
+               "WHERE `mac` IN ? " +
+               "AND `key` IN ? " +
+               "AND `time` > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
+               "AND `value` >= 12 " +
+               "GROUP BY `mac`";
+MAX_COLUMNS = 4;
 var self = {
   columnName: function (metricName) {
     switch (metricName) {
@@ -104,6 +119,46 @@ var self = {
       columnNames.add(keyName);
     });
     let columnNamesArr = Array.from(columnNames);
+    // trim large data
+    if (columnNamesArr.length >= 5) {
+      // pass through for max average value
+      let sumValue = {};
+      let dpCount = {};
+      for (var tsKey in timeSeriesGroup) {
+        for (var columnIdx in columnNamesArr) {
+          let columnName = columnNamesArr[columnIdx];
+          if (!(columnName in sumValue)) {
+            sumValue[columnName] = 0;
+            dpCount[columnName] = 0;
+          }
+          if (columnName in timeSeriesGroup[tsKey]) {
+            sumValue[columnName] += timeSeriesGroup[tsKey][columnName];
+            dpCount[columnName]++;
+          }
+        }
+      }
+      // sort to fetch the top N
+      let topAvgValues = [];
+      let avgValues = {};
+      for (var columnName in sumValue) {
+        let avg = sumValue[columnName] / dpCount[columnName];
+        avgValues[columnName] = avg;
+        topAvgValues.push(avg);
+      }
+      topAvgValues.sort();
+      // finally, get the values above the threshold
+      let thresholdValue = 0;
+      if (topAvgValues.length > MAX_COLUMNS) {
+        thresholdValue = topAvgValues[topAvgValues.length - 1 - MAX_COLUMNS];
+      }
+      columnNamesArr = columnNamesArr.filter(name => {
+        return (avgValues[name] >= thresholdValue);
+      });
+      // and if multiple values match, just keep it below the threshold
+      if (columnNamesArr.length > MAX_COLUMNS) {
+        columnNamesArr.splice(MAX_COLUMNS);
+      }
+    }
     for (var key in timeSeriesGroup) {
       let values = timeSeriesGroup[key];
       let row = [key * 1000];
@@ -126,40 +181,38 @@ var self = {
     return endpointResults;
   },
 
-  queryObj: function(res, postDataJSON) {
-    let postData = JSON.parse(postDataJSON);
-    if ('chart_data' in postData && 'metric' in postData) {
-      // construct query for node src <-> dst
-      let nodeMacs = Object.keys(postData.chart_data.nodes);
-      self.fetch(res, nodeMacs, postData.metric);
-    } else {
-      console.error("No chart data and/or metric specified in POST", postData);
+  queryMulti: function(res, postDataJSON, type) {
+    try {
+      let postData = JSON.parse(postDataJSON);
+      self.fetchMulti(res, postData, type);
+    } catch (e) {
+      console.error('Unable to parse JSON:', postDataJSON);
     }
   },
 
-  queryMulti: function(res, postDataJSON) {
-    let postData = JSON.parse(postDataJSON);
-    self.fetchMulti(res, postData);
+  formatKeyName: function(metricName, aNode, zNode) {
+    switch (metricName) {
+      case 'rssi':
+        // tgf.38:3a:21:b0:0b:11.phystatus.srssi
+        return 'tgf.' + zNode.mac + '.phystatus.srssi';
+      case 'alive_perc':
+      case 'alive_snr':
+      case 'snr':
+        // tgf.38:3a:21:b0:08:49.phystatus.spostSNRdB
+        return 'tgf.' + zNode.mac + '.phystatus.spostSNRdB';
+      default:
+        console.error('Undefined metric:', metricName);
+        return metricName;
+    }
   },
 
-  makeLinkQuery: function(aNode, zNode, metricNames) {
-    let query;
+  makeLinkQuery: function(aNode, zNode, metricNames, query = LINK_METRIC) {
     let fields = [];
     // map metric short names to the fully qualified key
     let keyNames = metricNames.map(metricName => {
-      switch (metricName) {
-        case 'rssi':
-          // tgf.38:3a:21:b0:0b:11.phystatus.srssi
-          return 'tgf.' + zNode.mac + '.phystatus.srssi';
-        case 'snr':
-          // tgf.38:3a:21:b0:08:49.phystatus.spostSNRdB
-          return 'tgf.' + zNode.mac + '.phystatus.spostSNRdB';
-        default:
-          console.error('Undefined metric:', metricName);
-          return metricName;
-      }
+      return self.formatKeyName(metricName, aNode, zNode);
     });
-    query = LINK_METRIC;
+    // determine the query
     fields = [
       [[aNode.mac]],
       [keyNames],
@@ -169,6 +222,75 @@ var self = {
       return;
     }
     return mysql.format(query, fields);
+  },
+
+  makeTableQuery: function(res, topology) {
+    // nodes by name
+    let nodesByName = {};
+    let nodesByMac = {};
+    topology.nodes.forEach(node => {
+      nodesByName[node.name] = {
+        name: node.name,
+        mac: node.mac_addr
+      };
+      nodesByMac[node.mac_addr.toLowerCase()] = node.name;
+    });
+    // calculate query
+    let nodeMacs = [];
+    let nodeKeys = [];
+    topology.links.forEach(link => {
+      // ignore wired links
+      if (link.link_type != 1) {
+        return;
+      }
+      let aNode = nodesByName[link.a_node_name];
+      let zNode = nodesByName[link.z_node_name];
+      // add nodes to request list
+      nodeMacs.push(aNode.mac);
+      nodeKeys.push(self.formatKeyName('snr', aNode, zNode));
+    });
+    let aliveQuery = mysql.format(COUNT_ALIVE, [[nodeMacs], [nodeKeys]]);
+    let snrQuery = mysql.format(COUNT_SNR_OK, [[nodeMacs], [nodeKeys]]);
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+      let sqlQuery = conn.query([aliveQuery, snrQuery].join("; "), function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+        let linkResults = {};
+        for (let i = 0; i < results.length; i++) {
+          results[i].forEach(row => {
+            let nodeName = nodesByMac[row.mac.toLowerCase()];
+            let remoteMac = row.key.substr("tgf.".length,
+                                           17 /* mac address length */);
+            let remoteNodeName = nodesByMac[remoteMac.toLowerCase()];
+            if (!(nodeName in linkResults)) {
+              linkResults[nodeName] = {};
+            }
+            if (!(remoteNodeName in linkResults[nodeName])) {
+              linkResults[nodeName][remoteNodeName] = {};
+            }
+            let value = Math.ceil(row.total / 2880 * 10000) / 100;
+            if (value > 100) {
+              value = 100;
+            }
+            // grab the remote mac address from the key
+            let metricName = i == 0 ? 'alive' : 'snr';
+            linkResults[nodeName][remoteNodeName][metricName] = value;
+          });
+        }
+        res.json({
+          'nodes': {},
+          'links': linkResults,
+        });
+      });
+    });
   },
 
   makeNodeQuery: function(nodeMacs, metricName) {
@@ -249,27 +371,7 @@ var self = {
     return mysql.format(query, fields);
   },
 
-  fetch: function(res, nodeMacs, metricName) {
-    // execute query
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
-        res.status(500).end();
-        return;
-      }
-      let query = self.makeNodeQuery(nodeMacs, metricName);
-      let sqlQuery = conn.query(query, function(err, results) {
-        conn.release();
-        if (err) {
-          console.log('Error', err);
-          return;
-        }
-        res.json(self.processResults(results, {}, metricName));
-      });
-    });
-  },
-
-  fetchMulti: function(res, queries) {
+  fetchMulti: function(res, queries, resultType) {
     // execute query
     pool.getConnection(function(err, conn) {
       if (!conn) {
@@ -302,66 +404,53 @@ var self = {
         let retResults = [];
         if (sqlQueries.length > 1) {
           for (let i = 0; i < results.length; i++) {
-            retResults.push(self.processResults(results[i], queries[i], 'unused'));
+            retResults.push(self.processResults(results[i], queries[i], resultType));
           }
         } else {
-          retResults.push(self.processResults(results, queries[0], 'unused'));
+          retResults.push(self.processResults(results, queries[0], resultType));
         }
         res.json(retResults);
       });
     });
   },
 
-  processResults: function(result, query, metricName) {
-    switch (query.type) {
-      case 'link':
-        return self.formatStatsGroup(result, 'key', query);
-        break;
-      case 'node':
-        switch (query.key) {
-          case 'traffic_sum':
-          case 'errors_sum':
-          case 'drops_sum':
+  processResults: function(result, query, type) {
+    switch (type) {
+      case 'chart':
+        switch (query.type) {
+          case 'link':
             return self.formatStatsGroup(result, 'key', query);
             break;
-          case 'nodes_traffic_tx':
-          case 'nodes_traffic_rx':
-          case 'mem_util':
-          case 'load-1':
-          case 'load':
-            return self.formatStatsGroup(result, 'mac', query);
-            break;
-          case 'nodes_reporting':
-            return self.formatStats(result);
+          case 'node':
+            switch (query.key) {
+              case 'traffic_sum':
+              case 'errors_sum':
+              case 'drops_sum':
+                return self.formatStatsGroup(result, 'key', query);
+                break;
+              case 'nodes_traffic_tx':
+              case 'nodes_traffic_rx':
+              case 'mem_util':
+              case 'load-1':
+              case 'load':
+                return self.formatStatsGroup(result, 'mac', query);
+                break;
+              case 'nodes_reporting':
+                return self.formatStats(result);
+                break;
+              default:
+                // push raw json
+                throw "Undefined key for node: " + query.key;
+            }
             break;
           default:
-            // push raw json
-            throw "Undefined key for node: " + query.key;
+            throw "Undefined query type: " + JSON.stringify(query);
         }
         break;
-      default:
-        throw "Undefined query type: " + query.type;
-    }
-/*    switch (metricName) {
-      case 'key':
-      case 'traffic_sum':
-      case 'errors_sum':
-      case 'drops_sum':
-        return self.formatStatsGroup(result, 'key', query);
-        break;
-      case 'nodes_traffic_tx':
-      case 'nodes_traffic_rx':
-      case 'mem_util':
-      case 'load':
-        return self.formatStatsGroup(result, 'mac', query);
-        break;
-      case 'nodes_reporting':
-        return self.formatStats(result);
-        break;
-      default:
-        // push raw json
+      case 'raw':
         return result;
-    }*/
+        break;
+    }
   },
 }
 

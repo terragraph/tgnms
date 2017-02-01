@@ -36,7 +36,8 @@ export default class ReactMultiGraph extends React.Component {
   }
   
   formatSpeed(bps) {
-    return bps;
+    // TODO - this is used for all metrics, we need more context
+    return Math.ceil(bps * 100) / 100;
     if (bps > 1000000) {
       return Math.round(bps/1000000) + ' mbps'
     }
@@ -131,6 +132,11 @@ export default class ReactMultiGraph extends React.Component {
     } catch (e) {}
   }
 
+  shortenName(name) {
+    // shorten name for tg lab nodes
+    return name.replace(".tg.a404-if","");
+  }
+
   render() {
     let opts = this.props.options;
     let chartRows = [];
@@ -149,7 +155,7 @@ export default class ReactMultiGraph extends React.Component {
     // {key, {label, [time series?]}}
     switch (this.props.size) {
       case 'large':
-        width = 800;
+        width = 600;
         height = 500;
         break;
     }
@@ -161,7 +167,8 @@ export default class ReactMultiGraph extends React.Component {
         let columnNames = this.state.data[reqIdx].columns.slice(1);
         for (let i = 0; i < columnNames.length; i++) {
           let columnName = columnNames[i];
-          let labelName = rowOpts.label ? rowOpts.label : columnName;
+          let labelName = rowOpts.type == 'link' ? rowOpts.keys[i] :
+            this.shortenName(rowOpts.nodes[i].name);
           if (!legendLabels.has(columnName)) {
             if (this.state.tracker) {
               const index = timeSeries.bisect(this.state.tracker);
@@ -201,12 +208,21 @@ export default class ReactMultiGraph extends React.Component {
         if (minValue > 0) {
           minValue = 0;
         }
-        //const name = rowOpts.key.replace("-", "");
+        let labelName = '';
+        switch (rowOpts.type) {
+          case 'node':
+            labelName = rowOpts.key;
+            break;
+          case 'link':
+            labelName = this.shortenName(rowOpts.a_node.name) + " / " +
+                        this.shortenName(rowOpts.z_node.name);
+            break;
+        }
         chartRows.push(
           <ChartRow height={200} key={"cr" + name}>
             <YAxis
               id="a1"
-              label={name}
+              label={labelName}
               width="70"
               min={minValue}
               max={maxValue} />
@@ -257,13 +273,14 @@ export default class ReactMultiGraph extends React.Component {
     const timeStyle = {
       fontSize: "1.2rem",
       color: "#999",
+      height: "30px",
     };
     return (
       <div width="700">
         <div className="col-md-6" style={timeStyle}>
-          {this.state.tracker ? `${df(this.state.tracker)}` : ""}
+          {this.state.tracker ? `${df(this.state.tracker)}` : "-"}
         </div>
-        <div id="legend">
+        <div id="legend" width="700" style={{clear: 'both', height: '40px'}}>
           <Legend
             type="line"
             align="left"

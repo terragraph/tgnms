@@ -21,6 +21,7 @@ export default class NetworkUI extends React.Component {
     view: 'map',
     networkName: null,
     networkConfig: {},
+    nodesByName: {},
     topologies: {},
     routing: {},
   }
@@ -101,10 +102,38 @@ export default class NetworkUI extends React.Component {
         // update active link in menu by setting css selected class
         this.refs.topology.changeActiveLinkTo(payload.networkName);
         break;
+      case Actions.TOPOLOGY_REFRESHED:
+        let nodesByName = {};
+        payload.networkConfig.topology.nodes.forEach(node => {
+          nodesByName[node.name] = node;
+        });
+        // update node name mapping
+        this.setState({
+          nodesByName: nodesByName,
+        });
+        // update link health
+        this.updateNetworkLinkHealth(this.state.networkName);
     }
   }
 
+  updateNetworkLinkHealth(networkName) {
+    // refresh link health
+    let linkHealthFetch = new Request('/health/' + networkName);
+    fetch(linkHealthFetch).then(function(response) {
+      if (response.status == 200) {
+        response.json().then(function(json) {
+          Dispatcher.dispatch({
+            actionType: Actions.HEALTH_REFRESHED,
+            health: json,
+          });
+        }.bind(this));
+      }
+    }.bind(this));
+  }
+
+
   refreshTopologyList() {
+    // topology list
     let topoListFetch = new Request('/topology/list');
     fetch(topoListFetch).then(function(response) {
       if (response.status == 200) {

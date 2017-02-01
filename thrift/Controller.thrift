@@ -79,6 +79,7 @@ enum MessageType {
   E2E_ACK = 1003,
   TEST = 1004,
   DR_RESP = 1005, // driver response to all south bound messages to fw
+  DR_STAT_PUSH = 1006, //push NB stats from driver
 }
 
 // link update action type
@@ -160,6 +161,7 @@ struct StatusReport {
   1: i64 timeStamp;  // timestamp at which this response was received
   2: string ipv6Address;  // global-reachable IPv6 address for minion
   3: string version; // current minion version obtained from "/etc/version"
+  6: string uboot_version; // uboot version string obtained during startup
   4: bool isConnected; // whether minion is connected to the rest of network
   5: UpgradeStatus upgradeStatus;
 }

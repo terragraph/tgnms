@@ -3,11 +3,13 @@ import { render } from 'react-dom';
 // dispatcher
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import NetworkStore from './NetworkStore.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 export default class NetworkLinksTable extends React.Component {
   state = {
     selectedLink: null,
+    networkHealth: {},
   }
 
   constructor(props) {
@@ -20,6 +22,9 @@ export default class NetworkLinksTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    this.setState({
+      networkHealth: NetworkStore.networkHealth,
+    });
   }
 
   componentWillUnmount() {
@@ -34,13 +39,18 @@ export default class NetworkLinksTable extends React.Component {
           selectedLink: null,
         });
         break;
+      case Actions.HEALTH_REFRESHED:
+        this.setState({
+          networkHealth: payload.health,
+        });
+        break;
     }
   }
 
   getTableRows(links): Array<{name:string,
-                          a_node_name:string,
-                          z_node_name:string,
-                          alive:boolean}> {
+                              a_node_name:string,
+                              z_node_name:string,
+                              alive:boolean}> {
     const rows = [];
     links.forEach(link => {
       rows.push(
@@ -50,6 +60,8 @@ export default class NetworkLinksTable extends React.Component {
           z_node_name: link.z_node_name,
           alive: link.is_alive,
           type: link.link_type == 1 ? 'Wireless' : 'Wired',
+          alive_perc: link.alive_perc,
+          snr_health_perc: link.snr_health_perc,
           key: link.name,
         },
       );
@@ -79,7 +91,16 @@ export default class NetworkLinksTable extends React.Component {
     let linksData = [];
     if (this.props.topology &&
         this.props.topology.links) {
-      linksData = this.props.topology.links;
+      linksData = this.props.topology.links.map(link => {
+        if (link.a_node_name in this.state.networkHealth.links &&
+            link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
+          let nodeHealth = this.state.networkHealth.links[link.a_node_name]
+                                                         [link.z_node_name];
+          link.alive_perc = nodeHealth.alive;
+          link.snr_health_perc = nodeHealth.snr;
+        }
+        return link;
+      });
     }
 
     return (
@@ -89,11 +110,40 @@ export default class NetworkLinksTable extends React.Component {
           data={this.getTableRows(linksData)}
           striped={true} hover={true}
           selectRow={linksSelectRowProp}>
-        <TableHeaderColumn width="350" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-        <TableHeaderColumn width="180" dataSort={true} dataField="a_node_name">A-Node</TableHeaderColumn>
-        <TableHeaderColumn width="180" dataSort={true} dataField="z_node_name">Z-Node</TableHeaderColumn>
-        <TableHeaderColumn width="80" dataSort={true} dataField="alive">Alive</TableHeaderColumn>
-        <TableHeaderColumn dataSort={true} dataField="type">Type</TableHeaderColumn>
+        <TableHeaderColumn width="350"
+                           dataSort={true}
+                           dataField="name" isKey={ true }>
+          Name
+        </TableHeaderColumn>
+        <TableHeaderColumn width="180"
+                           dataSort={true}
+                           dataField="a_node_name">
+          A-Node
+        </TableHeaderColumn>
+        <TableHeaderColumn width="180"
+                           dataSort={true}
+                           dataField="z_node_name">
+          Z-Node
+        </TableHeaderColumn>
+        <TableHeaderColumn width="80"
+                           dataSort={true}
+                           dataField="alive">
+          Alive
+        </TableHeaderColumn>
+        <TableHeaderColumn width="140"
+                           dataSort={true}
+                           dataField="alive_perc">
+          Uptime (24 hours)
+        </TableHeaderColumn>
+        <TableHeaderColumn width="100"
+                           dataSort={true}
+                           dataField="snr_health_perc">
+          SNR %
+        </TableHeaderColumn>
+        <TableHeaderColumn dataSort={true}
+                           dataField="type">
+          Type
+        </TableHeaderColumn>
       </BootstrapTable>
     );
   }

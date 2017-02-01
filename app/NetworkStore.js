@@ -4,6 +4,7 @@ import Dispatcher from './NetworkDispatcher.js';
 class NetworkStoreI {
   networkName: null
   networkConfig: {}
+  networkHealth: {}
 }
 
 const NetworkStore = new NetworkStoreI();
@@ -17,6 +18,9 @@ Dispatcher.register(function(payload) {
       break;
     case Actions.TOPOLOGY_REFRESHED:
       NetworkStore.networkConfig = payload.networkConfig;
+      break;
+    case Actions.HEALTH_REFRESHED:
+      NetworkStore.networkHealth = payload.health;
       break;
   }
 });

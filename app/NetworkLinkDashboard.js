@@ -284,7 +284,6 @@ export default class NetworkLinkDashboard extends React.Component {
           let link = links[linkName];
           graphOptions.push({
             type: 'link',
-            label: link.a_node.name + ' <-> ' + link.z_node.name,
             a_node: link.a_node,
             z_node: link.z_node,
             keys: this.state.linkMetricsSelected,
@@ -344,7 +343,7 @@ export default class NetworkLinkDashboard extends React.Component {
         <button onClick={this.showModal.bind(this)}>Edit Graphs</button>
         <ReactMultiGraph
           options={graphOptions}
-          size="small" />
+          size="large" />
         <ScaleModal ref="selector" modalStyle={modalStyle}>
           <h2 style={{textAlign: 'center'}}>Metric Selector</h2>
           <SpringGrid

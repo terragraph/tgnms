@@ -67,18 +67,22 @@ export default class NetworkNodesTable extends React.Component {
   }
 
   getTableRows(nodes): Array<{name:string,
-                          mac_addr:string,
-                          node_type:string,
-                          ignited:boolean,
-                          site_name:string,
-                          pop_node:string,
-                          ipv6:string,
-                          version:string}>  {
+                              mac_addr:string,
+                              node_type:string,
+                              ignited:boolean,
+                              site_name:string,
+                              pop_node:string,
+                              ipv6:string,
+                              version:string,
+                              uboot_version:string}>  {
     const rows = [];
     Object.keys(nodes).forEach(nodeName => {
       let node = nodes[nodeName];
       var ipv6 = node.status ? node.status.ipv6Address : 'Not Available';
       var version = node.status ? node.status.version.slice(28) : 'Not Available';
+      var ubootVersion = node.status && node.status.uboot_version ?
+                           node.status.uboot_version :
+                           'Not Available';
       rows.push(
         {
           name: node.name,
@@ -89,6 +93,7 @@ export default class NetworkNodesTable extends React.Component {
           pop_node: node.pop_node ? 'true' : 'false',
           ipv6: ipv6,
           version: version,
+          uboot_version: ubootVersion,
           key: node.name,
         },
       );
@@ -223,7 +228,8 @@ export default class NetworkNodesTable extends React.Component {
             Site
           </TableHeaderColumn>
           <TableHeaderColumn width="80" dataSort={true} dataField="pop_node">Pop?</TableHeaderColumn>
-          <TableHeaderColumn width="700" dataSort={true} dataField="version">Version</TableHeaderColumn>
+          <TableHeaderColumn width="700" dataSort={true} dataField="version">Image Version</TableHeaderColumn>
+          <TableHeaderColumn width="700" dataSort={true} dataField="uboot_version">Uboot Version</TableHeaderColumn>
         </BootstrapTable>
       </ContextMenuTrigger>
       <ContextMenu id="nodesTableContextMenu" onShow={this.contextMenuOnShow}>

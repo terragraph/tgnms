@@ -13,6 +13,9 @@ const Actions = {
   // primary pane view
   VIEW_SELECTED: 300,
   PANE_CHANGED: 301,
+
+  // network health
+  HEALTH_REFRESHED: 400,
 };
 
 module.exports = Actions;

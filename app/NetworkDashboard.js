@@ -2,7 +2,7 @@ import React from 'react';
 // leaflet maps
 import { render } from 'react-dom';
 // graphs
-import ReactGraph from './ReactGraph.js';
+import ReactMultiGraph from './ReactMultiGraph.js';
 // dispatcher
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
@@ -84,47 +84,17 @@ export default class NetworkDashboard extends React.Component {
           'version':  'Unknown',
         };
       });
-      // index nodes
-      let nodesByName = {};
-      this.state.topologyJson.nodes.forEach(node => {
-        nodesByName[node.name] = node;
-      });
-      // construct links
-      let links = [];
-      this.state.topologyJson.links.forEach(link => {
-        if (link.link_type != 2) {
-          return;
-        }
-        links.push({
-          'a_node': {
-            'name': link.a_node_name,
-            'mac':  nodesByName[link.a_node_name].mac_addr,
-          },
-          'z_node': {
-            'name': link.z_node_name,
-            'mac':  nodesByName[link.z_node_name].mac_addr,
-          },
-        });
-      });
-      // 'mac': {
-      //    name,
-      //    version,
-      //    ..
-      // }
       // shared chart data across all graphs
-      let chartData = {
-        'nodes':  nodes,
-        'links':  links,
-      };
       gridComponents = aggGraphs.map(graph => {
+        let graphOptions = [{
+          type: 'node',
+          nodes: this.state.topologyJson.nodes,
+          key: graph[0],
+        }];
         return (
           <li key={graph[1] + "-li"}>
-            <ReactGraph
-              key={graph[1]}
-              metric={graph[0]}
-              title={graph[2]}
-              label={graph[3]}
-              chart_data={chartData}
+            <ReactMultiGraph
+              options={graphOptions}
               size="small"
             />
           </li>
