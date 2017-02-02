@@ -198,8 +198,8 @@ var self = {
       case 'alive_perc':
       case 'alive_snr':
       case 'snr':
-        // tgf.38:3a:21:b0:08:49.phystatus.spostSNRdB
-        return 'tgf.' + zNode.mac + '.phystatus.spostSNRdB';
+        // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
+        return 'tgf.' + zNode.mac + '.phystatus.ssnrEst';
       default:
         console.error('Undefined metric:', metricName);
         return metricName;

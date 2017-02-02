@@ -82,7 +82,7 @@ var self = {
                             'mem.free', 'mem.total', 'mem.util',
                             'terra0.tx_dropped', 'terra0.rx_dropped',
                             'terra0.tx_errors', 'terra0.rx_errors']);
-    let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'spostSNRdB']);
+    let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'ssntEst']);
     let rows = [];
     let unknownMacs = new Set();
     let macAddr;
