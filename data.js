@@ -61,14 +61,13 @@ var self = {
     if (timeInNs < max && timeInNs > min) {
       // looks like the time format we're expecting, proceed
       let d = new Date(
-        Math.ceil(timeInNs / 1000000 / AGG_BUCKET_SECONDS * 1000)
+        Math.ceil(timeInNs / 1000000000 / AGG_BUCKET_SECONDS)
         * AGG_BUCKET_SECONDS * 1000);
       return d;
     } else {
-//      console.log('bad time', timeInNs, row);
       // just use current time
       return new Date(
-        Math.ceil(new Date().getTime() / AGG_BUCKET_SECONDS * 1000)
+        Math.ceil(new Date().getTime() / AGG_BUCKET_SECONDS / 1000)
         * AGG_BUCKET_SECONDS * 1000);
     }
   },
@@ -82,7 +81,7 @@ var self = {
                             'mem.free', 'mem.total', 'mem.util',
                             'terra0.tx_dropped', 'terra0.rx_dropped',
                             'terra0.tx_errors', 'terra0.rx_errors']);
-    let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'ssntEst']);
+    let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'ssnrEst']);
     let rows = [];
     let unknownMacs = new Set();
     let macAddr;
