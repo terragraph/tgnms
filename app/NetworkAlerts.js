@@ -55,7 +55,7 @@ class NumberEditor extends React.Component {
     this.refs.inputRef.focus();
   }
   updateData() {
-    this.props.onUpdate({ value: this.state.value});
+    this.props.onUpdate({ value: parseFloat(this.state.value)});
   }
   render() {
     return (
@@ -67,7 +67,7 @@ class NumberEditor extends React.Component {
           type='text'
           value={ this.state.value }
           onKeyDown={ this.props.onKeyDown }
-          onChange={ (ev) => { this.setState({ value: parseInt(ev.currentTarget.value, 10) }); } } />
+          onChange={ (ev) => { this.setState({ value: ev.currentTarget.value }); } } />
         <button
           className='btn btn-info btn-xs textarea-save-btn'
           onClick={ this.updateData }>
