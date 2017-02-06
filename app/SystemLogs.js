@@ -7,9 +7,6 @@ import Dispatcher from './NetworkDispatcher.js';
 import AsyncButton from 'react-async-button';
 import Dropdown from 'react-dropdown'
 import NumericInput from 'react-numeric-input';
-import Highlighter from 'react-highlight-words'
-import styles from '../static/css/Highlighter.css'
-import latinize from 'latinize'
 import NetworkStore from './NetworkStore.js';
 
 const Spinner = () => (
@@ -24,11 +21,9 @@ export default class SystemLogs extends React.Component {
     logSources: [],
     selectedSource: null,
     selectedSourceName: null,
-    searchResult: [],
     from: 0,
     size: 2000,
-    searchText: "",
-    textToHighlight: "",
+    logText: "",
     networkConfig: undefined,
   }
 
@@ -102,8 +97,7 @@ export default class SystemLogs extends React.Component {
                 text = line._source.log + "\n" + text;
               });
               this.setState({
-                searchResult: json,
-                textToHighlight: text,
+                logText: text,
               });
               resolve();
             }.bind(this));
@@ -123,7 +117,6 @@ export default class SystemLogs extends React.Component {
         this.setState({
           selectedSource: source,
           selectedSourceName: val.label,
-          searchResult: [],
         });
         return;
       }
@@ -144,29 +137,9 @@ export default class SystemLogs extends React.Component {
 
   renderLogText(): ReactElement<any> {
     if (this.state.selectedSource && this.state.logSources) {
-      const searchWords = this.state.searchText.split(/\s/).filter(word => word)
       return (
-        <div>
-          <form>
-          Search
-          <input
-                className={styles.Input}
-                name='searchTerms'
-                value={this.state.searchText}
-                size="30" maxLength="100"
-                onChange={event => this.setState({ searchText: event.target.value })}
-              />
-          </form>
-
-          <Highlighter
-            activeClassName={styles.Active}
-            activeIndex="-1"
-            highlightClassName={styles.Highlight}
-            highlightStyle={{ fontWeight: 'normal' }}
-            sanitize={latinize}
-            searchWords={searchWords}
-            textToHighlight={this.state.textToHighlight}
-          />
+        <div style={{whiteSpace: "pre"}}>
+          {this.state.logText}
         </div>
       );
     } else {
