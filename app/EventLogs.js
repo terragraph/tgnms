@@ -173,16 +173,18 @@ export default class EventLogs extends React.Component {
 
     Object(this.state.searchResult).forEach(result => {
       var row = {};
+      var tzoffset = (new Date()).getTimezoneOffset() * 60000;
+
       row["_id"] = result["_id"];
       Object(columns).forEach(column => {
         var val = this.findprop(result._source, column.field);
         if (column.format) {
           switch (column.format) {
             case "TIME_MS":
-              val = new Date(val).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+              val = new Date(val - tzoffset).toISOString().replace(/T/, ' ').replace(/\..+/, '');
               break;
             case "TIME_S":
-              val = new Date(val*1000).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+              val = new Date(val*1000 - tzoffset).toISOString().replace(/T/, ' ').replace(/\..+/, '');
               break;
           }
         }

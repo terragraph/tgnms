@@ -109,23 +109,33 @@
             "width": "180"
           },
           {
-            "field": "normal.a_node_name",
-            "label": "A Node",
-            "width": "180"
-          },
-          {
-            "field": "normal.z_node_name",
-            "label": "Z Node",
-            "width": "180"
-          },
-          {
-            "field": "normal.is_alive",
-            "label": "Alive?",
-            "width": "100"
+            "field": "normal.link_name",
+            "label": "Link Name",
+            "width": "200"
           },
           {
             "field": "normal.message_type",
-            "label": "Message Type"
+            "label": "Message Type",
+            "width": "140"
+          },
+          {
+            "field": "normal.link_status",
+            "label": "status",
+            "width": "110"
+          },
+          {
+            "field": "normal.source",
+            "label": "Source",
+            "width": "150"
+          },
+          {
+            "field": "int.linkup_attemps",
+            "label": "Up Attempts",
+            "width": "100"
+          },
+          {
+            "field": "normal.reason",
+            "label": "Reason"
           }
         ]
       }

@@ -397,7 +397,8 @@ export default class NetworkAlerts extends React.Component {
     const rows = [];
     if (alertsJson) {
       alertsJson.forEach(alert => {
-        var time = new Date(alert._source.timestamp*1000).toISOString()
+        var tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        var time = new Date(alert._source.timestamp*1000 - tzoffset).toISOString()
             .replace(/T/, ' ').replace(/\..+/, '');
         var node = this.state.nodesByMac[alert._source.mac];
         var nodeName = node.name ? node.name : "";
