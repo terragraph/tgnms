@@ -13,8 +13,10 @@ const app = express();
 const fs = require('fs');
 const data = require('./data');
 const charts = require('./charts');
-// load the initial node ids
+// load the initial node/key ids and time slots
 data.refreshNodeIds();
+data.timeAlloc();
+data.scheduleTimeAlloc();
 const elasticHelper = require('./elastic');
 const controllerProxy = require('./controllerProxy');
 const aggregatorProxy = require('./aggregatorProxy');

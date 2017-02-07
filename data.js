@@ -166,7 +166,6 @@ var self = {
                             'terra0.tx_errors', 'terra0.rx_errors']);
     let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'ssnrEst']);
     let rows = [];
-    let newRows = [];
     let unknownMacs = new Set();
     let missingNodeKey = new Set();
     let macAddr;
@@ -226,12 +225,6 @@ var self = {
           badTime++;
           return;
         }
-        // insert into single-table style
-        let row = [nodeId,
-                   keyName,
-                   tsParsed,
-                   dataMap.value];
-        rows.push(row);
         // verify time id exists
         if (!(tsParsed in self.timeBucketIds)) {
           console.log('time slot not found', tsParsed, 'in', self.timeBucketIds);
@@ -245,7 +238,7 @@ var self = {
           let row = [timeId,
                      self.nodeKeyIds[nodeId][keyName],
                      dataMap.value];
-          newRows.push(row);
+          rows.push(row);
         } else {
           console.log('missing cache for', nodeId, '/', keyName);
           missingNodeKey.add([nodeId, keyName]);
@@ -264,27 +257,6 @@ var self = {
     self.updateNodeKeys(Array.from(missingNodeKey));
     // insert rows
     let insertRows = function(tableName, rows, remain) {
-      pool.getConnection(function(err, conn) {
-        if (err) {
-          console.log('pool error', err);
-          return;
-        }
-        conn.query('INSERT INTO ' + tableName +
-                   '(`node_id`, `key`, `time`, ' +
-                   '`value`) VALUES ?',
-                   [rows],
-          function(err, result) {
-            if (err) {
-              console.log('Some error', err);
-            }
-            conn.release();
-          }
-        );
-      });
-      console.log("Inserted", rows.length, "rows into", tableName,
-                  ",", remain, "remaining");
-    };
-    let insertNewRows = function(tableName, rows, remain) {
       pool.getConnection(function(err, conn) {
         if (err) {
           console.log('pool error', err);
@@ -310,18 +282,15 @@ var self = {
       while (remainRows.length > bucketSize) {
         // slice rows into buckets of 10k rows
         let sliceRows = remainRows.slice(0, bucketSize);
-        insertRows('time_series', sliceRows, remainRows.length);
+        insertRows('ts_value', sliceRows, remainRows.length);
         remainRows = remainRows.splice(bucketSize);
       }
-      insertRows('time_series', remainRows, 0);
+      insertRows('ts_value', remainRows, 0);
     } else {
       console.log('writeData request with', postData.length, 'bytes and',
                   postDataLines.length, 'lines had:', noColumns,
                   'zero-data columns,', noMac, 'mac addr lookup failures,',
                   badTime, 'invalid timestamp failures');
-    }
-    if (newRows.length) {
-      insertNewRows('ts_value', newRows, 0);
     }
   }
 }
