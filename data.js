@@ -165,6 +165,7 @@ var self = {
                             'terra0.tx_dropped', 'terra0.rx_dropped',
                             'terra0.tx_errors', 'terra0.rx_errors']);
     let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'ssnrEst']);
+    let allowedTgPrefix = new Set(['link_status']);
     let rows = [];
     let unknownMacs = new Set();
     let missingNodeKey = new Set();
@@ -217,7 +218,9 @@ var self = {
         let keyNameSplit = keyName.split(".");
         if (!usedKeys.has(keyName) && 
             (keyNameSplit.length != 4 ||
-             !allowedTgSuffix.has(keyNameSplit[3]))) {
+             !allowedTgSuffix.has(keyNameSplit[3])) &&
+            (keyNameSplit.length != 3 ||
+             !allowedTgPrefix.has(keyNameSplit[0]))) {
           return;
         }
         let tsParsed = self.timeCalc(ts, line);
@@ -227,7 +230,8 @@ var self = {
         }
         // verify time id exists
         if (!(tsParsed in self.timeBucketIds)) {
-          console.log('time slot not found', tsParsed, 'in', self.timeBucketIds);
+          console.log('time slot not found', tsParsed, 'in',
+                      self.timeBucketIds.length, 'buckets');
           return;
         }
         let timeId = self.timeBucketIds[tsParsed];

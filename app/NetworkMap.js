@@ -258,7 +258,9 @@ export default class NetworkMap extends React.Component {
         let zNodeSite = this.state.sitesByName[
           this.state.nodesByName[link.z_node_name].site_name];
 
-        if (!aNodeSite.location || !zNodeSite.location) {
+        if (!aNodeSite || !zNodeSite ||
+            !aNodeSite.location || !zNodeSite.location) {
+          console.error('Site mis-match for link', link.name);
           return;
         }
 
