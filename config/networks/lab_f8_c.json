@@ -6,98 +6,98 @@
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:40",
       "pop_node": true,
-      "site_name": "A"
+      "site_name": "11x.f5.tc"
     },
     {
       "name": "terra114.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:41",
       "pop_node": false,
-      "site_name": "A"
+      "site_name": "11x.f5.tc"
     },
     {
       "name": "terra121.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:42",
       "pop_node": false,
-      "site_name": "F"
+      "site_name": "12x.f5.tc"
     },
     {
       "name": "terra123.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:43",
       "pop_node": false,
-      "site_name": "F"
+      "site_name": "12x.f5.tc"
     },
     {
       "name": "terra211.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:44",
       "pop_node": false,
-      "site_name": "B"
+      "site_name": "21x.f5.tc"
     },
     {
       "name": "terra212.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:45",
       "pop_node": false,
-      "site_name": "B"
+      "site_name": "21x.f5.tc"
     },
     {
       "name": "terra214.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:46",
       "pop_node": false,
-      "site_name": "B"
+      "site_name": "21x.f5.tc"
     },
     {
       "name": "terra221.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:47",
       "pop_node": false,
-      "site_name": "E"
+      "site_name": "22x.f5.tc"
     },
     {
       "name": "terra222.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:48",
       "pop_node": false,
-      "site_name": "E"
+      "site_name": "22x.f5.tc"
     },
     {
       "name": "terra223.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:49",
       "pop_node": false,
-      "site_name": "E"
+      "site_name": "22x.f5.tc"
     },
     {
       "name": "terra312.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4a",
       "pop_node": false,
-      "site_name": "C"
+      "site_name": "31x.f5.tc"
     },
     {
       "name": "terra314.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4b",
       "pop_node": false,
-      "site_name": "C"
+      "site_name": "31x.f5.tc"
     },
     {
       "name": "terra322.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4c",
       "pop_node": false,
-      "site_name": "D"
+      "site_name": "32x.f5.tc"
     },
     {
       "name": "terra323.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4d",
       "pop_node": false,
-      "site_name": "D"
+      "site_name": "32x.f5.tc"
     }
   ],
   "links": [
@@ -223,7 +223,7 @@
   ],
   "sites": [
     {
-      "name": "A",
+      "name": "11x.f5.tc",
       "location": {
         "latitude": 37.484946,
         "longitude": -122.1475237,
@@ -231,7 +231,7 @@
       }
     },
     {
-      "name": "B",
+      "name": "21x.f5.tc",
       "location": {
         "latitude": 37.484946,
         "longitude": -122.1472237,
@@ -239,7 +239,7 @@
       }
     },
     {
-      "name": "C",
+      "name": "31x.f5.tc",
       "location": {
         "latitude": 37.484946,
         "longitude": -122.1469237,
@@ -247,7 +247,7 @@
       }
     },
     {
-      "name": "D",
+      "name": "32x.f5.tc",
       "location": {
         "latitude": 37.484746,
         "longitude": -122.1469237,
@@ -255,7 +255,7 @@
       }
     },
     {
-      "name": "E",
+      "name": "22x.f5.tc",
       "location": {
         "latitude": 37.484746,
         "longitude": -122.1472237,
@@ -263,7 +263,7 @@
       }
     },
     {
-      "name": "F",
+      "name": "12x.f5.tc",
       "location": {
         "latitude": 37.484746,
         "longitude": -122.1475237,
