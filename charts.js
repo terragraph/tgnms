@@ -12,36 +12,45 @@ const pool = mysql.createPool({
 });
 
 SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
-             "SUM(value) AS value FROM time_series " +
-             "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
+               "SUM(`value`) AS value FROM `ts_value` " +
+             "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+             "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+             "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
              "WHERE `mac` IN ? " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
              "GROUP BY `key`, `time`";
-SUM_BY_MAC = "SELECT `mac`, " +
-              "UNIX_TIMESTAMP(`time`) AS time, " +
-              "SUM(value) AS value FROM time_series " +
-              "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
+SUM_BY_MAC = "SELECT `mac`, UNIX_TIMESTAMP(`time`) AS time, " +
+              "SUM(value) AS value FROM `ts_value` " +
+              "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+              "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+              "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
               "WHERE `mac` IN ? " +
               "AND `key` IN ? " +
               "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
               "GROUP BY `mac`, `time`";
 LINK_METRIC = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
-             "SUM(value) AS value FROM time_series " +
-             "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
+             "SUM(value) AS value FROM `ts_value` " +
+             "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+             "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+             "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
              "WHERE `mac` IN ? " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
              "GROUP BY `key`, `time`";
 
-COUNT_ALIVE = "SELECT `mac`, `key`, COUNT(*) AS total FROM time_series " +
-              "JOIN (`nodes`) ON (`time_series`.node_id=`nodes`.id) " +
+COUNT_ALIVE = "SELECT `mac`, `key`, COUNT(*) AS total FROM `ts_value` " +
+              "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+              "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+              "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
               "WHERE `mac` IN ? " +
               "AND `key` IN ? " +
               "AND `time` > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
               "GROUP BY `mac`";
-COUNT_SNR_OK = "SELECT `mac`, `key`, COUNT(*) AS total FROM time_series " +
-               "JOIN (`nodes`) ON (`time_series`.node_id=`nodes`.id) " +
+COUNT_SNR_OK = "SELECT `mac`, `key`, COUNT(*) AS total FROM `ts_value` " +
+               "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+               "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+               "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
                "WHERE `mac` IN ? " +
                "AND `key` IN ? " +
                "AND `time` > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
@@ -352,8 +361,10 @@ var self = {
         break;
       case 'nodes_reporting':
         query = "SELECT UNIX_TIMESTAMP(`time`) AS time, " +
-                "COUNT(DISTINCT node_id) AS value FROM time_series " +
-                "JOIN (`nodes`) ON (`nodes`.`id`=`time_series`.`node_id`) " +
+                  "COUNT(DISTINCT node_id) AS value FROM `ts_value` " +
+                "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+                "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+                "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
                 "WHERE `mac` IN ? " +
                 "AND `key` = ? " +
                 "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +

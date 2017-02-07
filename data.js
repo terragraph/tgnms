@@ -18,6 +18,41 @@ pool.on('error', function() {
 });
 var self = {
   macAddrToNodeId: {},
+  timeBucketIds: {},
+  nodeKeyIds: {},
+
+  timeAlloc: function() {
+    // pre allocate time buckets
+    let timeBuckets = [];
+    for (let i = 0; i <= 90; i+= 30) {
+      let nextAlloc = new Date(
+        Math.ceil((new Date().getTime() + i * 1000) / AGG_BUCKET_SECONDS / 1000)
+        * AGG_BUCKET_SECONDS * 1000);
+      timeBuckets.push([nextAlloc]);
+    }
+    // insert unique macs
+    pool.getConnection(function(err, conn) {
+      if (err) {
+        console.log('err', err);
+        return;
+      }
+      conn.query('INSERT IGNORE INTO `ts_time` (`time`) VALUES ?',
+        [timeBuckets],
+        function (err, rows) {
+          if (err) {
+            console.log('Error inserting new times', err);
+          }
+          conn.release();
+        }
+      );
+    });
+    // refresh time ids
+    self.refreshNodeKeyTimes();
+  },
+
+  scheduleTimeAlloc: function() {
+    setInterval(self.timeAlloc, AGG_BUCKET_SECONDS * 1000);
+  },
 
   refreshNodeIds: function() {
     pool.getConnection(function(err, conn) {
@@ -25,6 +60,32 @@ var self = {
         function(err, results) {
           results.forEach(row => {
             self.macAddrToNodeId[row.mac] = row.id;
+          });
+          conn.release();
+        }
+      );
+    });
+  },
+
+  refreshNodeKeyTimes: function() {
+    pool.getConnection(function(err, conn) {
+      conn.query('SELECT `id`, `node_id`, `key` FROM ts_key',
+        function(err, results) {
+          results.forEach(row => {
+            if (!(row.node_id in self.nodeKeyIds)) {
+              self.nodeKeyIds[row.node_id] = {};
+            }
+            self.nodeKeyIds[row.node_id][row.key] = row.id;
+          });
+        }
+      );
+      // only query the latest ~hour of time stamps
+      // anything older shouldn't be written anyways
+      conn.query('SELECT `id`, `time` FROM ts_time ' +
+                 'WHERE `time` > DATE_SUB(NOW(), INTERVAL 1 HOUR)',
+        function(err, results) {
+          results.forEach(row => {
+            self.timeBucketIds[row.time] = row.id;
           });
           conn.release();
         }
@@ -55,6 +116,28 @@ var self = {
     self.refreshNodeIds();
   },
 
+  /*
+   * Accepts a list of <node, key> to generate new ids
+   */
+  updateNodeKeys: function(nodeKeys) {
+    if (!nodeKeys.length) {
+      return;
+    }
+    // insert node/key combos
+    pool.getConnection(function(err, conn) {
+      let sqlQuery = conn.query('INSERT IGNORE INTO `ts_key` (`node_id`, `key`) VALUES ?',
+        [nodeKeys],
+        function (err, rows) {
+          if (err) {
+            console.log('Error inserting new node/keys', err);
+          }
+          conn.release();
+        }
+      );
+    });
+    self.refreshNodeKeyTimes();
+  },
+
   timeCalc: function(timeInNs, row) {
     let min = 1480000000000000000;
     let max = 1500000000000000000;
@@ -83,7 +166,9 @@ var self = {
                             'terra0.tx_errors', 'terra0.rx_errors']);
     let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'ssnrEst']);
     let rows = [];
+    let newRows = [];
     let unknownMacs = new Set();
+    let missingNodeKey = new Set();
     let macAddr;
     let postDataLines = postData.split("\n");
     let noColumns = 0;
@@ -124,28 +209,48 @@ var self = {
       // use mac, might be 'node' or 'mac' for name
       let macAddr = dataMap.mac || dataMap.node;
       let keyName = dataMap.key || dataMap.name;
+      // verify node exists
       if (macAddr in self.macAddrToNodeId &&
           keyName &&
           dataMap.value) {
+        let nodeId = self.macAddrToNodeId[macAddr];
+        // check key
+        let keyNameSplit = keyName.split(".");
+        if (!usedKeys.has(keyName) && 
+            (keyNameSplit.length != 4 ||
+             !allowedTgSuffix.has(keyNameSplit[3]))) {
+          return;
+        }
         let tsParsed = self.timeCalc(ts, line);
         if (!tsParsed) {
           badTime++;
           return;
         }
-        let row = [self.macAddrToNodeId[macAddr],
-                  keyName,
-                  tsParsed,
-                  dataMap.value];
-        if (usedKeys.has(keyName)) {
-          rows.push(row);
-        } else {
-          // fw stats
-          let keyNameSplit = keyName.split(".");
-          if (keyNameSplit.length == 4 &&
-              allowedTgSuffix.has(keyNameSplit[3])) {
-            rows.push(row);
-          }
+        // insert into single-table style
+        let row = [nodeId,
+                   keyName,
+                   tsParsed,
+                   dataMap.value];
+        rows.push(row);
+        // verify time id exists
+        if (!(tsParsed in self.timeBucketIds)) {
+          console.log('time slot not found', tsParsed, 'in', self.timeBucketIds);
+          return;
         }
+        let timeId = self.timeBucketIds[tsParsed];
+        // verify node/key combo exists
+        if (nodeId in self.nodeKeyIds &&
+            keyName in self.nodeKeyIds[nodeId]) {
+          // found node/key id for insert
+          let row = [timeId,
+                     self.nodeKeyIds[nodeId][keyName],
+                     dataMap.value];
+          newRows.push(row);
+        } else {
+          console.log('missing cache for', nodeId, '/', keyName);
+          missingNodeKey.add([nodeId, keyName]);
+        }
+        // key stuff
       } else if (macAddr) {
         noMac++;
         unknownMacs.add(macAddr);
@@ -155,6 +260,8 @@ var self = {
     });
     // write newly found macs
     self.updateNodeIds(Array.from(unknownMacs));
+    // write newly found node/key combos
+    self.updateNodeKeys(Array.from(missingNodeKey));
     // insert rows
     let insertRows = function(tableName, rows, remain) {
       pool.getConnection(function(err, conn) {
@@ -165,6 +272,26 @@ var self = {
         conn.query('INSERT INTO ' + tableName +
                    '(`node_id`, `key`, `time`, ' +
                    '`value`) VALUES ?',
+                   [rows],
+          function(err, result) {
+            if (err) {
+              console.log('Some error', err);
+            }
+            conn.release();
+          }
+        );
+      });
+      console.log("Inserted", rows.length, "rows into", tableName,
+                  ",", remain, "remaining");
+    };
+    let insertNewRows = function(tableName, rows, remain) {
+      pool.getConnection(function(err, conn) {
+        if (err) {
+          console.log('pool error', err);
+          return;
+        }
+        conn.query('INSERT INTO ' + tableName +
+                   '(`time_id`, `key_id`, `value`) VALUES ?',
                    [rows],
           function(err, result) {
             if (err) {
@@ -192,6 +319,9 @@ var self = {
                   postDataLines.length, 'lines had:', noColumns,
                   'zero-data columns,', noMac, 'mac addr lookup failures,',
                   badTime, 'invalid timestamp failures');
+    }
+    if (newRows.length) {
+      insertNewRows('ts_value', newRows, 0);
     }
   }
 }
