@@ -11,12 +11,19 @@ const isDeveloping = process.env.NODE_ENV !== 'production';
 const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
 const app = express();
 const fs = require('fs');
-const data = require('./data');
 const charts = require('./charts');
+// old influx-style writer
+const data = require('./data');
 // load the initial node/key ids and time slots
 data.refreshNodeIds();
 data.timeAlloc();
 data.scheduleTimeAlloc();
+// new json writer
+const dataJson = require('./dataJson');
+// load the initial node/key ids and time slots
+dataJson.refreshNodeIds();
+dataJson.timeAlloc();
+dataJson.scheduleTimeAlloc();
 const elasticHelper = require('./elastic');
 const controllerProxy = require('./controllerProxy');
 const aggregatorProxy = require('./aggregatorProxy');
@@ -113,6 +120,22 @@ if (isDeveloping) {
       // update mysql time series db
       res.status(204).end("Submitted");
       data.writeData(httpPostData);
+    });
+  });
+  // data json writer
+  app.use(/\/stats_writer$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // relay the msg to datadb
+      if (!httpPostData.length) {
+        return;
+      }
+      // update mysql time series db
+      res.status(204).end("Submitted");
+      dataJson.writeData(httpPostData);
     });
   });
   // Read list of event logging Tables

@@ -2,7 +2,6 @@ import React from 'react';
 // leaflet maps
 import { render } from 'react-dom';
 // graphs
-import ReactGraph from './ReactGraph.js';
 import ReactMultiGraph from './ReactMultiGraph.js';
 // dispatcher
 import Actions from './NetworkActionConstants.js';
