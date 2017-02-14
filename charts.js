@@ -209,7 +209,6 @@ var self = {
       columns: ["time"].concat(columnDisplayNames),
       points: dataPoints,
     };
-    console.log('endpoint result', endpointResults);
     return endpointResults;
   },
 

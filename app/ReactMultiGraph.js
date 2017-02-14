@@ -62,12 +62,6 @@ export default class ReactMultiGraph extends React.Component {
           break;
         }
       }
-      if (this.state.data.length != prevState.data.length) {
-        changed = true;
-      }
-      if (!equals(this.state.data, prevState.data)) {
-        changed = true;
-      }
     }
     if (changed) {
       this.cancelAsyncRequests();
