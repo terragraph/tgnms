@@ -78,17 +78,19 @@ export default class NetworkNodesTable extends React.Component {
     const rows = [];
     Object.keys(nodes).forEach(nodeName => {
       let node = nodes[nodeName];
-      var ipv6 = node.status ? node.status.ipv6Address : 'Not Available';
-      var version = node.status ? node.status.version.slice(28) : 'Not Available';
-      var ubootVersion = node.status && node.status.uboot_version ?
-                           node.status.uboot_version :
+      var ipv6 = node.status_dump ? node.status_dump.ipv6Address :
+                                    'Not Available';
+      var version = node.status_dump ? node.status_dump.version.slice(28) :
+                                       'Not Available';
+      var ubootVersion = node.status_dump && node.status_dump.uboot_version ?
+                           node.status_dump.uboot_version :
                            'Not Available';
       rows.push(
         {
           name: node.name,
           mac_addr: node.mac_addr,
           node_type: node.node_type == 2 ? 'DN' : 'CN',
-          ignited: node.is_ignited,
+          ignited: (node.status == 2 || node.status == 3),
           site_name: node.site_name,
           pop_node: node.pop_node ? 'true' : 'false',
           ipv6: ipv6,

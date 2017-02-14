@@ -21,6 +21,11 @@ ttypes.LinkType = {
   'WIRELESS' : 1,
   'ETHERNET' : 2
 };
+ttypes.NodeStatusType = {
+  'OFFLINE' : 1,
+  'ONLINE' : 2,
+  'ONLINE_INITIATOR' : 3
+};
 GolayIdx = module.exports.GolayIdx = function(args) {
   this.txGolayIdx = null;
   this.rxGolayIdx = null;
@@ -242,9 +247,9 @@ Node = module.exports.Node = function(args) {
   this.is_primary = null;
   this.mac_addr = null;
   this.pop_node = null;
-  this.is_ignited = null;
   this.polarity = null;
   this.golay_idx = null;
+  this.status = null;
   this.site_name = null;
   this.ant_azimuth = null;
   this.ant_elevation = null;
@@ -265,14 +270,14 @@ Node = module.exports.Node = function(args) {
     if (args.pop_node !== undefined && args.pop_node !== null) {
       this.pop_node = args.pop_node;
     }
-    if (args.is_ignited !== undefined && args.is_ignited !== null) {
-      this.is_ignited = args.is_ignited;
-    }
     if (args.polarity !== undefined && args.polarity !== null) {
       this.polarity = args.polarity;
     }
     if (args.golay_idx !== undefined && args.golay_idx !== null) {
       this.golay_idx = new ttypes.GolayIdx(args.golay_idx);
+    }
+    if (args.status !== undefined && args.status !== null) {
+      this.status = args.status;
     }
     if (args.site_name !== undefined && args.site_name !== null) {
       this.site_name = args.site_name;
@@ -337,13 +342,6 @@ Node.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
-      case 6:
-      if (ftype == Thrift.Type.BOOL) {
-        this.is_ignited = input.readBool();
-      } else {
-        input.skip(ftype);
-      }
-      break;
       case 7:
       if (ftype == Thrift.Type.I32) {
         this.polarity = input.readI32();
@@ -355,6 +353,13 @@ Node.prototype.read = function(input) {
       if (ftype == Thrift.Type.STRUCT) {
         this.golay_idx = new ttypes.GolayIdx();
         this.golay_idx.read(input);
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 9:
+      if (ftype == Thrift.Type.I32) {
+        this.status = input.readI32();
       } else {
         input.skip(ftype);
       }
@@ -423,11 +428,6 @@ Node.prototype.write = function(output) {
     output.writeBool(this.pop_node);
     output.writeFieldEnd();
   }
-  if (this.is_ignited !== null && this.is_ignited !== undefined) {
-    output.writeFieldBegin('is_ignited', Thrift.Type.BOOL, 6);
-    output.writeBool(this.is_ignited);
-    output.writeFieldEnd();
-  }
   if (this.polarity !== null && this.polarity !== undefined) {
     output.writeFieldBegin('polarity', Thrift.Type.I32, 7);
     output.writeI32(this.polarity);
@@ -436,6 +436,11 @@ Node.prototype.write = function(output) {
   if (this.golay_idx !== null && this.golay_idx !== undefined) {
     output.writeFieldBegin('golay_idx', Thrift.Type.STRUCT, 8);
     this.golay_idx.write(output);
+    output.writeFieldEnd();
+  }
+  if (this.status !== null && this.status !== undefined) {
+    output.writeFieldBegin('status', Thrift.Type.I32, 9);
+    output.writeI32(this.status);
     output.writeFieldEnd();
   }
   if (this.site_name !== null && this.site_name !== undefined) {

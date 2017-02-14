@@ -226,7 +226,7 @@ export default class NetworkMap extends React.Component {
           let node = topology.nodes[nodeIndex];
           if (node.site_name == site.name) {
             totalCount++;
-            healthyCount += node.is_ignited ? 1 : 0;
+            healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
           }
         });
 

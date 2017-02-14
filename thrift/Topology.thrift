@@ -17,8 +17,8 @@ enum LinkType {
 }
 
 struct GolayIdx {
-  1: i64 txGolayIdx
-  2: i64 rxGolayIdx
+    1: i64 txGolayIdx
+    2: i64 rxGolayIdx
 }
 
 struct Location {
@@ -32,16 +32,27 @@ struct Site {
     2: Location location
 }
 
+# Typical DN's Lifecycle:
+#     OFFLINE -> ONLINE (message exchange with controller)
+#             -> ONLINE_INITIATOR (GPS enabled, can act as an initiator)
+# Typical CN's Lifecycle:
+#     OFFLINE -> ONLINE (message exchange with controller)
+enum NodeStatusType {
+    OFFLINE = 1
+    ONLINE = 2
+    ONLINE_INITIATOR = 3  # node is online and can act as an initiator
+}
+
 struct Node {
     1: string name
     2: NodeType node_type
     3: bool is_primary
     4: string mac_addr
     5: bool pop_node
-    6: bool is_ignited  # modified by controller
     7: optional PolarityType polarity
     8: optional GolayIdx golay_idx # default golay for all links from this node
-    100: string site_name  
+    9: NodeStatusType status  # modified by controller
+    100: string site_name
     101: double ant_azimuth  # not used in e2e
     102: double ant_elevation  # not used in e2e
     103: optional bool has_cpe  # node has attached CPE
