@@ -4,13 +4,17 @@ import { render } from 'react-dom';
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
+import ReactEventChart from './ReactEventChart.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 export default class NetworkLinksTable extends React.Component {
   state = {
     selectedLink: null,
     networkHealth: {},
+    nodesByName: {},
   }
+
+  nodesByName = {}
 
   constructor(props) {
     super(props);
@@ -24,6 +28,17 @@ export default class NetworkLinksTable extends React.Component {
       this.handleDispatchEvent.bind(this));
     this.setState({
       networkHealth: NetworkStore.networkHealth,
+    });
+    // index nodes by name
+    this.props.topology.nodes.forEach(node => {
+      this.nodesByName[node.name] = node;
+    });
+  }
+
+  componentWillUpdate() {
+    // index nodes by name
+    this.props.topology.nodes.forEach(node => {
+      this.nodesByName[node.name] = node;
     });
   }
 
@@ -53,18 +68,16 @@ export default class NetworkLinksTable extends React.Component {
                               alive:boolean}> {
     const rows = [];
     links.forEach(link => {
-      rows.push(
-        {
-          name: link.name,
-          a_node_name: link.a_node_name,
-          z_node_name: link.z_node_name,
-          alive: link.is_alive,
-          type: link.link_type == 1 ? 'Wireless' : 'Wired',
-          alive_perc: link.alive_perc,
-          snr_health_perc: link.snr_health_perc,
-          key: link.name,
-        },
-      );
+      rows.push({
+        name: link.name,
+        a_node_name: link.a_node_name,
+        z_node_name: link.z_node_name,
+        alive: link.is_alive,
+        type: link.link_type == 1 ? 'Wireless' : 'Wired',
+        alive_perc: link.alive_perc,
+        snr_health_perc: link.snr_health_perc,
+        key: link.name,
+      });
     });
     return rows;
   }
@@ -102,8 +115,7 @@ export default class NetworkLinksTable extends React.Component {
         return link;
       });
     }
-
-    return (
+    let linksTable =
       <BootstrapTable
           height={this.props.height}
           key="linksTable"
@@ -144,7 +156,28 @@ export default class NetworkLinksTable extends React.Component {
                            dataField="type">
           Type
         </TableHeaderColumn>
-      </BootstrapTable>
-    );
+      </BootstrapTable>;
+    if (this.state.selectedLink) {
+      // chart options
+      let aNode = this.nodesByName[this.state.selectedLink.a_node_name];
+      let zNode = this.nodesByName[this.state.selectedLink.z_node_name];
+      let opts = [{
+        type: 'link',
+        a_node: {name: aNode.name, mac: aNode.mac_addr},
+        z_node: {name: zNode.name, mac: zNode.mac_addr},
+        keys: ['link_status'],
+      }];
+      return (
+        <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
+          <li key="eventsChart" style={{height: '100px'}}>
+            <ReactEventChart options={opts} size="small" />
+          </li>
+          <li key="linksTable" style={{height: '400px'}}>
+            {linksTable}
+          </li>
+        </ul>
+      );
+    }
+    return linksTable;
   }
 }

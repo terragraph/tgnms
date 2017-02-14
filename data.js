@@ -165,7 +165,7 @@ var self = {
                             'terra0.tx_dropped', 'terra0.rx_dropped',
                             'terra0.tx_errors', 'terra0.rx_errors']);
     let allowedTgSuffix = new Set(['srssi', 'spostSNRdB', 'ssnrEst']);
-    let allowedTgPrefix = new Set(['link_status']);
+    let allowedTgPrefix = new Set(['link_status', 'e2e_controller']);
     let rows = [];
     let unknownMacs = new Set();
     let missingNodeKey = new Set();

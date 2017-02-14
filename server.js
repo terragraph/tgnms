@@ -267,6 +267,27 @@ if (isDeveloping) {
   app.get(/\/elastic\/deleteAlerts\/(.+)\/(.+)$/i, function (req, res, next) {
     elasticHelper.deleteAlerts(req, res, next);
   });
+  app.get(/\/elastic\/getLinkStatus\/(.+)$/i, function (req, res, next) {
+    elasticHelper.getLinkStatus(req, res, next);
+  });
+  app.post(/\/event\/?$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // push query
+      charts.queryMulti(res, httpPostData, 'event');
+    });
+    /*charts.fetchMulti(res,[
+      {
+        type: 'link',
+        a_node: {name: "terra121.f5.td.a404-if", mac: "00:00:00:10:0d:42"},
+        z_node: {name: "terra222.f5.td.a404-if", mac: "00:00:00:10:0d:48"},
+        keys: ['link_status'],
+      },
+    ], 'event');*/
+  });
 
   // newer charting, for multi-linechart/row
   app.post(/\/multi_chart\/$/i, function (req, res, next) {

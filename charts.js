@@ -20,6 +20,14 @@ SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
              "GROUP BY `key`, `time`";
+KEY_VALUES = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
+               "`value` FROM `ts_value` " +
+             "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+             "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+             "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
+             "AND `key` = ? " +
+             "AND `time` > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
+              "ORDER BY `time` ASC";
 SUM_BY_MAC = "SELECT `mac`, UNIX_TIMESTAMP(`time`) AS time, " +
               "SUM(value) AS value FROM `ts_value` " +
               "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
@@ -113,6 +121,20 @@ var self = {
     return endpointResults;
   },
 
+  timePeriod: function(secondDiff) {
+    if (secondDiff > (60 * 60)) {
+      return self.round(secondDiff/60/60) + ' hours';
+    } else if (secondDiff > 60) {
+      return self.round(secondDiff/60) + ' minutes';
+    } else {
+      return secondDiff + ' seconds';
+    }
+  },
+
+  round: function(value) {
+    return Math.ceil(value * 100) / 100;
+  },
+
   formatStatsGroup: function(result, groupBy) {
     let columnNames = new Set();
     let dataPoints = [];
@@ -187,6 +209,7 @@ var self = {
       columns: ["time"].concat(columnDisplayNames),
       points: dataPoints,
     };
+    console.log('endpoint result', endpointResults);
     return endpointResults;
   },
 
@@ -209,28 +232,61 @@ var self = {
       case 'snr':
         // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
         return 'tgf.' + zNode.mac + '.phystatus.ssnrEst';
+      case 'link_status':
+        return 'e2e_controller.link_status.WIRELESS.' +
+               aNode.mac + '.' + zNode.mac;
+        // old key
+        //return 'link_status.' + aNode.mac + '.' + zNode.mac;
       default:
         console.error('Undefined metric:', metricName);
         return metricName;
     }
   },
 
-  makeLinkQuery: function(aNode, zNode, metricNames, query = LINK_METRIC) {
+  makeLinkQuery: function(aNode,
+                          zNode,
+                          metricNames,
+                          query = LINK_METRIC) {
     let fields = [];
     // map metric short names to the fully qualified key
+    let keyToMetric = {};
     let keyNames = metricNames.map(metricName => {
-      return self.formatKeyName(metricName, aNode, zNode);
+      let keyName = self.formatKeyName(metricName, aNode, zNode);
+      // reverse map to the requested key
+      keyToMetric[keyName] = metricName;
+      return keyName;
     });
-    // determine the query
-    fields = [
-      [[aNode.mac]],
-      [keyNames],
-    ];
+    // single key queries
+    if (metricNames.length == 1) {
+      let metricName = metricNames[0];
+      switch (metricName) {
+        case 'link_status':
+          // the controller is the publisher, so we only need the
+          // key (a mac.z mac) to identify.
+          query = KEY_VALUES;
+          fields = [
+            keyNames,
+          ];
+          break;
+        default:
+          fields = [
+            [[aNode.mac]],
+            [keyNames],
+          ];
+      }
+    } else {
+      // determine the query
+      fields = [
+        [[aNode.mac]],
+        [keyNames],
+      ];
+    }
     if (!query) {
       console.log('Query undefined for metric:', metricName);
       return;
     }
-    return mysql.format(query, fields);
+    let sqlQuery = mysql.format(query, fields);
+    return sqlQuery;
   },
 
   makeTableQuery: function(res, topology) {
@@ -458,6 +514,64 @@ var self = {
             throw "Undefined query type: " + JSON.stringify(query);
         }
         break;
+      case 'event':
+        switch (query.type) {
+          case 'link':
+            let events = [];
+            // break up the result into UP/DOWN intervals
+            let lastValue;
+            let lastTime;
+            let lastTimeChanged;
+            for (let i = 0; i < result.length; i++) {
+              let row = result[i];
+              let value = row.value;
+              if (i == 0) {
+                // record first value
+                lastValue = row.value
+                lastTime = row.time;
+                lastTimeChanged = row.time;
+              } else {
+                let diff = row.time - lastTime;
+                if (diff > 60) {
+                  // if time diff over a minute, consider down
+                  value = 0;
+                }
+                if (value && !lastValue) {
+                  lastTimeChanged = row.time;
+                } else if (!value && lastValue) {
+                  let timeChangedDiff = row.time - lastTimeChanged;
+                  events.push({
+                    startTime: lastTimeChanged * 1000,
+                    endTime: lastTime * 1000,
+                    title: self.timePeriod(lastTime - lastTimeChanged),
+                  });
+                } else if (i == (result.length - 1) && value) {
+                  // last event, publish if online
+                  events.push({
+                    startTime: lastTimeChanged * 1000,
+                    endTime: row.time * 1000,
+                    title: self.timePeriod(row.time - lastTimeChanged),
+                  });
+                }
+                lastValue = value;
+                lastTime = row.time;
+              }
+            }
+            if (!events.length && result.length >= 2) {
+              // sql data exists, but no change events found
+              let startTime = result[0].time;
+              let endTime = result[result.length - 1].time;
+              events.push({
+                startTime: startTime * 1000,
+                endTime: endTime * 1000,
+                title: self.timePeriod(endTime - startTime),
+              });
+            }
+            return events;
+            break;
+          case 'node':
+            break;
+        }
       case 'raw':
         return result;
         break;

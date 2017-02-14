@@ -39,14 +39,19 @@ const LINK_METRICS = [
     name: 'RSSI',
     metric: '', /* some special link formatting required */
   },
-  {
+/*  {
     key: 'mcs',
     name: 'MCS',
     metric: '',
-  },
+  },*/
   {
     key: 'snr',
     name: 'SnR',
+    metric: '',
+  },
+  {
+    key: 'link_status',
+    name: 'Link Status',
     metric: '',
   },
 ];
@@ -342,6 +347,7 @@ export default class NetworkLinkDashboard extends React.Component {
         <button onClick={this.showModal.bind(this)}>Edit Graphs</button>
         <ReactMultiGraph
           options={graphOptions}
+          key="multi_graph"
           size="large" />
         <ScaleModal ref="selector" modalStyle={modalStyle}>
           <h2 style={{textAlign: 'center'}}>Metric Selector</h2>

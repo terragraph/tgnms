@@ -47,20 +47,26 @@ export default class ReactMultiGraph extends React.Component {
     return bps + ' bps';
   }
 
-  componentDidUpdate(nextProps, nextState) {
+  componentDidUpdate(prevProps, prevState) {
     // compare list of nodes and key names only for each list item
     // the 'status' item for each node has a timestamp, so this gets changed
     // each iteration
-    let changed = (this.props.options.length != nextProps.options.length) &&
+    let changed = (this.props.options.length != prevProps.options.length) &&
                   (this.props.options.length);
     if (!changed) {
       for (let i = 0; i < this.props.options.length; i++) {
         let curOpts = this.props.options[i];
-        let newOpts = nextProps.options[i];
-        if (!equals(curOpts, newOpts)) {
+        let oldOpts = prevProps.options[i];
+        if (!equals(curOpts, oldOpts)) {
           changed = true;
           break;
         }
+      }
+      if (this.state.data.length != prevState.data.length) {
+        changed = true;
+      }
+      if (!equals(this.state.data, prevState.data)) {
+        changed = true;
       }
     }
     if (changed) {

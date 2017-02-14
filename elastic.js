@@ -67,6 +67,38 @@ var self = {
     }
   },
 
+  getLinkStatus: function (req, res, next) {
+    let linkName = req.params[0];
+
+    var search = JSON.parse(searchTemplate);
+    search.index = "terragraph_event_logs";
+    search.type = "perfpipe_terragraph_link_status";
+    search.body.sort = JSON.parse('[{"int.time" : "desc"}]');
+    search.body.query.bool = JSON.parse('{"filter": [\
+      {"term": {"normal.message_type": "link_status"}},\
+      {"match_phrase": {"normal.link_name": "' + linkName + '"}},\
+      {"range": {"int.time": {"gte": "1", "lt": "now/d"}}}\
+    ]}');
+    search.body.from = 0;
+    search.body.size = 1000;
+    console.log('query', JSON.stringify(search));
+    
+    client.search(search).then(function (resp) {
+      var hits = resp.hits.hits;
+      let linkEvents = [];
+      hits.forEach(entry => {
+        console.log('source', entry._source.normal.source,
+                    'status', entry._source.normal.link_status,
+                    'time', new Date(entry._source.int.time * 1000));
+      });
+      res.json(hits);
+      return;
+    }, function (err) {
+        console.trace(err.message);
+        res.status(404).end("Elasticsearch error\n");
+    });
+  },
+
   getAlerts: function (req, res, next) {
     let networkName = req.params[0];
 
