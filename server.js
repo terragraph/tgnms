@@ -374,7 +374,7 @@ if (isDeveloping) {
         let nodes = topology.nodes;
         for (var j = 0; j < nodes.length; j++) {
           if (status && status.statusReports) {
-            topology.nodes[j]["status_report"] =
+            topology.nodes[j]["status_dump"] =
               status.statusReports[nodes[j].mac_addr];
           }
         }
