@@ -1,0 +1,4 @@
+#!/bin/bash
+export PORT=80
+pushd /home/nms/www
+exec npm start 2>&1
