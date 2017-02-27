@@ -8,8 +8,8 @@ Just enough to show the very basics.
 ## Install
 These instructions assume a CentOS 7 distribution.
 ### Add the nms user
-```useradd nms
-cd ~nms```
+    useradd nms
+    cd ~nms
 ### Checkout this repository
 `git clone https://github.com/pmccut/tgnms.git`
 ### Create symlink for 'www'
