@@ -30,6 +30,10 @@ The easiest route is an existing package.
 #### Import schema
     mysql -uroot -p -e"create database cxl"
     mysql -uroot -p cxl < ~nms/tgnms/schema/cxl.sql
+### Set the config for displayed topologies
+1. Find matching or add new to  ~nms/www/config/instances/
+2. Set name in /etc/sysconfig/nms (don't include the .json extension)
+`export NETWORK="sjc_networks"`
 ### Enable services (runit)
     chkconfig runit on
     for dir in ~nms/tgnms/service/*; do sv start $(basename $dir); done
