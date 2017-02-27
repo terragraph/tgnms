@@ -1,4 +1,8 @@
 #!/bin/bash
+# the network config file to use
+CONFIG="/etc/sysconfig/nms"
+[ -f "$CONFIG" ] && source "$CONFIG"
+
 export PORT=80
 pushd /home/nms/www
 exec npm start 2>&1

@@ -1,6 +1,7 @@
 /* eslint no-console: 0 */
 
 const path = require('path');
+const fs = require('fs');
 const request = require('request');
 const express = require('express');
 const webpack = require('webpack');
@@ -9,15 +10,21 @@ const webpackHotMiddleware = require('webpack-hot-middleware');
 const config = require('./webpack.config.js');
 const isDeveloping = process.env.NODE_ENV !== 'production';
 const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
+// network config file
+const NETWORK_CONFIG_NETWORKS_PATH = './config/networks/';
+const NETWORK_CONFIG_INSTANCES_PATH = './config/instances/';
+const NETWORK_CONFIG_DEFAULT = 'lab_networks.json';
+const networkConfig = process.env.NETWORK ? process.env.NETWORK + '.json'
+                                          : NETWORK_CONFIG_DEFAULT;
+if (!fs.existsSync(NETWORK_CONFIG_INSTANCES_PATH + networkConfig)) {
+  console.error('Unable to locate network config:',
+                networkConfig,
+                'in:',
+                NETWORK_CONFIG_INSTANCES_PATH);
+  process.exit(1)
+}
 const app = express();
-const fs = require('fs');
 const charts = require('./charts');
-// old influx-style writer
-const data = require('./data');
-// load the initial node/key ids and time slots
-data.refreshNodeIds();
-data.timeAlloc();
-data.scheduleTimeAlloc();
 // new json writer
 const dataJson = require('./dataJson');
 // load the initial node/key ids and time slots
@@ -31,9 +38,6 @@ const ipaddr = require('ipaddr.js');
 const expressWs = require('express-ws')(app);
 const os = require('os');
 const pty = require('pty.js');
-
-const NETWORK_CONFIG_PATH = './config/networks/';
-const NETWORK_CONFIG = 'networks.json';
 
 var fileTopologies = [];
 var configs = [];
@@ -73,7 +77,7 @@ if (isDeveloping) {
   });
 
   // Read list of networks and start timer to pull network status/topology
-  fs.readFile(NETWORK_CONFIG_PATH + NETWORK_CONFIG, 'utf-8', (err, data) => {
+  fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) => {
     // unable to open file, exit
     if (err) {
       res.status(500).send(err.stack);
@@ -86,7 +90,7 @@ if (isDeveloping) {
       Object.keys(topologies).forEach(function(key) {
         let topologyConfig = topologies[key];
         let topology = JSON.parse(fs.readFileSync(
-          NETWORK_CONFIG_PATH + topologyConfig.topology_file));
+          NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file));
         let config = {
             name: topology['name'],
             controller_ip: topologyConfig['controller_ip'],
@@ -104,25 +108,6 @@ if (isDeveloping) {
     }
     setInterval(periodicNetworkStatus, 5000);
   });
-
-  // datadb write proxy
-  app.use(/\/write$/i, function (req, res, next) {
-    let dbName = req.query.db;
-    let httpPostData = '';
-    req.on('data', function(chunk) {
-      httpPostData += chunk.toString();
-    });
-    req.on('end', function() {
-      // relay the msg to datadb
-      if (!httpPostData.length) {
-        return;
-      }
-      // update mysql time series db
-      res.status(204).end("Submitted");
-      data.writeData(httpPostData);
-    });
-  });
-  // data json writer
   app.use(/\/stats_writer$/i, function (req, res, next) {
     let httpPostData = '';
     req.on('data', function(chunk) {
