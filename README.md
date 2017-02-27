@@ -28,10 +28,8 @@ The easiest route is an existing package.
 ### Install MariaDB (MySQL)
 `yum install mariadb`
 #### Import schema
-```mysql -uroot -p -e"create database cxl"`
-mysql -uroot -p cxl < ~nms/tgnms/schema/cxl.sql
-```
+    mysql -uroot -p -e"create database cxl"
+    mysql -uroot -p cxl < ~nms/tgnms/schema/cxl.sql
 ### Enable services (runit)
-```chkconfig runit on
-for dir in ~nms/tgnms/service/*; do sv start $(basename $dir); done
-```
+    chkconfig runit on
+    for dir in ~nms/tgnms/service/*; do sv start $(basename $dir); done
