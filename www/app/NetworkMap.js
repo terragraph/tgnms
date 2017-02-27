@@ -30,6 +30,11 @@ const HEALTHY_MARKER = Leaflet.icon({
   iconSize: [15, 17],
   iconAnchor: [7, 8],
 });
+// tiles are normally fetched directly from a tile server by the user, 
+// but can be proxied by node.js. NOTE: Most tile servers don't provide
+// v6 addresses
+//const TILE_URL = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+const TILE_URL = '/tile/{s}/{z}/{x}/{y}.png'; 
 
 export default class NetworkMap extends React.Component {
   state = {
@@ -313,8 +318,6 @@ export default class NetworkMap extends React.Component {
       }
     }
 
-//              url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-//              /tile/{s}/{z}/{x}/{y}.png
     return (
       <div>
         <SplitPane
@@ -327,7 +330,7 @@ export default class NetworkMap extends React.Component {
             onZoom={this._onMapZoom.bind(this)}
             center={centerPosition} zoom={this.state.zoomLevel}>
             <TileLayer
-              url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+              url='/tile/{s}/{z}/{x}/{y}.png'
               attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             />
             {siteComponents}
