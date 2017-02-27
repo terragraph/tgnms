@@ -33,7 +33,9 @@ The easiest route is an existing package.
 ### Set the config for displayed topologies
 1. Find matching or add new to  ~nms/www/config/instances/
 2. Set name in /etc/sysconfig/nms (don't include the .json extension)
-`export NETWORK="sjc_networks"`
+
+    echo 'export NETWORK="sjc_networks"' > /etc/sysconfig/nms
+
 ### Enable services (runit)
     chkconfig runit on
     for dir in ~nms/tgnms/service/*; do sv start $(basename $dir); done
