@@ -8,8 +8,8 @@ Just enough to show the very basics.
 ## Install
 These instructions assume a CentOS 7 distribution.
 ### Add the nms user
-`useradd nms`
-`cd ~nms`
+```useradd nms
+cd ~nms```
 ### Checkout this repository
 `git clone https://github.com/pmccut/tgnms.git`
 ### Create symlink for 'www'
@@ -28,8 +28,10 @@ The easiest route is an existing package.
 ### Install MariaDB (MySQL)
 `yum install mariadb`
 #### Import schema
-`mysql -uroot -p -e"create database cxl"`
-`mysql -uroot -p cxl < ~nms/tgnms/schema/cxl.sql`
+```mysql -uroot -p -e"create database cxl"`
+mysql -uroot -p cxl < ~nms/tgnms/schema/cxl.sql
+```
 ### Enable services (runit)
-`chkconfig runit on`
-`for dir in ~nms/tgnms/service/*; do sv start $(basename $dir); done`
+```chkconfig runit on
+for dir in ~nms/tgnms/service/*; do sv start $(basename $dir); done
+```
