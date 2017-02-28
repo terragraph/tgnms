@@ -2,7 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 // leaflet maps
 import Leaflet from 'leaflet';
-import { Map, Marker, Polyline, Popup, TileLayer, Circle} from 'react-leaflet';
+import { Map, Polyline, TileLayer, CircleMarker} from 'react-leaflet';
+import Control from 'react-leaflet-control';
+
 // dispatcher
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
@@ -11,30 +13,47 @@ import NetworkStore from './NetworkStore.js';
 import NetworkDataTable from './NetworkDataTable.js';
 import SplitPane from 'react-split-pane';
 
-// markers to show health of sectors on a site
-const UNKNOWN_MARKER = Leaflet.icon({
-  // exclamation point
-  iconUrl: '/static/images/unknown.png',
-  iconSize: [15, 17],
-  iconAnchor: [7, 8],
-});
-const UNHEALTHY_MARKER = Leaflet.icon({
-  // fire
-  iconUrl: '/static/images/unhealthy.png',
-  iconSize: [15, 17],
-  iconAnchor: [7, 8],
-});
-const HEALTHY_MARKER = Leaflet.icon({
-  // check mark
-  iconUrl: '/static/images/healthy.png',
-  iconSize: [15, 17],
-  iconAnchor: [7, 8],
-});
-// tiles are normally fetched directly from a tile server by the user, 
-// but can be proxied by node.js. NOTE: Most tile servers don't provide
-// v6 addresses
-//const TILE_URL = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
-const TILE_URL = '/tile/{s}/{z}/{x}/{y}.png'; 
+export class CustomMap extends Map {
+  createLeafletElement (props: Object): Object {
+    return Leaflet.map(this.container, props);
+  }
+  componentDidUpdate (prevProps: Object) {
+    this.updateLeafletElement(prevProps, this.props);
+    const layers = this.leafletElement._layers;
+    Object.values(layers)
+      .filter((layer) => {
+        return typeof layer.options.level !== "undefined";
+      })
+      .sort((layerA, layerB) => {
+        return layerA.options.level - layerB.options.level;
+      })
+      .forEach((layer) => {
+        layer.bringToFront();
+      });
+  }
+}
+
+const siteOverlayKeys = {
+  Health: {
+    Healthy: {color: 'green'},
+    Unhealthy: {color: 'red'},
+    Partial: {color: 'orange'}
+  },
+  Polarity: {
+    Unknown: {color: 'red'},
+    Odd: {color: 'blue'},
+    Even: {color: 'magenta'},
+    Hybrid: {color: 'orange'}
+  }
+}
+
+const linkOverlayKeys = {
+  Health: {
+    Healthy: {color: 'green'},
+    Unhealthy: {color: 'red'},
+    Unknown: {color: 'orange'}
+  },
+}
 
 export default class NetworkMap extends React.Component {
   state = {
@@ -48,10 +67,14 @@ export default class NetworkMap extends React.Component {
     sortName: undefined,
     sortOrder: undefined,
     selectedSiteName: undefined,
+    selectedSiteOverlay: 'Health',
+    selectedLinkOverlay: 'Health',
   }
 
   constructor(props) {
     super(props);
+    this.getSiteMarker = this.getSiteMarker.bind(this);
+    this.handleMarkerClick = this.handleMarkerClick.bind(this);
     // reset zoom on next refresh is set once a new topology is selected
     this.resetZoomOnNextRefresh = true;
   }
@@ -160,7 +183,7 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  _handleMarkerClick(ev) {
+  handleMarkerClick(ev) {
     let site = this.state.networkConfig.topology.sites[
       ev.target.options.siteIndex];
     // dispatch to update all UIs
@@ -204,6 +227,30 @@ export default class NetworkMap extends React.Component {
     });
   }
 
+  getSiteMarker(pos, color, siteIndex): ReactElement<any> {
+    return (
+      <CircleMarker center={pos}
+        radius={10}
+        clickable
+        fillOpacity={1}
+        color = {color}
+        key={siteIndex}
+        siteIndex={siteIndex}
+        onClick={this.handleMarkerClick}
+        fillColor={color}
+        level={10}/>);
+  }
+
+  getLinkLine(name, coords, color): ReactElement<any> {
+    return (
+      <Polyline
+        key={name}
+        positions={coords}
+        color={color}
+        level={5}
+        />);
+  }
+
   render() {
     // use the center position from the topology if set
     const centerPosition = this.state.networkConfig ?
@@ -226,32 +273,45 @@ export default class NetworkMap extends React.Component {
         let siteCoords = [site.location.latitude, site.location.longitude];
 
         let healthyCount = 0;
+        let polarityCount = 0;
         let totalCount = 0;
         Object.keys(topology.nodes).map(nodeIndex => {
           let node = topology.nodes[nodeIndex];
           if (node.site_name == site.name) {
             totalCount++;
             healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
+            polarityCount += node.polarity ? node.polarity : 0;
           }
         });
 
-        let contextualMarker = UNKNOWN_MARKER;
-        if (totalCount == healthyCount) {
-          contextualMarker = HEALTHY_MARKER;
-        } else if (healthyCount == 0) {
-          contextualMarker = UNHEALTHY_MARKER;
-        }
+        let polarity = polarityCount / totalCount;
 
-        // show all nodes
-        siteComponents.push(
-          <Marker
-            icon={contextualMarker}
-            key={siteIndex}
-            siteIndex={siteIndex}
-            onclick={this._handleMarkerClick.bind(this)}
-            position={siteCoords}>
-          </Marker>
-        );
+        let contextualMarker = null;
+        switch (this.state.selectedSiteOverlay) {
+          case 'Health':
+            if (totalCount == healthyCount) {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Healthy.color, siteIndex);
+            } else if (healthyCount == 0) {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Unhealthy.color, siteIndex);
+            } else {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Partial.color, siteIndex);
+            }
+            break;
+          case 'Polarity':
+            if (polarity == 1) {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Odd.color, siteIndex);
+            } else if (polarity == 2) {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Even.color, siteIndex);
+            } else if (polarity > 0) {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Hybrid.color, siteIndex);
+            } else {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Unknown.color, siteIndex);
+            }
+            break;
+          default:
+            contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Unhealthy.color);
+        }
+        siteComponents.push(contextualMarker);
       });
       Object.keys(topology.links).map(linkName => {
         let link = topology.links[linkName];
@@ -273,14 +333,20 @@ export default class NetworkMap extends React.Component {
           [aNodeSite.location.latitude, aNodeSite.location.longitude],
           [zNodeSite.location.latitude, zNodeSite.location.longitude],
         ];
-        var color = link.is_alive ? 'green' : 'blue';
-        linkComponents.push(
-          <Polyline
-            key={link.name}
-            positions={linkCoords}
-            color={color}
-            />
-        );
+
+        let linkLine = null;
+        switch (this.state.selectedLinkOverlay) {
+          case 'Health':
+            if (link.is_alive) {
+              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Healthy.color);
+            } else {
+              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
+            }
+            break;
+          default:
+            linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Unknown.color);
+        }
+        linkComponents.push(linkLine);
       });
     }
 
@@ -289,8 +355,8 @@ export default class NetworkMap extends React.Component {
       let site = this.state.sitesByName[this.state.selectedNodeSite];
       if (site && site.location) {
         siteMarkers =
-          <Circle center={[site.location.latitude, site.location.longitude]}
-                  radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
+          <CircleMarker center={[site.location.latitude, site.location.longitude]}
+                  radius={18}
                   color="rgb(30,116,255)"/>;
       }
     } else if (this.state.selectedLink != null) {
@@ -301,22 +367,45 @@ export default class NetworkMap extends React.Component {
         let site_z = this.state.sitesByName[node_z.site_name];
         if (site_a && site_z && site_a.location && site_z.location) {
           siteMarkers = [
-            <Circle center={[site_a.location.latitude,
+            <CircleMarker center={[site_a.location.latitude,
                              site_a.location.longitude]}
-                    radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
+                    radius={18}
                     key="a_node"
                     color="rgb(30,116,255)"/>];
           if (site_a.name != site_z.name) {
             siteMarkers.push(
-              <Circle center={[site_z.location.latitude,
+              <CircleMarker center={[site_z.location.latitude,
                                site_z.location.longitude]}
-                      radius={4 * Math.pow(2, 19 - this.state.zoomLevel)}
+                      radius={18}
                       key="z_node"
                       color="rgb(30,116,255)"/>);
           }
         }
       }
     }
+
+    let siteOverlayKeyRows = [];
+    let siteOverlaySource = siteOverlayKeys[this.state.selectedSiteOverlay];
+    Object.keys(siteOverlaySource).map(siteState => {
+      siteOverlayKeyRows.push(
+      <tr key={siteState}>
+        <td></td>
+        <td>
+          <font color={siteOverlaySource[siteState].color}> {siteState} </font>
+        </td>
+      </tr>);
+    });
+    let linkOverlayKeyRows = [];
+    let linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
+    Object.keys(linkOverlaySource).map(linkState => {
+      linkOverlayKeyRows.push(
+      <tr key={linkState}>
+        <td></td>
+        <td>
+          <font color={linkOverlaySource[linkState].color}> {linkState} </font>
+        </td>
+      </tr>);
+    });
 
     return (
       <div>
@@ -325,7 +414,7 @@ export default class NetworkMap extends React.Component {
           defaultSize="50%"
           onChange={this._paneChange.bind(this)}
         >
-          <Map
+          <CustomMap
             ref='map'
             onZoom={this._onMapZoom.bind(this)}
             center={centerPosition} zoom={this.state.zoomLevel}>
@@ -333,10 +422,51 @@ export default class NetworkMap extends React.Component {
               url='/tile/{s}/{z}/{x}/{y}.png'
               attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             />
-            {siteComponents}
             {linkComponents}
+            {siteComponents}
             {siteMarkers}
-          </Map>
+            <Control position="topright" >
+              <div className="groupingContainer">
+                <p>Map Overlays</p>
+                <table>
+                 <tbody>
+                  <tr>
+                    <td width={100}>Site Overlay</td>
+                    <td width={100}>
+                      <div style={{width:100}}>
+                        <select
+                          style={{width:100}}
+                          value={this.state.selectedSiteOverlay}
+                          onChange={ (ev) => { this.setState({ selectedSiteOverlay: ev.currentTarget.value }); } }
+                        >
+                          {Object.keys(siteOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                  {siteOverlayKeyRows}
+                  <tr className="blank_row">
+                  </tr>
+                  <tr>
+                    <td width={100}>Link Overlay</td>
+                    <td width={100}>
+                      <div style={{width:100}}>
+                        <select
+                          style={{width:100}}
+                          value={this.state.selectedLinkOverlay}
+                          onChange={ (ev) => { this.setState({ selectedLinkOverlay: ev.currentTarget.value }); } }
+                        >
+                          {Object.keys(linkOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                  {linkOverlayKeyRows}
+                 </tbody>
+                </table>
+              </div>
+            </Control>
+          </CustomMap>
           <NetworkDataTable />
         </SplitPane>
       </div>
