@@ -5,7 +5,7 @@ import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import AsyncButton from 'react-async-button';
-import Dropdown from 'react-dropdown'
+import Select from 'react-select';
 import NumericInput from 'react-numeric-input';
 
 class ListEditor extends React.Component {
@@ -356,11 +356,12 @@ export default class EventLogs extends React.Component {
           <tr>
             <td width={330}>
               <div style={{width:300}}>
-                <Dropdown
+                <Select
                   options={options}
-                  placeholder = "Select Table"
+                  name = "Select Table"
                   value={this.state.selectedTableName}
-                  onChange={this.selectChange}/>
+                  onChange={this.selectChange}
+                  clearable={false}/>
               </div>
             </td>
             <td>

@@ -5,7 +5,7 @@ import { render } from 'react-dom';
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import AsyncButton from 'react-async-button';
-import Dropdown from 'react-dropdown'
+import Select from 'react-select';
 import NumericInput from 'react-numeric-input';
 import NetworkStore from './NetworkStore.js';
 
@@ -190,20 +190,22 @@ export default class SystemLogs extends React.Component {
           <tr>
             <td width={330}>
               <div style={{width:300}}>
-                <Dropdown
-                  options={logsOptions}
-                  placeholder = "Select Logs"
+                <Select
+                  name="Select Logs"
                   value={this.state.selectedSourceName}
-                  onChange={this.selectChange}/>
+                  options={logsOptions}
+                  onChange={this.selectChange}
+                  clearable={false}/>
               </div>
             </td>
             <td width={330}>
               <div style={{width:300}}>
-                <Dropdown
+                <Select
                   options={nodesOptions}
-                  placeholder = "Select Node"
+                  name = "Select Node"
                   value={this.state.selectedNodeName}
-                  onChange={this.selectNodeChange}/>
+                  onChange={this.selectNodeChange}
+                  clearable={false}/>
               </div>
             </td>
             <td>

@@ -114,11 +114,11 @@
     "express-ws": "^2.0.0-rc.1",
     "pty.js": "^0.3.1",
     "xterm": "^2.2.1",
-    "react-dropdown": "^1.2.0",
     "react-async-button": "^0.0.5",
     "react-numeric-input": "^2.0.6",
     "react-highlight-words": "^0.6.0",
     "latinize": "^0.2.0",
-    "react-leaflet-control": "1.3.0"
+    "react-leaflet-control": "1.3.0",
+    "react-select": "^1.0.0-rc.3"
   }
 }
