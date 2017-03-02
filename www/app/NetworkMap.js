@@ -37,7 +37,8 @@ const siteOverlayKeys = {
   Health: {
     Healthy: {color: 'green'},
     Unhealthy: {color: 'red'},
-    Partial: {color: 'orange'}
+    Partial: {color: 'orange'},
+		Empty: {color: 'gray'}
   },
   Polarity: {
     Unknown: {color: 'red'},
@@ -289,7 +290,9 @@ export default class NetworkMap extends React.Component {
         let contextualMarker = null;
         switch (this.state.selectedSiteOverlay) {
           case 'Health':
-            if (totalCount == healthyCount) {
+						if (totalCount == 0) {
+              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Empty.color, siteIndex);
+						} else if (totalCount == healthyCount) {
               contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Healthy.color, siteIndex);
             } else if (healthyCount == 0) {
               contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Unhealthy.color, siteIndex);
