@@ -75,7 +75,7 @@ var self = {
       conn.query('SELECT `id`, `mac` FROM `nodes`',
         function(err, results) {
           results.forEach(row => {
-            self.macAddrToNodeId[row.mac] = row.id;
+            self.macAddrToNodeId[row.mac.toLowerCase()] = row.id;
           });
           conn.release();
         }
@@ -190,12 +190,12 @@ var self = {
           return;
         }
         // missing node in table
-        if (!(agent.mac in self.macAddrToNodeId)) {
-          unknownMacs.add(agent.mac);
+        if (!(agent.mac.toLowerCase() in self.macAddrToNodeId)) {
+          unknownMacs.add(agent.mac.toLowerCase());
           console.log('unknown mac', agent.mac);
           return;
         }
-        let nodeId = self.macAddrToNodeId[agent.mac];
+        let nodeId = self.macAddrToNodeId[agent.mac.toLowerCase()];
         let tsParsed = self.timeCalc(stat.ts);
         if (!tsParsed) {
           badTime++;

@@ -105,7 +105,9 @@ export default class NetworkLinksTable extends React.Component {
     if (this.props.topology &&
         this.props.topology.links) {
       linksData = this.props.topology.links.map(link => {
-        if (link.a_node_name in this.state.networkHealth.links &&
+        if (this.state.networkHealth &&
+            this.state.networkHealth.links &&
+            link.a_node_name in this.state.networkHealth.links &&
             link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
           let nodeHealth = this.state.networkHealth.links[link.a_node_name]
                                                          [link.z_node_name];
