@@ -1,19 +1,26 @@
 // aggregate data points in buckets for easier grouping
 const AGG_BUCKET_SECONDS = 30;
 const KEY_WHITELIST = new Set([
-  'terra0.tx_bytes', 'terra0.rx_bytes',
   'uptime',
-  'procs.total',
-  'mount.util:/',
   'load-1', 'load-5', 'load-15',
-  'mem.free', 'mem.total', 'mem.util',
-  'terra0.tx_dropped', 'terra0.rx_dropped',
-  'terra0.tx_errors', 'terra0.rx_errors'
 ]);
 const KEY_WHITELIST_SUFFIX = new Set([
   'srssi', 'spostSNRdB', 'ssnrEst'
 ]);
 const KEY_WHITELIST_PREFIX = new Set([
+  'aquaman',
+  'decision',
+  'e2e_minion',
+  'eth0',
+  'nic0',
+  'nic1',
+  'nic2',
+  'terra0',
+  'mem',
+  'mount',
+  'procs',
+  'spark',
+  'tgf',
   'link_status'
 ]);
 const mysql = require('mysql');
@@ -185,7 +192,7 @@ var self = {
         if (!KEY_WHITELIST.has(stat.key) && 
             (keyNameSplit.length != 4 ||
              !KEY_WHITELIST_SUFFIX.has(keyNameSplit[3])) &&
-            (keyNameSplit.length != 3 ||
+            (keyNameSplit.length <= 1 ||
              !KEY_WHITELIST_PREFIX.has(keyNameSplit[0]))) {
           return;
         }
