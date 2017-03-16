@@ -155,7 +155,7 @@ export default class ReactMultiGraph extends React.Component {
     // {key, {label, [time series?]}}
     switch (this.props.size) {
       case 'large':
-        width = 600;
+        width = 800;
         height = 500;
         break;
     }
@@ -167,8 +167,15 @@ export default class ReactMultiGraph extends React.Component {
         let columnNames = this.state.data[reqIdx].columns.slice(1);
         for (let i = 0; i < columnNames.length; i++) {
           let columnName = columnNames[i];
-          let labelName = rowOpts.type == 'link' ? rowOpts.keys[i] :
-            this.shortenName(rowOpts.nodes[i].name);
+          let labelName = '';
+          // TODO - this isn't done well
+          if (rowOpts.type == 'link') {
+            labelName = rowOpts.keys[i];
+          } else if (rowOpts.type == 'node') {
+            labelName = this.shortenName(rowOpts.nodes[i].name);
+          } else {
+            labelName = columnName;
+          }
           if (!legendLabels.has(columnName)) {
             if (this.state.tracker) {
               const index = timeSeries.bisect(this.state.tracker);

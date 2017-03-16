@@ -25,6 +25,9 @@ if (!fs.existsSync(NETWORK_CONFIG_INSTANCES_PATH + networkConfig)) {
 }
 const app = express();
 const charts = require('./charts');
+charts.refreshKeyNames();
+setInterval(charts.refreshKeyNames, 30000);
+
 // new json writer
 const dataJson = require('./dataJson');
 // load the initial node/key ids and time slots
@@ -283,6 +286,17 @@ if (isDeveloping) {
     req.on('end', function() {
       // push query
       charts.queryMulti(res, httpPostData, 'chart');
+    });
+  });
+  // metric lists
+  app.post(/\/metrics$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // push query
+      charts.fetchMetricNames(res, httpPostData);
     });
   });
 

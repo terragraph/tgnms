@@ -3,6 +3,7 @@
 var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
   devtool: 'eval-source-map',
@@ -22,6 +23,9 @@ module.exports = {
       template: 'app/index.tpl.html',
       inject: true,
       filename: 'index.html'
+    }),
+    new ExtractTextPlugin('bootstrap.css', {
+      allChunks: true,
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
@@ -43,7 +47,7 @@ module.exports = {
       loader: 'json'
     }, {
       test: /\.css$/,
-      loader: 'style!css?modules&localIdentName=[name]---[local]---[hash:base64:5]'
+      loader: ExtractTextPlugin.extract("style-loader", "css-loader")
     }]
   }
 };

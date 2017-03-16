@@ -11,6 +11,8 @@ const pool = mysql.createPool({
     multipleStatements: true,
 });
 
+const METRIC_KEY_NAMES = ['snr', 'rssi', /* 'link_status' (published from controller node */];
+
 SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
                "SUM(`value`) AS value FROM `ts_value` " +
              "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
@@ -20,6 +22,14 @@ SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
              "GROUP BY `key`, `time`";
+MAC_AND_KEY = "SELECT `ts_key`.`id`, `mac`, `key`, " +
+                "UNIX_TIMESTAMP(`time`) AS time, `value` FROM `ts_value` " +
+              "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+              "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+              "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
+              "AND `ts_key`.`id` IN ? " +
+              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+              "ORDER BY `time` ASC";
 KEY_VALUES = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
                "`value` FROM `ts_value` " +
              "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
@@ -64,9 +74,42 @@ COUNT_SNR_OK = "SELECT `mac`, `key`, COUNT(*) AS total FROM `ts_value` " +
                "AND `time` > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
                "AND `value` >= 12 " +
                "GROUP BY `mac`";
-MAX_COLUMNS = 4;
+METRIC_NAMES = "SELECT `ts_key`.`id`, `mac`, `key` FROM `ts_key` " +
+               "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
+               "WHERE `mac` IN ?";
+MAX_COLUMNS = 8;
 var self = {
+  keyIds: {},
+
+  refreshKeyNames: function() {
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        return;
+      }
+      let sqlQuery = "SELECT ts_key.id, nodes.mac, ts_key.key FROM ts_key " +
+                     "JOIN (nodes) ON (nodes.id=ts_key.node_id)";
+      conn.query(sqlQuery, function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+        results.forEach(result => {
+          self.keyIds[result.id] = {
+            mac: result.mac,
+            name: result.key
+          };
+        });
+      });
+    });
+  },
+
   columnName: function (metricName) {
+    if (metricName in self.keyIds) {
+      let keyId = metricName;
+      metricName = self.keyIds[keyId].mac;
+    }
     switch (metricName) {
       case 'terra0.tx_bytes':
         return 'TX Bytes';
@@ -86,7 +129,8 @@ var self = {
         return 'Memory Utilization';
       default:
         // remove periods
-        return metricName.replace(/\./g, "");
+        return metricName;
+//        return metricName.replace(/\./g, "");
     }
   },
 
@@ -121,6 +165,82 @@ var self = {
     return endpointResults;
   },
 
+  // fetch metric names from DB
+  fetchMetricNames: function(res, jsonPostData) {
+    let postData = JSON.parse(jsonPostData);
+    if (!postData ||
+        !postData.topology ||
+        !postData.topology.nodes ||
+        !postData.topology.nodes.length) {
+      return;
+    }
+    let nodeMacs = postData.topology.nodes.map(node => {
+      return node.mac_addr;
+    });
+    // map name => node
+    let nodesByName = {};
+    postData.topology.nodes.forEach(node => {
+      nodesByName[node.name] = node;
+    });
+    // fetch all keys for nodes in topology
+    let sqlQuery = mysql.format(METRIC_NAMES, [[nodeMacs]]);
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+      conn.query(sqlQuery, function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+        let nodeMetrics = {};
+        results.forEach(result => {
+          // map node => keys
+          if (!(result.mac in nodeMetrics)) {
+            nodeMetrics[result.mac] = {};
+          }
+          nodeMetrics[result.mac][result.key] = {dbKeyId: result.id};
+        });
+        postData.topology.nodes.forEach(node => {
+          if (node.mac_addr in nodeMetrics) {
+            let nodeData = nodeMetrics[node.mac_addr];
+            Object.keys(nodeData).forEach(nodeKey => {
+              nodeData[nodeKey]['nodeName'] = node.name;
+            });
+          }
+        });
+        // format all node + link stats
+        // return list of key => name
+        postData.topology.links.forEach(link => {
+          // format the metric names
+          let aNode = nodesByName[link.a_node_name];
+          let zNode = nodesByName[link.z_node_name];
+          let metricNamesMapping = {};
+          METRIC_KEY_NAMES.forEach(metricName => {
+            let keyName = self.formatKeyName(
+                metricName,
+                {name: aNode.name, mac: aNode.mac_addr},
+                {name: zNode.name, mac: zNode.mac_addr});
+            metricNamesMapping[keyName] = metricName;
+            if (aNode.mac_addr in nodeMetrics &&
+                keyName in nodeMetrics[aNode.mac_addr]) {
+              let nodeData = nodeMetrics[aNode.mac_addr][keyName];
+              nodeData['displayName'] = metricName;
+              nodeData['linkName'] = 'link ' + aNode.name + ' - ' + zNode.name;
+              nodeData['nodeName'] = aNode.name;
+            }
+          });
+        });
+        res.json({
+          'metrics': nodeMetrics,
+        });
+      });
+    });
+  },
+
   timePeriod: function(secondDiff) {
     if (secondDiff > (60 * 60)) {
       return self.round(secondDiff/60/60) + ' hours';
@@ -135,7 +255,18 @@ var self = {
     return Math.ceil(value * 100) / 100;
   },
 
-  formatStatsGroup: function(result, groupBy) {
+  formatStatsGroup: function(result, groupBy, keyMapping = {}) {
+    // use the data field to record the displayname
+    let dataByKey = {}, keyNames, displayNames, linkNames;
+    if (keyMapping && keyMapping.data) {
+      keyMapping.data.forEach(data => {
+        dataByKey[data.keyId] = data;
+      });
+      // check if key names are all the same, then show node names
+      keyNames = new Set(keyMapping.data.map(data => data.key));
+      displayNames = new Set(keyMapping.data.map(data => data.displayName));
+      linkNames = new Set(keyMapping.data.map(data => data.linkName));
+    }
     let columnNames = new Set();
     let dataPoints = [];
     // line up time => multiple points
@@ -151,7 +282,7 @@ var self = {
     });
     let columnNamesArr = Array.from(columnNames);
     // trim large data
-    if (columnNamesArr.length >= 5) {
+    if (columnNamesArr.length >= MAX_COLUMNS) {
       // pass through for max average value
       let sumValue = {};
       let dpCount = {};
@@ -198,9 +329,24 @@ var self = {
       }
       dataPoints.push(row);
     }
+    // determine if we should show the node or the key
     let columnDisplayNames = columnNamesArr.map(name => {
+      if (name in dataByKey) {
+        let data = dataByKey[name];
+        if (data.linkName && linkNames.size > 1) {
+          return data.linkName;
+        } else if (data.displayName && displayNames.size > 1) {
+          return data.displayName;
+        } else if (keyNames.size > 1) {
+          return data.key;
+        } else {
+          return data.nodeName;
+        }
+      }
       return self.columnName(name);
     });
+    columnDisplayNames = columnDisplayNames.map(name => 
+      name.replace(/\./g, " "));
     // drop the first and last data point since they're incomplete
     dataPoints.splice(0, 1);
     dataPoints.splice(-1, 1);
@@ -234,12 +380,15 @@ var self = {
       case 'link_status':
         return 'e2e_controller.link_status.WIRELESS.' +
                aNode.mac + '.' + zNode.mac;
-        // old key
-        //return 'link_status.' + aNode.mac + '.' + zNode.mac;
       default:
         console.error('Undefined metric:', metricName);
         return metricName;
     }
+  },
+
+  makeListQuery: function(keyIds) {
+    let sqlQuery = mysql.format(MAC_AND_KEY, [[keyIds]]);
+    return sqlQuery;
   },
 
   makeLinkQuery: function(aNode,
@@ -457,6 +606,10 @@ var self = {
           case 'link':
             return self.makeLinkQuery(query.a_node, query.z_node, query.keys);
             break;
+          case 'key_ids':
+            // just accept a list of key ids
+            return self.makeListQuery(query.key_ids);
+            break;
           default:
             console.error('Unknown query type:', query.type);
         }
@@ -484,6 +637,9 @@ var self = {
     switch (type) {
       case 'chart':
         switch (query.type) {
+          case 'key_ids':
+            return self.formatStatsGroup(result, 'id', query);
+            break;
           case 'link':
             return self.formatStatsGroup(result, 'key', query);
             break;

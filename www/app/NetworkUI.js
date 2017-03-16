@@ -11,7 +11,7 @@ import PaneMenuItem from './PaneMenuItem.js';
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkDashboard from './NetworkDashboard.js';
-import NetworkLinkDashboard from './NetworkLinkDashboard.js';
+import NetworkStats from './NetworkStats.js';
 import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
@@ -190,8 +190,8 @@ export default class NetworkUI extends React.Component {
         },
         {
           icon: 'dashboard',
-          label: 'Link Dashboard',
-          to: 'link_dashboard',
+          label: 'Stats',
+          to: 'stats',
         },
         {
           icon: 'dashboard',
@@ -253,8 +253,8 @@ export default class NetworkUI extends React.Component {
       case 'systemlogs':
         paneComponent = <SystemLogs />;
         break;
-      case 'link_dashboard':
-        paneComponent = <NetworkLinkDashboard />;
+      case 'stats':
+        paneComponent = <NetworkStats />;
         break;
       case 'alerts':
         paneComponent = <NetworkAlerts />;
