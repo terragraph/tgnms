@@ -1,0 +1,3 @@
+#!/bin/bash
+mkdir -p /var/log/mysql_partitioner
+exec svlogd /var/log/mysql_partitioner
