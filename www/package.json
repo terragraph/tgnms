@@ -35,6 +35,7 @@
     "pond": "^0.1.2",
     "pondjs": "^0.7.2",
     "react": "^0.14.3",
+    "react-bootstrap-typeahead": "^1.2.0",
     "react-dom": "^0.14.3",
     "react-layout-components": "^3.0.4",
     "react-leaflet": "^1.1.0",
