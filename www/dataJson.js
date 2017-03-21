@@ -41,8 +41,10 @@ pool.on('error', function() {
 });
 var self = {
   macAddrToNodeId: {},
+  filenameToSourceId: {},
   timeBucketIds: {},
   nodeKeyIds: {},
+  nodeFilenameIds: {},
 
   timeAlloc: function() {
     // pre allocate time buckets
@@ -90,6 +92,19 @@ var self = {
     });
   },
 
+  refreshSourceIds: function() {
+    pool.getConnection(function(err, conn) {
+      conn.query('SELECT `id`, `filename` FROM `log_sources`',
+        function(err, results) {
+          results.forEach(row => {
+            self.filenameToSourceId[row.filename] = row.id;
+          });
+          conn.release();
+        }
+      );
+    });
+  },
+
   refreshNodeKeyTimes: function() {
     pool.getConnection(function(err, conn) {
       conn.query('SELECT `id`, `node_id`, `key` FROM ts_key',
@@ -111,6 +126,21 @@ var self = {
             self.timeBucketIds[row.time] = row.id;
           });
           conn.release();
+        }
+      );
+    });
+  },
+
+  refreshNodeFilenames: function() {
+    pool.getConnection(function(err, conn) {
+      conn.query('SELECT `id`, `node_id`, `filename` FROM log_sources',
+        function(err, results) {
+          results.forEach(row => {
+            if (!(row.node_id in self.nodeFilenameIds)) {
+              self.nodeFilenameIds[row.node_id] = {};
+            }
+            self.nodeFilenameIds[row.node_id][row.filename] = row.id;
+          });
         }
       );
     });
@@ -161,6 +191,31 @@ var self = {
     self.refreshNodeKeyTimes();
   },
 
+  /*
+   * Accepts a list of <node, filename> to generate new ids
+   */
+  updateNodeFilenames: function(NodeFilenames) {
+    if (!NodeFilenames.length) {
+      return;
+    }
+
+    console.log("updateNodeFilenames");
+    console.log(NodeFilenames);
+    // insert node/key combos
+    pool.getConnection(function(err, conn) {
+      let sqlQuery = conn.query('INSERT IGNORE INTO `log_sources` (`node_id`, `filename`) VALUES ?',
+        [NodeFilenames],
+        function (err, rows) {
+          if (err) {
+            console.log('Error inserting new node/filenames', err);
+          }
+          conn.release();
+        }
+      );
+    });
+    self.refreshNodeFilenames();
+  },
+
   timeCalc: function(timeInNs) {
     let min = 1480000000000000000;
     let max = 1500000000000000000;
@@ -178,6 +233,18 @@ var self = {
     }
   },
 
+  timeCalcUsec: function(timeInUs) {
+    let min = 1480000000000000;
+    let max = 1500000000000000;
+    if (timeInUs < max && timeInUs > min) {
+      // looks like the time format we're expecting, proceed
+      let d = new Date(timeInUs/1000);
+      return d;
+    } else {
+      return new Date();
+    }
+  },
+
   writeData: function(postData) {
     let data = JSON.parse(postData);
     // agents, topology
@@ -189,7 +256,7 @@ var self = {
       agent.stats.forEach(stat => {
         // check key
         let keyNameSplit = stat.key.split(".");
-        if (!KEY_WHITELIST.has(stat.key) && 
+        if (!KEY_WHITELIST.has(stat.key) &&
             (keyNameSplit.length != 4 ||
              !KEY_WHITELIST_SUFFIX.has(keyNameSplit[3])) &&
             (keyNameSplit.length <= 1 ||
@@ -267,6 +334,81 @@ var self = {
       insertRows('ts_value', remainRows, 0);
     } else {
       console.log('writeData request with', postData.length, 'bytes and',
+                  badTime, 'invalid timestamp failures');
+    }
+  },
+
+  writeLogs: function(postData) {
+    let data = JSON.parse(postData);
+    // agents, topology
+    let rows = [];
+    let unknownMacs = new Set();
+    let missingNodeFilenames = [];
+    let badTime = 0;
+    data.agents.forEach(agent => {
+      // missing node in table
+      if (!(agent.mac in self.macAddrToNodeId)) {
+        unknownMacs.add(agent.mac);
+        console.log('unknown mac', agent.mac);
+        return;
+      }
+      let nodeId = self.macAddrToNodeId[agent.mac];
+
+      agent.logs.forEach(logMsg => {
+        // verify node/filename combo exists
+        if (nodeId in self.nodeFilenameIds &&
+            logMsg.file in self.nodeFilenameIds[nodeId]) {
+          // found node/filename id for insert
+          let row = [logMsg.log,
+                     self.timeCalcUsec(logMsg.ts),
+                     self.nodeFilenameIds[nodeId][logMsg.file]];
+          rows.push(row);
+        } else {
+          ;
+          if (!missingNodeFilenames.some(function(a){return ((a[0] === nodeId) && (a[1] === logMsg.file))})) {
+            console.log('Missing cache for', nodeId, '/', logMsg.file);
+            missingNodeFilenames.push([nodeId, logMsg.file]);
+          }
+        }
+      });
+    });
+    // write newly found macs
+    self.updateNodeIds(Array.from(unknownMacs));
+    // write newly found node/filename combos
+    self.updateNodeFilenames(missingNodeFilenames);
+    // insert rows
+    let insertRows = function(tableName, rows, remain) {
+      pool.getConnection(function(err, conn) {
+        if (err) {
+          console.log('pool error', err);
+          return;
+        }
+        conn.query('INSERT INTO ' + tableName +
+                   '(`log`, `timestamp`, `source_id`) VALUES ?',
+                   [rows],
+          function(err, result) {
+            if (err) {
+              console.log('Some error', err);
+            }
+            conn.release();
+          }
+        );
+      });
+      console.log("Inserted", rows.length, "rows into", tableName,
+                  ",", remain, "remaining");
+    };
+    if (rows.length) {
+      let bucketSize = 10000;
+      let remainRows = rows;
+      while (remainRows.length > bucketSize) {
+        // slice rows into buckets of 10k rows
+        let sliceRows = remainRows.slice(0, bucketSize);
+        insertRows('sys_logs', sliceRows, remainRows.length);
+        remainRows = remainRows.splice(bucketSize);
+      }
+      insertRows('sys_logs', remainRows, 0);
+    } else {
+      console.log('writeLogs request with', postData.length, 'bytes and',
                   badTime, 'invalid timestamp failures');
     }
   }

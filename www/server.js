@@ -24,14 +24,15 @@ if (!fs.existsSync(NETWORK_CONFIG_INSTANCES_PATH + networkConfig)) {
   process.exit(1)
 }
 const app = express();
-const charts = require('./charts');
-charts.refreshKeyNames();
-setInterval(charts.refreshKeyNames, 30000);
+const queryHelper = require('./queryHelper');
+queryHelper.refreshKeyNames();
+setInterval(queryHelper.refreshKeyNames, 30000);
 
 // new json writer
 const dataJson = require('./dataJson');
 // load the initial node/key ids and time slots
 dataJson.refreshNodeIds();
+dataJson.refreshNodeFilenames();
 dataJson.timeAlloc();
 dataJson.scheduleTimeAlloc();
 const elasticHelper = require('./elastic');
@@ -45,7 +46,7 @@ const pty = require('pty.js');
 var fileTopologies = [];
 var configs = [];
 var elasticEventLogsTables = {};
-var elasticSystemLogsSources = {};
+var systemLogsSources = {};
 var topologies_index = 0;
 var receivedTopologies = [];
 var ctrlStatusDumps = [];
@@ -126,6 +127,21 @@ if (isDeveloping) {
       dataJson.writeData(httpPostData);
     });
   });
+  app.use(/\/logs_writer$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // relay the msg to datadb
+      if (!httpPostData.length) {
+        return;
+      }
+      // update mysql time series db
+      res.status(204).end("Submitted");
+      dataJson.writeLogs(httpPostData);
+    });
+  });
   // Read list of event logging Tables
   fs.readFile('./config/event_logging_tables.json', 'utf-8', (err, data) => {
     // unable to open file, exit
@@ -143,7 +159,7 @@ if (isDeveloping) {
       res.status(500).send(err.stack);
       return;
     }
-    elasticSystemLogsSources = JSON.parse(data);
+    systemLogsSources = JSON.parse(data);
   });
 
   // serve static js + css
@@ -232,7 +248,7 @@ if (isDeveloping) {
 
   // single node
   app.get(/\/chart\/([a-z_]+)\/([a-z0-9\:\,]+)$/i, function (req, res, next) {
-    charts.query(req, res, next);
+    queryHelper.query(req, res, next);
   });
   app.get(/\/elastic\/getEventLogsTables/, function(req, res, next) {
     res.json(elasticEventLogsTables);
@@ -240,11 +256,20 @@ if (isDeveloping) {
   app.get(/\/elastic\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (req, res, next) {
     elasticHelper.getEventLogs(elasticEventLogsTables, req, res, next);
   });
-  app.get(/\/elastic\/getSystemLogsSources/, function(req, res, next) {
-    res.json(elasticSystemLogsSources);
+  app.get(/\/getSystemLogsSources/, function(req, res, next) {
+    res.json(systemLogsSources);
   });
-  app.get(/\/elastic\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)$/i, function (req, res, next) {
-    elasticHelper.getSystemLogs(elasticSystemLogsSources, req, res, next);
+  app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)$/i, function (req, res, next) {
+    let sourceName = req.params[0];
+    let from = parseInt(req.params[1]);
+    let size = parseInt(req.params[2]);
+    let mac_addr =  req.params[3];
+    for (var i = 0, len = systemLogsSources.sources.length; i < len; i++) {
+      if(sourceName == systemLogsSources.sources[i].name) {
+        queryHelper.fetchSysLogs(res, mac_addr, systemLogsSources.sources[i].index, from, size);
+        break;
+      }
+    }
   });
   app.get(/\/elastic\/getAlerts\/(.+)$/i, function (req, res, next) {
     elasticHelper.getAlerts(req, res, next);
@@ -265,9 +290,9 @@ if (isDeveloping) {
     });
     req.on('end', function() {
       // push query
-      charts.queryMulti(res, httpPostData, 'event');
+      queryHelper.queryMulti(res, httpPostData, 'event');
     });
-    /*charts.fetchMulti(res,[
+    /*queryHelper.fetchMulti(res,[
       {
         type: 'link',
         a_node: {name: "terra121.f5.td.a404-if", mac: "00:00:00:10:0d:42"},
@@ -285,7 +310,7 @@ if (isDeveloping) {
     });
     req.on('end', function() {
       // push query
-      charts.queryMulti(res, httpPostData, 'chart');
+      queryHelper.queryMulti(res, httpPostData, 'chart');
     });
   });
   // metric lists
@@ -296,7 +321,7 @@ if (isDeveloping) {
     });
     req.on('end', function() {
       // push query
-      charts.fetchMetricNames(res, httpPostData);
+      queryHelper.fetchMetricNames(res, httpPostData);
     });
   });
 
@@ -318,7 +343,7 @@ if (isDeveloping) {
       res.status(500).send('No topology data for: ' + topologyName);
       return;
     }
-    charts.makeTableQuery(res, topology);
+    queryHelper.makeTableQuery(res, topology);
   });
 
   // proxy requests for OSM to a v6 endpoint

@@ -73,7 +73,7 @@ export default class SystemLogs extends React.Component {
   }
 
   getConfigs() {
-    let getLogSources = new Request('/elastic/getSystemLogsSources/');
+    let getLogSources = new Request('/getSystemLogsSources/');
     fetch(getLogSources).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -88,13 +88,13 @@ export default class SystemLogs extends React.Component {
   loadClick(e) {
     if (this.state.selectedNodeMac && this.state.selectedSourceName) {
       return new Promise((resolve, reject) => {
-        let exec = new Request('/elastic/getSystemLogs/'+ this.state.selectedSourceName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.selectedNodeMac);
+        let exec = new Request('/getSystemLogs/'+ this.state.selectedSourceName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.selectedNodeMac);
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             response.json().then(function(json) {
               var text = ""
               json.forEach(line => {
-                text = line._source.log + "\n" + text;
+                text = line + "\n" + text;
               });
               this.setState({
                 logText: text,

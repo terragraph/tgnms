@@ -86,6 +86,15 @@ COUNT_SNR_OK = "SELECT `mac`, `key`, COUNT(*) AS total FROM `ts_value` " +
 METRIC_NAMES = "SELECT `ts_key`.`id`, `mac`, `key` FROM `ts_key` " +
                "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
                "WHERE `mac` IN ?";
+
+SYSLOG_BY_MAC = "SELECT `log` FROM `sys_logs` " +
+                "JOIN (`log_sources`) ON (`log_sources`.`id`=`sys_logs`.`source_id`) " +
+                "JOIN (`nodes`) ON (`nodes`.`id`=`log_sources`.`node_id`) " +
+                "WHERE `mac` = ? " +
+                "AND `filename` = ? " +
+                "ORDER BY `sys_logs`.`id` DESC " +
+                "LIMIT ?, ?;";
+
 MAX_COLUMNS = 8;
 var self = {
   keyIds: {},
@@ -371,8 +380,8 @@ var self = {
       }
       return self.columnName(name);
     });
-    
-    columnDisplayNames = columnDisplayNames.map(name => 
+
+    columnDisplayNames = columnDisplayNames.map(name =>
       name.replace(/\./g, " "));
     // drop the first and last data point since they're incomplete
     dataPoints.splice(0, 1);
@@ -671,6 +680,32 @@ var self = {
           retResults.push(self.processResults(results, queries[0], resultType));
         }
         res.json(retResults);
+      });
+    });
+  },
+
+  fetchSysLogs: function(res, mac_addr, filename, from, size) {
+    // execute query
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+
+      let fields = [mac_addr, filename, from, size];
+      let sqlQuery = mysql.format(SYSLOG_BY_MAC, fields);
+      conn.query(sqlQuery, function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+        let dataPoints = [];
+        results.forEach(row => {
+          dataPoints.push(row.log);
+        });
+        res.json(dataPoints);
       });
     });
   },
