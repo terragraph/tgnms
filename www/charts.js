@@ -11,7 +11,16 @@ const pool = mysql.createPool({
     multipleStatements: true,
 });
 
-const METRIC_KEY_NAMES = ['snr', 'rssi', /* 'link_status' (published from controller node */];
+const METRIC_KEY_NAMES = [
+  'snr',
+  'rssi',
+  'mcs',
+  'per',
+  'tx_power',
+  'tx_ok',
+  'rx_ok',
+  /* 'link_status' (published from controller node */
+];
 
 SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
                "SUM(`value`) AS value FROM `ts_value` " +
@@ -197,19 +206,35 @@ var self = {
           return;
         }
         let nodeMetrics = {};
+        let siteMetrics = {};
         results.forEach(result => {
-          // map node => keys
-          if (!(result.mac in nodeMetrics)) {
-            nodeMetrics[result.mac] = {};
+          // filter results
+          if (result.key.endsWith("count.0") ||
+              result.key.endsWith("count.600") ||
+              result.key.endsWith("count.3600")) {
+            return;
           }
-          nodeMetrics[result.mac][result.key] = {dbKeyId: result.id};
+          let mac = result.mac.toLowerCase();
+          // map node => keys
+          if (!(mac in nodeMetrics)) {
+            nodeMetrics[mac] = {};
+          }
+          nodeMetrics[mac][result.key] = {
+            dbKeyId: result.id
+          };
         });
+        // index by siteData['Site-A']['nodeName'] = [];
         postData.topology.nodes.forEach(node => {
-          if (node.mac_addr in nodeMetrics) {
-            let nodeData = nodeMetrics[node.mac_addr];
-            Object.keys(nodeData).forEach(nodeKey => {
-              nodeData[nodeKey]['nodeName'] = node.name;
-            });
+          let mac = node.mac_addr.toLowerCase();
+          if (mac in nodeMetrics) {
+            let nodeData = nodeMetrics[mac];
+            if (!(node.site_name in siteMetrics)) {
+              siteMetrics[node.site_name] = {};
+            }
+            if (!(node.name in siteMetrics[node.site_name])) {
+              siteMetrics[node.site_name][node.name] = [];
+            }
+            siteMetrics[node.site_name][node.name] = nodeData;
           }
         });
         // format all node + link stats
@@ -229,13 +254,12 @@ var self = {
                 keyName in nodeMetrics[aNode.mac_addr]) {
               let nodeData = nodeMetrics[aNode.mac_addr][keyName];
               nodeData['displayName'] = metricName;
-              nodeData['linkName'] = 'link ' + aNode.name + ' - ' + zNode.name;
-              nodeData['nodeName'] = aNode.name;
+              nodeData['linkName'] = link.name;
             }
           });
         });
         res.json({
-          'metrics': nodeMetrics,
+          'site_metrics': siteMetrics,
         });
       });
     });
@@ -339,12 +363,15 @@ var self = {
           return data.displayName;
         } else if (keyNames.size > 1) {
           return data.key;
-        } else {
+        } else if (data.nodeName) {
           return data.nodeName;
+        } else {
+          return data.node;
         }
       }
       return self.columnName(name);
     });
+    
     columnDisplayNames = columnDisplayNames.map(name => 
       name.replace(/\./g, " "));
     // drop the first and last data point since they're incomplete
@@ -377,6 +404,21 @@ var self = {
       case 'snr':
         // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
         return 'tgf.' + zNode.mac + '.phystatus.ssnrEst';
+      case 'mcs':
+        // tgf.38:3a:21:b0:05:d1.staPkt.mcs
+        return 'tgf.' + zNode.mac + '.staPkt.mcs';
+      case 'per':
+        // tgf.38:3a:21:b0:05:d1.staPkt.perE6
+        return 'tgf.' + zNode.mac + '.staPkt.perE6';
+      case 'rx_ok':
+        // tgf.38:3a:21:b0:05:d1.staPkt.perE6
+        return 'tgf.' + zNode.mac + '.staPkt.rxOk';
+      case 'tx_ok':
+        // tgf.38:3a:21:b0:05:d1.staPkt.perE6
+        return 'tgf.' + zNode.mac + '.staPkt.txOk';
+      case 'tx_power':
+        // tgf.38:3a:21:b0:05:d1.tpcStats.txPowerIndex
+        return 'tgf.' + zNode.mac + '.tpcStats.txPowerIndex';
       case 'link_status':
         return 'e2e_controller.link_status.WIRELESS.' +
                aNode.mac + '.' + zNode.mac;

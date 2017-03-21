@@ -12,7 +12,7 @@ import NetworkStore from './NetworkStore.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import { SpringGrid } from 'react-stonecutter';
 import { ScaleModal } from 'boron';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import { Menu, MenuItem, Token, Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Token.css';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 
@@ -78,11 +78,18 @@ const TIME_PICKER_OPTS = [
     minAgo: 60 * 6,
   },
 ];
+
+const MenuDivider = props => <li className="divider" role="separator" />;
+const MenuHeader = props => <li {...props} className="dropdown-header" />;
+
 export default class NetworkStats extends React.Component {
   state = {
     topologyJson: {},
     // type-ahead data
-    metricNames: [],
+    siteMetrics: {},
+    // filters
+    siteNames: [],
+    linkNames: [],
     // type-ahead graphs
     taGraphs: [],
     minAgo: 60,
@@ -115,29 +122,8 @@ export default class NetworkStats extends React.Component {
         return;
       }
       let data = JSON.parse(this.metricRequest.responseText);
-      let uniqMetricNames = {};
-      // list all metrics we can display
-      Object.keys(data.metrics).forEach(nodeName => {
-        let node = data.metrics[nodeName];
-        Object.keys(node).forEach(keyName => {
-          let value = node[keyName];
-          // key to use for searching
-          let newKey = value.displayName ? value.displayName : keyName;
-          if (!(newKey in uniqMetricNames)) {
-            uniqMetricNames[newKey] = [];
-          }
-          uniqMetricNames[newKey].push({
-            key: keyName,
-            node: nodeName,
-            keyId: value.dbKeyId,
-            displayName: value.displayName ? value.displayName : '',
-            linkName: value.linkName ? value.linkName : '',
-            nodeName: value.nodeName ? value.nodeName : '',
-          });
-        });
-      });
       this.setState({
-        metricNames: uniqMetricNames,
+        siteMetrics: data.site_metrics,
       });
     }.bind(this);
     try {
@@ -161,15 +147,16 @@ export default class NetworkStats extends React.Component {
           topologyJson: payload.networkConfig.topology,
         });
         // update metric names now that we have a topology
-        if (!this.state.metricNames.length) {
+        if (!this.state.siteMetrics) {
           this.refreshData();
         }
         break;
       case Actions.TOPOLOGY_SELECTED:
         // clear selected data
-        this._typeahead.getInstance().clear();
+        this._typeaheadNode.getInstance().clear();
+        this._typeaheadKey.getInstance().clear();
         this.setState({
-          metricNames: [],
+          siteMetrics: {},
         });
         break;
     }
@@ -191,6 +178,61 @@ export default class NetworkStats extends React.Component {
     this.setState({
       taGraphs: selectedOpts,
     });
+  }
+
+  nodeSelectionChanged(selectedOpts) {
+    let siteNames = [];
+    let linkNames = [];
+    selectedOpts.forEach(opts => {
+      if (opts.restrictor.siteName) {
+        siteNames.push(opts.restrictor.siteName);
+      }
+      if (opts.restrictor.linkName) {
+        linkNames.push(opts.restrictor.linkName);
+      }
+    });
+    // restrict metric/key data
+    this.setState({
+      siteNames: siteNames,
+      linkNames: linkNames,
+    });
+    // clear key list
+    this._typeaheadKey.getInstance().clear();
+  }
+
+  renderTypeaheadRestrictorMenu(results, menuProps) {
+    let i = 0;
+    const items = results.map(item => {
+      i++;
+      if (item.type) {
+        return [
+          <MenuDivider key={"divider" + i} />,
+          <MenuHeader key={"header" + i}>{item.type}</MenuHeader>,
+          <MenuItem option={item} key={"item" + i}>{item.name}</MenuItem>
+        ];
+      }
+      return [
+        <MenuItem option={item} key={"item" + i}>{item.name}</MenuItem>
+      ];
+    });
+    return <Menu {...menuProps}>{items}</Menu>;
+  }
+
+  renderTypeaheadKeyMenu(option, props, index) {
+    if (option.data.length > 1) {
+      return [
+        <strong key="name">{option.name}</strong>,
+        <div key="data">
+          Nodes: {option.data.length}
+        </div>
+      ];
+    }
+    return [
+      <strong key="name">{option.name}</strong>,
+      <div key="data">
+        Site: {option.data[0].siteName}
+      </div>
+    ];
   }
 
   render() {
@@ -247,15 +289,78 @@ export default class NetworkStats extends React.Component {
         },
       };
     });
-    let options = [];
-    Object.keys(this.state.metricNames).forEach(key => {
-      let metrics = this.state.metricNames[key];
+    let keyOptions = [];
+    let uniqMetricNames = {};
+    Object.keys(this.state.siteMetrics).forEach(siteName => {
+      if (this.state.siteNames.length &&
+          !this.state.siteNames.includes(siteName)) {
+        return;
+      }
+      let nodeMetrics = this.state.siteMetrics[siteName];
+      Object.keys(nodeMetrics).forEach(nodeName => {
+        let metrics = nodeMetrics[nodeName];
+        // filter metrics
+        Object.keys(metrics).forEach(metricName => {
+          let metric = metrics[metricName];
+          if (this.state.linkNames.length &&
+              (!metric.linkName ||
+               !this.state.linkNames.includes(metric.linkName))) {
+            return;
+          }
+          let newKey = metric.displayName ? metric.displayName : metricName;
+          if (!(newKey in uniqMetricNames)) {
+            uniqMetricNames[newKey] = [];
+          }
+          let rowData = {
+            key: newKey,
+            node: nodeName,
+            keyId: metric.dbKeyId,
+            nodeName: nodeName,
+            siteName: siteName,
+            displayName: metric.displayName ? metric.displayName : '',
+            linkName: metric.linkName ? metric.linkName : '',
+          };
+          uniqMetricNames[newKey].push(rowData);
+        });
+      });
       // add one entry for each metric name (or full key name)
-      options.push({
-        name: metrics.length > 1 ? key + ' (' + metrics.length + ' nodes)' : key,
+    });
+    Object.keys(uniqMetricNames).forEach(metricName => {
+      let metrics = uniqMetricNames[metricName];
+      keyOptions.push({
+        name: metricName,
         data: metrics,
       });
     });
+    // add the list of node restrictors
+    let nodeOptions = [];
+    let i = 0;
+    this.state.topologyJson.sites.forEach(site => {
+      nodeOptions.push({
+        name: "Site " + site.name,
+        type: !i ? 'Sites' : '',
+        restrictor: {
+          siteName: site.name,
+        },
+      });
+      i++;
+    });
+    i = 0;
+    this.state.topologyJson.links.forEach(link => {
+      // skip wired links
+      if (link.link_type == 2) {
+        return;
+      }
+      nodeOptions.push({
+        name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
+        type: !i ? 'Links' : '',
+        restrictor: {
+          linkName: link.name,
+        },
+      });
+      i++;
+    });
+    // all graphs
     let pos = 0;
     let multiGraphs = this.state.taGraphs.map(keyIds => {
       let graphOpts = [{
@@ -271,13 +376,28 @@ export default class NetworkStats extends React.Component {
           size="large"/>
       );
     });
+
     return (
       <div width="800">
         <Typeahead
+          key="nodes"
           labelKey="name"
           multiple
-          options={options}
-          ref={ref => this._typeahead = ref}
+          options={nodeOptions}
+          ref={ref => this._typeaheadNode = ref}
+          renderMenu={this.renderTypeaheadRestrictorMenu.bind(this)}
+          paginate={true}
+          onChange={this.nodeSelectionChanged.bind(this)}
+          placeholder="Node Options"
+        />
+        <Typeahead
+          key="keys"
+          labelKey="name"
+          multiple
+          options={keyOptions}
+          ref={ref => this._typeaheadKey = ref}
+          renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(this)}
+          paginate={true}
           onChange={this.metricSelectionChanged.bind(this)}
           placeholder="Enter metric/key name"
         />

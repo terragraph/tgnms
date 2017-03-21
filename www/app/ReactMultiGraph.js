@@ -77,6 +77,7 @@ export default class ReactMultiGraph extends React.Component {
   }
 
   handleTrackerChanged(tracker) {
+    // need to find the series first
     this.setState({tracker});
   }
 
@@ -135,6 +136,27 @@ export default class ReactMultiGraph extends React.Component {
   shortenName(name) {
     // shorten name for tg lab nodes
     return name.replace(".tg.a404-if","");
+  }
+
+  renderMarker() {
+    if (!this.state.tracker) {
+      return <g />;
+    }
+    return
+      <EventMarker
+        type="flag"
+        axis="axis"
+        event={this.state.tracker}
+        column=""
+        info={[{
+          label: "Test",
+          value: 2
+        }]}
+        infoTimeFormat="%Y"
+        infoWidth={120}
+        markerRadius={2}
+        markerStyle={{fill: "black" }}
+      />;
   }
 
   render() {
