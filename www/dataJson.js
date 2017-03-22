@@ -11,17 +11,19 @@ const KEY_WHITELIST_PREFIX = new Set([
   'aquaman',
   'decision',
   'e2e_minion',
+  'e2e_controller',
   'eth0',
+  'link',
+  'link_status',
+  'mem',
+  'mount',
   'nic0',
   'nic1',
   'nic2',
-  'terra0',
-  'mem',
-  'mount',
   'procs',
   'spark',
+  'terra0',
   'tgf',
-  'link_status'
 ]);
 const mysql = require('mysql');
 const pool = mysql.createPool({
@@ -44,6 +46,7 @@ var self = {
   filenameToSourceId: {},
   timeBucketIds: {},
   nodeKeyIds: {},
+  droppedKeyNames: new Set(),
   nodeFilenameIds: {},
 
   timeAlloc: function() {
@@ -105,6 +108,11 @@ var self = {
     });
   },
 
+  /*
+   * Refresh node key mappings, dropped key names, and time bucket ids
+   * TODO: This should be split up so we don't need to refresh everything
+   * on each update
+   */
   refreshNodeKeyTimes: function() {
     pool.getConnection(function(err, conn) {
       conn.query('SELECT `id`, `node_id`, `key` FROM ts_key',
@@ -114,6 +122,14 @@ var self = {
               self.nodeKeyIds[row.node_id] = {};
             }
             self.nodeKeyIds[row.node_id][row.key] = row.id;
+          });
+        }
+      );
+      // dropped keys
+      conn.query('SELECT `key` FROM ts_key_dropped',
+        function(err, results) {
+          results.forEach(row => {
+            self.droppedKeyNames.add(row.key);
           });
         }
       );
@@ -192,6 +208,28 @@ var self = {
   },
 
   /*
+   * Accepts a list of keys that we've dropped
+   */
+  updateDroppedKeys: function(keyNames) {
+    if (!keyNames.length) {
+      return;
+    }
+    // insert node/key combos
+    pool.getConnection(function(err, conn) {
+      let sqlQuery = conn.query('INSERT IGNORE INTO `ts_key_dropped` (`key`) VALUES ?',
+        [keyNames.map(keyName => [keyName])],
+        function (err, rows) {
+          if (err) {
+            console.log('Error inserting new dropped keys', err);
+          }
+          conn.release();
+        }
+      );
+    });
+    self.refreshNodeKeyTimes();
+  },
+
+  /*
    * Accepts a list of <node, filename> to generate new ids
    */
   updateNodeFilenames: function(NodeFilenames) {
@@ -251,6 +289,7 @@ var self = {
     let rows = [];
     let unknownMacs = new Set();
     let missingNodeKey = new Set();
+    let droppedKeys = new Set();
     let badTime = 0;
     data.agents.forEach(agent => {
       agent.stats.forEach(stat => {
@@ -261,6 +300,11 @@ var self = {
              !KEY_WHITELIST_SUFFIX.has(keyNameSplit[3])) &&
             (keyNameSplit.length <= 1 ||
              !KEY_WHITELIST_PREFIX.has(keyNameSplit[0]))) {
+          // log dropped keys
+          if (!self.droppedKeyNames.has(stat.key) &&
+              !droppedKeys.has(stat.key)) {
+            droppedKeys.add(stat.key);
+          }
           return;
         }
         // missing node in table
@@ -301,6 +345,8 @@ var self = {
     self.updateNodeIds(Array.from(unknownMacs));
     // write newly found node/key combos
     self.updateNodeKeys(Array.from(missingNodeKey));
+    // keep track of keys we're dropping
+    self.updateDroppedKeys(Array.from(droppedKeys));
     // insert rows
     let insertRows = function(tableName, rows, remain) {
       pool.getConnection(function(err, conn) {
@@ -320,7 +366,7 @@ var self = {
         );
       });
       console.log("Inserted", rows.length, "rows into", tableName,
-                  ",", remain, "remaining");
+                  remain, "remaining");
     };
     if (rows.length) {
       let bucketSize = 10000;
