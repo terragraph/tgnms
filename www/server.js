@@ -33,6 +33,7 @@ const dataJson = require('./dataJson');
 // load the initial node/key ids and time slots
 dataJson.refreshNodeIds();
 dataJson.refreshNodeFilenames();
+dataJson.refreshNodeCategories();
 dataJson.timeAlloc();
 dataJson.scheduleTimeAlloc();
 const elasticHelper = require('./elastic');
@@ -45,7 +46,7 @@ const pty = require('pty.js');
 
 var fileTopologies = [];
 var configs = [];
-var elasticEventLogsTables = {};
+var eventLogsTables = {};
 var systemLogsSources = {};
 var topologies_index = 0;
 var receivedTopologies = [];
@@ -63,6 +64,43 @@ function periodicNetworkStatus() {
     controllerProxy.getStatusDump(i, configs, ctrlStatusDumps);
     aggregatorProxy.getStatusDump(i, configs, aggrStatusDumps);
   }
+}
+
+function getTopologyByName(topologyName) {
+  for (var i = 0, len = configs.length; i < len; i++) {
+    if(topologyName == configs[i].name) {
+      let topology = {};
+      // ensure received topology looks valid-ish before using
+      if (receivedTopologies[i] && receivedTopologies[i].nodes) {
+        topology = receivedTopologies[i];
+      } else {
+        topology = fileTopologies[i];
+      }
+      // over-ride the topology name since many don't use
+      if (!topology.name) {
+        console.error('No topology name received from controller for',
+                      configs[i].name, '[', configs[i].controller_ip, ']');
+        // force the original name if the controller has no name
+        topology.name = fileTopologies[i].name;
+      }
+      let status = ctrlStatusDumps[i];
+      let nodes = topology.nodes;
+      for (var j = 0; j < nodes.length; j++) {
+        if (status && status.statusReports) {
+          topology.nodes[j]["status_dump"] =
+            status.statusReports[nodes[j].mac_addr];
+        }
+      }
+      let networkConfig = Object.assign({}, configs[i]);
+      networkConfig.topology = topology;
+      if (configs[i].site_coords_override) {
+        // swap site data
+        networkConfig.topology.sites = fileTopologies[i].sites;
+      }
+      return networkConfig;
+    }
+  }
+  return {};
 }
 
 if (isDeveloping) {
@@ -142,6 +180,21 @@ if (isDeveloping) {
       dataJson.writeLogs(httpPostData);
     });
   });
+  app.use(/\/events_writer$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // relay the msg to datadb
+      if (!httpPostData.length) {
+        return;
+      }
+      // update mysql time series db
+      res.status(204).end("Submitted");
+      dataJson.writeEvents(httpPostData);
+    });
+  });
   // Read list of event logging Tables
   fs.readFile('./config/event_logging_tables.json', 'utf-8', (err, data) => {
     // unable to open file, exit
@@ -149,7 +202,7 @@ if (isDeveloping) {
       res.status(500).send(err.stack);
       return;
     }
-    elasticEventLogsTables = JSON.parse(data);
+    eventLogsTables = JSON.parse(data);
   });
 
   // Read list of system logging sources
@@ -250,11 +303,30 @@ if (isDeveloping) {
   app.get(/\/chart\/([a-z_]+)\/([a-z0-9\:\,]+)$/i, function (req, res, next) {
     queryHelper.query(req, res, next);
   });
-  app.get(/\/elastic\/getEventLogsTables/, function(req, res, next) {
-    res.json(elasticEventLogsTables);
+  app.get(/\/getEventLogsTables/, function(req, res, next) {
+    res.json(eventLogsTables);
   });
-  app.get(/\/elastic\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (req, res, next) {
-    elasticHelper.getEventLogs(elasticEventLogsTables, req, res, next);
+  app.get(/\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)$/i, function (req, res, next) {
+    let tableName = req.params[0];
+    let from = parseInt(req.params[1]);
+    let size = parseInt(req.params[2]);
+    let topologyName = req.params[3];
+    let topology = getTopologyByName(topologyName);
+
+    var mac_addr = [];
+    if (topology) {
+      let nodes = topology.topology.nodes;
+      for (var j = 0; j < nodes.length; j++) {
+        mac_addr.push(nodes[j].mac_addr);
+      }
+
+      for (var i = 0, len = eventLogsTables.tables.length; i < len; i++) {
+        if(tableName == eventLogsTables.tables[i].name) {
+          queryHelper.fetchEventLogs(res, mac_addr, eventLogsTables.tables[i].category, from, size);
+          break;
+        }
+      }
+    }
   });
   app.get(/\/getSystemLogsSources/, function(req, res, next) {
     res.json(systemLogsSources);
@@ -378,40 +450,10 @@ if (isDeveloping) {
 
   app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
     let topologyName = req.params[0];
-    for (var i = 0, len = configs.length; i < len; i++) {
-      if(topologyName == configs[i].name) {
-        let topology = {};
-        // ensure received topology looks valid-ish before using
-        if (receivedTopologies[i] && receivedTopologies[i].nodes) {
-          topology = receivedTopologies[i];
-        } else {
-          topology = fileTopologies[i];
-        }
-        // over-ride the topology name since many don't use
-        if (!topology.name) {
-          console.error('No topology name received from controller for',
-                        configs[i].name, '[', configs[i].controller_ip, ']');
-          // force the original name if the controller has no name
-          topology.name = fileTopologies[i].name;
-        }
-        let status = ctrlStatusDumps[i];
-        let nodes = topology.nodes;
-        for (var j = 0; j < nodes.length; j++) {
-          if (status && status.statusReports) {
-            topology.nodes[j]["status_dump"] =
-              status.statusReports[nodes[j].mac_addr];
-          }
-        }
-        let networkConfig = Object.assign({}, configs[i]);
-        networkConfig.topology = topology;
-        if (configs[i].site_coords_override) {
-          // swap site data
-          networkConfig.topology.sites = fileTopologies[i].sites;
-        }
-        res.json(networkConfig);
-        return;
-      }
-      // return error on unknown topology
+    var topology = getTopologyByName(topologyName);
+    if (topology) {
+      res.json(topology);
+      return;
     }
     res.status(404).end("No such topology\n");
   });

@@ -43,11 +43,11 @@ pool.on('error', function() {
 });
 var self = {
   macAddrToNodeId: {},
-  filenameToSourceId: {},
   timeBucketIds: {},
   nodeKeyIds: {},
   droppedKeyNames: new Set(),
   nodeFilenameIds: {},
+  nodeCategoryIds: {},
 
   timeAlloc: function() {
     // pre allocate time buckets
@@ -88,19 +88,6 @@ var self = {
         function(err, results) {
           results.forEach(row => {
             self.macAddrToNodeId[row.mac.toLowerCase()] = row.id;
-          });
-          conn.release();
-        }
-      );
-    });
-  },
-
-  refreshSourceIds: function() {
-    pool.getConnection(function(err, conn) {
-      conn.query('SELECT `id`, `filename` FROM `log_sources`',
-        function(err, results) {
-          results.forEach(row => {
-            self.filenameToSourceId[row.filename] = row.id;
           });
           conn.release();
         }
@@ -156,6 +143,21 @@ var self = {
               self.nodeFilenameIds[row.node_id] = {};
             }
             self.nodeFilenameIds[row.node_id][row.filename] = row.id;
+          });
+        }
+      );
+    });
+  },
+
+  refreshNodeCategories: function() {
+    pool.getConnection(function(err, conn) {
+      conn.query('SELECT `id`, `node_id`, `category` FROM event_categories',
+        function(err, results) {
+          results.forEach(row => {
+            if (!(row.node_id in self.nodeCategoryIds)) {
+              self.nodeCategoryIds[row.node_id] = {};
+            }
+            self.nodeCategoryIds[row.node_id][row.category] = row.id;
           });
         }
       );
@@ -236,10 +238,7 @@ var self = {
     if (!NodeFilenames.length) {
       return;
     }
-
-    console.log("updateNodeFilenames");
-    console.log(NodeFilenames);
-    // insert node/key combos
+    // insert node/filename combos
     pool.getConnection(function(err, conn) {
       let sqlQuery = conn.query('INSERT IGNORE INTO `log_sources` (`node_id`, `filename`) VALUES ?',
         [NodeFilenames],
@@ -252,6 +251,31 @@ var self = {
       );
     });
     self.refreshNodeFilenames();
+  },
+
+  /*
+   * Accepts a list of <node, category> to generate new ids
+   */
+  updateNodeCategories: function(NodeCategories) {
+    if (!NodeCategories.length) {
+      return;
+    }
+
+    console.log("updateNodeCategories");
+    console.log(NodeCategories);
+    // insert node/key combos
+    pool.getConnection(function(err, conn) {
+      let sqlQuery = conn.query('INSERT IGNORE INTO `event_categories` (`node_id`, `category`) VALUES ?',
+        [NodeCategories],
+        function (err, rows) {
+          if (err) {
+            console.log('Error inserting new node/categories', err);
+          }
+          conn.release();
+        }
+      );
+    });
+    self.refreshNodeCategories();
   },
 
   timeCalc: function(timeInNs) {
@@ -455,6 +479,81 @@ var self = {
       insertRows('sys_logs', remainRows, 0);
     } else {
       console.log('writeLogs request with', postData.length, 'bytes and',
+                  badTime, 'invalid timestamp failures');
+    }
+  },
+
+  writeEvents: function(postData) {
+    let data = JSON.parse(postData);
+    // agents, topology
+    let rows = [];
+    let unknownMacs = new Set();
+    let missingNodeCategories = [];
+    let badTime = 0;
+    data.agents.forEach(agent => {
+      // missing node in table
+      if (!(agent.mac in self.macAddrToNodeId)) {
+        unknownMacs.add(agent.mac);
+        console.log('unknown mac', agent.mac);
+        return;
+      }
+      let nodeId = self.macAddrToNodeId[agent.mac];
+
+      agent.events.forEach(eventMsg => {
+        // verify node/category combo exists
+        if (nodeId in self.nodeCategoryIds &&
+            eventMsg.category in self.nodeCategoryIds[nodeId]) {
+          // found node/category id for insert
+          let row = [eventMsg.sample,
+                     self.timeCalcUsec(eventMsg.ts),
+                     self.nodeCategoryIds[nodeId][eventMsg.category]];
+          rows.push(row);
+        } else {
+          ;
+          if (!missingNodeCategories.some(function(a){return ((a[0] === nodeId) && (a[1] === eventMsg.category))})) {
+            console.log('Missing cache for', nodeId, '/', eventMsg.category);
+            missingNodeCategories.push([nodeId, eventMsg.category]);
+          }
+        }
+      });
+    });
+    // write newly found macs
+    self.updateNodeIds(Array.from(unknownMacs));
+    // write newly found node/category combos
+    self.updateNodeCategories(missingNodeCategories);
+    // insert rows
+    let insertRows = function(tableName, rows, remain) {
+      pool.getConnection(function(err, conn) {
+        if (err) {
+          console.log('pool error', err);
+          return;
+        }
+        conn.query('INSERT INTO ' + tableName +
+                   '(`sample`, `timestamp`, `category_id`) VALUES ?',
+                   [rows],
+          function(err, result) {
+            if (err) {
+              console.log('Some error', err);
+            }
+            conn.release();
+          }
+        );
+      });
+      console.log("Inserted", rows.length, "rows into", tableName,
+                  ",", remain, "remaining");
+    };
+    if (rows.length) {
+      let bucketSize = 10000;
+      let remainRows = rows;
+      while (remainRows.length > bucketSize) {
+        // slice rows into buckets of 10k rows
+        let sliceRows = remainRows.slice(0, bucketSize);
+        insertRows('events', sliceRows, remainRows.length);
+        remainRows = remainRows.splice(bucketSize);
+      }
+      insertRows('events', remainRows, 0);
+    } else {
+      console.log('writeEvents request with', postData.length, 'bytes and',
                   badTime, 'invalid timestamp failures');
     }
   }

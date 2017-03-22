@@ -1,49 +1,8 @@
 {
   "tables": [
     {
-      "name": "CLI Usage",
-      "index": "terragraph_cli_usage",
-      "type": "tg",
-      "time": "time",
-      "display": {
-        "columns": [
-          {
-            "field": "cmd",
-            "label": "Command",
-            "width": "180"
-          },
-          {
-            "field": "time",
-            "label": "Time",
-            "width": "170",
-            "format": "TIME_MS"
-          },
-          {
-            "field": "user",
-            "label": "User",
-            "width": "80"
-          },
-          {
-            "field": "host_ip",
-            "label": "Host IP",
-            "width": "200"
-          },
-          {
-            "field": "host_name",
-            "label": "Host Name",
-            "width": "100"
-          },
-          {
-            "field": "version",
-            "label": "Version"
-          }
-        ]
-      }
-    },
-    {
       "name": "Node Status",
-      "index": "terragraph_event_logs",
-      "type": "perfpipe_terragraph_node_status",
+      "category": "perfpipe_terragraph_node_status",
       "time": "int.time",
       "display": {
         "columns": [
@@ -74,9 +33,14 @@
             "width": "180"
           },
           {
-            "field": "normal.is_connected",
-            "label": "Connected?",
-            "width": "100"
+            "field": "normal.message_type",
+            "label": "Msg Type",
+            "width": "180"
+          },
+          {
+            "field": "normal.status",
+            "label": "Status",
+            "width": "180"
           },
           {
             "field": "normal.upgrade_status",
@@ -84,16 +48,25 @@
             "width": "100"
           },
           {
+            "field": "normal.requestId",
+            "label": "Request ID",
+            "width": "100"
+          },
+          {
             "field": "normal.curr_version",
-            "label": "Version"
+            "label": "Version",
+            "width": "400"
+          },
+          {
+            "field": "normal.next_version",
+            "label": "Next Version"
           }
         ]
       }
     },
     {
       "name": "Link Status",
-      "index": "terragraph_event_logs",
-      "type": "perfpipe_terragraph_link_status",
+      "category": "perfpipe_terragraph_link_status",
       "time": "int.time",
       "display": {
         "columns": [

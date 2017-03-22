@@ -95,6 +95,14 @@ SYSLOG_BY_MAC = "SELECT `log` FROM `sys_logs` " +
                 "ORDER BY `sys_logs`.`id` DESC " +
                 "LIMIT ?, ?;";
 
+EVENTLOG_BY_MAC = "SELECT `sample` FROM `events` " +
+                "JOIN (`event_categories`) ON (`event_categories`.`id`=`events`.`category_id`) " +
+                "JOIN (`nodes`) ON (`nodes`.`id`=`event_categories`.`node_id`) " +
+                "WHERE `mac` IN ? " +
+                "AND `category` = ? " +
+                "ORDER BY `events`.`id` DESC " +
+                "LIMIT ?, ?;";
+
 MAX_COLUMNS = 8;
 var self = {
   keyIds: {},
@@ -704,6 +712,32 @@ var self = {
         let dataPoints = [];
         results.forEach(row => {
           dataPoints.push(row.log);
+        });
+        res.json(dataPoints);
+      });
+    });
+  },
+
+  fetchEventLogs: function(res, mac_addr, category, from, size) {
+    // execute query
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+
+      let fields = [[mac_addr], category, from, size];
+      let sqlQuery = mysql.format(EVENTLOG_BY_MAC, fields);
+      conn.query(sqlQuery, function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+        let dataPoints = [];
+        results.forEach(row => {
+          dataPoints.push(row.sample);
         });
         res.json(dataPoints);
       });
