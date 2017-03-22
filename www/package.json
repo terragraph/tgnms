@@ -24,6 +24,7 @@
   "dependencies": {
     "babel-cli": "^6.4.0",
     "boron": "^0.2.3",
+    "css-loader": "^0.27.3",
     "d3-format": "^1.0.2",
     "d3-time-format": "^2.0.3",
     "encoding": "^0.1.12",
@@ -42,6 +43,7 @@
     "react-stonecutter": "^0.3.3",
     "react-timeseries-charts": "^0.11.2",
     "request": "^2.79.0",
+    "style-loader": "^0.16.0",
     "utf8": "^2.1.2",
     "zmq": "^2.15.3"
   },
