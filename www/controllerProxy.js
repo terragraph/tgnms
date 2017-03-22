@@ -13,7 +13,7 @@ var self = {
       receivedTopologies[index] = {};
       config.controller_online = false;
       dealer.close();
-    }, 2000);
+    }, 4000);
 
     let dealer = zmq.socket('dealer');
     dealer.identity = 'NMS_WEB_TOPO';
@@ -68,7 +68,7 @@ var self = {
     var timeout = setTimeout(function(){
       statusDumps[index] = {};
       dealer.close();
-    }, 2000);
+    }, 4000);
 
     let dealer = zmq.socket('dealer');
     dealer.identity = 'NMS_WEB_STATUS';

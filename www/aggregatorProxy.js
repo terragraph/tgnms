@@ -12,7 +12,7 @@ var self = {
       statusDumps[index] = {};
       config.aggregator_online = false;
       dealer.close();
-    }, 2000);
+    }, 4000);
 
     let dealer = zmq.socket('dealer');
     dealer.identity = 'NMS_WEB_STATUS';
@@ -80,7 +80,7 @@ var self = {
       config.aggregator_online = false;
       dealer.close();
       res.status(404).end("No such topology\n");
-    }, 2000);
+    }, 4000);
 
     let dealer = zmq.socket('dealer');
     dealer.identity = 'NMS_WEB_ALERTS';
@@ -147,7 +147,7 @@ var self = {
       config.aggregator_online = false;
       dealer.close();
       res.status(404).end("No such topology\n");
-    }, 2000);
+    }, 4000);
 
     let dealer = zmq.socket('dealer');
     dealer.identity = 'NMS_WEB_ALERTS';
