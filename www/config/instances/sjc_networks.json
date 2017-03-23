@@ -2,7 +2,6 @@
   "topologies": [
     {
       "topology_file": "sjc_area1.json",
-      "site_coords_override": true,
       "latitude": 37.333057579551586,
       "longitude": -121.88882589372953,
       "zoom_level": 16,
