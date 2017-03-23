@@ -411,7 +411,7 @@ if (isDeveloping) {
         }
       }
     }
-    if (!topology) {
+    if (!topology.nodes || !topology.nodes.length) {
       res.status(500).send('No topology data for: ' + topologyName);
       return;
     }

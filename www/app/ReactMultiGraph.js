@@ -304,8 +304,15 @@ export default class ReactMultiGraph extends React.Component {
       color: "#999",
       height: "30px",
     };
+    // fetch the display name or key name of each graph
+    let title = this.props.options.map(opts => 
+      Array.from(new Set(opts.data.map(data =>
+        (data.displayName ? data.displayName : data.key)
+      ))).join(", ")
+    ).join("<br />");
     return (
-      <div width="700">
+      <div width="700" style={{borderBottom: '2px solid #ddd'}}>
+        <div style={{fontSize: '16px', marginLeft: '20px'}}>{title}</div>
         <div className="col-md-6" style={timeStyle}>
           {this.state.tracker ? `${df(this.state.tracker)}` : "-"}
         </div>

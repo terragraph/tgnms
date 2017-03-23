@@ -146,10 +146,8 @@ export default class NetworkStats extends React.Component {
         this.setState({
           topologyJson: payload.networkConfig.topology,
         });
-        // update metric names now that we have a topology
-        if (!this.state.siteMetrics) {
-          this.refreshData();
-        }
+        // update metric names list
+        this.refreshData();
         break;
       case Actions.TOPOLOGY_SELECTED:
         // clear selected data
@@ -157,6 +155,8 @@ export default class NetworkStats extends React.Component {
         this._typeaheadKey.getInstance().clear();
         this.setState({
           siteMetrics: {},
+          siteNames: [],
+          linkNames: [],
         });
         break;
     }
@@ -202,9 +202,11 @@ export default class NetworkStats extends React.Component {
 
   renderTypeaheadRestrictorMenu(results, menuProps) {
     let i = 0;
+    let lastType = '';
     const items = results.map(item => {
       i++;
-      if (item.type) {
+      if (item.type != lastType) {
+        lastType = item.type;
         return [
           <MenuDivider key={"divider" + i} />,
           <MenuHeader key={"header" + i}>{item.type}</MenuHeader>,
@@ -233,6 +235,31 @@ export default class NetworkStats extends React.Component {
         Site: {option.data[0].siteName}
       </div>
     ];
+  }
+  renderNodeOptions() {
+    let nodeOptions = this.state.topologyJson.sites.map(site => {
+      return {
+        name: "Site " + site.name,
+        type: 'Sites',
+        restrictor: {
+          siteName: site.name,
+        },
+      };
+    });
+    this.state.topologyJson.links.map(link => {
+      // skip wired links
+      if (link.link_type == 2) {
+        return;
+      }
+      nodeOptions.push({
+        name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
+        type: 'Links',
+        restrictor: {
+          linkName: link.name,
+        },
+      });
+    });
+    return nodeOptions
   }
 
   render() {
@@ -303,8 +330,7 @@ export default class NetworkStats extends React.Component {
         Object.keys(metrics).forEach(metricName => {
           let metric = metrics[metricName];
           if (this.state.linkNames.length &&
-              (!metric.linkName ||
-               !this.state.linkNames.includes(metric.linkName))) {
+             !this.state.linkNames.includes(metric.linkName)) {
             return;
           }
           let newKey = metric.displayName ? metric.displayName : metricName;
@@ -333,33 +359,7 @@ export default class NetworkStats extends React.Component {
       });
     });
     // add the list of node restrictors
-    let nodeOptions = [];
-    let i = 0;
-    this.state.topologyJson.sites.forEach(site => {
-      nodeOptions.push({
-        name: "Site " + site.name,
-        type: !i ? 'Sites' : '',
-        restrictor: {
-          siteName: site.name,
-        },
-      });
-      i++;
-    });
-    i = 0;
-    this.state.topologyJson.links.forEach(link => {
-      // skip wired links
-      if (link.link_type == 2) {
-        return;
-      }
-      nodeOptions.push({
-        name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
-        type: !i ? 'Links' : '',
-        restrictor: {
-          linkName: link.name,
-        },
-      });
-      i++;
-    });
+    let nodeOptions = this.renderNodeOptions();
     // all graphs
     let pos = 0;
     let multiGraphs = this.state.taGraphs.map(keyIds => {
