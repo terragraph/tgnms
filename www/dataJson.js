@@ -483,6 +483,70 @@ var self = {
     }
   },
 
+  writeAlerts: function(postData) {
+    let data = JSON.parse(postData);
+    let rows = [];
+    let unknownMacs = new Set();
+    let missingNodeFilenames = [];
+    let badTime = 0;
+
+    // missing node in table
+    if (!(data.node_mac in self.macAddrToNodeId)) {
+      unknownMacs.add(data.node_mac);
+      console.log('unknown mac', data.node_mac);
+      // write newly found macs
+      self.updateNodeIds(Array.from(unknownMacs));
+      return;
+    }
+    let nodeId = self.macAddrToNodeId[data.node_mac];
+    let row = [nodeId,
+               self.timeCalcUsec(data.timestamp),
+               data.alert_id,
+               data.alert_regex,
+               data.alert_threshold,
+               data.alert_comparator,
+               data.alert_level,
+               data.trigger_key,
+               data.trigger_value];
+    rows.push(row);
+
+    // insert rows
+    let insertRows = function(tableName, rows, remain) {
+      pool.getConnection(function(err, conn) {
+        if (err) {
+          console.log('pool error', err);
+          return;
+        }
+        conn.query('INSERT INTO ' + tableName +
+                   '(`node_id`, `timestamp`, `alert_id`, `alert_regex`, `alert_threshold`, `alert_comparator`, `alert_level`, `trigger_key`, `trigger_value`) VALUES ?',
+                   [rows],
+          function(err, result) {
+            if (err) {
+              console.log('Some error', err);
+            }
+            conn.release();
+          }
+        );
+      });
+      console.log("Inserted", rows.length, "rows into", tableName,
+                  ",", remain, "remaining");
+    };
+    if (rows.length) {
+      let bucketSize = 10000;
+      let remainRows = rows;
+      while (remainRows.length > bucketSize) {
+        // slice rows into buckets of 10k rows
+        let sliceRows = remainRows.slice(0, bucketSize);
+        insertRows('alerts', sliceRows, remainRows.length);
+        remainRows = remainRows.splice(bucketSize);
+      }
+      insertRows('alerts', remainRows, 0);
+    } else {
+      console.log('writeLogs request with', postData.length, 'bytes and',
+                  badTime, 'invalid timestamp failures');
+    }
+  },
+
   writeEvents: function(postData) {
     let data = JSON.parse(postData);
     // agents, topology

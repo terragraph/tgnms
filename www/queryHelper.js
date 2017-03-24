@@ -96,12 +96,25 @@ SYSLOG_BY_MAC = "SELECT `log` FROM `sys_logs` " +
                 "LIMIT ?, ?;";
 
 EVENTLOG_BY_MAC = "SELECT `sample` FROM `events` " +
-                "JOIN (`event_categories`) ON (`event_categories`.`id`=`events`.`category_id`) " +
-                "JOIN (`nodes`) ON (`nodes`.`id`=`event_categories`.`node_id`) " +
+                  "JOIN (`event_categories`) ON (`event_categories`.`id`=`events`.`category_id`) " +
+                  "JOIN (`nodes`) ON (`nodes`.`id`=`event_categories`.`node_id`) " +
+                  "WHERE `mac` IN ? " +
+                  "AND `category` = ? " +
+                  "ORDER BY `events`.`id` DESC " +
+                  "LIMIT ?, ?;";
+
+ALERTS_BY_MAC = "SELECT *, `alerts`.`id` AS row_id FROM `alerts` " +
+                "JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) " +
                 "WHERE `mac` IN ? " +
-                "AND `category` = ? " +
-                "ORDER BY `events`.`id` DESC " +
+                "ORDER BY `alerts`.`id` DESC " +
                 "LIMIT ?, ?;";
+
+DELETE_ALERTS_BY_ID = "DELETE FROM `alerts` " +
+                      "WHERE `id` IN ? ;";
+
+DELETE_ALERTS_BY_MAC = "DELETE `alerts` FROM `alerts` " +
+                       "JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) " +
+                       "WHERE `mac` IN ? ;";
 
 MAX_COLUMNS = 8;
 var self = {
@@ -740,6 +753,84 @@ var self = {
           dataPoints.push(row.sample);
         });
         res.json(dataPoints);
+      });
+    });
+  },
+
+  fetchAlerts: function(res, mac_addr, from, size) {
+    // execute query
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+
+      let fields = [[mac_addr], from, size];
+      let sqlQuery = mysql.format(ALERTS_BY_MAC, fields);
+      conn.query(sqlQuery, function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+        let dataPoints = [];
+        results.forEach(row => {
+          dataPoints.push({
+            id: row.row_id,
+            mac: row.mac,
+            timestamp: row.timestamp,
+            alert_id: row.alert_id,
+            alert_regex: row.alert_regex,
+            alert_threshold: row.alert_threshold,
+            alert_comparator: row.alert_comparator,
+            alert_level: row.alert_level,
+            trigger_key: row.trigger_key,
+            trigger_value: row.trigger_value});
+        });
+        res.json(dataPoints);
+      });
+    });
+  },
+
+  deleteAlertsById: function(res, ids) {
+    // execute query
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+
+      let fields = [[ids]];
+      let sqlQuery = mysql.format(DELETE_ALERTS_BY_ID, fields);
+      conn.query(sqlQuery, function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
+      });
+    });
+  },
+
+  deleteAlertsByMac: function(res, mac_addr) {
+    // execute query
+    pool.getConnection(function(err, conn) {
+      if (!conn) {
+        console.error("Unable to get mysql connection");
+        res.status(500).end();
+        return;
+      }
+
+      let fields = [[mac_addr]];
+      let sqlQuery = mysql.format(DELETE_ALERTS_BY_MAC, fields);
+      conn.query(sqlQuery, function(err, results) {
+        conn.release();
+        if (err) {
+          console.log('Error', err);
+          return;
+        }
       });
     });
   },

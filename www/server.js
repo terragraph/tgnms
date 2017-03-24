@@ -36,7 +36,6 @@ dataJson.refreshNodeFilenames();
 dataJson.refreshNodeCategories();
 dataJson.timeAlloc();
 dataJson.scheduleTimeAlloc();
-const elasticHelper = require('./elastic');
 const controllerProxy = require('./controllerProxy');
 const aggregatorProxy = require('./aggregatorProxy');
 const ipaddr = require('ipaddr.js');
@@ -195,6 +194,21 @@ if (isDeveloping) {
       dataJson.writeEvents(httpPostData);
     });
   });
+  app.use(/\/alerts_writer$/i, function (req, res, next) {
+    let httpPostData = '';
+    req.on('data', function(chunk) {
+      httpPostData += chunk.toString();
+    });
+    req.on('end', function() {
+      // relay the msg to datadb
+      if (!httpPostData.length) {
+        return;
+      }
+      // update mysql time series db
+      res.status(204).end("Submitted");
+      dataJson.writeAlerts(httpPostData);
+    });
+  });
   // Read list of event logging Tables
   fs.readFile('./config/event_logging_tables.json', 'utf-8', (err, data) => {
     // unable to open file, exit
@@ -343,17 +357,37 @@ if (isDeveloping) {
       }
     }
   });
-  app.get(/\/elastic\/getAlerts\/(.+)$/i, function (req, res, next) {
-    elasticHelper.getAlerts(req, res, next);
+  app.get(/\/getAlerts\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
+    let topologyName = req.params[0];
+    let from = parseInt(req.params[1]);
+    let size = parseInt(req.params[2]);
+    let topology = getTopologyByName(topologyName);
+
+    var mac_addr = [];
+    if (topology) {
+      let nodes = topology.topology.nodes;
+      for (var j = 0; j < nodes.length; j++) {
+        mac_addr.push(nodes[j].mac_addr);
+      }
+      queryHelper.fetchAlerts(res, mac_addr, from, size);
+    }
   });
-  app.get(/\/elastic\/clearAlerts\/(.+)$/i, function (req, res, next) {
-    elasticHelper.clearAlerts(req, res, next);
+  app.get(/\/clearAlerts\/(.+)$/i, function (req, res, next) {
+    let topologyName = req.params[0];
+    let topology = getTopologyByName(topologyName);
+
+    var mac_addr = [];
+    if (topology) {
+      let nodes = topology.topology.nodes;
+      for (var j = 0; j < nodes.length; j++) {
+        mac_addr.push(nodes[j].mac_addr);
+      }
+      queryHelper.deleteAlertsByMac(res, mac_addr);
+    }
   });
-  app.get(/\/elastic\/deleteAlerts\/(.+)\/(.+)$/i, function (req, res, next) {
-    elasticHelper.deleteAlerts(req, res, next);
-  });
-  app.get(/\/elastic\/getLinkStatus\/(.+)$/i, function (req, res, next) {
-    elasticHelper.getLinkStatus(req, res, next);
+  app.get(/\/deleteAlerts\/(.+)$/i, function (req, res, next) {
+    let ids = JSON.parse(req.params[0]);
+    queryHelper.deleteAlertsById(req, ids);
   });
   app.post(/\/event\/?$/i, function (req, res, next) {
     let httpPostData = '';
