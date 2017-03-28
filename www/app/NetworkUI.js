@@ -183,11 +183,11 @@ export default class NetworkUI extends React.Component {
           label: 'Map',
           to: 'map',
         },
-        {
+/*        {
           icon: 'dashboard',
           label: 'Dashboard',
           to: 'dashboard',
-        },
+        },*/
         {
           icon: 'dashboard',
           label: 'Stats',

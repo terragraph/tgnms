@@ -35,7 +35,7 @@ SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
              "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
              "WHERE `mac` IN ? " +
              "AND `key` IN ? " +
-             "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+             "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
              "GROUP BY `key`, `time`";
 MAC_AND_KEY = "SELECT `ts_key`.`id`, `mac`, `key`, " +
                 "UNIX_TIMESTAMP(`time`) AS time, `value` FROM `ts_value` " +
@@ -43,7 +43,7 @@ MAC_AND_KEY = "SELECT `ts_key`.`id`, `mac`, `key`, " +
               "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
               "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
               "AND `ts_key`.`id` IN ? " +
-              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+              "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
               "ORDER BY `time` ASC";
 KEY_VALUES = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
                "`value` FROM `ts_value` " +
@@ -60,7 +60,7 @@ SUM_BY_MAC = "SELECT `mac`, UNIX_TIMESTAMP(`time`) AS time, " +
               "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
               "WHERE `mac` IN ? " +
               "AND `key` IN ? " +
-              "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+              "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
               "GROUP BY `mac`, `time`";
 LINK_METRIC = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
              "SUM(value) AS value FROM `ts_value` " +
@@ -69,7 +69,7 @@ LINK_METRIC = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
              "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
              "WHERE `mac` IN ? " +
              "AND `key` IN ? " +
-             "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+             "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
              "GROUP BY `key`, `time`";
 
 COUNT_ALIVE = "SELECT `mac`, `key`, COUNT(*) AS total FROM `ts_value` " +
@@ -726,8 +726,8 @@ var self = {
     }
   },
 
-  makeListQuery: function(keyIds) {
-    let sqlQuery = mysql.format(MAC_AND_KEY, [[keyIds]]);
+  makeListQuery: function(keyIds, minAgo) {
+    let sqlQuery = mysql.format(MAC_AND_KEY, [[keyIds], minAgo]);
     return sqlQuery;
   },
 
@@ -912,7 +912,7 @@ var self = {
                 "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
                 "WHERE `mac` IN ? " +
                 "AND `key` = ? " +
-                "AND `time` > DATE_SUB(NOW(), INTERVAL 60 MINUTE) " +
+                "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
                 "GROUP BY `time` " +
                 "ORDER BY `time` ASC";
         fields = [[nodeMacs], ['terra0.tx_bytes']];
@@ -949,7 +949,7 @@ var self = {
             break;
           case 'key_ids':
             // just accept a list of key ids
-            return self.makeListQuery(query.key_ids);
+            return self.makeListQuery(query.key_ids, query.min_ago);
             break;
           default:
             console.error('Unknown query type:', query.type);

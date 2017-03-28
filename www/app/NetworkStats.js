@@ -16,50 +16,6 @@ import { Menu, MenuItem, Token, Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Token.css';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 
-const NODE_METRICS = [
-  {
-    key: 'load-1',
-    name: 'Load (1-min)',
-    metric: '',
-  },
-  {
-    key: 'nodes_traffic_tx',
-    name: 'Wireless Traffic (TX)',
-    metric: '',
-  },
-  {
-    key: 'nodes_traffic_rx',
-    name: 'Wireless Traffic (RX)',
-    metric: '',
-  },
-  {
-    key: 'mem_util',
-    name: 'Memory Utilization (%)',
-    metric: '',
-  },
-];
-const LINK_METRICS = [
-  {
-    key: 'rssi',
-    name: 'RSSI',
-    metric: '', /* some special link formatting required */
-  },
-/*  {
-    key: 'mcs',
-    name: 'MCS',
-    metric: '',
-  },*/
-  {
-    key: 'snr',
-    name: 'SnR',
-    metric: '',
-  },
-  {
-    key: 'link_status',
-    name: 'Link Status',
-    metric: '',
-  },
-];
 const TIME_PICKER_OPTS = [
   {
     label: '30 Minutes',
@@ -131,6 +87,7 @@ export default class NetworkStats extends React.Component {
       this.metricRequest.open('POST', '/metrics', true);
       let opts = {
         'topology': this.state.topologyJson,
+        'minAgo': this.state.minAgo,
       };
       this.metricRequest.send(JSON.stringify(opts));
     } catch (e) {}
@@ -392,6 +349,7 @@ export default class NetworkStats extends React.Component {
         type: 'key_ids',
         key_ids: keyIds.data.map(data => data.keyId),
         data: keyIds.data,
+        min_ago: this.state.minAgo,
       }];
       pos++;
       return (
@@ -401,7 +359,19 @@ export default class NetworkStats extends React.Component {
           size="large"/>
       );
     });
-
+    const buttonStyle = {
+      fontSize: '12px',
+      padding: '4px',
+      border: '2px solid',
+      marginLeft: '4px',
+    };
+    const buttonSelectedStyle = {
+      fontSize: '12px',
+      padding: '4px',
+      border: '2px solid',
+      marginLeft: '4px',
+      backgroundColor: 'cornflowerblue',
+    };
     return (
       <div width="800">
         <Typeahead
@@ -428,6 +398,17 @@ export default class NetworkStats extends React.Component {
           onChange={this.metricSelectionChanged.bind(this)}
           placeholder="Enter metric/key name"
         />
+        {TIME_PICKER_OPTS.map(opts => {
+          return (
+            <button
+                label={opts.label}
+                key={opts.label}
+                style={opts.minAgo == this.state.minAgo ? buttonSelectedStyle :
+                                                          buttonStyle}
+                onClick={clk => this.setState({minAgo: opts.minAgo})}>
+              {opts.label}
+            </button>);
+        })}
         {multiGraphs}
       </div>
     );
