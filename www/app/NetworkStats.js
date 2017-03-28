@@ -87,11 +87,10 @@ export default class NetworkStats extends React.Component {
     topologyJson: {},
     // type-ahead data
     siteMetrics: {},
-    // filters
-    siteNames: [],
-    linkNames: [],
+    keyOptions: [],
     // type-ahead graphs
-    taGraphs: [],
+    nodesSelected: [],
+    keysSelected: [],
     minAgo: 60,
   }
 
@@ -124,6 +123,8 @@ export default class NetworkStats extends React.Component {
       let data = JSON.parse(this.metricRequest.responseText);
       this.setState({
         siteMetrics: data.site_metrics,
+        keyOptions: this.getKeyOptions(this.state.nodesSelected,
+                                       data.site_metrics),
       });
     }.bind(this);
     try {
@@ -155,8 +156,6 @@ export default class NetworkStats extends React.Component {
         this._typeaheadKey.getInstance().clear();
         this.setState({
           siteMetrics: {},
-          siteNames: [],
-          linkNames: [],
         });
         break;
     }
@@ -176,28 +175,32 @@ export default class NetworkStats extends React.Component {
   metricSelectionChanged(selectedOpts) {
     // update graph options
     this.setState({
-      taGraphs: selectedOpts,
+      keysSelected: selectedOpts,
     });
   }
 
-  nodeSelectionChanged(selectedOpts) {
-    let siteNames = [];
-    let linkNames = [];
-    selectedOpts.forEach(opts => {
-      if (opts.restrictor.siteName) {
-        siteNames.push(opts.restrictor.siteName);
-      }
-      if (opts.restrictor.linkName) {
-        linkNames.push(opts.restrictor.linkName);
-      }
-    });
+  nodeSelectionChanged(selectedOpts, siteMetrics) {
+    // update site + link metrics
+    let keyOptions = this.getKeyOptions(selectedOpts, this.state.siteMetrics);
+    // underlying key data may have changed
+    let keysSelected = this.state.keysSelected.map(keyOpts => {
+      let found = false;
+      keyOptions.forEach(newKeyOpts => {
+        if (keyOpts.name == newKeyOpts.name) {
+          // we need to replace this key
+          keyOpts = newKeyOpts;
+          found = true;
+        }
+      });
+      return (found ? keyOpts : null);
+    }).filter(keyOpts => keyOpts);;
     // restrict metric/key data
     this.setState({
-      siteNames: siteNames,
-      linkNames: linkNames,
+      nodesSelected: selectedOpts,
+      keyOptions: keyOptions,
+      keysSelected: keysSelected,
     });
     // clear key list
-    this._typeaheadKey.getInstance().clear();
   }
 
   renderTypeaheadRestrictorMenu(results, menuProps) {
@@ -236,6 +239,7 @@ export default class NetworkStats extends React.Component {
       </div>
     ];
   }
+
   renderNodeOptions() {
     let nodeOptions = this.state.topologyJson.sites.map(site => {
       return {
@@ -260,6 +264,69 @@ export default class NetworkStats extends React.Component {
       });
     });
     return nodeOptions
+  }
+
+  /**
+   * Update the key data based on the selected sites/links.
+   */
+  getKeyOptions(selectedSiteOpts, siteMetrics) {
+    let siteNames = [];
+    let linkNames = [];
+    selectedSiteOpts.forEach(opts => {
+      if (opts.restrictor.siteName) {
+        siteNames.push(opts.restrictor.siteName);
+      }
+      if (opts.restrictor.linkName) {
+        linkNames.push(opts.restrictor.linkName);
+      }
+    });
+    let uniqMetricNames = {};
+    // iterate all options/keys
+    Object.keys(siteMetrics).forEach(siteName => {
+      if (siteNames.length &&
+          !siteNames.includes(siteName)) {
+        return;
+      }
+      let nodeMetrics = siteMetrics[siteName];
+      Object.keys(nodeMetrics).forEach(nodeName => {
+        let metrics = nodeMetrics[nodeName];
+        // filter metrics
+        Object.keys(metrics).forEach(metricName => {
+          let metric = metrics[metricName];
+          if (linkNames.length &&
+             !linkNames.includes(metric.linkName)) {
+            return;
+          }
+          let newKey = metric.displayName ? metric.displayName : metricName;
+          if (!(newKey in uniqMetricNames)) {
+            uniqMetricNames[newKey] = [];
+          }
+          // TODO - fix this plz..
+          let rowData = {
+            key: newKey,
+            node: nodeName,
+            keyId: metric.dbKeyId,
+            nodeName: nodeName,
+            siteName: siteName,
+            displayName: metric.displayName ? metric.displayName : '',
+            linkName: metric.linkName ? metric.linkName : '',
+            title: metric.title,
+            description: metric.description,
+          };
+          uniqMetricNames[newKey].push(rowData);
+        });
+      });
+      // add one entry for each metric name (or full key name)
+    });
+    let keyOptions = [];
+    Object.keys(uniqMetricNames).forEach(metricName => {
+      let metrics = uniqMetricNames[metricName];
+      keyOptions.push({
+        name: metricName,
+        data: metrics,
+      });
+    });
+    return keyOptions;
   }
 
   render() {
@@ -316,53 +383,11 @@ export default class NetworkStats extends React.Component {
         },
       };
     });
-    let keyOptions = [];
-    let uniqMetricNames = {};
-    Object.keys(this.state.siteMetrics).forEach(siteName => {
-      if (this.state.siteNames.length &&
-          !this.state.siteNames.includes(siteName)) {
-        return;
-      }
-      let nodeMetrics = this.state.siteMetrics[siteName];
-      Object.keys(nodeMetrics).forEach(nodeName => {
-        let metrics = nodeMetrics[nodeName];
-        // filter metrics
-        Object.keys(metrics).forEach(metricName => {
-          let metric = metrics[metricName];
-          if (this.state.linkNames.length &&
-             !this.state.linkNames.includes(metric.linkName)) {
-            return;
-          }
-          let newKey = metric.displayName ? metric.displayName : metricName;
-          if (!(newKey in uniqMetricNames)) {
-            uniqMetricNames[newKey] = [];
-          }
-          let rowData = {
-            key: newKey,
-            node: nodeName,
-            keyId: metric.dbKeyId,
-            nodeName: nodeName,
-            siteName: siteName,
-            displayName: metric.displayName ? metric.displayName : '',
-            linkName: metric.linkName ? metric.linkName : '',
-          };
-          uniqMetricNames[newKey].push(rowData);
-        });
-      });
-      // add one entry for each metric name (or full key name)
-    });
-    Object.keys(uniqMetricNames).forEach(metricName => {
-      let metrics = uniqMetricNames[metricName];
-      keyOptions.push({
-        name: metricName,
-        data: metrics,
-      });
-    });
     // add the list of node restrictors
     let nodeOptions = this.renderNodeOptions();
     // all graphs
     let pos = 0;
-    let multiGraphs = this.state.taGraphs.map(keyIds => {
+    let multiGraphs = this.state.keysSelected.map(keyIds => {
       let graphOpts = [{
         type: 'key_ids',
         key_ids: keyIds.data.map(data => data.keyId),
@@ -386,6 +411,7 @@ export default class NetworkStats extends React.Component {
           options={nodeOptions}
           ref={ref => this._typeaheadNode = ref}
           renderMenu={this.renderTypeaheadRestrictorMenu.bind(this)}
+          selected={this.state.nodesSelected}
           paginate={true}
           onChange={this.nodeSelectionChanged.bind(this)}
           placeholder="Node Options"
@@ -394,9 +420,10 @@ export default class NetworkStats extends React.Component {
           key="keys"
           labelKey="name"
           multiple
-          options={keyOptions}
+          options={this.state.keyOptions}
           ref={ref => this._typeaheadKey = ref}
           renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(this)}
+          selected={this.state.keysSelected}
           paginate={true}
           onChange={this.metricSelectionChanged.bind(this)}
           placeholder="Enter metric/key name"

@@ -171,7 +171,7 @@ export default class NetworkLinksTable extends React.Component {
       }];
       return (
         <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
-          <li key="eventsChart" style={{height: '100px'}}>
+          <li key="eventsChart" style={{height: '75px'}}>
             <ReactEventChart options={opts} size="small" />
           </li>
           <li key="linksTable" style={{height: '400px'}}>

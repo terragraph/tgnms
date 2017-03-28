@@ -398,14 +398,6 @@ if (isDeveloping) {
       // push query
       queryHelper.queryMulti(res, httpPostData, 'event');
     });
-    /*queryHelper.fetchMulti(res,[
-      {
-        type: 'link',
-        a_node: {name: "terra121.f5.td.a404-if", mac: "00:00:00:10:0d:42"},
-        z_node: {name: "terra222.f5.td.a404-if", mac: "00:00:00:10:0d:48"},
-        keys: ['link_status'],
-      },
-    ], 'event');*/
   });
 
   // newer charting, for multi-linechart/row

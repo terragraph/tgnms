@@ -307,7 +307,7 @@ export default class ReactMultiGraph extends React.Component {
     // fetch the display name or key name of each graph
     let title = this.props.options.map(opts => 
       Array.from(new Set(opts.data.map(data =>
-        (data.displayName ? data.displayName : data.key)
+        (data.description ? data.description : data.key)
       ))).join(", ")
     ).join("<br />");
     return (

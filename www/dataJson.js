@@ -61,7 +61,7 @@ var self = {
     // insert unique macs
     pool.getConnection(function(err, conn) {
       if (err) {
-        console.log('err', err);
+        console.error('DB error', err);
         return;
       }
       conn.query('INSERT IGNORE INTO `ts_time` (`time`) VALUES ?',
@@ -84,6 +84,10 @@ var self = {
 
   refreshNodeIds: function() {
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       conn.query('SELECT `id`, `mac` FROM `nodes`',
         function(err, results) {
           results.forEach(row => {
@@ -102,6 +106,10 @@ var self = {
    */
   refreshNodeKeyTimes: function() {
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       conn.query('SELECT `id`, `node_id`, `key` FROM ts_key',
         function(err, results) {
           results.forEach(row => {
@@ -136,6 +144,10 @@ var self = {
 
   refreshNodeFilenames: function() {
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       conn.query('SELECT `id`, `node_id`, `filename` FROM log_sources',
         function(err, results) {
           results.forEach(row => {
@@ -151,6 +163,10 @@ var self = {
 
   refreshNodeCategories: function() {
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       conn.query('SELECT `id`, `node_id`, `category` FROM event_categories',
         function(err, results) {
           results.forEach(row => {
@@ -174,6 +190,10 @@ var self = {
     });
     // insert unique macs
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       conn.query('INSERT IGNORE INTO `nodes` (`mac`) VALUES ?',
         [insertMacs],
         function (err, rows) {
@@ -196,6 +216,10 @@ var self = {
     }
     // insert node/key combos
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       let sqlQuery = conn.query('INSERT IGNORE INTO `ts_key` (`node_id`, `key`) VALUES ?',
         [nodeKeys],
         function (err, rows) {
@@ -218,6 +242,10 @@ var self = {
     }
     // insert node/key combos
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       let sqlQuery = conn.query('INSERT IGNORE INTO `ts_key_dropped` (`key`) VALUES ?',
         [keyNames.map(keyName => [keyName])],
         function (err, rows) {
@@ -240,6 +268,10 @@ var self = {
     }
     // insert node/filename combos
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       let sqlQuery = conn.query('INSERT IGNORE INTO `log_sources` (`node_id`, `filename`) VALUES ?',
         [NodeFilenames],
         function (err, rows) {
@@ -265,6 +297,10 @@ var self = {
     console.log(NodeCategories);
     // insert node/key combos
     pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
       let sqlQuery = conn.query('INSERT IGNORE INTO `event_categories` (`node_id`, `category`) VALUES ?',
         [NodeCategories],
         function (err, rows) {
@@ -375,7 +411,7 @@ var self = {
     let insertRows = function(tableName, rows, remain) {
       pool.getConnection(function(err, conn) {
         if (err) {
-          console.log('pool error', err);
+          console.error('DB error', err);
           return;
         }
         conn.query('INSERT INTO ' + tableName +
@@ -450,7 +486,7 @@ var self = {
     let insertRows = function(tableName, rows, remain) {
       pool.getConnection(function(err, conn) {
         if (err) {
-          console.log('pool error', err);
+          console.error('DB error', err);
           return;
         }
         conn.query('INSERT INTO ' + tableName +
@@ -514,7 +550,7 @@ var self = {
     let insertRows = function(tableName, rows, remain) {
       pool.getConnection(function(err, conn) {
         if (err) {
-          console.log('pool error', err);
+          console.error('DB error', err);
           return;
         }
         conn.query('INSERT INTO ' + tableName +

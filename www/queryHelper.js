@@ -17,8 +17,14 @@ const METRIC_KEY_NAMES = [
   'mcs',
   'per',
   'tx_power',
-  'tx_ok',
-  'rx_ok',
+  'rx_bytes',
+  'tx_bytes',
+  'rx_pps',
+  'tx_pps',
+  'rx_errors',
+  'tx_errors',
+  'rx_dropped',
+  'tx_dropped',
   /* 'link_status' (published from controller node */
 ];
 
@@ -273,18 +279,30 @@ var self = {
           // format the metric names
           let aNode = nodesByName[link.a_node_name];
           let zNode = nodesByName[link.z_node_name];
-          let metricNamesMapping = {};
           METRIC_KEY_NAMES.forEach(metricName => {
-            let keyName = self.formatKeyName(
-                metricName,
-                {name: aNode.name, mac: aNode.mac_addr},
-                {name: zNode.name, mac: zNode.mac_addr});
-            metricNamesMapping[keyName] = metricName;
-            if (aNode.mac_addr in nodeMetrics &&
-                keyName in nodeMetrics[aNode.mac_addr]) {
-              let nodeData = nodeMetrics[aNode.mac_addr][keyName];
-              nodeData['displayName'] = metricName;
-              nodeData['linkName'] = link.name;
+            try {
+              let {title, description, scale, keys} = 
+                self.formatLinkKeyName(
+                  metricName,
+                  {name: aNode.name, mac: aNode.mac_addr},
+                  {name: zNode.name, mac: zNode.mac_addr});
+              keys.forEach(data => {
+                let {node, keyName, titleAppend} = data;
+                // find and tag the associated keys
+                if (node.mac in nodeMetrics &&
+                    keyName in nodeMetrics[node.mac]) {
+                  let nodeData = nodeMetrics[node.mac][keyName];
+                  // display name in the typeahead
+                  nodeData['displayName'] = title;
+                  nodeData['linkName'] = link.name;
+                  // title when graphing
+                  nodeData['title'] = titleAppend ? title + titleAppend : title;
+                  nodeData['description'] = description;
+                  nodeData['scale'] = scale;
+                }
+              });
+            } catch (e) {
+              console.error(e);
             }
           });
         });
@@ -387,8 +405,8 @@ var self = {
     let columnDisplayNames = columnNamesArr.map(name => {
       if (name in dataByKey) {
         let data = dataByKey[name];
-        if (data.linkName && linkNames.size > 1) {
-          return data.linkName;
+        if (data.linkName) {
+          return data.linkName + ' / ' + data.title;
         } else if (data.displayName && displayNames.size > 1) {
           return data.displayName;
         } else if (keyNames.size > 1) {
@@ -424,37 +442,287 @@ var self = {
     }
   },
 
-  formatKeyName: function(metricName, aNode, zNode) {
+  formatLinkKeyName: function(metricName, aNode, zNode) {
     switch (metricName) {
       case 'rssi':
-        // tgf.38:3a:21:b0:0b:11.phystatus.srssi
-        return 'tgf.' + zNode.mac + '.phystatus.srssi';
+        return {
+          title: 'RSSI',
+          description: 'Received Signal Strength Indicator',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.phystatus.srssi',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'tgf.' + aNode.mac + '.phystatus.srssi',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
       case 'alive_perc':
       case 'alive_snr':
       case 'snr':
         // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
-        return 'tgf.' + zNode.mac + '.phystatus.ssnrEst';
+        return {
+          title: 'SnR',
+          description: 'Signal to Noise Ratio',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.phystatus.ssnrEst',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'tgf.' + aNode.mac + '.phystatus.ssnrEst',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+        break;
       case 'mcs':
         // tgf.38:3a:21:b0:05:d1.staPkt.mcs
-        return 'tgf.' + zNode.mac + '.staPkt.mcs';
+        return {
+          title: 'MCS',
+          description: 'MCS Index',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.staPkt.mcs',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'tgf.' + aNode.mac + '.staPkt.mcs',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
       case 'per':
         // tgf.38:3a:21:b0:05:d1.staPkt.perE6
-        return 'tgf.' + zNode.mac + '.staPkt.perE6';
+        return {
+          title: 'PER',
+          description: 'Packet Error Rate',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.staPkt.perE6',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'tgf.' + aNode.mac + '.staPkt.perE6',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
       case 'rx_ok':
-        // tgf.38:3a:21:b0:05:d1.staPkt.perE6
-        return 'tgf.' + zNode.mac + '.staPkt.rxOk';
+        return {
+          title: 'RX Packets',
+          description: 'Received packets',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.staPkt.rxOk',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'tgf.' + aNode.mac + '.staPkt.rxOk',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
       case 'tx_ok':
-        // tgf.38:3a:21:b0:05:d1.staPkt.perE6
-        return 'tgf.' + zNode.mac + '.staPkt.txOk';
+        return {
+          title: 'TX Packets',
+          description: 'Transferred packets',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.staPkt.txOk',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'tgf.' + aNode.mac + '.staPkt.txOk',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'tx_bytes':
+        return {
+          title: 'TX bps',
+          description: 'Transferred bits/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.tx_bytes',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.tx_bytes',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'rx_bytes':
+        return {
+          title: 'RX bps',
+          description: 'Received bits/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.rx_bytes',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.rx_bytes',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'tx_errors':
+        return {
+          title: 'TX errors',
+          description: 'Transmit Errors/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.tx_errors',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.tx_errors',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'rx_errors':
+        return {
+          title: 'RX errors',
+          description: 'Receive errors/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.rx_errors',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.rx_errors',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'tx_dropped':
+        return {
+          title: 'TX dropped',
+          description: 'Transmit dropped/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.tx_dropped',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.tx_dropped',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'rx_dropped':
+        return {
+          title: 'RX dropped',
+          description: 'Receive dropped/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.rx_dropped',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.rx_dropped',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'tx_pps':
+        return {
+          title: 'TX pps',
+          description: 'Transmit packets/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.tx_packets',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.tx_packets',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'rx_pps':
+        return {
+          title: 'RX pps',
+          description: 'Receive packets/second',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'link.' + zNode.mac + '.rx_packets',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'link.' + aNode.mac + '.rx_packets',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
       case 'tx_power':
         // tgf.38:3a:21:b0:05:d1.tpcStats.txPowerIndex
-        return 'tgf.' + zNode.mac + '.tpcStats.txPowerIndex';
+        return {
+          title: 'TX Power',
+          description: 'Transmit power',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.tpcStats.txPowerIndex',
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: 'tgf.' + aNode.mac + '.tpcStats.txPowerIndex',
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
       case 'link_status':
-        return 'e2e_controller.link_status.WIRELESS.' +
-               aNode.mac + '.' + zNode.mac;
+        return {
+          title: 'Link status',
+          description: 'Link status reported by controller',
+          scale: undefined,
+          keys: [
+            {
+              /* This is reported by controller MAC (TODO) */
+              node: aNode,
+              keyName: 'e2e_controller.link_status.WIRELESS.' +
+                aNode.mac + '.' + zNode.mac,
+              titleAppend: ' (A)'
+            },
+          ]
+        };
       default:
-        console.error('Undefined metric:', metricName);
-        return metricName;
+        throw "Undefined metric: " + metricName;
     }
   },
 
@@ -471,7 +739,7 @@ var self = {
     // map metric short names to the fully qualified key
     let keyToMetric = {};
     let keyNames = metricNames.map(metricName => {
-      let keyName = self.formatKeyName(metricName, aNode, zNode);
+      let keyName = self.formatLinkKeyName(metricName, aNode, zNode).keys[0].keyName;
       // reverse map to the requested key
       keyToMetric[keyName] = metricName;
       return keyName;
@@ -532,7 +800,8 @@ var self = {
       let zNode = nodesByName[link.z_node_name];
       // add nodes to request list
       nodeMacs.push(aNode.mac);
-      nodeKeys.push(self.formatKeyName('snr', aNode, zNode));
+      let linkKeys = self.formatLinkKeyName('snr', aNode, zNode);
+      nodeKeys.push(linkKeys.keys[0].keyName);
     });
     let aliveQuery = mysql.format(COUNT_ALIVE, [[nodeMacs], [nodeKeys]]);
     let snrQuery = mysql.format(COUNT_SNR_OK, [[nodeMacs], [nodeKeys]]);
@@ -914,7 +1183,7 @@ var self = {
                 lastTime = row.time;
               }
             }
-            if (!events.length && result.length >= 2) {
+            if (!events.length && result.length >= 2 && lastValue) {
               // sql data exists, but no change events found
               let startTime = result[0].time;
               let endTime = result[result.length - 1].time;
