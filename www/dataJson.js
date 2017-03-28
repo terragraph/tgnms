@@ -20,6 +20,7 @@ const KEY_WHITELIST_PREFIX = new Set([
   'nic0',
   'nic1',
   'nic2',
+  'nss_fib',
   'procs',
   'spark',
   'terra0',
