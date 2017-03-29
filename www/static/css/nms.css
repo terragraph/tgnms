@@ -5,3 +5,18 @@
   margin-left: 205px;
   margin-top: 155px;
 }
+.graph-button {
+  font-size: 12px;
+  padding: 4px;
+  border: 2px solid;
+  margin-left: 4px;
+  width: 100px;
+}
+.graph-button-selected {
+  background-color: cornflowerblue;
+}
+.graph-opt-title {
+  width: 150px;
+  height: 30px;
+  display: inline-block;
+}

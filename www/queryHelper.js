@@ -38,14 +38,35 @@ SUM_BY_KEY = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
              "AND `key` IN ? " +
              "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
              "GROUP BY `key`, `time`";
-MAC_AND_KEY = "SELECT `ts_key`.`id`, `mac`, `key`, " +
-                "UNIX_TIMESTAMP(`time`) AS time, `value` FROM `ts_value` " +
-              "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
-              "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
-              "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
-              "AND `ts_key`.`id` IN ? " +
-              "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
-              "ORDER BY `time` ASC";
+MAC_AND_KEY_NOAGG = "SELECT `ts_key`.`id`, `mac`, `key`, " +
+                      "UNIX_TIMESTAMP(`time`) AS time, `value` FROM `ts_value` " +
+                    "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+                    "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+                    "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
+                    "AND `ts_key`.`id` IN ? " +
+                    "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
+                    "ORDER BY `time` ASC";
+MAC_AND_KEY_SUM = "SELECT `ts_key`.`id`, `mac`, `key`, " +
+                    "UNIX_TIMESTAMP(`time`) AS time, SUM(`value`) AS sum " +
+                    "FROM `ts_value` " +
+                  "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+                  "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+                  "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
+                  "AND `ts_key`.`id` IN ? " +
+                  "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
+                  "GROUP BY `time` " +
+                  "ORDER BY `time` ASC";
+MAC_AND_KEY_AVG = "SELECT `ts_key`.`id`, `mac`, `key`, " +
+                    "UNIX_TIMESTAMP(`time`) AS time, AVG(`value`) AS avg, " +
+                    "MIN(`value`) AS min, MAX(`value`) AS max " +
+                    "FROM `ts_value` " +
+                  "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+                  "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+                  "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
+                  "AND `ts_key`.`id` IN ? " +
+                  "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
+                  "GROUP BY `time` " +
+                  "ORDER BY `time` ASC";
 KEY_VALUES = "SELECT `key`, UNIX_TIMESTAMP(`time`) AS time, " +
                "`value` FROM `ts_value` " +
              "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
@@ -346,14 +367,37 @@ var self = {
     let dataPoints = [];
     // line up time => multiple points
     let timeSeriesGroup = {};
+    switch (keyMapping.agg_type) {
+      case 'avg':
+        columnNames.add('avg');
+        columnNames.add('min');
+        columnNames.add('max');
+        break;
+      case 'sum':
+        columnNames.add('sum');
+        break;
+    }
     result.forEach(row => {
       let keyName = row[groupBy];
       if (!(row.time in timeSeriesGroup)) {
         timeSeriesGroup[row.time] = {};
       }
-      timeSeriesGroup[row.time][keyName] = row.value;
-      // collect all unique key names
-      columnNames.add(keyName);
+      switch (keyMapping.agg_type) {
+        case 'avg':
+          timeSeriesGroup[row.time]['avg'] = row.avg;
+          timeSeriesGroup[row.time]['min'] = row.min;
+          timeSeriesGroup[row.time]['max'] = row.max;
+          break;
+        case 'sum':
+          timeSeriesGroup[row.time]['sum'] = row.sum;
+          break;
+        default:
+          // none
+          timeSeriesGroup[row.time][keyName] = row.value;
+          // collect all unique key names
+          columnNames.add(keyName);
+          break;
+      }
     });
     let columnNamesArr = Array.from(columnNames);
     // trim large data
@@ -729,9 +773,17 @@ var self = {
     }
   },
 
-  makeListQuery: function(keyIds, minAgo) {
-    let sqlQuery = mysql.format(MAC_AND_KEY, [[keyIds], minAgo]);
-    return sqlQuery;
+  makeListQuery: function(keyIds, minAgo, aggType) {
+    switch (aggType) {
+      case 'none':
+        return mysql.format(MAC_AND_KEY_NOAGG, [[keyIds], minAgo]);
+      case 'avg':
+        return mysql.format(MAC_AND_KEY_AVG, [[keyIds], minAgo]);
+      case 'sum':
+        return mysql.format(MAC_AND_KEY_SUM, [[keyIds], minAgo]);
+      default:
+        console.error('No defined query for', aggType);
+    }
   },
 
   makeLinkQuery: function(aNode,
@@ -952,7 +1004,7 @@ var self = {
             break;
           case 'key_ids':
             // just accept a list of key ids
-            return self.makeListQuery(query.key_ids, query.min_ago);
+            return self.makeListQuery(query.key_ids, query.min_ago, query.agg_type);
             break;
           default:
             console.error('Unknown query type:', query.type);

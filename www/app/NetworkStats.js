@@ -35,6 +35,30 @@ const TIME_PICKER_OPTS = [
   },
 ];
 
+const GRAPH_AGG_OPTS = [
+  {
+    name: 'none',
+    title: 'None',
+  },
+  {
+    name: 'avg',
+    title: 'Avg + Min/Max',
+  },
+  {
+    name: 'sum',
+    title: 'Sum',
+  },
+/*  {
+    name: 'split',
+    title: 'Split',
+  },
+  {
+    name: 'groupby_site',
+    title: 'Group By Site',
+  },*/
+  // group by link
+];
+
 const MenuDivider = props => <li className="divider" role="separator" />;
 const MenuHeader = props => <li {...props} className="dropdown-header" />;
 
@@ -48,6 +72,7 @@ export default class NetworkStats extends React.Component {
     nodesSelected: [],
     keysSelected: [],
     minAgo: 60,
+    graphAggType: 'avg',
   }
 
   constructor(props) {
@@ -350,6 +375,7 @@ export default class NetworkStats extends React.Component {
         key_ids: keyIds.data.map(data => data.keyId),
         data: keyIds.data,
         min_ago: this.state.minAgo,
+        agg_type: this.state.graphAggType,
       }];
       pos++;
       return (
@@ -359,19 +385,6 @@ export default class NetworkStats extends React.Component {
           size="large"/>
       );
     });
-    const buttonStyle = {
-      fontSize: '12px',
-      padding: '4px',
-      border: '2px solid',
-      marginLeft: '4px',
-    };
-    const buttonSelectedStyle = {
-      fontSize: '12px',
-      padding: '4px',
-      border: '2px solid',
-      marginLeft: '4px',
-      backgroundColor: 'cornflowerblue',
-    };
     return (
       <div width="800">
         <Typeahead
@@ -398,17 +411,31 @@ export default class NetworkStats extends React.Component {
           onChange={this.metricSelectionChanged.bind(this)}
           placeholder="Enter metric/key name"
         />
-        {TIME_PICKER_OPTS.map(opts => {
-          return (
-            <button
-                label={opts.label}
-                key={opts.label}
-                style={opts.minAgo == this.state.minAgo ? buttonSelectedStyle :
-                                                          buttonStyle}
-                onClick={clk => this.setState({minAgo: opts.minAgo})}>
-              {opts.label}
-            </button>);
-        })}
+        <span className="graph-opt-title">Time Window</span>
+        {TIME_PICKER_OPTS.map(opts =>
+          <button
+              label={opts.label}
+              key={opts.label}
+              className={opts.minAgo == this.state.minAgo ?
+                        "graph-button graph-button-selected" :
+                        "graph-button"}
+              onClick={clk => this.setState({minAgo: opts.minAgo})}>
+            {opts.label}
+          </button>
+        )}
+        <br />
+        <span className="graph-opt-title">Graph Aggregation</span>
+        {GRAPH_AGG_OPTS.map(opts =>
+          <button
+              label={opts.name}
+              key={opts.name}
+              className={opts.name == this.state.graphAggType ?
+                        "graph-button graph-button-selected" :
+                        "graph-button"}
+              onClick={clk => this.setState({graphAggType: opts.name})}>
+            {opts.title}
+          </button>
+        )}
         {multiGraphs}
       </div>
     );

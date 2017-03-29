@@ -68,6 +68,8 @@ export default class NetworkLinksTable extends React.Component {
                               alive:boolean}> {
     const rows = [];
     links.forEach(link => {
+      const buf = Buffer.from(link.linkup_attempts.buffer.data);
+      const linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
       rows.push({
         name: link.name,
         a_node_name: link.a_node_name,
@@ -76,6 +78,7 @@ export default class NetworkLinksTable extends React.Component {
         type: link.link_type == 1 ? 'Wireless' : 'Wired',
         alive_perc: link.alive_perc,
         snr_health_perc: link.snr_health_perc,
+        linkup_attempts: linkupAttempts,
         key: link.name,
       });
     });
@@ -157,6 +160,10 @@ export default class NetworkLinksTable extends React.Component {
         <TableHeaderColumn dataSort={true}
                            dataField="type">
           Type
+        </TableHeaderColumn>
+        <TableHeaderColumn dataSort={true}
+                           dataField="linkup_attempts">
+          Attempts
         </TableHeaderColumn>
       </BootstrapTable>;
     if (this.state.selectedLink) {
