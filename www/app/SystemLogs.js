@@ -100,7 +100,7 @@ export default class SystemLogs extends React.Component {
             response.json().then(function(json) {
               var text = ""
               json.forEach(line => {
-                text = line + "\n" + text;
+                text += line + "\n";
               });
               this.setState({
                 logText: text,
