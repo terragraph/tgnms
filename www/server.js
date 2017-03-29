@@ -320,11 +320,12 @@ if (isDeveloping) {
   app.get(/\/getEventLogsTables/, function(req, res, next) {
     res.json(eventLogsTables);
   });
-  app.get(/\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)$/i, function (req, res, next) {
+  app.get(/\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (req, res, next) {
     let tableName = req.params[0];
     let from = parseInt(req.params[1]);
     let size = parseInt(req.params[2]);
     let topologyName = req.params[3];
+    let dbPartition = req.params[4];
     let topology = getTopologyByName(topologyName);
 
     var mac_addr = [];
@@ -336,7 +337,7 @@ if (isDeveloping) {
 
       for (var i = 0, len = eventLogsTables.tables.length; i < len; i++) {
         if(tableName == eventLogsTables.tables[i].name) {
-          queryHelper.fetchEventLogs(res, mac_addr, eventLogsTables.tables[i].category, from, size);
+          queryHelper.fetchEventLogs(res, mac_addr, eventLogsTables.tables[i].category, from, size, dbPartition);
           break;
         }
       }

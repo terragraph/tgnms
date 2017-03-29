@@ -8,6 +8,8 @@ import AsyncButton from 'react-async-button';
 import Select from 'react-select';
 import NumericInput from 'react-numeric-input';
 import NetworkStore from './NetworkStore.js';
+var DatePicker = require('react-datepicker');
+var moment = require('moment');
 
 const Spinner = () => (
   <div className='spinner'>
@@ -27,6 +29,7 @@ export default class EventLogs extends React.Component {
     from: 0,
     size: 500,
     networkName: null,
+    dateFrom: moment(),
   }
 
   constructor(props) {
@@ -39,6 +42,7 @@ export default class EventLogs extends React.Component {
     this.renderDataTable = this.renderDataTable.bind(this);
     this.handleSizeChange = this.handleSizeChange.bind(this);
     this.handleFromChange = this.handleFromChange.bind(this);
+    this.handleDateChange = this.handleDateChange.bind(this);
 
     this.getConfigs();
   }
@@ -95,7 +99,7 @@ export default class EventLogs extends React.Component {
     must += "]";
     must_not += "]";
     return new Promise((resolve, reject) => {
-      let exec = new Request('/getEventLogs/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.networkName);
+      let exec = new Request('/getEventLogs/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.networkName+'/d_'+this.state.dateFrom.format('YYYY_MM_DD'));
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
@@ -243,6 +247,12 @@ export default class EventLogs extends React.Component {
     });
   }
 
+  handleDateChange(date) {
+    this.setState({
+      dateFrom: date,
+    });
+  }
+
   render() {
     var options = [];
     if (this.state.tables) {
@@ -270,6 +280,14 @@ export default class EventLogs extends React.Component {
                   onChange={this.selectChange}
                   clearable={false}/>
               </div>
+            </td>
+            <td>
+              Date:
+            </td>
+            <td>
+              <DatePicker
+              selected={this.state.dateFrom}
+              onChange={this.handleDateChange} />
             </td>
             <td>
               From:

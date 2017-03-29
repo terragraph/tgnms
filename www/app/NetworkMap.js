@@ -70,12 +70,14 @@ export default class NetworkMap extends React.Component {
     selectedSiteName: undefined,
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
+    layersExpanded: false,
   }
 
   constructor(props) {
     super(props);
     this.getSiteMarker = this.getSiteMarker.bind(this);
     this.handleMarkerClick = this.handleMarkerClick.bind(this);
+    this.handleLayersClick = this.handleLayersClick.bind(this);
     // reset zoom on next refresh is set once a new topology is selected
     this.resetZoomOnNextRefresh = true;
   }
@@ -175,6 +177,12 @@ export default class NetworkMap extends React.Component {
     });
   }
 
+  _onMapClick(data) {
+    this.setState({
+      layersExpanded: false,
+    });
+  }
+
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
     // dispatch to update all UIs
@@ -191,6 +199,12 @@ export default class NetworkMap extends React.Component {
     Dispatcher.dispatch({
       actionType: Actions.SITE_SELECTED,
       siteSelected: site.name,
+    });
+  }
+
+  handleLayersClick(ev) {
+    this.setState({
+      layersExpanded: true,
     });
   }
 
@@ -410,6 +424,58 @@ export default class NetworkMap extends React.Component {
       </tr>);
     });
 
+    let layersControl = {};
+    if (this.state.layersExpanded) {
+      layersControl =
+        <Control position="topright" >
+          <div className="groupingContainer">
+            <p>Map Overlays</p>
+            <table>
+             <tbody>
+              <tr>
+                <td width={100}>Site Overlay</td>
+                <td width={100}>
+                  <div style={{width:100}}>
+                    <select
+                      style={{width:100}}
+                      value={this.state.selectedSiteOverlay}
+                      onChange={ (ev) => { this.setState({ selectedSiteOverlay: ev.currentTarget.value }); } }
+                    >
+                      {Object.keys(siteOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                    </select>
+                  </div>
+                </td>
+              </tr>
+              {siteOverlayKeyRows}
+              <tr className="blank_row">
+              </tr>
+              <tr>
+                <td width={100}>Link Overlay</td>
+                <td width={100}>
+                  <div style={{width:100}}>
+                    <select
+                      style={{width:100}}
+                      value={this.state.selectedLinkOverlay}
+                      onChange={ (ev) => { this.setState({ selectedLinkOverlay: ev.currentTarget.value }); } }
+                    >
+                      {Object.keys(linkOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                    </select>
+                  </div>
+                </td>
+              </tr>
+              {linkOverlayKeyRows}
+             </tbody>
+            </table>
+          </div>
+        </Control>
+    } else {
+      layersControl =
+        <Control position="topright" >
+          <img src="/static/images/layers.png" onClick={this.handleLayersClick}/>
+        </Control>
+    }
+
+
     return (
       <div>
         <SplitPane
@@ -420,6 +486,7 @@ export default class NetworkMap extends React.Component {
           <CustomMap
             ref='map'
             onZoom={this._onMapZoom.bind(this)}
+            onClick={this._onMapClick.bind(this)}
             center={centerPosition} zoom={this.state.zoomLevel}>
             <TileLayer
               url='/tile/{s}/{z}/{x}/{y}.png'
@@ -428,47 +495,7 @@ export default class NetworkMap extends React.Component {
             {linkComponents}
             {siteComponents}
             {siteMarkers}
-            <Control position="topright" >
-              <div className="groupingContainer">
-                <p>Map Overlays</p>
-                <table>
-                 <tbody>
-                  <tr>
-                    <td width={100}>Site Overlay</td>
-                    <td width={100}>
-                      <div style={{width:100}}>
-                        <select
-                          style={{width:100}}
-                          value={this.state.selectedSiteOverlay}
-                          onChange={ (ev) => { this.setState({ selectedSiteOverlay: ev.currentTarget.value }); } }
-                        >
-                          {Object.keys(siteOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
-                        </select>
-                      </div>
-                    </td>
-                  </tr>
-                  {siteOverlayKeyRows}
-                  <tr className="blank_row">
-                  </tr>
-                  <tr>
-                    <td width={100}>Link Overlay</td>
-                    <td width={100}>
-                      <div style={{width:100}}>
-                        <select
-                          style={{width:100}}
-                          value={this.state.selectedLinkOverlay}
-                          onChange={ (ev) => { this.setState({ selectedLinkOverlay: ev.currentTarget.value }); } }
-                        >
-                          {Object.keys(linkOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
-                        </select>
-                      </div>
-                    </td>
-                  </tr>
-                  {linkOverlayKeyRows}
-                 </tbody>
-                </table>
-              </div>
-            </Control>
+            {layersControl}
           </CustomMap>
           <NetworkDataTable />
         </SplitPane>

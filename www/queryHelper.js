@@ -102,8 +102,8 @@ SYSLOG_BY_MAC = "SELECT `log` FROM `sys_logs` " +
                 "ORDER BY `sys_logs`.`id` DESC " +
                 "LIMIT ?, ?;";
 
-EVENTLOG_BY_MAC = "SELECT `sample` FROM `events` " +
-                  "JOIN (`event_categories`) ON (`event_categories`.`id`=`events`.`category_id`) " +
+EVENTLOG_BY_MAC_PART1 = "SELECT `sample` FROM `events` PARTITION ";
+EVENTLOG_BY_MAC_PART2 = "JOIN (`event_categories`) ON (`event_categories`.`id`=`events`.`category_id`) " +
                   "JOIN (`nodes`) ON (`nodes`.`id`=`event_categories`.`node_id`) " +
                   "WHERE `mac` IN ? " +
                   "AND `category` = ? " +
@@ -284,7 +284,7 @@ var self = {
           let zNode = nodesByName[link.z_node_name];
           METRIC_KEY_NAMES.forEach(metricName => {
             try {
-              let {title, description, scale, keys} = 
+              let {title, description, scale, keys} =
                 self.formatLinkKeyName(
                   metricName,
                   {name: aNode.name, mac: aNode.mac_addr},
@@ -1002,7 +1002,7 @@ var self = {
     });
   },
 
-  fetchEventLogs: function(res, mac_addr, category, from, size) {
+  fetchEventLogs: function(res, mac_addr, category, from, size, partition) {
     // execute query
     pool.getConnection(function(err, conn) {
       if (!conn) {
@@ -1012,7 +1012,8 @@ var self = {
       }
 
       let fields = [[mac_addr], category, from, size];
-      let sqlQuery = mysql.format(EVENTLOG_BY_MAC, fields);
+      let queryString = EVENTLOG_BY_MAC_PART1 + '(' + partition + ') ' + EVENTLOG_BY_MAC_PART2;
+      let sqlQuery = mysql.format(queryString, fields);
       conn.query(sqlQuery, function(err, results) {
         conn.release();
         if (err) {
