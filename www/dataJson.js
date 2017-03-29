@@ -26,6 +26,8 @@ const KEY_WHITELIST_PREFIX = new Set([
   'terra0',
   'tgf',
 ]);
+const DATA_FOLDER_PATH = './data/';
+const fs = require('fs');
 const mysql = require('mysql');
 const pool = mysql.createPool({
     connectionLimit:    50,
@@ -447,77 +449,22 @@ var self = {
 
   writeLogs: function(postData) {
     let data = JSON.parse(postData);
-    // agents, topology
-    let rows = [];
-    let unknownMacs = new Set();
-    let missingNodeFilenames = [];
-    let badTime = 0;
-    data.agents.forEach(agent => {
-      // missing node in table
-      if (!(agent.mac in self.macAddrToNodeId)) {
-        unknownMacs.add(agent.mac);
-        console.log('unknown mac', agent.mac);
-        return;
-      }
-      let nodeId = self.macAddrToNodeId[agent.mac];
+    let d = new Date();
+    let day = (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getFullYear();
 
-      agent.logs.forEach(logMsg => {
-        // verify node/filename combo exists
-        if (nodeId in self.nodeFilenameIds &&
-            logMsg.file in self.nodeFilenameIds[nodeId]) {
-          // found node/filename id for insert
-          let row = [logMsg.log,
-                     self.timeCalcUsec(logMsg.ts),
-                     self.nodeFilenameIds[nodeId][logMsg.file]];
-          rows.push(row);
-        } else {
-          ;
-          if (!missingNodeFilenames.some(function(a){return ((a[0] === nodeId) && (a[1] === logMsg.file))})) {
-            console.log('Missing cache for', nodeId, '/', logMsg.file);
-            missingNodeFilenames.push([nodeId, logMsg.file]);
-          }
-        }
+    data.agents.forEach(agent => {
+      let folder = DATA_FOLDER_PATH + agent.mac + '/';
+      fs.mkdir(folder, function (errDir) {
+        agent.logs.forEach(logMsg => {
+          let fileName = folder + day + '_' + logMsg.file + ".log";
+          fs.appendFile(fileName, logMsg.log + '\n', function (errFile) {
+            if (errFile) {
+              console.error(errFile);
+            }
+          });
+        });
       });
     });
-    // write newly found macs
-    self.updateNodeIds(Array.from(unknownMacs));
-    // write newly found node/filename combos
-    self.updateNodeFilenames(missingNodeFilenames);
-    // insert rows
-    let insertRows = function(tableName, rows, remain) {
-      pool.getConnection(function(err, conn) {
-        if (err) {
-          console.error('DB error', err);
-          return;
-        }
-        conn.query('INSERT INTO ' + tableName +
-                   '(`log`, `timestamp`, `source_id`) VALUES ?',
-                   [rows],
-          function(err, result) {
-            if (err) {
-              console.log('Some error', err);
-            }
-            conn.release();
-          }
-        );
-      });
-      console.log("Inserted", rows.length, "rows into", tableName,
-                  ",", remain, "remaining");
-    };
-    if (rows.length) {
-      let bucketSize = 10000;
-      let remainRows = rows;
-      while (remainRows.length > bucketSize) {
-        // slice rows into buckets of 10k rows
-        let sliceRows = remainRows.slice(0, bucketSize);
-        insertRows('sys_logs', sliceRows, remainRows.length);
-        remainRows = remainRows.splice(bucketSize);
-      }
-      insertRows('sys_logs', remainRows, 0);
-    } else {
-      console.log('writeLogs request with', postData.length, 'bytes and',
-                  badTime, 'invalid timestamp failures');
-    }
   },
 
   writeAlerts: function(postData) {

@@ -1,3 +1,4 @@
+const fs = require('fs');
 const mysql = require('mysql');
 const pool = mysql.createPool({
     connectionLimit:    50,
@@ -121,6 +122,8 @@ DELETE_ALERTS_BY_ID = "DELETE FROM `alerts` " +
 DELETE_ALERTS_BY_MAC = "DELETE `alerts` FROM `alerts` " +
                        "JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) " +
                        "WHERE `mac` IN ? ;";
+
+const DATA_FOLDER_PATH = './data/';
 
 MAX_COLUMNS = 8;
 var self = {
@@ -974,29 +977,28 @@ var self = {
     });
   },
 
-  fetchSysLogs: function(res, mac_addr, filename, from, size) {
-    // execute query
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
-        res.status(500).end();
-        return;
-      }
+  fetchSysLogs: function(res, mac_addr, sourceFile, offset, size, date) {
 
-      let fields = [mac_addr, filename, from, size];
-      let sqlQuery = mysql.format(SYSLOG_BY_MAC, fields);
-      conn.query(sqlQuery, function(err, results) {
-        conn.release();
+    let folder = DATA_FOLDER_PATH + mac_addr + '/';
+    let fileName = folder + date + '_' + sourceFile + ".log";
+
+    fs.readFile(fileName, 'utf-8', function(err, data) {
         if (err) {
-          console.log('Error', err);
+          res.json([]);
           return;
         }
-        let dataPoints = [];
-        results.forEach(row => {
-          dataPoints.push(row.log);
-        });
-        res.json(dataPoints);
-      });
+
+        var lines = data.trim().split('\n');
+
+        let numLines = lines.length;
+        let begin = numLines - size - offset;
+        if (begin < 0) begin = 0;
+
+        let end = begin + size;
+        if (end > numLines) end = numLines;
+
+        var respLines = lines.slice(begin, end);
+        res.json(respLines);
     });
   },
 

@@ -8,6 +8,10 @@ import AsyncButton from 'react-async-button';
 import Select from 'react-select';
 import NumericInput from 'react-numeric-input';
 import NetworkStore from './NetworkStore.js';
+var DatePicker = require('react-datepicker');
+var moment = require('moment');
+
+require('react-datepicker/dist/react-datepicker.css');
 
 const Spinner = () => (
   <div className='spinner'>
@@ -21,10 +25,11 @@ export default class SystemLogs extends React.Component {
     logSources: [],
     selectedSource: null,
     selectedSourceName: null,
-    from: 0,
+    offset: 0,
     size: 2000,
     logText: "",
     networkConfig: undefined,
+    startDate: moment(),
   }
 
   constructor(props) {
@@ -34,7 +39,8 @@ export default class SystemLogs extends React.Component {
     this.getConfigs = this.getConfigs.bind(this);
     this.loadClick = this.loadClick.bind(this);
     this.handleSizeChange = this.handleSizeChange.bind(this);
-    this.handleFromChange = this.handleFromChange.bind(this);
+    this.handleOffsetChange = this.handleOffsetChange.bind(this);
+    this.handleDateChange = this.handleDateChange.bind(this);
 
     this.getConfigs();
   }
@@ -88,7 +94,7 @@ export default class SystemLogs extends React.Component {
   loadClick(e) {
     if (this.state.selectedNodeMac && this.state.selectedSourceName) {
       return new Promise((resolve, reject) => {
-        let exec = new Request('/getSystemLogs/'+ this.state.selectedSourceName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.selectedNodeMac);
+        let exec = new Request('/getSystemLogs/'+ this.state.selectedSourceName+'/'+this.state.offset+'/'+this.state.size+'/'+this.state.selectedNodeMac+'/'+this.state.startDate.format('M-D-YYYY'));
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             response.json().then(function(json) {
@@ -135,26 +141,20 @@ export default class SystemLogs extends React.Component {
     });
   }
 
-  renderLogText(): ReactElement<any> {
-    if (this.state.selectedSource && this.state.logSources) {
-      return (
-        <div style={{whiteSpace: "pre"}}>
-          {this.state.logText}
-        </div>
-      );
-    } else {
-      return (<div></div>);
-    }
-  }
-
-  handleFromChange(val) {
+  handleOffsetChange(val) {
     this.setState({
-      from: val,
+      offset: val,
     });
   }
   handleSizeChange(val) {
     this.setState({
       size: val,
+    });
+  }
+
+  handleDateChange(date) {
+    this.setState({
+      startDate: date,
     });
   }
 
@@ -184,12 +184,12 @@ export default class SystemLogs extends React.Component {
     }
 
     return (
-      <div id="sysLogs">
+      <div id="sysLogs" style={{width:'100%', height:'100%'}}>
         <table id="events">
          <tbody>
           <tr>
-            <td width={330}>
-              <div style={{width:300}}>
+            <td width={250}>
+              <div style={{width:250}}>
                 <Select
                   name="Select Logs"
                   value={this.state.selectedSourceName}
@@ -198,8 +198,8 @@ export default class SystemLogs extends React.Component {
                   clearable={false}/>
               </div>
             </td>
-            <td width={330}>
-              <div style={{width:300}}>
+            <td width={250}>
+              <div style={{width:250}}>
                 <Select
                   options={nodesOptions}
                   name = "Select Node"
@@ -209,17 +209,15 @@ export default class SystemLogs extends React.Component {
               </div>
             </td>
             <td>
-              From:
-            </td>
-            <td width={80}>
-              <NumericInput
-                className="form-control"
-                style={ false }
-                value={this.state.from}
-                onChange={this.handleFromChange} />
+              Date:
             </td>
             <td>
-              Size:
+              <DatePicker
+              selected={this.state.startDate}
+              onChange={this.handleDateChange} />
+            </td>
+            <td>
+              Lines:
             </td>
             <td width={80}>
               <NumericInput
@@ -227,6 +225,16 @@ export default class SystemLogs extends React.Component {
                 style={ false }
                 value={this.state.size}
                 onChange={this.handleSizeChange} />
+            </td>
+            <td>
+              Offset from End:
+            </td>
+            <td width={80}>
+              <NumericInput
+                className="form-control"
+                style={ false }
+                value={this.state.offset}
+                onChange={this.handleOffsetChange} />
             </td>
             <td>
               <AsyncButton
@@ -251,8 +259,8 @@ export default class SystemLogs extends React.Component {
           </tr>
          </tbody>
         </table>
-        <div style={{marginLeft: "1em"}}>
-          {this.renderLogText()}
+        <div style={{marginLeft: "1em", width: '95%', height:'100%'}}>
+          <textarea style={{width: '100%', height:'95%', resize:'none'}} readOnly value={this.state.logText} />
         </div>
       </div>
     );

@@ -345,14 +345,15 @@ if (isDeveloping) {
   app.get(/\/getSystemLogsSources/, function(req, res, next) {
     res.json(systemLogsSources);
   });
-  app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)$/i, function (req, res, next) {
+  app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (req, res, next) {
     let sourceName = req.params[0];
-    let from = parseInt(req.params[1]);
+    let offset = parseInt(req.params[1]);
     let size = parseInt(req.params[2]);
     let mac_addr =  req.params[3];
+    let date =  req.params[4];
     for (var i = 0, len = systemLogsSources.sources.length; i < len; i++) {
       if(sourceName == systemLogsSources.sources[i].name) {
-        queryHelper.fetchSysLogs(res, mac_addr, systemLogsSources.sources[i].index, from, size);
+        queryHelper.fetchSysLogs(res, mac_addr, systemLogsSources.sources[i].index, offset, size, date);
         break;
       }
     }
@@ -437,7 +438,7 @@ if (isDeveloping) {
         }
       }
     }
-    if (!topology.nodes || !topology.nodes.length) {
+    if (!topology) {
       res.status(500).send('No topology data for: ' + topologyName);
       return;
     }
