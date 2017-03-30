@@ -16,6 +16,7 @@ ttypes.AggrMessageType = {
 'ROUTING_ADJ' : 202,
 'STATUS_REPORT' : 401,
 'STATS_REPORT' : 402,
+'SYSLOG_REPORT' : 451,
 'GET_ALERTS_CONFIG' : 501,
 'GET_ALERTS_CONFIG_RESP' : 502,
 'SET_ALERTS_CONFIG' : 503,
@@ -186,6 +187,7 @@ AggrStatusReport = module.exports.AggrStatusReport = function(args) {
   this.timeStamp = null;
   this.ipv6Address = null;
   this.routes = null;
+  this.linkLocals = null;
   if (args) {
     if (args.timeStamp !== undefined) {
       this.timeStamp = args.timeStamp;
@@ -195,6 +197,9 @@ AggrStatusReport = module.exports.AggrStatusReport = function(args) {
     }
     if (args.routes !== undefined) {
       this.routes = args.routes;
+    }
+    if (args.linkLocals !== undefined) {
+      this.linkLocals = args.linkLocals;
     }
   }
 };
@@ -247,6 +252,30 @@ AggrStatusReport.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 4:
+      if (ftype == Thrift.Type.MAP) {
+        var _size27 = 0;
+        var _rtmp331;
+        this.linkLocals = {};
+        var _ktype28 = 0;
+        var _vtype29 = 0;
+        _rtmp331 = input.readMapBegin();
+        _ktype28 = _rtmp331.ktype;
+        _vtype29 = _rtmp331.vtype;
+        _size27 = _rtmp331.size;
+        for (var _i32 = 0; _i32 < _size27; ++_i32)
+        {
+          var key33 = null;
+          var val34 = null;
+          key33 = input.readString();
+          val34 = input.readString();
+          this.linkLocals[key33] = val34;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -271,15 +300,30 @@ AggrStatusReport.prototype.write = function(output) {
   if (this.routes !== null && this.routes !== undefined) {
     output.writeFieldBegin('routes', Thrift.Type.LIST, 3);
     output.writeListBegin(Thrift.Type.STRUCT, this.routes.length);
-    for (var iter27 in this.routes)
+    for (var iter35 in this.routes)
     {
-      if (this.routes.hasOwnProperty(iter27))
+      if (this.routes.hasOwnProperty(iter35))
       {
-        iter27 = this.routes[iter27];
-        iter27.write(output);
+        iter35 = this.routes[iter35];
+        iter35.write(output);
       }
     }
     output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.linkLocals !== null && this.linkLocals !== undefined) {
+    output.writeFieldBegin('linkLocals', Thrift.Type.MAP, 4);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRING, Thrift.objectLength(this.linkLocals));
+    for (var kiter36 in this.linkLocals)
+    {
+      if (this.linkLocals.hasOwnProperty(kiter36))
+      {
+        var viter37 = this.linkLocals[kiter36];
+        output.writeString(kiter36);
+        output.writeString(viter37);
+      }
+    }
+    output.writeMapEnd();
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -291,6 +335,7 @@ AggrStat = module.exports.AggrStat = function(args) {
   this.key = null;
   this.timestamp = null;
   this.value = null;
+  this.is_counter = null;
   if (args) {
     if (args.key !== undefined) {
       this.key = args.key;
@@ -300,6 +345,9 @@ AggrStat = module.exports.AggrStat = function(args) {
     }
     if (args.value !== undefined) {
       this.value = args.value;
+    }
+    if (args.is_counter !== undefined) {
+      this.is_counter = args.is_counter;
     }
   }
 };
@@ -338,6 +386,13 @@ AggrStat.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 4:
+      if (ftype == Thrift.Type.BOOL) {
+        this.is_counter = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -364,6 +419,11 @@ AggrStat.prototype.write = function(output) {
     output.writeDouble(this.value);
     output.writeFieldEnd();
   }
+  if (this.is_counter !== null && this.is_counter !== undefined) {
+    output.writeFieldBegin('is_counter', Thrift.Type.BOOL, 4);
+    output.writeBool(this.is_counter);
+    output.writeFieldEnd();
+  }
   output.writeFieldStop();
   output.writeStructEnd();
   return;
@@ -371,9 +431,13 @@ AggrStat.prototype.write = function(output) {
 
 AggrStatsReport = module.exports.AggrStatsReport = function(args) {
   this.stats = null;
+  this.events = null;
   if (args) {
     if (args.stats !== undefined) {
       this.stats = args.stats;
+    }
+    if (args.events !== undefined) {
+      this.events = args.events;
     }
   }
 };
@@ -393,28 +457,46 @@ AggrStatsReport.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.LIST) {
-        var _size28 = 0;
-        var _rtmp332;
+        var _size38 = 0;
+        var _rtmp342;
         this.stats = [];
-        var _etype31 = 0;
-        _rtmp332 = input.readListBegin();
-        _etype31 = _rtmp332.etype;
-        _size28 = _rtmp332.size;
-        for (var _i33 = 0; _i33 < _size28; ++_i33)
+        var _etype41 = 0;
+        _rtmp342 = input.readListBegin();
+        _etype41 = _rtmp342.etype;
+        _size38 = _rtmp342.size;
+        for (var _i43 = 0; _i43 < _size38; ++_i43)
         {
-          var elem34 = null;
-          elem34 = new ttypes.AggrStat();
-          elem34.read(input);
-          this.stats.push(elem34);
+          var elem44 = null;
+          elem44 = new ttypes.AggrStat();
+          elem44.read(input);
+          this.stats.push(elem44);
         }
         input.readListEnd();
       } else {
         input.skip(ftype);
       }
       break;
-      case 0:
+      case 2:
+      if (ftype == Thrift.Type.LIST) {
+        var _size45 = 0;
+        var _rtmp349;
+        this.events = [];
+        var _etype48 = 0;
+        _rtmp349 = input.readListBegin();
+        _etype48 = _rtmp349.etype;
+        _size45 = _rtmp349.size;
+        for (var _i50 = 0; _i50 < _size45; ++_i50)
+        {
+          var elem51 = null;
+          elem51 = new Monitor_ttypes.EventLog();
+          elem51.read(input);
+          this.events.push(elem51);
+        }
+        input.readListEnd();
+      } else {
         input.skip(ftype);
-        break;
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -429,12 +511,26 @@ AggrStatsReport.prototype.write = function(output) {
   if (this.stats !== null && this.stats !== undefined) {
     output.writeFieldBegin('stats', Thrift.Type.LIST, 1);
     output.writeListBegin(Thrift.Type.STRUCT, this.stats.length);
-    for (var iter35 in this.stats)
+    for (var iter52 in this.stats)
     {
-      if (this.stats.hasOwnProperty(iter35))
+      if (this.stats.hasOwnProperty(iter52))
       {
-        iter35 = this.stats[iter35];
-        iter35.write(output);
+        iter52 = this.stats[iter52];
+        iter52.write(output);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.events !== null && this.events !== undefined) {
+    output.writeFieldBegin('events', Thrift.Type.LIST, 2);
+    output.writeListBegin(Thrift.Type.STRUCT, this.events.length);
+    for (var iter53 in this.events)
+    {
+      if (this.events.hasOwnProperty(iter53))
+      {
+        iter53 = this.events[iter53];
+        iter53.write(output);
       }
     }
     output.writeListEnd();
@@ -599,19 +695,19 @@ AggrAlertConfList.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.LIST) {
-        var _size36 = 0;
-        var _rtmp340;
+        var _size54 = 0;
+        var _rtmp358;
         this.alerts = [];
-        var _etype39 = 0;
-        _rtmp340 = input.readListBegin();
-        _etype39 = _rtmp340.etype;
-        _size36 = _rtmp340.size;
-        for (var _i41 = 0; _i41 < _size36; ++_i41)
+        var _etype57 = 0;
+        _rtmp358 = input.readListBegin();
+        _etype57 = _rtmp358.etype;
+        _size54 = _rtmp358.size;
+        for (var _i59 = 0; _i59 < _size54; ++_i59)
         {
-          var elem42 = null;
-          elem42 = new ttypes.AggrAlertConf();
-          elem42.read(input);
-          this.alerts.push(elem42);
+          var elem60 = null;
+          elem60 = new ttypes.AggrAlertConf();
+          elem60.read(input);
+          this.alerts.push(elem60);
         }
         input.readListEnd();
       } else {
@@ -635,12 +731,12 @@ AggrAlertConfList.prototype.write = function(output) {
   if (this.alerts !== null && this.alerts !== undefined) {
     output.writeFieldBegin('alerts', Thrift.Type.LIST, 1);
     output.writeListBegin(Thrift.Type.STRUCT, this.alerts.length);
-    for (var iter43 in this.alerts)
+    for (var iter61 in this.alerts)
     {
-      if (this.alerts.hasOwnProperty(iter43))
+      if (this.alerts.hasOwnProperty(iter61))
       {
-        iter43 = this.alerts[iter43];
-        iter43.write(output);
+        iter61 = this.alerts[iter61];
+        iter61.write(output);
       }
     }
     output.writeListEnd();
@@ -697,6 +793,177 @@ AggrSetAlertsConfigResp.prototype.write = function(output) {
   if (this.success !== null && this.success !== undefined) {
     output.writeFieldBegin('success', Thrift.Type.BOOL, 1);
     output.writeBool(this.success);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AggrSyslog = module.exports.AggrSyslog = function(args) {
+  this.timestamp = null;
+  this.index = null;
+  this.log = null;
+  if (args) {
+    if (args.timestamp !== undefined) {
+      this.timestamp = args.timestamp;
+    }
+    if (args.index !== undefined) {
+      this.index = args.index;
+    }
+    if (args.log !== undefined) {
+      this.log = args.log;
+    }
+  }
+};
+AggrSyslog.prototype = {};
+AggrSyslog.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.I64) {
+        this.timestamp = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.index = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.STRING) {
+        this.log = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrSyslog.prototype.write = function(output) {
+  output.writeStructBegin('AggrSyslog');
+  if (this.timestamp !== null && this.timestamp !== undefined) {
+    output.writeFieldBegin('timestamp', Thrift.Type.I64, 1);
+    output.writeI64(this.timestamp);
+    output.writeFieldEnd();
+  }
+  if (this.index !== null && this.index !== undefined) {
+    output.writeFieldBegin('index', Thrift.Type.STRING, 2);
+    output.writeString(this.index);
+    output.writeFieldEnd();
+  }
+  if (this.log !== null && this.log !== undefined) {
+    output.writeFieldBegin('log', Thrift.Type.STRING, 3);
+    output.writeString(this.log);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AggrSyslogReport = module.exports.AggrSyslogReport = function(args) {
+  this.mac_addr = null;
+  this.syslogs = null;
+  if (args) {
+    if (args.mac_addr !== undefined) {
+      this.mac_addr = args.mac_addr;
+    }
+    if (args.syslogs !== undefined) {
+      this.syslogs = args.syslogs;
+    }
+  }
+};
+AggrSyslogReport.prototype = {};
+AggrSyslogReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.mac_addr = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.LIST) {
+        var _size62 = 0;
+        var _rtmp366;
+        this.syslogs = [];
+        var _etype65 = 0;
+        _rtmp366 = input.readListBegin();
+        _etype65 = _rtmp366.etype;
+        _size62 = _rtmp366.size;
+        for (var _i67 = 0; _i67 < _size62; ++_i67)
+        {
+          var elem68 = null;
+          elem68 = new ttypes.AggrSyslog();
+          elem68.read(input);
+          this.syslogs.push(elem68);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrSyslogReport.prototype.write = function(output) {
+  output.writeStructBegin('AggrSyslogReport');
+  if (this.mac_addr !== null && this.mac_addr !== undefined) {
+    output.writeFieldBegin('mac_addr', Thrift.Type.STRING, 1);
+    output.writeString(this.mac_addr);
+    output.writeFieldEnd();
+  }
+  if (this.syslogs !== null && this.syslogs !== undefined) {
+    output.writeFieldBegin('syslogs', Thrift.Type.LIST, 2);
+    output.writeListBegin(Thrift.Type.STRUCT, this.syslogs.length);
+    for (var iter69 in this.syslogs)
+    {
+      if (this.syslogs.hasOwnProperty(iter69))
+      {
+        iter69 = this.syslogs[iter69];
+        iter69.write(output);
+      }
+    }
+    output.writeListEnd();
     output.writeFieldEnd();
   }
   output.writeFieldStop();

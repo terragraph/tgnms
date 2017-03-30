@@ -46,6 +46,7 @@ pool.on('error', function() {
 });
 var self = {
   macAddrToNodeId: {},
+  filenameToSourceId: {},
   timeBucketIds: {},
   nodeKeyIds: {},
   droppedKeyNames: new Set(),

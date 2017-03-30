@@ -43,6 +43,8 @@ const expressWs = require('express-ws')(app);
 const os = require('os');
 const pty = require('pty.js');
 
+const statusReportExpiery = 2 * 60000; // 2 minuets
+
 var fileTopologies = [];
 var configs = [];
 var eventLogsTables = {};
@@ -55,6 +57,8 @@ var aggrStatusDumps = [];
 var terminals = {},
     logs = {};
 
+var allStats = {};
+
 var tgNodeIp = null;
 
 function periodicNetworkStatus() {
@@ -62,6 +66,34 @@ function periodicNetworkStatus() {
     controllerProxy.getTopology(i, configs, receivedTopologies);
     controllerProxy.getStatusDump(i, configs, ctrlStatusDumps);
     aggregatorProxy.getStatusDump(i, configs, aggrStatusDumps);
+
+    var currentTime = new Date().getTime();
+    if (ctrlStatusDumps[i] && ctrlStatusDumps[i].statusReports) {
+      Object.keys(ctrlStatusDumps[i].statusReports).forEach(function(nodeMac) {
+        let report = ctrlStatusDumps[i].statusReports[nodeMac];
+        let timeStampObj = report.timeStamp;
+        var timeStamp = (timeStampObj.buffer.readUInt32BE(0) << 8) + timeStampObj.buffer.readUInt32BE(4) * 1000;
+        if (timeStamp != 0) {
+          if (currentTime - timeStamp > statusReportExpiery) {
+            // status older than 2 minuets
+            delete ctrlStatusDumps[i].statusReports[nodeMac];
+          }
+        }
+      });
+    }
+    if (aggrStatusDumps[i] && aggrStatusDumps[i].statusReports) {
+      Object.keys(aggrStatusDumps[i].statusReports).forEach(function(nodeMac) {
+        let report = aggrStatusDumps[i].statusReports[nodeMac];
+        let timeStampObj = report.timeStamp;
+        var timeStamp = (timeStampObj.buffer.readUInt32BE(0) << 8) + timeStampObj.buffer.readUInt32BE(4) * 1000;
+        if (timeStamp != 0) {
+          if (currentTime - timeStamp > statusReportExpiery) {
+            // status older than 2 minuets
+            delete aggrStatusDumps[i].statusReports[nodeMac];
+          }
+        }
+      });
+    }
   }
 }
 

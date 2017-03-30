@@ -77,6 +77,7 @@ export default class NetworkDataTable extends React.Component {
     Dispatcher.dispatch({
       actionType: Actions.CLEAR_NODE_LINK_SELECTED,
     });
+    Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
   }
 
   render() {
@@ -114,7 +115,7 @@ export default class NetworkDataTable extends React.Component {
           <NetworkRoutingTable
             height={this.state.componentHeight}
             topology={this.state.topology}
-            routing={this.state.routing.statusReports}>
+            routing={this.state.routing}>
           </NetworkRoutingTable>
         </TabPanel>
       </Tabs>

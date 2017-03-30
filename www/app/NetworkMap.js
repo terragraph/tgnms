@@ -12,6 +12,7 @@ import NetworkStore from './NetworkStore.js';
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
 import SplitPane from 'react-split-pane';
+const d3 = require('d3');
 
 export class CustomMap extends Map {
   createLeafletElement (props: Object): Object {
@@ -30,6 +31,36 @@ export class CustomMap extends Map {
       .forEach((layer) => {
         layer.bringToFront();
       });
+  }
+}
+
+class Vector {
+  constructor(x, y)
+  {
+      this.x = x;
+      this.y = y;
+  }
+  subtract(v1)
+  {
+      return new Vector(this.x - v1.x, this.y - v1.y);
+  }
+  add(v1)
+  {
+      return new Vector(this.x + v1.x, this.y + v1.y);
+  }
+  divide(number)
+  {
+      return new Vector(this.x / number, this.y / number);
+  }
+  multiply(number)
+  {
+      return new Vector(this.x * number, this.y * number);
+  }
+  length()
+  {
+      var distance;
+      distance = (this.x * this.x) + (this.y * this.y);
+      return Math.sqrt(distance);
   }
 }
 
@@ -54,6 +85,11 @@ const linkOverlayKeys = {
     Unhealthy: {color: 'red'},
     Unknown: {color: 'orange'}
   },
+  Routing: {
+    Weighted: {color: 'orange'},
+    SourceNode: {color: 'blue'},
+    DestNode: {color: 'magenta'}
+  }
 }
 
 export default class NetworkMap extends React.Component {
@@ -62,6 +98,9 @@ export default class NetworkMap extends React.Component {
     selectedLink: null,
     networkName: null,
     networkConfig: undefined,
+    routeWeights: {},
+    routeSourceNode: null,
+    routeDestNode: null,
     // reset zoom level to a topologies default
     zoomLevel: 18,
     // sorting
@@ -108,6 +147,10 @@ export default class NetworkMap extends React.Component {
         this.resetZoomOnNextRefresh = true;
         this.setState({
           networkName: payload.networkName,
+          selectedSiteOverlay: 'Health',
+          selectedLinkOverlay: 'Health',
+          selectedNodeSite: null,
+          selectedLink: null,
         });
         break;
       case Actions.TOPOLOGY_REFRESHED:
@@ -131,6 +174,24 @@ export default class NetworkMap extends React.Component {
       case Actions.SITE_SELECTED:
         this.setState({
           selectedNodeSite: payload.siteSelected,
+        });
+        break;
+      case Actions.DISPLAY_ROUTE:
+        this.setState({
+          routeWeights: payload.routeWeights,
+          routeSourceNode: payload.routeSourceNode,
+          routeDestNode: payload.routeDestNode,
+          selectedLinkOverlay: 'Routing',
+          selectedNodeSite: null,
+          selectedLink: null,
+        });
+        break;
+      case Actions.CLEAR_ROUTE:
+        this.setState({
+          routeWeights: null,
+          routeSourceNode: null,
+          routeDestNode: null,
+          selectedLinkOverlay: 'Health',
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
@@ -256,14 +317,27 @@ export default class NetworkMap extends React.Component {
         level={10}/>);
   }
 
+  getArrowhead(A, B)
+  {
+      var h = 5 * Math.sqrt(3) * 10e-6;
+      var w = 5 * 10e-6;
+      var v1 = B.subtract(A);
+      var length = v1.length();
+      var U = v1.divide(length);
+      var V = new Vector(-U.y, U.x);
+      var r1 = B.subtract(U.multiply(h)).add(V.multiply(w));
+      var r2 = B.subtract(U.multiply(h)).subtract(V.multiply(w));
+
+      return [r1,r2];
+  }
+
   getLinkLine(name, coords, color): ReactElement<any> {
-    return (
-      <Polyline
-        key={name}
-        positions={coords}
-        color={color}
-        level={5}
-        />);
+    return (<Polyline
+      key={name}
+      positions={coords}
+      color={color}
+      level={5}
+      />);
   }
 
   render() {
@@ -274,6 +348,8 @@ export default class NetworkMap extends React.Component {
       [37.484494, -122.1483976];
     let siteComponents = [];
     let linkComponents = [];
+    let siteMarkers = [];
+
     if (this.state.networkConfig &&
         this.state.networkConfig.topology &&
         this.state.networkConfig.topology.sites) {
@@ -330,6 +406,7 @@ export default class NetworkMap extends React.Component {
         }
         siteComponents.push(contextualMarker);
       });
+
       Object.keys(topology.links).map(linkName => {
         let link = topology.links[linkName];
         if (link.link_type != 1) {
@@ -360,14 +437,39 @@ export default class NetworkMap extends React.Component {
               linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
             }
             break;
+          case 'Routing':
+            if (this.state.routeWeights[link.name]) {
+              var bwUsageColor = d3.scaleLinear()
+                  .domain([0, 100])
+                  .range(['white', '#4169e1']);
+              var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
+              linkLine = this.getLinkLine(link.name, linkCoords, linkColor);
+            }
+            break;
           default:
             linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Unknown.color);
         }
-        linkComponents.push(linkLine);
+        if (linkLine) {
+          linkComponents.push(linkLine);
+        }
       });
     }
 
-    let siteMarkers = [];
+    if (this.state.selectedLinkOverlay == 'Routing') {
+      let sourceSite = this.state.sitesByName[this.state.routeSourceNode.site_name];
+      let destSite = this.state.sitesByName[this.state.routeDestNode.site_name];
+      siteMarkers.push(
+          <CircleMarker center={[sourceSite.location.latitude, sourceSite.location.longitude]}
+                  radius={18}
+                  key="source_node"
+                  color="blue"/>);
+      siteMarkers.push(
+          <CircleMarker center={[destSite.location.latitude, destSite.location.longitude]}
+                  radius={18}
+                  key="dest_node"
+                  color="magenta"/>);
+    }
+
     if (this.state.selectedNodeSite != null) {
       let site = this.state.sitesByName[this.state.selectedNodeSite];
       if (site && site.location) {

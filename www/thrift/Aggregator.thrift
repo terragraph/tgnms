@@ -3,6 +3,7 @@ namespace py terragraph_thrift.Aggregator
 
 include "Lsdb.thrift"
 include "IpPrefix.thrift"
+include "Monitor.thrift"
 
 enum AggrMessageType {
 
@@ -16,6 +17,8 @@ enum AggrMessageType {
   // Messages originated (by agent)
   STATUS_REPORT = 401,
   STATS_REPORT = 402,
+  // Messages originated (by logtail)
+  SYSLOG_REPORT = 451,
 
   GET_ALERTS_CONFIG = 501,
   GET_ALERTS_CONFIG_RESP = 502,
@@ -36,6 +39,7 @@ struct AggrStatusReport {
   1: i64 timeStamp;  // timestamp at which this response was generated
   2: string ipv6Address;
   3: list<IpPrefix.UnicastRoute> routes;
+  4: map<string /* interface */, string /* address */> linkLocals;
 }
 
 #############  StatsApp ##############
@@ -44,10 +48,12 @@ struct AggrStat {
   1: string key;
   2: i64 timestamp;
   3: double value;
+  4: bool is_counter;
 }
 
 struct AggrStatsReport {
   1: list<AggrStat> stats;
+  2: list<Monitor.EventLog> events;
 }
 
 enum AggrAlertComparator {
@@ -78,6 +84,17 @@ struct AggrAlertConfList {
 
 struct AggrSetAlertsConfigResp {
   1: bool success;
+}
+
+struct AggrSyslog {
+  1: i64 timestamp;
+  2: string index;
+  3: string log;
+}
+
+struct AggrSyslogReport {
+  1: string mac_addr;
+  2: list<AggrSyslog> syslogs;
 }
 
 ############# Common #############
