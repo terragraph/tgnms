@@ -34,36 +34,6 @@ export class CustomMap extends Map {
   }
 }
 
-class Vector {
-  constructor(x, y)
-  {
-      this.x = x;
-      this.y = y;
-  }
-  subtract(v1)
-  {
-      return new Vector(this.x - v1.x, this.y - v1.y);
-  }
-  add(v1)
-  {
-      return new Vector(this.x + v1.x, this.y + v1.y);
-  }
-  divide(number)
-  {
-      return new Vector(this.x / number, this.y / number);
-  }
-  multiply(number)
-  {
-      return new Vector(this.x * number, this.y * number);
-  }
-  length()
-  {
-      var distance;
-      distance = (this.x * this.x) + (this.y * this.y);
-      return Math.sqrt(distance);
-  }
-}
-
 const siteOverlayKeys = {
   Health: {
     Healthy: {color: 'green'},
@@ -89,6 +59,14 @@ const linkOverlayKeys = {
     Weighted: {color: 'orange'},
     SourceNode: {color: 'blue'},
     DestNode: {color: 'magenta'}
+  },
+  Uptime: {
+    Weighted: {color: 'green'},
+    Unknown: {color: 'grey'}
+  },
+  Snr_Perc: {
+    Weighted: {color: 'green'},
+    Unknown: {color: 'grey'}
   }
 }
 
@@ -110,6 +88,7 @@ export default class NetworkMap extends React.Component {
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
     layersExpanded: false,
+    networkHealth: {},
   }
 
   constructor(props) {
@@ -125,6 +104,9 @@ export default class NetworkMap extends React.Component {
     // register once we're visible
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    this.setState({
+      networkHealth: NetworkStore.networkHealth,
+    });
     // update default state from the store
     if (NetworkStore.networkName && NetworkStore.networkConfig) {
       this.setState(
@@ -198,6 +180,11 @@ export default class NetworkMap extends React.Component {
         this.setState({
           selectedNodeSite: null,
           selectedLink: null,
+        });
+        break;
+      case Actions.HEALTH_REFRESHED:
+        this.setState({
+          networkHealth: payload.health,
         });
         break;
     }
@@ -317,20 +304,6 @@ export default class NetworkMap extends React.Component {
         level={10}/>);
   }
 
-  getArrowhead(A, B)
-  {
-      var h = 5 * Math.sqrt(3) * 10e-6;
-      var w = 5 * 10e-6;
-      var v1 = B.subtract(A);
-      var length = v1.length();
-      var U = v1.divide(length);
-      var V = new Vector(-U.y, U.x);
-      var r1 = B.subtract(U.multiply(h)).add(V.multiply(w));
-      var r2 = B.subtract(U.multiply(h)).subtract(V.multiply(w));
-
-      return [r1,r2];
-  }
-
   getLinkLine(name, coords, color): ReactElement<any> {
     return (<Polyline
       key={name}
@@ -407,6 +380,24 @@ export default class NetworkMap extends React.Component {
         siteComponents.push(contextualMarker);
       });
 
+      let linksData = {};
+      if (topology &&
+          topology.links) {
+        Object(topology.links).forEach(link => {
+          if (this.state.networkHealth &&
+              this.state.networkHealth.links &&
+              link.a_node_name in this.state.networkHealth.links &&
+              link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
+            let nodeHealth = this.state.networkHealth.links[link.a_node_name]
+                                                           [link.z_node_name];
+            linksData[link.name] = {
+              alive_perc: nodeHealth.alive,
+              snr_health_perc: nodeHealth.snr,
+            };
+          }
+        });
+      }
+
       Object.keys(topology.links).map(linkName => {
         let link = topology.links[linkName];
         if (link.link_type != 1) {
@@ -438,12 +429,34 @@ export default class NetworkMap extends React.Component {
             }
             break;
           case 'Routing':
-            if (this.state.routeWeights[link.name]) {
+            if (this.state.routeWeights && this.state.routeWeights[link.name]) {
               var bwUsageColor = d3.scaleLinear()
                   .domain([0, 100])
                   .range(['white', '#4169e1']);
               var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
               linkLine = this.getLinkLine(link.name, linkCoords, linkColor);
+            }
+            break;
+          case 'Uptime':
+            if (linksData[link.name]) {
+              var bwUsageColor = d3.scaleLinear()
+                  .domain([0, 50, 100])
+                  .range(["red", "white", "green"]);
+              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
+              linkLine = this.getLinkLine(link.name, linkCoords, linkColor);
+            } else {
+              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
+            }
+            break;
+          case 'Snr_Perc':
+            if (linksData[link.name]) {
+              var bwUsageColor = d3.scaleLinear()
+                  .domain([0, 50, 100])
+                  .range(["red", "white", "green"]);
+              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
+              linkLine = this.getLinkLine(link.name, linkCoords, linkColor);
+            } else {
+              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
             }
             break;
           default:
@@ -455,7 +468,7 @@ export default class NetworkMap extends React.Component {
       });
     }
 
-    if (this.state.selectedLinkOverlay == 'Routing') {
+    if (this.state.selectedLinkOverlay == 'Routing' && this.state.routeSourceNode) {
       let sourceSite = this.state.sitesByName[this.state.routeSourceNode.site_name];
       let destSite = this.state.sitesByName[this.state.routeDestNode.site_name];
       siteMarkers.push(
