@@ -71,7 +71,7 @@ export default class NetworkNodesTable extends React.Component {
                               node_type:string,
                               ignited:boolean,
                               site_name:string,
-                              pop_node:string,
+                              pop_node:boolean,
                               ipv6:string,
                               version:string,
                               uboot_version:string}>  {
@@ -92,7 +92,7 @@ export default class NetworkNodesTable extends React.Component {
           node_type: node.node_type == 2 ? 'DN' : 'CN',
           ignited: (node.status == 2 || node.status == 3),
           site_name: node.site_name,
-          pop_node: node.pop_node ? 'true' : 'false',
+          pop_node: node.pop_node,
           ipv6: ipv6,
           version: version,
           uboot_version: ubootVersion,
@@ -179,6 +179,13 @@ export default class NetworkNodesTable extends React.Component {
     });
   }
 
+  renderStatusColor(cell, row) {
+    return (
+      <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
+        {"" + cell}
+      </span>);
+  }
+
   render() {
     var selectRowProp = {
       mode: "checkbox",
@@ -214,13 +221,22 @@ export default class NetworkNodesTable extends React.Component {
             striped={true} hover={true}
             selectRow={selectRowProp}
             trClassName= 'break-word'>
-          <TableHeaderColumn width="170" dataSort={true} dataField="name" isKey={ true }>Name</TableHeaderColumn>
-          <TableHeaderColumn width="160" dataSort={true} dataField="mac_addr">MAC</TableHeaderColumn>
-          <TableHeaderColumn width="180" dataSort={true} dataField="ipv6">IPv6</TableHeaderColumn>
-          <TableHeaderColumn width="80" dataSort={true} dataField="node_type">Type</TableHeaderColumn>
+          <TableHeaderColumn width="170" dataSort={true} dataField="name" isKey={ true }>
+            Name
+          </TableHeaderColumn>
+          <TableHeaderColumn width="160" dataSort={true} dataField="mac_addr">
+            MAC
+          </TableHeaderColumn>
+          <TableHeaderColumn width="180" dataSort={true} dataField="ipv6">
+            IPv6
+          </TableHeaderColumn>
+          <TableHeaderColumn width="80" dataSort={true} dataField="node_type">
+            Type
+          </TableHeaderColumn>
           <TableHeaderColumn width="90"
                              dataSort={true}
-                             dataField="ignited">
+                             dataField="ignited"
+                             dataFormat={this.renderStatusColor}>
             Ignited
           </TableHeaderColumn>
           <TableHeaderColumn width="80"
@@ -229,9 +245,18 @@ export default class NetworkNodesTable extends React.Component {
                              sortFunc={this.siteSortFunc}>
             Site
           </TableHeaderColumn>
-          <TableHeaderColumn width="80" dataSort={true} dataField="pop_node">Pop?</TableHeaderColumn>
-          <TableHeaderColumn width="700" dataSort={true} dataField="version">Image Version</TableHeaderColumn>
-          <TableHeaderColumn width="700" dataSort={true} dataField="uboot_version">Uboot Version</TableHeaderColumn>
+          <TableHeaderColumn width="80"
+                             dataSort={true}
+                             dataField="pop_node"
+                             dataFormat={this.renderStatusColor}>
+            Pop?
+          </TableHeaderColumn>
+          <TableHeaderColumn width="700" dataSort={true} dataField="version">
+            Image Version
+          </TableHeaderColumn>
+          <TableHeaderColumn width="700" dataSort={true} dataField="uboot_version">
+            Uboot Version
+          </TableHeaderColumn>
         </BootstrapTable>
       </ContextMenuTrigger>
       <ContextMenu id="nodesTableContextMenu" onShow={this.contextMenuOnShow}>

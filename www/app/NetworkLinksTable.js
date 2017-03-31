@@ -111,6 +111,13 @@ export default class NetworkLinksTable extends React.Component {
     });
   }
 
+  renderStatusColor(cell, row) {
+    return (
+      <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
+        {"" + cell}
+      </span>);
+  }
+
   render() {
     var linksSelectRowProp = {
       mode: "radio",
@@ -168,7 +175,7 @@ export default class NetworkLinksTable extends React.Component {
         </TableHeaderColumn>
         <TableHeaderColumn width="80"
                            dataSort={true}
-                           dataFormat={(cell, row) => <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>{"" + cell}</span>}
+                           dataFormat={this.renderStatusColor}
                            dataField="alive">
           Alive
         </TableHeaderColumn>
