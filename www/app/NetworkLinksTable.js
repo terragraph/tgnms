@@ -9,9 +9,12 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 export default class NetworkLinksTable extends React.Component {
   state = {
+    sortName: undefined,
+    sortOrder: undefined,
     selectedLink: null,
     networkHealth: {},
     nodesByName: {},
+    hideWired: false,
   }
 
   nodesByName = {}
@@ -62,14 +65,27 @@ export default class NetworkLinksTable extends React.Component {
     }
   }
 
+  onSortChange(sortName, sortOrder) {
+    this.setState({
+      sortName,
+      sortOrder
+    });
+  }
+
   getTableRows(links): Array<{name:string,
                               a_node_name:string,
                               z_node_name:string,
                               alive:boolean}> {
     const rows = [];
     links.forEach(link => {
-      const buf = Buffer.from(link.linkup_attempts.buffer.data);
-      const linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
+      let linkupAttempts = 0;
+      if (link.linkup_attempts && link.linkup_attempts.buffer) {
+        const buf = Buffer.from(link.linkup_attempts.buffer.data);
+        linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
+      }
+      if (link.link_type == 2 && this.state.hideWired) {
+        return;
+      }
       rows.push({
         name: link.name,
         a_node_name: link.a_node_name,
@@ -101,7 +117,13 @@ export default class NetworkLinksTable extends React.Component {
       clickToSelect: true,
       hideSelectColumn: true,
       bgColor: "rgb(183,210,255)",
-      onSelect: this.tableOnRowSelect
+      onSelect: this.tableOnRowSelect,
+      selected: this.state.selectedLink ? [this.state.selectedLink.key] : [],
+    };
+    const tableOpts = {
+      sortName: this.state.sortName,
+      sortOrder: this.state.sortOrder,
+      onSortChange: this.onSortChange.bind(this),
     };
 
     let linksData = [];
@@ -125,7 +147,9 @@ export default class NetworkLinksTable extends React.Component {
           height={this.props.height}
           key="linksTable"
           data={this.getTableRows(linksData)}
-          striped={true} hover={true}
+          striped={true}
+          hover={true}
+          options={tableOpts}
           selectRow={linksSelectRowProp}>
         <TableHeaderColumn width="350"
                            dataSort={true}
@@ -144,6 +168,7 @@ export default class NetworkLinksTable extends React.Component {
         </TableHeaderColumn>
         <TableHeaderColumn width="80"
                            dataSort={true}
+                           dataFormat={(cell, row) => <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>{"" + cell}</span>}
                            dataField="alive">
           Alive
         </TableHeaderColumn>
@@ -166,6 +191,7 @@ export default class NetworkLinksTable extends React.Component {
           Attempts
         </TableHeaderColumn>
       </BootstrapTable>;
+    let eventChart;
     if (this.state.selectedLink) {
       // chart options
       let aNode = this.nodesByName[this.state.selectedLink.a_node_name];
@@ -176,17 +202,22 @@ export default class NetworkLinksTable extends React.Component {
         z_node: {name: zNode.name, mac: zNode.mac_addr},
         keys: ['link_status'],
       }];
-      return (
-        <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
-          <li key="eventsChart" style={{height: '75px'}}>
-            <ReactEventChart options={opts} size="small" />
-          </li>
-          <li key="linksTable" style={{height: '400px'}}>
-            {linksTable}
-          </li>
-        </ul>
-      );
+      eventChart = 
+        <li key="eventsChart" style={{height: '75px'}}>
+          <ReactEventChart options={opts} size="small" />
+        </li>;
     }
-    return linksTable;
+    return (
+      <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
+        {eventChart}
+        <li key="linksTable" style={{height: '400px'}}>
+          <button className={this.state.hideWired ? 'graph-button graph-button-selected' : 'graph-button'}
+                  onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
+            Hide Wired
+          </button>
+          {linksTable}
+        </li>
+      </ul>
+    );
   }
 }

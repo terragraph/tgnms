@@ -145,7 +145,7 @@ export default class ReactEventChart extends React.Component {
 
   render() {
     if (this.state.data.length != 1 || this.state.data[0].length == 0) {
-      return (<div>No data available</div>);
+      return (<div>No link data available</div>);
     }
     let opts = this.props.options;
     let chartRows = [];
