@@ -23,43 +23,18 @@
             "width": "180"
           },
           {
-            "field": "normal.node_mac",
-            "label": "MAC",
-            "width": "170"
-          },
-          {
-            "field": "normal.ipv6",
-            "label": "IP",
-            "width": "180"
-          },
-          {
             "field": "normal.message_type",
             "label": "Msg Type",
             "width": "180"
           },
           {
-            "field": "normal.status",
+            "field": "normal.node_status",
             "label": "Status",
             "width": "180"
           },
           {
-            "field": "normal.upgrade_status",
-            "label": "Upgrade Status",
-            "width": "100"
-          },
-          {
-            "field": "normal.requestId",
-            "label": "Request ID",
-            "width": "100"
-          },
-          {
-            "field": "normal.curr_version",
-            "label": "Version",
-            "width": "400"
-          },
-          {
-            "field": "normal.next_version",
-            "label": "Next Version"
+            "field": "normal.reason",
+            "label": "Reason"
           }
         ]
       }
@@ -100,11 +75,6 @@
             "field": "normal.source",
             "label": "Source",
             "width": "150"
-          },
-          {
-            "field": "int.linkup_attemps",
-            "label": "Up Attempts",
-            "width": "100"
           },
           {
             "field": "normal.reason",
