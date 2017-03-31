@@ -1,5 +1,6 @@
 const fs = require('fs');
 const mysql = require('mysql');
+const _ = require('lodash');
 const pool = mysql.createPool({
     connectionLimit:    50,
     dateStrings:        true,
@@ -146,7 +147,7 @@ DELETE_ALERTS_BY_MAC = "DELETE `alerts` FROM `alerts` " +
 
 const DATA_FOLDER_PATH = './data/';
 
-MAX_COLUMNS = 8;
+MAX_COLUMNS = 7;
 var self = {
   keyIds: {},
 
@@ -392,7 +393,7 @@ var self = {
           timeSeriesGroup[row.time]['sum'] = row.sum;
           break;
         default:
-          // none
+          // none, top, bottom
           timeSeriesGroup[row.time][keyName] = row.value;
           // collect all unique key names
           columnNames.add(keyName);
@@ -418,27 +419,25 @@ var self = {
           }
         }
       }
+      
       // sort to fetch the top N
       let topAvgValues = [];
-      let avgValues = {};
+      let avgValues = [];
       for (var columnName in sumValue) {
         let avg = sumValue[columnName] / dpCount[columnName];
-        avgValues[columnName] = avg;
-        topAvgValues.push(avg);
+        avgValues.push({'column': columnName, 'avg': avg});
       }
-      topAvgValues.sort();
-      // finally, get the values above the threshold
-      let thresholdValue = 0;
-      if (topAvgValues.length > MAX_COLUMNS) {
-        thresholdValue = topAvgValues[topAvgValues.length - 1 - MAX_COLUMNS];
+      let sortedValues = _.sortBy(avgValues, ['avg']);
+      // bottom
+      switch (keyMapping.agg_type) {
+        case 'top':
+          sortedValues.splice(0, sortedValues.length - MAX_COLUMNS);
+          break;
+        case 'bottom':
+          sortedValues.splice(MAX_COLUMNS);
+          break;
       }
-      columnNamesArr = columnNamesArr.filter(name => {
-        return (avgValues[name] >= thresholdValue);
-      });
-      // and if multiple values match, just keep it below the threshold
-      if (columnNamesArr.length > MAX_COLUMNS) {
-        columnNamesArr.splice(MAX_COLUMNS);
-      }
+      columnNamesArr = sortedValues.map(row => row.column);
     }
     for (var key in timeSeriesGroup) {
       let values = timeSeriesGroup[key];
@@ -775,14 +774,13 @@ var self = {
 
   makeListQuery: function(keyIds, minAgo, aggType) {
     switch (aggType) {
-      case 'none':
-        return mysql.format(MAC_AND_KEY_NOAGG, [[keyIds], minAgo]);
       case 'avg':
         return mysql.format(MAC_AND_KEY_AVG, [[keyIds], minAgo]);
       case 'sum':
         return mysql.format(MAC_AND_KEY_SUM, [[keyIds], minAgo]);
       default:
-        console.error('No defined query for', aggType);
+        // top, buttom
+        return mysql.format(MAC_AND_KEY_NOAGG, [[keyIds], minAgo]);
     }
   },
 

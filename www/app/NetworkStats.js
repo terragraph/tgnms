@@ -37,8 +37,12 @@ const TIME_PICKER_OPTS = [
 
 const GRAPH_AGG_OPTS = [
   {
-    name: 'none',
-    title: 'None',
+    name: 'top',
+    title: 'Top',
+  },
+  {
+    name: 'bottom',
+    title: 'Bottom',
   },
   {
     name: 'avg',
@@ -72,7 +76,7 @@ export default class NetworkStats extends React.Component {
     nodesSelected: [],
     keysSelected: [],
     minAgo: 60,
-    graphAggType: 'avg',
+    graphAggType: 'top',
   }
 
   constructor(props) {
