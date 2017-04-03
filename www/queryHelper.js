@@ -145,7 +145,7 @@ DELETE_ALERTS_BY_MAC = "DELETE `alerts` FROM `alerts` " +
                        "JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) " +
                        "WHERE `mac` IN ? ;";
 
-const DATA_FOLDER_PATH = './data/';
+const DATA_FOLDER_PATH = '/home/nms/data/';
 
 MAX_COLUMNS = 7;
 var self = {
