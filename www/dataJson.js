@@ -26,7 +26,7 @@ const KEY_WHITELIST_PREFIX = new Set([
   'terra0',
   'tgf',
 ]);
-const DATA_FOLDER_PATH = './data/';
+const DATA_FOLDER_PATH = '/home/nms/data/';
 const fs = require('fs');
 const mysql = require('mysql');
 const pool = mysql.createPool({
@@ -52,6 +52,17 @@ var self = {
   droppedKeyNames: new Set(),
   nodeFilenameIds: {},
   nodeCategoryIds: {},
+
+  init: function() {
+
+    // Create data folder if it does not exist
+    fs.mkdir(DATA_FOLDER_PATH, function (err) {
+      if (err) {
+        // ignore error
+      }
+    });
+
+  },
 
   timeAlloc: function() {
     // pre allocate time buckets
