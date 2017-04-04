@@ -1,4 +1,5 @@
 #!/bin/bash
 export PORT=8086
+ulimit -n 65536
 pushd /home/nms/www
-exec npm start 2>&1
+npm start 2>&1

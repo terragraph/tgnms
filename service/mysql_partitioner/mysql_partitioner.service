@@ -1,0 +1,12 @@
+[Unit]
+Description= NMS mysql_partitioner
+           
+[Service]
+Type=simple
+User=root
+ExecStart=/home/nms/tgnms/service/mysql_partitioner/run
+Restart=always
+RestartSec=60s
+
+[Install]
+WantedBy=default.target

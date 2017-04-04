@@ -1,3 +1,0 @@
-#!/bin/bash
-PATH=$PATH:/usr/java/jre1.8.0_111/bin && \
-exec su elastic -c /home/elastic/elasticsearch-5.0.1/bin/elasticsearch 2>&1

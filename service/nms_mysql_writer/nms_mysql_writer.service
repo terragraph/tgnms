@@ -1,0 +1,12 @@
+[Unit]
+Description= Production NMS MySql Writer
+           
+[Service]
+Type=simple
+User=root
+ExecStart=/home/nms/tgnms/service/nms_mysql_writer/run
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=default.target

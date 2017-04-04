@@ -1,3 +1,0 @@
-#!/bin/bash
-mkdir -p /var/log/nms_mysql_writer
-exec svlogd /var/log/nms_mysql_writer
