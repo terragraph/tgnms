@@ -14,17 +14,12 @@ These instructions assume a CentOS 7 distribution.
 `git clone https://github.com/pmccut/tgnms.git`
 ### Create symlink for 'www'
 `ln -s tgnms/www www`
-### Run patch script
-`pushd www && ./patch.sh ; popd`
-### Install runit
-The easiest route is an existing package.
-[Runit instructions](https://packagecloud.io/imeyer/runit/packages/el/7/runit-2.1.1-7.el7.centos.x86_64.rpm?page=2)
-### Create runit services
-`for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && ln -s $dir /etc/service/$(basename $dir); done`
 ### Install ZeroMQ
 [ZeroMQ download](http://zeromq.org/intro:get-the-software)
 ### Install NodeJS
 [NodeJS instructions](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora)
+### Run patch script
+`pushd www && ./patch.sh ; popd`
 ### Install MariaDB (MySQL)
 `yum install mariadb-server`
 #### Import schema
@@ -36,6 +31,6 @@ The easiest route is an existing package.
 
     echo 'export NETWORK="sjc_networks"' > /etc/sysconfig/nms
 
-### Enable services (runit)
-    chkconfig runit on
-    for dir in ~nms/tgnms/service/*; do sv start $(basename $dir); done
+### Enable and Start systemd services
+    for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && systemctl enable $dir/$(basename $dir).service; done
+    for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && systemctl start $(basename $dir).service; done
