@@ -33,4 +33,5 @@ These instructions assume a CentOS 7 distribution.
 
 ### Enable and Start systemd services
     for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && systemctl enable $dir/$(basename $dir).service; done
+    systemctl daemon-reload
     for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && systemctl start $(basename $dir).service; done
