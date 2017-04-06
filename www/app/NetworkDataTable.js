@@ -15,6 +15,13 @@ import NetworkStatusTable from './NetworkStatusTable.js';
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
+const TAB_NAME_TO_INDEX = {
+  'status': 0,
+  'nodes': 1,
+  'links': 2,
+  'adjacencies': 3,
+  'routing': 4,
+};
 export default class NetworkDataTable extends React.Component {
   state = {
     selectedTabIndex: 0,
@@ -32,8 +39,13 @@ export default class NetworkDataTable extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
     if (NetworkStore.networkName && NetworkStore.networkConfig) {
+      let tabIndex = 0;
+      if (NetworkStore.tabName in TAB_NAME_TO_INDEX) {
+        tabIndex = TAB_NAME_TO_INDEX[NetworkStore.tabName];
+      }
       this.setState({
         networkConfig: NetworkStore.networkConfig,
+        selectedTabIndex: tabIndex,
       });
     }
   }
@@ -64,6 +76,16 @@ export default class NetworkDataTable extends React.Component {
         this.setState({
           nodesSelected: null,
           selectedLink: null,
+        });
+        break;
+      case Actions.TAB_SELECTED:
+        if (!(payload.tabName in TAB_NAME_TO_INDEX)) {
+          console.error('Tab not found', payload.tabName);
+          break;
+        }
+        const tabIndex = TAB_NAME_TO_INDEX[payload.tabName];
+        this.setState({
+          selectedTabIndex: tabIndex,
         });
         break;
     }

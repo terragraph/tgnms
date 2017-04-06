@@ -151,11 +151,13 @@ export default class NetworkMap extends React.Component {
       case Actions.LINK_SELECTED:
         this.setState({
           selectedLink: payload.link,
+          selectedNodeSite: null,
         });
         break;
       case Actions.SITE_SELECTED:
         this.setState({
           selectedNodeSite: payload.siteSelected,
+          selectedLink: null,
         });
         break;
       case Actions.DISPLAY_ROUTE:
@@ -245,6 +247,10 @@ export default class NetworkMap extends React.Component {
       ev.target.options.siteIndex];
     // dispatch to update all UIs
     Dispatcher.dispatch({
+      actionType: Actions.TAB_SELECTED,
+      tabName: 'nodes',
+    });
+    Dispatcher.dispatch({
       actionType: Actions.SITE_SELECTED,
       siteSelected: site.name,
     });
@@ -308,12 +314,18 @@ export default class NetworkMap extends React.Component {
     return (<Polyline
       key={link.name}
       positions={coords}
-      onClick={e =>
+      weight={6}
+      onClick={e => {
+        Dispatcher.dispatch({
+          actionType: Actions.TAB_SELECTED,
+          tabName: "links",
+        });
         Dispatcher.dispatch({
           actionType: Actions.LINK_SELECTED,
           link: link,
           source: "map",
-        })}
+        })
+      }}
       color={color}
       level={5}
       />);
@@ -595,7 +607,6 @@ export default class NetworkMap extends React.Component {
           <img src="/static/images/layers.png" onClick={this.handleLayersClick}/>
         </Control>
     }
-
 
     return (
       <div>

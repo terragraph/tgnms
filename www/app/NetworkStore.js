@@ -5,6 +5,7 @@ class NetworkStoreI {
   networkName: null
   networkConfig: {}
   networkHealth: {}
+  tabName: 'status'
 }
 
 const NetworkStore = new NetworkStoreI();
@@ -21,6 +22,9 @@ Dispatcher.register(function(payload) {
       break;
     case Actions.HEALTH_REFRESHED:
       NetworkStore.networkHealth = payload.health;
+      break;
+    case Actions.TAB_SELECTED:
+      NetworkStore.tabName = payload.tabName;
       break;
   }
 });

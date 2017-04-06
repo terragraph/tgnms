@@ -15,6 +15,7 @@ const Actions = {
   // primary pane view
   VIEW_SELECTED: 300,
   PANE_CHANGED: 301,
+  TAB_SELECTED: 302,
 
   // network health
   HEALTH_REFRESHED: 400,
