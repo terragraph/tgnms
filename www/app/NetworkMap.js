@@ -312,6 +312,7 @@ export default class NetworkMap extends React.Component {
         Dispatcher.dispatch({
           actionType: Actions.LINK_SELECTED,
           link: link,
+          source: "map",
         })}
       color={color}
       level={5}

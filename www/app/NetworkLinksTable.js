@@ -15,6 +15,7 @@ export default class NetworkLinksTable extends React.Component {
     networkHealth: {},
     nodesByName: {},
     hideWired: false,
+    toplink: null,
   }
 
   nodesByName = {}
@@ -22,6 +23,7 @@ export default class NetworkLinksTable extends React.Component {
   constructor(props) {
     super(props);
     this.tableOnRowSelect = this.tableOnRowSelect.bind(this);
+    this.linkSortFunc = this.linkSortFunc.bind(this);
     this.getTableRows = this.getTableRows.bind(this);
   }
 
@@ -59,6 +61,9 @@ export default class NetworkLinksTable extends React.Component {
         break;
       case Actions.LINK_SELECTED:
         this.setState({
+          sortName: payload.source == "table" ? this.state.sortName : "name",
+          sortOrder: payload.source == "table" ? this.state.sortOrder : "asc",
+          topLink: payload.source == "table" ? this.state.topLink : payload.link,
           selectedLink: payload.link,
         });
         break;
@@ -70,10 +75,37 @@ export default class NetworkLinksTable extends React.Component {
     }
   }
 
+  linkSortFunc(a, b, order) {   // order is desc or asc
+    if (this.state.topLink) {
+      if (a.name == this.state.topLink.name) {
+        return -1;
+      } else if (b.name == this.state.topLink.name) {
+        return 1;
+      }
+    }
+
+    if (order === 'desc') {
+      if (a.name > b.name) {
+        return -1;
+      } else if (a.name < b.name) {
+        return 1;
+      }
+      return 0;
+    } else {
+      if (a.name < b.name) {
+        return -1;
+      } else if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    }
+  }
+
   onSortChange(sortName, sortOrder) {
     this.setState({
       sortName,
-      sortOrder
+      sortOrder,
+      toplink: sortName=="name" ? this.state.toplink : null,
     });
   }
 
@@ -109,6 +141,7 @@ export default class NetworkLinksTable extends React.Component {
     Dispatcher.dispatch({
       actionType: Actions.LINK_SELECTED,
       link: row,
+      source: "table",
     });
   }
 
@@ -159,9 +192,11 @@ export default class NetworkLinksTable extends React.Component {
           hover={true}
           options={tableOpts}
           selectRow={linksSelectRowProp}>
-        <TableHeaderColumn width="350"
-                           dataSort={true}
-                           dataField="name" isKey={ true }>
+       <TableHeaderColumn width="350"
+                          dataSort={true}
+                          dataField="name"
+                          isKey={ true }
+                          sortFunc={this.linkSortFunc}>
           Name
         </TableHeaderColumn>
         <TableHeaderColumn width="180"
@@ -210,7 +245,7 @@ export default class NetworkLinksTable extends React.Component {
         z_node: {name: zNode.name, mac: zNode.mac_addr},
         keys: ['link_status'],
       }];
-      eventChart = 
+      eventChart =
         <li key="eventsChart" style={{height: '75px'}}>
           <ReactEventChart options={opts} size="small" />
         </li>;
