@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 // leaflet maps
 import Leaflet from 'leaflet';
-import { Map, Polyline, TileLayer, CircleMarker} from 'react-leaflet';
+import { Map, Polyline, Popup, TileLayer, CircleMarker} from 'react-leaflet';
 import Control from 'react-leaflet-control';
 
 // dispatcher
@@ -304,10 +304,15 @@ export default class NetworkMap extends React.Component {
         level={10}/>);
   }
 
-  getLinkLine(name, coords, color): ReactElement<any> {
+  getLinkLine(link, coords, color): ReactElement<any> {
     return (<Polyline
-      key={name}
+      key={link.name}
       positions={coords}
+      onClick={e =>
+        Dispatcher.dispatch({
+          actionType: Actions.LINK_SELECTED,
+          link: link,
+        })}
       color={color}
       level={5}
       />);
@@ -423,9 +428,9 @@ export default class NetworkMap extends React.Component {
         switch (this.state.selectedLinkOverlay) {
           case 'Health':
             if (link.is_alive) {
-              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Healthy.color);
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Healthy.color);
             } else {
-              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
             }
             break;
           case 'Routing':
@@ -434,7 +439,7 @@ export default class NetworkMap extends React.Component {
                   .domain([0, 100])
                   .range(['white', '#4169e1']);
               var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
-              linkLine = this.getLinkLine(link.name, linkCoords, linkColor);
+              linkLine = this.getLinkLine(link, linkCoords, linkColor);
             }
             break;
           case 'Uptime':
@@ -443,9 +448,9 @@ export default class NetworkMap extends React.Component {
                   .domain([0, 50, 100])
                   .range(["red", "white", "green"]);
               var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
-              linkLine = this.getLinkLine(link.name, linkCoords, linkColor);
+              linkLine = this.getLinkLine(link, linkCoords, linkColor);
             } else {
-              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
             }
             break;
           case 'Snr_Perc':
@@ -454,13 +459,13 @@ export default class NetworkMap extends React.Component {
                   .domain([0, 50, 100])
                   .range(["red", "white", "green"]);
               var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
-              linkLine = this.getLinkLine(link.name, linkCoords, linkColor);
+              linkLine = this.getLinkLine(link, linkCoords, linkColor);
             } else {
-              linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
             }
             break;
           default:
-            linkLine = this.getLinkLine(link.name, linkCoords, linkOverlayKeys.Health.Unknown.color);
+            linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unknown.color);
         }
         if (linkLine) {
           linkComponents.push(linkLine);

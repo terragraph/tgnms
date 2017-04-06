@@ -57,6 +57,11 @@ export default class NetworkLinksTable extends React.Component {
           selectedLink: null,
         });
         break;
+      case Actions.LINK_SELECTED:
+        this.setState({
+          selectedLink: payload.link,
+        });
+        break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
           networkHealth: payload.health,
@@ -95,16 +100,12 @@ export default class NetworkLinksTable extends React.Component {
         alive_perc: link.alive_perc,
         snr_health_perc: link.snr_health_perc,
         linkup_attempts: linkupAttempts,
-        key: link.name,
       });
     });
     return rows;
   }
 
   tableOnRowSelect(row, isSelected) {
-    this.setState({
-      selectedLink:  row,
-    });
     Dispatcher.dispatch({
       actionType: Actions.LINK_SELECTED,
       link: row,
@@ -125,7 +126,7 @@ export default class NetworkLinksTable extends React.Component {
       hideSelectColumn: true,
       bgColor: "rgb(183,210,255)",
       onSelect: this.tableOnRowSelect,
-      selected: this.state.selectedLink ? [this.state.selectedLink.key] : [],
+      selected: this.state.selectedLink ? [this.state.selectedLink.name] : [],
     };
     const tableOpts = {
       sortName: this.state.sortName,
@@ -151,7 +152,7 @@ export default class NetworkLinksTable extends React.Component {
     }
     let linksTable =
       <BootstrapTable
-          height={this.props.height}
+          height={(this.props.height - (this.state.selectedLink ? 100 : 0)) + 'px'}
           key="linksTable"
           data={this.getTableRows(linksData)}
           striped={true}
@@ -217,7 +218,7 @@ export default class NetworkLinksTable extends React.Component {
     return (
       <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
         {eventChart}
-        <li key="linksTable" style={{height: '400px'}}>
+        <li key="linksTable">
           <button className={this.state.hideWired ? 'graph-button graph-button-selected' : 'graph-button'}
                   onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
             Hide Wired

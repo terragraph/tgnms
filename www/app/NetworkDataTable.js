@@ -100,7 +100,7 @@ export default class NetworkDataTable extends React.Component {
         </TabPanel>
         <TabPanel>
           <NetworkLinksTable
-            height={this.state.componentHeight+'px'}
+            height={this.state.componentHeight}
             topology={this.state.topology}>
           </NetworkLinksTable>
         </TabPanel>
