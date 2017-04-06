@@ -10,6 +10,7 @@ import NetworkNodesTable from './NetworkNodesTable.js';
 import NetworkLinksTable from './NetworkLinksTable.js';
 import NetworkAdjacencyTable from './NetworkAdjacencyTable.js';
 import NetworkRoutingTable from './NetworkRoutingTable.js';
+import NetworkStatusTable from './NetworkStatusTable.js';
 
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
@@ -17,7 +18,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 export default class NetworkDataTable extends React.Component {
   state = {
     selectedTabIndex: 0,
-    topology: {},
+    networkConfig: {},
     routing: {},
     componentHeight: window.innerHeight/2 - 50,
   }
@@ -32,7 +33,7 @@ export default class NetworkDataTable extends React.Component {
       this.handleDispatchEvent.bind(this));
     if (NetworkStore.networkName && NetworkStore.networkConfig) {
       this.setState({
-        topology: NetworkStore.networkConfig.topology
+        networkConfig: NetworkStore.networkConfig,
       });
     }
   }
@@ -47,7 +48,7 @@ export default class NetworkDataTable extends React.Component {
       case Actions.TOPOLOGY_REFRESHED:
         // topology refreshed
         this.setState({
-          topology: payload.networkConfig.topology,
+          networkConfig: payload.networkConfig,
         });
         break;
       case Actions.AGGREGATOR_DUMP_REFRESHED:
@@ -87,34 +88,41 @@ export default class NetworkDataTable extends React.Component {
         selectedIndex={this.state.selectedTabIndex}
       >
         <TabList>
+          <Tab>Status</Tab>
           <Tab>Nodes</Tab>
           <Tab>Links</Tab>
           <Tab>Adjacencies</Tab>
           <Tab>Routing</Tab>
         </TabList>
         <TabPanel>
+          <NetworkStatusTable
+            height={this.state.componentHeight+'px'}
+            instance={this.state.networkConfig}>
+          </NetworkStatusTable>
+        </TabPanel>
+        <TabPanel>
           <NetworkNodesTable
             height={this.state.componentHeight+'px'}
-            topology={this.state.topology}>
+            topology={this.state.networkConfig.topology}>
           </NetworkNodesTable>
         </TabPanel>
         <TabPanel>
           <NetworkLinksTable
             height={this.state.componentHeight}
-            topology={this.state.topology}>
+            topology={this.state.networkConfig.topology}>
           </NetworkLinksTable>
         </TabPanel>
         <TabPanel>
           <NetworkAdjacencyTable
             height={this.state.componentHeight+'px'}
-            topology={this.state.topology}
+            topology={this.state.networkConfig.topology}
             adjacencies={this.state.routing.adjacencyMap}>
           </NetworkAdjacencyTable>
         </TabPanel>
         <TabPanel>
           <NetworkRoutingTable
             height={this.state.componentHeight}
-            topology={this.state.topology}
+            topology={this.state.networkConfig.topology}
             routing={this.state.routing}>
           </NetworkRoutingTable>
         </TabPanel>

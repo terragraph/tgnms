@@ -20,3 +20,16 @@
   height: 30px;
   display: inline-block;
 }
+.status-table {
+  padding: 10px;
+  float: left;
+}
+.status-table td {
+  padding: 5px;
+}
+.status-table tr:nth-child(2n+1) {
+  background: #eee;
+}
+.status-table tr:nth-child(2n) {
+  background: #ddd;
+}
