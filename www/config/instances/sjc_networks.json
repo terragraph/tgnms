@@ -1,4 +1,5 @@
 {
+  "use_tile_proxy": true,
   "topologies": [
     {
       "topology_file": "sjc_area1.json",

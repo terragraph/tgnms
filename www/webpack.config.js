@@ -19,11 +19,6 @@ module.exports = {
     publicPath: '/'
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: 'app/index.tpl.html',
-      inject: true,
-      filename: 'index.html'
-    }),
     new ExtractTextPlugin('bootstrap.css', {
       allChunks: true,
     }),
