@@ -621,7 +621,7 @@ export default class NetworkMap extends React.Component {
             onClick={this._onMapClick.bind(this)}
             center={centerPosition} zoom={this.state.zoomLevel}>
             <TileLayer
-              url='/tile/{s}/{z}/{x}/{y}.png'
+              url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
               attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             />
             {linkComponents}
