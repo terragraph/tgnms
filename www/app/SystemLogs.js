@@ -79,7 +79,7 @@ export default class SystemLogs extends React.Component {
   }
 
   getConfigs() {
-    let getLogSources = new Request('/getSystemLogsSources/');
+    let getLogSources = new Request('/getSystemLogsSources/', {"credentials": "same-origin"});
     fetch(getLogSources).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -94,7 +94,7 @@ export default class SystemLogs extends React.Component {
   loadClick(e) {
     if (this.state.selectedNodeMac && this.state.selectedSourceName) {
       return new Promise((resolve, reject) => {
-        let exec = new Request('/getSystemLogs/'+ this.state.selectedSourceName+'/'+this.state.offset+'/'+this.state.size+'/'+this.state.selectedNodeMac+'/'+this.state.startDate.format('M-D-YYYY'));
+        let exec = new Request('/getSystemLogs/'+ this.state.selectedSourceName+'/'+this.state.offset+'/'+this.state.size+'/'+this.state.selectedNodeMac+'/'+this.state.startDate.format('M-D-YYYY'), {"credentials": "same-origin"});
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             response.json().then(function(json) {

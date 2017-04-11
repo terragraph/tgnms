@@ -158,7 +158,7 @@ export default class NetworkNodesTable extends React.Component {
 
   contextMenuHandleRightClick(e, data) {
     if (data.cmd == "terminal") {
-      let myRequest = new Request('/xterm/'+this.state.nodesRowMouseOver.ipv6);
+      let myRequest = new Request('/xterm/'+this.state.nodesRowMouseOver.ipv6, {"credentials": "same-origin"});
       window.open(myRequest.url, '_blank');
       window.focus();
     }

@@ -44,7 +44,7 @@ export default class NetworkUI extends React.Component {
 
   getNetworkStatus(networkName) {
     let topoGetFetch = new Request('/topology/get/' +
-      networkName);
+      networkName, {"credentials": "same-origin"});
     fetch(topoGetFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -63,7 +63,7 @@ export default class NetworkUI extends React.Component {
 
   getAggregatorDump(networkName) {
     let aggregatorDumpFetch = new Request('/aggregator/getStatusDump/' +
-      networkName);
+      networkName, {"credentials": "same-origin"});
     fetch(aggregatorDumpFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -118,7 +118,7 @@ export default class NetworkUI extends React.Component {
 
   updateNetworkLinkHealth(networkName) {
     // refresh link health
-    let linkHealthFetch = new Request('/health/' + networkName);
+    let linkHealthFetch = new Request('/health/' + networkName, {"credentials": "same-origin"});
     fetch(linkHealthFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -134,7 +134,7 @@ export default class NetworkUI extends React.Component {
 
   refreshTopologyList() {
     // topology list
-    let topoListFetch = new Request('/topology/list');
+    let topoListFetch = new Request('/topology/list', {"credentials": "same-origin"});
     fetch(topoListFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
