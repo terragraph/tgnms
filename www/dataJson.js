@@ -157,25 +157,6 @@ var self = {
     });
   },
 
-  refreshNodeFilenames: function() {
-    pool.getConnection(function(err, conn) {
-      if (err) {
-        console.error('DB error', err);
-        return;
-      }
-      conn.query('SELECT `id`, `node_id`, `filename` FROM log_sources',
-        function(err, results) {
-          results.forEach(row => {
-            if (!(row.node_id in self.nodeFilenameIds)) {
-              self.nodeFilenameIds[row.node_id] = {};
-            }
-            self.nodeFilenameIds[row.node_id][row.filename] = row.id;
-          });
-        }
-      );
-    });
-  },
-
   refreshNodeCategories: function() {
     pool.getConnection(function(err, conn) {
       if (err) {
@@ -272,32 +253,6 @@ var self = {
       );
     });
     self.refreshNodeKeyTimes();
-  },
-
-  /*
-   * Accepts a list of <node, filename> to generate new ids
-   */
-  updateNodeFilenames: function(NodeFilenames) {
-    if (!NodeFilenames.length) {
-      return;
-    }
-    // insert node/filename combos
-    pool.getConnection(function(err, conn) {
-      if (err) {
-        console.error('DB error', err);
-        return;
-      }
-      let sqlQuery = conn.query('INSERT IGNORE INTO `log_sources` (`node_id`, `filename`) VALUES ?',
-        [NodeFilenames],
-        function (err, rows) {
-          if (err) {
-            console.log('Error inserting new node/filenames', err);
-          }
-          conn.release();
-        }
-      );
-    });
-    self.refreshNodeFilenames();
   },
 
   /*
