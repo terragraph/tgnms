@@ -22,12 +22,12 @@ const TAB_NAME_TO_INDEX = {
   'adjacencies': 3,
   'routing': 4,
 };
+
 export default class NetworkDataTable extends React.Component {
   state = {
     selectedTabIndex: 0,
     networkConfig: {},
     routing: {},
-    componentHeight: window.innerHeight/2 - 50,
   }
 
   constructor(props) {
@@ -41,6 +41,12 @@ export default class NetworkDataTable extends React.Component {
       return true;
     }
     return false;
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.height != this.props.height) {
+      this.shouldUpdate = true;
+    }
   }
 
   componentWillMount() {
@@ -76,11 +82,6 @@ export default class NetworkDataTable extends React.Component {
       case Actions.AGGREGATOR_DUMP_REFRESHED:
         this.setState({
           routing: payload.routing,
-        });
-        break;
-      case Actions.PANE_CHANGED:
-        this.setState({
-          componentHeight: window.innerHeight - payload.newSize - 60,
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
@@ -131,32 +132,31 @@ export default class NetworkDataTable extends React.Component {
         </TabList>
         <TabPanel>
           <NetworkStatusTable
-            height={this.state.componentHeight+'px'}
             instance={this.state.networkConfig}>
           </NetworkStatusTable>
         </TabPanel>
         <TabPanel>
           <NetworkNodesTable
-            height={this.state.componentHeight+'px'}
+            height={this.props.height - 60}
             topology={this.state.networkConfig.topology}>
           </NetworkNodesTable>
         </TabPanel>
         <TabPanel>
           <NetworkLinksTable
-            height={this.state.componentHeight}
+            height={this.props.height - 60}
             topology={this.state.networkConfig.topology}>
           </NetworkLinksTable>
         </TabPanel>
         <TabPanel>
           <NetworkAdjacencyTable
-            height={this.state.componentHeight+'px'}
+            height={this.props.height - 60}
             topology={this.state.networkConfig.topology}
             routing={this.state.routing}>
           </NetworkAdjacencyTable>
         </TabPanel>
         <TabPanel>
           <NetworkRoutingTable
-            height={this.state.componentHeight}
+            height={this.props.height - 60}
             topology={this.state.networkConfig.topology}
             routing={this.state.routing}>
           </NetworkRoutingTable>

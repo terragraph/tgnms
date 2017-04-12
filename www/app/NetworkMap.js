@@ -70,6 +70,17 @@ const linkOverlayKeys = {
   }
 }
 
+var addEvent = function(object, type, callback) {
+    if (object == null || typeof(object) == 'undefined') return;
+    if (object.addEventListener) {
+        object.addEventListener(type, callback, false);
+    } else if (object.attachEvent) {
+        object.attachEvent("on" + type, callback);
+    } else {
+        object["on"+type] = callback;
+    }
+};
+
 export default class NetworkMap extends React.Component {
   state = {
     selectedNodeSite: null,
@@ -89,6 +100,7 @@ export default class NetworkMap extends React.Component {
     selectedLinkOverlay: 'Health',
     layersExpanded: false,
     networkHealth: {},
+    lowerPaneHeight: window.innerHeight / 2,
   }
 
   constructor(props) {
@@ -98,6 +110,13 @@ export default class NetworkMap extends React.Component {
     this.handleLayersClick = this.handleLayersClick.bind(this);
     // reset zoom on next refresh is set once a new topology is selected
     this.resetZoomOnNextRefresh = true;
+
+    addEvent(window, "resize", function(event) {
+      this.refs.map.leafletElement.invalidateSize();
+      this.setState({
+        lowerPaneHeight: window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight,
+      });
+    }.bind(this));
   }
 
   componentWillMount() {
@@ -235,10 +254,8 @@ export default class NetworkMap extends React.Component {
 
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
-    // dispatch to update all UIs
-    Dispatcher.dispatch({
-      actionType: Actions.PANE_CHANGED,
-      newSize: newSize,
+    this.setState({
+      lowerPaneHeight: window.innerHeight - newSize,
     });
   }
 
@@ -616,6 +633,7 @@ export default class NetworkMap extends React.Component {
       <div>
         <SplitPane
           split="horizontal"
+          ref='split_pane'
           defaultSize="50%"
           onChange={this._paneChange.bind(this)}
         >
@@ -633,7 +651,7 @@ export default class NetworkMap extends React.Component {
             {siteMarkers}
             {layersControl}
           </CustomMap>
-          <NetworkDataTable />
+          <NetworkDataTable height={this.state.lowerPaneHeight}/>
         </SplitPane>
       </div>
     );

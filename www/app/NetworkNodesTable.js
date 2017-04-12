@@ -214,7 +214,7 @@ export default class NetworkNodesTable extends React.Component {
       <div>
       <ContextMenuTrigger id="nodesTableContextMenu">
         <BootstrapTable
-            height={this.props.height}
+            height={this.props.height + 'px'}
             key="nodesTable"
             options={ tableOptions }
             data={this.getTableRows(nodesData)}

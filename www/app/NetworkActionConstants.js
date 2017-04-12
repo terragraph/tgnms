@@ -14,7 +14,6 @@ const Actions = {
   CLEAR_NODE_LINK_SELECTED: 290,
   // primary pane view
   VIEW_SELECTED: 300,
-  PANE_CHANGED: 301,
   TAB_SELECTED: 302,
 
   // network health

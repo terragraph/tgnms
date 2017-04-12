@@ -70,7 +70,7 @@ export default class NetworkAdjacencyTable extends React.Component {
 
     return (
       <BootstrapTable
-          height={this.props.height}
+          height={this.props.height + 'px'}
           key="adjacencyTable"
           data={this.getTableRows(this.props.routing.status.adjacencyMap)}
           selectRow={selectRowProp}>
