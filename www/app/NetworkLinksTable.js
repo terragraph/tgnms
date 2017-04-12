@@ -158,7 +158,7 @@ export default class NetworkLinksTable extends React.Component {
   changeLinkStatus(upDown) {
     if (this.state.selectedLink) {
       let status = upDown ? "up" : "down";
-      let exec = new Request('/controller\/setlinkStatus/'+ this.props.topology.name+'/'+this.state.selectedLink.a_node_name+'/'+this.state.selectedLink.z_node_name+'/'+status);
+      let exec = new Request('/controller\/setlinkStatus/'+ this.props.topology.name+'/'+this.state.selectedLink.a_node_name+'/'+this.state.selectedLink.z_node_name+'/'+status, {"credentials": "same-origin"});
       fetch(exec);
     }
   }
