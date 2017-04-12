@@ -81,7 +81,8 @@ export default class EventLogs extends React.Component {
   }
 
   getConfigs() {
-    let getTables = new Request('/getEventLogsTables');
+    let getTables = new Request('/getEventLogsTables',
+      {"credentials": "same-origin"});
     fetch(getTables).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -99,7 +100,7 @@ export default class EventLogs extends React.Component {
     must += "]";
     must_not += "]";
     return new Promise((resolve, reject) => {
-      let exec = new Request('/getEventLogs/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.networkName+'/d_'+this.state.dateFrom.format('YYYY_MM_DD'));
+      let exec = new Request('/getEventLogs/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.networkName+'/d_'+this.state.dateFrom.format('YYYY_MM_DD'), {"credentials": "same-origin"});
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {

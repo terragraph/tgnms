@@ -118,7 +118,7 @@ export default class NetworkAlerts extends React.Component {
 
   getConfigClick(e) {
     return new Promise((resolve, reject) => {
-      let exec = new Request('/aggregator\/getAlertsConfig/' + this.state.networkName);
+      let exec = new Request('/aggregator\/getAlertsConfig/' + this.state.networkName, {"credentials": "same-origin"});
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
@@ -186,7 +186,7 @@ export default class NetworkAlerts extends React.Component {
 
       if (!errors &&
           confirm('Are you sure you want to overwrite Alerts Config?')) {
-        let exec = new Request('/aggregator\/setAlertsConfig/'+ this.state.networkName+'/'+JSON.stringify(this.state.alertsConfigRows));
+        let exec = new Request('/aggregator\/setAlertsConfig/'+ this.state.networkName+'/'+JSON.stringify(this.state.alertsConfigRows), {"credentials": "same-origin"});
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             response.json().then(function(json) {
@@ -221,7 +221,7 @@ export default class NetworkAlerts extends React.Component {
   }
 
   getAlerts(network) {
-    let exec = new Request('/getAlerts/' +  network +'/'+this.state.from+'/'+this.state.size);
+    let exec = new Request('/getAlerts/' +  network +'/'+this.state.from+'/'+this.state.size, {"credentials": "same-origin"});
     fetch(exec).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -239,7 +239,7 @@ export default class NetworkAlerts extends React.Component {
 
   getAlertsClick(e) {
     return new Promise((resolve, reject) => {
-      let exec = new Request('/getAlerts/' +  this.state.networkName +'/'+this.state.from+'/'+this.state.size);
+      let exec = new Request('/getAlerts/' +  this.state.networkName +'/'+this.state.from+'/'+this.state.size, {"credentials": "same-origin"});
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
@@ -305,7 +305,7 @@ export default class NetworkAlerts extends React.Component {
       this.state.alertsSelected.forEach( id => {
         alertIds.push(id);
       });
-      let exec = new Request('/deleteAlerts/'+ JSON.stringify(alertIds));
+      let exec = new Request('/deleteAlerts/'+ JSON.stringify(alertIds), {"credentials": "same-origin"});
       fetch(exec);
       this.setState({
         alertsSelected: [],
@@ -315,7 +315,7 @@ export default class NetworkAlerts extends React.Component {
   }
 
   clearAllAlerts () {
-    let exec = new Request('/clearAlerts/'+  this.state.networkName);
+    let exec = new Request('/clearAlerts/'+  this.state.networkName, {"credentials": "same-origin"});
     fetch(exec);
     this.setState({
       alertsSelected: [],
