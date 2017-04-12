@@ -32,54 +32,58 @@ export default class NetworkStatusTable extends React.Component {
             width: '25%',
             borderLeft: '1px solid teal'
           }}>
-          <tr>
-            <td>Sites</td>
-            <td>{topology.sites.length}</td>
-          </tr>
-          <tr>
-            <td>Sectors</td>
-            <td>{sectorsOnline} / {topology.nodes.length}</td>
-          </tr>
-          <tr>
-            <td>RF Links</td>
-            <td>{linksOnline} / {linksWireless}</td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>Sites</td>
+              <td>{topology.sites.length}</td>
+            </tr>
+            <tr>
+              <td>Sectors</td>
+              <td>{sectorsOnline} / {topology.nodes.length}</td>
+            </tr>
+            <tr>
+              <td>RF Links</td>
+              <td>{linksOnline} / {linksWireless}</td>
+            </tr>
+          </tbody>
         </table>
     }
     return (
       <div style={{marginLeft: '10px', marginRight: '10px'}}>
         <table className="status-table" style={{width: '75%'}}>
-          <tr>
-            <td>Controller</td>
-            <td>{this.props.instance.controller_ip}</td>
-            <td>{this.statusColor(this.props.instance.controller_online)}</td>
-          </tr>
-          <tr>
-            <td>Aggregator</td>
-            <td>{this.props.instance.aggregator_ip}</td>
-            <td>{this.statusColor(this.props.instance.aggregator_online)}</td>
-          </tr>
-          <tr>
-            <td>Latitude</td>
-            <td>{this.props.instance.latitude}</td>
-            <td>&nbsp;</td>
-          </tr>
-          <tr>
-            <td>Longitude</td>
-            <td>{this.props.instance.longitude}</td>
-            <td>&nbsp;</td>
-          </tr>
-          <tr>
-            <td>Initial Zoom Level</td>
-            <td>{this.props.instance.zoom_level}</td>
-            <td>&nbsp;</td>
-          </tr>
-          <tr>
-            <td>Site Coordinates Override</td>
-            <td>{this.statusColor(this.props.instance.site_coords_override,
-                                  'Enabled', 'Disabled')}</td>
-            <td>&nbsp;</td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>Controller</td>
+              <td>{this.props.instance.controller_ip}</td>
+              <td>{this.statusColor(this.props.instance.controller_online)}</td>
+            </tr>
+            <tr>
+              <td>Aggregator</td>
+              <td>{this.props.instance.aggregator_ip}</td>
+              <td>{this.statusColor(this.props.instance.aggregator_online)}</td>
+            </tr>
+            <tr>
+              <td>Latitude</td>
+              <td>{this.props.instance.latitude}</td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td>Longitude</td>
+              <td>{this.props.instance.longitude}</td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td>Initial Zoom Level</td>
+              <td>{this.props.instance.zoom_level}</td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td>Site Coordinates Override</td>
+              <td>{this.statusColor(this.props.instance.site_coords_override,
+                                    'Enabled', 'Disabled')}</td>
+              <td>&nbsp;</td>
+            </tr>
+          </tbody>
         </table>
         {topologyTable}
       </div>

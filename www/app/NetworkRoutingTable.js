@@ -31,6 +31,20 @@ export default class NetworkRoutingTable extends React.Component {
     Dispatcher.unregister(this.dispatchToken);
   }
 
+  componentDidUpdate() {
+    if (this.state.destinationPrefix &&
+        this.state.selectedSourceNode &&
+        this.nodeMacToNode[this.state.selectedSourceNode.mac] &&
+        this.globalPrefixToNode[this.state.destinationPrefix]) {
+      // Because we can not dispatch withing a dispatch, delay by 1 ms
+      setTimeout(function() {
+        this.calcRoutingPath(
+            this.nodeMacToNode[this.state.selectedSourceNode.mac],
+            this.globalPrefixToNode[this.state.destinationPrefix]);
+      }.bind(this), 1);
+    }
+  }
+
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case Actions.TOPOLOGY_SELECTED:
@@ -100,7 +114,7 @@ export default class NetworkRoutingTable extends React.Component {
     }
 
     let routingTable = routing[this.state.selectedSourceNode.mac];
-    let nodeAdj = this.nodeMacToAdj[this.state.selectedSourceNode.mac];
+    let nodeAdj = this.props.routing.AdjMapAcuum[this.state.selectedSourceNode.mac.toUpperCase()];
 
     if (!routingTable) {
       return rows;
@@ -117,17 +131,18 @@ export default class NetworkRoutingTable extends React.Component {
         let nextHopAddr = ipaddr.fromByteArray(Buffer.from(nextHop.addr, 'ASCII')).toString();
         var nextHopHost = "";
         if (nodeAdj) {
-          let nextHopNode = nodeAdj[nextHopAddr];
-          if (nextHopNode) {
-            nextHopHost = nextHopNode.name;
+          let nextHopMac = nodeAdj[nextHopAddr];
+          if (nextHopMac) {
+            let nextHopNode = this.nodeMacToNode[nextHopMac];
+            nextHopHost = nextHopNode ? nextHopNode.name : "-";
           }
         }
         // match dest to a node address
         rows.push(
           {
             dst_ip_hidden: destAddr,
-            dst_ip: j==0 ? destAddr : "",
-            dst_host: destNode ? destNode.name + (destNode.pop_node ? ' (POP)' : '') : '',
+            dst_ip: j==0 ? destAddr : "=",
+            dst_host: destNode ? destNode.name + (destNode.pop_node ? ' (POP)' : '') : '-',
             n_host: nextHopHost,
             n_ip: nextHopAddr,
             n_ifName: nextHop.ifName,
@@ -144,7 +159,8 @@ export default class NetworkRoutingTable extends React.Component {
   tableOnRowSelect(row, isSelected) {
     this.setState({
       selectedSourceNode: row,
-      destinationSelected: []
+      destinationRowsSelected: [],
+      destinationPrefix: null,
     });
     // dispatch event for the map
     Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
@@ -156,6 +172,7 @@ export default class NetworkRoutingTable extends React.Component {
 
   calcRoutingPath (src, finalDest) {
     var myStack = [];
+    var validRoute = false;
 
     if (!src || !finalDest || this.globalPrefixToNode.length < 1) {
       Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
@@ -165,30 +182,29 @@ export default class NetworkRoutingTable extends React.Component {
     //push source to stack
     myStack.push({
       node: src,
-      weight: 100
+      weight: 100,
+      visitedSoFar: [],
     });
     let visitedLinksWeights = {};
 
-    let visitedNodes = {};
     //while stack not empty
     while (myStack.length > 0) {
       // pop node
       let currentNode = myStack.pop();
       let routingObj = this.statusReports[currentNode.node.mac_addr.toUpperCase()];
 
-      if (visitedNodes[currentNode.node.name]) {
-        // dispatch event for the map
-        Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
-        return;
-      } else {
-        visitedNodes[currentNode.node.name] = 1;
+      if (!routingObj) {
+          console.error('Missing status report for node')
+          console.log(currentNode)
+          continue;
       }
 
       if (finalDest.name == currentNode.node.name) {
         // reached desination node
-        visitedNodes = {};
+        validRoute = true;
         continue;
       }
+      currentNode.visitedSoFar.push(currentNode.node.name);
 
       Object(routingObj.routes).forEach(destObj => {
         let destAddr = ipaddr.fromByteArray(Buffer.from(destObj.dest.prefixAddress.addr, 'ASCII')).toString();
@@ -196,35 +212,55 @@ export default class NetworkRoutingTable extends React.Component {
 
         if (destNode && (destNode.name == finalDest.name)) {
           Object(destObj.nexthops).forEach(hop => {
-            let nodeAdj = this.nodeMacToAdj[currentNode.node.mac_addr.toUpperCase()];
-            // push next hops to stack
+            let nodeAdj = this.props.routing.AdjMapAcuum[currentNode.node.mac_addr.toUpperCase()];
             let nextHopAddr = ipaddr.fromByteArray(Buffer.from(hop.addr, 'ASCII')).toString();
-            let nextHopNode = nodeAdj[nextHopAddr];
-            let addedWeight = currentNode.weight / destObj.nexthops.length;
-            myStack.push({
-              node: nextHopNode,
-              weight: addedWeight
-            });
-            let linkname = currentNode.node.name < nextHopNode.name ?
-                'link-'+ currentNode.node.name + '-' + nextHopNode.name :
-                'link-'+ nextHopNode.name + '-' + currentNode.node.name;
-            if (visitedLinksWeights[linkname]) {
-              visitedLinksWeights[linkname] += addedWeight;
+            if (nodeAdj) {
+              // push next hops to stack
+              let nextHopMac = nodeAdj[nextHopAddr];
+              let nextHopNode = this.nodeMacToNode[nextHopMac];
+              let addedWeight = currentNode.weight / destObj.nexthops.length;
+              if (!nextHopNode ||
+                  !nextHopNode.name ||
+                  currentNode.visitedSoFar.includes(nextHopNode.name)) {
+                  console.error("loop detected")
+                  console.log(currentNode)
+                  console.log(nextHopNode)
+                  console.log(visitedLinksWeights)
+                  console.log(myStack)
+                  return;
+              }
+              var visitedSoFar = currentNode.visitedSoFar.slice();
+              myStack.push({
+                node: nextHopNode,
+                weight: addedWeight,
+                visitedSoFar: visitedSoFar,
+              });
+              let linkname = currentNode.node.name < nextHopNode.name ?
+                  'link-'+ currentNode.node.name + '-' + nextHopNode.name :
+                  'link-'+ nextHopNode.name + '-' + currentNode.node.name;
+              if (visitedLinksWeights[linkname]) {
+                visitedLinksWeights[linkname] += addedWeight;
+              } else {
+                visitedLinksWeights[linkname] = addedWeight;
+              }
             } else {
-              visitedLinksWeights[linkname] = addedWeight;
+              console.error('Node Adj missing');
+              console.log(currentNode);
             }
           });
         }
       });
     }
 
-    // dispatch event for the map
-    Dispatcher.dispatch({
-      actionType: Actions.DISPLAY_ROUTE,
-      routeWeights: visitedLinksWeights,
-      routeSourceNode: src,
-      routeDestNode: finalDest,
-    });
+    if (validRoute) {
+      // dispatch event for the map
+      Dispatcher.dispatch({
+        actionType: Actions.DISPLAY_ROUTE,
+        routeWeights: visitedLinksWeights,
+        routeSourceNode: src,
+        routeDestNode: finalDest,
+      });
+    }
   }
 
   routingTableOnRowSelect(selectedRow, isSelected) {
@@ -235,18 +271,19 @@ export default class NetworkRoutingTable extends React.Component {
         selected.push(row.key);
       });
       this.setState({
-        destinationSelected: selected
+        destinationRowsSelected: selected,
+        destinationPrefix: selectedRow.dst_ip_hidden,
       });
       this.calcRoutingPath(
           this.nodeMacToNode[this.state.selectedSourceNode.mac],
           this.globalPrefixToNode[selectedRow.dst_ip_hidden]);
     } else {
       this.setState({
-        destinationSelected: []
+        destinationRowsSelected: [],
+        destinationPrefix: null,
       });
       Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
     }
-
   }
 
   render() {
@@ -264,7 +301,7 @@ export default class NetworkRoutingTable extends React.Component {
       hideSelectColumn: true,
       bgColor: "rgb(183,210,255)",
       onSelect: this.routingTableOnRowSelect.bind(this),
-      selected: this.state.destinationSelected
+      selected: this.state.destinationRowsSelected
     };
 
     if (!this.props.topology) {
@@ -280,7 +317,6 @@ export default class NetworkRoutingTable extends React.Component {
 
     this.globalPrefixToNode = {};
     this.nodeMacToNode = {};
-    this.nodeMacToAdj = {};
 
     this.props.topology.nodes.forEach(node => {
       if (node.status_dump &&
@@ -292,26 +328,10 @@ export default class NetworkRoutingTable extends React.Component {
       }
     });
 
-    if (this.props.routing && this.props.routing.adjacencyMap) {
-      let adjMap = this.props.routing.adjacencyMap;
-      Object.keys(adjMap).forEach(name => {
-        let vec = adjMap[name].adjacencies;
-        let LinkLocalToNode = {};
-        let node_mac = name.slice(5).replace(/\./g, ':').toUpperCase();
-
-        for (let j = 0; j < vec.length; j++) {
-          let llAddr = ipaddr.fromByteArray(Buffer.from(vec[j].nextHopV6.addr, 'ASCII')).toString();
-          let nextMac = vec[j].otherNodeName.slice(5).replace(/\./g, ':').toUpperCase();
-          LinkLocalToNode[llAddr] = this.nodeMacToNode[nextMac];
-        }
-        this.nodeMacToAdj[node_mac] = LinkLocalToNode;
-      });
-    }
-
-    if (this.props.routing.statusReports) {
+    if (this.props.routing.status.statusReports) {
       this.statusReports = {};
-      Object.keys(this.props.routing.statusReports).forEach(mac => {
-        this.statusReports[mac.toUpperCase()] = this.props.routing.statusReports[mac];
+      Object.keys(this.props.routing.status.statusReports).forEach(mac => {
+        this.statusReports[mac.toUpperCase()] = this.props.routing.status.statusReports[mac];
       });
     }
 
@@ -327,7 +347,7 @@ export default class NetworkRoutingTable extends React.Component {
               key="nodeSelectTable"
               data={this.getTableRows(this.props.topology.nodes)}
               selectRow={selectRowProp}>
-            <TableHeaderColumn width="180" dataField="name" isKey>
+            <TableHeaderColumn width="180" dataField="name" isKey dataSort>
               Name
             </TableHeaderColumn>
             <TableHeaderColumn width="180" dataField="mac" hidden>
@@ -368,9 +388,3 @@ export default class NetworkRoutingTable extends React.Component {
     );
   }
 }
-
-NetworkRoutingTable.propTypes = {
-  height: React.PropTypes.number.isRequired,
-  topology: React.PropTypes.object.isRequired,
-  routing: React.PropTypes.object,
-};

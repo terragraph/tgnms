@@ -60,7 +60,9 @@ export default class NetworkAdjacencyTable extends React.Component {
       onSelect: this.tableOnRowSelect
     };
 
-    if (!this.props.adjacencies) {
+    if (!this.props.routing ||
+        !this.props.routing.status ||
+        !this.props.routing.status.adjacencyMap) {
       return (
         <div>Nothing to show</div>
       )
@@ -70,7 +72,7 @@ export default class NetworkAdjacencyTable extends React.Component {
       <BootstrapTable
           height={this.props.height}
           key="adjacencyTable"
-          data={this.getTableRows(this.props.adjacencies)}
+          data={this.getTableRows(this.props.routing.status.adjacencyMap)}
           selectRow={selectRowProp}>
         <TableHeaderColumn width="180" dataField="key" isKey hidden>key</TableHeaderColumn>
         <TableHeaderColumn width="180" dataField="name">Node Name</TableHeaderColumn>

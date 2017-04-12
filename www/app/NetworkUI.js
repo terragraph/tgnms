@@ -31,8 +31,10 @@ export default class NetworkUI extends React.Component {
     // register for menu changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+
     // refresh network config
-    setInterval(this.getNetworkStatusPeriodic.bind(this), 5000);
+    let refresh_interval = CONFIG.refresh_interval ? CONFIG.refresh_interval : 5000;
+    setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
   }
 
   getNetworkStatusPeriodic() {

@@ -11,6 +11,7 @@ const webpackHotMiddleware = require('webpack-hot-middleware');
 const config = require('./webpack.config.js');
 const isDeveloping = process.env.NODE_ENV !== 'production';
 const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
+
 // network config file
 const NETWORK_CONFIG_NETWORKS_PATH = './config/networks/';
 const NETWORK_CONFIG_INSTANCES_PATH = './config/instances/';
@@ -54,6 +55,7 @@ var topologies_index = 0;
 var receivedTopologies = [];
 var ctrlStatusDumps = [];
 var aggrStatusDumps = [];
+var accumAdjacencyMaps = [];
 var networkInstanceConfig = {};
 
 var terminals = {},
@@ -93,6 +95,25 @@ function periodicNetworkStatus() {
             // status older than 2 minuets
             delete aggrStatusDumps[i].statusReports[nodeMac];
           }
+        }
+      });
+    }
+
+    if (aggrStatusDumps[i] && aggrStatusDumps[i].adjacencyMap) {
+      if (!accumAdjacencyMaps[i]) {
+        accumAdjacencyMaps[i] = {};
+      }
+      let adjMap = aggrStatusDumps[i].adjacencyMap;
+      Object.keys(adjMap).forEach(name => {
+        let vec = adjMap[name].adjacencies;
+        let node_mac = name.slice(5).replace(/\./g, ':').toUpperCase();
+        if (!accumAdjacencyMaps[i][node_mac]) {
+          accumAdjacencyMaps[i][node_mac] = {};
+        }
+        for (let j = 0; j < vec.length; j++) {
+          let llAddr = ipaddr.fromByteArray(Buffer.from(vec[j].nextHopV6.addr, 'ASCII')).toString();
+          let nextMac = vec[j].otherNodeName.slice(5).replace(/\./g, ':').toUpperCase();
+            accumAdjacencyMaps[i][node_mac][llAddr] = nextMac;
         }
       });
     }
@@ -180,7 +201,12 @@ fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) 
       fileTopologies.push(topology);
     });
   }
-  setInterval(periodicNetworkStatus, 5000);
+
+  let refresh_interval = 5000;
+  if ('refresh_interval' in networkInstanceConfig) {
+    refresh_interval = networkInstanceConfig['refresh_interval'];
+  }
+  setInterval(periodicNetworkStatus, refresh_interval);
 });
 app.use(/\/stats_writer$/i, function (req, res, next) {
   let httpPostData = '';
@@ -524,13 +550,27 @@ app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
   res.status(404).end("No such topology\n");
 });
 
+app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let nodeA = req.params[1];
+  let nodeZ = req.params[2];
+  let status = req.params[3] == "up" ? true : false;
+
+  var topology = getTopologyByName(topologyName);
+  controllerProxy.setLinkStatus(topology, nodeA, nodeZ, status);
+  res.status(204).end("Submitted");
+});
+
 app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   for (var i = 0, len = configs.length; i < len; i++) {
     if(topologyName == configs[i].name) {
       let statusDump = {};
       if (aggrStatusDumps[i]) {
-        statusDump = aggrStatusDumps[i];
+        statusDump = {
+          status: aggrStatusDumps[i],
+          AdjMapAcuum: accumAdjacencyMaps[i],
+        };
       }
       res.json(statusDump);
       return;

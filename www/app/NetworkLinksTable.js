@@ -7,18 +7,20 @@ import NetworkStore from './NetworkStore.js';
 import ReactEventChart from './ReactEventChart.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
+var linkNyName = {};
+
 export default class NetworkLinksTable extends React.Component {
   state = {
     sortName: undefined,
     sortOrder: undefined,
     selectedLink: null,
     networkHealth: {},
-    nodesByName: {},
     hideWired: false,
     toplink: null,
   }
 
   nodesByName = {}
+  linksByName = {};
 
   constructor(props) {
     super(props);
@@ -109,12 +111,13 @@ export default class NetworkLinksTable extends React.Component {
     });
   }
 
-  getTableRows(links): Array<{name:string,
+  getTableRows(): Array<{name:string,
                               a_node_name:string,
                               z_node_name:string,
                               alive:boolean}> {
     const rows = [];
-    links.forEach(link => {
+    Object.keys(this.linksByName).forEach(linkName => {
+      let link = this.linksByName[linkName];
       let linkupAttempts = 0;
       if (link.linkup_attempts && link.linkup_attempts.buffer) {
         const buf = Buffer.from(link.linkup_attempts.buffer.data);
@@ -140,7 +143,7 @@ export default class NetworkLinksTable extends React.Component {
   tableOnRowSelect(row, isSelected) {
     Dispatcher.dispatch({
       actionType: Actions.LINK_SELECTED,
-      link: row,
+      link: this.linksByName[row.name],
       source: "table",
     });
   }
@@ -150,6 +153,14 @@ export default class NetworkLinksTable extends React.Component {
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
         {"" + cell}
       </span>);
+  }
+
+  changeLinkStatus(upDown) {
+    if (this.state.selectedLink) {
+      let status = upDown ? "up" : "down";
+      let exec = new Request('/controller\/setlinkStatus/'+ this.props.topology.name+'/'+this.state.selectedLink.a_node_name+'/'+this.state.selectedLink.z_node_name+'/'+status);
+      fetch(exec);
+    }
   }
 
   render() {
@@ -167,10 +178,10 @@ export default class NetworkLinksTable extends React.Component {
       onSortChange: this.onSortChange.bind(this),
     };
 
-    let linksData = [];
+    this.linksByName = {};
     if (this.props.topology &&
         this.props.topology.links) {
-      linksData = this.props.topology.links.map(link => {
+      this.props.topology.links.forEach(link => {
         if (this.state.networkHealth &&
             this.state.networkHealth.links &&
             link.a_node_name in this.state.networkHealth.links &&
@@ -180,14 +191,14 @@ export default class NetworkLinksTable extends React.Component {
           link.alive_perc = nodeHealth.alive;
           link.snr_health_perc = nodeHealth.snr;
         }
-        return link;
+        this.linksByName[link.name] = link;
       });
     }
     let linksTable =
       <BootstrapTable
           height={(this.props.height - (this.state.selectedLink ? 100 : 0)) + 'px'}
           key="linksTable"
-          data={this.getTableRows(linksData)}
+          data={this.getTableRows()}
           striped={true}
           hover={true}
           options={tableOpts}
@@ -257,6 +268,16 @@ export default class NetworkLinksTable extends React.Component {
           <button className={this.state.hideWired ? 'graph-button graph-button-selected' : 'graph-button'}
                   onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
             Hide Wired
+          </button>
+          <button
+            className='graph-button'
+            onClick={this.changeLinkStatus.bind(this, false)}>
+            Link Down!
+          </button>
+          <button
+            className='graph-button'
+            onClick={this.changeLinkStatus.bind(this, true)}>
+            Link Up!
           </button>
           {linksTable}
         </li>

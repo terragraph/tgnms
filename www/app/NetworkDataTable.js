@@ -32,6 +32,15 @@ export default class NetworkDataTable extends React.Component {
 
   constructor(props) {
     super(props);
+    this.shouldUpdate = false;
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.shouldUpdate) {
+      this.shouldUpdate = false;
+      return true;
+    }
+    return false;
   }
 
   componentWillMount() {
@@ -56,6 +65,7 @@ export default class NetworkDataTable extends React.Component {
   }
 
   handleDispatchEvent(payload) {
+    this.shouldUpdate = true;
     switch (payload.actionType) {
       case Actions.TOPOLOGY_REFRESHED:
         // topology refreshed
@@ -72,6 +82,7 @@ export default class NetworkDataTable extends React.Component {
         this.setState({
           componentHeight: window.innerHeight - payload.newSize - 60,
         });
+        break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
           nodesSelected: null,
@@ -88,6 +99,8 @@ export default class NetworkDataTable extends React.Component {
           selectedTabIndex: tabIndex,
         });
         break;
+      default:
+        this.shouldUpdate = false;
     }
   }
 
@@ -138,7 +151,7 @@ export default class NetworkDataTable extends React.Component {
           <NetworkAdjacencyTable
             height={this.state.componentHeight+'px'}
             topology={this.state.networkConfig.topology}
-            adjacencies={this.state.routing.adjacencyMap}>
+            routing={this.state.routing}>
           </NetworkAdjacencyTable>
         </TabPanel>
         <TabPanel>

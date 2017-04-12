@@ -311,24 +311,25 @@ export default class NetworkMap extends React.Component {
   }
 
   getLinkLine(link, coords, color): ReactElement<any> {
-    return (<Polyline
-      key={link.name}
-      positions={coords}
-      weight={6}
-      onClick={e => {
-        Dispatcher.dispatch({
-          actionType: Actions.TAB_SELECTED,
-          tabName: "links",
-        });
-        Dispatcher.dispatch({
-          actionType: Actions.LINK_SELECTED,
-          link: link,
-          source: "map",
-        })
-      }}
-      color={color}
-      level={5}
-      />);
+    return (
+      <Polyline
+        key={link.name}
+        positions={coords}
+        weight={6}
+        onClick={e => {
+          Dispatcher.dispatch({
+            actionType: Actions.TAB_SELECTED,
+            tabName: "links",
+          });
+          Dispatcher.dispatch({
+            actionType: Actions.LINK_SELECTED,
+            link: link,
+            source: "map",
+          })
+        }}
+        color={color}
+        level={5}>
+      </Polyline>);
   }
 
   render() {

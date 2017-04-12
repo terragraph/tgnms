@@ -1,5 +1,6 @@
 {
   "use_tile_proxy": false,
+  "refresh_interval": 5000,
   "topologies": [
     {
       "topology_file": "lab_48_ab.json",
