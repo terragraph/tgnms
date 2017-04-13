@@ -11,6 +11,9 @@ var self = {
     // guard against hanging
     var timeout = setTimeout(function(){
       receivedTopologies[index] = {};
+      if (config.controller_online) {
+        console.log('Request to controller timed out on get topology', config.name);
+      }
       config.controller_online = false;
       dealer.close();
     }, 4000);
@@ -117,11 +120,6 @@ var self = {
   },
 
   setLinkStatus: function (config, nodeA, nodeZ, status) {
-
-    console.log('setLinkStatus');
-    console.log(nodeA);
-    console.log(nodeZ);
-    console.log(status);
     var timeout = setTimeout(function(){
       dealer.close();
     }, 4000);

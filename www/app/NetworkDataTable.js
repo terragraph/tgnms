@@ -25,7 +25,7 @@ const TAB_NAME_TO_INDEX = {
 
 export default class NetworkDataTable extends React.Component {
   state = {
-    selectedTabIndex: 0,
+    selectedTabIndex: 1,
     networkConfig: {},
     routing: {},
   }

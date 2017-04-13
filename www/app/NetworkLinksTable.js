@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
+import equals from "equals";
 // dispatcher
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
@@ -17,6 +18,8 @@ export default class NetworkLinksTable extends React.Component {
     networkHealth: {},
     hideWired: false,
     toplink: null,
+    // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
+    linkRequestButtonEnabled: true,
   }
 
   nodesByName = {}
@@ -59,6 +62,7 @@ export default class NetworkLinksTable extends React.Component {
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
           selectedLink: null,
+          linkRequestButtonEnabled: true,
         });
         break;
       case Actions.LINK_SELECTED:
@@ -67,7 +71,23 @@ export default class NetworkLinksTable extends React.Component {
           sortOrder: payload.source == "table" ? this.state.sortOrder : "asc",
           topLink: payload.source == "table" ? this.state.topLink : payload.link,
           selectedLink: payload.link,
+          linkRequestButtonEnabled: true,
         });
+        break;
+      case Actions.TOPOLOGY_REFRESHED:
+        if (this.state.selectedLink) {
+          // check if we need to update selected link
+          payload.networkConfig.topology.links.forEach(link => {
+            if (link.name == this.state.selectedLink.name) {
+              // compare objects
+              if (!equals(link, this.state.selectedLink)) {
+                this.setState({
+                  selectedLink: link,
+                });
+              }
+            }
+          });
+        }
         break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
@@ -112,9 +132,9 @@ export default class NetworkLinksTable extends React.Component {
   }
 
   getTableRows(): Array<{name:string,
-                              a_node_name:string,
-                              z_node_name:string,
-                              alive:boolean}> {
+                         a_node_name:string,
+                         z_node_name:string,
+                         alive:boolean}> {
     const rows = [];
     Object.keys(this.linksByName).forEach(linkName => {
       let link = this.linksByName[linkName];
@@ -157,8 +177,17 @@ export default class NetworkLinksTable extends React.Component {
 
   changeLinkStatus(upDown) {
     if (this.state.selectedLink) {
-      let status = upDown ? "up" : "down";
-      let exec = new Request('/controller\/setlinkStatus/'+ this.props.topology.name+'/'+this.state.selectedLink.a_node_name+'/'+this.state.selectedLink.z_node_name+'/'+status, {"credentials": "same-origin"});
+      // disable button for 5 seconds
+      setTimeout(enableButton => this.setState({linkRequestButtonEnabled: true}), 5000);
+      this.setState({
+        linkRequestButtonEnabled: false,
+      });
+      let status = upDown ? "down" : "down";
+      let exec = new Request(
+        '/controller\/setlinkStatus/' + this.props.topology.name +
+          '/' + this.state.selectedLink.a_node_name +
+          '/' + this.state.selectedLink.z_node_name + '/' + status,
+        {"credentials": "same-origin"});
       fetch(exec);
     }
   }
@@ -261,6 +290,25 @@ export default class NetworkLinksTable extends React.Component {
           <ReactEventChart options={opts} size="small" />
         </li>;
     }
+    let linkStateChangeButton;
+    if (this.state.selectedLink) {
+      // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
+      if (this.state.linkRequestButtonEnabled) {
+        linkStateChangeButton =
+          <button
+            className='graph-button'
+            onClick={this.changeLinkStatus.bind(this, !this.state.selectedLink.is_alive)}>
+            {"Send Link " + (this.state.selectedLink.is_alive ? 'Down' : 'Up')}
+          </button>;
+      } else {
+        linkStateChangeButton =
+          <button
+            className='graph-button graph-button-disabled'
+            disabled>
+            Request Sent
+          </button>;
+      }
+    }
     return (
       <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
         {eventChart}
@@ -269,16 +317,7 @@ export default class NetworkLinksTable extends React.Component {
                   onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
             Hide Wired
           </button>
-          <button
-            className='graph-button'
-            onClick={this.changeLinkStatus.bind(this, false)}>
-            Link Down!
-          </button>
-          <button
-            className='graph-button'
-            onClick={this.changeLinkStatus.bind(this, true)}>
-            Link Up!
-          </button>
+          {linkStateChangeButton}
           {linksTable}
         </li>
       </ul>

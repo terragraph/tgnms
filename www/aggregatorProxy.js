@@ -10,6 +10,9 @@ var self = {
     // guard against hanging
     var timeout = setTimeout(function(){
       statusDumps[index] = {};
+      if (config.aggregator_online) {
+        console.log('Request to aggregator timed out on status dump', config.name);
+      }
       config.aggregator_online = false;
       dealer.close();
     }, 4000);
@@ -77,6 +80,9 @@ var self = {
     // guard against hanging
     var timeout = setTimeout(function(){
       alertsConfig = {};
+      if (config.aggregator_online) {
+        console.log('Request to aggregator timed out on alerts config', config.name);
+      }
       config.aggregator_online = false;
       dealer.close();
       res.status(404).end("No such topology\n");
@@ -144,6 +150,9 @@ var self = {
 
     // guard against hanging
     var timeout = setTimeout(function(){
+      if (config.aggregator_online) {
+        console.log('Request to aggregator timed out on alerts config', config.name);
+      }
       config.aggregator_online = false;
       dealer.close();
       res.status(404).end("No such topology\n");

@@ -1,4 +1,12 @@
 /* loading image is 40x40, column width is 450, height = 350 */
+#root {
+  margin: auto;
+}
+div.SplitPane {
+  margin-top: 40px;
+  position: fixed !important;
+}
+
 .loading-indicator {
   width: 100%;
   text-align: center;
@@ -10,10 +18,13 @@
   padding: 4px;
   border: 2px solid;
   margin-left: 4px;
-  width: 100px;
+  width: 110px;
 }
 .graph-button-selected {
   background-color: cornflowerblue;
+}
+.graph-button-disabled {
+  background-color: darkgray;
 }
 .graph-opt-title {
   width: 150px;

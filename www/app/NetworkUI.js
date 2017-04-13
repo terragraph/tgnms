@@ -1,12 +1,9 @@
 import React from 'react';
+// menu bar
+import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
+
 // leaflet maps
 import { render } from 'react-dom';
-// side bar
-import Sidebar from 'react-sidebar';
-// menu
-import MetisMenu from 'react-metismenu';
-import TopologyMenuItem from './TopologyMenuItem.js';
-import PaneMenuItem from './PaneMenuItem.js';
 // dispatcher
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
@@ -16,6 +13,15 @@ import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkAlerts from './NetworkAlerts.js';
+
+const VIEWS = {
+  'map': 'Map',
+  'stats': 'Stats',
+  'eventlogs': 'Event Logs',
+  'systemlogs': 'System Logs',
+  'alerts': 'Alerts'
+};
+
 export default class NetworkUI extends React.Component {
   state = {
     view: 'map',
@@ -102,7 +108,6 @@ export default class NetworkUI extends React.Component {
           networkName: payload.networkName,
         });
         // update active link in menu by setting css selected class
-        this.refs.topology.changeActiveLinkTo(payload.networkName);
         break;
       case Actions.TOPOLOGY_REFRESHED:
         let nodesByName = {};
@@ -136,7 +141,8 @@ export default class NetworkUI extends React.Component {
 
   refreshTopologyList() {
     // topology list
-    let topoListFetch = new Request('/topology/list', {"credentials": "same-origin"});
+    let topoListFetch = new Request('/topology/list',
+      {"credentials": "same-origin"});
     fetch(topoListFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
@@ -170,80 +176,73 @@ export default class NetworkUI extends React.Component {
     setInterval(this.refreshTopologyList.bind(this), 10000);
   }
 
+  handleMenuBarSelect(info) {
+    if (info.key.indexOf('.')) {
+      let keySplit = info.key.split('.');
+      switch (keySplit[0]) {
+        case 'view':
+          Dispatcher.dispatch({
+            actionType: Actions.VIEW_SELECTED,
+            viewName: keySplit[1],
+          });
+          break;
+        case 'topo':
+          Dispatcher.dispatch({
+            actionType: Actions.TOPOLOGY_SELECTED,
+            networkName: keySplit[1],
+          });
+          break;
+      }
+    }
+  }
+
   render() {
-    // generate menu content
-    let paneContent = [];
-    // topology selector
-    let topologyContent = [];
-    paneContent.push({
-      icon: 'dashboard',
-      label: 'View',
-      to: 'view',
-      content: [
-        {
-          icon: 'dashboard',
-          label: 'Map',
-          to: 'map',
-        },
-/*        {
-          icon: 'dashboard',
-          label: 'Dashboard',
-          to: 'dashboard',
-        },*/
-        {
-          icon: 'dashboard',
-          label: 'Stats',
-          to: 'stats',
-        },
-        {
-          icon: 'dashboard',
-          label: 'EventLogs',
-          to: 'eventlogs',
-        },
-        {
-          icon: 'dashboard',
-          label: 'SystemLogs',
-          to: 'systemlogs',
-        },
-        {
-          icon: 'dashboard',
-          label: 'Alerts',
-          to: 'alerts',
-        },
-      ],
-    });
-    let topologyList = [];
+    let topologyMenuItems = [];
     for (let i = 0; i < this.state.topologies.length; i++) {
       let topologyConfig = this.state.topologies[i];
-      let menuName = topologyConfig.name;
-      let online = topologyConfig.controller_online &&
+      let keyName = "topo." + topologyConfig.name;
+      let online = topologyConfig.controller_online ||
                    topologyConfig.aggregator_online;
-      topologyList.push({
-        icon: 'topology',
-        label: menuName,
-        to: menuName,
-      });
-   }
-    topologyContent.push({
-      icon: 'dashboard',
-      label: 'Topology',
-      to: '#',
-      content: topologyList,
-    });
-    let menu =
-      <div>
-        <MetisMenu
-          content={paneContent}
-          LinkComponent={PaneMenuItem}
-          activeLinkTo={this.state.view}
-          ref="view" />
-        <MetisMenu
-          content={topologyContent}
-          LinkComponent={TopologyMenuItem}
-          activeLinkTo={this.state.networkName}
-          ref="topology" />
-      </div>;
-    // select between map + dashboard
+      topologyMenuItems.push(
+        <MenuItem key={keyName}>
+          <img src={"/static/images/" + (online ? 'online' : 'offline') + ".png"} />
+          {topologyConfig.name}
+        </MenuItem>
+      );
+    }
+    let networkStatusMenuItems = [];
+    if (this.state.networkConfig && this.state.networkConfig.topology) {
+      const topology = this.state.networkConfig.topology;
+      let linksOnline = topology.links.filter(link =>
+          link.link_type == 1 && link.is_alive).length;
+      let linksWireless = topology.links.filter(link =>
+          link.link_type == 1).length;
+      // online + online initiator
+      let sectorsOnline = topology.nodes.filter(node =>
+          node.status == 2 || node.status == 3).length;
+      networkStatusMenuItems = [
+        <MenuItem key="e2e-status" disabled>
+          <img src={"/static/images/" + 
+            (this.state.networkConfig.controller_online ? 'online' : 'offline') + ".png"} />
+          E2E
+        </MenuItem>,
+        <Divider key= "status-divider" />,
+        <MenuItem key="nms-status" disabled>
+          <img src={"/static/images/" + 
+            (this.state.networkConfig.aggregator_online ? 'online' : 'offline') + ".png"} />
+          NMS
+        </MenuItem>,
+        <Divider key="sector-divider" />,
+        <MenuItem key="sector-status" disabled>
+          {sectorsOnline}/{topology.nodes.length} Sectors
+        </MenuItem>,
+        <Divider key="link-divider" />,
+        <MenuItem key="link-status" disabled>
+          {linksOnline}/{linksWireless} Links
+        </MenuItem>
+      ];
+    }
+    // select between view panes
     let paneComponent = <div/>;
     switch (this.state.view) {
       case 'dashboard':
@@ -264,13 +263,50 @@ export default class NetworkUI extends React.Component {
       default:
         paneComponent = <NetworkMap />;
     }
+    // add all selected keys
+    let selectedKeys = ["view." + this.state.view];
+    if (this.state.networkName) {
+      selectedKeys.push("topo." + this.state.networkName);
+    }
     return (
-      <Sidebar sidebar={menu}
-        open={true}
-        sidebarClassName="menu"
-        docked={true}>
-        {paneComponent}
-      </Sidebar>
+      <div>
+        <div className="top-menu-bar">
+          <Menu
+              onSelect={this.handleMenuBarSelect}
+              mode="horizontal"
+              selectedKeys={selectedKeys}
+              style={{float: 'left'}}>
+            <SubMenu title="View" key="view" mode="vertical">
+              {Object.keys(VIEWS).map(viewKey => {
+                let viewName = VIEWS[viewKey];
+                return (
+                  <MenuItem key={"view." + viewKey}>
+                    <img src={"/static/images/" + viewKey + ".png"} />
+                    {viewName}
+                  </MenuItem>);
+              })}
+            </SubMenu>
+            <MenuItem key="view-selected" disabled>
+              <img src={"/static/images/" + this.state.view + ".png"} />
+              {VIEWS[this.state.view]}
+            </MenuItem>
+            <Divider />
+            <SubMenu title="Topology" key="topo" mode="vertical">
+              {topologyMenuItems}
+            </SubMenu>
+            <MenuItem key="topology-selected" disabled>
+              {this.state.networkName ? this.state.networkName : '-'}
+            </MenuItem>
+            <Divider />
+          </Menu>
+          <Menu mode="horizontal" style={{float: 'right'}}>
+            {networkStatusMenuItems}
+          </Menu>
+        </div>
+        <div>
+          {paneComponent}
+        </div>
+      </div>
     );
   }
 }

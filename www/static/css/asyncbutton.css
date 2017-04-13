@@ -15,11 +15,6 @@ button:focus {
   outline: none;
 }
 
-#root {
-  max-width: 750px;
-  margin: auto;
-}
-
 .demo-container {
   padding: 30px 0;
 }

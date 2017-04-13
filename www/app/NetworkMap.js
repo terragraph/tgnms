@@ -70,17 +70,6 @@ const linkOverlayKeys = {
   }
 }
 
-var addEvent = function(object, type, callback) {
-    if (object == null || typeof(object) == 'undefined') return;
-    if (object.addEventListener) {
-        object.addEventListener(type, callback, false);
-    } else if (object.attachEvent) {
-        object.attachEvent("on" + type, callback);
-    } else {
-        object["on"+type] = callback;
-    }
-};
-
 export default class NetworkMap extends React.Component {
   state = {
     selectedNodeSite: null,
@@ -108,21 +97,24 @@ export default class NetworkMap extends React.Component {
     this.getSiteMarker = this.getSiteMarker.bind(this);
     this.handleMarkerClick = this.handleMarkerClick.bind(this);
     this.handleLayersClick = this.handleLayersClick.bind(this);
+    this.resizeWindow = this.resizeWindow.bind(this);
     // reset zoom on next refresh is set once a new topology is selected
     this.resetZoomOnNextRefresh = true;
 
-    addEvent(window, "resize", function(event) {
-      this.refs.map.leafletElement.invalidateSize();
-      this.setState({
-        lowerPaneHeight: window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight,
-      });
-    }.bind(this));
+  }
+
+  resizeWindow(event) {
+    this.refs.map.leafletElement.invalidateSize();
+    this.setState({
+      lowerPaneHeight: window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight,
+    });
   }
 
   componentWillMount() {
     // register once we're visible
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    window.addEventListener('resize', this.resizeWindow);
     this.setState({
       networkHealth: NetworkStore.networkHealth,
     });
@@ -136,6 +128,7 @@ export default class NetworkMap extends React.Component {
 
   componentWillUnmount() {
     // un-register if we're no longer visible
+    window.removeEventListener('resize', this.resizeWindow);
     Dispatcher.unregister(this.dispatchToken);
   }
 
