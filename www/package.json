@@ -37,6 +37,7 @@
     "pond": "^0.1.2",
     "pondjs": "^0.7.2",
     "pug": "^2.0.0-beta11",
+    "rc-menu": "^5.0.9",
     "react": "^0.14.3",
     "react-bootstrap-typeahead": "^1.2.0",
     "react-dom": "^0.14.3",
