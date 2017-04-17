@@ -632,8 +632,9 @@ export default class NetworkMap extends React.Component {
 
     let tablesControl =
       <Control position="bottomright" >
-        <img src="/static/images/table.png" onClick={this.handleExpandTablesClick}/>
+        <img style={{backgroundColor: "rgba(245, 245, 245, 0.8)"}} src={this.state.tablesExpanded? "/static/images/table.png" : "/static/images/table-accent.png"} onClick={this.handleExpandTablesClick}/>
       </Control>
+
 
     let tileUrl = CONFIG.use_tile_proxy ?
         '/tile/{s}/{z}/{x}/{y}.png' :
