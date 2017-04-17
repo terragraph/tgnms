@@ -88,6 +88,7 @@ export default class NetworkMap extends React.Component {
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
     layersExpanded: false,
+    tablesExpanded: true,
     networkHealth: {},
     lowerPaneHeight: window.innerHeight / 2,
   }
@@ -96,7 +97,8 @@ export default class NetworkMap extends React.Component {
     super(props);
     this.getSiteMarker = this.getSiteMarker.bind(this);
     this.handleMarkerClick = this.handleMarkerClick.bind(this);
-    this.handleLayersClick = this.handleLayersClick.bind(this);
+    this.handleExpandLayersClick = this.handleExpandLayersClick.bind(this);
+    this.handleExpandTablesClick = this.handleExpandTablesClick.bind(this);
     this.resizeWindow = this.resizeWindow.bind(this);
     // reset zoom on next refresh is set once a new topology is selected
     this.resetZoomOnNextRefresh = true;
@@ -266,9 +268,18 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  handleLayersClick(ev) {
+  handleExpandLayersClick(ev) {
     this.setState({
       layersExpanded: true,
+    });
+  }
+
+  handleExpandTablesClick(ev) {
+    setTimeout(function() {
+      this.refs.map.leafletElement.invalidateSize();
+    }.bind(this), 1);
+    this.setState({
+      tablesExpanded: this.state.tablesExpanded ? false : true,
     });
   }
 
@@ -615,19 +626,26 @@ export default class NetworkMap extends React.Component {
     } else {
       layersControl =
         <Control position="topright" >
-          <img src="/static/images/layers.png" onClick={this.handleLayersClick}/>
+          <img src="/static/images/layers.png" onClick={this.handleExpandLayersClick}/>
         </Control>
     }
+
+    let tablesControl =
+      <Control position="bottomright" >
+        <img src="/static/images/table.png" onClick={this.handleExpandTablesClick}/>
+      </Control>
 
     let tileUrl = CONFIG.use_tile_proxy ?
         '/tile/{s}/{z}/{x}/{y}.png' :
         'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+
     return (
       <div>
         <SplitPane
           split="horizontal"
           ref='split_pane'
-          defaultSize="50%"
+          defaultSize= "50%"
+          className= {this.state.tablesExpanded ? "SplitPane" : "soloPane1"}
           onChange={this._paneChange.bind(this)}
         >
           <CustomMap
@@ -643,6 +661,7 @@ export default class NetworkMap extends React.Component {
             {siteComponents}
             {siteMarkers}
             {layersControl}
+            {tablesControl}
           </CustomMap>
           <NetworkDataTable height={this.state.lowerPaneHeight}/>
         </SplitPane>

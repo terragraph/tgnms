@@ -7,6 +7,17 @@ div.SplitPane {
   position: fixed !important;
 }
 
+div.SplitPane.soloPane1.horizontal > .Pane2,
+div.SplitPane.soloPane2.horizontal > .Pane1 {
+    height: 0px !important;
+}
+
+div.SplitPane.soloPane1.horizontal > .Pane1,
+div.SplitPane.soloPane2.horizontal > .Pane2 {
+    height: 100% !important;
+    padding-bottom: 40px;
+}
+
 .loading-indicator {
   width: 100%;
   text-align: center;
