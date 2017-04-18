@@ -85,3 +85,9 @@ then
     mysql cxl -e"ALTER TABLE alerts DROP PARTITION ${partition}"
   done
 fi
+
+#Clean old log files
+MAX_LOGS_DAYS=10
+LATEST_FILE_DATE=$(mysql cxl -e"SELECT DATE_FORMAT(NOW() - INTERVAL ${MAX_LOGS_DAYS} DAY, '%Y%m%d0000')" -BsN)
+touch -t ${LATEST_FILE_DATE} /tmp/tmpMarkerFile
+find /home/nms/data -type f ! -newer /tmp/tmpMarkerFile | xargs rm -rf
