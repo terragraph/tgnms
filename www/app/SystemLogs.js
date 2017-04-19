@@ -184,8 +184,8 @@ export default class SystemLogs extends React.Component {
     }
 
     return (
-      <div id="sysLogs" style={{width:'100%', height:'100%'}}>
-        <table id="events">
+      <div style={{width:'100%', height:'100%', position: "fixed !important"}}>
+        <table style={{borderCollapse: "separate", borderSpacing: "15px 5px"}}>
          <tbody>
           <tr>
             <td width={250}>
@@ -259,8 +259,8 @@ export default class SystemLogs extends React.Component {
           </tr>
          </tbody>
         </table>
-        <div style={{marginLeft: "1em", width: '95%', height:'100%'}}>
-          <textarea style={{width: '100%', height:'95%', resize:'none'}} readOnly value={this.state.logText} />
+        <div style={{marginLeft: "1em", marginRight: "1em", paddingBottom: "90px", height:'100%'}}>
+          <textarea style={{width: '100%', height:'100%', resize:'none'}} readOnly value={this.state.logText} />
         </div>
       </div>
     );

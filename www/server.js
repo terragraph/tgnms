@@ -34,7 +34,7 @@ setInterval(queryHelper.refreshKeyNames, 30000);
 const dataJson = require('./dataJson');
 // load the initial node/key ids and time slots
 dataJson.init();
-dataJson.refreshNodeIds();
+dataJson.refreshNodes();
 dataJson.refreshNodeCategories();
 dataJson.timeAlloc();
 dataJson.scheduleTimeAlloc();

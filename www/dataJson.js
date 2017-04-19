@@ -45,7 +45,7 @@ pool.on('error', function() {
   console.log('pool error');
 });
 var self = {
-  macAddrToNodeId: {},
+  macAddrToNode: {},
   filenameToSourceId: {},
   timeBucketIds: {},
   nodeKeyIds: {},
@@ -97,16 +97,16 @@ var self = {
     setInterval(self.timeAlloc, AGG_BUCKET_SECONDS * 1000);
   },
 
-  refreshNodeIds: function() {
+  refreshNodes: function() {
     pool.getConnection(function(err, conn) {
       if (err) {
         console.error('DB error', err);
         return;
       }
-      conn.query('SELECT `id`, `mac` FROM `nodes`',
+      conn.query('SELECT * FROM `nodes`',
         function(err, results) {
           results.forEach(row => {
-            self.macAddrToNodeId[row.mac.toLowerCase()] = row.id;
+            self.macAddrToNode[row.mac.toLowerCase()] = row;
           });
           conn.release();
         }
@@ -176,13 +176,15 @@ var self = {
     });
   },
 
-  updateNodeIds: function(macAddrs) {
-    if (!macAddrs.length) {
+  addNodes: function(newNodes) {
+    if (!Object.keys(newNodes).length) {
       return;
     }
-    let insertMacs = [];
-    macAddrs.forEach(item => {
-      insertMacs.push([item]);
+    let nodesData = [];
+    Object.keys(newNodes).forEach(nodeKey => {
+      node = newNodes[nodeKey];
+      nodesData.push([node.mac, node.name, node.site, node.network]);
+      console.log('Inserting new node: mac: ' + node.mac + ' name: ' + node.name + ' site: ' + node.site + ' network: ' + node.network);
     });
     // insert unique macs
     pool.getConnection(function(err, conn) {
@@ -190,8 +192,8 @@ var self = {
         console.error('DB error', err);
         return;
       }
-      conn.query('INSERT IGNORE INTO `nodes` (`mac`) VALUES ?',
-        [insertMacs],
+      conn.query('INSERT IGNORE INTO `nodes` (`mac`, `node`, `site`, `network`) VALUES ?',
+        [nodesData],
         function (err, rows) {
           if (err) {
             console.log('Error inserting new nodes', err);
@@ -200,7 +202,37 @@ var self = {
         }
       );
     });
-    self.refreshNodeIds();
+    self.refreshNodes();
+  },
+
+  updateNodes: function(nodesToUpdate) {
+    if (!Object.keys(nodesToUpdate).length) {
+      return;
+    }
+    let nodesData = [];
+    Object.keys(nodesToUpdate).forEach(nodeId => {
+      node = nodesToUpdate[nodeId];
+      nodesData.push([node.id, node.mac, node.name, node.site, node.network]);
+      console.log('Updating node: mac: ' + node.mac + ' name: ' + node.name + ' site: ' + node.site + ' network: ' + node.network);
+    });
+    // insert unique macs
+    pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
+      conn.query('INSERT into `nodes` (`id`, `mac`, `node`, `site`, `network`) VALUES ? ' +
+                 'ON DUPLICATE KEY UPDATE `node` = VALUES(`node`), `site` = VALUES(`site`), `network` = VALUES(`network`)',
+        [nodesData],
+        function (err, rows) {
+          if (err) {
+            console.log('Error inserting new nodes', err);
+          }
+          conn.release();
+        }
+      );
+    });
+    self.refreshNodes();
   },
 
   /*
@@ -317,11 +349,29 @@ var self = {
     let data = JSON.parse(postData);
     // agents, topology
     let rows = [];
-    let unknownMacs = new Set();
+    let unknownNodes = {};
+    let nodesToUpdate = {};
     let missingNodeKey = new Set();
     let droppedKeys = new Set();
     let badTime = 0;
+    let topologyName = data.topology? data.topology.name : "";
+
     data.agents.forEach(agent => {
+      // missing node in table
+      if (!(agent.mac.toLowerCase() in self.macAddrToNode)) {
+        var newNode = {mac: agent.mac.toLowerCase(), name: agent.name, site: agent.site, network: topologyName};
+        unknownNodes[newNode.mac] = newNode;
+        console.log('unknown mac', agent.mac);
+        return;
+      }
+      let node = self.macAddrToNode[agent.mac.toLowerCase()];
+      let nodeId = node.id;
+
+      if (!node.network || node.network.length < 1) {
+        var updateNode = {id: nodeId, mac: agent.mac.toLowerCase(), name: agent.name, site: agent.site, network: topologyName};
+        nodesToUpdate[nodeId] = updateNode;
+      }
+
       agent.stats.forEach(stat => {
         // check key
         let keyNameSplit = stat.key.split(".");
@@ -337,13 +387,7 @@ var self = {
           }
           return;
         }
-        // missing node in table
-        if (!(agent.mac.toLowerCase() in self.macAddrToNodeId)) {
-          unknownMacs.add(agent.mac.toLowerCase());
-          console.log('unknown mac', agent.mac);
-          return;
-        }
-        let nodeId = self.macAddrToNodeId[agent.mac.toLowerCase()];
+
         let tsParsed = self.timeCalc(stat.ts);
         if (!tsParsed) {
           badTime++;
@@ -372,7 +416,9 @@ var self = {
       });
     });
     // write newly found macs
-    self.updateNodeIds(Array.from(unknownMacs));
+    self.addNodes(unknownNodes);
+    // Update nodes missing some details
+    self.updateNodes(nodesToUpdate);
     // write newly found node/key combos
     self.updateNodeKeys(Array.from(missingNodeKey));
     // keep track of keys we're dropping
@@ -437,19 +483,21 @@ var self = {
   writeAlerts: function(postData) {
     let data = JSON.parse(postData);
     let rows = [];
-    let unknownMacs = new Set();
+    let unknownNodes = {};
     let missingNodeFilenames = [];
     let badTime = 0;
 
     // missing node in table
-    if (!(data.node_mac in self.macAddrToNodeId)) {
-      unknownMacs.add(data.node_mac);
+    if (!(data.node_mac in self.macAddrToNode)) {
+      var newNode = {mac: data.node_mac.toLowerCase(), name: data.node_name, site: data.node_site, network: data.node_topology};
+      unknownNodes[newNode.mac] = newNode;
       console.log('unknown mac', data.node_mac);
       // write newly found macs
-      self.updateNodeIds(Array.from(unknownMacs));
+      self.addNodes(unknownNodes);
       return;
     }
-    let nodeId = self.macAddrToNodeId[data.node_mac];
+    let node = self.macAddrToNode[data.node_mac.toLowerCase()];
+    let nodeId = node.id;
     let row = [nodeId,
                self.timeCalcUsec(data.timestamp),
                data.alert_id,
@@ -502,17 +550,21 @@ var self = {
     let data = JSON.parse(postData);
     // agents, topology
     let rows = [];
-    let unknownMacs = new Set();
+    let unknownNodes = {};
     let missingNodeCategories = [];
     let badTime = 0;
+    let topologyName = data.topology? data.topology.name : "";
+
     data.agents.forEach(agent => {
       // missing node in table
-      if (!(agent.mac in self.macAddrToNodeId)) {
-        unknownMacs.add(agent.mac);
+      if (!(agent.mac.toLowerCase() in self.macAddrToNode)) {
+        var newNode = {mac: agent.mac.toLowerCase(), name: agent.name, site: agent.site, network: topologyName};
+        unknownNodes[newNode.mac] = newNode;
         console.log('unknown mac', agent.mac);
         return;
       }
-      let nodeId = self.macAddrToNodeId[agent.mac];
+      let node = self.macAddrToNode[agent.mac.toLowerCase()];
+      let nodeId = node.id;
 
       agent.events.forEach(eventMsg => {
         // verify node/category combo exists
@@ -533,7 +585,7 @@ var self = {
       });
     });
     // write newly found macs
-    self.updateNodeIds(Array.from(unknownMacs));
+    self.addNodes(unknownNodes);
     // write newly found node/category combos
     self.updateNodeCategories(missingNodeCategories);
     // insert rows

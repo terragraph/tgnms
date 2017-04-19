@@ -268,8 +268,8 @@ export default class EventLogs extends React.Component {
     }
 
     return (
-      <div>
-        <table id="events">
+      <div style={{width:'100%', float: 'left'}}>
+        <table style={{borderCollapse: "separate", borderSpacing: "15px 5px"}}>
          <tbody>
           <tr>
             <td width={330}>
