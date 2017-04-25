@@ -5,6 +5,10 @@ const fs = require('fs');
 const request = require('request');
 const express = require('express');
 const pug = require('pug');
+// worker process
+const cp = require('child_process');
+const worker = cp.fork('./worker.js');
+// packaging
 const webpack = require('webpack');
 const webpackMiddleware = require('webpack-dev-middleware');
 const webpackHotMiddleware = require('webpack-hot-middleware');
@@ -45,18 +49,95 @@ const expressWs = require('express-ws')(app);
 const os = require('os');
 const pty = require('pty.js');
 
-const statusReportExpiery = 2 * 60000; // 2 minuets
+const statusReportExpiry = 2 * 60000; // 2 minuets
 
-var fileTopologies = [];
-var configs = [];
 var eventLogsTables = {};
 var systemLogsSources = {};
-var topologies_index = 0;
-var receivedTopologies = [];
-var ctrlStatusDumps = [];
-var aggrStatusDumps = [];
-var accumAdjacencyMaps = [];
 var networkInstanceConfig = {};
+// new topology from worker process
+var configByName = {};
+var fileTopologyByName = {};
+var topologyByName = {};
+var statusDumpsByName = {};
+var aggrStatusDumpsByName = {};
+var adjacencyMapsByName = {};
+worker.on('message', (msg) => {
+  const config = configByName[msg.name];
+  switch (msg.type) {
+    case 'topology_update':
+      // log online/offline changes
+      if (config.controller_online != msg.success) {
+        console.log(new Date().toString(), msg.name, 'controller',
+                    (msg.success ? 'online' : 'offline'));
+      }
+      config.controller_online = msg.success;
+      topologyByName[msg.name] = msg.success ? msg.topology : {};
+      break;
+    case 'status_dump_update':
+      statusDumpsByName[msg.name] = msg.success ? msg.status_dump : {}
+      var currentTime = new Date().getTime();
+      // remove nodes with old timestamps in status report
+      if (msg.success && msg.status_dump && msg.status_dump.statusReports) {
+        Object.keys(msg.status_dump.statusReports).forEach((nodeMac) => {
+          const report = msg.status_dump.statusReports[nodeMac];
+          const ts = parseInt(Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)) * 1000;
+          if (ts != 0) {
+            const timeDiffMs = currentTime - ts;
+            if (timeDiffMs > statusReportExpiry) {
+              // status older than 2 minuets
+              delete msg.status_dump.statusReports[nodeMac];
+            }
+          }
+        });
+      }
+      break;
+    case 'aggr_status_dump_update':
+      // log online/offline changes
+      if (config.aggregator_online != msg.success) {
+        console.log(new Date().toString(), msg.name, 'aggregator',
+                    (msg.success ? 'online' : 'offline'));
+      }
+      config.aggregator_online = msg.success;
+      aggrStatusDumpsByName[msg.name] = msg.success ? msg.status_dump : {};
+      var currentTime = new Date().getTime();
+      // remove nodes with old timestamps in status report
+      if (msg.success && msg.status_dump && msg.status_dump.statusReports) {
+        Object.keys(msg.status_dump.statusReports).forEach((nodeMac) => {
+          const report = msg.status_dump.statusReports[nodeMac];
+          const ts = parseInt(Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)) * 1000;
+          if (ts != 0) {
+            const timeDiffMs = currentTime - ts;
+            if (timeDiffMs > statusReportExpiry) {
+              // status older than 2 minuets
+              delete msg.status_dump.statusReports[nodeMac];
+            }
+          }
+        });
+      }
+      // adjacencies
+      if (msg.success && msg.status_dump && msg.status_dump.adjacencyMap) {
+        if (!adjacencyMapsByName[msg.name]) {
+          adjacencyMapsByName[msg.name] = {};
+        }
+        let adjMap = msg.status_dump.adjacencyMap;
+        Object.keys(adjMap).forEach(name => {
+          let vec = adjMap[name].adjacencies;
+          let node_mac = name.slice(5).replace(/\./g, ':').toUpperCase();
+          if (!adjacencyMapsByName[msg.name][node_mac]) {
+            adjacencyMapsByName[msg.name][node_mac] = {};
+          }
+          for (let j = 0; j < vec.length; j++) {
+            let llAddr = ipaddr.fromByteArray(Buffer.from(vec[j].nextHopV6.addr, 'ASCII')).toString();
+            let nextMac = vec[j].otherNodeName.slice(5).replace(/\./g, ':').toUpperCase();
+              adjacencyMapsByName[msg.name][node_mac][llAddr] = nextMac;
+          }
+        });
+      }
+      break;
+    default:
+      console.error('Unknown message type', msg.type);
+  }
+});
 
 var terminals = {},
     logs = {};
@@ -65,96 +146,40 @@ var allStats = {};
 
 var tgNodeIp = null;
 
-function periodicNetworkStatus() {
-  for (var i = 0, len = configs.length; i < len; i++) {
-    controllerProxy.getTopology(i, configs, receivedTopologies);
-    controllerProxy.getStatusDump(i, configs, ctrlStatusDumps);
-    aggregatorProxy.getStatusDump(i, configs, aggrStatusDumps);
-
-    var currentTime = new Date().getTime();
-    if (ctrlStatusDumps[i] && ctrlStatusDumps[i].statusReports) {
-      Object.keys(ctrlStatusDumps[i].statusReports).forEach(function(nodeMac) {
-        let report = ctrlStatusDumps[i].statusReports[nodeMac];
-        let timeStampObj = report.timeStamp;
-        var timeStamp = (timeStampObj.buffer.readUInt32BE(0) << 8) + timeStampObj.buffer.readUInt32BE(4) * 1000;
-        if (timeStamp != 0) {
-          if (currentTime - timeStamp > statusReportExpiery) {
-            // status older than 2 minuets
-            delete ctrlStatusDumps[i].statusReports[nodeMac];
-          }
-        }
-      });
-    }
-    if (aggrStatusDumps[i] && aggrStatusDumps[i].statusReports) {
-      Object.keys(aggrStatusDumps[i].statusReports).forEach(function(nodeMac) {
-        let report = aggrStatusDumps[i].statusReports[nodeMac];
-        let timeStampObj = report.timeStamp;
-        var timeStamp = (timeStampObj.buffer.readUInt32BE(0) << 8) + timeStampObj.buffer.readUInt32BE(4) * 1000;
-        if (timeStamp != 0) {
-          if (currentTime - timeStamp > statusReportExpiery) {
-            // status older than 2 minuets
-            delete aggrStatusDumps[i].statusReports[nodeMac];
-          }
-        }
-      });
-    }
-
-    if (aggrStatusDumps[i] && aggrStatusDumps[i].adjacencyMap) {
-      if (!accumAdjacencyMaps[i]) {
-        accumAdjacencyMaps[i] = {};
-      }
-      let adjMap = aggrStatusDumps[i].adjacencyMap;
-      Object.keys(adjMap).forEach(name => {
-        let vec = adjMap[name].adjacencies;
-        let node_mac = name.slice(5).replace(/\./g, ':').toUpperCase();
-        if (!accumAdjacencyMaps[i][node_mac]) {
-          accumAdjacencyMaps[i][node_mac] = {};
-        }
-        for (let j = 0; j < vec.length; j++) {
-          let llAddr = ipaddr.fromByteArray(Buffer.from(vec[j].nextHopV6.addr, 'ASCII')).toString();
-          let nextMac = vec[j].otherNodeName.slice(5).replace(/\./g, ':').toUpperCase();
-            accumAdjacencyMaps[i][node_mac][llAddr] = nextMac;
-        }
-      });
-    }
-  }
-}
-
 function getTopologyByName(topologyName) {
-  for (var i = 0, len = configs.length; i < len; i++) {
-    if(topologyName == configs[i].name) {
-      let topology = {};
-      // ensure received topology looks valid-ish before using
-      if (receivedTopologies[i] && receivedTopologies[i].nodes) {
-        topology = receivedTopologies[i];
-      } else {
-        topology = fileTopologies[i];
-      }
-      // over-ride the topology name since many don't use
-      if (!topology.name) {
-        console.error('No topology name received from controller for',
-                      configs[i].name, '[', configs[i].controller_ip, ']');
-        // force the original name if the controller has no name
-        topology.name = fileTopologies[i].name;
-      }
-      let status = ctrlStatusDumps[i];
-      let nodes = topology.nodes;
-      for (var j = 0; j < nodes.length; j++) {
-        if (status && status.statusReports) {
-          topology.nodes[j]["status_dump"] =
-            status.statusReports[nodes[j].mac_addr];
-        }
-      }
-      let networkConfig = Object.assign({}, configs[i]);
-      networkConfig.topology = topology;
-      if (configs[i].site_coords_override) {
-        // swap site data
-        networkConfig.topology.sites = fileTopologies[i].sites;
-      }
-      return networkConfig;
+  if (!fileTopologyByName[topologyName]) {
+    return {};
+  }
+  let topology = {};
+  // ensure received topology looks valid-ish before using
+  if (topologyByName[topologyName] && topologyByName[topologyName].nodes) {
+    topology = topologyByName[topologyName];
+  } else {
+    topology = fileTopologyByName[topologyName];
+  }
+  // over-ride the topology name since many don't use
+  let config = configByName[topologyName];
+  if (!topology.name) {
+    console.error('No topology name received from controller for',
+                  config.name, '[', config.controller_ip, ']');
+    // force the original name if the controller has no name
+    topology.name = fileTopologyByName[topologyName].name;
+  }
+  let status = statusDumpsByName[topologyName];
+  let nodes = topology.nodes;
+  for (var j = 0; j < nodes.length; j++) {
+    if (status && status.statusReports) {
+      topology.nodes[j]["status_dump"] =
+        status.statusReports[nodes[j].mac_addr];
     }
   }
-  return {};
+  let networkConfig = Object.assign({}, config);
+  networkConfig.topology = topology;
+  if (config.site_coords_override) {
+    // swap site data
+    networkConfig.topology.sites = fileTopologyByName[topologyName].sites;
+  }
+  return networkConfig;
 }
 
 const compiler = webpack(config);
@@ -197,8 +222,8 @@ fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) 
           aggregator_online: false,
           site_coords_override: topologyConfig['site_coords_override'],
       };
-      configs.push(config);
-      fileTopologies.push(topology);
+      configByName[topology['name']] = config;
+      fileTopologyByName[topology['name']] = topology;
     });
   }
 
@@ -206,7 +231,14 @@ fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) 
   if ('refresh_interval' in networkInstanceConfig) {
     refresh_interval = networkInstanceConfig['refresh_interval'];
   }
-  setInterval(periodicNetworkStatus, refresh_interval);
+  // start poll request interval
+  setInterval(() =>
+    {
+      worker.send({
+        type: 'poll',
+        topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
+      });
+    }, refresh_interval);
 });
 app.use(/\/stats_writer$/i, function (req, res, next) {
   let httpPostData = '';
@@ -492,17 +524,9 @@ app.post(/\/metrics$/i, function (req, res, next) {
 // raw stats data
 app.get(/\/health\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
-  let topology = {};
-  for (var i = 0, len = configs.length; i < len; i++) {
-    if (topologyName == configs[i].name) {
-      // ensure received topology looks valid-ish before using
-      if (receivedTopologies[i] && receivedTopologies[i].nodes) {
-        topology = receivedTopologies[i];
-      } else {
-        topology = fileTopologies[i];
-      }
-    }
-  }
+  let liveTopology = topologyByName[topologyName];
+  let topology = (liveTopology && liveTopology.nodes) ?
+                  liveTopology : fileTopologyByName[topologyName];
   if (!topology) {
     res.status(500).send('No topology data for: ' + topologyName);
     return;
@@ -537,7 +561,7 @@ app.get(/\/topology\/static$/, function(req, res, next) {
 });
 
 app.get(/\/topology\/list$/, function(req, res, next) {
-  res.json(configs);
+  res.json(Object.keys(configByName).map(keyName => configByName[keyName]));
 });
 
 app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
@@ -563,20 +587,14 @@ app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, 
 
 app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
-  for (var i = 0, len = configs.length; i < len; i++) {
-    if(topologyName == configs[i].name) {
-      let statusDump = {};
-      if (aggrStatusDumps[i]) {
-        statusDump = {
-          status: aggrStatusDumps[i],
-          AdjMapAcuum: accumAdjacencyMaps[i],
-        };
-      }
-      res.json(statusDump);
-      return;
-    }
+  if (!configByName[topologyName]) {
+    res.status(404).end("No such topology\n");
+    return;
   }
-  res.status(404).end("No such topology\n");
+  res.json({
+    status: aggrStatusDumpsByName[topologyName],
+    AdjMapAcuum: adjacencyMapsByName[topologyName],
+  });
 });
 
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
