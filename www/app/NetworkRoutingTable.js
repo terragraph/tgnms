@@ -166,7 +166,7 @@ export default class NetworkRoutingTable extends React.Component {
     Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
     Dispatcher.dispatch({
       actionType: Actions.NODE_SELECTED,
-      nodesSelected: [row._name],
+      nodeSelected: row._name,
     });
   }
 

@@ -71,26 +71,22 @@ export default class NetworkDataTable extends React.Component {
   }
 
   handleDispatchEvent(payload) {
-    this.shouldUpdate = true;
     switch (payload.actionType) {
       case Actions.TOPOLOGY_REFRESHED:
+        this.shouldUpdate = true;
         // topology refreshed
         this.setState({
           networkConfig: payload.networkConfig,
         });
         break;
       case Actions.AGGREGATOR_DUMP_REFRESHED:
+        this.shouldUpdate = true;
         this.setState({
           routing: payload.routing,
         });
         break;
-      case Actions.CLEAR_NODE_LINK_SELECTED:
-        this.setState({
-          nodesSelected: null,
-          selectedLink: null,
-        });
-        break;
       case Actions.TAB_SELECTED:
+        this.shouldUpdate = true;
         if (!(payload.tabName in TAB_NAME_TO_INDEX)) {
           console.error('Tab not found', payload.tabName);
           break;
@@ -100,15 +96,12 @@ export default class NetworkDataTable extends React.Component {
           selectedTabIndex: tabIndex,
         });
         break;
-      default:
-        this.shouldUpdate = false;
     }
   }
 
   _handleTabSelect(index, last) {
     this.setState({
       selectedTabIndex: index,
-      selectedLink: null,
     });
     // TODO - should we null the selected node?
     Dispatcher.dispatch({

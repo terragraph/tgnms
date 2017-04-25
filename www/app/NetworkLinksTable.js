@@ -175,23 +175,6 @@ export default class NetworkLinksTable extends React.Component {
       </span>);
   }
 
-  changeLinkStatus(upDown) {
-    if (this.state.selectedLink) {
-      // disable button for 5 seconds
-      setTimeout(enableButton => this.setState({linkRequestButtonEnabled: true}), 5000);
-      this.setState({
-        linkRequestButtonEnabled: false,
-      });
-      let status = upDown ? "down" : "down";
-      let exec = new Request(
-        '/controller\/setlinkStatus/' + this.props.topology.name +
-          '/' + this.state.selectedLink.a_node_name +
-          '/' + this.state.selectedLink.z_node_name + '/' + status,
-        {"credentials": "same-origin"});
-      fetch(exec);
-    }
-  }
-
   render() {
     var linksSelectRowProp = {
       mode: "radio",
@@ -290,25 +273,6 @@ export default class NetworkLinksTable extends React.Component {
           <ReactEventChart options={opts} size="small" />
         </li>;
     }
-    let linkStateChangeButton;
-    if (this.state.selectedLink) {
-      // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
-      if (this.state.linkRequestButtonEnabled) {
-        linkStateChangeButton =
-          <button
-            className='graph-button'
-            onClick={this.changeLinkStatus.bind(this, !this.state.selectedLink.is_alive)}>
-            {"Send Link " + (this.state.selectedLink.is_alive ? 'Down' : 'Up')}
-          </button>;
-      } else {
-        linkStateChangeButton =
-          <button
-            className='graph-button graph-button-disabled'
-            disabled>
-            Request Sent
-          </button>;
-      }
-    }
     return (
       <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
         {eventChart}
@@ -317,7 +281,6 @@ export default class NetworkLinksTable extends React.Component {
                   onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
             Hide Wired
           </button>
-          {linkStateChangeButton}
           {linksTable}
         </li>
       </ul>

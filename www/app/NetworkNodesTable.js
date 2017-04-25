@@ -5,7 +5,6 @@ import { render } from 'react-dom';
 import Actions from './NetworkActionConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 export default class NetworkNodesTable extends React.Component {
   state = {
@@ -19,8 +18,6 @@ export default class NetworkNodesTable extends React.Component {
     this.siteSortFunc = this.siteSortFunc.bind(this);
     this.getTableRows = this.getTableRows.bind(this);
     this.tableOnRowMouseOver = this.tableOnRowMouseOver.bind(this);
-    this.contextMenuOnShow = this.contextMenuOnShow.bind(this);
-    this.contextMenuHandleRightClick = this.contextMenuHandleRightClick.bind(this);
   }
 
   componentWillMount() {
@@ -38,7 +35,7 @@ export default class NetworkNodesTable extends React.Component {
     switch (payload.actionType) {
       case Actions.NODE_SELECTED:
         this.setState({
-          nodesSelected: payload.nodesSelected,
+          nodesSelected: [payload.nodeSelected],
         });
         break;
       case Actions.SITE_SELECTED:
@@ -107,7 +104,7 @@ export default class NetworkNodesTable extends React.Component {
     // dispatch event for the map
     Dispatcher.dispatch({
       actionType: Actions.NODE_SELECTED,
-      nodesSelected: [row.name],
+      nodeSelected: row.name,
     });
   }
 
@@ -156,23 +153,6 @@ export default class NetworkNodesTable extends React.Component {
     });
   }
 
-  contextMenuHandleRightClick(e, data) {
-    if (data.cmd == "terminal") {
-      let myRequest = new Request('/xterm/'+this.state.nodesRowMouseOver.ipv6, {"credentials": "same-origin"});
-      window.open(myRequest.url, '_blank');
-      window.focus();
-    }
-  }
-
-  contextMenuOnShow(e) {
-    var selectedRows = [];
-    selectedRows.push(this.state.nodesRowMouseOver.name);
-    this.setState({
-      nodesSelected: selectedRows,
-    });
-    this.tableOnRowSelect(this.state.nodesRowMouseOver, true);
-  }
-
   tableOnRowMouseOver(row, e) {
     this.setState({
       nodesRowMouseOver: row,
@@ -212,7 +192,6 @@ export default class NetworkNodesTable extends React.Component {
 
     return (
       <div>
-      <ContextMenuTrigger id="nodesTableContextMenu">
         <BootstrapTable
             height={this.props.height + 'px'}
             key="nodesTable"
@@ -258,12 +237,6 @@ export default class NetworkNodesTable extends React.Component {
             Uboot Version
           </TableHeaderColumn>
         </BootstrapTable>
-      </ContextMenuTrigger>
-      <ContextMenu id="nodesTableContextMenu" onShow={this.contextMenuOnShow}>
-        <MenuItem data={JSON.parse('{"cmd":"terminal"}')} onClick={this.contextMenuHandleRightClick}>
-          Connect To Terminal
-        </MenuItem>
-      </ContextMenu>
       </div>
     );
   }

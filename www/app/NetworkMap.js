@@ -11,6 +11,9 @@ import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
+import DetailsNode from './DetailsNode.js';
+import DetailsLink from './DetailsLink.js';
+import DetailsSite from './DetailsSite.js';
 import SplitPane from 'react-split-pane';
 const d3 = require('d3');
 
@@ -34,45 +37,9 @@ export class CustomMap extends Map {
   }
 }
 
-const siteOverlayKeys = {
-  Health: {
-    Healthy: {color: 'green'},
-    Unhealthy: {color: 'red'},
-    Partial: {color: 'orange'},
-		Empty: {color: 'gray'}
-  },
-  Polarity: {
-    Unknown: {color: 'red'},
-    Odd: {color: 'blue'},
-    Even: {color: 'magenta'},
-    Hybrid: {color: 'orange'}
-  }
-}
-
-const linkOverlayKeys = {
-  Health: {
-    Healthy: {color: 'green'},
-    Unhealthy: {color: 'red'},
-    Unknown: {color: 'orange'}
-  },
-  Routing: {
-    Weighted: {color: 'orange'},
-    SourceNode: {color: 'blue'},
-    DestNode: {color: 'magenta'}
-  },
-  Uptime: {
-    Weighted: {color: 'green'},
-    Unknown: {color: 'grey'}
-  },
-  Snr_Perc: {
-    Weighted: {color: 'green'},
-    Unknown: {color: 'grey'}
-  }
-}
-
 export default class NetworkMap extends React.Component {
   state = {
-    selectedNodeSite: null,
+    selectedSite: null,
     selectedLink: null,
     networkName: null,
     networkConfig: undefined,
@@ -84,10 +51,8 @@ export default class NetworkMap extends React.Component {
     // sorting
     sortName: undefined,
     sortOrder: undefined,
-    selectedSiteName: undefined,
-    selectedSiteOverlay: 'Health',
-    selectedLinkOverlay: 'Health',
-    layersExpanded: false,
+    routingOverlayEnabled: false,
+    detailsExpanded: true,
     tablesExpanded: true,
     networkHealth: {},
     lowerPaneHeight: window.innerHeight / 2,
@@ -97,7 +62,6 @@ export default class NetworkMap extends React.Component {
     super(props);
     this.getSiteMarker = this.getSiteMarker.bind(this);
     this.handleMarkerClick = this.handleMarkerClick.bind(this);
-    this.handleExpandLayersClick = this.handleExpandLayersClick.bind(this);
     this.handleExpandTablesClick = this.handleExpandTablesClick.bind(this);
     this.resizeWindow = this.resizeWindow.bind(this);
     // reset zoom on next refresh is set once a new topology is selected
@@ -143,10 +107,10 @@ export default class NetworkMap extends React.Component {
         this.resetZoomOnNextRefresh = true;
         this.setState({
           networkName: payload.networkName,
-          selectedSiteOverlay: 'Health',
-          selectedLinkOverlay: 'Health',
-          selectedNodeSite: null,
+          routingOverlayEnabled: false,
+          selectedSite: null,
           selectedLink: null,
+          selectedNode: null,
         });
         break;
       case Actions.TOPOLOGY_REFRESHED:
@@ -154,24 +118,25 @@ export default class NetworkMap extends React.Component {
         this.setState(this.updateTopologyState(payload.networkConfig))
         break;
       case Actions.NODE_SELECTED:
-        let lastSelectedNodeSite = payload.nodesSelected.length ?
-          this.state.nodesByName[
-            payload.nodesSelected[payload.nodesSelected.length - 1]].site_name :
-          null;
+        let site = this.state.nodesByName[ payload.nodeSelected].site_name;
         this.setState({
-          selectedNodeSite: lastSelectedNodeSite,
+          selectedSite: site,
+          selectedNode: payload.nodeSelected,
+          selectedLink: null,
         });
         break;
       case Actions.LINK_SELECTED:
         this.setState({
           selectedLink: payload.link,
-          selectedNodeSite: null,
+          selectedSite: null,
+          selectedNode: null,
         });
         break;
       case Actions.SITE_SELECTED:
         this.setState({
-          selectedNodeSite: payload.siteSelected,
+          selectedSite: payload.siteSelected,
           selectedLink: null,
+          selectedNode: null,
         });
         break;
       case Actions.DISPLAY_ROUTE:
@@ -179,9 +144,10 @@ export default class NetworkMap extends React.Component {
           routeWeights: payload.routeWeights,
           routeSourceNode: payload.routeSourceNode,
           routeDestNode: payload.routeDestNode,
-          selectedLinkOverlay: 'Routing',
-          selectedNodeSite: null,
+          routingOverlayEnabled: true,
+          selectedSite: null,
           selectedLink: null,
+          selectedNode: null,
         });
         break;
       case Actions.CLEAR_ROUTE:
@@ -189,13 +155,14 @@ export default class NetworkMap extends React.Component {
           routeWeights: null,
           routeSourceNode: null,
           routeDestNode: null,
-          selectedLinkOverlay: 'Health',
+          routingOverlayEnabled: false,
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
-          selectedNodeSite: null,
+          selectedSite: null,
           selectedLink: null,
+          selectedNode: null,
         });
         break;
       case Actions.HEALTH_REFRESHED:
@@ -213,6 +180,11 @@ export default class NetworkMap extends React.Component {
       let node = topologyJson.nodes[nodeIndex];
       nodesByName[node.name] = node;
     });
+    let linksByName = {};
+    Object.keys(topologyJson.links).map(linkIndex => {
+      let link = topologyJson.links[linkIndex];
+      linksByName[link.name] = link;
+    });
     // index sites by name
     let sitesByName = {};
     Object.keys(topologyJson.sites).map(siteIndex => {
@@ -224,6 +196,7 @@ export default class NetworkMap extends React.Component {
     this.resetZoomOnNextRefresh = false;
     return {
       nodesByName: nodesByName,
+      linksByName: linksByName,
       sitesByName: sitesByName,
       networkConfig: networkConfig,
       zoomLevel: resetZoom ? networkConfig.zoom_level :
@@ -242,9 +215,6 @@ export default class NetworkMap extends React.Component {
   }
 
   _onMapClick(data) {
-    this.setState({
-      layersExpanded: false,
-    });
   }
 
   _paneChange(newSize) {
@@ -268,52 +238,12 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  handleExpandLayersClick(ev) {
-    this.setState({
-      layersExpanded: true,
-    });
-  }
-
   handleExpandTablesClick(ev) {
     setTimeout(function() {
       this.refs.map.leafletElement.invalidateSize();
     }.bind(this), 1);
     this.setState({
       tablesExpanded: this.state.tablesExpanded ? false : true,
-    });
-  }
-
- _siteSortFunc(a, b, order) {   // order is desc or asc
-    if (this.state.selectedSiteName) {
-      if (a.site_name == this.state.selectedSiteName) {
-        return -1;
-      } else if (b.site_name == this.state.selectedSiteName) {
-        return 1;
-      }
-    }
-
-    if (order === 'desc') {
-      if (a.site_name > b.site_name) {
-        return -1;
-      } else if (a.site_name < b.site_name) {
-        return 1;
-      }
-      return 0;
-    } else {
-      if (a.site_name < b.site_name) {
-        return -1;
-      } else if (a.site_name > b.site_name) {
-        return 1;
-      }
-      return 0;
-    }
-  }
-
-  onSortChange(sortName, sortOrder) {
-    this.setState({
-      sortName,
-      sortOrder,
-      selectedSiteName: undefined
     });
   }
 
@@ -391,31 +321,31 @@ export default class NetworkMap extends React.Component {
         let polarity = polarityCount / totalCount;
 
         let contextualMarker = null;
-        switch (this.state.selectedSiteOverlay) {
+        switch (this.props.siteOverlay) {
           case 'Health':
 						if (totalCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Empty.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Empty.color, siteIndex);
 						} else if (totalCount == healthyCount) {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Healthy.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Healthy.color, siteIndex);
             } else if (healthyCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Unhealthy.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Unhealthy.color, siteIndex);
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Partial.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Partial.color, siteIndex);
             }
             break;
           case 'Polarity':
             if (polarity == 1) {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Odd.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Odd.color, siteIndex);
             } else if (polarity == 2) {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Even.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Even.color, siteIndex);
             } else if (polarity > 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Hybrid.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Hybrid.color, siteIndex);
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Polarity.Unknown.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Unknown.color, siteIndex);
             }
             break;
           default:
-            contextualMarker = this.getSiteMarker(siteCoords, siteOverlayKeys.Health.Unhealthy.color);
+            contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Unhealthy.color);
         }
         siteComponents.push(contextualMarker);
       });
@@ -460,47 +390,48 @@ export default class NetworkMap extends React.Component {
         ];
 
         let linkLine = null;
-        switch (this.state.selectedLinkOverlay) {
-          case 'Health':
-            if (link.is_alive) {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Healthy.color);
-            } else {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
-            }
-            break;
-          case 'Routing':
-            if (this.state.routeWeights && this.state.routeWeights[link.name]) {
-              var bwUsageColor = d3.scaleLinear()
-                  .domain([0, 100])
-                  .range(['white', '#4169e1']);
-              var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
-              linkLine = this.getLinkLine(link, linkCoords, linkColor);
-            }
-            break;
-          case 'Uptime':
-            if (linksData[link.name]) {
-              var bwUsageColor = d3.scaleLinear()
-                  .domain([0, 50, 100])
-                  .range(["red", "white", "green"]);
-              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
-              linkLine = this.getLinkLine(link, linkCoords, linkColor);
-            } else {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
-            }
-            break;
-          case 'Snr_Perc':
-            if (linksData[link.name]) {
-              var bwUsageColor = d3.scaleLinear()
-                  .domain([0, 50, 100])
-                  .range(["red", "white", "green"]);
-              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
-              linkLine = this.getLinkLine(link, linkCoords, linkColor);
-            } else {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
-            }
-            break;
-          default:
-            linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unknown.color);
+        if(this.state.routingOverlayEnabled) {
+          if (this.state.routeWeights && this.state.routeWeights[link.name]) {
+            var bwUsageColor = d3.scaleLinear()
+                .domain([0, 100])
+                .range(['white', '#4169e1']);
+            var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
+            linkLine = this.getLinkLine(link, linkCoords, linkColor);
+          }
+        } else {
+          switch (this.props.linkOverlay) {
+            case 'Health':
+              if (link.is_alive) {
+                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Health.Healthy.color);
+              } else {
+                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Health.Unhealthy.color);
+              }
+              break;
+            case 'Uptime':
+              if (linksData[link.name]) {
+                var bwUsageColor = d3.scaleLinear()
+                    .domain([0, 50, 100])
+                    .range(["red", "white", "green"]);
+                var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
+                linkLine = this.getLinkLine(link, linkCoords, linkColor);
+              } else {
+                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Uptime.Unknown.color);
+              }
+              break;
+            case 'Snr_Perc':
+              if (linksData[link.name]) {
+                var bwUsageColor = d3.scaleLinear()
+                    .domain([0, 50, 100])
+                    .range(["red", "white", "green"]);
+                var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
+                linkLine = this.getLinkLine(link, linkCoords, linkColor);
+              } else {
+                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Snr_Perc.Unknown.color);
+              }
+              break;
+            default:
+              linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Health.Unknown.color);
+          }
         }
         if (linkLine) {
           linkComponents.push(linkLine);
@@ -508,7 +439,7 @@ export default class NetworkMap extends React.Component {
       });
     }
 
-    if (this.state.selectedLinkOverlay == 'Routing' && this.state.routeSourceNode) {
+    if (this.state.routingOverlayEnabled && this.state.routeSourceNode) {
       let sourceSite = this.state.sitesByName[this.state.routeSourceNode.site_name];
       let destSite = this.state.sitesByName[this.state.routeDestNode.site_name];
       siteMarkers.push(
@@ -523,8 +454,8 @@ export default class NetworkMap extends React.Component {
                   color="magenta"/>);
     }
 
-    if (this.state.selectedNodeSite != null) {
-      let site = this.state.sitesByName[this.state.selectedNodeSite];
+    if (this.state.selectedSite != null) {
+      let site = this.state.sitesByName[this.state.selectedSite];
       if (site && site.location) {
         siteMarkers =
           <CircleMarker center={[site.location.latitude, site.location.longitude]}
@@ -556,78 +487,29 @@ export default class NetworkMap extends React.Component {
       }
     }
 
-    let siteOverlayKeyRows = [];
-    let siteOverlaySource = siteOverlayKeys[this.state.selectedSiteOverlay];
-    Object.keys(siteOverlaySource).map(siteState => {
-      siteOverlayKeyRows.push(
-      <tr key={siteState}>
-        <td></td>
-        <td>
-          <font color={siteOverlaySource[siteState].color}> {siteState} </font>
-        </td>
-      </tr>);
-    });
-    let linkOverlayKeyRows = [];
-    let linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
-    Object.keys(linkOverlaySource).map(linkState => {
-      linkOverlayKeyRows.push(
-      <tr key={linkState}>
-        <td></td>
-        <td>
-          <font color={linkOverlaySource[linkState].color}> {linkState} </font>
-        </td>
-      </tr>);
-    });
-
-    let layersControl = {};
-    if (this.state.layersExpanded) {
-      layersControl =
-        <Control position="topright" >
-          <div className="groupingContainer">
-            <p>Map Overlays</p>
-            <table>
-             <tbody>
-              <tr>
-                <td width={100}>Site Overlay</td>
-                <td width={100}>
-                  <div style={{width:100}}>
-                    <select
-                      style={{width:100}}
-                      value={this.state.selectedSiteOverlay}
-                      onChange={ (ev) => { this.setState({ selectedSiteOverlay: ev.currentTarget.value }); } }
-                    >
-                      {Object.keys(siteOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
-                    </select>
-                  </div>
-                </td>
-              </tr>
-              {siteOverlayKeyRows}
-              <tr className="blank_row">
-              </tr>
-              <tr>
-                <td width={100}>Link Overlay</td>
-                <td width={100}>
-                  <div style={{width:100}}>
-                    <select
-                      style={{width:100}}
-                      value={this.state.selectedLinkOverlay}
-                      onChange={ (ev) => { this.setState({ selectedLinkOverlay: ev.currentTarget.value }); } }
-                    >
-                      {Object.keys(linkOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
-                    </select>
-                  </div>
-                </td>
-              </tr>
-              {linkOverlayKeyRows}
-             </tbody>
-            </table>
-          </div>
-        </Control>
-    } else {
-      layersControl =
-        <Control position="topright" >
-          <img src="/static/images/layers.png" onClick={this.handleExpandLayersClick}/>
-        </Control>
+    let layersControl =
+      <Control position="topright">
+        <img src="/static/images/layers.png" onClick={() => this.setState({detailsExpanded: true})}/>
+      </Control>;
+    if (this.state.detailsExpanded) {
+      if (this.state.selectedLink) {
+        layersControl =
+          <Control position="topright">
+            <DetailsLink topologyName={this.state.networkConfig.topology.name} link={this.state.selectedLink} nodes={this.state.nodesByName} onClose={() => this.setState({detailsExpanded: false})}/>
+          </Control>
+      } else if (this.state.selectedNode) {
+        let node  = this.state.nodesByName[this.state.selectedNode];
+        layersControl =
+          <Control position="topright">
+            <DetailsNode node={node} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+          </Control>
+      } else if (this.state.selectedSite) {
+        let site = this.state.sitesByName[this.state.selectedSite];
+        layersControl =
+          <Control position="topright">
+            <DetailsSite site={site} nodes={this.state.nodesByName} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+          </Control>
+      }
     }
 
     let tablesControl =

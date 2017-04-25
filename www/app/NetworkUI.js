@@ -1,6 +1,7 @@
 import React from 'react';
 // menu bar
 import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
+import Modal from 'react-modal';
 
 // leaflet maps
 import { render } from 'react-dom';
@@ -22,6 +23,52 @@ const VIEWS = {
   'alerts': 'Alerts'
 };
 
+const SETTINGS = {
+  'overlays': 'Site/Link Overlays'
+};
+
+const customModalStyle = {
+  content : {
+    top                   : '50%',
+    left                  : '50%',
+    right                 : 'auto',
+    bottom                : 'auto',
+    marginRight           : '-50%',
+    transform             : 'translate(-50%, -50%)'
+  }
+};
+
+const siteOverlayKeys = {
+  Health: {
+    Healthy: {color: 'green'},
+    Unhealthy: {color: 'red'},
+    Partial: {color: 'orange'},
+		Empty: {color: 'gray'}
+  },
+  Polarity: {
+    Unknown: {color: 'red'},
+    Odd: {color: 'blue'},
+    Even: {color: 'magenta'},
+    Hybrid: {color: 'orange'}
+  }
+}
+
+const linkOverlayKeys = {
+  Health: {
+    Healthy: {color: 'green'},
+    Unhealthy: {color: 'red'},
+    Unknown: {color: 'orange'}
+  },
+  Uptime: {
+    Weighted: {color: 'green'},
+    Unknown: {color: 'grey'}
+  },
+  Snr_Perc: {
+    Weighted: {color: 'green'},
+    Unknown: {color: 'grey'}
+  }
+}
+
 export default class NetworkUI extends React.Component {
   state = {
     view: 'map',
@@ -30,6 +77,9 @@ export default class NetworkUI extends React.Component {
     nodesByName: {},
     topologies: {},
     routing: {},
+    overlaysModalOpen: false,
+    selectedSiteOverlay: 'Health',
+    selectedLinkOverlay: 'Health',
   }
 
   constructor(props) {
@@ -192,8 +242,85 @@ export default class NetworkUI extends React.Component {
             networkName: keySplit[1],
           });
           break;
+        case 'settings':
+          this.setState({overlaysModalOpen: true});
+          break;
       }
     }
+  }
+
+  overlaysModalClose() {
+    this.setState({overlaysModalOpen: false});
+  }
+
+  getOverlaysModal(): ReactElement<any> {
+    let siteOverlayKeyRows = [];
+    let siteOverlaySource = siteOverlayKeys[this.state.selectedSiteOverlay];
+    Object.keys(siteOverlaySource).map(siteState => {
+      siteOverlayKeyRows.push(
+      <tr key={siteState}>
+        <td></td>
+        <td>
+          <font color={siteOverlaySource[siteState].color}> {siteState} </font>
+        </td>
+      </tr>);
+    });
+    let linkOverlayKeyRows = [];
+    let linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
+    Object.keys(linkOverlaySource).map(linkState => {
+      linkOverlayKeyRows.push(
+      <tr key={linkState}>
+        <td></td>
+        <td>
+          <font color={linkOverlaySource[linkState].color}> {linkState} </font>
+        </td>
+      </tr>);
+    });
+
+    return (
+      <Modal
+          isOpen={this.state.overlaysModalOpen}
+          onRequestClose={this.overlaysModalClose.bind(this)}
+          style={customModalStyle}
+          contentLabel="Example Modal">
+        <table>
+          <tbody>
+          <tr>
+            <td width={100}>Site Overlay</td>
+            <td width={100}>
+              <div style={{width:100}}>
+                <select
+                  style={{width:100}}
+                  value={this.state.selectedSiteOverlay}
+                  onChange={ (ev) => { this.setState({ selectedSiteOverlay: ev.currentTarget.value }); } }
+                >
+                  {Object.keys(siteOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                </select>
+              </div>
+            </td>
+          </tr>
+          {siteOverlayKeyRows}
+          <tr className="blank_row">
+          </tr>
+          <tr>
+            <td width={100}>Link Overlay</td>
+            <td width={100}>
+              <div style={{width:100}}>
+                <select
+                  style={{width:100}}
+                  value={this.state.selectedLinkOverlay}
+                  onChange={ (ev) => { this.setState({ selectedLinkOverlay: ev.currentTarget.value }); } }
+                >
+                  {Object.keys(linkOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                </select>
+              </div>
+            </td>
+          </tr>
+          {linkOverlayKeyRows}
+          </tbody>
+        </table>
+        <button style={{float: 'right'}} className='graph-button' onClick={this.overlaysModalClose.bind(this)}>close</button>
+      </Modal>);
   }
 
   render() {
@@ -222,13 +349,13 @@ export default class NetworkUI extends React.Component {
           node.status == 2 || node.status == 3).length;
       networkStatusMenuItems = [
         <MenuItem key="e2e-status" disabled>
-          <img src={"/static/images/" + 
+          <img src={"/static/images/" +
             (this.state.networkConfig.controller_online ? 'online' : 'offline') + ".png"} />
           E2E
         </MenuItem>,
         <Divider key= "status-divider" />,
         <MenuItem key="nms-status" disabled>
-          <img src={"/static/images/" + 
+          <img src={"/static/images/" +
             (this.state.networkConfig.aggregator_online ? 'online' : 'offline') + ".png"} />
           NMS
         </MenuItem>,
@@ -261,18 +388,28 @@ export default class NetworkUI extends React.Component {
         paneComponent = <NetworkAlerts />;
         break;
       default:
-        paneComponent = <NetworkMap />;
+        paneComponent =
+        <NetworkMap
+          linkOverlay={this.state.selectedLinkOverlay}
+          linkOverlayKeys={linkOverlayKeys}
+          siteOverlay={this.state.selectedSiteOverlay}
+          siteOverlayKeys={siteOverlayKeys}
+        />;
     }
     // add all selected keys
     let selectedKeys = ["view." + this.state.view];
     if (this.state.networkName) {
       selectedKeys.push("topo." + this.state.networkName);
     }
+
+    let overlaysModal = this.getOverlaysModal();
+
     return (
       <div>
+        {overlaysModal}
         <div className="top-menu-bar">
           <Menu
-              onSelect={this.handleMenuBarSelect}
+              onSelect={this.handleMenuBarSelect.bind(this)}
               mode="horizontal"
               selectedKeys={selectedKeys}
               style={{float: 'left'}}>
@@ -297,6 +434,17 @@ export default class NetworkUI extends React.Component {
             <MenuItem key="topology-selected" disabled>
               {this.state.networkName ? this.state.networkName : '-'}
             </MenuItem>
+            <Divider />
+            <SubMenu title="Settings" key="settings" mode="vertical">
+              {Object.keys(SETTINGS).map(settingKey => {
+                let settingName = SETTINGS[settingKey];
+                return (
+                  <MenuItem key={"settings." + settingKey}>
+                    <img src={"/static/images/" + settingKey + ".png"} />
+                    {settingName}
+                  </MenuItem>);
+              })}
+            </SubMenu>
             <Divider />
           </Menu>
           <Menu mode="horizontal" style={{float: 'right'}}>
