@@ -1,12 +1,11 @@
 import React from 'react';
 // menu bar
 import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
-import Modal from 'react-modal';
 
 // leaflet maps
 import { render } from 'react-dom';
 // dispatcher
-import Actions from './NetworkActionConstants.js';
+import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkDashboard from './NetworkDashboard.js';
 import NetworkStats from './NetworkStats.js';
@@ -14,6 +13,7 @@ import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkAlerts from './NetworkAlerts.js';
+import ModalOverlays from './ModalOverlays.js';
 
 const VIEWS = {
   'map': 'Map',
@@ -26,48 +26,6 @@ const VIEWS = {
 const SETTINGS = {
   'overlays': 'Site/Link Overlays'
 };
-
-const customModalStyle = {
-  content : {
-    top                   : '50%',
-    left                  : '50%',
-    right                 : 'auto',
-    bottom                : 'auto',
-    marginRight           : '-50%',
-    transform             : 'translate(-50%, -50%)'
-  }
-};
-
-const siteOverlayKeys = {
-  Health: {
-    Healthy: {color: 'green'},
-    Unhealthy: {color: 'red'},
-    Partial: {color: 'orange'},
-		Empty: {color: 'gray'}
-  },
-  Polarity: {
-    Unknown: {color: 'red'},
-    Odd: {color: 'blue'},
-    Even: {color: 'magenta'},
-    Hybrid: {color: 'orange'}
-  }
-}
-
-const linkOverlayKeys = {
-  Health: {
-    Healthy: {color: 'green'},
-    Unhealthy: {color: 'red'},
-    Unknown: {color: 'orange'}
-  },
-  Uptime: {
-    Weighted: {color: 'green'},
-    Unknown: {color: 'grey'}
-  },
-  Snr_Perc: {
-    Weighted: {color: 'green'},
-    Unknown: {color: 'grey'}
-  }
-}
 
 export default class NetworkUI extends React.Component {
   state = {
@@ -249,78 +207,12 @@ export default class NetworkUI extends React.Component {
     }
   }
 
-  overlaysModalClose() {
-    this.setState({overlaysModalOpen: false});
-  }
-
-  getOverlaysModal(): ReactElement<any> {
-    let siteOverlayKeyRows = [];
-    let siteOverlaySource = siteOverlayKeys[this.state.selectedSiteOverlay];
-    Object.keys(siteOverlaySource).map(siteState => {
-      siteOverlayKeyRows.push(
-      <tr key={siteState}>
-        <td></td>
-        <td>
-          <font color={siteOverlaySource[siteState].color}> {siteState} </font>
-        </td>
-      </tr>);
+  overlaysModalClose(siteOverlay, linkOverlay) {
+    this.setState({
+      overlaysModalOpen: false,
+      selectedSiteOverlay: siteOverlay,
+      selectedLinkOverlay: linkOverlay,
     });
-    let linkOverlayKeyRows = [];
-    let linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
-    Object.keys(linkOverlaySource).map(linkState => {
-      linkOverlayKeyRows.push(
-      <tr key={linkState}>
-        <td></td>
-        <td>
-          <font color={linkOverlaySource[linkState].color}> {linkState} </font>
-        </td>
-      </tr>);
-    });
-
-    return (
-      <Modal
-          isOpen={this.state.overlaysModalOpen}
-          onRequestClose={this.overlaysModalClose.bind(this)}
-          style={customModalStyle}
-          contentLabel="Example Modal">
-        <table>
-          <tbody>
-          <tr>
-            <td width={100}>Site Overlay</td>
-            <td width={100}>
-              <div style={{width:100}}>
-                <select
-                  style={{width:100}}
-                  value={this.state.selectedSiteOverlay}
-                  onChange={ (ev) => { this.setState({ selectedSiteOverlay: ev.currentTarget.value }); } }
-                >
-                  {Object.keys(siteOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
-                </select>
-              </div>
-            </td>
-          </tr>
-          {siteOverlayKeyRows}
-          <tr className="blank_row">
-          </tr>
-          <tr>
-            <td width={100}>Link Overlay</td>
-            <td width={100}>
-              <div style={{width:100}}>
-                <select
-                  style={{width:100}}
-                  value={this.state.selectedLinkOverlay}
-                  onChange={ (ev) => { this.setState({ selectedLinkOverlay: ev.currentTarget.value }); } }
-                >
-                  {Object.keys(linkOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
-                </select>
-              </div>
-            </td>
-          </tr>
-          {linkOverlayKeyRows}
-          </tbody>
-        </table>
-        <button style={{float: 'right'}} className='graph-button' onClick={this.overlaysModalClose.bind(this)}>close</button>
-      </Modal>);
   }
 
   render() {
@@ -391,9 +283,7 @@ export default class NetworkUI extends React.Component {
         paneComponent =
         <NetworkMap
           linkOverlay={this.state.selectedLinkOverlay}
-          linkOverlayKeys={linkOverlayKeys}
           siteOverlay={this.state.selectedSiteOverlay}
-          siteOverlayKeys={siteOverlayKeys}
         />;
     }
     // add all selected keys
@@ -402,11 +292,14 @@ export default class NetworkUI extends React.Component {
       selectedKeys.push("topo." + this.state.networkName);
     }
 
-    let overlaysModal = this.getOverlaysModal();
-
     return (
       <div>
-        {overlaysModal}
+        <ModalOverlays
+          isOpen= {this.state.overlaysModalOpen}
+          selectedSiteOverlay= {this.state.selectedSiteOverlay}
+          selectedLinkOverlay= {this.state.selectedLinkOverlay}
+          onClose= {this.overlaysModalClose.bind(this)}/>
+
         <div className="top-menu-bar">
           <Menu
               onSelect={this.handleMenuBarSelect.bind(this)}

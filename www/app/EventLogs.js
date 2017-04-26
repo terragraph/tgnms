@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 // dispatcher
-import Actions from './NetworkActionConstants.js';
+import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import AsyncButton from 'react-async-button';

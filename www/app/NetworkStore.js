@@ -1,4 +1,4 @@
-import Actions from './NetworkActionConstants.js';
+import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 
 class NetworkStoreI {

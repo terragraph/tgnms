@@ -6,7 +6,7 @@ import { Map, Polyline, Popup, TileLayer, CircleMarker} from 'react-leaflet';
 import Control from 'react-leaflet-control';
 
 // dispatcher
-import Actions from './NetworkActionConstants.js';
+import {Actions, SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
 // ui components
@@ -324,28 +324,28 @@ export default class NetworkMap extends React.Component {
         switch (this.props.siteOverlay) {
           case 'Health':
 						if (totalCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Empty.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Empty.color, siteIndex);
 						} else if (totalCount == healthyCount) {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Healthy.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Healthy.color, siteIndex);
             } else if (healthyCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Unhealthy.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color, siteIndex);
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Partial.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Partial.color, siteIndex);
             }
             break;
           case 'Polarity':
             if (polarity == 1) {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Odd.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Odd.color, siteIndex);
             } else if (polarity == 2) {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Even.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Even.color, siteIndex);
             } else if (polarity > 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Hybrid.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Hybrid.color, siteIndex);
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Polarity.Unknown.color, siteIndex);
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Unknown.color, siteIndex);
             }
             break;
           default:
-            contextualMarker = this.getSiteMarker(siteCoords, this.props.siteOverlayKeys.Health.Unhealthy.color);
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
         }
         siteComponents.push(contextualMarker);
       });
@@ -402,9 +402,9 @@ export default class NetworkMap extends React.Component {
           switch (this.props.linkOverlay) {
             case 'Health':
               if (link.is_alive) {
-                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Health.Healthy.color);
+                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Healthy.color);
               } else {
-                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Health.Unhealthy.color);
+                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
               }
               break;
             case 'Uptime':
@@ -415,7 +415,7 @@ export default class NetworkMap extends React.Component {
                 var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
                 linkLine = this.getLinkLine(link, linkCoords, linkColor);
               } else {
-                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Uptime.Unknown.color);
+                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
               }
               break;
             case 'Snr_Perc':
@@ -426,11 +426,11 @@ export default class NetworkMap extends React.Component {
                 var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
                 linkLine = this.getLinkLine(link, linkCoords, linkColor);
               } else {
-                linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Snr_Perc.Unknown.color);
+                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
               }
               break;
             default:
-              linkLine = this.getLinkLine(link, linkCoords, this.props.linkOverlayKeys.Health.Unknown.color);
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unknown.color);
           }
         }
         if (linkLine) {

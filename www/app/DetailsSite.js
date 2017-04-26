@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import Actions from './NetworkActionConstants.js';
+import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 
 export default class DetailsSite extends React.Component {
