@@ -52,6 +52,10 @@ const GRAPH_AGG_OPTS = [
     name: 'sum',
     title: 'Sum',
   },
+  {
+    name: 'count',
+    title: 'Count',
+  },
 /*  {
     name: 'split',
     title: 'Split',

@@ -57,6 +57,16 @@ MAC_AND_KEY_SUM = "SELECT `ts_key`.`id`, `mac`, `key`, " +
                   "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
                   "GROUP BY `time` " +
                   "ORDER BY `time` ASC";
+MAC_AND_KEY_COUNT = "SELECT `ts_key`.`id`, `mac`, `key`, " +
+                      "UNIX_TIMESTAMP(`time`) AS time, COUNT(`value`) AS count " +
+                      "FROM `ts_value` " +
+                    "JOIN (`ts_time`) ON (`ts_time`.`id`=`ts_value`.`time_id`) " +
+                    "JOIN (`ts_key`) ON (`ts_key`.`id`=`ts_value`.`key_id`) " +
+                    "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
+                    "AND `ts_key`.`id` IN ? " +
+                    "AND `time` > DATE_SUB(NOW(), INTERVAL ? MINUTE) " +
+                    "GROUP BY `time` " +
+                    "ORDER BY `time` ASC";
 MAC_AND_KEY_AVG = "SELECT `ts_key`.`id`, `mac`, `key`, " +
                     "UNIX_TIMESTAMP(`time`) AS time, AVG(`value`) AS avg, " +
                     "MIN(`value`) AS min, MAX(`value`) AS max " +
@@ -377,6 +387,9 @@ var self = {
       case 'sum':
         columnNames.add('sum');
         break;
+      case 'count':
+        columnNames.add('count');
+        break;
     }
     result.forEach(row => {
       let keyName = row[groupBy];
@@ -391,6 +404,9 @@ var self = {
           break;
         case 'sum':
           timeSeriesGroup[row.time]['sum'] = row.sum;
+          break;
+        case 'count':
+          timeSeriesGroup[row.time]['count'] = row.count;
           break;
         default:
           // none, top, bottom
@@ -778,6 +794,8 @@ var self = {
         return mysql.format(MAC_AND_KEY_AVG, [[keyIds], minAgo]);
       case 'sum':
         return mysql.format(MAC_AND_KEY_SUM, [[keyIds], minAgo]);
+      case 'count':
+        return mysql.format(MAC_AND_KEY_COUNT, [[keyIds], minAgo]);
       default:
         // top, buttom
         return mysql.format(MAC_AND_KEY_NOAGG, [[keyIds], minAgo]);
