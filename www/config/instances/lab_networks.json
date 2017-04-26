@@ -65,8 +65,8 @@
       "latitude": 37.48391283804449,
       "longitude": -122.14773952960968,
       "zoom_level": 18,
-      "controller_ip": "2620:10d:c089:f000:3a3a:21ff:feb0:744",
-      "aggregator_ip": "2620:10d:c089:f000:3a3a:21ff:feb0:744"
+      "controller_ip": "2620:10d:c089:f000:3a3a:21ff:feb0:488",
+      "aggregator_ip": "2620:10d:c089:f000:3a3a:21ff:feb0:488"
     },
     {
       "topology_file": "mpk17_outdoor.json",
