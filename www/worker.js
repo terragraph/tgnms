@@ -170,45 +170,54 @@ class ControllerProxy extends EventEmitter {
   }
 
   sendCtrlMsgTypeSync(msgType, msgBody, res) {
-    var sendMsg = new Controller_ttypes.Message();
-    sendMsg.mType = msgType;
-    sendMsg.value = msgBody;
-    var recvMsg = new Controller_ttypes.Message();
-    let recvApp, nmsAppIdentity;
-    // determine receiver app
-    switch (msgType) {
-      case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
-        recvApp = 'ctrl-app-IGNITION_APP';
-        nmsAppIdentity = 'NMS_WEB_CTRL';
-        break;
-      default:
-        console.error('sendCtrlMsgTypeSync: Unknown message type', msgType);
-    }
-    // time the response
-    this.sendCtrlMsg(
-      sendMsg,
-      recvMsg,
-      nmsAppIdentity,
-      recvApp,
-      (tProtocol, tTransport) => {
-        switch (msgType) {
-          case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
-            var receivedAck = new Controller_ttypes.E2EAck();
-            receivedAck.read(tProtocol);
-            if (receivedAck.success) {
-              res.status(204).end("Success");
-            } else {
-              res.status(500).send("Controller Error");
-            }
-            break;
-          default:
-            console.error('No receive handler defined for', msgType);
-        }
-      },
-      () => {
-        res.status(500).send("Timeout");
+    let ctrlPromise = new Promise((resolve, reject) => {
+      var sendMsg = new Controller_ttypes.Message();
+      sendMsg.mType = msgType;
+      sendMsg.value = msgBody;
+      var recvMsg = new Controller_ttypes.Message();
+      let recvApp, nmsAppIdentity;
+      // determine receiver app
+      switch (msgType) {
+        case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
+          recvApp = 'ctrl-app-IGNITION_APP';
+          nmsAppIdentity = 'NMS_WEB_CTRL';
+          break;
+        default:
+          console.error('sendCtrlMsgTypeSync: Unknown message type', msgType);
       }
-    );
+      // time the response
+      this.sendCtrlMsg(
+        sendMsg,
+        recvMsg,
+        nmsAppIdentity,
+        recvApp,
+        (tProtocol, tTransport) => {
+          switch (msgType) {
+            case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
+              var receivedAck = new Controller_ttypes.E2EAck();
+              receivedAck.read(tProtocol);
+              if (receivedAck.success) {
+                resolve("Success!");
+              } else {
+                reject("Controller Error");
+              }
+              break;
+            default:
+              console.error('No receive handler defined for', msgType);
+          }
+        },
+        () => {
+          reject("Timeout");
+        }
+      );
+    });
+
+    ctrlPromise.then((successMessage) => {
+      res.status(204).end("Success");
+    })
+    .catch((failMessage) => {
+      res.status(500).send(failMessage);
+    });
   }
 
   /*
