@@ -3,16 +3,8 @@
   "refresh_interval": 5000,
   "topologies": [
     {
-      "topology_file": "lab_48_ab.json",
-      "site_coords_override": true,
-      "latitude": 37.484742908595706,
-      "longitude": -122.14704215534768,
-      "zoom_level": 18,
-      "controller_ip": "2620:10d:c089:abcb::1",
-      "aggregator_ip": "2620:10d:c089:abcb::1"
-    },
-    {
       "topology_file": "lab_f8_b.json",
+      "site_coords_override": true,
       "latitude": 37.4848280435154,
       "longitude": -122.1472245455607,
       "zoom_level": 18,
@@ -21,6 +13,7 @@
     },
     {
       "topology_file": "lab_f8_c.json",
+      "site_coords_override": true,
       "latitude": 37.4848280435154,
       "longitude": -122.1472245455607,
       "zoom_level": 18,
@@ -29,6 +22,7 @@
     },
     {
       "topology_file": "lab_f8_d.json",
+      "site_coords_override": true,
       "latitude": 37.4848280435154,
       "longitude": -122.1472245455607,
       "zoom_level": 18,
@@ -37,6 +31,7 @@
     },
     {
       "topology_file": "lab_f8_e.json",
+      "site_coords_override": true,
       "latitude": 37.4848280435154,
       "longitude": -122.1472245455607,
       "zoom_level": 18,

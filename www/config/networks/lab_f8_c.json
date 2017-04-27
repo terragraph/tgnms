@@ -6,98 +6,140 @@
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:40",
       "pop_node": true,
-      "site_name": "11x.f5.tc"
+      "site_name": "A",
+      "ant_azimuth": 90,
+      "ant_elevation": 5,
+      "polarity": 1
     },
     {
       "name": "terra114.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:41",
       "pop_node": false,
-      "site_name": "11x.f5.tc"
+      "site_name": "A",
+      "ant_azimuth": 180,
+      "ant_elevation": 5,
+      "polarity": 1
     },
     {
       "name": "terra121.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:42",
       "pop_node": false,
-      "site_name": "12x.f5.tc"
+      "site_name": "F",
+      "ant_azimuth": 90,
+      "ant_elevation": 5,
+      "polarity": 2
     },
     {
       "name": "terra123.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:43",
       "pop_node": false,
-      "site_name": "12x.f5.tc"
+      "site_name": "F",
+      "ant_azimuth": 0,
+      "ant_elevation": 5,
+      "polarity": 2
     },
     {
       "name": "terra211.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:44",
       "pop_node": false,
-      "site_name": "21x.f5.tc"
+      "site_name": "B",
+      "ant_azimuth": 90,
+      "ant_elevation": 5,
+      "polarity": 2
     },
     {
       "name": "terra212.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:45",
       "pop_node": false,
-      "site_name": "21x.f5.tc"
+      "site_name": "B",
+      "ant_azimuth": 270,
+      "ant_elevation": 5,
+      "polarity": 2
     },
     {
       "name": "terra214.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:46",
       "pop_node": false,
-      "site_name": "21x.f5.tc"
+      "site_name": "B",
+      "ant_azimuth": 180,
+      "ant_elevation": 5,
+      "polarity": 2
     },
     {
       "name": "terra221.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:47",
       "pop_node": false,
-      "site_name": "22x.f5.tc"
+      "site_name": "E",
+      "ant_azimuth": 90,
+      "ant_elevation": 5,
+      "polarity": 1
     },
     {
       "name": "terra222.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:48",
       "pop_node": false,
-      "site_name": "22x.f5.tc"
+      "site_name": "E",
+      "ant_azimuth": 270,
+      "ant_elevation": 5,
+      "polarity": 1
     },
     {
       "name": "terra223.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:49",
       "pop_node": false,
-      "site_name": "22x.f5.tc"
+      "site_name": "E",
+      "ant_azimuth": 0,
+      "ant_elevation": 5,
+      "polarity": 1
     },
     {
       "name": "terra312.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4a",
       "pop_node": false,
-      "site_name": "31x.f5.tc"
+      "site_name": "C",
+      "ant_azimuth": 270,
+      "ant_elevation": 5,
+      "polarity": 1
     },
     {
       "name": "terra314.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4b",
       "pop_node": false,
-      "site_name": "31x.f5.tc"
+      "site_name": "C",
+      "ant_azimuth": 45,
+      "ant_elevation": 8,
+      "polarity": 1
     },
     {
       "name": "terra322.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4c",
       "pop_node": false,
-      "site_name": "32x.f5.tc"
+      "site_name": "D",
+      "ant_azimuth": 270,
+      "ant_elevation": 5,
+      "polarity": 2
     },
     {
       "name": "terra323.f5.tc.a404-if",
       "node_type": 2,
       "mac_addr": "00:00:00:10:0c:4d",
       "pop_node": false,
-      "site_name": "32x.f5.tc"
+      "site_name": "D",
+      "ant_azimuth": 45,
+      "ant_elevation": 8,
+      "polarity": 2
     }
   ],
   "links": [
@@ -223,51 +265,51 @@
   ],
   "sites": [
     {
-      "name": "11x.f5.tc",
+      "name": "A",
       "location": {
         "latitude": 37.484946,
         "longitude": -122.1475237,
-        "altitude": 0
+        "altitude": 3.87
       }
     },
     {
-      "name": "21x.f5.tc",
+      "name": "B",
       "location": {
         "latitude": 37.484946,
         "longitude": -122.1472237,
-        "altitude": 0
+        "altitude": 3.87
       }
     },
     {
-      "name": "31x.f5.tc",
+      "name": "C",
       "location": {
         "latitude": 37.484946,
         "longitude": -122.1469237,
-        "altitude": 0
+        "altitude": 3.87
       }
     },
     {
-      "name": "32x.f5.tc",
+      "name": "D",
       "location": {
         "latitude": 37.484746,
         "longitude": -122.1469237,
-        "altitude": 0
+        "altitude": 3.87
       }
     },
     {
-      "name": "22x.f5.tc",
+      "name": "E",
       "location": {
         "latitude": 37.484746,
         "longitude": -122.1472237,
-        "altitude": 0
+        "altitude": 3.87
       }
     },
     {
-      "name": "12x.f5.tc",
+      "name": "F",
       "location": {
         "latitude": 37.484746,
         "longitude": -122.1475237,
-        "altitude": 0
+        "altitude": 3.87
       }
     }
   ]
