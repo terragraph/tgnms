@@ -23,8 +23,8 @@ process.on('message', (msg) => {
       // expect a list of IP addresses
       msg.topologies.forEach(topology => {
         const ctrlProxy = new ControllerProxy(topology.controller_ip);
-        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY);
-        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP);
+        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
+        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
         ctrlProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Controller_ttypes.MessageType.GET_TOPOLOGY:
@@ -70,6 +70,33 @@ process.on('message', (msg) => {
   }
 });
 
+exports.sendCtrlMsgSync = (msg, res) => {
+  if (!msg.type) {
+    console.error("sendCtrlMsgSync: Received unknown message", msg);
+  }
+  // prepare MSG body first, then send msg syncronously
+  switch (msg.type) {
+    case 'setLinkStatus':
+      var transport = new thrift.TFramedTransport(null, function(byteArray) {
+        // Flush puts a 4-byte header, which needs to be parsed/sliced.
+         byteArray = byteArray.slice(4);
+         const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
+         ctrlProxy.sendCtrlMsgTypeSync(Controller_ttypes.MessageType.SET_LINK_STATUS_REQ, byteArray, res);
+      });
+
+      var tProtocol = new thrift.TCompactProtocol(transport);
+      var setLinkStatusReq = new Controller_ttypes.SetLinkStatusReq();
+      setLinkStatusReq.initiatorNodeName = msg.nodeA;
+      setLinkStatusReq.responderNodeName = msg.nodeZ;
+      setLinkStatusReq.action = msg.status ? Controller_ttypes.LinkActionType.LINK_UP : Controller_ttypes.LinkActionType.LINK_DOWN;
+      setLinkStatusReq.write(tProtocol);
+      transport.flush();
+      break;
+    default:
+      console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
+  }
+};
+
 class ControllerProxy extends EventEmitter {
   constructor(controllerIp) {
     super();
@@ -78,10 +105,10 @@ class ControllerProxy extends EventEmitter {
   /*
    * Send and decode the expected message based on the type.
    */
-  sendCtrlMsgType(msgType) {
+  sendCtrlMsgType(msgType, msgBody) {
     var sendMsg = new Controller_ttypes.Message();
     sendMsg.mType = msgType;
-    sendMsg.value = '\0';
+    sendMsg.value = msgBody;
     var recvMsg = new Controller_ttypes.Message();
     let recvApp, nmsAppIdentity;
     // determine receiver app
@@ -142,6 +169,48 @@ class ControllerProxy extends EventEmitter {
     );
   }
 
+  sendCtrlMsgTypeSync(msgType, msgBody, res) {
+    var sendMsg = new Controller_ttypes.Message();
+    sendMsg.mType = msgType;
+    sendMsg.value = msgBody;
+    var recvMsg = new Controller_ttypes.Message();
+    let recvApp, nmsAppIdentity;
+    // determine receiver app
+    switch (msgType) {
+      case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
+        recvApp = 'ctrl-app-IGNITION_APP';
+        nmsAppIdentity = 'NMS_WEB_CTRL';
+        break;
+      default:
+        console.error('sendCtrlMsgTypeSync: Unknown message type', msgType);
+    }
+    // time the response
+    this.sendCtrlMsg(
+      sendMsg,
+      recvMsg,
+      nmsAppIdentity,
+      recvApp,
+      (tProtocol, tTransport) => {
+        switch (msgType) {
+          case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
+            var receivedAck = new Controller_ttypes.E2EAck();
+            receivedAck.read(tProtocol);
+            if (receivedAck.success) {
+              res.status(204).end("Success");
+            } else {
+              res.status(500).send("Controller Error");
+            }
+            break;
+          default:
+            console.error('No receive handler defined for', msgType);
+        }
+      },
+      () => {
+        res.status(500).send("Timeout");
+      }
+    );
+  }
+
   /*
    * Send any message to the controller.
    */
@@ -185,12 +254,7 @@ class ControllerProxy extends EventEmitter {
     const tProtocol = new thrift.TCompactProtocol(transport);
     // watch for connection timeouts
     const timeoutTimer = setTimeout(() => {
-      const endTimer = new Date();
-      this.emit('event',
-                sendMsg.mType,
-                false /* success */,
-                endTimer - this.start_timer,
-                { timeout: true });
+      errCb();
       dealer.close();
     }, ZMQ_TIMEOUT_MS);
     // send msg
@@ -199,6 +263,8 @@ class ControllerProxy extends EventEmitter {
     transport.flush();
   }
 }
+
+
 class AggregatorProxy extends EventEmitter {
   constructor(aggregatorIp) {
     super();

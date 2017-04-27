@@ -8,6 +8,7 @@ const pug = require('pug');
 // worker process
 const cp = require('child_process');
 const worker = cp.fork('./worker.js');
+const syncWorker = require('./worker.js');
 // packaging
 const webpack = require('webpack');
 const webpackMiddleware = require('webpack-dev-middleware');
@@ -42,7 +43,6 @@ dataJson.refreshNodes();
 dataJson.refreshNodeCategories();
 dataJson.timeAlloc();
 dataJson.scheduleTimeAlloc();
-const controllerProxy = require('./controllerProxy');
 const aggregatorProxy = require('./aggregatorProxy');
 const ipaddr = require('ipaddr.js');
 const expressWs = require('express-ws')(app);
@@ -579,10 +579,15 @@ app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, 
   let nodeA = req.params[1];
   let nodeZ = req.params[2];
   let status = req.params[3] == "up" ? true : false;
-
   var topology = getTopologyByName(topologyName);
-  controllerProxy.setLinkStatus(topology, nodeA, nodeZ, status);
-  res.status(204).end("Submitted");
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'setLinkStatus',
+    topology: topology,
+    nodeA: nodeA,
+    nodeZ: nodeZ,
+    status: status,
+  }, res);
 });
 
 app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
