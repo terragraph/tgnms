@@ -1,0 +1,13 @@
+#!/bin/bash
+if [ -z "$E2E_TOPOLOGY_FILE" ] || [ ! -f "$E2E_TOPOLOGY_FILE" ]; then
+  echo "E2E_TOPOLOGY_FILE not set or not found"
+  exit 1
+fi
+if [ -z "$E2E_ROOTFS" ] || [ ! -d "$E2E_ROOTFS" ]; then
+  echo "E2E_ROOTFS not set or not found"
+  exit 1
+fi
+# copy topology file into chroot
+cp -v "$E2E_TOPOLOGY_FILE" "${E2E_ROOTFS}/etc/e2e_config/topology.conf"
+chroot $E2E_ROOTFS /bin/mknod /dev/urandom c 1 9 2>/dev/null
+chroot $E2E_ROOTFS /usr/sbin/e2e_controller -topology-file /etc/e2e_config/topology.conf ${E2E_ARGS}

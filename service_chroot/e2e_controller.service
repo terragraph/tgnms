@@ -1,12 +1,12 @@
 [Unit]
-Description=Terragraph NMS Aggregator
+Description=Terragraph E2E Controller
 
 [Service]
 Type=simple
 User=root
 EnvironmentFile=-/etc/sysconfig/tg_services
 EnvironmentFile=-/etc/default/tg_services
-ExecStart=/home/nms/tgnms/service_chroot/nms_aggregator.run
+ExecStart=/home/nms/tgnms/service_chroot/e2e_controller.run
 Restart=on-failure
 
 [Install]
