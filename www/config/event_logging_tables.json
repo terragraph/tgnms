@@ -82,6 +82,40 @@
           }
         ]
       }
+    },
+    {
+      "name": "Topology Status",
+      "category": "perfpipe_terragraph_topology_status",
+      "time": "int.time",
+      "display": {
+        "columns": [
+          {
+            "field": "int.time",
+            "label": "Time",
+            "width": "180",
+            "format": "TIME_S"
+          },
+          {
+            "field": "normal.topology",
+            "label": "Topology",
+            "width": "180"
+          },
+          {
+            "field": "normal.messageType",
+            "label": "Action",
+            "width": "200"
+          },
+          {
+            "field": "normal.source",
+            "label": "Source",
+            "width": "300"
+          },
+          {
+            "field": "normal.item_name",
+            "label": "item"
+          }
+        ]
+      }
     }
   ]
 }
