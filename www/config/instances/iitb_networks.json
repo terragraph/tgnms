@@ -7,7 +7,7 @@
 			"latitude": 19.135063,
 			"longitude": 72.9042928,
       "zoom_level": 18,
-      "controller_ip": "2001:470:f5b1:1000::10",
+      "controller_ip": "2001:470:f5b1:1000::1",
       "aggregator_ip": "2001:470:f5b1:1000::1"
     }
   ]
