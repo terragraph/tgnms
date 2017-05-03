@@ -16,6 +16,7 @@ const Actions = {
   VIEW_SELECTED: 300,
   TAB_SELECTED: 302,
 
+  PLANNED_SITE_CREAT: 330,
   // network health
   HEALTH_REFRESHED: 400,
 };

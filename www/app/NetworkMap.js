@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 // leaflet maps
 import Leaflet from 'leaflet';
-import { Map, Polyline, Popup, TileLayer, CircleMarker} from 'react-leaflet';
+import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker} from 'react-leaflet';
 import Control from 'react-leaflet-control';
 
 // dispatcher
@@ -14,8 +14,15 @@ import NetworkDataTable from './NetworkDataTable.js';
 import DetailsNode from './DetailsNode.js';
 import DetailsLink from './DetailsLink.js';
 import DetailsSite from './DetailsSite.js';
+import DetailsPlannedSite from './DetailsPlannedSite.js';
 import SplitPane from 'react-split-pane';
 const d3 = require('d3');
+
+const SITE_MARKER = Leaflet.icon({
+  iconUrl: '/static/images/site.png',
+  iconSize: [50, 50],
+  iconAnchor: [7, 8],
+});
 
 export class CustomMap extends Map {
   createLeafletElement (props: Object): Object {
@@ -56,6 +63,7 @@ export default class NetworkMap extends React.Component {
     tablesExpanded: true,
     networkHealth: {},
     lowerPaneHeight: window.innerHeight / 2,
+    plannedSite: null
   }
 
   constructor(props) {
@@ -156,6 +164,17 @@ export default class NetworkMap extends React.Component {
           routeSourceNode: null,
           routeDestNode: null,
           routingOverlayEnabled: false,
+        });
+        break;
+      case Actions.PLANNED_SITE_CREAT:
+        let plannedSite = {
+          name: payload.siteName,
+          lat: this.state.networkConfig ? this.state.networkConfig.latitude : 37.484494,
+          long: this.state.networkConfig ? this.state.networkConfig.longitude : -122.1483976,
+          alt: 0
+        }
+        this.setState({
+          plannedSite: plannedSite
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
@@ -282,6 +301,35 @@ export default class NetworkMap extends React.Component {
         level={5}>
       </Polyline>);
   }
+
+  updatePlannedPosition() {
+    const { lat, lng } = this.refs.palnnedSiteMarker.leafletElement.getLatLng();
+    let plannedSite = this.state.plannedSite;
+    plannedSite.lat = lat;
+    plannedSite.long = lng;
+    this.setState({
+      plannedSite: plannedSite,
+    });
+  }
+
+  updatePlannedSite(plannedSite) {
+    this.setState({
+      plannedSite: plannedSite,
+    });
+  }
+
+  removePlannedSite() {
+    this.setState({
+      plannedSite: null,
+    });
+  }
+
+  updatePosition = () => {
+      const { lat, lng } = this.refs.marker.leafletElement.getLatLng();
+      this.setState({
+        marker: { lat, lng },
+      });
+    };
 
   render() {
     // use the center position from the topology if set
@@ -501,13 +549,13 @@ export default class NetworkMap extends React.Component {
         let node  = this.state.nodesByName[this.state.selectedNode];
         layersControl =
           <Control position="topright">
-            <DetailsNode node={node} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsNode topologyName={this.state.networkConfig.topology.name} node={node} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
           </Control>
       } else if (this.state.selectedSite) {
         let site = this.state.sitesByName[this.state.selectedSite];
         layersControl =
           <Control position="topright">
-            <DetailsSite site={site} nodes={this.state.nodesByName} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsSite topologyName={this.state.networkConfig.topology.name} site={site} nodes={this.state.nodesByName} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
           </Control>
       }
     }
@@ -521,6 +569,27 @@ export default class NetworkMap extends React.Component {
     let tileUrl = CONFIG.use_tile_proxy ?
         '/tile/{s}/{z}/{x}/{y}.png' :
         'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+
+    let plannedSite = <div/>;
+    if (this.state.plannedSite) {
+        plannedSite =
+          <Marker
+            icon={SITE_MARKER}
+            draggable={true}
+            onDragend={this.updatePlannedPosition.bind(this)}
+            position={[this.state.plannedSite.lat, this.state.plannedSite.long]}
+            ref="palnnedSiteMarker"
+            radius={20}>
+          </Marker>
+        layersControl =
+          <Control position="topright">
+            <DetailsPlannedSite
+              site={this.state.plannedSite}
+              topologyName={this.state.networkConfig.topology.name}
+              onUpdate={this.updatePlannedSite.bind(this)}
+              onClose={this.removePlannedSite.bind(this)}/>
+          </Control>
+    }
 
     return (
       <div>
@@ -545,6 +614,7 @@ export default class NetworkMap extends React.Component {
             {siteMarkers}
             {layersControl}
             {tablesControl}
+            {plannedSite}
           </CustomMap>
           <NetworkDataTable height={this.state.lowerPaneHeight}/>
         </SplitPane>

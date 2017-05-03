@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
 
 export default class DetailsLink extends React.Component {
 
@@ -56,7 +58,57 @@ export default class DetailsLink extends React.Component {
     fetch(exec);
   }
 
+  deleteLink(force) {
+    let forceDelete = force ? "force" : "no_force";
+    swal({
+      title: "Are you sure?",
+      text: "You will not be able to recover this Link!",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, delete it!",
+      closeOnConfirm: false
+    },
+    function(){
+      let promis = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/delLink/' + this.props.topologyName +
+            '/' + this.props.link.a_node_name +
+            '/' + this.props.link.z_node_name + '/' + forceDelete,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Deleted!",
+              text: "Link deleted successfully",
+              type: "success"
+            },
+            function(){
+              Dispatcher.dispatch({
+                actionType: Actions.CLEAR_NODE_LINK_SELECTED
+              });
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Failed!",
+              text: "Link deletion failed\nReason: "+response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
+  }
+
   render() {
+    if (!this.props.link || !this.props.link.name) {
+        return (<div/>);
+    }
+
     let nodeA = this.props.nodes[this.props.link.a_node_name];
     let nodeZ = this.props.nodes[this.props.link.z_node_name];
     let siteA = nodeA ? nodeA.site_name : "Unkown Site";
@@ -119,6 +171,8 @@ export default class DetailsLink extends React.Component {
                   <td colSpan="3">
                     <div><span className="details-link" onClick={() => {this.changeLinkStatus(true)}}>Send Link Up</span></div>
                     <div><span className="details-link" onClick={() => {this.changeLinkStatus(false)}}>Send Link Down</span></div>
+                    <div><span className="details-link" onClick={() => {this.deleteLink(false)}}>Delete Link</span></div>
+                    <div><span className="details-link" onClick={() => {this.deleteLink(true)}}>Delete Link (Force)</span></div>
                   </td>
                 </tr>
               </tbody>

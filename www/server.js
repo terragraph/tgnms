@@ -57,6 +57,7 @@ var networkInstanceConfig = {};
 // new topology from worker process
 var configByName = {};
 var fileTopologyByName = {};
+var fileSiteByName = {};
 var topologyByName = {};
 var statusDumpsByName = {};
 var aggrStatusDumpsByName = {};
@@ -177,7 +178,12 @@ function getTopologyByName(topologyName) {
   networkConfig.topology = topology;
   if (config.site_coords_override) {
     // swap site data
-    networkConfig.topology.sites = fileTopologyByName[topologyName].sites;
+    Object.keys(networkConfig.topology.sites).forEach(function(key) {
+      let site = networkConfig.topology.sites[key];
+      if (fileSiteByName[topologyName] && fileSiteByName[topologyName][site.name]) {
+        site.location = fileSiteByName[topologyName][site.name].location;
+      }
+    });
   }
   return networkConfig;
 }
@@ -224,6 +230,12 @@ fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) 
       };
       configByName[topology['name']] = config;
       fileTopologyByName[topology['name']] = topology;
+
+      let topologyName = topology['name'];
+      fileSiteByName[topologyName] = {};
+      topology.sites.forEach((site) => {
+        fileSiteByName[topologyName][site.name] = site;
+      });
     });
   }
 
@@ -587,6 +599,100 @@ app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, 
     nodeA: nodeA,
     nodeZ: nodeZ,
     status: status,
+  }, res);
+});
+
+app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let linkName = req.params[1];
+  let nodeA = req.params[2];
+  let nodeZ = req.params[3];
+  let linkType = req.params[4] == 'WIRELESS' ? 1 : 2;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'addLink',
+    topology: topology,
+    linkName: linkName,
+    nodeA: nodeA,
+    nodeZ: nodeZ,
+    linkType: linkType,
+  }, res);
+});
+
+app.post(/\/controller\/addNode$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    let topologyName = postData.topology;
+    var topology = getTopologyByName(topologyName);
+    syncWorker.sendCtrlMsgSync({
+      type: 'addNode',
+      topology: topology,
+      node: postData.newNode
+    }, res);
+  });
+});
+
+app.post(/\/controller\/addSite$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    let topologyName = postData.topology;
+    var topology = getTopologyByName(topologyName);
+    syncWorker.sendCtrlMsgSync({
+      type: 'addSite',
+      topology: topology,
+      site: postData.newSite
+    }, res);
+  });
+});
+
+app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let nodeA = req.params[1];
+  let nodeZ = req.params[2];
+  let forceDelete = req.params[3] == "force" ? true : false;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'delLink',
+    topology: topology,
+    nodeA: nodeA,
+    nodeZ: nodeZ,
+    forceDelete: forceDelete,
+  }, res);
+});
+
+app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let nodeName = req.params[1];
+  let forceDelete = req.params[2] == "force" ? true : false;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'delNode',
+    topology: topology,
+    node: nodeName,
+    forceDelete: forceDelete,
+  }, res);
+});
+
+app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let siteName = req.params[1];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'delSite',
+    topology: topology,
+    site: siteName
   }, res);
 });
 

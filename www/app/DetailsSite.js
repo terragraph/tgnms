@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
 
 export default class DetailsSite extends React.Component {
 
@@ -46,7 +48,55 @@ export default class DetailsSite extends React.Component {
     }.bind(this), 1);
   }
 
+  deleteSite() {
+    swal({
+      title: "Are you sure?",
+      text: "You will not be able to recover this Site!",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, delete it!",
+      closeOnConfirm: false
+    },
+    function(){
+      let promis = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/delSite/' + this.props.topologyName +
+            '/' + this.props.site.name,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Deleted!",
+              text: "Site deleted successfully",
+              type: "success"
+            },
+            function(){
+              Dispatcher.dispatch({
+                actionType: Actions.CLEAR_NODE_LINK_SELECTED
+              });
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Failed!",
+              text: "Site deletion failed\nReason: "+response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
+  }
+
   render() {
+    if (!this.props.site || !this.props.site.name) {
+        return (<div/>);
+    }
+
     let nodesList = [];
     let linksList = [];
     Object.keys(this.props.nodes).map(nodeName => {
@@ -142,6 +192,16 @@ export default class DetailsSite extends React.Component {
                 </tr>
                 {nodesRows}
                 {linksRows}
+                <tr>
+                  <td colSpan="2">
+                    <h4>Actions</h4>
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan="2">
+                    <div><span className="details-link" onClick={() => {this.deleteSite()}}>Delete Site</span></div>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>

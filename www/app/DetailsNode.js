@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
 
 export default class DetailsNode extends React.Component {
 
@@ -55,7 +57,56 @@ export default class DetailsNode extends React.Component {
     }
   }
 
+  deleteNode(force) {
+    let forceDelete = force ? "force" : "no_force";
+    swal({
+      title: "Are you sure?",
+      text: "You will not be able to recover this Node!",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, delete it!",
+      closeOnConfirm: false
+    },
+    function(){
+      let promis = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/delNode/' + this.props.topologyName +
+            '/' + this.props.node.name + '/' + forceDelete,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Deleted!",
+              text: "Node deleted successfully",
+              type: "success"
+            },
+            function(){
+              Dispatcher.dispatch({
+                actionType: Actions.CLEAR_NODE_LINK_SELECTED
+              });
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Failed!",
+              text: "Node deletion failed\nReason: "+response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
+  }
+
   render() {
+    if (!this.props.node || !this.props.node.name) {
+        return (<div/>);
+    }
+
     let linksList = [];
     Object.keys(this.props.links).map(linkName => {
       let link = this.props.links[linkName];
@@ -136,7 +187,9 @@ export default class DetailsNode extends React.Component {
                 </tr>
                 <tr>
                   <td colSpan="2">
-                    <span className="details-link" onClick={() => {this.connectToTerminal(ipv6)}}>Connect To Terminal</span>
+                    <div><span className="details-link" onClick={() => {this.connectToTerminal(ipv6)}}>Connect To Terminal</span></div>
+                    <div><span className="details-link" onClick={() => {this.deleteNode(false)}}>Delete Node</span></div>
+                    <div><span className="details-link" onClick={() => {this.deleteNode(true)}}>Delete Node (Force)</span></div>
                   </td>
                 </tr>
               </tbody>

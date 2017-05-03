@@ -70,21 +70,44 @@ process.on('message', (msg) => {
   }
 });
 
+const command2MsgType = {
+  'setLinkStatus': Controller_ttypes.MessageType.SET_LINK_STATUS_REQ,
+  'addLink': Controller_ttypes.MessageType.ADD_LINK,
+  'delLink': Controller_ttypes.MessageType.DEL_LINK,
+  'addNode': Controller_ttypes.MessageType.ADD_NODE,
+  'delNode': Controller_ttypes.MessageType.DEL_NODE,
+  'addSite': Controller_ttypes.MessageType.ADD_SITE,
+  'delSite': Controller_ttypes.MessageType.DEL_SITE,
+};
+
+var msgType2Params = {};
+msgType2Params[Controller_ttypes.MessageType.GET_TOPOLOGY] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_REFRESH'};
+msgType2Params[Controller_ttypes.MessageType.GET_STATUS_DUMP] = {'recvApp': 'ctrl-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_REFRESH'};
+msgType2Params[Controller_ttypes.MessageType.SET_LINK_STATUS_REQ] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.ADD_LINK] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.DEL_LINK] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.ADD_NODE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.DEL_NODE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.ADD_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+
+
 exports.sendCtrlMsgSync = (msg, res) => {
   if (!msg.type) {
     console.error("sendCtrlMsgSync: Received unknown message", msg);
   }
+
+  var transport = new thrift.TFramedTransport(null, function(byteArray) {
+    // Flush puts a 4-byte header, which needs to be parsed/sliced.
+     byteArray = byteArray.slice(4);
+     const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
+     ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, res);
+  });
+  var tProtocol = new thrift.TCompactProtocol(transport);
+
   // prepare MSG body first, then send msg syncronously
   switch (msg.type) {
     case 'setLinkStatus':
-      var transport = new thrift.TFramedTransport(null, function(byteArray) {
-        // Flush puts a 4-byte header, which needs to be parsed/sliced.
-         byteArray = byteArray.slice(4);
-         const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
-         ctrlProxy.sendCtrlMsgTypeSync(Controller_ttypes.MessageType.SET_LINK_STATUS_REQ, byteArray, res);
-      });
-
-      var tProtocol = new thrift.TCompactProtocol(transport);
       var setLinkStatusReq = new Controller_ttypes.SetLinkStatusReq();
       setLinkStatusReq.initiatorNodeName = msg.nodeA;
       setLinkStatusReq.responderNodeName = msg.nodeZ;
@@ -92,8 +115,81 @@ exports.sendCtrlMsgSync = (msg, res) => {
       setLinkStatusReq.write(tProtocol);
       transport.flush();
       break;
+    case 'addLink':
+      var addLinkReq = new Controller_ttypes.AddLink();
+      var link = new Topology_ttypes.Link();
+      link.name = msg.linkName;
+      link.a_node_name = msg.nodeA;
+      link.z_node_name = msg.nodeZ;
+      link.link_type = msg.linkType;
+      link.is_alive = 0; link.linkup_attempts = 0;
+      addLinkReq.link = link;
+      addLinkReq.write(tProtocol);
+      transport.flush();
+      break;
+    case 'addNode':
+      var addNodeReq = new Controller_ttypes.AddNode();
+      var node = new Topology_ttypes.Node();
+      var golay = new Topology_ttypes.GolayIdx();
+
+      golay.txGolayIdx = msg.node.txGolayIdx;
+      golay.rxGolayIdx = msg.node.rxGolayIdx;
+
+      node.name = msg.node.name;
+      node.node_type = msg.node.type == "DN" ? Topology_ttypes.NodeType.DN : Topology_ttypes.NodeType.CN;
+      node.is_primary = msg.node.is_primary;
+      node.mac_addr = msg.node.mac_addr;
+      node.pop_node = msg.node.is_pop;
+      node.polarity = msg.node.polarity == "ODD" ? Topology_ttypes.PolarityType.ODD : Topology_ttypes.PolarityType.EVEN;
+      node.golay_idx = golay;
+      node.site_name = msg.node.site_name;
+      node.ant_azimuth = msg.node.ant_azimuth;
+      node.ant_elevation = msg.node.ant_elevation;
+      node.has_cpe = msg.node.has_cpe;
+
+      addNodeReq.node = node;
+      addNodeReq.write(tProtocol);
+      transport.flush();
+      break;
+    case 'addSite':
+      var addSiteReq = new Controller_ttypes.AddSite();
+      var site = new Topology_ttypes.Site();
+      var location = new Topology_ttypes.Location();
+
+      location.latitude = msg.site.lat;
+      location.longitude = msg.site.long;
+      location.altitude = msg.site.alt;
+
+      site.name = msg.site.name;
+      site.location = location
+      addSiteReq.site = site;
+      addSiteReq.write(tProtocol);
+      transport.flush();
+      break;
+    case 'delLink':
+      var delLinkReq = new Controller_ttypes.DelLink();
+      delLinkReq.a_node_name = msg.nodeA;
+      delLinkReq.z_node_name = msg.nodeZ;
+      delLinkReq.forceDelete = msg.forceDelete;
+      delLinkReq.write(tProtocol);
+      transport.flush();
+      break;
+    case 'delNode':
+      var delNodeReq = new Controller_ttypes.DelNode();
+      delNodeReq.nodeName = msg.node;
+      delNodeReq.forceDelete = msg.forceDelete;
+      delNodeReq.write(tProtocol);
+      transport.flush();
+      break;
+    case 'delSite':
+      var delSiteReq = new Controller_ttypes.DelSite();
+      delSiteReq.siteName = msg.site;
+      delSiteReq.write(tProtocol);
+      transport.flush();
+      break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
+      res.status(500).send("FAIL");
   }
 };
 
@@ -110,26 +206,13 @@ class ControllerProxy extends EventEmitter {
     sendMsg.mType = msgType;
     sendMsg.value = msgBody;
     var recvMsg = new Controller_ttypes.Message();
-    let recvApp, nmsAppIdentity;
-    // determine receiver app
-    switch (msgType) {
-      case Controller_ttypes.MessageType.GET_TOPOLOGY:
-        recvApp = 'ctrl-app-TOPOLOGY_APP';
-        nmsAppIdentity = 'NMS_WEB_TOPO_REFRESH';
-        break;
-      case Controller_ttypes.MessageType.GET_STATUS_DUMP:
-        recvApp = 'ctrl-app-STATUS_APP';
-        nmsAppIdentity = 'NMS_WEB_STATUS_REFRESH';
-        break;
-      default:
-        console.error('Unknown message type', msgType);
-    }
+
     // time the response
     this.sendCtrlMsg(
       sendMsg,
       recvMsg,
-      nmsAppIdentity,
-      recvApp,
+      msgType2Params[msgType].nmsAppId,
+      msgType2Params[msgType].recvApp,
       (tProtocol, tTransport) => {
         const endTimer = new Date();
         switch (msgType) {
@@ -175,48 +258,46 @@ class ControllerProxy extends EventEmitter {
       sendMsg.mType = msgType;
       sendMsg.value = msgBody;
       var recvMsg = new Controller_ttypes.Message();
-      let recvApp, nmsAppIdentity;
-      // determine receiver app
-      switch (msgType) {
-        case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
-          recvApp = 'ctrl-app-IGNITION_APP';
-          nmsAppIdentity = 'NMS_WEB_CTRL';
-          break;
-        default:
-          console.error('sendCtrlMsgTypeSync: Unknown message type', msgType);
-      }
+
       // time the response
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,
-        nmsAppIdentity,
-        recvApp,
+        msgType2Params[msgType].nmsAppId,
+        msgType2Params[msgType].recvApp,
         (tProtocol, tTransport) => {
           switch (msgType) {
             case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
+            case Controller_ttypes.MessageType.ADD_LINK:
+            case Controller_ttypes.MessageType.ADD_NODE:
+            case Controller_ttypes.MessageType.ADD_SITE:
+            case Controller_ttypes.MessageType.DEL_LINK:
+            case Controller_ttypes.MessageType.DEL_NODE:
+            case Controller_ttypes.MessageType.DEL_SITE:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
                 resolve("Success!");
               } else {
-                reject("Controller Error");
+                reject(receivedAck.message);
               }
               break;
             default:
               console.error('No receive handler defined for', msgType);
           }
         },
-        () => {
-          reject("Timeout");
+        (errMsg) => {
+          reject(errMsg);
         }
       );
     });
 
     ctrlPromise.then((successMessage) => {
-      res.status(204).end("Success");
+      res.status(200).send("Success");
     })
     .catch((failMessage) => {
-      res.status(500).send(failMessage);
+      res.writeHead(500, failMessage, {'content-type' : 'text/plain'});
+      res.end();
     });
   }
 
@@ -248,7 +329,7 @@ class ControllerProxy extends EventEmitter {
     dealer.on('error', function(err) {
       clearTimeout(timeoutTimer);
       console.error(err);
-      errCb();
+      errCb(err.message);
       dealer.close();
     });
 
@@ -263,7 +344,7 @@ class ControllerProxy extends EventEmitter {
     const tProtocol = new thrift.TCompactProtocol(transport);
     // watch for connection timeouts
     const timeoutTimer = setTimeout(() => {
-      errCb();
+      errCb("Timeout");
       dealer.close();
     }, ZMQ_TIMEOUT_MS);
     // send msg

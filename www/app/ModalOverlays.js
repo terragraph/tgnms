@@ -29,7 +29,7 @@ export default class ModalOverlays extends React.Component {
     });
   }
 
-  overlaysModalClose() {
+  modalClose() {
     this.props.onClose(this.state.selectedSiteOverlay, this.state.selectedLinkOverlay);
   }
 
@@ -60,7 +60,7 @@ export default class ModalOverlays extends React.Component {
     return (
       <Modal
           isOpen={this.props.isOpen}
-          onRequestClose={this.overlaysModalClose.bind(this)}
+          onRequestClose={this.modalClose.bind(this)}
           style={customModalStyle}
           contentLabel="Example Modal">
         <table>
@@ -99,7 +99,7 @@ export default class ModalOverlays extends React.Component {
           {linkOverlayKeyRows}
           </tbody>
         </table>
-        <button style={{float: 'right'}} className='graph-button' onClick={this.overlaysModalClose.bind(this)}>close</button>
+        <button style={{float: 'right'}} className='graph-button' onClick={this.modalClose.bind(this)}>close</button>
       </Modal>
     );
   }

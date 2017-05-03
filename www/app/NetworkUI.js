@@ -14,6 +14,7 @@ import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkAlerts from './NetworkAlerts.js';
 import ModalOverlays from './ModalOverlays.js';
+import ModalTopology from './ModalTopology.js';
 
 const VIEWS = {
   'map': 'Map',
@@ -24,7 +25,8 @@ const VIEWS = {
 };
 
 const SETTINGS = {
-  'overlays': 'Site/Link Overlays'
+  'overlays': 'Site/Link Overlays',
+  'topology': 'Topology Operations'
 };
 
 export default class NetworkUI extends React.Component {
@@ -36,8 +38,10 @@ export default class NetworkUI extends React.Component {
     topologies: {},
     routing: {},
     overlaysModalOpen: false,
+    topologyModalOpen: false,
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
+    topology: {},
   }
 
   constructor(props) {
@@ -125,6 +129,7 @@ export default class NetworkUI extends React.Component {
         // update node name mapping
         this.setState({
           nodesByName: nodesByName,
+          topology: payload.networkConfig.topology,
         });
         // update link health
         this.updateNetworkLinkHealth(this.state.networkName);
@@ -201,7 +206,11 @@ export default class NetworkUI extends React.Component {
           });
           break;
         case 'settings':
-          this.setState({overlaysModalOpen: true});
+          if (keySplit[1] == 'overlays') {
+            this.setState({overlaysModalOpen: true});
+          } else if (keySplit[1] == 'topology') {
+            this.setState({topologyModalOpen: true});
+          }
           break;
       }
     }
@@ -299,6 +308,10 @@ export default class NetworkUI extends React.Component {
           selectedSiteOverlay= {this.state.selectedSiteOverlay}
           selectedLinkOverlay= {this.state.selectedLinkOverlay}
           onClose= {this.overlaysModalClose.bind(this)}/>
+        <ModalTopology
+          isOpen= {this.state.topologyModalOpen}
+          onClose= {() => this.setState({topologyModalOpen: false})}
+          topology= {this.state.topology}/>
 
         <div className="top-menu-bar">
           <Menu
