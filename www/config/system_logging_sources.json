@@ -9,8 +9,8 @@
       "index": "terragraph_minion_logs"
     },
     {
-      "name": "Aquaman Logs",
-      "index": "terragraph_aquaman_logs"
+      "name": "OpenR Logs",
+      "index": "terragraph_openr_logs"
     }
   ]
 }
