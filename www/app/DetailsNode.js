@@ -57,6 +57,48 @@ export default class DetailsNode extends React.Component {
     }
   }
 
+  rebootNode(force) {
+    let forceReboot = force ? "force" : "no_force";
+    swal({
+      title: "Are you sure?",
+      text: "This action will REBOOT the node!",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, reboot it!",
+      closeOnConfirm: false
+    },
+    function(){
+      let promis = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/rebootNode/' + this.props.topologyName +
+            '/' + this.props.node.mac_addr + '/' + forceReboot,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Reboot Request Successful!",
+              text: "Response: "+response.statusText,
+              type: "success"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Failed!",
+              text: "Node reboot failed\nReason: "+response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
+  }
+
   deleteNode(force) {
     let forceDelete = force ? "force" : "no_force";
     swal({
@@ -77,8 +119,8 @@ export default class DetailsNode extends React.Component {
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             swal({
-              title: "Deleted!",
-              text: "Node deleted successfully",
+              title: "Node Deleted!",
+              text: "Response: "+response.statusText,
               type: "success"
             },
             function(){
@@ -188,8 +230,10 @@ export default class DetailsNode extends React.Component {
                 <tr>
                   <td colSpan="2">
                     <div><span className="details-link" onClick={() => {this.connectToTerminal(ipv6)}}>Connect To Terminal</span></div>
+                    <div><span className="details-link" onClick={() => {this.rebootNode(false)}}>Reboot Node</span></div>
+                    <div><span className="details-link" onClick={() => {this.rebootNode(true)}}>Reboot Node (forced)</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteNode(false)}}>Delete Node</span></div>
-                    <div><span className="details-link" onClick={() => {this.deleteNode(true)}}>Delete Node (Force)</span></div>
+                    <div><span className="details-link" onClick={() => {this.deleteNode(true)}}>Delete Node (Forced)</span></div>
                   </td>
                 </tr>
               </tbody>

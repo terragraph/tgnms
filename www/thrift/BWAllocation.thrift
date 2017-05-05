@@ -1,3 +1,4 @@
+namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.BWAllocation
 
 typedef i16 LinkId

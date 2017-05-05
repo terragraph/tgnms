@@ -1,3 +1,4 @@
+namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.Controller
 
 include "BWAllocation.thrift"
@@ -12,6 +13,7 @@ enum MessageType {
   STATUS_DUMP = 121,
   // Requests handled (by Minion StatusApp)
   SET_NODE_PARAMS = 141,
+  REBOOT_NODE = 142,
   // Messages originated (by Minion StatusApp)
   STATUS_REPORT = 161,
 
@@ -40,6 +42,8 @@ enum MessageType {
   DEL_LINK = 309,
   ADD_SITE = 310,
   DEL_SITE = 311,
+  SET_NETWORK_PARAMS_REQ = 312,
+  RESET_TOPOLOGY_STATE = 313,
   // Responses given (by Ctrl TopologyApp)
   TOPOLOGY = 321,
 
@@ -49,12 +53,25 @@ enum MessageType {
   // Messages originated (by minion UpgradeApp)
   SET_UPGRADE_STATUS = 421,
 
-  // ===  KvStoreClientApp  === //
-  SET_CTRL_PARAMS = 450,
+  // ===  ScanApp === //
+  // E2E -> Minion and Minion -> FW
+  SCAN_REQ = 601,
+  // FW->Minion and Minion -> E2E
+  SCAN_RESP = 621,
+  // CLI -> E2E
+  START_SCAN = 641,
+  GET_SCAN_STATUS = 642,
+  RESET_SCAN_STATUS = 643,
+  // E2E -> CLI
+  SCAN_STATUS = 661,
 
   // === DriverApp === //
   // Message exchange with driver
+  // north bound
   DR_ACK = 491,
+  GPS_GET_POS_RESP = 492,
+  // south bound
+  GPS_GET_POS_REQ = 495,
 
   // Message exchange with firmware
   // south bound
@@ -137,11 +154,16 @@ struct UpgradeReq {
   4: string imageUrl; // image url the minion uses to upgrade
                       // required for urType: PREPARE_UPGRADE
   5: optional i64 scheduleToCommit;
+  6: optional i64 downloadAttempts;
 }
 
 #############  StatusApp ##############
 
 struct GetStatusDump {}
+
+struct RebootNode {
+  1: bool forced;
+}
 
 struct StatusDump {
   1: i64 timeStamp;  // timestamp at which this response was generated
@@ -155,6 +177,7 @@ struct NodeParams {
   3: optional Topology.GolayIdx golayIdx;
   4: optional Topology.Location location;
   5: optional BWAllocation.NodeAirtime airtimeAllocMap;
+  6: optional bool enableGps;
 }
 
 struct StatusReport {
@@ -162,7 +185,7 @@ struct StatusReport {
   2: string ipv6Address;  // global-reachable IPv6 address for minion
   3: string version; // current minion version obtained from "/etc/version"
   6: string uboot_version; // uboot version string obtained during startup
-  4: bool isConnected; // whether minion is connected to the rest of network
+  4: Topology.NodeStatusType status; // ignition state of minion
   5: UpgradeStatus upgradeStatus;
 }
 
@@ -174,6 +197,7 @@ struct GetIgnitionState {}
 struct IgnitionParams {
   1: optional bool enable;  // enable auto-ignition from the controller
   2: optional i64 linkUpInterval;  // set frequency of ignition
+  3: optional i64 linkUpDampenInterval; // interval of ignition on same link
 }
 
 // Set Link Status Request sent from cli to controller ignition app
@@ -193,6 +217,7 @@ struct IgnitionState {
   1: list<string> visitedNodeNames;
   2: list<IgnitionCandidate> igCandidates;
   3: IgnitionCandidate lastIgCandidate;
+  4: IgnitionParams igParams;
 }
 
 // Set Link Status message sent from controller to minion on node
@@ -220,12 +245,18 @@ struct GetTopology {}
 struct SetNodeStatus {
   1: string nodeMac;
   2: bool markAllLinksDown;
-  3: bool markNodeDown;
+  3: Topology.NodeStatusType nodeStatus;
 }
 
 struct SetNodeParamsReq {
   1: string nodeMac;
-  2: optional NodeParams nodeParams;
+  2: optional BWAllocation.NodeAirtime nodeAirtime;
+  3: optional BWAllocation.NodeBwAlloc nodeBWAlloc;
+}
+
+struct SetNetworkParamsReq {
+  1: optional BWAllocation.NetworkAirtime networkAirtime;
+  2: optional BWAllocation.NetworkBwAlloc networkBWAlloc;
 }
 
 struct SetNodeMac {
@@ -264,11 +295,65 @@ struct DelSite {
   1: string siteName;
 }
 
-############# KvStoreClient App #############
+struct ResetTopologyState {
+  1: bool resetLinkupAttempts;
+}
 
-// set controller url request sent from kvstore client app to minion broker
-struct SetCtrlParams {
-  1: string ctrlUrl; // controller url
+############# Scan App #############
+
+// transmit and receive beamforming indices of a micro route
+struct MicroRoute {
+  1: i16 tx;
+  2: i16 rx;
+}
+
+// individual micro-route measurement/report
+struct RouteInfo {
+  1: MicroRoute route; // beamforming indices of micro route
+  2: double rssi;      // received signal strength, in dBm
+  3: double snrEst;    // measured during the short training field, in dB
+  4: double postSnr;   // measured after the equalizer, in dB
+}
+
+enum ScanMode {
+  COARSE = 1,
+  FINE = 2,
+  SELECTIVE = 3,
+}
+
+struct ScanReq {
+  1: i32 token; // token to match request to response
+  2: ScanMode scanMode; // scan mode
+  3: i64 startBwgdIdx; // start time of scan in BWGD index
+  4: bool bfScanInvertPolarity; // Invert Polarity when using with same
+                                // Polarity peer
+  5: optional string txNodeMac; // tx node id (only present for receivers)
+  6: optional list<string> rxNodeMacs; // (only present for transmitters)
+  7: optional list<MicroRoute> routes; // for partial scan, absent for full scan
+}
+
+struct ScanResp {
+   1: i32 token; // token to match request to response
+   2: i64 curSuperframeNum; // time-stamp of measurement
+   3: list<RouteInfo> routeInfoList; // list of routes
+}
+
+struct StartScan {
+  1: optional string txNode; // If present, run PBF scan on tx<->rx link.
+                             // Otherwise, run IM scan on whole network
+  2: optional string rxNode; // Should be present iff txNode is present
+  3: ScanMode scanMode;
+  4: i64 startTime; // Unixtime of the scan start
+}
+
+struct GetScanStatus {
+}
+
+struct ResetScanStatus {
+}
+
+struct ScanStatus {
+  1: map<i32 /*token*/, map<string /*nodename*/, ScanResp>> scans;
 }
 
 ############# Common #############
@@ -287,3 +372,12 @@ struct E2EAck {
   1: bool success;
   2: string message;
 }
+
+// network information needee by different processes
+struct NetworkInfo {
+  1: string e2eCtrlUrl;
+  2: string aggrCtrlUrl;
+}
+
+// Empty message
+struct Empty {}

@@ -90,8 +90,8 @@ export default class ModalNodeAdd extends React.Component {
         }
         if (request.status == 200) {
           swal({
-            title: "Added!",
-            text: "Link added successfully",
+            title: "Node Added!",
+            text: "Response: "+request.statusText,
             type: "success"
           });
         } else {

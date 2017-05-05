@@ -40,8 +40,8 @@ export default class DetailsPlannedSite extends React.Component {
         }
         if (request.status == 200) {
           swal({
-            title: "Added!",
-            text: "Site added successfully",
+            title: "Site Added!",
+            text: "Response: "+request.statusText,
             type: "success"
           });
         } else {

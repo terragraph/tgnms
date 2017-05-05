@@ -78,6 +78,7 @@ const command2MsgType = {
   'delNode': Controller_ttypes.MessageType.DEL_NODE,
   'addSite': Controller_ttypes.MessageType.ADD_SITE,
   'delSite': Controller_ttypes.MessageType.DEL_SITE,
+  'rebootNode': Controller_ttypes.MessageType.REBOOT_NODE,
 };
 
 var msgType2Params = {};
@@ -90,9 +91,10 @@ msgType2Params[Controller_ttypes.MessageType.ADD_NODE] = {'recvApp': 'ctrl-app-T
 msgType2Params[Controller_ttypes.MessageType.DEL_NODE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.ADD_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {'recvApp': 'minion-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
 
 
-exports.sendCtrlMsgSync = (msg, res) => {
+exports.sendCtrlMsgSync = (msg, minion, res) => {
   if (!msg.type) {
     console.error("sendCtrlMsgSync: Received unknown message", msg);
   }
@@ -101,7 +103,7 @@ exports.sendCtrlMsgSync = (msg, res) => {
     // Flush puts a 4-byte header, which needs to be parsed/sliced.
      byteArray = byteArray.slice(4);
      const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
-     ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, res);
+     ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, minion, res);
   });
   var tProtocol = new thrift.TCompactProtocol(transport);
 
@@ -187,6 +189,12 @@ exports.sendCtrlMsgSync = (msg, res) => {
       delSiteReq.write(tProtocol);
       transport.flush();
       break;
+    case 'rebootNode':
+      var rebootNode = new Controller_ttypes.RebootNode();
+      rebootNode.forced = msg.forceReboot;
+      rebootNode.write(tProtocol);
+      transport.flush();
+      break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
       res.status(500).send("FAIL");
@@ -213,6 +221,7 @@ class ControllerProxy extends EventEmitter {
       recvMsg,
       msgType2Params[msgType].nmsAppId,
       msgType2Params[msgType].recvApp,
+      "",
       (tProtocol, tTransport) => {
         const endTimer = new Date();
         switch (msgType) {
@@ -252,7 +261,7 @@ class ControllerProxy extends EventEmitter {
     );
   }
 
-  sendCtrlMsgTypeSync(msgType, msgBody, res) {
+  sendCtrlMsgTypeSync(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
       sendMsg.mType = msgType;
@@ -265,6 +274,7 @@ class ControllerProxy extends EventEmitter {
         recvMsg,
         msgType2Params[msgType].nmsAppId,
         msgType2Params[msgType].recvApp,
+        minion,
         (tProtocol, tTransport) => {
           switch (msgType) {
             case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
@@ -274,10 +284,11 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_LINK:
             case Controller_ttypes.MessageType.DEL_NODE:
             case Controller_ttypes.MessageType.DEL_SITE:
+            case Controller_ttypes.MessageType.REBOOT_NODE:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
-                resolve("Success!");
+                resolve(receivedAck.message);
               } else {
                 reject(receivedAck.message);
               }
@@ -293,7 +304,8 @@ class ControllerProxy extends EventEmitter {
     });
 
     ctrlPromise.then((successMessage) => {
-      res.status(200).send("Success");
+      res.writeHead(200, successMessage, {'content-type' : 'text/plain'});
+      res.end();
     })
     .catch((failMessage) => {
       res.writeHead(500, failMessage, {'content-type' : 'text/plain'});
@@ -304,7 +316,7 @@ class ControllerProxy extends EventEmitter {
   /*
    * Send any message to the controller.
    */
-  sendCtrlMsg(sendMsg, recvMsg, sendAppName, recvAppName, recvCb, errCb) {
+  sendCtrlMsg(sendMsg, recvMsg, sendAppName, recvAppName, minion, recvCb, errCb) {
     const dealer = zmq.socket('dealer');
     dealer.identity = sendAppName;
     dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
@@ -336,7 +348,7 @@ class ControllerProxy extends EventEmitter {
     const transport = new thrift.TFramedTransport(null, function(byteArray) {
       // Flush puts a 4-byte header, which needs to be parsed/sliced.
        byteArray = byteArray.slice(4);
-       dealer.send("", zmq.ZMQ_SNDMORE);
+       dealer.send(minion, zmq.ZMQ_SNDMORE);
        dealer.send(recvAppName, zmq.ZMQ_SNDMORE);
        dealer.send(sendAppName, zmq.ZMQ_SNDMORE);
        dealer.send(byteArray);

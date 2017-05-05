@@ -79,8 +79,8 @@ export default class DetailsLink extends React.Component {
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             swal({
-              title: "Deleted!",
-              text: "Link deleted successfully",
+              title: "Link Deleted!",
+              text: "Response: "+response.statusText,
               type: "success"
             },
             function(){

@@ -1,5 +1,6 @@
 namespace php CXL_Terragraph
 namespace py terragraph_thrift.Topology
+namespace cpp2 facebook.terragraph.thrift
 
 enum NodeType {
     CN = 1
@@ -22,9 +23,12 @@ struct GolayIdx {
 }
 
 struct Location {
-    2: double latitude
-    3: double longitude
-    4: double altitude
+    2: double latitude = 0
+    3: double longitude = 0
+    4: double altitude = 0
+    # default value of accuracy set to 40Mm
+    # order of size of earth
+    5: double accuracy = 40000000
 }
 
 struct Site {

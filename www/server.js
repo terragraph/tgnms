@@ -599,7 +599,7 @@ app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, 
     nodeA: nodeA,
     nodeZ: nodeZ,
     status: status,
-  }, res);
+  }, "", res);
 });
 
 app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
@@ -617,7 +617,7 @@ app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, 
     nodeA: nodeA,
     nodeZ: nodeZ,
     linkType: linkType,
-  }, res);
+  }, "", res);
 });
 
 app.post(/\/controller\/addNode$/i, function (req, res, next) {
@@ -633,7 +633,7 @@ app.post(/\/controller\/addNode$/i, function (req, res, next) {
       type: 'addNode',
       topology: topology,
       node: postData.newNode
-    }, res);
+    }, "", res);
   });
 });
 
@@ -650,7 +650,7 @@ app.post(/\/controller\/addSite$/i, function (req, res, next) {
       type: 'addSite',
       topology: topology,
       site: postData.newSite
-    }, res);
+    }, "", res);
   });
 });
 
@@ -667,7 +667,7 @@ app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, n
     nodeA: nodeA,
     nodeZ: nodeZ,
     forceDelete: forceDelete,
-  }, res);
+  }, "", res);
 });
 
 app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
@@ -681,7 +681,20 @@ app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
     topology: topology,
     node: nodeName,
     forceDelete: forceDelete,
-  }, res);
+  }, "", res);
+});
+
+app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let nodeMac = req.params[1];
+  let forceReboot = req.params[2] == "force" ? true : false;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'rebootNode',
+    topology: topology,
+    forceReboot: forceReboot,
+  }, nodeMac, res);
 });
 
 app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
@@ -693,7 +706,7 @@ app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
     type: 'delSite',
     topology: topology,
     site: siteName
-  }, res);
+  }, "", res);
 });
 
 app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {

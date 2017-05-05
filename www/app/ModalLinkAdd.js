@@ -68,8 +68,8 @@ export default class ModalLinkAdd extends React.Component {
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             swal({
-              title: "Added!",
-              text: "Link added successfully",
+              title: "Link Added!",
+              text: "Response: "+response.statusText,
               type: "success"
             },
             function(){

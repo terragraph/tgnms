@@ -67,8 +67,8 @@ export default class DetailsSite extends React.Component {
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             swal({
-              title: "Deleted!",
-              text: "Site deleted successfully",
+              title: "Site Deleted!",
+              text: "Response: "+response.statusText,
               type: "success"
             },
             function(){
