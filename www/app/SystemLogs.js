@@ -28,7 +28,6 @@ export default class SystemLogs extends React.Component {
     offset: 0,
     size: 2000,
     logText: "",
-    networkConfig: undefined,
     startDate: moment(),
   }
 
@@ -49,12 +48,6 @@ export default class SystemLogs extends React.Component {
     // register once we're visible
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    // update default state from the store
-    if (NetworkStore.networkName && NetworkStore.networkConfig) {
-      this.setState({
-        networkConfig: NetworkStore.networkConfig,
-      });
-    }
   }
 
   componentWillUnmount() {
@@ -65,14 +58,10 @@ export default class SystemLogs extends React.Component {
   handleDispatchEvent(payload) {
 
     switch (payload.actionType) {
+      // TODO - compare props to reset
       case Actions.TOPOLOGY_SELECTED:
         this.setState({
           selectedNodeName: null,
-        });
-        break;
-      case Actions.TOPOLOGY_REFRESHED:
-        this.setState({
-          networkConfig: payload.networkConfig,
         });
         break;
     }
@@ -130,7 +119,7 @@ export default class SystemLogs extends React.Component {
   }
 
   selectNodeChange(val) {
-    Object(this.state.networkConfig.topology.nodes).forEach(node => {
+    Object(this.props.networkConfig.topology.nodes).forEach(node => {
       if (node.name == val.value) {
         this.setState({
           selectedNodeMac: node.mac_addr,
@@ -172,8 +161,8 @@ export default class SystemLogs extends React.Component {
       });
     }
 
-    if (this.state.networkConfig) {
-      Object(this.state.networkConfig.topology.nodes).forEach(node => {
+    if (this.props.networkConfig) {
+      Object(this.props.networkConfig.topology.nodes).forEach(node => {
         nodesOptions.push(
           {
             value: node.name,
@@ -266,3 +255,6 @@ export default class SystemLogs extends React.Component {
     );
   }
 }
+SystemLogs.propTypes = {
+  networkConfig: React.PropTypes.object.isRequired,
+};

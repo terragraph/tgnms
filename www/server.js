@@ -336,11 +336,6 @@ fs.readFile('./config/system_logging_sources.json', 'utf-8', (err, data) => {
 app.use('/static', express.static(path.join(__dirname, 'static')));
 app.set('views', './views');
 app.set('view engine', 'pug')
-app.get('/', function(req, res) {
-  res.render('index', {configJson: JSON.stringify(networkInstanceConfig)});
-});
-app.use(middleware);
-app.use(webpackHotMiddleware(compiler));
 
 app.use('/xterm', express.static(path.join(__dirname, 'xterm')));
 app.get('/xterm/:ip', function(req, res){
@@ -726,6 +721,12 @@ app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
 });
 app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next) {
   aggregatorProxy.setAlertsConfig(configs, req, res, next);
+});
+app.use(middleware);
+app.use(webpackHotMiddleware(compiler));
+
+app.get(/\/*/, function(req, res) {
+  res.render('index', {configJson: JSON.stringify(networkInstanceConfig)});
 });
 
 app.listen(port, '', function onStart(err) {

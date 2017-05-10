@@ -191,6 +191,7 @@ export default class NetworkRoutingTable extends React.Component {
     while (myStack.length > 0) {
       // pop node
       let currentNode = myStack.pop();
+      // TODO - sanity checks
       let routingObj = this.statusReports[currentNode.node.mac_addr.toUpperCase()];
 
       if (!routingObj) {

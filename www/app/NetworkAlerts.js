@@ -118,7 +118,9 @@ export default class NetworkAlerts extends React.Component {
 
   getConfigClick(e) {
     return new Promise((resolve, reject) => {
-      let exec = new Request('/aggregator\/getAlertsConfig/' + this.state.networkName, {"credentials": "same-origin"});
+      let exec = new Request('/aggregator\/getAlertsConfig/' +
+                             this.props.networkName,
+                             {"credentials": "same-origin"});
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
@@ -186,8 +188,11 @@ export default class NetworkAlerts extends React.Component {
 
       if (!errors &&
           confirm('Are you sure you want to overwrite Alerts Config?')) {
-        let exec = new Request('/aggregator\/setAlertsConfig/'+ this.state.networkName+'/'+JSON.stringify(this.state.alertsConfigRows), {"credentials": "same-origin"});
-        fetch(exec).then(function(response) {
+        let f = new Request('/aggregator/setAlertsConfig/'+
+                            this.props.networkName +
+                            '/' + JSON.stringify(this.state.alertsConfigRows),
+                            {"credentials": "same-origin"});
+        fetch(f).then(function(response) {
           if (response.status == 200) {
             response.json().then(function(json) {
               if (json.success) {
@@ -239,7 +244,10 @@ export default class NetworkAlerts extends React.Component {
 
   getAlertsClick(e) {
     return new Promise((resolve, reject) => {
-      let exec = new Request('/getAlerts/' +  this.state.networkName +'/'+this.state.from+'/'+this.state.size, {"credentials": "same-origin"});
+      let exec = new Request('/getAlerts/' +  this.props.networkName +
+                             '/' + this.state.from +
+                             '/' + this.state.size,
+                             {"credentials": "same-origin"});
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
@@ -310,17 +318,17 @@ export default class NetworkAlerts extends React.Component {
       this.setState({
         alertsSelected: [],
       });
-      this.getAlerts(this.state.networkName);
+      this.getAlerts(this.props.networkName);
     }
   }
 
   clearAllAlerts () {
-    let exec = new Request('/clearAlerts/'+  this.state.networkName, {"credentials": "same-origin"});
+    let exec = new Request('/clearAlerts/'+  this.props.networkName, {"credentials": "same-origin"});
     fetch(exec);
     this.setState({
       alertsSelected: [],
     });
-    this.getAlerts(this.state.networkName);
+    this.getAlerts(this.props.networkName);
   }
 
   alertsConfigOnRowSelect(row, isSelected) {
@@ -347,12 +355,7 @@ export default class NetworkAlerts extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    if (NetworkStore.networkName && NetworkStore.networkConfig) {
-      this.setState({
-        networkName: NetworkStore.networkConfig.topology.name,
-      });
-    }
-    this.getAlerts(NetworkStore.networkConfig.topology.name);
+    this.getAlerts(this.props.networkName);
   }
 
   componentWillUnmount() {
@@ -362,6 +365,7 @@ export default class NetworkAlerts extends React.Component {
   }
 
   handleDispatchEvent(payload) {
+    // TODO - this needs to compare props change
     switch (payload.actionType) {
       case Actions.TOPOLOGY_SELECTED:
         this.setState({
@@ -375,10 +379,6 @@ export default class NetworkAlerts extends React.Component {
         });
         this.getAlerts(payload.networkName);
         break;
-      case Actions.TOPOLOGY_REFRESHED:
-        this.setState({
-          networkName: payload.networkConfig.topology.name,
-        });
         break;
     }
   }
@@ -626,3 +626,6 @@ export default class NetworkAlerts extends React.Component {
     );
   }
 }
+NetworkAlerts.propTypes = {
+  networkName: React.PropTypes.string.isRequired,
+};

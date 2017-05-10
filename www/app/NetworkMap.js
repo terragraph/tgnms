@@ -45,11 +45,13 @@ export class CustomMap extends Map {
 }
 
 export default class NetworkMap extends React.Component {
+  nodesByName = {}
+  linksByName = {}
+  sitesByName = {}
+
   state = {
     selectedSite: null,
     selectedLink: null,
-    networkName: null,
-    networkConfig: undefined,
     routeWeights: {},
     routeSourceNode: null,
     routeDestNode: null,
@@ -74,7 +76,14 @@ export default class NetworkMap extends React.Component {
     this.resizeWindow = this.resizeWindow.bind(this);
     // reset zoom on next refresh is set once a new topology is selected
     this.resetZoomOnNextRefresh = true;
+  }
 
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.networkConfig.topology.name != nextProps.networkConfig.topology.name) {
+      this.resetZoomOnNextRefresh = true;
+    }
+    this.updateTopologyState(nextProps.networkConfig);
   }
 
   resizeWindow(event) {
@@ -92,11 +101,21 @@ export default class NetworkMap extends React.Component {
     this.setState({
       networkHealth: NetworkStore.networkHealth,
     });
-    // update default state from the store
-    if (NetworkStore.networkName && NetworkStore.networkConfig) {
-      this.setState(
-        this.updateTopologyState(NetworkStore.networkConfig)
-      );
+    // update helper maps
+    this.updateTopologyState(this.props.networkConfig)
+    // initial site selection
+    if (NetworkStore.tabName == 'links' &&
+        NetworkStore.selectedName &&
+        NetworkStore.selectedName in this.linksByName) {
+      this.setState({
+        selectedLink: this.linksByName[NetworkStore.selectedName],
+      });
+    } else if (NetworkStore.tabName == 'nodes' &&
+               NetworkStore.selectedName &&
+               NetworkStore.selectedName in this.sitesByName) {
+      this.setState({
+        selectedSite: NetworkStore.selectedName,
+      });
     }
   }
 
@@ -108,25 +127,18 @@ export default class NetworkMap extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      // TODO - do we need to know the name?
+      // TODO - compare props and update there...
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology name and wipe the zoom level
-        // we'll
-        this.resetZoomOnNextRefresh = true;
         this.setState({
-          networkName: payload.networkName,
           routingOverlayEnabled: false,
           selectedSite: null,
           selectedLink: null,
           selectedNode: null,
         });
         break;
-      case Actions.TOPOLOGY_REFRESHED:
-        // update the topology
-        this.setState(this.updateTopologyState(payload.networkConfig))
-        break;
       case Actions.NODE_SELECTED:
-        let site = this.state.nodesByName[ payload.nodeSelected].site_name;
+        let site = this.nodesByName[ payload.nodeSelected].site_name;
         this.setState({
           selectedSite: site,
           selectedNode: payload.nodeSelected,
@@ -169,8 +181,8 @@ export default class NetworkMap extends React.Component {
       case Actions.PLANNED_SITE_CREAT:
         let plannedSite = {
           name: payload.siteName,
-          lat: this.state.networkConfig ? this.state.networkConfig.latitude : 37.484494,
-          long: this.state.networkConfig ? this.state.networkConfig.longitude : -122.1483976,
+          lat: this.props.networkConfig ? this.props.networkConfig.latitude : 37.484494,
+          long: this.props.networkConfig ? this.props.networkConfig.longitude : -122.1483976,
           alt: 0
         }
         this.setState({
@@ -212,15 +224,16 @@ export default class NetworkMap extends React.Component {
     });
     // reset the zoom when a new topology is selected
     let resetZoom = this.resetZoomOnNextRefresh;
+    // update helper maps
     this.resetZoomOnNextRefresh = false;
-    return {
-      nodesByName: nodesByName,
-      linksByName: linksByName,
-      sitesByName: sitesByName,
-      networkConfig: networkConfig,
+    this.nodesByName = nodesByName;
+    this.linksByName = linksByName;
+    this.sitesByName = sitesByName;
+    // update zoom level
+    this.setState({
       zoomLevel: resetZoom ? networkConfig.zoom_level :
                              this.state.zoomLevel,
-    };
+    });
   }
 
   componentDidMount() {
@@ -233,9 +246,6 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  _onMapClick(data) {
-  }
-
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
     this.setState({
@@ -244,7 +254,7 @@ export default class NetworkMap extends React.Component {
   }
 
   handleMarkerClick(ev) {
-    let site = this.state.networkConfig.topology.sites[
+    let site = this.props.networkConfig.topology.sites[
       ev.target.options.siteIndex];
     // dispatch to update all UIs
     Dispatcher.dispatch({
@@ -333,163 +343,156 @@ export default class NetworkMap extends React.Component {
 
   render() {
     // use the center position from the topology if set
-    const centerPosition = this.state.networkConfig ?
-      [this.state.networkConfig.latitude,
-       this.state.networkConfig.longitude] :
+    const centerPosition = this.props.networkConfig ?
+      [this.props.networkConfig.latitude,
+       this.props.networkConfig.longitude] :
       [37.484494, -122.1483976];
     let siteComponents = [];
     let linkComponents = [];
     let siteMarkers = [];
 
-    if (this.state.networkConfig &&
-        this.state.networkConfig.topology &&
-        this.state.networkConfig.topology.sites) {
-      let topology = this.state.networkConfig.topology;
-      Object.keys(topology.sites).map(siteIndex => {
-        let site = topology.sites[siteIndex];
-        if (!site.location) {
-          site.location = {};
-          site.location.latitude = 0;
-          site.location.longitude = 0;
+    let topology = this.props.networkConfig.topology;
+    Object.keys(topology.sites).map(siteIndex => {
+      let site = topology.sites[siteIndex];
+      if (!site.location) {
+        site.location = {};
+        site.location.latitude = 0;
+        site.location.longitude = 0;
+      }
+      let siteCoords = [site.location.latitude, site.location.longitude];
+
+      let healthyCount = 0;
+      let polarityCount = 0;
+      let totalCount = 0;
+      Object.keys(topology.nodes).map(nodeIndex => {
+        let node = topology.nodes[nodeIndex];
+        if (node.site_name == site.name) {
+          totalCount++;
+          healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
+          polarityCount += node.polarity ? node.polarity : 0;
         }
-        let siteCoords = [site.location.latitude, site.location.longitude];
+      });
 
-        let healthyCount = 0;
-        let polarityCount = 0;
-        let totalCount = 0;
-        Object.keys(topology.nodes).map(nodeIndex => {
-          let node = topology.nodes[nodeIndex];
-          if (node.site_name == site.name) {
-            totalCount++;
-            healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
-            polarityCount += node.polarity ? node.polarity : 0;
+      let polarity = polarityCount / totalCount;
+
+      let contextualMarker = null;
+      switch (this.props.siteOverlay) {
+        case 'Health':
+          if (totalCount == 0) {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Empty.color, siteIndex);
+          } else if (totalCount == healthyCount) {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Healthy.color, siteIndex);
+          } else if (healthyCount == 0) {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color, siteIndex);
+          } else {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Partial.color, siteIndex);
           }
-        });
+          break;
+        case 'Polarity':
+          if (polarity == 1) {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Odd.color, siteIndex);
+          } else if (polarity == 2) {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Even.color, siteIndex);
+          } else if (polarity > 0) {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Hybrid.color, siteIndex);
+          } else {
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Unknown.color, siteIndex);
+          }
+          break;
+        default:
+          contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
+      }
+      siteComponents.push(contextualMarker);
+    });
 
-        let polarity = polarityCount / totalCount;
+    let linksData = {};
+    Object(topology.links).forEach(link => {
+      if (this.state.networkHealth &&
+          this.state.networkHealth.links &&
+          link.a_node_name in this.state.networkHealth.links &&
+          link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
+        let nodeHealth = this.state.networkHealth.links[link.a_node_name]
+                                                       [link.z_node_name];
+        linksData[link.name] = {
+          alive_perc: nodeHealth.alive,
+          snr_health_perc: nodeHealth.snr,
+        };
+      }
+    });
 
-        let contextualMarker = null;
-        switch (this.props.siteOverlay) {
+    Object.keys(topology.links).map(linkName => {
+      let link = topology.links[linkName];
+      if (link.link_type != 1) {
+        return;
+      }
+      let aNodeSite = this.sitesByName[
+        this.nodesByName[link.a_node_name].site_name];
+      let zNodeSite = this.sitesByName[
+        this.nodesByName[link.z_node_name].site_name];
+
+      if (!aNodeSite || !zNodeSite ||
+          !aNodeSite.location || !zNodeSite.location) {
+        console.error('Site mis-match for link', link.name);
+        return;
+      }
+
+      const linkCoords = [
+        [aNodeSite.location.latitude, aNodeSite.location.longitude],
+        [zNodeSite.location.latitude, zNodeSite.location.longitude],
+      ];
+
+      let linkLine = null;
+      if(this.state.routingOverlayEnabled) {
+        if (this.state.routeWeights && this.state.routeWeights[link.name]) {
+          var bwUsageColor = d3.scaleLinear()
+              .domain([0, 100])
+              .range(['white', '#4169e1']);
+          var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
+          linkLine = this.getLinkLine(link, linkCoords, linkColor);
+        }
+      } else {
+        switch (this.props.linkOverlay) {
           case 'Health':
-						if (totalCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Empty.color, siteIndex);
-						} else if (totalCount == healthyCount) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Healthy.color, siteIndex);
-            } else if (healthyCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color, siteIndex);
+            if (link.is_alive) {
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Healthy.color);
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Partial.color, siteIndex);
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
             }
             break;
-          case 'Polarity':
-            if (polarity == 1) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Odd.color, siteIndex);
-            } else if (polarity == 2) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Even.color, siteIndex);
-            } else if (polarity > 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Hybrid.color, siteIndex);
+          case 'Uptime':
+            if (linksData[link.name]) {
+              var bwUsageColor = d3.scaleLinear()
+                  .domain([0, 50, 100])
+                  .range(["red", "white", "green"]);
+              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
+              linkLine = this.getLinkLine(link, linkCoords, linkColor);
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Unknown.color, siteIndex);
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
+            }
+            break;
+          case 'Snr_Perc':
+            if (linksData[link.name]) {
+              var bwUsageColor = d3.scaleLinear()
+                  .domain([0, 50, 100])
+                  .range(["red", "white", "green"]);
+              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
+              linkLine = this.getLinkLine(link, linkCoords, linkColor);
+            } else {
+              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
             }
             break;
           default:
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
+            linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unknown.color);
         }
-        siteComponents.push(contextualMarker);
-      });
-
-      let linksData = {};
-      if (topology &&
-          topology.links) {
-        Object(topology.links).forEach(link => {
-          if (this.state.networkHealth &&
-              this.state.networkHealth.links &&
-              link.a_node_name in this.state.networkHealth.links &&
-              link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
-            let nodeHealth = this.state.networkHealth.links[link.a_node_name]
-                                                           [link.z_node_name];
-            linksData[link.name] = {
-              alive_perc: nodeHealth.alive,
-              snr_health_perc: nodeHealth.snr,
-            };
-          }
-        });
       }
-
-      Object.keys(topology.links).map(linkName => {
-        let link = topology.links[linkName];
-        if (link.link_type != 1) {
-          return;
-        }
-        let aNodeSite = this.state.sitesByName[
-          this.state.nodesByName[link.a_node_name].site_name];
-        let zNodeSite = this.state.sitesByName[
-          this.state.nodesByName[link.z_node_name].site_name];
-
-        if (!aNodeSite || !zNodeSite ||
-            !aNodeSite.location || !zNodeSite.location) {
-          console.error('Site mis-match for link', link.name);
-          return;
-        }
-
-        const linkCoords = [
-          [aNodeSite.location.latitude, aNodeSite.location.longitude],
-          [zNodeSite.location.latitude, zNodeSite.location.longitude],
-        ];
-
-        let linkLine = null;
-        if(this.state.routingOverlayEnabled) {
-          if (this.state.routeWeights && this.state.routeWeights[link.name]) {
-            var bwUsageColor = d3.scaleLinear()
-                .domain([0, 100])
-                .range(['white', '#4169e1']);
-            var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
-            linkLine = this.getLinkLine(link, linkCoords, linkColor);
-          }
-        } else {
-          switch (this.props.linkOverlay) {
-            case 'Health':
-              if (link.is_alive) {
-                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Healthy.color);
-              } else {
-                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
-              }
-              break;
-            case 'Uptime':
-              if (linksData[link.name]) {
-                var bwUsageColor = d3.scaleLinear()
-                    .domain([0, 50, 100])
-                    .range(["red", "white", "green"]);
-                var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
-                linkLine = this.getLinkLine(link, linkCoords, linkColor);
-              } else {
-                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
-              }
-              break;
-            case 'Snr_Perc':
-              if (linksData[link.name]) {
-                var bwUsageColor = d3.scaleLinear()
-                    .domain([0, 50, 100])
-                    .range(["red", "white", "green"]);
-                var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
-                linkLine = this.getLinkLine(link, linkCoords, linkColor);
-              } else {
-                linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
-              }
-              break;
-            default:
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unknown.color);
-          }
-        }
-        if (linkLine) {
-          linkComponents.push(linkLine);
-        }
-      });
-    }
+      if (linkLine) {
+        linkComponents.push(linkLine);
+      }
+    });
 
     if (this.state.routingOverlayEnabled && this.state.routeSourceNode) {
-      let sourceSite = this.state.sitesByName[this.state.routeSourceNode.site_name];
-      let destSite = this.state.sitesByName[this.state.routeDestNode.site_name];
+      let sourceSite = this.sitesByName[this.state.routeSourceNode.site_name];
+      let destSite = this.sitesByName[this.state.routeDestNode.site_name];
       siteMarkers.push(
           <CircleMarker center={[sourceSite.location.latitude, sourceSite.location.longitude]}
                   radius={18}
@@ -503,7 +506,7 @@ export default class NetworkMap extends React.Component {
     }
 
     if (this.state.selectedSite != null) {
-      let site = this.state.sitesByName[this.state.selectedSite];
+      let site = this.sitesByName[this.state.selectedSite];
       if (site && site.location) {
         siteMarkers =
           <CircleMarker center={[site.location.latitude, site.location.longitude]}
@@ -511,11 +514,11 @@ export default class NetworkMap extends React.Component {
                   color="rgb(30,116,255)"/>;
       }
     } else if (this.state.selectedLink != null) {
-      let node_a = this.state.nodesByName[this.state.selectedLink.a_node_name];
-      let node_z = this.state.nodesByName[this.state.selectedLink.z_node_name];
+      let node_a = this.nodesByName[this.state.selectedLink.a_node_name];
+      let node_z = this.nodesByName[this.state.selectedLink.z_node_name];
       if (node_a && node_z) {
-        let site_a = this.state.sitesByName[node_a.site_name];
-        let site_z = this.state.sitesByName[node_z.site_name];
+        let site_a = this.sitesByName[node_a.site_name];
+        let site_z = this.sitesByName[node_z.site_name];
         if (site_a && site_z && site_a.location && site_z.location) {
           siteMarkers = [
             <CircleMarker center={[site_a.location.latitude,
@@ -543,19 +546,19 @@ export default class NetworkMap extends React.Component {
       if (this.state.selectedLink) {
         layersControl =
           <Control position="topright">
-            <DetailsLink topologyName={this.state.networkConfig.topology.name} link={this.state.selectedLink} nodes={this.state.nodesByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsLink topologyName={this.props.networkConfig.topology.name} link={this.state.selectedLink} nodes={this.nodesByName} onClose={() => this.setState({detailsExpanded: false})}/>
           </Control>
       } else if (this.state.selectedNode) {
-        let node  = this.state.nodesByName[this.state.selectedNode];
+        let node  = this.nodesByName[this.state.selectedNode];
         layersControl =
           <Control position="topright">
-            <DetailsNode topologyName={this.state.networkConfig.topology.name} node={node} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsNode topologyName={this.props.networkConfig.topology.name} node={node} links={this.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
           </Control>
       } else if (this.state.selectedSite) {
-        let site = this.state.sitesByName[this.state.selectedSite];
+        let site = this.sitesByName[this.state.selectedSite];
         layersControl =
           <Control position="topright">
-            <DetailsSite topologyName={this.state.networkConfig.topology.name} site={site} nodes={this.state.nodesByName} links={this.state.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsSite topologyName={this.props.networkConfig.topology.name} site={site} nodes={this.nodesByName} links={this.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
           </Control>
       }
     }
@@ -585,7 +588,7 @@ export default class NetworkMap extends React.Component {
           <Control position="topright">
             <DetailsPlannedSite
               site={this.state.plannedSite}
-              topologyName={this.state.networkConfig.topology.name}
+              topologyName={this.props.networkConfig.topology.name}
               onUpdate={this.updatePlannedSite.bind(this)}
               onClose={this.removePlannedSite.bind(this)}/>
           </Control>
@@ -603,7 +606,6 @@ export default class NetworkMap extends React.Component {
           <CustomMap
             ref='map'
             onZoom={this._onMapZoom.bind(this)}
-            onClick={this._onMapClick.bind(this)}
             center={centerPosition} zoom={this.state.zoomLevel}>
             <TileLayer
               url={tileUrl}
@@ -616,9 +618,13 @@ export default class NetworkMap extends React.Component {
             {tablesControl}
             {plannedSite}
           </CustomMap>
-          <NetworkDataTable height={this.state.lowerPaneHeight}/>
+          <NetworkDataTable height={this.state.lowerPaneHeight}
+                            networkConfig={this.props.networkConfig} />
         </SplitPane>
       </div>
     );
   }
 }
+NetworkMap.propTypes = {
+  networkConfig: React.PropTypes.object.isRequired,
+};

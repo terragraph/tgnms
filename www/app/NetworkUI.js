@@ -1,12 +1,13 @@
 import React from 'react';
 // menu bar
 import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
-
 // leaflet maps
 import { render } from 'react-dom';
 // dispatcher
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import NetworkStore from './NetworkStore.js';
+
 import NetworkDashboard from './NetworkDashboard.js';
 import NetworkStats from './NetworkStats.js';
 import NetworkMap from './NetworkMap.js';
@@ -29,10 +30,11 @@ const SETTINGS = {
   'topology': 'Topology Operations'
 };
 
+
 export default class NetworkUI extends React.Component {
   state = {
-    view: 'map',
-    networkName: null,
+    view: NetworkStore.viewName,
+    networkName: NetworkStore.networkName,
     networkConfig: {},
     nodesByName: {},
     topologies: {},
@@ -49,9 +51,11 @@ export default class NetworkUI extends React.Component {
     // register for menu changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-
     // refresh network config
-    let refresh_interval = CONFIG.refresh_interval ? CONFIG.refresh_interval : 5000;
+    let refresh_interval = CONFIG.refresh_interval ? CONFIG.refresh_interval :
+                                                     5000;
+    // load data if network name known
+    this.getNetworkStatusPeriodic();
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
   }
 
@@ -111,6 +115,7 @@ export default class NetworkUI extends React.Component {
         this.setState({
           view: viewName,
         });
+        // construct new URL from selected view
         break;
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology
@@ -119,7 +124,7 @@ export default class NetworkUI extends React.Component {
         this.setState({
           networkName: payload.networkName,
         });
-        // update active link in menu by setting css selected class
+        // update the browser URL history
         break;
       case Actions.TOPOLOGY_REFRESHED:
         let nodesByName = {};
@@ -133,6 +138,7 @@ export default class NetworkUI extends React.Component {
         });
         // update link health
         this.updateNetworkLinkHealth(this.state.networkName);
+        break;
     }
   }
 
@@ -270,27 +276,41 @@ export default class NetworkUI extends React.Component {
         </MenuItem>
       ];
     }
+    // don't load components without topology config
+    if (!this.state.networkName ||
+        !this.state.networkConfig ||
+        !this.state.networkConfig.topology ||
+        !this.state.networkConfig.topology.sites ||
+        !this.state.networkConfig.topology.nodes) {
+      return (
+        <div style={{float: 'left', width: '100%', margin: '5px'}}>
+          <img src='/static/images/loading-graphs.gif' />
+        </div>
+      );
+    }
     // select between view panes
+    let viewProps = {
+      networkName: this.state.networkName,
+      networkConfig: this.state.networkConfig,
+    };
     let paneComponent = <div/>;
     switch (this.state.view) {
-      case 'dashboard':
-        paneComponent = <NetworkDashboard />;
-        break;
       case 'eventlogs':
-        paneComponent = <EventLogs />;
+        paneComponent = <EventLogs {...viewProps} />;
         break;
       case 'systemlogs':
-        paneComponent = <SystemLogs />;
+        paneComponent = <SystemLogs {...viewProps} />;
         break;
       case 'stats':
-        paneComponent = <NetworkStats />;
+        paneComponent = <NetworkStats {...viewProps} />;
         break;
       case 'alerts':
-        paneComponent = <NetworkAlerts />;
+        paneComponent = <NetworkAlerts {...viewProps} />;
         break;
       default:
         paneComponent =
         <NetworkMap
+          {...viewProps}
           linkOverlay={this.state.selectedLinkOverlay}
           siteOverlay={this.state.selectedSiteOverlay}
         />;

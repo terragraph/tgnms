@@ -4,6 +4,7 @@ import { render } from 'react-dom';
 // dispatcher
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import NetworkStore from './NetworkStore.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 export default class NetworkNodesTable extends React.Component {
@@ -24,6 +25,23 @@ export default class NetworkNodesTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    // fetch selected site from store
+    if (NetworkStore.selectedName) {
+      var selectedRows = [];
+      Object.keys(this.props.topology.nodes).map(nodeIndex => {
+        let node = this.props.topology.nodes[nodeIndex];
+        if (node.site_name == NetworkStore.selectedName) {
+          selectedRows.push(node.name);
+        }
+      });
+      this.setState({
+        sortName: "site_name",
+        sortOrder: "desc",
+        selectedSiteName: NetworkStore.selectedName,
+        selectedNodeSite: NetworkStore.selectedName,
+        nodesSelected: selectedRows,
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -241,3 +259,6 @@ export default class NetworkNodesTable extends React.Component {
     );
   }
 }
+NetworkNodesTable.propTypes = {
+  topology: React.PropTypes.object.isRequired,
+};

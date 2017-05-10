@@ -72,7 +72,6 @@ const MenuHeader = props => <li {...props} className="dropdown-header" />;
 
 export default class NetworkStats extends React.Component {
   state = {
-    topologyJson: {},
     // type-ahead data
     siteMetrics: {},
     keyOptions: [],
@@ -91,12 +90,6 @@ export default class NetworkStats extends React.Component {
     // register to receive topology updates
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    // update default state from the store
-    if (NetworkStore.networkName && NetworkStore.networkConfig) {
-      this.setState({
-        topologyJson: NetworkStore.networkConfig.topology,
-      });
-    }
   }
 
   componentDidMount() {
@@ -109,17 +102,21 @@ export default class NetworkStats extends React.Component {
       if (!this.metricRequest.responseText.length) {
         return;
       }
-      let data = JSON.parse(this.metricRequest.responseText);
-      this.setState({
-        siteMetrics: data.site_metrics,
-        keyOptions: this.getKeyOptions(this.state.nodesSelected,
-                                       data.site_metrics),
-      });
+      try {
+        let data = JSON.parse(this.metricRequest.responseText);
+        this.setState({
+          siteMetrics: data.site_metrics,
+          keyOptions: this.getKeyOptions(this.state.nodesSelected,
+                                         data.site_metrics),
+        });
+      } catch (e) {
+        console.error('Unable to parse JSON', this.metricRequest);
+      }
     }.bind(this);
     try {
       this.metricRequest.open('POST', '/metrics', true);
       let opts = {
-        'topology': this.state.topologyJson,
+        'topology': this.props.networkConfig.topology,
         'minAgo': this.state.minAgo,
       };
       this.metricRequest.send(JSON.stringify(opts));
@@ -134,13 +131,11 @@ export default class NetworkStats extends React.Component {
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case Actions.TOPOLOGY_REFRESHED:
-        this.setState({
-          topologyJson: payload.networkConfig.topology,
-        });
         // update metric names list
         this.refreshData();
         break;
       case Actions.TOPOLOGY_SELECTED:
+        // TODO - this needs to be a comparison of topology names in props
         // clear selected data
         this._typeaheadNode.getInstance().clear();
         this._typeaheadKey.getInstance().clear();
@@ -154,7 +149,7 @@ export default class NetworkStats extends React.Component {
   getNodeData(nodeList) {
     // return a list of node names and macs
     let nodesByName = {};
-    this.state.topologyJson.nodes.forEach(node => {
+    this.props.networkConfig.topology.nodes.forEach(node => {
       nodesByName[node.name] = node;
     });
     return nodeList.map(nodeName => {
@@ -231,7 +226,7 @@ export default class NetworkStats extends React.Component {
   }
 
   renderNodeOptions() {
-    let nodeOptions = this.state.topologyJson.sites.map(site => {
+    let nodeOptions = this.props.networkConfig.topology.sites.map(site => {
       return {
         name: "Site " + site.name,
         type: 'Sites',
@@ -240,7 +235,7 @@ export default class NetworkStats extends React.Component {
         },
       };
     });
-    this.state.topologyJson.links.map(link => {
+    this.props.networkConfig.topology.links.map(link => {
       // skip wired links
       if (link.link_type == 2) {
         return;
@@ -322,21 +317,18 @@ export default class NetworkStats extends React.Component {
   render() {
     let gridComponents = [];
     let graphOptions = [];
-    if (!this.state.topologyJson || !this.state.topologyJson.sites) {
-      return (<div>No topology selected</div>);
-    }
     // index nodes by name
     let nodeMacList = [];
     let nodeNameList = [];
-    Object.keys(this.state.topologyJson.nodes).map(nodeIndex => {
-      let node = this.state.topologyJson.nodes[nodeIndex];
+    Object.keys(this.props.networkConfig.topology.nodes).map(nodeIndex => {
+      let node = this.props.networkConfig.topology.nodes[nodeIndex];
       nodeMacList.push(node.mac_addr);
       nodeNameList.push(node.name);
     });
     let nodeMacListStr = nodeMacList.join(",");
     // nodes list
     let nodes = {};
-    this.state.topologyJson.nodes.forEach(node => {
+    this.props.networkConfig.topology.nodes.forEach(node => {
       nodes[node.mac_addr] = {
         'name':     node.name,
         'version':  'Unknown',
@@ -344,7 +336,7 @@ export default class NetworkStats extends React.Component {
     });
     // index nodes
     let nodesByName = {};
-    this.state.topologyJson.nodes.forEach(node => {
+    this.props.networkConfig.topology.nodes.forEach(node => {
       nodesByName[node.name] = {
         name: node.name,
         mac_addr: node.mac_addr,
@@ -354,7 +346,7 @@ export default class NetworkStats extends React.Component {
     // construct links
     let links = {};
     let linkRows = [];
-    this.state.topologyJson.links.forEach(link => {
+    this.props.networkConfig.topology.links.forEach(link => {
       // skipped wired links
       if (link.link_type == 2) {
         return;

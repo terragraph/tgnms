@@ -11,6 +11,8 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 var linkNyName = {};
 
 export default class NetworkLinksTable extends React.Component {
+  nodesByName = {}
+  linksByName = {}
   state = {
     sortName: undefined,
     sortOrder: undefined,
@@ -21,9 +23,6 @@ export default class NetworkLinksTable extends React.Component {
     // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
     linkRequestButtonEnabled: true,
   }
-
-  nodesByName = {}
-  linksByName = {};
 
   constructor(props) {
     super(props);
@@ -36,25 +35,51 @@ export default class NetworkLinksTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
+    // update node + link mappings
+    this.updateMappings(this.props.topology);
+    // initial health data
     this.setState({
       networkHealth: NetworkStore.networkHealth,
     });
-    // index nodes by name
-    this.props.topology.nodes.forEach(node => {
-      this.nodesByName[node.name] = node;
-    });
+    // show initial selected link
+    if (NetworkStore.selectedName &&
+        NetworkStore.selectedName in this.linksByName) {
+      this.setState({
+        selectedLink: this.linksByName[NetworkStore.selectedName],
+      });
+    }
   }
 
-  componentWillUpdate() {
-    // index nodes by name
-    this.props.topology.nodes.forEach(node => {
-      this.nodesByName[node.name] = node;
-    });
+  componentWillUpdate(nextProps, nextState) {
+    // index nodes + links
+    this.updateMappings(nextProps.topology);
   }
 
   componentWillUnmount() {
     // un-register once hidden
     Dispatcher.unregister(this.dispatchToken);
+  }
+
+  updateMappings(topology) {
+    this.linksByName = {};
+    if (topology.links) {
+      topology.links.forEach(link => {
+        if (this.state.networkHealth &&
+            this.state.networkHealth.links &&
+            link.a_node_name in this.state.networkHealth.links &&
+            link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
+          let nodeHealth = this.state.networkHealth.links[link.a_node_name]
+                                                         [link.z_node_name];
+          link.alive_perc = nodeHealth.alive;
+          link.snr_health_perc = nodeHealth.snr;
+        }
+        this.linksByName[link.name] = link;
+      });
+    }
+    this.nodesByName = {};
+    topology.nodes.forEach(node => {
+      this.nodesByName[node.name] = node;
+    });
   }
 
   handleDispatchEvent(payload) {
@@ -190,22 +215,6 @@ export default class NetworkLinksTable extends React.Component {
       onSortChange: this.onSortChange.bind(this),
     };
 
-    this.linksByName = {};
-    if (this.props.topology &&
-        this.props.topology.links) {
-      this.props.topology.links.forEach(link => {
-        if (this.state.networkHealth &&
-            this.state.networkHealth.links &&
-            link.a_node_name in this.state.networkHealth.links &&
-            link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
-          let nodeHealth = this.state.networkHealth.links[link.a_node_name]
-                                                         [link.z_node_name];
-          link.alive_perc = nodeHealth.alive;
-          link.snr_health_perc = nodeHealth.snr;
-        }
-        this.linksByName[link.name] = link;
-      });
-    }
     let linksTable =
       <BootstrapTable
           height={(this.props.height - (this.state.selectedLink ? 100 : 0)) + 'px'}
@@ -287,3 +296,6 @@ export default class NetworkLinksTable extends React.Component {
     );
   }
 }
+NetworkLinksTable.propTypes = {
+  topology: React.PropTypes.object.isRequired,
+};

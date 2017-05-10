@@ -17,6 +17,14 @@ const Actions = {
   TAB_SELECTED: 302,
 
   PLANNED_SITE_CREAT: 330,
+  // url location
+  URL_CHANGED: 350,
+  CHANGE_URL: 351,
+  // notify of a single layer change
+  // Layer 1 - view (map, stats, events, alerts, )
+  // layer 2 - tab (nodes, links, sites, )
+  // layer 3 - selected node, link, etc
+  LAYER_CHANGED: 352,
   // network health
   HEALTH_REFRESHED: 400,
 };

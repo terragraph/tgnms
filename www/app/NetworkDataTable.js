@@ -15,24 +15,21 @@ import NetworkStatusTable from './NetworkStatusTable.js';
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
-const TAB_NAME_TO_INDEX = {
-  'status': 0,
-  'nodes': 1,
-  'links': 2,
-  'adjacencies': 3,
-  'routing': 4,
-};
+const TAB_NAMES = ['status', 'nodes', 'links', 'adjacencies', 'routing'];
 
 export default class NetworkDataTable extends React.Component {
   state = {
-    selectedTabIndex: 1,
-    networkConfig: {},
     routing: {},
   }
+
+  tabNameToIndex = {}
 
   constructor(props) {
     super(props);
     this.shouldUpdate = false;
+    TAB_NAMES.forEach((val, idx) => {
+      this.tabNameToIndex[val] = idx;
+    });
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -53,16 +50,10 @@ export default class NetworkDataTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    if (NetworkStore.networkName && NetworkStore.networkConfig) {
-      let tabIndex = 0;
-      if (NetworkStore.tabName in TAB_NAME_TO_INDEX) {
-        tabIndex = TAB_NAME_TO_INDEX[NetworkStore.tabName];
-      }
-      this.setState({
-        networkConfig: NetworkStore.networkConfig,
-        selectedTabIndex: tabIndex,
-      });
-    }
+    this.setState({
+      selectedTabIndex: NetworkStore.tabName in this.tabNameToIndex ?
+                        this.tabNameToIndex[NetworkStore.tabName] : 0,
+    });
   }
 
   componentWillUnmount() {
@@ -73,11 +64,7 @@ export default class NetworkDataTable extends React.Component {
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case Actions.TOPOLOGY_REFRESHED:
-        this.shouldUpdate = true;
-        // topology refreshed
-        this.setState({
-          networkConfig: payload.networkConfig,
-        });
+        // TODO - compare props and update shouldUpdate or something
         break;
       case Actions.AGGREGATOR_DUMP_REFRESHED:
         this.shouldUpdate = true;
@@ -87,11 +74,11 @@ export default class NetworkDataTable extends React.Component {
         break;
       case Actions.TAB_SELECTED:
         this.shouldUpdate = true;
-        if (!(payload.tabName in TAB_NAME_TO_INDEX)) {
+        if (!(payload.tabName in this.tabNameToIndex)) {
           console.error('Tab not found', payload.tabName);
           break;
         }
-        const tabIndex = TAB_NAME_TO_INDEX[payload.tabName];
+        const tabIndex = this.tabNameToIndex[payload.tabName];
         this.setState({
           selectedTabIndex: tabIndex,
         });
@@ -105,9 +92,15 @@ export default class NetworkDataTable extends React.Component {
     });
     // TODO - should we null the selected node?
     Dispatcher.dispatch({
+      actionType: Actions.TAB_SELECTED,
+      tabName: TAB_NAMES[index],
+    });
+    Dispatcher.dispatch({
       actionType: Actions.CLEAR_NODE_LINK_SELECTED,
     });
-    Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
+    Dispatcher.dispatch({
+      actionType: Actions.CLEAR_ROUTE
+    });
   }
 
   render() {
@@ -125,32 +118,32 @@ export default class NetworkDataTable extends React.Component {
         </TabList>
         <TabPanel>
           <NetworkStatusTable
-            instance={this.state.networkConfig}>
+            instance={this.props.networkConfig}>
           </NetworkStatusTable>
         </TabPanel>
         <TabPanel>
           <NetworkNodesTable
             height={this.props.height - 60}
-            topology={this.state.networkConfig.topology}>
+            topology={this.props.networkConfig.topology}>
           </NetworkNodesTable>
         </TabPanel>
         <TabPanel>
           <NetworkLinksTable
             height={this.props.height - 60}
-            topology={this.state.networkConfig.topology}>
+            topology={this.props.networkConfig.topology}>
           </NetworkLinksTable>
         </TabPanel>
         <TabPanel>
           <NetworkAdjacencyTable
             height={this.props.height - 60}
-            topology={this.state.networkConfig.topology}
+            topology={this.props.networkConfig.topology}
             routing={this.state.routing}>
           </NetworkAdjacencyTable>
         </TabPanel>
         <TabPanel>
           <NetworkRoutingTable
             height={this.props.height - 60}
-            topology={this.state.networkConfig.topology}
+            topology={this.props.networkConfig.topology}
             routing={this.state.routing}>
           </NetworkRoutingTable>
         </TabPanel>
@@ -158,3 +151,6 @@ export default class NetworkDataTable extends React.Component {
     );
   }
 }
+NetworkDataTable.propTypes = {
+  networkConfig: React.PropTypes.object.isRequired,
+};

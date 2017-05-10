@@ -1,13 +1,10 @@
 import React from 'react';
 import { render } from 'react-dom';
 // dispatcher
-import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import AsyncButton from 'react-async-button';
 import Select from 'react-select';
 import NumericInput from 'react-numeric-input';
-import NetworkStore from './NetworkStore.js';
 var DatePicker = require('react-datepicker');
 var moment = require('moment');
 
@@ -28,7 +25,6 @@ export default class EventLogs extends React.Component {
     searchResult: [],
     from: 0,
     size: 500,
-    networkName: null,
     dateFrom: moment(),
   }
 
@@ -45,39 +41,6 @@ export default class EventLogs extends React.Component {
     this.handleDateChange = this.handleDateChange.bind(this);
 
     this.getConfigs();
-  }
-
-  componentWillMount() {
-    // register once we're visible
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
-    // update default state from the store
-    if (NetworkStore.networkName && NetworkStore.networkConfig) {
-      this.setState({
-        networkName: NetworkStore.networkConfig.topology.name,
-      });
-    }
-  }
-
-  componentWillUnmount() {
-    // un-register if we're no longer visible
-    Dispatcher.unregister(this.dispatchToken);
-  }
-
-  handleDispatchEvent(payload) {
-
-    switch (payload.actionType) {
-      case Actions.TOPOLOGY_SELECTED:
-        this.setState({
-          networkName: payload.networkName,
-        });
-        break;
-      case Actions.TOPOLOGY_REFRESHED:
-        this.setState({
-          networkName: payload.networkConfig.topology.name,
-        });
-        break;
-    }
   }
 
   getConfigs() {
@@ -100,7 +63,12 @@ export default class EventLogs extends React.Component {
     must += "]";
     must_not += "]";
     return new Promise((resolve, reject) => {
-      let exec = new Request('/getEventLogs/'+ this.state.selectedTableName+'/'+this.state.from+'/'+this.state.size+'/'+this.state.networkName+'/d_'+this.state.dateFrom.format('YYYY_MM_DD'), {"credentials": "same-origin"});
+      let exec = new Request('/getEventLogs/' + this.state.selectedTableName +
+                             '/' + this.state.from +
+                             '/' + this.state.size +
+                             '/' + this.props.networkName +
+                             '/d_' + this.state.dateFrom.format('YYYY_MM_DD'),
+                             {"credentials": "same-origin"});
       fetch(exec).then(function(response) {
         if (response.status == 200) {
           response.json().then(function(json) {
@@ -340,3 +308,7 @@ export default class EventLogs extends React.Component {
     );
   }
 }
+EventLogs.propTypes = {
+  networkName: React.PropTypes.string.isRequired,
+  networkConfig: React.PropTypes.object.isRequired,
+};
