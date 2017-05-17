@@ -50,12 +50,45 @@ export default class DetailsLink extends React.Component {
 
   changeLinkStatus(upDown) {
     let status = upDown ? "up" : "down";
-    let exec = new Request(
-      '/controller\/setlinkStatus/' + this.props.topologyName +
-        '/' + this.props.link.a_node_name +
-        '/' + this.props.link.z_node_name + '/' + status,
-      {"credentials": "same-origin"});
-    fetch(exec);
+    swal({
+      title: "Are you sure?",
+      text: "This will send a link " + status + " request to e2e-controller",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, do it!",
+      closeOnConfirm: false
+    },
+    function(){
+      let promis = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/setlinkStatus/' + this.props.topologyName +
+            '/' + this.props.link.a_node_name +
+            '/' + this.props.link.z_node_name + '/' + status,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Request successful!",
+              text: "Response: "+response.statusText,
+              type: "success"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Request failed!",
+              text: "Link status change failed\nReason: "+response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
   }
 
   deleteLink(force) {
