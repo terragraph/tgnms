@@ -267,7 +267,9 @@ export default class NetworkLinksTable extends React.Component {
         </TableHeaderColumn>
       </BootstrapTable>;
     let eventChart;
-    if (this.state.selectedLink) {
+    if (this.state.selectedLink &&
+        this.state.selectedLink.a_node_name in this.nodesByName &&
+        this.state.selectedLink.z_node_name in this.nodesByName) {
       // chart options
       let aNode = this.nodesByName[this.state.selectedLink.a_node_name];
       let zNode = this.nodesByName[this.state.selectedLink.z_node_name];

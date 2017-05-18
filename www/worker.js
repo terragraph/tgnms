@@ -94,7 +94,7 @@ msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {'recvApp': 'ctrl-app-T
 msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {'recvApp': 'minion-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
 
 
-exports.sendCtrlMsgSync = (msg, minion, res) => {
+const sendCtrlMsgSync = (msg, minion, res) => {
   if (!msg.type) {
     console.error("sendCtrlMsgSync: Received unknown message", msg);
   }
@@ -485,4 +485,5 @@ class AggregatorProxy extends EventEmitter {
 module.exports = {
   ControllerProxy: ControllerProxy,
   AggregatorProxy: AggregatorProxy,
+  sendCtrlMsgSync: sendCtrlMsgSync,
 };
