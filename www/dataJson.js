@@ -44,6 +44,21 @@ pool.on('enqueue', function () {
 pool.on('error', function() {
   console.log('pool error');
 });
+// beringei client
+const thrift = require('thrift');
+const BeringeiService = require('./thrift/gen-nodejs/BeringeiService');
+const beringeiTypes = require('./thrift/gen-nodejs/beringei_data_types');
+const transport = thrift.TFramedTransport;
+const protocol = thrift.TBinaryProtocol;
+const beringeiConn = thrift.createConnection("localhost", 9999, {
+  transport: transport,
+  protocol: protocol,
+});
+beringeiConn.on('error', (err) => {
+  console.log('Beringei error', err)
+});
+const beringeiClient = thrift.createClient(BeringeiService, beringeiConn);
+
 var self = {
   macAddrToNode: {},
   filenameToSourceId: {},
@@ -349,6 +364,8 @@ var self = {
     let data = JSON.parse(postData);
     // agents, topology
     let rows = [];
+    // beringei data
+    let bRows = [];
     let unknownNodes = {};
     let nodesToUpdate = {};
     let missingNodeKey = new Set();
@@ -409,6 +426,17 @@ var self = {
                      self.nodeKeyIds[nodeId][stat.key],
                      stat.value];
           rows.push(row);
+          // beringei
+          let bKey = new beringeiTypes.Key();
+          bKey.key = "" + self.nodeKeyIds[nodeId][stat.key];
+          let bRow = new beringeiTypes.DataPoint();
+          bRow.key = bKey;
+          let timePair = new beringeiTypes.TimeValuePair();
+          timePair.unixTime = tsParsed.getTime() / 1000;
+          timePair.value = stat.value;
+          //console.log('key', self.nodeKeyIds[nodeId][stat.key], 'time', tsParsed.getTime() / 1000, 'value', stat.value);
+          bRow.value = timePair;
+          bRows.push(bRow);
         } else {
           console.log('Missing cache for', nodeId, '/', stat.key);
           missingNodeKey.add([nodeId, stat.key]);
@@ -454,6 +482,15 @@ var self = {
         remainRows = remainRows.splice(bucketSize);
       }
       insertRows('ts_value', remainRows, 0);
+      // insert into beringei
+      let beringeiPutReq = new beringeiTypes.PutDataRequest();
+      beringeiPutReq.data = bRows;
+      beringeiClient.putDataPoints(beringeiPutReq, (err, resp) => {
+        if (err) {
+          console.log('Beringei error', err);
+        }
+        console.log('Beringei data written', resp);
+      });
     } else {
       console.log('writeData request with', postData.length, 'bytes and',
                   badTime, 'invalid timestamp failures');

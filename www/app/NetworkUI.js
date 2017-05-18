@@ -14,6 +14,7 @@ import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkAlerts from './NetworkAlerts.js';
+import NetworkConfig from './NetworkConfig.js';
 import ModalOverlays from './ModalOverlays.js';
 import ModalTopology from './ModalTopology.js';
 
@@ -22,12 +23,13 @@ const VIEWS = {
   'stats': 'Stats',
   'eventlogs': 'Event Logs',
   'systemlogs': 'System Logs',
-  'alerts': 'Alerts'
+  'alerts': 'Alerts',
+  'config': 'Config (Alpha)',
 };
 
 const SETTINGS = {
   'overlays': 'Site/Link Overlays',
-  'topology': 'Topology Operations'
+  'topology': 'Topology Operations',
 };
 
 
@@ -37,7 +39,7 @@ export default class NetworkUI extends React.Component {
     networkName: NetworkStore.networkName,
     networkConfig: {},
     nodesByName: {},
-    topologies: {},
+    topologies: [],
     routing: {},
     overlaysModalOpen: false,
     topologyModalOpen: false,
@@ -187,7 +189,7 @@ export default class NetworkUI extends React.Component {
 
   componentWillMount() {
     this.setState({
-      topologies: {},
+      topologies: [],
     });
     // fetch topology config
     this.refreshTopologyList();
@@ -196,8 +198,9 @@ export default class NetworkUI extends React.Component {
   }
 
   handleMenuBarSelect(info) {
-    if (info.key.indexOf('.')) {
-      let keySplit = info.key.split('.');
+    console.log('menu item', info);
+    if (info.key.indexOf('#') > -1) {
+      let keySplit = info.key.split('#');
       switch (keySplit[0]) {
         case 'view':
           Dispatcher.dispatch({
@@ -234,7 +237,7 @@ export default class NetworkUI extends React.Component {
     let topologyMenuItems = [];
     for (let i = 0; i < this.state.topologies.length; i++) {
       let topologyConfig = this.state.topologies[i];
-      let keyName = "topo." + topologyConfig.name;
+      let keyName = "topo#" + topologyConfig.name;
       let online = topologyConfig.controller_online ||
                    topologyConfig.aggregator_online;
       topologyMenuItems.push(
@@ -292,6 +295,7 @@ export default class NetworkUI extends React.Component {
     let viewProps = {
       networkName: this.state.networkName,
       networkConfig: this.state.networkConfig,
+      config: this.state.topologies, 
     };
     let paneComponent = <div/>;
     switch (this.state.view) {
@@ -307,6 +311,9 @@ export default class NetworkUI extends React.Component {
       case 'alerts':
         paneComponent = <NetworkAlerts {...viewProps} />;
         break;
+      case 'config':
+        paneComponent = <NetworkConfig {...viewProps} />;
+        break;
       default:
         paneComponent =
         <NetworkMap
@@ -316,9 +323,9 @@ export default class NetworkUI extends React.Component {
         />;
     }
     // add all selected keys
-    let selectedKeys = ["view." + this.state.view];
+    let selectedKeys = ["view#" + this.state.view];
     if (this.state.networkName) {
-      selectedKeys.push("topo." + this.state.networkName);
+      selectedKeys.push("topo#" + this.state.networkName);
     }
 
     return (
@@ -343,7 +350,7 @@ export default class NetworkUI extends React.Component {
               {Object.keys(VIEWS).map(viewKey => {
                 let viewName = VIEWS[viewKey];
                 return (
-                  <MenuItem key={"view." + viewKey}>
+                  <MenuItem key={"view#" + viewKey}>
                     <img src={"/static/images/" + viewKey + ".png"} />
                     {viewName}
                   </MenuItem>);
