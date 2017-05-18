@@ -372,7 +372,7 @@ export default class NetworkUI extends React.Component {
               {Object.keys(SETTINGS).map(settingKey => {
                 let settingName = SETTINGS[settingKey];
                 return (
-                  <MenuItem key={"settings." + settingKey}>
+                  <MenuItem key={"settings#" + settingKey}>
                     <img src={"/static/images/" + settingKey + ".png"} />
                     {settingName}
                   </MenuItem>);
