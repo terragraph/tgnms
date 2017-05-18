@@ -10,7 +10,7 @@
             "zoom_level": 18,
             "controller_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a",
             "aggregator_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a",
-            "controller_status": true,
+            "controller_status": true
         },
         {
             "topology_file": "lab_f8_c.json",
