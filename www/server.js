@@ -16,7 +16,32 @@ const webpackHotMiddleware = require('webpack-hot-middleware');
 const config = require('./webpack.config.js');
 const isDeveloping = process.env.NODE_ENV !== 'production';
 const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
-
+// beringei_data.GetDataResult getData(1: beringei_data.GetDataRequest req),
+// let now = new Date().getTime() / 1000;
+// get last 10 minutes
+/*let getReq = new beringeiDTypes.GetDataRequest();
+getReq.keys = [key];
+getReq.begin1 = now - 600;
+getReq.end1 = now + 30;
+let getRes = beringeiClient.getData(getReq, (err, resp) => {
+  if (err) {
+    console.log('get err', err);
+  }
+  resp.results.forEach((res) => {
+    console.log('---------------');
+    console.log('Status Code:', res.status);
+    res.data.forEach((data) => {
+      console.log("\t", data);
+    });
+  });
+});
+*/
+// END testing
+// thrift types from controller
+const Topology_ttypes = require('./thrift/gen-nodejs/Topology_types');
+const Controller_ttypes = require('./thrift/gen-nodejs/Controller_types');
+// thrift types from aggregator
+const Aggregator_ttypes = require('./thrift/gen-nodejs/Aggregator_types');
 // network config file
 const NETWORK_CONFIG_NETWORKS_PATH = './config/networks/';
 const NETWORK_CONFIG_INSTANCES_PATH = './config/instances/';
@@ -51,6 +76,7 @@ const pty = require('pty.js');
 
 const statusReportExpiry = 2 * 60000; // 2 minuets
 
+var refreshIntervalTimer = undefined;
 var eventLogsTables = {};
 var systemLogsSources = {};
 var networkInstanceConfig = {};
@@ -63,6 +89,10 @@ var statusDumpsByName = {};
 var aggrStatusDumpsByName = {};
 var adjacencyMapsByName = {};
 worker.on('message', (msg) => {
+  if (!(msg.name in configByName)) {
+    console.error('Unable to find topology', msg.name);
+    return;
+  }
   const config = configByName[msg.name];
   switch (msg.type) {
     case 'topology_update':
@@ -201,56 +231,104 @@ const middleware = webpackMiddleware(compiler, {
     modules: false
   }
 });
-
-// Read list of networks and start timer to pull network status/topology
-fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) => {
-  // unable to open file, exit
-  if (err) {
-    res.status(500).send(err.stack);
-    return;
+function reloadInstanceConfig() {
+  if (refreshIntervalTimer) {
+    clearInterval(refreshIntervalTimer);
   }
-  // serialize some example
-  networkInstanceConfig = JSON.parse(data);
-  if ('topologies' in networkInstanceConfig) {
-    let topologies = networkInstanceConfig['topologies'];
-    Object.keys(topologies).forEach(function(key) {
-      let topologyConfig = topologies[key];
-      let topology = JSON.parse(fs.readFileSync(
-        NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file));
-      let config = {
-          name: topology['name'],
-          controller_ip: topologyConfig['controller_ip'],
-          aggregator_ip: topologyConfig['aggregator_ip'],
-          latitude: topologyConfig['latitude'],
-          longitude: topologyConfig['longitude'],
-          zoom_level: topologyConfig['zoom_level'],
-          controller_online: false,
-          aggregator_online: false,
-          site_coords_override: topologyConfig['site_coords_override'],
-      };
-      configByName[topology['name']] = config;
-      fileTopologyByName[topology['name']] = topology;
-
-      let topologyName = topology['name'];
-      fileSiteByName[topologyName] = {};
-      topology.sites.forEach((site) => {
-        fileSiteByName[topologyName][site.name] = site;
+  configByName = {};
+  fileTopologyByName = {};
+  fileSiteByName = {};
+  
+  // Read list of networks and start timer to pull network status/topology
+  fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) => {
+    // unable to open file, exit
+    if (err) {
+      console.error('Unable to read config, failing.');
+      process.exit(1)
+    }
+    // serialize some example
+    networkInstanceConfig = JSON.parse(data);
+    if ('topologies' in networkInstanceConfig) {
+      let topologies = networkInstanceConfig['topologies'];
+      Object.keys(topologies).forEach(function(key) {
+        let topologyConfig = topologies[key];
+        let topology = JSON.parse(fs.readFileSync(
+          NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file));
+        let config = topologyConfig;
+        config['controller_online'] = false;
+        config['aggregator_online'] = false;
+        config['name'] = topology['name'];
+        configByName[topology['name']] = config;
+        fileTopologyByName[topology['name']] = topology;
+        let topologyName = topology['name'];
+        fileSiteByName[topologyName] = {};
+        topology.sites.forEach((site) => {
+          fileSiteByName[topologyName][site.name] = site;
+        });
       });
+    } else {
+      console.error('No topologies found in config, failing!');
+      process.exit(1)
+    }
+
+    let refresh_interval = 5000;
+    if ('refresh_interval' in networkInstanceConfig) {
+      refresh_interval = networkInstanceConfig['refresh_interval'];
+    }
+    // start poll request interval
+    refreshIntervalTimer = setInterval(() =>
+      {
+        worker.send({
+          type: 'poll',
+          topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
+        });
+      }, refresh_interval);
+  });
+}
+// initial config load
+reloadInstanceConfig();
+app.post(/\/config\/save$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    if (!httpPostData.length) {
+      return;
+    }
+    let configData = JSON.parse(httpPostData);
+    if (configData && configData.topologies) {
+      configData.topologies.forEach(config => {
+        // if the topology file doesn't exist, write it
+        // TODO - sanitize file name (serious)
+        let topologyFile = NETWORK_CONFIG_NETWORKS_PATH + config.topology_file;
+        if (config.topology && !fs.existsSync(topologyFile)) {
+          console.log('Missing topology file for', config.topology.name,
+                      'writing to', topologyFile);
+          fs.writeFile(topologyFile, JSON.stringify(config.topology, null, 4), function(err) {
+            console.error('Unable to write topology file', topologyFile,
+                          'error:', err);
+          });
+        }
+        // ensure we don't write the e2e topology to the instance config
+        delete config['topology'];
+      });
+    }
+    
+    // update mysql time series db
+    let liveConfigFile = NETWORK_CONFIG_INSTANCES_PATH + networkConfig;
+    fs.writeFile(liveConfigFile, JSON.stringify(configData, null, 4), function(err) {
+      if (err) {
+        res.status(500).end("Unable to save");
+        console.log('Unable to save', err);
+        return;
+      }
+      res.status(200).end("Saved");
+      console.log('Saved instance config', networkConfig);
+      // reload it all
+      reloadInstanceConfig();
     });
-  }
-
-  let refresh_interval = 5000;
-  if ('refresh_interval' in networkInstanceConfig) {
-    refresh_interval = networkInstanceConfig['refresh_interval'];
-  }
-  // start poll request interval
-  setInterval(() =>
-    {
-      worker.send({
-        type: 'poll',
-        topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
-      });
-    }, refresh_interval);
+  });
 });
 app.use(/\/stats_writer$/i, function (req, res, next) {
   let httpPostData = '';
@@ -579,6 +657,22 @@ app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
     return;
   }
   res.status(404).end("No such topology\n");
+});
+app.use(/\/topology\/fetch\/(.+)$/i, function (req, res, next) {
+  let controllerIp = req.params[0];
+  const ctrlProxy = new syncWorker.ControllerProxy(controllerIp);
+  ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
+  ctrlProxy.on('event', (type, success, response_time, data) => {
+    switch (type) {
+      case Controller_ttypes.MessageType.GET_TOPOLOGY:
+        if (success) {
+          res.json(data.topology);
+        } else {
+          res.status(500).end();
+        }
+        break;
+    }
+  });
 });
 
 app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {

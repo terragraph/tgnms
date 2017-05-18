@@ -1,0 +1,429 @@
+{
+    "name": "indoor MPK 17 vine network",
+    "nodes": [
+        {
+            "name": "17-lab.p1",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:01:dd",
+            "pop_node": true,
+            "polarity": 1,
+            "golay_idx": {
+                "txGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                },
+                "rxGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                }
+            },
+            "status": 3,
+            "site_name": "lab1",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "17-lab.p4",
+            "node_type": 1,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:09:9c",
+            "pop_node": false,
+            "polarity": 2,
+            "golay_idx": {
+                "txGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                },
+                "rxGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                }
+            },
+            "status": 2,
+            "site_name": "lab2",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "17-lab.p2",
+            "node_type": 1,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:02:97",
+            "pop_node": false,
+            "polarity": 2,
+            "golay_idx": {
+                "txGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                },
+                "rxGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                }
+            },
+            "status": 2,
+            "site_name": "lab2",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "17-lab.p3",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:06:9a",
+            "pop_node": false,
+            "polarity": 1,
+            "golay_idx": {
+                "txGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                },
+                "rxGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                }
+            },
+            "status": 3,
+            "site_name": "lab1",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "17-lab.s1",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:05:27",
+            "pop_node": false,
+            "polarity": 2,
+            "golay_idx": {
+                "txGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                },
+                "rxGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                }
+            },
+            "status": 1,
+            "site_name": "lab2",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "17-lab.s2",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:08:c5",
+            "pop_node": false,
+            "polarity": 2,
+            "golay_idx": {
+                "txGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                },
+                "rxGolayIdx": {
+                    "buffer": {
+                        "type": "Buffer",
+                        "data": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    },
+                    "offset": 0
+                }
+            },
+            "status": 1,
+            "site_name": "lab2",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        }
+    ],
+    "links": [
+        {
+            "name": "link-17-lab.p1-17-lab.p4",
+            "a_node_name": "17-lab.p1",
+            "z_node_name": "17-lab.p4",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        2
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-17-lab.p1-17-lab.p3",
+            "a_node_name": "17-lab.p1",
+            "z_node_name": "17-lab.p3",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-17-lab.p1-17-lab.p2",
+            "a_node_name": "17-lab.p1",
+            "z_node_name": "17-lab.p2",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        2
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-17-lab.p2-17-lab.s1",
+            "a_node_name": "17-lab.p2",
+            "z_node_name": "17-lab.s1",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-17-lab.p4-17-lab.s2",
+            "a_node_name": "17-lab.p4",
+            "z_node_name": "17-lab.s2",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        }
+    ],
+    "sites": [
+        {
+            "name": "lab1",
+            "location": {
+                "latitude": 37.4848935,
+                "longitude": -122.1473555,
+                "altitude": -9.309,
+                "accuracy": 25.867946497547887
+            }
+        },
+        {
+            "name": "lab2",
+            "location": {
+                "latitude": 37.4848863,
+                "longitude": -122.1473793,
+                "altitude": 0,
+                "accuracy": 40000000
+            }
+        }
+    ]
+}

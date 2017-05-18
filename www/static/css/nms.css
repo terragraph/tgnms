@@ -112,3 +112,6 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-table tr {
   background: #fff;
 }
+.controller-status-icon {
+  float: right;
+}

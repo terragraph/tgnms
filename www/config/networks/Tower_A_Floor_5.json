@@ -1,0 +1,619 @@
+{
+    "name": "Tower A Floor 5",
+    "nodes": [
+        {
+            "name": "terra111.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:50:c2:c9:9e:0f",
+            "pop_node": true,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "11x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra114.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9f:40",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "11x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra121.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:50:c2:c9:9e:b4",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "12x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra123.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9f:46",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "12x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra211.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:50:c2:c9:9d:f1",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "21x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra212.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9e:d8",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "21x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra214.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9f:28",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "21x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra221.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:50:c2:c9:9d:6a",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "22x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra222.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9f:3e",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "22x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra223.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9f:20",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "22x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra312.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:50:c2:c9:9d:f4",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "31x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra314.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9f:2c",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "31x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra322.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:50:c2:c9:9d:73",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "32x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra323.f5.ta.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:c2:c9:9e:ea",
+            "pop_node": false,
+            "polarity": null,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "32x.f5.ta",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        }
+    ],
+    "links": [
+        {
+            "name": "link-terra111.f5.ta.a404-if-terra212.f5.ta.a404-if",
+            "a_node_name": "terra111.f5.ta.a404-if",
+            "z_node_name": "terra212.f5.ta.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra114.f5.ta.a404-if-terra123.f5.ta.a404-if",
+            "a_node_name": "terra114.f5.ta.a404-if",
+            "z_node_name": "terra123.f5.ta.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra121.f5.ta.a404-if-terra222.f5.ta.a404-if",
+            "a_node_name": "terra121.f5.ta.a404-if",
+            "z_node_name": "terra222.f5.ta.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra211.f5.ta.a404-if-terra312.f5.ta.a404-if",
+            "a_node_name": "terra211.f5.ta.a404-if",
+            "z_node_name": "terra312.f5.ta.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra214.f5.ta.a404-if-terra223.f5.ta.a404-if",
+            "a_node_name": "terra214.f5.ta.a404-if",
+            "z_node_name": "terra223.f5.ta.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra221.f5.ta.a404-if-terra322.f5.ta.a404-if",
+            "a_node_name": "terra221.f5.ta.a404-if",
+            "z_node_name": "terra322.f5.ta.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra314.f5.ta.a404-if-terra323.f5.ta.a404-if",
+            "a_node_name": "terra314.f5.ta.a404-if",
+            "z_node_name": "terra323.f5.ta.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra111.f5.ta.a404-if-terra114.f5.ta.a404-if",
+            "a_node_name": "terra111.f5.ta.a404-if",
+            "z_node_name": "terra114.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra121.f5.ta.a404-if-terra123.f5.ta.a404-if",
+            "a_node_name": "terra121.f5.ta.a404-if",
+            "z_node_name": "terra123.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra211.f5.ta.a404-if-terra212.f5.ta.a404-if",
+            "a_node_name": "terra211.f5.ta.a404-if",
+            "z_node_name": "terra212.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra211.f5.ta.a404-if-terra214.f5.ta.a404-if",
+            "a_node_name": "terra211.f5.ta.a404-if",
+            "z_node_name": "terra214.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra221.f5.ta.a404-if-terra222.f5.ta.a404-if",
+            "a_node_name": "terra221.f5.ta.a404-if",
+            "z_node_name": "terra222.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra221.f5.ta.a404-if-terra223.f5.ta.a404-if",
+            "a_node_name": "terra221.f5.ta.a404-if",
+            "z_node_name": "terra223.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra312.f5.ta.a404-if-terra314.f5.ta.a404-if",
+            "a_node_name": "terra312.f5.ta.a404-if",
+            "z_node_name": "terra314.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        },
+        {
+            "name": "link-terra322.f5.ta.a404-if-terra323.f5.ta.a404-if",
+            "a_node_name": "terra322.f5.ta.a404-if",
+            "z_node_name": "terra323.f5.ta.a404-if",
+            "link_type": 2,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        }
+    ],
+    "sites": [
+        {
+            "name": "31x.f5.ta",
+            "location": {
+                "latitude": 37.4847215,
+                "longitude": -122.1472362,
+                "altitude": 17.92,
+                "accuracy": 40000000
+            }
+        },
+        {
+            "name": "12x.f5.ta",
+            "location": {
+                "latitude": 37.4847215,
+                "longitude": -122.1472362,
+                "altitude": 17.92,
+                "accuracy": 40000000
+            }
+        },
+        {
+            "name": "22x.f5.ta",
+            "location": {
+                "latitude": 37.4847215,
+                "longitude": -122.1472362,
+                "altitude": 17.92,
+                "accuracy": 40000000
+            }
+        },
+        {
+            "name": "32x.f5.ta",
+            "location": {
+                "latitude": 37.4847215,
+                "longitude": -122.1472362,
+                "altitude": 17.92,
+                "accuracy": 40000000
+            }
+        },
+        {
+            "name": "21x.f5.ta",
+            "location": {
+                "latitude": 37.4847215,
+                "longitude": -122.1472362,
+                "altitude": 17.92,
+                "accuracy": 40000000
+            }
+        },
+        {
+            "name": "11x.f5.ta",
+            "location": {
+                "latitude": 37.4847215,
+                "longitude": -122.1472362,
+                "altitude": 17.92,
+                "accuracy": 40000000
+            }
+        }
+    ]
+}

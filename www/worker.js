@@ -482,3 +482,7 @@ class AggregatorProxy extends EventEmitter {
     transport.flush();
   }
 }
+module.exports = {
+  ControllerProxy: ControllerProxy,
+  AggregatorProxy: AggregatorProxy,
+};

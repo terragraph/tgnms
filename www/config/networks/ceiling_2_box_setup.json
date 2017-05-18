@@ -1,0 +1,79 @@
+{
+    "name": "ceiling 2 box setup",
+    "nodes": [
+        {
+            "name": "box1",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:0e:0e",
+            "pop_node": true,
+            "polarity": 2,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "A",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "box2",
+            "node_type": 1,
+            "is_primary": false,
+            "mac_addr": "38:3a:21:b0:0d:f0",
+            "pop_node": false,
+            "polarity": 1,
+            "golay_idx": null,
+            "status": 1,
+            "site_name": "B",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        }
+    ],
+    "links": [
+        {
+            "name": "link-box1-box2",
+            "a_node_name": "box1",
+            "z_node_name": "box2",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        2
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        }
+    ],
+    "sites": [
+        {
+            "name": "A",
+            "location": {
+                "latitude": 37.4854939,
+                "longitude": -122.1479997,
+                "altitude": -22.685,
+                "accuracy": 19.473257149229042
+            }
+        },
+        {
+            "name": "B",
+            "location": {
+                "latitude": 37.484946,
+                "longitude": -122.1475237,
+                "altitude": 3.87,
+                "accuracy": 40000000
+            }
+        }
+    ]
+}

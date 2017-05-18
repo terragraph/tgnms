@@ -1,0 +1,79 @@
+{
+    "name": "Link Topology",
+    "nodes": [
+        {
+            "name": "terra221.f3.tc.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:43:42:11:1a",
+            "pop_node": true,
+            "polarity": 2,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "A",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        },
+        {
+            "name": "terra222.f3.tc.a404-if",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:50:43:df:5e:8a",
+            "pop_node": false,
+            "polarity": 1,
+            "golay_idx": null,
+            "status": 3,
+            "site_name": "B",
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "has_cpe": null
+        }
+    ],
+    "links": [
+        {
+            "name": "link-terra221.f3.tc.a404-if-terra222.f3.tc.a404-if",
+            "a_node_name": "terra221.f3.tc.a404-if",
+            "z_node_name": "terra222.f3.tc.a404-if",
+            "link_type": 1,
+            "is_alive": true,
+            "linkup_attempts": {
+                "buffer": {
+                    "type": "Buffer",
+                    "data": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                "offset": 0
+            },
+            "golay_idx": null
+        }
+    ],
+    "sites": [
+        {
+            "name": "A",
+            "location": {
+                "latitude": 37.4849459,
+                "longitude": -122.1474098,
+                "altitude": 10.117,
+                "accuracy": 19.399267615041552
+            }
+        },
+        {
+            "name": "B",
+            "location": {
+                "latitude": 37.4848953,
+                "longitude": -122.1473844,
+                "altitude": -26.064,
+                "accuracy": 11.666396187340803
+            }
+        }
+    ]
+}
