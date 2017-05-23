@@ -8,6 +8,7 @@ import NetworkStore from './NetworkStore.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
+var FileSaver = require('file-saver');
 /**
  * Allow editing instance configuration, such as controller + aggregator IPs.
  *
@@ -27,6 +28,7 @@ export default class NetworkConfig extends React.Component {
 
   constructor(props) {
     super(props);
+    this.downloadTopology = this.downloadTopology.bind(this);
   }
 
   saveConfig() {
@@ -182,6 +184,25 @@ export default class NetworkConfig extends React.Component {
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
         {"" + cell}
       </span>);
+  }
+
+  downloadTopology(name, filename) {
+    let topoGetFetch = new Request('/topology/get/' +
+      name, {"credentials": "same-origin"});
+    fetch(topoGetFetch).then(function(response) {
+      if (response.status == 200) {
+        response.json().then(function(json) {
+          let str = JSON.stringify(json.topology, null, '\t');
+          var blob = new Blob([str], {type: "text/plain;charset=utf-8"});
+          FileSaver.saveAs(blob, filename);
+        }.bind(this));
+      }
+    }.bind(this));
+  }
+
+  renderActions(cell, row) {
+    return (
+      <div><span className="details-link" onClick={() => {this.downloadTopology(row.name, row.topology_file)}}>Download Topology</span></div>);
   }
 
   beforeSaveCell(row, cellName, cellValue) {
@@ -454,6 +475,11 @@ export default class NetworkConfig extends React.Component {
                            editable={false}
                            dataField="modified">
           Modified
+        </TableHeaderColumn>
+        <TableHeaderColumn width="120"
+                           dataFormat={this.renderActions.bind(this)}
+                           editable={false}>
+          Actions
         </TableHeaderColumn>
       </BootstrapTable>;
     return (
