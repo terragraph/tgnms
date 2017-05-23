@@ -590,8 +590,16 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function() {
+    // proxy query
+    let chartUrl = 'http://localhost:8899/query';
+    let httpData = JSON.parse(httpPostData);
+    let queryRequest = {queries: httpData};
+    request.post({url: chartUrl,
+                  body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
+      res.send(httpResponse.body).end();
+    });
     // push query
-    queryHelper.queryMulti(res, httpPostData, 'chart');
+    //queryHelper.queryMulti(res, httpPostData, 'chart');
   });
 });
 // metric lists

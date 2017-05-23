@@ -33,6 +33,18 @@ const TIME_PICKER_OPTS = [
     label: '6 Hours',
     minAgo: 60 * 6,
   },
+  {
+    label: '12 Hours',
+    minAgo: 60 * 12,
+  },
+  {
+    label: '1 Day',
+    minAgo: 60 * 24,
+  },
+  {
+    label: '3 Days',
+    minAgo: 60 * 24 * 3,
+  },
 ];
 
 const GRAPH_AGG_OPTS = [

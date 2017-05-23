@@ -18,6 +18,7 @@ const METRIC_KEY_NAMES = [
   'rssi',
   'mcs',
   'per',
+  'fw_uptime',
   'tx_power',
   'rx_bytes',
   'tx_bytes',
@@ -577,6 +578,19 @@ var self = {
               node: zNode,
               keyName: 'tgf.' + aNode.mac + '.staPkt.perE6',
               titleAppend: ' (Z)'
+            },
+          ]
+        };
+      case 'fw_uptime':
+        // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
+        return {
+          title: 'FW Uptime',
+          description: 'Mgmt Tx Keepalive Count',
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: 'tgf.' + zNode.mac + '.mgmtTx.keepAlive',
             },
           ]
         };
