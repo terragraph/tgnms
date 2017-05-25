@@ -11,6 +11,30 @@ UI to visualize the terragraph wireless network.
 Perform all instructions as the root user.
 ### Pre-requisites
 #### Check for IPv4-connectivity to the internet
+Try pinging an ipv4-only site such as github.com to verify connectivity.
+```
+ping www.github.com
+```
+If you are missing direct connectivity you can specify a proxy to git, npm, and wget for the installation instructions to succeed.
+##### Example proxy configs
+**~/.gitconfig**
+```
+[http]
+proxy = <PROXY_ADDRESS>
+
+[https]
+proxy = <PROXY_ADDRESS>
+```
+**~/.npmrc**
+```
+proxy=<PROXY_ADDRESS>
+https_proxy=<PROXY_ADDRESS>
+```
+**~/.wgetrc**
+```
+http_proxy=<PROXY_ADDRESS>
+https_proxy=<PROXY_ADDRESS>
+```
 #### Add the nms user
 ```
 useradd nms
