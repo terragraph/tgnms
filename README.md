@@ -28,7 +28,7 @@ proxy = <PROXY_ADDRESS>
 **~/.npmrc**
 ```
 proxy=<PROXY_ADDRESS>
-https_proxy=<PROXY_ADDRESS>
+https-proxy=<PROXY_ADDRESS>
 ```
 **~/.wgetrc**
 ```
@@ -45,6 +45,7 @@ yum -y install gcc-c++ git mariadb-server
 ```
 #### Install ZeroMQ
 [ZeroMQ download](http://zeromq.org/intro:get-the-software)
+Commands:
 ```
 pushd ~nms
 wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.gz
@@ -55,6 +56,7 @@ popd
 ```
 ### Install NodeJS
 [NodeJS instructions](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora)
+Commands:
 ```
 pushd ~nms
 curl --silent --location https://rpm.nodesource.com/setup_7.x | bash -
