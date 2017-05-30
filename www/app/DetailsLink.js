@@ -48,8 +48,14 @@ export default class DetailsLink extends React.Component {
     }.bind(this), 1);
   }
 
-  changeLinkStatus(upDown) {
+  changeLinkStatus(upDown, initiatorIsAnode) {
     let status = upDown ? "up" : "down";
+    let iNode = initiatorIsAnode ?
+                this.props.link.a_node_name :
+                this.props.link.z_node_name;
+    let rNode = initiatorIsAnode ?
+                this.props.link.z_node_name :
+                this.props.link.a_node_name;
     swal({
       title: "Are you sure?",
       text: "This will send a link " + status + " request to e2e-controller",
@@ -63,8 +69,8 @@ export default class DetailsLink extends React.Component {
       let promis = new Promise((resolve, reject) => {
         let exec = new Request(
           '/controller\/setlinkStatus/' + this.props.topologyName +
-            '/' + this.props.link.a_node_name +
-            '/' + this.props.link.z_node_name + '/' + status,
+            '/' + iNode +
+            '/' + rNode + '/' + status,
           {"credentials": "same-origin"});
         fetch(exec).then(function(response) {
           if (response.status == 200) {
@@ -202,8 +208,10 @@ export default class DetailsLink extends React.Component {
                 </tr>
                 <tr>
                   <td colSpan="3">
-                    <div><span className="details-link" onClick={() => {this.changeLinkStatus(true)}}>Send Link Up</span></div>
-                    <div><span className="details-link" onClick={() => {this.changeLinkStatus(false)}}>Send Link Down</span></div>
+                    <div>Send Link Up (pick initiator): <span className="details-link" onClick={() => {this.changeLinkStatus(true, true)}}>A-Node</span> &nbsp;&nbsp;
+                    <span className="details-link" onClick={() => {this.changeLinkStatus(true, false)}}>Z-Node</span></div>
+                    <div>Send Link Down (pick initiator): <span className="details-link" onClick={() => {this.changeLinkStatus(false, true)}}>A-Node</span> &nbsp;&nbsp;
+                    <span className="details-link" onClick={() => {this.changeLinkStatus(false, false)}}>Z-Node</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteLink(false)}}>Delete Link</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteLink(true)}}>Delete Link (Force)</span></div>
                   </td>
