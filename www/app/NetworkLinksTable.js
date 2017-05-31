@@ -258,13 +258,14 @@ export default class NetworkLinksTable extends React.Component {
       if (link.events && link.events.length > 0) {
         let startTime = this.state.networkHealth.start;
         let endTime = this.state.networkHealth.end;
-        eventChart =
+        // TODO - fix this up more before displaying
+/*        eventChart =
           <li key="eventsChart" style={{height: '75px'}}>
             <ReactEventChart events={link.events}
                              startTime={startTime}
                              endTime={endTime}
                              size="small" />
-          </li>;
+          </li>;*/
       }
     }
     return (

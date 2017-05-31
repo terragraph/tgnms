@@ -1,31 +1,5 @@
 // aggregate data points in buckets for easier grouping
 const AGG_BUCKET_SECONDS = 30;
-const KEY_WHITELIST = new Set([
-  'uptime',
-  'load-1', 'load-5', 'load-15',
-]);
-const KEY_WHITELIST_SUFFIX = new Set([
-  'srssi', 'spostSNRdB', 'ssnrEst'
-]);
-const KEY_WHITELIST_PREFIX = new Set([
-  'aquaman',
-  'decision',
-  'e2e_minion',
-  'e2e_controller',
-  'eth0',
-  'link',
-  'link_status',
-  'mem',
-  'mount',
-  'nic0',
-  'nic1',
-  'nic2',
-  'nss_fib',
-  'procs',
-  'spark',
-  'terra0',
-  'tgf',
-]);
 const DATA_FOLDER_PATH = '/home/nms/data/';
 const fs = require('fs');
 const mysql = require('mysql');
@@ -64,7 +38,6 @@ var self = {
   filenameToSourceId: {},
   timeBucketIds: {},
   nodeKeyIds: {},
-  droppedKeyNames: new Set(),
   nodeFilenameIds: {},
   nodeCategoryIds: {},
 
@@ -77,39 +50,6 @@ var self = {
       }
     });
 
-  },
-
-  timeAlloc: function() {
-    // pre allocate time buckets
-    let timeBuckets = [];
-    for (let i = 0; i <= 90; i+= 30) {
-      let nextAlloc = new Date(
-        Math.ceil((new Date().getTime() + i * 1000) / AGG_BUCKET_SECONDS / 1000)
-        * AGG_BUCKET_SECONDS * 1000);
-      timeBuckets.push([nextAlloc]);
-    }
-    // insert unique macs
-    pool.getConnection(function(err, conn) {
-      if (err) {
-        console.error('DB error', err);
-        return;
-      }
-      conn.query('INSERT IGNORE INTO `ts_time` (`time`) VALUES ?',
-        [timeBuckets],
-        function (err, rows) {
-          if (err) {
-            console.log('Error inserting new times', err);
-          }
-          conn.release();
-        }
-      );
-    });
-    // refresh time ids
-    self.refreshNodeKeyTimes();
-  },
-
-  scheduleTimeAlloc: function() {
-    setInterval(self.timeAlloc, AGG_BUCKET_SECONDS * 1000);
   },
 
   refreshNodes: function() {
@@ -148,25 +88,6 @@ var self = {
             }
             self.nodeKeyIds[row.node_id][row.key] = row.id;
           });
-        }
-      );
-      // dropped keys
-      conn.query('SELECT `key` FROM ts_key_dropped',
-        function(err, results) {
-          results.forEach(row => {
-            self.droppedKeyNames.add(row.key);
-          });
-        }
-      );
-      // only query the latest ~hour of time stamps
-      // anything older shouldn't be written anyways
-      conn.query('SELECT `id`, `time` FROM ts_time ' +
-                 'WHERE `time` > DATE_SUB(NOW(), INTERVAL 1 HOUR)',
-        function(err, results) {
-          results.forEach(row => {
-            self.timeBucketIds[row.time] = row.id;
-          });
-          conn.release();
         }
       );
     });
@@ -277,32 +198,6 @@ var self = {
   },
 
   /*
-   * Accepts a list of keys that we've dropped
-   */
-  updateDroppedKeys: function(keyNames) {
-    if (!keyNames.length) {
-      return;
-    }
-    // insert node/key combos
-    pool.getConnection(function(err, conn) {
-      if (err) {
-        console.error('DB error', err);
-        return;
-      }
-      let sqlQuery = conn.query('INSERT IGNORE INTO `ts_key_dropped` (`key`) VALUES ?',
-        [keyNames.map(keyName => [keyName])],
-        function (err, rows) {
-          if (err) {
-            console.log('Error inserting new dropped keys', err);
-          }
-          conn.release();
-        }
-      );
-    });
-    self.refreshNodeKeyTimes();
-  },
-
-  /*
    * Accepts a list of <node, category> to generate new ids
    */
   updateNodeCategories: function(NodeCategories) {
@@ -362,14 +257,11 @@ var self = {
 
   writeData: function(postData) {
     let data = JSON.parse(postData);
-    // agents, topology
-    let rows = [];
     // beringei data
     let bRows = [];
     let unknownNodes = {};
     let nodesToUpdate = {};
     let missingNodeKey = new Set();
-    let droppedKeys = new Set();
     let badTime = 0;
     let topologyName = data.topology? data.topology.name : "";
 
@@ -391,42 +283,16 @@ var self = {
 
       agent.stats.forEach(stat => {
         // check key
-        let keyNameSplit = stat.key.split(".");
-        if (!KEY_WHITELIST.has(stat.key) &&
-            (keyNameSplit.length != 4 ||
-             !KEY_WHITELIST_SUFFIX.has(keyNameSplit[3])) &&
-            (keyNameSplit.length <= 1 ||
-             !KEY_WHITELIST_PREFIX.has(keyNameSplit[0]))) {
-          // log dropped keys
-          if (!self.droppedKeyNames.has(stat.key) &&
-              !droppedKeys.has(stat.key)) {
-            droppedKeys.add(stat.key);
-          }
-          return;
-        }
-
         let tsParsed = self.timeCalc(stat.ts);
         if (!tsParsed) {
           badTime++;
           console.log('bad time', stat);
           return;
         }
-        // verify time id exists
-        if (!(tsParsed in self.timeBucketIds)) {
-          console.log('Time slot not found', tsParsed, 'in',
-                      self.timeBucketIds.length, 'buckets');
-          return;
-        }
-        let timeId = self.timeBucketIds[tsParsed];
         // verify node/key combo exists
         if (nodeId in self.nodeKeyIds &&
             stat.key in self.nodeKeyIds[nodeId]) {
-          // found node/key id for insert
-          let row = [timeId,
-                     self.nodeKeyIds[nodeId][stat.key],
-                     stat.value];
-          rows.push(row);
-          // beringei
+          // insert row for beringei
           let bKey = new beringeiTypes.Key();
           bKey.key = "" + self.nodeKeyIds[nodeId][stat.key];
           let bRow = new beringeiTypes.DataPoint();
@@ -434,7 +300,6 @@ var self = {
           let timePair = new beringeiTypes.TimeValuePair();
           timePair.unixTime = tsParsed.getTime() / 1000;
           timePair.value = stat.value;
-          //console.log('key', self.nodeKeyIds[nodeId][stat.key], 'time', tsParsed.getTime() / 1000, 'value', stat.value);
           bRow.value = timePair;
           bRows.push(bRow);
         } else {
@@ -449,39 +314,8 @@ var self = {
     self.updateNodes(nodesToUpdate);
     // write newly found node/key combos
     self.updateNodeKeys(Array.from(missingNodeKey));
-    // keep track of keys we're dropping
-    self.updateDroppedKeys(Array.from(droppedKeys));
     // insert rows
-    let insertRows = function(tableName, rows, remain) {
-      pool.getConnection(function(err, conn) {
-        if (err) {
-          console.error('DB error', err);
-          return;
-        }
-        conn.query('INSERT INTO ' + tableName +
-                   '(`time_id`, `key_id`, `value`) VALUES ?',
-                   [rows],
-          function(err, result) {
-            if (err) {
-              console.log('Some error', err);
-            }
-            conn.release();
-          }
-        );
-      });
-      console.log("Inserted", rows.length, "rows into", tableName,
-                  remain, "remaining");
-    };
-    if (rows.length) {
-      let bucketSize = 10000;
-      let remainRows = rows;
-      while (remainRows.length > bucketSize) {
-        // slice rows into buckets of 10k rows
-        let sliceRows = remainRows.slice(0, bucketSize);
-        insertRows('ts_value', sliceRows, remainRows.length);
-        remainRows = remainRows.splice(bucketSize);
-      }
-      insertRows('ts_value', remainRows, 0);
+    if (bRows.length) {
       // insert into beringei
       let beringeiPutReq = new beringeiTypes.PutDataRequest();
       beringeiPutReq.data = bRows;

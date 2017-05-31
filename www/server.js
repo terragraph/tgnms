@@ -16,27 +16,6 @@ const webpackHotMiddleware = require('webpack-hot-middleware');
 const config = require('./webpack.config.js');
 const isDeveloping = process.env.NODE_ENV !== 'production';
 const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
-// beringei_data.GetDataResult getData(1: beringei_data.GetDataRequest req),
-// let now = new Date().getTime() / 1000;
-// get last 10 minutes
-/*let getReq = new beringeiDTypes.GetDataRequest();
-getReq.keys = [key];
-getReq.begin1 = now - 600;
-getReq.end1 = now + 30;
-let getRes = beringeiClient.getData(getReq, (err, resp) => {
-  if (err) {
-    console.log('get err', err);
-  }
-  resp.results.forEach((res) => {
-    console.log('---------------');
-    console.log('Status Code:', res.status);
-    res.data.forEach((data) => {
-      console.log("\t", data);
-    });
-  });
-});
-*/
-// END testing
 // thrift types from controller
 const Topology_ttypes = require('./thrift/gen-nodejs/Topology_types');
 const Controller_ttypes = require('./thrift/gen-nodejs/Controller_types');
@@ -66,8 +45,6 @@ const dataJson = require('./dataJson');
 dataJson.init();
 dataJson.refreshNodes();
 dataJson.refreshNodeCategories();
-dataJson.timeAlloc();
-dataJson.scheduleTimeAlloc();
 const aggregatorProxy = require('./aggregatorProxy');
 const ipaddr = require('ipaddr.js');
 const expressWs = require('express-ws')(app);
@@ -580,7 +557,6 @@ app.post(/\/event\/?$/i, function (req, res, next) {
   req.on('end', function() {
     // push query
     let httpData = JSON.parse(httpPostData)[0];
-    console.log('calling fetchlinkkeyids(', httpData.a_node, ',', httpData.z_node, ')');
     let keyIds = queryHelper.fetchLinkKeyIds('fw_uptime', httpData.a_node, httpData.z_node);
     if (!keyIds.length) {
       // key not found
@@ -623,8 +599,6 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
                   body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
       res.send(httpResponse.body).end();
     });
-    // push query (old)
-    // queryHelper.queryMulti(res, httpPostData, 'chart');
   });
 });
 // metric lists
@@ -650,7 +624,6 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
     return;
   }
   let queries = queryHelper.makeTableQuery(res, topology);
-  console.log(queries);
   let chartUrl = 'http://localhost:8899/query';
   let queryRequest = {queries: queries};
   request.post({url: chartUrl,
