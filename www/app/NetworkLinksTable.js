@@ -16,7 +16,7 @@ export default class NetworkLinksTable extends React.Component {
   state = {
     sortName: undefined,
     sortOrder: undefined,
-    selectedLink: null,
+    selectedLink: NetworkStore.selectedName,
     networkHealth: NetworkStore.networkHealth,
     hideWired: false,
     toplink: null,
@@ -35,13 +35,6 @@ export default class NetworkLinksTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    // show initial selected link
-    if (NetworkStore.selectedName &&
-        NetworkStore.selectedName in this.linksByName) {
-      this.setState({
-        selectedLink: this.linksByName[NetworkStore.selectedName],
-      });
-    }
   }
 
   componentWillUnmount() {
@@ -82,24 +75,9 @@ export default class NetworkLinksTable extends React.Component {
           sortName: payload.source == "table" ? this.state.sortName : "name",
           sortOrder: payload.source == "table" ? this.state.sortOrder : "asc",
           topLink: payload.source == "table" ? this.state.topLink : payload.link,
-          selectedLink: payload.link,
+          selectedLink: payload.link.name,
           linkRequestButtonEnabled: true,
         });
-        break;
-      case Actions.TOPOLOGY_REFRESHED:
-        if (this.state.selectedLink) {
-          // check if we need to update selected link
-          payload.networkConfig.topology.links.forEach(link => {
-            if (link.name == this.state.selectedLink.name) {
-              // compare objects
-              if (!equals(link, this.state.selectedLink)) {
-                this.setState({
-                  selectedLink: link,
-                });
-              }
-            }
-          });
-        }
         break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
@@ -219,7 +197,7 @@ export default class NetworkLinksTable extends React.Component {
       hideSelectColumn: true,
       bgColor: "rgb(183,210,255)",
       onSelect: this.tableOnRowSelect,
-      selected: this.state.selectedLink ? [this.state.selectedLink.name] : [],
+      selected: this.state.selectedLink ? [this.state.selectedLink] : [],
     };
     const tableOpts = {
       sortName: this.state.sortName,
@@ -275,26 +253,14 @@ export default class NetworkLinksTable extends React.Component {
         </TableHeaderColumn>
       </BootstrapTable>;
     let eventChart;
-    if (this.state.selectedLink &&
-        this.state.selectedLink.a_node_name in this.nodesByName &&
-        this.state.selectedLink.z_node_name in this.nodesByName) {
-      // chart options
-      let aNode = this.nodesByName[this.state.selectedLink.a_node_name];
-      let zNode = this.nodesByName[this.state.selectedLink.z_node_name];
-      let opts = [{
-        type: 'link',
-        a_node: {name: aNode.name, mac: aNode.mac_addr},
-        z_node: {name: zNode.name, mac: zNode.mac_addr},
-        keys: ['link_status'],
-      }];
-      let link = this.linksByName[this.state.selectedLink.name];
+    if (this.state.selectedLink) {
+      let link = this.linksByName[this.state.selectedLink];
       if (link.events && link.events.length > 0) {
         let startTime = this.state.networkHealth.start;
         let endTime = this.state.networkHealth.end;
         eventChart =
           <li key="eventsChart" style={{height: '75px'}}>
-            <ReactEventChart options={opts}
-                             events={link.events}
+            <ReactEventChart events={link.events}
                              startTime={startTime}
                              endTime={endTime}
                              size="small" />

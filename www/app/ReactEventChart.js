@@ -45,13 +45,11 @@ export default class ReactEventChart extends React.Component {
     if (this.props.events.length == 0 || this.props.events[0].length == 0) {
       return (<div>No link data available</div>);
     }
-    let opts = this.props.options;
     let chartRows = [];
     // initial processing of time series, maybe handle
     // SUM vs. individual graphs here?
     let reqIdx = 0;
     let timeRange = new TimeRange(this.props.startTime, this.props.endTime);
-    console.log('time range', timeRange);
     let width = 450;
     let height = 250;
     // reduce legend selectors
@@ -98,6 +96,5 @@ ReactEventChart.propTypes = {
   startTime: React.PropTypes.number.isRequired,
   endTime: React.PropTypes.number.isRequired,
   size: React.PropTypes.string.isRequired,
-  options: React.PropTypes.array.isRequired,
   events: React.PropTypes.array.isRequired,
 };
