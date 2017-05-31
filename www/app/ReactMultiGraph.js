@@ -65,6 +65,10 @@ export default class ReactMultiGraph extends React.Component {
     }
     if (changed) {
       this.cancelAsyncRequests();
+      this.setState({
+        data: [],
+        indicator: 'LOAD',
+      });
       this.timer = setInterval(this.refreshData.bind(this), 10000);
       this.refreshData();
     }
@@ -285,6 +289,9 @@ export default class ReactMultiGraph extends React.Component {
           break;
         case 'FAILED':
           indicatorImg = "/static/images/cancel-file.png";
+          break;
+        case 'LOAD':
+          indicatorImg = "/static/images/loading-graphs.gif";
           break;
         default:
           if (!chartRows.length) {

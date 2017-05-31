@@ -278,6 +278,7 @@ export default class NetworkStats extends React.Component {
       }
     });
     let uniqMetricNames = {};
+    let priorityMetricNames = {};
     // iterate all options/keys
     Object.keys(siteMetrics).forEach(siteName => {
       if (siteNames.length &&
@@ -295,9 +296,6 @@ export default class NetworkStats extends React.Component {
             return;
           }
           let newKey = metric.displayName ? metric.displayName : metricName;
-          if (!(newKey in uniqMetricNames)) {
-            uniqMetricNames[newKey] = [];
-          }
           // TODO - fix this plz..
           let rowData = {
             key: newKey,
@@ -310,12 +308,29 @@ export default class NetworkStats extends React.Component {
             title: metric.title,
             description: metric.description,
           };
-          uniqMetricNames[newKey].push(rowData);
+          if (metric.displayName) {
+            if (!(newKey in priorityMetricNames)) {
+              priorityMetricNames[newKey] = [];
+            }
+            priorityMetricNames[newKey].push(rowData);
+          } else {
+            if (!(newKey in uniqMetricNames)) {
+              uniqMetricNames[newKey] = [];
+            }
+            uniqMetricNames[newKey].push(rowData);
+          }
         });
       });
       // add one entry for each metric name (or full key name)
     });
     let keyOptions = [];
+    Object.keys(priorityMetricNames).forEach(metricName => {
+      let metrics = priorityMetricNames[metricName];
+      keyOptions.push({
+        name: metricName,
+        data: metrics,
+      });
+    });
     Object.keys(uniqMetricNames).forEach(metricName => {
       let metrics = uniqMetricNames[metricName];
       keyOptions.push({

@@ -198,7 +198,6 @@ export default class NetworkUI extends React.Component {
   }
 
   handleMenuBarSelect(info) {
-    console.log('menu item', info);
     if (info.key.indexOf('#') > -1) {
       let keySplit = info.key.split('#');
       switch (keySplit[0]) {

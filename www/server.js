@@ -579,7 +579,32 @@ app.post(/\/event\/?$/i, function (req, res, next) {
   });
   req.on('end', function() {
     // push query
-    queryHelper.queryMulti(res, httpPostData, 'event');
+    let httpData = JSON.parse(httpPostData)[0];
+    console.log('calling fetchlinkkeyids(', httpData.a_node, ',', httpData.z_node, ')');
+    let keyIds = queryHelper.fetchLinkKeyIds('fw_uptime', httpData.a_node, httpData.z_node);
+    if (!keyIds.length) {
+      // key not found
+      res.status(500).send("Key not found").end();
+      return;
+    }
+    let eventQuery = {
+      type: "event",
+      key_ids: keyIds,
+      data: [{keyId: keyIds[0], key: "fw_uptime"}],
+      min_ago: 24 * 60,
+      agg_type: "event",
+    };
+    let chartUrl = 'http://localhost:8899/query';
+    let queryRequest = {queries: [eventQuery]};
+    request.post({url: chartUrl,
+                  body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
+      if (err) {
+        console.error("Error fetching from beringei:", err);
+        res.status(500).send("Error fetching data").end();
+        return;
+      }
+      res.send(httpResponse.body).end();
+    });
   });
 });
 
@@ -598,8 +623,8 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
                   body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
       res.send(httpResponse.body).end();
     });
-    // push query
-    //queryHelper.queryMulti(res, httpPostData, 'chart');
+    // push query (old)
+    // queryHelper.queryMulti(res, httpPostData, 'chart');
   });
 });
 // metric lists
@@ -624,7 +649,19 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
     res.status(500).send('No topology data for: ' + topologyName);
     return;
   }
-  queryHelper.makeTableQuery(res, topology);
+  let queries = queryHelper.makeTableQuery(res, topology);
+  console.log(queries);
+  let chartUrl = 'http://localhost:8899/query';
+  let queryRequest = {queries: queries};
+  request.post({url: chartUrl,
+                body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
+    if (err) {
+      console.error("Error fetching from beringei:", err);
+      res.status(500).send("Error fetching data").end();
+      return;
+    }
+    res.send(httpResponse.body).end();
+  });
 });
 
 // proxy requests for OSM to a v6 endpoint

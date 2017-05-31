@@ -17,7 +17,7 @@ export default class NetworkLinksTable extends React.Component {
     sortName: undefined,
     sortOrder: undefined,
     selectedLink: null,
-    networkHealth: {},
+    networkHealth: NetworkStore.networkHealth,
     hideWired: false,
     toplink: null,
     // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
@@ -35,12 +35,6 @@ export default class NetworkLinksTable extends React.Component {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
-    // update node + link mappings
-    this.updateMappings(this.props.topology);
-    // initial health data
-    this.setState({
-      networkHealth: NetworkStore.networkHealth,
-    });
     // show initial selected link
     if (NetworkStore.selectedName &&
         NetworkStore.selectedName in this.linksByName) {
@@ -48,11 +42,6 @@ export default class NetworkLinksTable extends React.Component {
         selectedLink: this.linksByName[NetworkStore.selectedName],
       });
     }
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    // index nodes + links
-    this.updateMappings(nextProps.topology);
   }
 
   componentWillUnmount() {
@@ -66,12 +55,10 @@ export default class NetworkLinksTable extends React.Component {
       topology.links.forEach(link => {
         if (this.state.networkHealth &&
             this.state.networkHealth.links &&
-            link.a_node_name in this.state.networkHealth.links &&
-            link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
-          let nodeHealth = this.state.networkHealth.links[link.a_node_name]
-                                                         [link.z_node_name];
+            link.name in this.state.networkHealth.links) {
+          let nodeHealth = this.state.networkHealth.links[link.name];
           link.alive_perc = nodeHealth.alive;
-          link.snr_health_perc = nodeHealth.snr;
+          link.events = nodeHealth.events;
         }
         this.linksByName[link.name] = link;
       });
@@ -178,7 +165,6 @@ export default class NetworkLinksTable extends React.Component {
         alive: link.is_alive,
         type: link.link_type == 1 ? 'Wireless' : 'Wired',
         alive_perc: link.alive_perc,
-        snr_health_perc: link.snr_health_perc,
         linkup_attempts: linkupAttempts,
       });
     });
@@ -193,6 +179,30 @@ export default class NetworkLinksTable extends React.Component {
     });
   }
 
+  renderAlivePerc(cell, row) {
+    let cellColor = 'red';
+    let cellText = '-';
+    if (row.type == "Wired") {
+      // color wired links as unavailable
+      cellColor = 'grey';
+      cellText = 'X';
+    } else if (cell) {
+      cellText = Math.round(cell * 100) / 100;
+      if (cellText >= 99.99) {
+        cellColor = 'green';
+      } else if (cellText >= 99) {
+        cellColor = 'yellowgreen';
+      } else {
+        cellColor = 'red';
+      }
+    }
+    return (
+      <span style={{color: cellColor}}>
+        {"" + cellText}
+      </span>
+    );
+  }
+
   renderStatusColor(cell, row) {
     return (
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
@@ -201,6 +211,8 @@ export default class NetworkLinksTable extends React.Component {
   }
 
   render() {
+    // update topology to health mappings
+    this.updateMappings(this.props.topology);
     var linksSelectRowProp = {
       mode: "radio",
       clickToSelect: true,
@@ -249,13 +261,9 @@ export default class NetworkLinksTable extends React.Component {
         </TableHeaderColumn>
         <TableHeaderColumn width="140"
                            dataSort={true}
-                           dataField="alive_perc">
+                           dataField="alive_perc"
+                           dataFormat={this.renderAlivePerc}>
           Uptime (24 hours)
-        </TableHeaderColumn>
-        <TableHeaderColumn width="100"
-                           dataSort={true}
-                           dataField="snr_health_perc">
-          SNR %
         </TableHeaderColumn>
         <TableHeaderColumn dataSort={true}
                            dataField="type">
@@ -279,10 +287,19 @@ export default class NetworkLinksTable extends React.Component {
         z_node: {name: zNode.name, mac: zNode.mac_addr},
         keys: ['link_status'],
       }];
-      eventChart =
-        <li key="eventsChart" style={{height: '75px'}}>
-          <ReactEventChart options={opts} size="small" />
-        </li>;
+      let link = this.linksByName[this.state.selectedLink.name];
+      if (link.events && link.events.length > 0) {
+        let startTime = this.state.networkHealth.start;
+        let endTime = this.state.networkHealth.end;
+        eventChart =
+          <li key="eventsChart" style={{height: '75px'}}>
+            <ReactEventChart options={opts}
+                             events={link.events}
+                             startTime={startTime}
+                             endTime={endTime}
+                             size="small" />
+          </li>;
+      }
     }
     return (
       <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
