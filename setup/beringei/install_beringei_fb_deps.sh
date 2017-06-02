@@ -29,12 +29,12 @@ wget -O /tmp/proxygen-${FB_VERSION}.tar.gz https://github.com/facebook/proxygen/
 wget -O /tmp/mstch-master.tar.gz https://github.com/no1msd/mstch/archive/master.tar.gz
 wget -O /tmp/zstd-${ZSTD_VERSION}.tar.gz https://github.com/facebook/zstd/archive/v${ZSTD_VERSION}.tar.gz
 
-tar xzvf folly-${FB_VERSION}.tar.gz
-tar xzvf wangle-${FB_VERSION}.tar.gz
-tar xzvf fbthrift-${FB_VERSION}.tar.gz
-tar xzvf proxygen-${FB_VERSION}.tar.gz
-tar xzvf mstch-master.tar.gz
-tar xzvf zstd-${ZSTD_VERSION}.tar.gz
+tar xzf folly-${FB_VERSION}.tar.gz
+tar xzf wangle-${FB_VERSION}.tar.gz
+tar xzf fbthrift-${FB_VERSION}.tar.gz
+tar xzf proxygen-${FB_VERSION}.tar.gz
+tar xzf mstch-master.tar.gz
+tar xzf zstd-${ZSTD_VERSION}.tar.gz
 
 pushd mstch-master
 cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/local/facebook-${FB_VERSION} .
