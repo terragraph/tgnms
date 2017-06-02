@@ -1,6 +1,9 @@
 # Terragraph NMS
 UI to visualize the terragraph wireless network.
 
+## HW Recommendation
+**Stats storage/processing has been changing recently so we do not have a firm guideline for HW sizing. The more memory we have, the longer we can configure to keep stats data available. We plan to have recommendations for specific time periods and sector counts**
+
 ## Prerequisites
 1. **CentOS 7**. We tailored the instructions to this distribution. If you use another distribution you should be very familiar with it.
 2. **IPv4 connectivity to the internet**. The UI code is stored on github, which is IPv4-only. NPM (NodeJS Package Manager) is used to install the dependent packages, which is also IPv4-only. If you don't have direct connectivity you'll need to configure your gitconfig, npmconfig, and wgetrc to specify the proxy.
@@ -100,6 +103,18 @@ Once the instance config is ready you must tell the UI which instance you want t
 ```
 echo 'export NETWORK="example_networks"' > /etc/sysconfig/nms
 ```
+
+### Build Beringei (stats daemon)
+Beringei is a Facebook open sourced project that is extremely efficient at storing a large amount of stats in memory. We write all stats data to beringei, storing the 30-second interval data for 7 days. MySQL is used to store the node to key mappings and beringei is only aware of the key id from MySQL.
+**Beringei requires many FB open sourced projects which require newer versions of system packages, this requires us to compile a large amount of packages for CentOS 7**
+``
+pushd setup/beringei/
+./dev_env.sh
+./install_beringei_system_deps.sh
+./install_beringei_fb_deps.sh
+./build_beringei_reader.sh
+popd
+``
 
 ### Enable and Start systemd services
 Run these commands to enable the two primary services - nms_prod and nms_mysql_writer
