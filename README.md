@@ -45,6 +45,8 @@ useradd nms
 #### Dependencies
 ```
 yum -y install gcc-c++ git mariadb-server
+systemctl start mariadb
+systemctl enable mariadb
 ```
 #### Install ZeroMQ
 [ZeroMQ download](http://zeromq.org/intro:get-the-software)
@@ -63,6 +65,7 @@ Commands:
 ```
 pushd ~nms
 curl --silent --location https://rpm.nodesource.com/setup_7.x | bash -
+yum -y install nodejs
 popd
 ```
 ### NMS UI setup
@@ -107,14 +110,14 @@ echo 'export NETWORK="example_networks"' > /etc/sysconfig/nms
 ### Build Beringei (stats daemon)
 Beringei is a Facebook open sourced project that is extremely efficient at storing a large amount of stats in memory. We write all stats data to beringei, storing the 30-second interval data for 7 days. MySQL is used to store the node to key mappings and beringei is only aware of the key id from MySQL.
 **Beringei requires many FB open sourced projects which require newer versions of system packages, this requires us to compile a large amount of packages for CentOS 7**
-``
+```
 pushd setup/beringei/
 ./dev_env.sh
 ./install_beringei_system_deps.sh
 ./install_beringei_fb_deps.sh
 ./build_beringei_reader.sh
 popd
-``
+```
 
 ### Enable and Start systemd services
 Run these commands to enable the two primary services - nms_prod and nms_mysql_writer
