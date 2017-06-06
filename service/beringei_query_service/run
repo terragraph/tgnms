@@ -1,0 +1,21 @@
+#!/bin/bash
+# default beringei options, override in $CONFIG
+BERINGEI_CONFIG="/home/nms/beringei/config.json"
+BERINGEI_QUERY_PORT=8899
+BERINGEI_QUERY_HOST="::"
+BERINGEI_QUERY_THREADS=1
+BERINGEI_EXEC_PATH="/home/nms/tgnms/setup/beringei/beringei/build"
+
+CONFIG="/etc/sysconfig/nms"
+[ -f "$CONFIG" ] && source "$CONFIG"
+
+if [ ! -d "$BERINGEI_EXEC_PATH" ]; then
+	echo "Beringei exec path doesn't exist: $BERINGEI_EXEC_PATH"
+	exit 1
+fi
+${BERINGEI_EXEC_PATH}/beringei/tools/query_service/beringei_query_service \
+	-beringei_configuration_path $BERINGEI_CONFIG \
+	-http_port $BERINGEI_QUERY_PORT \
+	-ip $BERINGEI_QUERY_HOST \
+	-threads $BERINGEI_QUERY_THREADS \
+	-logtostderr 2>&1

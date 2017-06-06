@@ -1,0 +1,35 @@
+#!/bin/bash
+# default beringei options, override in $CONFIG
+BERINGEI_CONFIG="/home/nms/beringei/config.json"
+BERINGEI_BUCKET_SIZE=7200
+BERINGEI_BUCKETS=84
+BERINGEI_FINALIZE_SECONDS=120
+BERINGEI_TIMESTAMP_BEHIND=300
+BERINGEI_EXEC_PATH="/home/nms/tgnms/setup/beringei/beringei/build"
+
+CONFIG="/etc/sysconfig/nms"
+[ -f "$CONFIG" ] && source "$CONFIG"
+
+if [ ! -d "$BERINGEI_EXEC_PATH" ]; then
+	echo "Beringei exec path doesn't exist: $BERINGEI_EXEC_PATH"
+	exit 1
+fi
+
+if [ ! -f "$BERINGEI_CONFIG" ]; then
+	# create path
+	mkdir -p $(dirname $BERINGEI_CONFIG)
+	# generate default config
+	${BERINGEI_EXEC_PATH}/beringei/tools/beringei_configuration_generator \
+		--host_names $(hostname) \
+		--file_path $BERINGEI_CONFIG
+
+fi
+
+${BERINGEI_EXEC_PATH}/beringei/service/beringei_main \
+	-beringei_configuration_path $BERINGEI_CONFIG \
+	-create_directories \
+	-sleep_between_bucket_finalization_secs $BERINGEI_FINALIZE_SECONDS \
+	-allowed_timestamp_behind $BERINGEI_TIMESTAMP_BEHIND \
+	-bucket_size $BERINGEI_BUCKET_SIZE \
+	-buckets $BERINGEI_BUCKETS \
+	-logtostderr 2>&1

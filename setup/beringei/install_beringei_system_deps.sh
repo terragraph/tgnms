@@ -10,7 +10,7 @@ if [ ! -f "Python-2.7.13.tgz" ]; then
 	tar -xf Python-2.7.13.tgz
 fi
 pushd Python-2.7.13
-./configure --enable-shared &&  make && make altinstall
+./configure --enable-shared && make && make altinstall
 popd
 # autoconf + archive
 if [ ! -f "autoconf-2.69.tar.xz" ]; then
@@ -18,14 +18,14 @@ if [ ! -f "autoconf-2.69.tar.xz" ]; then
 	tar -xf autoconf-2.69.tar.xz
 fi
 pushd autoconf-2.69
-./configure && make && make install
+./configure --prefix=/usr && make && make install
 popd
 if [ ! -f "autoconf-archive-2017.03.21.tar.xz" ]; then
 	wget http://mirror.easthsia.com/gnu/autoconf-archive/autoconf-archive-2017.03.21.tar.xz
 	tar -xf autoconf-archive-2017.03.21.tar.xz
 fi
 pushd autoconf-archive-2017.03.21
-./configure && make && make install
+./configure --prefix=/usr && make && make install
 # more recent version of boost
 if [ ! -f "boost_1_64_0.tar.gz" ]; then
 	wget "https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz"

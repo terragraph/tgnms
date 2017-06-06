@@ -1,0 +1,12 @@
+[Unit]
+Description= Production Beringei Stats Writer
+           
+[Service]
+Type=simple
+User=root
+ExecStart=/home/nms/tgnms/service/beringei_stats_writer/run
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=default.target
