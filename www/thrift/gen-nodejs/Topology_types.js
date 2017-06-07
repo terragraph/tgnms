@@ -488,6 +488,7 @@ Link = module.exports.Link = function(args) {
   this.is_alive = null;
   this.linkup_attempts = null;
   this.golay_idx = null;
+  this.control_superframe = null;
   if (args) {
     if (args.name !== undefined) {
       this.name = args.name;
@@ -509,6 +510,9 @@ Link = module.exports.Link = function(args) {
     }
     if (args.golay_idx !== undefined) {
       this.golay_idx = args.golay_idx;
+    }
+    if (args.control_superframe !== undefined) {
+      this.control_superframe = args.control_superframe;
     }
   }
 };
@@ -576,6 +580,13 @@ Link.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 8:
+      if (ftype == Thrift.Type.I64) {
+        this.control_superframe = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -620,6 +631,11 @@ Link.prototype.write = function(output) {
   if (this.golay_idx !== null && this.golay_idx !== undefined) {
     output.writeFieldBegin('golay_idx', Thrift.Type.STRUCT, 7);
     this.golay_idx.write(output);
+    output.writeFieldEnd();
+  }
+  if (this.control_superframe !== null && this.control_superframe !== undefined) {
+    output.writeFieldBegin('control_superframe', Thrift.Type.I64, 8);
+    output.writeI64(this.control_superframe);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

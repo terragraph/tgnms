@@ -79,6 +79,7 @@ const command2MsgType = {
   'addSite': Controller_ttypes.MessageType.ADD_SITE,
   'delSite': Controller_ttypes.MessageType.DEL_SITE,
   'rebootNode': Controller_ttypes.MessageType.REBOOT_NODE,
+  'setMac': Controller_ttypes.MessageType.SET_NODE_MAC,
 };
 
 var msgType2Params = {};
@@ -92,7 +93,7 @@ msgType2Params[Controller_ttypes.MessageType.DEL_NODE] = {'recvApp': 'ctrl-app-T
 msgType2Params[Controller_ttypes.MessageType.ADD_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {'recvApp': 'minion-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
-
+msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 
 const sendCtrlMsgSync = (msg, minion, res) => {
   if (!msg.type) {
@@ -195,6 +196,14 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       rebootNode.write(tProtocol);
       transport.flush();
       break;
+    case 'setMac':
+      var setNodeMacReq = new Controller_ttypes.SetNodeMac();
+      setNodeMacReq.nodeName = msg.node;
+      setNodeMacReq.nodeMac = msg.mac;
+      setNodeMacReq.force = msg.force;
+      setNodeMacReq.write(tProtocol);
+      transport.flush();
+      break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
       res.status(500).send("FAIL");
@@ -285,6 +294,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_NODE:
             case Controller_ttypes.MessageType.DEL_SITE:
             case Controller_ttypes.MessageType.REBOOT_NODE:
+            case Controller_ttypes.MessageType.SET_NODE_MAC:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {

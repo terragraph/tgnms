@@ -215,7 +215,7 @@ function reloadInstanceConfig() {
   configByName = {};
   fileTopologyByName = {};
   fileSiteByName = {};
-  
+
   // Read list of networks and start timer to pull network status/topology
   fs.readFile(NETWORK_CONFIG_INSTANCES_PATH + networkConfig, 'utf-8', (err, data) => {
     // unable to open file, exit
@@ -291,7 +291,7 @@ app.post(/\/config\/save$/i, function (req, res, next) {
         delete config['topology'];
       });
     }
-    
+
     // update mysql time series db
     let liveConfigFile = NETWORK_CONFIG_INSTANCES_PATH + networkConfig;
     fs.writeFile(liveConfigFile, JSON.stringify(configData, null, 4), function(err) {
@@ -788,6 +788,22 @@ app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
     topology: topology,
     node: nodeName,
     forceDelete: forceDelete,
+  }, "", res);
+});
+
+app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let nodeName = req.params[1];
+  let nodeMac = req.params[2];
+  let force = req.params[3] == "force" ? true : false;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'setMac',
+    topology: topology,
+    node: nodeName,
+    mac: nodeMac,
+    force: force,
   }, "", res);
 });
 

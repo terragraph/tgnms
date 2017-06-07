@@ -144,6 +144,55 @@ export default class DetailsNode extends React.Component {
     }.bind(this));
   }
 
+  setMacAddr(force) {
+    let forceSet = force ? "force" : "no_force";
+    swal({
+      title: "Set MAC Address!",
+      text: "New MAC address:",
+      type: "input",
+      showCancelButton: true,
+      closeOnConfirm: false,
+      animation: "slide-from-top",
+      inputPlaceholder: "MAC Address"
+    },
+    function(inputValue){
+      if (inputValue === false) return false;
+
+      if (inputValue === "") {
+        swal.showInputError("You need to write something!");
+        return false
+      }
+
+      let promis = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/setMac/' + this.props.topologyName +
+            '/' + this.props.node.name + '/' + inputValue + '/' + forceSet,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Mac address set successfully!",
+              text: "Response: "+response.statusText,
+              type: "success"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Failed!",
+              text: "Setting MAC failed\nReason: "+response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
+  }
+
   render() {
     if (!this.props.node || !this.props.node.name) {
         return (<div/>);
@@ -229,11 +278,13 @@ export default class DetailsNode extends React.Component {
                 </tr>
                 <tr>
                   <td colSpan="2">
+                    <div><span className="details-link" onClick={() => {this.setMacAddr(false)}}>Set Mac Address</span>
+                         <span className="details-link" style={{float: 'right'}} onClick={() => {this.setMacAddr(true)}}>(forced)</span></div>
                     <div><span className="details-link" onClick={() => {this.connectToTerminal(ipv6)}}>Connect To Terminal</span></div>
-                    <div><span className="details-link" onClick={() => {this.rebootNode(false)}}>Reboot Node</span></div>
-                    <div><span className="details-link" onClick={() => {this.rebootNode(true)}}>Reboot Node (forced)</span></div>
-                    <div><span className="details-link" onClick={() => {this.deleteNode(false)}}>Delete Node</span></div>
-                    <div><span className="details-link" onClick={() => {this.deleteNode(true)}}>Delete Node (Forced)</span></div>
+                    <div><span className="details-link" onClick={() => {this.rebootNode(false)}}>Reboot Node</span>
+                         <span className="details-link" style={{float: 'right'}} onClick={() => {this.rebootNode(true)}}>(forced)</span></div>
+                    <div><span className="details-link" onClick={() => {this.deleteNode(false)}}>Delete Node</span>
+                         <span className="details-link" style={{float: 'right'}} onClick={() => {this.deleteNode(true)}}>(forced)</span></div>
                   </td>
                 </tr>
               </tbody>

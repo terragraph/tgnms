@@ -70,6 +70,7 @@ struct Link {
     5: bool is_alive  # modified by controller
     6: i64 linkup_attempts  # modified by controller
     7: optional GolayIdx golay_idx # link specific golay index
+    8: optional i64 control_superframe # control superframe for the link
 }
 
 struct Topology {

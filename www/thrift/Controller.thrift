@@ -44,6 +44,7 @@ enum MessageType {
   DEL_SITE = 311,
   SET_NETWORK_PARAMS_REQ = 312,
   RESET_TOPOLOGY_STATE = 313,
+  SET_TOPOLOGY_NAME = 314,
   // Responses given (by Ctrl TopologyApp)
   TOPOLOGY = 321,
 
@@ -83,6 +84,8 @@ enum MessageType {
   GPS_ENABLE_REQ = 506,
   PHY_ANT_WGT_TBL_CONFIG_REQ = 507,
   FW_DEBUG_REQ = 508,
+  PHY_AGC_CONFIG_REQ = 509,
+  PHY_GOLAY_SEQUENCE_CONFIG_REQ = 510,
   // north bound
   NODE_INIT_NOTIFY = 551,
   DR_LINK_STATUS = 552,
@@ -195,9 +198,11 @@ struct GetIgnitionState {}
 
 // Parameters controlling the ignition in the controller
 struct IgnitionParams {
-  1: optional bool enable;  // enable auto-ignition from the controller
+  1: optional bool enable;  // Network-wide auto-ignition from the controller
   2: optional i64 linkUpInterval;  // set frequency of ignition
   3: optional i64 linkUpDampenInterval; // interval of ignition on same link
+  // per-link auto ignition
+  4: optional map<string /* link name */, bool> link_auto_ignite;
 }
 
 // Set Link Status Request sent from cli to controller ignition app
@@ -229,6 +234,7 @@ struct SetLinkStatus {
   // link up specific parameters
   3: optional Topology.NodeType responderNodeType; // responder node type
   4: optional Topology.GolayIdx golayIdx; // responder golay code
+  5: optional i64 controlSuperframe;  // control superframe for the link
 }
 
 // Link Status message sent from minion (initiator/responder) to controller
@@ -261,7 +267,12 @@ struct SetNetworkParamsReq {
 
 struct SetNodeMac {
   1: string nodeName;
-  2: string scannedBlob; // raw scanned data
+  2: string nodeMac;
+  3: bool force;
+}
+
+struct SetTopologyName {
+  1: string name;
 }
 
 struct BumpLinkUpAttempts {
@@ -313,12 +324,19 @@ struct RouteInfo {
   2: double rssi;      // received signal strength, in dBm
   3: double snrEst;    // measured during the short training field, in dB
   4: double postSnr;   // measured after the equalizer, in dB
+  5: i32 rxStart;      // relative arrival time of the packet, in us
+  6: byte packetIdx;   // Repeat count of this packet, 0-based
 }
 
 enum ScanMode {
   COARSE = 1,
   FINE = 2,
   SELECTIVE = 3,
+}
+
+struct BeamIndices {
+  1: i32 low;
+  2: i32 high;
 }
 
 struct ScanReq {
@@ -330,6 +348,7 @@ struct ScanReq {
   5: optional string txNodeMac; // tx node id (only present for receivers)
   6: optional list<string> rxNodeMacs; // (only present for transmitters)
   7: optional list<MicroRoute> routes; // for partial scan, absent for full scan
+  8: optional BeamIndices beams; // Beam indices range
 }
 
 struct ScanResp {
@@ -339,21 +358,35 @@ struct ScanResp {
 }
 
 struct StartScan {
-  1: optional string txNode; // If present, run PBF scan on tx<->rx link.
+  1: bool isPBF; // PBF or IM scan?
+  2: ScanMode scanMode;
+  3: i64 startTime; // Unixtime of the scan start
+  4: optional string txNode; // If present, run scan on tx<->rx links.
                              // Otherwise, run IM scan on whole network
-  2: optional string rxNode; // Should be present iff txNode is present
-  3: ScanMode scanMode;
-  4: i64 startTime; // Unixtime of the scan start
+  5: optional list<string> rxNodes; // Should be present iff txNode is present.
+                                    // Should be a singleton for PBF scan
+  6: optional list<BeamIndices> beams; // Beam indices for each node
 }
 
 struct GetScanStatus {
+  1: bool isConcise;
+  2: optional i32 tokenFrom;
+  3: optional i32 tokenTo;
 }
 
 struct ResetScanStatus {
 }
 
+// Data collected from a single scan.
+// Filled in incrementally, as responses arrive.
+struct ScanData {
+  1: map<string /* nodename */, ScanResp> responses;
+  2: string txNode;
+  3: i64 startBwgdIdx;
+}
+
 struct ScanStatus {
-  1: map<i32 /*token*/, map<string /*nodename*/, ScanResp>> scans;
+  1: map<i32 /* token */, ScanData> scans;
 }
 
 ############# Common #############
@@ -373,10 +406,21 @@ struct E2EAck {
   2: string message;
 }
 
+struct BgpNeighbor {
+  1: i64 asn;
+  2: string ipv6;
+}
+
+struct BgpNeighbors {
+  1: list<BgpNeighbor> neighbors;
+}
+
 // network information needee by different processes
 struct NetworkInfo {
   1: string e2eCtrlUrl;
-  2: string aggrCtrlUrl;
+  2: list<string> aggrCtrlUrl;
+  3: string network;
+  4: BgpNeighbors bgpNeighbors;
 }
 
 // Empty message

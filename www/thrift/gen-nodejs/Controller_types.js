@@ -34,6 +34,7 @@ ttypes.MessageType = {
 'DEL_SITE' : 311,
 'SET_NETWORK_PARAMS_REQ' : 312,
 'RESET_TOPOLOGY_STATE' : 313,
+'SET_TOPOLOGY_NAME' : 314,
 'TOPOLOGY' : 321,
 'UPGRADE_REQ' : 401,
 'SET_UPGRADE_STATUS' : 421,
@@ -54,6 +55,8 @@ ttypes.MessageType = {
 'GPS_ENABLE_REQ' : 506,
 'PHY_ANT_WGT_TBL_CONFIG_REQ' : 507,
 'FW_DEBUG_REQ' : 508,
+'PHY_AGC_CONFIG_REQ' : 509,
+'PHY_GOLAY_SEQUENCE_CONFIG_REQ' : 510,
 'NODE_INIT_NOTIFY' : 551,
 'DR_LINK_STATUS' : 552,
 'FW_STATS' : 553,
@@ -878,6 +881,7 @@ IgnitionParams = module.exports.IgnitionParams = function(args) {
   this.enable = null;
   this.linkUpInterval = null;
   this.linkUpDampenInterval = null;
+  this.link_auto_ignite = null;
   if (args) {
     if (args.enable !== undefined) {
       this.enable = args.enable;
@@ -887,6 +891,9 @@ IgnitionParams = module.exports.IgnitionParams = function(args) {
     }
     if (args.linkUpDampenInterval !== undefined) {
       this.linkUpDampenInterval = args.linkUpDampenInterval;
+    }
+    if (args.link_auto_ignite !== undefined) {
+      this.link_auto_ignite = args.link_auto_ignite;
     }
   }
 };
@@ -925,6 +932,30 @@ IgnitionParams.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 4:
+      if (ftype == Thrift.Type.MAP) {
+        var _size10 = 0;
+        var _rtmp314;
+        this.link_auto_ignite = {};
+        var _ktype11 = 0;
+        var _vtype12 = 0;
+        _rtmp314 = input.readMapBegin();
+        _ktype11 = _rtmp314.ktype;
+        _vtype12 = _rtmp314.vtype;
+        _size10 = _rtmp314.size;
+        for (var _i15 = 0; _i15 < _size10; ++_i15)
+        {
+          var key16 = null;
+          var val17 = null;
+          key16 = input.readString();
+          val17 = input.readBool();
+          this.link_auto_ignite[key16] = val17;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -949,6 +980,21 @@ IgnitionParams.prototype.write = function(output) {
   if (this.linkUpDampenInterval !== null && this.linkUpDampenInterval !== undefined) {
     output.writeFieldBegin('linkUpDampenInterval', Thrift.Type.I64, 3);
     output.writeI64(this.linkUpDampenInterval);
+    output.writeFieldEnd();
+  }
+  if (this.link_auto_ignite !== null && this.link_auto_ignite !== undefined) {
+    output.writeFieldBegin('link_auto_ignite', Thrift.Type.MAP, 4);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.BOOL, Thrift.objectLength(this.link_auto_ignite));
+    for (var kiter18 in this.link_auto_ignite)
+    {
+      if (this.link_auto_ignite.hasOwnProperty(kiter18))
+      {
+        var viter19 = this.link_auto_ignite[kiter18];
+        output.writeString(kiter18);
+        output.writeBool(viter19);
+      }
+    }
+    output.writeMapEnd();
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -1140,18 +1186,18 @@ IgnitionState.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.LIST) {
-        var _size10 = 0;
-        var _rtmp314;
+        var _size20 = 0;
+        var _rtmp324;
         this.visitedNodeNames = [];
-        var _etype13 = 0;
-        _rtmp314 = input.readListBegin();
-        _etype13 = _rtmp314.etype;
-        _size10 = _rtmp314.size;
-        for (var _i15 = 0; _i15 < _size10; ++_i15)
+        var _etype23 = 0;
+        _rtmp324 = input.readListBegin();
+        _etype23 = _rtmp324.etype;
+        _size20 = _rtmp324.size;
+        for (var _i25 = 0; _i25 < _size20; ++_i25)
         {
-          var elem16 = null;
-          elem16 = input.readString();
-          this.visitedNodeNames.push(elem16);
+          var elem26 = null;
+          elem26 = input.readString();
+          this.visitedNodeNames.push(elem26);
         }
         input.readListEnd();
       } else {
@@ -1160,19 +1206,19 @@ IgnitionState.prototype.read = function(input) {
       break;
       case 2:
       if (ftype == Thrift.Type.LIST) {
-        var _size17 = 0;
-        var _rtmp321;
+        var _size27 = 0;
+        var _rtmp331;
         this.igCandidates = [];
-        var _etype20 = 0;
-        _rtmp321 = input.readListBegin();
-        _etype20 = _rtmp321.etype;
-        _size17 = _rtmp321.size;
-        for (var _i22 = 0; _i22 < _size17; ++_i22)
+        var _etype30 = 0;
+        _rtmp331 = input.readListBegin();
+        _etype30 = _rtmp331.etype;
+        _size27 = _rtmp331.size;
+        for (var _i32 = 0; _i32 < _size27; ++_i32)
         {
-          var elem23 = null;
-          elem23 = new ttypes.IgnitionCandidate();
-          elem23.read(input);
-          this.igCandidates.push(elem23);
+          var elem33 = null;
+          elem33 = new ttypes.IgnitionCandidate();
+          elem33.read(input);
+          this.igCandidates.push(elem33);
         }
         input.readListEnd();
       } else {
@@ -1209,12 +1255,12 @@ IgnitionState.prototype.write = function(output) {
   if (this.visitedNodeNames !== null && this.visitedNodeNames !== undefined) {
     output.writeFieldBegin('visitedNodeNames', Thrift.Type.LIST, 1);
     output.writeListBegin(Thrift.Type.STRING, this.visitedNodeNames.length);
-    for (var iter24 in this.visitedNodeNames)
+    for (var iter34 in this.visitedNodeNames)
     {
-      if (this.visitedNodeNames.hasOwnProperty(iter24))
+      if (this.visitedNodeNames.hasOwnProperty(iter34))
       {
-        iter24 = this.visitedNodeNames[iter24];
-        output.writeString(iter24);
+        iter34 = this.visitedNodeNames[iter34];
+        output.writeString(iter34);
       }
     }
     output.writeListEnd();
@@ -1223,12 +1269,12 @@ IgnitionState.prototype.write = function(output) {
   if (this.igCandidates !== null && this.igCandidates !== undefined) {
     output.writeFieldBegin('igCandidates', Thrift.Type.LIST, 2);
     output.writeListBegin(Thrift.Type.STRUCT, this.igCandidates.length);
-    for (var iter25 in this.igCandidates)
+    for (var iter35 in this.igCandidates)
     {
-      if (this.igCandidates.hasOwnProperty(iter25))
+      if (this.igCandidates.hasOwnProperty(iter35))
       {
-        iter25 = this.igCandidates[iter25];
-        iter25.write(output);
+        iter35 = this.igCandidates[iter35];
+        iter35.write(output);
       }
     }
     output.writeListEnd();
@@ -1254,6 +1300,7 @@ SetLinkStatus = module.exports.SetLinkStatus = function(args) {
   this.responderMac = null;
   this.responderNodeType = null;
   this.golayIdx = null;
+  this.controlSuperframe = null;
   if (args) {
     if (args.linkStatusType !== undefined) {
       this.linkStatusType = args.linkStatusType;
@@ -1266,6 +1313,9 @@ SetLinkStatus = module.exports.SetLinkStatus = function(args) {
     }
     if (args.golayIdx !== undefined) {
       this.golayIdx = args.golayIdx;
+    }
+    if (args.controlSuperframe !== undefined) {
+      this.controlSuperframe = args.controlSuperframe;
     }
   }
 };
@@ -1312,6 +1362,13 @@ SetLinkStatus.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 5:
+      if (ftype == Thrift.Type.I64) {
+        this.controlSuperframe = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -1341,6 +1398,11 @@ SetLinkStatus.prototype.write = function(output) {
   if (this.golayIdx !== null && this.golayIdx !== undefined) {
     output.writeFieldBegin('golayIdx', Thrift.Type.STRUCT, 4);
     this.golayIdx.write(output);
+    output.writeFieldEnd();
+  }
+  if (this.controlSuperframe !== null && this.controlSuperframe !== undefined) {
+    output.writeFieldBegin('controlSuperframe', Thrift.Type.I64, 5);
+    output.writeI64(this.controlSuperframe);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -1678,13 +1740,17 @@ SetNetworkParamsReq.prototype.write = function(output) {
 
 SetNodeMac = module.exports.SetNodeMac = function(args) {
   this.nodeName = null;
-  this.scannedBlob = null;
+  this.nodeMac = null;
+  this.force = null;
   if (args) {
     if (args.nodeName !== undefined) {
       this.nodeName = args.nodeName;
     }
-    if (args.scannedBlob !== undefined) {
-      this.scannedBlob = args.scannedBlob;
+    if (args.nodeMac !== undefined) {
+      this.nodeMac = args.nodeMac;
+    }
+    if (args.force !== undefined) {
+      this.force = args.force;
     }
   }
 };
@@ -1711,7 +1777,14 @@ SetNodeMac.prototype.read = function(input) {
       break;
       case 2:
       if (ftype == Thrift.Type.STRING) {
-        this.scannedBlob = input.readString();
+        this.nodeMac = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.BOOL) {
+        this.force = input.readBool();
       } else {
         input.skip(ftype);
       }
@@ -1732,9 +1805,67 @@ SetNodeMac.prototype.write = function(output) {
     output.writeString(this.nodeName);
     output.writeFieldEnd();
   }
-  if (this.scannedBlob !== null && this.scannedBlob !== undefined) {
-    output.writeFieldBegin('scannedBlob', Thrift.Type.STRING, 2);
-    output.writeString(this.scannedBlob);
+  if (this.nodeMac !== null && this.nodeMac !== undefined) {
+    output.writeFieldBegin('nodeMac', Thrift.Type.STRING, 2);
+    output.writeString(this.nodeMac);
+    output.writeFieldEnd();
+  }
+  if (this.force !== null && this.force !== undefined) {
+    output.writeFieldBegin('force', Thrift.Type.BOOL, 3);
+    output.writeBool(this.force);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+SetTopologyName = module.exports.SetTopologyName = function(args) {
+  this.name = null;
+  if (args) {
+    if (args.name !== undefined) {
+      this.name = args.name;
+    }
+  }
+};
+SetTopologyName.prototype = {};
+SetTopologyName.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.name = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+SetTopologyName.prototype.write = function(output) {
+  output.writeStructBegin('SetTopologyName');
+  if (this.name !== null && this.name !== undefined) {
+    output.writeFieldBegin('name', Thrift.Type.STRING, 1);
+    output.writeString(this.name);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -2282,6 +2413,8 @@ RouteInfo = module.exports.RouteInfo = function(args) {
   this.rssi = null;
   this.snrEst = null;
   this.postSnr = null;
+  this.rxStart = null;
+  this.packetIdx = null;
   if (args) {
     if (args.route !== undefined) {
       this.route = args.route;
@@ -2294,6 +2427,12 @@ RouteInfo = module.exports.RouteInfo = function(args) {
     }
     if (args.postSnr !== undefined) {
       this.postSnr = args.postSnr;
+    }
+    if (args.rxStart !== undefined) {
+      this.rxStart = args.rxStart;
+    }
+    if (args.packetIdx !== undefined) {
+      this.packetIdx = args.packetIdx;
     }
   }
 };
@@ -2340,6 +2479,20 @@ RouteInfo.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 5:
+      if (ftype == Thrift.Type.I32) {
+        this.rxStart = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 6:
+      if (ftype == Thrift.Type.BYTE) {
+        this.packetIdx = input.readByte();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -2371,6 +2524,82 @@ RouteInfo.prototype.write = function(output) {
     output.writeDouble(this.postSnr);
     output.writeFieldEnd();
   }
+  if (this.rxStart !== null && this.rxStart !== undefined) {
+    output.writeFieldBegin('rxStart', Thrift.Type.I32, 5);
+    output.writeI32(this.rxStart);
+    output.writeFieldEnd();
+  }
+  if (this.packetIdx !== null && this.packetIdx !== undefined) {
+    output.writeFieldBegin('packetIdx', Thrift.Type.BYTE, 6);
+    output.writeByte(this.packetIdx);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+BeamIndices = module.exports.BeamIndices = function(args) {
+  this.low = null;
+  this.high = null;
+  if (args) {
+    if (args.low !== undefined) {
+      this.low = args.low;
+    }
+    if (args.high !== undefined) {
+      this.high = args.high;
+    }
+  }
+};
+BeamIndices.prototype = {};
+BeamIndices.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.I32) {
+        this.low = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.I32) {
+        this.high = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+BeamIndices.prototype.write = function(output) {
+  output.writeStructBegin('BeamIndices');
+  if (this.low !== null && this.low !== undefined) {
+    output.writeFieldBegin('low', Thrift.Type.I32, 1);
+    output.writeI32(this.low);
+    output.writeFieldEnd();
+  }
+  if (this.high !== null && this.high !== undefined) {
+    output.writeFieldBegin('high', Thrift.Type.I32, 2);
+    output.writeI32(this.high);
+    output.writeFieldEnd();
+  }
   output.writeFieldStop();
   output.writeStructEnd();
   return;
@@ -2384,6 +2613,7 @@ ScanReq = module.exports.ScanReq = function(args) {
   this.txNodeMac = null;
   this.rxNodeMacs = null;
   this.routes = null;
+  this.beams = null;
   if (args) {
     if (args.token !== undefined) {
       this.token = args.token;
@@ -2405,6 +2635,9 @@ ScanReq = module.exports.ScanReq = function(args) {
     }
     if (args.routes !== undefined) {
       this.routes = args.routes;
+    }
+    if (args.beams !== undefined) {
+      this.beams = args.beams;
     }
   }
 };
@@ -2459,18 +2692,18 @@ ScanReq.prototype.read = function(input) {
       break;
       case 6:
       if (ftype == Thrift.Type.LIST) {
-        var _size26 = 0;
-        var _rtmp330;
+        var _size36 = 0;
+        var _rtmp340;
         this.rxNodeMacs = [];
-        var _etype29 = 0;
-        _rtmp330 = input.readListBegin();
-        _etype29 = _rtmp330.etype;
-        _size26 = _rtmp330.size;
-        for (var _i31 = 0; _i31 < _size26; ++_i31)
+        var _etype39 = 0;
+        _rtmp340 = input.readListBegin();
+        _etype39 = _rtmp340.etype;
+        _size36 = _rtmp340.size;
+        for (var _i41 = 0; _i41 < _size36; ++_i41)
         {
-          var elem32 = null;
-          elem32 = input.readString();
-          this.rxNodeMacs.push(elem32);
+          var elem42 = null;
+          elem42 = input.readString();
+          this.rxNodeMacs.push(elem42);
         }
         input.readListEnd();
       } else {
@@ -2479,21 +2712,29 @@ ScanReq.prototype.read = function(input) {
       break;
       case 7:
       if (ftype == Thrift.Type.LIST) {
-        var _size33 = 0;
-        var _rtmp337;
+        var _size43 = 0;
+        var _rtmp347;
         this.routes = [];
-        var _etype36 = 0;
-        _rtmp337 = input.readListBegin();
-        _etype36 = _rtmp337.etype;
-        _size33 = _rtmp337.size;
-        for (var _i38 = 0; _i38 < _size33; ++_i38)
+        var _etype46 = 0;
+        _rtmp347 = input.readListBegin();
+        _etype46 = _rtmp347.etype;
+        _size43 = _rtmp347.size;
+        for (var _i48 = 0; _i48 < _size43; ++_i48)
         {
-          var elem39 = null;
-          elem39 = new ttypes.MicroRoute();
-          elem39.read(input);
-          this.routes.push(elem39);
+          var elem49 = null;
+          elem49 = new ttypes.MicroRoute();
+          elem49.read(input);
+          this.routes.push(elem49);
         }
         input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 8:
+      if (ftype == Thrift.Type.STRUCT) {
+        this.beams = new ttypes.BeamIndices();
+        this.beams.read(input);
       } else {
         input.skip(ftype);
       }
@@ -2537,12 +2778,12 @@ ScanReq.prototype.write = function(output) {
   if (this.rxNodeMacs !== null && this.rxNodeMacs !== undefined) {
     output.writeFieldBegin('rxNodeMacs', Thrift.Type.LIST, 6);
     output.writeListBegin(Thrift.Type.STRING, this.rxNodeMacs.length);
-    for (var iter40 in this.rxNodeMacs)
+    for (var iter50 in this.rxNodeMacs)
     {
-      if (this.rxNodeMacs.hasOwnProperty(iter40))
+      if (this.rxNodeMacs.hasOwnProperty(iter50))
       {
-        iter40 = this.rxNodeMacs[iter40];
-        output.writeString(iter40);
+        iter50 = this.rxNodeMacs[iter50];
+        output.writeString(iter50);
       }
     }
     output.writeListEnd();
@@ -2551,15 +2792,20 @@ ScanReq.prototype.write = function(output) {
   if (this.routes !== null && this.routes !== undefined) {
     output.writeFieldBegin('routes', Thrift.Type.LIST, 7);
     output.writeListBegin(Thrift.Type.STRUCT, this.routes.length);
-    for (var iter41 in this.routes)
+    for (var iter51 in this.routes)
     {
-      if (this.routes.hasOwnProperty(iter41))
+      if (this.routes.hasOwnProperty(iter51))
       {
-        iter41 = this.routes[iter41];
-        iter41.write(output);
+        iter51 = this.routes[iter51];
+        iter51.write(output);
       }
     }
     output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.beams !== null && this.beams !== undefined) {
+    output.writeFieldBegin('beams', Thrift.Type.STRUCT, 8);
+    this.beams.write(output);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -2613,19 +2859,19 @@ ScanResp.prototype.read = function(input) {
       break;
       case 3:
       if (ftype == Thrift.Type.LIST) {
-        var _size42 = 0;
-        var _rtmp346;
+        var _size52 = 0;
+        var _rtmp356;
         this.routeInfoList = [];
-        var _etype45 = 0;
-        _rtmp346 = input.readListBegin();
-        _etype45 = _rtmp346.etype;
-        _size42 = _rtmp346.size;
-        for (var _i47 = 0; _i47 < _size42; ++_i47)
+        var _etype55 = 0;
+        _rtmp356 = input.readListBegin();
+        _etype55 = _rtmp356.etype;
+        _size52 = _rtmp356.size;
+        for (var _i57 = 0; _i57 < _size52; ++_i57)
         {
-          var elem48 = null;
-          elem48 = new ttypes.RouteInfo();
-          elem48.read(input);
-          this.routeInfoList.push(elem48);
+          var elem58 = null;
+          elem58 = new ttypes.RouteInfo();
+          elem58.read(input);
+          this.routeInfoList.push(elem58);
         }
         input.readListEnd();
       } else {
@@ -2656,12 +2902,12 @@ ScanResp.prototype.write = function(output) {
   if (this.routeInfoList !== null && this.routeInfoList !== undefined) {
     output.writeFieldBegin('routeInfoList', Thrift.Type.LIST, 3);
     output.writeListBegin(Thrift.Type.STRUCT, this.routeInfoList.length);
-    for (var iter49 in this.routeInfoList)
+    for (var iter59 in this.routeInfoList)
     {
-      if (this.routeInfoList.hasOwnProperty(iter49))
+      if (this.routeInfoList.hasOwnProperty(iter59))
       {
-        iter49 = this.routeInfoList[iter49];
-        iter49.write(output);
+        iter59 = this.routeInfoList[iter59];
+        iter59.write(output);
       }
     }
     output.writeListEnd();
@@ -2673,22 +2919,30 @@ ScanResp.prototype.write = function(output) {
 };
 
 StartScan = module.exports.StartScan = function(args) {
-  this.txNode = null;
-  this.rxNode = null;
+  this.isPBF = null;
   this.scanMode = null;
   this.startTime = null;
+  this.txNode = null;
+  this.rxNodes = null;
+  this.beams = null;
   if (args) {
-    if (args.txNode !== undefined) {
-      this.txNode = args.txNode;
-    }
-    if (args.rxNode !== undefined) {
-      this.rxNode = args.rxNode;
+    if (args.isPBF !== undefined) {
+      this.isPBF = args.isPBF;
     }
     if (args.scanMode !== undefined) {
       this.scanMode = args.scanMode;
     }
     if (args.startTime !== undefined) {
       this.startTime = args.startTime;
+    }
+    if (args.txNode !== undefined) {
+      this.txNode = args.txNode;
+    }
+    if (args.rxNodes !== undefined) {
+      this.rxNodes = args.rxNodes;
+    }
+    if (args.beams !== undefined) {
+      this.beams = args.beams;
     }
   }
 };
@@ -2707,29 +2961,70 @@ StartScan.prototype.read = function(input) {
     switch (fid)
     {
       case 1:
-      if (ftype == Thrift.Type.STRING) {
-        this.txNode = input.readString();
+      if (ftype == Thrift.Type.BOOL) {
+        this.isPBF = input.readBool();
       } else {
         input.skip(ftype);
       }
       break;
       case 2:
-      if (ftype == Thrift.Type.STRING) {
-        this.rxNode = input.readString();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 3:
       if (ftype == Thrift.Type.I32) {
         this.scanMode = input.readI32();
       } else {
         input.skip(ftype);
       }
       break;
-      case 4:
+      case 3:
       if (ftype == Thrift.Type.I64) {
         this.startTime = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 4:
+      if (ftype == Thrift.Type.STRING) {
+        this.txNode = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 5:
+      if (ftype == Thrift.Type.LIST) {
+        var _size60 = 0;
+        var _rtmp364;
+        this.rxNodes = [];
+        var _etype63 = 0;
+        _rtmp364 = input.readListBegin();
+        _etype63 = _rtmp364.etype;
+        _size60 = _rtmp364.size;
+        for (var _i65 = 0; _i65 < _size60; ++_i65)
+        {
+          var elem66 = null;
+          elem66 = input.readString();
+          this.rxNodes.push(elem66);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 6:
+      if (ftype == Thrift.Type.LIST) {
+        var _size67 = 0;
+        var _rtmp371;
+        this.beams = [];
+        var _etype70 = 0;
+        _rtmp371 = input.readListBegin();
+        _etype70 = _rtmp371.etype;
+        _size67 = _rtmp371.size;
+        for (var _i72 = 0; _i72 < _size67; ++_i72)
+        {
+          var elem73 = null;
+          elem73 = new ttypes.BeamIndices();
+          elem73.read(input);
+          this.beams.push(elem73);
+        }
+        input.readListEnd();
       } else {
         input.skip(ftype);
       }
@@ -2745,24 +3040,52 @@ StartScan.prototype.read = function(input) {
 
 StartScan.prototype.write = function(output) {
   output.writeStructBegin('StartScan');
-  if (this.txNode !== null && this.txNode !== undefined) {
-    output.writeFieldBegin('txNode', Thrift.Type.STRING, 1);
-    output.writeString(this.txNode);
-    output.writeFieldEnd();
-  }
-  if (this.rxNode !== null && this.rxNode !== undefined) {
-    output.writeFieldBegin('rxNode', Thrift.Type.STRING, 2);
-    output.writeString(this.rxNode);
+  if (this.isPBF !== null && this.isPBF !== undefined) {
+    output.writeFieldBegin('isPBF', Thrift.Type.BOOL, 1);
+    output.writeBool(this.isPBF);
     output.writeFieldEnd();
   }
   if (this.scanMode !== null && this.scanMode !== undefined) {
-    output.writeFieldBegin('scanMode', Thrift.Type.I32, 3);
+    output.writeFieldBegin('scanMode', Thrift.Type.I32, 2);
     output.writeI32(this.scanMode);
     output.writeFieldEnd();
   }
   if (this.startTime !== null && this.startTime !== undefined) {
-    output.writeFieldBegin('startTime', Thrift.Type.I64, 4);
+    output.writeFieldBegin('startTime', Thrift.Type.I64, 3);
     output.writeI64(this.startTime);
+    output.writeFieldEnd();
+  }
+  if (this.txNode !== null && this.txNode !== undefined) {
+    output.writeFieldBegin('txNode', Thrift.Type.STRING, 4);
+    output.writeString(this.txNode);
+    output.writeFieldEnd();
+  }
+  if (this.rxNodes !== null && this.rxNodes !== undefined) {
+    output.writeFieldBegin('rxNodes', Thrift.Type.LIST, 5);
+    output.writeListBegin(Thrift.Type.STRING, this.rxNodes.length);
+    for (var iter74 in this.rxNodes)
+    {
+      if (this.rxNodes.hasOwnProperty(iter74))
+      {
+        iter74 = this.rxNodes[iter74];
+        output.writeString(iter74);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.beams !== null && this.beams !== undefined) {
+    output.writeFieldBegin('beams', Thrift.Type.LIST, 6);
+    output.writeListBegin(Thrift.Type.STRUCT, this.beams.length);
+    for (var iter75 in this.beams)
+    {
+      if (this.beams.hasOwnProperty(iter75))
+      {
+        iter75 = this.beams[iter75];
+        iter75.write(output);
+      }
+    }
+    output.writeListEnd();
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -2771,6 +3094,20 @@ StartScan.prototype.write = function(output) {
 };
 
 GetScanStatus = module.exports.GetScanStatus = function(args) {
+  this.isConcise = null;
+  this.tokenFrom = null;
+  this.tokenTo = null;
+  if (args) {
+    if (args.isConcise !== undefined) {
+      this.isConcise = args.isConcise;
+    }
+    if (args.tokenFrom !== undefined) {
+      this.tokenFrom = args.tokenFrom;
+    }
+    if (args.tokenTo !== undefined) {
+      this.tokenTo = args.tokenTo;
+    }
+  }
 };
 GetScanStatus.prototype = {};
 GetScanStatus.prototype.read = function(input) {
@@ -2784,7 +3121,32 @@ GetScanStatus.prototype.read = function(input) {
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    input.skip(ftype);
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.BOOL) {
+        this.isConcise = input.readBool();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.I32) {
+        this.tokenFrom = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.I32) {
+        this.tokenTo = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
     input.readFieldEnd();
   }
   input.readStructEnd();
@@ -2793,6 +3155,21 @@ GetScanStatus.prototype.read = function(input) {
 
 GetScanStatus.prototype.write = function(output) {
   output.writeStructBegin('GetScanStatus');
+  if (this.isConcise !== null && this.isConcise !== undefined) {
+    output.writeFieldBegin('isConcise', Thrift.Type.BOOL, 1);
+    output.writeBool(this.isConcise);
+    output.writeFieldEnd();
+  }
+  if (this.tokenFrom !== null && this.tokenFrom !== undefined) {
+    output.writeFieldBegin('tokenFrom', Thrift.Type.I32, 2);
+    output.writeI32(this.tokenFrom);
+    output.writeFieldEnd();
+  }
+  if (this.tokenTo !== null && this.tokenTo !== undefined) {
+    output.writeFieldBegin('tokenTo', Thrift.Type.I32, 3);
+    output.writeI32(this.tokenTo);
+    output.writeFieldEnd();
+  }
   output.writeFieldStop();
   output.writeStructEnd();
   return;
@@ -2826,6 +3203,116 @@ ResetScanStatus.prototype.write = function(output) {
   return;
 };
 
+ScanData = module.exports.ScanData = function(args) {
+  this.responses = null;
+  this.txNode = null;
+  this.startBwgdIdx = null;
+  if (args) {
+    if (args.responses !== undefined) {
+      this.responses = args.responses;
+    }
+    if (args.txNode !== undefined) {
+      this.txNode = args.txNode;
+    }
+    if (args.startBwgdIdx !== undefined) {
+      this.startBwgdIdx = args.startBwgdIdx;
+    }
+  }
+};
+ScanData.prototype = {};
+ScanData.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.MAP) {
+        var _size76 = 0;
+        var _rtmp380;
+        this.responses = {};
+        var _ktype77 = 0;
+        var _vtype78 = 0;
+        _rtmp380 = input.readMapBegin();
+        _ktype77 = _rtmp380.ktype;
+        _vtype78 = _rtmp380.vtype;
+        _size76 = _rtmp380.size;
+        for (var _i81 = 0; _i81 < _size76; ++_i81)
+        {
+          var key82 = null;
+          var val83 = null;
+          key82 = input.readString();
+          val83 = new ttypes.ScanResp();
+          val83.read(input);
+          this.responses[key82] = val83;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.txNode = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.I64) {
+        this.startBwgdIdx = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+ScanData.prototype.write = function(output) {
+  output.writeStructBegin('ScanData');
+  if (this.responses !== null && this.responses !== undefined) {
+    output.writeFieldBegin('responses', Thrift.Type.MAP, 1);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.responses));
+    for (var kiter84 in this.responses)
+    {
+      if (this.responses.hasOwnProperty(kiter84))
+      {
+        var viter85 = this.responses[kiter84];
+        output.writeString(kiter84);
+        viter85.write(output);
+      }
+    }
+    output.writeMapEnd();
+    output.writeFieldEnd();
+  }
+  if (this.txNode !== null && this.txNode !== undefined) {
+    output.writeFieldBegin('txNode', Thrift.Type.STRING, 2);
+    output.writeString(this.txNode);
+    output.writeFieldEnd();
+  }
+  if (this.startBwgdIdx !== null && this.startBwgdIdx !== undefined) {
+    output.writeFieldBegin('startBwgdIdx', Thrift.Type.I64, 3);
+    output.writeI64(this.startBwgdIdx);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 ScanStatus = module.exports.ScanStatus = function(args) {
   this.scans = null;
   if (args) {
@@ -2850,40 +3337,23 @@ ScanStatus.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.MAP) {
-        var _size50 = 0;
-        var _rtmp354;
+        var _size86 = 0;
+        var _rtmp390;
         this.scans = {};
-        var _ktype51 = 0;
-        var _vtype52 = 0;
-        _rtmp354 = input.readMapBegin();
-        _ktype51 = _rtmp354.ktype;
-        _vtype52 = _rtmp354.vtype;
-        _size50 = _rtmp354.size;
-        for (var _i55 = 0; _i55 < _size50; ++_i55)
+        var _ktype87 = 0;
+        var _vtype88 = 0;
+        _rtmp390 = input.readMapBegin();
+        _ktype87 = _rtmp390.ktype;
+        _vtype88 = _rtmp390.vtype;
+        _size86 = _rtmp390.size;
+        for (var _i91 = 0; _i91 < _size86; ++_i91)
         {
-          var key56 = null;
-          var val57 = null;
-          key56 = input.readI32();
-          var _size58 = 0;
-          var _rtmp362;
-          val57 = {};
-          var _ktype59 = 0;
-          var _vtype60 = 0;
-          _rtmp362 = input.readMapBegin();
-          _ktype59 = _rtmp362.ktype;
-          _vtype60 = _rtmp362.vtype;
-          _size58 = _rtmp362.size;
-          for (var _i63 = 0; _i63 < _size58; ++_i63)
-          {
-            var key64 = null;
-            var val65 = null;
-            key64 = input.readString();
-            val65 = new ttypes.ScanResp();
-            val65.read(input);
-            val57[key64] = val65;
-          }
-          input.readMapEnd();
-          this.scans[key56] = val57;
+          var key92 = null;
+          var val93 = null;
+          key92 = input.readI32();
+          val93 = new ttypes.ScanData();
+          val93.read(input);
+          this.scans[key92] = val93;
         }
         input.readMapEnd();
       } else {
@@ -2906,24 +3376,14 @@ ScanStatus.prototype.write = function(output) {
   output.writeStructBegin('ScanStatus');
   if (this.scans !== null && this.scans !== undefined) {
     output.writeFieldBegin('scans', Thrift.Type.MAP, 1);
-    output.writeMapBegin(Thrift.Type.I32, Thrift.Type.MAP, Thrift.objectLength(this.scans));
-    for (var kiter66 in this.scans)
+    output.writeMapBegin(Thrift.Type.I32, Thrift.Type.STRUCT, Thrift.objectLength(this.scans));
+    for (var kiter94 in this.scans)
     {
-      if (this.scans.hasOwnProperty(kiter66))
+      if (this.scans.hasOwnProperty(kiter94))
       {
-        var viter67 = this.scans[kiter66];
-        output.writeI32(kiter66);
-        output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(viter67));
-        for (var kiter68 in viter67)
-        {
-          if (viter67.hasOwnProperty(kiter68))
-          {
-            var viter69 = viter67[kiter68];
-            output.writeString(kiter68);
-            viter69.write(output);
-          }
-        }
-        output.writeMapEnd();
+        var viter95 = this.scans[kiter94];
+        output.writeI32(kiter94);
+        viter95.write(output);
       }
     }
     output.writeMapEnd();
@@ -3094,15 +3554,165 @@ E2EAck.prototype.write = function(output) {
   return;
 };
 
+BgpNeighbor = module.exports.BgpNeighbor = function(args) {
+  this.asn = null;
+  this.ipv6 = null;
+  if (args) {
+    if (args.asn !== undefined) {
+      this.asn = args.asn;
+    }
+    if (args.ipv6 !== undefined) {
+      this.ipv6 = args.ipv6;
+    }
+  }
+};
+BgpNeighbor.prototype = {};
+BgpNeighbor.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.I64) {
+        this.asn = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.ipv6 = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+BgpNeighbor.prototype.write = function(output) {
+  output.writeStructBegin('BgpNeighbor');
+  if (this.asn !== null && this.asn !== undefined) {
+    output.writeFieldBegin('asn', Thrift.Type.I64, 1);
+    output.writeI64(this.asn);
+    output.writeFieldEnd();
+  }
+  if (this.ipv6 !== null && this.ipv6 !== undefined) {
+    output.writeFieldBegin('ipv6', Thrift.Type.STRING, 2);
+    output.writeString(this.ipv6);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+BgpNeighbors = module.exports.BgpNeighbors = function(args) {
+  this.neighbors = null;
+  if (args) {
+    if (args.neighbors !== undefined) {
+      this.neighbors = args.neighbors;
+    }
+  }
+};
+BgpNeighbors.prototype = {};
+BgpNeighbors.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.LIST) {
+        var _size96 = 0;
+        var _rtmp3100;
+        this.neighbors = [];
+        var _etype99 = 0;
+        _rtmp3100 = input.readListBegin();
+        _etype99 = _rtmp3100.etype;
+        _size96 = _rtmp3100.size;
+        for (var _i101 = 0; _i101 < _size96; ++_i101)
+        {
+          var elem102 = null;
+          elem102 = new ttypes.BgpNeighbor();
+          elem102.read(input);
+          this.neighbors.push(elem102);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+BgpNeighbors.prototype.write = function(output) {
+  output.writeStructBegin('BgpNeighbors');
+  if (this.neighbors !== null && this.neighbors !== undefined) {
+    output.writeFieldBegin('neighbors', Thrift.Type.LIST, 1);
+    output.writeListBegin(Thrift.Type.STRUCT, this.neighbors.length);
+    for (var iter103 in this.neighbors)
+    {
+      if (this.neighbors.hasOwnProperty(iter103))
+      {
+        iter103 = this.neighbors[iter103];
+        iter103.write(output);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 NetworkInfo = module.exports.NetworkInfo = function(args) {
   this.e2eCtrlUrl = null;
   this.aggrCtrlUrl = null;
+  this.network = null;
+  this.bgpNeighbors = null;
   if (args) {
     if (args.e2eCtrlUrl !== undefined) {
       this.e2eCtrlUrl = args.e2eCtrlUrl;
     }
     if (args.aggrCtrlUrl !== undefined) {
       this.aggrCtrlUrl = args.aggrCtrlUrl;
+    }
+    if (args.network !== undefined) {
+      this.network = args.network;
+    }
+    if (args.bgpNeighbors !== undefined) {
+      this.bgpNeighbors = args.bgpNeighbors;
     }
   }
 };
@@ -3128,8 +3738,36 @@ NetworkInfo.prototype.read = function(input) {
       }
       break;
       case 2:
+      if (ftype == Thrift.Type.LIST) {
+        var _size104 = 0;
+        var _rtmp3108;
+        this.aggrCtrlUrl = [];
+        var _etype107 = 0;
+        _rtmp3108 = input.readListBegin();
+        _etype107 = _rtmp3108.etype;
+        _size104 = _rtmp3108.size;
+        for (var _i109 = 0; _i109 < _size104; ++_i109)
+        {
+          var elem110 = null;
+          elem110 = input.readString();
+          this.aggrCtrlUrl.push(elem110);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
       if (ftype == Thrift.Type.STRING) {
-        this.aggrCtrlUrl = input.readString();
+        this.network = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 4:
+      if (ftype == Thrift.Type.STRUCT) {
+        this.bgpNeighbors = new ttypes.BgpNeighbors();
+        this.bgpNeighbors.read(input);
       } else {
         input.skip(ftype);
       }
@@ -3151,8 +3789,27 @@ NetworkInfo.prototype.write = function(output) {
     output.writeFieldEnd();
   }
   if (this.aggrCtrlUrl !== null && this.aggrCtrlUrl !== undefined) {
-    output.writeFieldBegin('aggrCtrlUrl', Thrift.Type.STRING, 2);
-    output.writeString(this.aggrCtrlUrl);
+    output.writeFieldBegin('aggrCtrlUrl', Thrift.Type.LIST, 2);
+    output.writeListBegin(Thrift.Type.STRING, this.aggrCtrlUrl.length);
+    for (var iter111 in this.aggrCtrlUrl)
+    {
+      if (this.aggrCtrlUrl.hasOwnProperty(iter111))
+      {
+        iter111 = this.aggrCtrlUrl[iter111];
+        output.writeString(iter111);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.network !== null && this.network !== undefined) {
+    output.writeFieldBegin('network', Thrift.Type.STRING, 3);
+    output.writeString(this.network);
+    output.writeFieldEnd();
+  }
+  if (this.bgpNeighbors !== null && this.bgpNeighbors !== undefined) {
+    output.writeFieldBegin('bgpNeighbors', Thrift.Type.STRUCT, 4);
+    this.bgpNeighbors.write(output);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
