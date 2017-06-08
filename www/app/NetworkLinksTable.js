@@ -205,9 +205,13 @@ export default class NetworkLinksTable extends React.Component {
       onSortChange: this.onSortChange.bind(this),
     };
 
+    //let adjustedHeight = this.props.height - (this.state.selectedLink ? 100 : 0);
+    let adjustedHeight = this.props.height - 40;
+    adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
     let linksTable =
       <BootstrapTable
-          height={(this.props.height - (this.state.selectedLink ? 100 : 0)) + 'px'}
+          // height={(this.props.height - (this.state.selectedLink ? 100 : 0)) + 'px'}
+          height={adjustedHeight + 'px'}
           key="linksTable"
           data={this.getTableRows()}
           striped={true}

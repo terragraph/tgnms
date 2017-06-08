@@ -104,6 +104,8 @@ export default class NetworkDataTable extends React.Component {
   }
 
   render() {
+    let adjustedHeight = this.props.height - 95;
+    adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
     return (
       <Tabs
         onSelect={this._handleTabSelect.bind(this)}
@@ -123,26 +125,26 @@ export default class NetworkDataTable extends React.Component {
         </TabPanel>
         <TabPanel>
           <NetworkNodesTable
-            height={this.props.height - 60}
+            height={adjustedHeight}
             topology={this.props.networkConfig.topology}>
           </NetworkNodesTable>
         </TabPanel>
         <TabPanel>
           <NetworkLinksTable
-            height={this.props.height - 60}
+            height={adjustedHeight}
             topology={this.props.networkConfig.topology}>
           </NetworkLinksTable>
         </TabPanel>
         <TabPanel>
           <NetworkAdjacencyTable
-            height={this.props.height - 60}
+            height={adjustedHeight}
             topology={this.props.networkConfig.topology}
             routing={this.state.routing}>
           </NetworkAdjacencyTable>
         </TabPanel>
         <TabPanel>
           <NetworkRoutingTable
-            height={this.props.height - 60}
+            height={adjustedHeight}
             topology={this.props.networkConfig.topology}
             routing={this.state.routing}>
           </NetworkRoutingTable>
