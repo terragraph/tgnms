@@ -115,3 +115,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .controller-status-icon {
   float: right;
 }
+
+.many .dygraph-legend > span { display: none; }
+.many .dygraph-legend > span.highlight { display: inline; }
+.dygraph-title {text-align: center;}

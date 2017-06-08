@@ -65,6 +65,14 @@ var topologyByName = {};
 var statusDumpsByName = {};
 var aggrStatusDumpsByName = {};
 var adjacencyMapsByName = {};
+
+var dashboards = {};
+fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
+  if (!err) {
+    dashboards = JSON.parse(data);
+  }
+});
+
 worker.on('message', (msg) => {
   if (!(msg.name in configByName)) {
     console.error('Unable to find topology', msg.name);
@@ -597,7 +605,11 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
     let queryRequest = {queries: httpData};
     request.post({url: chartUrl,
                   body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
-      res.send(httpResponse.body).end();
+      if (httpResponse) {
+        res.send(httpResponse.body).end();
+      } else {
+        res.status(500).send("No Data").end();
+      }
     });
   });
 });
@@ -692,7 +704,40 @@ app.use(/\/topology\/fetch\/(.+)$/i, function (req, res, next) {
     }
   });
 });
+app.get(/\/dashboards\/get\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  if (!dashboards[topologyName]) {
+    dashboards[topologyName] = {};
+  }
+  res.json(dashboards[topologyName]);
+});
 
+app.post(/\/dashboards\/save\/$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    if (!httpPostData.length) {
+      return;
+    }
+    let data = JSON.parse(httpPostData);
+    if (data.topologyName && data.dashboards) {
+      dashboards[data.topologyName] = data.dashboards;
+      fs.writeFile('./config/dashboards.json', JSON.stringify(dashboards, null, 4), function(err) {
+        if (err) {
+          res.status(500).end("Unable to save");
+          console.log('Unable to save', err);
+          return;
+        }
+        res.status(200).end("Saved");
+      });
+    } else {
+      res.status(500).end("Bad Data");
+      return;
+    }
+  });
+});
 app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   let nodeA = req.params[1];

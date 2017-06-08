@@ -8,8 +8,8 @@ import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
 
-import NetworkDashboard from './NetworkDashboard.js';
 import NetworkStats from './NetworkStats.js';
+import NetworkDashboards from './NetworkDashboards.js';
 import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
@@ -20,6 +20,7 @@ import ModalTopology from './ModalTopology.js';
 
 const VIEWS = {
   'map': 'Map',
+  'dashboards': 'Dashboards',
   'stats': 'Stats',
   'eventlogs': 'Event Logs',
   'systemlogs': 'System Logs',
@@ -294,7 +295,7 @@ export default class NetworkUI extends React.Component {
     let viewProps = {
       networkName: this.state.networkName,
       networkConfig: this.state.networkConfig,
-      config: this.state.topologies, 
+      config: this.state.topologies,
     };
     let paneComponent = <div/>;
     switch (this.state.view) {
@@ -303,6 +304,9 @@ export default class NetworkUI extends React.Component {
         break;
       case 'systemlogs':
         paneComponent = <SystemLogs {...viewProps} />;
+        break;
+      case 'dashboards':
+        paneComponent = <NetworkDashboards {...viewProps} />;
         break;
       case 'stats':
         paneComponent = <NetworkStats {...viewProps} />;

@@ -247,6 +247,15 @@ export default class NetworkStats extends React.Component {
         },
       };
     });
+    this.props.networkConfig.topology.nodes.map(node => {
+      nodeOptions.push({
+        name: node.name,
+        type: 'Nodes',
+        restrictor: {
+          nodeName: node.name,
+        },
+      });
+    });
     this.props.networkConfig.topology.links.map(link => {
       // skip wired links
       if (link.link_type == 2) {
@@ -268,10 +277,14 @@ export default class NetworkStats extends React.Component {
    */
   getKeyOptions(selectedSiteOpts, siteMetrics) {
     let siteNames = [];
+    let nodeNames = [];
     let linkNames = [];
     selectedSiteOpts.forEach(opts => {
       if (opts.restrictor.siteName) {
         siteNames.push(opts.restrictor.siteName);
+      }
+      if (opts.restrictor.nodeName) {
+        nodeNames.push(opts.restrictor.nodeName);
       }
       if (opts.restrictor.linkName) {
         linkNames.push(opts.restrictor.linkName);
@@ -279,20 +292,24 @@ export default class NetworkStats extends React.Component {
     });
     let uniqMetricNames = {};
     let priorityMetricNames = {};
+    let restrictionsPresent = siteNames.length || nodeNames.length || linkNames.length;
     // iterate all options/keys
     Object.keys(siteMetrics).forEach(siteName => {
-      if (siteNames.length &&
-          !siteNames.includes(siteName)) {
-        return;
-      }
       let nodeMetrics = siteMetrics[siteName];
+      let includeAllSiteMetrics = false;
+      if (siteNames.length && siteNames.includes(siteName)) {
+        includeAllSiteMetrics = true;
+      }
       Object.keys(nodeMetrics).forEach(nodeName => {
         let metrics = nodeMetrics[nodeName];
-        // filter metrics
+        let includeAllNodeMetrics = false;
+        if (nodeNames.length && nodeNames.includes(nodeName)) {
+          includeAllNodeMetrics = true;
+        }
         Object.keys(metrics).forEach(metricName => {
           let metric = metrics[metricName];
-          if (linkNames.length &&
-             !linkNames.includes(metric.linkName)) {
+          if (restrictionsPresent && !includeAllSiteMetrics && !includeAllNodeMetrics &&
+              !(linkNames.length && metric.linkName && linkNames.includes(metric.linkName))) {
             return;
           }
           let newKey = metric.displayName ? metric.displayName : metricName;

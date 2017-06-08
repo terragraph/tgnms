@@ -6,7 +6,7 @@ import { Index, TimeSeries, TimeRange } from "pondjs";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
 import equals from "equals";
- 
+
 export default class ReactMultiGraph extends React.Component {
   constructor(props, context) {
     super(props, context);
@@ -34,7 +34,7 @@ export default class ReactMultiGraph extends React.Component {
     }
     clearInterval(this.timer);
   }
-  
+
   formatSpeed(bps) {
     // TODO - this is used for all metrics, we need more context
     return Math.ceil(bps * 100) / 100;
@@ -312,7 +312,7 @@ export default class ReactMultiGraph extends React.Component {
       height: "30px",
     };
     // fetch the display name or key name of each graph
-    let title = this.props.options.map(opts => 
+    let title = this.props.options.map(opts =>
       Array.from(new Set(opts.data.map(data =>
         (data.description ? data.description : data.key)
       ))).join(", ")
