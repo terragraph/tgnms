@@ -259,7 +259,7 @@ export default class NetworkLinksTable extends React.Component {
     let eventChart;
     if (this.state.selectedLink) {
       let link = this.linksByName[this.state.selectedLink];
-      if (link.events && link.events.length > 0) {
+      if (link && link.events && link.events.length > 0) {
         let startTime = this.state.networkHealth.start;
         let endTime = this.state.networkHealth.end;
         // TODO - fix this up more before displaying

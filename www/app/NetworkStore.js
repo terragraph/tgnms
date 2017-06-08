@@ -119,6 +119,7 @@ Dispatcher.register(function(payload) {
       NetworkStore.networkName = payload.networkName;
       // Wipe network config / topology
       NetworkStore.networkConfig = {};
+      NetworkStore.selectedName = '';
       // update layer (URL) data
       if (!NetworkStore.layers) { NetworkStore.layers = []; }
       if (NetworkStore.layers.length <= 1) {
