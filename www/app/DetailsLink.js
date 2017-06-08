@@ -4,8 +4,13 @@ import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
+import ModalIgnitionState from './ModalIgnitionState.js';
 
 export default class DetailsLink extends React.Component {
+
+  state = {
+    ignitionStateModalOpen: false,
+  }
 
   constructor(props) {
     super(props);
@@ -158,8 +163,19 @@ export default class DetailsLink extends React.Component {
       const buf = Buffer.from(this.props.link.linkup_attempts.buffer.data);
       linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
     }
+
+    let ignitionStateModal = null;
+    if (this.state.ignitionStateModalOpen) {
+      ignitionStateModal =
+        <ModalIgnitionState
+        isOpen= {true}
+        onClose= {() => this.setState({ignitionStateModalOpen: false})}
+        link= {this.props.link}
+        topologyName= {this.props.topologyName}/>;
+    }
     return (
       <div id="myModal" className="details">
+        {ignitionStateModal}
         <div className="details-content">
           <div className="details-header">
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
@@ -212,6 +228,7 @@ export default class DetailsLink extends React.Component {
                     <span className="details-link" onClick={() => {this.changeLinkStatus(true, false)}}>Z-Node</span></div>
                     <div>Send Link Down (pick initiator): <span className="details-link" onClick={() => {this.changeLinkStatus(false, true)}}>A-Node</span> &nbsp;&nbsp;
                     <span className="details-link" onClick={() => {this.changeLinkStatus(false, false)}}>Z-Node</span></div>
+                    <div><span className="details-link" onClick={() => this.setState({ignitionStateModalOpen: true})}>Check Ignition State</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteLink(false)}}>Delete Link</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteLink(true)}}>Delete Link (Force)</span></div>
                   </td>

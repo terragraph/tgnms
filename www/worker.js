@@ -80,6 +80,9 @@ const command2MsgType = {
   'delSite': Controller_ttypes.MessageType.DEL_SITE,
   'rebootNode': Controller_ttypes.MessageType.REBOOT_NODE,
   'setMac': Controller_ttypes.MessageType.SET_NODE_MAC,
+  'getIgnitionState': Controller_ttypes.MessageType.GET_IGNITION_STATE,
+  'setNetworkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
+  'setLinkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
 };
 
 var msgType2Params = {};
@@ -94,6 +97,8 @@ msgType2Params[Controller_ttypes.MessageType.ADD_SITE] = {'recvApp': 'ctrl-app-T
 msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {'recvApp': 'minion-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.GET_IGNITION_STATE] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.SET_IGNITION_PARAMS] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
 
 const sendCtrlMsgSync = (msg, minion, res) => {
   if (!msg.type) {
@@ -204,6 +209,24 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       setNodeMacReq.write(tProtocol);
       transport.flush();
       break;
+    case 'getIgnitionState':
+      var getIgnitionStateReq = new Controller_ttypes.GetIgnitionState();
+      getIgnitionStateReq.write(tProtocol);
+      transport.flush();
+      break;
+    case 'setNetworkIgnitionState':
+      var setIgnitionParamsReq = new Controller_ttypes.IgnitionParams();
+      setIgnitionParamsReq.enable = msg.state;
+      setIgnitionParamsReq.write(tProtocol);
+      transport.flush();
+      break;
+    case 'setLinkIgnitionState':
+      var setIgnitionParamsReq = new Controller_ttypes.IgnitionParams();
+      setIgnitionParamsReq.link_auto_ignite = {}
+      setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
+      setIgnitionParamsReq.write(tProtocol);
+      transport.flush();
+      break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
       res.status(500).send("FAIL");
@@ -295,13 +318,19 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_SITE:
             case Controller_ttypes.MessageType.REBOOT_NODE:
             case Controller_ttypes.MessageType.SET_NODE_MAC:
+            case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
-                resolve(receivedAck.message);
+                resolve({type: 'ack', msg: receivedAck.message});
               } else {
                 reject(receivedAck.message);
               }
+              break;
+            case Controller_ttypes.MessageType.GET_IGNITION_STATE:
+              var ignitionState = new Controller_ttypes.IgnitionState();
+              ignitionState.read(tProtocol);
+              resolve({type: 'msg', msg: ignitionState});
               break;
             default:
               console.error('No receive handler defined for', msgType);
@@ -313,9 +342,15 @@ class ControllerProxy extends EventEmitter {
       );
     });
 
-    ctrlPromise.then((successMessage) => {
-      res.writeHead(200, successMessage, {'content-type' : 'text/plain'});
-      res.end();
+    ctrlPromise.then((msg) => {
+      if (msg.type == 'ack') {
+        res.writeHead(200, msg.msg, {'content-type' : 'text/plain'});
+        res.end();
+      } else {
+        res.json(msg.msg);
+//        res.writeHead(200, msg.msg, {'content-type' : 'application/json'});
+        //res.end();
+      }
     })
     .catch((failMessage) => {
       res.writeHead(500, failMessage, {'content-type' : 'text/plain'});

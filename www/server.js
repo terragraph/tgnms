@@ -807,6 +807,42 @@ app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, ne
   }, "", res);
 });
 
+app.get(/\/controller\/getIgnitionState\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'getIgnitionState',
+    topology: topology,
+  }, "", res);
+});
+
+app.get(/\/controller\/setNetworkIgnitionState\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let state = req.params[1] == "enable" ? true : false;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'setNetworkIgnitionState',
+    topology: topology,
+    state: state,
+  }, "", res);
+});
+
+app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let linkName = req.params[1];
+  let state = req.params[2] == "enable" ? true : false;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'setLinkIgnitionState',
+    topology: topology,
+    linkName: linkName,
+    state: state,
+  }, "", res);
+});
+
 app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   let nodeMac = req.params[1];
