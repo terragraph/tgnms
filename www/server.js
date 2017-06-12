@@ -52,6 +52,7 @@ const os = require('os');
 const pty = require('pty.js');
 
 const statusReportExpiry = 2 * 60000; // 2 minuets
+const maxThriftRequestFailures = 3;
 
 var refreshIntervalTimer = undefined;
 var eventLogsTables = {};
@@ -84,9 +85,15 @@ worker.on('message', (msg) => {
       // log online/offline changes
       if (config.controller_online != msg.success) {
         console.log(new Date().toString(), msg.name, 'controller',
-                    (msg.success ? 'online' : 'offline'));
+                    (msg.success ? 'online' : 'offline'),
+                    'in', msg.response_time, 'ms');
       }
-      config.controller_online = msg.success;
+      config.controller_failures = msg.success ? 0 : config.controller_failures + 1;
+      if (config.controller_failures >= maxThriftRequestFailures) {
+        config.controller_online = false;
+      } else {
+        config.controller_online = true;
+      }
       topologyByName[msg.name] = msg.success ? msg.topology : {};
       break;
     case 'status_dump_update':
@@ -111,9 +118,15 @@ worker.on('message', (msg) => {
       // log online/offline changes
       if (config.aggregator_online != msg.success) {
         console.log(new Date().toString(), msg.name, 'aggregator',
-                    (msg.success ? 'online' : 'offline'));
+                    (msg.success ? 'online' : 'offline'),
+                    'in', msg.response_time, 'ms');
       }
-      config.aggregator_online = msg.success;
+      config.aggregator_failures = msg.success ? 0 : config.aggregator_failures + 1;
+      if (config.aggregator_failures >= maxThriftRequestFailures) {
+        config.aggregator_online = false;
+      } else {
+        config.aggregator_online = true;
+      }
       aggrStatusDumpsByName[msg.name] = msg.success ? msg.status_dump : {};
       var currentTime = new Date().getTime();
       // remove nodes with old timestamps in status report
@@ -241,7 +254,9 @@ function reloadInstanceConfig() {
           NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file));
         let config = topologyConfig;
         config['controller_online'] = false;
+        config['controller_failures'] = 0;
         config['aggregator_online'] = false;
+        config['aggregator_failures'] = 0;
         config['name'] = topology['name'];
         configByName[topology['name']] = config;
         fileTopologyByName[topology['name']] = topology;

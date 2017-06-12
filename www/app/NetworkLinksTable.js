@@ -18,7 +18,8 @@ export default class NetworkLinksTable extends React.Component {
     sortOrder: undefined,
     selectedLink: NetworkStore.selectedName,
     networkHealth: NetworkStore.networkHealth,
-    hideWired: false,
+    hideWired: true,
+    showEventsChart: true,
     toplink: null,
     // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
     linkRequestButtonEnabled: true,
@@ -181,6 +182,21 @@ export default class NetworkLinksTable extends React.Component {
     );
   }
 
+  renderLinkAvailability(cell, row) {
+    if (row && row.name) {
+      let link = this.linksByName[row.name];
+      if (link && link.events && link.events.length > 0) {
+        let startTime = this.state.networkHealth.start;
+        let endTime = this.state.networkHealth.end;
+        return (
+            <ReactEventChart events={link.events}
+                             startTime={startTime}
+                             endTime={endTime}
+                             size="small" />);
+      }
+    }
+  }
+
   renderStatusColor(cell, row) {
     return (
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
@@ -188,9 +204,10 @@ export default class NetworkLinksTable extends React.Component {
       </span>);
   }
 
-  render() {
-    // update topology to health mappings
-    this.updateMappings(this.props.topology);
+  renderLinksTable() {
+    //let adjustedHeight = this.props.height - (this.state.selectedLink ? 100 : 0);
+    let adjustedHeight = this.props.height - 40;
+    adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
     var linksSelectRowProp = {
       mode: "radio",
       clickToSelect: true,
@@ -204,81 +221,113 @@ export default class NetworkLinksTable extends React.Component {
       sortOrder: this.state.sortOrder,
       onSortChange: this.onSortChange.bind(this),
     };
-
-    //let adjustedHeight = this.props.height - (this.state.selectedLink ? 100 : 0);
-    let adjustedHeight = this.props.height - 40;
-    adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
-    let linksTable =
-      <BootstrapTable
-          // height={(this.props.height - (this.state.selectedLink ? 100 : 0)) + 'px'}
-          height={adjustedHeight + 'px'}
-          key="linksTable"
-          data={this.getTableRows()}
-          striped={true}
-          hover={true}
-          options={tableOpts}
-          selectRow={linksSelectRowProp}>
-       <TableHeaderColumn width="350"
-                          dataSort={true}
-                          dataField="name"
-                          isKey={ true }
-                          sortFunc={this.linkSortFunc}>
-          Name
-        </TableHeaderColumn>
-        <TableHeaderColumn width="180"
-                           dataSort={true}
-                           dataField="a_node_name">
-          A-Node
-        </TableHeaderColumn>
-        <TableHeaderColumn width="180"
-                           dataSort={true}
-                           dataField="z_node_name">
-          Z-Node
-        </TableHeaderColumn>
-        <TableHeaderColumn width="80"
-                           dataSort={true}
-                           dataFormat={this.renderStatusColor}
-                           dataField="alive">
-          Alive
-        </TableHeaderColumn>
-        <TableHeaderColumn width="140"
-                           dataSort={true}
-                           dataField="alive_perc"
-                           dataFormat={this.renderAlivePerc}>
-          Uptime (24 hours)
-        </TableHeaderColumn>
-        <TableHeaderColumn dataSort={true}
-                           dataField="type">
-          Type
-        </TableHeaderColumn>
-        <TableHeaderColumn dataSort={true}
-                           dataField="linkup_attempts">
-          Attempts
-        </TableHeaderColumn>
-      </BootstrapTable>;
-    let eventChart;
-    if (this.state.selectedLink) {
-      let link = this.linksByName[this.state.selectedLink];
-      if (link && link.events && link.events.length > 0) {
-        let startTime = this.state.networkHealth.start;
-        let endTime = this.state.networkHealth.end;
-        // TODO - fix this up more before displaying
-/*        eventChart =
-          <li key="eventsChart" style={{height: '75px'}}>
-            <ReactEventChart events={link.events}
-                             startTime={startTime}
-                             endTime={endTime}
-                             size="small" />
-          </li>;*/
-      }
+    if (this.state.showEventsChart) {
+      return (
+        <BootstrapTable
+            height={adjustedHeight + 'px'}
+            key="linksTable"
+            data={this.getTableRows()}
+            striped={true}
+            hover={true}
+            options={tableOpts}
+            selectRow={linksSelectRowProp}>
+         <TableHeaderColumn width="150"
+                            dataSort={true}
+                            dataField="name"
+                            isKey={ true }
+                            sortFunc={this.linkSortFunc}>
+            Name
+          </TableHeaderColumn>
+          <TableHeaderColumn width="80"
+                             dataSort={true}
+                             dataFormat={this.renderStatusColor}
+                             dataField="alive">
+            Alive
+          </TableHeaderColumn>
+          <TableHeaderColumn width="140"
+                             dataSort={true}
+                             dataField="alive_perc"
+                             dataFormat={this.renderAlivePerc}>
+            Uptime (24 hours)
+          </TableHeaderColumn>
+          <TableHeaderColumn width="700"
+                             dataSort={true}
+                             dataField="availability_chart"
+                             dataFormat={this.renderLinkAvailability.bind(this)}>
+            Availability (24 hours)
+          </TableHeaderColumn>
+          <TableHeaderColumn dataSort={true}
+                             width="100"
+                             dataField="linkup_attempts">
+            Attempts
+          </TableHeaderColumn>
+        </BootstrapTable>
+      );
+    } else {
+      return (
+        <BootstrapTable
+            height={adjustedHeight + 'px'}
+            key="linksTable"
+            data={this.getTableRows()}
+            striped={true}
+            hover={true}
+            options={tableOpts}
+            selectRow={linksSelectRowProp}>
+         <TableHeaderColumn width="350"
+                            dataSort={true}
+                            dataField="name"
+                            isKey={ true }
+                            sortFunc={this.linkSortFunc}>
+            Name
+          </TableHeaderColumn>
+          <TableHeaderColumn width="180"
+                             dataField="a_node_name">
+            A-Node
+          </TableHeaderColumn>
+          <TableHeaderColumn width="180"
+                             dataField="z_node_name">
+            Z-Node
+          </TableHeaderColumn>
+          <TableHeaderColumn width="80"
+                             dataSort={true}
+                             dataFormat={this.renderStatusColor}
+                             dataField="alive">
+            Alive
+          </TableHeaderColumn>
+          <TableHeaderColumn width="140"
+                             dataSort={true}
+                             dataField="alive_perc"
+                             dataFormat={this.renderAlivePerc}>
+            Uptime (24 hours)
+          </TableHeaderColumn>
+          <TableHeaderColumn dataField="type">
+            Type
+          </TableHeaderColumn>
+          <TableHeaderColumn dataSort={true}
+                             dataField="linkup_attempts">
+            Attempts
+          </TableHeaderColumn>
+        </BootstrapTable>
+      );
     }
+  }
+
+  render() {
+    // update topology to health mappings
+    this.updateMappings(this.props.topology);
+
+    // render display with or without events chart
+    let linksTable = this.renderLinksTable();
     return (
       <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
-        {eventChart}
         <li key="linksTable">
           <button className={this.state.hideWired ? 'graph-button graph-button-selected' : 'graph-button'}
                   onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
             Hide Wired
+          </button>
+          <button className={this.state.showEventsChart ? 'graph-button graph-button-selected' : 'graph-button'}
+                  onClick={btn => this.setState({showEventsChart: !this.state.showEventsChart})}>
+            Show Link Events
           </button>
           {linksTable}
         </li>

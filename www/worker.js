@@ -32,6 +32,7 @@ process.on('message', (msg) => {
                 name: topology.name,
                 type: 'topology_update',
                 success: success,
+                response_time: response_time,
                 topology: success ? data.topology : null,
               });
               break;
@@ -40,6 +41,7 @@ process.on('message', (msg) => {
                 name: topology.name,
                 type: 'status_dump_update',
                 success: success,
+                response_time: response_time,
                 status_dump: success ? data.status_dump : null,
               });
               break;
@@ -56,6 +58,7 @@ process.on('message', (msg) => {
                 name: topology.name,
                 type: 'aggr_status_dump_update',
                 success: success,
+                response_time: response_time,
                 status_dump: success ? data.status_dump : null,
               });
               break;

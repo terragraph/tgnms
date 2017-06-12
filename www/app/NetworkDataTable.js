@@ -15,7 +15,11 @@ import NetworkStatusTable from './NetworkStatusTable.js';
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
-const TAB_NAMES = ['status', 'nodes', 'links', 'adjacencies', 'routing'];
+const TAB_NAMES = ['status',
+                   'nodes',
+                   'links',
+                   'adjacencies',
+                   'routing'];
 
 export default class NetworkDataTable extends React.Component {
   state = {
@@ -106,6 +110,12 @@ export default class NetworkDataTable extends React.Component {
   render() {
     let adjustedHeight = this.props.height - 95;
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
+    let tableProps = {
+      instance: this.props.networkConfig,
+      height: adjustedHeight,
+      topology: this.props.networkConfig.topology,
+      routing: this.state.routing,
+    };
     return (
       <Tabs
         onSelect={this._handleTabSelect.bind(this)}
@@ -119,35 +129,19 @@ export default class NetworkDataTable extends React.Component {
           <Tab>Routing</Tab>
         </TabList>
         <TabPanel>
-          <NetworkStatusTable
-            instance={this.props.networkConfig}>
-          </NetworkStatusTable>
+          <NetworkStatusTable {...tableProps} />
         </TabPanel>
         <TabPanel>
-          <NetworkNodesTable
-            height={adjustedHeight}
-            topology={this.props.networkConfig.topology}>
-          </NetworkNodesTable>
+          <NetworkNodesTable {...tableProps} />
         </TabPanel>
         <TabPanel>
-          <NetworkLinksTable
-            height={adjustedHeight}
-            topology={this.props.networkConfig.topology}>
-          </NetworkLinksTable>
+          <NetworkLinksTable {...tableProps} />
         </TabPanel>
         <TabPanel>
-          <NetworkAdjacencyTable
-            height={adjustedHeight}
-            topology={this.props.networkConfig.topology}
-            routing={this.state.routing}>
-          </NetworkAdjacencyTable>
+          <NetworkAdjacencyTable {...tableProps} />
         </TabPanel>
         <TabPanel>
-          <NetworkRoutingTable
-            height={adjustedHeight}
-            topology={this.props.networkConfig.topology}
-            routing={this.state.routing}>
-          </NetworkRoutingTable>
+          <NetworkRoutingTable {...tableProps} />
         </TabPanel>
       </Tabs>
     );

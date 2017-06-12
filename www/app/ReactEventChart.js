@@ -45,21 +45,7 @@ export default class ReactEventChart extends React.Component {
     if (this.props.events.length == 0 || this.props.events[0].length == 0) {
       return (<div>No link data available</div>);
     }
-    let chartRows = [];
-    // initial processing of time series, maybe handle
-    // SUM vs. individual graphs here?
-    let reqIdx = 0;
     let timeRange = new TimeRange(this.props.startTime, this.props.endTime);
-    let width = 450;
-    let height = 250;
-    // reduce legend selectors
-    // {key, {label, [time series?]}}
-    switch (this.props.size) {
-      case 'large':
-        width = 600;
-        height = 500;
-        break;
-    }
     const events = this.props.events.map(({startTime, endTime, ...data}) =>
         new TimeRangeEvent(new TimeRange(new Date(startTime * 1000),
                                          new Date(endTime * 1000)),
@@ -74,15 +60,15 @@ export default class ReactEventChart extends React.Component {
           <LabelAxis
             hideScale={true}
             id="link_status"
-            label="Link Availability"
+            label=""
             min={0} max={0}
-            width={140}
+            width={0}
             type="linear" format=",.1f"/>
           <Charts>
             <EventChart
               axis="link_status"
               series={series}
-              height="100"
+              height={80}
               style={(this.outageEventStyleCB)}
               label={e => e.get("title")} />
           </Charts>
