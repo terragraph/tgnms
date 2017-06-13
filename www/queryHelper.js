@@ -568,11 +568,13 @@ var self = {
         }
       });
     });
+    let now = parseInt(new Date().getTime() / 1000);
     let query = {
       type: "event",
       key_ids: nodeKeyIds,
       data: nodeData,
-      min_ago: 24 * 60,
+      start_ts: now - (24 * 60 * 60),
+      end_ts: now,
       agg_type: "event"
     };
     return [query];

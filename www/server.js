@@ -586,11 +586,14 @@ app.post(/\/event\/?$/i, function (req, res, next) {
       res.status(500).send("Key not found").end();
       return;
     }
+    let now = new Date().getTime() / 1000;
     let eventQuery = {
       type: "event",
       key_ids: keyIds,
       data: [{keyId: keyIds[0], key: "fw_uptime"}],
       min_ago: 24 * 60,
+      start_ts: now - (24 * 60),
+      end_ts: now,
       agg_type: "event",
     };
     let chartUrl = 'http://localhost:8899/query';

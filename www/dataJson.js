@@ -21,7 +21,7 @@ pool.on('error', function() {
 // beringei client
 const thrift = require('thrift');
 const BeringeiService = require('./thrift/gen-nodejs/BeringeiService');
-const beringeiTypes = require('./thrift/gen-nodejs/beringei_data_types');
+const beringeiTypes = require('./thrift/gen-nodejs/beringei_query_types');
 const transport = thrift.TFramedTransport;
 const protocol = thrift.TBinaryProtocol;
 const beringeiConn = thrift.createConnection("localhost", 9999, {
