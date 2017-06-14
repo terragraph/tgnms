@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import { availabilityColor } from './NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
@@ -120,7 +121,7 @@ export default class DetailsSite extends React.Component {
         nodesRows.push(
           <tr key={node.name}>
             <td rowSpan={nodesList.length} width="100px">Nodes</td>
-            <td>
+            <td colSpan="2">
               <span className="details-link" onClick={() => {this.selectNode(node.name)}}>
                 {this.statusColor(node.status == 2 || node.status == 3, node.name, node.name)}
               </span>
@@ -129,7 +130,7 @@ export default class DetailsSite extends React.Component {
       } else {
         nodesRows.push(
           <tr key={node.name}>
-            <td>
+            <td colSpan="2">
               <span className="details-link" onClick={() => {this.selectNode(node.name)}}>
                 {this.statusColor(node.status == 2 || node.status == 3, node.name, node.name)}
               </span>
@@ -139,9 +140,17 @@ export default class DetailsSite extends React.Component {
       index++;
     })
 
+    // average availability of all links across site
+    let alivePercAvg = 0;
     let linksRows = [];
     index = 0;
+    // show link availability average
     linksList.forEach(link => {
+      let alivePerc = 0;
+      if (link.hasOwnProperty("alive_perc")) {
+        alivePerc = parseInt(link.alive_perc * 1000) / 1000.0;
+      }
+      alivePercAvg += alivePerc;
       if (index == 0) {
         linksRows.push(
           <tr key={link.name}>
@@ -149,6 +158,11 @@ export default class DetailsSite extends React.Component {
             <td>
               <span className="details-link" onClick={() => {this.selectLink(link.name)}}>
                 {this.statusColor(link.is_alive, link.name, link.name)}
+              </span>
+            </td>
+            <td>
+              <span style={{color: availabilityColor(alivePerc)}}>
+                {alivePerc}%
               </span>
             </td>
           </tr>);
@@ -160,10 +174,17 @@ export default class DetailsSite extends React.Component {
                 {this.statusColor(link.is_alive, link.name, link.name)}
               </span>
             </td>
+            <td>
+              <span style={{color: availabilityColor(alivePerc)}}>
+                {alivePerc}%
+              </span>
+            </td>
           </tr>);
       }
       index++;
-    })
+    });
+    alivePercAvg /= linksList.length;
+    alivePercAvg = parseInt(alivePercAvg * 1000) / 1000.0;
 
     return (
       <div id="myModal" className="details">
@@ -176,29 +197,37 @@ export default class DetailsSite extends React.Component {
             <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>
-                  <td colSpan="2"><h4>{this.props.site.name}</h4></td>
+                  <td colSpan="3"><h4>{this.props.site.name}</h4></td>
                 </tr>
                 <tr>
                   <td width="100px">Latitude</td>
-                  <td>{this.props.site.location.latitude}</td>
+                  <td colSpan="2">{this.props.site.location.latitude}</td>
                 </tr>
                 <tr>
                   <td width="100px">Longitude</td>
-                  <td>{this.props.site.location.longitude}</td>
+                  <td colSpan="2">{this.props.site.location.longitude}</td>
                 </tr>
                 <tr>
                   <td width="100px">Altitude</td>
-                  <td>{this.props.site.location.altitude}</td>
+                  <td colSpan="2">{this.props.site.location.altitude}</td>
                 </tr>
                 {nodesRows}
                 {linksRows}
                 <tr>
+                  <td width="100px">Availability</td>
                   <td colSpan="2">
+                    <span style={{color: availabilityColor(alivePercAvg)}}>
+                      {alivePercAvg}%
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan="3">
                     <h4>Actions</h4>
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan="2">
+                  <td colSpan="3">
                     <div><span className="details-link" onClick={() => {this.deleteSite()}}>Delete Site</span></div>
                   </td>
                 </tr>

@@ -53,10 +53,6 @@ const linkOverlayKeys = {
   Uptime: {
     Weighted: {color: 'green'},
     Unknown: {color: 'grey'}
-  },
-  Snr_Perc: {
-    Weighted: {color: 'green'},
-    Unknown: {color: 'grey'}
   }
 }
 

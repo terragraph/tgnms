@@ -6,6 +6,7 @@ import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
 import ReactEventChart from './ReactEventChart.js';
+import { availabilityColor } from './NetworkHelper.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 var linkNyName = {};
@@ -167,13 +168,7 @@ export default class NetworkLinksTable extends React.Component {
       cellText = 'X';
     } else if (cell) {
       cellText = Math.round(cell * 100) / 100;
-      if (cellText >= 99.99) {
-        cellColor = 'green';
-      } else if (cellText >= 99) {
-        cellColor = 'yellowgreen';
-      } else {
-        cellColor = 'red';
-      }
+      cellColor = availabilityColor(cellText);
     }
     return (
       <span style={{color: cellColor}}>

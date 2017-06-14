@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import { availabilityColor } from './NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 import ModalIgnitionState from './ModalIgnitionState.js';
@@ -176,6 +177,10 @@ export default class DetailsLink extends React.Component {
         link= {this.props.link}
         topologyName= {this.props.topologyName}/>;
     }
+    let alivePerc = 0;
+    if (this.props.link.hasOwnProperty("alive_perc")) {
+      alivePerc = parseInt(this.props.link.alive_perc * 1000) / 1000.0;
+    }
     return (
       <div id="myModal" className="details">
         {ignitionStateModal}
@@ -219,6 +224,14 @@ export default class DetailsLink extends React.Component {
                 <tr>
                   <td width="100px">Attempts</td>
                   <td colSpan="2">{linkupAttempts}</td>
+                </tr>
+                <tr>
+                  <td width="100px">Availability</td>
+                  <td colSpan="2">
+                    <span style={{color: availabilityColor(alivePerc)}}>
+                      {alivePerc}%
+                    </span>
+                  </td>
                 </tr>
                 <tr>
                   <td colSpan="3">

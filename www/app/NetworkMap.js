@@ -14,6 +14,7 @@ import NetworkDataTable from './NetworkDataTable.js';
 import DetailsNode from './DetailsNode.js';
 import DetailsLink from './DetailsLink.js';
 import DetailsSite from './DetailsSite.js';
+import DetailsTopology from './DetailsTopology.js';
 import DetailsPlannedSite from './DetailsPlannedSite.js';
 import SplitPane from 'react-split-pane';
 const d3 = require('d3');
@@ -215,6 +216,13 @@ export default class NetworkMap extends React.Component {
     Object.keys(topologyJson.links).map(linkIndex => {
       let link = topologyJson.links[linkIndex];
       linksByName[link.name] = link;
+      // apply health data
+      if (this.state.networkHealth &&
+          this.state.networkHealth.links &&
+          link.name in this.state.networkHealth.links) {
+        let nodeHealth = this.state.networkHealth.links[link.name];
+        link["alive_perc"] = nodeHealth.alive;
+      }
     });
     // index sites by name
     let sitesByName = {};
@@ -405,21 +413,6 @@ export default class NetworkMap extends React.Component {
       siteComponents.push(contextualMarker);
     });
 
-    let linksData = {};
-    Object(topology.links).forEach(link => {
-      if (this.state.networkHealth &&
-          this.state.networkHealth.links &&
-          link.a_node_name in this.state.networkHealth.links &&
-          link.z_node_name in this.state.networkHealth.links[link.a_node_name]) {
-        let nodeHealth = this.state.networkHealth.links[link.a_node_name]
-                                                       [link.z_node_name];
-        linksData[link.name] = {
-          alive_perc: nodeHealth.alive,
-          snr_health_perc: nodeHealth.snr,
-        };
-      }
-    });
-
     Object.keys(topology.links).map(linkName => {
       let link = topology.links[linkName];
       if (link.link_type != 1) {
@@ -460,25 +453,14 @@ export default class NetworkMap extends React.Component {
             }
             break;
           case 'Uptime':
-            if (linksData[link.name]) {
+            if (link.hasOwnProperty("alive_perc")) {
               var bwUsageColor = d3.scaleLinear()
                   .domain([0, 50, 100])
                   .range(["red", "white", "green"]);
-              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].alive_perc));
+              var linkColor = d3.rgb(bwUsageColor(link.alive_perc));
               linkLine = this.getLinkLine(link, linkCoords, linkColor);
             } else {
               linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
-            }
-            break;
-          case 'Snr_Perc':
-            if (linksData[link.name]) {
-              var bwUsageColor = d3.scaleLinear()
-                  .domain([0, 50, 100])
-                  .range(["red", "white", "green"]);
-              var linkColor = d3.rgb(bwUsageColor(linksData[link.name].snr_health_perc));
-              linkLine = this.getLinkLine(link, linkCoords, linkColor);
-            } else {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Snr_Perc.Unknown.color);
             }
             break;
           default:
@@ -542,25 +524,54 @@ export default class NetworkMap extends React.Component {
       <Control position="topright">
         <img src="/static/images/layers.png" onClick={() => this.setState({detailsExpanded: true})}/>
       </Control>;
+    let showOverview = false;
     if (this.state.detailsExpanded) {
       if (this.state.selectedLink) {
         layersControl =
           <Control position="topright">
-            <DetailsLink topologyName={this.props.networkConfig.topology.name} link={this.state.selectedLink} nodes={this.nodesByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsLink topologyName={this.props.networkConfig.topology.name}
+                         link={this.state.selectedLink}
+                         nodes={this.nodesByName}
+                         onClose={() => this.setState({detailsExpanded: false})}
+            />
           </Control>
       } else if (this.state.selectedNode) {
         let node  = this.nodesByName[this.state.selectedNode];
         layersControl =
           <Control position="topright">
-            <DetailsNode topologyName={this.props.networkConfig.topology.name} node={node} links={this.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsNode topologyName={this.props.networkConfig.topology.name}
+                         node={node}
+                         links={this.linksByName}
+                         onClose={() => this.setState({detailsExpanded: false})}
+            />
           </Control>
       } else if (this.state.selectedSite) {
         let site = this.sitesByName[this.state.selectedSite];
         layersControl =
           <Control position="topright">
-            <DetailsSite topologyName={this.props.networkConfig.topology.name} site={site} nodes={this.nodesByName} links={this.linksByName} onClose={() => this.setState({detailsExpanded: false})}/>
+            <DetailsSite topologyName={this.props.networkConfig.topology.name}
+                         site={site}
+                         nodes={this.nodesByName}
+                         links={this.linksByName}
+                         onClose={() => this.setState({detailsExpanded: false})}
+            />
           </Control>
+      } else {
+        showOverview = true;
       }
+    } else {
+      showOverview = true;
+    }
+    if (showOverview) {
+      // overview
+      layersControl =
+        <Control position="topright">
+          <DetailsTopology topologyName={this.props.networkConfig.topology.name}
+                           nodes={this.nodesByName}
+                           links={this.linksByName}
+                           onClose={() => this.setState({detailsExpanded: false})}
+          />
+        </Control>;
     }
 
     let tablesControl =
