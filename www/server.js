@@ -950,6 +950,9 @@ app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
 app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next) {
   aggregatorProxy.setAlertsConfig(configs, req, res, next);
 });
+// api handler
+require('./api/api.js')(app, configByName, fileTopologyByName);
+
 app.use(middleware);
 app.use(webpackHotMiddleware(compiler));
 
@@ -963,3 +966,4 @@ app.listen(port, '', function onStart(err) {
   }
   console.info('==> 🌎 Listening on port %s.', port);
 });
+
