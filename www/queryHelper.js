@@ -184,8 +184,8 @@ var self = {
                   let nodeData = nodeMetrics[node.mac][keyName];
                   // display name in the typeahead
                   nodeData['displayName'] = title;
-                  nodeData['linkName'] = titleAppend ?
-                    link.name + titleAppend : link.name;
+                  nodeData['linkName'] = link.name;
+                  nodeData['linkTitleAppend'] = titleAppend ? titleAppend : '';
                   // title when graphing
                   nodeData['title'] = titleAppend ? title + titleAppend : title;
                   nodeData['description'] = description;

@@ -325,6 +325,9 @@ export default class NetworkStats extends React.Component {
             title: metric.title,
             description: metric.description,
           };
+          if (metric.linkTitleAppend) {
+            rowData['linkTitleAppend'] =  metric.linkTitleAppend;
+          }
           if (metric.displayName) {
             if (!(newKey in priorityMetricNames)) {
               priorityMetricNames[newKey] = [];

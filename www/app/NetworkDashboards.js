@@ -127,6 +127,9 @@ export default class NetworkDashboards extends React.Component {
             title: metric.title,
             description: metric.description,
           };
+          if (metric.linkTitleAppend) {
+            rowData['linkTitleAppend'] = metric.linkTitleAppend;
+          }
           if (!(newKey in uniqMetricNames)) {
             uniqMetricNames[newKey] = [];
           }
