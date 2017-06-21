@@ -86,7 +86,7 @@ var self = {
             if (!(row.node_id in self.nodeKeyIds)) {
               self.nodeKeyIds[row.node_id] = {};
             }
-            self.nodeKeyIds[row.node_id][row.key] = row.id;
+            self.nodeKeyIds[row.node_id][row.key.toLowerCase()] = row.id;
           });
         }
       );
@@ -119,7 +119,7 @@ var self = {
     let nodesData = [];
     Object.keys(newNodes).forEach(nodeKey => {
       node = newNodes[nodeKey];
-      nodesData.push([node.mac, node.name, node.site, node.network]);
+      nodesData.push([node.mac.toLowerCase(), node.name, node.site, node.network]);
       console.log('Inserting new node: mac: ' + node.mac + ' name: ' + node.name + ' site: ' + node.site + ' network: ' + node.network);
     });
     // insert unique macs
@@ -148,7 +148,7 @@ var self = {
     let nodesData = [];
     Object.keys(nodesToUpdate).forEach(nodeId => {
       node = nodesToUpdate[nodeId];
-      nodesData.push([node.id, node.mac, node.name, node.site, node.network]);
+      nodesData.push([node.id, node.mac.toLowerCase(), node.name, node.site, node.network]);
       console.log('Updating node: mac: ' + node.mac + ' name: ' + node.name + ' site: ' + node.site + ' network: ' + node.network);
     });
     // insert unique macs
@@ -291,10 +291,10 @@ var self = {
         }
         // verify node/key combo exists
         if (nodeId in self.nodeKeyIds &&
-            stat.key in self.nodeKeyIds[nodeId]) {
+            stat.key.toLowerCase() in self.nodeKeyIds[nodeId]) {
           // insert row for beringei
           let bKey = new beringeiTypes.Key();
-          bKey.key = "" + self.nodeKeyIds[nodeId][stat.key];
+          bKey.key = "" + self.nodeKeyIds[nodeId][stat.key.toLowerCase()];
           let bRow = new beringeiTypes.DataPoint();
           bRow.key = bKey;
           let timePair = new beringeiTypes.TimeValuePair();
@@ -304,7 +304,7 @@ var self = {
           bRows.push(bRow);
         } else {
           console.log('Missing cache for', nodeId, '/', stat.key);
-          missingNodeKey.add([nodeId, stat.key]);
+          missingNodeKey.add([nodeId, stat.key.toLowerCase()]);
         }
       });
     });
