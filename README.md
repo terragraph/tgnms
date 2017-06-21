@@ -44,7 +44,7 @@ useradd nms
 ```
 #### Dependencies
 ```
-yum -y install gcc-c++ git mariadb-server
+yum -y install gcc-c++ git mariadb-server wget
 systemctl start mariadb
 systemctl enable mariadb
 ```
