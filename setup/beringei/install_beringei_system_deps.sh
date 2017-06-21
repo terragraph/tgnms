@@ -26,6 +26,7 @@ if [ ! -f "autoconf-archive-2017.03.21.tar.xz" ]; then
 fi
 pushd autoconf-archive-2017.03.21
 ./configure --prefix=/usr && make && make install
+popd
 # more recent version of boost
 if [ ! -f "boost_1_64_0.tar.gz" ]; then
 	wget "https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz"
