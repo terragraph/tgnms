@@ -93,7 +93,7 @@ var self = {
           if (!(result.mac in self.nodeKeyIds)) {
             self.nodeKeyIds[result.mac] = {};
           }
-          self.nodeKeyIds[result.mac][result.key] = result.id;
+          self.nodeKeyIds[result.mac][result.key.toLowerCase()] = result.id;
         });
 
       });
@@ -145,7 +145,7 @@ var self = {
           if (!(mac in nodeMetrics)) {
             nodeMetrics[mac] = {};
           }
-          nodeMetrics[mac][result.key] = {
+          nodeMetrics[mac][result.key.toLowerCase()] = {
             dbKeyId: result.id
           };
         });
@@ -180,8 +180,8 @@ var self = {
                 let {node, keyName, titleAppend} = data;
                 // find and tag the associated keys
                 if (node.mac in nodeMetrics &&
-                    keyName in nodeMetrics[node.mac]) {
-                  let nodeData = nodeMetrics[node.mac][keyName];
+                    keyName.toLowerCase() in nodeMetrics[node.mac]) {
+                  let nodeData = nodeMetrics[node.mac][keyName.toLowerCase()];
                   // display name in the typeahead
                   nodeData['displayName'] = title;
                   nodeData['linkName'] = link.name;
@@ -521,8 +521,8 @@ var self = {
     let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
     linkKeys.keys.forEach(keyData => {
       if (aNode.mac in self.nodeKeyIds &&
-          keyData.keyName in self.nodeKeyIds[aNode.mac]) {
-        let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName];
+          keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac]) {
+        let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName.toLowerCase()];
         keyIds.push(keyId);
       }
     });
@@ -557,8 +557,8 @@ var self = {
       let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
       linkKeys.keys.forEach(keyData => {
         if (aNode.mac in self.nodeKeyIds &&
-            keyData.keyName in self.nodeKeyIds[aNode.mac]) {
-          let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName];
+            keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac]) {
+          let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName.toLowerCase()];
           nodeKeyIds.push(keyId);
           nodeData.push({
             keyId: keyId,
