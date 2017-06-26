@@ -14,9 +14,8 @@ NMS_ARGS="-v 2"
 
 ## Install    
 ```
-for dir in ~nms/tgnms/service_chroot/*; do [ -d "$dir" ] && systemctl enable $dir/$(basename $dir).service; done
-systemctl daemon-reload
-for dir in ~nms/tgnms/service_chroot/*; do [ -d "$dir" ] && systemctl start $(basename $dir).service; done`
+for dir in ~nms/tgnms/service_chroot/*; do [ -d "$dir" ] && cp -v $dir/$(basename $dir).service /usr/lib/systemd/system/ && systemctl enable $(basename $dir).service; done
+for dir in ~nms/tgnms/service_chroot/*; do [ -d "$dir" ] && systemctl start $(basename $dir).service; done
 ```
 
 ## Logging
