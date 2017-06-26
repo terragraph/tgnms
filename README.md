@@ -85,8 +85,8 @@ popd
 ```
 ##### Import initial schema
 ```
-mysql -uroot -p -e"create database cxl"
-mysql -uroot -p cxl < ~nms/tgnms/schema/cxl.sql
+mysql -uroot -e"create database cxl"
+mysql -uroot cxl < ~nms/tgnms/schema/cxl.sql
 ```
 ### UI Configuration
 The UI needs to be configured to know which topologies it should display.
@@ -127,8 +127,7 @@ popd
 ### Enable and Start systemd services
 Run these commands to enable the two primary services - nms_prod and nms_mysql_writer
 ```
-for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && systemctl enable $dir/$(basename $dir).service; done
-systemctl daemon-reload
+for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && cp -v $dir/$(basename $dir).service /usr/lib/systemd/system/ && systemctl enable $(basename $dir).service; done
 for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && systemctl start $(basename $dir).service; done
 ```
 ### Log files
