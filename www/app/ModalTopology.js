@@ -49,33 +49,7 @@ export default class ModalTopology extends React.Component {
       this.props.onClose();
     }.bind(this));
   }
-
-  // jj_test() {
-  //   var request = new XMLHttpRequest();
-  //   request.onload = function() {
-  //     if (!request) {
-  //       return;
-  //     }
-  //     if (request.status == 200) {
-  //       swal({
-  //         title: "AW YIS!",
-  //         text: "Response: "+request.statusText,
-  //         type: "success"
-  //       });
-  //     } else {
-  //       swal({
-  //         title: "Failed!",
-  //         text: "Adding a link failed\nReason: "+request.statusText,
-  //         type: "error"
-  //       });
-  //     }
-  //   }.bind(this);
-  //   try {
-  //     request.open('POST', '/jj_test', true);
-  //     request.send(JSON.stringify(postData));
-  //   } catch (e) {}
-  // }
-
+  
   render() {
     let hideParentModal = false;
     let visibleModal = {};
