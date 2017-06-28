@@ -338,6 +338,7 @@ app.use(/\/stats_writer$/i, function (req, res, next) {
   req.on('end', function() {
     // relay the msg to datadb
     if (!httpPostData.length) {
+      res.status(500).end("No Data");
       return;
     }
     // update mysql time series db

@@ -372,15 +372,16 @@ export default class NetworkMap extends React.Component {
       let healthyCount = 0;
       let polarityCount = 0;
       let totalCount = 0;
+      let hasPop = false;
       Object.keys(topology.nodes).map(nodeIndex => {
         let node = topology.nodes[nodeIndex];
         if (node.site_name == site.name) {
           totalCount++;
           healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
           polarityCount += node.polarity ? node.polarity : 0;
+          hasPop = node.pop_node ? true : hasPop;
         }
       });
-
       let polarity = polarityCount / totalCount;
 
       let contextualMarker = null;
@@ -411,6 +412,20 @@ export default class NetworkMap extends React.Component {
           contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
       }
       siteComponents.push(contextualMarker);
+      if (hasPop) {
+        let secondaryMarker = 
+          <CircleMarker center={siteCoords}
+            radius={5}
+            clickable
+            fillOpacity={1}
+            color="blue"
+            key={"pop-node" + siteIndex}
+            siteIndex={siteIndex}
+            onClick={this.handleMarkerClick}
+            fillColor="blue"
+            level={11}/>;
+        siteComponents.push(secondaryMarker);
+      }
     });
 
     Object.keys(topology.links).map(linkName => {
