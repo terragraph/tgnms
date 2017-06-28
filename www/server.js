@@ -1,5 +1,6 @@
 /* eslint no-console: 0 */
 
+const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const request = require('request');

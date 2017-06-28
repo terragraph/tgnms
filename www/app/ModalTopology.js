@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 import ModalLinkAdd from './ModalLinkAdd.js';
 import ModalNodeAdd from './ModalNodeAdd.js';
+import ModalCSVUpload from './ModalCSVUpload.js';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import swal from 'sweetalert';
@@ -23,7 +24,8 @@ export default class ModalTopology extends React.Component {
   state = {
     addNodeModalOpen: false,
     addLinkModalOpen: false,
-  }
+    uploadCSVModelOpen: false,
+  };
 
   componentDidMount() {
   }
@@ -48,6 +50,32 @@ export default class ModalTopology extends React.Component {
     }.bind(this));
   }
 
+  // jj_test() {
+  //   var request = new XMLHttpRequest();
+  //   request.onload = function() {
+  //     if (!request) {
+  //       return;
+  //     }
+  //     if (request.status == 200) {
+  //       swal({
+  //         title: "AW YIS!",
+  //         text: "Response: "+request.statusText,
+  //         type: "success"
+  //       });
+  //     } else {
+  //       swal({
+  //         title: "Failed!",
+  //         text: "Adding a link failed\nReason: "+request.statusText,
+  //         type: "error"
+  //       });
+  //     }
+  //   }.bind(this);
+  //   try {
+  //     request.open('POST', '/jj_test', true);
+  //     request.send(JSON.stringify(postData));
+  //   } catch (e) {}
+  // }
+
   render() {
     let hideParentModal = false;
     let visibleModal = {};
@@ -66,9 +94,15 @@ export default class ModalTopology extends React.Component {
     } else if (this.state.addSiteModalOpen) {
       visibleModal =
         <ModalSiteAdd
-        isOpen= {this.props.isOpen}
-        onClose= {() => this.setState({addSiteModalOpen: false})}
-        topology= {this.props.topology}/>;
+          isOpen={this.props.isOpen}
+          onClose={() => this.setState({addSiteModalOpen: false})}
+          topology={this.props.topology}/>;
+    } else if (this.state.uploadCSVModelOpen) {
+      visibleModal =
+        <ModalCSVUpload
+          isOpen={this.props.isOpen}
+          onClose={() => this.setState({uploadCSVModelOpen: false})}
+          topology={this.props.topology}/>;
     } else {
       visibleModal =
         <Modal
@@ -109,6 +143,15 @@ export default class ModalTopology extends React.Component {
               <td width={100}>
                 <button style={{float: 'right'}} className='graph-button'
                   onClick={() => swal("Select a Link on the map and delete it from the details menu!")}>Remove</button>
+              </td>
+            </tr>
+            <tr className="blank_row"/>
+            <tr>
+              <td width={100}>CSV</td>
+              <td width={100}/>
+              <td width={100}>
+                {/*<input type="file" style={{float: 'right'}} className='graph-button'>Upload</input>*/}
+                <button style={{float: 'right'}} className='graph-button' onClick={() => this.setState({uploadCSVModelOpen: true})}>Upload</button>
               </td>
             </tr>
             <tr className="blank_row"/>

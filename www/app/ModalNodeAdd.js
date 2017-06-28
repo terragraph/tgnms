@@ -46,7 +46,7 @@ export default class ModalNodeAdd extends React.Component {
     node_site_name: null,
     node_ant_azimuth: null,
     node_has_cpe: false
-  }
+  };
 
   componentDidMount() {
   }
@@ -68,11 +68,11 @@ export default class ModalNodeAdd extends React.Component {
       site_name: this.state.node_site_name,
       ant_azimuth: this.state.node_ant_azimuth,
       has_cpe: this.state.node_has_cpe
-    }
+    };
     let postData = {
       "topology": this.props.topology.name,
       "newNode": newNode
-    }
+    };
     swal({
       title: "Are you sure?",
       text: "You are adding a node to this topology!",

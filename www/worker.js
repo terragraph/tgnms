@@ -172,7 +172,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       location.altitude = msg.site.alt;
 
       site.name = msg.site.name;
-      site.location = location
+      site.location = location;
       addSiteReq.site = site;
       addSiteReq.write(tProtocol);
       transport.flush();

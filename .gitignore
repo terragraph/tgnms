@@ -4,3 +4,4 @@ npm-debug.log
 service/*/supervise
 service/*/log/supervise
 www/config/dashboards.json
+setup/*
