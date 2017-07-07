@@ -159,6 +159,37 @@ export default class NetworkLinksTable extends React.Component {
     });
   }
 
+  renderNameWithStatsLinks(cell, row) {
+    let linkStyle = {
+      color: 'blue',
+      cursor: 'pointer',
+      paddingLeft: '5px',
+    };
+    return (
+      <span>
+        {cell}<br />
+        Stats:
+        <span style={linkStyle} onClick={click => {
+            Dispatcher.dispatch({
+              actionType: Actions.VIEW_SELECTED,
+              viewName: 'stats',
+              nodeRestrictor: row.name,
+            });
+        }}>
+          Link
+        </span>
+        <span style={linkStyle} onClick={click => {
+            Dispatcher.dispatch({
+              actionType: Actions.VIEW_SELECTED,
+              viewName: 'stats',
+              nodeRestrictor: [row.a_node_name, row.z_node_name].join(','),
+            });
+        }}>
+          Nodes
+        </span>
+      </span>);
+  }
+
   renderAlivePerc(cell, row) {
     let cellColor = 'red';
     let cellText = '-';
@@ -229,6 +260,7 @@ export default class NetworkLinksTable extends React.Component {
          <TableHeaderColumn width="150"
                             dataSort={true}
                             dataField="name"
+                            dataFormat={this.renderNameWithStatsLinks.bind(this)}
                             isKey={ true }
                             sortFunc={this.linkSortFunc}>
             Name

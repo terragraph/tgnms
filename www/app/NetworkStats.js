@@ -88,7 +88,7 @@ export default class NetworkStats extends React.Component {
     siteMetrics: {},
     keyOptions: [],
     // type-ahead graphs
-    nodesSelected: [],
+    nodesSelected: this.renderInitialOptions(),
     keysSelected: [],
     minAgo: 60,
     graphAggType: 'top',
@@ -237,37 +237,54 @@ export default class NetworkStats extends React.Component {
     ];
   }
 
-  renderNodeOptions() {
-    let nodeOptions = this.props.networkConfig.topology.sites.map(site => {
-      return {
-        name: "Site " + site.name,
-        type: 'Sites',
-        restrictor: {
-          siteName: site.name,
-        },
-      };
+  renderInitialOptions() {
+    let restrictor = [''];
+    if (NetworkStore.nodeRestrictor.length > 0) {
+      restrictor = NetworkStore.nodeRestrictor.split(',');
+    }
+    // determine initial list
+    let nodeOptions = this.renderNodeOptions(restrictor);
+    return nodeOptions;
+  }
+
+  renderNodeOptions(filter = []) {
+    let nodeOptions = [];
+    this.props.networkConfig.topology.sites.forEach(site => {
+      if (!filter.length || filter.includes(site.name)) {
+        nodeOptions.push({
+          name: "Site " + site.name,
+          type: 'Sites',
+          restrictor: {
+            siteName: site.name,
+          },
+        });
+      }
     });
     this.props.networkConfig.topology.nodes.map(node => {
-      nodeOptions.push({
-        name: node.name,
-        type: 'Nodes',
-        restrictor: {
-          nodeName: node.name,
-        },
-      });
+      if (!filter.length || filter.includes(node.name)) {
+        nodeOptions.push({
+          name: node.name,
+          type: 'Nodes',
+          restrictor: {
+            nodeName: node.name,
+          },
+        });
+      }
     });
     this.props.networkConfig.topology.links.map(link => {
       // skip wired links
       if (link.link_type == 2) {
         return;
       }
-      nodeOptions.push({
-        name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
-        type: 'Links',
-        restrictor: {
-          linkName: link.name,
-        },
-      });
+      if (!filter.length || filter.includes(link.name)) {
+        nodeOptions.push({
+          name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
+          type: 'Links',
+          restrictor: {
+            linkName: link.name,
+          },
+        });
+      }
     });
     return nodeOptions
   }
