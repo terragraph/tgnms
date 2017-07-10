@@ -1,6 +1,6 @@
 #!/bin/bash
 yum install -y git vim libtool automake \
-        openssl-devel double-conversion-devel libevent-devel \
+        openssl-devel libevent-devel \
         python-devel flex flex-devel bison bison-devel snappy \
         snappy-devel cyrus-sasl-devel gperf libcap-devel wget \
 	unzip
