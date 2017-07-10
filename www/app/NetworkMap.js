@@ -413,7 +413,7 @@ export default class NetworkMap extends React.Component {
       }
       siteComponents.push(contextualMarker);
       if (hasPop) {
-        let secondaryMarker = 
+        let secondaryMarker =
           <CircleMarker center={siteCoords}
             radius={5}
             clickable
@@ -574,8 +574,6 @@ export default class NetworkMap extends React.Component {
       } else {
         showOverview = true;
       }
-    } else {
-      showOverview = true;
     }
     if (showOverview) {
       // overview
