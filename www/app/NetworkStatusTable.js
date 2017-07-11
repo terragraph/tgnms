@@ -48,6 +48,14 @@ export default class NetworkStatusTable extends React.Component {
           </tbody>
         </table>
     }
+    let controllerErrorRow;
+    if (this.props.instance.hasOwnProperty('controller_error')) {
+      controllerErrorRow =
+        <tr>
+          <td>Controller Error</td>
+          <td colSpan="2" style={{fontWeight: 'bold', color: 'red'}}>{this.props.instance.controller_error}</td>
+        </tr>;
+    }
     return (
       <div style={{marginLeft: '10px', marginRight: '10px'}}>
         <table className="status-table" style={{width: '75%'}}>
@@ -57,6 +65,7 @@ export default class NetworkStatusTable extends React.Component {
               <td>{this.props.instance.controller_ip}</td>
               <td>{this.statusColor(this.props.instance.controller_online)}</td>
             </tr>
+            {controllerErrorRow}
             <tr>
               <td>Aggregator</td>
               <td>{this.props.instance.aggregator_ip}</td>

@@ -240,10 +240,18 @@ export default class NetworkUI extends React.Component {
       let keyName = "topo#" + topologyConfig.name;
       let online = topologyConfig.controller_online ||
                    topologyConfig.aggregator_online;
+      let controllerErrorMsg;
+      if (topologyConfig.hasOwnProperty('controller_error')) {
+        online = false;
+        controllerErrorMsg =
+          <span style={{color: 'red', fontWeight: 'bold'}}>
+            (Error)
+          </span>;
+      }
       topologyMenuItems.push(
         <MenuItem key={keyName}>
           <img src={"/static/images/" + (online ? 'online' : 'offline') + ".png"} />
-          {topologyConfig.name}
+          {topologyConfig.name}{controllerErrorMsg}
         </MenuItem>
       );
     }

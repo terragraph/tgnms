@@ -88,6 +88,19 @@ worker.on('message', (msg) => {
                     (msg.success ? 'online' : 'offline'),
                     'in', msg.response_time, 'ms');
       }
+      // validate the name on disk matches the e2e received topology
+      if (msg.success && msg.name != msg.topology.name) {
+        console.error('Invalid name received from controller for:', msg.name,
+                      ', Received:', msg.topology.name);
+        config.controller_online = false;
+        config.controller_error = 'Name mis-match between topology on disk ' +
+                                  'and e2e controller topology. ' + msg.name +
+                                  ' != ' + msg.topology.name;
+        return;
+      } else if (msg.success) {
+        // clear errors that no-longer exist
+        delete config['controller_error'];
+      }
       config.controller_failures = msg.success ? 0 : config.controller_failures + 1;
       if (config.controller_failures >= maxThriftRequestFailures) {
         config.controller_online = false;
