@@ -76,6 +76,15 @@
             "longitude": -122.1472245455607,
             "zoom_level": 18,
             "topology_file": "Dragon.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d",
+            "aggregator_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d",
+            "site_coords_override": "true",
+            "latitude": 37.333057579551586,
+            "longitude": -121.88882589372953,
+            "zoom_level": 16,
+            "topology_file": "tower_G.json"
         }
     ]
 }
