@@ -8,9 +8,10 @@ const Topology_ttypes = require('../thrift/gen-nodejs/Topology_types');
 const Controller_ttypes = require('../thrift/gen-nodejs/Controller_types');
 
 class ApiLib {
-  constructor(networkConfigs, topologyList, postData) {
+  constructor(networkConfigs, topologyList, liveTopologies, postData) {
     this._networkConfigs = networkConfigs;
     this._topologyList = topologyList;
+    this._liveTopologies = liveTopologies;
     this._data = postData;
   }
 
@@ -24,14 +25,19 @@ class ApiLib {
       return false;
     }
     let networkConfig = Object.assign({}, this._networkConfigs[topologyName]);
-    networkConfig.topology = this._topologyList[topologyName];
+    // use live topology if available
+    if (this._liveTopologies.hasOwnProperty(topologyName)) {
+      networkConfig.topology = this._liveTopologies[topologyName];
+    } else {
+      networkConfig.topology = this._topologyList[topologyName];
+    }
     this._networkConfig = networkConfig;
     // ensure a controller IP exists
     if (!this._networkConfig.controller_ip ||
         this._networkConfig.controller_ip.length == 0) {
       return false;
     }
-    let fields = ApiMethods[methodName].fields;
+    let fields = ApiMethods[methodName].required;
     Object.keys(fields).forEach(fieldName => {
       let fieldVerType = fields[fieldName];
       if (!this._data.hasOwnProperty(fieldName)) {
@@ -88,6 +94,19 @@ class ApiLib {
                             ' is not a boolean: ' + fieldValue);
           }
           break;
+        case VerificationType.IS_DOUBLE:
+        case VerificationType.IS_NUMBER:
+          if (typeof fieldValue != "number") {
+            throw new Error('Field ' + fieldName +
+                            ' is not a number: ' + fieldValue);
+          }
+          break;
+        case VerificationType.IS_STRING:
+          if (typeof fieldValue != "string") {
+            throw new Error('Field ' + fieldName +
+                            ' is not a string: ' + fieldValue);
+          }
+          break;
         case VerificationType.VALID_MAC:
           if (fieldValue.length != (6 * 2 + 5)) {
             throw new Error('Field ' + fieldName +
@@ -101,6 +120,26 @@ class ApiLib {
             this._data[fieldName] = Topology_ttypes.LinkType.WIRELESS;
           } else {
             throw new Error('Link type unknown: ' + fieldValue);
+          }
+          break;
+        case VerificationType.IS_NODE_TYPE:
+          fieldValue = fieldValue.toUpperCase();
+          this._data[fieldName] = fieldValue;
+          if (!Object.keys(Topology_ttypes.NodeType).includes(fieldValue)) {
+            throw new Error('Node type for ' + fieldName + ' must be one of: ' +
+                            Object.keys(Topology_ttypes.NodeType).join(", ") +
+                            ', invalid value: ' + fieldValue);
+          }
+          break;
+        case VerificationType.IS_POLARITY_TYPE:
+          fieldValue = fieldValue.toUpperCase();
+          this._data[fieldName] = fieldValue;
+          if (!Object.keys(Topology_ttypes.PolarityType).includes(fieldValue)) {
+            throw new Error('Polarity type for ' + fieldName +
+                            ' must be one of: ' +
+                            Object.keys(Topology_ttypes.PolarityType)
+                              .join(", ") +
+                            ', invalid value: ' + fieldValue);
           }
           break;
         default:
@@ -273,15 +312,26 @@ class ApiLib {
         transport.flush();
         break;
       /**
-       * @api {post} /addNode Add Node (NOT READY)
+       * @api {post} /addNode Add Node
        * @apiName AddNode
        * @apiGroup Topology
        *
        * @apiParam {String} topology Topology Name
-       * @apiParam {String} node Node Struct
+       * @apiParam {String} nodeName Node Name
+       * @apiParam {String="DN","CN"} [nodeType="DN"] Type of node (distribution or client)
+       * @apiParam {Bool} isPrimary Node is primary
+       * @apiParam {String} macAddr MAC Address (can be left blank)
+       * @apiParam {Bool} popNode Node is connected to POP
+       * @apiParam {String="ODD","EVEN"} polarityType Polarity (ODD/EVEN)
+       * @apiParam {Number} txGolay
+       * @apiParam {Number} rxGolay
+       * @apiParam {String} siteName
+       * @apiParam {Double} antAzimuth
+       * @apiParam {Double} antElevation
+       * @apiParam {Bool} [hasCpe=false] Is attached to a customer
        *
        * @apiExample {curl} Example:
-       *    curl -id '{"topology": "Lab F8 D", "nodeA": "terra212.f5.td.a404-if", "nodeZ": "terra214.f5.td.a404-if", "linkType": "ETHERNET"}' http://localhost:443/api/addNode
+       *    curl -id '{"topology": "Lab F8 D", "nodeName": "terra999.f5.td.a404-if", "isPrimary": false, "madAddr": "", "popNode" : false, "polarityType": "ODD", "txGolay": 100, "rxGolay": 200, "siteName": "A", "antAzimuth": 100.0, "antElevation": 999.99}' http://localhost:443/api/addNode
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
@@ -291,20 +341,20 @@ class ApiLib {
         var node = new Topology_ttypes.Node();
         var golay = new Topology_ttypes.GolayIdx();
 
-        golay.txGolayIdx = msg.node.txGolayIdx;
-        golay.rxGolayIdx = msg.node.rxGolayIdx;
+        golay.txGolayIdx = this._data.txGolay;
+        golay.rxGolayIdx = this._data.rxGolay;
 
-        node.name = msg.node.name;
-        node.node_type = msg.node.type == "DN" ? Topology_ttypes.NodeType.DN : Topology_ttypes.NodeType.CN;
-        node.is_primary = msg.node.is_primary;
-        node.mac_addr = msg.node.mac_addr;
-        node.pop_node = msg.node.is_pop;
-        node.polarity = msg.node.polarity == "ODD" ? Topology_ttypes.PolarityType.ODD : Topology_ttypes.PolarityType.EVEN;
+        node.name = this._data.nodeName;
+        node.node_type = this._data.nodeType == "CN" ? Topology_ttypes.NodeType.CN : Topology_ttypes.NodeType.DN;
+        node.is_primary = this._data.isPrimary;
+        node.mac_addr = this._data.macAddr;
+        node.pop_node = this._data.popNode
+        node.polarity = this._data.polarityType == "EVEN" ? Topology_ttypes.PolarityType.EVEN : Topology_ttypes.PolarityType.ODD;
         node.golay_idx = golay;
-        node.site_name = msg.node.site_name;
-        node.ant_azimuth = msg.node.ant_azimuth;
-        node.ant_elevation = msg.node.ant_elevation;
-        node.has_cpe = msg.node.has_cpe;
+        node.site_name = this._data.siteName;
+        node.ant_azimuth = this._data.antAzimuth;
+        node.ant_elevation = this._data.antElevation;
+        node.has_cpe = this._data.hasCpe;
 
         addNodeReq.node = node;
         addNodeReq.write(tProtocol);

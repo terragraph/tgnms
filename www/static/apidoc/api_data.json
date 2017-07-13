@@ -384,7 +384,7 @@
   {
     "type": "post",
     "url": "/addNode",
-    "title": "Add Node (NOT READY)",
+    "title": "Add Node",
     "name": "AddNode",
     "group": "Topology",
     "parameter": {
@@ -401,8 +401,95 @@
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "node",
-            "description": "<p>Node Struct</p>"
+            "field": "nodeName",
+            "description": "<p>Node Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"DN\"",
+              "\"CN\""
+            ],
+            "optional": true,
+            "field": "nodeType",
+            "defaultValue": "DN",
+            "description": "<p>Type of node (distribution or client)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Bool",
+            "optional": false,
+            "field": "isPrimary",
+            "description": "<p>Node is primary</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "macAddr",
+            "description": "<p>MAC Address (can be left blank)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Bool",
+            "optional": false,
+            "field": "popNode",
+            "description": "<p>Node is connected to POP</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"ODD\"",
+              "\"EVEN\""
+            ],
+            "optional": false,
+            "field": "polarityType",
+            "description": "<p>Polarity (ODD/EVEN)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "txGolay",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "rxGolay",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "siteName",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "Double",
+            "optional": false,
+            "field": "antAzimuth",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "Double",
+            "optional": false,
+            "field": "antElevation",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "Bool",
+            "optional": true,
+            "field": "hasCpe",
+            "defaultValue": "false",
+            "description": "<p>Is attached to a customer</p>"
           }
         ]
       }
@@ -410,7 +497,7 @@
     "examples": [
       {
         "title": "Example:",
-        "content": "curl -id '{\"topology\": \"Lab F8 D\", \"nodeA\": \"terra212.f5.td.a404-if\", \"nodeZ\": \"terra214.f5.td.a404-if\", \"linkType\": \"ETHERNET\"}' http://localhost:443/api/addNode",
+        "content": "curl -id '{\"topology\": \"Lab F8 D\", \"nodeName\": \"terra999.f5.td.a404-if\", \"isPrimary\": false, \"madAddr\": \"\", \"popNode\" : false, \"polarityType\": \"ODD\", \"txGolay\": 100, \"rxGolay\": 200, \"siteName\": \"A\", \"antAzimuth\": 100.0, \"antElevation\": 999.99}' http://localhost:443/api/addNode",
         "type": "curl"
       }
     ],

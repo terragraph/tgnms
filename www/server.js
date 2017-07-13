@@ -964,7 +964,7 @@ app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next)
   aggregatorProxy.setAlertsConfig(configs, req, res, next);
 });
 // api handler
-require('./api/api.js')(app, configByName, fileTopologyByName);
+require('./api/api.js')(app, configByName, fileTopologyByName, topologyByName);
 
 app.use(middleware);
 app.use(webpackHotMiddleware(compiler));

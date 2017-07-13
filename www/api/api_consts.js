@@ -5,6 +5,7 @@ const VerificationType = {
   TOPOLOGY_NAME: 1,
   NODE_NAME: 10,
   IS_NODE_TYPE: 11,
+  IS_POLARITY_TYPE: 12,
 
   LINK_NAME: 20,
   LINK_TYPE: 21,
@@ -14,6 +15,7 @@ const VerificationType = {
   IS_BOOLEAN: 100,
   IS_STRING: 101,
   IS_DOUBLE: 102,
+  IS_NUMBER: 103,
   VALID_MAC: 110,
 };
 /*
@@ -22,7 +24,7 @@ const VerificationType = {
 const ApiMethods = {
   "setLinkStatus": {
     "command": Controller_ttypes.MessageType.SET_LINK_STATUS_REQ,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "linkName": VerificationType.LINK_NAME,
       "linkUp": VerificationType.IS_BOOLEAN,
@@ -30,7 +32,7 @@ const ApiMethods = {
   },
   "setNodeMacAddress": {
     "command": Controller_ttypes.MessageType.SET_NODE_MAC,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "node": VerificationType.NODE_NAME,
       "mac": VerificationType.VALID_MAC,
@@ -39,7 +41,7 @@ const ApiMethods = {
   },
   "addLink": {
     "command": Controller_ttypes.MessageType.ADD_LINK,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "nodeA": VerificationType.NODE_NAME,
       "nodeZ": VerificationType.NODE_NAME,
@@ -48,7 +50,7 @@ const ApiMethods = {
   },
   "delLink": {
     "command": Controller_ttypes.MessageType.DEL_LINK,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "linkName": VerificationType.LINK_NAME,
       "force": VerificationType.IS_BOOLEAN,
@@ -57,25 +59,35 @@ const ApiMethods = {
   /* unsure */
   "addNode": {
     "command": Controller_ttypes.MessageType.ADD_NODE,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
-      "node": VerificationType.IS_NODE,
-      "nodeType": VerificationType.IS_NODE_TYPE,
+      "nodeName": VerificationType.IS_STRING,
       "isPrimary": VerificationType.IS_BOOLEAN,
-      "mac": VerificationType.VALID_MAC,
-      "isPop": VerificationType.IS_BOOLEAN,
+      // mac can be valid or empty
+      "popNode": VerificationType.IS_BOOLEAN,
+      "polarityType": VerificationType.IS_POLARITY_TYPE,
+      "txGolay": VerificationType.IS_NUMBER,
+      "rxGolay": VerificationType.IS_NUMBER,
+      "siteName": VerificationType.IS_STRING,
+      "antAzimuth": VerificationType.IS_DOUBLE,
+      "antElevation": VerificationType.IS_DOUBLE,
+    },
+    "optional": {
+      "macAddr": VerificationType.IS_STRING,
+      "nodeType": VerificationType.IS_NODE_TYPE,
+      "hasCpe": VerificationType.IS_BOOLEAN,
     }
   },
   "delNode": {
     "command": Controller_ttypes.MessageType.DEL_NODE,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "node": VerificationType.NODE_NAME,
     }
   },
   "addSite": {
     "command": Controller_ttypes.MessageType.ADD_SITE,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "site": VerificationType.IS_STRING,
       "latitude": VerificationType.IS_DOUBLE,
@@ -84,14 +96,14 @@ const ApiMethods = {
   },
   "delSite": {
     "command": Controller_ttypes.MessageType.DEL_SITE,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "site": VerificationType.IS_STRING,
     }
   },
   "rebootNode": {
     "command": Controller_ttypes.MessageType.REBOOT_NODE,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "node": VerificationType.NODE_NAME,
       "force": VerificationType.IS_BOOLEAN,
@@ -99,20 +111,20 @@ const ApiMethods = {
   },
   "getIgnitionState": {
     "command": Controller_ttypes.MessageType.GET_IGNITION_STATE,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
     }
   },
   "setNetworkIgnitionState": {
     "command": Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "enabled": VerificationType.IS_BOOLEAN,
     }
   },
   "setLinkIgnitionState": {
     "command": Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
-    "fields": {
+    "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "linkName": VerificationType.LINK_NAME,
       "enabled": VerificationType.IS_BOOLEAN,

@@ -8,7 +8,7 @@ const ApiConsts = require('./api_consts');
 const ApiMethods = ApiConsts.ApiMethods;
 const VerificationType = ApiConsts.VerificationType;
 
-module.exports = function(app, configs, topologies) {
+module.exports = function(app, configs, topologies, liveTopologies) {
   app.post(/\/api\/([a-zA-Z]+)/g, function (req, res) {
     let apiMethod = req.params[0];
     // validate api method exists
@@ -36,7 +36,7 @@ module.exports = function(app, configs, topologies) {
         res.status(500).end("Invalid JSON");
         return;
       }
-      let apiLib = new ApiLib(configs, topologies, postData);
+      let apiLib = new ApiLib(configs, topologies, liveTopologies, postData);
       // validate input
       try {
         if (!apiLib.validateInput(apiMethod)) {
