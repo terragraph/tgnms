@@ -119,3 +119,11 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .many .dygraph-legend > span { display: none; }
 .many .dygraph-legend > span.highlight { display: inline; }
 .dygraph-title {text-align: center;}
+.timePicker {
+  display: inline-block;
+}
+.timeTitle {
+  padding-right: 4px;
+  font-weight: bold;
+  margin-left: 4px;
+}
