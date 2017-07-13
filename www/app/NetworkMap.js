@@ -18,6 +18,7 @@ import DetailsTopology from './DetailsTopology.js';
 import DetailsPlannedSite from './DetailsPlannedSite.js';
 import SplitPane from 'react-split-pane';
 const d3 = require('d3');
+import { Index, TimeSeries, TimeRange, TimeRangeEvent } from "pondjs";
 
 const SITE_MARKER = Leaflet.icon({
   iconUrl: '/static/images/site.png',
@@ -66,7 +67,8 @@ export default class NetworkMap extends React.Component {
     tablesExpanded: true,
     networkHealth: {},
     lowerPaneHeight: window.innerHeight / 2,
-    plannedSite: null
+    plannedSite: null,
+    linkOverlayData: null
   }
 
   constructor(props) {
@@ -202,6 +204,18 @@ export default class NetworkMap extends React.Component {
           networkHealth: payload.health,
         });
         break;
+      case Actions.LINK_OVERLAY_REFRESHED:
+        if (payload.overlay) {
+          let series = new TimeSeries(payload.overlay);
+          this.setState({
+            linkOverlayData: series,
+          });
+        } else {
+          this.setState({
+            linkOverlayData: null,
+          });
+        }
+        break;
     }
   }
 
@@ -222,6 +236,14 @@ export default class NetworkMap extends React.Component {
           link.name in this.state.networkHealth.links) {
         let nodeHealth = this.state.networkHealth.links[link.name];
         link["alive_perc"] = nodeHealth.alive;
+      }
+      if (this.state.linkOverlayData) {
+        let modLinkName = link.name.replace(/\./g, ' ') + ' (A)';
+        let overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
+        link["overlay_a"] = overlayValue;
+        modLinkName = link.name.replace(/\./g, ' ') + ' (Z)';
+        overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
+        link["overlay_z"] = overlayValue;
       }
     });
     // index sites by name
@@ -320,6 +342,49 @@ export default class NetworkMap extends React.Component {
       </Polyline>);
   }
 
+  getLinkLineTwoSides(link, coords, color_a, color_z): ReactElement<any> {
+    let coords_a = coords[0];
+    let coords_z = coords[1];
+    let midPoint = [(coords_a[0] + coords_z[0]) /2, (coords_a[1] + coords_z[1]) /2];
+    return ([
+      <Polyline
+        key={link.name+'(A)'}
+        positions={[coords_a, midPoint]}
+        weight={6}
+        onClick={e => {
+          Dispatcher.dispatch({
+            actionType: Actions.TAB_SELECTED,
+            tabName: "links",
+          });
+          Dispatcher.dispatch({
+            actionType: Actions.LINK_SELECTED,
+            link: link,
+            source: "map",
+          })
+        }}
+        color={color_a}
+        level={5}>
+      </Polyline>,
+      <Polyline
+        key={link.name+'(Z)'}
+        positions={[coords_z, midPoint]}
+        weight={6}
+        onClick={e => {
+          Dispatcher.dispatch({
+            actionType: Actions.TAB_SELECTED,
+            tabName: "links",
+          });
+          Dispatcher.dispatch({
+            actionType: Actions.LINK_SELECTED,
+            link: link,
+            source: "map",
+          })
+        }}
+        color={color_z}
+        level={5}>
+      </Polyline>]);
+  }
+
   updatePlannedPosition() {
     const { lat, lng } = this.refs.palnnedSiteMarker.leafletElement.getLatLng();
     let plannedSite = this.state.plannedSite;
@@ -343,11 +408,11 @@ export default class NetworkMap extends React.Component {
   }
 
   updatePosition = () => {
-      const { lat, lng } = this.refs.marker.leafletElement.getLatLng();
-      this.setState({
-        marker: { lat, lng },
-      });
-    };
+    const { lat, lng } = this.refs.marker.leafletElement.getLatLng();
+    this.setState({
+      marker: { lat, lng },
+    });
+  };
 
   render() {
     // use the center position from the topology if set
@@ -459,27 +524,58 @@ export default class NetworkMap extends React.Component {
           linkLine = this.getLinkLine(link, linkCoords, linkColor);
         }
       } else {
+        let overlayKey = linkOverlayKeys[this.props.linkOverlay];
         switch (this.props.linkOverlay) {
           case 'Health':
             if (link.is_alive) {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Healthy.color);
+              linkLine = this.getLinkLine(link, linkCoords, 'green');
             } else {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unhealthy.color);
+              linkLine = this.getLinkLine(link, linkCoords, 'red');
             }
             break;
           case 'Uptime':
+            let color = overlayKey.colors[overlayKey.values.length];
             if (link.hasOwnProperty("alive_perc")) {
-              var bwUsageColor = d3.scaleLinear()
-                  .domain([0, 50, 100])
-                  .range(["red", "white", "green"]);
-              var linkColor = d3.rgb(bwUsageColor(link.alive_perc));
-              linkLine = this.getLinkLine(link, linkCoords, linkColor);
+              for (var i = 0; i < overlayKey.values.length; ++i) {
+                if (link.alive_perc < overlayKey.values[i]) {
+                  color = overlayKey.colors[i];
+                  break;
+                }
+              }
+              linkLine = this.getLinkLine(link, linkCoords, color);
             } else {
-              linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Uptime.Unknown.color);
+              linkLine = this.getLinkLine(link, linkCoords, 'grey');
             }
             break;
+          case 'SNR':
+          case 'MCS':
+          case 'RSSI':
+            let color_a = overlayKey.colors[overlayKey.values.length];
+            let color_z = overlayKey.colors[overlayKey.values.length];
+            if (this.state.linkOverlayData && link.hasOwnProperty("overlay_a")) {
+              for (var i = 0; i < overlayKey.values.length; ++i) {
+                if (link.overlay_a < overlayKey.values[i]) {
+                  color_a = overlayKey.colors[i];
+                  break;
+                }
+              }
+            } else {
+              color_a = 'grey';
+            }
+            if (this.state.linkOverlayData && link.hasOwnProperty("overlay_z")) {
+              for (var i = 0; i < overlayKey.values.length; ++i) {
+                if (link.overlay_z < overlayKey.values[i]) {
+                  color_z = overlayKey.colors[i];
+                  break;
+                }
+              }
+            } else {
+              color_z = 'grey';
+            }
+            linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
+            break;
           default:
-            linkLine = this.getLinkLine(link, linkCoords, linkOverlayKeys.Health.Unknown.color);
+            linkLine = this.getLinkLine(link, linkCoords, 'grey');
         }
       }
       if (linkLine) {

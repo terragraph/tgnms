@@ -667,7 +667,32 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
     res.status(500).send('No topology data for: ' + topologyName);
     return;
   }
-  let queries = queryHelper.makeTableQuery(res, topology);
+  let queries = queryHelper.makeTableQuery(res, topology, 'fw_uptime', "event", "event", 24 * 60 * 60);
+  let chartUrl = 'http://localhost:8899/query';
+  let queryRequest = {queries: queries};
+  request.post({url: chartUrl,
+                body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
+    if (err) {
+      console.error("Error fetching from beringei:", err);
+      res.status(500).send("Error fetching data").end();
+      return;
+    }
+    res.send(httpResponse.body).end();
+  });
+});
+
+// raw stats data
+app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let metricName = req.params[1];
+  let liveTopology = topologyByName[topologyName];
+  let topology = (liveTopology && liveTopology.nodes) ?
+                  liveTopology : fileTopologyByName[topologyName];
+  if (!topology) {
+    res.status(500).send('No topology data for: ' + topologyName);
+    return;
+  }
+  let queries = queryHelper.makeTableQuery(res, topology, metricName, "key_ids", "none", 10 * 60);
   let chartUrl = 'http://localhost:8899/query';
   let queryRequest = {queries: queries};
   request.post({url: chartUrl,
@@ -979,4 +1004,3 @@ app.listen(port, '', function onStart(err) {
   }
   console.info('==> 🌎 Listening on port %s.', port);
 });
-

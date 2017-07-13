@@ -375,7 +375,7 @@ var self = {
     return keyIds;
   },
 
-  makeTableQuery: function(res, topology) {
+  makeTableQuery: function(res, topology, metricName, type, agg_type, duration) {
     // make a list of node -> health metric names -> key ids
     // nodes by name
     let nodesByName = {};
@@ -399,7 +399,6 @@ var self = {
       let aNode = nodesByName[link.a_node_name];
       let zNode = nodesByName[link.z_node_name];
       // add nodes to request list
-      let metricName = 'fw_uptime';
       let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
       linkKeys.keys.forEach(keyData => {
         if (aNode.mac in self.nodeKeyIds &&
@@ -410,18 +409,29 @@ var self = {
             keyId: keyId,
             key: keyData.keyName,
             linkName: link.name,
+            linkTitleAppend: "(A)"
+          });
+        } else if (zNode.mac in self.nodeKeyIds &&
+                   keyData.keyName.toLowerCase() in self.nodeKeyIds[zNode.mac]) {
+          let keyId = self.nodeKeyIds[zNode.mac][keyData.keyName.toLowerCase()];
+          nodeKeyIds.push(keyId);
+          nodeData.push({
+           keyId: keyId,
+           key: keyData.keyName,
+           linkName: link.name,
+           linkTitleAppend: "(Z)"
           });
         }
       });
     });
     let now = parseInt(new Date().getTime() / 1000);
     let query = {
-      type: "event",
+      type: type,
       key_ids: nodeKeyIds,
       data: nodeData,
-      start_ts: now - (24 * 60 * 60),
+      start_ts: now - (duration),
       end_ts: now,
-      agg_type: "event"
+      agg_type: agg_type
     };
     return [query];
   },

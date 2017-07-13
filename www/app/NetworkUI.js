@@ -17,6 +17,7 @@ import NetworkAlerts from './NetworkAlerts.js';
 import NetworkConfig from './NetworkConfig.js';
 import ModalOverlays from './ModalOverlays.js';
 import ModalTopology from './ModalTopology.js';
+import {SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
 
 const VIEWS = {
   'map': 'Map',
@@ -141,6 +142,7 @@ export default class NetworkUI extends React.Component {
         });
         // update link health
         this.updateNetworkLinkHealth(this.state.networkName);
+        this.updateLinkOverlayStat(this.state.networkName);
         break;
     }
   }
@@ -160,6 +162,27 @@ export default class NetworkUI extends React.Component {
     }.bind(this));
   }
 
+  updateLinkOverlayStat(networkName) {
+    if (this.state.selectedLinkOverlay) {
+      let overlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
+      let metric = overlaySource.metric;
+
+      if (metric) {
+        // refresh link overlay stat
+        let linkHealthFetch = new Request('/overlay/linkStat/' + networkName + '/' + metric, {"credentials": "same-origin"});
+        fetch(linkHealthFetch).then(function(response) {
+          if (response.status == 200) {
+            response.json().then(function(json) {
+              Dispatcher.dispatch({
+                actionType: Actions.LINK_OVERLAY_REFRESHED,
+                overlay: json[0],
+              });
+            }.bind(this));
+          }
+        }.bind(this));
+      }
+    }
+  }
 
   refreshTopologyList() {
     // topology list
@@ -230,6 +253,10 @@ export default class NetworkUI extends React.Component {
       overlaysModalOpen: false,
       selectedSiteOverlay: siteOverlay,
       selectedLinkOverlay: linkOverlay,
+    });
+    Dispatcher.dispatch({
+      actionType: Actions.LINK_OVERLAY_REFRESHED,
+      overlay: null,
     });
   }
 

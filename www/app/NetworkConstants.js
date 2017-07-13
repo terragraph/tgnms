@@ -27,6 +27,7 @@ const Actions = {
   LAYER_CHANGED: 352,
   // network health
   HEALTH_REFRESHED: 400,
+  LINK_OVERLAY_REFRESHED: 401,
 };
 
 const SiteOverlayKeys = {
@@ -46,14 +47,33 @@ const SiteOverlayKeys = {
 
 const linkOverlayKeys = {
   Health: {
-    Healthy: {color: 'green'},
-    Unhealthy: {color: 'red'},
-    Unknown: {color: 'orange'}
+    name: 'Health',
+    metric: null
   },
   Uptime: {
-    Weighted: {color: 'green'},
-    Unknown: {color: 'grey'}
-  }
+    name: 'Uptime',
+    metric: null,
+    values: [99, 99.9, 99.99],
+    colors: ["hsl(0,100%,40%)", "hsl(50,100%,40%)", "hsl(120,100%,40%)", "hsl(120,100%,20%)"]
+  },
+  SNR: {
+    name: 'SNR',
+    metric: 'snr',
+    values: [5, 10, 15, 20],
+    colors: ["hsl(0,100%,20%)", "hsl(0,100%,40%)", "hsl(50,100%,40%)", "hsl(120,100%,40%)", "hsl(120,100%,20%)"]
+  },
+  MCS: {
+    name: 'MCS',
+    metric: 'mcs',
+    values: [6, 7, 8, 9],
+    colors: ["hsl(0,100%,20%)", "hsl(0,100%,40%)", "hsl(50,100%,40%)", "hsl(120,100%,40%)", "hsl(120,100%,20%)"]
+  },
+  RSSI: {
+    name: 'RSSI',
+    metric: 'rssi',
+    values: [-40, -35, -30, -25],
+    colors: ["hsl(0,100%,20%)", "hsl(0,100%,40%)", "hsl(50,100%,40%)", "hsl(120,100%,40%)", "hsl(120,100%,20%)"]
+  },
 }
 
 module.exports = {

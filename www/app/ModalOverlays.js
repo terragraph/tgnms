@@ -47,15 +47,24 @@ export default class ModalOverlays extends React.Component {
     });
     let linkOverlayKeyRows = [];
     let linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
-    Object.keys(linkOverlaySource).map(linkState => {
+    if (linkOverlaySource.values) {
+      for (var i = 0; i < linkOverlaySource.values.length; ++i) {
+        linkOverlayKeyRows.push(
+          <tr key={linkOverlaySource.values[i]}>
+            <td></td>
+            <td>
+              <font style={{color:linkOverlaySource.colors[i]}}> less than {linkOverlaySource.values[i]} </font>
+            </td>
+          </tr>);
+      };
       linkOverlayKeyRows.push(
-      <tr key={linkState}>
-        <td></td>
-        <td>
-          <font color={linkOverlaySource[linkState].color}> {linkState} </font>
-        </td>
-      </tr>);
-    });
+        <tr key='last'>
+          <td></td>
+          <td>
+            <font style={{color:linkOverlaySource.colors[linkOverlaySource.colors.length-1]}}> more than {linkOverlaySource.values[linkOverlaySource.values.length-1]} </font>
+          </td>
+        </tr>);
+    }
 
     return (
       <Modal
@@ -97,9 +106,15 @@ export default class ModalOverlays extends React.Component {
             </td>
           </tr>
           {linkOverlayKeyRows}
+          <tr className="blank_row">
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <button style={{float: 'left'}} className='graph-button' onClick={this.modalClose.bind(this)}>close</button>
+            </td>
+          </tr>
           </tbody>
         </table>
-        <button style={{float: 'right'}} className='graph-button' onClick={this.modalClose.bind(this)}>close</button>
       </Modal>
     );
   }
