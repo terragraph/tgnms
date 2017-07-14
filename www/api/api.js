@@ -9,7 +9,7 @@ const ApiMethods = ApiConsts.ApiMethods;
 const VerificationType = ApiConsts.VerificationType;
 
 module.exports = function(app, configs, topologies, liveTopologies) {
-  app.post(/\/api\/([a-zA-Z]+)/g, function (req, res) {
+  app.post(/\/api\/([a-zA-Z]+)/, function (req, res) {
     let apiMethod = req.params[0];
     // validate api method exists
     if (!ApiMethods.hasOwnProperty(apiMethod)) {
