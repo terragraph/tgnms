@@ -27,7 +27,7 @@ export default class ModalLinkAdd extends React.Component {
     linkNode1: null,
     linkNode2: null,
     linkType: null,
-  }
+  };
 
   componentDidMount() {
   }
