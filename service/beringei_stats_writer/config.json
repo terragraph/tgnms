@@ -1,0 +1,33 @@
+{
+    "base_seconds": 30,
+    "intervals": [
+        {
+            "buckets": 24,
+            "days": 2,
+            "name": "30sec",
+            "period": 30,
+            "port": 8890
+        },
+        {
+            "buckets": 14,
+            "days": 14,
+            "name": "5min",
+            "period": 300,
+            "port": 8891
+        },
+        {
+            "buckets": 15,
+            "days": 30,
+            "name": "10min",
+            "period": 600,
+            "port": 8892
+        },
+        {
+            "buckets": 20,
+            "days": 365,
+            "name": "1year",
+            "period": 3600,
+            "port": 8893
+        }
+    ]
+}

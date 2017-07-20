@@ -1,10 +1,10 @@
 [Unit]
-Description= Production Beringei Stats Writer (5min)
+Description= Production Beringei Stats Writer (1year)
            
 [Service]
 Type=simple
 User=root
-EnvironmentFile=/home/nms/tgnms/service/beringei_stats_writer/config/5min
+EnvironmentFile=/home/nms/tgnms/service/beringei_stats_writer/config/1year
 ExecStart=/home/nms/tgnms/service/beringei_stats_writer/run
 Restart=always
 RestartSec=2s
