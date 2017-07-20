@@ -741,13 +741,50 @@ app.get(/\/topology\/list$/, function(req, res, next) {
 
 app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
-  var topology = getTopologyByName(topologyName);
+  let topology = getTopologyByName(topologyName);
   if (topology) {
     res.json(topology);
     return;
   }
   res.status(404).end("No such topology\n");
 });
+
+app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let networkConfig = Object.assign({}, getTopologyByName(topologyName));
+  let topology = networkConfig.topology;
+  if (topology) {
+    // when config is downloaded we shouldn't show any status
+    // injected by the running e2e controller
+    if (topology.links) {
+      topology.links.forEach(link => {
+        delete link['linkup_attempts'];
+        link.is_alive = false;
+      });
+    }
+    if (topology.nodes) {
+      topology.nodes.forEach(node => {
+        delete node['status_dump'];
+        node.status = 1 /* OFFLINE */;
+        //delete node['polarity'];
+        if (node.golay_idx) {
+          if (typeof node.golay_idx.txGolayIdx != "number" &&
+              typeof node.golay_idx.rxGolayIdx != "number") {
+            let txGolayIdx = Buffer.from(node.golay_idx.txGolayIdx.buffer.data).readUIntBE(0, 8);
+            let rxGolayIdx = Buffer.from(node.golay_idx.rxGolayIdx.buffer.data).readUIntBE(0, 8);
+            // update golay by parsing int buffer
+            node.golay_idx.rxGolayIdx = rxGolayIdx;
+            node.golay_idx.txGolayIdx = txGolayIdx;
+          }
+        }
+      });
+    }
+    res.json(networkConfig);
+    return;
+  }
+  res.status(404).end("No such topology\n");
+});
+
 app.use(/\/topology\/fetch\/(.+)$/i, function (req, res, next) {
   let controllerIp = req.params[0];
   const ctrlProxy = new syncWorker.ControllerProxy(controllerIp);

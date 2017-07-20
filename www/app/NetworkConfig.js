@@ -187,7 +187,7 @@ export default class NetworkConfig extends React.Component {
   }
 
   downloadTopology(name, filename) {
-    let topoGetFetch = new Request('/topology/get/' +
+    let topoGetFetch = new Request('/topology/get_stateless/' +
       name, {"credentials": "same-origin"});
     fetch(topoGetFetch).then(function(response) {
       if (response.status == 200) {
