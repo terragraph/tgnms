@@ -62,7 +62,7 @@ popd
 
 pushd fbthrift-${FB_VERSION}/thrift
 autoreconf -ivf
-./configure --prefix=/usr/local/facebook-${FB_VERSION}
+./configure --prefix=/usr/local/facebook-${FB_VERSION} --with-boost-python=no
 make install
 popd
 
