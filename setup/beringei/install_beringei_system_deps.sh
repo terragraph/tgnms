@@ -1,17 +1,9 @@
 #!/bin/bash
-yum install -y git vim libtool automake gflags-devel glog-devel \
-        openssl-devel double-conversion-devel libevent-devel \
+yum install -y git vim libtool automake \
+        openssl-devel libevent-devel \
         python-devel flex flex-devel bison bison-devel snappy \
         snappy-devel cyrus-sasl-devel gperf libcap-devel wget \
 	unzip
-# python for boost python libs
-if [ ! -f "Python-2.7.13.tgz" ]; then
-	wget https://www.python.org/ftp/python/2.7.13/Python-2.7.13.tgz
-	tar -xf Python-2.7.13.tgz
-fi
-pushd Python-2.7.13
-./configure --enable-shared && make && make altinstall
-popd
 # autoconf + archive
 if [ ! -f "autoconf-2.69.tar.xz" ]; then
 	wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz

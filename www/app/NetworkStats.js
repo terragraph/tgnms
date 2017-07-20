@@ -8,6 +8,7 @@ import ReactMultiGraph from './ReactMultiGraph.js';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
+import moment from 'moment';
 // layout components
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import { SpringGrid } from 'react-stonecutter';
@@ -15,6 +16,10 @@ import { ScaleModal } from 'boron';
 import { Menu, MenuItem, Token, Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Token.css';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
+
+// time picker
+import Datetime from 'react-datetime';
+import 'react-datetime/css/react-datetime.css';
 
 const TIME_PICKER_OPTS = [
   {
@@ -88,9 +93,16 @@ export default class NetworkStats extends React.Component {
     siteMetrics: {},
     keyOptions: [],
     // type-ahead graphs
-    nodesSelected: [],
+    nodesSelected: this.renderInitialOptions(),
     keysSelected: [],
+    // time selection
+    useCustomTime: false,
+    // simple minutes ago, won't have to adjust the start/end time displayed
     minAgo: 60,
+    // specific start+end time, doesn't support 'now' yet
+    startTime: new Date(),
+    endTime: new Date(),
+    
     graphAggType: 'top',
   }
 
@@ -106,6 +118,19 @@ export default class NetworkStats extends React.Component {
 
   componentDidMount() {
     this.refreshData();
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    // check for time differences
+    return (this.state.startTime != nextState.startTime ||
+            this.state.endTime != nextState.endTime ||
+            this.state.minAgo != nextState.minAgo ||
+            this.state.graphAggType != nextState.graphAggType ||
+            this.state.useCustomTime != nextState.useCustomTime ||
+            this.state.nodesSelected != nextState.nodesSelected ||
+            this.state.keysSelected != nextState.keysSelected ||
+            !equals(Object.keys(this.state.siteMetrics),
+                    Object.keys(nextState.siteMetrics)));
   }
 
   refreshData() {
@@ -237,37 +262,54 @@ export default class NetworkStats extends React.Component {
     ];
   }
 
-  renderNodeOptions() {
-    let nodeOptions = this.props.networkConfig.topology.sites.map(site => {
-      return {
-        name: "Site " + site.name,
-        type: 'Sites',
-        restrictor: {
-          siteName: site.name,
-        },
-      };
+  renderInitialOptions() {
+    let restrictor = [''];
+    if (NetworkStore.nodeRestrictor.length > 0) {
+      restrictor = NetworkStore.nodeRestrictor.split(',');
+    }
+    // determine initial list
+    let nodeOptions = this.renderNodeOptions(restrictor);
+    return nodeOptions;
+  }
+
+  renderNodeOptions(filter = []) {
+    let nodeOptions = [];
+    this.props.networkConfig.topology.sites.forEach(site => {
+      if (!filter.length || filter.includes(site.name)) {
+        nodeOptions.push({
+          name: "Site " + site.name,
+          type: 'Sites',
+          restrictor: {
+            siteName: site.name,
+          },
+        });
+      }
     });
     this.props.networkConfig.topology.nodes.map(node => {
-      nodeOptions.push({
-        name: node.name,
-        type: 'Nodes',
-        restrictor: {
-          nodeName: node.name,
-        },
-      });
+      if (!filter.length || filter.includes(node.name)) {
+        nodeOptions.push({
+          name: node.name,
+          type: 'Nodes',
+          restrictor: {
+            nodeName: node.name,
+          },
+        });
+      }
     });
     this.props.networkConfig.topology.links.map(link => {
       // skip wired links
       if (link.link_type == 2) {
         return;
       }
-      nodeOptions.push({
-        name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
-        type: 'Links',
-        restrictor: {
-          linkName: link.name,
-        },
-      });
+      if (!filter.length || filter.includes(link.name)) {
+        nodeOptions.push({
+          name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
+          type: 'Links',
+          restrictor: {
+            linkName: link.name,
+          },
+        });
+      }
     });
     return nodeOptions
   }
@@ -361,7 +403,21 @@ export default class NetworkStats extends React.Component {
     return keyOptions;
   }
 
+  isValidStartDate(date) {
+    // TODO - more dynamic than one fixed week
+    let minDate = moment().subtract(7, 'days');
+    return (date.toDate() >= minDate.toDate() && date.toDate() < new Date());
+  }
+
+  isValidEndDate(date) {
+    // TODO - more dynamic than one fixed week
+    // TODO - this should be more based on the day since that's the main view
+    return (date.toDate() >= this.state.startTime &&
+            date.toDate() <= new Date());
+  }
+
   render() {
+    console.log(new Date(), 'rendering');
     let gridComponents = [];
     let graphOptions = [];
     // index nodes by name
@@ -417,21 +473,31 @@ export default class NetworkStats extends React.Component {
     // all graphs
     let pos = 0;
     let multiGraphs = this.state.keysSelected.map(keyIds => {
-      let graphOpts = [{
+      let graphOpts = {
         type: 'key_ids',
         key_ids: keyIds.data.map(data => data.keyId),
         data: keyIds.data,
-        min_ago: this.state.minAgo,
         agg_type: this.state.graphAggType,
-      }];
+      };
+      if (this.state.useCustomTime) {
+        graphOpts['start_ts'] = this.state.startTime.getTime() / 1000;
+        graphOpts['end_ts'] = this.state.endTime.getTime() / 1000;
+      } else {
+        graphOpts['min_ago'] = this.state.minAgo;
+      }
       pos++;
       return (
         <ReactMultiGraph
-          options={graphOpts}
+          options={[graphOpts]}
           key={pos}
           size="large"/>
       );
     });
+    // custom time selector
+    let customInputProps = {};
+    if (!this.state.useCustomTime) {
+      customInputProps = {disabled: true};
+    }
     return (
       <div width="800">
         <Typeahead
@@ -463,13 +529,50 @@ export default class NetworkStats extends React.Component {
           <button
               label={opts.label}
               key={opts.label}
-              className={opts.minAgo == this.state.minAgo ?
+              className={(!this.state.useCustomTime &&
+                          opts.minAgo == this.state.minAgo) ?
                         "graph-button graph-button-selected" :
                         "graph-button"}
-              onClick={clk => this.setState({minAgo: opts.minAgo})}>
+              onClick={clk => this.setState({useCustomTime: false,
+                                             minAgo: opts.minAgo})}>
             {opts.label}
           </button>
         )}
+        <br />
+        <span className="graph-opt-title">Custom Time</span>
+        <button
+            label="Custom"
+            key="customButton"
+            className={this.state.useCustomTime ?
+                      "graph-button graph-button-selected" :
+                      "graph-button"}
+            onClick={clk => this.setState({
+                useCustomTime: !this.state.useCustomTime})}>
+          Custom
+        </button>
+        <span className="timeTitle">Start</span>
+        <Datetime
+          className="timePicker"
+          key="startTime"
+          inputProps={customInputProps}
+          isValidDate={this.isValidStartDate.bind(this)}
+          onChange={change => {
+            if (typeof change == "object") {
+              this.setState({startTime: change.toDate()});
+            }
+          }}/>
+        <span className="timeTitle">End</span>
+        <Datetime
+          open={false}
+          className="timePicker"
+          inputProps={customInputProps}
+          isValidDate={this.isValidEndDate.bind(this)}
+          key="endTime"
+          onChange={change => {
+            if (typeof change == "object") {
+              this.setState({endTime: change.toDate()});
+            }
+          }}/>
         <br />
         <span className="graph-opt-title">Graph Aggregation</span>
         {GRAPH_AGG_OPTS.map(opts =>

@@ -89,6 +89,19 @@ worker.on('message', (msg) => {
                     (msg.success ? 'online' : 'offline'),
                     'in', msg.response_time, 'ms');
       }
+      // validate the name on disk matches the e2e received topology
+      if (msg.success && msg.name != msg.topology.name) {
+        console.error('Invalid name received from controller for:', msg.name,
+                      ', Received:', msg.topology.name);
+        config.controller_online = false;
+        config.controller_error = 'Name mis-match between topology on disk ' +
+                                  'and e2e controller topology. ' + msg.name +
+                                  ' != ' + msg.topology.name;
+        return;
+      } else if (msg.success) {
+        // clear errors that no-longer exist
+        delete config['controller_error'];
+      }
       config.controller_failures = msg.success ? 0 : config.controller_failures + 1;
       if (config.controller_failures >= maxThriftRequestFailures) {
         config.controller_online = false;
@@ -339,6 +352,7 @@ app.use(/\/stats_writer$/i, function (req, res, next) {
   req.on('end', function() {
     // relay the msg to datadb
     if (!httpPostData.length) {
+      res.status(500).end("No Data");
       return;
     }
     // update mysql time series db
@@ -654,7 +668,32 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
     res.status(500).send('No topology data for: ' + topologyName);
     return;
   }
-  let queries = queryHelper.makeTableQuery(res, topology);
+  let queries = queryHelper.makeTableQuery(res, topology, 'fw_uptime', "event", "event", 24 * 60 * 60);
+  let chartUrl = 'http://localhost:8899/query';
+  let queryRequest = {queries: queries};
+  request.post({url: chartUrl,
+                body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
+    if (err) {
+      console.error("Error fetching from beringei:", err);
+      res.status(500).send("Error fetching data").end();
+      return;
+    }
+    res.send(httpResponse.body).end();
+  });
+});
+
+// raw stats data
+app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let metricName = req.params[1];
+  let liveTopology = topologyByName[topologyName];
+  let topology = (liveTopology && liveTopology.nodes) ?
+                  liveTopology : fileTopologyByName[topologyName];
+  if (!topology) {
+    res.status(500).send('No topology data for: ' + topologyName);
+    return;
+  }
+  let queries = queryHelper.makeTableQuery(res, topology, metricName, "key_ids", "none", 10 * 60);
   let chartUrl = 'http://localhost:8899/query';
   let queryRequest = {queries: queries};
   request.post({url: chartUrl,
@@ -950,6 +989,9 @@ app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
 app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next) {
   aggregatorProxy.setAlertsConfig(configs, req, res, next);
 });
+// api handler
+require('./api/api.js')(app, configByName, fileTopologyByName, topologyByName);
+
 app.use(middleware);
 app.use(webpackHotMiddleware(compiler));
 

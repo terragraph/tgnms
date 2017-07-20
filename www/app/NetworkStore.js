@@ -11,7 +11,11 @@ NetworkStore.networkConfig = {};
 NetworkStore.viewName = 'map';
 // for map
 NetworkStore.tabName = 'status';
+// used to select a site/sector/link
 NetworkStore.selectedName = '';
+
+// for stats view
+NetworkStore.nodeRestrictor = [];
 
 NetworkStore.networkHealth = {};
 NetworkStore.layers = [];
@@ -38,6 +42,16 @@ const PushUrl = () => {
                                   '/' + NetworkStore.networkName +
                                   '/' + NetworkStore.tabName);
             }
+          } else {
+            BrowserHistory.push('/' + NetworkStore.viewName +
+                                '/' + NetworkStore.networkName);
+          }
+          break;
+        case 'stats':
+          if (NetworkStore.nodeRestrictor) {
+            BrowserHistory.push('/' + NetworkStore.viewName +
+                                '/' + NetworkStore.networkName +
+                                '/' + NetworkStore.nodeRestrictor);
           } else {
             BrowserHistory.push('/' + NetworkStore.viewName +
                                 '/' + NetworkStore.networkName);
@@ -80,6 +94,9 @@ for (let layer = 0; layer < urlParts.length; layer++) {
         case 'map':
           NetworkStore.tabName = urlParts[layer];
           break;
+        case 'stats':
+          NetworkStore.nodeRestrictor = urlParts[layer];
+          break;
         default:
           //console.log('nothing to do with', urlParts, 'on layer', layer);
       }
@@ -106,6 +123,9 @@ Dispatcher.register(function(payload) {
       break;
     case Actions.VIEW_SELECTED:
       NetworkStore.viewName = payload.viewName;
+      NetworkStore.nodeRestrictor = payload.nodeRestrictor ?
+                                      payload.nodeRestrictor :
+                                      '';
       if (!NetworkStore.layers) { NetworkStore.layers = []; }
       if (NetworkStore.layers.length == 0) {
         NetworkStore.layers = [payload.viewName];

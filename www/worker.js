@@ -240,6 +240,10 @@ class ControllerProxy extends EventEmitter {
   constructor(controllerIp) {
     super();
     this.controller_ip = controllerIp;
+//    if (typeof controllerIp != "string" ||
+//        controllerIp.length == 0) {
+//      throw new Error("Invalid controller IP: ", controllerIp);
+//    }
   }
   /*
    * Send and decode the expected message based on the type.
@@ -294,6 +298,73 @@ class ControllerProxy extends EventEmitter {
                   { timeout: false });
       }
     );
+  }
+
+  sendCtrlApiMsgType(msgType, msgBody, minion, res) {
+    let ctrlPromise = new Promise((resolve, reject) => {
+      var sendMsg = new Controller_ttypes.Message();
+      sendMsg.mType = msgType;
+      sendMsg.value = msgBody;
+      var recvMsg = new Controller_ttypes.Message();
+
+      // time the response
+      this.sendCtrlMsg(
+        sendMsg,
+        recvMsg,
+        msgType2Params[msgType].nmsAppId,
+        msgType2Params[msgType].recvApp,
+        minion,
+        (tProtocol, tTransport) => {
+          switch (msgType) {
+            case Controller_ttypes.MessageType.SET_LINK_STATUS_REQ:
+            case Controller_ttypes.MessageType.ADD_LINK:
+            case Controller_ttypes.MessageType.ADD_NODE:
+            case Controller_ttypes.MessageType.ADD_SITE:
+            case Controller_ttypes.MessageType.DEL_LINK:
+            case Controller_ttypes.MessageType.DEL_NODE:
+            case Controller_ttypes.MessageType.DEL_SITE:
+            case Controller_ttypes.MessageType.REBOOT_NODE:
+            case Controller_ttypes.MessageType.SET_NODE_MAC:
+            case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
+              var receivedAck = new Controller_ttypes.E2EAck();
+              receivedAck.read(tProtocol);
+              if (receivedAck.success) {
+                resolve({type: 'ack', msg: receivedAck.message});
+              } else {
+                reject(receivedAck.message);
+              }
+              break;
+            case Controller_ttypes.MessageType.GET_IGNITION_STATE:
+              var ignitionState = new Controller_ttypes.IgnitionState();
+              ignitionState.read(tProtocol);
+              resolve({type: 'msg', msg: ignitionState});
+              break;
+            default:
+              console.error('No receive handler defined for', msgType);
+          }
+        },
+        (errMsg) => {
+          reject(errMsg);
+        }
+      );
+    });
+
+    ctrlPromise.then((msg) => {
+      if (msg.type == 'ack') {
+        let result = {"success": true};
+        res.status(200).end(JSON.stringify(result));
+      } else {
+        res.json(msg.msg);
+      }
+    })
+    .catch((failMessage) => {
+      let result = {
+        "success": false,
+        "error": failMessage
+      }
+      res.status(500).end(JSON.stringify(result));
+      res.end();
+    });
   }
 
   sendCtrlMsgTypeSync(msgType, msgBody, minion, res) {
@@ -412,6 +483,15 @@ class ControllerProxy extends EventEmitter {
     sendMsg.write(tProtocol);
     transport.flush();
   }
+/**
+ * API for performing write operations
+ * new ControllerProxy(controller_ip)
+ * sendSyncMsgType()
+ * write()
+ *
+ * addLink(linkName, nodeAName, nodeZName)
+ * setLinkStatus(nodeAName, nodeZName, upOrDown)
+ */
 }
 
 

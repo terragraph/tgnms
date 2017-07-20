@@ -28,6 +28,11 @@ const METRIC_KEY_NAMES = [
   'tx_errors',
   'rx_dropped',
   'tx_dropped',
+  'rx_frame',
+  'rx_overruns',
+  'tx_overruns',
+  'tx_collisions',
+  'speed',
   /* 'link_status' (published from controller node */
 ];
 
@@ -221,280 +226,97 @@ var self = {
   formatLinkKeyName: function(metricName, aNode, zNode) {
     switch (metricName) {
       case 'rssi':
-        return {
-          title: 'RSSI',
-          description: 'Received Signal Strength Indicator',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.phystatus.srssi',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'tgf.' + aNode.mac + '.phystatus.srssi',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'RSSI', 'Received Signal Strength Indicator',
+                                     'phystatus.srssi');
       case 'alive_perc':
       case 'alive_snr':
       case 'snr':
         // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
-        return {
-          title: 'SnR',
-          description: 'Signal to Noise Ratio',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.phystatus.ssnrEst',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'tgf.' + aNode.mac + '.phystatus.ssnrEst',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'SnR', 'Signal to Noise Ratio',
+                                     'phystatus.ssnrEst');
         break;
       case 'mcs':
         // tgf.38:3a:21:b0:05:d1.staPkt.mcs
-        return {
-          title: 'MCS',
-          description: 'MCS Index',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.staPkt.mcs',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'tgf.' + aNode.mac + '.staPkt.mcs',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'MCS', 'MCS Index',
+                                     'staPkt.mcs');
       case 'per':
         // tgf.38:3a:21:b0:05:d1.staPkt.perE6
-        return {
-          title: 'PER',
-          description: 'Packet Error Rate',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.staPkt.perE6',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'tgf.' + aNode.mac + '.staPkt.perE6',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'PER', 'Packet Error Rate',
+                                     'staPkt.perE6');
       case 'fw_uptime':
         // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
-        return {
-          title: 'FW Uptime',
-          description: 'Mgmt Tx Keepalive Count',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.mgmtTx.keepAlive',
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'FW Uptime', 'Mgmt Tx Keepalive Count',
+                                     'mgmtTx.keepAlive');
       case 'rx_ok':
-        return {
-          title: 'RX Packets',
-          description: 'Received packets',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.staPkt.rxOk',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'tgf.' + aNode.mac + '.staPkt.rxOk',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'RX Packets', 'Received packets',
+                                     'staPkt.rxOk');
       case 'tx_ok':
-        return {
-          title: 'TX Packets',
-          description: 'Transferred packets',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.staPkt.txOk',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'tgf.' + aNode.mac + '.staPkt.txOk',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX Packets', 'Transferred packets',
+                                     'staPkt.txOk');
       case 'tx_bytes':
-        return {
-          title: 'TX bps',
-          description: 'Transferred bits/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.tx_bytes',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.tx_bytes',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX bps', 'Transferred bits/second',
+                                     'tx_bytes', 'link');
       case 'rx_bytes':
-        return {
-          title: 'RX bps',
-          description: 'Received bits/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.rx_bytes',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.rx_bytes',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'RX bps', 'Received bits/second',
+                                     'rx_bytes', 'link');
       case 'tx_errors':
-        return {
-          title: 'TX errors',
-          description: 'Transmit Errors/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.tx_errors',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.tx_errors',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX errors', 'Transmit errors/second',
+                                     'tx_errors', 'link');
       case 'rx_errors':
-        return {
-          title: 'RX errors',
-          description: 'Receive errors/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.rx_errors',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.rx_errors',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'RX errors', 'Receive errors/second',
+                                     'rx_errors', 'link');
       case 'tx_dropped':
-        return {
-          title: 'TX dropped',
-          description: 'Transmit dropped/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.tx_dropped',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.tx_dropped',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX dropped', 'Transmit dropped/second',
+                                     'tx_dropped', 'link');
       case 'rx_dropped':
-        return {
-          title: 'RX dropped',
-          description: 'Receive dropped/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.rx_dropped',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.rx_dropped',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'RX dropped', 'Receive dropped/second',
+                                     'rx_dropped', 'link');
       case 'tx_pps':
-        return {
-          title: 'TX pps',
-          description: 'Transmit packets/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.tx_packets',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.tx_packets',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX pps', 'Transmit packets/second',
+                                     'tx_packets', 'link');
       case 'rx_pps':
-        return {
-          title: 'RX pps',
-          description: 'Receive packets/second',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'link.' + zNode.mac + '.rx_packets',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'link.' + aNode.mac + '.rx_packets',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'RX pps', 'Receive packets/second',
+                                     'rx_packets', 'link');
       case 'tx_power':
         // tgf.38:3a:21:b0:05:d1.tpcStats.txPowerIndex
-        return {
-          title: 'TX Power',
-          description: 'Transmit power',
-          scale: undefined,
-          keys: [
-            {
-              node: aNode,
-              keyName: 'tgf.' + zNode.mac + '.tpcStats.txPowerIndex',
-              titleAppend: ' (A)'
-            },{
-              node: zNode,
-              keyName: 'tgf.' + aNode.mac + '.tpcStats.txPowerIndex',
-              titleAppend: ' (Z)'
-            },
-          ]
-        };
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX Power', 'Transmit Power',
+                                     'tpcStats.txPowerIndex');
+      case 'rx_frame':
+        return self.createLinkMetric(aNode, zNode,
+                                     'RX Frame', 'RX Frame',
+                                     'rx_frame', 'link');
+      case 'rx_overruns':
+        return self.createLinkMetric(aNode, zNode,
+                                     'RX Overruns', 'RX Overruns',
+                                     'rx_overruns', 'link');
+      case 'tx_overruns':
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX Overruns', 'TX Overruns',
+                                     'tx_overruns', 'link');
+      case 'tx_collisions':
+        return self.createLinkMetric(aNode, zNode,
+                                     'TX Collisions', 'TX Collisions',
+                                     'tx_collisions', 'link');
+      case 'speed':
+        return self.createLinkMetric(aNode, zNode,
+                                     'Speed', 'Speed (mbps)',
+                                     'speed', 'link');
       case 'link_status':
         return {
           title: 'Link status',
@@ -515,6 +337,30 @@ var self = {
     }
   },
 
+  createLinkMetric: function(aNode,
+                             zNode,
+                             title,
+                             description,
+                             keyName,
+                             keyPrefix = 'tgf') {
+        return {
+          title: title,
+          description: description,
+          scale: undefined,
+          keys: [
+            {
+              node: aNode,
+              keyName: keyPrefix + '.' + zNode.mac + '.' + keyName,
+              titleAppend: ' (A)'
+            },{
+              node: zNode,
+              keyName: keyPrefix + '.' + aNode.mac + '.' + keyName,
+              titleAppend: ' (Z)'
+            },
+          ]
+        };
+  },
+
 
   fetchLinkKeyIds: function(metricName, aNode, zNode) {
     let keyIds = [];
@@ -529,7 +375,7 @@ var self = {
     return keyIds;
   },
 
-  makeTableQuery: function(res, topology) {
+  makeTableQuery: function(res, topology, metricName, type, agg_type, duration) {
     // make a list of node -> health metric names -> key ids
     // nodes by name
     let nodesByName = {};
@@ -553,7 +399,6 @@ var self = {
       let aNode = nodesByName[link.a_node_name];
       let zNode = nodesByName[link.z_node_name];
       // add nodes to request list
-      let metricName = 'fw_uptime';
       let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
       linkKeys.keys.forEach(keyData => {
         if (aNode.mac in self.nodeKeyIds &&
@@ -564,18 +409,29 @@ var self = {
             keyId: keyId,
             key: keyData.keyName,
             linkName: link.name,
+            linkTitleAppend: "(A)"
+          });
+        } else if (zNode.mac in self.nodeKeyIds &&
+                   keyData.keyName.toLowerCase() in self.nodeKeyIds[zNode.mac]) {
+          let keyId = self.nodeKeyIds[zNode.mac][keyData.keyName.toLowerCase()];
+          nodeKeyIds.push(keyId);
+          nodeData.push({
+           keyId: keyId,
+           key: keyData.keyName,
+           linkName: link.name,
+           linkTitleAppend: "(Z)"
           });
         }
       });
     });
     let now = parseInt(new Date().getTime() / 1000);
     let query = {
-      type: "event",
+      type: type,
       key_ids: nodeKeyIds,
       data: nodeData,
-      start_ts: now - (24 * 60 * 60),
+      start_ts: now - (duration),
       end_ts: now,
-      agg_type: "event"
+      agg_type: agg_type
     };
     return [query];
   },

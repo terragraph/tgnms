@@ -1,0 +1,15 @@
+{
+  "name": "Terragraph NMS",
+  "version": "0.1.0",
+  "description": "Network Management System for Terragraph Network",
+  "title": "Terragraph NMS API (Beta)",
+  "url": "/api",
+  "order": [
+    "AddSite",
+    "DelSite",
+    "AddLink",
+    "DelLink",
+    "AddNode",
+    "DelNode"
+  ]
+}

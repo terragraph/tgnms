@@ -42,6 +42,7 @@
     "rc-menu": "^5.0.9",
     "react": "^0.14.3",
     "react-bootstrap-typeahead": "^1.2.0",
+    "react-datetime": "^2.8.10",
     "react-dom": "^0.14.3",
     "react-layout-components": "^3.0.4",
     "react-leaflet": "^1.1.0",
