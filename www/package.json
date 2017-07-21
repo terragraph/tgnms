@@ -24,6 +24,7 @@
   "dependencies": {
     "babel-cli": "^6.4.0",
     "boron": "^0.2.3",
+    "compression": "^1.7.0",
     "css-loader": "^0.27.3",
     "d3-format": "^1.0.2",
     "d3-time-format": "^2.0.3",

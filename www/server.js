@@ -6,6 +6,7 @@ const fs = require('fs');
 const request = require('request');
 const express = require('express');
 const pug = require('pug');
+const compression = require('compression');
 // worker process
 const cp = require('child_process');
 const worker = cp.fork('./worker.js');
@@ -36,6 +37,7 @@ if (!fs.existsSync(NETWORK_CONFIG_INSTANCES_PATH + networkConfig)) {
   process.exit(1)
 }
 const app = express();
+app.use(compression());
 const queryHelper = require('./queryHelper');
 queryHelper.refreshKeyNames();
 setInterval(queryHelper.refreshKeyNames, 30000);
