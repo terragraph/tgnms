@@ -122,15 +122,29 @@ export default class NetworkStats extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     // check for time differences
-    return (this.state.startTime != nextState.startTime ||
-            this.state.endTime != nextState.endTime ||
-            this.state.minAgo != nextState.minAgo ||
-            this.state.graphAggType != nextState.graphAggType ||
-            this.state.useCustomTime != nextState.useCustomTime ||
-            this.state.nodesSelected != nextState.nodesSelected ||
-            this.state.keysSelected != nextState.keysSelected ||
-            !equals(Object.keys(this.state.siteMetrics),
-                    Object.keys(nextState.siteMetrics)));
+    let changed = (this.state.startTime != nextState.startTime ||
+                   this.state.endTime != nextState.endTime ||
+                   this.state.minAgo != nextState.minAgo ||
+                   this.state.graphAggType != nextState.graphAggType ||
+                   this.state.useCustomTime != nextState.useCustomTime ||
+                   this.state.nodesSelected != nextState.nodesSelected ||
+                   this.state.keysSelected != nextState.keysSelected ||
+                   !equals(Object.keys(this.state.siteMetrics),
+                           Object.keys(nextState.siteMetrics)));
+    return changed;
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.networkConfig &&
+        this.props.networkConfig.topology &&
+        this.props.networkConfig.topology.name &&
+        nextProps.networkConfig &&
+        nextProps.networkConfig.topology &&
+        nextProps.networkConfig.topology.name &&
+        (this.props.networkConfig.topology.name !=
+         nextProps.networkConfig.topology.name)) {
+      this.refreshData();
+    }
   }
 
   refreshData() {
@@ -167,10 +181,6 @@ export default class NetworkStats extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case Actions.TOPOLOGY_REFRESHED:
-        // update metric names list
-        this.refreshData();
-        break;
       case Actions.TOPOLOGY_SELECTED:
         // TODO - this needs to be a comparison of topology names in props
         // clear selected data
@@ -417,7 +427,6 @@ export default class NetworkStats extends React.Component {
   }
 
   render() {
-    console.log(new Date(), 'rendering');
     let gridComponents = [];
     let graphOptions = [];
     // index nodes by name
