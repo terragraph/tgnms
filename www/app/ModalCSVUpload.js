@@ -55,6 +55,7 @@ export default class ModalCSVUpload extends React.Component {
           return;
         }
         let rowDeets = {
+<<<<<<< HEAD
           "localName": column[0],
           "localNode": column[0].split(".")[0].toLowerCase(),
           "localSector": column[0].split(".")[1].toLowerCase(),
@@ -69,13 +70,31 @@ export default class ModalCSVUpload extends React.Component {
           "remoteLong": parseFloat(column[7]),
           "remotePop": (column[8].toLowerCase() == 'yes'),
           "remoteElev": parseInt(column[9]),
+=======
+          "localName": row[0],
+          "localNode": row[0].split(".")[0].toLowerCase(),
+          "localSector": row[0].split(".")[1].toLowerCase(),
+          "localLat": parseFloat(row[1]),
+          "localLong": parseFloat(row[2]),
+          "localPop": (row[3].toLowerCase() == 'yes'),
+          "localElev": parseInt(row[4]),
+          "remoteName": row[5],
+          "remoteNode": row[5].split(".")[0].toLowerCase(),
+          "remoteSector": row[5].split(".")[1].toLowerCase(),
+          "remoteLat": parseFloat(row[6]),
+          "remoteLong": parseFloat(row[7]),
+          "remotePop": (row[8].toLowerCase() == 'yes'),
+          "remoteElev": parseInt(row[9]),
+          "localMac": row[10],
+          "remoteMac": row[14],
+>>>>>>> Updating CSV > Topology converter to accept MAC addresses
         };
 
         // NODES
         if (_.indexOf(nodesSeen, rowDeets['localName']) === -1) {
           topology["nodes"].push({
             "name": rowDeets["localName"],
-            "mac_addr": null,
+            "mac_addr": rowDeets["localMac"] || null,
             "site_name": rowDeets["localNode"],
             "pop_node": rowDeets["localPop"],
             "polarity": null,
@@ -90,7 +109,7 @@ export default class ModalCSVUpload extends React.Component {
         if (_.indexOf(nodesSeen, rowDeets['remoteName']) === -1) {
           topology["nodes"].push({
             "name": rowDeets["remoteName"],
-            "mac_addr": null,
+            "mac_addr": rowDeets["remoteMac"] || null,
             "site_name": rowDeets["remoteNode"],
             "pop_node": rowDeets["remotePop"],
             "polarity": null,
