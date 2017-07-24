@@ -24,9 +24,6 @@ export default class ModalCSVUpload extends React.Component {
     topology: {}
   };
 
-  componentDidMount() {
-  }
-
   modalClose() {
     this.props.onClose();
   }
@@ -52,22 +49,26 @@ export default class ModalCSVUpload extends React.Component {
       let linksSeen = [];
       let sitesSeen = [];
       _.forEach(rows, function(row) {
-        row = row.split(",");
+        let column = row.split(",");
+        if (column.length < 10) {
+          swal({title: 'Invalid input', text: 'Row: ' + row.substr(0, 10)});
+          return;
+        }
         let rowDeets = {
-          "localName": row[0],
-          "localNode": row[0].split(".")[0].toLowerCase(),
-          "localSector": row[0].split(".")[1].toLowerCase(),
-          "localLat": parseFloat(row[1]),
-          "localLong": parseFloat(row[2]),
-          "localPop": (row[3].toLowerCase() == 'yes'),
-          "localElev": parseInt(row[4]),
-          "remoteName": row[5],
-          "remoteNode": row[5].split(".")[0].toLowerCase(),
-          "remoteSector": row[5].split(".")[1].toLowerCase(),
-          "remoteLat": parseFloat(row[6]),
-          "remoteLong": parseFloat(row[7]),
-          "remotePop": (row[8].toLowerCase() == 'yes'),
-          "remoteElev": parseInt(row[9]),
+          "localName": column[0],
+          "localNode": column[0].split(".")[0].toLowerCase(),
+          "localSector": column[0].split(".")[1].toLowerCase(),
+          "localLat": parseFloat(column[1]),
+          "localLong": parseFloat(column[2]),
+          "localPop": (column[3].toLowerCase() == 'yes'),
+          "localElev": parseInt(column[4]),
+          "remoteName": column[5],
+          "remoteNode": column[5].split(".")[0].toLowerCase(),
+          "remoteSector": column[5].split(".")[1].toLowerCase(),
+          "remoteLat": parseFloat(column[6]),
+          "remoteLong": parseFloat(column[7]),
+          "remotePop": (column[8].toLowerCase() == 'yes'),
+          "remoteElev": parseInt(column[9]),
         };
 
         // NODES
@@ -165,7 +166,15 @@ export default class ModalCSVUpload extends React.Component {
       downloadElement.click();
     };
 
-    reader.readAsText(fileInput.files[0]);
+    if (fileInput.files.length == 0) {
+      swal({title: 'Select a file!'});
+    } else {
+      try {
+        reader.readAsText(fileInput.files[0]);
+      } catch (ex) {
+        swal({title: 'Error uploading file'});
+      }
+    }
   }
 
   render() {
