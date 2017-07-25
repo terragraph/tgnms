@@ -55,22 +55,6 @@ export default class ModalCSVUpload extends React.Component {
           return;
         }
         let rowDeets = {
-<<<<<<< HEAD
-          "localName": column[0],
-          "localNode": column[0].split(".")[0].toLowerCase(),
-          "localSector": column[0].split(".")[1].toLowerCase(),
-          "localLat": parseFloat(column[1]),
-          "localLong": parseFloat(column[2]),
-          "localPop": (column[3].toLowerCase() == 'yes'),
-          "localElev": parseInt(column[4]),
-          "remoteName": column[5],
-          "remoteNode": column[5].split(".")[0].toLowerCase(),
-          "remoteSector": column[5].split(".")[1].toLowerCase(),
-          "remoteLat": parseFloat(column[6]),
-          "remoteLong": parseFloat(column[7]),
-          "remotePop": (column[8].toLowerCase() == 'yes'),
-          "remoteElev": parseInt(column[9]),
-=======
           "localName": row[0],
           "localNode": row[0].split(".")[0].toLowerCase(),
           "localSector": row[0].split(".")[1].toLowerCase(),
@@ -87,7 +71,6 @@ export default class ModalCSVUpload extends React.Component {
           "remoteElev": parseInt(row[9]),
           "localMac": row[10],
           "remoteMac": row[14],
->>>>>>> Updating CSV > Topology converter to accept MAC addresses
         };
 
         // NODES
