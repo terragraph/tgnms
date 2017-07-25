@@ -55,22 +55,22 @@ export default class ModalCSVUpload extends React.Component {
           return;
         }
         let rowDeets = {
-          "localName": row[0],
-          "localNode": row[0].split(".")[0].toLowerCase(),
-          "localSector": row[0].split(".")[1].toLowerCase(),
-          "localLat": parseFloat(row[1]),
-          "localLong": parseFloat(row[2]),
-          "localPop": (row[3].toLowerCase() == 'yes'),
-          "localElev": parseInt(row[4]),
-          "remoteName": row[5],
-          "remoteNode": row[5].split(".")[0].toLowerCase(),
-          "remoteSector": row[5].split(".")[1].toLowerCase(),
-          "remoteLat": parseFloat(row[6]),
-          "remoteLong": parseFloat(row[7]),
-          "remotePop": (row[8].toLowerCase() == 'yes'),
-          "remoteElev": parseInt(row[9]),
-          "localMac": row[10],
-          "remoteMac": row[14],
+          "localName": column[0],
+          "localNode": column[0].split(".")[0].toLowerCase(),
+          "localSector": column[0].split(".")[1].toLowerCase(),
+          "localLat": parseFloat(column[1]),
+          "localLong": parseFloat(column[2]),
+          "localNodeType": column[3].toLowerCase(),
+          "localPop": (column[4].toLowerCase() == 'yes'),
+          "localElev": parseInt(column[5]),
+          "remoteName": column[6],
+          "remoteNode": column[6].split(".")[0].toLowerCase(),
+          "remoteSector": column[6].split(".")[1].toLowerCase(),
+          "remoteLat": parseFloat(column[7]),
+          "remoteLong": parseFloat(column[8]),
+          "remoteNodeType": column[9].toLowerCase(),
+          "remotePop": (column[10].toLowerCase() == 'yes'),
+          "remoteElev": parseInt(column[11]),
         };
 
         // NODES
@@ -80,6 +80,7 @@ export default class ModalCSVUpload extends React.Component {
             "mac_addr": rowDeets["localMac"] || null,
             "site_name": rowDeets["localNode"],
             "pop_node": rowDeets["localPop"],
+            "node_type": rowDeets["localNodeType"] == 'cn' ? 1 : 2,
             "polarity": null,
             "golay_idx": {
               "txGolayIdx": null,
@@ -95,6 +96,7 @@ export default class ModalCSVUpload extends React.Component {
             "mac_addr": rowDeets["remoteMac"] || null,
             "site_name": rowDeets["remoteNode"],
             "pop_node": rowDeets["remotePop"],
+            "node_type": rowDeets["remoteNodeType"] == 'cn' ? 1 : 2,
             "polarity": null,
             "golay_idx": {
               "txGolayIdx": null,
@@ -121,11 +123,12 @@ export default class ModalCSVUpload extends React.Component {
             "name": linkName,
             "a_node_name": aEnd["name"],
             "z_node_name": zEnd["name"],
-            "link_type": null,
+            "link_type": 1, /* WIRELESS, ETHERNET */
             "is_alive": false
           });
           linksSeen.push(linkName);
         }
+        // add ethernet connections in the same site
 
         // SITES
         if (_.indexOf(sitesSeen, rowDeets["localNode"]) === -1) {
