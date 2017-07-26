@@ -76,7 +76,7 @@ export default class ModalCSVUpload extends React.Component {
         };
 
         // NODES
-        if (!(rowDeets['localName'] in nodesSeen)) {
+        if (!(nodesSeen.hasOwnProperty(rowDeets['localName']))) {
           let node = {
             "name": rowDeets["localName"],
             "mac_addr": rowDeets["localMac"] || null,
@@ -89,11 +89,11 @@ export default class ModalCSVUpload extends React.Component {
               "rxGolayIdx": null
             }
           };
-          topology["nodes"].push();
+          topology["nodes"].push(node);
           nodesSeen[rowDeets['localName']] = node;
         }
 
-        if (!(rowDeets['remoteName'] in nodesSeen)) {
+        if (!(nodesSeen.hasOwnProperty(rowDeets['remoteName']))) {
           let node = {
             "name": rowDeets["remoteName"],
             "mac_addr": rowDeets["remoteMac"] || null,
