@@ -375,6 +375,8 @@ struct GetScanStatus {
 }
 
 struct ResetScanStatus {
+  1: optional i32 tokenFrom;
+  2: optional i32 tokenTo;
 }
 
 // Data collected from a single scan.

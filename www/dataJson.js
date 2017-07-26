@@ -33,8 +33,15 @@ beringeiConn.on('error', (err) => {
 });
 const beringeiClient = thrift.createClient(BeringeiService, beringeiConn);
 
+// Convert thrift's Int64 (after conversion to plain json) to a number
+// Precision might be lost if the int is >= 2^53
+const toUint64 = (thriftInt64) => {
+  return Buffer.from(thriftInt64.buffer.data).readUIntBE(0, 8);
+}
+
 var self = {
   macAddrToNode: {},
+  nodeNameToNode: {},
   filenameToSourceId: {},
   timeBucketIds: {},
   nodeKeyIds: {},
@@ -62,6 +69,10 @@ var self = {
         function(err, results) {
           results.forEach(row => {
             self.macAddrToNode[row.mac.toLowerCase()] = row;
+            if (!(row.network in self.nodeNameToNode)) {
+              self.nodeNameToNode[row.network] = {}
+            }
+            self.nodeNameToNode[row.network][row.node] = row;
           });
           conn.release();
         }
@@ -494,6 +505,50 @@ var self = {
       console.log('writeEvents request with', postData.length, 'bytes and',
                   badTime, 'invalid timestamp failures');
     }
+  },
+
+  writeScanResults: function(network, scan_results) {
+    var rows = [];
+
+    Object.keys(scan_results.scans).forEach(token => {
+      var scanData = scan_results.scans[token];
+      var tx_node_id = self.nodeNameToNode[network][scanData.txNode].id;
+      var start_bwgd = toUint64(scanData.startBwgdIdx);
+      Object.keys(scanData.responses).forEach(rx_node_name => {
+        var rx_node_id = self.nodeNameToNode[network][rx_node_name].id;
+        var scanResp = scanData.responses[rx_node_name];
+        var superframe_num = toUint64(scanResp.curSuperframeNum);
+
+        scanResp.routeInfoList.forEach(route_info => {
+          var row = [token, tx_node_id, start_bwgd, rx_node_id, superframe_num, route_info.route.tx, route_info.route.rx,
+                     route_info.rssi, route_info.snrEst, route_info.postSnr, route_info.rxStart, route_info.packetIdx];
+          rows.push(row);
+        });
+      });
+    });
+
+    if (!rows.length) {
+      return;
+    }
+
+    pool.getConnection(function(err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
+      conn.query('INSERT INTO scan_results' +
+                 '(`token`, `tx_node_id`, `start_bwgd`, `rx_node_id`, `superframe_num`, ' +
+                 '`tx_beam`, `rx_beam`, `rssi`, `snr_est`, `post_snr`, `rx_start`, `packet_idx`) VALUES ?',
+                 [rows],
+        function(err, result) {
+          if (err) {
+            console.log('Some error', err);
+          }
+          console.log('wrote ' + rows.length + ' rows into scan_results');
+          conn.release();
+        }
+      );
+    });
   }
 }
 

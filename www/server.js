@@ -58,6 +58,9 @@ const pty = require('pty.js');
 const statusReportExpiry = 2 * 60000; // 2 minuets
 const maxThriftRequestFailures = 3;
 
+const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED ?
+                                process.env.IM_SCAN_POLLING_ENABLED == '1' : 0;
+
 var refreshIntervalTimer = undefined;
 var eventLogsTables = {};
 var systemLogsSources = {};
@@ -179,6 +182,13 @@ worker.on('message', (msg) => {
           }
         });
       }
+      break;
+    case 'scan_status':
+      if (!msg.success) {
+        console.error('Failed to get scan_status from', msg.name);
+        break;
+      }
+      dataJson.writeScanResults(msg.name, msg.scan_status);
       break;
     default:
       console.error('Unknown message type', msg.type);
@@ -385,6 +395,21 @@ function reloadInstanceConfig() {
           topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
         });
       }, refresh_interval);
+
+    if (IM_SCAN_POLLING_ENABLED) {
+      let scan_poll_interval = 60000;
+      if ('scan_poll_interval' in networkInstanceConfig) {
+        scan_poll_interval = networkInstanceConfig['scan_poll_interval'];
+      }
+      // start scan poll request interval
+      scanPollIntervalTimer = setInterval(() =>
+          {
+            worker.send({
+              type: 'scan_poll',
+              topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
+            });
+          }, scan_poll_interval);
+    }
   });
 }
 // initial config load

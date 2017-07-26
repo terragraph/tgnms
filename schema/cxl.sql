@@ -133,6 +133,23 @@ CREATE TABLE `nodes` (
 ) ENGINE=InnoDB AUTO_INCREMENT=365420 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+CREATE TABLE `scan_results` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `token` int,
+  `tx_node_id` int,
+  `start_bwgd` bigint,
+  `rx_node_id` int,
+  `superframe_num` bigint,
+  `tx_beam` int,
+  `rx_beam` int,
+  `rssi` float,
+  `snr_est` float,
+  `post_snr` float,
+  `rx_start` int,
+  `packet_idx` smallint,
+  PRIMARY KEY (`id`)
+);
+
 --
 -- Table structure for table `sys_logs`
 --

@@ -5,10 +5,6 @@
 //
 var Thrift = require('thrift').Thrift;
 var ttypes = module.exports = {};
-
-var BWAllocation_ttypes = require('./BWAllocation_types')
-var Topology_ttypes = require('./Topology_types')
-
 ttypes.MessageType = {
 'GET_STATUS_DUMP' : 101,
 'STATUS_DUMP' : 121,
@@ -3176,6 +3172,16 @@ GetScanStatus.prototype.write = function(output) {
 };
 
 ResetScanStatus = module.exports.ResetScanStatus = function(args) {
+  this.tokenFrom = null;
+  this.tokenTo = null;
+  if (args) {
+    if (args.tokenFrom !== undefined) {
+      this.tokenFrom = args.tokenFrom;
+    }
+    if (args.tokenTo !== undefined) {
+      this.tokenTo = args.tokenTo;
+    }
+  }
 };
 ResetScanStatus.prototype = {};
 ResetScanStatus.prototype.read = function(input) {
@@ -3189,7 +3195,25 @@ ResetScanStatus.prototype.read = function(input) {
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    input.skip(ftype);
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.I32) {
+        this.tokenFrom = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.I32) {
+        this.tokenTo = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
     input.readFieldEnd();
   }
   input.readStructEnd();
@@ -3198,6 +3222,16 @@ ResetScanStatus.prototype.read = function(input) {
 
 ResetScanStatus.prototype.write = function(output) {
   output.writeStructBegin('ResetScanStatus');
+  if (this.tokenFrom !== null && this.tokenFrom !== undefined) {
+    output.writeFieldBegin('tokenFrom', Thrift.Type.I32, 1);
+    output.writeI32(this.tokenFrom);
+    output.writeFieldEnd();
+  }
+  if (this.tokenTo !== null && this.tokenTo !== undefined) {
+    output.writeFieldBegin('tokenTo', Thrift.Type.I32, 2);
+    output.writeI32(this.tokenTo);
+    output.writeFieldEnd();
+  }
   output.writeFieldStop();
   output.writeStructEnd();
   return;
@@ -3844,3 +3878,4 @@ Empty.prototype.write = function(output) {
   output.writeStructEnd();
   return;
 };
+
