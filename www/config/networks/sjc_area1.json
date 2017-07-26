@@ -865,7 +865,7 @@
             "z_node_name": "12M544.s1"
         }
     ],
-    "name": "SJC Existing Polarity",
+    "name": "SJC TEST P2P",
     "nodes": [
         {
             "ant_azimuth": 0,
