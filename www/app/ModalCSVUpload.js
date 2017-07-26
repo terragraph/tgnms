@@ -45,7 +45,9 @@ export default class ModalCSVUpload extends React.Component {
         "sites": [],
       };
 
-      let nodesSeen = [];
+      // nodesSeen - object with keys of sector
+      // names and values of sector details
+      let nodesSeen = {};
       let linksSeen = [];
       let sitesSeen = [];
       _.forEach(rows, function(row) {
@@ -74,8 +76,8 @@ export default class ModalCSVUpload extends React.Component {
         };
 
         // NODES
-        if (_.indexOf(nodesSeen, rowDeets['localName']) === -1) {
-          topology["nodes"].push({
+        if (!(nodesSeen.hasOwnProperty(rowDeets['localName']))) {
+          let node = {
             "name": rowDeets["localName"],
             "mac_addr": rowDeets["localMac"] || null,
             "site_name": rowDeets["localNode"],
@@ -86,12 +88,13 @@ export default class ModalCSVUpload extends React.Component {
               "txGolayIdx": null,
               "rxGolayIdx": null
             }
-          });
-          nodesSeen.push(rowDeets['localName']);
+          };
+          topology["nodes"].push(node);
+          nodesSeen[rowDeets['localName']] = node;
         }
 
-        if (_.indexOf(nodesSeen, rowDeets['remoteName']) === -1) {
-          topology["nodes"].push({
+        if (!(nodesSeen.hasOwnProperty(rowDeets['remoteName']))) {
+          let node = {
             "name": rowDeets["remoteName"],
             "mac_addr": rowDeets["remoteMac"] || null,
             "site_name": rowDeets["remoteNode"],
@@ -102,19 +105,20 @@ export default class ModalCSVUpload extends React.Component {
               "txGolayIdx": null,
               "rxGolayIdx": null
             }
-          });
-          nodesSeen.push(rowDeets['remoteName']);
+          };
+          topology["nodes"].push(node);
+          nodesSeen[rowDeets['remoteName']] = node;
         }
 
         // LINK
         let aEnd = null;
         let zEnd = null;
         if (rowDeets["localName"] < rowDeets["remoteName"]) {
-          aEnd = topology["nodes"][topology["nodes"].length - 2];
-          zEnd = topology["nodes"][topology["nodes"].length - 1];
+          aEnd = nodesSeen[rowDeets['localName']];
+          zEnd = nodesSeen[rowDeets['remoteName']];
         } else {
-          aEnd = topology["nodes"][topology["nodes"].length - 1];
-          zEnd = topology["nodes"][topology["nodes"].length - 2];
+          aEnd = nodesSeen[rowDeets['remoteName']];
+          zEnd = nodesSeen[rowDeets['localName']];
         }
 
         let linkName = "link-" + aEnd["name"] + "-" + zEnd["name"];
