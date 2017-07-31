@@ -3,22 +3,97 @@
     "refresh_interval": 5000,
     "topologies": [
         {
-            "controller_ip": "::2",
-            "aggregator_ip": "::2",
+            "topology_file": "lab_f8_b.json",
             "site_coords_override": "true",
-            "latitude": 37.333057579551586,
-            "longitude": -121.88882589372953,
-            "zoom_level": 16,
-            "topology_file": "sjc_area1.json"
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "controller_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a",
+            "aggregator_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a"
         },
         {
-            "controller_ip": "::2",
-            "aggregator_ip": "::2",
+            "topology_file": "lab_f8_c.json",
+            "site_coords_override": true,
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "controller_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52",
+            "aggregator_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52"
+        },
+        {
+            "topology_file": "lab_f8_d.json",
+            "site_coords_override": true,
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "controller_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7",
+            "aggregator_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7"
+        },
+        {
+            "topology_file": "mpk14_outdoor.json",
+            "latitude": 37.485317567421,
+            "longitude": -122.15028762817384,
+            "zoom_level": 18,
+            "controller_ip": "2620:10d:c089:f002:3a3a:21ff:feb0:6b1",
+            "aggregator_ip": "2620:10d:c089:f002:3a3a:21ff:feb0:6b1"
+        },
+        {
+            "topology_file": "mpk15_outdoor.json",
+            "latitude": 37.48391283804449,
+            "longitude": -122.14773952960968,
+            "zoom_level": 18,
+            "controller_ip": "2620:10d:c089:f000:3a3a:21ff:feb0:488",
+            "aggregator_ip": "2620:10d:c089:f000:3a3a:21ff:feb0:488"
+        },
+        {
+            "topology_file": "mpk17_outdoor.json",
+            "latitude": 37.48473865184717,
+            "longitude": -122.14626967906953,
+            "zoom_level": 18,
+            "controller_ip": "2620:10d:c089:e001:20c:29ff:fe69:6c10",
+            "aggregator_ip": "2620:10d:c089:e001:20c:29ff:fe69:6c10"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e00c:250:43ff:fef8:3435",
+            "aggregator_ip": "2620:10d:c089:e00c:250:43ff:fef8:3435",
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "topology_file": "TowerC_Floor1.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e00d:3a3a:21ff:feb0:1dc",
+            "aggregator_ip": "2620:10d:c089:e00d:3a3a:21ff:feb0:1dc",
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "topology_file": "indoor_MPK_17_vine_network.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:ff01:3a3a:21ff:feb0:8bc",
+            "aggregator_ip": "2620:10d:c089:ff01:3a3a:21ff:feb0:8bc",
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "topology_file": "Dragon.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d",
+            "aggregator_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d",
             "site_coords_override": "true",
             "latitude": 37.333057579551586,
             "longitude": -121.88882589372953,
             "zoom_level": 16,
-            "topology_file": "sjc_area1_test.json"
+            "topology_file": "tower_G.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e00e:3a3a:21ff:feb0:335",
+            "aggregator_ip": "2620:10d:c089:e00e:3a3a:21ff:feb0:335",
+            "site_coords_override": "true",
+            "latitude": 37.333057579551586,
+            "longitude": -121.88882589372953,
+            "zoom_level": 16,
+            "topology_file": "TowerE.json"
         }
     ]
 }
