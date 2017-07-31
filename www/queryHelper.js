@@ -156,6 +156,11 @@ var self = {
         });
         // index by siteData['Site-A']['nodeName'] = [];
         postData.topology.nodes.forEach(node => {
+          if (!node ||
+              !node.hasOwnProperty('mac_addr') ||
+              !node.mac_addr.length) {
+            return;
+          }
           let mac = node.mac_addr.toLowerCase();
           if (mac in nodeMetrics) {
             let nodeData = nodeMetrics[mac];
@@ -364,6 +369,11 @@ var self = {
 
   fetchLinkKeyIds: function(metricName, aNode, zNode) {
     let keyIds = [];
+    // skip if mac empty
+    if (!aNode.mac || !aNode.mac.length ||
+        !zNode.mac || !zNode.mac.length) {
+      return;
+    }
     let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
     linkKeys.keys.forEach(keyData => {
       if (aNode.mac in self.nodeKeyIds &&
@@ -383,8 +393,11 @@ var self = {
     topology.nodes.forEach(node => {
       nodesByName[node.name] = {
         name: node.name,
-        mac: node.mac_addr
+        mac: node.mac_addr ? node.mac_addr : ""
       };
+      if (!node.mac_addr || !node.mac_addr.length) {
+        return;
+      }
       nodesByMac[node.mac_addr.toLowerCase()] = node.name;
     });
     // calculate query
@@ -398,6 +411,31 @@ var self = {
       }
       let aNode = nodesByName[link.a_node_name];
       let zNode = nodesByName[link.z_node_name];
+      // nodes without mac addrs set
+      if (!aNode) {
+        console.error("Can't find node name", link.a_node_name);
+        let aNodeNameSplit = link.a_node_name.split('.');
+        if (aNodeNameSplit.length != 2) {
+          return;
+        }
+        let aNodeName = aNodeNameSplit[0];
+        Object.keys(nodesByName).forEach(nodeName => {
+          if (nodeName.length > aNodeName.length) {
+            let nodeNameSubstr = nodeName.substr(0, aNodeName.length);
+            if (nodeNameSubstr == aNodeName) {
+              console.error("\tFound match for", link.a_node_name, "=", nodeName);
+            }
+          }
+        });
+        return;
+      }
+      if (!zNode) {
+        return;
+      }
+      if (!aNode.mac || !aNode.mac.length ||
+          !zNode.mac || !zNode.mac.length) {
+        return;
+      }
       // add nodes to request list
       let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
       linkKeys.keys.forEach(keyData => {

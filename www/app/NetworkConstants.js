@@ -1,3 +1,4 @@
+import { polarityColor } from './NetworkHelper.js';
 const Actions = {
   // topology actions
   TOPOLOGY_SELECTED: 100,
@@ -38,10 +39,9 @@ const SiteOverlayKeys = {
 		Empty: {color: 'gray'}
   },
   Polarity: {
-    Unknown: {color: 'red'},
-    Odd: {color: 'blue'},
-    Even: {color: 'magenta'},
-    Hybrid: {color: 'orange'}
+    Odd: {color: polarityColor(1)},
+    Even: {color: polarityColor(2)},
+    Hybrid: {color: polarityColor(3)}
   }
 }
 

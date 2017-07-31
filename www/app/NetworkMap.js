@@ -1,9 +1,10 @@
 import React from 'react';
 import { render } from 'react-dom';
 // leaflet maps
-import Leaflet from 'leaflet';
-import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker} from 'react-leaflet';
+import Leaflet, { Point, LatLng } from 'leaflet';
+import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker } from 'react-leaflet';
 import Control from 'react-leaflet-control';
+import LeafletGeom from 'leaflet-geometryutil';
 
 // dispatcher
 import {Actions, SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
@@ -17,6 +18,7 @@ import DetailsSite from './DetailsSite.js';
 import DetailsTopology from './DetailsTopology.js';
 import DetailsPlannedSite from './DetailsPlannedSite.js';
 import SplitPane from 'react-split-pane';
+import { polarityColor } from './NetworkHelper.js';
 const d3 = require('d3');
 import { Index, TimeSeries, TimeRange, TimeRangeEvent } from "pondjs";
 
@@ -141,7 +143,7 @@ export default class NetworkMap extends React.Component {
         });
         break;
       case Actions.NODE_SELECTED:
-        let site = this.nodesByName[ payload.nodeSelected].site_name;
+        let site = this.nodesByName[payload.nodeSelected].site_name;
         this.setState({
           selectedSite: site,
           selectedNode: payload.nodeSelected,
@@ -221,6 +223,13 @@ export default class NetworkMap extends React.Component {
 
   updateTopologyState(networkConfig) {
     let topologyJson = networkConfig.topology;
+    // index sites by name
+    let sitesByName = {};
+    Object.keys(topologyJson.sites).map(siteIndex => {
+      let site = topologyJson.sites[siteIndex];
+      sitesByName[site.name] = site;
+    });
+    // index nodes by name
     let nodesByName = {};
     Object.keys(topologyJson.nodes).map(nodeIndex => {
       let node = topologyJson.nodes[nodeIndex];
@@ -230,6 +239,19 @@ export default class NetworkMap extends React.Component {
     Object.keys(topologyJson.links).map(linkIndex => {
       let link = topologyJson.links[linkIndex];
       linksByName[link.name] = link;
+      // calculate distance and angle for each link
+      let aNode = nodesByName[link.a_node_name];
+      let zNode = nodesByName[link.z_node_name];
+      let aSite = sitesByName[aNode.site_name];
+      let zSite = sitesByName[zNode.site_name];
+      let aSiteCoords = new LatLng(aSite.location.latitude,
+                                   aSite.location.longitude);
+      let zSiteCoords = new LatLng(zSite.location.latitude,
+                                   zSite.location.longitude);
+      let linkAngle = LeafletGeom.bearing(aSiteCoords, zSiteCoords);
+      link.angle = linkAngle;
+      let linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
+      link.distance = linkLength; /* meters */
       // apply health data
       if (this.state.networkHealth &&
           this.state.networkHealth.links &&
@@ -246,12 +268,6 @@ export default class NetworkMap extends React.Component {
         link["overlay_z"] = overlayValue;
       }
     });
-    // index sites by name
-    let sitesByName = {};
-    Object.keys(topologyJson.sites).map(siteIndex => {
-      let site = topologyJson.sites[siteIndex];
-      sitesByName[site.name] = site;
-    });
     // reset the zoom when a new topology is selected
     let resetZoom = this.resetZoomOnNextRefresh;
     // update helper maps
@@ -260,9 +276,9 @@ export default class NetworkMap extends React.Component {
     this.linksByName = linksByName;
     this.sitesByName = sitesByName;
     // update zoom level
+    let zoomLevel = resetZoom ? networkConfig.zoom_level : this.state.zoomLevel;
     this.setState({
-      zoomLevel: resetZoom ? networkConfig.zoom_level :
-                             this.state.zoomLevel,
+      zoomLevel: zoomLevel,
     });
   }
 
@@ -307,9 +323,10 @@ export default class NetworkMap extends React.Component {
   }
 
   getSiteMarker(pos, color, siteIndex): ReactElement<any> {
+    let radiusByZoomLevel = this.state.zoomLevel - 9;
     return (
       <CircleMarker center={pos}
-        radius={10}
+        radius={radiusByZoomLevel}
         clickable
         fillOpacity={1}
         color = {color}
@@ -321,11 +338,12 @@ export default class NetworkMap extends React.Component {
   }
 
   getLinkLine(link, coords, color): ReactElement<any> {
+    let weightByZoomLevel = this.state.zoomLevel - 8;
     return (
       <Polyline
         key={link.name}
         positions={coords}
-        weight={6}
+        weight={weightByZoomLevel}
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
@@ -435,20 +453,28 @@ export default class NetworkMap extends React.Component {
       let siteCoords = [site.location.latitude, site.location.longitude];
 
       let healthyCount = 0;
-      let polarityCount = 0;
       let totalCount = 0;
       let hasPop = false;
+      let hasMac = false;
+      let isCn = false;
+      let sitePolarity = null;
       Object.keys(topology.nodes).map(nodeIndex => {
         let node = topology.nodes[nodeIndex];
         if (node.site_name == site.name) {
           totalCount++;
           healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
-          polarityCount += node.polarity ? node.polarity : 0;
+          if (sitePolarity == null) {
+            sitePolarity = node.polarity;
+          }
+          // mark as hybrid if anything in the site differs
+          sitePolarity = node.polarity != sitePolarity ? 3 : sitePolarity;
           hasPop = node.pop_node ? true : hasPop;
+          // TODO: check for mixed sites (error)
+          isCn = node.node_type == 1 ? true : isCn;
+          hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
         }
       });
-      let polarity = polarityCount / totalCount;
-
+     
       let contextualMarker = null;
       switch (this.props.siteOverlay) {
         case 'Health':
@@ -463,15 +489,7 @@ export default class NetworkMap extends React.Component {
           }
           break;
         case 'Polarity':
-          if (polarity == 1) {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Odd.color, siteIndex);
-          } else if (polarity == 2) {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Even.color, siteIndex);
-          } else if (polarity > 0) {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Hybrid.color, siteIndex);
-          } else {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Polarity.Unknown.color, siteIndex);
-          }
+          contextualMarker = this.getSiteMarker(siteCoords, polarityColor(sitePolarity), siteIndex);
           break;
         default:
           contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
@@ -490,18 +508,53 @@ export default class NetworkMap extends React.Component {
             fillColor="blue"
             level={11}/>;
         siteComponents.push(secondaryMarker);
+      } else if (isCn) {
+        let secondaryMarker =
+          <CircleMarker center={siteCoords}
+            radius={5}
+            clickable
+            fillOpacity={1}
+            color="pink"
+            key={"pop-node" + siteIndex}
+            siteIndex={siteIndex}
+            onClick={this.handleMarkerClick}
+            fillColor="pink"
+            level={11}/>;
+        siteComponents.push(secondaryMarker);
+      } else if (!hasMac) {
+        // no macs for this site
+        let secondaryMarker =
+          <CircleMarker center={siteCoords}
+            radius={this.state.zoomLevel - 12}
+            clickable
+            fillOpacity={1}
+            color="white"
+            key={"pop-node" + siteIndex}
+            siteIndex={siteIndex}
+            onClick={this.handleMarkerClick}
+            fillColor="white"
+            level={11}/>;
+        siteComponents.push(secondaryMarker);
       }
     });
 
-    Object.keys(topology.links).map(linkName => {
-      let link = topology.links[linkName];
+    topology.links.map(link => {
       if (link.link_type != 1) {
         return;
       }
-      let aNodeSite = this.sitesByName[
-        this.nodesByName[link.a_node_name].site_name];
-      let zNodeSite = this.sitesByName[
-        this.nodesByName[link.z_node_name].site_name];
+      if (!this.nodesByName.hasOwnProperty(link.a_node_name) ||
+          !this.nodesByName.hasOwnProperty(link.z_node_name)) {
+        return;
+      }
+      let aSite = this.nodesByName[link.a_node_name].site_name;
+      let zSite = this.nodesByName[link.z_node_name].site_name;
+      if (!this.sitesByName.hasOwnProperty(aSite) ||
+          !this.sitesByName.hasOwnProperty(zSite)) {
+        console.error('Node defined invalid site:', aSite, zSite);
+        return;
+      }
+      let aNodeSite = this.sitesByName[aSite];
+      let zNodeSite = this.sitesByName[zSite];
 
       if (!aNodeSite || !zNodeSite ||
           !aNodeSite.location || !zNodeSite.location) {
@@ -515,7 +568,7 @@ export default class NetworkMap extends React.Component {
       ];
 
       let linkLine = null;
-      if(this.state.routingOverlayEnabled) {
+      if (this.state.routingOverlayEnabled) {
         if (this.state.routeWeights && this.state.routeWeights[link.name]) {
           var bwUsageColor = d3.scaleLinear()
               .domain([0, 100])
@@ -658,10 +711,14 @@ export default class NetworkMap extends React.Component {
           </Control>
       } else if (this.state.selectedSite) {
         let site = this.sitesByName[this.state.selectedSite];
+        // determine color to use per link connected to the site
+        // first get nodes connected to the site
+        // second get links connected to the nodes
         layersControl =
           <Control position="topright">
             <DetailsSite topologyName={this.props.networkConfig.topology.name}
                          site={site}
+                         sites={this.sitesByName}
                          nodes={this.nodesByName}
                          links={this.linksByName}
                          onClose={() => this.setState({detailsExpanded: false})}
@@ -676,6 +733,7 @@ export default class NetworkMap extends React.Component {
       layersControl =
         <Control position="topright">
           <DetailsTopology topologyName={this.props.networkConfig.topology.name}
+                           topology={this.props.networkConfig.topology}
                            nodes={this.nodesByName}
                            links={this.linksByName}
                            onClose={() => this.setState({detailsExpanded: false})}

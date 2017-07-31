@@ -11,5 +11,25 @@ module.exports = {
     } else {
       return 'red';
     }
+  },
+  // accepts the polarity id, not name
+  polarityColor: function(polarity) {
+    if (polarity == null || polarity == undefined) {
+      return 'red';
+    }
+    switch (polarity) {
+      case 1:
+        return 'blue';
+      case 2:
+        return 'magenta';
+      case 3:
+        return 'orange';
+      default:
+        return 'red';
+    } 
+  },
+  // color node based on DN/CN
+  nodeTypeColor: function(nodeType) {
+    
   }
 };

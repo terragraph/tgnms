@@ -38,12 +38,12 @@ export default class ModalOverlays extends React.Component {
     let siteOverlaySource = SiteOverlayKeys[this.state.selectedSiteOverlay];
     Object.keys(siteOverlaySource).map(siteState => {
       siteOverlayKeyRows.push(
-      <tr key={siteState}>
-        <td></td>
-        <td>
-          <font color={siteOverlaySource[siteState].color}> {siteState} </font>
-        </td>
-      </tr>);
+        <tr key={siteState}>
+          <td></td>
+          <td>
+            <font color={siteOverlaySource[siteState].color}> {siteState} </font>
+          </td>
+        </tr>);
     });
     let linkOverlayKeyRows = [];
     let linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];

@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
-import { availabilityColor } from './NetworkHelper.js';
+import { availabilityColor, polarityColor } from './NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
@@ -100,6 +100,7 @@ export default class DetailsSite extends React.Component {
 
     let nodesList = [];
     let linksList = [];
+    // TODO: - wow this is inefficient
     Object.keys(this.props.nodes).map(nodeName => {
       let node = this.props.nodes[nodeName];
       if (node.site_name == this.props.site.name) {
@@ -107,7 +108,10 @@ export default class DetailsSite extends React.Component {
 
         Object.keys(this.props.links).map(linkName => {
           let link = this.props.links[linkName];
-          if (link.link_type == 1 && (nodeName == link.a_node_name || nodeName == link.z_node_name)) {
+          if (link.link_type == 1 &&
+              (nodeName == link.a_node_name || nodeName == link.z_node_name)) {
+            // one of our links, calculate the angle of the location
+            // we should know which one is local and remote for the angle
             linksList.push(link);
           }
         })
@@ -117,28 +121,31 @@ export default class DetailsSite extends React.Component {
     let nodesRows = [];
     let index = 0;
     nodesList.forEach(node => {
-      if (index == 0) {
-        nodesRows.push(
-          <tr key={node.name}>
-            <td rowSpan={nodesList.length} width="100px">Nodes</td>
-            <td colSpan="2">
-              <span className="details-link" onClick={() => {this.selectNode(node.name)}}>
-                {this.statusColor(node.status == 2 || node.status == 3, node.name, node.name)}
-              </span>
-            </td>
-          </tr>);
-      } else {
-        nodesRows.push(
-          <tr key={node.name}>
-            <td colSpan="2">
-              <span className="details-link" onClick={() => {this.selectNode(node.name)}}>
-                {this.statusColor(node.status == 2 || node.status == 3, node.name, node.name)}
-              </span>
-            </td>
-          </tr>);
-      }
+      let headerColumn = (
+        <td rowSpan={nodesList.length} colSpan="1" width="100px">Nodes</td>
+      );
+      nodesRows.push(
+        <tr key={node.name}>
+          {index == 0 ? headerColumn : ""}
+          <td>
+            <span className="details-link" onClick={() => {this.selectNode(node.name)}}>
+              {this.statusColor(node.status == 2 || node.status == 3, node.name, node.name)}
+            </span>
+          </td>
+          <td>
+            {node.node_type == 1 ? 'CN' : 'DN'}
+          </td>
+          <td>
+            {node.is_primary ? 'Primary' : 'Secondary'}
+          </td>
+          <td>
+            <span style={{color: polarityColor(node.polarity)}}>
+              {node.polarity == 1 ? 'Odd' : 'Even'}
+            </span>
+          </td>
+        </tr>);
       index++;
-    })
+    });
 
     // average availability of all links across site
     let alivePercAvg = 0;
@@ -165,6 +172,16 @@ export default class DetailsSite extends React.Component {
                 {alivePerc}%
               </span>
             </td>
+            <td>
+              <span>
+                {(parseInt(link.angle * 100) / 100)}&deg;
+              </span>
+            </td>
+            <td>
+              <span>
+                {(parseInt(link.distance * 100) / 100)} m
+              </span>
+            </td>
           </tr>);
       } else {
         linksRows.push(
@@ -177,6 +194,16 @@ export default class DetailsSite extends React.Component {
             <td>
               <span style={{color: availabilityColor(alivePerc)}}>
                 {alivePerc}%
+              </span>
+            </td>
+            <td>
+              <span>
+                {(parseInt(link.angle * 100) / 100)}&deg;
+              </span>
+            </td>
+            <td>
+              <span>
+                {(parseInt(link.distance * 100) / 100)} m
               </span>
             </td>
           </tr>);
@@ -197,37 +224,37 @@ export default class DetailsSite extends React.Component {
             <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>
-                  <td colSpan="3"><h4>{this.props.site.name}</h4></td>
+                  <td colSpan="5"><h4>{this.props.site.name}</h4></td>
                 </tr>
                 <tr>
                   <td width="100px">Latitude</td>
-                  <td colSpan="2">{this.props.site.location.latitude}</td>
+                  <td colSpan="4">{this.props.site.location.latitude}</td>
                 </tr>
                 <tr>
                   <td width="100px">Longitude</td>
-                  <td colSpan="2">{this.props.site.location.longitude}</td>
+                  <td colSpan="4">{this.props.site.location.longitude}</td>
                 </tr>
                 <tr>
                   <td width="100px">Altitude</td>
-                  <td colSpan="2">{this.props.site.location.altitude}</td>
+                  <td colSpan="4">{this.props.site.location.altitude}</td>
                 </tr>
                 {nodesRows}
                 {linksRows}
                 <tr>
                   <td width="100px">Availability</td>
-                  <td colSpan="2">
+                  <td colSpan="4">
                     <span style={{color: availabilityColor(alivePercAvg)}}>
                       {alivePercAvg}%
                     </span>
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan="3">
+                  <td colSpan="5">
                     <h4>Actions</h4>
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan="3">
+                  <td colSpan="5">
                     <div><span className="details-link" onClick={() => {this.deleteSite()}}>Delete Site</span></div>
                   </td>
                 </tr>

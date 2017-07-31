@@ -268,6 +268,91 @@ function reloadInstanceConfig() {
         let topologyConfig = topologies[key];
         let topology = JSON.parse(fs.readFileSync(
           NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file));
+        // original sites take priority, only add missing nodes and sites
+        let sitesByName = {};
+        topology.sites.forEach(site => {
+          sitesByName[site.name] = site;
+        });
+        if (topologyConfig.topology_overlay_file) {
+          let overlayTopology = JSON.parse(fs.readFileSync(
+            NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_overlay_file));
+          // validation steps when overlay is supposed to have the correct
+          // set of sites/sectors
+          // * Ensure all sectors, sites, and links in old topology are
+          //   listed in new.
+          let newSites = {};
+          overlayTopology.sites.forEach(site => {newSites[site.name] = site;});
+          let newSectors = {};
+          let nodesBySite = {};
+          overlayTopology.nodes.forEach(node => {
+            newSectors[node.name] = node;
+            if (!nodesBySite.hasOwnProperty(node.site_name)) {
+              nodesBySite[node.site_name] = {};
+            }
+            nodesBySite[node.site_name][node.name] = 1;
+          });
+          topology.sites.forEach(site => {
+            // ensure old site names are listed in new topology
+            if (!newSites.hasOwnProperty(site.name)) {
+              console.error('Site from original topology missing in new', site.name);
+              // add missing site into new
+              overlayTopology.sites.push(site);
+              // and all of the sectors
+              topology.nodes.forEach(node => {
+                if (node.site_name == site.name) {
+                  // TODO - verify it does not yet exist
+                  overlayTopology.nodes.push(node);
+                  console.error('\tAdding missing node', node.name);
+                  topology.links.forEach(link => {
+                    if (link.a_node_name == node.name ||
+                        link.z_node_name == node.name) {
+                      console.error('\t\tAdding missing link', link.name);
+                      overlayTopology.links.push(link);
+                    }
+                  });
+                }
+              });
+              // show matching prefixed names
+              overlayTopology.sites.forEach(newSite => {
+                if (newSite.name.length > site.name.length &&
+                    newSite.name.substr(0, site.name.length) == site.name) {
+                  console.error('\tPotential match:', newSite.name);
+                }
+              });
+            } else {
+              // site exists in new topology, compare nodes in the site
+              // iterate over each old sector, see if it exists in the new list
+              topology.nodes.forEach(node => {
+                if (node.site_name == site.name) {
+                  // found a node that exists in this site, make sure it
+                  // exists in the new
+                  if (!newSectors.hasOwnProperty(node.name)) {
+                    console.error('\t\tMissing sector', node.name,
+                                  'in new node list');
+                  }
+                }
+              });
+            }
+          });
+          // swap topologies now that we've reconciled
+          // move sector data from old -> new (polarity, golay, mac)
+          let oldNodes = {};
+          topology.nodes.forEach(node => {
+            oldNodes[node.name] = node;
+          });
+          overlayTopology.nodes.forEach(node => {
+            if (oldNodes.hasOwnProperty(node.name)) {
+              // node exists in existing topology, swap over properties
+              let oldNode = oldNodes[node.name];
+              node.polarity = oldNode.polarity;
+              node.golay_idx = oldNode.golay_idx;
+              node.mac_addr = oldNode.mac_addr;
+            }
+          });
+          let oldName = topology.name;
+          topology = Object.assign({}, overlayTopology);
+          topology.name = oldName;
+        }
         let config = topologyConfig;
         config['controller_online'] = false;
         config['controller_failures'] = 0;
@@ -283,7 +368,7 @@ function reloadInstanceConfig() {
         });
       });
     } else {
-      console.error('No topologies found in config, failing!');
+      consott.error('No topologies found in config, failing!');
       process.exit(1)
     }
 
@@ -765,11 +850,22 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
     if (topology.nodes) {
       topology.nodes.forEach(node => {
         delete node['status_dump'];
+        // add missing parameters?
+        if (!node.hasOwnProperty("ant_azimuth")) {
+          node.ant_azimuth = 0;
+        }
+        if (!node.hasOwnProperty("ant_elevation")) {
+          node.ant_elevation = 0;
+        }
         node.status = 1 /* OFFLINE */;
         //delete node['polarity'];
-        if (node.golay_idx) {
+        if (node.golay_idx &&
+            node.golay_idx.hasOwnProperty('txGolayIdx') &&
+            node.golay_idx.hasOwnProperty('rxGolayIdx')) {
           if (typeof node.golay_idx.txGolayIdx != "number" &&
-              typeof node.golay_idx.rxGolayIdx != "number") {
+              typeof node.golay_idx.rxGolayIdx != "number" &&
+              node.golay_idx.txGolayIdx != null &&
+              node.golay_idx.rxGolayIdx != null) {
             let txGolayIdx = Buffer.from(node.golay_idx.txGolayIdx.buffer.data).readUIntBE(0, 8);
             let rxGolayIdx = Buffer.from(node.golay_idx.rxGolayIdx.buffer.data).readUIntBE(0, 8);
             // update golay by parsing int buffer

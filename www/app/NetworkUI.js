@@ -76,6 +76,7 @@ export default class NetworkUI extends React.Component {
     fetch(topoGetFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
+          // TODO: normalize the topology with health data if it exists
           this.setState({
             networkConfig: json,
           });
@@ -153,6 +154,7 @@ export default class NetworkUI extends React.Component {
     fetch(linkHealthFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
+          // merge data
           Dispatcher.dispatch({
             actionType: Actions.HEALTH_REFRESHED,
             health: json,
@@ -303,6 +305,10 @@ export default class NetworkUI extends React.Component {
           <img src={"/static/images/" +
             (this.state.networkConfig.aggregator_online ? 'online' : 'offline') + ".png"} />
           NMS
+        </MenuItem>,
+        <Divider key="site-divider" />,
+        <MenuItem key="site-status" disabled>
+          {topology.sites.length} Sites
         </MenuItem>,
         <Divider key="sector-divider" />,
         <MenuItem key="sector-status" disabled>

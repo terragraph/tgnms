@@ -24,6 +24,7 @@ const TAB_NAMES = ['status',
 export default class NetworkDataTable extends React.Component {
   state = {
     routing: {},
+    zoomLevel: NetworkStore.zoomLevel,
   }
 
   tabNameToIndex = {}
@@ -115,6 +116,7 @@ export default class NetworkDataTable extends React.Component {
       height: adjustedHeight,
       topology: this.props.networkConfig.topology,
       routing: this.state.routing,
+      zoomLevel: this.state.zoomLevel,
     };
     return (
       <Tabs

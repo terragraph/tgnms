@@ -226,6 +226,14 @@ export default class DetailsLink extends React.Component {
                   <td colSpan="2">{linkupAttempts}</td>
                 </tr>
                 <tr>
+                  <td width="100px">Azimuth</td>
+                  <td colSpan="2">{parseInt(this.props.link.angle * 100) / 100}&deg;</td>
+                </tr>
+                <tr>
+                  <td width="100px">Length</td>
+                  <td colSpan="2">{parseInt(this.props.link.distance * 100) / 100} m</td>
+                </tr>
+                <tr>
                   <td width="100px">Availability</td>
                   <td colSpan="2">
                     <span style={{color: availabilityColor(alivePerc)}}>
