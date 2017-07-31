@@ -38,8 +38,9 @@ export default class ModalCSVUpload extends React.Component {
       rows = reader.result.split(/\n/).slice(2);
 
       // Skeleton topology object that will be populated with CSV data
+      // TODO - prompt for topology name
       let topology = {
-        "name": null,
+        "name": "Example Topology",
         "nodes": [],
         "links": [],
         "sites": [],

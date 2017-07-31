@@ -26,6 +26,7 @@ enum MessageType {
   IGNITION_STATE = 221,
   // Requests handled (by Minion IgnitionApp)
   SET_LINK_STATUS = 241,
+  GET_LINK_STATUS = 242,
   // Messages originated (by Minion IgnitionApp)
   LINK_STATUS = 261,
 
@@ -53,6 +54,8 @@ enum MessageType {
   UPGRADE_REQ = 401,
   // Messages originated (by minion UpgradeApp)
   SET_UPGRADE_STATUS = 421,
+  // Requests handled (by controller UpgradeApp)
+  UPGRADE_GROUP_REQ = 441,
 
   // ===  ScanApp === //
   // E2E -> Minion and Minion -> FW
@@ -71,8 +74,10 @@ enum MessageType {
   // north bound
   DR_ACK = 491,
   GPS_GET_POS_RESP = 492,
+  DR_DEV_ALLOC_RES = 493,
   // south bound
   GPS_GET_POS_REQ = 495,
+  DR_DEV_ALLOC_REQ = 496,
 
   // Message exchange with firmware
   // south bound
@@ -86,6 +91,8 @@ enum MessageType {
   FW_DEBUG_REQ = 508,
   PHY_AGC_CONFIG_REQ = 509,
   PHY_GOLAY_SEQUENCE_CONFIG_REQ = 510,
+  FW_CONFIG_REQ = 511,
+  PHY_TPC_CONFIG_REQ = 512,
   // north bound
   NODE_INIT_NOTIFY = 551,
   DR_LINK_STATUS = 552,
@@ -148,7 +155,7 @@ enum UpgradeReqType {
   RESET_STATUS = 30,
 }
 
-// Upgrade request to UpgradeApp
+// upgrade request to minion UpgradeApp
 struct UpgradeReq {
   1: UpgradeReqType urType;
   2: string upgradeReqId;
@@ -156,8 +163,27 @@ struct UpgradeReq {
                  // required for urType: PREPARE_UPGRADE/COMMIT_UPGRADE
   4: string imageUrl; // image url the minion uses to upgrade
                       // required for urType: PREPARE_UPGRADE
-  5: optional i64 scheduleToCommit;
-  6: optional i64 downloadAttempts;
+  5: optional i64 scheduleToCommit; // delay before minion commits
+  6: optional i64 downloadAttempts; // for urType: PREPARE_UPGRADE
+}
+
+enum UpgradeGroupType {
+  NODES = 10,    // upgrade operation on a list of nodes
+  NETWORK = 20,  // upgrade operation on the entire network
+}
+
+// upgrade request sent to controller to upgrade a group of nodes
+struct UpgradeGroupReq {
+  1: UpgradeGroupType ugType;
+  2: list<string> nodes; // for Nodes level upgrade
+  3: list<string> excludeNodes; // for Network level upgrade
+  4: UpgradeReq urReq; // request type specific information
+  5: i64 timeout; // node should prepare/commit successfully
+                  // within the timeout duration
+  6: bool skipFailure; // should the controller move onto the next
+                       // node if the current node fails?
+  7: string version;   // enforce version check before prepare or commit
+                       // if provided
 }
 
 #############  StatusApp ##############
@@ -221,7 +247,7 @@ struct IgnitionCandidate {
 struct IgnitionState {
   1: list<string> visitedNodeNames;
   2: list<IgnitionCandidate> igCandidates;
-  3: IgnitionCandidate lastIgCandidate;
+  3: list<IgnitionCandidate> lastIgCandidates;
   4: IgnitionParams igParams;
 }
 
@@ -235,6 +261,11 @@ struct SetLinkStatus {
   3: optional Topology.NodeType responderNodeType; // responder node type
   4: optional Topology.GolayIdx golayIdx; // responder golay code
   5: optional i64 controlSuperframe;  // control superframe for the link
+}
+
+// GetLinkStatus messge sent from controller to minion on node
+struct GetLinkStatus {
+  1: string responderMac; // responder mac address
 }
 
 // Link Status message sent from minion (initiator/responder) to controller
@@ -334,6 +365,13 @@ enum ScanMode {
   SELECTIVE = 3,
 }
 
+// Runtime Calibration
+enum RTCal {
+  NO_CAL = 0,
+  RX_CAL = 1,
+  TX_CAL = 2,
+}
+
 struct BeamIndices {
   1: i32 low;
   2: i32 high;
@@ -349,6 +387,14 @@ struct ScanReq {
   6: optional list<string> rxNodeMacs; // (only present for transmitters)
   7: optional list<MicroRoute> routes; // for partial scan, absent for full scan
   8: optional BeamIndices beams; // Beam indices range
+  9: bool enablePbfUrx; // 0 - disable URX after PBF
+                        // 1 - enable URX after PBF
+  // These are for selective scan
+  10: optional RTCal rtCal;
+  11: optional byte bwgdLen;
+
+  // This is to control tx power
+  12: optional i16 txPwrIndex; // tx power index (0 - 31)
 }
 
 struct ScanResp {
@@ -366,6 +412,14 @@ struct StartScan {
   5: optional list<string> rxNodes; // Should be present iff txNode is present.
                                     // Should be a singleton for PBF scan
   6: optional list<BeamIndices> beams; // Beam indices for each node
+  7: bool enablePbfUrx; // Enable/Disable URX based on PBF
+
+  // These are for selective scan
+  8: optional RTCal rtCal;
+  9: optional byte bwgdLen;
+
+  // This is to control tx power
+  10: optional i16 txPwrIndex; // tx power index (0 - 31)
 }
 
 struct GetScanStatus {

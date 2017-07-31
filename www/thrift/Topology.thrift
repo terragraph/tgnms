@@ -3,18 +3,18 @@ namespace py terragraph_thrift.Topology
 namespace cpp2 facebook.terragraph.thrift
 
 enum NodeType {
-    CN = 1
-    DN = 2
+    CN = 1,
+    DN = 2,
 }
 
 enum PolarityType {
-    ODD = 1
-    EVEN = 2
+    ODD = 1,
+    EVEN = 2,
 }
 
 enum LinkType {
-    WIRELESS = 1
-    ETHERNET = 2
+    WIRELESS = 1,
+    ETHERNET = 2,
 }
 
 struct GolayIdx {
@@ -42,9 +42,9 @@ struct Site {
 # Typical CN's Lifecycle:
 #     OFFLINE -> ONLINE (message exchange with controller)
 enum NodeStatusType {
-    OFFLINE = 1
-    ONLINE = 2
-    ONLINE_INITIATOR = 3  # node is online and can act as an initiator
+    OFFLINE = 1,
+    ONLINE = 2,
+    ONLINE_INITIATOR = 3,  # node is online and can act as an initiator
 }
 
 struct Node {
