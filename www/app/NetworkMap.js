@@ -259,6 +259,7 @@ export default class NetworkMap extends React.Component {
         let nodeHealth = this.state.networkHealth.links[link.name];
         link["alive_perc"] = nodeHealth.alive;
       }
+
       if (this.state.linkOverlayData) {
         let modLinkName = link.name.replace(/\./g, ' ') + ' (A)';
         let overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
@@ -266,6 +267,22 @@ export default class NetworkMap extends React.Component {
         modLinkName = link.name.replace(/\./g, ' ') + ' (Z)';
         overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
         link["overlay_z"] = overlayValue;
+      } else if (this.props.linkOverlay == "RxGolayIdx" || this.props.linkOverlay == "TxGolayIdx") {
+        let a_node = nodesByName[link.a_node_name];
+        let z_node = nodesByName[link.z_node_name];
+
+        if (a_node && a_node.golay_idx) {
+          let idx = this.props.linkOverlay == "RxGolayIdx" ?
+                    a_node.golay_idx.rxGolayIdx :
+                    a_node.golay_idx.txGolayIdx;
+          link["overlay_a"] = parseInt(Buffer.from(idx.buffer.data).readUIntBE(0, 8));
+        }
+        if (z_node && z_node.golay_idx) {
+          let idx = this.props.linkOverlay == "RxGolayIdx" ?
+                    z_node.golay_idx.rxGolayIdx :
+                    z_node.golay_idx.txGolayIdx;
+          link["overlay_z"] = parseInt(Buffer.from(idx.buffer.data).readUIntBE(0, 8));
+        }
       }
     });
     // reset the zoom when a new topology is selected
@@ -599,6 +616,28 @@ export default class NetworkMap extends React.Component {
             } else {
               linkLine = this.getLinkLine(link, linkCoords, 'grey');
             }
+            break;
+          case 'RxGolayIdx':
+          case 'TxGolayIdx':
+            color_a = 'grey';
+            color_z = 'grey';
+            if (link.hasOwnProperty("overlay_a")) {
+              for (var i = 0; i < overlayKey.values.length; ++i) {
+                if (link.overlay_a == overlayKey.values[i]) {
+                  color_a = overlayKey.colors[i];
+                  break;
+                }
+              }
+            }
+            if (link.hasOwnProperty("overlay_z")) {
+              for (var i = 0; i < overlayKey.values.length; ++i) {
+                if (link.overlay_z == overlayKey.values[i]) {
+                  color_z = overlayKey.colors[i];
+                  break;
+                }
+              }
+            }
+            linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
             break;
           case 'SNR':
           case 'MCS':

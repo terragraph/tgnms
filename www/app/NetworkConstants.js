@@ -56,6 +56,18 @@ const linkOverlayKeys = {
     values: [99, 99.9, 99.99],
     colors: ["hsl(0,100%,40%)", "hsl(50,100%,40%)", "hsl(120,100%,40%)", "hsl(120,100%,20%)"]
   },
+  RxGolayIdx: {
+    name: 'RxGolayIdx',
+    metric: null,
+    values: [0, 1, 2, 3, 4, 5, 6, 7],
+    colors: ["hsl(0,50%,50%)", "hsl(170,50%,50%)", "hsl(30,50%,50%)", "hsl(200,50%,50%)", "hsl(60,50%,50%)", "hsl(240,50%,50%)", "hsl(100,50%,50%)", "hsl(280,50%,50%)"]
+  },
+  TxGolayIdx: {
+    name: 'TxGolayIdx',
+    metric: null,
+    values: [0, 1, 2, 3, 4, 5, 6, 7],
+    colors: ["hsl(0,50%,50%)", "hsl(170,50%,50%)", "hsl(30,50%,50%)", "hsl(200,50%,50%)", "hsl(60,50%,50%)", "hsl(240,50%,50%)", "hsl(100,50%,50%)", "hsl(280,50%,50%)"]
+  },
   SNR: {
     name: 'SNR',
     metric: 'snr',

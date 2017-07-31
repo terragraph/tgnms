@@ -48,22 +48,35 @@ export default class ModalOverlays extends React.Component {
     let linkOverlayKeyRows = [];
     let linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
     if (linkOverlaySource.values) {
-      for (var i = 0; i < linkOverlaySource.values.length; ++i) {
+      if (this.state.selectedLinkOverlay == "RxGolayIdx" ||
+          this.state.selectedLinkOverlay == "TxGolayIdx") {
+        for (var i = 0; i < linkOverlaySource.values.length; ++i) {
+          linkOverlayKeyRows.push(
+            <tr key={linkOverlaySource.values[i]}>
+              <td></td>
+              <td>
+                <font style={{color:linkOverlaySource.colors[i]}}> Equals {linkOverlaySource.values[i]} </font>
+              </td>
+            </tr>);
+        };
+      } else {
+        for (var i = 0; i < linkOverlaySource.values.length; ++i) {
+          linkOverlayKeyRows.push(
+            <tr key={linkOverlaySource.values[i]}>
+              <td></td>
+              <td>
+                <font style={{color:linkOverlaySource.colors[i]}}> less than {linkOverlaySource.values[i]} </font>
+              </td>
+            </tr>);
+        };
         linkOverlayKeyRows.push(
-          <tr key={linkOverlaySource.values[i]}>
+          <tr key='last'>
             <td></td>
             <td>
-              <font style={{color:linkOverlaySource.colors[i]}}> less than {linkOverlaySource.values[i]} </font>
+              <font style={{color:linkOverlaySource.colors[linkOverlaySource.colors.length-1]}}> more than {linkOverlaySource.values[linkOverlaySource.values.length-1]} </font>
             </td>
           </tr>);
-      };
-      linkOverlayKeyRows.push(
-        <tr key='last'>
-          <td></td>
-          <td>
-            <font style={{color:linkOverlaySource.colors[linkOverlaySource.colors.length-1]}}> more than {linkOverlaySource.values[linkOverlaySource.values.length-1]} </font>
-          </td>
-        </tr>);
+      }
     }
 
     return (
