@@ -74,7 +74,7 @@ var self = {
    * TODO: This should be split up so we don't need to refresh everything
    * on each update
    */
-  refreshNodeKeyTimes: function() {
+  refreshNodeKeys: function() {
     pool.getConnection(function(err, conn) {
       if (err) {
         console.error('DB error', err);
@@ -194,7 +194,7 @@ var self = {
         }
       );
     });
-    self.refreshNodeKeyTimes();
+    self.refreshNodeKeys();
   },
 
   /*
