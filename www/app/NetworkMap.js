@@ -343,7 +343,7 @@ export default class NetworkMap extends React.Component {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
     return (
       <CircleMarker center={pos}
-        radius={radiusByZoomLevel}
+        radius={10}
         clickable
         fillOpacity={1}
         color = {color}
@@ -360,7 +360,7 @@ export default class NetworkMap extends React.Component {
       <Polyline
         key={link.name}
         positions={coords}
-        weight={weightByZoomLevel}
+        weight={6}
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
@@ -491,7 +491,7 @@ export default class NetworkMap extends React.Component {
           hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
         }
       });
-     
+
       let contextualMarker = null;
       switch (this.props.siteOverlay) {
         case 'Health':

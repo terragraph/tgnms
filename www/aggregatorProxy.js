@@ -65,17 +65,8 @@ var self = {
   },
 
 
-  getAlertsConfig: function (configs, req, res, next) {
-    let topologyName = req.params[0];
-    let config = {};
+  getAlertsConfig: function (config, req, res, next) {
     let alertsConfig = {};
-
-    for (var i = 0, len = configs.length; i < len; i++) {
-      if(topologyName == configs[i].name) {
-        config = configs[i];
-        break;
-      }
-    }
 
     // guard against hanging
     var timeout = setTimeout(function(){
@@ -136,17 +127,8 @@ var self = {
     transport.flush();
   },
 
-  setAlertsConfig: function (configs, req, res, next) {
-    let topologyName = req.params[0];
+  setAlertsConfig: function (config, req, res, next) {
     let alertsConfigRows = JSON.parse(req.params[1]);
-    let config = {};
-
-    for (var i = 0, len = configs.length; i < len; i++) {
-      if(topologyName == configs[i].name) {
-        config = configs[i];
-        break;
-      }
-    }
 
     // guard against hanging
     var timeout = setTimeout(function(){

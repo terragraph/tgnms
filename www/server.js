@@ -1148,10 +1148,20 @@ app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
 });
 
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
-  aggregatorProxy.getAlertsConfig(configs, req, res, next);
+  let topologyName = req.params[0];
+  if (!configByName[topologyName]) {
+    res.status(404).end("No such topology\n");
+    return;
+  }
+  aggregatorProxy.getAlertsConfig(configByName[topologyName], req, res, next);
 });
 app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next) {
-  aggregatorProxy.setAlertsConfig(configs, req, res, next);
+  let topologyName = req.params[0];
+  if (!configByName[topologyName]) {
+    res.status(404).end("No such topology\n");
+    return;
+  }
+  aggregatorProxy.setAlertsConfig(configByName[topologyName], req, res, next);
 });
 // api handler
 require('./api/api.js')(app, configByName, fileTopologyByName, topologyByName);
