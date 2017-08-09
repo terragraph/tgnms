@@ -3,7 +3,7 @@
   "refresh_interval": 5000,
   "topologies": [
     {
-      "topology_file": "sjc_area1.json",
+      "topology_file": "sjc_area2.json",
       "latitude": 37.333057579551586,
       "longitude": -121.88882589372953,
       "zoom_level": 16,
