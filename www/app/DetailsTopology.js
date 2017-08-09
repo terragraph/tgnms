@@ -23,6 +23,17 @@ export default class DetailsTopology extends React.Component {
         // only wireless links
         return;
       }
+      // skip links where mac is not defined on both sides
+      if (!this.props.nodes.hasOwnProperty(link.a_node_name) ||
+          !this.props.nodes.hasOwnProperty(link.z_node_name)) {
+        return;
+      }
+      let nodeA = this.props.nodes[link.a_node_name];
+      let nodeZ = this.props.nodes[link.z_node_name];
+      if (nodeA.mac_addr == null || nodeZ.mac_addr == null ||
+          !nodeA.mac_addr.length || !nodeZ.mac_addr.length) {
+        return;
+      }
       let alivePerc = 0;
       if (link.hasOwnProperty("alive_perc")) {
         alivePerc = parseInt(link.alive_perc * 1000) / 1000.0;
