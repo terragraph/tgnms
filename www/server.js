@@ -1083,11 +1083,12 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
       res.status(200).end();
       return;
     }
+
     let hookData;
     try {
       hookData = JSON.parse(httpPostData);
     } catch (ex) {
-      console.error('JSON parse error on fulcurm endpoint:', httpPostData);
+      console.error('JSON parse error on Fulcurm endpoint: ', httpPostData);
       res.status(200).end();
       return;
     }
@@ -1111,6 +1112,11 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
     sectors.forEach((sector, index) => {
       setTimeout(() => {
         try {
+          // Skip node if it's status isn't 'installed' in Fulcrum
+          if (sector['form_values']['dfa8'] !== 'Installed') {
+            return;
+          }
+
           let nodeMac = sector['form_values']['f7f1'];
           let nodeName = sector['form_values']['3546'];
           let sendRes = index >= sectors.length - 1;
@@ -1126,7 +1132,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
             force: false,
           }, "", res, sendRes);
         } catch (e) {
-          console.log(e);
+          console.log('Error while Fulcrum setting Mac: ' + e);
         }
       }, 1000 * index);
     });
