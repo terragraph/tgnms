@@ -161,7 +161,7 @@ const thriftSerialize = (struct) => {
   return result;
 }
 
-const sendCtrlMsgSync = (msg, minion, res) => {
+const sendCtrlMsgSync = (msg, minion, res, sendRes=true) => {
   if (!msg.type) {
     console.error("sendCtrlMsgSync: Received unknown message", msg);
   }
@@ -169,7 +169,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
   const send = (struct) => {
     var byteArray = thriftSerialize(struct);
     const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
-    ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, minion, res);
+    ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, minion, res, sendRes);
   };
 
   // prepare MSG body first, then send msg syncronously
@@ -270,7 +270,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'setLinkIgnitionState':
       var setIgnitionParamsReq = new Controller_ttypes.IgnitionParams();
-      setIgnitionParamsReq.link_auto_ignite = {}
+      setIgnitionParamsReq.link_auto_ignite = {};
       setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
       send(setIgnitionParamsReq);
       break;
@@ -363,7 +363,7 @@ class ControllerProxy extends EventEmitter {
     );
   }
 
-  sendCtrlApiMsgType(msgType, msgBody, minion, res) {
+  sendCtrlApiMsgType(msgType, msgBody, minion, res, sendRes) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
       sendMsg.mType = msgType;
@@ -413,6 +413,11 @@ class ControllerProxy extends EventEmitter {
     });
 
     ctrlPromise.then((msg) => {
+      if (!sendRes) {
+        console.log(msg.msg);
+        return;
+      }
+
       if (msg.type == 'ack') {
         let result = {"success": true};
         res.status(200).end(JSON.stringify(result));
@@ -424,13 +429,13 @@ class ControllerProxy extends EventEmitter {
       let result = {
         "success": false,
         "error": failMessage
-      }
+      };
       res.status(500).end(JSON.stringify(result));
       res.end();
     });
   }
 
-  sendCtrlMsgTypeSync(msgType, msgBody, minion, res) {
+  sendCtrlMsgTypeSync(msgType, msgBody, minion, res, sendRes) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
       sendMsg.mType = msgType;
@@ -480,6 +485,11 @@ class ControllerProxy extends EventEmitter {
     });
 
     ctrlPromise.then((msg) => {
+      if (!sendRes) {
+        console.log(msg.msg);
+        return;
+      }
+
       if (msg.type == 'ack') {
         res.writeHead(200, msg.msg, {'content-type' : 'text/plain'});
         res.end();

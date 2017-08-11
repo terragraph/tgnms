@@ -1059,7 +1059,7 @@ app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, ne
   let topologyName = req.params[0];
   let nodeName = req.params[1];
   let nodeMac = req.params[2];
-  let force = req.params[3] == "force" ? true : false;
+  let force = req.params[3] == "force";
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync({
@@ -1069,6 +1069,60 @@ app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, ne
     mac: nodeMac,
     force: force,
   }, "", res);
+});
+
+app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    // Fulcrum needs to receive a 200 whether we care about this webhook or not
+
+    if (!httpPostData.length) {
+      return;
+    }
+    let hookData = JSON.parse(httpPostData);
+
+    // Only care about hooks from the installer app
+    if (hookData['data']['form_id'] !== '299399ce-cd92-4cda-8b76-c57ebb73ab33') {
+      return;
+    }
+    // Only care about record updates, they'll have the MACs
+    if (hookData['type'] !== 'record.update') {
+      return;
+    }
+
+    let record = hookData['data']['form_values'];
+
+    // Hacky static definition of Fulcrum's UID-based form field representations
+    // let site = record['3dae'];
+    let sectors = record['b15d'];
+
+    sectors.forEach((sector, index) => {
+      setTimeout(() => {
+        try {
+          let nodeMac = sector['form_values']['f7f1'];
+          let nodeName = sector['form_values']['3546'];
+          let sendRes = index >= sectors.length - 1;
+          var topology = getTopologyByName('SJC');
+
+          console.log(nodeMac);
+          console.log(nodeName);
+
+          return syncWorker.sendCtrlMsgSync({
+            type: 'setMac',
+            topology: topology,
+            node: nodeName,
+            mac: nodeMac,
+            force: false,
+          }, "", res, sendRes);
+        } catch (e) {
+          console.log(e);
+        }
+      }, 500 * index);
+    });
+  });
 });
 
 app.get(/\/controller\/getIgnitionState\/(.+)$/i, function (req, res, next) {
@@ -1083,7 +1137,7 @@ app.get(/\/controller\/getIgnitionState\/(.+)$/i, function (req, res, next) {
 
 app.get(/\/controller\/setNetworkIgnitionState\/(.+)\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
-  let state = req.params[1] == "enable" ? true : false;
+  let state = req.params[1] == "enable";
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync({
