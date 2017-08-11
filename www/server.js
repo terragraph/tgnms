@@ -1080,16 +1080,26 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
     // Fulcrum needs to receive a 200 whether we care about this webhook or not
 
     if (!httpPostData.length) {
+      res.status(200).end();
       return;
     }
-    let hookData = JSON.parse(httpPostData);
+    let hookData;
+    try {
+      hookData = JSON.parse(httpPostData);
+    } catch (ex) {
+      console.error('JSON parse error on fulcurm endpoint:', httpPostData);
+      res.status(200).end();
+      return;
+    }
 
     // Only care about hooks from the installer app
     if (hookData['data']['form_id'] !== '299399ce-cd92-4cda-8b76-c57ebb73ab33') {
+      res.status(200).end();
       return;
     }
     // Only care about record updates, they'll have the MACs
     if (hookData['type'] !== 'record.update') {
+      res.status(200).end();
       return;
     }
 
@@ -1118,7 +1128,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
         } catch (e) {
           console.log(e);
         }
-      }, 500 * index);
+      }, 1000 * index);
     });
   });
 });
