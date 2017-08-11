@@ -1096,7 +1096,6 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
     let record = hookData['data']['form_values'];
 
     // Hacky static definition of Fulcrum's UID-based form field representations
-    // let site = record['3dae'];
     let sectors = record['b15d'];
 
     sectors.forEach((sector, index) => {
@@ -1107,8 +1106,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
           let sendRes = index >= sectors.length - 1;
           var topology = getTopologyByName('SJC');
 
-          console.log(nodeMac);
-          console.log(nodeName);
+          console.log('Fulcrum setting MAC ' + nodeMac + ' on ' + nodeName);
 
           return syncWorker.sendCtrlMsgSync({
             type: 'setMac',
