@@ -46,7 +46,6 @@ export default class DetailsTopology extends React.Component {
     let polarities = {};
     // { site name, polarity }
     let polarityBySite = {};
-    //console.log(this.props);
     this.props.topology.nodes.forEach(node => {
       // calculate # of dns, cns
       if (!nodeTypes.hasOwnProperty(node.node_type)) {
@@ -54,18 +53,23 @@ export default class DetailsTopology extends React.Component {
       }
       nodeTypes[node.node_type]++;
       // polarities
-      if (!polarities.hasOwnProperty(node.polarity)) {
-        polarities[node.polarity] = 0;
+      let nodePolarity = node.polarity;
+      // replace undefined polarities
+      if (nodePolarity == undefined || nodePolarity == null) {
+        nodePolarity = 0;
       }
-      polarities[node.polarity]++;
+      if (!polarities.hasOwnProperty(nodePolarity)) {
+        polarities[nodePolarity] = 0;
+      }
+      polarities[nodePolarity]++;
       // polarity by site
       if (!polarityBySite.hasOwnProperty(node.site_name)) {
-        polarityBySite[node.site_name] = node.polarity;
+        polarityBySite[node.site_name] = nodePolarity;
       } else {
         polarityBySite[node.site_name] =
-          (polarityBySite[node.site_name] != node.polarity) ?
+          (polarityBySite[node.site_name] != nodePolarity) ?
             3 /* HYBRID */ :
-            node.polarity;
+            nodePolarity;
       }
     });
     alivePercAvg /= wirelessLinksCount;
@@ -94,24 +98,31 @@ export default class DetailsTopology extends React.Component {
         </tr>
       );
     });
-    let polarityBySiteRows = Object.values(polarityBySite).map((polarity, index) => {
-      //console.log('polarity of site', polarity);
+    // compute polarity by site
+    let polarityCountBySite = {};
+    Object.values(polarityBySite).forEach(polarity => {
+      if (!polarityCountBySite.hasOwnProperty(polarity)) {
+        polarityCountBySite[polarity] = 0;
+      }
+      polarityCountBySite[polarity]++;
+    });
+    let polarityBySiteRows = Object.keys(polarityCountBySite).map((polarity, index) => {
       polarity = parseInt(polarity);
       let polarityName = "Not Set";
       if (polarity == 1) {
         polarityName = 'Odd';
       } else if (polarity == 2) {
         polarityName = 'Even';
-      } else {
+      } else if (polarity == 3) {
         polarityName = 'Hybrid';
       }
-      let polarityCount = polarityBySite[polarity];
+      let polarityCount = polarityCountBySite[polarity];
       let polarityCountPerc = 
         (parseInt(polarityCount / this.props.topology.sites.length * 100));
       return (
         <tr key={"polarityBySite-" + polarity}>
           {index == 0 ?
-            <td width="150px" rowSpan={Object.keys(polarityBySite).length}>Polarities (Site)</td> : ""}
+            <td width="150px" rowSpan={Object.keys(polarityCountBySite).length}>Polarities (Site)</td> : ""}
           <td>
             <span style={{color: polarityColor(parseInt(polarity))}}>
               {polarityName}
@@ -169,6 +180,7 @@ export default class DetailsTopology extends React.Component {
                 </tr>
                 {nodeTypeRows}
                 {polarityRows}
+                {polarityBySiteRows}
               </tbody>
             </table>
           </div>

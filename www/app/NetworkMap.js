@@ -555,6 +555,7 @@ export default class NetworkMap extends React.Component {
       }
     });
 
+    let ignitionLinks = new Set(this.props.networkConfig.ignition_state);
     topology.links.map(link => {
       if (link.link_type != 1) {
         return;
@@ -599,6 +600,8 @@ export default class NetworkMap extends React.Component {
           case 'Health':
             if (link.is_alive) {
               linkLine = this.getLinkLine(link, linkCoords, 'green');
+            } else if (ignitionLinks.has(link.name)) {
+              linkLine = this.getLinkLine(link, linkCoords, 'purple');
             } else {
               linkLine = this.getLinkLine(link, linkCoords, 'red');
             }
