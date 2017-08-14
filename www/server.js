@@ -1085,6 +1085,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
     }
 
     let hookData;
+    // Attempt to parse the payload as JSON
     try {
       hookData = JSON.parse(httpPostData);
     } catch (ex) {
@@ -1093,27 +1094,50 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
       return;
     }
 
-    // Only care about hooks from the installer app
-    if (hookData['data']['form_id'] !== '299399ce-cd92-4cda-8b76-c57ebb73ab33') {
+    let record;
+    let sectors;
+    // Validate JSON content with some basic sanity checks
+    try {
+      // Only care about hooks from the installer app
+      if (hookData['data']['form_id'] !== '299399ce-cd92-4cda-8b76-c57ebb73ab33') {
+        console.error('Fulcurm endpoint received webhook from wrong app: ', hookData);
+        res.status(200).end();
+        return;
+      }
+      // Only care about record updates, they'll have the MACs
+      if (hookData['type'] !== 'record.update') {
+        console.error('Fulcurm endpoint received non-update webhook: ', hookData);
+        res.status(200).end();
+        return;
+      }
+
+      record = hookData['data']['form_values'];
+
+      // Hacky static definition of Fulcrum's UID-based form field representations
+      sectors = record['b15d'];
+    } catch (e) {
+      console.error('JSON data doesn\'t contain required info: ', hookData);
       res.status(200).end();
       return;
     }
-    // Only care about record updates, they'll have the MACs
-    if (hookData['type'] !== 'record.update') {
+
+    let anyInstalled = _.some(sectors, (sector) => {
+      return sector['form_values']['dfa8'] === 'Installed';
+    });
+
+    if (!anyInstalled) {
+      console.error('None of the sectors in this webhook are installed: ', hookData);
       res.status(200).end();
       return;
     }
 
-    let record = hookData['data']['form_values'];
-
-    // Hacky static definition of Fulcrum's UID-based form field representations
-    let sectors = record['b15d'];
-
+    let notInstalledCount = 0;
     sectors.forEach((sector, index) => {
       setTimeout(() => {
         try {
           // Skip node if it's status isn't 'installed' in Fulcrum
           if (sector['form_values']['dfa8'] !== 'Installed') {
+            notInstalledCount += 1;
             return;
           }
 
@@ -1136,6 +1160,10 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
         }
       }, 1000 * index);
     });
+    // In the case that nothing is installed still need to respond
+    if (notInstalledCount == sectors.length) {
+      res.status(200).end();
+    }
   });
 });
 
