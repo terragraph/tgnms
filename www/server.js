@@ -1095,7 +1095,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
       }, 1000 * index);
     });
     // In the case that nothing is installed still need to respond
-    if (notInstalledCount == sectors.length) {
+    if (notInstalledCount === sectors.length) {
       res.status(200).end();
     }
   });
