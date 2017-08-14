@@ -25,8 +25,7 @@ process.on('message', (msg) => {
         const ctrlProxy = new ControllerProxy(topology.controller_ip);
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
-        // TODO - enable ignition scanning
-        // ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
+        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
         ctrlProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Controller_ttypes.MessageType.GET_TOPOLOGY:

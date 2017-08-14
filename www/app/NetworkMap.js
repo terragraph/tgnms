@@ -598,6 +598,7 @@ export default class NetworkMap extends React.Component {
         let overlayKey = linkOverlayKeys[this.props.linkOverlay];
         switch (this.props.linkOverlay) {
           case 'Health':
+            // TODO - move color assignment into separate function for legend
             if (link.is_alive) {
               linkLine = this.getLinkLine(link, linkCoords, 'green');
             } else if (ignitionLinks.has(link.name)) {
