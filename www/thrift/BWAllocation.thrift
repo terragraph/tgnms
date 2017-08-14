@@ -5,9 +5,9 @@ typedef i16 LinkId
 typedef i16 SlotIdx
 
 enum SlotAttrib {
-  UNRSVD_SLOT,
-  BF_RSVD_SLOT,
-  MGMT_RSVD_SLOT,
+  UNRSVD_SLOT = 0,
+  BF_RSVD_SLOT = 1,
+  MGMT_RSVD_SLOT = 2,
 }
 
 struct SlotInfo {

@@ -25,6 +25,8 @@ process.on('message', (msg) => {
         const ctrlProxy = new ControllerProxy(topology.controller_ip);
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
+        // TODO - enable ignition scanning
+        // ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
         ctrlProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Controller_ttypes.MessageType.GET_TOPOLOGY:
@@ -43,6 +45,16 @@ process.on('message', (msg) => {
                 success: success,
                 response_time: response_time,
                 status_dump: success ? data.status_dump : null,
+              });
+              break;
+            case Controller_ttypes.MessageType.GET_IGNITION_STATE:
+              // which links are ignition candidates
+              process.send({
+                name: topology.name,
+                type: 'ignition_state',
+                success: success,
+                response_time: response_time,
+                ignition_state: success ? data.ignition_state : null,
               });
               break;
             default:
@@ -346,6 +358,14 @@ class ControllerProxy extends EventEmitter {
                       receivedAck.success,
                       endTimer - this.start_timer,
                       { msg: receivedAck.message});
+          case Controller_ttypes.MessageType.GET_IGNITION_STATE:
+            var ignitionState = new Controller_ttypes.IgnitionState();
+            ignitionState.read(tProtocol);
+            this.emit('event',
+                      msgType,
+                      true,
+                      endTimer - this.start_timer,
+                      {ignition_state: ignitionState});
             break;
           default:
             console.error('No receive handler defined for', msgType);

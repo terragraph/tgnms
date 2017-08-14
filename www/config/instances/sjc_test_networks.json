@@ -1,0 +1,22 @@
+{
+  "use_tile_proxy": true,
+  "refresh_interval": 5000,
+  "topologies": [
+    {
+      "topology_file": "sjc_area2.json",
+      "latitude": 37.333057579551586,
+      "longitude": -121.88882589372953,
+      "zoom_level": 16,
+      "controller_ip": "10.56.68.18",
+      "aggregator_ip": "10.56.68.18"
+    },
+    {
+      "topology_file": "sjc_area2_polarity_from_area1_only.json",
+      "latitude": 37.333057579551586,
+      "longitude": -121.88882589372953,
+      "zoom_level": 16,
+      "controller_ip": "10.56.68.18",
+      "aggregator_ip": "10.56.68.18"
+    }
+  ]
+}

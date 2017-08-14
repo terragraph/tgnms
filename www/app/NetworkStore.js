@@ -74,7 +74,6 @@ const PushUrl = () => {
 const InitialUrl = BrowserHistory.location.pathname;
 let urlParts = InitialUrl.split('/');
 urlParts.shift();
-//console.log('initial layers', urlParts);
 for (let layer = 0; layer < urlParts.length; layer++) {
   if (!urlParts[layer].length) {
     break;

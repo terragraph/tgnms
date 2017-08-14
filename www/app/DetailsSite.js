@@ -140,7 +140,7 @@ export default class DetailsSite extends React.Component {
           </td>
           <td>
             <span style={{color: polarityColor(node.polarity)}}>
-              {node.polarity == 1 ? 'Odd' : 'Even'}
+              {node.polarity == 1 ? 'Odd' : (node.polarity == 2 ? 'Even' : 'Not Set')}
             </span>
           </td>
         </tr>);
@@ -236,7 +236,7 @@ export default class DetailsSite extends React.Component {
                 </tr>
                 <tr>
                   <td width="100px">Altitude</td>
-                  <td colSpan="4">{this.props.site.location.altitude}</td>
+                  <td colSpan="4">{this.props.site.location.altitude} m</td>
                 </tr>
                 {nodesRows}
                 {linksRows}

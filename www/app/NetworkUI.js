@@ -86,6 +86,14 @@ export default class NetworkUI extends React.Component {
             networkConfig: json,
           });
         }.bind(this));
+      } else if (response.status == 404) {
+        // topology is invalid, switch to the first topology in the list
+        if (this.state.topologies.length) {
+          Dispatcher.dispatch({
+            actionType: Actions.TOPOLOGY_SELECTED,
+            networkName: this.state.topologies[0].name,
+          });
+        }
       }
     }.bind(this));
   }
