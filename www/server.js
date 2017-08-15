@@ -56,7 +56,8 @@ const os = require('os');
 const pty = require('pty.js');
 
 const statusReportExpiry = 2 * 60000; // 2 minuets
-const maxThriftRequestFailures = 3;
+const maxThriftRequestFailures = 1;
+const maxControllerEvents = 10;
 
 const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED ?
                                 process.env.IM_SCAN_POLLING_ENABLED == '1' : 0;
@@ -95,6 +96,12 @@ worker.on('message', (msg) => {
         console.log(new Date().toString(), msg.name, 'controller',
                     (msg.success ? 'online' : 'offline'),
                     'in', msg.response_time, 'ms');
+        // add event for controller up/down
+        config.controller_events.push([new Date(), msg.success]);
+        if (config.controller_events.length > maxControllerEvents) {
+          // restrict events size 
+          config.controller_events.splice(maxControllerEvents);
+        }
       }
       // validate the name on disk matches the e2e received topology
       if (msg.success && msg.name != msg.topology.name) {
@@ -304,6 +311,7 @@ function reloadInstanceConfig() {
         config['aggregator_online'] = false;
         config['aggregator_failures'] = 0;
         config['name'] = topology['name'];
+        config['controller_events'] = [];
         configByName[topology['name']] = config;
         fileTopologyByName[topology['name']] = topology;
         let topologyName = topology['name'];

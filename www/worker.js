@@ -2,6 +2,7 @@
  * ZMQ controller/aggregator refresh process
  */
 const ZMQ_TIMEOUT_MS = 4000;
+const ZMQ_RAND_ID = parseInt(Math.random() * 1000);
 
 const EventEmitter = require('events');
 const process = require('process');
@@ -309,11 +310,12 @@ class ControllerProxy extends EventEmitter {
     sendMsg.value = msgBody;
     var recvMsg = new Controller_ttypes.Message();
 
+    let nmsAppId = msgType2Params[msgType].nmsAppId + ZMQ_RAND_ID;
     // time the response
     this.sendCtrlMsg(
       sendMsg,
       recvMsg,
-      msgType2Params[msgType].nmsAppId,
+      nmsAppId,
       msgType2Params[msgType].recvApp,
       "",
       (tProtocol, tTransport) => {

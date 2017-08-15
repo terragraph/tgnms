@@ -1,4 +1,5 @@
 import React from 'react';
+import moment from 'moment';
 // menu bar
 import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
 // leaflet maps
@@ -302,18 +303,34 @@ export default class NetworkUI extends React.Component {
       // online + online initiator
       let sectorsOnline = topology.nodes.filter(node =>
           node.status == 2 || node.status == 3).length;
+      let e2eStatusList = [];
+      if (this.state.networkConfig.hasOwnProperty('controller_events')) {
+        this.state.networkConfig.controller_events.slice().reverse().forEach((eventArr, index) => {
+          if (eventArr.length != 2) {
+            return;
+          }
+          let timeStr = moment(new Date(eventArr[0])).format('M/D/YY HH:mm:ss');
+          e2eStatusList.push(
+            <MenuItem key={"e2e-status-events" + index} disabled>
+              <img src={"/static/images/" +
+                (eventArr[1] ? 'online' : 'offline') + ".png"} />
+              {timeStr}
+            </MenuItem>
+          );
+        });
+      }
       networkStatusMenuItems = [
-        <MenuItem key="e2e-status" disabled>
-          <img src={"/static/images/" +
-            (this.state.networkConfig.controller_online ? 'online' : 'offline') + ".png"} />
-          E2E
-        </MenuItem>,
+        <SubMenu key="e2e-status-menu" mode="vertical" title="E2E"
+                 className={this.state.networkConfig.controller_online ?
+                            'svcOnline' : 'svcOffline'}>
+          {e2eStatusList}
+        </SubMenu>,
         <Divider key= "status-divider" />,
-        <MenuItem key="nms-status" disabled>
-          <img src={"/static/images/" +
-            (this.state.networkConfig.aggregator_online ? 'online' : 'offline') + ".png"} />
+        <SubMenu key="nms-status-menu" mode="vertical" title="NMS" disabled
+                 className={this.state.networkConfig.aggregator_online ?
+                            'svcOnline' : 'svcOffline'}>
           NMS
-        </MenuItem>,
+        </SubMenu>,
         <Divider key="site-divider" />,
         <MenuItem key="site-status" disabled>
           {topology.sites.length} Sites
