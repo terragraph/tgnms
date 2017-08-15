@@ -13,11 +13,8 @@ const worker = cp.fork('./worker.js');
 const syncWorker = require('./worker.js');
 // packaging
 const webpack = require('webpack');
-const webpackMiddleware = require('webpack-dev-middleware');
-const webpackHotMiddleware = require('webpack-hot-middleware');
-const config = require('./webpack.config.js');
-const isDeveloping = process.env.NODE_ENV !== 'production';
-const port = isDeveloping && process.env.PORT ? process.env.PORT : 8080;
+const devMode = process.env.NODE_ENV !== 'production';
+const port = devMode && process.env.PORT ? process.env.PORT : 80;
 // thrift types from controller
 const Topology_ttypes = require('./thrift/gen-nodejs/Topology_types');
 const Controller_ttypes = require('./thrift/gen-nodejs/Controller_types');
@@ -263,19 +260,6 @@ function getTopologyByName(topologyName) {
   return networkConfig;
 }
 
-const compiler = webpack(config);
-const middleware = webpackMiddleware(compiler, {
-  publicPath: config.output.publicPath,
-  contentBase: 'src',
-  stats: {
-    colors: true,
-    hash: false,
-    timings: true,
-    chunks: false,
-    chunkModules: false,
-    modules: false
-  }
-});
 function reloadInstanceConfig() {
   if (refreshIntervalTimer) {
     clearInterval(refreshIntervalTimer);
@@ -1201,8 +1185,32 @@ app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next)
 // api handler
 require('./api/api.js')(app, configByName, fileTopologyByName, topologyByName);
 
-app.use(middleware);
-app.use(webpackHotMiddleware(compiler));
+if (devMode) {
+  // serve developer, non-minified build
+  const config = require('./webpack.config.js');
+  const compiler = webpack(config);
+  const webpackMiddleware = require('webpack-dev-middleware');
+  const webpackHotMiddleware = require('webpack-hot-middleware');
+  const middleware = webpackMiddleware(compiler, {
+    publicPath: config.output.publicPath,
+    contentBase: 'src',
+    stats: {
+      colors: true,
+      hash: false,
+      timings: true,
+      chunks: false,
+      chunkModules: false,
+      modules: false
+    }
+  });
+  app.use(middleware);
+  app.use(webpackHotMiddleware(compiler));
+} else {
+  // serve js from dist/ in prod mode
+  app.get('/map.js', function(req, res) {
+    res.sendFile(__dirname + '/static/js/map.js');
+  });
+}
 
 app.get(/\/*/, function(req, res) {
   res.render('index', {configJson: JSON.stringify(networkInstanceConfig)});
@@ -1212,5 +1220,12 @@ app.listen(port, '', function onStart(err) {
   if (err) {
     console.log(err);
   }
-  console.info('==> 🌎 Listening on port %s.', port);
+  if (devMode) {
+    console.log('<=========== DEVELOPER MODE ===========>');
+  } else {
+    console.log('<=========== PRODUCTION MODE ==========>');
+    console.log('<== JS BUNDLE SERVED FROM /static/js ==>');
+    console.log('<==== LOCAL CHANGES NOT POSSIBLE ======>');
+  }
+  console.log('\n=========> LISTENING ON PORT %s', port);
 });

@@ -4,5 +4,6 @@ CONFIG="/etc/sysconfig/nms"
 [ -f "$CONFIG" ] && source "$CONFIG"
 
 export PORT=80
+export NODE_ENV="production"
 pushd /home/nms/www
 npm start 2>&1
