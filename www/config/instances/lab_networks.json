@@ -56,10 +56,20 @@
         {
             "controller_ip": "2620:10d:c089:e00c:250:43ff:fef8:3435",
             "aggregator_ip": "2620:10d:c089:e00c:250:43ff:fef8:3435",
+            "site_coords_override": true,
             "latitude": 37.4848280435154,
             "longitude": -122.1472245455607,
             "zoom_level": 18,
             "topology_file": "TowerC_Floor1.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e00f:3a3a:21ff:feb0:aef",
+            "aggregator_ip": "2620:10d:c089:e00f:3a3a:21ff:feb0:aef",
+            "site_coords_override": true,
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "topology_file": "TowerF_Floor7.json"
         },
         {
             "controller_ip": "2620:10d:c089:e00d:3a3a:21ff:feb0:1dc",
@@ -94,6 +104,15 @@
             "longitude": -121.88882589372953,
             "zoom_level": 16,
             "topology_file": "TowerE.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:ff02:250:56ff:fea8:2dd",
+            "aggregator_ip": "2620:10d:c089:ff02:250:56ff:fea8:2dd",
+            "site_coords_override": "true",
+            "latitude": 37.484946,
+            "longitude": -122.1475237,
+            "zoom_level": 16,
+            "topology_file": "benchzero.json"
         }
     ]
 }

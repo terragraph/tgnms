@@ -10,7 +10,7 @@
             "polarity": 1,
             "golay_idx": null,
             "status": 3,
-            "site_name": "21x.f1.tc",
+            "site_name": "B",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -24,7 +24,7 @@
             "polarity": 1,
             "golay_idx": null,
             "status": 3,
-            "site_name": "21x.f1.tc",
+            "site_name": "B",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -38,7 +38,7 @@
             "polarity": 2,
             "golay_idx": null,
             "status": 3,
-            "site_name": "11x.f1.tc",
+            "site_name": "A",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -52,7 +52,7 @@
             "polarity": 2,
             "golay_idx": null,
             "status": 3,
-            "site_name": "22x.f1.tc",
+            "site_name": "E",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -66,7 +66,7 @@
             "polarity": 1,
             "golay_idx": null,
             "status": 3,
-            "site_name": "21x.f1.tc",
+            "site_name": "B",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -80,7 +80,7 @@
             "polarity": 1,
             "golay_idx": null,
             "status": 3,
-            "site_name": "32x.f1.tc",
+            "site_name": "D",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -94,7 +94,7 @@
             "polarity": 1,
             "golay_idx": null,
             "status": 3,
-            "site_name": "32x.f1.tc",
+            "site_name": "C",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -108,7 +108,7 @@
             "polarity": 2,
             "golay_idx": null,
             "status": 3,
-            "site_name": "31x.f1.tc",
+            "site_name": "C",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -122,7 +122,7 @@
             "polarity": 1,
             "golay_idx": null,
             "status": 3,
-            "site_name": "12x.f1.tc",
+            "site_name": "F",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -136,7 +136,7 @@
             "polarity": 2,
             "golay_idx": null,
             "status": 3,
-            "site_name": "31x.f1.tc",
+            "site_name": "C",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -150,7 +150,7 @@
             "polarity": 2,
             "golay_idx": null,
             "status": 3,
-            "site_name": "22x.f1.tc",
+            "site_name": "E",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -164,7 +164,7 @@
             "polarity": 1,
             "golay_idx": null,
             "status": 3,
-            "site_name": "12x.f1.tc",
+            "site_name": "F",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -178,7 +178,7 @@
             "polarity": 2,
             "golay_idx": null,
             "status": 3,
-            "site_name": "22x.f1.tc",
+            "site_name": "E",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -192,7 +192,7 @@
             "polarity": 2,
             "golay_idx": null,
             "status": 3,
-            "site_name": "11x.f1.tc",
+            "site_name": "A",
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "has_cpe": null
@@ -585,59 +585,53 @@
         }
     ],
     "sites": [
-        {
-            "name": "21x.f1.tc",
-            "location": {
-                "latitude": 37.4849073,
-                "longitude": -122.1473935,
-                "altitude": -15.579,
-                "accuracy": 17.464709101499515
-            }
-        },
-        {
-            "name": "32x.f1.tc",
-            "location": {
-                "latitude": 37.4848903,
-                "longitude": -122.1473985,
-                "altitude": -16.689,
-                "accuracy": 15.308215833336034
-            }
-        },
-        {
-            "name": "12x.f1.tc",
-            "location": {
-                "latitude": 37.4849029,
-                "longitude": -122.147393,
-                "altitude": -12.66,
-                "accuracy": 4.6693020891777826
-            }
-        },
-        {
-            "name": "11x.f1.tc",
-            "location": {
-                "latitude": 37.484901,
-                "longitude": -122.1473956,
-                "altitude": -13.031,
-                "accuracy": 2.29503660101533
-            }
-        },
-        {
-            "name": "22x.f1.tc",
-            "location": {
-                "latitude": 37.4848937,
-                "longitude": -122.1474009,
-                "altitude": -15.335,
-                "accuracy": 6.246745072435724
-            }
-        },
-        {
-            "name": "31x.f1.tc",
-            "location": {
-                "latitude": 37.4848935,
-                "longitude": -122.1473934,
-                "altitude": -17.077,
-                "accuracy": 2.6499875471405523
-            }
-        }
-    ]
+    {
+      "name": "A",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1475237,
+        "altitude": 0
+      }
+    },
+    {
+      "name": "B",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1472237,
+        "altitude": 0
+      }
+    },
+    {
+      "name": "C",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1469237,
+        "altitude": 0
+      }
+    },
+    {
+      "name": "D",
+      "location": {
+        "latitude": 37.484746,
+        "longitude": -122.1469237,
+        "altitude": 0
+      }
+    },
+    {
+      "name": "E",
+      "location": {
+        "latitude": 37.484746,
+        "longitude": -122.1472237,
+        "altitude": 0
+      }
+    },
+    {
+      "name": "F",
+      "location": {
+        "latitude": 37.484746,
+        "longitude": -122.1475237,
+        "altitude": 0
+      }
+    }
+  ] 
 }
