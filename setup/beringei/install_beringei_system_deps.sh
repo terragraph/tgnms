@@ -48,3 +48,26 @@ git clone https://github.com/google/double-conversion.git
 pushd double-conversion
 cmake -DBUILD_SHARED_LIBS=yes . && make && make install
 popd
+
+if [ ! -f "mysql-connector-c-6.1.10-src.tar.gz" ]; then
+  wget https://dev.mysql.com/get/Downloads/Connector-C/mysql-connector-c-6.1.10-src.tar.gz
+  tar -zxf mysql-connector-c-6.1.10-src.tar.gz
+fi
+pushd mysql-connector-c-6.1.10-src
+cmake -G "Unix Makefiles" && make && make install
+if [ -f "/usr/local/mysql/lib/libmysqlclient.so" ]; then
+  ln -s /usr/local/mysql/lib/libmysqlclient.so /usr/local/mysql/lib/libmysqlclient_r.so
+fi
+if [ -f "/usr/local/mysql/lib/libmysqlclient.so.18" ]; then
+  ln -s /usr/local/mysql/lib/libmysqlclient.so.18 /usr/local/mysql/lib/libmysqlclient_r.so.18
+fi
+popd
+
+echo "/usr/local/mysql/lib" > /etc/ld.so.conf.d/usr_local_mysql.conf
+
+ldconfig
+
+git clone https://github.com/anhstudios/mysql-connector-cpp.git
+pushd mysql-connector-cpp
+cmake . && make && make install
+popd

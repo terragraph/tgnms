@@ -388,14 +388,17 @@ app.use(/\/stats_writer$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function() {
-    // relay the msg to datadb
-    if (!httpPostData.length) {
-      res.status(500).end("No Data");
-      return;
-    }
-    // update mysql time series db
-    res.status(204).end("Submitted");
-    dataJson.writeData(httpPostData);
+    // proxy query
+    let chartUrl = 'http://localhost:8899/stats_writer';
+    let httpData = JSON.parse(httpPostData);
+    request.post({url: chartUrl,
+                  body: JSON.stringify(httpData)}, (err, httpResponse, body) => {
+      if (httpResponse) {
+        res.send(httpResponse.body).end();
+      } else {
+        res.status(500).send("No Data").end();
+      }
+    });
   });
 });
 app.use(/\/logs_writer$/i, function (req, res, next) {
