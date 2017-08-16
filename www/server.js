@@ -1210,7 +1210,10 @@ if (devMode) {
 } else {
   // serve js from dist/ in prod mode
   app.get('/map.js', function(req, res) {
-    res.sendFile(__dirname + '/static/js/map.js');
+    res.sendFile(__dirname + '/dist/map.js');
+  });
+  app.get('/bootstrap.css', function(req, res) {
+    res.sendFile(__dirname + '/dist/bootstrap.css');
   });
 }
 
