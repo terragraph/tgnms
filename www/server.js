@@ -1,6 +1,5 @@
 /* eslint no-console: 0 */
 
-const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const request = require('request');
@@ -1047,8 +1046,11 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
       return;
     }
 
-    let anyInstalled = _.some(sectors, (sector) => {
-      return sector['form_values']['dfa8'] === 'Installed';
+    let anyInstalled = false;
+    sectors.forEach(sector => {
+      if (sector['form_values']['dfa8'] === 'Installed') {
+        anyInstalled = true;
+      }
     });
 
     if (!anyInstalled) {

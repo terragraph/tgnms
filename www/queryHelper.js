@@ -1,6 +1,5 @@
 const fs = require('fs');
 const mysql = require('mysql');
-const _ = require('lodash');
 const pool = mysql.createPool({
     connectionLimit:    50,
     dateStrings:        true,

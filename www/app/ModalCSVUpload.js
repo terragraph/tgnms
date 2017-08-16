@@ -3,8 +3,6 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
-const _ = require('lodash');
-
 
 const customModalStyle = {
   content : {
@@ -16,7 +14,6 @@ const customModalStyle = {
     transform             : 'translate(-50%, -50%)'
   }
 };
-
 
 export default class ModalCSVUpload extends React.Component {
   state = {
