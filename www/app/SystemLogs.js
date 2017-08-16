@@ -3,13 +3,13 @@ import React from 'react';
 import { render } from 'react-dom';
 // dispatcher
 import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
 import AsyncButton from 'react-async-button';
-import Select from 'react-select';
-import NumericInput from 'react-numeric-input';
+import DatePicker from 'react-datepicker';
+import Dispatcher from './NetworkDispatcher.js';
+import moment from 'moment';
 import NetworkStore from './NetworkStore.js';
-var DatePicker = require('react-datepicker');
-var moment = require('moment');
+import NumericInput from 'react-numeric-input';
+import Select from 'react-select';
 
 require('react-datepicker/dist/react-datepicker.css');
 

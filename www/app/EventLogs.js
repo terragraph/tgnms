@@ -3,10 +3,10 @@ import { render } from 'react-dom';
 // dispatcher
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import AsyncButton from 'react-async-button';
-import Select from 'react-select';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
 import NumericInput from 'react-numeric-input';
-var DatePicker = require('react-datepicker');
-var moment = require('moment');
+import Select from 'react-select';
 
 const Spinner = () => (
   <div className='spinner'>

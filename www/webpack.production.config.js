@@ -45,7 +45,9 @@ module.exports = {
         sequences: true,
         booleans: true,
       },
-    })
+    }),
+    // remove excess locales in moment bloating the bundle
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/)
   ],
   module: {
     loaders: [{
