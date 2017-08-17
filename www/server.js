@@ -40,11 +40,9 @@ setInterval(queryHelper.refreshKeyNames, 30000);
 
 // new json writer
 const dataJson = require('./dataJson');
-// load the initial node/key ids and time slots
-dataJson.init();
+// load the initial node ids
 dataJson.refreshNodes();
-dataJson.refreshNodeKeys();
-dataJson.refreshNodeCategories();
+
 const aggregatorProxy = require('./aggregatorProxy');
 const ipaddr = require('ipaddr.js');
 const expressWs = require('express-ws')(app);
@@ -95,7 +93,7 @@ worker.on('message', (msg) => {
         // add event for controller up/down
         config.controller_events.push([new Date(), msg.success]);
         if (config.controller_events.length > maxControllerEvents) {
-          // restrict events size 
+          // restrict events size
           config.controller_events.splice(maxControllerEvents);
         }
       }
@@ -208,8 +206,6 @@ worker.on('message', (msg) => {
 
 var terminals = {},
     logs = {};
-
-var allStats = {};
 
 var tgNodeIp = null;
 
@@ -380,70 +376,6 @@ app.post(/\/config\/save$/i, function (req, res, next) {
       // reload it all
       reloadInstanceConfig();
     });
-  });
-});
-app.use(/\/stats_writer$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function(chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function() {
-    // proxy query
-    let chartUrl = 'http://localhost:8899/stats_writer';
-    let httpData = JSON.parse(httpPostData);
-    request.post({url: chartUrl,
-                  body: JSON.stringify(httpData)}, (err, httpResponse, body) => {
-      if (httpResponse) {
-        res.send(httpResponse.body).end();
-      } else {
-        res.status(500).send("No Data").end();
-      }
-    });
-  });
-});
-app.use(/\/logs_writer$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function(chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function() {
-    // relay the msg to datadb
-    if (!httpPostData.length) {
-      return;
-    }
-    // update mysql time series db
-    res.status(204).end("Submitted");
-    dataJson.writeLogs(httpPostData);
-  });
-});
-app.use(/\/events_writer$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function(chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function() {
-    // relay the msg to datadb
-    if (!httpPostData.length) {
-      return;
-    }
-    // update mysql time series db
-    res.status(204).end("Submitted");
-    dataJson.writeEvents(httpPostData);
-  });
-});
-app.use(/\/alerts_writer$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function(chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function() {
-    // relay the msg to datadb
-    if (!httpPostData.length) {
-      return;
-    }
-    // update mysql time series db
-    res.status(204).end("Submitted");
-    dataJson.writeAlerts(httpPostData);
   });
 });
 // Read list of event logging Tables
@@ -652,7 +584,7 @@ app.post(/\/event\/?$/i, function (req, res, next) {
       end_ts: now,
       agg_type: "event",
     };
-    let chartUrl = 'http://localhost:8899/query';
+    let chartUrl = 'http://localhost:8086/query';
     let queryRequest = {queries: [eventQuery]};
     request.post({url: chartUrl,
                   body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
@@ -674,7 +606,7 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
   });
   req.on('end', function() {
     // proxy query
-    let chartUrl = 'http://localhost:8899/query';
+    let chartUrl = 'http://localhost:8086/query';
     let httpData = JSON.parse(httpPostData);
     let queryRequest = {queries: httpData};
     request.post({url: chartUrl,
@@ -710,7 +642,7 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
     return;
   }
   let queries = queryHelper.makeTableQuery(res, topology, 'fw_uptime', "event", "event", 24 * 60 * 60);
-  let chartUrl = 'http://localhost:8899/query';
+  let chartUrl = 'http://localhost:8086/query';
   let queryRequest = {queries: queries};
   request.post({url: chartUrl,
                 body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
@@ -735,7 +667,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
     return;
   }
   let queries = queryHelper.makeTableQuery(res, topology, metricName, "key_ids", "none", 10 * 60);
-  let chartUrl = 'http://localhost:8899/query';
+  let chartUrl = 'http://localhost:8086/query';
   let queryRequest = {queries: queries};
   request.post({url: chartUrl,
                 body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {

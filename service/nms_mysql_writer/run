@@ -1,5 +1,0 @@
-#!/bin/bash
-export PORT=8086
-ulimit -n 65536
-pushd /home/nms/www
-npm start 2>&1
