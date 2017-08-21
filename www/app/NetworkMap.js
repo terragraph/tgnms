@@ -67,7 +67,7 @@ export default class NetworkMap extends React.Component {
     routingOverlayEnabled: false,
     detailsExpanded: true,
     tablesExpanded: true,
-    networkHealth: {},
+    linkHealth: {},
     lowerPaneHeight: window.innerHeight / 2,
     plannedSite: null,
     linkOverlayData: null
@@ -104,7 +104,7 @@ export default class NetworkMap extends React.Component {
       this.handleDispatchEvent.bind(this));
     window.addEventListener('resize', this.resizeWindow);
     this.setState({
-      networkHealth: NetworkStore.networkHealth,
+      linkHealth: NetworkStore.linkHealth,
     });
     // update helper maps
     this.updateTopologyState(this.props.networkConfig)
@@ -203,7 +203,7 @@ export default class NetworkMap extends React.Component {
         break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
-          networkHealth: payload.health,
+          linkHealth: payload.linkHealth,
         });
         break;
       case Actions.LINK_OVERLAY_REFRESHED:
@@ -253,10 +253,10 @@ export default class NetworkMap extends React.Component {
       let linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
       link.distance = linkLength; /* meters */
       // apply health data
-      if (this.state.networkHealth &&
-          this.state.networkHealth.links &&
-          link.name in this.state.networkHealth.links) {
-        let nodeHealth = this.state.networkHealth.links[link.name];
+      if (this.state.linkHealth &&
+          this.state.linkHealth.metrics &&
+          link.name in this.state.linkHealth.metrics) {
+        let nodeHealth = this.state.linkHealth.metrics[link.name];
         link["alive_perc"] = nodeHealth.alive;
       }
 

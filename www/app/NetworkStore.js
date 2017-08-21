@@ -17,7 +17,8 @@ NetworkStore.selectedName = '';
 // for stats view
 NetworkStore.nodeRestrictor = [];
 
-NetworkStore.networkHealth = {};
+NetworkStore.linkHealth = {};
+NetworkStore.nodeHealth = {};
 NetworkStore.layers = [];
 
 const BrowserHistory = createHistory();
@@ -152,7 +153,8 @@ Dispatcher.register(function(payload) {
       NetworkStore.networkConfig = payload.networkConfig;
       break;
     case Actions.HEALTH_REFRESHED:
-      NetworkStore.networkHealth = payload.health;
+      NetworkStore.linkHealth = payload.linkHealth;
+      NetworkStore.nodeHealth = payload.nodeHealth;
       break;
     case Actions.TAB_SELECTED:
       NetworkStore.tabName = payload.tabName;

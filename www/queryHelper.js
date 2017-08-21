@@ -384,9 +384,18 @@ var self = {
     return keyIds;
   },
 
-  makeTableQuery: function(res, topology, metricName, type, agg_type, duration) {
-    // make a list of node -> health metric names -> key ids
+  /**
+   * Query for a set of device and/or link metrics across the topology
+   *
+   * We need to walk all nodes and links, formatting each into key ids, 
+   * then mapping the key id back to a metric.
+   */
+  makeTableQuery: function(res,
+                           topology,
+                           nodeMetrics,
+                           linkMetrics) {
     // nodes by name
+    let queries = [];
     let nodesByName = {};
     let nodesByMac = {};
     topology.nodes.forEach(node => {
@@ -402,7 +411,38 @@ var self = {
     // calculate query
     let nodeKeyIds = [];
     let nodeData = [];
+    let duration = 24 * 60 * 60;
+    let now = parseInt(new Date().getTime() / 1000);
     // [{mac, metric name, key name, key id}, ..]
+    topology.nodes.forEach(node => {
+      if (!node.mac_addr || !node.mac_addr.length) {
+        return;
+      }
+      let macAddr = node.mac_addr.toLowerCase();
+      nodeMetrics.forEach(nodeMetric => {
+        if (macAddr in self.nodeKeyIds &&
+            nodeMetric.metric.toLowerCase() in self.nodeKeyIds[macAddr]) {
+          let keyId = self.nodeKeyIds[macAddr][nodeMetric.metric.toLowerCase()];
+          nodeKeyIds.push(keyId);
+          nodeData.push({
+            keyId: keyId,
+            key: nodeMetric.metric,
+            displayName: node.name,
+          });
+        }
+      });
+    });
+    queries.push({
+      type: 'uptime_sec',
+      key_ids: nodeKeyIds,
+      data: nodeData,
+      start_ts: now - (duration),
+      end_ts: now,
+      agg_type: 'none'
+    });
+    // reset key list
+    nodeKeyIds = [];
+    nodeData = [];
     topology.links.forEach(link => {
       // ignore wired links
       if (link.link_type != 1) {
@@ -436,41 +476,42 @@ var self = {
         return;
       }
       // add nodes to request list
-      let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
-      linkKeys.keys.forEach(keyData => {
-        if (aNode.mac in self.nodeKeyIds &&
-            keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac]) {
-          let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName.toLowerCase()];
-          nodeKeyIds.push(keyId);
-          nodeData.push({
-            keyId: keyId,
-            key: keyData.keyName,
-            linkName: link.name,
-            linkTitleAppend: "(A)"
-          });
-        } else if (zNode.mac in self.nodeKeyIds &&
-                   keyData.keyName.toLowerCase() in self.nodeKeyIds[zNode.mac]) {
-          let keyId = self.nodeKeyIds[zNode.mac][keyData.keyName.toLowerCase()];
-          nodeKeyIds.push(keyId);
-          nodeData.push({
-           keyId: keyId,
-           key: keyData.keyName,
-           linkName: link.name,
-           linkTitleAppend: "(Z)"
-          });
-        }
+      linkMetrics.forEach(linkMetric => {
+        let linkKeys = self.formatLinkKeyName(linkMetric.metric, aNode, zNode);
+        linkKeys.keys.forEach(keyData => {
+          if (aNode.mac in self.nodeKeyIds &&
+              keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac]) {
+            let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName.toLowerCase()];
+            nodeKeyIds.push(keyId);
+            nodeData.push({
+              keyId: keyId,
+              key: keyData.keyName,
+              displayName: link.name,
+              linkTitleAppend: "(A)"
+            });
+          } else if (zNode.mac in self.nodeKeyIds &&
+                     keyData.keyName.toLowerCase() in self.nodeKeyIds[zNode.mac]) {
+            let keyId = self.nodeKeyIds[zNode.mac][keyData.keyName.toLowerCase()];
+            nodeKeyIds.push(keyId);
+            nodeData.push({
+             keyId: keyId,
+             key: keyData.keyName,
+             displayName: link.name,
+             linkTitleAppend: "(Z)"
+            });
+          }
+        });
       });
     });
-    let now = parseInt(new Date().getTime() / 1000);
-    let query = {
-      type: type,
+    queries.push({
+      type: 'event',
       key_ids: nodeKeyIds,
       data: nodeData,
       start_ts: now - (duration),
       end_ts: now,
-      agg_type: agg_type
-    };
-    return [query];
+      agg_type: 'none'
+    });
+    return {queries: queries};
   },
 
   fetchSysLogs: function(res, mac_addr, sourceFile, offset, size, date) {

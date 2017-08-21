@@ -18,7 +18,7 @@ export default class NetworkLinksTable extends React.Component {
     sortName: undefined,
     sortOrder: undefined,
     selectedLink: NetworkStore.selectedName,
-    networkHealth: NetworkStore.networkHealth,
+    linkHealth: NetworkStore.linkHealth,
     hideWired: true,
     showEventsChart: true,
     toplink: null,
@@ -47,11 +47,12 @@ export default class NetworkLinksTable extends React.Component {
   updateMappings(topology) {
     this.linksByName = {};
     if (topology.links) {
+      // order - 0 = nodes, 1 = links
       topology.links.forEach(link => {
-        if (this.state.networkHealth &&
-            this.state.networkHealth.links &&
-            link.name in this.state.networkHealth.links) {
-          let nodeHealth = this.state.networkHealth.links[link.name];
+        if (this.state.linkHealth &&
+            this.state.linkHealth.metrics &&
+            link.name in this.state.linkHealth.metrics) {
+          let nodeHealth = this.state.linkHealth.metrics[link.name];
           link.alive_perc = nodeHealth.alive;
           link.events = nodeHealth.events;
         }
@@ -83,7 +84,7 @@ export default class NetworkLinksTable extends React.Component {
         break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
-          networkHealth: payload.health,
+          linkHealth: payload.linkHealth,
         });
         break;
     }
@@ -212,8 +213,8 @@ export default class NetworkLinksTable extends React.Component {
     if (row && row.name) {
       let link = this.linksByName[row.name];
       if (link && link.events && link.events.length > 0) {
-        let startTime = this.state.networkHealth.start;
-        let endTime = this.state.networkHealth.end;
+        let startTime = this.state.linkHealth.start;
+        let endTime = this.state.linkHealth.end;
         return (
             <ReactEventChart events={link.events}
                              startTime={startTime}

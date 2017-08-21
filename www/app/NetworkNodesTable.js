@@ -2,15 +2,19 @@ import React from 'react';
 // leaflet maps
 import { render } from 'react-dom';
 // dispatcher
+import { availabilityColor } from './NetworkHelper.js';
 import { Actions } from './NetworkConstants.js';
+import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import ReactEventChart from './ReactEventChart.js';
 
 export default class NetworkNodesTable extends React.Component {
   state = {
     selectedNodeSite: null,
     nodesSelected: [],
+    nodeHealth: NetworkStore.nodeHealth,
+    showEventsChart: false,
   }
 
   constructor(props) {
@@ -78,6 +82,11 @@ export default class NetworkNodesTable extends React.Component {
           selectedLink: null,
         });
         break;
+      case Actions.HEALTH_REFRESHED:
+        this.setState({
+          nodeHealth: payload.nodeHealth,
+        });
+        break;
     }
   }
 
@@ -89,17 +98,26 @@ export default class NetworkNodesTable extends React.Component {
                               pop_node:boolean,
                               ipv6:string,
                               version:string,
+                              availability:number,
+                              events:array,
                               uboot_version:string}>  {
     const rows = [];
-    Object.keys(nodes).forEach(nodeName => {
-      let node = nodes[nodeName];
+    nodes.forEach(node => {
       var ipv6 = node.status_dump ? node.status_dump.ipv6Address :
                                     'Not Available';
       var version = node.status_dump ? node.status_dump.version.slice(28) :
                                        'Not Available';
       var ubootVersion = node.status_dump && node.status_dump.uboot_version ?
-                           node.status_dump.uboot_version :
-                           'Not Available';
+                         node.status_dump.uboot_version :
+                         'Not Available';
+      let availability = 0;
+      let events = [];
+      if (this.state.nodeHealth &&
+          this.state.nodeHealth.hasOwnProperty('metrics') &&
+          this.state.nodeHealth.metrics.hasOwnProperty(node.name)) {
+        availability = this.state.nodeHealth.metrics[node.name].minion_uptime;
+        events = this.state.nodeHealth.metrics[node.name].events;
+      }
       rows.push(
         {
           name: node.name,
@@ -112,6 +130,8 @@ export default class NetworkNodesTable extends React.Component {
           version: version,
           uboot_version: ubootVersion,
           key: node.name,
+          availability: availability,
+          events: events,
         },
       );
     });
@@ -184,6 +204,26 @@ export default class NetworkNodesTable extends React.Component {
       </span>);
   }
 
+  renderNodeAvailabilityChart(cell, row) {
+    if (row.events.length > 0) {
+      return (
+        <ReactEventChart events={row.events}
+                         startTime={this.state.nodeHealth.start}
+                         endTime={this.state.nodeHealth.end}
+                         size="small" />);
+    }
+  }
+
+  renderNodeAvailability(cell, row) {
+    let cellColor = availabilityColor(cell);
+    let cellText = Math.round(cell * 100) / 100;
+    return (
+      <span style={{color: cellColor}}>
+        {"" + cellText}
+      </span>
+    );
+  }
+
   render() {
     var selectRowProp = {
       mode: "checkbox",
@@ -207,9 +247,35 @@ export default class NetworkNodesTable extends React.Component {
         this.props.topology.nodes) {
       nodesData = this.props.topology.nodes;
     }
-
-    return (
-      <div>
+    let nodesTable;
+    if (this.state.showEventsChart) {
+      nodesTable = (
+        <BootstrapTable
+            height={this.props.height + 'px'}
+            key="nodesTable"
+            options={ tableOptions }
+            data={this.getTableRows(nodesData)}
+            striped={true} hover={true}
+            selectRow={selectRowProp}
+            trClassName= 'break-word'>
+          <TableHeaderColumn width="120" dataSort={true} dataField="name" isKey={ true }>
+            Name
+          </TableHeaderColumn>
+          <TableHeaderColumn width="90"
+                             dataSort={true}
+                             dataField="ignited"
+                             dataFormat={this.renderStatusColor}>
+            Ignited
+          </TableHeaderColumn>
+          <TableHeaderColumn width="700"
+                             dataField="availability"
+                             dataFormat={this.renderNodeAvailabilityChart.bind(this)}>
+            Availability (24 hours)
+          </TableHeaderColumn>
+        </BootstrapTable>
+      );
+    } else {
+      nodesTable = (
         <BootstrapTable
             height={this.props.height + 'px'}
             key="nodesTable"
@@ -248,6 +314,12 @@ export default class NetworkNodesTable extends React.Component {
                              dataFormat={this.renderStatusColor}>
             Pop?
           </TableHeaderColumn>
+          <TableHeaderColumn width="100"
+                             dataSort={true}
+                             dataField="availability"
+                             dataFormat={this.renderNodeAvailability.bind(this)}>
+            Availability (24 hours)
+          </TableHeaderColumn>
           <TableHeaderColumn width="700" dataSort={true} dataField="version">
             Image Version
           </TableHeaderColumn>
@@ -255,6 +327,15 @@ export default class NetworkNodesTable extends React.Component {
             Uboot Version
           </TableHeaderColumn>
         </BootstrapTable>
+      );
+    }
+    return (
+      <div>
+        <button className={this.state.showEventsChart ? 'graph-button graph-button-selected' : 'graph-button'}
+                onClick={btn => this.setState({showEventsChart: !this.state.showEventsChart})}>
+          Show E2E Events
+        </button>
+        {nodesTable}
       </div>
     );
   }

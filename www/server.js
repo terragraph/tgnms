@@ -641,16 +641,32 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
     res.status(500).send('No topology data for: ' + topologyName);
     return;
   }
-  let queries = queryHelper.makeTableQuery(res, topology, 'fw_uptime', "event", "event", 24 * 60 * 60);
+  let nodeMetrics = [
+    {
+      "name": "minion_uptime",
+      "metric": "e2e_minion.uptime",
+      "type": "event_sec",
+      "time": 24 * 60 * 60 /* 24 hours */
+    }
+  ];
+  let linkMetrics = [
+    {
+      "name": "alive",
+      "metric": "fw_uptime",
+      "type": "event_keepalive",
+      "time": 24 * 60 * 60 /* 24 hours */
+    }
+  ];
+  let queries = queryHelper.makeTableQuery(res, topology, nodeMetrics, linkMetrics);
   let chartUrl = 'http://localhost:8086/query';
-  let queryRequest = {queries: queries};
   request.post({url: chartUrl,
-                body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
+                body: JSON.stringify(queries)}, (err, httpResponse, body) => {
     if (err) {
       console.error("Error fetching from beringei:", err);
       res.status(500).send("Error fetching data").end();
       return;
     }
+    // join the results
     res.send(httpResponse.body).end();
   });
 });
@@ -666,7 +682,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
     res.status(500).send('No topology data for: ' + topologyName);
     return;
   }
-  let queries = queryHelper.makeTableQuery(res, topology, metricName, "key_ids", "none", 10 * 60);
+  let queries = queryHelper.makeTableQuery(res, topology, [], [metricName], "key_ids", "none", 10 * 60);
   let chartUrl = 'http://localhost:8086/query';
   let queryRequest = {queries: queries};
   request.post({url: chartUrl,
