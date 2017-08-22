@@ -99,6 +99,7 @@ export default class NetworkNodesTable extends React.Component {
                               ipv6:string,
                               version:string,
                               availability:number,
+                              minion_restarts:number,
                               events:array,
                               uboot_version:string}>  {
     const rows = [];
@@ -132,6 +133,7 @@ export default class NetworkNodesTable extends React.Component {
           key: node.name,
           availability: availability,
           events: events,
+          minion_restarts: events.length,
         },
       );
     });
@@ -248,7 +250,8 @@ export default class NetworkNodesTable extends React.Component {
       nodesData = this.props.topology.nodes;
     }
     let nodesTable;
-    if (this.state.showEventsChart) {
+    // disabled since perf is too slow in sjc
+    if (this.state.showEventsChart && false) {
       nodesTable = (
         <BootstrapTable
             height={this.props.height + 'px'}
@@ -320,6 +323,11 @@ export default class NetworkNodesTable extends React.Component {
                              dataFormat={this.renderNodeAvailability.bind(this)}>
             Availability (24 hours)
           </TableHeaderColumn>
+          <TableHeaderColumn width="120"
+                             dataSort={true}
+                             dataField="minion_restarts">
+            Minion Restarts (24 hours)
+          </TableHeaderColumn>
           <TableHeaderColumn width="700" dataSort={true} dataField="version">
             Image Version
           </TableHeaderColumn>
@@ -329,12 +337,14 @@ export default class NetworkNodesTable extends React.Component {
         </BootstrapTable>
       );
     }
-    return (
-      <div>
-        <button className={this.state.showEventsChart ? 'graph-button graph-button-selected' : 'graph-button'}
+
+    // event chart disable for now, too resource intensive
+/*        <button className={this.state.showEventsChart ? 'graph-button graph-button-selected' : 'graph-button'}
                 onClick={btn => this.setState({showEventsChart: !this.state.showEventsChart})}>
           Show E2E Events
-        </button>
+        </button>*/
+    return (
+      <div>
         {nodesTable}
       </div>
     );
