@@ -14,8 +14,9 @@ if [ ! -d "$BERINGEI_EXEC_PATH" ]; then
 	exit 1
 fi
 ${BERINGEI_EXEC_PATH}/beringei/tools/query_service/beringei_query_service \
-	-beringei_configuration_path $BERINGEI_CONFIG \
-	-http_port $BERINGEI_QUERY_PORT \
-	-ip $BERINGEI_QUERY_HOST \
-	-threads $BERINGEI_QUERY_THREADS \
-	-logtostderr 2>&1
+  -beringei_configuration_path $BERINGEI_CONFIG \
+  -http_port $BERINGEI_QUERY_PORT \
+  -ip $BERINGEI_QUERY_HOST \
+  -threads $BERINGEI_QUERY_THREADS \
+  -writer_queue_size 500000 \
+  -logtostderr 2>&1
