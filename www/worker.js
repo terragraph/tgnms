@@ -135,6 +135,7 @@ const command2MsgType = {
   'delSite': Controller_ttypes.MessageType.DEL_SITE,
   'rebootNode': Controller_ttypes.MessageType.REBOOT_NODE,
   'setMac': Controller_ttypes.MessageType.SET_NODE_MAC,
+  'setMacList': Controller_ttypes.MessageType.SET_NODE_MAC_LIST,
   'getIgnitionState': Controller_ttypes.MessageType.GET_IGNITION_STATE,
   'setNetworkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
   'setLinkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
@@ -152,6 +153,7 @@ msgType2Params[Controller_ttypes.MessageType.ADD_SITE] = {'recvApp': 'ctrl-app-T
 msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {'recvApp': 'minion-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC_LIST] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.GET_IGNITION_STATE] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.SET_IGNITION_PARAMS] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.GET_SCAN_STATUS] = {'recvApp': 'ctrl-app-SCAN_APP', 'nmsAppId': 'NMS_WEB_SCAN'};
@@ -173,7 +175,7 @@ const thriftSerialize = (struct) => {
   return result;
 }
 
-const sendCtrlMsgSync = (msg, minion, res, sendRes=true) => {
+const sendCtrlMsgSync = (msg, minion, res) => {
   if (!msg.type) {
     console.error("sendCtrlMsgSync: Received unknown message", msg);
   }
@@ -181,7 +183,7 @@ const sendCtrlMsgSync = (msg, minion, res, sendRes=true) => {
   const send = (struct) => {
     var byteArray = thriftSerialize(struct);
     const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
-    ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, minion, res, sendRes);
+    ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, minion, res);
   };
 
   // prepare MSG body first, then send msg syncronously
@@ -270,6 +272,20 @@ const sendCtrlMsgSync = (msg, minion, res, sendRes=true) => {
       setNodeMacReq.nodeMac = msg.mac;
       setNodeMacReq.force = msg.force;
       send(setNodeMacReq);
+      break;
+    case 'setMacList':
+      var setNodeMacListReq = new Controller_ttypes.SetNodeMacList();
+      let nodeMacList = [];
+      Object.keys(msg.nodeToMac).forEach(nodeName => {
+        let macAddr = msg.nodeToMac[nodeName];
+        let setNodeMacReq = new Controller_ttypes.SetNodeMac();
+        setNodeMacReq.nodeName = nodeName;
+        setNodeMacReq.nodeMac = macAddr;
+        nodeMacList.push(setNodeMacReq);
+      });
+      setNodeMacListReq.setNodeMacList = nodeMacList;
+      setNodeMacListReq.force = msg.force;
+      send(setNodeMacListReq);
       break;
     case 'getIgnitionState':
       var getIgnitionStateReq = new Controller_ttypes.GetIgnitionState();
@@ -384,7 +400,7 @@ class ControllerProxy extends EventEmitter {
     );
   }
 
-  sendCtrlApiMsgType(msgType, msgBody, minion, res, sendRes) {
+  sendCtrlApiMsgType(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
       sendMsg.mType = msgType;
@@ -409,6 +425,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_SITE:
             case Controller_ttypes.MessageType.REBOOT_NODE:
             case Controller_ttypes.MessageType.SET_NODE_MAC:
+            case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
@@ -434,11 +451,6 @@ class ControllerProxy extends EventEmitter {
     });
 
     ctrlPromise.then((msg) => {
-      if (!sendRes) {
-        console.log(msg.msg);
-        return;
-      }
-
       if (msg.type == 'ack') {
         let result = {"success": true};
         res.status(200).end(JSON.stringify(result));
@@ -456,7 +468,7 @@ class ControllerProxy extends EventEmitter {
     });
   }
 
-  sendCtrlMsgTypeSync(msgType, msgBody, minion, res, sendRes) {
+  sendCtrlMsgTypeSync(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
       sendMsg.mType = msgType;
@@ -481,6 +493,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_SITE:
             case Controller_ttypes.MessageType.REBOOT_NODE:
             case Controller_ttypes.MessageType.SET_NODE_MAC:
+            case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
@@ -506,11 +519,6 @@ class ControllerProxy extends EventEmitter {
     });
 
     ctrlPromise.then((msg) => {
-      if (!sendRes) {
-        console.log(msg.msg);
-        return;
-      }
-
       if (msg.type == 'ack') {
         res.writeHead(200, msg.msg, {'content-type' : 'text/plain'});
         res.end();

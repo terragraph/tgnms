@@ -1011,34 +1011,29 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
     }
 
     let notInstalledCount = 0;
+    let topology = getTopologyByName('SJC');
+    let nodeToMac = {};
     sectors.forEach((sector, index) => {
-      setTimeout(() => {
-        try {
-          // Skip node if it's status isn't 'installed' in Fulcrum
-          if (sector['form_values']['dfa8'] !== 'Installed') {
-            notInstalledCount += 1;
-            return;
-          }
-
-          let nodeMac = sector['form_values']['f7f1'];
-          let nodeName = sector['form_values']['3546'];
-          let sendRes = index >= sectors.length - 1;
-          var topology = getTopologyByName('SJC');
-
-          console.log('Fulcrum setting MAC ' + nodeMac + ' on ' + nodeName);
-
-          return syncWorker.sendCtrlMsgSync({
-            type: 'setMac',
-            topology: topology,
-            node: nodeName,
-            mac: nodeMac,
-            force: false,
-          }, "", res, sendRes);
-        } catch (e) {
-          console.log('Error while Fulcrum setting Mac: ' + e);
-        }
-      }, 1000 * index);
+      // Skip node if it's status isn't 'installed' in Fulcrum
+      if (sector['form_values']['dfa8'] !== 'Installed') {
+        notInstalledCount += 1;
+        return;
+      }
+      let nodeMac = sector['form_values']['f7f1'];
+      let nodeName = sector['form_values']['3546'];
+      nodeToMacList[nodeName] = nodeMac;
+      console.log('Fulcrum setting MAC ' + nodeMac + ' on ' + nodeName);
     });
+    try {
+      syncWorker.sendCtrlMsgSync({
+        type: 'setMacList',
+        topology: topology,
+        nodeToMac: nodeToMacList,
+        force: false,
+      }, "", res);
+    } catch (e) {
+      console.log('Error while Fulcrum setting Mac: ' + e);
+    }
     // In the case that nothing is installed still need to respond
     if (notInstalledCount === sectors.length) {
       res.status(200).end();

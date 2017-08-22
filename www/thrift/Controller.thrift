@@ -46,6 +46,7 @@ enum MessageType {
   SET_NETWORK_PARAMS_REQ = 312,
   RESET_TOPOLOGY_STATE = 313,
   SET_TOPOLOGY_NAME = 314,
+  SET_NODE_MAC_LIST = 315,
   // Responses given (by Ctrl TopologyApp)
   TOPOLOGY = 321,
 
@@ -54,8 +55,12 @@ enum MessageType {
   UPGRADE_REQ = 401,
   // Messages originated (by minion UpgradeApp)
   SET_UPGRADE_STATUS = 421,
-  // Requests handled (by controller UpgradeApp)
+  // Requests handled (by Ctrl UpgradeApp)
   UPGRADE_GROUP_REQ = 441,
+  UPGRADE_STATE_REQ = 442,
+  UPGRADE_ABORT_REQ = 443,
+  // responses given (by Ctrl UpgradeApp)
+  UPGRADE_STATE_DUMP = 451,
 
   // ===  ScanApp === //
   // E2E -> Minion and Minion -> FW
@@ -93,6 +98,7 @@ enum MessageType {
   PHY_GOLAY_SEQUENCE_CONFIG_REQ = 510,
   FW_CONFIG_REQ = 511,
   PHY_TPC_CONFIG_REQ = 512,
+  FW_CHANNEL_CONFIG = 513,
   // north bound
   NODE_INIT_NOTIFY = 551,
   DR_LINK_STATUS = 552,
@@ -155,6 +161,13 @@ enum UpgradeReqType {
   RESET_STATUS = 30,
 }
 
+struct UpgradeTorrentParams {
+  1: i64 downloadTimeout; // required. Download timeout
+  2: optional i64 downloadLimit = -1;  // Unlimited by default
+  3: optional i64 uploadLimit = -1;  // Unlimited by default
+  4: optional i64 maxConnections = -1; // Unlimited by default
+}
+
 // upgrade request to minion UpgradeApp
 struct UpgradeReq {
   1: UpgradeReqType urType;
@@ -165,6 +178,7 @@ struct UpgradeReq {
                       // required for urType: PREPARE_UPGRADE
   5: optional i64 scheduleToCommit; // delay before minion commits
   6: optional i64 downloadAttempts; // for urType: PREPARE_UPGRADE
+  7: optional UpgradeTorrentParams torrentParams; // for urType: PREPARE_UPGRADE
 }
 
 enum UpgradeGroupType {
@@ -184,6 +198,23 @@ struct UpgradeGroupReq {
                        // node if the current node fails?
   7: string version;   // enforce version check before prepare or commit
                        // if provided
+  8: list<string> skipLinks; // Skip wirelessLinkAlive check on these links
+                             // for commit
+  9: i64 limit;  // maximum number of nodes per batch for prepare
+}
+
+struct UpgradeStateReq {}
+
+struct UpgradeStateDump {
+  1: list<string> curBatch;
+  2: list<list<string>> pendingBatches;
+  3: UpgradeGroupReq curReq;
+  4: list<UpgradeGroupReq> pendingReqs;
+}
+
+struct UpgradeAbortReq {
+  1: bool abortAll;
+  2: list<string> reqIds;
 }
 
 #############  StatusApp ##############
@@ -300,6 +331,10 @@ struct SetNodeMac {
   1: string nodeName;
   2: string nodeMac;
   3: bool force;
+}
+
+struct SetNodeMacList {
+  1: list<SetNodeMac> setNodeMacList;
 }
 
 struct SetTopologyName {
@@ -467,8 +502,14 @@ struct BgpNeighbor {
   2: string ipv6;
 }
 
+// TODO: deprecate
 struct BgpNeighbors {
   1: list<BgpNeighbor> neighbors;
+}
+
+struct BgpConfig {
+  1: i64 localAsn;
+  2: list<BgpNeighbor> neighbors;
 }
 
 // network information needee by different processes
@@ -476,7 +517,8 @@ struct NetworkInfo {
   1: string e2eCtrlUrl;
   2: list<string> aggrCtrlUrl;
   3: string network;
-  4: BgpNeighbors bgpNeighbors;
+  4: BgpNeighbors bgpNeighbors; // TODO: depreacte
+  5: BgpConfig bgpConfig;
 }
 
 // Empty message
