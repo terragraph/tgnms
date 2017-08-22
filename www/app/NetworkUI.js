@@ -35,6 +35,8 @@ const SETTINGS = {
   'topology': 'Topology Operations',
 };
 
+// update network health at a lower interval (seconds)
+const NETWORK_HEALTH_INTERVAL_MIN = 30;
 
 export default class NetworkUI extends React.Component {
   state = {
@@ -138,6 +140,8 @@ export default class NetworkUI extends React.Component {
         this.setState({
           networkName: payload.networkName,
         });
+        // reset our health updater (make this better)
+        this.lastHealthRequestTime = 0;
         // update the browser URL history
         break;
       case Actions.TOPOLOGY_REFRESHED:
@@ -159,7 +163,13 @@ export default class NetworkUI extends React.Component {
 
   updateNetworkLinkHealth(networkName) {
     // refresh link health
+    let lastAttemptAgo = new Date() / 1000 - this.lastHealthRequestTime;
+    if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
+      return;
+    }
     let linkHealthFetch = new Request('/health/' + networkName, {"credentials": "same-origin"});
+    // update last request time
+    this.lastHealthRequestTime = new Date() / 1000;
     fetch(linkHealthFetch).then(function(response) {
       if (response.status == 200) {
         response.json().then(function(json) {
