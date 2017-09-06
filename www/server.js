@@ -63,6 +63,7 @@ var networkInstanceConfig = {};
 // new topology from worker process
 var configByName = {};
 var fileTopologyByName = {};
+var baseTopologyByName = {};
 var fileSiteByName = {};
 var topologyByName = {};
 var statusDumpsByName = {};
@@ -228,6 +229,43 @@ function getTopologyByName(topologyName) {
     // force the original name if the controller has no name
     topology.name = fileTopologyByName[topologyName].name;
   }
+  // if base config set, show all sites/nodes/links in original topology
+  // and hide the rest
+  if (config.hasOwnProperty('base_topology_file')) {
+    // build list of base sites to include
+    let baseTopologyConfig = baseTopologyByName[topologyName];
+    let baseSitesByName = new Set();
+    baseTopologyConfig.sites.forEach(site => {
+      baseSitesByName.add(site.name);
+    });
+    let nodesToRemove = new Set();
+    let onlineSites = new Set();
+    topology.nodes.forEach(node => {
+      if (node.status != 1) {
+        // node is online, don't remove
+        onlineSites.add(node.site_name);
+      }
+    });
+    topology.nodes = topology.nodes.filter(node => {
+      if (!baseSitesByName.has(node.site_name) && !onlineSites.has(node.site_name)) {
+        nodesToRemove.add(node.name);
+        return false;
+      }
+      return true;
+    });
+    topology.sites = topology.sites.filter(site => {
+      if (!baseSitesByName.has(site.name) && !onlineSites.has(site.name)) {
+        return false;
+      }
+      return true;
+    });
+    topology.links = topology.links.filter(link => {
+      if (nodesToRemove.has(link.a_node_name) || nodesToRemove.has(link.z_node_name)) {
+        return false;
+      }
+      return true;
+    });
+  }
   let status = statusDumpsByName[topologyName];
   let nodes = topology.nodes;
   for (var j = 0; j < nodes.length; j++) {
@@ -278,6 +316,11 @@ function reloadInstanceConfig() {
         let topologyConfig = topologies[key];
         let topology = JSON.parse(fs.readFileSync(
           NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file));
+        // base config
+        if (topologyConfig.hasOwnProperty('base_topology_file')) {
+          baseTopologyByName[topology['name']] = JSON.parse(fs.readFileSync(
+            NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.base_topology_file));
+        }
         // original sites take priority, only add missing nodes and sites
         let sitesByName = {};
         let nodesBySite = {};
