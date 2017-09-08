@@ -35,6 +35,7 @@ enum MessageType {
   GET_TOPOLOGY = 301,
   SET_NODE_STATUS = 302,
   SET_NODE_MAC = 303,
+  SET_NODE_MAC_LIST = 315,
   SET_NODE_PARAMS_REQ = 304,
   BUMP_LINKUP_ATTEMPTS = 305,
   ADD_NODE = 306,
@@ -43,10 +44,11 @@ enum MessageType {
   DEL_LINK = 309,
   ADD_SITE = 310,
   DEL_SITE = 311,
+  EDIT_SITE = 316,
+  EDIT_NODE = 317,
   SET_NETWORK_PARAMS_REQ = 312,
   RESET_TOPOLOGY_STATE = 313,
   SET_TOPOLOGY_NAME = 314,
-  SET_NODE_MAC_LIST = 315,
   // Responses given (by Ctrl TopologyApp)
   TOPOLOGY = 321,
 
@@ -92,19 +94,19 @@ enum MessageType {
   FW_STATS_CONFIGURE_REQ = 504,
   PHY_LA_CONFIG_REQ = 505,
   GPS_ENABLE_REQ = 506,
-  PHY_ANT_WGT_TBL_CONFIG_REQ = 507,
+  FW_SET_CODEBOOK = 507,
   FW_DEBUG_REQ = 508,
   PHY_AGC_CONFIG_REQ = 509,
   PHY_GOLAY_SEQUENCE_CONFIG_REQ = 510,
   FW_CONFIG_REQ = 511,
   PHY_TPC_CONFIG_REQ = 512,
-  FW_CHANNEL_CONFIG = 513,
   // north bound
   NODE_INIT_NOTIFY = 551,
   DR_LINK_STATUS = 552,
   FW_STATS = 553,
   FW_ACK = 591,  // fw ack for passthru message
   FW_HEALTHY = 592,
+  FW_GET_CODEBOOK = 593,
 
   // Miscellaneous (common)
   NONE = 1001,
@@ -238,6 +240,7 @@ struct NodeParams {
   4: optional Topology.Location location;
   5: optional BWAllocation.NodeAirtime airtimeAllocMap;
   6: optional bool enableGps;
+  7: optional byte channel;
 }
 
 struct StatusReport {
@@ -325,6 +328,7 @@ struct SetNodeParamsReq {
 struct SetNetworkParamsReq {
   1: optional BWAllocation.NetworkAirtime networkAirtime;
   2: optional BWAllocation.NetworkBwAlloc networkBWAlloc;
+  3: optional byte channel;
 }
 
 struct SetNodeMac {
@@ -354,6 +358,12 @@ struct DelNode {
   2: bool forceDelete;
 }
 
+// only supports editing the name for now
+struct EditNode {
+  1: string nodeName;
+  2: Topology.Node newNode;
+}
+
 struct AddLink {
   1: Topology.Link link;
 }
@@ -370,6 +380,12 @@ struct AddSite {
 
 struct DelSite {
   1: string siteName;
+}
+
+// only supports editing the name for now
+struct EditSite {
+  1: string siteName;
+  2: Topology.Site newSite;
 }
 
 struct ResetTopologyState {

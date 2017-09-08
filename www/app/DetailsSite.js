@@ -49,6 +49,54 @@ export default class DetailsSite extends React.Component {
     }.bind(this), 1);
   }
 
+  renameSite() {
+    swal({
+      title: "Rename site",
+      text: "New site name",
+      type: "input",
+      showCancelButton: true,
+      closeOnConfirm: false,
+      animation: "slide-from-top",
+      inputPlaceholder: "Site Name"
+    },
+    function(inputValue) {
+      if (inputValue === false) return false;
+
+      if (inputValue === "") {
+        swal.showInputError("Name can't be empty");
+        return false
+      }
+
+      let promise = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/renameSite/' + this.props.topologyName +
+            '/' + this.props.site.name + '/' + inputValue,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Site renamed",
+              text: "Response: " + response.statusText,
+              type: "success"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Failed!",
+              text: "Renaming site failed.\nReason: " + response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
+  }
+
   deleteSite() {
     swal({
       title: "Are you sure?",
@@ -256,6 +304,7 @@ export default class DetailsSite extends React.Component {
                 <tr>
                   <td colSpan="5">
                     <div><span className="details-link" onClick={() => {this.deleteSite()}}>Delete Site</span></div>
+                    <div><span className="details-link" onClick={() => {this.renameSite()}}>Rename Site</span></div>
                   </td>
                 </tr>
               </tbody>

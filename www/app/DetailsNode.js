@@ -144,6 +144,54 @@ export default class DetailsNode extends React.Component {
     }.bind(this));
   }
 
+  renameNode() {
+    swal({
+      title: "Rename node",
+      text: "New node name",
+      type: "input",
+      showCancelButton: true,
+      closeOnConfirm: false,
+      animation: "slide-from-top",
+      inputPlaceholder: "Node Name"
+    },
+    function(inputValue) {
+      if (inputValue === false) return false;
+
+      if (inputValue === "") {
+        swal.showInputError("Name can't be empty");
+        return false
+      }
+
+      let promise = new Promise((resolve, reject) => {
+        let exec = new Request(
+          '/controller\/renameNode/' + this.props.topologyName +
+            '/' + this.props.node.name + '/' + inputValue,
+          {"credentials": "same-origin"});
+        fetch(exec).then(function(response) {
+          if (response.status == 200) {
+            swal({
+              title: "Node renamed",
+              text: "Response: " + response.statusText,
+              type: "success"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          } else {
+            swal({
+              title: "Failed!",
+              text: "Renaming node failed.\nReason: " + response.statusText,
+              type: "error"
+            },
+            function(){
+              resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      });
+    }.bind(this));
+  }
+
   setMacAddr(force) {
     let forceSet = force ? "force" : "no_force";
     swal({
@@ -285,6 +333,7 @@ export default class DetailsNode extends React.Component {
                          <span className="details-link" style={{float: 'right'}} onClick={() => {this.rebootNode(true)}}>(forced)</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteNode(false)}}>Delete Node</span>
                          <span className="details-link" style={{float: 'right'}} onClick={() => {this.deleteNode(true)}}>(forced)</span></div>
+                    <div><span className="details-link" onClick={this.renameNode.bind(this)}>Rename Node</span></div>
                   </td>
                 </tr>
               </tbody>
