@@ -103,8 +103,7 @@ export default class NetworkMap extends React.Component {
     this.setState({
       // TODO: hacky, we need the Math.min here because the resize can happen in 2 ways:
       // both panes resize at the same time, and the upper one shrinks when it has the height of the whole window
-      upperPaneHeight: Math.min(window.innerHeight, this.refs.split_pane.splitPane.childNodes[0].clientHeight) - 100,
-      // lowerPaneHeight: window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight,
+      upperPaneHeight: Math.min(window.innerHeight, this.refs.split_pane.splitPane.childNodes[0].clientHeight),
       lowerPaneHeight: this.state.tablesExpanded ? window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight : this.state.lowerPaneHeight,
     });
   }
