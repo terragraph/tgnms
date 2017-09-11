@@ -134,6 +134,8 @@ const command2MsgType = {
   'addSite': Controller_ttypes.MessageType.ADD_SITE,
   'delSite': Controller_ttypes.MessageType.DEL_SITE,
   'rebootNode': Controller_ttypes.MessageType.REBOOT_NODE,
+  'editSite': Controller_ttypes.MessageType.EDIT_SITE,
+  'editNode': Controller_ttypes.MessageType.EDIT_NODE,
   'setMac': Controller_ttypes.MessageType.SET_NODE_MAC,
   'setMacList': Controller_ttypes.MessageType.SET_NODE_MAC_LIST,
   'getIgnitionState': Controller_ttypes.MessageType.GET_IGNITION_STATE,
@@ -142,22 +144,60 @@ const command2MsgType = {
 };
 
 var msgType2Params = {};
-msgType2Params[Controller_ttypes.MessageType.GET_TOPOLOGY] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_REFRESH'};
-msgType2Params[Controller_ttypes.MessageType.GET_STATUS_DUMP] = {'recvApp': 'ctrl-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_REFRESH'};
-msgType2Params[Controller_ttypes.MessageType.SET_LINK_STATUS_REQ] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.ADD_LINK] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.DEL_LINK] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.ADD_NODE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.DEL_NODE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.ADD_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {'recvApp': 'minion-app-STATUS_APP', 'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC_LIST] = {'recvApp': 'ctrl-app-TOPOLOGY_APP', 'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.GET_IGNITION_STATE] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.SET_IGNITION_PARAMS] = {'recvApp': 'ctrl-app-IGNITION_APP', 'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.GET_SCAN_STATUS] = {'recvApp': 'ctrl-app-SCAN_APP', 'nmsAppId': 'NMS_WEB_SCAN'};
-msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {'recvApp': 'ctrl-app-SCAN_APP', 'nmsAppId': 'NMS_WEB_SCAN'};
+msgType2Params[Controller_ttypes.MessageType.GET_TOPOLOGY] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_REFRESH'};
+msgType2Params[Controller_ttypes.MessageType.GET_STATUS_DUMP] = {
+  'recvApp': 'ctrl-app-STATUS_APP',
+  'nmsAppId': 'NMS_WEB_STATUS_REFRESH'};
+msgType2Params[Controller_ttypes.MessageType.SET_LINK_STATUS_REQ] = {
+  'recvApp': 'ctrl-app-IGNITION_APP',
+  'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.ADD_LINK] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.DEL_LINK] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.ADD_NODE] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.DEL_NODE] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.EDIT_NODE] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.ADD_SITE] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.EDIT_SITE] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {
+  'recvApp': 'minion-app-STATUS_APP',
+  'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC_LIST] = {
+  'recvApp': 'ctrl-app-TOPOLOGY_APP',
+  'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.GET_IGNITION_STATE] = {
+  'recvApp': 'ctrl-app-IGNITION_APP',
+  'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.SET_IGNITION_PARAMS] = {
+  'recvApp': 'ctrl-app-IGNITION_APP',
+  'nmsAppId': 'NMS_WEB_IGN_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.GET_SCAN_STATUS] = {
+  'recvApp': 'ctrl-app-SCAN_APP',
+  'nmsAppId': 'NMS_WEB_SCAN'};
+msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {
+  'recvApp': 'ctrl-app-SCAN_APP',
+  'nmsAppId': 'NMS_WEB_SCAN'};
 
 const thriftSerialize = (struct) => {
   var result;
@@ -242,6 +282,20 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       site.location = location;
       addSiteReq.site = site;
       send(addSiteReq);
+      break;
+    case 'editSite':
+      var editSiteReq = new Controller_ttypes.EditSite();
+      editSiteReq.siteName = msg.siteName;
+      editSiteReq.newSite = new Topology_ttypes.Site();
+      editSiteReq.newSite.name = msg.newSiteName;
+      send(editSiteReq);
+      break;
+    case 'editNode':
+      var editNodeReq = new Controller_ttypes.EditNode();
+      editNodeReq.nodeName = msg.nodeName;
+      editNodeReq.newNode = new Topology_ttypes.Node();
+      editNodeReq.newNode.name = msg.newNodeName;
+      send(editNodeReq);
       break;
     case 'delLink':
       var delLinkReq = new Controller_ttypes.DelLink();
@@ -423,6 +477,8 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_LINK:
             case Controller_ttypes.MessageType.DEL_NODE:
             case Controller_ttypes.MessageType.DEL_SITE:
+            case Controller_ttypes.MessageType.EDIT_NODE:
+            case Controller_ttypes.MessageType.EDIT_SITE:
             case Controller_ttypes.MessageType.REBOOT_NODE:
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
@@ -491,6 +547,8 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_LINK:
             case Controller_ttypes.MessageType.DEL_NODE:
             case Controller_ttypes.MessageType.DEL_SITE:
+            case Controller_ttypes.MessageType.EDIT_NODE:
+            case Controller_ttypes.MessageType.EDIT_SITE:
             case Controller_ttypes.MessageType.REBOOT_NODE:
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:

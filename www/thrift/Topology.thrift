@@ -73,9 +73,14 @@ struct Link {
     8: optional i64 control_superframe # control superframe for the link
 }
 
+struct Config {
+    1: byte channel = 2
+}
+
 struct Topology {
     1: string name
     2: list<Node> nodes
     3: list<Link> links
     4: list<Site> sites
+    5: Config config
 }

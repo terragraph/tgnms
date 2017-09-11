@@ -647,11 +647,65 @@ Link.prototype.write = function(output) {
   return;
 };
 
+Config = module.exports.Config = function(args) {
+  this.channel = 2;
+  if (args) {
+    if (args.channel !== undefined && args.channel !== null) {
+      this.channel = args.channel;
+    }
+  }
+};
+Config.prototype = {};
+Config.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.BYTE) {
+        this.channel = input.readByte();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+Config.prototype.write = function(output) {
+  output.writeStructBegin('Config');
+  if (this.channel !== null && this.channel !== undefined) {
+    output.writeFieldBegin('channel', Thrift.Type.BYTE, 1);
+    output.writeByte(this.channel);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 Topology = module.exports.Topology = function(args) {
   this.name = null;
   this.nodes = null;
   this.links = null;
   this.sites = null;
+  this.config = null;
   if (args) {
     if (args.name !== undefined && args.name !== null) {
       this.name = args.name;
@@ -664,6 +718,9 @@ Topology = module.exports.Topology = function(args) {
     }
     if (args.sites !== undefined && args.sites !== null) {
       this.sites = Thrift.copyList(args.sites, [ttypes.Site]);
+    }
+    if (args.config !== undefined && args.config !== null) {
+      this.config = new ttypes.Config(args.config);
     }
   }
 };
@@ -751,6 +808,14 @@ Topology.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 5:
+      if (ftype == Thrift.Type.STRUCT) {
+        this.config = new ttypes.Config();
+        this.config.read(input);
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -807,6 +872,11 @@ Topology.prototype.write = function(output) {
       }
     }
     output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.config !== null && this.config !== undefined) {
+    output.writeFieldBegin('config', Thrift.Type.STRUCT, 5);
+    this.config.write(output);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

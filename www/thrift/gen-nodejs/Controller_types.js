@@ -28,6 +28,7 @@ ttypes.MessageType = {
   'GET_TOPOLOGY' : 301,
   'SET_NODE_STATUS' : 302,
   'SET_NODE_MAC' : 303,
+  'SET_NODE_MAC_LIST' : 315,
   'SET_NODE_PARAMS_REQ' : 304,
   'BUMP_LINKUP_ATTEMPTS' : 305,
   'ADD_NODE' : 306,
@@ -36,10 +37,11 @@ ttypes.MessageType = {
   'DEL_LINK' : 309,
   'ADD_SITE' : 310,
   'DEL_SITE' : 311,
+  'EDIT_SITE' : 316,
+  'EDIT_NODE' : 317,
   'SET_NETWORK_PARAMS_REQ' : 312,
   'RESET_TOPOLOGY_STATE' : 313,
   'SET_TOPOLOGY_NAME' : 314,
-  'SET_NODE_MAC_LIST' : 315,
   'TOPOLOGY' : 321,
   'UPGRADE_REQ' : 401,
   'SET_UPGRADE_STATUS' : 421,
@@ -64,18 +66,18 @@ ttypes.MessageType = {
   'FW_STATS_CONFIGURE_REQ' : 504,
   'PHY_LA_CONFIG_REQ' : 505,
   'GPS_ENABLE_REQ' : 506,
-  'PHY_ANT_WGT_TBL_CONFIG_REQ' : 507,
+  'FW_SET_CODEBOOK' : 507,
   'FW_DEBUG_REQ' : 508,
   'PHY_AGC_CONFIG_REQ' : 509,
   'PHY_GOLAY_SEQUENCE_CONFIG_REQ' : 510,
   'FW_CONFIG_REQ' : 511,
   'PHY_TPC_CONFIG_REQ' : 512,
-  'FW_CHANNEL_CONFIG' : 513,
   'NODE_INIT_NOTIFY' : 551,
   'DR_LINK_STATUS' : 552,
   'FW_STATS' : 553,
   'FW_ACK' : 591,
   'FW_HEALTHY' : 592,
+  'FW_GET_CODEBOOK' : 593,
   'NONE' : 1001,
   'HELLO' : 1002,
   'E2E_ACK' : 1003,
@@ -1278,6 +1280,7 @@ NodeParams = module.exports.NodeParams = function(args) {
   this.location = null;
   this.airtimeAllocMap = null;
   this.enableGps = null;
+  this.channel = null;
   if (args) {
     if (args.bwAllocMap !== undefined && args.bwAllocMap !== null) {
       this.bwAllocMap = new BWAllocation_ttypes.NodeBwAlloc(args.bwAllocMap);
@@ -1296,6 +1299,9 @@ NodeParams = module.exports.NodeParams = function(args) {
     }
     if (args.enableGps !== undefined && args.enableGps !== null) {
       this.enableGps = args.enableGps;
+    }
+    if (args.channel !== undefined && args.channel !== null) {
+      this.channel = args.channel;
     }
   }
 };
@@ -1359,6 +1365,13 @@ NodeParams.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 7:
+      if (ftype == Thrift.Type.BYTE) {
+        this.channel = input.readByte();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -1398,6 +1411,11 @@ NodeParams.prototype.write = function(output) {
   if (this.enableGps !== null && this.enableGps !== undefined) {
     output.writeFieldBegin('enableGps', Thrift.Type.BOOL, 6);
     output.writeBool(this.enableGps);
+    output.writeFieldEnd();
+  }
+  if (this.channel !== null && this.channel !== undefined) {
+    output.writeFieldBegin('channel', Thrift.Type.BYTE, 7);
+    output.writeByte(this.channel);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -2435,12 +2453,16 @@ SetNodeParamsReq.prototype.write = function(output) {
 SetNetworkParamsReq = module.exports.SetNetworkParamsReq = function(args) {
   this.networkAirtime = null;
   this.networkBWAlloc = null;
+  this.channel = null;
   if (args) {
     if (args.networkAirtime !== undefined && args.networkAirtime !== null) {
       this.networkAirtime = new BWAllocation_ttypes.NetworkAirtime(args.networkAirtime);
     }
     if (args.networkBWAlloc !== undefined && args.networkBWAlloc !== null) {
       this.networkBWAlloc = new BWAllocation_ttypes.NetworkBwAlloc(args.networkBWAlloc);
+    }
+    if (args.channel !== undefined && args.channel !== null) {
+      this.channel = args.channel;
     }
   }
 };
@@ -2474,6 +2496,13 @@ SetNetworkParamsReq.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 3:
+      if (ftype == Thrift.Type.BYTE) {
+        this.channel = input.readByte();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -2493,6 +2522,11 @@ SetNetworkParamsReq.prototype.write = function(output) {
   if (this.networkBWAlloc !== null && this.networkBWAlloc !== undefined) {
     output.writeFieldBegin('networkBWAlloc', Thrift.Type.STRUCT, 2);
     this.networkBWAlloc.write(output);
+    output.writeFieldEnd();
+  }
+  if (this.channel !== null && this.channel !== undefined) {
+    output.writeFieldBegin('channel', Thrift.Type.BYTE, 3);
+    output.writeByte(this.channel);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -2884,6 +2918,73 @@ DelNode.prototype.write = function(output) {
   return;
 };
 
+EditNode = module.exports.EditNode = function(args) {
+  this.nodeName = null;
+  this.newNode = null;
+  if (args) {
+    if (args.nodeName !== undefined && args.nodeName !== null) {
+      this.nodeName = args.nodeName;
+    }
+    if (args.newNode !== undefined && args.newNode !== null) {
+      this.newNode = new Topology_ttypes.Node(args.newNode);
+    }
+  }
+};
+EditNode.prototype = {};
+EditNode.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.nodeName = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRUCT) {
+        this.newNode = new Topology_ttypes.Node();
+        this.newNode.read(input);
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+EditNode.prototype.write = function(output) {
+  output.writeStructBegin('EditNode');
+  if (this.nodeName !== null && this.nodeName !== undefined) {
+    output.writeFieldBegin('nodeName', Thrift.Type.STRING, 1);
+    output.writeString(this.nodeName);
+    output.writeFieldEnd();
+  }
+  if (this.newNode !== null && this.newNode !== undefined) {
+    output.writeFieldBegin('newNode', Thrift.Type.STRUCT, 2);
+    this.newNode.write(output);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 AddLink = module.exports.AddLink = function(args) {
   this.link = null;
   if (args) {
@@ -3120,6 +3221,73 @@ DelSite.prototype.write = function(output) {
   if (this.siteName !== null && this.siteName !== undefined) {
     output.writeFieldBegin('siteName', Thrift.Type.STRING, 1);
     output.writeString(this.siteName);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+EditSite = module.exports.EditSite = function(args) {
+  this.siteName = null;
+  this.newSite = null;
+  if (args) {
+    if (args.siteName !== undefined && args.siteName !== null) {
+      this.siteName = args.siteName;
+    }
+    if (args.newSite !== undefined && args.newSite !== null) {
+      this.newSite = new Topology_ttypes.Site(args.newSite);
+    }
+  }
+};
+EditSite.prototype = {};
+EditSite.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.siteName = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRUCT) {
+        this.newSite = new Topology_ttypes.Site();
+        this.newSite.read(input);
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+EditSite.prototype.write = function(output) {
+  output.writeStructBegin('EditSite');
+  if (this.siteName !== null && this.siteName !== undefined) {
+    output.writeFieldBegin('siteName', Thrift.Type.STRING, 1);
+    output.writeString(this.siteName);
+    output.writeFieldEnd();
+  }
+  if (this.newSite !== null && this.newSite !== undefined) {
+    output.writeFieldBegin('newSite', Thrift.Type.STRUCT, 2);
+    this.newSite.write(output);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

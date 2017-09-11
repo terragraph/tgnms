@@ -974,6 +974,34 @@ app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
   }, "", res);
 });
 
+app.get(/\/controller\/renameSite\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let siteName = req.params[1];
+  let newSiteName = req.params[2];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'editSite',
+    topology: topology,
+    siteName: siteName,
+    newSiteName: newSiteName,
+  }, "", res);
+});
+
+app.get(/\/controller\/renameNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  let nodeName = req.params[1];
+  let newNodeName = req.params[2];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'editNode',
+    topology: topology,
+    nodeName: nodeName,
+    newNodeName: newNodeName,
+  }, "", res);
+});
+
 app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   let nodeName = req.params[1];
