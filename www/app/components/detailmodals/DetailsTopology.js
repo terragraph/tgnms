@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import { availabilityColor, polarityColor } from './NetworkHelper.js';
+import { Actions } from '../../NetworkConstants.js';
+import Dispatcher from '../../NetworkDispatcher.js';
+import { availabilityColor, polarityColor } from '../../NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
@@ -83,7 +83,7 @@ export default class DetailsTopology extends React.Component {
         nodeTypeName = 'DN';
       }
       let nodeTypeCount = nodeTypes[nodeType];
-      let nodeTypeCountPerc = 
+      let nodeTypeCountPerc =
         (parseInt(nodeTypeCount / this.props.topology.nodes.length * 100));
       return (
         <tr key={"nodeType-" + nodeType}>
@@ -117,7 +117,7 @@ export default class DetailsTopology extends React.Component {
         polarityName = 'Hybrid';
       }
       let polarityCount = polarityCountBySite[polarity];
-      let polarityCountPerc = 
+      let polarityCountPerc =
         (parseInt(polarityCount / this.props.topology.sites.length * 100));
       return (
         <tr key={"polarityBySite-" + polarity}>
@@ -143,7 +143,7 @@ export default class DetailsTopology extends React.Component {
         polarityName = 'Even';
       }
       let polarityCount = polarities[polarity];
-      let polarityCountPerc = 
+      let polarityCountPerc =
         (parseInt(polarityCount / this.props.topology.nodes.length * 100));
       return (
         <tr key={"polarity-" + polarity}>
@@ -167,7 +167,7 @@ export default class DetailsTopology extends React.Component {
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
             <h3 style={{marginTop: "0px"}}>Overview</h3>
           </div>
-          <div className="details-body">
+          <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>

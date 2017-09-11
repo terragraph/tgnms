@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import { availabilityColor } from './NetworkHelper.js';
+import { Actions } from '../../NetworkConstants.js';
+import Dispatcher from '../../NetworkDispatcher.js';
+import { availabilityColor } from '../../NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
-import ModalIgnitionState from './ModalIgnitionState.js';
+import ModalIgnitionState from '../../ModalIgnitionState.js';
 
 export default class DetailsLink extends React.Component {
 
@@ -189,7 +189,7 @@ export default class DetailsLink extends React.Component {
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
             <h3 style={{marginTop: "0px"}}>Link Details</h3>
           </div>
-          <div className="details-body">
+          <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>

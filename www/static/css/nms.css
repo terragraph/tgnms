@@ -100,7 +100,10 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
     color: white;
 }
 
-.details-body {padding: 2px 8px;}
+.details-body {
+  padding: 2px 8px;
+  background-color: #fefefe;
+}
 
 .details-table {
   padding: 2px;
