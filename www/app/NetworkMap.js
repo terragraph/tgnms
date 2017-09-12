@@ -13,11 +13,11 @@ import NetworkStore from './NetworkStore.js';
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
 
-import DetailsNode from './components/detailmodals/DetailsNode.js';
-import DetailsLink from './components/detailmodals/DetailsLink.js';
-import DetailsSite from './components/detailmodals/DetailsSite.js';
-import DetailsTopology from './components/detailmodals/DetailsTopology.js';
-import DetailsPlannedSite from './components/detailmodals/DetailsPlannedSite.js';
+import DetailsNode from './components/detailpanels/DetailsNode.js';
+import DetailsLink from './components/detailpanels/DetailsLink.js';
+import DetailsSite from './components/detailpanels/DetailsSite.js';
+import DetailsTopology from './components/detailpanels/DetailsTopology.js';
+import DetailsPlannedSite from './components/detailpanels/DetailsPlannedSite.js';
 
 import SplitPane from 'react-split-pane';
 import { polarityColor } from './NetworkHelper.js';
