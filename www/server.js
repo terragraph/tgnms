@@ -1083,7 +1083,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
 
     let notInstalledCount = 0;
     let topology = getTopologyByName('SJC');
-    let nodeToMac = {};
+    let nodeToMacList = {};
     sectors.forEach((sector, index) => {
       // Skip node if it's status isn't 'installed' in Fulcrum
       if (sector['form_values']['dfa8'] !== 'Installed') {
