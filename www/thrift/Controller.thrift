@@ -44,11 +44,12 @@ enum MessageType {
   DEL_LINK = 309,
   ADD_SITE = 310,
   DEL_SITE = 311,
-  EDIT_SITE = 316,
-  EDIT_NODE = 317,
+  EDIT_SITE = 317,
+  EDIT_NODE = 318,
   SET_NETWORK_PARAMS_REQ = 312,
   RESET_TOPOLOGY_STATE = 313,
   SET_TOPOLOGY_NAME = 314,
+  BULK_ADD = 316,
   // Responses given (by Ctrl TopologyApp)
   TOPOLOGY = 321,
 
@@ -61,8 +62,10 @@ enum MessageType {
   UPGRADE_GROUP_REQ = 441,
   UPGRADE_STATE_REQ = 442,
   UPGRADE_ABORT_REQ = 443,
+  UPGRADE_COMMIT_PLAN_REQ = 444,
   // responses given (by Ctrl UpgradeApp)
   UPGRADE_STATE_DUMP = 451,
+  UPGRADE_COMMIT_PLAN = 452,
 
   // ===  ScanApp === //
   // E2E -> Minion and Minion -> FW
@@ -202,7 +205,7 @@ struct UpgradeGroupReq {
                        // if provided
   8: list<string> skipLinks; // Skip wirelessLinkAlive check on these links
                              // for commit
-  9: i64 limit;  // maximum number of nodes per batch for prepare
+  9: i64 limit;  // maximum number of nodes per batch
 }
 
 struct UpgradeStateReq {}
@@ -217,6 +220,17 @@ struct UpgradeStateDump {
 struct UpgradeAbortReq {
   1: bool abortAll;
   2: list<string> reqIds;
+}
+
+struct UpgradeCommitPlanReq {
+  1: i64 limit;  // maximum number of nodes per batch
+  2: list<string> excludeNodes;
+}
+
+struct UpgradeCommitPlan {
+  1: list<list<string>> commitBatches;
+  2: list<string> canaryLinks; // Each canary link is represented by a
+                               // list of 2 nodes
 }
 
 #############  StatusApp ##############
@@ -390,6 +404,12 @@ struct EditSite {
 
 struct ResetTopologyState {
   1: bool resetLinkupAttempts;
+}
+
+struct BulkAdd {
+  1: list<Topology.Site> sites;
+  2: list<Topology.Node> nodes;
+  3: list<Topology.Link> links;
 }
 
 ############# Scan App #############
