@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
+import { Actions } from '../../NetworkConstants.js';
+import Dispatcher from '../../NetworkDispatcher.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
@@ -292,7 +292,7 @@ export default class DetailsNode extends React.Component {
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
             <h3 style={{marginTop: "0px"}}>Node Details</h3>
           </div>
-          <div className="details-body">
+          <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import { availabilityColor, polarityColor } from './NetworkHelper.js';
+import { Actions } from '../../NetworkConstants.js';
+import Dispatcher from '../../NetworkDispatcher.js';
+import { availabilityColor, polarityColor } from '../../NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
@@ -207,6 +207,7 @@ export default class DetailsSite extends React.Component {
       }
       alivePercAvg += alivePerc;
       if (index == 0) {
+        // TODO Kelvin: think of some way to make this its own component to avoid the bloat here?
         linksRows.push(
           <tr key={link.name}>
             <td rowSpan={linksList.length} width="100px">Links</td>
@@ -268,7 +269,7 @@ export default class DetailsSite extends React.Component {
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
             <h3 style={{marginTop: "0px"}}>Site Details</h3>
           </div>
-          <div className="details-body">
+          <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>
@@ -315,3 +316,5 @@ export default class DetailsSite extends React.Component {
     );
   }
 }
+
+// TODO Kelvin: add Proptypes here

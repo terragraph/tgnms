@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
+import { Actions } from '../../NetworkConstants.js';
+import Dispatcher from '../../NetworkDispatcher.js';
 import NumericInput from 'react-numeric-input';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
@@ -97,7 +97,7 @@ export default class DetailsPlannedSite extends React.Component {
           <div className="details-header">
             <h3 style={{marginTop: "0px"}}>Planned Site</h3>
           </div>
-          <div className="details-body">
+          <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>

@@ -13,6 +13,9 @@ module.exports = {
       path.join(__dirname, 'app/main.js')
     ],
   },
+  externals:[{
+      xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
+  }],
   output: {
     path: path.join(__dirname, '/dist/'),
     filename: '[name].js',

@@ -12,11 +12,13 @@ import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './NetworkStore.js';
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
-import DetailsNode from './DetailsNode.js';
-import DetailsLink from './DetailsLink.js';
-import DetailsSite from './DetailsSite.js';
-import DetailsTopology from './DetailsTopology.js';
-import DetailsPlannedSite from './DetailsPlannedSite.js';
+
+import DetailsNode from './components/detailpanels/DetailsNode.js';
+import DetailsLink from './components/detailpanels/DetailsLink.js';
+import DetailsSite from './components/detailpanels/DetailsSite.js';
+import DetailsTopology from './components/detailpanels/DetailsTopology.js';
+import DetailsPlannedSite from './components/detailpanels/DetailsPlannedSite.js';
+
 import SplitPane from 'react-split-pane';
 import { polarityColor } from './NetworkHelper.js';
 const d3 = require('d3');
@@ -68,7 +70,11 @@ export default class NetworkMap extends React.Component {
     detailsExpanded: true,
     tablesExpanded: true,
     linkHealth: {},
-    lowerPaneHeight: window.innerHeight / 2,
+
+    // UI
+    upperPaneHeight: window.innerHeight / 2, // available height of the upper pane
+    lowerPaneHeight: window.innerHeight / 2, // available height of the lower pane
+
     plannedSite: null,
     linkOverlayData: null
   }
@@ -93,8 +99,12 @@ export default class NetworkMap extends React.Component {
 
   resizeWindow(event) {
     this.refs.map.leafletElement.invalidateSize();
+
     this.setState({
-      lowerPaneHeight: window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight,
+      // TODO: hacky, we need the Math.min here because the resize can happen in 2 ways:
+      // both panes resize at the same time, and the upper one shrinks when it has the height of the whole window
+      upperPaneHeight: Math.min(window.innerHeight, this.refs.split_pane.splitPane.childNodes[0].clientHeight),
+      lowerPaneHeight: this.state.tablesExpanded ? window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight : this.state.lowerPaneHeight,
     });
   }
 
@@ -130,6 +140,7 @@ export default class NetworkMap extends React.Component {
     Dispatcher.unregister(this.dispatchToken);
   }
 
+  // TODO Kelvin: put some state into a store and update the store via actions
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       // TODO - compare props and update there...
@@ -312,6 +323,7 @@ export default class NetworkMap extends React.Component {
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
     this.setState({
+      upperPaneHeight: newSize,
       lowerPaneHeight: window.innerHeight - newSize,
     });
   }
@@ -335,6 +347,7 @@ export default class NetworkMap extends React.Component {
       this.refs.map.leafletElement.invalidateSize();
     }.bind(this), 1);
     this.setState({
+      upperPaneHeight: (this.state.tablesExpanded ? window.innerHeight: window.innerHeight - this.state.lowerPaneHeight),
       tablesExpanded: this.state.tablesExpanded ? false : true,
     });
   }
@@ -732,6 +745,8 @@ export default class NetworkMap extends React.Component {
         <img src="/static/images/layers.png" onClick={() => this.setState({detailsExpanded: true})}/>
       </Control>;
     let showOverview = false;
+
+    const maxModalHeight = this.state.upperPaneHeight - 120; // offset
     if (this.state.detailsExpanded) {
       if (this.state.selectedLink) {
         layersControl =
@@ -739,6 +754,7 @@ export default class NetworkMap extends React.Component {
             <DetailsLink topologyName={this.props.networkConfig.topology.name}
                          link={this.state.selectedLink}
                          nodes={this.nodesByName}
+                         maxHeight={maxModalHeight}
                          onClose={() => this.setState({detailsExpanded: false})}
             />
           </Control>
@@ -749,6 +765,7 @@ export default class NetworkMap extends React.Component {
             <DetailsNode topologyName={this.props.networkConfig.topology.name}
                          node={node}
                          links={this.linksByName}
+                         maxHeight={maxModalHeight}
                          onClose={() => this.setState({detailsExpanded: false})}
             />
           </Control>
@@ -764,6 +781,7 @@ export default class NetworkMap extends React.Component {
                          sites={this.sitesByName}
                          nodes={this.nodesByName}
                          links={this.linksByName}
+                         maxHeight={maxModalHeight}
                          onClose={() => this.setState({detailsExpanded: false})}
             />
           </Control>
@@ -779,6 +797,7 @@ export default class NetworkMap extends React.Component {
                            topology={this.props.networkConfig.topology}
                            nodes={this.nodesByName}
                            links={this.linksByName}
+                           maxHeight={maxModalHeight}
                            onClose={() => this.setState({detailsExpanded: false})}
           />
         </Control>;
@@ -811,6 +830,7 @@ export default class NetworkMap extends React.Component {
               site={this.state.plannedSite}
               topologyName={this.props.networkConfig.topology.name}
               onUpdate={this.updatePlannedSite.bind(this)}
+              maxHeight={maxModalHeight}
               onClose={this.removePlannedSite.bind(this)}/>
           </Control>
     }
