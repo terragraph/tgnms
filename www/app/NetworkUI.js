@@ -20,6 +20,9 @@ import ModalOverlays from './ModalOverlays.js';
 import ModalTopology from './ModalTopology.js';
 import {SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
 
+import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
+import ModalUpgradeNetwork from './components/upgrade/ModalUpgradeNetwork.js';
+
 const VIEWS = {
   'map': 'Map',
   'dashboards': 'Dashboards',
@@ -27,6 +30,7 @@ const VIEWS = {
   'eventlogs': 'Event Logs',
   'systemlogs': 'System Logs',
   'alerts': 'Alerts',
+  'upgrade': 'Upgrade',
   'config': 'Config (Alpha)',
 };
 
@@ -34,6 +38,11 @@ const SETTINGS = {
   'overlays': 'Site/Link Overlays',
   'topology': 'Topology Operations',
 };
+
+export const UPGRADE_OPERATIONS = {
+  'PREPARE': 'prepare',
+  'COMMIT': 'commit',
+}
 
 // update network health at a lower interval (seconds)
 const NETWORK_HEALTH_INTERVAL_MIN = 30;
@@ -48,6 +57,10 @@ export default class NetworkUI extends React.Component {
     routing: {},
     overlaysModalOpen: false,
     topologyModalOpen: false,
+
+    upgradeModalOpen: false,
+    upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
+
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
     topology: {},
@@ -122,6 +135,18 @@ export default class NetworkUI extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
+      case Actions.OPEN_PREPARE_UPGRADE_MODAL:
+        this.setState({
+          upgradeModalOpen: true,
+          upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
+        });
+        break;
+      case Actions.OPEN_COMMIT_UPGRADE_MODAL :
+        this.setState({
+          upgradeModalOpen: true,
+          upgradeModalMode: UPGRADE_OPERATIONS.COMMIT,
+        });
+        break;
       case Actions.VIEW_SELECTED:
         let viewName = payload.viewName;
         // ignore the menu
@@ -394,6 +419,16 @@ export default class NetworkUI extends React.Component {
       case 'alerts':
         paneComponent = <NetworkAlerts {...viewProps} />;
         break;
+      case 'upgrade':
+        /*
+        paneComponent = (
+          <div id="upgrade-time">
+            <img src="http://i0.kym-cdn.com/entries/icons/original/000/022/978/yNlQWRM.jpg" />
+          </div>
+        );
+        */
+        paneComponent = <NetworkUpgrade {...viewProps} />;
+        break;
       case 'config':
         paneComponent = <NetworkConfig {...viewProps} />;
         break;
@@ -413,6 +448,11 @@ export default class NetworkUI extends React.Component {
 
     return (
       <div>
+        <ModalUpgradeNetwork
+          isOpen={this.state.upgradeModalOpen}
+          onClose= {() => this.setState({upgradeModalOpen: false})}
+          upgradeOperation={this.state.upgradeModalMode}
+        />
         <ModalOverlays
           isOpen= {this.state.overlaysModalOpen}
           selectedSiteOverlay= {this.state.selectedSiteOverlay}
@@ -422,6 +462,7 @@ export default class NetworkUI extends React.Component {
           isOpen= {this.state.topologyModalOpen}
           onClose= {() => this.setState({topologyModalOpen: false})}
           topology= {this.state.topology}/>
+
 
         <div className="top-menu-bar">
           <Menu

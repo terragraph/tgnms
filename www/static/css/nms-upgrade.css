@@ -1,0 +1,38 @@
+.network-upgrade {
+  margin-top: 40px;
+  top: 0;
+  bottom: 0;
+  position: fixed !important;
+
+  overflow-y: auto;
+  float: left;
+  width: 100%;
+}
+
+.upgrade-command-pane {
+  margin-left: 10px;
+  margin-right: 10px;
+  width: 300px; /* fixed width for now */
+  height: 100%;
+
+  background-color: #789abc; /* dummy background color so I can see the pane */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.upgrade-btn {
+  width: 100%;
+  background-color: #bbb; /* dummy bg colour for now */
+  padding: 30px; /* again, dummy value */
+  border: none;
+  margin-bottom: 10px;
+}
+
+.abort-btn {
+  width: 100%;
+  background-color: #fa7766;
+  padding: 30px;
+  border: none;
+  margin-top: auto;
+}

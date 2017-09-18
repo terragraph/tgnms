@@ -1173,6 +1173,28 @@ app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
   }, "", res);
 });
 
+// upgrade endpoints $/i
+app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    console.log('prepareUpgrade: received post data json ', postData);
+
+    // TODO: Kelvin:
+    /*
+    syncWorker.sendCtrlMsgSync({
+      type: 'prepareupgrade',
+      stuff here, maybe define a struct or something?
+    }, "", res)
+    */
+  });
+});
+
+// aggregator endpoints
+
 app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   if (!configByName[topologyName]) {

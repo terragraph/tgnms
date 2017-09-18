@@ -29,6 +29,12 @@ const Actions = {
   // network health
   HEALTH_REFRESHED: 400,
   LINK_OVERLAY_REFRESHED: 401,
+
+  // upgrade actions (UI related)
+  OPEN_PREPARE_UPGRADE_MODAL: 500,
+  OPEN_COMMIT_UPGRADE_MODAL: 501,
+
+  // upgrade actions (API response related)
 };
 
 const SiteOverlayKeys = {

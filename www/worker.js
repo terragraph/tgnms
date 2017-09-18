@@ -27,6 +27,8 @@ process.on('message', (msg) => {
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
+        // TODO: Kelvin: get status dump for upgrade status here
+        // then reconcile the status dumps down in the FE
         ctrlProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Controller_ttypes.MessageType.GET_TOPOLOGY:
@@ -141,6 +143,17 @@ const command2MsgType = {
   'getIgnitionState': Controller_ttypes.MessageType.GET_IGNITION_STATE,
   'setNetworkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
   'setLinkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
+
+  // upgrade requests (sent to controller)
+  'upgradeReq': Controller_ttypes.MessageType.UPGRADE_REQ,
+  'upgradeGroupReq': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'upgradeAbortReq': Controller_ttypes.MessageType.UPGRADE_ABORT_REQ,
+  'upgradeCommitPlan': Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN,
+  'upgradeCommitPlanReq': Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN_REQ,
+
+  // upgrade request states
+  'upgradeStateReq': Controller_ttypes.MessageType.UPGRADE_STATE_REQ,
+  'upgradeStateDump': Controller_ttypes.MessageType.UPGRADE_STATE_DUMP
 };
 
 var msgType2Params = {};
@@ -198,6 +211,8 @@ msgType2Params[Controller_ttypes.MessageType.GET_SCAN_STATUS] = {
 msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {
   'recvApp': 'ctrl-app-SCAN_APP',
   'nmsAppId': 'NMS_WEB_SCAN'};
+
+// TODO: Kelvin: add params here for upgrades
 
 const thriftSerialize = (struct) => {
   var result;
@@ -356,6 +371,10 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
       send(setIgnitionParamsReq);
       break;
+    case 'upgradeGroupReq':
+      var upgradeGroupReqParams = {};
+      console.log('TODO: send upgrade group req');
+      break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
       res.status(500).send("FAIL");
@@ -454,6 +473,7 @@ class ControllerProxy extends EventEmitter {
     );
   }
 
+  // for thir
   sendCtrlApiMsgType(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
@@ -524,6 +544,7 @@ class ControllerProxy extends EventEmitter {
     });
   }
 
+  // synchronous
   sendCtrlMsgTypeSync(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
@@ -565,6 +586,12 @@ class ControllerProxy extends EventEmitter {
               var ignitionState = new Controller_ttypes.IgnitionState();
               ignitionState.read(tProtocol);
               resolve({type: 'msg', msg: ignitionState});
+              break;
+            case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
+              console.log('TODO: handle upgrade');
+              // both prepare AND commit commits
+
+
               break;
             default:
               console.error('No receive handler defined for', msgType);
