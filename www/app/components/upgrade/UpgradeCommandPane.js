@@ -13,24 +13,13 @@ export default class UpgradeCommandPane extends React.Component {
     super(props);
   }
 
-  // test API hook function
-  onClick() {
-    console.log('test hookup to API');
-    prepareUpgrade({
-      asdf: "I guess this works?"
-    });
-  }
-
   prepareUpgrade() {
-    console.log('preparing upgrade');
     Dispatcher.dispatch({
       actionType: Actions.OPEN_PREPARE_UPGRADE_MODAL,
     });
-    // dispatch
   }
 
   commitUpgrade() {
-    console.log('committing upgrade');
     Dispatcher.dispatch({
       actionType: Actions.OPEN_COMMIT_UPGRADE_MODAL,
     });

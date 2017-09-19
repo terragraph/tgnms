@@ -36,3 +36,30 @@
   border: none;
   margin-top: auto;
 }
+
+.upgrade-modal-footer {
+  margin-top: 10px;
+}
+
+.upgrade-modal-footer button {
+  margin-left: 5px;
+  float: right;
+}
+
+.upgrade-modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.upgrade-modal-row {
+  margin-bottom: 10px;
+}
+
+.upgrade-modal-row label {
+  float: left;
+  width: 35%;
+}
+
+.upgrade-modal-row input {
+  width: 65%;
+}

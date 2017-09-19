@@ -420,13 +420,6 @@ export default class NetworkUI extends React.Component {
         paneComponent = <NetworkAlerts {...viewProps} />;
         break;
       case 'upgrade':
-        /*
-        paneComponent = (
-          <div id="upgrade-time">
-            <img src="http://i0.kym-cdn.com/entries/icons/original/000/022/978/yNlQWRM.jpg" />
-          </div>
-        );
-        */
         paneComponent = <NetworkUpgrade {...viewProps} />;
         break;
       case 'config':

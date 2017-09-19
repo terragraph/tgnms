@@ -1183,6 +1183,19 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
     let postData = JSON.parse(httpPostData);
     console.log('prepareUpgrade: received post data json ', postData);
 
+    let upgradeGroupReq = postData;
+    /*
+    TODO: ugType is nodes
+    version can be searched up
+    md5 can be found as well?
+    version too
+
+    generate a request id
+    and specify the upgrade type
+    */
+
+    // postData is a JSON struct containing the upgradeGroupReq
+
     // TODO: Kelvin:
     /*
     syncWorker.sendCtrlMsgSync({
@@ -1190,6 +1203,8 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
       stuff here, maybe define a struct or something?
     }, "", res)
     */
+
+    res.send('received prepareUpgrade request');
   });
 });
 
