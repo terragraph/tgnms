@@ -21,7 +21,8 @@ import ModalTopology from './ModalTopology.js';
 import {SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
 
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
-import ModalUpgradeNetwork from './components/upgrade/ModalUpgradeNetwork.js';
+import ModalPrepareUpgrade from './components/upgrade/ModalPrepareUpgrade.js';
+import ModalCommitUpgrade from './components/upgrade/ModalCommitUpgrade.js';
 
 const VIEWS = {
   'map': 'Map',
@@ -439,13 +440,22 @@ export default class NetworkUI extends React.Component {
       selectedKeys.push("topo#" + this.state.networkName);
     }
 
+    const upgradeNetworkModal = this.state.upgradeModalMode === UPGRADE_OPERATIONS.PREPARE ?
+     (
+       <ModalPrepareUpgrade
+         isOpen={this.state.upgradeModalOpen}
+         onClose= {() => this.setState({upgradeModalOpen: false})}
+       />
+     ) : (
+       <ModalCommitUpgrade
+         isOpen={this.state.upgradeModalOpen}
+         onClose= {() => this.setState({upgradeModalOpen: false})}
+       />
+     );
+
     return (
       <div>
-        <ModalUpgradeNetwork
-          isOpen={this.state.upgradeModalOpen}
-          onClose= {() => this.setState({upgradeModalOpen: false})}
-          upgradeOperation={this.state.upgradeModalMode}
-        />
+        {upgradeNetworkModal}
         <ModalOverlays
           isOpen= {this.state.overlaysModalOpen}
           selectedSiteOverlay= {this.state.selectedSiteOverlay}

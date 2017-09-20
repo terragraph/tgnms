@@ -7,6 +7,7 @@ export const prepareUpgrade = (upgradeGroupReq) => {
     uri, upgradeGroupReq
   ).then((response) => {
     console.log('initiated prepare upgrade command!', response);
+    // response.data has what we actually want
   }).catch((error) => {
     console.log('something is wrong!', error);
   });

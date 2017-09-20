@@ -371,9 +371,71 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
       send(setIgnitionParamsReq);
       break;
-    case 'upgradeGroupReq':
-      var upgradeGroupReqParams = {};
-      console.log('TODO: send upgrade group req');
+    case 'prepareupgrade':
+      // first set up the upgrade req that the controller sends to minions
+      var upgradeReqParams = new Controller_ttypes.UpgradeReq();
+
+      upgradeReqParams.urType = Controller_ttypes.UpgradeReqType.PREPARE_UPGRADE;
+      upgradeReqParams.upgradeReqId = msg.requestId;
+      upgradeReqParams.md5 = msg.md5;
+      upgradeReqParams.imageUrl = msg.imageUrl;
+
+      if (msg.isHttp) {
+        upgradeReqParams.downloadAttempts = msg.downloadAttempts;
+      } else {
+        var torrentParams = new Controller_ttypes.UpgradeTorrentParams();
+        const {downloadTimeout, downloadLimit, uploadLimit, maxConnections} = msg.torrentParams;
+        torrentParams.downloadTimeout = downloadTimeout;
+        torrentParams.downloadLimit = downloadLimit;
+        torrentParams.uploadLimit = uploadLimit;
+        torrentParams.maxConnections = maxConnections;
+
+        upgradeReqParams.torrentParams = torrentParams;
+      }
+
+      // then set up the group upgrade req
+      var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
+      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NODES;
+
+      upgradeGroupReqParams.nodes = msg.nodes;
+      upgradeGroupReqParams.excludeNodes = [];
+
+      upgradeGroupReqParams.urReq = upgradeReqParams;
+      upgradeGroupReqParams.timeout = msg.timeout;
+      upgradeGroupReqParams.skipFailure = msg.skipFailure;
+
+      upgradeGroupReqParams.version = '';
+      upgradeGroupReqParams.skipLinks = [];
+      upgradeGroupReqParams.limit = msg.limit;
+
+      console.log(upgradeGroupReqParams);
+      res.send(upgradeGroupReqParams);
+      // TODO: send(upgradeGroupReqParams);
+      break;
+    case 'commitupgrade':
+      var upgradeReqParams = new Controller_ttypes.UpgradeReq();
+
+      upgradeReqParams.urType = Controller_ttypes.UpgradeReqType.COMMIT_UPGRADE;
+      upgradeReqParams.upgradeReqId = msg.requestId;
+      upgradeReqParams.scheduleToCommit = msg.scheduleToCommit;
+
+      var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
+      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NODES;
+
+      upgradeGroupReqParams.nodes = msg.nodes;
+      upgradeGroupReqParams.excludeNodes = [];
+
+      upgradeGroupReqParams.urReq = upgradeReqParams;
+      upgradeGroupReqParams.timeout = msg.timeout;
+      upgradeGroupReqParams.skipFailure = msg.skipFailure;
+
+      upgradeGroupReqParams.version = '';
+      upgradeGroupReqParams.skipLinks = msg.skipLinks;
+      upgradeGroupReqParams.limit = msg.limit;
+
+      console.log(upgradeGroupReqParams);
+      res.send(upgradeGroupReqParams);
+      // TODO: send(upgradeGroupReqParams);
       break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);

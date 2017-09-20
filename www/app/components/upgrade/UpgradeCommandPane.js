@@ -31,7 +31,7 @@ export default class UpgradeCommandPane extends React.Component {
         <button className='upgrade-btn'>Launch Server</button>
         <button className='upgrade-btn' onClick={this.prepareUpgrade}>Prepare</button>
         <button className='upgrade-btn' onClick={this.commitUpgrade}>Commit</button>
-        <button className='abort-btn'>Abort</button>
+        <button className='upgrade-btn'>Abort</button>
       </div>
     );
   }
