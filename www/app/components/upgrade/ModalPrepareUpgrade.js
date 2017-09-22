@@ -3,8 +3,7 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 
 import { prepareUpgrade} from '../../apiutils/upgradeAPIUtil.js';
-import NetworkNodesTable from '../../NetworkNodesTable.js';
-// import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import UpgradeNodesTable from './UpgradeNodesTable.js';
 
 const modalStyle = {
   content : {
@@ -25,9 +24,9 @@ export default class ModalPrepareUpgrade extends React.Component {
     super(props);
 
     this.state = {
-      selectedNodes: [], // I don't think we'll keep a list of excluded nodes
+      selectedNodes: [],
 
-      timeout: 180, // timeout for the entire prepare operation
+      timeout: 180,     // timeout for the entire prepare operation
       skipFailure: true,
 
       limit: 1, // limit per batch. max batch size is infinite if this is set to 0
@@ -45,6 +44,18 @@ export default class ModalPrepareUpgrade extends React.Component {
 
       isHttp: true, // prepare only, this is used for internal state to let the user specify http or torrent properties
     }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // reset the selected nodes when the user opens/reopens the modal
+    // this is done so our state syncs with the node table state (and we don't need to pass props to that table)
+    if (this.props.isOpen !== nextProps.isOpen) {
+      this.setState({selectedNodes: []});
+    }
+  }
+
+  updateSelectedNodes = (selectedNodes) => {
+    this.setState({selectedNodes});
   }
 
   submitPrepare() {
@@ -89,7 +100,6 @@ export default class ModalPrepareUpgrade extends React.Component {
 
   render() {
     const {topology, isOpen} = this.props;
-
     /*
     Prepare modal:
       List nodes TODO
@@ -124,10 +134,10 @@ export default class ModalPrepareUpgrade extends React.Component {
 
           <label>Select nodes to prepare for upgrade</label>
           <div className="upgrade-modal-row">
-            <NetworkNodesTable
-              height={500}
-              width={1000}
+            <UpgradeNodesTable
+              height={300}
               topology={topology}
+              onNodesSelected={this.updateSelectedNodes}
             />
           </div>
 
@@ -223,9 +233,5 @@ export default class ModalPrepareUpgrade extends React.Component {
 ModalPrepareUpgrade.propTypes = {
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
-
-
-  // instance: React.PropTypes.object.isRequired,
-  // routing: React.PropTypes.object.isRequired,
   topology: React.PropTypes.object.isRequred,
 }

@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 
 import {commitUpgrade } from '../../apiutils/upgradeAPIUtil.js';
-// import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import UpgradeNodesTable from './UpgradeNodesTable.js';
 
 const modalStyle = {
   content : {
@@ -36,8 +36,19 @@ export default class ModalCommitUpgrade extends React.Component {
     }
   }
 
-  submitCommit() {
+  componentWillReceiveProps(nextProps) {
+    // reset the selected nodes when the user opens/reopens the modal
+    // this is done so our state syncs with the node table state (and we don't need to pass props to that table)
+    if (this.props.isOpen !== nextProps.isOpen) {
+      this.setState({selectedNodes: []});
+    }
+  }
 
+  updateSelectedNodes = (selectedNodes) => {
+    this.setState({selectedNodes});
+  }
+
+  submitCommit() {
     const requestBody = {
       // ugType handled by the server endpoint
       nodes: this.state.selectedNodes,
@@ -62,7 +73,7 @@ export default class ModalCommitUpgrade extends React.Component {
   }
 
   render() {
-
+    const {topology, isOpen} = this.props;
     /*
     Commit modal:
       List nodes TODO
@@ -76,7 +87,7 @@ export default class ModalCommitUpgrade extends React.Component {
     return (
       <Modal
         style={modalStyle}
-        isOpen={this.props.isOpen}
+        isOpen={isOpen}
         onRequestClose={this.modalClose.bind(this)}
       >
         <div className="upgrade-modal-content">
@@ -84,6 +95,15 @@ export default class ModalCommitUpgrade extends React.Component {
             <label>Upgrade timeout (s):</label>
             <input type="number" value={this.state.timeout}
               onChange={(event) => this.setState({'timeout': event.target.value})}
+            />
+          </div>
+
+          <label>Select nodes to commit for upgrade</label>
+          <div className="upgrade-modal-row">
+            <UpgradeNodesTable
+              height={300}
+              topology={topology}
+              onNodesSelected={this.updateSelectedNodes}
             />
           </div>
 
