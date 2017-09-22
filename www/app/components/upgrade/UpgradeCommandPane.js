@@ -3,10 +3,7 @@ import { render } from 'react-dom';
 
 import Dispatcher from '../../NetworkDispatcher.js';
 import { Actions } from '../../NetworkConstants.js';
-// import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-// import ipaddr from 'ipaddr.js';
 
-// import { prepareUpgrade } from '../../apiutils/upgradeAPIUtil.js';
 
 export default class UpgradeCommandPane extends React.Component {
   constructor(props) {

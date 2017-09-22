@@ -10,21 +10,12 @@ export default class NetworkUpgrade extends React.Component {
   }
 
   render() {
-    const {instance, routing, topology} = this.props;
-    console.log(this.props);
-
-/*
-<div className="network-upgrade"
-  style={{height: this.props.height + 'px'}}
->
-*/
+    const topology = this.props.networkConfig.topology;
 
     return (
       <div className="network-upgrade">
-        {/* cool stuff */}
+        {/* status dump and map view coming soon */}
         <UpgradeCommandPane
-          instance={instance}
-          routing={routing}
           topology={topology}
         />
       </div>
@@ -33,8 +24,5 @@ export default class NetworkUpgrade extends React.Component {
 }
 
 NetworkUpgrade.propTypes = {
-  height: React.PropTypes.number.isRequired,
-  instance: React.PropTypes.object.isRequired,
-  routing: React.PropTypes.object.isRequired,
-  topology: React.PropTypes.object.isRequred,
+  networkConfig: React.PropTypes.object.isRequired,
 }

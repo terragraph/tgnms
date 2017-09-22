@@ -445,11 +445,13 @@ export default class NetworkUI extends React.Component {
        <ModalPrepareUpgrade
          isOpen={this.state.upgradeModalOpen}
          onClose= {() => this.setState({upgradeModalOpen: false})}
+         topology={viewProps.networkConfig.topology}
        />
      ) : (
        <ModalCommitUpgrade
          isOpen={this.state.upgradeModalOpen}
          onClose= {() => this.setState({upgradeModalOpen: false})}
+         topology={viewProps.networkConfig.topology}
        />
      );
 

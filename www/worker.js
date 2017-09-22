@@ -145,8 +145,9 @@ const command2MsgType = {
   'setLinkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
 
   // upgrade requests (sent to controller)
-  'upgradeReq': Controller_ttypes.MessageType.UPGRADE_REQ,
-  'upgradeGroupReq': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'prepareUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+
   'upgradeAbortReq': Controller_ttypes.MessageType.UPGRADE_ABORT_REQ,
   'upgradeCommitPlan': Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN,
   'upgradeCommitPlanReq': Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN_REQ,
@@ -211,8 +212,9 @@ msgType2Params[Controller_ttypes.MessageType.GET_SCAN_STATUS] = {
 msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {
   'recvApp': 'ctrl-app-SCAN_APP',
   'nmsAppId': 'NMS_WEB_SCAN'};
-
-// TODO: Kelvin: add params here for upgrades
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_GROUP_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
 
 const thriftSerialize = (struct) => {
   var result;
@@ -371,7 +373,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
       send(setIgnitionParamsReq);
       break;
-    case 'prepareupgrade':
+    case 'prepareUpgrade':
       // first set up the upgrade req that the controller sends to minions
       var upgradeReqParams = new Controller_ttypes.UpgradeReq();
 
@@ -409,10 +411,11 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       upgradeGroupReqParams.limit = msg.limit;
 
       console.log(upgradeGroupReqParams);
-      res.send(upgradeGroupReqParams);
+      send(upgradeGroupReqParams);
+      // res.send(upgradeGroupReqParams);
       // TODO: send(upgradeGroupReqParams);
       break;
-    case 'commitupgrade':
+    case 'commitUpgrade':
       var upgradeReqParams = new Controller_ttypes.UpgradeReq();
 
       upgradeReqParams.urType = Controller_ttypes.UpgradeReqType.COMMIT_UPGRADE;
@@ -434,8 +437,9 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       upgradeGroupReqParams.limit = msg.limit;
 
       console.log(upgradeGroupReqParams);
-      res.send(upgradeGroupReqParams);
+      // res.send(upgradeGroupReqParams);
       // TODO: send(upgradeGroupReqParams);
+      send(upgradeGroupReqParams);
       break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
@@ -652,7 +656,13 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
               console.log('TODO: handle upgrade');
               // both prepare AND commit commits
-
+              var receivedAck = new Controller_ttypes.E2EAck();
+              receivedAck.read(tProtocol);
+              if (receivedAck.success) {
+                resolve({type: 'ack', msg: receivedAck.message});
+              } else {
+                reject(receivedAck.message);
+              }
 
               break;
             default:
@@ -676,6 +686,7 @@ class ControllerProxy extends EventEmitter {
       }
     })
     .catch((failMessage) => {
+      console.log('WELP we messed up', failMessage);
       res.writeHead(500, failMessage, {'content-type' : 'text/plain'});
       res.end();
     });

@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 
 import { prepareUpgrade} from '../../apiutils/upgradeAPIUtil.js';
+import NetworkNodesTable from '../../NetworkNodesTable.js';
 // import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 const modalStyle = {
@@ -46,11 +47,7 @@ export default class ModalPrepareUpgrade extends React.Component {
     }
   }
 
-  // HTTP only
   submitPrepare() {
-    // TODO: check state here for http or torrent
-    // md5 for torrent
-
     const requestBody = {
       // ugType handled by the server endpoint
       nodes: this.state.selectedNodes,
@@ -62,9 +59,11 @@ export default class ModalPrepareUpgrade extends React.Component {
       limit: this.state.limit,
 
       requestId: 'NMS' + new Date().getTime(),
-      isHttp: this.state.isHttp
+      isHttp: this.state.isHttp,
+      topologyName: this.props.topology.name
     };
 
+    // populate either the downloadAttempts or the torrentParams depending on the user selected mode
     if (this.state.isHttp) {
       requestBody.downloadAttempts = this.state.downloadAttempts;
     } else {
@@ -76,7 +75,6 @@ export default class ModalPrepareUpgrade extends React.Component {
       }
     }
 
-    console.log('submitting upgrade PREPARE request', requestBody);
     prepareUpgrade(requestBody);
     this.props.onClose();
   }
@@ -90,6 +88,8 @@ export default class ModalPrepareUpgrade extends React.Component {
   }
 
   render() {
+    const {topology, isOpen} = this.props;
+
     /*
     Prepare modal:
       List nodes TODO
@@ -111,7 +111,7 @@ export default class ModalPrepareUpgrade extends React.Component {
     return (
       <Modal
         style={modalStyle}
-        isOpen={this.props.isOpen}
+        isOpen={isOpen}
         onRequestClose={this.modalClose.bind(this)}
       >
         <div className="upgrade-modal-content">
@@ -119,6 +119,15 @@ export default class ModalPrepareUpgrade extends React.Component {
             <label>Upgrade timeout (s):</label>
             <input type="number" value={this.state.timeout}
               onChange={(event) => this.setState({'timeout': event.target.value})}
+            />
+          </div>
+
+          <label>Select nodes to prepare for upgrade</label>
+          <div className="upgrade-modal-row">
+            <NetworkNodesTable
+              height={500}
+              width={1000}
+              topology={topology}
             />
           </div>
 
@@ -156,7 +165,7 @@ export default class ModalPrepareUpgrade extends React.Component {
               <label for="http">Http</label>
 
               <input type="radio" name="torrent" value="torrent" onChange={this.onChangeDownloadMode} checked={!this.state.isHttp}/>
-              <label for="torrent">Torrent</label>
+              <label for="torrent">  Torrent</label>
             </div>
           </form>
 
@@ -212,10 +221,11 @@ export default class ModalPrepareUpgrade extends React.Component {
 }
 
 ModalPrepareUpgrade.propTypes = {
+  isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
 
 
   // instance: React.PropTypes.object.isRequired,
   // routing: React.PropTypes.object.isRequired,
-  // topology: React.PropTypes.object.isRequred,
+  topology: React.PropTypes.object.isRequred,
 }

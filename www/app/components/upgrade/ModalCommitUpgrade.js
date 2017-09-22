@@ -23,13 +23,7 @@ export default class ModalCommitUpgrade extends React.Component {
   constructor(props) {
     super(props);
 
-    // upgrade group type: network or nodes
-    // UpgradeReq:
-    // req type
-
-    // TODO: Kelvin: think of some default values for these fields???
     this.state = {
-      // UpgradeGroupReq
       selectedNodes: [], // I don't think we'll keep a list of excluded nodes
 
       timeout: 180,
@@ -56,9 +50,9 @@ export default class ModalCommitUpgrade extends React.Component {
       scheduleToCommit: this.state.scheduleToCommit,
 
       requestId: 'NMS' + new Date().getTime(),
+      topologyName: this.props.topology.name
     };
 
-    console.log('submitting upgrade COMMIT request', requestBody);
     commitUpgrade(requestBody);
     this.props.onClose();
   }
@@ -125,13 +119,5 @@ export default class ModalCommitUpgrade extends React.Component {
 
 ModalCommitUpgrade.propTypes = {
   onClose: React.PropTypes.func.isRequired,
-
-
-  // instance: React.PropTypes.object.isRequired,
-  // routing: React.PropTypes.object.isRequired,
-  // topology: React.PropTypes.object.isRequred,
-}
-
-ModalCommitUpgrade.defaultProps = {
-  // isOpen: false
+  topology: React.PropTypes.object.isRequred,
 }

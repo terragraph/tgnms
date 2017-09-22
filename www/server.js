@@ -1182,11 +1182,13 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
     const {
-      isHttp, requestId, nodes, imageUrl, md5, timeout, skipFailure, limit, downloadAttempts, torrentParams,
+      topologyName, isHttp, requestId, nodes, imageUrl, md5, timeout, skipFailure, limit, downloadAttempts, torrentParams,
     } = postData;
 
+    var topology = getTopologyByName(topologyName);
+
     syncWorker.sendCtrlMsgSync({
-      type: 'prepareupgrade',
+      type: 'prepareUpgrade',
       upgradeGroupType: 'NODES',
       requestId,
       nodes,
@@ -1197,12 +1199,11 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
       limit,
       isHttp,
       downloadAttempts,
-      torrentParams
+      torrentParams,
+      topology
     }, "", res);
   });
 });
-
-// TODO: torrent!
 
 app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
   let httpPostData = '';
@@ -1211,10 +1212,12 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
-    const {requestId, nodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
+    const {topologyName, requestId, nodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
+
+    var topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
-      type: 'commitupgrade',
+      type: 'commitUpgrade',
       upgradeGroupType: 'NODES',
       requestId,
       nodes,
@@ -1223,6 +1226,7 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
       limit,
       skipLinks,
       scheduleToCommit,
+      topology
     }, "", res);
   });
 });
