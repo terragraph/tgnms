@@ -134,6 +134,10 @@ export default class UpgradeNodesTable extends React.Component {
       <div>
         <BootstrapTable
             height={this.props.height + 'px'}
+            tableStyle={{
+              width: '100%',
+              maxWidth: '940px',
+            }}
             key="nodesTable"
             options={ tableOptions }
             data={this.getTableRows(nodesData)}

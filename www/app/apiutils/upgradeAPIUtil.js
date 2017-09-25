@@ -6,10 +6,22 @@ export const prepareUpgrade = (upgradeGroupReq) => {
   axios.post(
     uri, upgradeGroupReq
   ).then((response) => {
-    console.log('initiated prepare upgrade command!', response);
-    // response.data has what we actually want
+    swal({
+      title: "Prepare upgrade submitted",
+      text: `You have initiated the "prepare upgrade" process with requestId ${requestBody.requestId}
+
+      Please run: watch tg upgrade state all
+      to watch the status of your upgrade.
+      `,
+      type: "info"
+    });
   }).catch((error) => {
-    console.log('something is wrong!', error);
+    swal({
+      title: "Prepare upgrade failed",
+      text: `Your upgrade command failed with the following message:
+      ${error.response.statusText}`,
+      type: "error"
+    });
   });
 };
 
@@ -18,8 +30,21 @@ export const commitUpgrade = (upgradeGroupReq) => {
   axios.post(
     uri, upgradeGroupReq
   ).then((response) => {
-    console.log('we got something back!', response);
+    swal({
+      title: "Commit upgrade submitted",
+      text: `You have initiated the "commit upgrade" process with requestId ${requestBody.requestId}
+
+      Please run: watch tg upgrade state all
+      to watch the status of your upgrade.
+      `,
+      type: "info"
+    });
   }).catch((error) => {
-    console.log('something is wrong!', error);
+    swal({
+      title: "Prepare upgrade failed",
+      text: `Your upgrade command failed with the following message:
+      ${error.response.statusText}`,
+      type: "error"
+    });
   });
 };

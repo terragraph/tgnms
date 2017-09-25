@@ -1,6 +1,8 @@
 import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
 
 import { prepareUpgrade} from '../../apiutils/upgradeAPIUtil.js';
 import UpgradeNodesTable from './UpgradeNodesTable.js';
@@ -26,15 +28,15 @@ export default class ModalPrepareUpgrade extends React.Component {
     this.state = {
       selectedNodes: [],
 
-      timeout: 180,     // timeout for the entire prepare operation
-      skipFailure: true,
+      timeout: 180,         // timeout for the entire prepare operation
+      skipFailure: true,    // skip failed nodes (will not stop operation)
 
-      limit: 1, // limit per batch. max batch size is infinite if this is set to 0
-      imageUrl: "test imageUrl",
-      md5: "",
+      limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
+      imageUrl: "",         // HTTP/magnet url of the firmware image
+      md5: "",              // expected md5 of the firmware image
 
       // HTTP
-      downloadAttempts: 1, // prepare only
+      downloadAttempts: 1,  // number of attempts for downloading the image
 
       // TORRENT
       downloadTimeout: 180,
@@ -172,10 +174,10 @@ export default class ModalPrepareUpgrade extends React.Component {
           <form> <label>Specify the mode to retrieve the image:</label>
             <div className="download-type-selector">
               <input type="radio" id="http" value="http" onChange={this.onChangeDownloadMode} checked={this.state.isHttp}/>
-              <label for="http">Http</label>
+              <label for="http" style={{marginRight: '20px'}}>Http</label>
 
               <input type="radio" name="torrent" value="torrent" onChange={this.onChangeDownloadMode} checked={!this.state.isHttp}/>
-              <label for="torrent">  Torrent</label>
+              <label for="torrent">Torrent</label>
             </div>
           </form>
 

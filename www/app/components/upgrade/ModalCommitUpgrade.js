@@ -24,11 +24,10 @@ export default class ModalCommitUpgrade extends React.Component {
     super(props);
 
     this.state = {
-      selectedNodes: [], // I don't think we'll keep a list of excluded nodes
+      selectedNodes: [],
 
       timeout: 180,
       skipFailure: true,
-      skipLinks: [], // Kelvin: ok, I'm not even sure how to get started on this. Maybe show some sort of visualizer?
 
       limit: 1, // limit per batch. max batch size is infinite if this is set to 0
 
@@ -55,7 +54,7 @@ export default class ModalCommitUpgrade extends React.Component {
 
       timeout: this.state.timeout,
       skipFailure: this.state.skipFailure,
-      skipLinks: this.state.skipLinks,
+      skipLinks: [],
       limit: this.state.limit,
 
       scheduleToCommit: this.state.scheduleToCommit,
@@ -76,11 +75,10 @@ export default class ModalCommitUpgrade extends React.Component {
     const {topology, isOpen} = this.props;
     /*
     Commit modal:
-      List nodes TODO
+      List nodes
       Timeout
       Skipfailure?
       Batch size limit
-      Skip links TODO
       Commit delay
     */
 
