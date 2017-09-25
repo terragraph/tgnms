@@ -1,7 +1,5 @@
 import React from 'react';
 import { render } from 'react-dom';
-// import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-import ipaddr from 'ipaddr.js';
 import UpgradeCommandPane from './UpgradeCommandPane.js';
 
 export default class NetworkUpgrade extends React.Component {

@@ -468,7 +468,6 @@ export default class NetworkUI extends React.Component {
           onClose= {() => this.setState({topologyModalOpen: false})}
           topology= {this.state.topology}/>
 
-
         <div className="top-menu-bar">
           <Menu
               onSelect={this.handleMenuBarSelect.bind(this)}

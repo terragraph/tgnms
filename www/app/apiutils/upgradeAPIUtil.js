@@ -1,5 +1,7 @@
 // util class for making API calls to the node server for upgrade commands
 import axios from 'axios';
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
 
 export const prepareUpgrade = (upgradeGroupReq) => {
   const uri = '/controller/prepareUpgrade';
@@ -8,7 +10,7 @@ export const prepareUpgrade = (upgradeGroupReq) => {
   ).then((response) => {
     swal({
       title: "Prepare upgrade submitted",
-      text: `You have initiated the "prepare upgrade" process with requestId ${requestBody.requestId}
+      text: `You have initiated the "prepare upgrade" process with requestId ${response.requestId}
 
       Please run: watch tg upgrade state all
       to watch the status of your upgrade.
@@ -16,10 +18,14 @@ export const prepareUpgrade = (upgradeGroupReq) => {
       type: "info"
     });
   }).catch((error) => {
+    // try to get the status text from the API response, otherwise, default to the error object
+    const errorText == (!!error.response && !!error.response.statusText) ?
+      error.response.statusText : error;
+
     swal({
       title: "Prepare upgrade failed",
       text: `Your upgrade command failed with the following message:
-      ${error.response.statusText}`,
+      ${errorText}`,
       type: "error"
     });
   });
@@ -32,7 +38,7 @@ export const commitUpgrade = (upgradeGroupReq) => {
   ).then((response) => {
     swal({
       title: "Commit upgrade submitted",
-      text: `You have initiated the "commit upgrade" process with requestId ${requestBody.requestId}
+      text: `You have initiated the "commit upgrade" process with requestId ${response.requestId}
 
       Please run: watch tg upgrade state all
       to watch the status of your upgrade.
@@ -40,10 +46,14 @@ export const commitUpgrade = (upgradeGroupReq) => {
       type: "info"
     });
   }).catch((error) => {
+    // try to get the status text from the API response, otherwise, default to the error object
+    const errorText == (!!error.response && !!error.response.statusText) ?
+      error.response.statusText : error;
+
     swal({
       title: "Prepare upgrade failed",
       text: `Your upgrade command failed with the following message:
-      ${error.response.statusText}`,
+      ${errorText}`,
       type: "error"
     });
   });

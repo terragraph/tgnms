@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
 
-import {commitUpgrade } from '../../apiutils/upgradeAPIUtil.js';
+import { commitUpgrade } from '../../apiutils/upgradeAPIUtil.js';
 import UpgradeNodesTable from './UpgradeNodesTable.js';
 
 const modalStyle = {
@@ -24,14 +24,12 @@ export default class ModalCommitUpgrade extends React.Component {
     super(props);
 
     this.state = {
-      selectedNodes: [],
+      selectedNodes: [],    // list of nodes to upgrade
+      timeout: 180,         // timeout for the entire commit operation
+      skipFailure: true,    // skip failed nodes (will not stop operation)
+      limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
 
-      timeout: 180,
-      skipFailure: true,
-
-      limit: 1, // limit per batch. max batch size is infinite if this is set to 0
-
-      scheduleToCommit: 0, // commit only
+      scheduleToCommit: 0,  // delay between issuing the command and
     }
   }
 
@@ -49,18 +47,16 @@ export default class ModalCommitUpgrade extends React.Component {
 
   submitCommit() {
     const requestBody = {
-      // ugType handled by the server endpoint
-      nodes: this.state.selectedNodes,
-
-      timeout: this.state.timeout,
-      skipFailure: this.state.skipFailure,
-      skipLinks: [],
-      limit: this.state.limit,
+      nodes:            this.state.selectedNodes,
+      timeout:          this.state.timeout,
+      skipFailure:      this.state.skipFailure,
+      skipLinks:        [],
+      limit:            this.state.limit,
 
       scheduleToCommit: this.state.scheduleToCommit,
 
-      requestId: 'NMS' + new Date().getTime(),
-      topologyName: this.props.topology.name
+      requestId:        'NMS' + new Date().getTime(),
+      topologyName:     this.props.topology.name
     };
 
     commitUpgrade(requestBody);
@@ -136,6 +132,7 @@ export default class ModalCommitUpgrade extends React.Component {
 }
 
 ModalCommitUpgrade.propTypes = {
+  isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
   topology: React.PropTypes.object.isRequred,
 }

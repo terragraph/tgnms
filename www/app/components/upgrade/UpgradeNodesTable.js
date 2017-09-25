@@ -170,6 +170,7 @@ export default class UpgradeNodesTable extends React.Component {
     );
   }
 }
+
 UpgradeNodesTable.propTypes = {
   topology: React.PropTypes.object.isRequired,
   onNodesSelected: React.PropTypes.func,

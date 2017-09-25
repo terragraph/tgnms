@@ -14,7 +14,7 @@ export default class UpgradeCommandPane extends React.Component {
 
   launchUpgradeServer() {
     swal({
-      title: "Functionality not supported",
+      title: 'Functionality not supported',
       text: `Sorry, launching an image hosting server is not supported right now on NMS.
       Please use these commands in a terminal instead:
 
@@ -22,7 +22,7 @@ export default class UpgradeCommandPane extends React.Component {
 
       This will return a URL where your image will be hosted.
       `,
-      type: "info"
+      type: 'info'
     });
   }
 
@@ -40,16 +40,16 @@ export default class UpgradeCommandPane extends React.Component {
 
   abortUpgrade() {
     swal({
-      title: `Functionality not supported`,
+      title: 'Functionality not supported',
       text: `To abort an upgrade in progress, use the command:
       tg upgrade abort -r <list of request ids to abort, separated by commas>`,
-      type: "info"
+      type: 'info'
     })
   }
 
   render() {
     return (
-      <div className="upgrade-command-pane">
+      <div className='upgrade-command-pane'>
         <button className='upgrade-btn' onClick={this.launchUpgradeServer}>Launch Server</button>
         <button className='upgrade-btn' onClick={this.prepareUpgrade}>Prepare</button>
         <button className='upgrade-btn' onClick={this.commitUpgrade}>Commit</button>

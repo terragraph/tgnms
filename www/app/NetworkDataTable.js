@@ -19,8 +19,7 @@ const TAB_NAMES = ['status',
                    'nodes',
                    'links',
                    'adjacencies',
-                   'routing'
-                 ];
+                   'routing'];
 
 export default class NetworkDataTable extends React.Component {
   state = {

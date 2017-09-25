@@ -1,10 +1,8 @@
 import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
-import swal from 'sweetalert';
-import 'sweetalert/dist/sweetalert.css';
 
-import { prepareUpgrade} from '../../apiutils/upgradeAPIUtil.js';
+import { prepareUpgrade } from '../../apiutils/upgradeAPIUtil.js';
 import UpgradeNodesTable from './UpgradeNodesTable.js';
 
 const modalStyle = {
@@ -26,11 +24,9 @@ export default class ModalPrepareUpgrade extends React.Component {
     super(props);
 
     this.state = {
-      selectedNodes: [],
-
+      selectedNodes: [],    // list of nodes to upgrade
       timeout: 180,         // timeout for the entire prepare operation
       skipFailure: true,    // skip failed nodes (will not stop operation)
-
       limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
       imageUrl: "",         // HTTP/magnet url of the firmware image
       md5: "",              // expected md5 of the firmware image
@@ -39,12 +35,12 @@ export default class ModalPrepareUpgrade extends React.Component {
       downloadAttempts: 1,  // number of attempts for downloading the image
 
       // TORRENT
-      downloadTimeout: 180,
-      downloadLimit: -1,
-      uploadLimit: -1,
-      maxConnections: -1,
+      downloadTimeout: 180, // timeout for torrent download
+      downloadLimit: -1,    // limit for torrent download speed (-1 for unlimited)
+      uploadLimit: -1,      // limit for torrent upload speed (-1 for unlimited)
+      maxConnections: -1,   // max concurrent connections for torrent (-1 for unlimited)
 
-      isHttp: true, // prepare only, this is used for internal state to let the user specify http or torrent properties
+      isHttp: true,         // internal component state to let the user specify http or torrent properties
     }
   }
 
@@ -62,17 +58,16 @@ export default class ModalPrepareUpgrade extends React.Component {
 
   submitPrepare() {
     const requestBody = {
-      // ugType handled by the server endpoint
-      nodes: this.state.selectedNodes,
-      imageUrl: this.state.imageUrl,
-      md5: this.state.md5,
+      nodes:        this.state.selectedNodes,
+      imageUrl:     this.state.imageUrl,
+      md5:          this.state.md5,
 
-      timeout: this.state.timeout,
-      skipFailure: this.state.skipFailure,
-      limit: this.state.limit,
+      timeout:      this.state.timeout,
+      skipFailure:  this.state.skipFailure,
+      limit:        this.state.limit,
 
-      requestId: 'NMS' + new Date().getTime(),
-      isHttp: this.state.isHttp,
+      requestId:    'NMS' + new Date().getTime(),
+      isHttp:       this.state.isHttp,
       topologyName: this.props.topology.name
     };
 
@@ -81,10 +76,10 @@ export default class ModalPrepareUpgrade extends React.Component {
       requestBody.downloadAttempts = this.state.downloadAttempts;
     } else {
       requestBody.torrentParams = {
-        downloadTimeout: this.state.downloadTimeout,
-        downloadLimit: this.state.downloadLimit,
-        uploadLimit: this.state.uploadLimit,
-        maxConnections: this.state.maxConnections
+        downloadTimeout:  this.state.downloadTimeout,
+        downloadLimit:    this.state.downloadLimit,
+        uploadLimit:      this.state.uploadLimit,
+        maxConnections:   this.state.maxConnections
       }
     }
 
@@ -104,7 +99,7 @@ export default class ModalPrepareUpgrade extends React.Component {
     const {topology, isOpen} = this.props;
     /*
     Prepare modal:
-      List nodes TODO
+      List nodes
       Timeout
       SkipFailure?
       Batch size limit
