@@ -146,15 +146,7 @@ const command2MsgType = {
 
   // upgrade requests (sent to controller)
   'prepareUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
-  'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
-
-  'upgradeAbortReq': Controller_ttypes.MessageType.UPGRADE_ABORT_REQ,
-  'upgradeCommitPlan': Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN,
-  'upgradeCommitPlanReq': Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN_REQ,
-
-  // upgrade request states
-  'upgradeStateReq': Controller_ttypes.MessageType.UPGRADE_STATE_REQ,
-  'upgradeStateDump': Controller_ttypes.MessageType.UPGRADE_STATE_DUMP
+  'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ
 };
 
 var msgType2Params = {};
@@ -376,7 +368,6 @@ const sendCtrlMsgSync = (msg, minion, res) => {
     case 'prepareUpgrade':
       // first set up the upgrade req that the controller sends to minions
       var upgradeReqParams = new Controller_ttypes.UpgradeReq();
-
       upgradeReqParams.urType = Controller_ttypes.UpgradeReqType.PREPARE_UPGRADE;
       upgradeReqParams.upgradeReqId = msg.requestId;
       upgradeReqParams.md5 = msg.md5;
@@ -398,47 +389,34 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       // then set up the group upgrade req
       var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
       upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NODES;
-
       upgradeGroupReqParams.nodes = msg.nodes;
       upgradeGroupReqParams.excludeNodes = [];
-
       upgradeGroupReqParams.urReq = upgradeReqParams;
       upgradeGroupReqParams.timeout = msg.timeout;
       upgradeGroupReqParams.skipFailure = msg.skipFailure;
-
       upgradeGroupReqParams.version = '';
       upgradeGroupReqParams.skipLinks = [];
       upgradeGroupReqParams.limit = msg.limit;
 
-      console.log(upgradeGroupReqParams);
       send(upgradeGroupReqParams);
-      // res.send(upgradeGroupReqParams);
-      // TODO: send(upgradeGroupReqParams);
       break;
     case 'commitUpgrade':
       var upgradeReqParams = new Controller_ttypes.UpgradeReq();
-
       upgradeReqParams.urType = Controller_ttypes.UpgradeReqType.COMMIT_UPGRADE;
       upgradeReqParams.upgradeReqId = msg.requestId;
       upgradeReqParams.scheduleToCommit = msg.scheduleToCommit;
 
       var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
       upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NODES;
-
       upgradeGroupReqParams.nodes = msg.nodes;
       upgradeGroupReqParams.excludeNodes = [];
-
       upgradeGroupReqParams.urReq = upgradeReqParams;
       upgradeGroupReqParams.timeout = msg.timeout;
       upgradeGroupReqParams.skipFailure = msg.skipFailure;
-
       upgradeGroupReqParams.version = '';
       upgradeGroupReqParams.skipLinks = msg.skipLinks;
       upgradeGroupReqParams.limit = msg.limit;
 
-      console.log(upgradeGroupReqParams);
-      // res.send(upgradeGroupReqParams);
-      // TODO: send(upgradeGroupReqParams);
       send(upgradeGroupReqParams);
       break;
     default:
@@ -539,7 +517,6 @@ class ControllerProxy extends EventEmitter {
     );
   }
 
-  // for thir
   sendCtrlApiMsgType(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
@@ -610,7 +587,6 @@ class ControllerProxy extends EventEmitter {
     });
   }
 
-  // synchronous
   sendCtrlMsgTypeSync(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
@@ -640,6 +616,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
+            case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -652,18 +629,6 @@ class ControllerProxy extends EventEmitter {
               var ignitionState = new Controller_ttypes.IgnitionState();
               ignitionState.read(tProtocol);
               resolve({type: 'msg', msg: ignitionState});
-              break;
-            case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
-              console.log('TODO: handle upgrade');
-              // both prepare AND commit commits
-              var receivedAck = new Controller_ttypes.E2EAck();
-              receivedAck.read(tProtocol);
-              if (receivedAck.success) {
-                resolve({type: 'ack', msg: receivedAck.message});
-              } else {
-                reject(receivedAck.message);
-              }
-
               break;
             default:
               console.error('No receive handler defined for', msgType);
@@ -686,7 +651,6 @@ class ControllerProxy extends EventEmitter {
       }
     })
     .catch((failMessage) => {
-      console.log('WELP we messed up', failMessage);
       res.writeHead(500, failMessage, {'content-type' : 'text/plain'});
       res.end();
     });
