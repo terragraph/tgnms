@@ -200,6 +200,11 @@ worker.on('message', (msg) => {
         ignitionStateByName[msg.name] = [];
       }
       break;
+    case 'upgrade_state':
+      console.log('oh we are here now huh', msg.upgradeState);
+
+      // TODO: Kelvin: merge this with state dump and set it as internal state
+      break;
     default:
       console.error('Unknown message type', msg.type);
   }

@@ -27,8 +27,8 @@ process.on('message', (msg) => {
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
-        // TODO: Kelvin: get status dump for upgrade status here
-        // then reconcile the status dumps down in the FE
+        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.UPGRADE_STATE_REQ, '\0');
+
         ctrlProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Controller_ttypes.MessageType.GET_TOPOLOGY:
@@ -57,6 +57,17 @@ process.on('message', (msg) => {
                 success: success,
                 response_time: response_time,
                 ignition_state: success ? data.ignition_state : null,
+              });
+              break;
+            case Controller_ttypes.MessageType.UPGRADE_STATE_REQ:
+              // recvmsg.mType = UPGRADE_STATE_DUMP
+              // console.log('worker: received upgrade state dump: ', data);
+              process.send({
+                name: topology.name,
+                type: 'upgrade_state',
+                success: success,
+                response_time: response_time,
+                upgradeState: success ? data.upgradeState : null,
               });
               break;
             default:
@@ -147,6 +158,8 @@ const command2MsgType = {
   // upgrade requests (sent to controller)
   'prepareUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
   'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ
+
+  // upgrade state requests
 };
 
 var msgType2Params = {};
@@ -207,6 +220,9 @@ msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_GROUP_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_STATE_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE_CONFIG'};
 
 const thriftSerialize = (struct) => {
   var result;
@@ -501,8 +517,18 @@ class ControllerProxy extends EventEmitter {
                       endTimer - this.start_timer,
                       {ignition_state: ignitionState});
             break;
+          case Controller_ttypes.MessageType.UPGRADE_STATE_REQ:
+            // recvmsg.mType = UPGRADE_STATE_DUMP
+            var stateDump = new Controller_ttypes.UpgradeStateDump();
+            stateDump.read(tProtocol);
+            this.emit('event',
+                      msgType,
+                      true,
+                      endTimer - this.start_timer,
+                      { upgradeState: stateDump });
+            break;
           default:
-            console.error('No receive handler defined for', msgType);
+            console.error('sendCtrlMsgType: No receive handler defined for', msgType);
         }
       },
       () => {
@@ -560,7 +586,7 @@ class ControllerProxy extends EventEmitter {
               resolve({type: 'msg', msg: ignitionState});
               break;
             default:
-              console.error('No receive handler defined for', msgType);
+              console.error('sendCtrlApiMsgType: No receive handler defined for', msgType);
           }
         },
         (errMsg) => {
@@ -631,7 +657,7 @@ class ControllerProxy extends EventEmitter {
               resolve({type: 'msg', msg: ignitionState});
               break;
             default:
-              console.error('No receive handler defined for', msgType);
+              console.error('sendCtrlMsgTypeSync: No receive handler defined for', msgType);
           }
         },
         (errMsg) => {
@@ -762,7 +788,7 @@ class AggregatorProxy extends EventEmitter {
                       { status_dump: receivedStatusDump });
             break;
           default:
-            console.error('No receive handler defined for', msgType);
+            console.error('sendAggrMsgType: No receive handler defined for', msgType);
         }
       },
       () => {
