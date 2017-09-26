@@ -31,7 +31,7 @@ const VIEWS = {
   'eventlogs': 'Event Logs',
   'systemlogs': 'System Logs',
   'alerts': 'Alerts',
-  // 'upgrade': 'Upgrade', // TODO: Kelvin: disabled for now
+  'upgrade': 'Upgrade',
   'config': 'Config (Alpha)',
 };
 
@@ -421,8 +421,7 @@ export default class NetworkUI extends React.Component {
         paneComponent = <NetworkAlerts {...viewProps} />;
         break;
       case 'upgrade':
-        paneComponent = <div></div>; // TODO: Kelvin: re-enable this later
-        // paneComponent = <NetworkUpgrade {...viewProps} />;
+        paneComponent = <NetworkUpgrade {...viewProps} />;
         break;
       case 'config':
         paneComponent = <NetworkConfig {...viewProps} />;
