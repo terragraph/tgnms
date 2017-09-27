@@ -1193,6 +1193,7 @@ app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
   }
   aggregatorProxy.getAlertsConfig(configByName[topologyName], req, res, next);
 });
+
 app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   if (!configByName[topologyName]) {
@@ -1201,6 +1202,7 @@ app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (req, res, next)
   }
   aggregatorProxy.setAlertsConfig(configByName[topologyName], req, res, next);
 });
+
 // api handler
 require('./api/api.js')(app, configByName, fileTopologyByName, topologyByName);
 

@@ -24,6 +24,17 @@ enum AggrMessageType {
   GET_ALERTS_CONFIG_RESP = 502,
   SET_ALERTS_CONFIG = 503,
   SET_ALERTS_CONFIG_RESP = 504,
+
+  // ===  TrafficApp  === //
+  START_IPERF = 601,
+  START_IPERF_SERVER = 602,
+  START_IPERF_CLIENT = 603,
+  STOP_IPERF = 604,
+  GET_IPERF_STATUS = 605,
+  IPERF_STATUS_REPORT = 606,
+
+  // Common
+  AGGR_ACK = 1001,
 }
 
 #############  StatusApp ##############
@@ -97,9 +108,52 @@ struct AggrSyslogReport {
   2: list<AggrSyslog> syslogs;
 }
 
+############# TrafficApp ##############
+
+struct AggrStartIperf {
+  1: string src_node_id;
+  2: string src_node_ipv6;
+  3: string dst_node_id;
+  4: string dst_node_ipv6;
+  5: i64 bitrate;
+  6: i32 time_sec;
+}
+
+struct AggrStartAgentIperfServer {
+  1: i32 server_port;
+}
+
+struct AggrStartAgentIperfClient {
+  1: string server_ipv6_address;
+  2: i32 server_port;
+  3: i64 bitrate;
+  4: i32 time_sec;
+}
+
+struct AggrStopIperf {
+  1: string node_id;
+}
+
+struct AggrStopAgentIperf {}
+
+struct AggrGetIperfStatus {
+  1: string node_id;
+}
+
+struct AggrIperfStatusReport {
+  1: map<i32, AggrStartAgentIperfClient> clients;
+  2: map<i32, AggrStartAgentIperfServer> servers;
+}
+
 ############# Common #############
 
 struct AggrMessage {
   1: AggrMessageType mType;
   2: binary value;
+}
+
+// Ack to asynchronous requests
+struct AggrAck {
+  1: bool success;
+  2: string message;
 }

@@ -293,6 +293,269 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/startTraffic",
+    "title": "Start Iperf Traffic",
+    "name": "StartTraffic",
+    "group": "Performance",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "topology",
+            "description": "<p>Topology Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "srcNode",
+            "description": "<p>Source Node Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "dstNode",
+            "description": "<p>Destination Node Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "srcIp",
+            "description": "<p>Source IP</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "dstIp",
+            "description": "<p>Destination IP</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "bitrate",
+            "description": "<p>Transfer rate (bps)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "timesec",
+            "description": "<p>Time (seconds)</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example:",
+        "content": "curl -id '{\"topology\": \"Lab F8 B\", \"srcNode\": \"terra111.f5.tb.a404-if\", \"dstNode\": \"terra121.f5.tb.a404-if\", \"srcIp\": \"2620:10d:c089:2164::1\", \"dstIp\": \"2620:10d:c089:2121::1\", \"bitrate\": 100, \"timeSec\": 100}' http://localhost:443/api/startTraffic",
+        "type": "curl"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Performance",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Indicates the command was received by the controller</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "InvalidInput",
+            "description": "<p>The input is invalid</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"success\":\"false\",\n  \"error\":\"Input validation failed: Error: Field linkName specified with invalid link: link-terra121.f5.td.a404-if-terra222.f5.td.a404-\"}\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/statusTraffic",
+    "title": "Iperf Node Status",
+    "name": "StatusTraffic",
+    "group": "Performance",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "topology",
+            "description": "<p>Topology Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "node",
+            "description": "<p>Node Name</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example:",
+        "content": "curl -id '{\"topology\": \"Lab F8 B\", \"node\": \"terra111.f5.tb.a404-if\"}' http://localhost:443/api/statusTraffic",
+        "type": "curl"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Performance",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Indicates the command was received by the controller</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "InvalidInput",
+            "description": "<p>The input is invalid</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"success\":\"false\",\n  \"error\":\"Input validation failed: Error: Field linkName specified with invalid link: link-terra121.f5.td.a404-if-terra222.f5.td.a404-\"}\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/stopTraffic",
+    "title": "Stop Iperf Traffic",
+    "name": "StopTraffic",
+    "group": "Performance",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "topology",
+            "description": "<p>Topology Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "node",
+            "description": "<p>Node Name</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example:",
+        "content": "curl -id '{\"topology\": \"Lab F8 B\", \"node\": \"terra111.f5.tb.a404-if\"}' http://localhost:443/api/stopTraffic",
+        "type": "curl"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Performance",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Indicates the command was received by the controller</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "InvalidInput",
+            "description": "<p>The input is invalid</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"success\":\"false\",\n  \"error\":\"Input validation failed: Error: Field linkName specified with invalid link: link-terra121.f5.td.a404-if-terra222.f5.td.a404-\"}\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
     "url": "/addLink",
     "title": "Add Link",
     "name": "AddLink",

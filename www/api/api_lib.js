@@ -4,8 +4,10 @@ const ApiConsts = require('./api_consts');
 const ApiMethods = ApiConsts.ApiMethods;
 const VerificationType = ApiConsts.VerificationType;
 const ControllerProxy = require('../worker.js').ControllerProxy;
+const AggregatorProxy = require('../worker.js').AggregatorProxy;
 const Topology_ttypes = require('../thrift/gen-nodejs/Topology_types');
 const Controller_ttypes = require('../thrift/gen-nodejs/Controller_types');
+const Aggregator_ttypes = require('../thrift/gen-nodejs/Aggregator_types');
 
 class ApiLib {
   constructor(networkConfigs, topologyList, liveTopologies, postData) {
@@ -101,6 +103,8 @@ class ApiLib {
                             ' is not a number: ' + fieldValue);
           }
           break;
+        case VerificationType.IS_IP_ADDR:
+          // TODO - real ip check
         case VerificationType.IS_STRING:
           if (typeof fieldValue != "string") {
             throw new Error('Field ' + fieldName +
@@ -152,10 +156,20 @@ class ApiLib {
 
   call(res, methodName) {
     var transport = new thrift.TFramedTransport(null, function(byteArray) {
+      var api = ApiMethods[methodName];
       // Flush puts a 4-byte header, which needs to be parsed/sliced.
       byteArray = byteArray.slice(4);
-      const ctrlProxy = new ControllerProxy(
-          this._networkConfig.controller_ip);
+      var endpoint;
+      switch (api.endpoint) {
+        case ApiConsts.EndpointType.CONTROLLER:
+          endpoint = new ControllerProxy(
+            this._networkConfig.controller_ip);
+          break;
+        case ApiConsts.EndpointType.AGGREGATOR:
+          endpoint = new AggregatorProxy(
+            this._networkConfig.aggregator_ip);
+          break;
+      }
       // inject the dest mac if needed
       let nodeMac;
       switch (methodName) {
@@ -169,10 +183,10 @@ class ApiLib {
         default:
           nodeMac = "";
       }
-      ctrlProxy.sendCtrlApiMsgType(ApiMethods[methodName].command,
-                                   byteArray,
-                                   nodeMac,
-                                   res);
+      endpoint.sendMsgType(ApiMethods[methodName].command,
+                           byteArray,
+                           nodeMac,
+                           res);
     }.bind(this));
     var tProtocol = new thrift.TCompactProtocol(transport);
     /**
@@ -573,6 +587,90 @@ class ApiLib {
         setIgnitionParamsReq.link_auto_ignite = {};
         setIgnitionParamsReq.link_auto_ignite[this._data.linkName] = this._data.enabled;
         setIgnitionParamsReq.write(tProtocol);
+        transport.flush();
+        break;
+      /**
+       * @api {post} /startTraffic Start Iperf Traffic
+       * @apiName StartTraffic
+       * @apiGroup Performance
+       *
+       * @apiParam {String} topology Topology Name
+       * @apiParam {String} srcNode Source Node Name
+       * @apiParam {String} dstNode Destination Node Name
+       * @apiParam {String} srcIp Source IP
+       * @apiParam {String} dstIp Destination IP
+       * @apiParam {Number} bitrate Transfer rate (bps)
+       * @apiParam {Number} timesec Time (seconds)
+       *
+       * @apiExample {curl} Example:
+       *    curl -id '{"topology": "Lab F8 B", "srcNode": "terra111.f5.tb.a404-if", "dstNode": "terra121.f5.tb.a404-if", "srcIp": "2620:10d:c089:2164::1", "dstIp": "2620:10d:c089:2121::1", "bitrate": 100, "timeSec": 100}' http://localhost:443/api/startTraffic
+       *
+       * @apiUse CallSuccess
+       * @apiUse InvalidInputError
+       */
+      case 'startTraffic':
+        var startTrafficReq = new Aggregator_ttypes.AggrStartIperf();
+        startTrafficReq.src_node_ipv6 = this._data.srcIp;
+        startTrafficReq.dst_node_ipv6 = this._data.dstIp;
+        startTrafficReq.bitrate = this._data.bitrate;
+        startTrafficReq.time_sec = this._data.timeSec;
+        // convert node names to mac addresses
+        this._networkConfig.topology.nodes.forEach(node => {
+          if (this._data.srcNode == node.name) {
+            startTrafficReq.src_node_id = node.mac_addr;
+          } else if (this._data.dstNode == node.name) {
+            startTrafficReq.dst_node_id = node.mac_addr;
+          }
+        });
+        startTrafficReq.write(tProtocol);
+        transport.flush();
+        break;
+      /**
+       * @api {post} /stopTraffic Stop Iperf Traffic
+       * @apiName StopTraffic
+       * @apiGroup Performance
+       *
+       * @apiParam {String} topology Topology Name
+       * @apiParam {String} node Node Name
+       *
+       * @apiExample {curl} Example:
+       *    curl -id '{"topology": "Lab F8 B", "node": "terra111.f5.tb.a404-if"}' http://localhost:443/api/stopTraffic
+       *
+       * @apiUse CallSuccess
+       * @apiUse InvalidInputError
+       */
+      case 'stopTraffic':
+        var stopTrafficReq = new Aggregator_ttypes.AggrStopIperf();
+        this._networkConfig.topology.nodes.forEach(node => {
+          if (this._data.node == node.name) {
+            stopTrafficReq.node_id = node.mac_addr;
+          }
+        });
+        stopTrafficReq.write(tProtocol);
+        transport.flush();
+        break;
+      /**
+       * @api {post} /statusTraffic Iperf Node Status
+       * @apiName StatusTraffic
+       * @apiGroup Performance
+       *
+       * @apiParam {String} topology Topology Name
+       * @apiParam {String} node Node Name
+       *
+       * @apiExample {curl} Example:
+       *    curl -id '{"topology": "Lab F8 B", "node": "terra111.f5.tb.a404-if"}' http://localhost:443/api/statusTraffic
+       *
+       * @apiUse CallSuccess
+       * @apiUse InvalidInputError
+       */
+      case 'statusTraffic':
+        var getIperfStatusReq = new Aggregator_ttypes.AggrGetIperfStatus();
+        this._networkConfig.topology.nodes.forEach(node => {
+          if (this._data.node == node.name) {
+            getIperfStatusReq.node_id = node.mac_addr;
+          }
+        });
+        getIperfStatusReq.write(tProtocol);
         transport.flush();
         break;
     }
