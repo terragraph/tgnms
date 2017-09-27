@@ -8,6 +8,8 @@ EnvironmentFile=-/etc/sysconfig/tg_services
 EnvironmentFile=-/etc/default/tg_services
 ExecStart=/home/nms/tgnms/service_chroot/e2e_controller/run
 Restart=on-failure
+ExecStopPost=/home/nms/tgnms/service_chroot/e2e_controller/stop
+RestartSec=2
 
 [Install]
 WantedBy=default.target
