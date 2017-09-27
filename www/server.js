@@ -70,6 +70,7 @@ var statusDumpsByName = {};
 var ignitionStateByName = {};
 var aggrStatusDumpsByName = {};
 var adjacencyMapsByName = {};
+var upgradeStateByName = {};
 
 var dashboards = {};
 fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
@@ -201,9 +202,9 @@ worker.on('message', (msg) => {
       }
       break;
     case 'upgrade_state':
-      console.log('oh we are here now huh', msg.upgradeState);
+      upgradeStateByName[msg.name] = (msg.success && msg.upgradeState) ?
+        msg.upgradeState : null;
 
-      // TODO: Kelvin: merge this with state dump and set it as internal state
       break;
     default:
       console.error('Unknown message type', msg.type);
@@ -295,6 +296,13 @@ function getTopologyByName(topologyName) {
     ignitionState = ignitionStateByName[topologyName];
   }
   networkConfig.ignition_state = ignitionState;
+
+  let upgradeState = [];
+  if (upgradeStateByName.hasOwnProperty(topologyName)) {
+    upgradeState = upgradeStateByName[topologyName];
+  }
+  networkConfig.upgradeState = upgradeState;
+
   return networkConfig;
 }
 
@@ -777,6 +785,7 @@ app.get(/\/topology\/list$/, function(req, res, next) {
 app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   let topology = getTopologyByName(topologyName);
+
   if (Object.keys(topology).length > 0) {
     res.json(topology);
     return;

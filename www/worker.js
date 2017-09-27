@@ -61,7 +61,6 @@ process.on('message', (msg) => {
               break;
             case Controller_ttypes.MessageType.UPGRADE_STATE_REQ:
               // recvmsg.mType = UPGRADE_STATE_DUMP
-              // console.log('worker: received upgrade state dump: ', data);
               process.send({
                 name: topology.name,
                 type: 'upgrade_state',

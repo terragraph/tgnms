@@ -8,6 +8,16 @@ import Dispatcher from '../../NetworkDispatcher.js';
 import NetworkStore from '../../NetworkStore.js';
 import ReactEventChart from '../../ReactEventChart.js';
 
+const upgradeStatusToString = {
+  10: 'NONE',
+  20: 'DOWNLOADING_IMAGE',
+  30: 'DOWNLOAD_FAILED',
+  40: 'FLASHING_IMAGE',
+  50: 'FLASH_FAILED',
+  60: 'FLASHED',
+  70: 'COMMIT_FAILED',
+}
+
 export default class UpgradeNodesTable extends React.Component {
   state = {
     nodesSelected: []
@@ -29,6 +39,10 @@ export default class UpgradeNodesTable extends React.Component {
     nodes.forEach(node => {
       var version = node.status_dump ? node.status_dump.version.slice(28) :
                                        'Not Available';
+
+      const upgradeStatus = (node.status_dump && node.status_dump.upgradeStatus) ?
+        upgradeStatusToString[node.status_dump.upgradeStatus.usType] : 'Not Available';
+
       rows.push(
         {
           name: node.name,
@@ -36,6 +50,7 @@ export default class UpgradeNodesTable extends React.Component {
           site_name: node.site_name,
           pop_node: node.pop_node,
           version: version,
+          upgradeStatus: upgradeStatus,
 
           key: node.name,
         },
@@ -136,7 +151,7 @@ export default class UpgradeNodesTable extends React.Component {
             height={this.props.height + 'px'}
             tableStyle={{
               width: '100%',
-              maxWidth: '940px',
+              maxWidth: this.props.width + 'px',
             }}
             key="nodesTable"
             options={ tableOptions }
@@ -162,6 +177,9 @@ export default class UpgradeNodesTable extends React.Component {
                              dataFormat={this.renderStatusColor}>
             Pop?
           </TableHeaderColumn>
+          <TableHeaderColumn width="80" dataSort={true} dataField="upgradeStatus">
+            Upgrade Status
+          </TableHeaderColumn>
           <TableHeaderColumn width="700" dataSort={true} dataField="version">
             Image Version
           </TableHeaderColumn>
@@ -172,10 +190,15 @@ export default class UpgradeNodesTable extends React.Component {
 }
 
 UpgradeNodesTable.propTypes = {
+  height: React.PropTypes.number.isRequired,
+  width: React.PropTypes.number.isRequired,
+  nodesSelectable: React.PropTypes.bool,
+
   topology: React.PropTypes.object.isRequired,
   onNodesSelected: React.PropTypes.func,
 };
 
 UpgradeNodesTable.defaultProps = {
+  nodesSelectable: true,
   onNodesSelected: ((nodes) => {})
 };

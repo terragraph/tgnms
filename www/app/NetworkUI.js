@@ -446,12 +446,14 @@ export default class NetworkUI extends React.Component {
          isOpen={this.state.upgradeModalOpen}
          onClose= {() => this.setState({upgradeModalOpen: false})}
          topology={viewProps.networkConfig.topology}
+         upgradeState={viewProps.networkConfig.upgradeState}
        />
      ) : (
        <ModalCommitUpgrade
          isOpen={this.state.upgradeModalOpen}
          onClose= {() => this.setState({upgradeModalOpen: false})}
          topology={viewProps.networkConfig.topology}
+         upgradeState={viewProps.networkConfig.upgradeState}
        />
      );
 
@@ -466,7 +468,8 @@ export default class NetworkUI extends React.Component {
         <ModalTopology
           isOpen= {this.state.topologyModalOpen}
           onClose= {() => this.setState({topologyModalOpen: false})}
-          topology= {this.state.topology}/>
+          topology= {this.state.topology}
+        />
 
         <div className="top-menu-bar">
           <Menu

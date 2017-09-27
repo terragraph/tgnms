@@ -95,7 +95,8 @@ export default class ModalCommitUpgrade extends React.Component {
           <label>Select nodes to commit for upgrade</label>
           <div className="upgrade-modal-row">
             <UpgradeNodesTable
-              height={300}
+              height={400}
+              width={940}
               topology={topology}
               onNodesSelected={this.updateSelectedNodes}
             />

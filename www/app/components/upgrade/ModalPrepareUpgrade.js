@@ -96,7 +96,8 @@ export default class ModalPrepareUpgrade extends React.Component {
   }
 
   render() {
-    const {topology, isOpen} = this.props;
+    const {topology, upgradeState, isOpen} = this.props;
+    console.log("let's see if this can work", topology, upgradeState);
     /*
     Prepare modal:
       List nodes
@@ -132,7 +133,8 @@ export default class ModalPrepareUpgrade extends React.Component {
           <label>Select nodes to prepare for upgrade</label>
           <div className="upgrade-modal-row">
             <UpgradeNodesTable
-              height={300}
+              height={400}
+              width={940}
               topology={topology}
               onNodesSelected={this.updateSelectedNodes}
             />
