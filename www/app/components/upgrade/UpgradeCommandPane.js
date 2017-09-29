@@ -26,16 +26,35 @@ export default class UpgradeCommandPane extends React.Component {
     });
   }
 
-  prepareUpgrade() {
-    Dispatcher.dispatch({
-      actionType: Actions.OPEN_PREPARE_UPGRADE_MODAL,
-    });
+  prepareUpgrade = () => {
+    const {nodes} = this.props;
+    if (nodes.length > 0) {
+      Dispatcher.dispatch({
+        actionType: Actions.OPEN_PREPARE_UPGRADE_MODAL,
+        nodes: this.props.nodes,
+      });
+    } else {
+      swal({
+        title: 'No Nodes Selected',
+        text: `Please select some nodes to upgrade in the table before proceeding`,
+        type: 'error'
+      });
+    }
   }
 
-  commitUpgrade() {
-    Dispatcher.dispatch({
-      actionType: Actions.OPEN_COMMIT_UPGRADE_MODAL,
-    });
+  commitUpgrade = () => {
+    const {nodes} = this.props;
+    if (nodes.length > 0) {
+      Dispatcher.dispatch({
+        actionType: Actions.OPEN_COMMIT_UPGRADE_MODAL,
+      });
+    } else {
+      swal({
+        title: 'No Nodes Selected',
+        text: `Please select some nodes to upgrade in the table before proceeding`,
+        type: 'error'
+      });
+    }
   }
 
   abortUpgrade() {
@@ -57,4 +76,9 @@ export default class UpgradeCommandPane extends React.Component {
       </div>
     );
   }
+}
+
+// pass node props in here so we can pass them as an action or show an alert telling the user to select nodes
+UpgradeCommandPane.propTypes = {
+  nodes: React.PropTypes.array.isRequired
 }

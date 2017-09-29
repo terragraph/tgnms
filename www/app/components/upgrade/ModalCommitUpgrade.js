@@ -3,12 +3,11 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 
 import { commitUpgrade } from '../../apiutils/upgradeAPIUtil.js';
-import UpgradeNodesTable from './UpgradeNodesTable.js';
 
 const modalStyle = {
   content : {
     width                 : 'calc(100% - 40px)',
-    maxWidth              : '1000px',
+    maxWidth              : '800px',
     display               : 'table',
     top                   : '50%',
     left                  : '50%',
@@ -24,7 +23,6 @@ export default class ModalCommitUpgrade extends React.Component {
     super(props);
 
     this.state = {
-      selectedNodes: [],    // list of nodes to upgrade
       timeout: 180,         // timeout for the entire commit operation
       skipFailure: true,    // skip failed nodes (will not stop operation)
       limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
@@ -36,18 +34,14 @@ export default class ModalCommitUpgrade extends React.Component {
   componentWillReceiveProps(nextProps) {
     // reset the selected nodes when the user opens/reopens the modal
     // this is done so our state syncs with the node table state (and we don't need to pass props to that table)
-    if (this.props.isOpen !== nextProps.isOpen) {
-      this.setState({selectedNodes: []});
-    }
-  }
-
-  updateSelectedNodes = (selectedNodes) => {
-    this.setState({selectedNodes});
+    // if (this.props.isOpen !== nextProps.isOpen) {
+    //   this.setState({selectedNodes: []});
+    // }
   }
 
   submitCommit() {
     const requestBody = {
-      nodes:            this.state.selectedNodes,
+      nodes:            this.props.upgradeNodes,
       timeout:          this.state.timeout,
       skipFailure:      this.state.skipFailure,
       skipLinks:        [],
@@ -78,6 +72,12 @@ export default class ModalCommitUpgrade extends React.Component {
       Commit delay
     */
 
+    const nodesList = (
+      <div>
+        {this.props.upgradeNodes.map((node) => <p>{node}</p>)}
+      </div>
+    )
+
     return (
       <Modal
         style={modalStyle}
@@ -92,14 +92,9 @@ export default class ModalCommitUpgrade extends React.Component {
             />
           </div>
 
-          <label>Select nodes to commit for upgrade</label>
+          <label>Nodes to commit for upgrade</label>
           <div className="upgrade-modal-row">
-            <UpgradeNodesTable
-              height={400}
-              width={940}
-              topology={topology}
-              onNodesSelected={this.updateSelectedNodes}
-            />
+            {nodesList}
           </div>
 
           <div className="upgrade-modal-row">
@@ -133,6 +128,7 @@ export default class ModalCommitUpgrade extends React.Component {
 }
 
 ModalCommitUpgrade.propTypes = {
+  upgradeNodes: React.PropTypes.array.isRequired,
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
   topology: React.PropTypes.object.isRequred,

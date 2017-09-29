@@ -49,7 +49,7 @@ const expressWs = require('express-ws')(app);
 const os = require('os');
 const pty = require('pty.js');
 
-const statusReportExpiry = 2 * 60000; // 2 minuets
+const statusReportExpiry = 2 * 60000; // 2 minutes
 const maxThriftRequestFailures = 1;
 const maxControllerEvents = 10;
 
@@ -297,13 +297,102 @@ function getTopologyByName(topologyName) {
   }
   networkConfig.ignition_state = ignitionState;
 
-  let upgradeState = [];
-  if (upgradeStateByName.hasOwnProperty(topologyName)) {
+  let upgradeState = null;
+  let upgradeStateDump = null;
+  if (upgradeStateByName.hasOwnProperty(topologyName) && !!upgradeStateByName[topologyName]) {
     upgradeState = upgradeStateByName[topologyName];
+    upgradeStateDump = getNodesWithUpgradeStatus(topology.nodes, upgradeState);
   }
   networkConfig.upgradeState = upgradeState;
+  networkConfig.upgradeStateDump = upgradeStateDump;
 
   return networkConfig;
+}
+
+function sortNodesByPendingReqs(nodes, pendingReqs) {
+  let nodeNameToNode = {};
+  nodes.forEach((node) => {
+    nodeNameToNode[node.name] = node;
+  })
+
+  let pendingReqNodes = [];
+
+
+/*
+a - e
+
+req: a, b
+
+
+a,b
+
+a: req
+
+*/
+
+  pendingReqs.forEach((req) => {
+    if (req.ugType === 10) {
+      // NODES level request
+      req.nodes.filter(nodeName => !!nodeNameToNode[nodeName]).forEach((nodeName) => {
+        pendingReqNodes.push(Object.assign({}, nodeNameToNode[nodeName], {
+          pendingReqId: req.urReq.upgradeReqId,
+          urType: req.urReq.urType
+        }));
+      });
+    } else if (req.ugType === 20) {
+      // NETWORK level request, First, convert the list of excluded nodes into a set
+      var excludedNodes = new Set(req.excludeNodes);
+      nodes.filter(node => !excludedNodes.has(node)).forEach((node) => {
+        pendingReqNodes.push(Object.assign({}, node, {
+          pendingReqId: req.urReq.upgradeReqId,
+          urType: req.urReq.urType
+        }));
+      });
+    }
+  });
+
+  return pendingReqNodes;
+}
+
+function getNodesWithUpgradeStatus(nodes, upgradeState) {
+  let upgradeStatusDump = {
+    curUpgradeReq: upgradeState.curReq,
+
+    curBatch: [],
+    pendingBatches: [],
+    pendingReqNodes: [], // a node might appear in multiple pending requests
+  };
+
+  // node mac_addr --> node object
+  let macAddrToNode = {};
+  nodes.forEach((node) => {
+    macAddrToNode[node.mac_addr] = node;
+  })
+
+  // populate current batch
+  let curBatchNodes = [];
+  upgradeState.curBatch.filter(macAddr => !!macAddrToNode[macAddr]).forEach((macAddr) => {
+    curBatchNodes.push(macAddrToNode[macAddr]);
+  });
+  upgradeStatusDump.curBatch = curBatchNodes;
+
+  // populate pending batches
+  let pendingBatchNodes = [];
+  upgradeState.pendingBatches.forEach((batch, batchIdx) => {
+    let nodesInBatch = [];
+    batch.filter(macAddr => !!macAddrToNode[macAddr]).forEach((macAddr) => {
+      nodesInBatch.push(macAddrToNode[macAddr]);
+    });
+    pendingBatchNodes.push(nodesInBatch);
+  });
+  upgradeStatusDump.pendingBatches = pendingBatchNodes;
+
+  // populate pending requests (disabled expanded view of nodes for now!)
+
+  // upgradeStatusDump.pendingReqNodes = sortNodesByPendingReqs(nodes, upgradeState.pendingReqs);
+  upgradeStatusDump.pendingReqNodes = [];
+  // console.log(upgradeStatusDump);
+  return upgradeStatusDump;
 }
 
 function reloadInstanceConfig() {

@@ -31,9 +31,9 @@ export default class UpgradeNodesTable extends React.Component {
   }
 
   getTableRows(nodes): Array<{name:string,
-                              mac_addr:string,
                               site_name:string,
                               pop_node:boolean,
+                              upgradeStatus:string,
                               version:string}>  {
     const rows = [];
     nodes.forEach(node => {
@@ -46,7 +46,6 @@ export default class UpgradeNodesTable extends React.Component {
       rows.push(
         {
           name: node.name,
-          mac_addr: node.mac_addr,
           site_name: node.site_name,
           pop_node: node.pop_node,
           version: version,
@@ -150,20 +149,17 @@ export default class UpgradeNodesTable extends React.Component {
         <BootstrapTable
             height={this.props.height + 'px'}
             tableStyle={{
-              width: '100%',
-              maxWidth: this.props.width + 'px',
+              width: 'calc(100% - 20px)',
+              // maxWidth: this.props.width + 'px',
             }}
             key="nodesTable"
             options={ tableOptions }
             data={this.getTableRows(nodesData)}
             striped={true} hover={true}
-            selectRow={selectRowProp}
+            selectRow={this.props.nodesSelectable ? selectRowProp : {}}
             trClassName= 'break-word'>
           <TableHeaderColumn width="170" dataSort={true} dataField="name" isKey={ true }>
             Name
-          </TableHeaderColumn>
-          <TableHeaderColumn width="160" dataSort={true} dataField="mac_addr">
-            MAC
           </TableHeaderColumn>
           <TableHeaderColumn width="80"
                              dataSort={true}
@@ -191,7 +187,6 @@ export default class UpgradeNodesTable extends React.Component {
 
 UpgradeNodesTable.propTypes = {
   height: React.PropTypes.number.isRequired,
-  width: React.PropTypes.number.isRequired,
   nodesSelectable: React.PropTypes.bool,
 
   topology: React.PropTypes.object.isRequired,
@@ -200,5 +195,11 @@ UpgradeNodesTable.propTypes = {
 
 UpgradeNodesTable.defaultProps = {
   nodesSelectable: true,
-  onNodesSelected: ((nodes) => {})
+  onNodesSelected: ((nodes) => {
+    // Dispatch an action that will be handled by the top level upgrade component
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_NODES_SELECTED,
+      nodes,
+    });
+  })
 };

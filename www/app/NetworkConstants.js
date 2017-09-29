@@ -34,6 +34,8 @@ const Actions = {
   OPEN_PREPARE_UPGRADE_MODAL: 500,
   OPEN_COMMIT_UPGRADE_MODAL: 501,
 
+  UPGRADE_NODES_SELECTED: 502,
+
   // upgrade actions (API response related)
 };
 
