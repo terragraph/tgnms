@@ -73,7 +73,7 @@ export default class ModalCommitUpgrade extends React.Component {
     */
 
     const nodesList = (
-      <div>
+      <div className="upgrade-modal-nodes-list">
         {this.props.upgradeNodes.map((node) => <p>{node}</p>)}
       </div>
     )

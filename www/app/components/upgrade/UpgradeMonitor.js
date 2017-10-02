@@ -10,10 +10,12 @@ export default class UpgradeMonitor extends React.Component {
 
     return (
       <div className='rc-upgrade-monitor'>
-        <UpgradeNodesTable
-          height={900}
-          topology={topology}
-        />
+        <div className='upgrade-monitor-row'>
+          <label>Node upgrade status (select nodes for upgrade)</label>
+          <UpgradeNodesTable
+            topology={topology}
+          />
+        </div>
       </div>
     );
   }

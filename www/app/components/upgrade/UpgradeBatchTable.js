@@ -18,7 +18,7 @@ const upgradeStatusToString = {
   70: 'COMMIT_FAILED',
 }
 
-export default class UpgradeNodesTable extends React.Component {
+export default class UpgradeBatchTable extends React.Component {
   state = {
     nodesSelected: []
   }
@@ -145,7 +145,7 @@ export default class UpgradeNodesTable extends React.Component {
     }
 
     return (
-      <div>
+      <div className='rc-upgrade-batch-table'>
         <BootstrapTable
             tableStyle={{
               width: 'calc(100% - 20px)',
@@ -184,7 +184,7 @@ export default class UpgradeNodesTable extends React.Component {
   }
 }
 
-UpgradeNodesTable.propTypes = {
+UpgradeBatchTable.propTypes = {
   height: React.PropTypes.number.isRequired,
   nodesSelectable: React.PropTypes.bool,
 
@@ -192,7 +192,7 @@ UpgradeNodesTable.propTypes = {
   onNodesSelected: React.PropTypes.func,
 };
 
-UpgradeNodesTable.defaultProps = {
+UpgradeBatchTable.defaultProps = {
   nodesSelectable: true,
   onNodesSelected: ((nodes) => {
     // Dispatch an action that will be handled by the top level upgrade component

@@ -34,15 +34,18 @@
 
 /* UPGRADE MONITORING */
 .rc-upgrade-monitor {
-  width: 100%;
-  /*background-color: #abcdef;*/
+  margin-top: 10px;
+
+  width: calc(100% - 220px);
+  overflow-y: auto;
 }
 
-
-
+.upgrade-monitor-row label {
+  font-size: 20px;
+  padding-left: 10px;
+}
 
 /* UPGRADE MODAL */
-
 .upgrade-modal-footer {
   margin-top: 10px;
 }
@@ -68,4 +71,9 @@
 
 .upgrade-modal-row input {
   width: 65%;
+}
+
+.upgrade-modal-nodes-list {
+  max-height: 200px;
+  overflow-y: auto;
 }
