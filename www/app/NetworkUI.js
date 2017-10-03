@@ -23,6 +23,7 @@ import {SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 import ModalPrepareUpgrade from './components/upgrade/ModalPrepareUpgrade.js';
 import ModalCommitUpgrade from './components/upgrade/ModalCommitUpgrade.js';
+import ModalUpgradeBinary from './components/upgrade/ModalUpgradeBinary.js';
 
 const VIEWS = {
   'map': 'Map',
@@ -468,6 +469,9 @@ export default class NetworkUI extends React.Component {
          upgradeState={viewProps.networkConfig.upgradeState}
        />
      );
+
+
+     const upgradeBinaryModal =
 
     return (
       <div>
