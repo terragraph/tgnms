@@ -31,14 +31,6 @@ export default class ModalCommitUpgrade extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    // reset the selected nodes when the user opens/reopens the modal
-    // this is done so our state syncs with the node table state (and we don't need to pass props to that table)
-    // if (this.props.isOpen !== nextProps.isOpen) {
-    //   this.setState({selectedNodes: []});
-    // }
-  }
-
   submitCommit() {
     const requestBody = {
       nodes:            this.props.upgradeNodes,
@@ -50,7 +42,7 @@ export default class ModalCommitUpgrade extends React.Component {
       scheduleToCommit: this.state.scheduleToCommit,
 
       requestId:        'NMS' + new Date().getTime(),
-      topologyName:     this.props.topology.name
+      topologyName:     this.props.topologyName,
     };
 
     commitUpgrade(requestBody);
@@ -62,7 +54,7 @@ export default class ModalCommitUpgrade extends React.Component {
   }
 
   render() {
-    const {topology, isOpen} = this.props;
+    const {isOpen} = this.props;
     /*
     Commit modal:
       List nodes
@@ -92,7 +84,7 @@ export default class ModalCommitUpgrade extends React.Component {
             />
           </div>
 
-          <label>Nodes to commit for upgrade</label>
+          <label>Nodes to commit for upgrade ({this.props.upgradeNodes.length})</label>
           <div className="upgrade-modal-row">
             {nodesList}
           </div>
@@ -131,5 +123,5 @@ ModalCommitUpgrade.propTypes = {
   upgradeNodes: React.PropTypes.array.isRequired,
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
-  topology: React.PropTypes.object.isRequred,
+  topologyName: React.PropTypes.string.isRequred,
 }

@@ -43,14 +43,6 @@ export default class ModalPrepareUpgrade extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    // reset the selected nodes when the user opens/reopens the modal
-    // this is done so our state syncs with the node table state (and we don't need to pass props to that table)
-    // if (this.props.isOpen !== nextProps.isOpen) {
-    //   this.setState({selectedNodes: []});
-    // }
-  }
-
   submitPrepare() {
     const requestBody = {
       nodes:        this.props.upgradeNodes,
@@ -63,7 +55,7 @@ export default class ModalPrepareUpgrade extends React.Component {
 
       requestId:    'NMS' + new Date().getTime(),
       isHttp:       this.state.isHttp,
-      topologyName: this.props.topology.name
+      topologyName: this.props.topologyName,
     };
 
     // populate either the downloadAttempts or the torrentParams depending on the user selected mode
@@ -91,7 +83,7 @@ export default class ModalPrepareUpgrade extends React.Component {
   }
 
   render() {
-    const {topology, upgradeState, isOpen} = this.props;
+    const {upgradeState, isOpen} = this.props;
     /*
     Prepare modal:
       List nodes
@@ -131,7 +123,7 @@ export default class ModalPrepareUpgrade extends React.Component {
             />
           </div>
 
-          <label>Nodes to prepare for upgrade</label>
+          <label>Nodes to prepare for upgrade ({this.props.upgradeNodes.length})</label>
           <div className="upgrade-modal-row">
             {nodesList}
           </div>
@@ -229,5 +221,5 @@ ModalPrepareUpgrade.propTypes = {
   upgradeNodes: React.PropTypes.array.isRequired,
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
-  topology: React.PropTypes.object.isRequred,
+  topologyName: React.PropTypes.string.isRequred,
 }

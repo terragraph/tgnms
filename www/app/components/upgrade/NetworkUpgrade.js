@@ -11,9 +11,23 @@ export default class NetworkUpgrade extends React.Component {
   constructor(props) {
     super(props);
   }
+
   render() {
     // console.log('networkupgrade', this.props);
-    const {topology, upgradeState} = this.props.networkConfig;
+    const {networkConfig, upgradeStateDump} = this.props;
+    const {topology} = networkConfig;
+
+    // curUpgradeReq?
+    let curBatch = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('curBatch'))
+      ? upgradeStateDump.curBatch : [];
+
+    let pendingBatches = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingBatches'))
+      ? upgradeStateDump.pendingBatches : [];
+
+    // console.log('UPGRADE STATUS DUMP CURREQ', curUpgradeReq);
+    console.log('UPGRADE STATUS DUMP CURBATCH', curBatch);
+    console.log('UPGRADE STATUS DUMP PENDBATCH', pendingBatches);
+
 
     return (
       <div className="network-upgrade">
@@ -23,7 +37,8 @@ export default class NetworkUpgrade extends React.Component {
         />
         <UpgradeMonitor
           topology={topology}
-          upgradeState={upgradeState}
+          curBatch={curBatch}
+          pendingBatches={pendingBatches}
         />
       </div>
     );
@@ -32,5 +47,6 @@ export default class NetworkUpgrade extends React.Component {
 
 NetworkUpgrade.propTypes = {
   networkConfig: React.PropTypes.object.isRequired,
-  upgradeNodes: React.PropTypes.array,
+  upgradeNodes: React.PropTypes.array.isRequired,
+  upgradeStateDump: React.PropTypes.object.isRequired,
 }

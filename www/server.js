@@ -297,18 +297,18 @@ function getTopologyByName(topologyName) {
   }
   networkConfig.ignition_state = ignitionState;
 
-  let upgradeState = null;
   let upgradeStateDump = null;
   if (upgradeStateByName.hasOwnProperty(topologyName) && !!upgradeStateByName[topologyName]) {
-    upgradeState = upgradeStateByName[topologyName];
+    let upgradeState = upgradeStateByName[topologyName];
     upgradeStateDump = getNodesWithUpgradeStatus(topology.nodes, upgradeState);
   }
-  networkConfig.upgradeState = upgradeState;
+
   networkConfig.upgradeStateDump = upgradeStateDump;
 
   return networkConfig;
 }
 
+// TODO: Kelvin: not needed for now
 function sortNodesByPendingReqs(nodes, pendingReqs) {
   let nodeNameToNode = {};
   nodes.forEach((node) => {
@@ -316,19 +316,6 @@ function sortNodesByPendingReqs(nodes, pendingReqs) {
   })
 
   let pendingReqNodes = [];
-
-
-/*
-a - e
-
-req: a, b
-
-
-a,b
-
-a: req
-
-*/
 
   pendingReqs.forEach((req) => {
     if (req.ugType === 10) {
@@ -364,15 +351,15 @@ function getNodesWithUpgradeStatus(nodes, upgradeState) {
   };
 
   // node mac_addr --> node object
-  let macAddrToNode = {};
+  let nodeNameToNode = {};
   nodes.forEach((node) => {
-    macAddrToNode[node.mac_addr] = node;
+    nodeNameToNode[node.name] = node;
   })
 
   // populate current batch
   let curBatchNodes = [];
-  upgradeState.curBatch.filter(macAddr => !!macAddrToNode[macAddr]).forEach((macAddr) => {
-    curBatchNodes.push(macAddrToNode[macAddr]);
+  upgradeState.curBatch.filter(name => !!nodeNameToNode[name]).forEach((name) => {
+    curBatchNodes.push(nodeNameToNode[name]);
   });
   upgradeStatusDump.curBatch = curBatchNodes;
 
@@ -380,8 +367,8 @@ function getNodesWithUpgradeStatus(nodes, upgradeState) {
   let pendingBatchNodes = [];
   upgradeState.pendingBatches.forEach((batch, batchIdx) => {
     let nodesInBatch = [];
-    batch.filter(macAddr => !!macAddrToNode[macAddr]).forEach((macAddr) => {
-      nodesInBatch.push(macAddrToNode[macAddr]);
+    batch.filter(name => !!nodeNameToNode[name]).forEach((name) => {
+      nodesInBatch.push(nodeNameToNode[name]);
     });
     pendingBatchNodes.push(nodesInBatch);
   });

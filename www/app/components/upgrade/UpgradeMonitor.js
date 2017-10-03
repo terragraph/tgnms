@@ -2,11 +2,26 @@ import React from 'react';
 import { render } from 'react-dom';
 
 import UpgradeNodesTable from './UpgradeNodesTable.js';
-
+import UpgradeBatchTable from './UpgradeBatchTable.js';
 
 export default class UpgradeMonitor extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  flattenPendingBatches(pendingBatches) {
+    // this is essentially a flatmap of the pending batches
+    return pendingBatches.reduce((pendingNodes, batch, batchIdx) => {
+      return pendingNodes.concat(
+        batch.map(nodeInBatch => Object.assign({}, nodeInBatch, {batchIdx}))
+      );
+    }, []);
+  }
+
   render() {
-    const {topology, upgradeState} = this.props;
+    const {topology, curBatch, pendingBatches} = this.props;
+    const pendingBatchNodes = this.flattenPendingBatches(pendingBatches);
+    console.log('UPGRADE PENDING BATCH NODES', pendingBatchNodes);
 
     return (
       <div className='rc-upgrade-monitor'>
@@ -16,6 +31,20 @@ export default class UpgradeMonitor extends React.Component {
             topology={topology}
           />
         </div>
+        <div className='upgrade-monitor-row'>
+          <label>Nodes in current upgrade batch</label>
+          <UpgradeBatchTable
+            nodes={curBatch}
+            height={300}
+          />
+        </div>
+        <div className='upgrade-monitor-row'>
+          <label>Nodes pending upgrade</label>
+          <UpgradeBatchTable
+            nodes={pendingBatchNodes}
+            height={700}
+          />
+        </div>
       </div>
     );
   }
@@ -23,5 +52,7 @@ export default class UpgradeMonitor extends React.Component {
 
 UpgradeMonitor.propTypes = {
   topology: React.PropTypes.object.isRequired,
-  upgradeState: React.PropTypes.object.isRequired,
+
+  curBatch: React.PropTypes.array.isRequired,
+  pendingBatches: React.PropTypes.array.isRequired,
 }

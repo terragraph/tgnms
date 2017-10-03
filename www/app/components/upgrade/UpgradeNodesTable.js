@@ -5,8 +5,6 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import { availabilityColor } from '../../NetworkHelper.js';
 import { Actions } from '../../NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
-import NetworkStore from '../../NetworkStore.js';
-import ReactEventChart from '../../ReactEventChart.js';
 
 const upgradeStatusToString = {
   10: 'NONE',
@@ -28,6 +26,13 @@ export default class UpgradeNodesTable extends React.Component {
     this.tableOnSortChange = this.tableOnSortChange.bind(this);
     this.siteSortFunc = this.siteSortFunc.bind(this);
     this.getTableRows = this.getTableRows.bind(this);
+  }
+
+  componentWillUnmount() {
+    // clear the list of selected nodes when the table unmounts
+    // workaround to the fact that we persist the nodes selected state so we can pass the data in to the modal
+    this.props.onNodesSelected([]);
+    console.log('NODES YOU WORK WITH', this.props.topology.nodes);
   }
 
   getTableRows(nodes): Array<{name:string,
@@ -115,10 +120,9 @@ export default class UpgradeNodesTable extends React.Component {
   renderStatusColor(cell, row) {
     return (
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
-        {"" + cell}
+        {'' + cell}
       </span>);
   }
-
 
   render() {
     var selectRowProp = {
@@ -145,17 +149,18 @@ export default class UpgradeNodesTable extends React.Component {
     }
 
     return (
-      <div>
+      <div className='rc-upgrade-nodes-table'>
         <BootstrapTable
             tableStyle={{
               width: 'calc(100% - 20px)',
               maxHeight: '700px',
+              overflowY: 'auto',
             }}
             key="nodesTable"
             options={ tableOptions }
             data={this.getTableRows(nodesData)}
             striped={true} hover={true}
-            selectRow={this.props.nodesSelectable ? selectRowProp : {}}
+            selectRow={selectRowProp}
             trClassName= 'break-word'>
           <TableHeaderColumn width="170" dataSort={true} dataField="name" isKey={ true }>
             Name
@@ -185,15 +190,11 @@ export default class UpgradeNodesTable extends React.Component {
 }
 
 UpgradeNodesTable.propTypes = {
-  height: React.PropTypes.number.isRequired,
-  nodesSelectable: React.PropTypes.bool,
-
   topology: React.PropTypes.object.isRequired,
   onNodesSelected: React.PropTypes.func,
 };
 
 UpgradeNodesTable.defaultProps = {
-  nodesSelectable: true,
   onNodesSelected: ((nodes) => {
     // Dispatch an action that will be handled by the top level upgrade component
     Dispatcher.dispatch({

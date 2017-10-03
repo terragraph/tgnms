@@ -430,6 +430,7 @@ export default class NetworkUI extends React.Component {
         paneComponent = <NetworkUpgrade
           {...viewProps}
           upgradeNodes={this.state.upgradeNodes}
+          upgradeStateDump={this.state.networkConfig.upgradeStateDump}
         />;
         break;
       case 'config':
@@ -454,7 +455,7 @@ export default class NetworkUI extends React.Component {
        <ModalPrepareUpgrade
          isOpen={this.state.upgradeModalOpen}
          onClose= {() => this.setState({upgradeModalOpen: false})}
-         topology={viewProps.networkConfig.topology}
+         topologyName={viewProps.networkConfig.topology.name}
          upgradeNodes={this.state.upgradeNodes}
          upgradeState={viewProps.networkConfig.upgradeState}
        />
@@ -462,7 +463,7 @@ export default class NetworkUI extends React.Component {
        <ModalCommitUpgrade
          isOpen={this.state.upgradeModalOpen}
          onClose= {() => this.setState({upgradeModalOpen: false})}
-         topology={viewProps.networkConfig.topology}
+         topologyName={viewProps.networkConfig.topology.name}
          upgradeNodes={this.state.upgradeNodes}
          upgradeState={viewProps.networkConfig.upgradeState}
        />
