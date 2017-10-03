@@ -91,7 +91,7 @@ export default class UpgradeNodesTable extends React.Component {
     });
   }
 
-  siteSortFunc(a, b, order) {   // order is desc or asc
+  siteSortFunc(a, b, order) {
     if (this.state.selectedSiteName) {
       if (a.site_name == this.state.selectedSiteName) {
         return -1;

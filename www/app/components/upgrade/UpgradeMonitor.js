@@ -10,7 +10,8 @@ export default class UpgradeMonitor extends React.Component {
   }
 
   flattenPendingBatches(pendingBatches) {
-    // this is essentially a flatmap of the pending batches
+    // flatten the list of node batches into a single list of nodes
+    // then associate each node with the batch it belongs to (batchIdx)
     return pendingBatches.reduce((pendingNodes, batch, batchIdx) => {
       return pendingNodes.concat(
         batch.map(nodeInBatch => Object.assign({}, nodeInBatch, {batchIdx}))
@@ -21,7 +22,6 @@ export default class UpgradeMonitor extends React.Component {
   render() {
     const {topology, curBatch, pendingBatches} = this.props;
     const pendingBatchNodes = this.flattenPendingBatches(pendingBatches);
-    console.log('UPGRADE PENDING BATCH NODES', pendingBatchNodes);
 
     return (
       <div className='rc-upgrade-monitor'>

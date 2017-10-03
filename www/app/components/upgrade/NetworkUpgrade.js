@@ -13,7 +13,6 @@ export default class NetworkUpgrade extends React.Component {
   }
 
   render() {
-    // console.log('networkupgrade', this.props);
     const {networkConfig, upgradeStateDump} = this.props;
     const {topology} = networkConfig;
 
@@ -24,14 +23,8 @@ export default class NetworkUpgrade extends React.Component {
     let pendingBatches = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingBatches'))
       ? upgradeStateDump.pendingBatches : [];
 
-    // console.log('UPGRADE STATUS DUMP CURREQ', curUpgradeReq);
-    console.log('UPGRADE STATUS DUMP CURBATCH', curBatch);
-    console.log('UPGRADE STATUS DUMP PENDBATCH', pendingBatches);
-
-
     return (
       <div className="network-upgrade">
-        {/* status dump and map view coming soon */}
         <UpgradeCommandPane
           nodes={this.props.upgradeNodes}
         />
