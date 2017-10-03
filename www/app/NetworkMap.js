@@ -18,6 +18,7 @@ import DetailsLink from './components/detailpanels/DetailsLink.js';
 import DetailsSite from './components/detailpanels/DetailsSite.js';
 import DetailsTopology from './components/detailpanels/DetailsTopology.js';
 import DetailsPlannedSite from './components/detailpanels/DetailsPlannedSite.js';
+import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssues.js';
 
 import SplitPane from 'react-split-pane';
 import { polarityColor } from './NetworkHelper.js';
@@ -76,7 +77,9 @@ export default class NetworkMap extends React.Component {
     lowerPaneHeight: window.innerHeight / 2, // available height of the lower pane
 
     plannedSite: null,
-    linkOverlayData: null
+    linkOverlayData: null,
+    showTopologyIssuesPane: false,
+    newTopology: {},
   }
 
   constructor(props) {
@@ -229,6 +232,12 @@ export default class NetworkMap extends React.Component {
           });
         }
         break;
+      case Actions.TOPOLOGY_ISSUES_PANE:
+        this.setState({
+          showTopologyIssuesPane: payload.visible,
+          newTopology: payload.topology,
+        });
+        break;
     }
   }
 
@@ -251,8 +260,18 @@ export default class NetworkMap extends React.Component {
       let link = topologyJson.links[linkIndex];
       linksByName[link.name] = link;
       // calculate distance and angle for each link
+      if (!nodesByName.hasOwnProperty(link.a_node_name) ||
+          !nodesByName.hasOwnProperty(link.z_node_name)) {
+        console.error('Skipping invalid link', link);
+        return;
+      }
       let aNode = nodesByName[link.a_node_name];
       let zNode = nodesByName[link.z_node_name];
+      if (!sitesByName.hasOwnProperty(aNode.site_name) ||
+          !sitesByName.hasOwnProperty(zNode.site_name)) {
+        console.error('Skipping invalid link', link);
+        return;
+      }
       let aSite = sitesByName[aNode.site_name];
       let zSite = sitesByName[zNode.site_name];
       let aSiteCoords = new LatLng(aSite.location.latitude,
@@ -471,8 +490,29 @@ export default class NetworkMap extends React.Component {
     let siteComponents = [];
     let linkComponents = [];
     let siteMarkers = [];
-
     let topology = this.props.networkConfig.topology;
+    // assign pending sites, marking them with a pending flag
+    if (this.props.pendingTopology &&
+        this.props.pendingTopology.sites &&
+        this.props.pendingTopology.nodes &&
+        this.props.pendingTopology.links) {
+      this.props.pendingTopology.sites.forEach(site => {
+        let pendingSite = Object.assign({}, site);
+        pendingSite.pending = true;
+        topology.sites.push(pendingSite);
+      });
+      this.props.pendingTopology.nodes.forEach(node => {
+        let pendingNode = Object.assign({}, node);
+        pendingNode.pending = true;
+        topology.nodes.push(pendingNode);
+      });
+      this.props.pendingTopology.links.forEach(link => {
+        let pendingLink = Object.assign({}, link);
+        pendingLink.pending = true;
+        topology.links.push(pendingLink);
+      });
+    }
+
     Object.keys(topology.sites).map(siteIndex => {
       let site = topology.sites[siteIndex];
       if (!site.location) {
@@ -506,23 +546,27 @@ export default class NetworkMap extends React.Component {
       });
 
       let contextualMarker = null;
-      switch (this.props.siteOverlay) {
-        case 'Health':
-          if (totalCount == 0) {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Empty.color, siteIndex);
-          } else if (totalCount == healthyCount) {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Healthy.color, siteIndex);
-          } else if (healthyCount == 0) {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color, siteIndex);
-          } else {
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Partial.color, siteIndex);
-          }
-          break;
-        case 'Polarity':
-          contextualMarker = this.getSiteMarker(siteCoords, polarityColor(sitePolarity), siteIndex);
-          break;
-        default:
-          contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
+      if (site.hasOwnProperty('pending') && site.pending) {
+        contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Pending.Site, siteIndex);
+      } else {
+        switch (this.props.siteOverlay) {
+          case 'Health':
+            if (totalCount == 0) {
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Empty.color, siteIndex);
+            } else if (totalCount == healthyCount) {
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Healthy.color, siteIndex);
+            } else if (healthyCount == 0) {
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color, siteIndex);
+            } else {
+              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Partial.color, siteIndex);
+            }
+            break;
+          case 'Polarity':
+            contextualMarker = this.getSiteMarker(siteCoords, polarityColor(sitePolarity), siteIndex);
+            break;
+          default:
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
+        }
       }
       siteComponents.push(contextualMarker);
       if (hasPop) {
@@ -745,6 +789,7 @@ export default class NetworkMap extends React.Component {
         <img src="/static/images/layers.png" onClick={() => this.setState({detailsExpanded: true})}/>
       </Control>;
     let showOverview = false;
+    let topologyIssuesControl;
 
     const maxModalHeight = this.state.upperPaneHeight - 120; // offset
     if (this.state.detailsExpanded) {
@@ -802,6 +847,14 @@ export default class NetworkMap extends React.Component {
           />
         </Control>;
     }
+    if (this.state.showTopologyIssuesPane) {
+      topologyIssuesControl =
+        <Control position="topleft">
+          <DetailsTopologyIssues topology={this.props.networkConfig.topology}
+                                 maxHeight={maxModalHeight}
+                                 newTopology={this.state.newTopology} />
+        </Control>;
+    }
 
     let tablesControl =
       <Control position="bottomright" >
@@ -857,6 +910,7 @@ export default class NetworkMap extends React.Component {
             {siteMarkers}
             {layersControl}
             {tablesControl}
+            {topologyIssuesControl}
             {plannedSite}
           </CustomMap>
           <NetworkDataTable height={this.state.lowerPaneHeight}

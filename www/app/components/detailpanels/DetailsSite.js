@@ -49,6 +49,53 @@ export default class DetailsSite extends React.Component {
     }.bind(this), 1);
   }
 
+  addSite() {
+    let newSite = {
+      name: this.props.site.name,
+      lat: this.props.site.location.latitude,
+      long: this.props.site.location.longitude,
+      alt: this.props.site.location.altitude,
+    }
+    let postData = {
+      "topology": this.props.topologyName,
+      "newSite": newSite,
+    }
+    swal({
+      title: "Are you sure?",
+      text: "You are adding a site to this topology!",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, add it!",
+      closeOnConfirm: false
+    },
+    function(){
+      var request = new XMLHttpRequest();
+      request.onload = function() {
+        if (!request) {
+          return;
+        }
+        if (request.status == 200) {
+          swal({
+            title: "Site Added!",
+            text: "Response: "+request.statusText,
+            type: "success"
+          });
+        } else {
+          swal({
+            title: "Failed!",
+            text: "Adding a site failed\nReason: "+request.statusText,
+            type: "error"
+          });
+        }
+      }.bind(this);
+      try {
+        request.open('POST', '/controller/addSite', true);
+        request.send(JSON.stringify(postData));
+      } catch (e) {}
+    }.bind(this));
+  }
+
   renameSite() {
     swal({
       title: "Rename site",
@@ -261,13 +308,50 @@ export default class DetailsSite extends React.Component {
     });
     alivePercAvg /= linksList.length;
     alivePercAvg = parseInt(alivePercAvg * 1000) / 1000.0;
-
+    let actionsList = [];
+    actionsList.push(
+      <tr>
+        <td colSpan="5">
+          <h4>Actions</h4>
+        </td>
+      </tr>
+    );
+    if (this.props.site.hasOwnProperty('pending') && this.props.site.pending) {
+      actionsList.push(
+        <tr>
+          <td colSpan="5">
+            <span className="details-link" onClick={() => {this.addSite()}}>
+              Add Site
+            </span>
+          </td>
+        </tr>
+      );
+    } else {
+      actionsList.push(
+        <tr>
+          <td colSpan="5">
+            <div>
+              <span className="details-link" onClick={() => {this.deleteSite()}}>
+                Delete Site
+              </span>
+            </div>
+            <div>
+              <span className="details-link" onClick={() => {this.renameSite()}}>
+                Rename Site
+              </span>
+            </div>
+          </td>
+        </tr>
+      );
+    }
     return (
       <div id="myModal" className="details">
         <div className="details-content">
           <div className="details-header">
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
-            <h3 style={{marginTop: "0px"}}>Site Details</h3>
+            <h3 style={{marginTop: "0px"}}>
+              {this.props.site.pending ? '(Pending) ' : ''}Site Details
+            </h3>
           </div>
           <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>
@@ -297,17 +381,7 @@ export default class DetailsSite extends React.Component {
                     </span>
                   </td>
                 </tr>
-                <tr>
-                  <td colSpan="5">
-                    <h4>Actions</h4>
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan="5">
-                    <div><span className="details-link" onClick={() => {this.deleteSite()}}>Delete Site</span></div>
-                    <div><span className="details-link" onClick={() => {this.renameSite()}}>Rename Site</span></div>
-                  </td>
-                </tr>
+                {actionsList}
               </tbody>
             </table>
           </div>

@@ -29,6 +29,12 @@ const Actions = {
   // network health
   HEALTH_REFRESHED: 400,
   LINK_OVERLAY_REFRESHED: 401,
+
+  // show/hide topology issues
+  TOPOLOGY_ISSUES_PANE: 500,
+
+  // pending topology
+  PENDING_TOPOLOGY: 600,
 };
 
 const SiteOverlayKeys = {
@@ -42,6 +48,10 @@ const SiteOverlayKeys = {
     Odd: {color: polarityColor(1)},
     Even: {color: polarityColor(2)},
     Hybrid: {color: polarityColor(3)}
+  },
+  Pending: {
+    Site: {color: 'pink'},
+    Node: {color: 'pink'}
   }
 }
 

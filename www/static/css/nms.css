@@ -142,3 +142,9 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   font-weight: bold;
   margin-left: 4px;
 }
+.topoDiffNew {
+  color: red;
+}
+.topoDiffExisting {
+  color: green;
+}

@@ -187,7 +187,9 @@ export default class DetailsLink extends React.Component {
         <div className="details-content">
           <div className="details-header">
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
-            <h3 style={{marginTop: "0px"}}>Link Details</h3>
+            <h3 style={{marginTop: "0px"}}>
+              {this.props.link.pending ? '(Pending) ' : ''}Link Details
+            </h3>
           </div>
           <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>
