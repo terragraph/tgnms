@@ -79,8 +79,6 @@ export default class UpgradeBatchTable extends React.Component {
 
 
   render() {
-    console.log('UPGRADE BATCH TABLE', this.props);
-
     const tableOptions = {
       sortName: this.state.sortName,
       sortOrder: this.state.sortOrder,

@@ -13,6 +13,11 @@ export default class UpgradeCommandPane extends React.Component {
   }
 
   launchUpgradeServer() {
+    Dispatcher.dispatch({
+      actionType: Actions.OPEN_UPGRADE_BINARY_MODAL,
+    });
+
+    /*
     swal({
       title: 'Functionality not supported',
       text: `Sorry, launching an image hosting server is not supported right now on NMS.
@@ -24,6 +29,7 @@ export default class UpgradeCommandPane extends React.Component {
       `,
       type: 'info'
     });
+    */
   }
 
   prepareUpgrade = () => {
