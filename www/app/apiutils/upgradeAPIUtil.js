@@ -3,6 +3,26 @@ import axios from 'axios';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
+
+export const uploadUpgradeBinary = (upgradeBinary) => {
+  if (!upgradeBinary) {
+    console.log("YOU HAD ONE JOB!");
+    return;
+  }
+
+  const uri = '/controller/uploadUpgradeBinary';
+
+  let data = new FormData();
+  data.append('binary', upgradeBinary);
+  axios.post(
+    uri, data
+  ).then((response) => {
+    console.log('It takes a lot of HOOPLA to make a krabby patty', response);
+  }).catch((error) => {
+    // 
+  })
+}
+
 export const prepareUpgrade = (upgradeGroupReq) => {
   const uri = '/controller/prepareUpgrade';
   axios.post(

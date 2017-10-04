@@ -4,6 +4,21 @@ const path = require('path');
 const fs = require('fs');
 const request = require('request');
 const express = require('express');
+
+// multer + configuration
+const multer  = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './static/tg-binaries');
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${new Date()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+
 const pug = require('pug');
 const compression = require('compression');
 // worker process
@@ -1319,6 +1334,18 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
       topology
     }, "", res);
   });
+});
+
+app.post(/\/controller\/uploadUpgradeBinary$/i, upload.single('binary'), function (req, res, next) {
+  console.log('file received!', req.file);
+
+  // thrift calls and stuff here
+
+  res.send({
+    fetcher: req.file,
+  });
+
+  // fs.unlinkSync('./' + req.file.path);
 });
 
 // aggregator endpoints

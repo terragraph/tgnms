@@ -44,7 +44,7 @@ export default class UpgradeBatchTable extends React.Component {
 
       // next version
       const nextVersion = (node.status_dump && node.status_dump.upgradeStatus) ?
-        node.status_dump.upgradeStatus.nextImage.version : 'N/A';
+        node.status_dump.upgradeStatus.nextImage.version.slice(28) : 'N/A';
 
       // TODO: some clever manipulation to get the batch as well, also: sort by batch then name
 

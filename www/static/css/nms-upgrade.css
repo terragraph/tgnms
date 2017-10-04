@@ -77,3 +77,27 @@
   max-height: 200px;
   overflow-y: auto;
 }
+
+.upgrade-modal-btn:disabled {
+  opacity: 0.5;
+}
+
+/* UPGRADE BINARY MODAL */
+.upgrade-modal-upload-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.upgrade-modal-upload-row {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.upgrade-modal-upload-wrapper input[type=file] {
+  font-size: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
