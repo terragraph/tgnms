@@ -1,5 +1,5 @@
-import { Actions } from './NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
+import { Actions } from '../NetworkConstants.js';
+import Dispatcher from '../NetworkDispatcher.js';
 // URL history
 import createHistory from 'history/createBrowserHistory';
 
@@ -221,5 +221,5 @@ const urlHistory = BrowserHistory.listen((location, action) => {
   }
   //console.log('action', action, 'location', location);
 });
- 
+
 module.exports = NetworkStore;

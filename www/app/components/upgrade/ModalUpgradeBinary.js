@@ -3,9 +3,7 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 import { uploadUpgradeBinary } from '../../apiutils/upgradeAPIUtil.js';
 
-
-// master modal file for listing, adding and deleting image binaries
-// to be opened in the first button in the menu
+import UpgradeImagesTable from './UpgradeImagesTable.js';
 
 const modalStyle = {
   content : {
@@ -26,11 +24,19 @@ export default class ModalUpgradeBinary extends React.Component {
     super(props);
 
     this.state = {
-      selectedFile: {}
+      upgradeImages: [], // retrieved from API
+      selectedFile: null,
+      selectedImages: []
     }
   }
 
   modalClose() {
+    this.setState({
+      upgradeImages: [],
+      selectedFile: null,
+      selectedImages: []
+    });
+
     this.props.onClose();
   }
 
@@ -42,15 +48,29 @@ export default class ModalUpgradeBinary extends React.Component {
   }
 
   onUploadFile = () => {
-    // uploadUpgradeBinary(this.state.selectedFile);
+    uploadUpgradeBinary(this.state.selectedFile);
+  }
+
+  onImagesSelected = (selectedImages) => {
+    this.setState({
+      selectedImages,
+    });
+  }
+
+  deleteSelectedImages = () => {
+    console.log('removing images', this.state.images, this.state.selectedImages);
+    // TODO: dispatch an action here!
   }
 
   render() {
     let uploadStatusText = 'Upload, what upload?';
 
     // we have to use refs here to initially access the file and to make sure it exists
-    const {upgradeImageFile} = this.refs;
-    const isFileSelected = !!upgradeImageFile && upgradeImageFile.files.length > 0;
+    const isFileSelected = !!this.state.selectedFile;
+
+    // TODO: mock images here
+
+    const fileName = isFileSelected ? this.state.selectedFile.name : '';
 
     return (
       <Modal
@@ -70,13 +90,26 @@ export default class ModalUpgradeBinary extends React.Component {
                 backgroundColor: '#8b9dc3',
                 marginLeft: '10px'
               }}
-            >Upload binary to server</button>
+            >Add selected binary to server</button>
           </div>
 
-          <div><label style={{marginRight: '10px'}}>File selected:</label>{this.state.selectedFile.name}</div>
+          <div><label style={{marginRight: '10px'}}>File selected:</label>{fileName}</div>
 
           <div className='upgrade-modal-upload-row'>
-            image table goes here
+            <UpgradeImagesTable
+              images={[]}
+              selectedImages={this.state.selectedImages}
+              onImagesSelected={this.onImagesSelected}
+            />
+          </div>
+
+          <div className='upgrade-modal-upload-row'>
+            <button
+              style={{backgroundColor: '#ff4444'}}
+              className='upgrade-modal-btn'
+              disabled={this.state.selectedImages.length == 0}
+              onClick={this.deleteSelectedImages}
+            >Delete Selected Images</button>
           </div>
 
         </div>

@@ -4,7 +4,7 @@ import equals from "equals";
 // dispatcher
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './NetworkStore.js';
+import NetworkStore from './stores/NetworkStore.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';

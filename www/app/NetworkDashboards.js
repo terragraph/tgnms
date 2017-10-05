@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './NetworkStore.js';
+import NetworkStore from './stores/NetworkStore.js';
 import ReactGridLayout, { WidthProvider } from 'react-grid-layout';
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 import Select from 'react-select';

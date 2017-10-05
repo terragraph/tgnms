@@ -9,7 +9,7 @@ import LeafletGeom from 'leaflet-geometryutil';
 // dispatcher
 import {Actions, SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './NetworkStore.js';
+import NetworkStore from './stores/NetworkStore.js';
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
 

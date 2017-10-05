@@ -32,7 +32,6 @@ export default class UpgradeNodesTable extends React.Component {
     // clear the list of selected nodes when the table unmounts
     // workaround to the fact that we persist the nodes selected state so we can pass the data in to the modal
     this.props.onNodesSelected([]);
-    console.log('NODES YOU WORK WITH', this.props.topology.nodes);
   }
 
   getTableRows(nodes): Array<{name:string,
