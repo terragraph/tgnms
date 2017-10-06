@@ -13,7 +13,7 @@ export default class NetworkUpgrade extends React.Component {
   }
 
   render() {
-    const {networkConfig, upgradeStateDump} = this.props;
+    const {selectedNodes, networkConfig, upgradeStateDump} = this.props;
     const {topology} = networkConfig;
 
     // curUpgradeReq?
@@ -26,10 +26,11 @@ export default class NetworkUpgrade extends React.Component {
     return (
       <div className="network-upgrade">
         <UpgradeCommandPane
-          nodes={this.props.upgradeNodes}
+          selectedNodes={selectedNodes}
         />
         <UpgradeMonitor
           topology={topology}
+          selectedNodes={selectedNodes}
           curBatch={curBatch}
           pendingBatches={pendingBatches}
         />
@@ -40,6 +41,6 @@ export default class NetworkUpgrade extends React.Component {
 
 NetworkUpgrade.propTypes = {
   networkConfig: React.PropTypes.object.isRequired,
-  upgradeNodes: React.PropTypes.array.isRequired,
+  selectedNodes: React.PropTypes.array.isRequired,
   upgradeStateDump: React.PropTypes.object.isRequired,
 }

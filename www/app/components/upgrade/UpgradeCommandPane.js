@@ -16,28 +16,13 @@ export default class UpgradeCommandPane extends React.Component {
     Dispatcher.dispatch({
       actionType: Actions.OPEN_UPGRADE_BINARY_MODAL,
     });
-
-    /*
-    swal({
-      title: 'Functionality not supported',
-      text: `Sorry, launching an image hosting server is not supported right now on NMS.
-      Please use these commands in a terminal instead:
-
-      tg upgrade launch_server -i <path to your image file>
-
-      This will return a URL where your image will be hosted.
-      `,
-      type: 'info'
-    });
-    */
   }
 
   prepareUpgrade = () => {
-    const {nodes} = this.props;
-    if (nodes.length > 0) {
+    const {selectedNodes} = this.props;
+    if (selectedNodes.length > 0) {
       Dispatcher.dispatch({
         actionType: Actions.OPEN_PREPARE_UPGRADE_MODAL,
-        nodes: this.props.nodes,
       });
     } else {
       swal({
@@ -49,8 +34,8 @@ export default class UpgradeCommandPane extends React.Component {
   }
 
   commitUpgrade = () => {
-    const {nodes} = this.props;
-    if (nodes.length > 0) {
+    const {selectedNodes} = this.props;
+    if (selectedNodes.length > 0) {
       Dispatcher.dispatch({
         actionType: Actions.OPEN_COMMIT_UPGRADE_MODAL,
       });
@@ -86,5 +71,5 @@ export default class UpgradeCommandPane extends React.Component {
 
 // pass node props in here so we can pass them as an action or show an alert telling the user to select nodes
 UpgradeCommandPane.propTypes = {
-  nodes: React.PropTypes.array.isRequired
+  selectedNodes: React.PropTypes.array.isRequired
 }

@@ -3,8 +3,7 @@ import { render } from 'react-dom';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 import { availabilityColor } from '../../NetworkHelper.js';
-import { Actions } from '../../NetworkConstants.js';
-import Dispatcher from '../../NetworkDispatcher.js';
+
 
 const upgradeStatusToString = {
   10: 'NONE',
@@ -17,15 +16,13 @@ const upgradeStatusToString = {
 }
 
 export default class UpgradeNodesTable extends React.Component {
-  state = {
-    nodesSelected: []
-  }
-
   constructor(props) {
     super(props);
     this.tableOnSortChange = this.tableOnSortChange.bind(this);
     this.siteSortFunc = this.siteSortFunc.bind(this);
     this.getTableRows = this.getTableRows.bind(this);
+
+    this.state = {};
   }
 
   componentWillUnmount() {
@@ -63,23 +60,21 @@ export default class UpgradeNodesTable extends React.Component {
   }
 
   onSelectAll = (isSelected) => {
-    const nodes = this.props.topology.nodes;
-    const nodesSelected = (isSelected) ? nodes.map(node => node.name) : [];
+    const {nodes} = this.props;
+    const selectedNodes = (isSelected) ? nodes.map(node => node.name) : [];
 
-    this.setState({nodesSelected});
-    this.props.onNodesSelected(nodesSelected);
+    this.props.onNodesSelected(selectedNodes);
   }
 
   tableOnRowSelect = (row, isSelected) => {
-    let nodesSelected = [];
+    let selectedNodes = [];
     if (isSelected) {
-      nodesSelected = [...this.state.nodesSelected, row.name];
+      selectedNodes = [...this.props.selectedNodes, row.name];
     } else {
-      nodesSelected = this.state.nodesSelected.filter((node) => node !== row.name);
+      selectedNodes = this.props.selectedNodes.filter((node) => node !== row.name);
     }
 
-    this.setState({nodesSelected});
-    this.props.onNodesSelected(nodesSelected);
+    this.props.onNodesSelected(selectedNodes);
   }
 
   tableOnSortChange(sortName, sortOrder) {
@@ -130,7 +125,7 @@ export default class UpgradeNodesTable extends React.Component {
       hideSelectColumn: false,
       bgColor: "rgb(183,210,255)",
       onSelect: this.tableOnRowSelect,
-      selected: this.state.nodesSelected,
+      selected: this.props.selectedNodes,
       onSelectAll: this.onSelectAll,
     };
 
@@ -140,12 +135,6 @@ export default class UpgradeNodesTable extends React.Component {
       onSortChange: this.tableOnSortChange,
       trClassName: 'break-word',
     };
-
-    let nodesData = [];
-    if (this.props.topology &&
-        this.props.topology.nodes) {
-      nodesData = this.props.topology.nodes;
-    }
 
     return (
       <div className='rc-upgrade-nodes-table'>
@@ -157,7 +146,7 @@ export default class UpgradeNodesTable extends React.Component {
             }}
             key="nodesTable"
             options={ tableOptions }
-            data={this.getTableRows(nodesData)}
+            data={this.getTableRows(this.props.nodes)}
             striped={true} hover={true}
             selectRow={selectRowProp}
             trClassName= 'break-word'>
@@ -189,16 +178,11 @@ export default class UpgradeNodesTable extends React.Component {
 }
 
 UpgradeNodesTable.propTypes = {
-  topology: React.PropTypes.object.isRequired,
+  nodes: React.PropTypes.array.isRequired,
+  selectedNodes: React.PropTypes.array.isRequired,
   onNodesSelected: React.PropTypes.func,
 };
 
 UpgradeNodesTable.defaultProps = {
-  onNodesSelected: ((nodes) => {
-    // Dispatch an action that will be handled by the top level upgrade component
-    Dispatcher.dispatch({
-      actionType: Actions.UPGRADE_NODES_SELECTED,
-      nodes,
-    });
-  })
+  onNodesSelected: (() => {})
 };

@@ -4,6 +4,9 @@ import { render } from 'react-dom';
 import UpgradeNodesTable from './UpgradeNodesTable.js';
 import UpgradeBatchTable from './UpgradeBatchTable.js';
 
+import { Actions } from '../../NetworkConstants.js';
+import Dispatcher from '../../NetworkDispatcher.js';
+
 export default class UpgradeMonitor extends React.Component {
   constructor(props) {
     super(props);
@@ -19,16 +22,27 @@ export default class UpgradeMonitor extends React.Component {
     }, []);
   }
 
+  onNodesSelected = (nodes) => {
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_NODES_SELECTED,
+      nodes,
+    });
+  }
+
   render() {
-    const {topology, curBatch, pendingBatches} = this.props;
+    const {topology, selectedNodes, curBatch, pendingBatches} = this.props;
     const pendingBatchNodes = this.flattenPendingBatches(pendingBatches);
+
+    const nodes = topology && topology.nodes ? topology.nodes : [];
 
     return (
       <div className='rc-upgrade-monitor'>
         <div className='upgrade-monitor-row'>
           <label>Node upgrade status (select nodes for upgrade)</label>
           <UpgradeNodesTable
-            topology={topology}
+            nodes={nodes}
+            selectedNodes={selectedNodes}
+            onNodesSelected={this.onNodesSelected}
           />
         </div>
         <div className='upgrade-monitor-row'>
@@ -52,7 +66,7 @@ export default class UpgradeMonitor extends React.Component {
 
 UpgradeMonitor.propTypes = {
   topology: React.PropTypes.object.isRequired,
-
+  selectedNodes: React.PropTypes.array.isRequired,
   curBatch: React.PropTypes.array.isRequired,
   pendingBatches: React.PropTypes.array.isRequired,
 }

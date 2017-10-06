@@ -62,7 +62,7 @@ export default class NetworkUI extends React.Component {
     overlaysModalOpen: false,
     topologyModalOpen: false,
 
-    upgradeNodes: [],
+    selectedNodesForUpgrade: [],
     upgradeModalOpen: false,
     upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
 
@@ -142,7 +142,7 @@ export default class NetworkUI extends React.Component {
     switch (payload.actionType) {
       case Actions.UPGRADE_NODES_SELECTED:
         this.setState({
-          upgradeNodes: payload.nodes
+          selectedNodesForUpgrade: payload.nodes
         });
         break;
       case Actions.OPEN_UPGRADE_BINARY_MODAL:
@@ -438,7 +438,7 @@ export default class NetworkUI extends React.Component {
       case 'upgrade':
         paneComponent = <NetworkUpgrade
           {...viewProps}
-          upgradeNodes={this.state.upgradeNodes}
+          selectedNodes={this.state.selectedNodesForUpgrade}
           upgradeStateDump={this.state.networkConfig.upgradeStateDump}
         />;
         break;
@@ -475,7 +475,7 @@ export default class NetworkUI extends React.Component {
             isOpen={this.state.upgradeModalOpen}
             onClose= {() => this.setState({upgradeModalOpen: false})}
             topologyName={viewProps.networkConfig.topology.name}
-            upgradeNodes={this.state.upgradeNodes}
+            upgradeNodes={this.state.selectedNodesForUpgrade}
             upgradeState={viewProps.networkConfig.upgradeState}
           />);
         break;
@@ -485,7 +485,7 @@ export default class NetworkUI extends React.Component {
             isOpen={this.state.upgradeModalOpen}
             onClose= {() => this.setState({upgradeModalOpen: false})}
             topologyName={viewProps.networkConfig.topology.name}
-            upgradeNodes={this.state.upgradeNodes}
+            upgradeNodes={this.state.selectedNodesForUpgrade}
             upgradeState={viewProps.networkConfig.upgradeState}
           />);
         break;
