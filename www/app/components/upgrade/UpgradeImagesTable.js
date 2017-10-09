@@ -2,32 +2,40 @@ import React from 'react';
 import { render } from 'react-dom';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
-import { Actions } from '../../NetworkConstants.js';
-import Dispatcher from '../../NetworkDispatcher.js';
+const classNames = require('classnames');
+
+class DeleteImageColumn extends React.Component {
+
+  onClick = () => {
+    const {imageName, onDelete} = this.props;
+    onDelete(imageName);
+  }
+
+  render() {
+    const iconClass = classNames('fa', 'fa-times', 'fa-lg');
+    return (
+      <i
+        style={{color: '#ff4444'}}
+        className={iconClass}
+        onClick={this.onClick}
+      />
+    );
+  }
+}
 
 export default class UpgradeImagesTable extends React.Component {
-
   constructor(props) {
     super(props);
     this.getTableRows = this.getTableRows.bind(this);
   }
 
-  onSelectAll = (isSelected) => {
-    const images = this.props.images;
-    const imagesSelected = (isSelected) ? images.map(image => image.name) : [];
-
-    this.props.onImagesSelected(imagesSelected);
-  }
-
-  tableOnRowSelect = (row, isSelected) => {
-    let imagesSelected = [];
-    if (isSelected) {
-      imagesSelected = [...this.props.imagesSelected, row.name];
-    } else {
-      imagesSelected = this.props.imagesSelected.filter((image) => image !== row.name);
-    }
-
-    this.props.onImagesSelected(imagesSelected);
+  activeFormatter = (cell, row, enumObject, index) => {
+    return (
+      <DeleteImageColumn
+        imageName={row.name}
+        onDelete={this.props.onDeleteImage}
+      />
+    );
   }
 
   getTableRows(): Array<{name:string,
@@ -37,26 +45,13 @@ export default class UpgradeImagesTable extends React.Component {
       rows.push({
         name: image.name,
         magnetUri: image.magnetUri,
-
         key: image.name,
       });
     });
     return rows;
   }
 
-
-  // TODO: move selected to props!
   render() {
-    var selectRowProp = {
-      mode: "checkbox",
-      clickToSelect: true,
-      hideSelectColumn: false,
-      bgColor: "rgb(183,210,255)",
-      onSelect: this.tableOnRowSelect,
-      selected: this.props.imagesSelected,
-      onSelectAll: this.onSelectAll,
-    };
-
     const tableOptions = {
       trClassName: 'break-word',
     };
@@ -73,15 +68,29 @@ export default class UpgradeImagesTable extends React.Component {
             options={ tableOptions }
             data={this.getTableRows()}
             striped={true} hover={true}
-            selectRow={selectRowProp}
             trClassName= 'break-word'>
-          <TableHeaderColumn width="300" dataSort={false} dataField="name" isKey={ true }>
+          <TableHeaderColumn width="70" dataSort={false} dataField="name" isKey={ true }>
             Name
           </TableHeaderColumn>
-          <TableHeaderColumn width="400"
-                             dataSort={false}
-                             dataField="magnetUri">
+          <TableHeaderColumn
+            width="400"
+            dataSort={false}
+            dataField="magnetUri"
+          >
             Magnet URI
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="45"
+            tdStyle={{
+              textAlign: 'center',
+              verticalAlign: 'middle',
+              padding: 0
+            }}
+            dataSort={false}
+            dataField="deleteImage"
+            dataFormat={this.activeFormatter}
+          >
+            Delete Image
           </TableHeaderColumn>
         </BootstrapTable>
       </div>
@@ -99,10 +108,5 @@ export default class UpgradeImagesTable extends React.Component {
 */
 UpgradeImagesTable.propTypes = {
   images: React.PropTypes.array.isRequired,
-  selectedImages: React.PropTypes.array.isRequired,
-  onImagesSelected: React.PropTypes.func,
-};
-
-UpgradeImagesTable.defaultProps = {
-  onImagesSelected: (() => {})
+  onDeleteImage: React.PropTypes.func.isRequired
 };

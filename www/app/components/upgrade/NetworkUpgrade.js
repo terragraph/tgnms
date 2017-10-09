@@ -1,9 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import { Actions } from '../../NetworkConstants.js';
-import Dispatcher from '../../NetworkDispatcher.js';
-
 import UpgradeCommandPane from './UpgradeCommandPane.js';
 import UpgradeMonitor from './UpgradeMonitor.js';
 

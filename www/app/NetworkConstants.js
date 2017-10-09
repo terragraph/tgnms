@@ -37,6 +37,9 @@ const Actions = {
 
   UPGRADE_NODES_SELECTED: 503,
 
+  // upgrade file-related actions
+  UPGRADE_IMAGES_LOADED: 530,
+
   // upgrade actions (API response related)
 };
 

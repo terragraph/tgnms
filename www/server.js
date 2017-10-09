@@ -1348,6 +1348,47 @@ app.post(/\/controller\/uploadUpgradeBinary$/i, upload.single('binary'), functio
   // fs.unlinkSync('./' + req.file.path);
 });
 
+app.get(/\/controller\/listUpgradeImages$/i, function (req, res, next) {
+  console.log('fetching images');
+
+  // syncWorker.sendCtrlMsgSync({
+  //   type: 'listUpgradeImages',
+  // }, "", res);
+
+
+  const mockImages = [
+    {
+      name: 'no name1',
+      magnetUri: 'sample magnet uri',
+    }, {
+      name: 'no name2',
+      magnetUri: 'sample magnet uri',
+    }, {
+      name: 'no name3',
+      magnetUri: 'sample magnet uri',
+    }
+  ];
+
+  res.send({
+    images: mockImages
+  });
+});
+
+app.get(/\/controller\/deleteUpgradeImage\/(.+)$/i, function (req, res, next) {
+  const [imageName] = req.params;
+  console.log('deleting images', imageName);
+
+
+  // syncWorker.sendCtrlMsgSync({
+  //   type: 'deleteUpgradeImages',
+  // }, "", res);
+
+  // nise no image
+  res.send({
+    images: []
+  });
+});
+
 // aggregator endpoints
 
 app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {

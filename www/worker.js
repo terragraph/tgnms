@@ -156,9 +156,13 @@ const command2MsgType = {
 
   // upgrade requests (sent to controller)
   'prepareUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
-  'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ
+  'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
 
-  // upgrade state requests
+  // upgrade images
+  // UPGRADE_ADD_IMAGES_REQ, UPGRADE_DEL_IMAGES_REQ, UPGRADE_LIST_IMAGES_REQ
+  'addUpgradeImage': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'removeUpgradeImage': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'listUpgradeImages': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ
 };
 
 var msgType2Params = {};
@@ -222,6 +226,8 @@ msgType2Params[Controller_ttypes.MessageType.UPGRADE_GROUP_REQ] = {
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_STATE_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE_CONFIG'};
+// TODO: do this for message types: UPGRADE_ADD_IMAGES_REQ, UPGRADE_DEL_IMAGES_REQ, UPGRADE_LIST_IMAGES_REQ
+
 
 const thriftSerialize = (struct) => {
   var result;
@@ -433,6 +439,10 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       upgradeGroupReqParams.limit = msg.limit;
 
       send(upgradeGroupReqParams);
+      break;
+    case 'listUpgradeImages':
+      console.log('todo');
+
       break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);

@@ -3,10 +3,12 @@ import axios from 'axios';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
+import { Actions } from '../NetworkConstants.js';
+import Dispatcher from '../NetworkDispatcher.js';
 
 export const uploadUpgradeBinary = (upgradeBinary) => {
   if (!upgradeBinary) {
-    console.log("YOU HAD ONE JOB!");
+    // TODO: Kelvin: swal
     return;
   }
 
@@ -17,11 +19,36 @@ export const uploadUpgradeBinary = (upgradeBinary) => {
   axios.post(
     uri, data
   ).then((response) => {
-    console.log('It takes a lot of HOOPLA to make a krabby patty', response);
+    listUpgradeImages();
   }).catch((error) => {
-    // 
+    listUpgradeImages();
+    // TODO: Kelvin: swal
   })
-}
+};
+
+export const listUpgradeImages = () => {
+  const uri = '/controller/listUpgradeImages';
+
+  axios.get(uri).then((response) => {
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_IMAGES_LOADED,
+      upgradeImages: response.data.images
+    });
+  }).catch((error) => {
+    // TODO: Kelvin: swal
+  })
+};
+
+export const deleteUpgradeImage = (imageName) => {
+  const uri = '/controller/deleteUpgradeImage/' + imageName;
+
+  axios.get(uri).then((response) => {
+    listUpgradeImages();
+  }).catch((error) => {
+    listUpgradeImages();
+    // TODO: Kelvin: swal
+  })
+};
 
 export const prepareUpgrade = (upgradeGroupReq) => {
   const uri = '/controller/prepareUpgrade';

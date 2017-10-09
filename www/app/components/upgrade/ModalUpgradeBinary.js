@@ -1,7 +1,10 @@
 import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
-import { uploadUpgradeBinary } from '../../apiutils/upgradeAPIUtil.js';
+import { uploadUpgradeBinary, listUpgradeImages, deleteUpgradeImage } from '../../apiutils/upgradeAPIUtil.js';
+
+import { Actions } from '../../NetworkConstants.js';
+import Dispatcher from '../../NetworkDispatcher.js';
 
 import UpgradeImagesTable from './UpgradeImagesTable.js';
 
@@ -23,18 +26,42 @@ export default class ModalUpgradeBinary extends React.Component {
   constructor(props) {
     super(props);
 
+    this.dispatchToken = Dispatcher.register(
+      this.handleDispatchEvent.bind(this));
+
     this.state = {
-      upgradeImages: [], // retrieved from API
-      selectedFile: null,
-      selectedImages: []
+      upgradeImages: [],
+      selectedFile: null
+    }
+  }
+
+  componentWillMount() {
+    listUpgradeImages();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (!this.props.isOpen && nextProps.isOpen) {
+      listUpgradeImages();
+    }
+  }
+
+  handleDispatchEvent(payload) {
+    switch (payload.actionType) {
+      case Actions.UPGRADE_IMAGES_LOADED:
+        if (Array.isArray(payload.upgradeImages)) {
+          this.setState({
+            upgradeImages: payload.upgradeImages
+          });
+        }
+      default:
+        break;
     }
   }
 
   modalClose() {
     this.setState({
       upgradeImages: [],
-      selectedFile: null,
-      selectedImages: []
+      selectedFile: null
     });
 
     this.props.onClose();
@@ -51,26 +78,18 @@ export default class ModalUpgradeBinary extends React.Component {
     uploadUpgradeBinary(this.state.selectedFile);
   }
 
-  onImagesSelected = (selectedImages) => {
-    this.setState({
-      selectedImages,
-    });
+  deleteImage = (imageName) => {
+    console.log('deleting image', imageName);
+    deleteUpgradeImage(imageName);
   }
 
-  deleteSelectedImages = () => {
-    console.log('removing images', this.state.images, this.state.selectedImages);
-    // TODO: dispatch an action here!
-  }
 
   render() {
-    let uploadStatusText = 'Upload, what upload?';
+    const {selectedFile, upgradeImages} = this.state;
 
     // we have to use refs here to initially access the file and to make sure it exists
-    const isFileSelected = !!this.state.selectedFile;
-
-    // TODO: mock images here
-
-    const fileName = isFileSelected ? this.state.selectedFile.name : '';
+    const isFileSelected = !!selectedFile;
+    const fileName = isFileSelected ? selectedFile.name : '';
 
     return (
       <Modal
@@ -97,21 +116,10 @@ export default class ModalUpgradeBinary extends React.Component {
 
           <div className='upgrade-modal-upload-row'>
             <UpgradeImagesTable
-              images={[]}
-              selectedImages={this.state.selectedImages}
-              onImagesSelected={this.onImagesSelected}
+              images={upgradeImages}
+              onDeleteImage={this.deleteImage}
             />
           </div>
-
-          <div className='upgrade-modal-upload-row'>
-            <button
-              style={{backgroundColor: '#ff4444'}}
-              className='upgrade-modal-btn'
-              disabled={this.state.selectedImages.length == 0}
-              onClick={this.deleteSelectedImages}
-            >Delete Selected Images</button>
-          </div>
-
         </div>
         <div className="upgrade-modal-footer">
           <button className='upgrade-modal-btn' onClick={this.modalClose.bind(this)}>Close</button>
