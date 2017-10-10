@@ -212,6 +212,67 @@ class ApiLib {
      *    "success": true
      *  }
      */
+    /**
+     * @apiDefine ConfigNodesResponseBlock
+     *
+     * @apiSuccess (200) {Bool} success If controller was able to fetch config for all nodes
+     *
+     * @apiSuccessExample Success-Response:
+     *  HTTP/1.1 200
+     *  {
+     *    "success": true,
+     *    "response": {
+     *      "config": {
+     *        "nodeName1": {
+     *          "envParams": {},
+     *          "fwParams": {},
+     *          "logTailParams": {},
+     *          "statsAgentParams": {},
+     *          "sysParams": {}
+     *        }
+     *      }
+     *    }
+     *  }
+     */
+    /**
+     * @apiDefine ConfigNetworkResponseBlock
+     *
+     * @apiSuccess (200) {Bool} success If controller was able to fetch network config
+     *
+     * @apiSuccessExample Success-Response:
+     *  HTTP/1.1 200
+     *  {
+     *    "success": true,
+     *    "response": {
+     *      "config": {
+     *        "envParams": {},
+     *        "fwParams": {},
+     *        "logTailParams": {},
+     *        "statsAgentParams": {},
+     *        "sysParams": {}
+     *      }
+     *    }
+     *  }
+     */
+    /**
+     * @apiDefine ConfigSetResponseBlock
+     *
+     * @apiSuccess (200) {Bool} success If controller was able to set or 
+     * schedule the config change.
+     *
+     * @apiSuccessExample Success-Response:
+     *  HTTP/1.1 200
+     *  {
+     *    "success": true,
+     *    "response": {
+     *      "actions": {
+     *        "nodeName1": "LINK",
+     *        "nodeName2": "LINK",
+     *        "nodeName3": "NODE"
+     *      }
+     *    }
+     *  }
+     */
     switch (methodName) {
       /**
        * @api {post} /setLinkStatus Set Link Status
@@ -673,6 +734,107 @@ class ApiLib {
         getIperfStatusReq.write(tProtocol);
         transport.flush();
         break;
+      /**
+       * @api {post} /getNodesConfig Get Node(s) Config
+       * @apiName GetNodesConfig
+       * @apiDescription Get node configuration. Returns all
+       * node configs if empty list.
+       *
+       * @apiGroup Config
+       *
+       * @apiParam {String[]} nodes List of node names
+       * @apiUse ConfigNodesResponseBlock
+       */
+      case 'getNodesConfig':
+        break;
+      /**
+       * @api {post} /setNodesOverrideConfig Set Node(s) Override Config
+       * @apiName SetNodesOverrideConfig
+       * @apiDescription Set node override configuration.
+       *
+       * @apiGroup Config
+       *
+       * @apiParam {Object} nodeConfig Map<Node Name, NodeConfig object>
+       * @apiParamExample {json} Request-Example:
+       *  {
+       *    "nodes": {
+       *      "nodeName1": {
+       *        "envParams": {
+       *          "OOB_NETNS": "1"
+       *        },
+       *        "fwParams": {
+       *          "txPower": -5
+       *        }
+       *      }
+       *    },
+       *    "maxAction": "LINK"
+       *  }
+       * @apiParam {String="LINK","NODE","NETWORK"} maxAction Maximum
+       * action to allow when applying changes.
+       * @apiUse ConfigSetResponseBlock
+       */ 
+      case 'setNodesOverrideConfig':
+        break;
+      /**
+       * @api {post} /setNetworkOverrideConfig Set Network Override Config
+       * @apiName SetNetworkOverrideConfig
+       * @apiDescription Set network-wide override configuration.
+       *
+       * @apiGroup Config
+       *
+       * @apiParam {Object} config NodeConfig object
+       * @apiParamExample {json} Request-Example:
+       *  {
+       *    "config": {
+       *      "envParams": {
+       *        "OOB_NETNS": "1"
+       *      },
+       *      "fwParams": {
+       *        "txPower": -5
+       *      }
+       *    },
+       *    "maxAction": "LINK"
+       *  }
+       * @apiParam {String="LINK","NODE","NETWORK"} maxAction Maximum
+       * action to allow when applying changes.
+       * @apiUse ConfigSetResponseBlock
+       */ 
+      case 'setNetworkOverrideConfig':
+        break;
+      /**
+       * @api {post} /getNodesOverrideConfig Get Node(s) Override Config
+       * @apiName GetNodesOverrideConfig
+       * @apiDescription Get node overrides configuration. Returns all
+       * node configs if empty list.
+       * Node Overrides only include the options that are different from the base config.
+       *
+       * @apiGroup Config
+       *
+       * @apiParam {String[]} nodes List of node names
+       * @apiUse ConfigNodesResponseBlock
+       */
+      case 'getNodesOverrideConfig':
+        break;
+      /**
+       * @api {post} /getNetworkOverridesConfig Get Network Override Config
+       * @apiName GetNetworkOverridesConfig
+       * @apiDescription Get network overrides configuration.
+       * Network Overrides only include the options that are different from the base config.
+       *
+       * @apiGroup Config
+       *
+       * @apiUse ConfigNetworkResponseBlock
+       */
+      case 'getNetworkOverridesConfig':
+        break;
+      /**
+       * @api {post} /getConfigActions Get action per config option
+       * @apiDescription We still need to define a struct for mapping config
+       * parameters to their actions.
+       * EX: fwParams.txPower -> LINK
+       *     envParams.OPENR_ENABLED -> NODE
+       * @apiGroup ConfigTodo
+       */ 
     }
   }
 }
