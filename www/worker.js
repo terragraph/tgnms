@@ -160,7 +160,7 @@ const command2MsgType = {
 
   // upgrade images
   'addUpgradeImage': Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ,
-  'removeUpgradeImage': Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ,
+  'deleteUpgradeImage': Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ,
   'listUpgradeImages': Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ
 };
 
@@ -456,6 +456,12 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       var addUpgradeImageParams = new Controller_ttypes.UpgradeAddImageReq();
       addUpgradeImageParams.imageUrl = msg.imagePath;
       send(addUpgradeImageParams);
+
+      break;
+    case 'deleteUpgradeImage':
+      var delUpgradeImageParams = new Controller_ttypes.UpgradeDelImageReq();
+      delUpgradeImageParams.name = msg.name;
+      send(delUpgradeImageParams);
 
       break;
     default:

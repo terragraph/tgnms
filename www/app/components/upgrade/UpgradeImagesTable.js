@@ -92,7 +92,6 @@ export default class UpgradeImagesTable extends React.Component {
             dataField="deleteImage"
             dataFormat={this.activeFormatter}
           >
-            Delete Image
           </TableHeaderColumn>
         </BootstrapTable>
       </div>

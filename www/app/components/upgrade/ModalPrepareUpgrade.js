@@ -39,7 +39,7 @@ export default class ModalPrepareUpgrade extends React.Component {
       uploadLimit: -1,      // limit for torrent upload speed (-1 for unlimited)
       maxConnections: -1,   // max concurrent connections for torrent (-1 for unlimited)
 
-      isHttp: true,         // internal component state to let the user specify http or torrent properties
+      isHttp: false,         // internal component state to let the user specify http or torrent properties
     }
   }
 
@@ -158,7 +158,7 @@ export default class ModalPrepareUpgrade extends React.Component {
 
           <form> <label>Specify the mode to retrieve the image:</label>
             <div className="download-type-selector">
-              <input type="radio" id="http" value="http" onChange={this.onChangeDownloadMode} checked={this.state.isHttp}/>
+              <input type="radio" id="http" value="http" onChange={this.onChangeDownloadMode} checked={this.state.isHttp} disabled={true}/>
               <label for="http" style={{marginRight: '20px'}}>Http</label>
 
               <input type="radio" name="torrent" value="torrent" onChange={this.onChangeDownloadMode} checked={!this.state.isHttp}/>

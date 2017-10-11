@@ -1371,7 +1371,7 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, ne
   const topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync({
-    type: 'deleteUpgradeImages',
+    type: 'deleteUpgradeImage',
     topology: topology,
     name: imageName
   }, '', res);

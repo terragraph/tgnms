@@ -31,6 +31,11 @@ export default class ModalUpgradeBinary extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
+    // fetch the list of upgrade images every 5 seconds
+    // const intervalId = setInterval(
+    //   listUpgradeImages(this.props.topologyName), 5000
+    // );
+
     this.state = {
       upgradeImages: [],
       selectedFile: null,
@@ -46,6 +51,7 @@ export default class ModalUpgradeBinary extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (!this.props.isOpen && nextProps.isOpen) {
+      // when the modal is opened
       listUpgradeImages(this.props.topologyName);
     }
   }

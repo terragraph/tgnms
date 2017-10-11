@@ -54,6 +54,16 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     }, 5000);
 
     listUpgradeImages(topologyName);
+
+    swal({
+      title: "Upload Image Success",
+      text: `Your selected image has been uploaded successfully and is currently being prepared for use
+      and should be ready soon.
+
+      Please refresh the list of images periodically. If your image does not show up, please try again.
+      `,
+      type: "info"
+    });
   }).catch((error) => {
     Dispatcher.dispatch({
       actionType: Actions.UPGRADE_UPLOAD_STATUS,
@@ -61,7 +71,6 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     });
 
     listUpgradeImages(topologyName);
-    // TODO: Kelvin: swal
   })
 };
 
