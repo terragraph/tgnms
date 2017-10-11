@@ -41,13 +41,6 @@ const SETTINGS = {
   'topology': 'Topology Operations',
 };
 
-const UPGRADE_OPERATIONS = {
-  'BINARY':   'binary',
-  'PREPARE':  'prepare',
-  'COMMIT':   'commit',
-  'ABORT':    'abort',
-}
-
 // update network health at a lower interval (seconds)
 const NETWORK_HEALTH_INTERVAL_MIN = 30;
 
@@ -61,10 +54,6 @@ export default class NetworkUI extends React.Component {
     routing: {},
     overlaysModalOpen: false,
     topologyModalOpen: false,
-
-    selectedNodesForUpgrade: [],
-    upgradeModalOpen: false,
-    upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
 
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
@@ -140,29 +129,6 @@ export default class NetworkUI extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case Actions.UPGRADE_NODES_SELECTED:
-        this.setState({
-          selectedNodesForUpgrade: payload.nodes
-        });
-        break;
-      case Actions.OPEN_UPGRADE_BINARY_MODAL:
-        this.setState({
-          upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.BINARY,
-        });
-        break;
-      case Actions.OPEN_PREPARE_UPGRADE_MODAL:
-        this.setState({
-          upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
-        });
-        break;
-      case Actions.OPEN_COMMIT_UPGRADE_MODAL :
-        this.setState({
-          upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.COMMIT,
-        });
-        break;
       case Actions.VIEW_SELECTED:
         let viewName = payload.viewName;
         // ignore the menu
@@ -438,7 +404,6 @@ export default class NetworkUI extends React.Component {
       case 'upgrade':
         paneComponent = <NetworkUpgrade
           {...viewProps}
-          selectedNodes={this.state.selectedNodesForUpgrade}
           upgradeStateDump={this.state.networkConfig.upgradeStateDump}
         />;
         break;
@@ -460,43 +425,8 @@ export default class NetworkUI extends React.Component {
     }
 
     let upgradeNetworkModal = <div/>;
-    switch (this.state.upgradeModalMode) {
-      case UPGRADE_OPERATIONS.BINARY:
-        upgradeNetworkModal = (
-          <ModalUpgradeBinary
-            isOpen={this.state.upgradeModalOpen}
-            onClose= {() => this.setState({upgradeModalOpen: false})}
-            topologyName={viewProps.networkConfig.topology.name}
-          />
-        );
-        break;
-      case UPGRADE_OPERATIONS.PREPARE:
-        upgradeNetworkModal = (
-          <ModalPrepareUpgrade
-            isOpen={this.state.upgradeModalOpen}
-            onClose= {() => this.setState({upgradeModalOpen: false})}
-            topologyName={viewProps.networkConfig.topology.name}
-            upgradeNodes={this.state.selectedNodesForUpgrade}
-            upgradeState={viewProps.networkConfig.upgradeState}
-          />);
-        break;
-      case UPGRADE_OPERATIONS.COMMIT:
-        upgradeNetworkModal = (
-          <ModalCommitUpgrade
-            isOpen={this.state.upgradeModalOpen}
-            onClose= {() => this.setState({upgradeModalOpen: false})}
-            topologyName={viewProps.networkConfig.topology.name}
-            upgradeNodes={this.state.selectedNodesForUpgrade}
-            upgradeState={viewProps.networkConfig.upgradeState}
-          />);
-        break;
-      case UPGRADE_OPERATIONS.ABORT:
-        break;
-    }
-
     return (
       <div>
-        {upgradeNetworkModal}
         <ModalOverlays
           isOpen= {this.state.overlaysModalOpen}
           selectedSiteOverlay= {this.state.selectedSiteOverlay}
