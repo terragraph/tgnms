@@ -8,7 +8,6 @@ import Dispatcher from '../NetworkDispatcher.js';
 
 export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
   if (!upgradeBinary) {
-    // TODO: Kelvin: swal
     return;
   }
 

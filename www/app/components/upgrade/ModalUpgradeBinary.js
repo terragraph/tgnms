@@ -3,10 +3,8 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 const classNames = require('classnames');
 
+import { UploadStatus } from '../../NetworkConstants.js';
 import { uploadUpgradeBinary, listUpgradeImages, deleteUpgradeImage } from '../../apiutils/upgradeAPIUtil.js';
-
-import { Actions, UploadStatus } from '../../NetworkConstants.js';
-import Dispatcher from '../../NetworkDispatcher.js';
 
 import UpgradeImagesTable from './UpgradeImagesTable.js';
 
@@ -28,68 +26,32 @@ export default class ModalUpgradeBinary extends React.Component {
   constructor(props) {
     super(props);
 
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
-
-    // fetch the list of upgrade images every 5 seconds
-    // const intervalId = setInterval(
-    //   listUpgradeImages(this.props.topologyName), 5000
-    // );
-
     this.state = {
-      upgradeImages: [],
       selectedFile: null,
-
-      uploadStatus: UploadStatus.NONE,
-      uploadProgress: 0,
     }
   }
 
   componentWillMount() {
-    listUpgradeImages(this.props.topologyName);
+    this.refreshImages();
   }
 
   componentWillReceiveProps(nextProps) {
     if (!this.props.isOpen && nextProps.isOpen) {
       // when the modal is opened
-      listUpgradeImages(this.props.topologyName);
-    }
-  }
-
-  handleDispatchEvent(payload) {
-    switch (payload.actionType) {
-      case Actions.UPGRADE_IMAGES_LOADED:
-        if (Array.isArray(payload.upgradeImages)) {
-          this.setState({
-            upgradeImages: payload.upgradeImages
-          });
-        }
-        break;
-      case Actions.UPGRADE_UPLOAD_STATUS:
-        this.setState({
-          uploadStatus: payload.uploadStatus,
-          uploadProgress: 0
-        });
-        break;
-      case Actions.UPGRADE_UPLOAD_PROGRESS:
-        this.setState({
-          uploadProgress: payload.progress
-        });
-        break;
-      default:
-        break;
+      this.refreshImages();
     }
   }
 
   modalClose() {
     this.setState({
-      upgradeImages: [],
       selectedFile: null,
-      uploadStatus: UploadStatus.NONE,
-      uploadProgress: 0,
     });
 
     this.props.onClose();
+  }
+
+  refreshImages = () => {
+    listUpgradeImages(this.props.topologyName);
   }
 
   onSubmitFile = () => {
@@ -107,19 +69,12 @@ export default class ModalUpgradeBinary extends React.Component {
     deleteUpgradeImage(imageName, this.props.topologyName);
   }
 
-
-  render() {
-    const {selectedFile, upgradeImages, uploadStatus, uploadProgress} = this.state;
-
-    // we have to use refs here to initially access the file and to make sure it exists
-    const isFileSelected = !!selectedFile;
-    const fileName = isFileSelected ? selectedFile.name : '';
-
+  renderUploadStatus = () => {
     let uploadStatusDisplay = (
       <div></div>
     );
 
-    switch(uploadStatus) {
+    switch(this.props.uploadStatus) {
       case UploadStatus.UPLOADING:
         uploadStatusDisplay = (
           <div>
@@ -127,11 +82,9 @@ export default class ModalUpgradeBinary extends React.Component {
             <div className="progress">
               <div
                 className="progress-bar"
-                role="progressbar" style={{width: uploadProgress + '%'}}
+                role="progressbar" style={{width: this.props.uploadProgress + '%'}}
                 aria-valuemin="0" aria-valuemax="100"
-              >
-                {uploadProgress}%
-              </div>
+              >{this.props.uploadProgress}%</div>
             </div>
           </div>
         );
@@ -151,6 +104,19 @@ export default class ModalUpgradeBinary extends React.Component {
         );
         break;
     }
+
+    return uploadStatusDisplay;
+  }
+
+  render() {
+    const {upgradeImages, uploadStatus, uploadProgress} = this.props;
+    const {selectedFile} = this.state;
+
+    // we have to use refs here to initially access the file and to make sure it exists
+    const isFileSelected = !!selectedFile;
+    const fileName = isFileSelected ? selectedFile.name : '';
+
+    const uploadStatusDisplay = this.renderUploadStatus();
 
     return (
       <Modal
@@ -178,6 +144,11 @@ export default class ModalUpgradeBinary extends React.Component {
 
           {uploadStatusDisplay}
 
+          <div className='upgrade-modal-row' >
+            <i
+              className={classNames('fa', 'fa-refresh', 'fa-lg', 'refresh-images')}
+              aria-hidden="true" onClick={this.refreshImages} />
+          </div>
           <div className='upgrade-modal-row'>
             <UpgradeImagesTable
               images={upgradeImages}
@@ -194,6 +165,10 @@ export default class ModalUpgradeBinary extends React.Component {
 }
 
 ModalUpgradeBinary.propTypes = {
+  upgradeImages: React.PropTypes.array.isRequired,
+  uploadStatus: React.PropTypes.string.isRequired,
+  uploadProgress: React.PropTypes.number.isRequired,
+
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
   topologyName: React.PropTypes.string.isRequired,

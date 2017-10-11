@@ -693,7 +693,6 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ:
               var upgradeImages = new Controller_ttypes.UpgradeListImagesResp();
               upgradeImages.read(tProtocol);
-              console.log('UPGRADE_LIST_IMAGES_REQ received response', upgradeImages);
               resolve({type: 'msg', msg: upgradeImages});
               break;
             default:

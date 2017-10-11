@@ -1,8 +1,10 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import { Actions } from '../../NetworkConstants.js';
+import { Actions, UploadStatus } from '../../NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
+
+import { listUpgradeImages } from '../../apiutils/upgradeAPIUtil.js';
 
 import UpgradeCommandPane from './UpgradeCommandPane.js';
 import UpgradeMonitor from './UpgradeMonitor.js';
@@ -22,18 +24,59 @@ export default class NetworkUpgrade extends React.Component {
   constructor(props) {
     super(props);
 
+    const topologyName = this.props.networkConfig.topology.name;
+
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
+    listUpgradeImages(topologyName);
+
+    // fetch the list of upgrade images every 5 seconds
+    // save the interval id so we can clear it when the component unmounts
+    const intervalId = setInterval(
+      () => listUpgradeImages(topologyName), 5000
+    );
+
     this.state = {
+      // state related to upgrade images
+      upgradeImages: [],
+      uploadStatus: UploadStatus.NONE,
+      uploadProgress: 0,
+
+      // state related to upgrade nodes
       selectedNodesForUpgrade: [],
+
       upgradeModalOpen: false,
       upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
+
+      intervalId: intervalId,
     }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.state.intervalId);
   }
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
+      case Actions.UPGRADE_IMAGES_LOADED:
+        if (Array.isArray(payload.upgradeImages)) {
+          this.setState({
+            upgradeImages: payload.upgradeImages
+          });
+        }
+        break;
+      case Actions.UPGRADE_UPLOAD_STATUS:
+        this.setState({
+          uploadStatus: payload.uploadStatus,
+          uploadProgress: 0
+        });
+        break;
+      case Actions.UPGRADE_UPLOAD_PROGRESS:
+        this.setState({
+          uploadProgress: payload.progress
+        });
+        break;
       case Actions.UPGRADE_NODES_SELECTED:
         this.setState({
           selectedNodesForUpgrade: payload.nodes
@@ -64,15 +107,27 @@ export default class NetworkUpgrade extends React.Component {
 
   renderUpgradeModal = () => {
     const {networkConfig} = this.props;
+    const {
+      upgradeModalOpen,
+      upgradeModalMode,
+      selectedNodesForUpgrade,
+      upgradeImages,
+      uploadStatus,
+      uploadProgress
+    } = this.state;
 
     let upgradeNetworkModal = <div/>;
-    switch (this.state.upgradeModalMode) {
+    switch (upgradeModalMode) {
       case UPGRADE_OPERATIONS.BINARY:
         upgradeNetworkModal = (
           <ModalUpgradeBinary
             isOpen={this.state.upgradeModalOpen}
             onClose= {() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
+
+            upgradeImages={upgradeImages}
+            uploadStatus={uploadStatus}
+            uploadProgress={uploadProgress}
           />
         );
         break;

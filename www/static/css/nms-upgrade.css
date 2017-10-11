@@ -114,3 +114,13 @@
   top: 0;
   opacity: 0;
 }
+
+.refresh-images {
+  float: right;
+  margin-right: 10px;
+}
+
+.refresh-images:hover {
+  cursor: pointer;
+  color: #0095ff;
+}
