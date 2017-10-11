@@ -40,6 +40,9 @@ const Actions = {
   // upgrade file-related actions
   UPGRADE_IMAGES_LOADED: 530,
 
+  UPGRADE_UPLOAD_STATUS: 531,
+  UPGRADE_UPLOAD_PROGRESS: 532,
+
   // upgrade actions (API response related)
 };
 
@@ -100,8 +103,16 @@ const linkOverlayKeys = {
   },
 }
 
+const UploadStatus = {
+  NONE: 'NONE',
+  UPLOADING: 'UPLOADING',
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE'
+};
+
 module.exports = {
   Actions,
   SiteOverlayKeys,
-  linkOverlayKeys
+  linkOverlayKeys,
+  UploadStatus
 }

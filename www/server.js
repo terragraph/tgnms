@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
     cb(null, './static/tg-binaries');
   },
   filename: function (req, file, cb) {
-    cb(null, `${new Date()}-${file.originalname}`);
+    cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 
@@ -1337,56 +1337,44 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
 });
 
 app.post(/\/controller\/uploadUpgradeBinary$/i, upload.single('binary'), function (req, res, next) {
-  console.log('file received!', req.file);
-
   // thrift calls and stuff here
+  const {topologyName} = req.body;
+  const topology = getTopologyByName(topologyName);
 
-  res.send({
-    fetcher: req.file,
-  });
+  const urlPrefix = req.protocol + '://' + req.get('host');
+  const imagePath = `${urlPrefix}/${req.file.path}`;
 
-  // fs.unlinkSync('./' + req.file.path);
+  // http://[2620:10d:c089:e009:1a66:daff:fee8:de0]:8443/controller/listUpgradeImages/Lab%20F8%20D
+  console.log('uploadUpgradeBinary: image uploaded at: ', imagePath);
+  syncWorker.sendCtrlMsgSync({
+    type: 'addUpgradeImage',
+    topology: topology,
+    imagePath: imagePath
+  }, '', res);
 });
 
-app.get(/\/controller\/listUpgradeImages$/i, function (req, res, next) {
-  console.log('fetching images');
+app.get(/\/controller\/listUpgradeImages\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  const topology = getTopologyByName(topologyName);
 
-  // syncWorker.sendCtrlMsgSync({
-  //   type: 'listUpgradeImages',
-  // }, "", res);
-
-
-  const mockImages = [
-    {
-      name: 'no name1',
-      magnetUri: 'sample magnet uri',
-    }, {
-      name: 'no name2',
-      magnetUri: 'sample magnet uri',
-    }, {
-      name: 'no name3',
-      magnetUri: 'sample magnet uri',
-    }
-  ];
-
-  res.send({
-    images: mockImages
-  });
+  syncWorker.sendCtrlMsgSync({
+    type: 'listUpgradeImages',
+    topology: topology
+  }, '', res);
 });
 
-app.get(/\/controller\/deleteUpgradeImage\/(.+)$/i, function (req, res, next) {
-  const [imageName] = req.params;
-  console.log('deleting images', imageName);
 
+app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  const imageName = req.params[1];
 
-  // syncWorker.sendCtrlMsgSync({
-  //   type: 'deleteUpgradeImages',
-  // }, "", res);
+  const topology = getTopologyByName(topologyName);
 
-  // nise no image
-  res.send({
-    images: []
-  });
+  syncWorker.sendCtrlMsgSync({
+    type: 'deleteUpgradeImages',
+    topology: topology,
+    name: imageName
+  }, '', res);
 });
 
 // aggregator endpoints

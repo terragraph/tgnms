@@ -78,6 +78,16 @@
   overflow-y: auto;
 }
 
+.upgrade-add-img-btn {
+  padding: 0;
+  border: none;
+  margin-left: 10px;
+}
+
+.upgrade-add-img-btn:disabled {
+  opacity: 0.5;
+}
+
 .upgrade-modal-btn:disabled {
   opacity: 0.5;
 }
@@ -91,6 +101,9 @@
 
 .upgrade-modal-upload-row {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+
   margin-bottom: 10px;
 }
 
@@ -100,8 +113,4 @@
   left: 0;
   top: 0;
   opacity: 0;
-}
-
-.col-delete-image {
-  
 }

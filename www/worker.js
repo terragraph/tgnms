@@ -159,10 +159,9 @@ const command2MsgType = {
   'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
 
   // upgrade images
-  // UPGRADE_ADD_IMAGES_REQ, UPGRADE_DEL_IMAGES_REQ, UPGRADE_LIST_IMAGES_REQ
-  'addUpgradeImage': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
-  'removeUpgradeImage': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
-  'listUpgradeImages': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ
+  'addUpgradeImage': Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ,
+  'removeUpgradeImage': Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ,
+  'listUpgradeImages': Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ
 };
 
 var msgType2Params = {};
@@ -226,7 +225,15 @@ msgType2Params[Controller_ttypes.MessageType.UPGRADE_GROUP_REQ] = {
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_STATE_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE_CONFIG'};
-// TODO: do this for message types: UPGRADE_ADD_IMAGES_REQ, UPGRADE_DEL_IMAGES_REQ, UPGRADE_LIST_IMAGES_REQ
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
 
 
 const thriftSerialize = (struct) => {
@@ -441,7 +448,14 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(upgradeGroupReqParams);
       break;
     case 'listUpgradeImages':
-      console.log('todo');
+      var listUpgradeImagesParams = new Controller_ttypes.UpgradeListImagesReq();
+      send(listUpgradeImagesParams);
+
+      break;
+    case 'addUpgradeImage':
+      var addUpgradeImageParams = new Controller_ttypes.UpgradeAddImageReq();
+      addUpgradeImageParams.imageUrl = msg.imagePath;
+      send(addUpgradeImageParams);
 
       break;
     default:
@@ -581,6 +595,9 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
+            case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -652,6 +669,8 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
             case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -664,6 +683,12 @@ class ControllerProxy extends EventEmitter {
               var ignitionState = new Controller_ttypes.IgnitionState();
               ignitionState.read(tProtocol);
               resolve({type: 'msg', msg: ignitionState});
+              break;
+            case Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ:
+              var upgradeImages = new Controller_ttypes.UpgradeListImagesResp();
+              upgradeImages.read(tProtocol);
+              console.log('UPGRADE_LIST_IMAGES_REQ received response', upgradeImages);
+              resolve({type: 'msg', msg: upgradeImages});
               break;
             default:
               console.error('sendCtrlMsgTypeSync: No receive handler defined for', msgType);

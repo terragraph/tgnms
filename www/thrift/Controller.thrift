@@ -9,6 +9,7 @@ enum MessageType {
   // ===  StatusApp  === //
   // Requests handled (by Ctrl StatusApp)
   GET_STATUS_DUMP = 101,
+  REBOOT_REQUEST = 102;
   // Responses given (by Ctrl StatusApp)
   STATUS_DUMP = 121,
   // Requests handled (by Minion StatusApp)
@@ -63,9 +64,13 @@ enum MessageType {
   UPGRADE_STATE_REQ = 442,
   UPGRADE_ABORT_REQ = 443,
   UPGRADE_COMMIT_PLAN_REQ = 444,
+  UPGRADE_ADD_IMAGE_REQ = 445,
+  UPGRADE_DEL_IMAGE_REQ = 446,
+  UPGRADE_LIST_IMAGES_REQ = 447,
   // responses given (by Ctrl UpgradeApp)
   UPGRADE_STATE_DUMP = 451,
   UPGRADE_COMMIT_PLAN = 452,
+  UPGRADE_LIST_IMAGES_RESP = 453,
 
   // ===  ScanApp === //
   // E2E -> Minion and Minion -> FW
@@ -103,6 +108,7 @@ enum MessageType {
   PHY_GOLAY_SEQUENCE_CONFIG_REQ = 510,
   FW_CONFIG_REQ = 511,
   PHY_TPC_CONFIG_REQ = 512,
+  FW_BF_RESP_SCAN = 513,
   // north bound
   NODE_INIT_NOTIFY = 551,
   DR_LINK_STATUS = 552,
@@ -233,12 +239,38 @@ struct UpgradeCommitPlan {
                                // list of 2 nodes
 }
 
+struct UpgradeImage {
+  1: string name; // unique, descriptive name for the image (not filename)
+  2: string magnetUri; // magnet URI for this image
+}
+
+struct UpgradeAddImageReq {
+  1: string imageUrl; // image http URL (for controller to download)
+}
+
+struct UpgradeDelImageReq {
+  1: string name; // 'name' from UpgradeImage
+}
+
+struct UpgradeListImagesReq {}
+
+struct UpgradeListImagesResp {
+  1: list<UpgradeImage> images;
+}
+
 #############  StatusApp ##############
 
 struct GetStatusDump {}
 
+struct RebootReq {
+  1: list<string> nodes;
+  2: bool forced;
+  3: i32 secondsToReboot;
+}
+
 struct RebootNode {
   1: bool forced;
+  2: optional i32 secondsToReboot = 5;
 }
 
 struct StatusDump {
@@ -309,6 +341,8 @@ struct SetLinkStatus {
   3: optional Topology.NodeType responderNodeType; // responder node type
   4: optional Topology.GolayIdx golayIdx; // responder golay code
   5: optional i64 controlSuperframe;  // control superframe for the link
+  6: optional Topology.PolarityType responderNodePolarity;  // responder Node
+                                                            // Polarity
 }
 
 // GetLinkStatus messge sent from controller to minion on node
@@ -438,9 +472,13 @@ enum ScanMode {
 
 // Runtime Calibration
 enum RTCal {
-  NO_CAL = 0,
-  RX_CAL = 1,
-  TX_CAL = 2,
+  NO_CAL = 0, // No calibration, init state
+  TOP_RX_CAL = 1, // Top Panel, responder Rx cal with fixed intiator Tx beam
+  TOP_TX_CAL = 2, // Top Panel, intiator Tx cal with fixed responder Rx beam
+  BOT_RX_CAL = 3, // Bot Panel, responder Rx cal with fixed intiator Tx beam
+  BOT_TX_CAL = 4, // Bot Panel, intiator Tx cal with fixed responder Rx beam
+  VBS_RX_CAL = 5, // Top + Bot, responder Rx cal with fixed intiator Tx beam
+  VBS_TX_CAL = 6, // Top + Bot, intiator Tx cal with fixed responder Rx beam
 }
 
 struct BeamIndices {
@@ -455,7 +493,7 @@ struct ScanReq {
   4: bool bfScanInvertPolarity; // Invert Polarity when using with same
                                 // Polarity peer
   5: optional string txNodeMac; // tx node id (only present for receivers)
-  6: optional list<string> rxNodeMacs; // (only present for transmitters)
+  6: optional string rxNodeMac; // broadcast or specific node (for tx only)
   7: optional list<MicroRoute> routes; // for partial scan, absent for full scan
   8: optional BeamIndices beams; // Beam indices range
   9: bool enablePbfUrx; // 0 - disable URX after PBF

@@ -3,31 +3,70 @@ import axios from 'axios';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
-import { Actions } from '../NetworkConstants.js';
+import { Actions, UploadStatus } from '../NetworkConstants.js';
 import Dispatcher from '../NetworkDispatcher.js';
 
-export const uploadUpgradeBinary = (upgradeBinary) => {
+export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
   if (!upgradeBinary) {
     // TODO: Kelvin: swal
     return;
   }
 
+  // dispatch an action stating that the upgrade is in progress
+  Dispatcher.dispatch({
+    actionType: Actions.UPGRADE_UPLOAD_STATUS,
+    uploadStatus: UploadStatus.UPLOADING,
+  });
+
   const uri = '/controller/uploadUpgradeBinary';
 
   let data = new FormData();
   data.append('binary', upgradeBinary);
+  data.append('topologyName', topologyName);
+
+  const config = {
+    onUploadProgress: function(progressEvent) {
+      var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
+      console.log('uploading: ', percentCompleted);
+
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_UPLOAD_PROGRESS,
+        progress: percentCompleted
+      });
+    }
+  };
+
   axios.post(
-    uri, data
+    uri, data, config
   ).then((response) => {
-    listUpgradeImages();
+    // dispatch an action when upload has succeeded
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_UPLOAD_STATUS,
+      uploadStatus: UploadStatus.SUCCESS
+    });
+
+    // revert the upload status after 5 seconds
+    setTimeout(() => {
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_UPLOAD_STATUS,
+        uploadStatus: UploadStatus.NONE
+      });
+    }, 5000);
+
+    listUpgradeImages(topologyName);
   }).catch((error) => {
-    listUpgradeImages();
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_UPLOAD_STATUS,
+      uploadStatus: UploadStatus.FAILURE
+    });
+
+    listUpgradeImages(topologyName);
     // TODO: Kelvin: swal
   })
 };
 
-export const listUpgradeImages = () => {
-  const uri = '/controller/listUpgradeImages';
+export const listUpgradeImages = (topologyName) => {
+  const uri = `/controller/listUpgradeImages/${topologyName}`;
 
   axios.get(uri).then((response) => {
     Dispatcher.dispatch({
@@ -39,13 +78,13 @@ export const listUpgradeImages = () => {
   })
 };
 
-export const deleteUpgradeImage = (imageName) => {
-  const uri = '/controller/deleteUpgradeImage/' + imageName;
+export const deleteUpgradeImage = (imageName, topologyName) => {
+  const uri = `controller/deleteUpgradeImage/${topologyName}/${imageName}`;
 
   axios.get(uri).then((response) => {
-    listUpgradeImages();
+    listUpgradeImages(topologyName);
   }).catch((error) => {
-    listUpgradeImages();
+    listUpgradeImages(topologyName);
     // TODO: Kelvin: swal
   })
 };

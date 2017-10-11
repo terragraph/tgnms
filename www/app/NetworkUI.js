@@ -466,6 +466,7 @@ export default class NetworkUI extends React.Component {
           <ModalUpgradeBinary
             isOpen={this.state.upgradeModalOpen}
             onClose= {() => this.setState({upgradeModalOpen: false})}
+            topologyName={viewProps.networkConfig.topology.name}
           />
         );
         break;

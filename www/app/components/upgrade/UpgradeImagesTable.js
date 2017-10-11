@@ -69,13 +69,15 @@ export default class UpgradeImagesTable extends React.Component {
             data={this.getTableRows()}
             striped={true} hover={true}
             trClassName= 'break-word'>
-          <TableHeaderColumn width="70" dataSort={false} dataField="name" isKey={ true }>
+          <TableHeaderColumn
+            tdStyle={{wordWrap: 'break-word'}}
+            width="400" dataSort={false} dataField="name" isKey={ true }
+          >
             Name
           </TableHeaderColumn>
           <TableHeaderColumn
-            width="400"
-            dataSort={false}
-            dataField="magnetUri"
+            tdStyle={{wordWrap: 'break-word'}}
+            width="400" dataSort={false} dataField="magnetUri"
           >
             Magnet URI
           </TableHeaderColumn>
