@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
 
+const classNames = require('classnames');
+
 import { prepareUpgrade } from '../../apiutils/upgradeAPIUtil.js';
 import UpgradeNodesTable from './UpgradeNodesTable.js';
 
@@ -27,8 +29,7 @@ export default class ModalPrepareUpgrade extends React.Component {
       timeout: 180,         // timeout for the entire prepare operation
       skipFailure: true,    // skip failed nodes (will not stop operation)
       limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
-      imageUrl: "",         // HTTP/magnet url of the firmware image
-      md5: "",              // expected md5 of the firmware image
+      selectedImage: {},    // image to upgrade, with a name and a link
 
       // HTTP
       downloadAttempts: 1,  // number of attempts for downloading the image
@@ -82,16 +83,55 @@ export default class ModalPrepareUpgrade extends React.Component {
     this.setState({isHttp: e.currentTarget.value === 'http'});
   }
 
+  isImageSelected = (image) => {
+    return (
+      image.name === this.state.selectedImage.name &&
+      image.magnetUri === this.state.selectedImage.magnetUri
+    );
+  }
+
+  selectUpgradeImage = (image) => {
+    if (this.isImageSelected(image)) {
+      // deselect the currently selected image if user clicks on it
+      this.setState({ selectedImage: {}});
+    } else {
+      this.setState({ selectedImage: image});
+    }
+  }
+
+  renderUpgradeImages = () => {
+    const {upgradeImages} = this.props;
+    const {selectedImage} = this.state;
+
+    const imagesList = (
+      <div className='prepare-modal-images-list'>
+        {upgradeImages.map((image) => {
+          const nodeClass = classNames(
+            'prepare-modal-image',
+            {'image-selected': this.isImageSelected(image)}
+          );
+
+          return (
+            <div className={nodeClass} onClick={() => this.selectUpgradeImage(image)}>
+              {image.name.slice(28)}
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return imagesList;
+  }
+
   render() {
-    const {upgradeState, isOpen} = this.props;
+    const {upgradeNodes, upgradeState, isOpen} = this.props;
     /*
     Prepare modal:
       List nodes
       Timeout
       SkipFailure?
       Batch size limit
-      URL of image
-      MD5 of image
+      URL of image (selected by image name)
 
       // HTTP ONLY
         Number of download attempts for image
@@ -105,9 +145,12 @@ export default class ModalPrepareUpgrade extends React.Component {
 
     const nodesList = (
       <div className="upgrade-modal-nodes-list">
-        {this.props.upgradeNodes.map((node) => <p>{node}</p>)}
+        {upgradeNodes.map((node) => <p>{node}</p>)}
       </div>
     )
+
+    const imagesList = this.renderUpgradeImages();
+    const selectedImageName = Object.keys(this.state.selectedImage).length == 0 ? '' : this.state.selectedImage.name.slice(28);
 
     return (
       <Modal
@@ -123,7 +166,7 @@ export default class ModalPrepareUpgrade extends React.Component {
             />
           </div>
 
-          <label>Nodes to prepare for upgrade ({this.props.upgradeNodes.length})</label>
+          <label>Nodes to prepare for upgrade ({upgradeNodes.length})</label>
           <div className="upgrade-modal-row">
             {nodesList}
           </div>
@@ -142,18 +185,9 @@ export default class ModalPrepareUpgrade extends React.Component {
             />
           </div>
 
+          <label>Selected upgrade image: {selectedImageName}</label>
           <div className="upgrade-modal-row">
-            <label>Url of upgrade image:</label>
-            <input type="text" value={this.state.imageUrl}
-              onChange={(event) => this.setState({'imageUrl': event.target.value})}
-            />
-          </div>
-
-          <div className="upgrade-modal-row">
-            <label>Md5 of upgrade image:</label>
-            <input type="text" value={this.state.md5}
-              onChange={(event) => this.setState({'md5': event.target.value})}
-            />
+            {imagesList}
           </div>
 
           <form> <label>Specify the mode to retrieve the image:</label>
@@ -219,6 +253,7 @@ export default class ModalPrepareUpgrade extends React.Component {
 
 ModalPrepareUpgrade.propTypes = {
   upgradeNodes: React.PropTypes.array.isRequired,
+  upgradeImages: React.PropTypes.array.isRequired,
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
   topologyName: React.PropTypes.string.isRequred,

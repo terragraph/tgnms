@@ -78,6 +78,15 @@
   overflow-y: auto;
 }
 
+.prepare-modal-images-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.image-selected {
+  background-color: #0095ff;
+}
+
 .upgrade-add-img-btn {
   padding: 0;
   border: none;

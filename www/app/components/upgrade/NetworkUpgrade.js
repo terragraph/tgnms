@@ -34,7 +34,7 @@ export default class NetworkUpgrade extends React.Component {
     // fetch the list of upgrade images every 5 seconds
     // save the interval id so we can clear it when the component unmounts
     const intervalId = setInterval(
-      () => listUpgradeImages(topologyName), 5000
+      () => listUpgradeImages(topologyName), 10000
     );
 
     this.state = {
@@ -138,6 +138,7 @@ export default class NetworkUpgrade extends React.Component {
             onClose= {() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeNodes={this.state.selectedNodesForUpgrade}
+            upgradeImages={upgradeImages}
             upgradeState={networkConfig.upgradeState}
           />);
         break;
