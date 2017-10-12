@@ -59,8 +59,8 @@ export default class UpgradeImagesTable extends React.Component {
     return (
       <div className='rc-upgrade-images-table'>
         <BootstrapTable
-            tableStyle={{
-              width: 'calc(100% - 20px)',
+            tableStyle={{width: 'calc(100% - 20px)'}}
+            bodyStyle={{
               maxHeight: '400px',
               overflowY: 'auto',
             }}

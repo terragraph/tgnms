@@ -2,6 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
 
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
+
 const classNames = require('classnames');
 
 import { prepareUpgrade } from '../../apiutils/upgradeAPIUtil.js';
@@ -45,10 +48,21 @@ export default class ModalPrepareUpgrade extends React.Component {
   }
 
   submitPrepare() {
+    if (Object.keys(this.state.selectedImage).length === 0) {
+      swal({
+        title: "No Image Selected",
+        text: `No image was selected for upgrade.
+        Please select one from the list or upload one through the "Manage Upgrade Images" option.
+        `,
+        type: "Error"
+      });
+      return;
+    }
+
     const requestBody = {
       nodes:        this.props.upgradeNodes,
-      imageUrl:     this.state.imageUrl,
-      md5:          this.state.md5,
+      imageUrl:     this.state.selectedImage.magnetUri,
+      md5:          this.state.selectedImage.md5,
 
       timeout:      this.state.timeout,
       skipFailure:  this.state.skipFailure,
@@ -95,7 +109,7 @@ export default class ModalPrepareUpgrade extends React.Component {
       // deselect the currently selected image if user clicks on it
       this.setState({ selectedImage: {}});
     } else {
-      this.setState({ selectedImage: image});
+      this.setState({ selectedImage: image });
     }
   }
 

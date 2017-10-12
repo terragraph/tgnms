@@ -60,7 +60,7 @@ export default class UpgradeCommandPane extends React.Component {
   render() {
     return (
       <div className='upgrade-command-pane'>
-        <button className='upgrade-btn' onClick={this.launchUpgradeServer}>Launch Server</button>
+        <button className='upgrade-btn' onClick={this.launchUpgradeServer}>Manage Upgrade Images</button>
         <button className='upgrade-btn' onClick={this.prepareUpgrade}>Prepare</button>
         <button className='upgrade-btn' onClick={this.commitUpgrade}>Commit</button>
         <button className='upgrade-btn' onClick={this.abortUpgrade}>Abort</button>

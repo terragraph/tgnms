@@ -242,6 +242,7 @@ struct UpgradeCommitPlan {
 struct UpgradeImage {
   1: string name; // unique, descriptive name for the image (not filename)
   2: string magnetUri; // magnet URI for this image
+  3: string md5; // md5 hash (needed for PREPARE_UPGRADE/COMMIT_UPGRADE)
 }
 
 struct UpgradeAddImageReq {

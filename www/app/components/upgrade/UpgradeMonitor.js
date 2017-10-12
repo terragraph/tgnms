@@ -31,10 +31,11 @@ export default class UpgradeMonitor extends React.Component {
 
   render() {
     const {topology, selectedNodes, curBatch, pendingBatches} = this.props;
-    const pendingBatchNodes = this.flattenPendingBatches(pendingBatches);
+    // const pendingBatchNodes = this.flattenPendingBatches(pendingBatches);
 
     const nodes = topology && topology.nodes ? topology.nodes : [];
 
+    const pendingBatchNodes = this.flattenPendingBatches([nodes, nodes, nodes]);
     return (
       <div className='rc-upgrade-monitor'>
         <div className='upgrade-monitor-row'>
@@ -48,8 +49,9 @@ export default class UpgradeMonitor extends React.Component {
         <div className='upgrade-monitor-row'>
           <label>Nodes in current upgrade batch</label>
           <UpgradeBatchTable
-            nodes={curBatch}
+            nodes={nodes}
             height={300}
+            pendingBatch={false}
           />
         </div>
         <div className='upgrade-monitor-row'>
@@ -57,6 +59,7 @@ export default class UpgradeMonitor extends React.Component {
           <UpgradeBatchTable
             nodes={pendingBatchNodes}
             height={700}
+            pendingBatch={true}
           />
         </div>
       </div>

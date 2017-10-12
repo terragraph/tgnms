@@ -139,8 +139,8 @@ export default class UpgradeNodesTable extends React.Component {
     return (
       <div className='rc-upgrade-nodes-table'>
         <BootstrapTable
-            tableStyle={{
-              width: 'calc(100% - 20px)',
+            tableStyle={{width: 'calc(100% - 20px)'}}
+            bodyStyle={{
               maxHeight: '700px',
               overflowY: 'auto',
             }}
@@ -165,7 +165,7 @@ export default class UpgradeNodesTable extends React.Component {
                              dataFormat={this.renderStatusColor}>
             Pop?
           </TableHeaderColumn>
-          <TableHeaderColumn width="80" dataSort={true} dataField="upgradeStatus">
+          <TableHeaderColumn width="180" dataSort={true} dataField="upgradeStatus">
             Upgrade Status
           </TableHeaderColumn>
           <TableHeaderColumn width="700" dataSort={true} dataField="version">

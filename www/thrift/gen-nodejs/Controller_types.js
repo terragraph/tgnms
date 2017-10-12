@@ -1331,12 +1331,16 @@ UpgradeCommitPlan.prototype.write = function(output) {
 UpgradeImage = module.exports.UpgradeImage = function(args) {
   this.name = null;
   this.magnetUri = null;
+  this.md5 = null;
   if (args) {
     if (args.name !== undefined) {
       this.name = args.name;
     }
     if (args.magnetUri !== undefined) {
       this.magnetUri = args.magnetUri;
+    }
+    if (args.md5 !== undefined) {
+      this.md5 = args.md5;
     }
   }
 };
@@ -1368,6 +1372,13 @@ UpgradeImage.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 3:
+      if (ftype == Thrift.Type.STRING) {
+        this.md5 = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -1387,6 +1398,11 @@ UpgradeImage.prototype.write = function(output) {
   if (this.magnetUri !== null && this.magnetUri !== undefined) {
     output.writeFieldBegin('magnetUri', Thrift.Type.STRING, 2);
     output.writeString(this.magnetUri);
+    output.writeFieldEnd();
+  }
+  if (this.md5 !== null && this.md5 !== undefined) {
+    output.writeFieldBegin('md5', Thrift.Type.STRING, 3);
+    output.writeString(this.md5);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
