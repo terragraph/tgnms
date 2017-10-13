@@ -45,23 +45,6 @@
   padding-left: 10px;
 }
 
-.upgrade-batch-table-body table {
-  /* somewhat of a hack to allow us to set bottom borders on certain rows in a table */
-  border-collapse: collapse;
-}
-
-.upgrade-batch-separator {
-  border-bottom: 2pt solid #333;
-}
-
-.upgrade-batch-odd {
-  background-color: #eee;
-}
-
-.upgrade-batch-even {
-  background-color: #fff;
-}
-
 /* UPGRADE MODAL */
 .upgrade-modal-footer {
   margin-top: 10px;
@@ -91,6 +74,10 @@
 
 .upgrade-modal-row input {
   width: 65%;
+}
+
+.upgrade-modal-row input:disabled {
+  background: #ddd;
 }
 
 .upgrade-modal-nodes-list {
@@ -153,3 +140,5 @@
   cursor: pointer;
   color: #0095ff;
 }
+
+/* #b7d2ff */

@@ -31,6 +31,7 @@ export default class ModalPrepareUpgrade extends React.Component {
     this.state = {
       timeout: 180,         // timeout for the entire prepare operation
       skipFailure: true,    // skip failed nodes (will not stop operation)
+      isParallel: true,     // parallelize teh operation? (put all nodes in one batch)
       limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
       selectedImage: {},    // image to upgrade, with a name and a link
 
@@ -54,7 +55,7 @@ export default class ModalPrepareUpgrade extends React.Component {
         text: `No image was selected for upgrade.
         Please select one from the list or upload one through the "Manage Upgrade Images" option.
         `,
-        type: "Error"
+        type: "error"
       });
       return;
     }
@@ -66,7 +67,9 @@ export default class ModalPrepareUpgrade extends React.Component {
 
       timeout:      this.state.timeout,
       skipFailure:  this.state.skipFailure,
-      limit:        this.state.limit,
+
+      // limit of 0 means unlimited max batch size
+      limit:        this.state.isParallel ? 0 : this.state.limit,
 
       requestId:    'NMS' + new Date().getTime(),
       isHttp:       this.state.isHttp,
@@ -173,6 +176,11 @@ export default class ModalPrepareUpgrade extends React.Component {
         onRequestClose={this.modalClose.bind(this)}
       >
         <div className="upgrade-modal-content">
+          <label>Nodes to prepare for upgrade ({upgradeNodes.length})</label>
+          <div className="upgrade-modal-row">
+            {nodesList}
+          </div>
+
           <div className="upgrade-modal-row">
             <label>Upgrade timeout (s):</label>
             <input type="number" value={this.state.timeout}
@@ -180,21 +188,23 @@ export default class ModalPrepareUpgrade extends React.Component {
             />
           </div>
 
-          <label>Nodes to prepare for upgrade ({upgradeNodes.length})</label>
-          <div className="upgrade-modal-row">
-            {nodesList}
-          </div>
-
           <div className="upgrade-modal-row">
             <label>Skip failures?</label>
-            <input type="checkbox" value={this.state.skipFailure}
+            <input type="checkbox" checked={this.state.skipFailure}
               onChange={(event) => this.setState({'skipFailure': event.target.checked})}
             />
           </div>
 
           <div className="upgrade-modal-row">
-            <label>Batch size limit:</label>
-            <input type="number" value={this.state.limit}
+            <label>Fully Parallelize upgrade?</label>
+            <input type="checkbox" checked={this.state.isParallel}
+              onChange={(event) => this.setState({'isParallel': event.target.checked})}
+            />
+          </div>
+
+          <div className="upgrade-modal-row">
+            <label>Batch size limit (nodes):</label>
+            <input type="number" value={this.state.limit} disabled={this.state.isParallel}
               onChange={(event) => this.setState({'limit': event.target.value})}
             />
           </div>

@@ -103,7 +103,6 @@ export default class UpgradeBatchTable extends React.Component {
             options={ tableOptions }
             data={this.getTableRows(nodes)}
             striped={true} hover={true}
-            bodyContainerClass={classNames('react-bs-container-body', 'upgrade-batch-table-body')}
         >
           <TableHeaderColumn width="70" dataSort={true} dataField="batchIdx" hidden={!pendingBatch}>
             Batch number

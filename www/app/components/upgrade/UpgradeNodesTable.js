@@ -38,8 +38,12 @@ export default class UpgradeNodesTable extends React.Component {
                               version:string}>  {
     const rows = [];
     nodes.forEach(node => {
-      var version = node.status_dump ? node.status_dump.version.slice(28) :
+      const version = node.status_dump ? node.status_dump.version.slice(28) :
                                        'Not Available';
+
+      // next version
+      const nextVersion = (node.status_dump && node.status_dump.upgradeStatus) ?
+        node.status_dump.upgradeStatus.nextImage.version.slice(28) : 'N/A';
 
       const upgradeStatus = (node.status_dump && node.status_dump.upgradeStatus) ?
         upgradeStatusToString[node.status_dump.upgradeStatus.usType] : 'Not Available';
@@ -50,6 +54,7 @@ export default class UpgradeNodesTable extends React.Component {
           site_name: node.site_name,
           pop_node: node.pop_node,
           version: version,
+          nextVersion: nextVersion,
           upgradeStatus: upgradeStatus,
 
           key: node.name,
@@ -170,6 +175,9 @@ export default class UpgradeNodesTable extends React.Component {
           </TableHeaderColumn>
           <TableHeaderColumn width="700" dataSort={true} dataField="version">
             Image Version
+          </TableHeaderColumn>
+          <TableHeaderColumn width="700" dataSort={true} dataField="nextVersion">
+            Next Version
           </TableHeaderColumn>
         </BootstrapTable>
       </div>

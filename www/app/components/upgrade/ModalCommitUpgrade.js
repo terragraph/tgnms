@@ -25,6 +25,7 @@ export default class ModalCommitUpgrade extends React.Component {
     this.state = {
       timeout: 180,         // timeout for the entire commit operation
       skipFailure: true,    // skip failed nodes (will not stop operation)
+      isParallel: true,     // parallelize teh operation? (put all nodes in one batch)
       limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
 
       scheduleToCommit: 0,  // delay between issuing the command and
@@ -37,7 +38,9 @@ export default class ModalCommitUpgrade extends React.Component {
       timeout:          this.state.timeout,
       skipFailure:      this.state.skipFailure,
       skipLinks:        [],
-      limit:            this.state.limit,
+
+      // limit of 0 means unlimited max batch size
+      limit:            this.state.isParallel ? 0 : this.state.limit,
 
       scheduleToCommit: this.state.scheduleToCommit,
 
@@ -77,6 +80,11 @@ export default class ModalCommitUpgrade extends React.Component {
         onRequestClose={this.modalClose.bind(this)}
       >
         <div className="upgrade-modal-content">
+          <label>Nodes to commit for upgrade ({this.props.upgradeNodes.length})</label>
+          <div className="upgrade-modal-row">
+            {nodesList}
+          </div>
+
           <div className="upgrade-modal-row">
             <label>Upgrade timeout (s):</label>
             <input type="number" value={this.state.timeout}
@@ -84,21 +92,23 @@ export default class ModalCommitUpgrade extends React.Component {
             />
           </div>
 
-          <label>Nodes to commit for upgrade ({this.props.upgradeNodes.length})</label>
-          <div className="upgrade-modal-row">
-            {nodesList}
-          </div>
-
           <div className="upgrade-modal-row">
             <label>Skip failures?</label>
-            <input type="checkbox" value={this.state.skipFailure}
+            <input type="checkbox" checked={this.state.skipFailure}
               onChange={(event) => this.setState({'skipFailure': event.target.checked})}
             />
           </div>
 
           <div className="upgrade-modal-row">
+            <label>Fully Parallelize upgrade?</label>
+            <input type="checkbox" checked={this.state.isParallel}
+              onChange={(event) => this.setState({'isParallel': event.target.checked})}
+            />
+          </div>
+
+          <div className="upgrade-modal-row">
             <label>Batch size limit:</label>
-            <input type="number" value={this.state.limit}
+            <input type="number" value={this.state.limit} disabled={this.state.isParallel}
               onChange={(event) => this.setState({'limit': event.target.value})}
             />
           </div>
