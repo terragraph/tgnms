@@ -1286,13 +1286,26 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
+    const {
+      topologyName, isHttp, requestId, nodes, imageUrl, md5, timeout, skipFailure, limit, downloadAttempts, torrentParams,
+    } = postData;
+
     var topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
       type: 'prepareUpgrade',
       upgradeGroupType: 'NODES',
-      topology,
-      ...postData
+      requestId,
+      nodes,
+      imageUrl,
+      md5,
+      timeout,
+      skipFailure,
+      limit,
+      isHttp,
+      downloadAttempts,
+      torrentParams,
+      topology
     }, "", res);
   });
 });
@@ -1304,13 +1317,21 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
+    const {topologyName, requestId, nodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
+
     var topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
       type: 'commitUpgrade',
       upgradeGroupType: 'NODES',
-      topology,
-      ...postData
+      requestId,
+      nodes,
+      timeout,
+      skipFailure,
+      limit,
+      skipLinks,
+      scheduleToCommit,
+      topology
     }, "", res);
   });
 });
@@ -1323,7 +1344,6 @@ app.post(/\/controller\/uploadUpgradeBinary$/i, upload.single('binary'), functio
   const urlPrefix = req.protocol + '://' + req.get('host');
   const imagePath = `${urlPrefix}/${req.file.path}`;
 
-  // http://[2620:10d:c089:e009:1a66:daff:fee8:de0]:8443/controller/listUpgradeImages/Lab%20F8%20D
   syncWorker.sendCtrlMsgSync({
     type: 'addUpgradeImage',
     topology: topology,
