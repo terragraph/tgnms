@@ -35,9 +35,11 @@ const METRIC_KEY_NAMES = [
   /* 'link_status' (published from controller node */
 ];
 
+// TODO - restrict this correctly
 METRIC_NAMES = "SELECT `ts_key`.`id`, `mac`, `key` FROM `ts_key` " +
                "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
-               "WHERE `mac` IN ?";
+               "WHERE `mac` IN ? " +
+               "LIMIT 100000";
 
 SYSLOG_BY_MAC = "SELECT `log` FROM `sys_logs` " +
                 "JOIN (`log_sources`) ON (`log_sources`.`id`=`sys_logs`.`source_id`) " +
