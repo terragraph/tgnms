@@ -64,7 +64,7 @@ export default class UpgradeImagesTable extends React.Component {
               maxHeight: '400px',
               overflowY: 'auto',
             }}
-            key="nodesTable"
+            key="imagesTable"
             options={ tableOptions }
             data={this.getTableRows()}
             striped={true} hover={true}
