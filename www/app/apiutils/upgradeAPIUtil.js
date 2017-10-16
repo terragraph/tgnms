@@ -151,3 +151,14 @@ export const commitUpgrade = (upgradeGroupReq) => {
     });
   });
 };
+
+export const abortUpgrade = (upgradeAbortReq) => {
+  const uri = '/controller/abortUpgrade';
+  axios.post(
+    uri, upgradeAbortReq
+  ).then((response) => {
+    console.log('upgrades aborted');
+  }).catch((error) => {
+
+  });
+};

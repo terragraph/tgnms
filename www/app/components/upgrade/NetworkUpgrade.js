@@ -188,6 +188,9 @@ export default class NetworkUpgrade extends React.Component {
     let pendingBatches = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingBatches'))
       ? upgradeStateDump.pendingBatches : [];
 
+    let pendingRequests = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingReqs'))
+      ? upgradeStateDump.pendingReqs : [];
+
     const upgradeModal = this.renderUpgradeModal();
 
     return (
@@ -202,6 +205,7 @@ export default class NetworkUpgrade extends React.Component {
           selectedNodes={selectedNodesForUpgrade}
           curBatch={curBatch}
           pendingBatches={pendingBatches}
+          pendingRequests={pendingRequests}
         />
       </div>
     );

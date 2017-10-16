@@ -362,7 +362,8 @@ function getNodesWithUpgradeStatus(nodes, upgradeState) {
 
     curBatch: [],
     pendingBatches: [],
-    pendingReqNodes: [], // a node might appear in multiple pending requests
+    pendingReqs: upgradeState.pendingReqs,
+    // pendingReqNodes: [], // a node might appear in multiple pending requests
   };
 
   // node mac_addr --> node object
@@ -392,8 +393,6 @@ function getNodesWithUpgradeStatus(nodes, upgradeState) {
   // populate pending requests (disabled expanded view of nodes for now!)
 
   // upgradeStatusDump.pendingReqNodes = sortNodesByPendingReqs(nodes, upgradeState.pendingReqs);
-  upgradeStatusDump.pendingReqNodes = [];
-  // console.log(upgradeStatusDump);
   return upgradeStatusDump;
 }
 
@@ -1331,6 +1330,27 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
       limit,
       skipLinks,
       scheduleToCommit,
+      topology
+    }, "", res);
+  });
+});
+
+app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {abortAll, reqIds, topologyName} = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'abortUpgrade',
+      upgradeGroupType: 'NETWORK',
+      abortAll,
+      reqIds,
       topology
     }, "", res);
   });

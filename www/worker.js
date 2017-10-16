@@ -157,6 +157,7 @@ const command2MsgType = {
   // upgrade requests (sent to controller)
   'prepareUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
   'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'abortUpgrade': Controller_ttypes.MessageType.UPGRADE_ABORT_REQ,
 
   // upgrade images
   'addUpgradeImage': Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ,
@@ -220,6 +221,9 @@ msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {
   'recvApp': 'ctrl-app-SCAN_APP',
   'nmsAppId': 'NMS_WEB_SCAN'};
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_GROUP_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_ABORT_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE'};
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_STATE_REQ] = {
@@ -451,6 +455,14 @@ const sendCtrlMsgSync = (msg, minion, res) => {
 
       send(upgradeGroupReqParams);
       break;
+    case 'abortUpgrade':
+      var abortUpgradeParams = new Controller_ttypes.UpgradeAbortReq();
+      abortUpgradeParams.abortAll = msg.abortAll;
+      abortUpgradeParams.reqIds = msg.reqIds;
+
+      send(abortUpgradeParams);
+
+      break;
     case 'listUpgradeImages':
       var listUpgradeImagesParams = new Controller_ttypes.UpgradeListImagesReq();
       send(listUpgradeImagesParams);
@@ -606,6 +618,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
             case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ABORT_REQ:
             case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
             case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
@@ -679,6 +692,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
             case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ABORT_REQ:
             case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
             case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();

@@ -40,6 +40,10 @@
   overflow-y: auto;
 }
 
+.rc-upgrade-monitor .upgrade-monitor-row:not(:first-child) {
+  margin-top: 20px;
+}
+
 .upgrade-monitor-row label {
   font-size: 20px;
   padding-left: 10px;
@@ -140,5 +144,3 @@
   cursor: pointer;
   color: #0095ff;
 }
-
-/* #b7d2ff */

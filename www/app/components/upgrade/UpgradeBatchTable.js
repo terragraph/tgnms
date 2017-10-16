@@ -4,7 +4,6 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 const classNames = require('classnames');
 
-import { availabilityColor } from '../../NetworkHelper.js';
 import { Actions } from '../../NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
@@ -69,13 +68,6 @@ export default class UpgradeBatchTable extends React.Component {
       );
     });
     return rows;
-  }
-
-  renderStatusColor(cell, row) {
-    return (
-      <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
-        {"" + cell}
-      </span>);
   }
 
   render() {

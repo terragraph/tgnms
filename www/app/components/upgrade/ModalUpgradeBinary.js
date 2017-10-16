@@ -28,7 +28,7 @@ export default class ModalUpgradeBinary extends React.Component {
 
     this.state = {
       selectedFile: null,
-    }
+    };
   }
 
   componentWillMount() {
