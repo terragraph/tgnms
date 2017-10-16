@@ -1287,16 +1287,16 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
     const {
-      topologyName, isHttp, requestId, nodes, imageUrl, md5, timeout, skipFailure, limit, downloadAttempts, torrentParams,
+      topologyName, isHttp, requestId, excludeNodes, imageUrl, md5, timeout, skipFailure, limit, downloadAttempts, torrentParams,
     } = postData;
 
     var topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
       type: 'prepareUpgrade',
-      upgradeGroupType: 'NODES',
+      upgradeGroupType: 'NETWORK',
       requestId,
-      nodes,
+      excludeNodes,
       imageUrl,
       md5,
       timeout,
@@ -1317,15 +1317,15 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
-    const {topologyName, requestId, nodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
+    const {topologyName, requestId, excludeNodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
 
     var topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
       type: 'commitUpgrade',
-      upgradeGroupType: 'NODES',
+      upgradeGroupType: 'NETWORK',
       requestId,
-      nodes,
+      excludeNodes,
       timeout,
       skipFailure,
       limit,

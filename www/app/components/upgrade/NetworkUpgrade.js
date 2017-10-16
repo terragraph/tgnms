@@ -24,7 +24,9 @@ export default class NetworkUpgrade extends React.Component {
   constructor(props) {
     super(props);
 
-    const topologyName = this.props.networkConfig.topology.name;
+    const {topology} = this.props.networkConfig;
+    const nodes = topology && topology.nodes ? topology.nodes : [];
+    const topologyName = topology.name;
 
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
@@ -43,7 +45,7 @@ export default class NetworkUpgrade extends React.Component {
       uploadStatus: UploadStatus.NONE,
       uploadProgress: 0,
 
-      // state related to upgrade nodes
+      // state related to upgrade nodes, a list of node names
       selectedNodesForUpgrade: [],
 
       upgradeModalOpen: false,
@@ -105,6 +107,17 @@ export default class NetworkUpgrade extends React.Component {
     }
   }
 
+  getExcludedNodes = () => {
+    const nodes = this.props.networkConfig.topology.nodes;
+    const {selectedNodesForUpgrade} = this.state;
+
+    let selectedNames = new Set(selectedNodesForUpgrade);
+
+    return nodes.map(node => node.name).filter((nodeName) => {
+      return !selectedNames.has(nodeName);
+    });
+  }
+
   renderUpgradeModal = () => {
     const {networkConfig} = this.props;
     const {
@@ -134,6 +147,8 @@ export default class NetworkUpgrade extends React.Component {
       case UPGRADE_OPERATIONS.PREPARE:
         upgradeNetworkModal = (
           <ModalPrepareUpgrade
+            getExcludedNodes={this.getExcludedNodes}
+
             isOpen={this.state.upgradeModalOpen}
             onClose= {() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
@@ -145,6 +160,8 @@ export default class NetworkUpgrade extends React.Component {
       case UPGRADE_OPERATIONS.COMMIT:
         upgradeNetworkModal = (
           <ModalCommitUpgrade
+            getExcludedNodes={this.getExcludedNodes}
+
             isOpen={this.state.upgradeModalOpen}
             onClose= {() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}

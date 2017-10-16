@@ -416,9 +416,11 @@ const sendCtrlMsgSync = (msg, minion, res) => {
 
       // then set up the group upgrade req
       var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
-      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NODES;
-      upgradeGroupReqParams.nodes = msg.nodes;
-      upgradeGroupReqParams.excludeNodes = [];
+      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NETWORK;
+
+      upgradeGroupReqParams.nodes = [];
+      upgradeGroupReqParams.excludeNodes = msg.excludeNodes;
+
       upgradeGroupReqParams.urReq = upgradeReqParams;
       upgradeGroupReqParams.timeout = msg.timeout;
       upgradeGroupReqParams.skipFailure = msg.skipFailure;
@@ -435,9 +437,11 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       upgradeReqParams.scheduleToCommit = msg.scheduleToCommit;
 
       var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
-      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NODES;
-      upgradeGroupReqParams.nodes = msg.nodes;
-      upgradeGroupReqParams.excludeNodes = [];
+      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NETWORK;
+
+      upgradeGroupReqParams.nodes = [];
+      upgradeGroupReqParams.excludeNodes = msg.excludeNodes;
+
       upgradeGroupReqParams.urReq = upgradeReqParams;
       upgradeGroupReqParams.timeout = msg.timeout;
       upgradeGroupReqParams.skipFailure = msg.skipFailure;

@@ -33,8 +33,12 @@ export default class ModalCommitUpgrade extends React.Component {
   }
 
   submitCommit() {
+    const excludeNodes = this.props.getExcludedNodes();
+    console.log('excluded nodes: ', excludeNodes);
+
     const requestBody = {
-      nodes:            this.props.upgradeNodes,
+      excludeNodes,
+      // nodes:        this.props.upgradeNodes,
       timeout:          this.state.timeout,
       skipFailure:      this.state.skipFailure,
       skipLinks:        [],
@@ -130,6 +134,8 @@ export default class ModalCommitUpgrade extends React.Component {
 }
 
 ModalCommitUpgrade.propTypes = {
+  getExcludedNodes: React.PropTypes.func.isRequired,
+
   upgradeNodes: React.PropTypes.array.isRequired,
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,

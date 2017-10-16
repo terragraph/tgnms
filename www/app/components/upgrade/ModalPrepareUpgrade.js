@@ -62,8 +62,12 @@ export default class ModalPrepareUpgrade extends React.Component {
       return;
     }
 
+    const excludeNodes = this.props.getExcludedNodes();
+    console.log('excluded nodes: ', excludeNodes);
+
     const requestBody = {
-      nodes:        this.props.upgradeNodes,
+      excludeNodes,
+      // nodes:        this.props.upgradeNodes,
       imageUrl:     this.state.selectedImage.magnetUri,
       md5:          this.state.selectedImage.md5,
 
@@ -302,6 +306,8 @@ export default class ModalPrepareUpgrade extends React.Component {
 }
 
 ModalPrepareUpgrade.propTypes = {
+  getExcludedNodes: React.PropTypes.func.isRequired,
+
   upgradeNodes: React.PropTypes.array.isRequired,
   upgradeImages: React.PropTypes.array.isRequired,
   isOpen: React.PropTypes.bool.isRequired,

@@ -67,6 +67,7 @@ export default class UpgradeNodesTable extends React.Component {
   onSelectAll = (isSelected) => {
     const {nodes} = this.props;
     const selectedNodes = (isSelected) ? nodes.map(node => node.name) : [];
+    // const excludedNodes = (isSelected) ? [] : nodes.map(node => node.name);
 
     this.props.onNodesSelected(selectedNodes);
   }

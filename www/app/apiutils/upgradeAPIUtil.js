@@ -76,33 +76,6 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
 export const listUpgradeImages = (topologyName) => {
   const uri = `/controller/listUpgradeImages/${topologyName}`;
 
-  // // DELETE AS SOON AS WE KNOW WHAT THE UI LOOKS LIKE, FROM HERE
-  // const mockImages = [{
-  //   name: 'Facebook Terragraph Release RELEASE_M15_RC1-asdfmichaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)',
-  //   magnetUri: 'magnet:asjfklajsfklajsfklajsfklajsfl;jsdl',
-  //   md5: 'jasdfjadsklfgjdjasasjdkl',
-  // }, {
-  //   name: 'asdfbook Terragraph Release RELEASE_M15_RC1-wemichaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)',
-  //   magnetUri: 'magnet:asjfklajsfklajsfklajsfklajsfl;jsdl',
-  //   md5: 'jasdfjadsklfgjdjasasjdkl',
-  // }, {
-  //   name: 'racebook Terragraph Release RELEASE_M15_RC1-miagchaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)',
-  //   magnetUri: 'magnet:asjfklajsfklajsfklajsfklajsfl;jsdldfdsf2342t2356345345',
-  //   md5: 'jasdfjadsklfgjdjasasjdkl',
-  // }, {
-  //   name: 'bacebook Terragraph Release RELEASE_Mww15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)',
-  //   magnetUri: 'magnet:asjfklajsfklajsfklajsfklajsfl;jsdl457823jerejrkf49hi242345iut234y789ghij',
-  //   md5: 'jasdfjadsklfgjdjasasjdkl',
-  // }];
-  //
-  // Dispatcher.dispatch({
-  //   actionType: Actions.UPGRADE_IMAGES_LOADED,
-  //   upgradeImages: mockImages
-  // });
-  //
-  // return;
-  // // TO HERE
-
   axios.get(uri).then((response) => {
     Dispatcher.dispatch({
       actionType: Actions.UPGRADE_IMAGES_LOADED,
