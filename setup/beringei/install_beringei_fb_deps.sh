@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-FB_VERSION="2017.09.25.00"
-ZSTD_VERSION="1.1.1"
+export FB_VERSION="2017.09.25.00"
+export ZSTD_VERSION="1.1.1"
 
 echo "This script configures CentOS 7 with everything needed to run beringei."
 echo "It requires that you run it as root. sudo works great for that."
@@ -18,7 +18,7 @@ mkdir -pv /usr/local/facebook-${FB_VERSION}
 ln -sfT /usr/local/facebook-${FB_VERSION} /usr/local/facebook
 
 export LDFLAGS="-L/usr/local/facebook/lib -Wl,-rpath=/usr/local/facebook/lib"
-export CPPFLAGS="-I/usr/local/facebook/include"
+export CPPFLAGS="-I/usr/local/facebook/include -I/tmp/fbthrift-${FB_VERSION}/thrift"
 
 cd /tmp
 
@@ -62,7 +62,7 @@ popd
 
 pushd fbthrift-${FB_VERSION}/thrift
 autoreconf -ivf
-./configure --prefix=/usr/local/facebook-${FB_VERSION} --with-boost-python=no
+./configure --prefix=/usr/local/facebook-${FB_VERSION}
 make install
 popd
 
