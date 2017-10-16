@@ -281,7 +281,7 @@ export default class NetworkMap extends React.Component {
       let linkAngle = LeafletGeom.bearing(aSiteCoords, zSiteCoords);
       link.angle = linkAngle;
       let linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
-      link.distance = linkLength; /* meters */
+      link.distance = parseInt(linkLength * 100) / 100; /* meters */
       // apply health data
       if (this.state.linkHealth &&
           this.state.linkHealth.metrics &&
