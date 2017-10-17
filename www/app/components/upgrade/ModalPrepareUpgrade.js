@@ -63,7 +63,6 @@ export default class ModalPrepareUpgrade extends React.Component {
     }
 
     const excludeNodes = this.props.getExcludedNodes();
-    console.log('excluded nodes: ', excludeNodes);
 
     const requestBody = {
       excludeNodes,
@@ -134,13 +133,12 @@ export default class ModalPrepareUpgrade extends React.Component {
     const {selectedImage} = this.state;
 
     var selectRowProp = {
-      mode: "radio",
+      mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: false,
-      bgColor: "rgb(183,210,255)",
+      bgColor: 'rgb(183,210,255)',
       onSelect: this.selectUpgradeImage,
       selected: Object.keys(selectedImage).length === 0 ? [] : [selectedImage.name],
-      // selected: Object.keys(selectedImage).length === 0 ? [] : [selectedImage],
     };
 
     const imagesList = (
@@ -232,12 +230,14 @@ export default class ModalPrepareUpgrade extends React.Component {
             />
           </div>
 
-          <div className="upgrade-modal-row">
-            <label>Batch size limit (nodes):</label>
-            <input type="number" value={this.state.limit} disabled={this.state.isParallel}
-              onChange={(event) => this.setState({'limit': event.target.value})}
-            />
-          </div>
+          {!this.state.isParallel && (
+            <div className="upgrade-modal-row">
+              <label>Batch size limit (nodes):</label>
+              <input type="number" value={this.state.limit}
+                onChange={(event) => this.setState({'limit': event.target.value})}
+              />
+            </div>
+          )}
 
           <label>Selected upgrade image: {selectedImageName}</label>
           <div className="upgrade-modal-row">

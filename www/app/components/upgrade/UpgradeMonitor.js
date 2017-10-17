@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 
 import UpgradeNodesTable from './UpgradeNodesTable.js';
 import UpgradeBatchTable from './UpgradeBatchTable.js';
-import UpgradePendingReqsTable from './UpgradePendingReqsTable.js';
+import UpgradeRequestsTable from './UpgradeRequestsTable.js';
 
 import { Actions } from '../../NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
@@ -64,9 +64,10 @@ export default class UpgradeMonitor extends React.Component {
         </div>
         <div className='upgrade-monitor-row'>
           <label>Pending Requests</label>
-          <UpgradePendingReqsTable
+          <UpgradeRequestsTable
             pendingRequests={pendingRequests}
             height={300}
+            isSelectable={false}
           />
         </div>
       </div>

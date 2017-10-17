@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import { Actions, UploadStatus } from '../../NetworkConstants.js';
+import { Actions, UploadStatus, DeleteStatus } from '../../NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
 import { listUpgradeImages } from '../../apiutils/upgradeAPIUtil.js';
@@ -9,9 +9,11 @@ import { listUpgradeImages } from '../../apiutils/upgradeAPIUtil.js';
 import UpgradeCommandPane from './UpgradeCommandPane.js';
 import UpgradeMonitor from './UpgradeMonitor.js';
 
+import ModalUpgradeBinary from './ModalUpgradeBinary.js';
 import ModalPrepareUpgrade from './ModalPrepareUpgrade.js';
 import ModalCommitUpgrade from './ModalCommitUpgrade.js';
-import ModalUpgradeBinary from './ModalUpgradeBinary.js';
+import ModalAbortUpgrade from './ModalAbortUpgrade.js';
+
 
 const UPGRADE_OPERATIONS = {
   'BINARY':   'binary',
@@ -44,6 +46,7 @@ export default class NetworkUpgrade extends React.Component {
       upgradeImages: [],
       uploadStatus: UploadStatus.NONE,
       uploadProgress: 0,
+      deleteStatus: DeleteStatus.NONE,
 
       // state related to upgrade nodes, a list of node names
       selectedNodesForUpgrade: [],
@@ -79,6 +82,11 @@ export default class NetworkUpgrade extends React.Component {
           uploadProgress: payload.progress
         });
         break;
+      case Actions.UPGRADE_DELETE_IMAGE_STATUS:
+        this.setState({
+          deleteStatus: payload.deleteStatus,
+        });
+        break;
       case Actions.UPGRADE_NODES_SELECTED:
         this.setState({
           selectedNodesForUpgrade: payload.nodes
@@ -102,6 +110,12 @@ export default class NetworkUpgrade extends React.Component {
           upgradeModalMode: UPGRADE_OPERATIONS.COMMIT,
         });
         break;
+      case Actions.OPEN_ABORT_UPGRADE_MODAL :
+        this.setState({
+          upgradeModalOpen: true,
+          upgradeModalMode: UPGRADE_OPERATIONS.ABORT,
+        });
+        break;
       default:
         break;
     }
@@ -119,14 +133,15 @@ export default class NetworkUpgrade extends React.Component {
   }
 
   renderUpgradeModal = () => {
-    const {networkConfig} = this.props;
+    const {networkConfig, upgradeStateDump} = this.props;
     const {
       upgradeModalOpen,
       upgradeModalMode,
       selectedNodesForUpgrade,
       upgradeImages,
       uploadStatus,
-      uploadProgress
+      uploadProgress,
+      deleteStatus
     } = this.state;
 
     let upgradeNetworkModal = <div/>;
@@ -141,6 +156,7 @@ export default class NetworkUpgrade extends React.Component {
             upgradeImages={upgradeImages}
             uploadStatus={uploadStatus}
             uploadProgress={uploadProgress}
+            deleteStatus={deleteStatus}
           />
         );
         break;
@@ -170,6 +186,25 @@ export default class NetworkUpgrade extends React.Component {
           />);
         break;
       case UPGRADE_OPERATIONS.ABORT:
+        let pendingRequests = (upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingReqs'))
+          ? upgradeStateDump.pendingReqs : [];
+
+        const hasCurReq = (
+          upgradeStateDump &&
+          upgradeStateDump.hasOwnProperty('curUpgradeReq') &&
+          upgradeStateDump.curUpgradeReq.urReq.upgradeReqId !== ''
+        );
+
+        const upgradeRequests = hasCurReq ?
+          [upgradeStateDump.curUpgradeReq,...pendingRequests] : pendingRequests;
+
+        upgradeNetworkModal = (
+          <ModalAbortUpgrade
+            isOpen={this.state.upgradeModalOpen}
+            onClose= {() => this.setState({upgradeModalOpen: false})}
+            topologyName={networkConfig.topology.name}
+            upgradeRequests={upgradeRequests}
+          />);
         break;
     }
 

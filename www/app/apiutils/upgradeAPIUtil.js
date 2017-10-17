@@ -3,7 +3,7 @@ import axios from 'axios';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
-import { Actions, UploadStatus } from '../NetworkConstants.js';
+import { Actions, UploadStatus, DeleteStatus } from '../NetworkConstants.js';
 import Dispatcher from '../NetworkDispatcher.js';
 
 export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
@@ -90,8 +90,24 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
   const uri = `controller/deleteUpgradeImage/${topologyName}/${imageName}`;
 
   axios.get(uri).then((response) => {
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
+      deleteStatus: DeleteStatus.SUCCESS
+    });
+
+    // revert the delete status after 5 seconds
+    setTimeout(() => {
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
+        deleteStatus: DeleteStatus.NONE
+      });
+    }, 5000);
     listUpgradeImages(topologyName);
   }).catch((error) => {
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
+      deleteStatus: DeleteStatus.FAILURE
+    });
     listUpgradeImages(topologyName);
   })
 };

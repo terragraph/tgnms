@@ -3,7 +3,10 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 const classNames = require('classnames');
 
-import { UploadStatus } from '../../NetworkConstants.js';
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
+
+import { UploadStatus, DeleteStatus } from '../../NetworkConstants.js';
 import { uploadUpgradeBinary, listUpgradeImages, deleteUpgradeImage } from '../../apiutils/upgradeAPIUtil.js';
 
 import UpgradeImagesTable from './UpgradeImagesTable.js';
@@ -66,7 +69,20 @@ export default class ModalUpgradeBinary extends React.Component {
   }
 
   deleteImage = (imageName) => {
-    deleteUpgradeImage(imageName, this.props.topologyName);
+    swal({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover the image once deleted',
+      type: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Delete Image',
+      cancelButtonText: 'Cancel'
+    }, (proceed) => {
+      if (proceed) {
+        deleteUpgradeImage(imageName, this.props.topologyName);
+      } else {
+        console.log('CANCELLED');
+      }
+    });
   }
 
   renderUploadStatus = () => {
@@ -91,21 +107,53 @@ export default class ModalUpgradeBinary extends React.Component {
         break;
       case UploadStatus.SUCCESS:
         uploadStatusDisplay = (
-          <span
-            style={{color: '#009900'}}
-          >Upload Succeeded</span>
+          <div>
+            <span
+              style={{color: '#009900'}}
+            >Upload Succeeded</span>
+          </div>
         );
         break;
       case UploadStatus.FAILURE:
         uploadStatusDisplay = (
-          <span
-            style={{color: '#990000'}}
-          >Upload failed</span>
+          <div>
+            <span
+              style={{color: '#990000'}}
+            >Upload failed</span>
+          </div>
+        );
+        break;
+    }
+    return uploadStatusDisplay;
+  }
+
+  renderDeleteStatus = () => {
+    let deleteStatusDisplay = (
+      <div></div>
+    );
+
+    switch(this.props.deleteStatus) {
+      case DeleteStatus.SUCCESS:
+        deleteStatusDisplay = (
+          <div>
+            <span
+              style={{color: '#009900'}}
+            >Image Successfully Succeeded</span>
+          </div>
+        );
+        break;
+      case DeleteStatus.FAILURE:
+        deleteStatusDisplay = (
+          <div>
+            <span
+              style={{color: '#990000'}}
+            >There was a problem with deleting the image please try again</span>
+          </div>
         );
         break;
     }
 
-    return uploadStatusDisplay;
+    return deleteStatusDisplay;
   }
 
   render() {
@@ -117,6 +165,7 @@ export default class ModalUpgradeBinary extends React.Component {
     const fileName = isFileSelected ? selectedFile.name : '';
 
     const uploadStatusDisplay = this.renderUploadStatus();
+    const deleteStatusDisplay = this.renderDeleteStatus();
 
     return (
       <Modal
@@ -143,6 +192,7 @@ export default class ModalUpgradeBinary extends React.Component {
           </div>
 
           {uploadStatusDisplay}
+          {deleteStatusDisplay}
 
           <div className='upgrade-modal-row' >
             <i
@@ -167,6 +217,7 @@ export default class ModalUpgradeBinary extends React.Component {
 ModalUpgradeBinary.propTypes = {
   upgradeImages: React.PropTypes.array.isRequired,
   uploadStatus: React.PropTypes.string.isRequired,
+  deleteStatus: React.PropTypes.string.isRequired,
   uploadProgress: React.PropTypes.number.isRequired,
 
   isOpen: React.PropTypes.bool.isRequired,

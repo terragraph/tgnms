@@ -67,7 +67,6 @@ export default class UpgradeNodesTable extends React.Component {
   onSelectAll = (isSelected) => {
     const {nodes} = this.props;
     const selectedNodes = (isSelected) ? nodes.map(node => node.name) : [];
-    // const excludedNodes = (isSelected) ? [] : nodes.map(node => node.name);
 
     this.props.onNodesSelected(selectedNodes);
   }
@@ -174,10 +173,10 @@ export default class UpgradeNodesTable extends React.Component {
           <TableHeaderColumn width="180" dataSort={true} dataField="upgradeStatus">
             Upgrade Status
           </TableHeaderColumn>
-          <TableHeaderColumn width="700" dataSort={true} dataField="version">
+          <TableHeaderColumn width="650" dataSort={true} dataField="version">
             Image Version
           </TableHeaderColumn>
-          <TableHeaderColumn width="700" dataSort={true} dataField="nextVersion">
+          <TableHeaderColumn width="650" dataSort={true} dataField="nextVersion">
             Next Version
           </TableHeaderColumn>
         </BootstrapTable>

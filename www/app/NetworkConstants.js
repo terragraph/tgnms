@@ -34,8 +34,9 @@ const Actions = {
   OPEN_UPGRADE_BINARY_MODAL: 500,
   OPEN_PREPARE_UPGRADE_MODAL: 501,
   OPEN_COMMIT_UPGRADE_MODAL: 502,
+  OPEN_ABORT_UPGRADE_MODAL: 503,
 
-  UPGRADE_NODES_SELECTED: 503,
+  UPGRADE_NODES_SELECTED: 520,
 
   // upgrade file-related actions
   UPGRADE_IMAGES_LOADED: 530,
@@ -43,7 +44,7 @@ const Actions = {
   UPGRADE_UPLOAD_STATUS: 531,
   UPGRADE_UPLOAD_PROGRESS: 532,
 
-  // upgrade actions (API response related)
+  UPGRADE_DELETE_IMAGE_STATUS: 541,
 };
 
 const SiteOverlayKeys = {
@@ -110,9 +111,16 @@ const UploadStatus = {
   FAILURE: 'FAILURE'
 };
 
+const DeleteStatus = {
+  NONE: 'NONE',
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE'
+};
+
 module.exports = {
   Actions,
   SiteOverlayKeys,
   linkOverlayKeys,
-  UploadStatus
+  UploadStatus,
+  DeleteStatus
 }

@@ -48,13 +48,10 @@ export default class UpgradeCommandPane extends React.Component {
     }
   }
 
-  abortUpgrade() {
-    swal({
-      title: 'Functionality not supported',
-      text: `To abort an upgrade in progress, use the command:
-      tg upgrade abort -r <list of request ids to abort, separated by commas>`,
-      type: 'info'
-    })
+  abortUpgrade = () => {
+    Dispatcher.dispatch({
+      actionType: Actions.OPEN_ABORT_UPGRADE_MODAL,
+    });
   }
 
   render() {

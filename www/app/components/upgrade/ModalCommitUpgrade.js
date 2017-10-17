@@ -34,7 +34,6 @@ export default class ModalCommitUpgrade extends React.Component {
 
   submitCommit() {
     const excludeNodes = this.props.getExcludedNodes();
-    console.log('excluded nodes: ', excludeNodes);
 
     const requestBody = {
       excludeNodes,
@@ -110,12 +109,14 @@ export default class ModalCommitUpgrade extends React.Component {
             />
           </div>
 
-          <div className="upgrade-modal-row">
-            <label>Batch size limit:</label>
-            <input type="number" value={this.state.limit} disabled={this.state.isParallel}
-              onChange={(event) => this.setState({'limit': event.target.value})}
-            />
-          </div>
+          {!this.state.isParallel && (
+            <div className="upgrade-modal-row">
+              <label>Batch size limit:</label>
+              <input type="number" value={this.state.limit}
+                onChange={(event) => this.setState({'limit': event.target.value})}
+              />
+            </div>
+          )}
 
           <div className="upgrade-modal-row">
             <label>Commit delay:</label>
