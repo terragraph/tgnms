@@ -119,7 +119,7 @@ export const prepareUpgrade = (upgradeGroupReq) => {
   ).then((response) => {
     swal({
       title: "Prepare upgrade submitted",
-      text: `You have initiated the "prepare upgrade" process with requestId ${response.requestId}
+      text: `You have initiated the "prepare upgrade" process with requestId ${upgradeGroupReq.requestId}
 
       Please run: watch tg upgrade state all
       to watch the status of your upgrade.
@@ -147,7 +147,7 @@ export const commitUpgrade = (upgradeGroupReq) => {
   ).then((response) => {
     swal({
       title: "Commit upgrade submitted",
-      text: `You have initiated the "commit upgrade" process with requestId ${response.requestId}
+      text: `You have initiated the "commit upgrade" process with requestId ${upgradeGroupReq.requestId}
 
       Please run: watch tg upgrade state all
       to watch the status of your upgrade.

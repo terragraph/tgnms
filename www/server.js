@@ -1316,14 +1316,15 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
-    const {topologyName, requestId, excludeNodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
+    const {ugType, topologyName, requestId, nodes, excludeNodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
 
     var topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
       type: 'commitUpgrade',
-      upgradeGroupType: 'NETWORK',
+      upgradeGroupType: ugType,
       requestId,
+      nodes,
       excludeNodes,
       timeout,
       skipFailure,

@@ -28,16 +28,28 @@ export default class ModalCommitUpgrade extends React.Component {
       isParallel: true,     // parallelize teh operation? (put all nodes in one batch)
       limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
 
+      overrideBatch: false, // override batching logic (and send a node level request instead)
+
       scheduleToCommit: 0,  // delay between issuing the command and
     }
   }
 
   submitCommit() {
-    const excludeNodes = this.props.getExcludedNodes();
+    let nodes = [];
+    let excludeNodes = [];
 
+    if (this.state.overrideBatch) {
+      // node level request
+      nodes = this.props.upgradeNodes.map(node => node.name);
+    } else {
+      excludeNodes = this.props.getExcludedNodes();
+    }
+
+    const ugType = this.state.overrideBatch ? 10 : 20;
     const requestBody = {
+      ugType,
+      nodes,
       excludeNodes,
-      // nodes:        this.props.upgradeNodes,
       timeout:          this.state.timeout,
       skipFailure:      this.state.skipFailure,
       skipLinks:        [],
@@ -125,9 +137,9 @@ export default class ModalCommitUpgrade extends React.Component {
           )}
 
           <div className="upgrade-modal-row">
-            <label>Commit all nodes at once?</label>
-            <input type="checkbox" checked={this.state.isParallel}
-              onChange={(event) => this.setState({'isParallel': event.target.checked})}
+            <label>Commit all nodes at once (override batching logic)?</label>
+            <input type="checkbox" checked={this.state.overrideBatch}
+              onChange={(event) => this.setState({'overrideBatch': event.target.checked})}
             />
           </div>
 

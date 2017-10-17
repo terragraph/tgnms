@@ -441,9 +441,9 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       upgradeReqParams.scheduleToCommit = msg.scheduleToCommit;
 
       var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
-      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NETWORK;
+      upgradeGroupReqParams.ugType = msg.upgradeGroupType,
 
-      upgradeGroupReqParams.nodes = [];
+      upgradeGroupReqParams.nodes = msg.nodes;
       upgradeGroupReqParams.excludeNodes = msg.excludeNodes;
 
       upgradeGroupReqParams.urReq = upgradeReqParams;
