@@ -6,7 +6,7 @@ import Dispatcher from '../../NetworkDispatcher.js';
 
 import { listUpgradeImages } from '../../apiutils/upgradeAPIUtil.js';
 
-import UpgradeCommandPane from './UpgradeCommandPane.js';
+import UpgradeLeftPane from './UpgradeLeftPane.js';
 import UpgradeMonitor from './UpgradeMonitor.js';
 
 import ModalUpgradeBinary from './ModalUpgradeBinary.js';
@@ -132,6 +132,14 @@ export default class NetworkUpgrade extends React.Component {
     });
   }
 
+  hasCurrentRequest = (upgradeStateDump) => {
+    return (
+      upgradeStateDump &&
+      upgradeStateDump.hasOwnProperty('curUpgradeReq') &&
+      upgradeStateDump.curUpgradeReq.urReq.upgradeReqId !== ''
+    );
+  }
+
   renderUpgradeModal = () => {
     const {networkConfig, upgradeStateDump} = this.props;
     const {
@@ -189,14 +197,8 @@ export default class NetworkUpgrade extends React.Component {
         let pendingRequests = (upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingReqs'))
           ? upgradeStateDump.pendingReqs : [];
 
-        const hasCurReq = (
-          upgradeStateDump &&
-          upgradeStateDump.hasOwnProperty('curUpgradeReq') &&
-          upgradeStateDump.curUpgradeReq.urReq.upgradeReqId !== ''
-        );
-
-        const upgradeRequests = hasCurReq ?
-          [upgradeStateDump.curUpgradeReq,...pendingRequests] : pendingRequests;
+        const upgradeRequests = this.hasCurrentRequest(upgradeStateDump) ?
+          [upgradeStateDump.curUpgradeReq, ...pendingRequests] : pendingRequests;
 
         upgradeNetworkModal = (
           <ModalAbortUpgrade
@@ -217,6 +219,8 @@ export default class NetworkUpgrade extends React.Component {
 
     const {selectedNodesForUpgrade} = this.state;
 
+    let currentRequest = this.hasCurrentRequest() ? upgradeStateDump.curUpgradeReq : null;
+
     let curBatch = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('curBatch'))
       ? upgradeStateDump.curBatch : [];
 
@@ -232,7 +236,9 @@ export default class NetworkUpgrade extends React.Component {
       <div className="network-upgrade">
         {upgradeModal}
 
-        <UpgradeCommandPane
+        <UpgradeLeftPane
+          currentRequest={currentRequest}
+          pendingRequests={pendingRequests}
           selectedNodes={selectedNodesForUpgrade}
         />
         <UpgradeMonitor

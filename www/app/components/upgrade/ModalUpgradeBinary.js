@@ -76,11 +76,9 @@ export default class ModalUpgradeBinary extends React.Component {
       showCancelButton: true,
       confirmButtonText: 'Delete Image',
       cancelButtonText: 'Cancel'
-    }, (proceed) => {
-      if (proceed) {
+    }, (confirm) => {
+      if (confirm) {
         deleteUpgradeImage(imageName, this.props.topologyName);
-      } else {
-        console.log('CANCELLED');
       }
     });
   }

@@ -14,9 +14,9 @@
 
 /* UPGRADE COMMAND PANE */
 
-.upgrade-command-pane {
+.rc-upgrade-left-pane {
   margin-left: 10px;
-  margin-right: 10px;
+  margin-right: 30px;
   width: 200px; /* fixed width for now */
   height: 100%;
 
@@ -30,6 +30,18 @@
 .upgrade-btn {
   width: 100%;
   margin-top: 10px;
+}
+
+.rc-upgrade-left-pane-status {
+  margin-top: 20px;
+}
+
+.upgrade-left-status-row {
+  margin-bottom: 20px;
+}
+
+.upgrade-left-pane-label {
+  font-size: 20px;
 }
 
 /* UPGRADE MONITORING */

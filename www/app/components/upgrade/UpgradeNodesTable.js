@@ -51,6 +51,7 @@ export default class UpgradeNodesTable extends React.Component {
       rows.push(
         {
           name: node.name,
+          ignited: (node.status == 2 || node.status == 3),
           site_name: node.site_name,
           pop_node: node.pop_node,
           version: version,
@@ -157,6 +158,12 @@ export default class UpgradeNodesTable extends React.Component {
             trClassName= 'break-word'>
           <TableHeaderColumn width="170" dataSort={true} dataField="name" isKey={ true }>
             Name
+          </TableHeaderColumn>
+          <TableHeaderColumn width="90"
+                             dataSort={true}
+                             dataField="ignited"
+                             dataFormat={this.renderStatusColor}>
+            Ignited
           </TableHeaderColumn>
           <TableHeaderColumn width="80"
                              dataSort={true}
