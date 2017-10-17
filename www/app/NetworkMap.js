@@ -864,7 +864,7 @@ export default class NetworkMap extends React.Component {
 
     let tileUrl = CONFIG.use_tile_proxy ?
         '/tile/{s}/{z}/{x}/{y}.png' :
-        'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
+        window.location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     let plannedSite = <div/>;
     if (this.state.plannedSite) {

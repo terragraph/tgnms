@@ -81,6 +81,8 @@ export default class DetailsTopology extends React.Component {
         nodeTypeName = 'CN';
       } else if (nodeType == 2) {
         nodeTypeName = 'DN';
+      } else {
+        nodeTypeName = 'Unknown';
       }
       let nodeTypeCount = nodeTypes[nodeType];
       let nodeTypeCountPerc =
