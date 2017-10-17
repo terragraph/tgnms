@@ -72,9 +72,15 @@ export default class ModalCommitUpgrade extends React.Component {
 
     const nodesList = (
       <div className="upgrade-modal-nodes-list">
-        {this.props.upgradeNodes.map((node) => <p>{node}</p>)}
+        {this.props.upgradeNodes.map((node, idx) => {
+          return idx % 2 == 0 ? (
+            <p>{node}</p>
+          ) : (
+            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
+          );
+        })}
       </div>
-    )
+    );
 
     return (
       <Modal
@@ -117,6 +123,13 @@ export default class ModalCommitUpgrade extends React.Component {
               />
             </div>
           )}
+
+          <div className="upgrade-modal-row">
+            <label>Commit all nodes at once?</label>
+            <input type="checkbox" checked={this.state.isParallel}
+              onChange={(event) => this.setState({'isParallel': event.target.checked})}
+            />
+          </div>
 
           <div className="upgrade-modal-row">
             <label>Commit delay:</label>

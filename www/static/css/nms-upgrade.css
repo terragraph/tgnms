@@ -86,7 +86,16 @@
 
 .upgrade-modal-nodes-list {
   max-height: 200px;
-  overflow-y: auto;
+  overflow-y: scroll;
+  box-sizing: border-box;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.upgrade-modal-nodes-list p {
+  margin: 0;
+  padding: 5px 0px 5px 10px;
+  border: 1px solid #ddd;
 }
 
 .prepare-modal-images-list {

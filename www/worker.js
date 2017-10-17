@@ -461,7 +461,6 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       abortUpgradeParams.reqIds = msg.reqIds;
 
       send(abortUpgradeParams);
-
       break;
     case 'listUpgradeImages':
       var listUpgradeImagesParams = new Controller_ttypes.UpgradeListImagesReq();

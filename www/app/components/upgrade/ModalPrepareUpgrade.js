@@ -190,9 +190,15 @@ export default class ModalPrepareUpgrade extends React.Component {
 
     const nodesList = (
       <div className="upgrade-modal-nodes-list">
-        {upgradeNodes.map((node) => <p>{node}</p>)}
+        {this.props.upgradeNodes.map((node, idx) => {
+          return idx % 2 == 0 ? (
+            <p>{node}</p>
+          ) : (
+            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
+          );
+        })}
       </div>
-    )
+    );
 
     const imagesList = this.renderUpgradeImages();
     const selectedImageName = Object.keys(this.state.selectedImage).length == 0 ? '' : this.state.selectedImage.name;

@@ -1348,7 +1348,6 @@ app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
 
     syncWorker.sendCtrlMsgSync({
       type: 'abortUpgrade',
-      upgradeGroupType: 'NETWORK',
       abortAll,
       reqIds,
       topology

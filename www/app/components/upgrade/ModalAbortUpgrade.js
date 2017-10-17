@@ -46,6 +46,7 @@ export default class ModalAbortUpgrade extends React.Component {
 
   abortSelected = () => {
     const requestBody = {
+      topologyName: this.props.topologyName,
       abortAll: false,
       reqIds: this.state.selectedRequests
     };
@@ -56,6 +57,7 @@ export default class ModalAbortUpgrade extends React.Component {
 
   abortAll = () => {
     const requestBody = {
+      topologyName: this.props.topologyName,
       abortAll: true,
       reqIds: []
     };
