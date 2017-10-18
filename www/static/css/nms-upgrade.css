@@ -85,11 +85,11 @@
 
 .upgrade-modal-row label {
   float: left;
-  width: 35%;
+  width: 55%;
 }
 
 .upgrade-modal-row input {
-  width: 65%;
+  width: 45%;
 }
 
 .upgrade-modal-row input:disabled {
@@ -163,5 +163,4 @@
 
 .refresh-images:hover {
   cursor: pointer;
-  color: #0095ff;
 }

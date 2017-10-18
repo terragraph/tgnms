@@ -156,7 +156,7 @@ export const commitUpgrade = (upgradeGroupReq) => {
     });
   }).catch((error) => {
     // try to get the status text from the API response, otherwise, default to the error object
-    const errorText = (!!error.response && !!error.response.statusText) ?
+    const errorText = (error.response && error.response.statusText) ?
       error.response.statusText : error;
 
     swal({

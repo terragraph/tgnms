@@ -215,6 +215,11 @@ export default class ModalPrepareUpgrade extends React.Component {
             {nodesList}
           </div>
 
+          <label>Selected upgrade image: {selectedImageName}</label>
+          <div className="upgrade-modal-row">
+            {imagesList}
+          </div>
+
           <div className="upgrade-modal-row">
             <label>Upgrade timeout (s):</label>
             <input type="number" value={this.state.timeout}
@@ -244,11 +249,6 @@ export default class ModalPrepareUpgrade extends React.Component {
               />
             </div>
           )}
-
-          <label>Selected upgrade image: {selectedImageName}</label>
-          <div className="upgrade-modal-row">
-            {imagesList}
-          </div>
 
           <form> <label>Specify the mode to retrieve the image:</label>
             <div className="download-type-selector">

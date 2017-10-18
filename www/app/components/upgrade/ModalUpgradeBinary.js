@@ -186,16 +186,14 @@ export default class ModalUpgradeBinary extends React.Component {
               disabled={!isFileSelected}
               onClick={this.onUploadFile}
               style={{margin: '6px 14px'}}
-            ><i className={classNames('fa', 'fa-plus')} style={{marginRight: '10px'}}/>Add selected binary to server</button>
+            ><img src='/static/images/add.png' style={{marginRight: '10px', height: '18px', width: '18px'}}/>Add selected binary to server</button>
           </div>
 
           {uploadStatusDisplay}
           {deleteStatusDisplay}
 
           <div className='upgrade-modal-row' >
-            <i
-              className={classNames('fa', 'fa-refresh', 'fa-lg', 'refresh-images')}
-              aria-hidden="true" onClick={this.refreshImages} />
+            <img src='/static/images/refresh.png' className='refresh-images' onClick={this.refreshImages} />
           </div>
           <div className='upgrade-modal-row'>
             <UpgradeImagesTable

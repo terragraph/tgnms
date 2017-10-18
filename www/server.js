@@ -18,6 +18,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// set up font awesome here
 
 const pug = require('pug');
 const compression = require('compression');

@@ -14,9 +14,7 @@ class DeleteImageColumn extends React.Component {
   render() {
     const iconClass = classNames('fa', 'fa-times', 'fa-lg');
     return (
-      <i
-        style={{color: '#ff4444'}}
-        className={iconClass}
+      <img src='/static/images/delete.png'
         onClick={this.onClick}
       />
     );

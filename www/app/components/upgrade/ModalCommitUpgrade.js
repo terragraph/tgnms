@@ -30,7 +30,7 @@ export default class ModalCommitUpgrade extends React.Component {
 
       overrideBatch: false, // override batching logic (and send a node level request instead)
 
-      scheduleToCommit: 0,  // delay between issuing the command and
+      scheduleToCommit: 0,  // delay between issuing the command and each node starting the commit
     }
   }
 
