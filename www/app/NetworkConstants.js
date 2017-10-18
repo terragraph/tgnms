@@ -1,4 +1,5 @@
 import { polarityColor } from './NetworkHelper.js';
+
 const Actions = {
   // topology actions
   TOPOLOGY_SELECTED: 100,
@@ -52,8 +53,15 @@ const SiteOverlayKeys = {
   Pending: {
     Site: {color: 'pink'},
     Node: {color: 'pink'}
-  }
+  },
 }
+
+const ChartColors = [
+  '#9F1E11',
+  '#9F6B11',
+  '#620C68',
+  '#0D7825'
+];
 
 const linkOverlayKeys = {
   Health: {
@@ -101,5 +109,6 @@ const linkOverlayKeys = {
 module.exports = {
   Actions,
   SiteOverlayKeys,
-  linkOverlayKeys
+  linkOverlayKeys,
+  ChartColors
 }
