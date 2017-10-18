@@ -250,10 +250,15 @@ export default class ModalPrepareUpgrade extends React.Component {
             </div>
           )}
 
-          <form> <label>Specify the mode to retrieve the image:</label>
+          <form style={{marginBottom: '10px'}}>
+            <label
+              style={{float: 'left', width: '55%'}}
+            >Specify the mode to retrieve the image:</label>
             <div className="download-type-selector">
               <input type="radio" id="http" value="http" onChange={this.onChangeDownloadMode} checked={this.state.isHttp} disabled={true}/>
-              <label for="http" style={{marginRight: '20px'}}>Http</label>
+              <label for="http"
+                style={{marginRight: '20px', opacity: 0.5}}
+              >Http</label>
 
               <input type="radio" name="torrent" value="torrent" onChange={this.onChangeDownloadMode} checked={!this.state.isHttp}/>
               <label for="torrent">Torrent</label>

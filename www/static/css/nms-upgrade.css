@@ -92,6 +92,10 @@
   width: 45%;
 }
 
+.upgrade-modal-row .download-type-selector {
+  width: 45%;
+}
+
 .upgrade-modal-row input:disabled {
   background: #ddd;
 }
