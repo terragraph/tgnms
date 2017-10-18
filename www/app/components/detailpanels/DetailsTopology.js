@@ -37,7 +37,7 @@ export default class DetailsTopology extends React.Component {
     });
     let i = 0;
     let versionData = [];
-    Object.keys(versionCounts).forEach(version => {
+    Object.keys(versionCounts).sort().forEach(version => {
       let count = versionCounts[version];
       versionData.push({
         label: versionSlicer(version),
@@ -196,27 +196,31 @@ export default class DetailsTopology extends React.Component {
       );
     });
     let versionPieChart =
-      <tr>
-        <td>
-          <PieChart
-            data={versionData}
-            shrinkOnTouchEnd
-            onSectorHover={this.handleMouseEnterOnSector.bind(this)}
-            expandOnHover />
-        </td>
-        <td colSpan="2">
-        {
-          versionData.map((element, i) => (
-            <div key={i}>
-              <span style={{background: element.color}}></span>
+      <PieChart
+        data={versionData}
+        shrinkOnTouchEnd
+        onSectorHover={this.handleMouseEnterOnSector.bind(this)}
+        expandOnHover />;
+    let versionRows =
+      versionData.map((element, i) => {
+        let versionPerc = element.value > 0 ?
+          (parseInt(parseInt(element.value) / totalReported * 100)) : 0;
+        return (
+          <tr>
+            {i == 0 ? <td rowSpan={versionData.length}>{versionPieChart}</td> : ""}
+            <td key={i} style={{color: element.color}}>
               <span style={{fontWeight: this.state.expandedVersion === i ? "bold" : null}}>
-                {element.label} ({element.value})
+                {element.label}
               </span>
-            </div>
-          ))
-        }
-        </td>
-      </tr>;
+            </td>
+            <td>
+              <span style={{fontWeight: this.state.expandedVersion === i ? "bold" : null}}>
+                {element.value} ({versionPerc}%)
+              </span>
+            </td>
+          </tr>
+        );
+      });
     return (
       <div id="myModal" className="details">
         <div className="details-content">
@@ -238,7 +242,7 @@ export default class DetailsTopology extends React.Component {
                 {nodeTypeRows}
                 {polarityRows}
                 {polarityBySiteRows}
-                {versionData.length ? versionPieChart : ""}
+                {versionData.length ? versionRows : ""}
               </tbody>
             </table>
           </div>
