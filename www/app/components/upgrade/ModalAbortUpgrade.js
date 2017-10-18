@@ -3,6 +3,9 @@ import { render } from 'react-dom';
 import Modal from 'react-modal';
 const classNames = require('classnames');
 
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
+
 import UpgradeRequestsTable from './UpgradeRequestsTable.js';
 
 import { abortUpgrade } from '../../apiutils/upgradeAPIUtil.js';
@@ -45,25 +48,55 @@ export default class ModalAbortUpgrade extends React.Component {
   }
 
   abortSelected = () => {
-    const requestBody = {
-      topologyName: this.props.topologyName,
-      abortAll: false,
-      reqIds: this.state.selectedRequests
-    };
+    swal({
+      title: 'Abort Upgrade',
+      text: `You are about to abort upgrades with requests
+      ${this.state.selectedRequests}
 
-    abortUpgrade(requestBody);
-    this.props.onClose();
+      This operation cannot be undone once you proceed.
+
+      Proceed with abort?`,
+      type: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Proceed',
+      cancelButtonText: 'Cancel'
+    }, (proceed) => {
+      if (proceed) {
+        const requestBody = {
+          topologyName: this.props.topologyName,
+          abortAll: false,
+          reqIds: this.state.selectedRequests
+        };
+
+        abortUpgrade(requestBody);
+      }
+      this.props.onClose();
+    });
   }
 
   abortAll = () => {
-    const requestBody = {
-      topologyName: this.props.topologyName,
-      abortAll: true,
-      reqIds: []
-    };
+    swal({
+      title: 'Abort Upgrade',
+      text: `You are about to abort ALL current and pending upgrades
+      This operation cannot be undone once you proceed.
 
-    abortUpgrade(requestBody);
-    this.props.onClose();
+      Proceed with abort?`,
+      type: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Proceed',
+      cancelButtonText: 'Cancel'
+    }, (proceed) => {
+      if (proceed) {
+        const requestBody = {
+          topologyName: this.props.topologyName,
+          abortAll: true,
+          reqIds: []
+        };
+
+        abortUpgrade(requestBody);
+      }
+      this.props.onClose();
+    });
   }
 
   render() {

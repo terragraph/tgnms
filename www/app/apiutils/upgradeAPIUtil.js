@@ -26,7 +26,6 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
   const config = {
     onUploadProgress: function(progressEvent) {
       var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
-      console.log('uploading: ', percentCompleted);
 
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_UPLOAD_PROGRESS,
@@ -121,8 +120,7 @@ export const prepareUpgrade = (upgradeGroupReq) => {
       title: "Prepare upgrade submitted",
       text: `You have initiated the "prepare upgrade" process with requestId ${upgradeGroupReq.requestId}
 
-      Please run: watch tg upgrade state all
-      to watch the status of your upgrade.
+      The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
       type: "info"
     });
@@ -149,8 +147,7 @@ export const commitUpgrade = (upgradeGroupReq) => {
       title: "Commit upgrade submitted",
       text: `You have initiated the "commit upgrade" process with requestId ${upgradeGroupReq.requestId}
 
-      Please run: watch tg upgrade state all
-      to watch the status of your upgrade.
+      The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
       type: "info"
     });
@@ -160,7 +157,7 @@ export const commitUpgrade = (upgradeGroupReq) => {
       error.response.statusText : error;
 
     swal({
-      title: "Prepare upgrade failed",
+      title: "Commit upgrade failed",
       text: `Your upgrade command failed with the following message:
       ${errorText}`,
       type: "error"
@@ -173,8 +170,24 @@ export const abortUpgrade = (upgradeAbortReq) => {
   axios.post(
     uri, upgradeAbortReq
   ).then((response) => {
-    console.log('upgrades aborted');
-  }).catch((error) => {
+    swal({
+      title: "Abort upgrade(s) success",
+      text: `You have initiated the "abort upgrade" process successfully
 
+      The status of your upgrade should be shown on the "Node Upgrade Status" table.
+      `,
+      type: "info"
+    });
+  }).catch((error) => {
+    // try to get the status text from the API response, otherwise, default to the error object
+    const errorText = (error.response && error.response.statusText) ?
+      error.response.statusText : error;
+
+    swal({
+      title: "Abort upgrade failed",
+      text: `Your abort upgrade command failed with the following message:
+      ${errorText}`,
+      type: "error"
+    });
   });
 };
