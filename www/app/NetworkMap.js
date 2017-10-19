@@ -7,7 +7,7 @@ import Control from 'react-leaflet-control';
 import LeafletGeom from 'leaflet-geometryutil';
 
 // dispatcher
-import {Actions, SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
+import {Actions, SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './stores/NetworkStore.js';
 // ui components

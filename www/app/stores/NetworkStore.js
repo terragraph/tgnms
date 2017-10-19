@@ -1,4 +1,4 @@
-import { Actions } from '../NetworkConstants.js';
+import { Actions } from '../constants/NetworkConstants.js';
 import Dispatcher from '../NetworkDispatcher.js';
 // URL history
 import createHistory from 'history/createBrowserHistory';

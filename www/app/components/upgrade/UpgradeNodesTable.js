@@ -50,6 +50,10 @@ export default class UpgradeNodesTable extends React.Component {
                               version:string}>  {
     const rows = [];
     nodes.forEach(node => {
+      // .slice(28) is used to remove the "Facebook Terragraph Release" prefix from the image name
+      // e.g:
+      // "Facebook Terragraph Release RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
+      // turns into "RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
       const version = node.status_dump ? node.status_dump.version.slice(28).trimRight() :
                                        'Not Available';
 

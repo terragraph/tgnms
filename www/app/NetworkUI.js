@@ -5,7 +5,7 @@ import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
 // leaflet maps
 import { render } from 'react-dom';
 // dispatcher
-import { Actions } from './NetworkConstants.js';
+import { Actions } from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './stores/NetworkStore.js';
 
@@ -18,7 +18,7 @@ import NetworkAlerts from './NetworkAlerts.js';
 import NetworkConfig from './NetworkConfig.js';
 import ModalOverlays from './ModalOverlays.js';
 import ModalTopology from './ModalTopology.js';
-import {SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
+import {SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
 
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 
@@ -422,7 +422,6 @@ export default class NetworkUI extends React.Component {
       selectedKeys.push("topo#" + this.state.networkName);
     }
 
-    let upgradeNetworkModal = <div/>;
     return (
       <div>
         <ModalOverlays

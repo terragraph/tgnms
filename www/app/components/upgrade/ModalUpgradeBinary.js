@@ -6,7 +6,7 @@ const classNames = require('classnames');
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
-import { UploadStatus, DeleteStatus } from '../../NetworkConstants.js';
+import { UploadStatus, DeleteStatus } from '../../constants/NetworkConstants.js';
 import { uploadUpgradeBinary, listUpgradeImages, deleteUpgradeImage } from '../../apiutils/upgradeAPIUtil.js';
 
 import UpgradeImagesTable from './UpgradeImagesTable.js';
@@ -96,8 +96,10 @@ export default class ModalUpgradeBinary extends React.Component {
             <div className="progress">
               <div
                 className="progress-bar"
-                role="progressbar" style={{width: this.props.uploadProgress + '%'}}
-                aria-valuemin="0" aria-valuemax="100"
+                role="progressbar"
+                style={{width: this.props.uploadProgress + '%'}}
+                aria-valuemin="0"
+                aria-valuemax="100"
               >{this.props.uploadProgress}%</div>
             </div>
           </div>
@@ -117,7 +119,7 @@ export default class ModalUpgradeBinary extends React.Component {
           <div>
             <span
               style={{color: '#990000'}}
-            >Upload failed</span>
+            >Upload Failed</span>
           </div>
         );
         break;
@@ -136,7 +138,7 @@ export default class ModalUpgradeBinary extends React.Component {
           <div>
             <span
               style={{color: '#009900'}}
-            >Image Successfully Succeeded</span>
+            >Image Successfully Deleted</span>
           </div>
         );
         break;
@@ -145,7 +147,7 @@ export default class ModalUpgradeBinary extends React.Component {
           <div>
             <span
               style={{color: '#990000'}}
-            >There was a problem with deleting the image please try again</span>
+            >There was a problem with deleting the image, please try again</span>
           </div>
         );
         break;

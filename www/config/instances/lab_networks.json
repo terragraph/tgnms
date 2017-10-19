@@ -8,8 +8,8 @@
             "latitude": 37.4848280435154,
             "longitude": -122.1472245455607,
             "zoom_level": 18,
-            "controller_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a",
-            "aggregator_ip": "2620:10d:c089:e00b:250:c2ff:fec9:9d5a"
+            "controller_ip": "2620:10d:c089:e001:3a49:2280:9221:6e5a",
+            "aggregator_ip": "2620:10d:c089:e001:3a49:2280:9221:6e5a"
         },
         {
             "topology_file": "lab_f8_c.json",
@@ -27,7 +27,7 @@
             "longitude": -122.1472245455607,
             "zoom_level": 18,
             "controller_ip": "2620:10d:c089:e001:2351:d69d:e784:b431",
-            "aggregator_ip": "2620:10d:c089:e00d:250:c2ff:fec9:9cc7"
+            "aggregator_ip": "2620:10d:c089:e001:2351:d69d:e784:b431"
         },
         {
             "topology_file": "mpk14_outdoor.json",

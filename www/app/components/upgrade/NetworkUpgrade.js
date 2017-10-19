@@ -1,7 +1,8 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import { Actions, UploadStatus, DeleteStatus } from '../../NetworkConstants.js';
+import { Actions, UploadStatus, DeleteStatus } from '../../constants/NetworkConstants.js';
+import { UPGRADE_IMAGE_REFRESH_INTERVAL } from '../../constants/UpgradeConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
 import { listUpgradeImages } from '../../apiutils/upgradeAPIUtil.js';
@@ -34,7 +35,7 @@ export default class NetworkUpgrade extends React.Component {
     // fetch the list of upgrade images every 10 seconds
     // save the interval id so we can clear it when the component unmounts
     const intervalId = setInterval(
-      this.fetchUpgradeImages, 10000
+      this.fetchUpgradeImages, UPGRADE_IMAGE_REFRESH_INTERVAL
     );
 
     this.state = {
@@ -65,30 +66,30 @@ export default class NetworkUpgrade extends React.Component {
 
         this.setState({
           selectedNodesForUpgrade: [],
-          upgradeImages: []
+          upgradeImages: [],
         });
         break;
       case Actions.UPGRADE_IMAGES_LOADED:
         if (Array.isArray(payload.upgradeImages)) {
           this.setState({
-            upgradeImages: payload.upgradeImages
+            upgradeImages: payload.upgradeImages,
           });
         }
         break;
       case Actions.FETCH_UPGRADE_IMAGES_FAILED:
         this.setState({
-          upgradeImages: []
+          upgradeImages: [],
         });
         break;
       case Actions.UPGRADE_UPLOAD_STATUS:
         this.setState({
           uploadStatus: payload.uploadStatus,
-          uploadProgress: 0
+          uploadProgress: 0,
         });
         break;
       case Actions.UPGRADE_UPLOAD_PROGRESS:
         this.setState({
-          uploadProgress: payload.progress
+          uploadProgress: payload.progress,
         });
         break;
       case Actions.UPGRADE_DELETE_IMAGE_STATUS:
@@ -98,7 +99,7 @@ export default class NetworkUpgrade extends React.Component {
         break;
       case Actions.UPGRADE_NODES_SELECTED:
         this.setState({
-          selectedNodesForUpgrade: payload.nodes
+          selectedNodesForUpgrade: payload.nodes,
         });
         break;
       case Actions.OPEN_UPGRADE_BINARY_MODAL:
@@ -235,13 +236,13 @@ export default class NetworkUpgrade extends React.Component {
 
     let currentRequest = this.hasCurrentRequest(upgradeStateDump) ? upgradeStateDump.curUpgradeReq : null;
 
-    let curBatch = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('curBatch'))
+    let curBatch = (upgradeStateDump && upgradeStateDump.hasOwnProperty('curBatch'))
       ? upgradeStateDump.curBatch : [];
 
-    let pendingBatches = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingBatches'))
+    let pendingBatches = (upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingBatches'))
       ? upgradeStateDump.pendingBatches : [];
 
-    let pendingRequests = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingReqs'))
+    let pendingRequests = (upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingReqs'))
       ? upgradeStateDump.pendingReqs : [];
 
     const upgradeModal = this.renderUpgradeModal();

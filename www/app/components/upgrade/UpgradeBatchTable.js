@@ -4,7 +4,7 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 const classNames = require('classnames');
 
-import { Actions } from '../../NetworkConstants.js';
+import { Actions } from '../../constants/NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
 const upgradeStatusToString = {
@@ -21,9 +21,7 @@ export default class UpgradeBatchTable extends React.Component {
   constructor(props) {
     super(props);
     this.getTableRows = this.getTableRows.bind(this);
-    this.state = {
-
-    };
+    this.state = {};
   }
 
   getTableRows(nodes): Array<{name:string,

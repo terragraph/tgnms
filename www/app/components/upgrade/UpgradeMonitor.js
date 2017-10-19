@@ -5,7 +5,7 @@ import UpgradeNodesTable from './UpgradeNodesTable.js';
 import UpgradeBatchTable from './UpgradeBatchTable.js';
 import UpgradeRequestsTable from './UpgradeRequestsTable.js';
 
-import { Actions } from '../../NetworkConstants.js';
+import { Actions } from '../../constants/NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
 export default class UpgradeMonitor extends React.Component {

@@ -44,7 +44,7 @@ export default class ModalPrepareUpgrade extends React.Component {
       uploadLimit: -1,      // limit for torrent upload speed (-1 for unlimited)
       maxConnections: -1,   // max concurrent connections for torrent (-1 for unlimited)
 
-      isHttp: false,         // internal component state to let the user specify http or torrent properties
+      isHttp: false,        // internal component state to let the user specify http or torrent properties
     }
   }
 
@@ -64,7 +64,6 @@ export default class ModalPrepareUpgrade extends React.Component {
 
     const requestBody = {
       excludeNodes,
-      // nodes:        this.props.upgradeNodes,
       imageUrl:     this.state.selectedImage.magnetUri,
       md5:          this.state.selectedImage.md5,
 
@@ -106,21 +105,6 @@ export default class ModalPrepareUpgrade extends React.Component {
     this.setState({isHttp: e.currentTarget.value === 'http'});
   }
 
-  getTableRows(images): Array<{name:string,
-                         magnetUri:string,
-                         md5: string}>  {
-    const rows = [];
-    images.forEach(image => {
-      rows.push({
-        name: image.name.slice(28),
-        magnetUri: image.magnetUri,
-        md5: image.md5,
-        key: image.name.slice(28),
-      });
-    });
-    return rows;
-  }
-
   selectUpgradeImage = (val) => {
     const {upgradeImages} = this.props;
     const selectedImageName = val.value;
@@ -137,9 +121,15 @@ export default class ModalPrepareUpgrade extends React.Component {
     const {upgradeImages} = this.props;
     const {selectedImage} = this.state;
 
+    // .slice(28) is used to remove the "Facebook Terragraph Release" prefix from the image name
+    // e.g:
+    // "Facebook Terragraph Release RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
+    // turns into "RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
+
+    const imageDisplayName = image.name.slice(28);
     const selectOptions = upgradeImages.map((image) => {
       return {
-        label: image.name,
+        label: imageDisplayName,
         value: image.name
       };
     });
@@ -191,7 +181,6 @@ export default class ModalPrepareUpgrade extends React.Component {
     );
 
     const imagesList = this.renderUpgradeImages();
-    const selectedImageName = Object.keys(this.state.selectedImage).length == 0 ? '' : this.state.selectedImage.name;
 
     return (
       <Modal

@@ -3,8 +3,16 @@ import axios from 'axios';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
-import { Actions, UploadStatus, DeleteStatus } from '../NetworkConstants.js';
+import { REVERT_UPGRADE_IMAGE_STATUS } from '../constants/UpgradeConstants.js';
+import { Actions, UploadStatus, DeleteStatus } from '../constants/NetworkConstants.js';
 import Dispatcher from '../NetworkDispatcher.js';
+
+
+const getErrorText = (error) => {
+  // try to get the status text from the API response, otherwise, default to the error object
+  return (error.response && error.response.statusText) ?
+    error.response.statusText : error;
+}
 
 export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
   if (!upgradeBinary) {
@@ -16,8 +24,6 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     actionType: Actions.UPGRADE_UPLOAD_STATUS,
     uploadStatus: UploadStatus.UPLOADING,
   });
-
-  const uri = '/controller/uploadUpgradeBinary';
 
   let data = new FormData();
   data.append('binary', upgradeBinary);
@@ -34,6 +40,7 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     }
   };
 
+  const uri = '/controller/uploadUpgradeBinary';
   axios.post(
     uri, data, config
   ).then((response) => {
@@ -43,24 +50,24 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
       uploadStatus: UploadStatus.SUCCESS
     });
 
-    // revert the upload status after 5 seconds
+    // revert the upload status after a specified interval
     setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_UPLOAD_STATUS,
         uploadStatus: UploadStatus.NONE
       });
-    }, 5000);
+    }, REVERT_UPGRADE_IMAGE_STATUS);
 
     listUpgradeImages(topologyName);
 
     swal({
-      title: "Upload Image Success",
+      title: 'Upload Image Success',
       text: `Your selected image has been uploaded successfully and is currently being prepared for use
       and should be ready soon.
 
       Please refresh the list of images periodically. If your image does not show up, please try again.
       `,
-      type: "info"
+      type: 'info'
     });
   }).catch((error) => {
     Dispatcher.dispatch({
@@ -69,6 +76,16 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     });
 
     listUpgradeImages(topologyName);
+
+    const errorText = getErrorText(error);
+    swal({
+      title: 'Upload Image Failed',
+      text: `There was an error while uploading your selected image with the following message: ${errorText}
+
+      Please try again.
+      `,
+      type: 'error'
+    });
   })
 };
 
@@ -97,15 +114,26 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
       deleteStatus: DeleteStatus.SUCCESS
     });
 
-    // revert the delete status after 5 seconds
+    // revert the delete status after a specified interval
     setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
         deleteStatus: DeleteStatus.NONE
       });
-    }, 5000);
+    }, REVERT_UPGRADE_IMAGE_STATUS);
+
     listUpgradeImages(topologyName);
   }).catch((error) => {
+    const errorText = getErrorText(error);
+
+    swal({
+      title: 'Prepare upgrade failed',
+      text: `There was an error while trying to delete your requested image.
+
+      ${errorText}`,
+      type: 'error'
+    });
+
     Dispatcher.dispatch({
       actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
       deleteStatus: DeleteStatus.FAILURE
@@ -120,23 +148,21 @@ export const prepareUpgrade = (upgradeGroupReq) => {
     uri, upgradeGroupReq
   ).then((response) => {
     swal({
-      title: "Prepare upgrade submitted",
+      title: 'Prepare upgrade submitted',
       text: `You have initiated the "prepare upgrade" process with requestId ${upgradeGroupReq.requestId}
 
       The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
-      type: "info"
+      type: 'info'
     });
   }).catch((error) => {
-    // try to get the status text from the API response, otherwise, default to the error object
-    const errorText = (!!error.response && !!error.response.statusText) ?
-      error.response.statusText : error;
+    const errorText = getErrorText(error);
 
     swal({
-      title: "Prepare upgrade failed",
+      title: 'Prepare upgrade failed',
       text: `Your upgrade command failed with the following message:
       ${errorText}`,
-      type: "error"
+      type: 'error'
     });
   });
 };
@@ -147,23 +173,21 @@ export const commitUpgrade = (upgradeGroupReq) => {
     uri, upgradeGroupReq
   ).then((response) => {
     swal({
-      title: "Commit upgrade submitted",
+      title: 'Commit upgrade submitted',
       text: `You have initiated the "commit upgrade" process with requestId ${upgradeGroupReq.requestId}
 
       The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
-      type: "info"
+      type: 'info'
     });
   }).catch((error) => {
-    // try to get the status text from the API response, otherwise, default to the error object
-    const errorText = (error.response && error.response.statusText) ?
-      error.response.statusText : error;
+    const errorText = getErrorText(error);
 
     swal({
-      title: "Commit upgrade failed",
+      title: 'Commit upgrade failed',
       text: `Your upgrade command failed with the following message:
       ${errorText}`,
-      type: "error"
+      type: 'error'
     });
   });
 };
@@ -174,23 +198,21 @@ export const abortUpgrade = (upgradeAbortReq) => {
     uri, upgradeAbortReq
   ).then((response) => {
     swal({
-      title: "Abort upgrade(s) success",
+      title: 'Abort upgrade(s) success',
       text: `You have initiated the "abort upgrade" process successfully
 
       The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
-      type: "info"
+      type: 'info'
     });
   }).catch((error) => {
-    // try to get the status text from the API response, otherwise, default to the error object
-    const errorText = (error.response && error.response.statusText) ?
-      error.response.statusText : error;
+    const errorText = getErrorText(error);
 
     swal({
-      title: "Abort upgrade failed",
+      title: 'Abort upgrade failed',
       text: `Your abort upgrade command failed with the following message:
       ${errorText}`,
-      type: "error"
+      type: 'error'
     });
   });
 };

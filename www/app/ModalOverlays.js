@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
-import {SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
+import {SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
 
 
 const customModalStyle = {

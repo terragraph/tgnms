@@ -6,7 +6,7 @@ import 'sweetalert/dist/sweetalert.css';
 import UpgradeLeftPaneStatus from './UpgradeLeftPaneStatus.js';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import { Actions } from '../../NetworkConstants.js';
+import { Actions } from '../../constants/NetworkConstants.js';
 
 const noNodesAlertProps = {
   title: 'No Nodes Selected',

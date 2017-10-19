@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import { Actions } from '../../NetworkConstants.js';
+import { Actions } from '../../constants/NetworkConstants.js';
 
 export default class UpgradeLeftPaneStatus extends React.Component {
   constructor(props) {
