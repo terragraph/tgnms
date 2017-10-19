@@ -74,7 +74,7 @@ process.on('message', (msg) => {
           }
         });
         const aggrProxy = new AggregatorProxy(topology.aggregator_ip);
-        aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP);
+        aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP, '\0');
         aggrProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP:
@@ -238,7 +238,15 @@ msgType2Params[Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ] = {
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE'};
-
+msgType2Params[Aggregator_ttypes.AggrMessageType.START_IPERF] = {
+  'recvApp': 'aggr-app-TRAFFIC_APP',
+  'nmsAppId': 'NMS_WEB_TRAFFIC'};
+msgType2Params[Aggregator_ttypes.AggrMessageType.STOP_IPERF] = {
+  'recvApp': 'aggr-app-TRAFFIC_APP',
+  'nmsAppId': 'NMS_WEB_TRAFFIC'};
+msgType2Params[Aggregator_ttypes.AggrMessageType.GET_IPERF_STATUS] = {
+  'recvApp': 'aggr-app-TRAFFIC_APP',
+  'nmsAppId': 'NMS_WEB_TRAFFIC'};
 
 const thriftSerialize = (struct) => {
   var result;
@@ -264,7 +272,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
   const send = (struct) => {
     var byteArray = thriftSerialize(struct);
     const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
-    ctrlProxy.sendCtrlMsgTypeSync(command2MsgType[msg.type], byteArray, minion, res);
+    ctrlProxy.sendMsgTypeSync(command2MsgType[msg.type], byteArray, minion, res);
   };
 
   // prepare MSG body first, then send msg syncronously
@@ -572,7 +580,7 @@ class ControllerProxy extends EventEmitter {
                       { upgradeState: stateDump });
             break;
           default:
-            console.error('sendCtrlMsgType: No receive handler defined for', msgType);
+            console.error('[controller] No receive handler defined for', msgType);
         }
       },
       () => {
@@ -587,7 +595,7 @@ class ControllerProxy extends EventEmitter {
     );
   }
 
-  sendCtrlApiMsgType(msgType, msgBody, minion, res) {
+  sendMsgType(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
       sendMsg.mType = msgType;
@@ -634,7 +642,7 @@ class ControllerProxy extends EventEmitter {
               resolve({type: 'msg', msg: ignitionState});
               break;
             default:
-              console.error('sendCtrlApiMsgType: No receive handler defined for', msgType);
+              console.error('[controller] No receive handler defined for', msgType);
           }
         },
         (errMsg) => {
@@ -661,7 +669,7 @@ class ControllerProxy extends EventEmitter {
     });
   }
 
-  sendCtrlMsgTypeSync(msgType, msgBody, minion, res) {
+  sendMsgTypeSync(msgType, msgBody, minion, res) {
     let ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new Controller_ttypes.Message();
       sendMsg.mType = msgType;
@@ -713,7 +721,7 @@ class ControllerProxy extends EventEmitter {
               resolve({type: 'msg', msg: upgradeImages});
               break;
             default:
-              console.error('sendCtrlMsgTypeSync: No receive handler defined for', msgType);
+              console.error('[controller] No receive handler defined for', msgType);
           }
         },
         (errMsg) => {
@@ -806,13 +814,120 @@ class AggregatorProxy extends EventEmitter {
     super();
     this.aggregator_ip = aggregatorIp;
   }
+
+  sendMsgType(msgType, msgBody, minion, res) {
+    let aggrPromise = new Promise((resolve, reject) => {
+      var sendMsg = new Aggregator_ttypes.AggrMessage();
+      sendMsg.mType = msgType;
+      sendMsg.value = msgBody;
+      var recvMsg = new Aggregator_ttypes.AggrMessage();
+
+      // time the response
+      this.sendAggrMsg(
+        sendMsg,
+        recvMsg,
+        msgType2Params[msgType].nmsAppId,
+        msgType2Params[msgType].recvApp,
+        minion,
+        (tProtocol, tTransport) => {
+          switch (msgType) {
+            case Aggregator_ttypes.AggrMessageType.GET_IPERF_STATUS:
+              var receivedStatus = new Aggregator_ttypes.AggrIperfStatusReport();
+              receivedStatus.read(tProtocol);
+              resolve({type: 'msg', msg: receivedStatus});
+              break;
+            case Aggregator_ttypes.AggrMessageType.START_IPERF:
+              var receivedAck = new Aggregator_ttypes.AggrAck();
+              receivedAck.read(tProtocol);
+              if (receivedAck.success) {
+                resolve({type: 'ack', msg: receivedAck.message});
+              } else {
+                reject(receivedAck.message);
+              }
+              break;
+            default:
+              console.error('[aggregator] No receive handler defined for', msgType);
+          }
+        },
+        (errMsg) => {
+          reject(errMsg);
+        }
+      );
+    });
+
+    aggrPromise.then((msg) => {
+      if (msg.type == 'ack') {
+        let result = {"success": true, "message": msg.msg};
+        res.status(200).end(JSON.stringify(result));
+      } else {
+        res.json(msg.msg);
+      }
+    })
+    .catch((failMessage) => {
+      let result = {
+        "success": false,
+        "error": failMessage
+      };
+      res.status(500).end(JSON.stringify(result));
+      res.end();
+    });
+  }
+
+  sendAggrMsg(sendMsg, recvMsg, sendAppName, recvAppName, minion, recvCb, errCb) {
+    const dealer = zmq.socket('dealer');
+    dealer.identity = sendAppName;
+    dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
+    dealer.setsockopt(zmq.ZMQ_LINGER, 0);
+    dealer.connect('tcp://[' + this.aggregator_ip +']:18100');
+    dealer.on('message', function (receiver, senderApp, msg) {
+      clearTimeout(timeoutTimer);
+      // Deserialize Message to get mType
+      let tTransport = new thrift.TFramedTransport(msg);
+      let tProtocol = new thrift.TCompactProtocol(tTransport);
+      recvMsg.read(tProtocol);
+      // Deserialize body
+      tTransport = new thrift.TFramedTransport(
+        Buffer.from(recvMsg.value, 'ASCII'));
+      tProtocol = new thrift.TCompactProtocol(tTransport);
+      // run callback
+      recvCb(tProtocol, tTransport);
+      // close connection
+      dealer.close();
+    });
+
+    dealer.on('error', function(err) {
+      clearTimeout(timeoutTimer);
+      console.error(err);
+      errCb(err.message);
+      dealer.close();
+    });
+
+    const transport = new thrift.TFramedTransport(null, function(byteArray) {
+      // Flush puts a 4-byte header, which needs to be parsed/sliced.
+       byteArray = byteArray.slice(4);
+       dealer.send(minion, zmq.ZMQ_SNDMORE);
+       dealer.send(recvAppName, zmq.ZMQ_SNDMORE);
+       dealer.send(sendAppName, zmq.ZMQ_SNDMORE);
+       dealer.send(byteArray);
+    });
+    const tProtocol = new thrift.TCompactProtocol(transport);
+    // watch for connection timeouts
+    const timeoutTimer = setTimeout(() => {
+      errCb("Timeout");
+      dealer.close();
+    }, ZMQ_TIMEOUT_MS);
+    // send msg
+    this.start_timer = new Date();
+    sendMsg.write(tProtocol);
+    transport.flush();
+  }
   /*
    * Send and decode the expected message based on the type.
    */
-  sendAggrMsgType(msgType) {
+  sendAggrMsgType(msgType, msgBody) {
     var sendMsg = new Aggregator_ttypes.AggrMessage();
     sendMsg.mType = msgType;
-    sendMsg.value = '\0';
+    sendMsg.value = msgBody;
     var recvMsg = new Aggregator_ttypes.AggrMessage();
     let recvApp, nmsAppIdentity;
     // determine receiver app
@@ -821,11 +936,15 @@ class AggregatorProxy extends EventEmitter {
         recvApp = 'aggr-app-STATUS_APP';
         nmsAppIdentity = 'NMS_WEB_AGGR_STATUS_REFRESH';
         break;
+      case Aggregator_ttypes.AggrMessageType.START_IPERF:
+        recvApp = 'aggr-app-TRAFFIC_APP';
+        nmsAppIdentity = 'NMS_WEB_AGGR';
+        break;
       default:
-        console.error('Unknown message type', msgType);
+        console.error('[aggregator] Unknown message type', msgType);
     }
     // time the response
-    this.sendAggrMsg(
+    this.sendMsg(
       sendMsg,
       recvMsg,
       nmsAppIdentity,
@@ -844,7 +963,7 @@ class AggregatorProxy extends EventEmitter {
                       { status_dump: receivedStatusDump });
             break;
           default:
-            console.error('sendAggrMsgType: No receive handler defined for', msgType);
+            console.error('[aggregator] No receive handler defined for', msgType);
         }
       },
       () => {
@@ -862,7 +981,7 @@ class AggregatorProxy extends EventEmitter {
   /*
    * Send any message to the controller.
    */
-  sendAggrMsg(sendMsg, recvMsg, sendAppName, recvAppName, recvCb, errCb) {
+  sendMsg(sendMsg, recvMsg, sendAppName, recvAppName, recvCb, errCb) {
     const dealer = zmq.socket('dealer');
     dealer.identity = sendAppName;
     dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);

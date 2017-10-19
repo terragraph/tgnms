@@ -1,4 +1,10 @@
 const Controller_ttypes = require('../thrift/gen-nodejs/Controller_types');
+const Aggregator_ttypes = require('../thrift/gen-nodejs/Aggregator_types');
+
+const EndpointType = {
+  CONTROLLER: 1,
+  AGGREGATOR: 2,
+};
 
 const VerificationType = {
   // topology-based
@@ -16,6 +22,7 @@ const VerificationType = {
   IS_STRING: 101,
   IS_DOUBLE: 102,
   IS_NUMBER: 103,
+  IS_IP_ADDR: 104,
   VALID_MAC: 110,
 };
 /*
@@ -24,6 +31,7 @@ const VerificationType = {
 const ApiMethods = {
   "setLinkStatus": {
     "command": Controller_ttypes.MessageType.SET_LINK_STATUS_REQ,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "linkName": VerificationType.LINK_NAME,
@@ -32,6 +40,7 @@ const ApiMethods = {
   },
   "setNodeMacAddress": {
     "command": Controller_ttypes.MessageType.SET_NODE_MAC,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "node": VerificationType.NODE_NAME,
@@ -41,6 +50,7 @@ const ApiMethods = {
   },
   "addLink": {
     "command": Controller_ttypes.MessageType.ADD_LINK,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "nodeA": VerificationType.NODE_NAME,
@@ -50,6 +60,7 @@ const ApiMethods = {
   },
   "delLink": {
     "command": Controller_ttypes.MessageType.DEL_LINK,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "linkName": VerificationType.LINK_NAME,
@@ -59,6 +70,7 @@ const ApiMethods = {
   /* unsure */
   "addNode": {
     "command": Controller_ttypes.MessageType.ADD_NODE,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "nodeName": VerificationType.IS_STRING,
@@ -80,6 +92,7 @@ const ApiMethods = {
   },
   "delNode": {
     "command": Controller_ttypes.MessageType.DEL_NODE,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "node": VerificationType.NODE_NAME,
@@ -87,6 +100,7 @@ const ApiMethods = {
   },
   "addSite": {
     "command": Controller_ttypes.MessageType.ADD_SITE,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "site": VerificationType.IS_STRING,
@@ -96,6 +110,7 @@ const ApiMethods = {
   },
   "delSite": {
     "command": Controller_ttypes.MessageType.DEL_SITE,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "site": VerificationType.IS_STRING,
@@ -103,6 +118,7 @@ const ApiMethods = {
   },
   "rebootNode": {
     "command": Controller_ttypes.MessageType.REBOOT_NODE,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "node": VerificationType.NODE_NAME,
@@ -111,12 +127,14 @@ const ApiMethods = {
   },
   "getIgnitionState": {
     "command": Controller_ttypes.MessageType.GET_IGNITION_STATE,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
     }
   },
   "setNetworkIgnitionState": {
     "command": Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "enabled": VerificationType.IS_BOOLEAN,
@@ -124,15 +142,46 @@ const ApiMethods = {
   },
   "setLinkIgnitionState": {
     "command": Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
+    "endpoint": EndpointType.CONTROLLER,
     "required": {
       "topology": VerificationType.TOPOLOGY_NAME,
       "linkName": VerificationType.LINK_NAME,
       "enabled": VerificationType.IS_BOOLEAN,
     }
   },
+  "startTraffic": {
+    "command": Aggregator_ttypes.AggrMessageType.START_IPERF,
+    "endpoint": EndpointType.AGGREGATOR,
+    "required": {
+      "topology": VerificationType.TOPOLOGY_NAME,
+      "srcNode": VerificationType.NODE_NAME,
+      "srcIp": VerificationType.IS_IP_ADDR,
+      "dstNode": VerificationType.NODE_NAME,
+      "dstIp": VerificationType.IS_IP_ADDR,
+      "bitrate": VerificationType.IS_NUMBER,
+      "timeSec": VerificationType.IS_NUMBER,
+    }
+  },
+  "stopTraffic": {
+    "command": Aggregator_ttypes.AggrMessageType.STOP_IPERF,
+    "endpoint": EndpointType.AGGREGATOR,
+    "required": {
+      "topology": VerificationType.TOPOLOGY_NAME,
+      "node": VerificationType.NODE_NAME,
+    }
+  },
+  "statusTraffic": {
+    "command": Aggregator_ttypes.AggrMessageType.GET_IPERF_STATUS,
+    "endpoint": EndpointType.AGGREGATOR,
+    "required": {
+      "topology": VerificationType.TOPOLOGY_NAME,
+      "node": VerificationType.NODE_NAME,
+    }
+  }
 };
 
 module.exports = {
   ApiMethods,
+  EndpointType,
   VerificationType,
 };

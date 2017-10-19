@@ -56,6 +56,8 @@ export default class NetworkUI extends React.Component {
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
     topology: {},
+    // additional topology to render on the map
+    pendingTopology: {},
   }
 
   constructor(props) {
@@ -162,6 +164,11 @@ export default class NetworkUI extends React.Component {
         // update link health
         this.updateNetworkLinkHealth(this.state.networkName);
         this.updateLinkOverlayStat(this.state.networkName);
+        break;
+      case Actions.PENDING_TOPOLOGY:
+        this.setState({
+          pendingTopology: payload.topology,
+        });
         break;
     }
   }
@@ -380,6 +387,7 @@ export default class NetworkUI extends React.Component {
     let viewProps = {
       networkName: this.state.networkName,
       networkConfig: this.state.networkConfig,
+      pendingTopology: this.state.pendingTopology,
       config: this.state.topologies,
     };
     let paneComponent = <div/>;

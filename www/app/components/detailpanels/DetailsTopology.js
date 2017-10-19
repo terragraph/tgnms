@@ -1,18 +1,51 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions } from '../../constants/NetworkConstants.js';
+import { Actions, ChartColors } from '../../constants/NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
-import { availabilityColor, polarityColor } from '../../NetworkHelper.js';
+import { availabilityColor, chartColor, polarityColor, versionSlicer }
+    from '../../NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
+import PieChart from 'react-svg-piechart';
 
 export default class DetailsTopology extends React.Component {
+  state = {
+    expandedVersion: null
+  }
 
   constructor(props) {
     super(props);
   }
 
+  handleMouseEnterOnSector(sector) {
+    this.setState({expandedVersion: sector})
+  }
+
   render() {
+    let versionCounts = {};
+    let totalReported = 0;
+    this.props.topology.nodes.forEach(node => {
+      if (node.hasOwnProperty('status_dump') &&
+          node.status_dump.hasOwnProperty('version')) {
+        let version = node.status_dump.version;
+        if (!versionCounts.hasOwnProperty(version)) {
+          versionCounts[version] = 0;
+        }
+        versionCounts[version]++;
+        totalReported++;
+      }
+    });
+    let i = 0;
+    let versionData = [];
+    Object.keys(versionCounts).sort().forEach(version => {
+      let count = versionCounts[version];
+      versionData.push({
+        label: versionSlicer(version),
+        color: chartColor(ChartColors, i),
+        value: count,
+      });
+      i++;
+    });
     // average availability of all links across site
     let alivePercAvg = 0;
     let linksWithData = 0;
@@ -81,6 +114,8 @@ export default class DetailsTopology extends React.Component {
         nodeTypeName = 'CN';
       } else if (nodeType == 2) {
         nodeTypeName = 'DN';
+      } else {
+        nodeTypeName = 'Unknown';
       }
       let nodeTypeCount = nodeTypes[nodeType];
       let nodeTypeCountPerc =
@@ -160,6 +195,32 @@ export default class DetailsTopology extends React.Component {
         </tr>
       );
     });
+    let versionPieChart =
+      <PieChart
+        data={versionData}
+        shrinkOnTouchEnd
+        onSectorHover={this.handleMouseEnterOnSector.bind(this)}
+        expandOnHover />;
+    let versionRows =
+      versionData.map((element, i) => {
+        let versionPerc = element.value > 0 ?
+          (parseInt(parseInt(element.value) / totalReported * 100)) : 0;
+        return (
+          <tr>
+            {i == 0 ? <td rowSpan={versionData.length}>{versionPieChart}</td> : ""}
+            <td key={i} style={{color: element.color}}>
+              <span style={{fontWeight: this.state.expandedVersion === i ? "bold" : null}}>
+                {element.label}
+              </span>
+            </td>
+            <td>
+              <span style={{fontWeight: this.state.expandedVersion === i ? "bold" : null}}>
+                {element.value} ({versionPerc}%)
+              </span>
+            </td>
+          </tr>
+        );
+      });
     return (
       <div id="myModal" className="details">
         <div className="details-content">
@@ -181,6 +242,7 @@ export default class DetailsTopology extends React.Component {
                 {nodeTypeRows}
                 {polarityRows}
                 {polarityBySiteRows}
+                {versionData.length ? versionRows : ""}
               </tbody>
             </table>
           </div>

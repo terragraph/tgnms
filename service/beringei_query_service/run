@@ -3,7 +3,7 @@
 BERINGEI_CONFIG="/home/nms/beringei/config.json"
 BERINGEI_QUERY_PORT=8086
 BERINGEI_QUERY_HOST="::"
-BERINGEI_QUERY_THREADS=1
+BERINGEI_QUERY_THREADS=4
 BERINGEI_EXEC_PATH="/home/nms/tgnms/setup/beringei/beringei/build"
 
 CONFIG="/etc/sysconfig/nms"

@@ -125,9 +125,8 @@ export default class ModalPrepareUpgrade extends React.Component {
     // e.g:
     // "Facebook Terragraph Release RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
     // turns into "RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
-
-    const imageDisplayName = image.name.slice(28);
     const selectOptions = upgradeImages.map((image) => {
+      const imageDisplayName = image.name.slice(28);
       return {
         label: imageDisplayName,
         value: image.name

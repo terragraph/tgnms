@@ -290,7 +290,9 @@ export default class DetailsNode extends React.Component {
         <div className="details-content">
           <div className="details-header">
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
-            <h3 style={{marginTop: "0px"}}>Node Details</h3>
+            <h3 style={{marginTop: "0px"}}>
+              {this.props.node.pending ? '(Pending) ' : ''}Node Details
+            </h3>
           </div>
           <div className="details-body" style={{maxHeight: this.props.maxHeight}}>
             <table className="details-table" style={{width: '100%'}}>

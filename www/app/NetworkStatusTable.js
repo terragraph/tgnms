@@ -56,6 +56,33 @@ export default class NetworkStatusTable extends React.Component {
           <td colSpan="2" style={{fontWeight: 'bold', color: 'red'}}>{this.props.instance.controller_error}</td>
         </tr>;
     }
+    let versionCounts = {};
+    let totalReported = 0;
+    this.props.topology.nodes.forEach(node => {
+      if (node.hasOwnProperty('status_dump') &&
+          node.status_dump.hasOwnProperty('version')) {
+        let version = node.status_dump.version;
+        if (!versionCounts.hasOwnProperty(version)) {
+          versionCounts[version] = 0;
+        }
+        versionCounts[version]++;
+        totalReported++;
+      }
+    });
+    let nodeVersions = [];
+    let i = 0;
+    Object.keys(versionCounts).forEach(version => {
+      let count = versionCounts[version];
+      let versionHeader = <td rowSpan={Object.keys(versionCounts).length}>Node Versions</td>;
+      nodeVersions.push(
+        <tr>
+          {i == 0 ? versionHeader : ""}
+          <td>{version}</td>
+          <td>{parseInt(count / totalReported * 100)}% ({count})</td>
+        </tr>
+      );
+      i++;
+    });
     return (
       <div style={{marginLeft: '10px', marginRight: '10px'}}>
         <table className="status-table" style={{width: '75%'}}>
@@ -92,6 +119,7 @@ export default class NetworkStatusTable extends React.Component {
                                     'Enabled', 'Disabled')}</td>
               <td>&nbsp;</td>
             </tr>
+            {nodeVersions}
           </tbody>
         </table>
         {topologyTable}

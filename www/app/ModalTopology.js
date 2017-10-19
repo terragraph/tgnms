@@ -5,6 +5,7 @@ import ModalLinkAdd from './ModalLinkAdd.js';
 import ModalNodeAdd from './ModalNodeAdd.js';
 import ModalCSVUpload from './ModalCSVUpload.js';
 import { Actions } from './constants/NetworkConstants.js';
+import ModalTopologyDiffer from './ModalTopologyDiffer.js';
 import Dispatcher from './NetworkDispatcher.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
@@ -25,6 +26,7 @@ export default class ModalTopology extends React.Component {
     addNodeModalOpen: false,
     addLinkModalOpen: false,
     uploadCSVModelOpen: false,
+    compareTopologyLiveOpen: false,
   };
 
   componentDidMount() {
@@ -49,7 +51,7 @@ export default class ModalTopology extends React.Component {
       this.props.onClose();
     }.bind(this));
   }
-  
+
   render() {
     let hideParentModal = false;
     let visibleModal = {};
@@ -76,6 +78,12 @@ export default class ModalTopology extends React.Component {
         <ModalCSVUpload
           isOpen={this.props.isOpen}
           onClose={() => this.setState({uploadCSVModelOpen: false})}
+          topology={this.props.topology}/>;
+    } else if (this.state.compareTopologyLiveOpen) {
+      visibleModal =
+        <ModalTopologyDiffer
+          isOpen={this.props.isOpen}
+          onClose={() => this.setState({compareTopologyLiveOpen: false})}
           topology={this.props.topology}/>;
     } else {
       visibleModal =
@@ -121,10 +129,17 @@ export default class ModalTopology extends React.Component {
             </tr>
             <tr className="blank_row"/>
             <tr>
+              <td width={100}>Differ</td>
+              <td width={100}/>
+              <td width={100}>
+                <button style={{float: 'right'}} className='graph-button' onClick={() => this.setState({compareTopologyLiveOpen: true})}>Compare Live</button>
+              </td>
+            </tr>
+            <tr className="blank_row"/>
+            <tr>
               <td width={100}>CSV</td>
               <td width={100}/>
               <td width={100}>
-                {/*<input type="file" style={{float: 'right'}} className='graph-button'>Upload</input>*/}
                 <button style={{float: 'right'}} className='graph-button' onClick={() => this.setState({uploadCSVModelOpen: true})}>Upload</button>
               </td>
             </tr>

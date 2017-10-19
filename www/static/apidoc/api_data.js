@@ -1,6 +1,262 @@
 define({ "api": [
   {
     "type": "post",
+    "url": "/getNetworkOverridesConfig",
+    "title": "Get Network Override Config",
+    "name": "GetNetworkOverridesConfig",
+    "description": "<p>Get network overrides configuration. Network Overrides only include the options that are different from the base config.</p>",
+    "group": "Config",
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Config",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>If controller was able to fetch network config</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true,\n  \"response\": {\n    \"config\": {\n      \"envParams\": {},\n      \"fwParams\": {},\n      \"logTailParams\": {},\n      \"statsAgentParams\": {},\n      \"sysParams\": {}\n    }\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/getNodesConfig",
+    "title": "Get Node(s) Config",
+    "name": "GetNodesConfig",
+    "description": "<p>Get node configuration. Returns all node configs if empty list.</p>",
+    "group": "Config",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String[]",
+            "optional": false,
+            "field": "nodes",
+            "description": "<p>List of node names</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Config",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>If controller was able to fetch config for all nodes</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true,\n  \"response\": {\n    \"config\": {\n      \"nodeName1\": {\n        \"envParams\": {},\n        \"fwParams\": {},\n        \"logTailParams\": {},\n        \"statsAgentParams\": {},\n        \"sysParams\": {}\n      }\n    }\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/getNodesOverrideConfig",
+    "title": "Get Node(s) Override Config",
+    "name": "GetNodesOverrideConfig",
+    "description": "<p>Get node overrides configuration. Returns all node configs if empty list. Node Overrides only include the options that are different from the base config.</p>",
+    "group": "Config",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String[]",
+            "optional": false,
+            "field": "nodes",
+            "description": "<p>List of node names</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Config",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>If controller was able to fetch config for all nodes</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true,\n  \"response\": {\n    \"config\": {\n      \"nodeName1\": {\n        \"envParams\": {},\n        \"fwParams\": {},\n        \"logTailParams\": {},\n        \"statsAgentParams\": {},\n        \"sysParams\": {}\n      }\n    }\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/setNetworkOverrideConfig",
+    "title": "Set Network Override Config",
+    "name": "SetNetworkOverrideConfig",
+    "description": "<p>Set network-wide override configuration.</p>",
+    "group": "Config",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "config",
+            "description": "<p>NodeConfig object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"LINK\"",
+              "\"NODE\"",
+              "\"NETWORK\""
+            ],
+            "optional": false,
+            "field": "maxAction",
+            "description": "<p>Maximum action to allow when applying changes.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"config\": {\n    \"envParams\": {\n      \"OOB_NETNS\": \"1\"\n    },\n    \"fwParams\": {\n      \"txPower\": -5\n    }\n  },\n  \"maxAction\": \"LINK\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Config",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>If controller was able to set or schedule the config change.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true,\n  \"response\": {\n    \"actions\": {\n      \"nodeName1\": \"LINK\",\n      \"nodeName2\": \"LINK\",\n      \"nodeName3\": \"NODE\"\n    }\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/setNodesOverrideConfig",
+    "title": "Set Node(s) Override Config",
+    "name": "SetNodesOverrideConfig",
+    "description": "<p>Set node override configuration.</p>",
+    "group": "Config",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "nodeConfig",
+            "description": "<p>Map&lt;Node Name, NodeConfig object&gt;</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"LINK\"",
+              "\"NODE\"",
+              "\"NETWORK\""
+            ],
+            "optional": false,
+            "field": "maxAction",
+            "description": "<p>Maximum action to allow when applying changes.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"nodes\": {\n    \"nodeName1\": {\n      \"envParams\": {\n        \"OOB_NETNS\": \"1\"\n      },\n      \"fwParams\": {\n        \"txPower\": -5\n      }\n    }\n  },\n  \"maxAction\": \"LINK\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Config",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>If controller was able to set or schedule the config change.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true,\n  \"response\": {\n    \"actions\": {\n      \"nodeName1\": \"LINK\",\n      \"nodeName2\": \"LINK\",\n      \"nodeName3\": \"NODE\"\n    }\n  }\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/getConfigActions",
+    "title": "Get action per config option",
+    "description": "<p>We still need to define a struct for mapping config parameters to their actions. EX: fwParams.txPower -&gt; LINK envParams.OPENR_ENABLED -&gt; NODE</p>",
+    "group": "ConfigTodo",
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "ConfigTodo",
+    "name": "PostGetconfigactions"
+  },
+  {
+    "type": "post",
     "url": "/getIgnitionState",
     "title": "Get Ignition State",
     "name": "GetIgnitionState",
@@ -251,6 +507,269 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "api/api_lib.js",
     "groupTitle": "Management",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Indicates the command was received by the controller</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "InvalidInput",
+            "description": "<p>The input is invalid</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"success\":\"false\",\n  \"error\":\"Input validation failed: Error: Field linkName specified with invalid link: link-terra121.f5.td.a404-if-terra222.f5.td.a404-\"}\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/startTraffic",
+    "title": "Start Iperf Traffic",
+    "name": "StartTraffic",
+    "group": "Performance",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "topology",
+            "description": "<p>Topology Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "srcNode",
+            "description": "<p>Source Node Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "dstNode",
+            "description": "<p>Destination Node Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "srcIp",
+            "description": "<p>Source IP</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "dstIp",
+            "description": "<p>Destination IP</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "bitrate",
+            "description": "<p>Transfer rate (bps)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "timesec",
+            "description": "<p>Time (seconds)</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example:",
+        "content": "curl -id '{\"topology\": \"Lab F8 B\", \"srcNode\": \"terra111.f5.tb.a404-if\", \"dstNode\": \"terra121.f5.tb.a404-if\", \"srcIp\": \"2620:10d:c089:2164::1\", \"dstIp\": \"2620:10d:c089:2121::1\", \"bitrate\": 100, \"timeSec\": 100}' http://localhost:443/api/startTraffic",
+        "type": "curl"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Performance",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Indicates the command was received by the controller</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "InvalidInput",
+            "description": "<p>The input is invalid</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"success\":\"false\",\n  \"error\":\"Input validation failed: Error: Field linkName specified with invalid link: link-terra121.f5.td.a404-if-terra222.f5.td.a404-\"}\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/statusTraffic",
+    "title": "Iperf Node Status",
+    "name": "StatusTraffic",
+    "group": "Performance",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "topology",
+            "description": "<p>Topology Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "node",
+            "description": "<p>Node Name</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example:",
+        "content": "curl -id '{\"topology\": \"Lab F8 B\", \"node\": \"terra111.f5.tb.a404-if\"}' http://localhost:443/api/statusTraffic",
+        "type": "curl"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Performance",
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Bool",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Indicates the command was received by the controller</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200\n{\n  \"success\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "InvalidInput",
+            "description": "<p>The input is invalid</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"success\":\"false\",\n  \"error\":\"Input validation failed: Error: Field linkName specified with invalid link: link-terra121.f5.td.a404-if-terra222.f5.td.a404-\"}\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+  {
+    "type": "post",
+    "url": "/stopTraffic",
+    "title": "Stop Iperf Traffic",
+    "name": "StopTraffic",
+    "group": "Performance",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "topology",
+            "description": "<p>Topology Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "node",
+            "description": "<p>Node Name</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example:",
+        "content": "curl -id '{\"topology\": \"Lab F8 B\", \"node\": \"terra111.f5.tb.a404-if\"}' http://localhost:443/api/stopTraffic",
+        "type": "curl"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "api/api_lib.js",
+    "groupTitle": "Performance",
     "success": {
       "fields": {
         "200": [

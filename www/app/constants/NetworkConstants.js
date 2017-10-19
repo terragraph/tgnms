@@ -1,4 +1,5 @@
 import { polarityColor } from '../NetworkHelper.js';
+
 const Actions = {
   // topology actions
   TOPOLOGY_SELECTED: 100,
@@ -46,6 +47,12 @@ const Actions = {
   UPGRADE_UPLOAD_PROGRESS: 533,
 
   UPGRADE_DELETE_IMAGE_STATUS: 541,
+
+  // show/hide topology issues
+  TOPOLOGY_ISSUES_PANE: 600,
+
+  // pending topology
+  PENDING_TOPOLOGY: 700,
 };
 
 const SiteOverlayKeys = {
@@ -59,8 +66,19 @@ const SiteOverlayKeys = {
     Odd: {color: polarityColor(1)},
     Even: {color: polarityColor(2)},
     Hybrid: {color: polarityColor(3)}
-  }
+  },
+  Pending: {
+    Site: {color: 'pink'},
+    Node: {color: 'pink'}
+  },
 }
+
+const ChartColors = [
+  '#9F1E11',
+  '#9F6B11',
+  '#620C68',
+  '#0D7825'
+];
 
 const linkOverlayKeys = {
   Health: {
@@ -123,5 +141,6 @@ module.exports = {
   SiteOverlayKeys,
   linkOverlayKeys,
   UploadStatus,
-  DeleteStatus
+  DeleteStatus,
+  ChartColors
 }

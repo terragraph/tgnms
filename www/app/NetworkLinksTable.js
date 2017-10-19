@@ -147,6 +147,7 @@ export default class NetworkLinksTable extends React.Component {
         type: link.link_type == 1 ? 'Wireless' : 'Wired',
         alive_perc: link.alive_perc,
         linkup_attempts: linkupAttempts,
+        distance: link.distance,
       });
     });
     return rows;
@@ -289,6 +290,11 @@ export default class NetworkLinksTable extends React.Component {
                              dataField="linkup_attempts">
             Attempts
           </TableHeaderColumn>
+          <TableHeaderColumn dataSort={true}
+                             width="100"
+                             dataField="distance">
+            Distance (m)
+          </TableHeaderColumn>
         </BootstrapTable>
       );
     } else {
@@ -334,6 +340,10 @@ export default class NetworkLinksTable extends React.Component {
           <TableHeaderColumn dataSort={true}
                              dataField="linkup_attempts">
             Attempts
+          </TableHeaderColumn>
+          <TableHeaderColumn dataSort={true}
+                             dataField="distance">
+            Distance (m)
           </TableHeaderColumn>
         </BootstrapTable>
       );
