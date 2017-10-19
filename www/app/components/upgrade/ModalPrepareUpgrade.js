@@ -8,7 +8,7 @@ import 'sweetalert/dist/sweetalert.css';
 
 const classNames = require('classnames');
 
-import { prepareUpgrade } from '../../apiutils/upgradeAPIUtil.js';
+import { prepareUpgrade } from '../../apiutils/UpgradeAPIUtil.js';
 
 const modalStyle = {
   content : {

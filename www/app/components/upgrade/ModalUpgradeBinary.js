@@ -7,7 +7,7 @@ import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
 import { UploadStatus, DeleteStatus } from '../../constants/NetworkConstants.js';
-import { uploadUpgradeBinary, listUpgradeImages, deleteUpgradeImage } from '../../apiutils/upgradeAPIUtil.js';
+import { uploadUpgradeBinary, listUpgradeImages, deleteUpgradeImage } from '../../apiutils/UpgradeAPIUtil.js';
 
 import UpgradeImagesTable from './UpgradeImagesTable.js';
 

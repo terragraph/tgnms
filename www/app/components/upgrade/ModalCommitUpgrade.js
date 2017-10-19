@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
 
-import { commitUpgrade } from '../../apiutils/upgradeAPIUtil.js';
+import { commitUpgrade } from '../../apiutils/UpgradeAPIUtil.js';
 
 const modalStyle = {
   content : {
@@ -23,7 +23,7 @@ export default class ModalCommitUpgrade extends React.Component {
     super(props);
 
     this.state = {
-      timeout: 180,         // timeout for the entire commit operation
+      timeout: 180,         // timeout for the entire commit operation per node
       skipFailure: true,    // skip failed nodes (will not stop operation)
       isParallel: true,     // parallelize teh operation? (put all nodes in one batch)
       limit: 1,             // limit per batch. max batch size is infinite if this is set to 0

@@ -8,7 +8,7 @@ import 'sweetalert/dist/sweetalert.css';
 
 import UpgradeRequestsTable from './UpgradeRequestsTable.js';
 
-import { abortUpgrade } from '../../apiutils/upgradeAPIUtil.js';
+import { abortUpgrade } from '../../apiutils/UpgradeAPIUtil.js';
 
 const modalStyle = {
   content : {

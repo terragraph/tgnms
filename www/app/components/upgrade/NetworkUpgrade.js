@@ -5,7 +5,7 @@ import { Actions, UploadStatus, DeleteStatus } from '../../constants/NetworkCons
 import { UPGRADE_IMAGE_REFRESH_INTERVAL } from '../../constants/UpgradeConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
-import { listUpgradeImages } from '../../apiutils/upgradeAPIUtil.js';
+import { listUpgradeImages } from '../../apiutils/UpgradeAPIUtil.js';
 
 import UpgradeLeftPane from './UpgradeLeftPane.js';
 import UpgradeMonitor from './UpgradeMonitor.js';
