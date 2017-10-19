@@ -26,19 +26,15 @@ export default class NetworkUpgrade extends React.Component {
   constructor(props) {
     super(props);
 
-    const {topology} = this.props.networkConfig;
-    const nodes = topology && topology.nodes ? topology.nodes : [];
-    const topologyName = topology.name;
-
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
-    listUpgradeImages(topologyName);
+    this.fetchUpgradeImages();
 
-    // fetch the list of upgrade images every 5 seconds
+    // fetch the list of upgrade images every 10 seconds
     // save the interval id so we can clear it when the component unmounts
     const intervalId = setInterval(
-      () => listUpgradeImages(topologyName), 10000
+      this.fetchUpgradeImages, 10000
     );
 
     this.state = {
@@ -64,12 +60,25 @@ export default class NetworkUpgrade extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
+      case Actions.TOPOLOGY_SELECTED:
+        listUpgradeImages(payload.networkName);
+
+        this.setState({
+          selectedNodesForUpgrade: [],
+          upgradeImages: []
+        });
+        break;
       case Actions.UPGRADE_IMAGES_LOADED:
         if (Array.isArray(payload.upgradeImages)) {
           this.setState({
             upgradeImages: payload.upgradeImages
           });
         }
+        break;
+      case Actions.FETCH_UPGRADE_IMAGES_FAILED:
+        this.setState({
+          upgradeImages: []
+        });
         break;
       case Actions.UPGRADE_UPLOAD_STATUS:
         this.setState({
@@ -119,6 +128,11 @@ export default class NetworkUpgrade extends React.Component {
       default:
         break;
     }
+  }
+
+  fetchUpgradeImages = () => {
+    const {topology} = this.props.networkConfig;
+    listUpgradeImages(topology.name);
   }
 
   getExcludedNodes = () => {
@@ -219,7 +233,7 @@ export default class NetworkUpgrade extends React.Component {
 
     const {selectedNodesForUpgrade} = this.state;
 
-    let currentRequest = this.hasCurrentRequest() ? upgradeStateDump.curUpgradeReq : null;
+    let currentRequest = this.hasCurrentRequest(upgradeStateDump) ? upgradeStateDump.curUpgradeReq : null;
 
     let curBatch = (!!upgradeStateDump && upgradeStateDump.hasOwnProperty('curBatch'))
       ? upgradeStateDump.curBatch : [];

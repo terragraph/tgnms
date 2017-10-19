@@ -82,6 +82,9 @@ export const listUpgradeImages = (topologyName) => {
     });
   }).catch((error) => {
     console.error('failed to fetch upgrade images', error);
+    Dispatcher.dispatch({
+      actionType: Actions.FETCH_UPGRADE_IMAGES_FAILED
+    });
   })
 };
 

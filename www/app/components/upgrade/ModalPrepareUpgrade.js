@@ -1,16 +1,14 @@
 import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
+import Select from 'react-select';
 
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
 const classNames = require('classnames');
 
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-
 import { prepareUpgrade } from '../../apiutils/upgradeAPIUtil.js';
-import UpgradeNodesTable from './UpgradeNodesTable.js';
 
 const modalStyle = {
   content : {
@@ -98,19 +96,14 @@ export default class ModalPrepareUpgrade extends React.Component {
   }
 
   modalClose() {
+    this.setState({
+      selectedImage: {}
+    });
     this.props.onClose();
   }
 
   onChangeDownloadMode = (e) => {
     this.setState({isHttp: e.currentTarget.value === 'http'});
-  }
-
-  selectUpgradeImage = (image, isSelected) => {
-    if (isSelected) {
-      this.setState({ selectedImage: image});
-    } else {
-      this.setState({ selectedImage: {} });
-    }
   }
 
   getTableRows(images): Array<{name:string,
@@ -128,44 +121,41 @@ export default class ModalPrepareUpgrade extends React.Component {
     return rows;
   }
 
+  selectUpgradeImage = (val) => {
+    const {upgradeImages} = this.props;
+    const selectedImageName = val.value;
+
+    upgradeImages.forEach((image) => {
+      if (image.name === selectedImageName) {
+        this.setState({ selectedImage: image});
+        return;
+      }
+    });
+  }
+
   renderUpgradeImages = () => {
     const {upgradeImages} = this.props;
     const {selectedImage} = this.state;
 
-    var selectRowProp = {
-      mode: 'radio',
-      clickToSelect: true,
-      hideSelectColumn: false,
-      bgColor: 'rgb(183,210,255)',
-      onSelect: this.selectUpgradeImage,
-      selected: Object.keys(selectedImage).length === 0 ? [] : [selectedImage.name],
-    };
+    const selectOptions = upgradeImages.map((image) => {
+      return {
+        label: image.name,
+        value: image.name
+      };
+    });
 
-    const imagesList = (
-      <div className='prepare-modal-images-list'>
-        <BootstrapTable
-          tableStyle={{width: 'calc(100% - 20px)'}}
-          bodyStyle={{
-            maxHeight: '400px',
-            overflowY: 'auto',
-          }}
-          key="images"
-          data={this.getTableRows(upgradeImages)}
-          striped={true} hover={true}
-          selectRow={selectRowProp}
-          trClassName= 'break-word'
-        >
-          <TableHeaderColumn
-            tdStyle={{wordWrap: 'break-word'}}
-            dataSort={true} dataField="name" isKey={true}
-          >
-            Name
-          </TableHeaderColumn>
-        </BootstrapTable>
+    return (
+      <div className="upgrade-modal-row">
+        <label>Select an upgrade image</label>
+        <Select
+          name="Select Image"
+          value={selectedImage.name}
+          options={selectOptions}
+          onChange={this.selectUpgradeImage}
+          clearable={false}
+        />
       </div>
     );
-
-    return imagesList;
   }
 
   render() {
@@ -215,10 +205,7 @@ export default class ModalPrepareUpgrade extends React.Component {
             {nodesList}
           </div>
 
-          <label>Selected upgrade image: {selectedImageName}</label>
-          <div className="upgrade-modal-row">
-            {imagesList}
-          </div>
+          {imagesList}
 
           <div className="upgrade-modal-row">
             <label>Upgrade timeout (s):</label>

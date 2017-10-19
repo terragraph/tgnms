@@ -58,18 +58,18 @@ export default class UpgradeMonitor extends React.Component {
           <label>Nodes pending upgrade</label>
           <UpgradeBatchTable
             nodes={pendingBatchNodes}
-            height={700}
+            height={500}
             pendingBatch={true}
           />
         </div>
-        <div className='upgrade-monitor-row'>
+        {/* <div className='upgrade-monitor-row'>
           <label>Pending Requests</label>
           <UpgradeRequestsTable
             pendingRequests={pendingRequests}
             height={300}
             isSelectable={false}
           />
-        </div>
+        </div> */}
       </div>
     );
   }

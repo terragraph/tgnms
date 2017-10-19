@@ -97,14 +97,6 @@ export default class UpgradeImagesTable extends React.Component {
   }
 }
 
-
-// image is a list of objects with the following fields:
-/*
-{
-  name: 'some string',
-  magnetUri: 'magnets, how do they work'
-}
-*/
 UpgradeImagesTable.propTypes = {
   images: React.PropTypes.array.isRequired,
   onDeleteImage: React.PropTypes.func.isRequired

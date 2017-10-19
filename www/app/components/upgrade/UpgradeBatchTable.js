@@ -108,10 +108,10 @@ export default class UpgradeBatchTable extends React.Component {
           <TableHeaderColumn width="120" dataSort={true} dataField="upgradeReqId">
             Upgrade Request Id
           </TableHeaderColumn>
-          <TableHeaderColumn width="650" dataSort={true} dataField="version">
+          <TableHeaderColumn width="400" dataSort={true} dataField="version">
             Current Image Version
           </TableHeaderColumn>
-          <TableHeaderColumn width="650" dataSort={true} dataField="nextVersion">
+          <TableHeaderColumn width="400" dataSort={true} dataField="nextVersion">
             Next Image Version
           </TableHeaderColumn>
         </BootstrapTable>

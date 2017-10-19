@@ -40,7 +40,7 @@ export default class ModalCommitUpgrade extends React.Component {
 
     if (this.state.overrideBatch) {
       // node level request
-      nodes = this.props.upgradeNodes.map(node => node.name);
+      nodes = this.props.upgradeNodes;
     } else {
       excludeNodes = this.props.getExcludedNodes();
     }

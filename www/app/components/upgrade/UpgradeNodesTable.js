@@ -19,16 +19,28 @@ export default class UpgradeNodesTable extends React.Component {
   constructor(props) {
     super(props);
     this.tableOnSortChange = this.tableOnSortChange.bind(this);
-    this.siteSortFunc = this.siteSortFunc.bind(this);
     this.getTableRows = this.getTableRows.bind(this);
 
-    this.state = {};
+    // sort name, sort order
+    // rowFilters maps a field name to the value that the user selected for that field name
+    this.state = {
+      rowFilters: {}
+    };
   }
 
   componentWillUnmount() {
     // clear the list of selected nodes when the table unmounts
     // workaround to the fact that we persist the nodes selected state so we can pass the data in to the modal
     this.props.onNodesSelected([]);
+  }
+
+  createFilterOptionsProp = (rows, filterField) => {
+    let filterOptions = {};
+    rows.forEach(row => {
+      filterOptions[row[filterField]] = row[filterField];
+    })
+
+    return filterOptions;
   }
 
   getTableRows(nodes): Array<{name:string,
@@ -38,12 +50,15 @@ export default class UpgradeNodesTable extends React.Component {
                               version:string}>  {
     const rows = [];
     nodes.forEach(node => {
-      const version = node.status_dump ? node.status_dump.version.slice(28) :
+      const version = node.status_dump ? node.status_dump.version.slice(28).trimRight() :
                                        'Not Available';
 
       // next version
-      const nextVersion = (node.status_dump && node.status_dump.upgradeStatus) ?
-        node.status_dump.upgradeStatus.nextImage.version.slice(28) : 'N/A';
+      const nextVersion = (
+        node.status_dump && node.status_dump.upgradeStatus &&
+        node.status_dump.upgradeStatus.nextImage.version !== ""
+      ) ?
+        node.status_dump.upgradeStatus.nextImage.version.slice(28).trimRight() : 'Not Available';
 
       const upgradeStatus = (node.status_dump && node.status_dump.upgradeStatus) ?
         upgradeStatusToString[node.status_dump.upgradeStatus.usType] : 'Not Available';
@@ -62,13 +77,26 @@ export default class UpgradeNodesTable extends React.Component {
         },
       );
     });
+
     return rows;
   }
 
   onSelectAll = (isSelected) => {
+    // filter the nodes first
     const {nodes} = this.props;
-    const selectedNodes = (isSelected) ? nodes.map(node => node.name) : [];
+    const {rowFilters} = this.state;
 
+    const tableRows = this.getTableRows(nodes);
+
+    // for each node, iterate through all filters and test if the node's value for that filter matches
+    // filter out any nodes that don't match all filters
+    const filteredNodes = tableRows.filter((row) => {
+      return Object.keys(rowFilters).reduce((matchFilter, filterKey) => {
+        return matchFilter && row[filterKey] === rowFilters[filterKey];
+      }, true);
+    });
+
+    const selectedNodes = (isSelected) ? filteredNodes.map(node => node.name) : [];
     this.props.onNodesSelected(selectedNodes);
   }
 
@@ -86,35 +114,20 @@ export default class UpgradeNodesTable extends React.Component {
   tableOnSortChange(sortName, sortOrder) {
     this.setState({
       sortName,
-      sortOrder,
-      selectedSiteName: undefined
+      sortOrder
     });
   }
 
-  siteSortFunc(a, b, order) {
-    if (this.state.selectedSiteName) {
-      if (a.site_name == this.state.selectedSiteName) {
-        return -1;
-      } else if (b.site_name == this.state.selectedSiteName) {
-        return 1;
-      }
-    }
+  // set the active filters as a state (needed for select all)
+  onFilterChange = (filter) => {
+    let rowFilters = {};
+    Object.keys(filter).forEach((filterKey) => {
+      rowFilters[filterKey] = filter[filterKey].value;
+    });
 
-    if (order === 'desc') {
-      if (a.site_name > b.site_name) {
-        return -1;
-      } else if (a.site_name < b.site_name) {
-        return 1;
-      }
-      return 0;
-    } else {
-      if (a.site_name < b.site_name) {
-        return -1;
-      } else if (a.site_name > b.site_name) {
-        return 1;
-      }
-      return 0;
-    }
+    this.setState({
+      rowFilters: rowFilters
+    });
   }
 
   renderStatusColor(cell, row) {
@@ -125,10 +138,13 @@ export default class UpgradeNodesTable extends React.Component {
   }
 
   render() {
+    var tableData = this.getTableRows(this.props.nodes);
+    // tableData = [];
+
     var selectRowProp = {
       mode: "checkbox",
       clickToSelect: true,
-      hideSelectColumn: false,
+      hideSelectColumn: tableData.length === 0,
       bgColor: "rgb(183,210,255)",
       onSelect: this.tableOnRowSelect,
       selected: this.props.selectedNodes,
@@ -139,6 +155,7 @@ export default class UpgradeNodesTable extends React.Component {
       sortName: this.state.sortName,
       sortOrder: this.state.sortOrder,
       onSortChange: this.tableOnSortChange,
+      onFilterChange: this.onFilterChange,
       trClassName: 'break-word',
     };
 
@@ -147,12 +164,12 @@ export default class UpgradeNodesTable extends React.Component {
         <BootstrapTable
             tableStyle={{width: 'calc(100% - 20px)'}}
             bodyStyle={{
-              maxHeight: '700px',
+              maxHeight: '500px',
               overflowY: 'auto',
             }}
             key="nodesTable"
             options={ tableOptions }
-            data={this.getTableRows(this.props.nodes)}
+            data={tableData}
             striped={true} hover={true}
             selectRow={selectRowProp}
             trClassName= 'break-word'>
@@ -167,8 +184,7 @@ export default class UpgradeNodesTable extends React.Component {
           </TableHeaderColumn>
           <TableHeaderColumn width="80"
                              dataSort={true}
-                             dataField="site_name"
-                             sortFunc={this.siteSortFunc}>
+                             dataField="site_name">
             Site
           </TableHeaderColumn>
           <TableHeaderColumn width="80"
@@ -180,10 +196,26 @@ export default class UpgradeNodesTable extends React.Component {
           <TableHeaderColumn width="180" dataSort={true} dataField="upgradeStatus">
             Upgrade Status
           </TableHeaderColumn>
-          <TableHeaderColumn width="650" dataSort={true} dataField="version">
+          <TableHeaderColumn
+            width='400'
+            dataSort={true}
+            dataField='version'
+            filter={{
+              type: 'SelectFilter',
+              options: this.createFilterOptionsProp(tableData, 'version')
+            }}
+          >
             Image Version
           </TableHeaderColumn>
-          <TableHeaderColumn width="650" dataSort={true} dataField="nextVersion">
+          <TableHeaderColumn
+            width='400'
+            dataSort={true}
+            dataField='nextVersion'
+            filter={{
+              type: 'SelectFilter',
+              options: this.createFilterOptionsProp(tableData, 'nextVersion')
+            }}
+          >
             Next Version
           </TableHeaderColumn>
         </BootstrapTable>
