@@ -4,8 +4,8 @@ import Modal from 'react-modal';
 import ModalLinkAdd from './ModalLinkAdd.js';
 import ModalNodeAdd from './ModalNodeAdd.js';
 import ModalCSVUpload from './ModalCSVUpload.js';
+import { Actions } from './constants/NetworkConstants.js';
 import ModalTopologyDiffer from './ModalTopologyDiffer.js';
-import { Actions } from './NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
@@ -51,7 +51,7 @@ export default class ModalTopology extends React.Component {
       this.props.onClose();
     }.bind(this));
   }
-  
+
   render() {
     let hideParentModal = false;
     let visibleModal = {};

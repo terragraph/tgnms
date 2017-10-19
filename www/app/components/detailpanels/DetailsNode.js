@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions } from '../../NetworkConstants.js';
+import { Actions } from '../../constants/NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';

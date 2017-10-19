@@ -4,6 +4,22 @@ const path = require('path');
 const fs = require('fs');
 const request = require('request');
 const express = require('express');
+
+// multer + configuration
+const multer  = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './static/tg-binaries');
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// set up font awesome here
+
 const pug = require('pug');
 const compression = require('compression');
 // worker process
@@ -49,7 +65,7 @@ const expressWs = require('express-ws')(app);
 const os = require('os');
 const pty = require('pty.js');
 
-const statusReportExpiry = 2 * 60000; // 2 minuets
+const statusReportExpiry = 2 * 60000; // 2 minutes
 const maxThriftRequestFailures = 1;
 const maxControllerEvents = 10;
 
@@ -70,6 +86,7 @@ var statusDumpsByName = {};
 var ignitionStateByName = {};
 var aggrStatusDumpsByName = {};
 var adjacencyMapsByName = {};
+var upgradeStateByName = {};
 
 var dashboards = {};
 fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
@@ -200,6 +217,11 @@ worker.on('message', (msg) => {
         ignitionStateByName[msg.name] = [];
       }
       break;
+    case 'upgrade_state':
+      upgradeStateByName[msg.name] = (msg.success && msg.upgradeState) ?
+        msg.upgradeState : null;
+
+      break;
     default:
       console.error('Unknown message type', msg.type);
   }
@@ -290,7 +312,89 @@ function getTopologyByName(topologyName) {
     ignitionState = ignitionStateByName[topologyName];
   }
   networkConfig.ignition_state = ignitionState;
+
+  let upgradeStateDump = null;
+  if (upgradeStateByName.hasOwnProperty(topologyName) && !!upgradeStateByName[topologyName]) {
+    let upgradeState = upgradeStateByName[topologyName];
+    upgradeStateDump = getNodesWithUpgradeStatus(topology.nodes, upgradeState);
+  }
+
+  networkConfig.upgradeStateDump = upgradeStateDump;
+
   return networkConfig;
+}
+
+// TODO: Kelvin: not needed for now
+function sortNodesByPendingReqs(nodes, pendingReqs) {
+  let nodeNameToNode = {};
+  nodes.forEach((node) => {
+    nodeNameToNode[node.name] = node;
+  })
+
+  let pendingReqNodes = [];
+
+  pendingReqs.forEach((req) => {
+    if (req.ugType === 10) {
+      // NODES level request
+      req.nodes.filter(nodeName => !!nodeNameToNode[nodeName]).forEach((nodeName) => {
+        pendingReqNodes.push(Object.assign({}, nodeNameToNode[nodeName], {
+          pendingReqId: req.urReq.upgradeReqId,
+          urType: req.urReq.urType
+        }));
+      });
+    } else if (req.ugType === 20) {
+      // NETWORK level request, First, convert the list of excluded nodes into a set
+      var excludedNodes = new Set(req.excludeNodes);
+      nodes.filter(node => !excludedNodes.has(node)).forEach((node) => {
+        pendingReqNodes.push(Object.assign({}, node, {
+          pendingReqId: req.urReq.upgradeReqId,
+          urType: req.urReq.urType
+        }));
+      });
+    }
+  });
+
+  return pendingReqNodes;
+}
+
+function getNodesWithUpgradeStatus(nodes, upgradeState) {
+  let upgradeStatusDump = {
+    curUpgradeReq: upgradeState.curReq,
+
+    curBatch: [],
+    pendingBatches: [],
+    pendingReqs: upgradeState.pendingReqs,
+    // pendingReqNodes: [], // a node might appear in multiple pending requests
+  };
+
+  // node mac_addr --> node object
+  let nodeNameToNode = {};
+  nodes.forEach((node) => {
+    nodeNameToNode[node.name] = node;
+  })
+
+  // populate current batch
+  let curBatchNodes = [];
+  upgradeState.curBatch.filter(name => !!nodeNameToNode[name]).forEach((name) => {
+    curBatchNodes.push(nodeNameToNode[name]);
+  });
+  upgradeStatusDump.curBatch = curBatchNodes;
+
+  // populate pending batches
+  let pendingBatchNodes = [];
+  upgradeState.pendingBatches.forEach((batch, batchIdx) => {
+    let nodesInBatch = [];
+    batch.filter(name => !!nodeNameToNode[name]).forEach((name) => {
+      nodesInBatch.push(nodeNameToNode[name]);
+    });
+    pendingBatchNodes.push(nodesInBatch);
+  });
+  upgradeStatusDump.pendingBatches = pendingBatchNodes;
+
+  // populate pending requests (disabled expanded view of nodes for now!)
+
+  // upgradeStatusDump.pendingReqNodes = sortNodesByPendingReqs(nodes, upgradeState.pendingReqs);
+  return upgradeStatusDump;
 }
 
 function reloadInstanceConfig() {
@@ -772,6 +876,7 @@ app.get(/\/topology\/list$/, function(req, res, next) {
 app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
   let topology = getTopologyByName(topologyName);
+
   if (Object.keys(topology).length > 0) {
     res.json(topology);
     return;
@@ -1172,6 +1277,126 @@ app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
     site: siteName
   }, "", res);
 });
+
+// upgrade endpoints $/i
+app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {
+      topologyName, isHttp, requestId, excludeNodes, imageUrl, md5, timeout, skipFailure, limit, downloadAttempts, torrentParams,
+    } = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'prepareUpgrade',
+      upgradeGroupType: 'NETWORK',
+      requestId,
+      excludeNodes,
+      imageUrl,
+      md5,
+      timeout,
+      skipFailure,
+      limit,
+      isHttp,
+      downloadAttempts,
+      torrentParams,
+      topology
+    }, "", res);
+  });
+});
+
+app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {ugType, topologyName, requestId, nodes, excludeNodes, timeout, skipFailure, limit, skipLinks, scheduleToCommit} = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'commitUpgrade',
+      upgradeGroupType: ugType,
+      requestId,
+      nodes,
+      excludeNodes,
+      timeout,
+      skipFailure,
+      limit,
+      skipLinks,
+      scheduleToCommit,
+      topology
+    }, "", res);
+  });
+});
+
+app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {abortAll, reqIds, topologyName} = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'abortUpgrade',
+      abortAll,
+      reqIds,
+      topology
+    }, "", res);
+  });
+});
+
+app.post(/\/controller\/uploadUpgradeBinary$/i, upload.single('binary'), function (req, res, next) {
+  // thrift calls and stuff here
+  const {topologyName} = req.body;
+  const topology = getTopologyByName(topologyName);
+
+  const urlPrefix = req.protocol + '://' + req.get('host');
+  const imagePath = `${urlPrefix}/${req.file.path}`;
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'addUpgradeImage',
+    topology: topology,
+    imagePath: imagePath
+  }, '', res);
+});
+
+app.get(/\/controller\/listUpgradeImages\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'listUpgradeImages',
+    topology: topology
+  }, '', res);
+});
+
+
+app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  const imageName = req.params[1];
+
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'deleteUpgradeImage',
+    topology: topology,
+    name: imageName
+  }, '', res);
+});
+
+// aggregator endpoints
 
 app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];

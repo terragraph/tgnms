@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Actions, ChartColors } from '../../NetworkConstants.js';
+import { Actions, ChartColors } from '../../constants/NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import { availabilityColor, chartColor, polarityColor, versionSlicer }
     from '../../NetworkHelper.js';

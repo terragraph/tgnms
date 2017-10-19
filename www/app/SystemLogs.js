@@ -2,12 +2,12 @@ import React from 'react';
 // leaflet maps
 import { render } from 'react-dom';
 // dispatcher
-import { Actions } from './NetworkConstants.js';
+import { Actions } from './constants/NetworkConstants.js';
 import AsyncButton from 'react-async-button';
 import DatePicker from 'react-datepicker';
 import Dispatcher from './NetworkDispatcher.js';
 import moment from 'moment';
-import NetworkStore from './NetworkStore.js';
+import NetworkStore from './stores/NetworkStore.js';
 import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 // dispatcher
-import { Actions } from './NetworkConstants.js';
+import { Actions } from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 
 import ipaddr from 'ipaddr.js';

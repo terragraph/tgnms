@@ -5,9 +5,9 @@ import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
 // leaflet maps
 import { render } from 'react-dom';
 // dispatcher
-import { Actions } from './NetworkConstants.js';
+import { Actions } from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './NetworkStore.js';
+import NetworkStore from './stores/NetworkStore.js';
 
 import NetworkStats from './NetworkStats.js';
 import NetworkDashboards from './NetworkDashboards.js';
@@ -18,7 +18,10 @@ import NetworkAlerts from './NetworkAlerts.js';
 import NetworkConfig from './NetworkConfig.js';
 import ModalOverlays from './ModalOverlays.js';
 import ModalTopology from './ModalTopology.js';
-import {SiteOverlayKeys, linkOverlayKeys} from './NetworkConstants.js';
+import {SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
+
+import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
+
 
 const VIEWS = {
   'map': 'Map',
@@ -27,6 +30,7 @@ const VIEWS = {
   'eventlogs': 'Event Logs',
   'systemlogs': 'System Logs',
   'alerts': 'Alerts',
+  'upgrade': 'Upgrade',
   'config': 'Config (Alpha)',
 };
 
@@ -48,6 +52,7 @@ export default class NetworkUI extends React.Component {
     routing: {},
     overlaysModalOpen: false,
     topologyModalOpen: false,
+
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
     topology: {},
@@ -402,6 +407,12 @@ export default class NetworkUI extends React.Component {
       case 'alerts':
         paneComponent = <NetworkAlerts {...viewProps} />;
         break;
+      case 'upgrade':
+        paneComponent = <NetworkUpgrade
+          {...viewProps}
+          upgradeStateDump={this.state.networkConfig.upgradeStateDump}
+        />;
+        break;
       case 'config':
         paneComponent = <NetworkConfig {...viewProps} />;
         break;
@@ -429,7 +440,8 @@ export default class NetworkUI extends React.Component {
         <ModalTopology
           isOpen= {this.state.topologyModalOpen}
           onClose= {() => this.setState({topologyModalOpen: false})}
-          topology= {this.state.topology}/>
+          topology= {this.state.topology}
+        />
 
         <div className="top-menu-bar">
           <Menu

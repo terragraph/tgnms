@@ -27,6 +27,8 @@ process.on('message', (msg) => {
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
+        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.UPGRADE_STATE_REQ, '\0');
+
         ctrlProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Controller_ttypes.MessageType.GET_TOPOLOGY:
@@ -55,6 +57,16 @@ process.on('message', (msg) => {
                 success: success,
                 response_time: response_time,
                 ignition_state: success ? data.ignition_state : null,
+              });
+              break;
+            case Controller_ttypes.MessageType.UPGRADE_STATE_REQ:
+              // recvmsg.mType = UPGRADE_STATE_DUMP
+              process.send({
+                name: topology.name,
+                type: 'upgrade_state',
+                success: success,
+                response_time: response_time,
+                upgradeState: success ? data.upgradeState : null,
               });
               break;
             default:
@@ -141,6 +153,16 @@ const command2MsgType = {
   'getIgnitionState': Controller_ttypes.MessageType.GET_IGNITION_STATE,
   'setNetworkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
   'setLinkIgnitionState': Controller_ttypes.MessageType.SET_IGNITION_PARAMS,
+
+  // upgrade requests (sent to controller)
+  'prepareUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'abortUpgrade': Controller_ttypes.MessageType.UPGRADE_ABORT_REQ,
+
+  // upgrade images
+  'addUpgradeImage': Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ,
+  'deleteUpgradeImage': Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ,
+  'listUpgradeImages': Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ
 };
 
 var msgType2Params = {};
@@ -198,6 +220,24 @@ msgType2Params[Controller_ttypes.MessageType.GET_SCAN_STATUS] = {
 msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {
   'recvApp': 'ctrl-app-SCAN_APP',
   'nmsAppId': 'NMS_WEB_SCAN'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_GROUP_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_ABORT_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_STATE_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
 msgType2Params[Aggregator_ttypes.AggrMessageType.START_IPERF] = {
   'recvApp': 'aggr-app-TRAFFIC_APP',
   'nmsAppId': 'NMS_WEB_TRAFFIC'};
@@ -365,6 +405,88 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
       send(setIgnitionParamsReq);
       break;
+    case 'prepareUpgrade':
+      // first set up the upgrade req that the controller sends to minions
+      var upgradeReqParams = new Controller_ttypes.UpgradeReq();
+      upgradeReqParams.urType = Controller_ttypes.UpgradeReqType.PREPARE_UPGRADE;
+      upgradeReqParams.upgradeReqId = msg.requestId;
+      upgradeReqParams.md5 = msg.md5;
+      upgradeReqParams.imageUrl = msg.imageUrl;
+
+      if (msg.isHttp) {
+        upgradeReqParams.downloadAttempts = msg.downloadAttempts;
+      } else {
+        var torrentParams = new Controller_ttypes.UpgradeTorrentParams();
+        const {downloadTimeout, downloadLimit, uploadLimit, maxConnections} = msg.torrentParams;
+        torrentParams.downloadTimeout = downloadTimeout;
+        torrentParams.downloadLimit = downloadLimit;
+        torrentParams.uploadLimit = uploadLimit;
+        torrentParams.maxConnections = maxConnections;
+
+        upgradeReqParams.torrentParams = torrentParams;
+      }
+
+      // then set up the group upgrade req
+      var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
+      upgradeGroupReqParams.ugType = Controller_ttypes.UpgradeGroupType.NETWORK;
+
+      upgradeGroupReqParams.nodes = [];
+      upgradeGroupReqParams.excludeNodes = msg.excludeNodes;
+
+      upgradeGroupReqParams.urReq = upgradeReqParams;
+      upgradeGroupReqParams.timeout = msg.timeout;
+      upgradeGroupReqParams.skipFailure = msg.skipFailure;
+      upgradeGroupReqParams.version = '';
+      upgradeGroupReqParams.skipLinks = [];
+      upgradeGroupReqParams.limit = msg.limit;
+
+      send(upgradeGroupReqParams);
+      break;
+    case 'commitUpgrade':
+      var upgradeReqParams = new Controller_ttypes.UpgradeReq();
+      upgradeReqParams.urType = Controller_ttypes.UpgradeReqType.COMMIT_UPGRADE;
+      upgradeReqParams.upgradeReqId = msg.requestId;
+      upgradeReqParams.scheduleToCommit = msg.scheduleToCommit;
+
+      var upgradeGroupReqParams = new Controller_ttypes.UpgradeGroupReq();
+      upgradeGroupReqParams.ugType = msg.upgradeGroupType,
+
+      upgradeGroupReqParams.nodes = msg.nodes;
+      upgradeGroupReqParams.excludeNodes = msg.excludeNodes;
+
+      upgradeGroupReqParams.urReq = upgradeReqParams;
+      upgradeGroupReqParams.timeout = msg.timeout;
+      upgradeGroupReqParams.skipFailure = msg.skipFailure;
+      upgradeGroupReqParams.version = '';
+      upgradeGroupReqParams.skipLinks = msg.skipLinks;
+      upgradeGroupReqParams.limit = msg.limit;
+
+      send(upgradeGroupReqParams);
+      break;
+    case 'abortUpgrade':
+      var abortUpgradeParams = new Controller_ttypes.UpgradeAbortReq();
+      abortUpgradeParams.abortAll = msg.abortAll;
+      abortUpgradeParams.reqIds = msg.reqIds;
+
+      send(abortUpgradeParams);
+      break;
+    case 'listUpgradeImages':
+      var listUpgradeImagesParams = new Controller_ttypes.UpgradeListImagesReq();
+      send(listUpgradeImagesParams);
+
+      break;
+    case 'addUpgradeImage':
+      var addUpgradeImageParams = new Controller_ttypes.UpgradeAddImageReq();
+      addUpgradeImageParams.imageUrl = msg.imagePath;
+      send(addUpgradeImageParams);
+
+      break;
+    case 'deleteUpgradeImage':
+      var delUpgradeImageParams = new Controller_ttypes.UpgradeDelImageReq();
+      delUpgradeImageParams.name = msg.name;
+      send(delUpgradeImageParams);
+
+      break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
       res.status(500).send("FAIL");
@@ -447,6 +569,16 @@ class ControllerProxy extends EventEmitter {
                       endTimer - this.start_timer,
                       {ignition_state: ignitionState});
             break;
+          case Controller_ttypes.MessageType.UPGRADE_STATE_REQ:
+            // recvmsg.mType = UPGRADE_STATE_DUMP
+            var stateDump = new Controller_ttypes.UpgradeStateDump();
+            stateDump.read(tProtocol);
+            this.emit('event',
+                      msgType,
+                      true,
+                      endTimer - this.start_timer,
+                      { upgradeState: stateDump });
+            break;
           default:
             console.error('[controller] No receive handler defined for', msgType);
         }
@@ -492,6 +624,10 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
+            case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ABORT_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -562,6 +698,10 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
+            case Controller_ttypes.MessageType.UPGRADE_GROUP_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ABORT_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
+            case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -574,6 +714,11 @@ class ControllerProxy extends EventEmitter {
               var ignitionState = new Controller_ttypes.IgnitionState();
               ignitionState.read(tProtocol);
               resolve({type: 'msg', msg: ignitionState});
+              break;
+            case Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ:
+              var upgradeImages = new Controller_ttypes.UpgradeListImagesResp();
+              upgradeImages.read(tProtocol);
+              resolve({type: 'msg', msg: upgradeImages});
               break;
             default:
               console.error('[controller] No receive handler defined for', msgType);

@@ -3,10 +3,10 @@ import React from 'react';
 import { render } from 'react-dom';
 // dispatcher
 import { availabilityColor } from './NetworkHelper.js';
-import { Actions } from './NetworkConstants.js';
+import { Actions } from './constants/NetworkConstants.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './NetworkStore.js';
+import NetworkStore from './stores/NetworkStore.js';
 import ReactEventChart from './ReactEventChart.js';
 
 export default class NetworkNodesTable extends React.Component {

@@ -1,0 +1,170 @@
+.network-upgrade {
+  margin-top: 40px;
+  top: 0;
+  bottom: 0;
+  position: fixed !important;
+
+  display: flex;
+  flex-direction: row;
+
+  overflow-y: auto;
+  float: left;
+  width: 100%;
+}
+
+/* UPGRADE COMMAND PANE */
+
+.rc-upgrade-left-pane {
+  margin-left: 10px;
+  margin-right: 30px;
+  width: 200px; /* fixed width for now */
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* do not try to shrink this column when resizing */
+
+  box-sizing: border-box;
+}
+
+.upgrade-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.rc-upgrade-left-pane-status {
+  margin-top: 20px;
+}
+
+.upgrade-left-status-row {
+  margin-bottom: 20px;
+}
+
+.upgrade-left-pane-label {
+  font-size: 20px;
+}
+
+/* UPGRADE MONITORING */
+.rc-upgrade-monitor {
+  margin-top: 10px;
+
+  width: calc(100% - 220px);
+  overflow-y: auto;
+}
+
+.rc-upgrade-monitor .upgrade-monitor-row:not(:first-child) {
+  margin-top: 20px;
+}
+
+.upgrade-monitor-row label {
+  font-size: 20px;
+  padding-left: 10px;
+}
+
+/* UPGRADE MODAL */
+.upgrade-modal-footer {
+  margin-top: 10px;
+}
+
+.upgrade-modal-footer button {
+  margin-left: 5px;
+  float: right;
+}
+
+.upgrade-modal-content {
+  display: flex;
+  flex-direction: column;
+
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.upgrade-modal-row {
+  margin-bottom: 10px;
+}
+
+.upgrade-modal-row label {
+  float: left;
+  width: 55%;
+}
+
+.upgrade-modal-row input {
+  width: 45%;
+}
+
+.upgrade-modal-row .download-type-selector {
+  width: 45%;
+}
+
+.upgrade-modal-row input:disabled {
+  background: #ddd;
+}
+
+.upgrade-modal-nodes-list {
+  max-height: 200px;
+  overflow-y: scroll;
+  box-sizing: border-box;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.upgrade-modal-nodes-list p {
+  margin: 0;
+  padding: 5px 0px 5px 10px;
+  border: 1px solid #ddd;
+}
+
+.prepare-modal-images-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.image-selected {
+  background-color: #b7d2ff;
+}
+
+.upgrade-add-img-btn {
+  padding: 0;
+  border: none;
+  margin-left: 10px;
+}
+
+.upgrade-add-img-btn:disabled {
+  opacity: 0.5;
+}
+
+.upgrade-modal-btn:disabled {
+  opacity: 0.5;
+}
+
+/* UPGRADE BINARY MODAL */
+.upgrade-modal-upload-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.upgrade-modal-upload-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  margin-bottom: 10px;
+}
+
+.upgrade-modal-upload-wrapper input[type=file] {
+  font-size: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
+
+.refresh-images {
+  float: right;
+  margin-right: 10px;
+}
+
+.refresh-images:hover {
+  cursor: pointer;
+}

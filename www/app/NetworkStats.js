@@ -5,9 +5,9 @@ import { render } from 'react-dom';
 // graphs
 import ReactMultiGraph from './ReactMultiGraph.js';
 // dispatcher
-import { Actions } from './NetworkConstants.js';
+import { Actions } from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './NetworkStore.js';
+import NetworkStore from './stores/NetworkStore.js';
 import moment from 'moment';
 // layout components
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
