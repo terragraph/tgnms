@@ -15,11 +15,12 @@ import NetworkMap from './NetworkMap.js';
 import EventLogs from './EventLogs.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkAlerts from './NetworkAlerts.js';
-import NetworkConfig from './NetworkConfig.js';
+import NMSConfig from './NMSConfig.js';
 import ModalOverlays from './ModalOverlays.js';
 import ModalTopology from './ModalTopology.js';
 import {SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
 
+import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 
 
@@ -31,7 +32,8 @@ const VIEWS = {
   'systemlogs': 'System Logs',
   'alerts': 'Alerts',
   'upgrade': 'Upgrade',
-  'config': 'Config (Alpha)',
+  'nms-config': 'NMS Instance Config (Alpha)',
+  'config': 'Network Config',
 };
 
 const SETTINGS = {
@@ -413,8 +415,11 @@ export default class NetworkUI extends React.Component {
           upgradeStateDump={this.state.networkConfig.upgradeStateDump}
         />;
         break;
+      case 'nms-config':
+        paneComponent = <NMSConfig {...viewProps} />;
+        break;
       case 'config':
-        paneComponent = <NetworkConfig {...viewProps} />;
+        paneComponent = <NetworkConfigContainer {...viewProps} />;
         break;
       default:
         paneComponent =

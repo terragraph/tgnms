@@ -1,0 +1,13 @@
+.rc-network-config {
+  margin-top: 40px;
+  top: 0;
+  bottom: 0;
+  position: fixed !important;
+
+  display: flex;
+  flex-direction: row;
+
+  overflow-y: auto;
+  float: left;
+  width: 100%;
+}

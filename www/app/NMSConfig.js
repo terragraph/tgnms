@@ -20,7 +20,7 @@ var FileSaver = require('file-saver');
  * 2.) Modify in place and force a refresh on the server. This lacks any
  *     permissions checks.
  */
-export default class NetworkConfig extends React.Component {
+export default class NMSConfig extends React.Component {
   controllerIp: undefined
   state = {
     pendingConfigs: {},
@@ -483,7 +483,7 @@ export default class NetworkConfig extends React.Component {
         </TableHeaderColumn>
       </BootstrapTable>;
     return (
-      <div>
+      <div className='rc-nms-config'>
         <h3>Config editing is mostly working, but has brought up issues with the way we instantiate props/state in some components. There are still bugs to work out and to make this process much more solid. Please don't save the config without checking with Paul/Tariq for now.</h3>
         {linksTable}
         <div style={{border: '1px solid #ccc'}}>
@@ -500,6 +500,6 @@ export default class NetworkConfig extends React.Component {
     );
   }
 }
-NetworkConfig.propTypes = {
+NMSConfig.propTypes = {
   config: React.PropTypes.array.isRequired,
 };
