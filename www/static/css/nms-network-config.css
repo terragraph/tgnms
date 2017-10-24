@@ -44,4 +44,14 @@
 
 .config-form-label {
   margin-right: 10px;
+  min-width: 250px; /* fixed min width so we can align the input fields */
+}
+
+.config-form-input {
+  background-color: #fff;
+  min-width: 250px;
+}
+
+.config-expand-marker {
+  padding-right: 10px;
 }

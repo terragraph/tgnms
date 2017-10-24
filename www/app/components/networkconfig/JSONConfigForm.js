@@ -4,21 +4,53 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-export default class JSONConfigForm extends React.Component {
+// internal config form class that wraps a JSONConfigForm with a label
+// mostly used to toggle a form's expandability
+class ExpandableConfigForm extends React.Component {
   constructor(props) {
     super(props);
 
-    //
     this.state = {
       expanded: true
     };
+  }
+
+  toggleExpandConfig = () => {
+    this.setState({
+      expanded: !this.state.expanded
+    });
+  }
+
+  render() {
+    const {config, formLabel} = this.props;
+    const {expanded} = this.state;
+    const expandMarker = expanded ?
+      '/static/images/down-chevron.png' : '/static/images/right-chevron.png';
+
+    return (
+      <div className='rc-expandable-config-form'>
+        <img src={expandMarker} className='config-expand-marker' onClick={this.toggleExpandConfig}/>
+        <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel}:</label>
+        {expanded && <JSONConfigForm config={config}/>}
+      </div>
+    );
+  }
+}
+
+ExpandableConfigForm.propTypes = {
+  config: React.PropTypes.object.isRequired,
+  formLabel: React.PropTypes.string.isRequired
+}
+
+export default class JSONConfigForm extends React.Component {
+  constructor(props) {
+    super(props);
   }
 
   // helper methods to render each field
   // assume no arrays
 
   // TODO: onchange for everything!
-
   renderBooleanInput = (fieldName, value) => {
     return (
       <li>
@@ -32,7 +64,7 @@ export default class JSONConfigForm extends React.Component {
     return (
       <li>
         <label className='config-form-label'>{fieldName}:</label>
-        <input type="number" value={value} />
+        <input className='config-form-input' type="number" value={value} />
       </li>
     );
   }
@@ -41,7 +73,7 @@ export default class JSONConfigForm extends React.Component {
     return (
       <li>
         <label className='config-form-label'>{fieldName}:</label>
-        <input type="text" value={value} />
+        <input className='config-form-input' type="text" value={value} />
       </li>
     );
   }
@@ -49,8 +81,10 @@ export default class JSONConfigForm extends React.Component {
   renderNestedObject = (fieldName, nestedConfig) => {
     return (
       <li>
-        <label className='config-form-label'>{fieldName}:</label>
-        <JSONConfigForm config={nestedConfig}/>
+        <ExpandableConfigForm
+          config={nestedConfig}
+          formLabel={fieldName}
+        />
       </li>
     );
   }
@@ -98,6 +132,5 @@ export default class JSONConfigForm extends React.Component {
 }
 
 JSONConfigForm.propTypes = {
-  config: React.PropTypes.object.isRequired,
-  canExpand: React.PropTypes.bool.isRequired,
+  config: React.PropTypes.object.isRequired
 }
