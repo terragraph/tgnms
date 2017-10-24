@@ -11,17 +11,12 @@ export default class NetworkConfigBody extends React.Component {
     super(props);
   }
 
-/*
-<p>
-  {JSON.stringify(this.props.baseConfig)}
-</p>
-*/
-
   render() {
     return (
       <div className='rc-network-config-body'>
         <JSONConfigForm
           config={this.props.baseConfig}
+          editPath={[]}
         />
       </div>
     );

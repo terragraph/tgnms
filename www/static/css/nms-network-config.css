@@ -42,6 +42,10 @@
   list-style-type: none;
 }
 
+.config-form-root {
+  padding-left: 0px;
+}
+
 .config-form-label {
   margin-right: 10px;
   min-width: 250px; /* fixed min width so we can align the input fields */

@@ -1,10 +1,11 @@
 // util class for making API calls to the node server for network config
 import axios from 'axios';
 
-import { Actions } from '../constants/NetworkConstants.js';
-import Dispatcher from '../NetworkDispatcher.js';
-
-
+import {
+  loadBaseConfigSuccess,
+  loadNetworkConfigSuccess,
+  loadNodeConfigSuccess
+} from '../actions/NetworkConfigActions.js';
 
 const mockConfigJSON = {
   "sysParams": {
@@ -150,30 +151,27 @@ const mockConfigJSON = {
 export const getBaseConfig = (topologyName) => {
   // so what does this return, map of image version to config?
   setTimeout(() => {
-    Dispatcher.dispatch({
-      actionType: Actions.BASE_CONFIG_LOADED,
+    loadBaseConfigSuccess({
+      config: mockConfigJSON,
       topologyName,
-      config: mockConfigJSON
     });
   }, 200);
 };
 
 export const getNetworkOverrideConfig = (topologyName) => {
   setTimeout(() => {
-    Dispatcher.dispatch({
-      actionType: Actions.NETWORK_OVERRIDE_CONFIG_LOADED,
+    loadNetworkConfigSuccess({
+      config: {},
       topologyName,
-      config: {}
     });
   }, 200);
 };
 
 export const getNodeOverrideConfig = (nodes, topologyName) => {
   setTimeout(() => {
-    Dispatcher.dispatch({
-      actionType: Actions.NODE_OVERRIDE_CONFIG_LOADED,
+    loadNodeConfigSuccess({
+      config: {},
       topologyName,
-      config: {}
     });
   }, 200);
 };

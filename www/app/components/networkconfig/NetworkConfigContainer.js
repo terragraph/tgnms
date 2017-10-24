@@ -4,17 +4,19 @@
 import React from 'react';
 import { render } from 'react-dom';
 
+var _ = require('lodash');
+
 import {
   getBaseConfig, getNetworkOverrideConfig, getNodeOverrideConfig
 } from '../../apiutils/NetworkConfigAPIUtil.js';
-import { Actions } from '../../constants/NetworkConstants.js';
+
 import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
 
+import { Actions } from '../../constants/NetworkConstants.js';
+import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
 import NetworkConfig from './NetworkConfig.js';
-
-
 
 export default class NetworkConfigContainer extends React.Component {
   constructor(props) {
@@ -54,20 +56,38 @@ export default class NetworkConfigContainer extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
+      // handle common actions
       case Actions.TOPOLOGY_SELECTED:
         this.fetchConfigsForCurrentTopology(payload.networkName);
         break;
-      case Actions.BASE_CONFIG_LOADED:
+
+      // handle network config specific actions
+      case NetworkConfigActions.EDIT_CONFIG_FORM:
+        const {editPath, value} = payload;
+        const {editMode} = this.state;
+
+        // if editMode is CONFIG_VIEW_MODE.NODE, we edit the node override
+        // else we edit the network override (even if the user is viewing base)
+        if (editMode === CONFIG_VIEW_MODE.NODE) {
+          this.editNodeConfig(editPath, value);
+        } else {
+          // this.editNetworkConfig(editPath, value);
+          const sample = Object.assign({}, this.state.networkUnsavedConfig);
+          console.log(_.set(sample, editPath, value), sample);
+        }
+
+        break;
+      case NetworkConfigActions.BASE_CONFIG_LOAD_SUCCESS:
         this.setState({
           baseConfig: payload.config,
         });
         break;
-      case Actions.NETWORK_OVERRIDE_CONFIG_LOADED:
+      case NetworkConfigActions.NETWORK_CONFIG_LOAD_SUCCESS:
         this.setState({
           networkOverrideConfig: payload.config
         });
         break;
-      case Actions.NODE_OVERRIDE_CONFIG_LOADED:
+      case NetworkConfigActions.NODE_CONFIG_LOAD_SUCCESS:
         this.setState({
           nodeOverrideConfig: payload.config
         });
@@ -75,6 +95,21 @@ export default class NetworkConfigContainer extends React.Component {
       default:
         break;
     }
+  }
+
+  editNodeConfig = (editPath, value) => {
+
+  }
+
+  editNetworkConfig = (editPath, value) => {
+    const {networkUnsavedConfig} = this.state;
+    this.setState({
+      networkUnsavedConfig: this.editConfig(networkUnsavedConfig, editPath, value)
+    });
+  }
+
+  editConfig = (config, editPath, value) => {
+
   }
 
   fetchConfigsForCurrentTopology = (topologyName) => {
