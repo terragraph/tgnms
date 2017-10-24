@@ -53,6 +53,11 @@ const Actions = {
 
   // pending topology
   PENDING_TOPOLOGY: 700,
+
+  // network config actions
+  BASE_CONFIG_LOADED: 900,
+  NETWORK_OVERRIDE_CONFIG_LOADED: 901,
+  NODE_OVERRIDE_CONFIG_LOADED: 902,
 };
 
 const SiteOverlayKeys = {

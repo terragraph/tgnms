@@ -11,3 +11,37 @@
   float: left;
   width: 100%;
 }
+
+/* NETWORK CONFIG LEFT PANE */
+.rc-network-config-left-pane {
+  background-color: #eee; /* so we know what it looks like I guess */
+  border-right: 1px solid #777;
+
+  margin-left: 10px;
+  margin-right: 30px;
+  width: 350px; /* fixed width for now */
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* do not try to shrink this column when resizing */
+
+  box-sizing: border-box;
+}
+
+/* NETWORK CONFIG BODY */
+.rc-network-config-body {
+  margin-top: 10px;
+
+  width: calc(100% - 370px);
+  overflow-y: auto;
+}
+
+/* NETWORK CONFIG JSON FORM */
+.rc-json-config-form ul {
+  list-style-type: none;
+}
+
+.config-form-label {
+  margin-right: 10px;
+}

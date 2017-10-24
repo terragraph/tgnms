@@ -4,19 +4,45 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-export default class NetworkConfigContainer extends React.Component {
+import NetworkConfigLeftPane from './NetworkConfigLeftPane.js';
+import NetworkConfigBody from './NetworkConfigBody.js';
+
+export default class NetworkConfig extends React.Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-    }
   }
 
   render() {
+    const {
+      topologyName,
+      nodes,
+      selectedNodes,
+      baseConfig
+    } = this.props;
+
     return (
       <div className='rc-network-config'>
-        Expect great things
+        <NetworkConfigLeftPane
+          topologyName={topologyName}
+          nodes={nodes}
+          selectedNodes={selectedNodes}
+        />
+        <NetworkConfigBody
+          baseConfig={baseConfig}
+        />
+        {/* <NetworkConfigLeftPane
+        />
+        <NetworkConfigBody
+        /> */}
       </div>
     );
   }
+}
+
+NetworkConfig.propTypes = {
+  topologyName: React.PropTypes.string.isRequired,
+  nodes: React.PropTypes.array.isRequired,
+  selectedNodes: React.PropTypes.array.isRequired,
+
+  baseConfig: React.PropTypes.object.isRequired,
 }
