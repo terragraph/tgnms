@@ -56,7 +56,6 @@ export default class JSONConfigForm extends React.Component {
 
   editField = (fieldName, value) => {
     const {editPath} = this.props;
-    console.log('editing', editPath.concat(fieldName), value);
 
     editConfigForm({
       editPath: editPath.concat(fieldName),

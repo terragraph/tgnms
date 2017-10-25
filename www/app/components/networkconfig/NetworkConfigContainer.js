@@ -71,9 +71,7 @@ export default class NetworkConfigContainer extends React.Component {
         if (editMode === CONFIG_VIEW_MODE.NODE) {
           this.editNodeConfig(editPath, value);
         } else {
-          // this.editNetworkConfig(editPath, value);
-          const sample = Object.assign({}, this.state.networkUnsavedConfig);
-          console.log(_.set(sample, editPath, value), sample);
+          this.editNetworkConfig(editPath, value);
         }
 
         break;
@@ -102,14 +100,29 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   editNetworkConfig = (editPath, value) => {
-    const {networkUnsavedConfig} = this.state;
+    const {networkOverrideConfig} = this.state;
+
+    // TODO: remove this ASAP since it's just a test
+    const {baseConfig} = this.state;
     this.setState({
-      networkUnsavedConfig: this.editConfig(networkUnsavedConfig, editPath, value)
+      baseConfig: this.editConfig(baseConfig, editPath, value)
     });
+
+
+    // this.setState({
+    //   networkOverrideConfig: this.editConfig(networkOverrideConfig, editPath, value)
+    // });
+
+
+    // const {networkUnsavedConfig} = this.state;
+    // this.setState({
+    //   networkUnsavedConfig: this.editConfig(networkUnsavedConfig, editPath, value)
+    // });
   }
 
   editConfig = (config, editPath, value) => {
-
+    // _.set mutates the object passed in
+    return _.set(config, editPath, value);
   }
 
   fetchConfigsForCurrentTopology = (topologyName) => {
@@ -154,6 +167,8 @@ export default class NetworkConfigContainer extends React.Component {
         selectedNodes={selectedNodes}
 
         baseConfig={baseConfig}
+        networkOverrideConfig={networkOverrideConfig}
+        nodeOverrideConfig={nodeOverrideConfig}
       />
     );
   }
