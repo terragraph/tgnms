@@ -24,5 +24,8 @@ export default class NetworkConfigBody extends React.Component {
 }
 
 NetworkConfigBody.propTypes = {
+  editMode: React.PropTypes.string.isRequired,
   baseConfig: React.PropTypes.object.isRequired,
+  networkConfig: React.PropTypes.object.isRequired,
+  nodeConfig: React.PropTypes.object.isRequired,
 }

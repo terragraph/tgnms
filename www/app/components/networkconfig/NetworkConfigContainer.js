@@ -166,6 +166,7 @@ export default class NetworkConfigContainer extends React.Component {
         nodes={nodes}
         selectedNodes={selectedNodes}
 
+        editMode={editMode}
         baseConfig={baseConfig}
         networkOverrideConfig={networkOverrideConfig}
         nodeOverrideConfig={nodeOverrideConfig}

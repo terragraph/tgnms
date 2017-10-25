@@ -13,7 +13,7 @@ export default class NetworkConfigLeftPane extends React.Component {
   render() {
     return (
       <div className='rc-network-config-left-pane'>
-        you just lost the game
+        TODO: Network and nodes selector will go here
       </div>
     );
   }
