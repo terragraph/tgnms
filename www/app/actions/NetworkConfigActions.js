@@ -22,9 +22,15 @@ export const editConfigForm = ({editPath, value}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.EDIT_CONFIG_FORM,
     editPath,
-    value
+    value,
   })
 };
+
+export const submitConfig = () => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SUBMIT_CONFIG,
+  });
+}
 
 export const loadBaseConfigSuccess = ({config, topologyName}) => {
   Dispatcher.dispatch({
@@ -38,7 +44,7 @@ export const loadNetworkConfigSuccess = ({config, topologyName}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.NETWORK_CONFIG_LOAD_SUCCESS,
     topologyName,
-    config: config
+    config,
   });
 };
 
@@ -46,6 +52,6 @@ export const loadNodeConfigSuccess = ({config, topologyName}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.NODE_CONFIG_LOAD_SUCCESS,
     topologyName,
-    config: config
+    config,
   });
 };

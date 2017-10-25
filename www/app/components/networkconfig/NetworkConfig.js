@@ -40,10 +40,6 @@ export default class NetworkConfig extends React.Component {
           networkConfig={networkOverrideConfig}
           nodeConfig={nodeOverrideConfig}
         />
-        {/* <NetworkConfigLeftPane
-        />
-        <NetworkConfigBody
-        /> */}
       </div>
     );
   }
@@ -59,9 +55,3 @@ NetworkConfig.propTypes = {
   networkOverrideConfig: React.PropTypes.object.isRequired,
   nodeOverrideConfig: React.PropTypes.object.isRequired,
 }
-
-
-/*
-networkOverrideConfig={networkOverrideConfig}
-nodeOverrideConfig={nodeOverrideConfig}
-*/

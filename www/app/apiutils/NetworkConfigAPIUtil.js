@@ -175,3 +175,11 @@ export const getNodeOverrideConfig = (nodes, topologyName) => {
     });
   }, 200);
 };
+
+export const setNetworkOverrideConfig = (config) => {
+  console.log('submitting network config', config);
+};
+
+export const setNodeOverrideConfig = (config) => {
+  console.log('submitting node config', config);
+};

@@ -7,7 +7,11 @@ import { render } from 'react-dom';
 var _ = require('lodash');
 
 import {
-  getBaseConfig, getNetworkOverrideConfig, getNodeOverrideConfig
+  getBaseConfig,
+  getNetworkOverrideConfig,
+  getNodeOverrideConfig,
+  setNetworkOverrideConfig,
+  setNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
 
 import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
@@ -28,6 +32,7 @@ export default class NetworkConfigContainer extends React.Component {
     const topologyName = props.networkConfig.topology.name;
     this.fetchConfigsForCurrentTopology(topologyName);
 
+    // for this diff, some of these states are unused, they're defined here for future use
     this.state = {
       // base network config
       // at first this is for the entire topology
@@ -47,6 +52,7 @@ export default class NetworkConfigContainer extends React.Component {
       nodeUnsavedConfig: {},
 
       // edit mode to determine whether the user edits the network override or node override
+      // changed by selecting node(s) or the network in the left pane in the UI
       editMode: CONFIG_VIEW_MODE.NETWORK,
 
       // currently selected set of nodes which the config is being viewed as
@@ -73,7 +79,16 @@ export default class NetworkConfigContainer extends React.Component {
         } else {
           this.editNetworkConfig(editPath, value);
         }
+        break;
+      case NetworkConfigActions.SUBMIT_CONFIG:
+        const {baseConfig, networkOverrideConfig, nodeOverrideConfig} = this.state;
 
+        if (editMode === CONFIG_VIEW_MODE.NODE) {
+          setNodeOverrideConfig(nodeOverrideConfig);
+        } else {
+          setNetworkOverrideConfig(baseConfig);
+          // setNetworkOverrideConfig(networkOverrideConfig);
+        }
         break;
       case NetworkConfigActions.BASE_CONFIG_LOAD_SUCCESS:
         this.setState({
@@ -108,12 +123,6 @@ export default class NetworkConfigContainer extends React.Component {
       baseConfig: this.editConfig(baseConfig, editPath, value)
     });
 
-
-    // this.setState({
-    //   networkOverrideConfig: this.editConfig(networkOverrideConfig, editPath, value)
-    // });
-
-
     // const {networkUnsavedConfig} = this.state;
     // this.setState({
     //   networkUnsavedConfig: this.editConfig(networkUnsavedConfig, editPath, value)
@@ -121,7 +130,8 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   editConfig = (config, editPath, value) => {
-    // _.set mutates the object passed in
+    // _.set sets the object property defined in editPath to be the value passed in
+    // it will create the path in the object if one does not exist
     return _.set(config, editPath, value);
   }
 

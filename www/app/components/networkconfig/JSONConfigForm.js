@@ -66,7 +66,6 @@ export default class JSONConfigForm extends React.Component {
   // helper methods to render each field
   // assume no arrays
 
-  // TODO: onchange for everything!
   renderBooleanInput = (fieldName, value) => {
     return (
       <li>
