@@ -54,8 +54,15 @@ export default class JSONConfigForm extends React.Component {
     super(props);
   }
 
+  editNumericField = (fieldName, value) => {
+    // TODO: this will error out if you input a string as we blindly assume users input numbers
+    // will be fixed in phase 2 when validation rules for values are introduced
+    this.editField(fieldName, Number(value));
+  }
+
   editField = (fieldName, value) => {
     const {editPath} = this.props;
+    // console.log('edit value', value, typeof value);
 
     editConfigForm({
       editPath: editPath.concat(fieldName),
@@ -87,7 +94,7 @@ export default class JSONConfigForm extends React.Component {
           className='config-form-input'
           type='number'
           value={value}
-          onChange={(event) => this.editField(fieldName, event.target.value)}
+          onChange={(event) => this.editNumericField(fieldName, event.target.value)}
         />
       </li>
     );
