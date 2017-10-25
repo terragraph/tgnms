@@ -138,7 +138,7 @@ export default class JSONConfigForm extends React.Component {
         </li>
       );
 
-      // string, number, boolean, object
+      // boolean, number, string, object
       switch (typeof configVal) {
         case 'boolean':
           childItem = this.renderBooleanInput(field, configVal);
