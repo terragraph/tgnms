@@ -18,6 +18,13 @@ export const NetworkConfigActions = {
   NODE_CONFIG_LOAD_FAILED: 'NODE_CONFIG_LOAD_FAILED',
 };
 
+export const changeEditMode = ({editMode}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.CHANGE_EDIT_MODE,
+    editMode,
+  })
+};
+
 export const editConfigForm = ({editPath, value}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.EDIT_CONFIG_FORM,

@@ -61,6 +61,13 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   handleDispatchEvent(payload) {
+    const {
+      editMode,
+      baseConfig,
+      networkOverrideConfig,
+      nodeOverrideConfig
+    } = this.state;
+
     switch (payload.actionType) {
       // handle common actions
       case Actions.TOPOLOGY_SELECTED:
@@ -68,9 +75,15 @@ export default class NetworkConfigContainer extends React.Component {
         break;
 
       // handle network config specific actions
+      case NetworkConfigActions.CHANGE_EDIT_MODE:
+        if (editMode !== payload.editMode) {
+          this.setState({
+            editMode: payload.editMode
+          });
+        }
+        break;
       case NetworkConfigActions.EDIT_CONFIG_FORM:
         const {editPath, value} = payload;
-        const {editMode} = this.state;
 
         // if editMode is CONFIG_VIEW_MODE.NODE, we edit the node override
         // else we edit the network override (even if the user is viewing base)
@@ -81,8 +94,6 @@ export default class NetworkConfigContainer extends React.Component {
         }
         break;
       case NetworkConfigActions.SUBMIT_CONFIG:
-        const {baseConfig, networkOverrideConfig, nodeOverrideConfig} = this.state;
-
         if (editMode === CONFIG_VIEW_MODE.NODE) {
           setNodeOverrideConfig(nodeOverrideConfig);
         } else {

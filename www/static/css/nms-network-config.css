@@ -14,7 +14,6 @@
 
 /* NETWORK CONFIG LEFT PANE */
 .rc-network-config-left-pane {
-  background-color: #eee; /* will change when node and network selector is implemented */
   border-right: 1px solid #777;
 
   width: 300px; /* fixed width for now */
@@ -25,6 +24,37 @@
   flex-shrink: 0; /* do not try to shrink this column when resizing */
 
   box-sizing: border-box;
+}
+
+.nc-view-select {
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+}
+
+.nc-view-option {
+  height: 100%;
+  width: 50%;
+  text-align: center;
+
+  display: table;
+  border-bottom: 1px solid #777;
+}
+
+.nc-view-option-selected {
+  background-color: #6b7df3;
+}
+
+.nc-view-option p {
+  display: table-cell;
+  vertical-align: middle;
+
+  font-size: large;
+  color: #000000;
+}
+
+.nc-view-option-selected p {
+  text-decoration: underline;
 }
 
 /* NETWORK CONFIG BODY */
