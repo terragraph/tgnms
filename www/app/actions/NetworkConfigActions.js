@@ -7,6 +7,8 @@ export const NetworkConfigActions = {
   SAVE_DRAFT_CONFIG: 'SAVE_DRAFT_CONFIG',
   SUBMIT_CONFIG: 'SUBMIT_CONFIG',
 
+  SELECT_NODES: 'SELECT_NODES',
+
   // API call resolution actions
   BASE_CONFIG_LOAD_SUCCESS: 'BASE_CONFIG_LOAD_SUCCESS',
   BASE_CONFIG_LOAD_FAILED: 'BASE_CONFIG_LOAD_FAILED',
@@ -38,6 +40,13 @@ export const submitConfig = () => {
     actionType: NetworkConfigActions.SUBMIT_CONFIG,
   });
 }
+
+export const selectNodes = ({nodes}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SELECT_NODES,
+    nodes,
+  })
+};
 
 export const loadBaseConfigSuccess = ({config, topologyName}) => {
   Dispatcher.dispatch({

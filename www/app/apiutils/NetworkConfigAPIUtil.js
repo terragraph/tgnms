@@ -149,28 +149,76 @@ const mockConfigJSON = {
 // TODO: until the API is actually out, I'll mock out a wait time of 200ms so I don't get an Error
 // for dispatching while I dispatch (dispatchception)
 export const getBaseConfig = (topologyName) => {
+  // easy testing
+  const smallJSON = {
+    intField: 3,
+    dblField: 2.352,
+    nest1: {
+      ception: 'asdf',
+      cation: 'cathode ray tubes',
+      check: false
+    },
+    cen: 'asdfjkl',
+    gras: true,
+    nest2: {
+      nest3: {
+        whoa: 'asdf',
+        intField: 456
+      },
+      egg: 'tamagoyaki'
+    }
+  };
+
   // so what does this return, map of image version to config?
   setTimeout(() => {
     loadBaseConfigSuccess({
-      config: mockConfigJSON,
+      config: smallJSON,
       topologyName,
     });
   }, 200);
 };
 
 export const getNetworkOverrideConfig = (topologyName) => {
+  const networkOverrideJSON = {
+    dblField: 2.352,
+    nest1: {
+      cation: 'cathode ray tubes',
+      check: false
+    },
+    cen: 'asdfjkl',
+    gras: false,
+    nest2: {
+      nest3: {
+        intField: 789
+      },
+      egg: 'tamagoyaki'
+    }
+  };
+
   setTimeout(() => {
     loadNetworkConfigSuccess({
-      config: {},
+      config: networkOverrideJSON,
       topologyName,
     });
   }, 200);
 };
 
 export const getNodeOverrideConfig = (nodes, topologyName) => {
+  const nodeOverrideJSON = {
+    dblField: 3.1415,
+    cen: 'qweryuio',
+    gras: true,
+    nest2: {
+      egg: 'caviar'
+    }
+  };
+
+  let returnedJSON = {};
+  nodes.forEach(node => returnedJSON[node] = nodeOverrideJSON);
+
   setTimeout(() => {
     loadNodeConfigSuccess({
-      config: {},
+      config: returnedJSON,
       topologyName,
     });
   }, 200);

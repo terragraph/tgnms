@@ -10,6 +10,8 @@ const classNames = require('classnames');
 import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
 import {changeEditMode} from '../../actions/NetworkConfigActions.js';
 
+import NetworkConfigNodes from './NetworkConfigNodes.js';
+
 export default class NetworkConfigLeftPane extends React.Component {
   constructor(props) {
     super(props);
@@ -43,11 +45,18 @@ export default class NetworkConfigLeftPane extends React.Component {
   }
 
   render() {
+    const {nodes, selectedNodes, editMode} = this.props;
     const viewModeSelector = this.renderViewModeSelector();
 
     return (
       <div className='rc-network-config-left-pane'>
         {viewModeSelector}
+        {editMode === CONFIG_VIEW_MODE.NODE &&
+          <NetworkConfigNodes
+            nodes={nodes}
+            selectedNodes={selectedNodes}
+          />
+        }
       </div>
     );
   }

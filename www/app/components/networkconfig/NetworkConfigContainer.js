@@ -29,9 +29,6 @@ export default class NetworkConfigContainer extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
-    const topologyName = props.networkConfig.topology.name;
-    this.fetchConfigsForCurrentTopology(topologyName);
-
     // for this diff, some of these states are unused, they're defined here for future use
     this.state = {
       // base network config
@@ -60,13 +57,33 @@ export default class NetworkConfigContainer extends React.Component {
     }
   }
 
+  componentDidMount() {
+    const topologyName = this.props.networkConfig.topology.name;
+    this.fetchConfigsForCurrentTopology(topologyName);
+  }
+
+  componentWillUnmount() {
+    // un-register once hidden
+    Dispatcher.unregister(this.dispatchToken);
+  }
+
+  getNodes = () => {
+    const {networkConfig} = this.props;
+    return (networkConfig.topology && networkConfig.topology.nodes) ?
+      networkConfig.topology.nodes.map(node => node.name) : []; // fetch from the topology
+  }
+
   handleDispatchEvent(payload) {
     const {
       editMode,
       baseConfig,
       networkOverrideConfig,
-      nodeOverrideConfig
+      nodeOverrideConfig,
+
+      selectedNodes,
     } = this.state;
+
+    const nodes = this.getNodes();
 
     switch (payload.actionType) {
       // handle common actions
@@ -77,10 +94,22 @@ export default class NetworkConfigContainer extends React.Component {
       // handle network config specific actions
       case NetworkConfigActions.CHANGE_EDIT_MODE:
         if (editMode !== payload.editMode) {
+
+          // set 1 node to be selected if we switch into node view/edit mode
+          // otherwise, clear selected nodes
+          const newSelectedNodes = (payload.editMode === CONFIG_VIEW_MODE.NODE && nodes.length > 0) ?
+            [nodes[0]] : [];
+
           this.setState({
-            editMode: payload.editMode
+            editMode: payload.editMode,
+            selectedNodes: newSelectedNodes,
           });
         }
+        break;
+      case NetworkConfigActions.SELECT_NODES:
+        this.setState({
+          selectedNodes: payload.nodes
+        });
         break;
       case NetworkConfigActions.EDIT_CONFIG_FORM:
         const {editPath, value} = payload;
@@ -151,7 +180,7 @@ export default class NetworkConfigContainer extends React.Component {
     // so it's safe to fire all 3 at once
     getBaseConfig(topologyName);
     getNetworkOverrideConfig(topologyName);
-    getNodeOverrideConfig(topologyName);
+    getNodeOverrideConfig(this.getNodes(), topologyName);
   }
 
   render() {
@@ -175,8 +204,7 @@ export default class NetworkConfigContainer extends React.Component {
 
     const topologyName = networkConfig.topology.name;
 
-    const nodes = (networkConfig.topology && networkConfig.topology.nodes) ?
-      networkConfig.topology.nodes : []; // fetch from the topology
+    const nodes = this.getNodes();
 
     // TODO: figure out the logic for displaying views in here
     // maybe create a new JSON object that tells us what kind of setting a field originates from??

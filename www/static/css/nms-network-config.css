@@ -14,7 +14,7 @@
 
 /* NETWORK CONFIG LEFT PANE */
 .rc-network-config-left-pane {
-  border-right: 1px solid #777;
+  border-right: 1px solid #aaa;
 
   width: 300px; /* fixed width for now */
   height: 100%;
@@ -38,7 +38,7 @@
   text-align: center;
 
   display: table;
-  border-bottom: 1px solid #777;
+  border-bottom: 2px solid #aaa;
 }
 
 .nc-view-option-selected {
@@ -54,7 +54,22 @@
 }
 
 .nc-view-option-selected p {
-  text-decoration: underline;
+  font-weight: 600;
+}
+
+.rc-network-config-nodes ul {
+  padding-left: 0px;
+}
+
+.nc-node {
+  padding-left: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #aaa;
+}
+
+.nc-node-selected {
+  background-color: rgb(183, 210, 255);
 }
 
 /* NETWORK CONFIG BODY */

@@ -7,6 +7,8 @@ const classNames = require('classnames');
 
 import {editConfigForm} from '../../actions/NetworkConfigActions.js';
 
+// TODO: some component here is needed so when the user focuses on an input box, the parent will be colored in
+
 // internal config form class that wraps a JSONConfigForm with a label
 // mostly used to toggle a form's expandability
 class ExpandableConfigForm extends React.Component {
