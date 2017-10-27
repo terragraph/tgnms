@@ -274,7 +274,6 @@ export default class JSONConfigForm extends React.Component {
   }
 }
 
-// TODO: drafts dont work
 JSONConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,

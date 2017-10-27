@@ -2,9 +2,11 @@
 import axios from 'axios';
 
 import {
-  loadBaseConfigSuccess,
-  loadNetworkConfigSuccess,
-  loadNodeConfigSuccess
+  getBaseConfigSuccess,
+  getNetworkConfigSuccess,
+  getNodeConfigSuccess,
+  setNetworkConfigSuccess,
+  setNodeConfigSuccess,
 } from '../actions/NetworkConfigActions.js';
 
 const mockConfigJSON = {
@@ -171,7 +173,7 @@ export const getBaseConfig = (topologyName) => {
 
   // so what does this return, map of image version to config?
   setTimeout(() => {
-    loadBaseConfigSuccess({
+    getBaseConfigSuccess({
       config: smallJSON,
       topologyName,
     });
@@ -191,12 +193,14 @@ export const getNetworkOverrideConfig = (topologyName) => {
       nest3: {
         intField: 789
       },
-      egg: 'tamagoyaki'
-    }
+      egg: 'tamagoyaki',
+      betrayal2: 'the interlude',
+    },
+    betrayal1: 'the intro',
   };
 
   setTimeout(() => {
-    loadNetworkConfigSuccess({
+    getNetworkConfigSuccess({
       config: networkOverrideJSON,
       topologyName,
     });
@@ -209,7 +213,8 @@ export const getNodeOverrideConfig = (nodes, topologyName) => {
     cen: 'qweryuio',
     gras: true,
     nest2: {
-      egg: 'caviar'
+      egg: 'caviar',
+      betrayal3: 'evil'
     }
   };
 
@@ -217,7 +222,7 @@ export const getNodeOverrideConfig = (nodes, topologyName) => {
   nodes.forEach(node => returnedJSON[node] = nodeOverrideJSON);
 
   setTimeout(() => {
-    loadNodeConfigSuccess({
+    getNodeConfigSuccess({
       config: returnedJSON,
       topologyName,
     });
@@ -226,8 +231,20 @@ export const getNodeOverrideConfig = (nodes, topologyName) => {
 
 export const setNetworkOverrideConfig = (config) => {
   console.log('submitting network config', config);
+
+  // dispatch an action with the same config object we would pass into the API
+  // in case the user changes something after the API call is made
+  setTimeout(() => {
+    setNetworkConfigSuccess({config});
+  }, 200);
 };
 
 export const setNodeOverrideConfig = (config) => {
   console.log('submitting node config', config);
+
+  // dispatch an action with the same config object we would pass into the API
+  // in case the user changes something after the API call is made
+  setTimeout(() => {
+    setNodeConfigSuccess({config});
+  }, 200);
 };

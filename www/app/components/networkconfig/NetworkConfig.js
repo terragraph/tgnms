@@ -35,6 +35,7 @@ export default class NetworkConfig extends React.Component {
         <NetworkConfigBody
           configs={configs}
           draftConfig={draftConfig}
+          editMode={editMode}
         />
       </div>
     );

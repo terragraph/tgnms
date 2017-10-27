@@ -28,6 +28,7 @@
 
 .nc-view-select {
   height: 50px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: row;
 }
@@ -57,6 +58,10 @@
   font-weight: 600;
 }
 
+.rc-network-config-nodes {
+  overflow-y: auto;
+}
+
 .rc-network-config-nodes ul {
   padding-left: 0px;
 }
@@ -74,7 +79,7 @@
 
 /* NETWORK CONFIG BODY */
 .rc-network-config-body {
-  margin-bottom: 45px;
+  margin-bottom: 65px;
 
   margin-top: 10px;
 
@@ -91,6 +96,7 @@
 
 .rc-network-config-footer button {
   border: 2px solid;
+  margin: 10px;
 }
 
 /* NETWORK CONFIG JSON FORM */
