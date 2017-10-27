@@ -99,6 +99,10 @@
   margin: 10px;
 }
 
+.rc-network-config-footer button:disabled {
+  opacity: 0.5;
+}
+
 /* NETWORK CONFIG JSON FORM */
 .rc-json-config-form ul {
   list-style-type: none;

@@ -233,14 +233,6 @@ export default class NetworkConfigContainer extends React.Component {
     getNodeOverrideConfig(this.getNodes(), topologyName);
   }
 
-  // nodeConfig is keyed by node name
-  // this function combines multiple different node configs into a single config
-  // TODO: since we're assuming you can only select a single node for now,
-  // we'll just take the config for that particular node
-  combineNodeConfigs = (selectedNodes, nodeConfig) => {
-    return nodeConfig[selectedNodes[0]] === undefined ? {} : nodeConfig[selectedNodes[0]];
-  }
-
   render() {
     const {networkConfig} = this.props;
 
@@ -254,16 +246,7 @@ export default class NetworkConfigContainer extends React.Component {
       selectedNodes,
     } = this.state;
 
-    // stack the configs by putting them in an array
-    const stackedConfigs = (editMode === CONFIG_VIEW_MODE.NODE) ?
-      [baseConfig, networkOverrideConfig, this.combineNodeConfigs(selectedNodes, nodeOverrideConfig)] :
-      [baseConfig, networkOverrideConfig];
-
-    const selectedDraftConfig = (editMode === CONFIG_VIEW_MODE.NODE) ?
-      this.combineNodeConfigs(selectedNodes, nodeDraftConfig) : networkDraftConfig;
-
     const topologyName = networkConfig.topology.name;
-
     const nodes = this.getNodes();
 
     return (
@@ -273,8 +256,11 @@ export default class NetworkConfigContainer extends React.Component {
         selectedNodes={selectedNodes}
 
         editMode={editMode}
-        configs={stackedConfigs}
-        draftConfig={selectedDraftConfig}
+        baseConfig={baseConfig}
+        networkOverrideConfig={networkOverrideConfig}
+        networkDraftConfig={networkDraftConfig}
+        nodeOverrideConfig={nodeOverrideConfig}
+        nodeDraftConfig={nodeDraftConfig}
       />
     );
   }

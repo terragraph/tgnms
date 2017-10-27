@@ -23,11 +23,16 @@ export default class NetworkConfigNodes extends React.Component {
   }
 
   renderNodeList = () => {
-    const {nodes, selectedNodes} = this.props;
+    const {nodes, selectedNodes, nodesWithDrafts} = this.props;
     const selectedNodeNames = new Set(selectedNodes);
+    const nodesWithDraftsSet = new Set(nodesWithDrafts);
 
     // TODO: filter
     return nodes.map((node) => {
+      const unsavedAsterisk = nodesWithDraftsSet.has(node) ? (
+        <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
+      ) : '';
+
       return (
         <li
           className={classNames(
@@ -36,15 +41,13 @@ export default class NetworkConfigNodes extends React.Component {
           )}
           onClick={() => this.selectNode(node)}
         >
-          {node}
+          {node}{unsavedAsterisk}
         </li>
       );
     });
   }
 
   render() {
-    const {nodes, selectedNodes} = this.props;
-
     return (
       <div className='rc-network-config-nodes'>
         <ul>
@@ -58,4 +61,5 @@ export default class NetworkConfigNodes extends React.Component {
 NetworkConfigNodes.propTypes = {
   nodes: React.PropTypes.array.isRequired,
   selectedNodes: React.PropTypes.array.isRequired,
+  nodesWithDrafts: React.PropTypes.array.isRequired,
 }

@@ -18,7 +18,11 @@ export default class NetworkConfigLeftPane extends React.Component {
   }
 
   renderViewModeSelector = () => {
-    const {editMode} = this.props;
+    const {editMode, networkDraftExists, nodesWithDrafts} = this.props;
+
+    const unsavedAsterisk = (
+      <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
+    );
 
     return (
       <div className='nc-view-select'>
@@ -29,7 +33,7 @@ export default class NetworkConfigLeftPane extends React.Component {
           )}
           onClick={() => changeEditMode({editMode: CONFIG_VIEW_MODE.NETWORK})}
         >
-          <p>Network</p>
+          <p>Network{networkDraftExists && unsavedAsterisk}</p>
         </div>
         <div
           className={classNames(
@@ -38,14 +42,14 @@ export default class NetworkConfigLeftPane extends React.Component {
           )}
           onClick={() => changeEditMode({editMode: CONFIG_VIEW_MODE.NODE})}
         >
-          <p>Node</p>
+          <p>Node{nodesWithDrafts.length > 0 && unsavedAsterisk}</p>
         </div>
       </div>
     );
   }
 
   render() {
-    const {nodes, selectedNodes, editMode} = this.props;
+    const {nodes, selectedNodes, editMode, nodesWithDrafts} = this.props;
     const viewModeSelector = this.renderViewModeSelector();
 
     return (
@@ -55,6 +59,7 @@ export default class NetworkConfigLeftPane extends React.Component {
           <NetworkConfigNodes
             nodes={nodes}
             selectedNodes={selectedNodes}
+            nodesWithDrafts={nodesWithDrafts}
           />
         }
       </div>
@@ -66,6 +71,9 @@ NetworkConfigLeftPane.propTypes = {
   topologyName: React.PropTypes.string.isRequired,
 
   editMode: React.PropTypes.string.isRequired,
+  networkDraftExists: React.PropTypes.bool.isRequired,
+
   nodes: React.PropTypes.array.isRequired,
   selectedNodes: React.PropTypes.array.isRequired,
+  nodesWithDrafts: React.PropTypes.array.isRequired,
 }
