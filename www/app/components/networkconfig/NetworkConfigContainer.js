@@ -40,13 +40,11 @@ export default class NetworkConfigContainer extends React.Component {
       // one object for the entire network
       networkOverrideConfig: {},
       networkDraftConfig: {},
-      networkUnsavedConfig: {},
 
       // node override
       // config objects mapped by node
       nodeOverrideConfig: {},
       nodeDraftConfig: {},
-      nodeUnsavedConfig: {},
 
       // edit mode to determine whether the user edits the network override or node override
       // changed by selecting node(s) or the network in the left pane in the UI
@@ -83,8 +81,6 @@ export default class NetworkConfigContainer extends React.Component {
       selectedNodes,
     } = this.state;
 
-    const nodes = this.getNodes();
-
     switch (payload.actionType) {
       // handle common actions
       case Actions.TOPOLOGY_SELECTED:
@@ -93,18 +89,7 @@ export default class NetworkConfigContainer extends React.Component {
 
       // handle network config specific actions
       case NetworkConfigActions.CHANGE_EDIT_MODE:
-        if (editMode !== payload.editMode) {
-
-          // set 1 node to be selected if we switch into node view/edit mode
-          // otherwise, clear selected nodes
-          const newSelectedNodes = (payload.editMode === CONFIG_VIEW_MODE.NODE && nodes.length > 0) ?
-            [nodes[0]] : [];
-
-          this.setState({
-            editMode: payload.editMode,
-            selectedNodes: newSelectedNodes,
-          });
-        }
+        this.changeEditMode(payload.editMode);
         break;
       case NetworkConfigActions.SELECT_NODES:
         this.setState({
@@ -113,9 +98,10 @@ export default class NetworkConfigContainer extends React.Component {
         break;
       case NetworkConfigActions.EDIT_CONFIG_FORM:
         const {editPath, value} = payload;
+        console.log('EDITING FORM', editPath, value);
 
         // if editMode is CONFIG_VIEW_MODE.NODE, we edit the node override
-        // else we edit the network override (even if the user is viewing base)
+        // else we edit the network override
         if (editMode === CONFIG_VIEW_MODE.NODE) {
           this.editNodeConfig(editPath, value);
         } else {
@@ -124,12 +110,13 @@ export default class NetworkConfigContainer extends React.Component {
         break;
       case NetworkConfigActions.SUBMIT_CONFIG:
         if (editMode === CONFIG_VIEW_MODE.NODE) {
-          setNodeOverrideConfig(nodeOverrideConfig);
+          setNodeOverrideConfig(nodeDraftConfig);
         } else {
-          setNetworkOverrideConfig(baseConfig);
-          // setNetworkOverrideConfig(networkOverrideConfig);
+          setNetworkOverrideConfig(networkDraftConfig);
         }
         break;
+
+      // actions from API call returns
       case NetworkConfigActions.BASE_CONFIG_LOAD_SUCCESS:
         this.setState({
           baseConfig: payload.config,
@@ -150,23 +137,41 @@ export default class NetworkConfigContainer extends React.Component {
     }
   }
 
-  editNodeConfig = (editPath, value) => {
+  changeEditMode = (newEditMode) => {
+    if (this.state.editMode !== newEditMode) {
+      const nodes = this.getNodes();
 
+      // set 1 node to be selected if we switch into node view/edit mode
+      // otherwise, clear selected nodes
+      const newSelectedNodes = (newEditMode === CONFIG_VIEW_MODE.NODE && nodes.length > 0) ?
+        [nodes[0]] : [];
+
+      this.setState({
+        editMode: newEditMode,
+        selectedNodes: newSelectedNodes,
+      });
+    }
+  }
+
+  editNodeConfig = (editPath, value) => {
+    const {nodeDraftConfig, selectedNodes} = this.state;
+
+    let newNodeDraftConfig = Object.assign({}, nodeDraftConfig);
+    selectedNodes.forEach((node) => {
+      newNodeDraftConfig = this.editConfig(newNodeDraftConfig, [node, ...editPath], value);
+    });
+
+    this.setState({
+      nodeDraftConfig: newNodeDraftConfig
+    });
   }
 
   editNetworkConfig = (editPath, value) => {
-    const {networkOverrideConfig} = this.state;
+    const {networkDraftConfig} = this.state;
 
-    // TODO: remove this ASAP since it's just a test
-    const {baseConfig} = this.state;
     this.setState({
-      baseConfig: this.editConfig(baseConfig, editPath, value)
+      networkDraftConfig: this.editConfig(networkDraftConfig, editPath, value)
     });
-
-    // const {networkUnsavedConfig} = this.state;
-    // this.setState({
-    //   networkUnsavedConfig: this.editConfig(networkUnsavedConfig, editPath, value)
-    // });
   }
 
   editConfig = (config, editPath, value) => {
@@ -183,6 +188,14 @@ export default class NetworkConfigContainer extends React.Component {
     getNodeOverrideConfig(this.getNodes(), topologyName);
   }
 
+  // nodeConfig is keyed by node name
+  // this function combines multiple different node configs into a single config
+  // TODO: since we're assuming you can only select a single node for now,
+  // we'll just take the config for that particular node
+  combineNodeConfigs = (selectedNodes, nodeConfig) => {
+    return nodeConfig[selectedNodes[0]] === undefined ? {} : nodeConfig[selectedNodes[0]];
+  }
+
   render() {
     const {networkConfig} = this.props;
 
@@ -196,19 +209,18 @@ export default class NetworkConfigContainer extends React.Component {
       selectedNodes,
     } = this.state;
 
-    const selectedOverrideConfig = (editMode === CONFIG_VIEW_MODE.NODE) ?
-      nodeOverrideConfig : networkOverrideConfig;
+    // stack the configs by putting them in an array
+    const stackedConfigs = (editMode === CONFIG_VIEW_MODE.NODE) ?
+      [baseConfig, networkOverrideConfig, this.combineNodeConfigs(selectedNodes, nodeOverrideConfig)] :
+      [baseConfig, networkOverrideConfig];
 
     const selectedDraftConfig = (editMode === CONFIG_VIEW_MODE.NODE) ?
-      nodeDraftConfig : networkDraftConfig;
+      this.combineNodeConfigs(selectedNodes, nodeDraftConfig) : networkDraftConfig;
 
     const topologyName = networkConfig.topology.name;
 
     const nodes = this.getNodes();
 
-    // TODO: figure out the logic for displaying views in here
-    // maybe create a new JSON object that tells us what kind of setting a field originates from??
-    // right now to get the UI working I will just use one config
     return (
       <NetworkConfig
         topologyName={topologyName}
@@ -216,9 +228,8 @@ export default class NetworkConfigContainer extends React.Component {
         selectedNodes={selectedNodes}
 
         editMode={editMode}
-        baseConfig={baseConfig}
-        networkOverrideConfig={networkOverrideConfig}
-        nodeOverrideConfig={nodeOverrideConfig}
+        configs={stackedConfigs}
+        draftConfig={selectedDraftConfig}
       />
     );
   }

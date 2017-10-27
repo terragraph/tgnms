@@ -19,9 +19,8 @@ export default class NetworkConfig extends React.Component {
       selectedNodes,
 
       editMode,
-      baseConfig,
-      networkOverrideConfig,
-      nodeOverrideConfig
+      configs,
+      draftConfig,
     } = this.props;
 
     return (
@@ -34,11 +33,8 @@ export default class NetworkConfig extends React.Component {
           selectedNodes={selectedNodes}
         />
         <NetworkConfigBody
-          editMode={editMode}
-
-          baseConfig={baseConfig}
-          networkConfig={networkOverrideConfig}
-          nodeConfig={nodeOverrideConfig}
+          configs={configs}
+          draftConfig={draftConfig}
         />
       </div>
     );
@@ -51,7 +47,7 @@ NetworkConfig.propTypes = {
   selectedNodes: React.PropTypes.array.isRequired,
 
   editMode: React.PropTypes.string.isRequired,
-  baseConfig: React.PropTypes.object.isRequired,
-  networkOverrideConfig: React.PropTypes.object.isRequired,
-  nodeOverrideConfig: React.PropTypes.object.isRequired,
+
+  configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+  draftConfig: React.PropTypes.object.isRequired,
 }

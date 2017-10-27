@@ -27,7 +27,7 @@ class ExpandableConfigForm extends React.Component {
   }
 
   render() {
-    const {config, formLabel, editPath} = this.props;
+    const {configs, draftConfig, formLabel, editPath} = this.props;
     const {expanded} = this.state;
     const expandMarker = expanded ?
       '/static/images/down-chevron.png' : '/static/images/right-chevron.png';
@@ -37,7 +37,8 @@ class ExpandableConfigForm extends React.Component {
         <img src={expandMarker} className='config-expand-marker' onClick={this.toggleExpandConfig}/>
         <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel}:</label>
         {expanded && <JSONConfigForm
-          config={config}
+          configs={configs}
+          draftConfig={draftConfig}
           editPath={editPath}
         />}
       </div>
@@ -46,28 +47,28 @@ class ExpandableConfigForm extends React.Component {
 }
 
 ExpandableConfigForm.propTypes = {
-  config: React.PropTypes.object.isRequired,
+  configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+  draftConfig: React.PropTypes.object.isRequired,
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired
 }
 
-export default class JSONConfigForm extends React.Component {
+class JSONConfigInput extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      // used only for non-object inputs,
+      focus: false
+    };
   }
 
-  editNumericField = (fieldName, value) => {
-    // TODO: this will error out if you input a string as we blindly assume users input numbers
-    // will be fixed in phase 2 when validation rules for values are introduced
-    this.editField(fieldName, Number(value));
-  }
-
-  editField = (fieldName, value) => {
+  editField = (value) => {
     const {editPath} = this.props;
     // console.log('edit value', value, typeof value);
 
     editConfigForm({
-      editPath: editPath.concat(fieldName),
+      editPath: editPath,
       value
     });
   }
@@ -75,94 +76,193 @@ export default class JSONConfigForm extends React.Component {
   // helper methods to render each field
   // assume no arrays
 
-  renderBooleanInput = (fieldName, value) => {
+  // throwaway bg color function since I'm lazy
+  getBackgroundColor = (displayIdx, isDraft) => {
+    var backgroundColor = '#fff';
+    if (isDraft) {
+      // RED
+      backgroundColor = '#ff9999';
+    } else if (displayIdx === 1) {
+      // GREEN
+      backgroundColor = '#99ff99';
+    } else if (displayIdx >= 2) {
+      // BLUE
+      backgroundColor = '#9999ff';
+    }
+    return backgroundColor;
+  }
+
+  renderBooleanInput = (fieldName, value, displayIdx, isDraft) => {
     return (
-      <li>
+      <div>
         <label className='config-form-label'>{fieldName}:</label>
-        <input
-          type='checkbox'
+        <input type='checkbox'
           checked={value}
-          onChange={(event) => this.editField(fieldName, event.target.checked)}
+          style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
+          onChange={(event) => this.editField(event.target.checked)}
         />
-      </li>
+      </div>
     );
   }
 
-  renderNumericInput = (fieldName, value) => {
+  renderNumericInput = (fieldName, value, displayIdx, isDraft) => {
     return (
-      <li>
+      <div>
         <label className='config-form-label'>{fieldName}:</label>
-        <input
-          className='config-form-input'
-          type='number'
+        <input className='config-form-input' type='number'
           value={value}
-          onChange={(event) => this.editNumericField(fieldName, event.target.value)}
+          style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
+          onChange={(event) => this.editField(Number(event.target.value))}
         />
-      </li>
+      </div>
     );
   }
 
-  renderTextInput = (fieldName, value) => {
+  renderTextInput = (fieldName, value, displayIdx, isDraft) => {
     return (
-      <li>
+      <div>
         <label className='config-form-label'>{fieldName}:</label>
-        <input
-          className='config-form-input'
-          type='text'
+        <input className='config-form-input' type='text'
           value={value}
-          onChange={(event) => this.editField(fieldName, event.target.value)}
+          style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
+          onChange={(event) => this.editField(event.target.value)}
         />
-      </li>
+      </div>
     );
   }
 
-  renderNestedObject = (fieldName, nestedConfig) => {
-    const {editPath} = this.props;
+  renderNestedObject = (fieldName, editPath, configs, draftConfig) => {
     // keep track of the edit path in relation to the root config object
+    const processedConfigs = configs.map((config) => {
+      return config === undefined ? {} : config;
+    });
+
+    const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
 
     return (
-      <li>
+      <div>
         <ExpandableConfigForm
-          config={nestedConfig}
+          configs={processedConfigs}
+          draftConfig={processedDraftConfig}
           formLabel={fieldName}
-          editPath={editPath.concat(fieldName)}
+          editPath={editPath}
         />
-      </li>
+      </div>
     );
   }
 
-  renderChildItems = (config) => {
-    return Object.keys(config).map((field) => {
-      const configVal = config[field];
-      let childItem = (
-        <li>
-          <label className='config-form-label'>{field}:</label>
-        </li>
-      );
+  renderInputItem = (isDraft, displayVal) => {
+    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
 
-      // boolean, number, string, object
-      switch (typeof configVal) {
-        case 'boolean':
-          childItem = this.renderBooleanInput(field, configVal);
-          break;
-        case 'number':
-          childItem = this.renderNumericInput(field, configVal);
-          break;
-        case 'string':
-          childItem = this.renderTextInput(field, configVal);
-          break;
-        case 'object':
-          childItem = this.renderNestedObject(field, configVal);
-          break;
-      }
+    let childItem = (
+      <span>Error: unable to render child val of {displayVal}</span>
+    );
 
-      return childItem;
-    });
+    switch (typeof displayVal) {
+      case 'boolean':
+        childItem = this.renderBooleanInput(fieldName, displayVal, displayIdx, isDraft);
+        break;
+      case 'number':
+        childItem = this.renderNumericInput(fieldName, displayVal, displayIdx, isDraft);
+        break;
+      case 'string':
+        childItem = this.renderTextInput(fieldName, displayVal, displayIdx, isDraft);
+        break;
+      case 'object':
+        childItem = this.renderNestedObject(fieldName, editPath, values, draftValue);
+        break;
+    }
+
+    return childItem;
   }
 
   render() {
-    const {config, editPath} = this.props;
-    const childItems = this.renderChildItems(config);
+    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
+
+    // some values are undefined
+    const isDraft = draftValue !== undefined; // if is draft, take style for the largest index in values, which may be larger than displayIdx
+    const displayVal = isDraft ? draftValue : values[displayIdx];
+
+    const inputItem = this.renderInputItem(isDraft, displayVal);
+
+    return (
+      <div rc-json-config-input>
+        {inputItem}
+      </div>
+    );
+  }
+}
+
+// TODO: CONVERT UNDEFINED TO EMPTY OBJECTS IF WE NEED TO HAVE OBJECT AS CHILD!
+JSONConfigInput.propTypes = {
+  values: React.PropTypes.array.isRequired,
+  draftValue: React.PropTypes.any.isRequired,
+  displayIdx: React.PropTypes.number.isRequired,
+
+  fieldName: React.PropTypes.string.isRequired,
+  editPath: React.PropTypes.array.isRequired,
+}
+
+export default class JSONConfigForm extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  getStackedFields(configs) {
+    // aggregate all config fields
+    const stackedFields = configs.reduce((stacked, config) => {
+      return [...stacked, ...Object.keys(config)];
+    }, []);
+
+    // now dedupe the fields by adding to a set
+    const dedupedFields = new Set(stackedFields);
+    return [...dedupedFields];
+  }
+
+  getDisplayIdx = (configVals) => {
+    // traverse the array backwards and stop at the first value that is not undefined
+    // this lets us get the "highest" override for a value, aka what to display
+    for (var idx = configVals.length - 1; idx >= 0; idx --) {
+      if (configVals[idx] !== undefined) {
+        return idx; // field exists
+      }
+    }
+
+    console.error('it seems we have picked the wrong field', configVals);
+    return -1;
+  }
+
+  render() {
+    const {
+      configs,
+      draftConfig,
+      editPath
+    } = this.props;
+
+    // TODO: ASSUMPTION: configs are all JSON objects, so is draftConfig
+    // ASSUMPTION: draftConfig does not change types for fields or introduce new fields
+
+    // retrieve the union of fields for all json objects in the array
+    const configFields = this.getStackedFields(configs);
+
+    const childItems = configFields.map((field) => {
+      const configVals = configs.map(config => config[field]);
+      const displayIdx = this.getDisplayIdx(configVals);
+
+      // console.log(editPath);
+      return (
+        <li>
+          <JSONConfigInput
+            values={configVals}
+            draftValue={draftConfig[field]}
+            displayIdx={displayIdx}
+
+            fieldName={field}
+            editPath={editPath.concat(field)}
+          />
+        </li>
+      );
+    });
 
     return (
       <div className='rc-json-config-form'>
@@ -174,8 +274,10 @@ export default class JSONConfigForm extends React.Component {
   }
 }
 
+// TODO: drafts dont work
 JSONConfigForm.propTypes = {
-  config: React.PropTypes.object.isRequired,
+  configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+  draftConfig: React.PropTypes.object.isRequired,
 
   // the "path" of keys that identifies the root of the component's config
   // vs the entire config object

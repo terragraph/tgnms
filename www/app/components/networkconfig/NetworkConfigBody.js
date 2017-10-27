@@ -12,12 +12,17 @@ export default class NetworkConfigBody extends React.Component {
     super(props);
   }
 
-  // TODO: add other config objects in the config form besides the base config
   render() {
+    const {
+      configs,
+      draftConfig
+    } = this.props;
+
     return (
       <div className='rc-network-config-body'>
         <JSONConfigForm
-          config={this.props.baseConfig}
+          configs={configs}
+          draftConfig={draftConfig}
           editPath={[]}
         />
         <NetworkConfigFooter />
@@ -27,8 +32,6 @@ export default class NetworkConfigBody extends React.Component {
 }
 
 NetworkConfigBody.propTypes = {
-  editMode: React.PropTypes.string.isRequired,
-  baseConfig: React.PropTypes.object.isRequired,
-  networkConfig: React.PropTypes.object.isRequired,
-  nodeConfig: React.PropTypes.object.isRequired,
+  configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+  draftConfig: React.PropTypes.object.isRequired,
 }
