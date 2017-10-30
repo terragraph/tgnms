@@ -62,21 +62,6 @@
   overflow-y: auto;
 }
 
-.rc-network-config-nodes ul {
-  padding-left: 0px;
-}
-
-.nc-node {
-  padding-left: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #aaa;
-}
-
-.nc-node-selected {
-  background-color: rgb(183, 210, 255);
-}
-
 /* NETWORK CONFIG BODY */
 .rc-network-config-body {
   margin-bottom: 65px;
