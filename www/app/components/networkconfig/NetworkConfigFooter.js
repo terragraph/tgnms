@@ -37,6 +37,7 @@ export default class NetworkConfigFooter extends React.Component {
   render() {
     const {draftConfig, editMode} = this.props;
     const revertText = editMode === CONFIG_VIEW_MODE.NODE ? 'Revert Selected Nodes' : 'Revert Network Override';
+    // const pushText = editMode === CONFIG_VIEW_MODE.NODE ? 'Submit Changes for Selected Nodes' : 'Revert Network Override';
 
     return (
       <div className='rc-network-config-footer'>

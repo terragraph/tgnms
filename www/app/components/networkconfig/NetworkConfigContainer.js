@@ -63,10 +63,22 @@ export default class NetworkConfigContainer extends React.Component {
     Dispatcher.unregister(this.dispatchToken);
   }
 
+  getNodeMacs = () => {
+    const {networkConfig} = this.props;
+    return (networkConfig.topology && networkConfig.topology.nodes) ?
+      networkConfig.topology.nodes.map(node => node.mac_addr) : []; // fetch from the topology
+  }
+
+  // get node name and MAC
   getNodes = () => {
     const {networkConfig} = this.props;
     return (networkConfig.topology && networkConfig.topology.nodes) ?
-      networkConfig.topology.nodes.map(node => node.name) : []; // fetch from the topology
+      networkConfig.topology.nodes.map((node) => {
+        return {
+          name: node.name,
+          mac_addr: node.mac_addr
+        };
+      }) : []; // fetch from the topology
   }
 
   handleDispatchEvent(payload) {
@@ -127,7 +139,7 @@ export default class NetworkConfigContainer extends React.Component {
 
   changeEditMode = (newEditMode) => {
     if (this.state.editMode !== newEditMode) {
-      const nodes = this.getNodes();
+      const nodes = this.getNodeMacs();
 
       // set 1 node to be selected if we switch into node view/edit mode
       // otherwise, clear selected nodes
@@ -181,6 +193,8 @@ export default class NetworkConfigContainer extends React.Component {
     });
   }
 
+  // TODO: this only pushes changes/draft for the selected, and discards FOR ALL OTHER NODES
+  // I think we should let the user pick...
   saveNodeConfig = (draftConfigForSelectedNodes) => {
     let modifiedConfigsByNode = {};
 
@@ -230,7 +244,7 @@ export default class NetworkConfigContainer extends React.Component {
     // so it's safe to fire all 3 at once
     getBaseConfig(topologyName);
     getNetworkOverrideConfig(topologyName);
-    getNodeOverrideConfig(this.getNodes(), topologyName);
+    getNodeOverrideConfig(this.getNodeMacs(), topologyName);
   }
 
   render() {

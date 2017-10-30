@@ -16,30 +16,28 @@ export default class NetworkConfigNodes extends React.Component {
   }
 
   formatNodeName = (cell, row, enumObject, index) => {
-    const nodeName = row.name;
+    const {name, mac_addr} = row;
     const nodesWithDraftsSet = new Set(this.props.nodesWithDrafts);
 
-    const unsavedAsterisk = nodesWithDraftsSet.has(nodeName) ? (
+    const unsavedAsterisk = nodesWithDraftsSet.has(mac_addr) ? (
       <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
     ) : '';
 
     return (
-      <span>{nodeName}{unsavedAsterisk}</span>
+      <span>{name}{unsavedAsterisk}</span>
     );
   }
 
   tableOnRowSelect = (row, isSelected) => {
     // force at least 1 node to be selected at all times
     selectNodes({
-      nodes: [row.name]
+      nodes: [row.mac_addr]
     });
   }
 
-  renderNodeTable = () => {
-    const nodesForTable = this.props.nodes.map(node => {
-      return {name: node};
-    });
 
+
+  renderNodeTable = () => {
     const selectRowProp = {
       mode: 'radio',
       clickToSelect: true,
@@ -52,13 +50,13 @@ export default class NetworkConfigNodes extends React.Component {
     return (
       <BootstrapTable
         tableStyle={{margin: 0}}
-        data={ nodesForTable }
+        data={ this.props.nodes }
+        keyField='mac_addr'
         bordered={ false }
         selectRow={selectRowProp}
       >
         <TableHeaderColumn
           dataField='name'
-          isKey={true}
           dataSort={true}
           filter={{
             type: 'TextFilter',
