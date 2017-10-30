@@ -6,6 +6,8 @@ import { render } from 'react-dom';
 const classNames = require('classnames');
 
 import {editConfigForm} from '../../actions/NetworkConfigActions.js';
+import JSONFormField from './JSONFormField.js';
+
 
 // TODO: some component here is needed so when the user focuses on an input box, the parent will be colored in
 
@@ -56,81 +58,18 @@ ExpandableConfigForm.propTypes = {
 class JSONConfigInput extends React.Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      // used only for non-object inputs,
-      focus: false
-    };
   }
 
-  editField = (value) => {
-    const {editPath} = this.props;
+  editField = (editPath, value) => {
     // console.log('edit value', value, typeof value);
-
     editConfigForm({
-      editPath: editPath,
+      editPath,
       value
     });
   }
 
   // helper methods to render each field
   // assume no arrays
-
-  // throwaway bg color function since I'm lazy
-  getBackgroundColor = (displayIdx, isDraft) => {
-    var backgroundColor = '#fff';
-    if (isDraft) {
-      // RED
-      backgroundColor = '#ff9999';
-    } else if (displayIdx === 1) {
-      // GREEN
-      backgroundColor = '#99ff99';
-    } else if (displayIdx >= 2) {
-      // BLUE
-      backgroundColor = '#9999ff';
-    }
-    return backgroundColor;
-  }
-
-  renderBooleanInput = (fieldName, value, displayIdx, isDraft) => {
-    return (
-      <div>
-        <label className='config-form-label'>{fieldName}:</label>
-        <input type='checkbox'
-          checked={value}
-          style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
-          onChange={(event) => this.editField(event.target.checked)}
-        />
-      </div>
-    );
-  }
-
-  renderNumericInput = (fieldName, value, displayIdx, isDraft) => {
-    return (
-      <div>
-        <label className='config-form-label'>{fieldName}:</label>
-        <input className='config-form-input' type='number'
-          value={value}
-          style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
-          onChange={(event) => this.editField(Number(event.target.value))}
-        />
-      </div>
-    );
-  }
-
-  renderTextInput = (fieldName, value, displayIdx, isDraft) => {
-    return (
-      <div>
-        <label className='config-form-label'>{fieldName}:</label>
-        <input className='config-form-input' type='text'
-          value={value}
-          style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
-          onChange={(event) => this.editField(event.target.value)}
-        />
-      </div>
-    );
-  }
-
   renderNestedObject = (fieldName, editPath, configs, draftConfig) => {
     // keep track of the edit path in relation to the root config object
     const processedConfigs = configs.map((config) => {
@@ -151,7 +90,7 @@ class JSONConfigInput extends React.Component {
     );
   }
 
-  renderInputItem = (isDraft, displayVal) => {
+  renderInputItem = (displayVal) => {
     const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
 
     let childItem = (
@@ -160,13 +99,18 @@ class JSONConfigInput extends React.Component {
 
     switch (typeof displayVal) {
       case 'boolean':
-        childItem = this.renderBooleanInput(fieldName, displayVal, displayIdx, isDraft);
-        break;
       case 'number':
-        childItem = this.renderNumericInput(fieldName, displayVal, displayIdx, isDraft);
-        break;
       case 'string':
-        childItem = this.renderTextInput(fieldName, displayVal, displayIdx, isDraft);
+        childItem = (
+          <JSONFormField
+            editFunc={this.editField}
+            editPath={editPath}
+            formLabel={fieldName}
+            displayIdx={displayIdx}
+            values={values}
+            draftValue={draftValue}
+          />
+        );
         break;
       case 'object':
         childItem = this.renderNestedObject(fieldName, editPath, values, draftValue);
@@ -183,7 +127,7 @@ class JSONConfigInput extends React.Component {
     const isDraft = draftValue !== undefined; // if is draft, take style for the largest index in values, which may be larger than displayIdx
     const displayVal = isDraft ? draftValue : values[displayIdx];
 
-    const inputItem = this.renderInputItem(isDraft, displayVal);
+    const inputItem = this.renderInputItem(displayVal);
 
     return (
       <div rc-json-config-input>
