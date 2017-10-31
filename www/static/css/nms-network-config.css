@@ -97,6 +97,18 @@
   padding-left: 10px;
 }
 
+.rc-expandable-config-form {
+  /*padding-left: 40px;*/
+}
+
+.rc-expandable-config-form .rc-json-config-form {
+  /*padding-left: 22px;*/
+}
+
+.json-field-focused {
+  background-color: #ddd;
+}
+
 .config-form-label {
   margin-right: 10px;
   min-width: 250px; /* fixed min width so we can align the input fields */

@@ -5,7 +5,6 @@ import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
 
-import {editConfigForm} from '../../actions/NetworkConfigActions.js';
 import JSONFormField from './JSONFormField.js';
 
 
@@ -60,14 +59,6 @@ class JSONConfigInput extends React.Component {
     super(props);
   }
 
-  editField = (editPath, value) => {
-    // console.log('edit value', value, typeof value);
-    editConfigForm({
-      editPath,
-      value
-    });
-  }
-
   // helper methods to render each field
   // assume no arrays
   renderNestedObject = (fieldName, editPath, configs, draftConfig) => {
@@ -79,14 +70,12 @@ class JSONConfigInput extends React.Component {
     const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
 
     return (
-      <div>
-        <ExpandableConfigForm
-          configs={processedConfigs}
-          draftConfig={processedDraftConfig}
-          formLabel={fieldName}
-          editPath={editPath}
-        />
-      </div>
+      <ExpandableConfigForm
+        configs={processedConfigs}
+        draftConfig={processedDraftConfig}
+        formLabel={fieldName}
+        editPath={editPath}
+      />
     );
   }
 
@@ -103,7 +92,6 @@ class JSONConfigInput extends React.Component {
       case 'string':
         childItem = (
           <JSONFormField
-            editFunc={this.editField}
             editPath={editPath}
             formLabel={fieldName}
             displayIdx={displayIdx}
@@ -130,8 +118,8 @@ class JSONConfigInput extends React.Component {
     const inputItem = this.renderInputItem(displayVal);
 
     return (
-      <div rc-json-config-input>
-        {inputItem}
+      <div className='rc-json-config-input'>
+        <li>{inputItem}</li>
       </div>
     );
   }
@@ -193,26 +181,31 @@ export default class JSONConfigForm extends React.Component {
       const configVals = configs.map(config => config[field]);
       const displayIdx = this.getDisplayIdx(configVals);
 
-      // console.log(editPath);
       return (
-        <li>
-          <JSONConfigInput
-            values={configVals}
-            draftValue={draftConfig[field]}
-            displayIdx={displayIdx}
+        <JSONConfigInput
+          values={configVals}
+          draftValue={draftConfig[field]}
+          displayIdx={displayIdx}
 
-            fieldName={field}
-            editPath={editPath.concat(field)}
-          />
-        </li>
+          fieldName={field}
+          editPath={editPath.concat(field)}
+        />
       );
     });
 
+    // return (
+    //   <div className='rc-json-config-form' style={{display: 'table'}}>
+    //     <ul className={classNames({'config-form-root': editPath.length === 0})}>
+    //       {childItems}
+    //     </ul>
+    //   </div>
+    // );
+
     return (
-      <div className='rc-json-config-form'>
-        <ul className={classNames({'config-form-root': editPath.length === 0})}>
-          {childItems}
-        </ul>
+      <div className={
+        classNames({'config-form-root': editPath.length === 0, 'rc-json-config-form': true})
+      }>
+        <ul className={classNames({'config-form-root': editPath.length === 0})}>{childItems}</ul>
       </div>
     );
   }

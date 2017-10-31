@@ -38,11 +38,13 @@ export default class NetworkConfigContainer extends React.Component {
       // one object for the entire network
       networkOverrideConfig: {},
       networkDraftConfig: {},
+      networkRevertFields: {},
 
       // node override
       // config objects mapped by node
       nodeOverrideConfig: {},
       nodeDraftConfig: {},
+      nodeRevertFields: {},
 
       // edit mode to determine whether the user edits the network override or node override
       // changed by selecting node(s) or the network in the left pane in the UI

@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
 
+import {editConfigForm} from '../../actions/NetworkConfigActions.js';
+
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
 export default class JSONFormField extends React.Component {
@@ -14,7 +16,11 @@ export default class JSONFormField extends React.Component {
   }
 
   editField = (value) => {
-    this.props.editFunc(this.props.editPath, value);
+    // console.log('edit value', value, typeof value);
+    editConfigForm({
+      editPath: this.props.editPath,
+      value
+    });
   }
 
   // throwaway bg color function since I'm lazy
@@ -42,7 +48,7 @@ export default class JSONFormField extends React.Component {
       case 'boolean':
         inputItem = (
           <input type='checkbox' checked={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
+            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft), display: 'table-cell'}}
             onChange={(event) => this.editField(event.target.checked)}
           />
         );
@@ -51,8 +57,10 @@ export default class JSONFormField extends React.Component {
         inputItem = (
           <input className='config-form-input' type='number'
             value={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
+            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft), display: 'table-cell'}}
             onChange={(event) => this.editField( Number(event.target.value) )}
+            onFocus={() => this.setState({focus: true})}
+            onBlur={() => this.setState({focus: false})}
           />
         );
         break;
@@ -60,13 +68,21 @@ export default class JSONFormField extends React.Component {
         inputItem = (
           <input className='config-form-input' type='text'
             value={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft)}}
+            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft), display: 'table-cell'}}
             onChange={(event) => this.editField(event.target.value)}
+            onFocus={() => this.setState({focus: true})}
+            onBlur={() => this.setState({focus: false})}
           />
         );
         break;
     }
     return inputItem;
+  }
+
+  renderRevertButton(displayIdx, isDraft) => {
+    // TODO
+    // if it's a draft we just clear it
+
   }
 
   render() {
@@ -80,7 +96,8 @@ export default class JSONFormField extends React.Component {
 
     const isDraft = draftValue !== undefined;
     const displayVal = isDraft ? draftValue : values[displayIdx]
-    const formInput = this.renderInputItem(
+
+    const formInputElement = this.renderInputItem(
       displayVal, displayIdx, isDraft
     );
 
@@ -88,15 +105,20 @@ export default class JSONFormField extends React.Component {
 
     return (
       <div className='rc-json-form-field'>
-        <label className='config-form-label'>{formLabel}:</label>
-        {formInput}
+        <label className={classNames({'config-form-label': true, 'json-field-focused': focus})}>
+          {formLabel}:
+        </label>
+        {formInputElement}
+        <img src='/static/images/delete.png'
+          onClick={this.onClick}
+          title={displayIdx > }
+        />
       </div>
     );
   }
 }
 
 JSONFormField.propTypes = {
-  editFunc: React.PropTypes.func.isRequired,
   editPath: React.PropTypes.array.isRequired,
 
   formLabel: React.PropTypes.string.isRequired,   // the field name for the value we are displaying
