@@ -242,7 +242,7 @@ export default class DetailsTopology extends React.Component {
                 {nodeTypeRows}
                 {polarityRows}
                 {polarityBySiteRows}
-                {versionData.length ? versionRows : ""}
+                {versionRows}
               </tbody>
             </table>
           </div>
