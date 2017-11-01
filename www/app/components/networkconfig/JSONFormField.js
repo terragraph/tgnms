@@ -96,12 +96,12 @@ export default class JSONFormField extends React.Component {
       displayIdx,
       values,
       draftValue,
+
+      isReverted,
+      isDraft,
+      displayVal,
     } = this.props;
     const {focus} = this.state;
-
-    const isReverted = draftValue === REVERT_VALUE;
-    const isDraft = draftValue !== undefined && !isReverted;
-    const displayVal = isDraft ? draftValue : values[displayIdx]
 
     const formInputElement = this.renderInputItem(displayVal, displayIdx, isDraft, isReverted);
 
@@ -128,4 +128,8 @@ JSONFormField.propTypes = {
   displayIdx: React.PropTypes.number.isRequired,  // the index within values to display if not a draft
   values: React.PropTypes.array.isRequired,
   draftValue: React.PropTypes.any.isRequired,
+
+  isReverted: React.PropTypes.bool.isRequired,
+  isDraft: React.PropTypes.bool.isRequired,
+  displayVal: React.PropTypes.any.isRequired,
 }

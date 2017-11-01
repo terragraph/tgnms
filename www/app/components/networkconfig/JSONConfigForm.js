@@ -80,7 +80,7 @@ class JSONConfigInput extends React.Component {
     );
   }
 
-  renderInputItem = (displayVal) => {
+  renderInputItem = (isReverted, isDraft, displayVal) => {
     const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
 
     let childItem = (
@@ -98,6 +98,10 @@ class JSONConfigInput extends React.Component {
             displayIdx={displayIdx}
             values={values}
             draftValue={draftValue}
+
+            isReverted={isReverted}
+            isDraft={isDraft}
+            displayVal={displayVal}
           />
         );
         break;
@@ -119,7 +123,7 @@ class JSONConfigInput extends React.Component {
     // TODO: getRevertedValue function
     const displayVal = isDraft ? draftValue : values[displayIdx];
 
-    const inputItem = this.renderInputItem(displayVal);
+    const inputItem = this.renderInputItem(isReverted, isDraft, displayVal);
 
     return (
       <div className='rc-json-config-input'>
