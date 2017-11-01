@@ -155,13 +155,13 @@ export const getBaseConfig = (topologyName) => {
   // easy testing
   const smallJSON = {
     intField: 3,
-    dblField: 2.352,
+    dblField: 3.12341234,
     nest1: {
       ception: 'asdf',
       cation: 'cathode ray tubes',
       check: false
     },
-    cen: 'asdfjkl',
+    cen: 'basecen',
     gras: true,
     nest2: {
       nest3: {

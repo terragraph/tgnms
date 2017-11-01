@@ -5,6 +5,10 @@ const classNames = require('classnames');
 import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import {editConfigForm, revertConfigOverride} from '../../actions/NetworkConfigActions.js';
 
+// TODO: classnames:
+// nc-layer-0, nc-layer-1, nc-layer-2, nc-draft, nc-reverted
+// then put this in css to unclutter the code here
+
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
 export default class JSONFormField extends React.Component {

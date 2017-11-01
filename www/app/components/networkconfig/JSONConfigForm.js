@@ -9,8 +9,6 @@ import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
 
 
-// TODO: some component here is needed so when the user focuses on an input box, the parent will be colored in
-
 // internal config form class that wraps a JSONConfigForm with a label
 // mostly used to toggle a form's expandability
 class ExpandableConfigForm extends React.Component {
@@ -60,10 +58,7 @@ class JSONConfigInput extends React.Component {
     super(props);
   }
 
-  // helper methods to render each field
-  // assume no arrays
   renderNestedObject = (fieldName, editPath, configs, draftConfig) => {
-    // keep track of the edit path in relation to the root config object
     const processedConfigs = configs.map((config) => {
       return config === undefined ? {} : config;
     });
@@ -199,14 +194,6 @@ export default class JSONConfigForm extends React.Component {
         />
       );
     });
-
-    // return (
-    //   <div className='rc-json-config-form' style={{display: 'table'}}>
-    //     <ul className={classNames({'config-form-root': editPath.length === 0})}>
-    //       {childItems}
-    //     </ul>
-    //   </div>
-    // );
 
     return (
       <div className={

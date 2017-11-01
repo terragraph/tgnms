@@ -121,6 +121,7 @@ export default class NetworkConfigContainer extends React.Component {
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.setState({
             nodeDraftConfig: this.editNodeConfig(this.state.nodeDraftConfig, payload.editPath, REVERT_VALUE),
+            nodeConfigWithChanges: this.revertNodeConfig(payload.editPath),
           });
         } else {
           this.revertNetworkConfig(payload.editPath);
@@ -198,14 +199,47 @@ export default class NetworkConfigContainer extends React.Component {
     return _.set(config, editPath, value);
   }
 
-  // TODO: set state of newNetworkConfigWithChanges
   revertNetworkConfig = (editPath) => {
     this.setState({
       networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, REVERT_VALUE),
+      networkConfigWithChanges: this.unsetAndCleanup(this.state.networkConfigWithChanges, editPath, 0),
     });
   }
 
-  unsetAndCleanup = (obj, editPath) => {}
+  revertNodeConfig = (editPath) => {
+    let newNodeConfigWithChanges = _.cloneDeep(this.state.nodeConfigWithChanges);
+    this.state.selectedNodes.forEach((node) => {
+      newNodeConfigWithChanges = this.unsetAndCleanup(newNodeConfigWithChanges, [node, ...editPath], 1);
+    });
+
+    return newNodeConfigWithChanges;
+  }
+
+  // unsets the property in obj retrieved using editPath
+  // then cleans up all empty objects within obj
+  unsetAndCleanup = (obj, editPath, stopIdx) => {
+    let cleanedObj = _.cloneDeep(obj);
+
+    let newEditPath = [...editPath]; // copy the editpath as we need to change the copy
+    if (newEditPath.length == 0) {
+      console.error(`error, editPath cannot be empty`);
+    }
+
+    const isValueUnset = _.unset(cleanedObj, newEditPath);
+    if (!isValueUnset) {
+      console.error(`could not unset value at path ${newEditPath} for object ${cleanedObj}`);
+    }
+
+    // if we're here then the value in cleanedObj specified by editPath is unset
+    // we then clean up to remove any empty objects
+    newEditPath.pop();
+    while (newEditPath.length > stopIdx && Object.keys( _.get(cleanedObj, newEditPath) ).length === 0) {
+      _.unset(cleanedObj, newEditPath);
+      newEditPath.pop();
+    }
+
+    return cleanedObj;
+  }
 
   // functions called in the component when API calls return
   // save (returned when API sends us a successful ack)
