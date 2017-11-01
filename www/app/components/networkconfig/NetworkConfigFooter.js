@@ -9,6 +9,7 @@ import {resetConfig, resetConfigForAllNodes} from '../../actions/NetworkConfigAc
 
 import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
 
+
 export default class NetworkConfigFooter extends React.Component {
   constructor(props) {
     super(props);
@@ -17,6 +18,7 @@ export default class NetworkConfigFooter extends React.Component {
   // send the API calls here instead of dispatching an action to NetworkConfigContainer
   // this is done to avoid dispathcing while in the middle of a dispatch
   // this is also why the draftConfig and editMode props are needed
+  // TODO: changed nodes/selected nodes/all nodes mode!
   onSubmitConfig = () => {
     const {networkConfig, nodeConfig, editMode} = this.props;
     if (editMode === CONFIG_VIEW_MODE.NODE) {
@@ -24,6 +26,11 @@ export default class NetworkConfigFooter extends React.Component {
     } else {
       setNetworkOverrideConfig(networkConfig);
     }
+  }
+
+  onSubmitConfigForAllNodes = () => {
+    const {nodeConfig} = this.props;
+    setNodeOverrideConfig(nodeConfig);
   }
 
   onResetConfig = () => {
@@ -34,6 +41,7 @@ export default class NetworkConfigFooter extends React.Component {
     resetConfigForAllNodes();
   }
 
+  // TODO: 4 button system for phase 1
   render() {
     const {draftConfig, networkConfig, nodeConfig, editMode} = this.props;
 
@@ -41,13 +49,20 @@ export default class NetworkConfigFooter extends React.Component {
       <div className='rc-network-config-footer'>
         <button className='nc-footer-btn' onClick={this.onResetConfig}>Discard Changes</button>
         {editMode === CONFIG_VIEW_MODE.NODE &&
-          <button className='nc-footer-btn' onClick={this.onResetAllConfig}>Revert All Nodes</button>
+          <button className='nc-footer-btn' onClick={this.onResetAllConfig}>Discard changes for all nodes</button>
         }
         <button
           className='nc-footer-btn'
           onClick={this.onSubmitConfig}
           disabled={Object.keys(draftConfig).length === 0}
         >Submit Changes</button>
+        {editMode === CONFIG_VIEW_MODE.NODE &&
+          <button
+            className='nc-footer-btn'
+            onClick={this.onSubmitConfigForAllNodes}
+            disabled={Object.keys(draftConfig).length === 0}
+          >Submit changes for all nodes</button>
+        }
       </div>
     );
   }

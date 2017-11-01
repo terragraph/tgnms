@@ -97,14 +97,6 @@
   padding-left: 10px;
 }
 
-.rc-expandable-config-form {
-  /*padding-left: 40px;*/
-}
-
-.rc-expandable-config-form .rc-json-config-form {
-  /*padding-left: 22px;*/
-}
-
 .json-field-focused {
   background-color: #ddd;
 }
@@ -114,11 +106,33 @@
   min-width: 250px; /* fixed min width so we can align the input fields */
 }
 
+/* NETWORK CONFIG JSON FORM INPUTS */
+
 .config-form-input {
-  background-color: #fff;
+  /*background-color: #fff;*/
   min-width: 250px;
 }
 
 .config-expand-marker {
   padding-right: 10px;
+}
+
+.nc-base-field {
+  background-color: #fff;
+}
+
+.nc-network-field {
+  background-color: rgb(183,210,255);
+}
+
+.nc-node-field {
+  background-color: #aaffaa;
+}
+
+.nc-draft-field {
+  background-color: #fff;
+}
+
+.nc-revert-field {
+  background-color: #fff;
 }

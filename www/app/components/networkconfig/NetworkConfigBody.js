@@ -24,7 +24,9 @@ export default class NetworkConfigBody extends React.Component {
 
     return (
       <div className='rc-network-config-body'>
-        <NetworkConfigHeader />
+        <NetworkConfigHeader
+          editMode={editMode}
+        />
         <JSONConfigForm
           configs={configs}
           draftConfig={draftConfig}
