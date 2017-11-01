@@ -12,7 +12,7 @@ import {
   getNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
 
-import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
+import { CONFIG_VIEW_MODE, REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 
 import { Actions } from '../../constants/NetworkConstants.js';
 import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
@@ -39,7 +39,6 @@ export default class NetworkConfigContainer extends React.Component {
       // one object for the entire network
       networkOverrideConfig: {},
       networkDraftConfig: {},
-      networkRevertFields: {},
 
       // a version of the config that is akin to a merged copy of the 3 configs above
       // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
@@ -49,7 +48,6 @@ export default class NetworkConfigContainer extends React.Component {
       // config objects mapped by node
       nodeOverrideConfig: {},
       nodeDraftConfig: {},
-      nodeRevertFields: {},
 
       // a version of the config that is akin to a merged copy of the 3 configs above
       // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
@@ -111,14 +109,19 @@ export default class NetworkConfigContainer extends React.Component {
       // actions that directly change the form on ONE FIELD
       case NetworkConfigActions.EDIT_CONFIG_FORM:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
-          this.editNodeConfig(payload.editPath, payload.value);
+          this.setState({
+            nodeDraftConfig: this.editNodeConfig(this.state.nodeDraftConfig, payload.editPath, payload.value),
+            nodeConfigWithChanges: this.editNodeConfig(this.state.nodeConfigWithChanges, payload.editPath, payload.value),
+          });
         } else {
           this.editNetworkConfig(payload.editPath, payload.value);
         }
         break;
       case NetworkConfigActions.REVERT_CONFIG_OVERRIDE:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
-          this.revertNodeConfig(payload.editPath);
+          this.setState({
+            nodeDraftConfig: this.editNodeConfig(this.state.nodeDraftConfig, payload.editPath, REVERT_VALUE),
+          });
         } else {
           this.revertNetworkConfig(payload.editPath);
         }
@@ -173,31 +176,19 @@ export default class NetworkConfigContainer extends React.Component {
     }
   }
 
-  editNodeConfig = (editPath, value) => {
-    const {nodeDraftConfig, nodeConfigWithChanges, selectedNodes} = this.state;
-
-    // deep copy to avoid mutating this.state directly
-    let newNodeDraftConfig = _.cloneDeep(nodeDraftConfig);
-    let newNodeConfigWithChanges = _.cloneDeep(nodeConfigWithChanges);
-
-    selectedNodes.forEach((node) => {
-      newNodeDraftConfig = this.editConfig(newNodeDraftConfig, [node, ...editPath], value);
-      newNodeConfigWithChanges = this.editConfig(newNodeConfigWithChanges, [node, ...editPath], value);
+  editNodeConfig = (config, editPath, value) => {
+    let newNodeConfig = _.cloneDeep(config);
+    this.state.selectedNodes.forEach((node) => {
+      newNodeConfig = this.editConfig(newNodeConfig, [node, ...editPath], value);
     });
-
-    this.setState({
-      nodeDraftConfig: newNodeDraftConfig,
-      nodeConfigWithChanges: newNodeConfigWithChanges,
-    });
+    return newNodeConfig;
   }
 
   editNetworkConfig = (editPath, value) => {
-    const {networkDraftConfig, networkConfigWithChanges} = this.state;
-
     // get deep copies of the state so we don't directly mutate this.state
     this.setState({
-      networkDraftConfig: this.editConfig(_.cloneDeep(networkDraftConfig), editPath, value),
-      networkConfigWithChanges: this.editConfig(_.cloneDeep(networkConfigWithChanges), editPath, value),
+      networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, value),
+      networkConfigWithChanges: this.editConfig(_.cloneDeep(this.state.networkConfigWithChanges), editPath, value),
     });
   }
 
@@ -207,35 +198,11 @@ export default class NetworkConfigContainer extends React.Component {
     return _.set(config, editPath, value);
   }
 
-  // TODO: set state of newNodeConfigWithChanges
-  revertNodeConfig = (editPath) => {
-    const {nodeRevertFields, selectedNodes} = this.state;
-
-    // deep copy to avoid mutating this.state directly
-    let newNodeRevertFields = _.cloneDeep(nodeRevertFields);
-
-    selectedNodes.forEach((node) => {
-      newNodeRevertFields = this.editConfig(newNodeRevertFields, [node, ...editPath], true);
-    });
-
-    this.setState({
-      nodeRevertFields: newNodeRevertFields,
-    });
-  }
-
   // TODO: set state of newNetworkConfigWithChanges
   revertNetworkConfig = (editPath) => {
     this.setState({
-      networkRevertFields: this.editConfig(_.cloneDeep(this.state.networkRevertFields), editPath, true),
+      networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, REVERT_VALUE),
     });
-  }
-
-  revertConfig = (draftConfig, revertFields, editPath) => {
-    const newRevertFields = _.set(revertFields, editPath, true);
-    const newDraftConfig = _.merge({}, draftConfig);
-    _.unset(newDraftConfig, editPath);
-
-    return {};
   }
 
   unsetAndCleanup = (obj, editPath) => {}
@@ -318,12 +285,10 @@ export default class NetworkConfigContainer extends React.Component {
 
       networkOverrideConfig,
       networkDraftConfig,
-      networkRevertFields,
       networkConfigWithChanges,
 
       nodeOverrideConfig,
       nodeDraftConfig,
-      nodeRevertFields,
       nodeConfigWithChanges,
 
       editMode,
@@ -343,12 +308,10 @@ export default class NetworkConfigContainer extends React.Component {
 
         networkOverrideConfig={networkOverrideConfig}
         networkDraftConfig={networkDraftConfig}
-        networkRevertFields={networkRevertFields}
         networkConfigWithChanges={networkConfigWithChanges}
 
         nodeOverrideConfig={nodeOverrideConfig}
         nodeDraftConfig={nodeDraftConfig}
-        nodeRevertFields={nodeRevertFields}
         nodeConfigWithChanges={nodeConfigWithChanges}
       />
     );

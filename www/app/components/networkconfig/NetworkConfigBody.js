@@ -18,7 +18,6 @@ export default class NetworkConfigBody extends React.Component {
       configs,
       draftConfig,
       editMode,
-      revertFields,
       networkConfigWithChanges,
       nodeConfigWithChanges,
     } = this.props;
@@ -29,12 +28,10 @@ export default class NetworkConfigBody extends React.Component {
         <JSONConfigForm
           configs={configs}
           draftConfig={draftConfig}
-          revertFields={revertFields}
           editPath={[]}
         />
         <NetworkConfigFooter
           draftConfig={draftConfig}
-          revertFields={revertFields}
 
           networkConfig={networkConfigWithChanges}
           nodeConfig={nodeConfigWithChanges}
@@ -48,7 +45,6 @@ export default class NetworkConfigBody extends React.Component {
 NetworkConfigBody.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
-  revertFields: React.PropTypes.object.isRequired,
   networkConfigWithChanges: React.PropTypes.object.isRequired,
   nodeConfigWithChanges: React.PropTypes.object.isRequired,
 

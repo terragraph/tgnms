@@ -33,12 +33,10 @@ export default class NetworkConfig extends React.Component {
 
       networkOverrideConfig,
       networkDraftConfig,
-      networkRevertFields,
       networkConfigWithChanges,
 
       nodeOverrideConfig,
       nodeDraftConfig,
-      nodeRevertFields,
       nodeConfigWithChanges,
     } = this.props;
 
@@ -49,9 +47,6 @@ export default class NetworkConfig extends React.Component {
 
     const selectedDraftConfig = (editMode === CONFIG_VIEW_MODE.NODE) ?
       this.combineNodeConfigs(selectedNodes, nodeDraftConfig) : networkDraftConfig;
-
-    const selectedRevertFields = (editMode === CONFIG_VIEW_MODE.NODE) ?
-      (nodeRevertFields[selectedNodes[0]] === undefined ? {} : nodeRevertFields[selectedNodes[0]]): networkRevertFields;
 
     const nodesWithDrafts = Object.keys(nodeDraftConfig).filter((node) => {
       return Object.keys(nodeDraftConfig[node]).length > 0
@@ -72,7 +67,6 @@ export default class NetworkConfig extends React.Component {
         <NetworkConfigBody
           configs={stackedConfigs}
           draftConfig={selectedDraftConfig}
-          revertFields={selectedRevertFields}
 
           networkConfigWithChanges={networkConfigWithChanges}
           nodeConfigWithChanges={nodeConfigWithChanges}
@@ -93,11 +87,9 @@ NetworkConfig.propTypes = {
 
   networkOverrideConfig: React.PropTypes.object.isRequired,
   networkDraftConfig: React.PropTypes.object.isRequired,
-  networkRevertFields: React.PropTypes.object.isRequired,
   networkConfigWithChanges: React.PropTypes.object.isRequired,
 
   nodeOverrideConfig: React.PropTypes.object.isRequired,
   nodeDraftConfig: React.PropTypes.object.isRequired,
-  nodeRevertFields: React.PropTypes.object.isRequired,
   nodeConfigWithChanges: React.PropTypes.object.isRequired,
 }

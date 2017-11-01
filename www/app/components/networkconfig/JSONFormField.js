@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
 
+import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import {editConfigForm, revertConfigOverride} from '../../actions/NetworkConfigActions.js';
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
@@ -95,16 +96,14 @@ export default class JSONFormField extends React.Component {
       displayIdx,
       values,
       draftValue,
-      isReverted
     } = this.props;
     const {focus} = this.state;
 
-    const isDraft = draftValue !== undefined;
+    const isReverted = draftValue === REVERT_VALUE;
+    const isDraft = draftValue !== undefined && !isReverted;
     const displayVal = isDraft ? draftValue : values[displayIdx]
 
-    const formInputElement = this.renderInputItem(
-      displayVal, displayIdx, isDraft, isReverted
-    );
+    const formInputElement = this.renderInputItem(displayVal, displayIdx, isDraft, isReverted);
 
     return (
       <div className={classNames({'rc-json-form-field': true, 'json-field-focused': focus})}>
@@ -129,5 +128,4 @@ JSONFormField.propTypes = {
   displayIdx: React.PropTypes.number.isRequired,  // the index within values to display if not a draft
   values: React.PropTypes.array.isRequired,
   draftValue: React.PropTypes.any.isRequired,
-  isReverted: React.PropTypes.any.isRequired,
 }

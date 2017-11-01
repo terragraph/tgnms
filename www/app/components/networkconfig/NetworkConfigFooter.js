@@ -35,20 +35,19 @@ export default class NetworkConfigFooter extends React.Component {
   }
 
   render() {
-    const {draftConfig, revertFields, networkConfig, nodeConfig, editMode} = this.props;
-    const revertText = editMode === CONFIG_VIEW_MODE.NODE ? 'Revert Selected Nodes' : 'Revert Network Override';
+    const {draftConfig, networkConfig, nodeConfig, editMode} = this.props;
 
     return (
       <div className='rc-network-config-footer'>
-        <button className='nc-footer-btn' onClick={this.onResetConfig}>{revertText}</button>
+        <button className='nc-footer-btn' onClick={this.onResetConfig}>Discard Changes</button>
         {editMode === CONFIG_VIEW_MODE.NODE &&
           <button className='nc-footer-btn' onClick={this.onResetAllConfig}>Revert All Nodes</button>
         }
         <button
           className='nc-footer-btn'
           onClick={this.onSubmitConfig}
-          disabled={Object.keys(draftConfig).length === 0 && Object.keys(revertFields) === 0}
-        >Push Changes</button>
+          disabled={Object.keys(draftConfig).length === 0}
+        >Submit Changes</button>
       </div>
     );
   }
@@ -56,8 +55,6 @@ export default class NetworkConfigFooter extends React.Component {
 
 NetworkConfigFooter.propTypes = {
   draftConfig: React.PropTypes.object.isRequired,
-  revertFields: React.PropTypes.object.isRequired,
-
   networkConfig: React.PropTypes.object.isRequired,
   nodeConfig: React.PropTypes.object.isRequired,
   editMode: React.PropTypes.string.isRequired,

@@ -5,6 +5,7 @@ import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
 
+import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
 
 
@@ -28,7 +29,7 @@ class ExpandableConfigForm extends React.Component {
   }
 
   render() {
-    const {configs, draftConfig, revertFields, formLabel, editPath} = this.props;
+    const {configs, draftConfig, formLabel, editPath} = this.props;
     const {expanded} = this.state;
     const expandMarker = expanded ?
       '/static/images/down-chevron.png' : '/static/images/right-chevron.png';
@@ -40,7 +41,6 @@ class ExpandableConfigForm extends React.Component {
         {expanded && <JSONConfigForm
           configs={configs}
           draftConfig={draftConfig}
-          revertFields={revertFields}
           editPath={editPath}
         />}
       </div>
@@ -51,7 +51,6 @@ class ExpandableConfigForm extends React.Component {
 ExpandableConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
-  revertFields: React.PropTypes.object.isRequired,
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired
 }
@@ -63,20 +62,18 @@ class JSONConfigInput extends React.Component {
 
   // helper methods to render each field
   // assume no arrays
-  renderNestedObject = (fieldName, editPath, isReverted, configs, draftConfig) => {
+  renderNestedObject = (fieldName, editPath, configs, draftConfig) => {
     // keep track of the edit path in relation to the root config object
     const processedConfigs = configs.map((config) => {
       return config === undefined ? {} : config;
     });
 
     const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
-    const processedRevertFields = isReverted === undefined ? {} : isReverted;
 
     return (
       <ExpandableConfigForm
         configs={processedConfigs}
         draftConfig={processedDraftConfig}
-        revertFields={processedRevertFields}
         formLabel={fieldName}
         editPath={editPath}
       />
@@ -84,7 +81,7 @@ class JSONConfigInput extends React.Component {
   }
 
   renderInputItem = (displayVal) => {
-    const {values, draftValue, isReverted, displayIdx, fieldName, editPath} = this.props;
+    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
 
     let childItem = (
       <span>Error: unable to render child val of {displayVal}</span>
@@ -101,12 +98,11 @@ class JSONConfigInput extends React.Component {
             displayIdx={displayIdx}
             values={values}
             draftValue={draftValue}
-            isReverted={isReverted}
           />
         );
         break;
       case 'object':
-        childItem = this.renderNestedObject(fieldName, editPath, isReverted, values, draftValue);
+        childItem = this.renderNestedObject(fieldName, editPath, values, draftValue);
         break;
     }
 
@@ -114,14 +110,14 @@ class JSONConfigInput extends React.Component {
   }
 
   render() {
-    const {values, draftValue, isReverted, displayIdx, fieldName, editPath} = this.props;
+    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
 
     // some values are undefined
-    const isDraft = draftValue !== undefined; // if is draft, take style for the largest index in values, which may be larger than displayIdx
-    const displayRevertedValue = isReverted === true;
+    const isReverted = draftValue === REVERT_VALUE;
+    const isDraft = draftValue !== undefined && !isReverted;
 
     // TODO: getRevertedValue function
-    const displayVal = isDraft ? draftValue : values[displayIdx]; // TODO: put this in some function and incorporate isReverted
+    const displayVal = isDraft ? draftValue : values[displayIdx];
 
     const inputItem = this.renderInputItem(displayVal);
 
@@ -136,7 +132,6 @@ class JSONConfigInput extends React.Component {
 JSONConfigInput.propTypes = {
   values: React.PropTypes.array.isRequired,
   draftValue: React.PropTypes.any.isRequired,
-  isReverted: React.PropTypes.any.isRequired,
   displayIdx: React.PropTypes.number.isRequired,
 
   fieldName: React.PropTypes.string.isRequired,
@@ -163,7 +158,7 @@ export default class JSONConfigForm extends React.Component {
     // traverse the array backwards and stop at the first value that is not undefined
     // this lets us get the "highest" override for a value, aka what to display
     for (var idx = configVals.length - 1; idx >= 0; idx --) {
-      if (configVals[idx] !== undefined) {
+      if (configVals[idx] !== undefined && configVals[idx] !== null) {
         return idx; // field exists
       }
     }
@@ -176,7 +171,6 @@ export default class JSONConfigForm extends React.Component {
     const {
       configs,
       draftConfig,
-      revertFields,
       editPath
     } = this.props;
 
@@ -194,7 +188,6 @@ export default class JSONConfigForm extends React.Component {
         <JSONConfigInput
           values={configVals}
           draftValue={draftConfig[field]}
-          isReverted={revertFields[field]}
           displayIdx={displayIdx}
 
           fieldName={field}
@@ -224,7 +217,6 @@ export default class JSONConfigForm extends React.Component {
 JSONConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
-  revertFields: React.PropTypes.object.isRequired,
 
   // the "path" of keys that identifies the root of the component's config
   // vs the entire config object
