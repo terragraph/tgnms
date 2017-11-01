@@ -27,7 +27,8 @@ export default class NetworkConfigContainer extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
-    // for this diff, some of these states are unused, they're defined here for future use
+    // TODO: @Tariq: the fact that this state is huge makes a compelling case for converting to redux.js
+    // and splitting this into multiple data stores somewhere down the line
     this.state = {
       // base network config
       // at first this is for the entire topology
@@ -206,12 +207,27 @@ export default class NetworkConfigContainer extends React.Component {
     return _.set(config, editPath, value);
   }
 
+  // TODO: set state of newNodeConfigWithChanges
   revertNodeConfig = (editPath) => {
-    console.log('this is hard for a node', editPath);
+    const {nodeRevertFields, selectedNodes} = this.state;
+
+    // deep copy to avoid mutating this.state directly
+    let newNodeRevertFields = _.cloneDeep(nodeRevertFields);
+
+    selectedNodes.forEach((node) => {
+      newNodeRevertFields = this.editConfig(newNodeRevertFields, [node, ...editPath], true);
+    });
+
+    this.setState({
+      nodeRevertFields: newNodeRevertFields,
+    });
   }
 
+  // TODO: set state of newNetworkConfigWithChanges
   revertNetworkConfig = (editPath) => {
-    console.log('this is hard for a network', editPath);
+    this.setState({
+      networkRevertFields: this.editConfig(_.cloneDeep(this.state.networkRevertFields), editPath, true),
+    });
   }
 
   revertConfig = (draftConfig, revertFields, editPath) => {
@@ -226,14 +242,14 @@ export default class NetworkConfigContainer extends React.Component {
 
   // functions called in the component when API calls return
   // save (returned when API sends us a successful ack)
-  saveNetworkConfig = (draftConfigForNetwork) => {
+  saveNetworkConfig = (config) => {
     this.setState({
       networkOverrideConfig: _.cloneDeep(this.state.networkConfigWithChanges),
       networkDraftConfig: {},
     });
   }
 
-  saveNodeConfig = (draftConfigForSelectedNodes, saveSelected) => {
+  saveNodeConfig = (config, saveSelected) => {
     if (saveSelected) {
       // changes pushed only for selected nodes
       let newNodeOverrideConfig = _.cloneDeep(this.state.nodeOverrideConfig);
@@ -302,7 +318,7 @@ export default class NetworkConfigContainer extends React.Component {
 
       networkOverrideConfig,
       networkDraftConfig,
-      networkRevertFields
+      networkRevertFields,
       networkConfigWithChanges,
 
       nodeOverrideConfig,

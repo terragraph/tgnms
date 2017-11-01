@@ -1,5 +1,6 @@
 // util class for making API calls to the node server for network config
 import axios from 'axios';
+var _ = require('lodash');
 
 import {
   getBaseConfigSuccess,
@@ -219,7 +220,7 @@ export const getNodeOverrideConfig = (nodes, topologyName) => {
   };
 
   let returnedJSON = {};
-  nodes.forEach(node => returnedJSON[node] = nodeOverrideJSON);
+  nodes.forEach(node => returnedJSON[node] = _.cloneDeep(nodeOverrideJSON));
 
   setTimeout(() => {
     getNodeConfigSuccess({

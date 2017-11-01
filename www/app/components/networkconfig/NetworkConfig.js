@@ -51,7 +51,7 @@ export default class NetworkConfig extends React.Component {
       this.combineNodeConfigs(selectedNodes, nodeDraftConfig) : networkDraftConfig;
 
     const selectedRevertFields = (editMode === CONFIG_VIEW_MODE.NODE) ?
-      nodeRevertFields[selectedNodes[0]] : networkRevertFields;
+      (nodeRevertFields[selectedNodes[0]] === undefined ? {} : nodeRevertFields[selectedNodes[0]]): networkRevertFields;
 
     const nodesWithDrafts = Object.keys(nodeDraftConfig).filter((node) => {
       return Object.keys(nodeDraftConfig[node]).length > 0

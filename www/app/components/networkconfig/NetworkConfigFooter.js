@@ -18,11 +18,11 @@ export default class NetworkConfigFooter extends React.Component {
   // this is done to avoid dispathcing while in the middle of a dispatch
   // this is also why the draftConfig and editMode props are needed
   onSubmitConfig = () => {
-    const {draftConfig, editMode} = this.props;
+    const {networkConfig, nodeConfig, editMode} = this.props;
     if (editMode === CONFIG_VIEW_MODE.NODE) {
-      setNodeOverrideConfig(draftConfig);
+      setNodeOverrideConfig(nodeConfig);
     } else {
-      setNetworkOverrideConfig(draftConfig);
+      setNetworkOverrideConfig(networkConfig);
     }
   }
 
@@ -35,9 +35,8 @@ export default class NetworkConfigFooter extends React.Component {
   }
 
   render() {
-    const {draftConfig, editMode} = this.props;
+    const {draftConfig, revertFields, networkConfig, nodeConfig, editMode} = this.props;
     const revertText = editMode === CONFIG_VIEW_MODE.NODE ? 'Revert Selected Nodes' : 'Revert Network Override';
-    // const pushText = editMode === CONFIG_VIEW_MODE.NODE ? 'Submit Changes for Selected Nodes' : 'Revert Network Override';
 
     return (
       <div className='rc-network-config-footer'>
@@ -48,7 +47,7 @@ export default class NetworkConfigFooter extends React.Component {
         <button
           className='nc-footer-btn'
           onClick={this.onSubmitConfig}
-          disabled={Object.keys(draftConfig).length === 0}
+          disabled={Object.keys(draftConfig).length === 0 && Object.keys(revertFields) === 0}
         >Push Changes</button>
       </div>
     );
@@ -57,5 +56,9 @@ export default class NetworkConfigFooter extends React.Component {
 
 NetworkConfigFooter.propTypes = {
   draftConfig: React.PropTypes.object.isRequired,
+  revertFields: React.PropTypes.object.isRequired,
+
+  networkConfig: React.PropTypes.object.isRequired,
+  nodeConfig: React.PropTypes.object.isRequired,
   editMode: React.PropTypes.string.isRequired,
 }

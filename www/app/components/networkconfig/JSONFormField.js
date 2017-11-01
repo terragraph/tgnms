@@ -32,9 +32,11 @@ export default class JSONFormField extends React.Component {
   }
 
   // throwaway bg color function since I'm lazy
-  getBackgroundColor = (displayIdx, isDraft) => {
+  getBackgroundColor = (displayIdx, isDraft, isReverted) => {
     var backgroundColor = '#fff';
-    if (isDraft) {
+    if (isReverted) {
+      backgroundColor = '#999'; // grey for now, will show as different style
+    } else if (isDraft) {
       // RED
       backgroundColor = '#ffaaaa';
     } else if (displayIdx === 1) {
@@ -47,7 +49,7 @@ export default class JSONFormField extends React.Component {
     return backgroundColor;
   }
 
-  renderInputItem = (displayVal, displayIdx, isDraft) => {
+  renderInputItem = (displayVal, displayIdx, isDraft, isReverted) => {
     let inputItem = (
       <span>Error: unable to render child val of {displayVal}</span>
     );
@@ -56,7 +58,7 @@ export default class JSONFormField extends React.Component {
       case 'boolean':
         inputItem = (
           <input type='checkbox' checked={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft), display: 'table-cell'}}
+            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft, isReverted), display: 'table-cell'}}
             onChange={(event) => this.editField(event.target.checked)}
           />
         );
@@ -65,7 +67,7 @@ export default class JSONFormField extends React.Component {
         inputItem = (
           <input className='config-form-input' type='number'
             value={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft), display: 'table-cell'}}
+            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft, isReverted), display: 'table-cell'}}
             onChange={(event) => this.editField( Number(event.target.value) )}
             onFocus={() => this.setState({focus: true})}
             onBlur={() => this.setState({focus: false})}
@@ -76,7 +78,7 @@ export default class JSONFormField extends React.Component {
         inputItem = (
           <input className='config-form-input' type='text'
             value={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft), display: 'table-cell'}}
+            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft, isReverted), display: 'table-cell'}}
             onChange={(event) => this.editField(event.target.value)}
             onFocus={() => this.setState({focus: true})}
             onBlur={() => this.setState({focus: false})}
@@ -93,6 +95,7 @@ export default class JSONFormField extends React.Component {
       displayIdx,
       values,
       draftValue,
+      isReverted
     } = this.props;
     const {focus} = this.state;
 
@@ -100,7 +103,7 @@ export default class JSONFormField extends React.Component {
     const displayVal = isDraft ? draftValue : values[displayIdx]
 
     const formInputElement = this.renderInputItem(
-      displayVal, displayIdx, isDraft
+      displayVal, displayIdx, isDraft, isReverted
     );
 
     return (
@@ -126,4 +129,5 @@ JSONFormField.propTypes = {
   displayIdx: React.PropTypes.number.isRequired,  // the index within values to display if not a draft
   values: React.PropTypes.array.isRequired,
   draftValue: React.PropTypes.any.isRequired,
+  isReverted: React.PropTypes.any.isRequired,
 }

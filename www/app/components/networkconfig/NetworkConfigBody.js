@@ -29,9 +29,13 @@ export default class NetworkConfigBody extends React.Component {
         <JSONConfigForm
           configs={configs}
           draftConfig={draftConfig}
+          revertFields={revertFields}
           editPath={[]}
         />
         <NetworkConfigFooter
+          draftConfig={draftConfig}
+          revertFields={revertFields}
+
           networkConfig={networkConfigWithChanges}
           nodeConfig={nodeConfigWithChanges}
           editMode={editMode}
