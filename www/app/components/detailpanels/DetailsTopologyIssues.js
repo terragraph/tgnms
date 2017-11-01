@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import { Actions } from '../../NetworkConstants.js';
+import { Actions } from '../../constants/NetworkConstants.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import { linkLength } from '../../NetworkHelper.js';
 import swal from 'sweetalert';
@@ -326,7 +326,7 @@ export default class DetailsTopologyIssues extends React.Component {
     let addNodesButton = "nodes";
     let addLinksButton = "links";
     if (this.state.processing || !this.remainingSites.length) {
-      addSitesButton = 
+      addSitesButton =
         <input type="button"
                value={"Add Sites (" + this.remainingSites.length + ")"}
                disabled />;

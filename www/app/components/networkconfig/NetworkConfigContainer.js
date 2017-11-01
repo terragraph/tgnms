@@ -40,11 +40,19 @@ export default class NetworkConfigContainer extends React.Component {
       networkDraftConfig: {},
       networkRevertFields: {},
 
+      // a version of the config that is akin to a merged copy of the 3 configs above
+      // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
+      networkConfigWithChanges: {},
+
       // node override
       // config objects mapped by node
       nodeOverrideConfig: {},
       nodeDraftConfig: {},
       nodeRevertFields: {},
+
+      // a version of the config that is akin to a merged copy of the 3 configs above
+      // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
+      nodeConfigWithChanges: {},
 
       // edit mode to determine whether the user edits the network override or node override
       // changed by selecting node(s) or the network in the left pane in the UI
@@ -91,22 +99,31 @@ export default class NetworkConfigContainer extends React.Component {
         break;
 
       // handle network config specific actions
+      // actions that change the editing context
       case NetworkConfigActions.CHANGE_EDIT_MODE:
         this.changeEditMode(payload.editMode);
         break;
       case NetworkConfigActions.SELECT_NODES:
         this.setState({selectedNodes: payload.nodes});
         break;
+
+      // actions that directly change the form on ONE FIELD
       case NetworkConfigActions.EDIT_CONFIG_FORM:
-        const {editPath, value} = payload;
-        // if editMode is CONFIG_VIEW_MODE.NODE, we edit the node override
-        // else we edit the network override
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
-          this.editNodeConfig(editPath, value);
+          this.editNodeConfig(payload.editPath, payload.value);
         } else {
-          this.editNetworkConfig(editPath, value);
+          this.editNetworkConfig(payload.editPath, payload.value);
         }
         break;
+      case NetworkConfigActions.REVERT_CONFIG_OVERRIDE:
+        if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
+          this.revertNodeConfig(payload.editPath);
+        } else {
+          this.revertNetworkConfig(payload.editPath);
+        }
+        break;
+
+      // actions that change the ENTIRE FORM
       case NetworkConfigActions.RESET_CONFIG:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.resetSelectedNodesConfig();
@@ -123,16 +140,16 @@ export default class NetworkConfigContainer extends React.Component {
         this.setState({baseConfig: payload.config});
         break;
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
-        this.setState({networkOverrideConfig: payload.config});
+        this.setState({networkOverrideConfig: payload.config, networkConfigWithChanges: payload.config});
         break;
       case NetworkConfigActions.GET_NODE_CONFIG_SUCCESS:
-        this.setState({nodeOverrideConfig: payload.config});
+        this.setState({nodeOverrideConfig: payload.config, nodeConfigWithChanges: payload.config});
         break;
       case NetworkConfigActions.SET_NETWORK_CONFIG_SUCCESS:
         this.saveNetworkConfig(payload.config);
         break;
       case NetworkConfigActions.SET_NODE_CONFIG_SUCCESS:
-        this.saveNodeConfig(payload.config);
+        this.saveNodeConfig(payload.config, true);
         break;
       default:
         break;
@@ -156,23 +173,30 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   editNodeConfig = (editPath, value) => {
-    const {nodeDraftConfig, selectedNodes} = this.state;
+    const {nodeDraftConfig, nodeConfigWithChanges, selectedNodes} = this.state;
 
-    let newNodeDraftConfig = Object.assign({}, nodeDraftConfig);
+    // deep copy to avoid mutating this.state directly
+    let newNodeDraftConfig = _.cloneDeep(nodeDraftConfig);
+    let newNodeConfigWithChanges = _.cloneDeep(nodeConfigWithChanges);
+
     selectedNodes.forEach((node) => {
       newNodeDraftConfig = this.editConfig(newNodeDraftConfig, [node, ...editPath], value);
+      newNodeConfigWithChanges = this.editConfig(newNodeConfigWithChanges, [node, ...editPath], value);
     });
 
     this.setState({
-      nodeDraftConfig: newNodeDraftConfig
+      nodeDraftConfig: newNodeDraftConfig,
+      nodeConfigWithChanges: newNodeConfigWithChanges,
     });
   }
 
   editNetworkConfig = (editPath, value) => {
-    const {networkDraftConfig} = this.state;
+    const {networkDraftConfig, networkConfigWithChanges} = this.state;
 
+    // get deep copies of the state so we don't directly mutate this.state
     this.setState({
-      networkDraftConfig: this.editConfig(networkDraftConfig, editPath, value)
+      networkDraftConfig: this.editConfig(_.cloneDeep(networkDraftConfig), editPath, value),
+      networkConfigWithChanges: this.editConfig(_.cloneDeep(networkConfigWithChanges), editPath, value),
     });
   }
 
@@ -182,62 +206,83 @@ export default class NetworkConfigContainer extends React.Component {
     return _.set(config, editPath, value);
   }
 
+  revertNodeConfig = (editPath) => {
+    console.log('this is hard for a node', editPath);
+  }
+
+  revertNetworkConfig = (editPath) => {
+    console.log('this is hard for a network', editPath);
+  }
+
+  revertConfig = (draftConfig, revertFields, editPath) => {
+    const newRevertFields = _.set(revertFields, editPath, true);
+    const newDraftConfig = _.merge({}, draftConfig);
+    _.unset(newDraftConfig, editPath);
+
+    return {};
+  }
+
+  unsetAndCleanup = (obj, editPath) => {}
+
+  // functions called in the component when API calls return
+  // save (returned when API sends us a successful ack)
   saveNetworkConfig = (draftConfigForNetwork) => {
-    // _.merge is like a deep version of Object.assign
-    // here, we merge the draft override into the current override
-
-    let newNetworkOverrideConfig = {};
-    _.merge(newNetworkOverrideConfig, this.state.networkOverrideConfig, draftConfigForNetwork);
-
     this.setState({
-      networkOverrideConfig: newNetworkOverrideConfig,
+      networkOverrideConfig: _.cloneDeep(this.state.networkConfigWithChanges),
       networkDraftConfig: {},
     });
   }
 
-  // TODO: this only pushes changes/draft for the selected, and discards FOR ALL OTHER NODES
-  // I think we should let the user pick...
-  saveNodeConfig = (draftConfigForSelectedNodes) => {
-    let modifiedConfigsByNode = {};
+  saveNodeConfig = (draftConfigForSelectedNodes, saveSelected) => {
+    if (saveSelected) {
+      // changes pushed only for selected nodes
+      let newNodeOverrideConfig = _.cloneDeep(this.state.nodeOverrideConfig);
+      let newNodeDraftConfig = _.cloneDeep(this.state.nodeDraftConfig);
 
-    this.state.selectedNodes.forEach((node) => {
-      let newConfigForNode = {};
-      let existingNodeOverride = this.state.nodeOverrideConfig[node] === undefined ? {} : this.state.nodeOverrideConfig[node];
+      this.state.selectedNodes.forEach((node) => {
+        newNodeOverrideConfig[node] = this.state.nodeConfigWithChanges[node];
+        delete newNodeDraftConfig[node];
+      });
 
-      // for each selected node, merge its existing override with its draft
-      // this produces all modified node configs
-      _.merge(newConfigForNode, existingNodeOverride, draftConfigForSelectedNodes);
-      modifiedConfigsByNode[node] = newConfigForNode;
-    });
-
-    // now merge the current existing node overrides with the modified ones
-    // and set that as our state
-    let mergedNodeOverride = {};
-    _.merge(mergedNodeOverride, this.state.nodeOverrideConfig, modifiedConfigsByNode);
-    this.setState({
-      nodeOverrideConfig: mergedNodeOverride,
-      nodeDraftConfig: {},
-    });
+      this.setState({
+        nodeOverrideConfig: newNodeOverrideConfig,
+        nodeDraftConfig: newNodeDraftConfig,
+      });
+    } else {
+      this.setState({
+        nodeOverrideConfig: _.cloneDeep(this.state.nodeConfigWithChanges),
+        nodeDraftConfig: {},
+      });
+    }
   }
 
   resetNetworkConfig = () => {
-    // wipe the entire network draft config
     this.setState({
-      networkDraftConfig: {}
+      networkDraftConfig: {},
+      networkConfigWithChanges: _.cloneDeep(this.state.networkOverrideConfig),
     });
   }
 
   resetSelectedNodesConfig = () => {
-    let newNodeDraftConfig = Object.assign({}, this.state.nodeDraftConfig);
-    this.state.selectedNodes.forEach(node => delete newNodeDraftConfig[node]);
+    let newNodeDraftConfig = _.cloneDeep(this.state.nodeDraftConfig);
+    let newNodeConfigWithChanges = _.cloneDeep(this.state.nodeConfigWithChanges);
+
+    this.state.selectedNodes.forEach((node) => {
+      delete newNodeDraftConfig[node];
+      newNodeConfigWithChanges[node] = this.state.nodeOverrideConfig[node] === undefined ?
+        undefined : _.cloneDeep(this.state.nodeOverrideConfig[node]);
+    });
+
     this.setState({
-      nodeDraftConfig: newNodeDraftConfig
+      nodeDraftConfig: newNodeDraftConfig,
+      nodeConfigWithChanges: newNodeConfigWithChanges,
     });
   }
 
   resetAllNodesConfig = () => {
     this.setState({
-      nodeDraftConfig: {}
+      nodeDraftConfig: {},
+      nodeConfigWithChanges: _.cloneDeep(this.state.nodeOverrideConfig),
     });
   }
 
@@ -254,10 +299,17 @@ export default class NetworkConfigContainer extends React.Component {
 
     const {
       baseConfig,
+
       networkOverrideConfig,
       networkDraftConfig,
+      networkRevertFields
+      networkConfigWithChanges,
+
       nodeOverrideConfig,
       nodeDraftConfig,
+      nodeRevertFields,
+      nodeConfigWithChanges,
+
       editMode,
       selectedNodes,
     } = this.state;
@@ -270,13 +322,18 @@ export default class NetworkConfigContainer extends React.Component {
         topologyName={topologyName}
         nodes={nodes}
         selectedNodes={selectedNodes}
-
         editMode={editMode}
         baseConfig={baseConfig}
+
         networkOverrideConfig={networkOverrideConfig}
         networkDraftConfig={networkDraftConfig}
+        networkRevertFields={networkRevertFields}
+        networkConfigWithChanges={networkConfigWithChanges}
+
         nodeOverrideConfig={nodeOverrideConfig}
         nodeDraftConfig={nodeDraftConfig}
+        nodeRevertFields={nodeRevertFields}
+        nodeConfigWithChanges={nodeConfigWithChanges}
       />
     );
   }

@@ -1,5 +1,6 @@
 export const CONFIG_VIEW_MODE = {
-  BASE: 'BASE',
   NETWORK: 'NETWORK',
   NODE: 'NODE',
 };
+
+export const CONFIG_LAYER_DESC = ['base', 'network override', 'node override'];

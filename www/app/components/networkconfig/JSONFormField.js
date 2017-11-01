@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
 
-import {editConfigForm} from '../../actions/NetworkConfigActions.js';
+import {editConfigForm, revertConfigOverride} from '../../actions/NetworkConfigActions.js';
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
@@ -20,6 +20,14 @@ export default class JSONFormField extends React.Component {
     editConfigForm({
       editPath: this.props.editPath,
       value
+    });
+  }
+
+  revertField = () => {
+    // TODO
+    console.log('reverting field: ', this.props.editPath);
+    revertConfigOverride({
+      editPath: this.props.editPath,
     });
   }
 
@@ -79,12 +87,6 @@ export default class JSONFormField extends React.Component {
     return inputItem;
   }
 
-  renderRevertButton(displayIdx, isDraft) => {
-    // TODO
-    // if it's a draft we just clear it
-
-  }
-
   render() {
     const {
       formLabel,
@@ -101,17 +103,16 @@ export default class JSONFormField extends React.Component {
       displayVal, displayIdx, isDraft
     );
 
-    // TODO: also render the reset button and pop up
-
     return (
-      <div className='rc-json-form-field'>
-        <label className={classNames({'config-form-label': true, 'json-field-focused': focus})}>
+      <div className={classNames({'rc-json-form-field': true, 'json-field-focused': focus})}>
+        <label className='config-form-label'>
           {formLabel}:
         </label>
         {formInputElement}
-        <img src='/static/images/delete.png'
-          onClick={this.onClick}
-          title={displayIdx > }
+        <img src='/static/images/undo.png'
+          style={{marginLeft: '5px'}}
+          onClick={this.revertField}
+          title='Remove override value'
         />
       </div>
     );
