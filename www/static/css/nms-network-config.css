@@ -64,7 +64,7 @@
 
 /* NETWORK CONFIG BODY */
 .rc-network-config-body {
-  margin-top: 110px;
+  padding-top: 110px;
   margin-bottom: 65px;
 
   width: calc(100% - 300px);
@@ -139,6 +139,9 @@
 }
 
 /* NETWORK CONFIG JSON FORM INPUTS */
+.rc-json-form-field {
+  display: inline-block;
+}
 
 .config-form-input {
   /*background-color: #fff;*/
@@ -168,4 +171,46 @@
 
 .nc-revert-field {
   border: 2px solid #000077;
+}
+
+/* config form tooltip */
+.rc-json-field-tooltip {
+  opacity: 1;
+  background-color: #fff;
+  border-radius: 5px;
+  border: 1px solid #777;
+  padding: 5px;
+  margin: auto;
+
+  display: inline-table;
+  z-index: 1;
+  position: absolute;
+  left: calc(100% + 80px);
+  top: 0;
+  bottom: 0;
+}
+
+.rc-json-field-tooltip::after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    right: 100%; /* To the left of the tooltip */
+    margin-top: -10px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent #777 transparent transparent;
+}
+
+.rc-json-field-tooltip tr {
+  white-space: nowrap;
+  margin: 5px;
+}
+
+.nc-tooltip-undefined {
+  font-style: italic;
+}
+
+.nc-tooltip-label {
+  font-weight: 600;
+  margin-right: 5px;
 }
