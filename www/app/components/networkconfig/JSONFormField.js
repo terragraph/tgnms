@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
 
-import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
-import {editConfigForm, revertConfigOverride} from '../../actions/NetworkConfigActions.js';
+import { REVERT_VALUE, CONFIG_CLASSNAMES } from '../../constants/NetworkConfigConstants.js';
+import {editConfigForm, revertConfigOverride, undoRevertConfig} from '../../actions/NetworkConfigActions.js';
 
 // TODO: classnames:
 // nc-layer-0, nc-layer-1, nc-layer-2, nc-draft, nc-reverted
@@ -29,29 +29,35 @@ export default class JSONFormField extends React.Component {
   }
 
   revertField = () => {
-    // TODO
     console.log('reverting field: ', this.props.editPath);
     revertConfigOverride({
       editPath: this.props.editPath,
     });
   }
 
-  // throwaway bg color function since I'm lazy
-  getBackgroundColor = (displayIdx, isDraft, isReverted) => {
-    var backgroundColor = '#fff';
-    if (isReverted) {
-      backgroundColor = '#999'; // grey for now, will show as different style
-    } else if (isDraft) {
-      // RED
-      backgroundColor = '#ffaaaa';
-    } else if (displayIdx === 1) {
-      // BLUE
-      backgroundColor = 'rgb(183,210,255)';
-    } else if (displayIdx >= 2) {
-      // GREEN
-      backgroundColor = '#aaffaa';
-    }
-    return backgroundColor;
+  undoRevert = () => {
+    console.log('undoing revert: ', this.props.editPath);
+    undoRevertConfig({
+      editPath: this.props.editPath,
+    });
+  }
+
+  getClassName = (providedClass, displayIdx, isDraft, isReverted) => {
+    let className = {};
+    className[providedClass] = true;
+
+    className[CONFIG_CLASSNAMES.BASE] = displayIdx <= 0 && !isDraft;
+    className[CONFIG_CLASSNAMES.NETWORK] = displayIdx === 1 && !isDraft;
+    className[CONFIG_CLASSNAMES.NODE] = displayIdx >= 2 && !isDraft;
+
+    className[CONFIG_CLASSNAMES.DRAFT] = isDraft;
+    className[CONFIG_CLASSNAMES.REVERT] = isReverted;
+
+    return classNames(className);
+  }
+
+  getCheckboxStyle = (displayIdx, isDraft, isReverted) => {
+
   }
 
   renderInputItem = (displayVal, displayIdx, isDraft, isReverted) => {
@@ -59,20 +65,20 @@ export default class JSONFormField extends React.Component {
       <span>Error: unable to render child val of {displayVal}</span>
     );
 
+    const inputClass = this.getClassName('config-form-input', displayIdx, isDraft, isReverted);
+
     switch (typeof displayVal) {
       case 'boolean':
         inputItem = (
           <input type='checkbox' checked={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft, isReverted), display: 'table-cell'}}
             onChange={(event) => this.editField(event.target.checked)}
           />
         );
         break;
       case 'number':
         inputItem = (
-          <input className='config-form-input' type='number'
+          <input className={inputClass} type='number'
             value={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft, isReverted), display: 'table-cell'}}
             onChange={(event) => this.editField( Number(event.target.value) )}
             onFocus={() => this.setState({focus: true})}
             onBlur={() => this.setState({focus: false})}
@@ -81,9 +87,8 @@ export default class JSONFormField extends React.Component {
         break;
       case 'string':
         inputItem = (
-          <input className='config-form-input' type='text'
+          <input className={inputClass} type='text'
             value={displayVal}
-            style={{backgroundColor: this.getBackgroundColor(displayIdx, isDraft, isReverted), display: 'table-cell'}}
             onChange={(event) => this.editField(event.target.value)}
             onFocus={() => this.setState({focus: true})}
             onBlur={() => this.setState({focus: false})}
@@ -92,6 +97,10 @@ export default class JSONFormField extends React.Component {
         break;
     }
     return inputItem;
+  }
+
+  isRevertable = (displayIdx, values) => {
+    return displayIdx === values.length - 1;
   }
 
   render() {
@@ -115,11 +124,20 @@ export default class JSONFormField extends React.Component {
           {formLabel}:
         </label>
         {formInputElement}
-        <img src='/static/images/undo.png'
-          style={{marginLeft: '5px'}}
-          onClick={this.revertField}
-          title='Remove override value'
-        />
+        {this.isRevertable(displayIdx, values) &&
+          <img src='/static/images/undo.png'
+            style={{marginLeft: '5px'}}
+            onClick={this.revertField}
+            title='Remove override value'
+          />
+        }
+        {isReverted &&
+          <img src='/static/images/refresh.png'
+            style={{marginLeft: '5px', height: '18px', 'width': '18px'}}
+            onClick={this.undoRevert}
+            title='Undo revert override'
+          />
+        }
       </div>
     );
   }

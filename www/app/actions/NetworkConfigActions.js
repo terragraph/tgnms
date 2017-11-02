@@ -5,6 +5,8 @@ export const NetworkConfigActions = {
   CHANGE_EDIT_MODE: 'CHANGE_EDIT_MODE',
   EDIT_CONFIG_FORM: 'EDIT_CONFIG_FORM',
   REVERT_CONFIG_OVERRIDE: 'REVERT_CONFIG_OVERRIDE',
+  UNDO_REVERT_CONFIG: 'UNDO_REVERT_CONFIG',
+
   RESET_CONFIG: 'RESET_CONFIG',
   RESET_CONFIG_FOR_ALL_NODES: 'RESET_CONFIG_FOR_ALL_NODES',
 
@@ -55,6 +57,13 @@ export const editConfigForm = ({editPath, value}) => {
 export const revertConfigOverride = ({editPath}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.REVERT_CONFIG_OVERRIDE,
+    editPath,
+  });
+}
+
+export const undoRevertConfig = ({editPath}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.UNDO_REVERT_CONFIG,
     editPath,
   });
 }

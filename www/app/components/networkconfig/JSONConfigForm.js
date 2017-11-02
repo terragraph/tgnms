@@ -8,6 +8,9 @@ const classNames = require('classnames');
 import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
 
+const isReverted = (draftValue) => {
+  return draftValue === REVERT_VALUE;
+}
 
 // internal config form class that wraps a JSONConfigForm with a label
 // mostly used to toggle a form's expandability
@@ -112,13 +115,13 @@ class JSONConfigInput extends React.Component {
     const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
 
     // some values are undefined
-    const isReverted = draftValue === REVERT_VALUE;
-    const isDraft = draftValue !== undefined && !isReverted;
+    const isFieldReverted = isReverted(draftValue);
+    const isDraft = draftValue !== undefined && !isFieldReverted;
 
     // TODO: getRevertedValue function
     const displayVal = isDraft ? draftValue : values[displayIdx];
 
-    const inputItem = this.renderInputItem(isReverted, isDraft, displayVal);
+    const inputItem = this.renderInputItem(isFieldReverted, isDraft, displayVal);
 
     return (
       <div className='rc-json-config-input'>
@@ -153,7 +156,7 @@ export default class JSONConfigForm extends React.Component {
     return [...dedupedFields];
   }
 
-  getDisplayIdx = (configVals) => {
+  getDisplayIdx = (configVals, isReverted) => {
     // traverse the array backwards and stop at the first value that is not undefined
     // this lets us get the "highest" override for a value, aka what to display
     for (var idx = configVals.length - 1; idx >= 0; idx --) {
@@ -180,8 +183,13 @@ export default class JSONConfigForm extends React.Component {
     const configFields = this.getStackedFields(configs);
 
     const childItems = configFields.map((field) => {
+      const draftValue = draftConfig[field];
       const configVals = configs.map(config => config[field]);
-      const displayIdx = this.getDisplayIdx(configVals);
+
+      // disregard the highest level of override if we have decided to revert the value
+      const displayIdx = this.getDisplayIdx(
+        isReverted(draftValue) ? configVals.slice(0, configVals.length - 1) : configVals
+      );
 
       return (
         <JSONConfigInput

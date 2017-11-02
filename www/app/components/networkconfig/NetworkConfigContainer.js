@@ -121,10 +121,17 @@ export default class NetworkConfigContainer extends React.Component {
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.setState({
             nodeDraftConfig: this.editNodeConfig(this.state.nodeDraftConfig, payload.editPath, REVERT_VALUE),
-            nodeConfigWithChanges: this.revertNodeConfig(payload.editPath),
+            nodeConfigWithChanges: this.unsetAndCleanupNodes(this.state.nodeConfigWithChanges, payload.editPath),
           });
         } else {
           this.revertNetworkConfig(payload.editPath);
+        }
+        break;
+      case NetworkConfigActions.UNDO_REVERT_CONFIG:
+        if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
+          this.undoRevertNodeConfig(payload.editPath);
+        } else {
+          this.undoRevertNetworkConfig(payload.editPath);
         }
         break;
 
@@ -177,42 +184,19 @@ export default class NetworkConfigContainer extends React.Component {
     }
   }
 
-  editNodeConfig = (config, editPath, value) => {
-    let newNodeConfig = _.cloneDeep(config);
-    this.state.selectedNodes.forEach((node) => {
-      newNodeConfig = this.editConfig(newNodeConfig, [node, ...editPath], value);
-    });
-    return newNodeConfig;
-  }
-
-  editNetworkConfig = (editPath, value) => {
-    // get deep copies of the state so we don't directly mutate this.state
-    this.setState({
-      networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, value),
-      networkConfigWithChanges: this.editConfig(_.cloneDeep(this.state.networkConfigWithChanges), editPath, value),
-    });
-  }
-
   editConfig = (config, editPath, value) => {
     // _.set sets the object property defined in editPath to be the value passed in
     // it will create the path in the object if one does not exist
     return _.set(config, editPath, value);
   }
 
-  revertNetworkConfig = (editPath) => {
-    this.setState({
-      networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, REVERT_VALUE),
-      networkConfigWithChanges: this.unsetAndCleanup(this.state.networkConfigWithChanges, editPath, 0),
-    });
-  }
-
-  revertNodeConfig = (editPath) => {
-    let newNodeConfigWithChanges = _.cloneDeep(this.state.nodeConfigWithChanges);
+  unsetAndCleanupNodes = (config, editPath) => {
+    let newConfig = _.cloneDeep(config);
     this.state.selectedNodes.forEach((node) => {
-      newNodeConfigWithChanges = this.unsetAndCleanup(newNodeConfigWithChanges, [node, ...editPath], 1);
+      newConfig = this.unsetAndCleanup(newConfig, [node, ...editPath], 1);
     });
 
-    return newNodeConfigWithChanges;
+    return newConfig;
   }
 
   // unsets the property in obj retrieved using editPath
@@ -239,6 +223,55 @@ export default class NetworkConfigContainer extends React.Component {
     }
 
     return cleanedObj;
+  }
+
+  editNodeConfig = (config, editPath, value) => {
+    let newNodeConfig = _.cloneDeep(config);
+    this.state.selectedNodes.forEach((node) => {
+      newNodeConfig = this.editConfig(newNodeConfig, [node, ...editPath], value);
+    });
+    return newNodeConfig;
+  }
+
+  editNetworkConfig = (editPath, value) => {
+    // get deep copies of the state so we don't directly mutate this.state
+    this.setState({
+      networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, value),
+      networkConfigWithChanges: this.editConfig(_.cloneDeep(this.state.networkConfigWithChanges), editPath, value),
+    });
+  }
+
+  revertNetworkConfig = (editPath) => {
+    this.setState({
+      networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, REVERT_VALUE),
+      networkConfigWithChanges: this.unsetAndCleanup(this.state.networkConfigWithChanges, editPath, 0),
+    });
+  }
+
+  undoRevertNetworkConfig = (editPath) => {
+    this.setState({
+      networkDraftConfig: this.unsetAndCleanup(this.state.networkDraftConfig, editPath, 0),
+      networkConfigWithChanges: this.editConfig(
+        _.cloneDeep(this.state.networkOverrideConfig),
+        editPath,
+        _.get(this.state.networkOverrideConfig, editPath),
+      ),
+    });
+  }
+
+  undoRevertNodeConfig = (editPath) => {
+    let newNodeConfigWithChanges = _.cloneDeep(this.state.nodeConfigWithChanges);
+    this.state.selectedNodes.forEach((node) => {
+      newNodeConfigWithChanges = this.editConfig(
+        newNodeConfigWithChanges,
+        [node, ...editPath],
+        _.get(this.state.nodeOverrideConfig, [node, ...editPath]),
+      );
+    })
+    this.setState({
+      nodeDraftConfig: this.unsetAndCleanupNodes(this.state.nodeDraftConfig, editPath),
+      nodeConfigWithChanges: newNodeConfigWithChanges,
+    });
   }
 
   // functions called in the component when API calls return

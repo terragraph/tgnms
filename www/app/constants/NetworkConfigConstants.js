@@ -13,5 +13,5 @@ export const CONFIG_CLASSNAMES = {
   NETWORK: 'nc-network-field',
   NODE: 'nc-node-field',
   DRAFT: 'nc-draft-field',
-  REVERT: 'nc-draft-field',
+  REVERT: 'nc-revert-field',
 }
