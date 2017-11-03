@@ -26,14 +26,14 @@ export default class JSONFormField extends React.Component {
   }
 
   revertField = () => {
-    console.log('reverting field: ', this.props.editPath);
+    // console.log('reverting field: ', this.props.editPath);
     revertConfigOverride({
       editPath: this.props.editPath,
     });
   }
 
   undoRevert = () => {
-    console.log('undoing revert: ', this.props.editPath);
+    // console.log('undoing revert: ', this.props.editPath);
     undoRevertConfig({
       editPath: this.props.editPath,
     });
@@ -74,21 +74,17 @@ export default class JSONFormField extends React.Component {
         break;
       case 'number':
         inputItem = (
-          <input className={inputClass} type='number'
-            value={displayVal}
+          <input className={inputClass} type='number' value={displayVal}
             onChange={(event) => this.editField( Number(event.target.value) )}
-            onFocus={() => this.setState({focus: true})}
-            onBlur={() => this.setState({focus: false})}
+            onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
           />
         );
         break;
       case 'string':
         inputItem = (
-          <input className={inputClass} type='text'
-            value={displayVal}
+          <input className={inputClass} type='text' value={displayVal}
             onChange={(event) => this.editField(event.target.value)}
-            onFocus={() => this.setState({focus: true})}
-            onBlur={() => this.setState({focus: false})}
+            onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
           />
         );
         break;
@@ -101,16 +97,7 @@ export default class JSONFormField extends React.Component {
   }
 
   render() {
-    const {
-      formLabel,
-      displayIdx,
-      values,
-      draftValue,
-
-      isReverted,
-      isDraft,
-      displayVal,
-    } = this.props;
+    const {formLabel, displayIdx, values, draftValue, isReverted, isDraft, displayVal} = this.props;
     const {focus} = this.state;
 
     const formInputElement = this.renderInputItem(displayVal, displayIdx, isDraft, isReverted);

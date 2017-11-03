@@ -149,6 +149,24 @@ const mockConfigJSON = {
   }
 };
 
+export const getBaseConfigForVersion = (topologyName, version) => {
+  const uri - '/controller/getBaseConfig';
+
+  axios.get(uri, {
+    params: {
+      topologyName,
+      imageVersion: version,
+    }
+  }).then((response) => {
+    console.log(response.data);
+  })
+
+}
+
+export const getBaseConfigForAllVersions = (topologyName, imageVersions) => {
+
+}
+
 // TODO: until the API is actually out, I'll mock out a wait time of 200ms so I don't get an Error
 // for dispatching while I dispatch (dispatchception)
 export const getBaseConfig = (topologyName) => {
