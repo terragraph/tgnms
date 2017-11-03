@@ -5,11 +5,17 @@ const fs = require('fs');
 const request = require('request');
 const express = require('express');
 
+// set up the upgrade images path
+const NETWORK_UPGRADE_IMAGES_PATH = './static/tg-binaries';
+if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_PATH)) {
+  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_PATH);
+}
+
 // multer + configuration
 const multer  = require('multer');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './static/tg-binaries');
+    cb(null, NETWORK_UPGRADE_IMAGES_PATH);
   },
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
