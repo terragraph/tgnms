@@ -38,8 +38,10 @@ module.exports = {
   },
 
   versionSlicer: function(versionName) {
+    //RELEASE_M12_3 (michaelcallahan@devbig730 Tue Aug 8 10:48:29 PDT 2017) 
     let releaseIdx = versionName.indexOf('RELEASE_');
-    let releaseName = versionName.substring(releaseIdx + 8, versionName.indexOf('-', releaseIdx));
+    let splitIndex = Math.min(versionName.indexOf('-', releaseIdx), versionName.indexOf(' ', releaseIdx));
+    let releaseName = versionName.substring(releaseIdx + 8, splitIndex);
     return releaseName;
   },
 
