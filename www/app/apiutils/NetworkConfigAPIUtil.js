@@ -4,7 +4,6 @@ var _ = require('lodash');
 
 import {
   getBaseConfigSuccess,
-  getBaseConfigSuccessTest,
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
 
@@ -23,55 +22,24 @@ const getBaseConfigForVersion = (topologyName, version) => {
 }
 
 export const getBaseConfig = (topologyName, imageVersions) => {
-  const promises = imageVersions.map((version) => {
-    return getBaseConfigForVersion(topologyName, version);
-  });
+  const uri = '/controller/getBaseConfig';
 
-  Promise.all(promises)
-    .then((responses) => {
-      let baseConfigByVersion = {};
+  console.log('attempting imageVersions', imageVersions);
 
-      responses.forEach((resp) => {
-        const {imageVersion, config} = resp.data;
-        baseConfigByVersion[imageVersion] = config;
-      });
-
-      // TODO: dispatch!
-      console.log(baseConfigByVersion);
-    });
-}
-
-// TODO: until the API is actually out, I'll mock out a wait time of 200ms so I don't get an Error
-// for dispatching while I dispatch (dispatchception)
-export const getBaseConfigTest = (topologyName) => {
-  // easy testing
-  const smallJSON = {
-    intField: 3,
-    dblField: 3.12341234,
-    nest1: {
-      ception: 'asdf',
-      cation: 'cathode ray tubes',
-      check: false
-    },
-    cen: 'basecen',
-    gras: true,
-    nest2: {
-      nest3: {
-        whoa: 'asdf',
-        intField: 456
-      },
-      egg: 'tamagoyaki'
+  return axios.get(uri, {
+    params: {
+      topologyName,
+      imageVersions: imageVersions,
     }
-  };
-
-  // so what does this return, map of image version to config?
-  setTimeout(() => {
-    getBaseConfigSuccessTest({
-      config: smallJSON,
+  }).then((response) => {
+    const {config} = response.data;
+    console.log('fetched base!', config)
+    getBaseConfigSuccess({
+      config,
       topologyName,
     });
-  }, 200);
-};
+  });
+}
 
 export const getNetworkOverrideConfig = (topologyName) => {
   const uri = '/controller/getNetworkOverrideConfig';

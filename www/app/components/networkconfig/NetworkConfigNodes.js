@@ -10,6 +10,8 @@ import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
 import {changeEditMode, selectNodes} from '../../actions/NetworkConfigActions.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
+const KEY_FIELD = 'mac_addr';
+
 export default class NetworkConfigNodes extends React.Component {
   constructor(props) {
     super(props);
@@ -31,11 +33,13 @@ export default class NetworkConfigNodes extends React.Component {
   tableOnRowSelect = (row, isSelected) => {
     // force at least 1 node to be selected at all times
     selectNodes({
-      nodes: [row.mac_addr]
+      nodes: [row]
     });
   }
 
-
+  getSelectedKeys = (selectedNodes) => {
+    return selectedNodes.map(node => node[KEY_FIELD]);
+  }
 
   renderNodeTable = () => {
     const selectRowProp = {
@@ -44,14 +48,14 @@ export default class NetworkConfigNodes extends React.Component {
       hideSelectColumn: true,
       bgColor: 'rgb(183,210,255)',
       onSelect: this.tableOnRowSelect,
-      selected: this.props.selectedNodes,
+      selected: this.getSelectedKeys(this.props.selectedNodes),
     };
 
     return (
       <BootstrapTable
         tableStyle={{margin: 0}}
         data={ this.props.nodes }
-        keyField='mac_addr'
+        keyField={KEY_FIELD}
         bordered={ false }
         selectRow={selectRowProp}
       >

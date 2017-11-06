@@ -14,22 +14,34 @@ export default class NetworkConfig extends React.Component {
     super(props);
   }
 
+  getBaseConfig = (baseConfigByVersion, editMode, selectedImage, selectedNodes) => {
+    if (editMode === CONFIG_VIEW_MODE.NODE) {
+      console.log('selected nodes', selectedNodes);
+      return (selectedNodes[0].imageVersion === null || Object.keys(baseConfigByVersion).length === 0) ?
+        {} : baseConfigByVersion[selectedNodes[0].imageVersion];
+    }
+    return (selectedImage === '' || Object.keys(baseConfigByVersion).length === 0) ?
+      {} : baseConfigByVersion[selectedImage];
+  }
+
   // nodeConfig is keyed by node name
   // this function combines multiple different node configs into a single config
   // TODO: since we're assuming you can only select a single node for now,
   // we'll just take the config for that particular node
   combineNodeConfigs = (selectedNodes, nodeConfig) => {
-    return nodeConfig[selectedNodes[0]] === undefined ? {} : nodeConfig[selectedNodes[0]];
+    return nodeConfig[selectedNodes[0].mac_addr] === undefined ? {} : nodeConfig[selectedNodes[0].mac_addr];
   }
 
   render() {
     const {
       topologyName,
+      imageVersions,
+      selectedImage,
       nodes,
       selectedNodes,
 
       editMode,
-      baseConfig,
+      baseConfigByVersion,
 
       networkOverrideConfig,
       networkDraftConfig,
@@ -39,6 +51,8 @@ export default class NetworkConfig extends React.Component {
       nodeDraftConfig,
       nodeConfigWithChanges,
     } = this.props;
+
+    const baseConfig = this.getBaseConfig(baseConfigByVersion, editMode, selectedImage, selectedNodes);
 
     // stack the configs by putting them in an array
     const stackedConfigs = (editMode === CONFIG_VIEW_MODE.NODE) ?
@@ -56,6 +70,8 @@ export default class NetworkConfig extends React.Component {
       <div className='rc-network-config'>
         <NetworkConfigLeftPane
           topologyName={topologyName}
+          imageVersions={imageVersions}
+          selectedImage={selectedImage}
 
           editMode={editMode}
           networkDraftExists={Object.keys(networkDraftConfig).length > 0}
@@ -80,10 +96,12 @@ export default class NetworkConfig extends React.Component {
 NetworkConfig.propTypes = {
   topologyName: React.PropTypes.string.isRequired,
   nodes: React.PropTypes.array.isRequired,
+  imageVersions: React.PropTypes.array.isRequired,
+  selectedImage: React.PropTypes.string.isRequired,
   selectedNodes: React.PropTypes.array.isRequired,
 
   editMode: React.PropTypes.string.isRequired,
-  baseConfig: React.PropTypes.object.isRequired,
+  baseConfigByVersion: React.PropTypes.object.isRequired,
 
   networkOverrideConfig: React.PropTypes.object.isRequired,
   networkDraftConfig: React.PropTypes.object.isRequired,

@@ -1403,7 +1403,7 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, ne
 
 // network config endpoints
 app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
-  const {topologyName, imageVersion} = req.query;
+  const {topologyName, imageVersions} = req.query;
 
   // hey Tariq, I'm waiting for the thrift file!
   const mockConfig = {
@@ -1425,10 +1425,14 @@ app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
     }
   };
 
+  const returnedJSON = {};
+  const versions = imageVersions === undefined ? [] : imageVersions;
+  versions.forEach(version => returnedJSON[version] = mockConfig);
+
   // TODO: basically all the thrift call stuff goes here, for now we return
   res.status(200).send({
-    imageVersion,
-    config: mockConfig,
+    imageVersions,
+    config: returnedJSON,
   });
 });
 

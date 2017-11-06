@@ -8,9 +8,6 @@ var _ = require('lodash');
 
 import {
   getBaseConfig,
-
-  getBaseConfigTest,
-
   getNetworkOverrideConfig,
   getNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
@@ -31,12 +28,14 @@ export default class NetworkConfigContainer extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
+    const imageVersions = getImageVersionsForNetwork(props.networkConfig.topology);
+    const defaultSelectedImage = imageVersions.length > 0 ? imageVersions[0] : '';
+
     // TODO: @Tariq: the fact that this state is huge makes a compelling case for converting to redux.js
     // and splitting this into multiple data stores somewhere down the line
     this.state = {
       // base network config
-      // at first this is for the entire topology
-      // later, we should map image version to one of these objects
+      // map of software version to config
       baseConfig: {},
 
       // network override
@@ -61,6 +60,9 @@ export default class NetworkConfigContainer extends React.Component {
       // changed by selecting node(s) or the network in the left pane in the UI
       editMode: CONFIG_VIEW_MODE.NETWORK,
 
+      // currently selected image version
+      selectedImage: defaultSelectedImage,
+
       // currently selected set of nodes which the config is being viewed as
       selectedNodes: [],
     }
@@ -82,14 +84,15 @@ export default class NetworkConfigContainer extends React.Component {
       networkConfig.topology.nodes.map(node => node.mac_addr) : []; // fetch from the topology
   }
 
-  // get node name and MAC
+  // get node name, MAC and image version
   getNodes = () => {
     const {networkConfig} = this.props;
     return (networkConfig.topology && networkConfig.topology.nodes) ?
       networkConfig.topology.nodes.map((node) => {
         return {
           name: node.name,
-          mac_addr: node.mac_addr
+          mac_addr: node.mac_addr,
+          imageVersion: (node.status_dump) ? node.status_dump.version : null,
         };
       }) : []; // fetch from the topology
   }
@@ -105,6 +108,9 @@ export default class NetworkConfigContainer extends React.Component {
       // actions that change the editing context
       case NetworkConfigActions.CHANGE_EDIT_MODE:
         this.changeEditMode(payload.editMode);
+        break;
+      case NetworkConfigActions.SELECT_IMAGE:
+        this.setState({selectedImage: payload.image});
         break;
       case NetworkConfigActions.SELECT_NODES:
         this.setState({selectedNodes: payload.nodes});
@@ -152,7 +158,7 @@ export default class NetworkConfigContainer extends React.Component {
         break;
 
       // actions from API call returns
-      case NetworkConfigActions.GET_BASE_CONFIG_SUCCESS_TEST:
+      case NetworkConfigActions.GET_BASE_CONFIG_SUCCESS:
         this.setState({baseConfig: payload.config});
         break;
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
@@ -174,7 +180,7 @@ export default class NetworkConfigContainer extends React.Component {
 
   changeEditMode = (newEditMode) => {
     if (this.state.editMode !== newEditMode) {
-      const nodes = this.getNodeMacs();
+      const nodes = this.getNodes();
 
       // set 1 node to be selected if we switch into node view/edit mode
       // otherwise, clear selected nodes
@@ -317,10 +323,11 @@ export default class NetworkConfigContainer extends React.Component {
   fetchConfigsForCurrentTopology = (topologyName) => {
     const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
     getBaseConfig(topologyName, imageVersions);
+    console.log(imageVersions);
 
     // each API call's success actions will update different parts of the state
     // so it's safe to fire all 3 at once
-    getBaseConfigTest(topologyName);
+    // getBaseConfigTest(topologyName);
     getNetworkOverrideConfig(topologyName);
     getNodeOverrideConfig(this.getNodeMacs(), topologyName);
   }
@@ -340,6 +347,7 @@ export default class NetworkConfigContainer extends React.Component {
       nodeConfigWithChanges,
 
       editMode,
+      selectedImage,
       selectedNodes,
     } = this.state;
 
@@ -350,9 +358,11 @@ export default class NetworkConfigContainer extends React.Component {
       <NetworkConfig
         topologyName={topologyName}
         nodes={nodes}
+        imageVersions={getImageVersionsForNetwork(networkConfig.topology)}
+        selectedImage={selectedImage}
         selectedNodes={selectedNodes}
         editMode={editMode}
-        baseConfig={baseConfig}
+        baseConfigByVersion={baseConfig}
 
         networkOverrideConfig={networkOverrideConfig}
         networkDraftConfig={networkDraftConfig}

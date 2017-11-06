@@ -10,10 +10,11 @@ export const NetworkConfigActions = {
   RESET_CONFIG: 'RESET_CONFIG',
   RESET_CONFIG_FOR_ALL_NODES: 'RESET_CONFIG_FOR_ALL_NODES',
 
+  SELECT_IMAGE: 'SELECT_IMAGE',
   SELECT_NODES: 'SELECT_NODES',
 
   // API call resolution actions for get
-  GET_BASE_CONFIG_SUCCESS_TEST: 'GET_BASE_CONFIG_SUCCESS_TEST',
+  GET_BASE_CONFIG_SUCCESS_TEST: 'GET_BASE_CONFIG_SUCCESS',
   GET_BASE_CONFIG_FAILED: 'GET_BASE_CONFIG_FAILED',
 
   GET_NETWORK_CONFIG_SUCCESS: 'GET_NETWORK_CONFIG_SUCCESS',
@@ -37,6 +38,13 @@ export const changeEditMode = ({editMode}) => {
     editMode,
   });
 };
+
+export const selectImage = ({image}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SELECT_IMAGE,
+    image,
+  });
+}
 
 export const selectNodes = ({nodes}) => {
   Dispatcher.dispatch({
@@ -81,9 +89,9 @@ export const resetConfigForAllNodes = () => {
 };
 
 // actions sent from the API handler once API returns
-export const getBaseConfigSuccessTest = ({config, topologyName}) => {
+export const getBaseConfigSuccess = ({config, topologyName}) => {
   Dispatcher.dispatch({
-    actionType: NetworkConfigActions.GET_BASE_CONFIG_SUCCESS_TEST,
+    actionType: NetworkConfigActions.GET_BASE_CONFIG_SUCCESS,
     topologyName,
     config,
   });

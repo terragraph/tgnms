@@ -10,6 +10,7 @@ const classNames = require('classnames');
 import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
 import {changeEditMode} from '../../actions/NetworkConfigActions.js';
 
+import NetworkConfigImageSelector from './NetworkConfigImageSelector.js';
 import NetworkConfigNodes from './NetworkConfigNodes.js';
 
 export default class NetworkConfigLeftPane extends React.Component {
@@ -49,7 +50,7 @@ export default class NetworkConfigLeftPane extends React.Component {
   }
 
   render() {
-    const {nodes, selectedNodes, editMode, nodesWithDrafts} = this.props;
+    const {nodes, selectedNodes, editMode, nodesWithDrafts, imageVersions, selectedImage} = this.props;
     const viewModeSelector = this.renderViewModeSelector();
 
     return (
@@ -62,6 +63,12 @@ export default class NetworkConfigLeftPane extends React.Component {
             nodesWithDrafts={nodesWithDrafts}
           />
         }
+        {editMode === CONFIG_VIEW_MODE.NETWORK &&
+          <NetworkConfigImageSelector
+            imageVersions={imageVersions}
+            selectedImage={selectedImage}
+          />
+        }
       </div>
     );
   }
@@ -69,9 +76,12 @@ export default class NetworkConfigLeftPane extends React.Component {
 
 NetworkConfigLeftPane.propTypes = {
   topologyName: React.PropTypes.string.isRequired,
+  selectedImage: React.PropTypes.string.isRequired,
 
   editMode: React.PropTypes.string.isRequired,
   networkDraftExists: React.PropTypes.bool.isRequired,
+
+  imageVersions: React.PropTypes.array.isRequired,
 
   nodes: React.PropTypes.array.isRequired,
   selectedNodes: React.PropTypes.array.isRequired,
