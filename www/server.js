@@ -1388,7 +1388,6 @@ app.get(/\/controller\/listUpgradeImages\/(.+)$/i, function (req, res, next) {
   }, '', res);
 });
 
-
 app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
   const imageName = req.params[1];
@@ -1400,6 +1399,86 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, ne
     topology: topology,
     name: imageName
   }, '', res);
+});
+
+// network config endpoints
+app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
+  const {topologyName, imageVersion} = req.query;
+
+  // hey Tariq, I'm waiting for the thrift file!
+  const mockConfig = {
+    intField: 3,
+    dblField: 3.12341234,
+    nest1: {
+      ception: 'asdf',
+      cation: 'cathode ray tubes',
+      check: false
+    },
+    cen: 'basecen',
+    gras: true,
+    nest2: {
+      nest3: {
+        whoa: 'asdf',
+        intField: 456
+      },
+      egg: 'tamagoyaki'
+    }
+  };
+
+  // TODO: basically all the thrift call stuff goes here, for now we return
+  res.status(200).send({
+    imageVersion,
+    config: mockConfig,
+  });
+});
+
+app.get(/\/controller\/getNetworkOverrideConfig/i, (req, res, next) => {
+  // hey Tariq, I'm waiting for the thrift file!
+  const mockNetworkOverrideOverride = {
+    dblField: 2.352,
+    nest1: {
+      cation: 'cathode ray tubes',
+      check: false
+    },
+    cen: 'asdfjkl',
+    gras: false,
+    nest2: {
+      nest3: {
+        intField: 789
+      },
+      egg: 'tamagoyaki',
+      betrayal2: 'the interlude',
+    },
+    betrayal1: 'the intro',
+  };
+
+  // TODO: basically all the thrift call stuff goes here, for now we return
+  res.status(200).send({
+    config: mockNetworkOverrideOverride,
+  });
+});
+
+app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
+  // hey Tariq, I'm waiting for the thrift file!
+  const {topologyName, nodes} = req.query;
+
+  const nodeOverrideJSON = {
+    dblField: 3.1415,
+    cen: 'qweryuio',
+    gras: true,
+    nest2: {
+      egg: 'caviar',
+      betrayal3: 'evil'
+    }
+  };
+
+  let returnedJSON = {};
+  nodes.forEach(node => returnedJSON[node] = nodeOverrideJSON);
+
+  // TODO: basically all the thrift call stuff goes here, for now we return
+  res.status(200).send({
+    config: returnedJSON,
+  });
 });
 
 // aggregator endpoints

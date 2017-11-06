@@ -13,7 +13,7 @@ export const NetworkConfigActions = {
   SELECT_NODES: 'SELECT_NODES',
 
   // API call resolution actions for get
-  GET_BASE_CONFIG_SUCCESS: 'GET_BASE_CONFIG_SUCCESS',
+  GET_BASE_CONFIG_SUCCESS_TEST: 'GET_BASE_CONFIG_SUCCESS_TEST',
   GET_BASE_CONFIG_FAILED: 'GET_BASE_CONFIG_FAILED',
 
   GET_NETWORK_CONFIG_SUCCESS: 'GET_NETWORK_CONFIG_SUCCESS',
@@ -81,9 +81,9 @@ export const resetConfigForAllNodes = () => {
 };
 
 // actions sent from the API handler once API returns
-export const getBaseConfigSuccess = ({config, topologyName}) => {
+export const getBaseConfigSuccessTest = ({config, topologyName}) => {
   Dispatcher.dispatch({
-    actionType: NetworkConfigActions.GET_BASE_CONFIG_SUCCESS,
+    actionType: NetworkConfigActions.GET_BASE_CONFIG_SUCCESS_TEST,
     topologyName,
     config,
   });

@@ -8,6 +8,9 @@ var _ = require('lodash');
 
 import {
   getBaseConfig,
+
+  getBaseConfigTest,
+
   getNetworkOverrideConfig,
   getNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
@@ -18,6 +21,7 @@ import { Actions } from '../../constants/NetworkConstants.js';
 import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
+import { getImageVersionsForNetwork, unsetAndCleanup } from '../../helpers/NetworkConfigHelpers.js';
 import NetworkConfig from './NetworkConfig.js';
 
 export default class NetworkConfigContainer extends React.Component {
@@ -148,7 +152,7 @@ export default class NetworkConfigContainer extends React.Component {
         break;
 
       // actions from API call returns
-      case NetworkConfigActions.GET_BASE_CONFIG_SUCCESS:
+      case NetworkConfigActions.GET_BASE_CONFIG_SUCCESS_TEST:
         this.setState({baseConfig: payload.config});
         break;
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
@@ -193,36 +197,10 @@ export default class NetworkConfigContainer extends React.Component {
   unsetAndCleanupNodes = (config, editPath) => {
     let newConfig = _.cloneDeep(config);
     this.state.selectedNodes.forEach((node) => {
-      newConfig = this.unsetAndCleanup(newConfig, [node, ...editPath], 1);
+      newConfig = unsetAndCleanup(newConfig, [node, ...editPath], 1);
     });
 
     return newConfig;
-  }
-
-  // unsets the property in obj retrieved using editPath
-  // then cleans up all empty objects within obj
-  unsetAndCleanup = (obj, editPath, stopIdx) => {
-    let cleanedObj = _.cloneDeep(obj);
-
-    let newEditPath = [...editPath]; // copy the editpath as we need to change the copy
-    if (newEditPath.length == 0) {
-      console.error(`error, editPath cannot be empty`);
-    }
-
-    const isValueUnset = _.unset(cleanedObj, newEditPath);
-    if (!isValueUnset) {
-      console.error(`could not unset value at path ${newEditPath} for object ${cleanedObj}`);
-    }
-
-    // if we're here then the value in cleanedObj specified by editPath is unset
-    // we then clean up to remove any empty objects
-    newEditPath.pop();
-    while (newEditPath.length > stopIdx && Object.keys( _.get(cleanedObj, newEditPath) ).length === 0) {
-      _.unset(cleanedObj, newEditPath);
-      newEditPath.pop();
-    }
-
-    return cleanedObj;
   }
 
   editNodeConfig = (config, editPath, value) => {
@@ -244,13 +222,13 @@ export default class NetworkConfigContainer extends React.Component {
   revertNetworkConfig = (editPath) => {
     this.setState({
       networkDraftConfig: this.editConfig(_.cloneDeep(this.state.networkDraftConfig), editPath, REVERT_VALUE),
-      networkConfigWithChanges: this.unsetAndCleanup(this.state.networkConfigWithChanges, editPath, 0),
+      networkConfigWithChanges: unsetAndCleanup(this.state.networkConfigWithChanges, editPath, 0),
     });
   }
 
   undoRevertNetworkConfig = (editPath) => {
     this.setState({
-      networkDraftConfig: this.unsetAndCleanup(this.state.networkDraftConfig, editPath, 0),
+      networkDraftConfig: unsetAndCleanup(this.state.networkDraftConfig, editPath, 0),
       networkConfigWithChanges: this.editConfig(
         _.cloneDeep(this.state.networkOverrideConfig),
         editPath,
@@ -267,7 +245,7 @@ export default class NetworkConfigContainer extends React.Component {
         [node, ...editPath],
         _.get(this.state.nodeOverrideConfig, [node, ...editPath]),
       );
-    })
+    });
     this.setState({
       nodeDraftConfig: this.unsetAndCleanupNodes(this.state.nodeDraftConfig, editPath),
       nodeConfigWithChanges: newNodeConfigWithChanges,
@@ -337,9 +315,12 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   fetchConfigsForCurrentTopology = (topologyName) => {
+    const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
+    getBaseConfig(topologyName, imageVersions);
+
     // each API call's success actions will update different parts of the state
     // so it's safe to fire all 3 at once
-    getBaseConfig(topologyName);
+    getBaseConfigTest(topologyName);
     getNetworkOverrideConfig(topologyName);
     getNodeOverrideConfig(this.getNodeMacs(), topologyName);
   }

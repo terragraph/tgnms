@@ -4,11 +4,128 @@ var _ = require('lodash');
 
 import {
   getBaseConfigSuccess,
+  getBaseConfigSuccessTest,
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
+
   setNetworkConfigSuccess,
   setNodeConfigSuccess,
 } from '../actions/NetworkConfigActions.js';
+
+const getBaseConfigForVersion = (topologyName, version) => {
+  const uri = '/controller/getBaseConfig';
+  return axios.get(uri, {
+    params: {
+      topologyName,
+      imageVersion: version,
+    }
+  });
+}
+
+export const getBaseConfig = (topologyName, imageVersions) => {
+  const promises = imageVersions.map((version) => {
+    return getBaseConfigForVersion(topologyName, version);
+  });
+
+  Promise.all(promises)
+    .then((responses) => {
+      let baseConfigByVersion = {};
+
+      responses.forEach((resp) => {
+        const {imageVersion, config} = resp.data;
+        baseConfigByVersion[imageVersion] = config;
+      });
+
+      // TODO: dispatch!
+      console.log(baseConfigByVersion);
+    });
+}
+
+// TODO: until the API is actually out, I'll mock out a wait time of 200ms so I don't get an Error
+// for dispatching while I dispatch (dispatchception)
+export const getBaseConfigTest = (topologyName) => {
+  // easy testing
+  const smallJSON = {
+    intField: 3,
+    dblField: 3.12341234,
+    nest1: {
+      ception: 'asdf',
+      cation: 'cathode ray tubes',
+      check: false
+    },
+    cen: 'basecen',
+    gras: true,
+    nest2: {
+      nest3: {
+        whoa: 'asdf',
+        intField: 456
+      },
+      egg: 'tamagoyaki'
+    }
+  };
+
+  // so what does this return, map of image version to config?
+  setTimeout(() => {
+    getBaseConfigSuccessTest({
+      config: smallJSON,
+      topologyName,
+    });
+  }, 200);
+};
+
+export const getNetworkOverrideConfig = (topologyName) => {
+  const uri = '/controller/getNetworkOverrideConfig';
+
+  axios.get(uri, {
+    params: {
+      topologyName,
+    }
+  }).then((response) => {
+    const {config} = response.data;
+    getNetworkConfigSuccess({
+      config,
+      topologyName,
+    });
+  });
+};
+
+export const getNodeOverrideConfig = (nodeMacs, topologyName) => {
+  const uri = '/controller/getNodeOverrideConfig';
+
+  axios.get(uri, {
+    params: {
+      nodes: nodeMacs,
+      topologyName,
+    }
+  }).then((response) => {
+    const {config} = response.data;
+    getNodeConfigSuccess({
+      config,
+      topologyName,
+    });
+  });
+};
+
+export const setNetworkOverrideConfig = (config) => {
+  console.log('submitting network config', config);
+
+  // dispatch an action with the same config object we would pass into the API
+  // in case the user changes something after the API call is made
+  setTimeout(() => {
+    setNetworkConfigSuccess({config});
+  }, 200);
+};
+
+export const setNodeOverrideConfig = (config) => {
+  console.log('submitting node config', config);
+
+  // dispatch an action with the same config object we would pass into the API
+  // in case the user changes something after the API call is made
+  setTimeout(() => {
+    setNodeConfigSuccess({config});
+  }, 200);
+};
+
 
 const mockConfigJSON = {
   "sysParams": {
@@ -147,123 +264,4 @@ const mockConfigJSON = {
       }
     }
   }
-};
-
-export const getBaseConfigForVersion = (topologyName, version) => {
-  const uri - '/controller/getBaseConfig';
-
-  axios.get(uri, {
-    params: {
-      topologyName,
-      imageVersion: version,
-    }
-  }).then((response) => {
-    console.log(response.data);
-  })
-
-}
-
-export const getBaseConfigForAllVersions = (topologyName, imageVersions) => {
-
-}
-
-// TODO: until the API is actually out, I'll mock out a wait time of 200ms so I don't get an Error
-// for dispatching while I dispatch (dispatchception)
-export const getBaseConfig = (topologyName) => {
-  // easy testing
-  const smallJSON = {
-    intField: 3,
-    dblField: 3.12341234,
-    nest1: {
-      ception: 'asdf',
-      cation: 'cathode ray tubes',
-      check: false
-    },
-    cen: 'basecen',
-    gras: true,
-    nest2: {
-      nest3: {
-        whoa: 'asdf',
-        intField: 456
-      },
-      egg: 'tamagoyaki'
-    }
-  };
-
-  // so what does this return, map of image version to config?
-  setTimeout(() => {
-    getBaseConfigSuccess({
-      config: smallJSON,
-      topologyName,
-    });
-  }, 200);
-};
-
-export const getNetworkOverrideConfig = (topologyName) => {
-  const networkOverrideJSON = {
-    dblField: 2.352,
-    nest1: {
-      cation: 'cathode ray tubes',
-      check: false
-    },
-    cen: 'asdfjkl',
-    gras: false,
-    nest2: {
-      nest3: {
-        intField: 789
-      },
-      egg: 'tamagoyaki',
-      betrayal2: 'the interlude',
-    },
-    betrayal1: 'the intro',
-  };
-
-  setTimeout(() => {
-    getNetworkConfigSuccess({
-      config: networkOverrideJSON,
-      topologyName,
-    });
-  }, 200);
-};
-
-export const getNodeOverrideConfig = (nodes, topologyName) => {
-  const nodeOverrideJSON = {
-    dblField: 3.1415,
-    cen: 'qweryuio',
-    gras: true,
-    nest2: {
-      egg: 'caviar',
-      betrayal3: 'evil'
-    }
-  };
-
-  let returnedJSON = {};
-  nodes.forEach(node => returnedJSON[node] = _.cloneDeep(nodeOverrideJSON));
-
-  setTimeout(() => {
-    getNodeConfigSuccess({
-      config: returnedJSON,
-      topologyName,
-    });
-  }, 200);
-};
-
-export const setNetworkOverrideConfig = (config) => {
-  console.log('submitting network config', config);
-
-  // dispatch an action with the same config object we would pass into the API
-  // in case the user changes something after the API call is made
-  setTimeout(() => {
-    setNetworkConfigSuccess({config});
-  }, 200);
-};
-
-export const setNodeOverrideConfig = (config) => {
-  console.log('submitting node config', config);
-
-  // dispatch an action with the same config object we would pass into the API
-  // in case the user changes something after the API call is made
-  setTimeout(() => {
-    setNodeConfigSuccess({config});
-  }, 200);
 };
