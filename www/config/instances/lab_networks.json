@@ -88,8 +88,8 @@
             "topology_file": "Dragon.json"
         },
         {
-            "controller_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d",
-            "aggregator_ip": "2620:10d:c089:e010:3a3a:21ff:feb0:37d",
+            "controller_ip": "2620:10d:c089:e001:8b10:b6bd:5ce2:24fc",
+            "aggregator_ip": "2620:10d:c089:e001:8b10:b6bd:5ce2:24fc",
             "site_coords_override": "true",
             "latitude": 37.333057579551586,
             "longitude": -121.88882589372953,
@@ -122,6 +122,14 @@
             "longitude": -122.1475237,
             "zoom_level": 18,
             "topology_file": "Kite.json"
+        },
+        {
+      "controller_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
+      "aggregator_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
+      "latitude": 37.478375,
+      "longitude": -122.150477,
+      "zoom_level": 18,
+      "topology_file": "mobo_farm.json"
         }
     ]
 }
