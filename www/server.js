@@ -1,22 +1,26 @@
 /* eslint no-console: 0 */
 
-const path = require('path');
-const fs = require('fs');
-const request = require('request');
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const querystring = require('querystring');
+const request = require('request');
 
 // set up the upgrade images path
-const NETWORK_UPGRADE_IMAGES_PATH = './static/tg-binaries';
-if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_PATH)) {
-  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_PATH);
+const NETWORK_UPGRADE_IMAGES_REL_PATH = '/static/tg-binaries';
+const NETWORK_UPGRADE_IMAGES_FULL_PATH =
+  process.cwd() + NETWORK_UPGRADE_IMAGES_REL_PATH;
+if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_FULL_PATH)) {
+  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_FULL_PATH);
 }
 
 // multer + configuration
 const multer  = require('multer');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, NETWORK_UPGRADE_IMAGES_PATH);
+    cb(null, NETWORK_UPGRADE_IMAGES_FULL_PATH);
   },
+  // where to save the file on disk
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
@@ -1369,7 +1373,8 @@ app.post(/\/controller\/uploadUpgradeBinary$/i, upload.single('binary'), functio
   const topology = getTopologyByName(topologyName);
 
   const urlPrefix = req.protocol + '://' + req.get('host');
-  const imagePath = `${urlPrefix}/${req.file.path}`;
+  const uriPath = querystring.escape(req.file.filename);
+  const imagePath = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
 
   syncWorker.sendCtrlMsgSync({
     type: 'addUpgradeImage',
