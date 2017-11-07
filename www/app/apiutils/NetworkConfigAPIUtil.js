@@ -73,14 +73,15 @@ export const setNetworkOverrideConfig = (config) => {
   });
 };
 
-export const setNodeOverrideConfig = (config) => {
-  console.log('submitting node config', config);
+export const setNodeOverrideConfig = (config, nodesWithChanges, saveSelected) => {
+  // TODO: filter by nodes with changes
+  console.log('submitting node config', config, nodesWithChanges);
   const uri = '/controller/setNodeOverrideConfig';
 
   axios.post(uri, {
     config: config
   }).then((response) => {
-    setNodeConfigSuccess({config});
+    setNodeConfigSuccess({config, saveSelected});
   });
 };
 

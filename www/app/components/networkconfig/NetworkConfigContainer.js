@@ -10,6 +10,8 @@ import {
   getBaseConfig,
   getNetworkOverrideConfig,
   getNodeOverrideConfig,
+  setNetworkOverrideConfig,
+  setNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
 
 import { CONFIG_VIEW_MODE, REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
@@ -146,6 +148,18 @@ export default class NetworkConfigContainer extends React.Component {
         break;
 
       // actions that change the ENTIRE FORM
+      case NetworkConfigActions.SUBMIT_CONFIG:
+        if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
+          const pathsToPick = this.state.selectedNodes.map(node => node.mac_addr);
+          const nodeConfigToSubmit = _.pick(this.state.nodeConfigWithChanges, pathsToPick);
+          setNodeOverrideConfig(nodeConfigToSubmit, Object.keys(this.state.nodeDraftConfig), true);
+        } else {
+          setNetworkOverrideConfig(this.state.networkConfigWithChanges);
+        }
+        break;
+      case NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES:
+        setNodeOverrideConfig(this.state.nodeConfigWithChanges, Object.keys(this.state.nodeDraftConfig), false);
+        break;
       case NetworkConfigActions.RESET_CONFIG:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.resetSelectedNodesConfig();
@@ -171,7 +185,7 @@ export default class NetworkConfigContainer extends React.Component {
         this.saveNetworkConfig(payload.config);
         break;
       case NetworkConfigActions.SET_NODE_CONFIG_SUCCESS:
-        this.saveNodeConfig(payload.config, true);
+        this.saveNodeConfig(payload.config, payload.saveSelected);
         break;
       default:
         break;

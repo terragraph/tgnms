@@ -7,6 +7,8 @@ export const NetworkConfigActions = {
   REVERT_CONFIG_OVERRIDE: 'REVERT_CONFIG_OVERRIDE',
   UNDO_REVERT_CONFIG: 'UNDO_REVERT_CONFIG',
 
+  SUBMIT_CONFIG: 'SUBMIT_CONFIG',
+  SUBMIT_CONFIG_FOR_ALL_NODES: 'SUBMIT_CONFIG_FOR_ALL_NODES',
   RESET_CONFIG: 'RESET_CONFIG',
   RESET_CONFIG_FOR_ALL_NODES: 'RESET_CONFIG_FOR_ALL_NODES',
 
@@ -76,6 +78,18 @@ export const undoRevertConfig = ({editPath}) => {
   });
 }
 
+export const submitConfig = () => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SUBMIT_CONFIG,
+  });
+};
+
+export const submitConfigForAllNodes = () => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES,
+  });
+};
+
 export const resetConfig = () => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.RESET_CONFIG,
@@ -121,9 +135,10 @@ export const setNetworkConfigSuccess = ({config}) => {
   });
 };
 
-export const setNodeConfigSuccess = ({config}) => {
+export const setNodeConfigSuccess = ({config, saveSelected}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SET_NODE_CONFIG_SUCCESS,
     config,
+    saveSelected,
   });
 };

@@ -34,9 +34,6 @@ export default class NetworkConfigBody extends React.Component {
         />
         <NetworkConfigFooter
           draftConfig={draftConfig}
-
-          networkConfig={networkConfigWithChanges}
-          nodeConfig={nodeConfigWithChanges}
           editMode={editMode}
         />
       </div>
