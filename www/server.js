@@ -1425,11 +1425,12 @@ app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
     }
   };
 
-  const returnedJSON = {};
+  const returnedJSON = {
+    default: mockConfig
+  };
   const versions = imageVersions === undefined ? [] : imageVersions;
   versions.forEach(version => returnedJSON[version] = mockConfig);
 
-  // TODO: basically all the thrift call stuff goes here, for now we return
   res.status(200).send({
     imageVersions,
     config: returnedJSON,
@@ -1482,6 +1483,36 @@ app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
   // TODO: basically all the thrift call stuff goes here, for now we return
   res.status(200).send({
     config: returnedJSON,
+  });
+});
+
+app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    // destructure the post data here as an obj``
+
+    res.status(200).send({
+      ack: true,
+    });
+  });
+});
+
+app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    // destructure the post data here as an obj``
+
+    res.status(200).send({
+      ack: true,
+    });
   });
 });
 

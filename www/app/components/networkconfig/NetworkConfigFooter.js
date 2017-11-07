@@ -19,6 +19,7 @@ export default class NetworkConfigFooter extends React.Component {
   // this is done to avoid dispathcing while in the middle of a dispatch
   // this is also why the draftConfig and editMode props are needed
   // TODO: changed nodes/selected nodes/all nodes mode!
+  // TODO: confusing to put this in here, put it in the container!
   onSubmitConfig = () => {
     const {networkConfig, nodeConfig, editMode} = this.props;
     if (editMode === CONFIG_VIEW_MODE.NODE) {

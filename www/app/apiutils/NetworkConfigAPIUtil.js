@@ -11,20 +11,9 @@ import {
   setNodeConfigSuccess,
 } from '../actions/NetworkConfigActions.js';
 
-const getBaseConfigForVersion = (topologyName, version) => {
-  const uri = '/controller/getBaseConfig';
-  return axios.get(uri, {
-    params: {
-      topologyName,
-      imageVersion: version,
-    }
-  });
-}
-
+// TODO: get rid of imageVersions since the API does not need it
 export const getBaseConfig = (topologyName, imageVersions) => {
   const uri = '/controller/getBaseConfig';
-
-  console.log('attempting imageVersions', imageVersions);
 
   return axios.get(uri, {
     params: {
@@ -33,7 +22,6 @@ export const getBaseConfig = (topologyName, imageVersions) => {
     }
   }).then((response) => {
     const {config} = response.data;
-    console.log('fetched base!', config)
     getBaseConfigSuccess({
       config,
       topologyName,
@@ -76,24 +64,25 @@ export const getNodeOverrideConfig = (nodeMacs, topologyName) => {
 
 export const setNetworkOverrideConfig = (config) => {
   console.log('submitting network config', config);
+  const uri = '/controller/setNetworkOverrideConfig';
 
-  // dispatch an action with the same config object we would pass into the API
-  // in case the user changes something after the API call is made
-  setTimeout(() => {
+  axios.post(uri, {
+    config: config
+  }).then((response) => {
     setNetworkConfigSuccess({config});
-  }, 200);
+  });
 };
 
 export const setNodeOverrideConfig = (config) => {
   console.log('submitting node config', config);
+  const uri = '/controller/setNodeOverrideConfig';
 
-  // dispatch an action with the same config object we would pass into the API
-  // in case the user changes something after the API call is made
-  setTimeout(() => {
+  axios.post(uri, {
+    config: config
+  }).then((response) => {
     setNodeConfigSuccess({config});
-  }, 200);
+  });
 };
-
 
 const mockConfigJSON = {
   "sysParams": {

@@ -152,6 +152,11 @@
   padding-right: 10px;
 }
 
+.nc-missing-field {
+  background-color: #fff;
+  color: #777;
+}
+
 .nc-base-field {
   background-color: #fff;
 }

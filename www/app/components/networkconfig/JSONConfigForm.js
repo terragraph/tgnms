@@ -12,6 +12,8 @@ const isReverted = (draftValue) => {
   return draftValue === REVERT_VALUE;
 }
 
+const PLACEHOLDER_VALUE = 'base value for field not set';
+
 // internal config form class that wraps a JSONConfigForm with a label
 // mostly used to toggle a form's expandability
 class ExpandableConfigForm extends React.Component {
@@ -78,6 +80,22 @@ class JSONConfigInput extends React.Component {
     );
   }
 
+  renderFormField = (isReverted, isDraft, displayVal) => {
+    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
+    return (
+      <JSONFormField
+        editPath={editPath}
+        formLabel={fieldName}
+        displayIdx={displayIdx}
+        values={values}
+        draftValue={draftValue}
+        isReverted={isReverted}
+        isDraft={isDraft}
+        displayVal={displayVal}
+      />
+    );
+  }
+
   renderInputItem = (isReverted, isDraft, displayVal) => {
     const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
 
@@ -85,27 +103,20 @@ class JSONConfigInput extends React.Component {
       <span>Error: unable to render child val of {displayVal}</span>
     );
 
-    switch (typeof displayVal) {
-      case 'boolean':
-      case 'number':
-      case 'string':
-        childItem = (
-          <JSONFormField
-            editPath={editPath}
-            formLabel={fieldName}
-            displayIdx={displayIdx}
-            values={values}
-            draftValue={draftValue}
-
-            isReverted={isReverted}
-            isDraft={isDraft}
-            displayVal={displayVal}
-          />
-        );
-        break;
-      case 'object':
-        childItem = this.renderNestedObject(fieldName, editPath, values, draftValue);
-        break;
+    if (displayIdx >= 0) {
+      // value is found in a config
+      switch (typeof displayVal) {
+        case 'boolean':
+        case 'number':
+        case 'string':
+          childItem = this.renderFormField(isReverted, isDraft, displayVal);
+          break;
+        case 'object':
+          childItem = this.renderNestedObject(fieldName, editPath, values, draftValue);
+          break;
+      }
+    } else {
+      childItem = this.renderFormField(isReverted, isDraft, PLACEHOLDER_VALUE);
     }
 
     return childItem;
@@ -118,9 +129,7 @@ class JSONConfigInput extends React.Component {
     const isFieldReverted = isReverted(draftValue);
     const isDraft = draftValue !== undefined && !isFieldReverted;
 
-    // TODO: getRevertedValue function
     const displayVal = isDraft ? draftValue : values[displayIdx];
-
     const inputItem = this.renderInputItem(isFieldReverted, isDraft, displayVal);
 
     return (
@@ -164,8 +173,6 @@ export default class JSONConfigForm extends React.Component {
         return idx; // field exists
       }
     }
-
-    console.error('it seems we have picked the wrong field', configVals);
     return -1;
   }
 
@@ -190,6 +197,10 @@ export default class JSONConfigForm extends React.Component {
       const displayIdx = this.getDisplayIdx(
         isReverted(draftValue) ? configVals.slice(0, configVals.length - 1) : configVals
       );
+
+      if (displayIdx === -1) {
+        console.warn('base not found for field', field, 'in path', editPath);
+      }
 
       return (
         <JSONConfigInput

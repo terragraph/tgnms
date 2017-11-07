@@ -4,7 +4,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
+import { CONFIG_VIEW_MODE, DEFAULT_BASE_KEY } from '../../constants/NetworkConfigConstants.js';
 
 import NetworkConfigLeftPane from './NetworkConfigLeftPane.js';
 import NetworkConfigBody from './NetworkConfigBody.js';
@@ -15,13 +15,16 @@ export default class NetworkConfig extends React.Component {
   }
 
   getBaseConfig = (baseConfigByVersion, editMode, selectedImage, selectedNodes) => {
-    if (editMode === CONFIG_VIEW_MODE.NODE) {
-      console.log('selected nodes', selectedNodes);
-      return (selectedNodes[0].imageVersion === null || Object.keys(baseConfigByVersion).length === 0) ?
-        {} : baseConfigByVersion[selectedNodes[0].imageVersion];
+    let baseKey = DEFAULT_BASE_KEY;
+    if (editMode === CONFIG_VIEW_MODE.NODE && selectedNodes[0].imageVersion) {
+      baseKey = selectedNodes[0].imageVersion;
+    } else if (editMode === CONFIG_VIEW_MODE.NETWORK && selectedImage !== '') {
+      baseKey = selectedImage;
     }
-    return (selectedImage === '' || Object.keys(baseConfigByVersion).length === 0) ?
-      {} : baseConfigByVersion[selectedImage];
+
+    // handle the case where we have rendered the component but not received the API response
+    // users don't usually see this
+    return (baseConfigByVersion[baseKey] === undefined) ? {} : baseConfigByVersion[baseKey];
   }
 
   // nodeConfig is keyed by node name

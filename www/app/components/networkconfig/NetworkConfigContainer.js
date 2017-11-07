@@ -203,7 +203,7 @@ export default class NetworkConfigContainer extends React.Component {
   unsetAndCleanupNodes = (config, editPath) => {
     let newConfig = _.cloneDeep(config);
     this.state.selectedNodes.forEach((node) => {
-      newConfig = unsetAndCleanup(newConfig, [node, ...editPath], 1);
+      newConfig = unsetAndCleanup(newConfig, [node.mac_addr, ...editPath], 1);
     });
 
     return newConfig;
@@ -212,7 +212,7 @@ export default class NetworkConfigContainer extends React.Component {
   editNodeConfig = (config, editPath, value) => {
     let newNodeConfig = _.cloneDeep(config);
     this.state.selectedNodes.forEach((node) => {
-      newNodeConfig = this.editConfig(newNodeConfig, [node, ...editPath], value);
+      newNodeConfig = this.editConfig(newNodeConfig, [node.mac_addr, ...editPath], value);
     });
     return newNodeConfig;
   }
@@ -246,10 +246,12 @@ export default class NetworkConfigContainer extends React.Component {
   undoRevertNodeConfig = (editPath) => {
     let newNodeConfigWithChanges = _.cloneDeep(this.state.nodeConfigWithChanges);
     this.state.selectedNodes.forEach((node) => {
+      const nodeMac = node.mac_addr;
+
       newNodeConfigWithChanges = this.editConfig(
         newNodeConfigWithChanges,
-        [node, ...editPath],
-        _.get(this.state.nodeOverrideConfig, [node, ...editPath]),
+        [nodeMac, ...editPath],
+        _.get(this.state.nodeOverrideConfig, [nodeMac, ...editPath]),
       );
     });
     this.setState({
@@ -274,8 +276,10 @@ export default class NetworkConfigContainer extends React.Component {
       let newNodeDraftConfig = _.cloneDeep(this.state.nodeDraftConfig);
 
       this.state.selectedNodes.forEach((node) => {
-        newNodeOverrideConfig[node] = this.state.nodeConfigWithChanges[node];
-        delete newNodeDraftConfig[node];
+        const nodeMac = node.mac_addr;
+
+        newNodeOverrideConfig[nodeMac] = this.state.nodeConfigWithChanges[nodeMac];
+        delete newNodeDraftConfig[nodeMac];
       });
 
       this.setState({
@@ -302,9 +306,11 @@ export default class NetworkConfigContainer extends React.Component {
     let newNodeConfigWithChanges = _.cloneDeep(this.state.nodeConfigWithChanges);
 
     this.state.selectedNodes.forEach((node) => {
-      delete newNodeDraftConfig[node];
-      newNodeConfigWithChanges[node] = this.state.nodeOverrideConfig[node] === undefined ?
-        undefined : _.cloneDeep(this.state.nodeOverrideConfig[node]);
+      const nodeMac = node.mac_addr;
+
+      delete newNodeDraftConfig[nodeMac];
+      newNodeConfigWithChanges[nodeMac] = this.state.nodeOverrideConfig[nodeMac] === undefined ?
+        undefined : _.cloneDeep(this.state.nodeOverrideConfig[nodeMac]);
     });
 
     this.setState({

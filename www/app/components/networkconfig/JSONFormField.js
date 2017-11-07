@@ -43,7 +43,8 @@ export default class JSONFormField extends React.Component {
     let className = {};
     className[providedClass] = true;
 
-    className[CONFIG_CLASSNAMES.BASE] = displayIdx <= 0 && !isDraft;
+    className[CONFIG_CLASSNAMES.MISSING] = displayIdx < 0 && !isDraft;
+    className[CONFIG_CLASSNAMES.BASE] = displayIdx === 0 && !isDraft;
     className[CONFIG_CLASSNAMES.NETWORK] = displayIdx === 1 && !isDraft;
     className[CONFIG_CLASSNAMES.NODE] = displayIdx >= 2 && !isDraft;
 
@@ -63,7 +64,6 @@ export default class JSONFormField extends React.Component {
     );
 
     const inputClass = this.getClassName('config-form-input', displayIdx, isDraft, isReverted);
-
     switch (typeof displayVal) {
       case 'boolean':
         inputItem = (
