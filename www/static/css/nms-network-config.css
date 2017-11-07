@@ -141,11 +141,17 @@
 /* NETWORK CONFIG JSON FORM INPUTS */
 .rc-json-form-field {
   display: inline-block;
+  margin-bottom: 5px;
 }
 
 .config-form-input {
   /*background-color: #fff;*/
   min-width: 250px;
+}
+
+.config-form-checkbox {
+  /*background-color: #fff;*/
+  padding: 3px;
 }
 
 .config-expand-marker {

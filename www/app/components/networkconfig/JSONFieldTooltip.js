@@ -19,7 +19,14 @@ export default class JSONFieldTooltip extends React.Component {
     const {values} = this.props;
 
     const tooltipContents = values.map((value, idx) => {
-      const displayVal = (value === undefined || value === null) ? UNDEFINED_PLACEHOLDER[idx] : value;
+      let displayVal = (value === undefined || value === null) ? UNDEFINED_PLACEHOLDER[idx] : value;
+      // boolean to strings...
+      if (displayVal === true) {
+        displayVal = 'true';
+      } else if (displayVal === false) {
+        displayVal = 'false';
+      }
+
       return (
         <tr>
           <td><span className='nc-tooltip-label'>{CONFIG_LAYER_DESC[idx]}:</span></td>

@@ -13,7 +13,8 @@ export default class JSONFormField extends React.Component {
     super(props);
 
     this.state = {
-      focus: false
+      focus: false,
+      hover: false,
     };
   }
 
@@ -54,38 +55,51 @@ export default class JSONFormField extends React.Component {
     return classNames(className);
   }
 
-  getCheckboxStyle = (displayIdx, isDraft, isReverted) => {
-
-  }
-
   renderInputItem = (displayVal, displayIdx, isDraft, isReverted) => {
+    const {focus, hover} = this.state;
+
     let inputItem = (
       <span>Error: unable to render child val of {displayVal}</span>
     );
 
     const inputClass = this.getClassName('config-form-input', displayIdx, isDraft, isReverted);
+    const checkboxClass = this.getClassName('config-form-checkbox', displayIdx, isDraft, isReverted);
     switch (typeof displayVal) {
       case 'boolean':
+        // hack: clicking the checkbox focuses it
         inputItem = (
-          <input type='checkbox' checked={displayVal}
-            onChange={(event) => this.editField(event.target.checked)}
-          />
+          <div className={checkboxClass} style={{display: 'inline', position: 'relative', padding: '3px', border: '1px solid #bbb'}}>
+            <input type='checkbox' checked={displayVal}
+              onChange={(event) => this.editField(event.target.checked)}
+              onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
+              onMouseEnter={() => this.setState({hover: true})} onMouseLeave={() => this.setState({hover: false})}
+            />
+            {(hover) && <JSONFieldTooltip values={this.props.values}/>}
+          </div>
         );
         break;
       case 'number':
         inputItem = (
-          <input className={inputClass} type='number' value={displayVal}
-            onChange={(event) => this.editField( Number(event.target.value) )}
-            onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
-          />
+          <div style={{display: 'inline', position: 'relative'}}>
+            <input className={inputClass} type='number' value={displayVal}
+              onChange={(event) => this.editField( Number(event.target.value) )}
+              onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
+              onMouseEnter={() => this.setState({hover: true})} onMouseLeave={() => this.setState({hover: false})}
+            />
+            {(focus || hover) && <JSONFieldTooltip values={this.props.values}/>}
+          </div>
         );
         break;
       case 'string':
         inputItem = (
-          <input className={inputClass} type='text' value={displayVal}
-            onChange={(event) => this.editField(event.target.value)}
-            onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
-          />
+          <div style={{display: 'inline', position: 'relative'}}>
+            <input className={inputClass} type='text' value={displayVal}
+              onChange={(event) => this.editField(event.target.value)}
+              onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
+              onMouseEnter={() => this.setState({hover: true})} onMouseLeave={() => this.setState({hover: false})}
+            />
+            {(focus || hover) && <JSONFieldTooltip values={this.props.values}/>}
+          </div>
         );
         break;
     }
@@ -98,18 +112,14 @@ export default class JSONFormField extends React.Component {
 
   render() {
     const {formLabel, displayIdx, values, draftValue, isReverted, isDraft, displayVal} = this.props;
-    const {focus} = this.state;
+    const {focus, hover} = this.state;
 
     const formInputElement = this.renderInputItem(displayVal, displayIdx, isDraft, isReverted);
 
     return (
-      <div className={classNames({'rc-json-form-field': true, 'json-field-focused': focus})}>
+      <div className={classNames({'rc-json-form-field': true, 'json-field-focused': focus || hover})}>
         <label className='config-form-label'>{formLabel}:</label>
-
-        <div style={{display: 'inline', position: 'relative'}}>
-          {formInputElement}
-          {focus && <JSONFieldTooltip values={values}/>}
-        </div>
+        {formInputElement}
 
         {this.isRevertable(displayIdx, values) &&
           <img src='/static/images/undo.png'
