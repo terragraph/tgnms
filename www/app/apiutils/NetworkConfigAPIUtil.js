@@ -73,13 +73,15 @@ export const setNetworkOverrideConfig = (config) => {
   });
 };
 
+// logic is placed here to uncrowd the NetworkConfigContainer
 export const setNodeOverrideConfig = (config, nodesWithChanges, saveSelected) => {
-  // TODO: filter by nodes with changes
-  console.log('submitting node config', config, nodesWithChanges);
+  // filter nodes by changes
+  const configToSubmit = _.pick(config, nodesWithChanges);
+  console.log('submitting node config', config, configToSubmit, nodesWithChanges);
   const uri = '/controller/setNodeOverrideConfig';
 
   axios.post(uri, {
-    config: config
+    config: configToSubmit
   }).then((response) => {
     setNodeConfigSuccess({config, saveSelected});
   });
