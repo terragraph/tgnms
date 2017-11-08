@@ -69,26 +69,28 @@ export const getNodeOverrideConfig = (topologyName) => {
   });
 };
 
-export const setNetworkOverrideConfig = (config) => {
+export const setNetworkOverrideConfig = (topologyName, config) => {
   console.log('submitting network config', config);
   const uri = '/controller/setNetworkOverrideConfig';
 
   axios.post(uri, {
-    config: config
+    config: config,
+    topologyName: topologyName,
   }).then((response) => {
     setNetworkConfigSuccess({config});
   });
 };
 
 // logic is placed here to uncrowd the NetworkConfigContainer
-export const setNodeOverrideConfig = (config, nodesWithChanges, saveSelected) => {
+export const setNodeOverrideConfig = (topologyName, config, nodesWithChanges, saveSelected) => {
   // filter nodes by changes
   const configToSubmit = _.pick(config, nodesWithChanges);
   console.log('submitting node config', config, configToSubmit, nodesWithChanges);
   const uri = '/controller/setNodeOverrideConfig';
 
   axios.post(uri, {
-    config: configToSubmit
+    config: configToSubmit,
+    topologyName: topologyName,
   }).then((response) => {
     setNodeConfigSuccess({config, saveSelected});
   });

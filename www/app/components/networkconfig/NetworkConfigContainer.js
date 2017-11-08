@@ -28,9 +28,6 @@ export default class NetworkConfigContainer extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
-    const imageVersions = getImageVersionsForNetwork(props.networkConfig.topology);
-    const defaultSelectedImage = imageVersions.length > 0 ? imageVersions[0] : '';
-
     // TODO: @Tariq: the fact that this state is huge makes a compelling case for converting to redux.js
     // and splitting this into multiple data stores somewhere down the line
     this.state = {
@@ -61,7 +58,7 @@ export default class NetworkConfigContainer extends React.Component {
       editMode: CONFIG_VIEW_MODE.NETWORK,
 
       // currently selected image version
-      selectedImage: defaultSelectedImage,
+      selectedImage: '',
 
       // currently selected set of nodes which the config is being viewed as
       selectedNodes: [],
@@ -98,6 +95,8 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   handleDispatchEvent(payload) {
+    const topologyName = this.props.networkConfig.topology.name;
+
     switch (payload.actionType) {
       // handle common actions
       case Actions.TOPOLOGY_SELECTED:
@@ -150,13 +149,13 @@ export default class NetworkConfigContainer extends React.Component {
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           const pathsToPick = this.state.selectedNodes.map(node => node.mac_addr);
           const nodeConfigToSubmit = _.pick(this.state.nodeConfigWithChanges, pathsToPick);
-          setNodeOverrideConfig(nodeConfigToSubmit, Object.keys(this.state.nodeDraftConfig), true);
+          setNodeOverrideConfig(topologyName, nodeConfigToSubmit, Object.keys(this.state.nodeDraftConfig), true);
         } else {
-          setNetworkOverrideConfig(this.state.networkConfigWithChanges);
+          setNetworkOverrideConfig(topologyName, this.state.networkConfigWithChanges);
         }
         break;
       case NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES:
-        setNodeOverrideConfig(this.state.nodeConfigWithChanges, Object.keys(this.state.nodeDraftConfig), false);
+        setNodeOverrideConfig(topologyName, this.state.nodeConfigWithChanges, Object.keys(this.state.nodeDraftConfig), false);
         break;
       case NetworkConfigActions.RESET_CONFIG:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {

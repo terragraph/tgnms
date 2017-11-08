@@ -531,13 +531,13 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'setNetworkOverrideConfig':
       var setNetworkOverrideParams = new Controller_ttypes.SetCtrlConfigNetworkOverridesReq();
-      setNetworkOverrideParams.config = msg.config;
+      setNetworkOverrideParams.config = JSON.stringify(msg.config);
       send(setNetworkOverrideParams);
 
       break;
     case 'setNodeOverrideConfig':
       var setNodeOverrideParams = new Controller_ttypes.SetCtrlConfigNodeOverridesReq();
-      setNodeOverrideParams.overrides = msg.config;
+      setNodeOverrideParams.overrides = JSON.stringify(msg.config);
       send(setNodeOverrideParams);
 
       break;
@@ -751,6 +751,7 @@ class ControllerProxy extends EventEmitter {
 
       let nmsAppId = msgType2Params[msgType].nmsAppId + ZMQ_RAND_ID;
       // time the response
+
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,

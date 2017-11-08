@@ -1443,7 +1443,8 @@ app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
-    const {config} = postData;
+    const {config, topologyName} = postData;
+    const topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
       type: 'setNetworkOverrideConfig',
@@ -1460,7 +1461,8 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
-    const {config} = postData;
+    const {config, topologyName} = postData;
+    const topology = getTopologyByName(topologyName);
 
     syncWorker.sendCtrlMsgSync({
       type: 'setNodeOverrideConfig',
