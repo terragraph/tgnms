@@ -77,6 +77,7 @@ const pty = require('pty.js');
 
 const statusReportExpiry = 2 * 60000; // 2 minutes
 const maxThriftRequestFailures = 1;
+const maxThriftReportAge = 30; // seconds
 const maxControllerEvents = 10;
 
 const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED ?
@@ -164,18 +165,35 @@ worker.on('message', (msg) => {
         });
       }
       break;
-    case 'aggr_status_dump_update':
+    case 'aggr_status_report_update':
+      // log the last success time so this can be shared on old/new types
+      if (msg.success) {
+        config.aggregator_last_success = new Date().getTime();
+        aggrStatusDumpsByName[msg.name] = msg.status_report;
+      }
+      var curOnline = (new Date().getTime() <
+                       (config.aggregator_last_success + maxThriftReportAge * 1000));
+      config.aggregator_online = curOnline;
       // log online/offline changes
-      if (config.aggregator_online != msg.success) {
+      if (config.aggregator_online != curOnline) {
         console.log(new Date().toString(), msg.name, 'aggregator',
                     (msg.success ? 'online' : 'offline'),
                     'in', msg.response_time, 'ms');
       }
-      config.aggregator_failures = msg.success ? 0 : config.aggregator_failures + 1;
-      if (config.aggregator_failures >= maxThriftRequestFailures) {
-        config.aggregator_online = false;
-      } else {
-        config.aggregator_online = true;
+      break;
+    case 'aggr_status_dump_update':
+      // log the last success time so this can be shared on old/new types
+      if (msg.success) {
+        config.aggregator_last_success = new Date().getTime();
+      }
+      var curOnline = (new Date().getTime() <
+                       (config.aggregator_last_success + maxThriftReportAge * 1000));
+      config.aggregator_online = curOnline;
+      // log online/offline changes
+      if (config.aggregator_online != curOnline) {
+        console.log(new Date().toString(), msg.name, 'aggregator',
+                    (msg.success ? 'online' : 'offline'),
+                    'in', msg.response_time, 'ms');
       }
       aggrStatusDumpsByName[msg.name] = msg.success ? msg.status_dump : {};
       var currentTime = new Date().getTime();

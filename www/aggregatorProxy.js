@@ -34,7 +34,7 @@ var self = {
       tTransport = new thrift.TFramedTransport(
           Buffer.from(receivedMessage.value, 'ASCII'));
       tProtocol = new thrift.TCompactProtocol(tTransport);
-      var statusDump = new Aggregator_ttypes.AggrStatusDump();
+      var statusDump = new Aggregator_ttypes.AggrStatusDump_Deprecated();
       statusDump.read(tProtocol);
       statusDumps[index] = statusDump;
       config.aggregator_online = true;
@@ -58,7 +58,7 @@ var self = {
 
     var tProtocol = new thrift.TCompactProtocol(transport);
     var statusDumpMessage = new Aggregator_ttypes.AggrMessage();
-    statusDumpMessage.mType = Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP;
+    statusDumpMessage.mType = Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED;
     statusDumpMessage.value = '\0';
     statusDumpMessage.write(tProtocol);
     transport.flush();
