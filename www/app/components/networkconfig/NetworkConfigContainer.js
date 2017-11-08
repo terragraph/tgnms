@@ -341,13 +341,13 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   fetchConfigsForCurrentTopology = (topologyName) => {
-    const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
-    getBaseConfig(topologyName, imageVersions);
-    console.log(imageVersions);
+    // const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
+    getBaseConfig(topologyName);
+
 
     // each API call's success actions will update different parts of the state
     // so it's safe to fire all 3 at once
-    // getBaseConfigTest(topologyName);
+    // setTimeout(() => getNetworkOverrideConfig(topologyName), 10);
     getNetworkOverrideConfig(topologyName);
     getNodeOverrideConfig(this.getNodeMacs(), topologyName);
   }

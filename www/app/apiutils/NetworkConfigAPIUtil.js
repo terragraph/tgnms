@@ -11,19 +11,17 @@ import {
   setNodeConfigSuccess,
 } from '../actions/NetworkConfigActions.js';
 
-// TODO: get rid of imageVersions since the API does not need it
-export const getBaseConfig = (topologyName, imageVersions) => {
+export const getBaseConfig = (topologyName) => {
   const uri = '/controller/getBaseConfig';
 
   return axios.get(uri, {
     params: {
       topologyName,
-      imageVersions: imageVersions,
     }
   }).then((response) => {
     const {config} = response.data;
     getBaseConfigSuccess({
-      config,
+      config: JSON.parse(config),
       topologyName,
     });
   });
@@ -37,9 +35,9 @@ export const getNetworkOverrideConfig = (topologyName) => {
       topologyName,
     }
   }).then((response) => {
-    const {config} = response.data;
+    const {overrides} = response.data;
     getNetworkConfigSuccess({
-      config,
+      config: JSON.parse(overrides),
       topologyName,
     });
   });
@@ -54,9 +52,9 @@ export const getNodeOverrideConfig = (nodeMacs, topologyName) => {
       topologyName,
     }
   }).then((response) => {
-    const {config} = response.data;
+    const {overrides} = response.data;
     getNodeConfigSuccess({
-      config,
+      config: JSON.parse(overrides),
       topologyName,
     });
   });

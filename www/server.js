@@ -1403,87 +1403,34 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, ne
 
 // network config endpoints
 app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
-  const {topologyName, imageVersions} = req.query;
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
 
-  // hey Tariq, I'm waiting for the thrift file!
-  const mockConfig = {
-    intField: 3,
-    dblField: 3.12341234,
-    nest1: {
-      ception: 'asdf',
-      cation: 'cathode ray tubes',
-      check: false
-    },
-    cen: 'basecen',
-    gras: true,
-    nest2: {
-      nest3: {
-        whoa: 'asdf',
-        intField: 456
-      },
-      egg: 'tamagoyaki'
-    }
-  };
-
-  const returnedJSON = {
-    default: mockConfig
-  };
-  const versions = imageVersions === undefined ? [] : imageVersions;
-  versions.forEach(version => returnedJSON[version] = mockConfig);
-
-  res.status(200).send({
-    imageVersions,
-    config: returnedJSON,
-  });
+  syncWorker.sendCtrlMsgSync({
+    type: 'getBaseConfig',
+    topology: topology,
+  }, '', res);
 });
 
 app.get(/\/controller\/getNetworkOverrideConfig/i, (req, res, next) => {
-  // hey Tariq, I'm waiting for the thrift file!
-  const mockNetworkOverrideOverride = {
-    dblField: 2.352,
-    nest1: {
-      cation: 'cathode ray tubes',
-      check: false
-    },
-    cen: 'asdfjkl',
-    gras: false,
-    nest2: {
-      nest3: {
-        intField: 789
-      },
-      egg: 'tamagoyaki',
-      betrayal2: 'the interlude',
-    },
-    betrayal1: 'the intro',
-  };
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
 
-  // TODO: basically all the thrift call stuff goes here, for now we return
-  res.status(200).send({
-    config: mockNetworkOverrideOverride,
-  });
+  syncWorker.sendCtrlMsgSync({
+    type: 'getNetworkOverrideConfig',
+    topology: topology,
+  }, '', res);
 });
 
 app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
-  // hey Tariq, I'm waiting for the thrift file!
   const {topologyName, nodes} = req.query;
+  const topology = getTopologyByName(topologyName);
 
-  const nodeOverrideJSON = {
-    dblField: 3.1415,
-    cen: 'qweryuio',
-    gras: true,
-    nest2: {
-      egg: 'caviar',
-      betrayal3: 'evil'
-    }
-  };
-
-  let returnedJSON = {};
-  nodes.forEach(node => returnedJSON[node] = nodeOverrideJSON);
-
-  // TODO: basically all the thrift call stuff goes here, for now we return
-  res.status(200).send({
-    config: returnedJSON,
-  });
+  syncWorker.sendCtrlMsgSync({
+    type: 'getNodeOverrideConfig',
+    topology: topology,
+    nodes: nodes,
+  }, '', res);
 });
 
 app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
@@ -1493,11 +1440,17 @@ app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
-    // destructure the post data here as an obj``
+    const {config} = postData;
 
     res.status(200).send({
       ack: true,
     });
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'setNetworkOverrideConfig',
+      topology: topology,
+      config: config,
+    }, '', res);
   });
 });
 
@@ -1509,10 +1462,17 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
     // destructure the post data here as an obj``
+    const {config} = postData;
 
     res.status(200).send({
       ack: true,
     });
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'setNodeOverrideConfig',
+      topology: topology,
+      config: config,
+    }, '', res);
   });
 });
 

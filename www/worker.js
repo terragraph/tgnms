@@ -162,7 +162,14 @@ const command2MsgType = {
   // upgrade images
   'addUpgradeImage': Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ,
   'deleteUpgradeImage': Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ,
-  'listUpgradeImages': Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ
+  'listUpgradeImages': Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ,
+
+  // config management
+  'getBaseConfig': Controller_ttypes.MessageType.GET_CTRL_CONFIG_BASE_REQ,
+  'getNetworkOverrideConfig': Controller_ttypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
+  'getNodeOverrideConfig': Controller_ttypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
+  'setNetworkOverrideConfig': Controller_ttypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
+  'setNodeOverrideConfig': Controller_ttypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
 };
 
 var msgType2Params = {};
@@ -247,6 +254,23 @@ msgType2Params[Aggregator_ttypes.AggrMessageType.STOP_IPERF] = {
 msgType2Params[Aggregator_ttypes.AggrMessageType.GET_IPERF_STATUS] = {
   'recvApp': 'aggr-app-TRAFFIC_APP',
   'nmsAppId': 'NMS_WEB_TRAFFIC'};
+
+// config management mappings
+msgType2Params[Controller_ttypes.MessageType.GET_CTRL_CONFIG_BASE_REQ] = {
+  'recvApp': 'ctrl-app-CONFIG_APP',
+  'nmsAppId': 'NMS_WEB_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ] = {
+  'recvApp': 'ctrl-app-CONFIG_APP',
+  'nmsAppId': 'NMS_WEB_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ] = {
+  'recvApp': 'ctrl-app-CONFIG_APP',
+  'nmsAppId': 'NMS_WEB_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ] = {
+  'recvApp': 'ctrl-app-CONFIG_APP',
+  'nmsAppId': 'NMS_WEB_CONFIG'};
+msgType2Params[Controller_ttypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ] = {
+  'recvApp': 'ctrl-app-CONFIG_APP',
+  'nmsAppId': 'NMS_WEB_CONFIG'};
 
 const thriftSerialize = (struct) => {
   var result;
@@ -487,6 +511,30 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(delUpgradeImageParams);
 
       break;
+    case 'getBaseConfig':
+      var getCtrlConfigBaseReqParams = new Controller_ttypes.GetCtrlConfigReq();
+      getCtrlConfigBaseReqParams.swVersions = [];
+      send(getCtrlConfigBaseReqParams);
+      break;
+    case 'getNetworkOverrideConfig':
+      var getNetworkOverrideParams = new Controller_ttypes.GetCtrlConfigNetworkOverridesReq();
+      sendAsync(getNetworkOverrideParams);
+      break;
+    case 'getNodeOverrideConfig':
+      var getNodeOverrideParams = new Controller_ttypes.GetCtrlConfigNodeOverridesReq();
+      getNodeOverrideParams.nodes = [];
+      send(getNodeOverrideParams);
+      break;
+    case 'setNetworkOverrideConfig':
+      var setNetworkOverrideParams = new Controller_ttypes.SetCtrlConfigNetworkOverridesReq();
+      setNetworkOverrideParams.config = msg.config;
+      send(setNetworkOverrideParams);
+      break;
+    case 'setNodeOverrideConfig':
+      var setNodeOverrideParams = new Controller_ttypes.SetCtrlConfigNodeOverridesReq();
+      setNodeOverrideParams.overrides = msg.config;
+      send(setNodeOverrideParams);
+      break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
       res.status(500).send("FAIL");
@@ -602,11 +650,13 @@ class ControllerProxy extends EventEmitter {
       sendMsg.value = msgBody;
       var recvMsg = new Controller_ttypes.Message();
 
+      let nmsAppId = msgType2Params[msgType].nmsAppId + ZMQ_RAND_ID;
+
       // time the response
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,
-        msgType2Params[msgType].nmsAppId,
+        nmsAppId,
         msgType2Params[msgType].recvApp,
         minion,
         (tProtocol, tTransport) => {
@@ -628,6 +678,8 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.UPGRADE_ABORT_REQ:
             case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
             case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
+            case Controller_ttypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
+            case Controller_ttypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -640,6 +692,21 @@ class ControllerProxy extends EventEmitter {
               var ignitionState = new Controller_ttypes.IgnitionState();
               ignitionState.read(tProtocol);
               resolve({type: 'msg', msg: ignitionState});
+              break;
+            case Controller_ttypes.MessageType.GET_CTRL_CONFIG_BASE_REQ:
+              let baseConfig = new Controller_ttypes.GetCtrlConfigBaseResp();
+              baseConfig.read(tProtocol);
+              resolve({type: 'msg', msg: baseConfig});
+              break;
+            case Controller_ttypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
+              let nodeOverrideConfig = new Controller_ttypes.GetCtrlConfigNodeOverridesResp();
+              nodeOverrideConfig.read(tProtocol);
+              resolve({type: 'msg', msg: nodeOverrideConfig});
+              break;
+            case Controller_ttypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
+              let networkOverrideConfig = new Controller_ttypes.GetCtrlConfigNetworkOverridesResp();
+              networkOverrideConfig.read(tProtocol);
+              resolve({type: 'msg', msg: networkOverrideConfig});
               break;
             default:
               console.error('[controller] No receive handler defined for', msgType);
@@ -676,11 +743,12 @@ class ControllerProxy extends EventEmitter {
       sendMsg.value = msgBody;
       var recvMsg = new Controller_ttypes.Message();
 
+      let nmsAppId = msgType2Params[msgType].nmsAppId + ZMQ_RAND_ID;
       // time the response
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,
-        msgType2Params[msgType].nmsAppId,
+        nmsAppId,
         msgType2Params[msgType].recvApp,
         minion,
         (tProtocol, tTransport) => {
@@ -702,6 +770,8 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.UPGRADE_ABORT_REQ:
             case Controller_ttypes.MessageType.UPGRADE_ADD_IMAGE_REQ:
             case Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ:
+            case Controller_ttypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
+            case Controller_ttypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
               var receivedAck = new Controller_ttypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -719,6 +789,21 @@ class ControllerProxy extends EventEmitter {
               var upgradeImages = new Controller_ttypes.UpgradeListImagesResp();
               upgradeImages.read(tProtocol);
               resolve({type: 'msg', msg: upgradeImages});
+              break;
+            case Controller_ttypes.MessageType.GET_CTRL_CONFIG_BASE_REQ:
+              let baseConfig = new Controller_ttypes.GetCtrlConfigBaseResp();
+              baseConfig.read(tProtocol);
+              resolve({type: 'msg', msg: baseConfig});
+              break;
+            case Controller_ttypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
+              let nodeOverrideConfig = new Controller_ttypes.GetCtrlConfigNodeOverridesResp();
+              nodeOverrideConfig.read(tProtocol);
+              resolve({type: 'msg', msg: nodeOverrideConfig});
+              break;
+            case Controller_ttypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
+              let networkOverrideConfig = new Controller_ttypes.GetCtrlConfigNetworkOverridesResp();
+              networkOverrideConfig.read(tProtocol);
+              resolve({type: 'msg', msg: networkOverrideConfig});
               break;
             default:
               console.error('[controller] No receive handler defined for', msgType);
