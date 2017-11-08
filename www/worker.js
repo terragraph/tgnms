@@ -26,6 +26,7 @@ process.on('message', (msg) => {
         const ctrlProxy = new ControllerProxy(topology.controller_ip);
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
+        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.UPGRADE_STATE_REQ, '\0');
 
         ctrlProxy.on('event', (type, success, response_time, data) => {
@@ -1007,7 +1008,6 @@ class AggregatorProxy extends EventEmitter {
       () => {
         // error condition
         const endTimer = new Date();
-        console.log('error');
         this.emit('event',
                   msgType,
                   false /* success */,

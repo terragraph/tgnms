@@ -180,6 +180,21 @@ worker.on('message', (msg) => {
                     (msg.success ? 'online' : 'offline'),
                     'in', msg.response_time, 'ms');
       }
+      var currentTime = new Date().getTime();
+      // remove nodes with old timestamps in status report
+      if (msg.success && msg.status_report && msg.status_report.statusReports) {
+        Object.keys(msg.status_report.statusReports).forEach((nodeMac) => {
+          const report = msg.status_report.statusReports[nodeMac];
+          const ts = parseInt(Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)) * 1000;
+          if (ts != 0) {
+            const timeDiffMs = currentTime - ts;
+            if (timeDiffMs > statusReportExpiry) {
+              // status older than 2 minuets
+              delete msg.status_report.statusReports[nodeMac];
+            }
+          }
+        });
+      }
       break;
     case 'aggr_status_dump_update':
       // log the last success time so this can be shared on old/new types
