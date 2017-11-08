@@ -11,7 +11,7 @@ import {
   setNodeConfigSuccess,
 } from '../actions/NetworkConfigActions.js';
 
-export const getBaseConfig = (topologyName) => {
+export const getConfigsForTopology = (topologyName) => {
   const uri = '/controller/getBaseConfig';
 
   return axios.get(uri, {
@@ -24,6 +24,11 @@ export const getBaseConfig = (topologyName) => {
       config: JSON.parse(config),
       topologyName,
     });
+
+    getNetworkOverrideConfig(topologyName);
+    // getNodeOverrideConfig(this.getNodeMacs(), topologyName);
+  }).catch((error) => {
+    getNetworkOverrideConfig(topologyName);
   });
 }
 
@@ -40,16 +45,20 @@ export const getNetworkOverrideConfig = (topologyName) => {
       config: JSON.parse(overrides),
       topologyName,
     });
+
+    getNodeOverrideConfig(topologyName);
+  }).catch((error) => {
+    getNodeOverrideConfig(topologyName);
   });
 };
 
-export const getNodeOverrideConfig = (nodeMacs, topologyName) => {
+export const getNodeOverrideConfig = (topologyName) => {
   const uri = '/controller/getNodeOverrideConfig';
 
   axios.get(uri, {
     params: {
-      nodes: nodeMacs,
       topologyName,
+      nodes: [],
     }
   }).then((response) => {
     const {overrides} = response.data;

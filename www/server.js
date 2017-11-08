@@ -1426,10 +1426,13 @@ app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
   const {topologyName, nodes} = req.query;
   const topology = getTopologyByName(topologyName);
 
+  const nodeMacs = nodes ?
+    nodes : topology.topology.nodes.map(node => node.mac_addr);
+
   syncWorker.sendCtrlMsgSync({
     type: 'getNodeOverrideConfig',
     topology: topology,
-    nodes: nodes,
+    nodes: nodeMacs,
   }, '', res);
 });
 
@@ -1441,10 +1444,6 @@ app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
     const {config} = postData;
-
-    res.status(200).send({
-      ack: true,
-    });
 
     syncWorker.sendCtrlMsgSync({
       type: 'setNetworkOverrideConfig',
@@ -1461,12 +1460,7 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
   });
   req.on('end', function() {
     let postData = JSON.parse(httpPostData);
-    // destructure the post data here as an obj``
     const {config} = postData;
-
-    res.status(200).send({
-      ack: true,
-    });
 
     syncWorker.sendCtrlMsgSync({
       type: 'setNodeOverrideConfig',

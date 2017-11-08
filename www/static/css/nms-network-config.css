@@ -83,6 +83,8 @@
   position: absolute;
   top: 0;
   border-bottom: 1px solid #777;
+  background-color: #fff;
+  z-index: 1;
 }
 
 .nc-header-title {

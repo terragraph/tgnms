@@ -7,9 +7,7 @@ import { render } from 'react-dom';
 var _ = require('lodash');
 
 import {
-  getBaseConfig,
-  getNetworkOverrideConfig,
-  getNodeOverrideConfig,
+  getConfigsForTopology,
   setNetworkOverrideConfig,
   setNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
@@ -342,14 +340,17 @@ export default class NetworkConfigContainer extends React.Component {
 
   fetchConfigsForCurrentTopology = (topologyName) => {
     // const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
-    getBaseConfig(topologyName);
+    const nodeMacs = this.getNodeMacs();
+
+    // node macs are outdated
+    getConfigsForTopology(topologyName);
 
 
     // each API call's success actions will update different parts of the state
     // so it's safe to fire all 3 at once
     // setTimeout(() => getNetworkOverrideConfig(topologyName), 10);
-    getNetworkOverrideConfig(topologyName);
-    getNodeOverrideConfig(this.getNodeMacs(), topologyName);
+    // getNetworkOverrideConfig(topologyName);
+    // getNodeOverrideConfig(this.getNodeMacs(), topologyName);
   }
 
   render() {

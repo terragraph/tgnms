@@ -511,29 +511,35 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(delUpgradeImageParams);
 
       break;
+    // config messages. These are sent asynchronously
     case 'getBaseConfig':
       var getCtrlConfigBaseReqParams = new Controller_ttypes.GetCtrlConfigReq();
       getCtrlConfigBaseReqParams.swVersions = [];
       send(getCtrlConfigBaseReqParams);
+
       break;
     case 'getNetworkOverrideConfig':
       var getNetworkOverrideParams = new Controller_ttypes.GetCtrlConfigNetworkOverridesReq();
-      sendAsync(getNetworkOverrideParams);
+      send(getNetworkOverrideParams);
+
       break;
     case 'getNodeOverrideConfig':
       var getNodeOverrideParams = new Controller_ttypes.GetCtrlConfigNodeOverridesReq();
       getNodeOverrideParams.nodes = [];
       send(getNodeOverrideParams);
+
       break;
     case 'setNetworkOverrideConfig':
       var setNetworkOverrideParams = new Controller_ttypes.SetCtrlConfigNetworkOverridesReq();
       setNetworkOverrideParams.config = msg.config;
       send(setNetworkOverrideParams);
+
       break;
     case 'setNodeOverrideConfig':
       var setNodeOverrideParams = new Controller_ttypes.SetCtrlConfigNodeOverridesReq();
       setNodeOverrideParams.overrides = msg.config;
       send(setNodeOverrideParams);
+
       break;
     default:
       console.error("sendCtrlMsgSync: No handler for msg type", msg.type);
