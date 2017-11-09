@@ -17,7 +17,7 @@ export default class NetworkConfigLegend extends React.Component {
     return (
       <ul className='nc-legend-section' style={{listStyleType: 'none', padding: 0}}>
         <li className='nc-legend-node'>
-          Unsaved Node<img height='20' src='/static/images/bullet_red.png'/>
+          Unsaved Node<img height='20' style={{float: 'right'}} src='/static/images/bullet_red.png'/>
         </li>
         <li className='nc-legend-node' style={{backgroundColor: '#aaffaa'}}>
           Node With Override

@@ -21,13 +21,12 @@ export default class NetworkConfigNodes extends React.Component {
     const {name, mac_addr} = row;
     const nodesWithDraftsSet = new Set(this.props.nodesWithDrafts);
 
-    const unsavedAsterisk = nodesWithDraftsSet.has(mac_addr) ? (
-      // <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
-      <img height='20' src='/static/images/bullet_red.png'/>
+    const unsavedMarker = nodesWithDraftsSet.has(mac_addr) ? (
+      <img height='20' style={{float: 'right'}} src='/static/images/bullet_red.png'/>
     ) : '';
 
     return (
-      <span>{name}{unsavedAsterisk}</span>
+      <span>{name}{unsavedMarker}</span>
     );
   }
 

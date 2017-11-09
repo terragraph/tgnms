@@ -24,8 +24,7 @@ export default class NetworkConfigLeftPane extends React.Component {
   renderViewModeSelector = () => {
     const {editMode, networkDraftExists, nodesWithDrafts} = this.props;
 
-    const unsavedAsterisk = (
-      // <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
+    const unsavedMarker = (
       <img height='20' src='/static/images/bullet_red.png'/>
     );
 
@@ -38,7 +37,7 @@ export default class NetworkConfigLeftPane extends React.Component {
           )}
           onClick={() => changeEditMode({editMode: CONFIG_VIEW_MODE.NETWORK})}
         >
-          <p>Network{networkDraftExists && unsavedAsterisk}</p>
+          <p>Network{networkDraftExists && unsavedMarker}</p>
         </div>
         <div
           className={classNames(
@@ -47,7 +46,7 @@ export default class NetworkConfigLeftPane extends React.Component {
           )}
           onClick={() => changeEditMode({editMode: CONFIG_VIEW_MODE.NODE})}
         >
-          <p>Node{nodesWithDrafts.length > 0 && unsavedAsterisk}</p>
+          <p>Node{nodesWithDrafts.length > 0 && unsavedMarker}</p>
         </div>
       </div>
     );
@@ -57,6 +56,7 @@ export default class NetworkConfigLeftPane extends React.Component {
     const {nodes, selectedNodes, editMode, nodesWithDrafts, nodeOverrideConfig, imageVersions, selectedImage} = this.props;
     const viewModeSelector = this.renderViewModeSelector();
 
+    // TODO: move this to NetworkConfig.js
     const nodesWithOverrides = _.isPlainObject(nodeOverrideConfig) ?
       new Set(
         Object.keys(nodeOverrideConfig).filter((node) => {
