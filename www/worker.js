@@ -25,8 +25,8 @@ process.on('message', (msg) => {
       msg.topologies.forEach(topology => {
         const ctrlProxy = new ControllerProxy(topology.controller_ip);
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_TOPOLOGY, '\0');
-        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_IGNITION_STATE, '\0');
+        ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.GET_STATUS_DUMP, '\0');
         ctrlProxy.sendCtrlMsgType(Controller_ttypes.MessageType.UPGRADE_STATE_REQ, '\0');
 
         ctrlProxy.on('event', (type, success, response_time, data) => {
@@ -74,10 +74,22 @@ process.on('message', (msg) => {
           }
         });
         const aggrProxy = new AggregatorProxy(topology.aggregator_ip);
-        aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP, '\0');
+        // request the old and new structures until everyone is on the latest
+        // don't pre-fetch routing
+        aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_REPORT, '\0');
+        aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED, '\0');
         aggrProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
-            case Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP:
+            case Aggregator_ttypes.AggrMessageType.GET_STATUS_REPORT:
+              process.send({
+                name: topology.name,
+                type: 'aggr_status_report_update',
+                success: success,
+                response_time: response_time,
+                status_report: success ? data.status_report : null,
+              });
+              break;
+            case Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED:
               process.send({
                 name: topology.name,
                 type: 'aggr_status_dump_update',
@@ -565,7 +577,8 @@ class ControllerProxy extends EventEmitter {
     sendMsg.value = msgBody;
     var recvMsg = new Controller_ttypes.Message();
 
-    let nmsAppId = msgType2Params[msgType].nmsAppId + ZMQ_RAND_ID;
+    let zmqRandId = parseInt(Math.random() * 1000);
+    let nmsAppId = msgType2Params[msgType].nmsAppId + zmqRandId;
     // time the response
     this.sendCtrlMsg(
       sendMsg,
@@ -659,10 +672,11 @@ class ControllerProxy extends EventEmitter {
       let nmsAppId = msgType2Params[msgType].nmsAppId + ZMQ_RAND_ID;
 
       // time the response
+      let zmqRandId = parseInt(Math.random() * 1000);
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,
-        nmsAppId,
+        msgType2Params[msgType].nmsAppId + zmqRandId,
         msgType2Params[msgType].recvApp,
         minion,
         (tProtocol, tTransport) => {
@@ -752,10 +766,11 @@ class ControllerProxy extends EventEmitter {
       let nmsAppId = msgType2Params[msgType].nmsAppId + ZMQ_RAND_ID;
       // time the response
 
+      let zmqRandId = parseInt(Math.random() * 1000);
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,
-        nmsAppId,
+        msgType2Params[msgType].nmsAppId + zmqRandId,
         msgType2Params[msgType].recvApp,
         minion,
         (tProtocol, tTransport) => {
@@ -915,10 +930,11 @@ class AggregatorProxy extends EventEmitter {
       var recvMsg = new Aggregator_ttypes.AggrMessage();
 
       // time the response
+      let zmqRandId = parseInt(Math.random() * 1000);
       this.sendAggrMsg(
         sendMsg,
         recvMsg,
-        msgType2Params[msgType].nmsAppId,
+        msgType2Params[msgType].nmsAppId + zmqRandId,
         msgType2Params[msgType].recvApp,
         minion,
         (tProtocol, tTransport) => {
@@ -1024,7 +1040,9 @@ class AggregatorProxy extends EventEmitter {
     let recvApp, nmsAppIdentity;
     // determine receiver app
     switch (msgType) {
-      case Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP:
+      case Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED:
+      case Aggregator_ttypes.AggrMessageType.GET_STATUS_REPORT:
+      case Aggregator_ttypes.AggrMessageType.GET_ROUTING_REPORT:
         recvApp = 'aggr-app-STATUS_APP';
         nmsAppIdentity = 'NMS_WEB_AGGR_STATUS_REFRESH';
         break;
@@ -1036,16 +1054,37 @@ class AggregatorProxy extends EventEmitter {
         console.error('[aggregator] Unknown message type', msgType);
     }
     // time the response
+    let zmqRandId = parseInt(Math.random() * 1000);
     this.sendMsg(
       sendMsg,
       recvMsg,
-      nmsAppIdentity,
+      nmsAppIdentity + zmqRandId,
       recvApp,
       (tProtocol, tTransport) => {
         const endTimer = new Date();
         switch (msgType) {
-          case Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP:
-            var receivedStatusDump = new Aggregator_ttypes.AggrStatusDump();
+          case Aggregator_ttypes.AggrMessageType.GET_STATUS_REPORT:
+            var receivedStatusReport = new Aggregator_ttypes.AggrStatusReport();
+            receivedStatusReport.read(tProtocol);
+            // emit a successful event
+            this.emit('event',
+                      msgType,
+                      true /* success */,
+                      endTimer - this.start_timer,
+                      { status_report: receivedStatusReport });
+            break;
+          case Aggregator_ttypes.AggrMessageType.GET_ROUTING_REPORT:
+            var receivedRoutingReport = new Aggregator_ttypes.AggrRoutingReport();
+            receivedRoutingReport.read(tProtocol);
+            // emit a successful event
+            this.emit('event',
+                      msgType,
+                      true /* success */,
+                      endTimer - this.start_timer,
+                      { routing_report: receivedRoutingReport });
+            break;
+          case Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED:
+            var receivedStatusDump = new Aggregator_ttypes.AggrStatusDump_Deprecated();
             receivedStatusDump.read(tProtocol);
             // emit a successful event
             this.emit('event',

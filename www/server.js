@@ -1,22 +1,26 @@
 /* eslint no-console: 0 */
 
-const path = require('path');
-const fs = require('fs');
-const request = require('request');
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const querystring = require('querystring');
+const request = require('request');
 
 // set up the upgrade images path
-const NETWORK_UPGRADE_IMAGES_PATH = './static/tg-binaries';
-if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_PATH)) {
-  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_PATH);
+const NETWORK_UPGRADE_IMAGES_REL_PATH = '/static/tg-binaries';
+const NETWORK_UPGRADE_IMAGES_FULL_PATH =
+  process.cwd() + NETWORK_UPGRADE_IMAGES_REL_PATH;
+if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_FULL_PATH)) {
+  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_FULL_PATH);
 }
 
 // multer + configuration
 const multer  = require('multer');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, NETWORK_UPGRADE_IMAGES_PATH);
+    cb(null, NETWORK_UPGRADE_IMAGES_FULL_PATH);
   },
+  // where to save the file on disk
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
@@ -73,6 +77,7 @@ const pty = require('pty.js');
 
 const statusReportExpiry = 2 * 60000; // 2 minutes
 const maxThriftRequestFailures = 1;
+const maxThriftReportAge = 30; // seconds
 const maxControllerEvents = 10;
 
 const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED ?
@@ -160,18 +165,50 @@ worker.on('message', (msg) => {
         });
       }
       break;
-    case 'aggr_status_dump_update':
+    case 'aggr_status_report_update':
+      // log the last success time so this can be shared on old/new types
+      if (msg.success) {
+        config.aggregator_last_success = new Date().getTime();
+        aggrStatusDumpsByName[msg.name] = msg.status_report;
+      }
+      var curOnline = (new Date().getTime() <
+                       (config.aggregator_last_success + maxThriftReportAge * 1000));
+      config.aggregator_online = curOnline;
       // log online/offline changes
-      if (config.aggregator_online != msg.success) {
+      if (config.aggregator_online != curOnline) {
         console.log(new Date().toString(), msg.name, 'aggregator',
                     (msg.success ? 'online' : 'offline'),
                     'in', msg.response_time, 'ms');
       }
-      config.aggregator_failures = msg.success ? 0 : config.aggregator_failures + 1;
-      if (config.aggregator_failures >= maxThriftRequestFailures) {
-        config.aggregator_online = false;
-      } else {
-        config.aggregator_online = true;
+      var currentTime = new Date().getTime();
+      // remove nodes with old timestamps in status report
+      if (msg.success && msg.status_report && msg.status_report.statusReports) {
+        Object.keys(msg.status_report.statusReports).forEach((nodeMac) => {
+          const report = msg.status_report.statusReports[nodeMac];
+          const ts = parseInt(Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)) * 1000;
+          if (ts != 0) {
+            const timeDiffMs = currentTime - ts;
+            if (timeDiffMs > statusReportExpiry) {
+              // status older than 2 minuets
+              delete msg.status_report.statusReports[nodeMac];
+            }
+          }
+        });
+      }
+      break;
+    case 'aggr_status_dump_update':
+      // log the last success time so this can be shared on old/new types
+      if (msg.success) {
+        config.aggregator_last_success = new Date().getTime();
+      }
+      var curOnline = (new Date().getTime() <
+                       (config.aggregator_last_success + maxThriftReportAge * 1000));
+      config.aggregator_online = curOnline;
+      // log online/offline changes
+      if (config.aggregator_online != curOnline) {
+        console.log(new Date().toString(), msg.name, 'aggregator',
+                    (msg.success ? 'online' : 'offline'),
+                    'in', msg.response_time, 'ms');
       }
       aggrStatusDumpsByName[msg.name] = msg.success ? msg.status_dump : {};
       var currentTime = new Date().getTime();
@@ -1369,7 +1406,8 @@ app.post(/\/controller\/uploadUpgradeBinary$/i, upload.single('binary'), functio
   const topology = getTopologyByName(topologyName);
 
   const urlPrefix = req.protocol + '://' + req.get('host');
-  const imagePath = `${urlPrefix}/${req.file.path}`;
+  const uriPath = querystring.escape(req.file.filename);
+  const imagePath = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
 
   syncWorker.sendCtrlMsgSync({
     type: 'addUpgradeImage',

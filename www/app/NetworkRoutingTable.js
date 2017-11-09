@@ -112,8 +112,16 @@ export default class NetworkRoutingTable extends React.Component {
     if (!routing || !this.state.selectedSourceNode) {
       return rows;
     }
-
+    if (!routing.hasOwnProperty(this.state.selectedSourceNode.mac)) {
+      return rows;
+    }
     let routingTable = routing[this.state.selectedSourceNode.mac];
+    if (!this.props.routing ||
+        !this.props.routing.hasOwnProperty('AdjMapAcuum') ||
+        !this.props.routing.AdjMapAcuum.hasOwnProperty(this.state.selectedSourceNode.mac.toUpperCase())) {
+      return rows;
+    }
+    
     let nodeAdj = this.props.routing.AdjMapAcuum[this.state.selectedSourceNode.mac.toUpperCase()];
 
     if (!routingTable) {

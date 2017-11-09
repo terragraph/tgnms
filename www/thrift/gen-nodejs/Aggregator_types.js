@@ -14,11 +14,14 @@ var Monitor_ttypes = require('./Monitor_types')
 
 var ttypes = module.exports = {};
 ttypes.AggrMessageType = {
-  'GET_STATUS_DUMP' : 101,
-  'GET_ROUTING_ADJ' : 102,
-  'STATUS_DUMP' : 201,
+  'GET_STATUS_DUMP_DEPRECATED' : 101,
+  'GET_STATUS_REPORT' : 103,
+  'GET_ROUTING_REPORT' : 104,
+  'STATUS_DUMP_DEPRECATED' : 201,
   'ROUTING_ADJ' : 202,
-  'STATUS_REPORT' : 401,
+  'STATUS_REPORT_DEPRECATED' : 401,
+  'STATUS_REPORT' : 403,
+  'ROUTING_REPORT' : 404,
   'STATS_REPORT' : 402,
   'SYSLOG_REPORT' : 451,
   'GET_ALERTS_CONFIG' : 501,
@@ -26,11 +29,12 @@ ttypes.AggrMessageType = {
   'SET_ALERTS_CONFIG' : 503,
   'SET_ALERTS_CONFIG_RESP' : 504,
   'START_IPERF' : 601,
-  'START_IPERF_SERVER' : 602,
-  'START_IPERF_CLIENT' : 603,
-  'STOP_IPERF' : 604,
-  'GET_IPERF_STATUS' : 605,
-  'IPERF_STATUS_REPORT' : 606,
+  'STOP_IPERF' : 602,
+  'GET_IPERF_STATUS' : 603,
+  'START_IPERF_SERVER' : 611,
+  'START_IPERF_CLIENT' : 612,
+  'START_IPERF_SERVER_RESP' : 621,
+  'IPERF_STATUS_REPORT' : 622,
   'AGGR_ACK' : 1001
 };
 ttypes.AggrAlertComparator = {
@@ -43,6 +47,10 @@ ttypes.AggrAlertLevel = {
   'ALERT_INFO' : 0,
   'ALERT_WARNING' : 1,
   'ALERT_CRITICAL' : 2
+};
+ttypes.AggrIperfTransportProtocol = {
+  'TCP' : 6,
+  'UDP' : 17
 };
 AggrGetStatusDump = module.exports.AggrGetStatusDump = function(args) {
 };
@@ -72,7 +80,7 @@ AggrGetStatusDump.prototype.write = function(output) {
   return;
 };
 
-AggrStatusDump = module.exports.AggrStatusDump = function(args) {
+AggrStatusDump_Deprecated = module.exports.AggrStatusDump_Deprecated = function(args) {
   this.adjacencyMap = null;
   this.statusReports = null;
   if (args) {
@@ -84,8 +92,8 @@ AggrStatusDump = module.exports.AggrStatusDump = function(args) {
     }
   }
 };
-AggrStatusDump.prototype = {};
-AggrStatusDump.prototype.read = function(input) {
+AggrStatusDump_Deprecated.prototype = {};
+AggrStatusDump_Deprecated.prototype.read = function(input) {
   input.readStructBegin();
   while (true)
   {
@@ -139,7 +147,7 @@ AggrStatusDump.prototype.read = function(input) {
           var key14 = null;
           var val15 = null;
           key14 = input.readString();
-          val15 = new ttypes.AggrStatusReport();
+          val15 = new ttypes.AggrStatusReport_Deprecated();
           val15.read(input);
           this.statusReports[key14] = val15;
         }
@@ -157,8 +165,8 @@ AggrStatusDump.prototype.read = function(input) {
   return;
 };
 
-AggrStatusDump.prototype.write = function(output) {
-  output.writeStructBegin('AggrStatusDump');
+AggrStatusDump_Deprecated.prototype.write = function(output) {
+  output.writeStructBegin('AggrStatusDump_Deprecated');
   if (this.adjacencyMap !== null && this.adjacencyMap !== undefined) {
     output.writeFieldBegin('adjacencyMap', Thrift.Type.MAP, 1);
     output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.adjacencyMap));
@@ -194,7 +202,182 @@ AggrStatusDump.prototype.write = function(output) {
   return;
 };
 
+AggrGetStatusReport = module.exports.AggrGetStatusReport = function(args) {
+};
+AggrGetStatusReport.prototype = {};
+AggrGetStatusReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    input.skip(ftype);
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrGetStatusReport.prototype.write = function(output) {
+  output.writeStructBegin('AggrGetStatusReport');
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 AggrStatusReport = module.exports.AggrStatusReport = function(args) {
+  this.statusReports = null;
+  if (args) {
+    if (args.statusReports !== undefined && args.statusReports !== null) {
+      this.statusReports = Thrift.copyMap(args.statusReports, [null]);
+    }
+  }
+};
+AggrStatusReport.prototype = {};
+AggrStatusReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.MAP) {
+        var _size20 = 0;
+        var _rtmp324;
+        this.statusReports = {};
+        var _ktype21 = 0;
+        var _vtype22 = 0;
+        _rtmp324 = input.readMapBegin();
+        _ktype21 = _rtmp324.ktype;
+        _vtype22 = _rtmp324.vtype;
+        _size20 = _rtmp324.size;
+        for (var _i25 = 0; _i25 < _size20; ++_i25)
+        {
+          var key26 = null;
+          var val27 = null;
+          key26 = input.readString();
+          val27 = new ttypes.AgentStatusReport();
+          val27.read(input);
+          this.statusReports[key26] = val27;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrStatusReport.prototype.write = function(output) {
+  output.writeStructBegin('AggrStatusReport');
+  if (this.statusReports !== null && this.statusReports !== undefined) {
+    output.writeFieldBegin('statusReports', Thrift.Type.MAP, 1);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.statusReports));
+    for (var kiter28 in this.statusReports)
+    {
+      if (this.statusReports.hasOwnProperty(kiter28))
+      {
+        var viter29 = this.statusReports[kiter28];
+        output.writeString(kiter28);
+        viter29.write(output);
+      }
+    }
+    output.writeMapEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AgentStatusReport = module.exports.AgentStatusReport = function(args) {
+  this.timeStamp = null;
+  this.ipv6Address = null;
+  if (args) {
+    if (args.timeStamp !== undefined && args.timeStamp !== null) {
+      this.timeStamp = args.timeStamp;
+    }
+    if (args.ipv6Address !== undefined && args.ipv6Address !== null) {
+      this.ipv6Address = args.ipv6Address;
+    }
+  }
+};
+AgentStatusReport.prototype = {};
+AgentStatusReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.I64) {
+        this.timeStamp = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.STRING) {
+        this.ipv6Address = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AgentStatusReport.prototype.write = function(output) {
+  output.writeStructBegin('AgentStatusReport');
+  if (this.timeStamp !== null && this.timeStamp !== undefined) {
+    output.writeFieldBegin('timeStamp', Thrift.Type.I64, 1);
+    output.writeI64(this.timeStamp);
+    output.writeFieldEnd();
+  }
+  if (this.ipv6Address !== null && this.ipv6Address !== undefined) {
+    output.writeFieldBegin('ipv6Address', Thrift.Type.STRING, 2);
+    output.writeString(this.ipv6Address);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AggrStatusReport_Deprecated = module.exports.AggrStatusReport_Deprecated = function(args) {
   this.timeStamp = null;
   this.ipv6Address = null;
   this.routes = null;
@@ -214,8 +397,8 @@ AggrStatusReport = module.exports.AggrStatusReport = function(args) {
     }
   }
 };
-AggrStatusReport.prototype = {};
-AggrStatusReport.prototype.read = function(input) {
+AggrStatusReport_Deprecated.prototype = {};
+AggrStatusReport_Deprecated.prototype.read = function(input) {
   input.readStructBegin();
   while (true)
   {
@@ -244,19 +427,19 @@ AggrStatusReport.prototype.read = function(input) {
       break;
       case 3:
       if (ftype == Thrift.Type.LIST) {
-        var _size20 = 0;
-        var _rtmp324;
+        var _size30 = 0;
+        var _rtmp334;
         this.routes = [];
-        var _etype23 = 0;
-        _rtmp324 = input.readListBegin();
-        _etype23 = _rtmp324.etype;
-        _size20 = _rtmp324.size;
-        for (var _i25 = 0; _i25 < _size20; ++_i25)
+        var _etype33 = 0;
+        _rtmp334 = input.readListBegin();
+        _etype33 = _rtmp334.etype;
+        _size30 = _rtmp334.size;
+        for (var _i35 = 0; _i35 < _size30; ++_i35)
         {
-          var elem26 = null;
-          elem26 = new IpPrefix_ttypes.UnicastRoute();
-          elem26.read(input);
-          this.routes.push(elem26);
+          var elem36 = null;
+          elem36 = new IpPrefix_ttypes.UnicastRoute();
+          elem36.read(input);
+          this.routes.push(elem36);
         }
         input.readListEnd();
       } else {
@@ -265,22 +448,22 @@ AggrStatusReport.prototype.read = function(input) {
       break;
       case 4:
       if (ftype == Thrift.Type.MAP) {
-        var _size27 = 0;
-        var _rtmp331;
+        var _size37 = 0;
+        var _rtmp341;
         this.linkLocals = {};
-        var _ktype28 = 0;
-        var _vtype29 = 0;
-        _rtmp331 = input.readMapBegin();
-        _ktype28 = _rtmp331.ktype;
-        _vtype29 = _rtmp331.vtype;
-        _size27 = _rtmp331.size;
-        for (var _i32 = 0; _i32 < _size27; ++_i32)
+        var _ktype38 = 0;
+        var _vtype39 = 0;
+        _rtmp341 = input.readMapBegin();
+        _ktype38 = _rtmp341.ktype;
+        _vtype39 = _rtmp341.vtype;
+        _size37 = _rtmp341.size;
+        for (var _i42 = 0; _i42 < _size37; ++_i42)
         {
-          var key33 = null;
-          var val34 = null;
-          key33 = input.readString();
-          val34 = input.readString();
-          this.linkLocals[key33] = val34;
+          var key43 = null;
+          var val44 = null;
+          key43 = input.readString();
+          val44 = input.readString();
+          this.linkLocals[key43] = val44;
         }
         input.readMapEnd();
       } else {
@@ -296,8 +479,8 @@ AggrStatusReport.prototype.read = function(input) {
   return;
 };
 
-AggrStatusReport.prototype.write = function(output) {
-  output.writeStructBegin('AggrStatusReport');
+AggrStatusReport_Deprecated.prototype.write = function(output) {
+  output.writeStructBegin('AggrStatusReport_Deprecated');
   if (this.timeStamp !== null && this.timeStamp !== undefined) {
     output.writeFieldBegin('timeStamp', Thrift.Type.I64, 1);
     output.writeI64(this.timeStamp);
@@ -311,12 +494,12 @@ AggrStatusReport.prototype.write = function(output) {
   if (this.routes !== null && this.routes !== undefined) {
     output.writeFieldBegin('routes', Thrift.Type.LIST, 3);
     output.writeListBegin(Thrift.Type.STRUCT, this.routes.length);
-    for (var iter35 in this.routes)
+    for (var iter45 in this.routes)
     {
-      if (this.routes.hasOwnProperty(iter35))
+      if (this.routes.hasOwnProperty(iter45))
       {
-        iter35 = this.routes[iter35];
-        iter35.write(output);
+        iter45 = this.routes[iter45];
+        iter45.write(output);
       }
     }
     output.writeListEnd();
@@ -325,13 +508,279 @@ AggrStatusReport.prototype.write = function(output) {
   if (this.linkLocals !== null && this.linkLocals !== undefined) {
     output.writeFieldBegin('linkLocals', Thrift.Type.MAP, 4);
     output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRING, Thrift.objectLength(this.linkLocals));
-    for (var kiter36 in this.linkLocals)
+    for (var kiter46 in this.linkLocals)
     {
-      if (this.linkLocals.hasOwnProperty(kiter36))
+      if (this.linkLocals.hasOwnProperty(kiter46))
       {
-        var viter37 = this.linkLocals[kiter36];
-        output.writeString(kiter36);
-        output.writeString(viter37);
+        var viter47 = this.linkLocals[kiter46];
+        output.writeString(kiter46);
+        output.writeString(viter47);
+      }
+    }
+    output.writeMapEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AggrGetRoutingReport = module.exports.AggrGetRoutingReport = function(args) {
+};
+AggrGetRoutingReport.prototype = {};
+AggrGetRoutingReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    input.skip(ftype);
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrGetRoutingReport.prototype.write = function(output) {
+  output.writeStructBegin('AggrGetRoutingReport');
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AggrRoutingReport = module.exports.AggrRoutingReport = function(args) {
+  this.adjacencyMap = null;
+  this.routingReports = null;
+  if (args) {
+    if (args.adjacencyMap !== undefined && args.adjacencyMap !== null) {
+      this.adjacencyMap = Thrift.copyMap(args.adjacencyMap, [Lsdb_ttypes.AdjacencyDatabase]);
+    }
+    if (args.routingReports !== undefined && args.routingReports !== null) {
+      this.routingReports = Thrift.copyMap(args.routingReports, [null]);
+    }
+  }
+};
+AggrRoutingReport.prototype = {};
+AggrRoutingReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.MAP) {
+        var _size48 = 0;
+        var _rtmp352;
+        this.adjacencyMap = {};
+        var _ktype49 = 0;
+        var _vtype50 = 0;
+        _rtmp352 = input.readMapBegin();
+        _ktype49 = _rtmp352.ktype;
+        _vtype50 = _rtmp352.vtype;
+        _size48 = _rtmp352.size;
+        for (var _i53 = 0; _i53 < _size48; ++_i53)
+        {
+          var key54 = null;
+          var val55 = null;
+          key54 = input.readString();
+          val55 = new Lsdb_ttypes.AdjacencyDatabase();
+          val55.read(input);
+          this.adjacencyMap[key54] = val55;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.MAP) {
+        var _size56 = 0;
+        var _rtmp360;
+        this.routingReports = {};
+        var _ktype57 = 0;
+        var _vtype58 = 0;
+        _rtmp360 = input.readMapBegin();
+        _ktype57 = _rtmp360.ktype;
+        _vtype58 = _rtmp360.vtype;
+        _size56 = _rtmp360.size;
+        for (var _i61 = 0; _i61 < _size56; ++_i61)
+        {
+          var key62 = null;
+          var val63 = null;
+          key62 = input.readString();
+          val63 = new ttypes.AgentRoutingReport();
+          val63.read(input);
+          this.routingReports[key62] = val63;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AggrRoutingReport.prototype.write = function(output) {
+  output.writeStructBegin('AggrRoutingReport');
+  if (this.adjacencyMap !== null && this.adjacencyMap !== undefined) {
+    output.writeFieldBegin('adjacencyMap', Thrift.Type.MAP, 1);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.adjacencyMap));
+    for (var kiter64 in this.adjacencyMap)
+    {
+      if (this.adjacencyMap.hasOwnProperty(kiter64))
+      {
+        var viter65 = this.adjacencyMap[kiter64];
+        output.writeString(kiter64);
+        viter65.write(output);
+      }
+    }
+    output.writeMapEnd();
+    output.writeFieldEnd();
+  }
+  if (this.routingReports !== null && this.routingReports !== undefined) {
+    output.writeFieldBegin('routingReports', Thrift.Type.MAP, 2);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.routingReports));
+    for (var kiter66 in this.routingReports)
+    {
+      if (this.routingReports.hasOwnProperty(kiter66))
+      {
+        var viter67 = this.routingReports[kiter66];
+        output.writeString(kiter66);
+        viter67.write(output);
+      }
+    }
+    output.writeMapEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+AgentRoutingReport = module.exports.AgentRoutingReport = function(args) {
+  this.routes = null;
+  this.linkLocals = null;
+  if (args) {
+    if (args.routes !== undefined && args.routes !== null) {
+      this.routes = Thrift.copyList(args.routes, [IpPrefix_ttypes.UnicastRoute]);
+    }
+    if (args.linkLocals !== undefined && args.linkLocals !== null) {
+      this.linkLocals = Thrift.copyMap(args.linkLocals, [null]);
+    }
+  }
+};
+AgentRoutingReport.prototype = {};
+AgentRoutingReport.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.LIST) {
+        var _size68 = 0;
+        var _rtmp372;
+        this.routes = [];
+        var _etype71 = 0;
+        _rtmp372 = input.readListBegin();
+        _etype71 = _rtmp372.etype;
+        _size68 = _rtmp372.size;
+        for (var _i73 = 0; _i73 < _size68; ++_i73)
+        {
+          var elem74 = null;
+          elem74 = new IpPrefix_ttypes.UnicastRoute();
+          elem74.read(input);
+          this.routes.push(elem74);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.MAP) {
+        var _size75 = 0;
+        var _rtmp379;
+        this.linkLocals = {};
+        var _ktype76 = 0;
+        var _vtype77 = 0;
+        _rtmp379 = input.readMapBegin();
+        _ktype76 = _rtmp379.ktype;
+        _vtype77 = _rtmp379.vtype;
+        _size75 = _rtmp379.size;
+        for (var _i80 = 0; _i80 < _size75; ++_i80)
+        {
+          var key81 = null;
+          var val82 = null;
+          key81 = input.readString();
+          val82 = input.readString();
+          this.linkLocals[key81] = val82;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+AgentRoutingReport.prototype.write = function(output) {
+  output.writeStructBegin('AgentRoutingReport');
+  if (this.routes !== null && this.routes !== undefined) {
+    output.writeFieldBegin('routes', Thrift.Type.LIST, 1);
+    output.writeListBegin(Thrift.Type.STRUCT, this.routes.length);
+    for (var iter83 in this.routes)
+    {
+      if (this.routes.hasOwnProperty(iter83))
+      {
+        iter83 = this.routes[iter83];
+        iter83.write(output);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.linkLocals !== null && this.linkLocals !== undefined) {
+    output.writeFieldBegin('linkLocals', Thrift.Type.MAP, 2);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRING, Thrift.objectLength(this.linkLocals));
+    for (var kiter84 in this.linkLocals)
+    {
+      if (this.linkLocals.hasOwnProperty(kiter84))
+      {
+        var viter85 = this.linkLocals[kiter84];
+        output.writeString(kiter84);
+        output.writeString(viter85);
       }
     }
     output.writeMapEnd();
@@ -346,7 +795,7 @@ AggrStat = module.exports.AggrStat = function(args) {
   this.key = null;
   this.timestamp = null;
   this.value = null;
-  this.is_counter = null;
+  this.isCounter = null;
   if (args) {
     if (args.key !== undefined && args.key !== null) {
       this.key = args.key;
@@ -357,8 +806,8 @@ AggrStat = module.exports.AggrStat = function(args) {
     if (args.value !== undefined && args.value !== null) {
       this.value = args.value;
     }
-    if (args.is_counter !== undefined && args.is_counter !== null) {
-      this.is_counter = args.is_counter;
+    if (args.isCounter !== undefined && args.isCounter !== null) {
+      this.isCounter = args.isCounter;
     }
   }
 };
@@ -399,7 +848,7 @@ AggrStat.prototype.read = function(input) {
       break;
       case 4:
       if (ftype == Thrift.Type.BOOL) {
-        this.is_counter = input.readBool();
+        this.isCounter = input.readBool();
       } else {
         input.skip(ftype);
       }
@@ -430,9 +879,9 @@ AggrStat.prototype.write = function(output) {
     output.writeDouble(this.value);
     output.writeFieldEnd();
   }
-  if (this.is_counter !== null && this.is_counter !== undefined) {
-    output.writeFieldBegin('is_counter', Thrift.Type.BOOL, 4);
-    output.writeBool(this.is_counter);
+  if (this.isCounter !== null && this.isCounter !== undefined) {
+    output.writeFieldBegin('isCounter', Thrift.Type.BOOL, 4);
+    output.writeBool(this.isCounter);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -468,19 +917,19 @@ AggrStatsReport.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.LIST) {
-        var _size38 = 0;
-        var _rtmp342;
+        var _size86 = 0;
+        var _rtmp390;
         this.stats = [];
-        var _etype41 = 0;
-        _rtmp342 = input.readListBegin();
-        _etype41 = _rtmp342.etype;
-        _size38 = _rtmp342.size;
-        for (var _i43 = 0; _i43 < _size38; ++_i43)
+        var _etype89 = 0;
+        _rtmp390 = input.readListBegin();
+        _etype89 = _rtmp390.etype;
+        _size86 = _rtmp390.size;
+        for (var _i91 = 0; _i91 < _size86; ++_i91)
         {
-          var elem44 = null;
-          elem44 = new ttypes.AggrStat();
-          elem44.read(input);
-          this.stats.push(elem44);
+          var elem92 = null;
+          elem92 = new ttypes.AggrStat();
+          elem92.read(input);
+          this.stats.push(elem92);
         }
         input.readListEnd();
       } else {
@@ -489,19 +938,19 @@ AggrStatsReport.prototype.read = function(input) {
       break;
       case 2:
       if (ftype == Thrift.Type.LIST) {
-        var _size45 = 0;
-        var _rtmp349;
+        var _size93 = 0;
+        var _rtmp397;
         this.events = [];
-        var _etype48 = 0;
-        _rtmp349 = input.readListBegin();
-        _etype48 = _rtmp349.etype;
-        _size45 = _rtmp349.size;
-        for (var _i50 = 0; _i50 < _size45; ++_i50)
+        var _etype96 = 0;
+        _rtmp397 = input.readListBegin();
+        _etype96 = _rtmp397.etype;
+        _size93 = _rtmp397.size;
+        for (var _i98 = 0; _i98 < _size93; ++_i98)
         {
-          var elem51 = null;
-          elem51 = new Monitor_ttypes.EventLog();
-          elem51.read(input);
-          this.events.push(elem51);
+          var elem99 = null;
+          elem99 = new Monitor_ttypes.EventLog();
+          elem99.read(input);
+          this.events.push(elem99);
         }
         input.readListEnd();
       } else {
@@ -522,12 +971,12 @@ AggrStatsReport.prototype.write = function(output) {
   if (this.stats !== null && this.stats !== undefined) {
     output.writeFieldBegin('stats', Thrift.Type.LIST, 1);
     output.writeListBegin(Thrift.Type.STRUCT, this.stats.length);
-    for (var iter52 in this.stats)
+    for (var iter100 in this.stats)
     {
-      if (this.stats.hasOwnProperty(iter52))
+      if (this.stats.hasOwnProperty(iter100))
       {
-        iter52 = this.stats[iter52];
-        iter52.write(output);
+        iter100 = this.stats[iter100];
+        iter100.write(output);
       }
     }
     output.writeListEnd();
@@ -536,12 +985,12 @@ AggrStatsReport.prototype.write = function(output) {
   if (this.events !== null && this.events !== undefined) {
     output.writeFieldBegin('events', Thrift.Type.LIST, 2);
     output.writeListBegin(Thrift.Type.STRUCT, this.events.length);
-    for (var iter53 in this.events)
+    for (var iter101 in this.events)
     {
-      if (this.events.hasOwnProperty(iter53))
+      if (this.events.hasOwnProperty(iter101))
       {
-        iter53 = this.events[iter53];
-        iter53.write(output);
+        iter101 = this.events[iter101];
+        iter101.write(output);
       }
     }
     output.writeListEnd();
@@ -558,7 +1007,7 @@ AggrAlertConf = module.exports.AggrAlertConf = function(args) {
   this.threshold = null;
   this.comp = null;
   this.level = null;
-  this.node_mac = null;
+  this.nodeMac = null;
   if (args) {
     if (args.id !== undefined && args.id !== null) {
       this.id = args.id;
@@ -575,8 +1024,8 @@ AggrAlertConf = module.exports.AggrAlertConf = function(args) {
     if (args.level !== undefined && args.level !== null) {
       this.level = args.level;
     }
-    if (args.node_mac !== undefined && args.node_mac !== null) {
-      this.node_mac = args.node_mac;
+    if (args.nodeMac !== undefined && args.nodeMac !== null) {
+      this.nodeMac = args.nodeMac;
     }
   }
 };
@@ -631,7 +1080,7 @@ AggrAlertConf.prototype.read = function(input) {
       break;
       case 6:
       if (ftype == Thrift.Type.STRING) {
-        this.node_mac = input.readString();
+        this.nodeMac = input.readString();
       } else {
         input.skip(ftype);
       }
@@ -672,9 +1121,9 @@ AggrAlertConf.prototype.write = function(output) {
     output.writeI32(this.level);
     output.writeFieldEnd();
   }
-  if (this.node_mac !== null && this.node_mac !== undefined) {
-    output.writeFieldBegin('node_mac', Thrift.Type.STRING, 6);
-    output.writeString(this.node_mac);
+  if (this.nodeMac !== null && this.nodeMac !== undefined) {
+    output.writeFieldBegin('nodeMac', Thrift.Type.STRING, 6);
+    output.writeString(this.nodeMac);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -706,19 +1155,19 @@ AggrAlertConfList.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.LIST) {
-        var _size54 = 0;
-        var _rtmp358;
+        var _size102 = 0;
+        var _rtmp3106;
         this.alerts = [];
-        var _etype57 = 0;
-        _rtmp358 = input.readListBegin();
-        _etype57 = _rtmp358.etype;
-        _size54 = _rtmp358.size;
-        for (var _i59 = 0; _i59 < _size54; ++_i59)
+        var _etype105 = 0;
+        _rtmp3106 = input.readListBegin();
+        _etype105 = _rtmp3106.etype;
+        _size102 = _rtmp3106.size;
+        for (var _i107 = 0; _i107 < _size102; ++_i107)
         {
-          var elem60 = null;
-          elem60 = new ttypes.AggrAlertConf();
-          elem60.read(input);
-          this.alerts.push(elem60);
+          var elem108 = null;
+          elem108 = new ttypes.AggrAlertConf();
+          elem108.read(input);
+          this.alerts.push(elem108);
         }
         input.readListEnd();
       } else {
@@ -742,12 +1191,12 @@ AggrAlertConfList.prototype.write = function(output) {
   if (this.alerts !== null && this.alerts !== undefined) {
     output.writeFieldBegin('alerts', Thrift.Type.LIST, 1);
     output.writeListBegin(Thrift.Type.STRUCT, this.alerts.length);
-    for (var iter61 in this.alerts)
+    for (var iter109 in this.alerts)
     {
-      if (this.alerts.hasOwnProperty(iter61))
+      if (this.alerts.hasOwnProperty(iter109))
       {
-        iter61 = this.alerts[iter61];
-        iter61.write(output);
+        iter109 = this.alerts[iter109];
+        iter109.write(output);
       }
     }
     output.writeListEnd();
@@ -894,11 +1343,11 @@ AggrSyslog.prototype.write = function(output) {
 };
 
 AggrSyslogReport = module.exports.AggrSyslogReport = function(args) {
-  this.mac_addr = null;
+  this.macAddr = null;
   this.syslogs = null;
   if (args) {
-    if (args.mac_addr !== undefined && args.mac_addr !== null) {
-      this.mac_addr = args.mac_addr;
+    if (args.macAddr !== undefined && args.macAddr !== null) {
+      this.macAddr = args.macAddr;
     }
     if (args.syslogs !== undefined && args.syslogs !== null) {
       this.syslogs = Thrift.copyList(args.syslogs, [ttypes.AggrSyslog]);
@@ -921,26 +1370,26 @@ AggrSyslogReport.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.STRING) {
-        this.mac_addr = input.readString();
+        this.macAddr = input.readString();
       } else {
         input.skip(ftype);
       }
       break;
       case 2:
       if (ftype == Thrift.Type.LIST) {
-        var _size62 = 0;
-        var _rtmp366;
+        var _size110 = 0;
+        var _rtmp3114;
         this.syslogs = [];
-        var _etype65 = 0;
-        _rtmp366 = input.readListBegin();
-        _etype65 = _rtmp366.etype;
-        _size62 = _rtmp366.size;
-        for (var _i67 = 0; _i67 < _size62; ++_i67)
+        var _etype113 = 0;
+        _rtmp3114 = input.readListBegin();
+        _etype113 = _rtmp3114.etype;
+        _size110 = _rtmp3114.size;
+        for (var _i115 = 0; _i115 < _size110; ++_i115)
         {
-          var elem68 = null;
-          elem68 = new ttypes.AggrSyslog();
-          elem68.read(input);
-          this.syslogs.push(elem68);
+          var elem116 = null;
+          elem116 = new ttypes.AggrSyslog();
+          elem116.read(input);
+          this.syslogs.push(elem116);
         }
         input.readListEnd();
       } else {
@@ -958,20 +1407,20 @@ AggrSyslogReport.prototype.read = function(input) {
 
 AggrSyslogReport.prototype.write = function(output) {
   output.writeStructBegin('AggrSyslogReport');
-  if (this.mac_addr !== null && this.mac_addr !== undefined) {
-    output.writeFieldBegin('mac_addr', Thrift.Type.STRING, 1);
-    output.writeString(this.mac_addr);
+  if (this.macAddr !== null && this.macAddr !== undefined) {
+    output.writeFieldBegin('macAddr', Thrift.Type.STRING, 1);
+    output.writeString(this.macAddr);
     output.writeFieldEnd();
   }
   if (this.syslogs !== null && this.syslogs !== undefined) {
     output.writeFieldBegin('syslogs', Thrift.Type.LIST, 2);
     output.writeListBegin(Thrift.Type.STRUCT, this.syslogs.length);
-    for (var iter69 in this.syslogs)
+    for (var iter117 in this.syslogs)
     {
-      if (this.syslogs.hasOwnProperty(iter69))
+      if (this.syslogs.hasOwnProperty(iter117))
       {
-        iter69 = this.syslogs[iter69];
-        iter69.write(output);
+        iter117 = this.syslogs[iter117];
+        iter117.write(output);
       }
     }
     output.writeListEnd();
@@ -983,30 +1432,34 @@ AggrSyslogReport.prototype.write = function(output) {
 };
 
 AggrStartIperf = module.exports.AggrStartIperf = function(args) {
-  this.src_node_id = null;
-  this.src_node_ipv6 = null;
-  this.dst_node_id = null;
-  this.dst_node_ipv6 = null;
+  this.srcNodeId = null;
+  this.srcNodeIpv6 = null;
+  this.dstNodeId = null;
+  this.dstNodeIpv6 = null;
   this.bitrate = null;
-  this.time_sec = null;
+  this.timeSec = null;
+  this.protocol = null;
   if (args) {
-    if (args.src_node_id !== undefined && args.src_node_id !== null) {
-      this.src_node_id = args.src_node_id;
+    if (args.srcNodeId !== undefined && args.srcNodeId !== null) {
+      this.srcNodeId = args.srcNodeId;
     }
-    if (args.src_node_ipv6 !== undefined && args.src_node_ipv6 !== null) {
-      this.src_node_ipv6 = args.src_node_ipv6;
+    if (args.srcNodeIpv6 !== undefined && args.srcNodeIpv6 !== null) {
+      this.srcNodeIpv6 = args.srcNodeIpv6;
     }
-    if (args.dst_node_id !== undefined && args.dst_node_id !== null) {
-      this.dst_node_id = args.dst_node_id;
+    if (args.dstNodeId !== undefined && args.dstNodeId !== null) {
+      this.dstNodeId = args.dstNodeId;
     }
-    if (args.dst_node_ipv6 !== undefined && args.dst_node_ipv6 !== null) {
-      this.dst_node_ipv6 = args.dst_node_ipv6;
+    if (args.dstNodeIpv6 !== undefined && args.dstNodeIpv6 !== null) {
+      this.dstNodeIpv6 = args.dstNodeIpv6;
     }
     if (args.bitrate !== undefined && args.bitrate !== null) {
       this.bitrate = args.bitrate;
     }
-    if (args.time_sec !== undefined && args.time_sec !== null) {
-      this.time_sec = args.time_sec;
+    if (args.timeSec !== undefined && args.timeSec !== null) {
+      this.timeSec = args.timeSec;
+    }
+    if (args.protocol !== undefined && args.protocol !== null) {
+      this.protocol = args.protocol;
     }
   }
 };
@@ -1026,28 +1479,28 @@ AggrStartIperf.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.STRING) {
-        this.src_node_id = input.readString();
+        this.srcNodeId = input.readString();
       } else {
         input.skip(ftype);
       }
       break;
       case 2:
       if (ftype == Thrift.Type.STRING) {
-        this.src_node_ipv6 = input.readString();
+        this.srcNodeIpv6 = input.readString();
       } else {
         input.skip(ftype);
       }
       break;
       case 3:
       if (ftype == Thrift.Type.STRING) {
-        this.dst_node_id = input.readString();
+        this.dstNodeId = input.readString();
       } else {
         input.skip(ftype);
       }
       break;
       case 4:
       if (ftype == Thrift.Type.STRING) {
-        this.dst_node_ipv6 = input.readString();
+        this.dstNodeIpv6 = input.readString();
       } else {
         input.skip(ftype);
       }
@@ -1061,7 +1514,14 @@ AggrStartIperf.prototype.read = function(input) {
       break;
       case 6:
       if (ftype == Thrift.Type.I32) {
-        this.time_sec = input.readI32();
+        this.timeSec = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 7:
+      if (ftype == Thrift.Type.I32) {
+        this.protocol = input.readI32();
       } else {
         input.skip(ftype);
       }
@@ -1077,24 +1537,24 @@ AggrStartIperf.prototype.read = function(input) {
 
 AggrStartIperf.prototype.write = function(output) {
   output.writeStructBegin('AggrStartIperf');
-  if (this.src_node_id !== null && this.src_node_id !== undefined) {
-    output.writeFieldBegin('src_node_id', Thrift.Type.STRING, 1);
-    output.writeString(this.src_node_id);
+  if (this.srcNodeId !== null && this.srcNodeId !== undefined) {
+    output.writeFieldBegin('srcNodeId', Thrift.Type.STRING, 1);
+    output.writeString(this.srcNodeId);
     output.writeFieldEnd();
   }
-  if (this.src_node_ipv6 !== null && this.src_node_ipv6 !== undefined) {
-    output.writeFieldBegin('src_node_ipv6', Thrift.Type.STRING, 2);
-    output.writeString(this.src_node_ipv6);
+  if (this.srcNodeIpv6 !== null && this.srcNodeIpv6 !== undefined) {
+    output.writeFieldBegin('srcNodeIpv6', Thrift.Type.STRING, 2);
+    output.writeString(this.srcNodeIpv6);
     output.writeFieldEnd();
   }
-  if (this.dst_node_id !== null && this.dst_node_id !== undefined) {
-    output.writeFieldBegin('dst_node_id', Thrift.Type.STRING, 3);
-    output.writeString(this.dst_node_id);
+  if (this.dstNodeId !== null && this.dstNodeId !== undefined) {
+    output.writeFieldBegin('dstNodeId', Thrift.Type.STRING, 3);
+    output.writeString(this.dstNodeId);
     output.writeFieldEnd();
   }
-  if (this.dst_node_ipv6 !== null && this.dst_node_ipv6 !== undefined) {
-    output.writeFieldBegin('dst_node_ipv6', Thrift.Type.STRING, 4);
-    output.writeString(this.dst_node_ipv6);
+  if (this.dstNodeIpv6 !== null && this.dstNodeIpv6 !== undefined) {
+    output.writeFieldBegin('dstNodeIpv6', Thrift.Type.STRING, 4);
+    output.writeString(this.dstNodeIpv6);
     output.writeFieldEnd();
   }
   if (this.bitrate !== null && this.bitrate !== undefined) {
@@ -1102,9 +1562,14 @@ AggrStartIperf.prototype.write = function(output) {
     output.writeI64(this.bitrate);
     output.writeFieldEnd();
   }
-  if (this.time_sec !== null && this.time_sec !== undefined) {
-    output.writeFieldBegin('time_sec', Thrift.Type.I32, 6);
-    output.writeI32(this.time_sec);
+  if (this.timeSec !== null && this.timeSec !== undefined) {
+    output.writeFieldBegin('timeSec', Thrift.Type.I32, 6);
+    output.writeI32(this.timeSec);
+    output.writeFieldEnd();
+  }
+  if (this.protocol !== null && this.protocol !== undefined) {
+    output.writeFieldBegin('protocol', Thrift.Type.I32, 7);
+    output.writeI32(this.protocol);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -1112,16 +1577,20 @@ AggrStartIperf.prototype.write = function(output) {
   return;
 };
 
-AggrStartAgentIperfServer = module.exports.AggrStartAgentIperfServer = function(args) {
-  this.server_port = null;
+AggrStartAgentIperf = module.exports.AggrStartAgentIperf = function(args) {
+  this.iperfConfig = null;
+  this.serverPort = 0;
   if (args) {
-    if (args.server_port !== undefined && args.server_port !== null) {
-      this.server_port = args.server_port;
+    if (args.iperfConfig !== undefined && args.iperfConfig !== null) {
+      this.iperfConfig = new ttypes.AggrStartIperf(args.iperfConfig);
+    }
+    if (args.serverPort !== undefined && args.serverPort !== null) {
+      this.serverPort = args.serverPort;
     }
   }
 };
-AggrStartAgentIperfServer.prototype = {};
-AggrStartAgentIperfServer.prototype.read = function(input) {
+AggrStartAgentIperf.prototype = {};
+AggrStartAgentIperf.prototype.read = function(input) {
   input.readStructBegin();
   while (true)
   {
@@ -1135,94 +1604,16 @@ AggrStartAgentIperfServer.prototype.read = function(input) {
     switch (fid)
     {
       case 1:
-      if (ftype == Thrift.Type.I32) {
-        this.server_port = input.readI32();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 0:
-        input.skip(ftype);
-        break;
-      default:
-        input.skip(ftype);
-    }
-    input.readFieldEnd();
-  }
-  input.readStructEnd();
-  return;
-};
-
-AggrStartAgentIperfServer.prototype.write = function(output) {
-  output.writeStructBegin('AggrStartAgentIperfServer');
-  if (this.server_port !== null && this.server_port !== undefined) {
-    output.writeFieldBegin('server_port', Thrift.Type.I32, 1);
-    output.writeI32(this.server_port);
-    output.writeFieldEnd();
-  }
-  output.writeFieldStop();
-  output.writeStructEnd();
-  return;
-};
-
-AggrStartAgentIperfClient = module.exports.AggrStartAgentIperfClient = function(args) {
-  this.server_ipv6_address = null;
-  this.server_port = null;
-  this.bitrate = null;
-  this.time_sec = null;
-  if (args) {
-    if (args.server_ipv6_address !== undefined && args.server_ipv6_address !== null) {
-      this.server_ipv6_address = args.server_ipv6_address;
-    }
-    if (args.server_port !== undefined && args.server_port !== null) {
-      this.server_port = args.server_port;
-    }
-    if (args.bitrate !== undefined && args.bitrate !== null) {
-      this.bitrate = args.bitrate;
-    }
-    if (args.time_sec !== undefined && args.time_sec !== null) {
-      this.time_sec = args.time_sec;
-    }
-  }
-};
-AggrStartAgentIperfClient.prototype = {};
-AggrStartAgentIperfClient.prototype.read = function(input) {
-  input.readStructBegin();
-  while (true)
-  {
-    var ret = input.readFieldBegin();
-    var fname = ret.fname;
-    var ftype = ret.ftype;
-    var fid = ret.fid;
-    if (ftype == Thrift.Type.STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      case 1:
-      if (ftype == Thrift.Type.STRING) {
-        this.server_ipv6_address = input.readString();
+      if (ftype == Thrift.Type.STRUCT) {
+        this.iperfConfig = new ttypes.AggrStartIperf();
+        this.iperfConfig.read(input);
       } else {
         input.skip(ftype);
       }
       break;
       case 2:
       if (ftype == Thrift.Type.I32) {
-        this.server_port = input.readI32();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 3:
-      if (ftype == Thrift.Type.I64) {
-        this.bitrate = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 4:
-      if (ftype == Thrift.Type.I32) {
-        this.time_sec = input.readI32();
+        this.serverPort = input.readI32();
       } else {
         input.skip(ftype);
       }
@@ -1236,26 +1627,16 @@ AggrStartAgentIperfClient.prototype.read = function(input) {
   return;
 };
 
-AggrStartAgentIperfClient.prototype.write = function(output) {
-  output.writeStructBegin('AggrStartAgentIperfClient');
-  if (this.server_ipv6_address !== null && this.server_ipv6_address !== undefined) {
-    output.writeFieldBegin('server_ipv6_address', Thrift.Type.STRING, 1);
-    output.writeString(this.server_ipv6_address);
+AggrStartAgentIperf.prototype.write = function(output) {
+  output.writeStructBegin('AggrStartAgentIperf');
+  if (this.iperfConfig !== null && this.iperfConfig !== undefined) {
+    output.writeFieldBegin('iperfConfig', Thrift.Type.STRUCT, 1);
+    this.iperfConfig.write(output);
     output.writeFieldEnd();
   }
-  if (this.server_port !== null && this.server_port !== undefined) {
-    output.writeFieldBegin('server_port', Thrift.Type.I32, 2);
-    output.writeI32(this.server_port);
-    output.writeFieldEnd();
-  }
-  if (this.bitrate !== null && this.bitrate !== undefined) {
-    output.writeFieldBegin('bitrate', Thrift.Type.I64, 3);
-    output.writeI64(this.bitrate);
-    output.writeFieldEnd();
-  }
-  if (this.time_sec !== null && this.time_sec !== undefined) {
-    output.writeFieldBegin('time_sec', Thrift.Type.I32, 4);
-    output.writeI32(this.time_sec);
+  if (this.serverPort !== null && this.serverPort !== undefined) {
+    output.writeFieldBegin('serverPort', Thrift.Type.I32, 2);
+    output.writeI32(this.serverPort);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -1264,10 +1645,10 @@ AggrStartAgentIperfClient.prototype.write = function(output) {
 };
 
 AggrStopIperf = module.exports.AggrStopIperf = function(args) {
-  this.node_id = null;
+  this.nodeId = null;
   if (args) {
-    if (args.node_id !== undefined && args.node_id !== null) {
-      this.node_id = args.node_id;
+    if (args.nodeId !== undefined && args.nodeId !== null) {
+      this.nodeId = args.nodeId;
     }
   }
 };
@@ -1287,7 +1668,7 @@ AggrStopIperf.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.STRING) {
-        this.node_id = input.readString();
+        this.nodeId = input.readString();
       } else {
         input.skip(ftype);
       }
@@ -1306,9 +1687,9 @@ AggrStopIperf.prototype.read = function(input) {
 
 AggrStopIperf.prototype.write = function(output) {
   output.writeStructBegin('AggrStopIperf');
-  if (this.node_id !== null && this.node_id !== undefined) {
-    output.writeFieldBegin('node_id', Thrift.Type.STRING, 1);
-    output.writeString(this.node_id);
+  if (this.nodeId !== null && this.nodeId !== undefined) {
+    output.writeFieldBegin('nodeId', Thrift.Type.STRING, 1);
+    output.writeString(this.nodeId);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -1345,10 +1726,10 @@ AggrStopAgentIperf.prototype.write = function(output) {
 };
 
 AggrGetIperfStatus = module.exports.AggrGetIperfStatus = function(args) {
-  this.node_id = null;
+  this.nodeId = null;
   if (args) {
-    if (args.node_id !== undefined && args.node_id !== null) {
-      this.node_id = args.node_id;
+    if (args.nodeId !== undefined && args.nodeId !== null) {
+      this.nodeId = args.nodeId;
     }
   }
 };
@@ -1368,7 +1749,7 @@ AggrGetIperfStatus.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.STRING) {
-        this.node_id = input.readString();
+        this.nodeId = input.readString();
       } else {
         input.skip(ftype);
       }
@@ -1387,9 +1768,9 @@ AggrGetIperfStatus.prototype.read = function(input) {
 
 AggrGetIperfStatus.prototype.write = function(output) {
   output.writeStructBegin('AggrGetIperfStatus');
-  if (this.node_id !== null && this.node_id !== undefined) {
-    output.writeFieldBegin('node_id', Thrift.Type.STRING, 1);
-    output.writeString(this.node_id);
+  if (this.nodeId !== null && this.nodeId !== undefined) {
+    output.writeFieldBegin('nodeId', Thrift.Type.STRING, 1);
+    output.writeString(this.nodeId);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -1402,10 +1783,10 @@ AggrIperfStatusReport = module.exports.AggrIperfStatusReport = function(args) {
   this.servers = null;
   if (args) {
     if (args.clients !== undefined && args.clients !== null) {
-      this.clients = Thrift.copyMap(args.clients, [ttypes.AggrStartAgentIperfClient]);
+      this.clients = Thrift.copyMap(args.clients, [ttypes.AggrStartAgentIperf]);
     }
     if (args.servers !== undefined && args.servers !== null) {
-      this.servers = Thrift.copyMap(args.servers, [ttypes.AggrStartAgentIperfServer]);
+      this.servers = Thrift.copyMap(args.servers, [ttypes.AggrStartAgentIperf]);
     }
   }
 };
@@ -1425,23 +1806,23 @@ AggrIperfStatusReport.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.MAP) {
-        var _size70 = 0;
-        var _rtmp374;
+        var _size118 = 0;
+        var _rtmp3122;
         this.clients = {};
-        var _ktype71 = 0;
-        var _vtype72 = 0;
-        _rtmp374 = input.readMapBegin();
-        _ktype71 = _rtmp374.ktype;
-        _vtype72 = _rtmp374.vtype;
-        _size70 = _rtmp374.size;
-        for (var _i75 = 0; _i75 < _size70; ++_i75)
+        var _ktype119 = 0;
+        var _vtype120 = 0;
+        _rtmp3122 = input.readMapBegin();
+        _ktype119 = _rtmp3122.ktype;
+        _vtype120 = _rtmp3122.vtype;
+        _size118 = _rtmp3122.size;
+        for (var _i123 = 0; _i123 < _size118; ++_i123)
         {
-          var key76 = null;
-          var val77 = null;
-          key76 = input.readI32();
-          val77 = new ttypes.AggrStartAgentIperfClient();
-          val77.read(input);
-          this.clients[key76] = val77;
+          var key124 = null;
+          var val125 = null;
+          key124 = input.readI32();
+          val125 = new ttypes.AggrStartAgentIperf();
+          val125.read(input);
+          this.clients[key124] = val125;
         }
         input.readMapEnd();
       } else {
@@ -1450,23 +1831,23 @@ AggrIperfStatusReport.prototype.read = function(input) {
       break;
       case 2:
       if (ftype == Thrift.Type.MAP) {
-        var _size78 = 0;
-        var _rtmp382;
+        var _size126 = 0;
+        var _rtmp3130;
         this.servers = {};
-        var _ktype79 = 0;
-        var _vtype80 = 0;
-        _rtmp382 = input.readMapBegin();
-        _ktype79 = _rtmp382.ktype;
-        _vtype80 = _rtmp382.vtype;
-        _size78 = _rtmp382.size;
-        for (var _i83 = 0; _i83 < _size78; ++_i83)
+        var _ktype127 = 0;
+        var _vtype128 = 0;
+        _rtmp3130 = input.readMapBegin();
+        _ktype127 = _rtmp3130.ktype;
+        _vtype128 = _rtmp3130.vtype;
+        _size126 = _rtmp3130.size;
+        for (var _i131 = 0; _i131 < _size126; ++_i131)
         {
-          var key84 = null;
-          var val85 = null;
-          key84 = input.readI32();
-          val85 = new ttypes.AggrStartAgentIperfServer();
-          val85.read(input);
-          this.servers[key84] = val85;
+          var key132 = null;
+          var val133 = null;
+          key132 = input.readI32();
+          val133 = new ttypes.AggrStartAgentIperf();
+          val133.read(input);
+          this.servers[key132] = val133;
         }
         input.readMapEnd();
       } else {
@@ -1487,13 +1868,13 @@ AggrIperfStatusReport.prototype.write = function(output) {
   if (this.clients !== null && this.clients !== undefined) {
     output.writeFieldBegin('clients', Thrift.Type.MAP, 1);
     output.writeMapBegin(Thrift.Type.I32, Thrift.Type.STRUCT, Thrift.objectLength(this.clients));
-    for (var kiter86 in this.clients)
+    for (var kiter134 in this.clients)
     {
-      if (this.clients.hasOwnProperty(kiter86))
+      if (this.clients.hasOwnProperty(kiter134))
       {
-        var viter87 = this.clients[kiter86];
-        output.writeI32(kiter86);
-        viter87.write(output);
+        var viter135 = this.clients[kiter134];
+        output.writeI32(kiter134);
+        viter135.write(output);
       }
     }
     output.writeMapEnd();
@@ -1502,13 +1883,13 @@ AggrIperfStatusReport.prototype.write = function(output) {
   if (this.servers !== null && this.servers !== undefined) {
     output.writeFieldBegin('servers', Thrift.Type.MAP, 2);
     output.writeMapBegin(Thrift.Type.I32, Thrift.Type.STRUCT, Thrift.objectLength(this.servers));
-    for (var kiter88 in this.servers)
+    for (var kiter136 in this.servers)
     {
-      if (this.servers.hasOwnProperty(kiter88))
+      if (this.servers.hasOwnProperty(kiter136))
       {
-        var viter89 = this.servers[kiter88];
-        output.writeI32(kiter88);
-        viter89.write(output);
+        var viter137 = this.servers[kiter136];
+        output.writeI32(kiter136);
+        viter137.write(output);
       }
     }
     output.writeMapEnd();

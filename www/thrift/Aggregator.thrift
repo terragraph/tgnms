@@ -9,13 +9,17 @@ enum AggrMessageType {
 
   // ===  StatusApp  === //
   // Requests handled (by Aggr StatusApp)
-  GET_STATUS_DUMP = 101,
-  GET_ROUTING_ADJ = 102,
+  GET_STATUS_DUMP_DEPRECATED = 101,
+  GET_STATUS_REPORT = 103,
+  GET_ROUTING_REPORT = 104,
   // Responses given (by Aggr StatusApp)
-  STATUS_DUMP = 201,
+  STATUS_DUMP_DEPRECATED = 201,
   ROUTING_ADJ = 202,
   // Messages originated (by agent)
-  STATUS_REPORT = 401,
+  STATUS_REPORT_DEPRECATED = 401, // Deprecating
+  STATUS_REPORT = 403,
+  ROUTING_REPORT = 404,
+
   STATS_REPORT = 402,
   // Messages originated (by logtail)
   SYSLOG_REPORT = 451,
@@ -26,12 +30,16 @@ enum AggrMessageType {
   SET_ALERTS_CONFIG_RESP = 504,
 
   // ===  TrafficApp  === //
+  // Requests handled (by Aggr TrafficApp)
   START_IPERF = 601,
-  START_IPERF_SERVER = 602,
-  START_IPERF_CLIENT = 603,
-  STOP_IPERF = 604,
-  GET_IPERF_STATUS = 605,
-  IPERF_STATUS_REPORT = 606,
+  STOP_IPERF = 602,
+  GET_IPERF_STATUS = 603,
+  // Messages originated by Aggr TrafficApp to agent / NmsPublisher
+  START_IPERF_SERVER = 611,
+  START_IPERF_CLIENT = 612,
+  // Messages originated by agent to Aggr TrafficApp
+  START_IPERF_SERVER_RESP = 621,
+  IPERF_STATUS_REPORT = 622,
 
   // Common
   AGGR_ACK = 1001,
@@ -39,18 +47,70 @@ enum AggrMessageType {
 
 #############  StatusApp ##############
 
+/**
+ * @apiDefine AggrGetStatusDump
+ * @apiDeprecated Data became too large, use
+                  AggrGetStatusReports/AggrGetRoutingReports
+ */
 struct AggrGetStatusDump {}
 
-struct AggrStatusDump {
+/**
+ * @apiDefine AggrStatusDump_SUCCESS
+ * @apiDeprecated Data became too large, use
+                  AggrStatusReports/AggrRoutingReports
+ * @apiSuccess {Map(String:Object(AdjacencyDatabase))} adjacencyMap
+ *             The per-node adjacency map
+ * @apiSuccess {Map(String:Object(AggrStatusReport))} statusReports
+ *             The per-node status reports
+ */
+struct AggrStatusDump_Deprecated {
   1: map<string /* node id */, Lsdb.AdjacencyDatabase> adjacencyMap;
-  2: map<string /* node id */, AggrStatusReport> statusReports;
+  2: map<string /* node id */, AggrStatusReport_Deprecated> statusReports;
 }
 
+/**
+ * Status Reports
+ */
+
+struct AggrGetStatusReport {}
+
 struct AggrStatusReport {
+  1: map<string /* node id */, AgentStatusReport> statusReports;
+}
+
+struct AgentStatusReport {
+  1: i64 timeStamp;  // timestamp at which this response was generated
+  2: string ipv6Address;
+}
+
+/**
+ * @apiDefine AggrStatusReport_Deprecated_SUCCESS
+ * @apiSuccess (:AggrStatusReport) {Int64} timeStamp
+ *                                 The time at which this response was generated
+ * @apiSuccess (:AggrStatusReport) {String} ipv6Address The globally-reachable
+ *                                 IPv6 address of the stats agent
+ * @apiSuccess (:AggrStatusReport) {Object(UnicastRoute)[]} routes
+ *                                 The routing table
+ * @apiSuccess (:AggrStatusReport) {Map(String:String)} linkLocals
+ *                                 The link-locals addresses (interface:address)
+ */
+struct AggrStatusReport_Deprecated {
   1: i64 timeStamp;  // timestamp at which this response was generated
   2: string ipv6Address;
   3: list<IpPrefix.UnicastRoute> routes;
   4: map<string /* interface */, string /* address */> linkLocals;
+}
+
+struct AggrGetRoutingReport {}
+
+struct AggrRoutingReport {
+  1: map<string /* node id */, Lsdb.AdjacencyDatabase> adjacencyMap;
+  2: map<string /* node id */, AgentRoutingReport> routingReports;
+}
+
+struct AgentRoutingReport {
+  1: list<IpPrefix.UnicastRoute> routes;
+  2: map<string /* interface */, string /* address */> linkLocals;
 }
 
 #############  StatsApp ##############
@@ -59,7 +119,7 @@ struct AggrStat {
   1: string key;
   2: i64 timestamp;
   3: double value;
-  4: bool is_counter;
+  4: bool isCounter;
 }
 
 struct AggrStatsReport {
@@ -86,7 +146,7 @@ struct AggrAlertConf {
   3: double threshold;
   4: AggrAlertComparator comp;
   5: AggrAlertLevel level;
-  6: optional string node_mac;
+  6: optional string nodeMac;
 }
 
 struct AggrAlertConfList {
@@ -104,45 +164,96 @@ struct AggrSyslog {
 }
 
 struct AggrSyslogReport {
-  1: string mac_addr;
+  1: string macAddr;
   2: list<AggrSyslog> syslogs;
 }
 
 ############# TrafficApp ##############
 
+// Protocol numbers:
+// https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+enum AggrIperfTransportProtocol {
+  TCP = 6,
+  UDP = 17,
+}
+
+/**
+ * @apiDefine AggrStartIperf
+ * @apiParam {String} srcNodeId The source node MAC address
+ * @apiParam {String} srcNodeIpv6 The source node IPv6 address
+ * @apiParam {String} dstNodeId The destination node MAC address
+ * @apiParam {String} dstNodeIpv6 The destination node IPv6 address
+ * @apiParam {Int64} bitrate The target traffic bitrate (bps)
+ * @apiParam {Int32} timeSec The measurement duration (in seconds)
+ * @apiParam {Int(AggrIperfTransportProtocol)=6,17} protocol
+ *           The transport protocol (6=TCP, 17=UDP)
+ */
+/**
+ * @apiDefine AggrStartIperf_SUCCESS
+ * @apiSuccess (:AggrStartIperf) {String} srcNodeId
+ *                               The source node MAC address
+ * @apiSuccess (:AggrStartIperf) {String} srcNodeIpv6
+ *                               The source node IPv6 address
+ * @apiSuccess (:AggrStartIperf) {String} dstNodeId
+ *                               The destination node MAC address
+ * @apiSuccess (:AggrStartIperf) {String} dstNodeIpv6
+ *                               The destination node IPv6 address
+ * @apiSuccess (:AggrStartIperf) {Int64} bitrate
+ *                               The target traffic bitrate (bps)
+ * @apiSuccess (:AggrStartIperf) {Int32} timeSec
+ *                               The measurement duration (in seconds)
+ * @apiSuccess (:AggrStartIperf) {Int(AggrIperfTransportProtocol)=6,17} protocol
+ *                               The transport protocol (6=TCP, 17=UDP)
+ */
 struct AggrStartIperf {
-  1: string src_node_id;
-  2: string src_node_ipv6;
-  3: string dst_node_id;
-  4: string dst_node_ipv6;
+  1: string srcNodeId;
+  2: string srcNodeIpv6;
+  3: string dstNodeId;
+  4: string dstNodeIpv6;
   5: i64 bitrate;
-  6: i32 time_sec;
+  6: i32 timeSec;
+  7: AggrIperfTransportProtocol protocol;
 }
 
-struct AggrStartAgentIperfServer {
-  1: i32 server_port;
+/**
+ * @apiDefine AggrStartAgentIperf_SUCCESS
+ * @apiSuccess (:AggrStartAgentIperf) {Object(AggrStartIperf)} iperfConfig
+ *                                    The iperf config
+ * @apiSuccess (:AggrStartAgentIperf) {Int32} serverPort The server port
+ */
+struct AggrStartAgentIperf {
+  1: AggrStartIperf iperfConfig;
+  2: i32 serverPort = 0;
 }
 
-struct AggrStartAgentIperfClient {
-  1: string server_ipv6_address;
-  2: i32 server_port;
-  3: i64 bitrate;
-  4: i32 time_sec;
-}
-
+/**
+ * @apiDefine AggrStopIperf
+ * @apiParam {String} nodeId The node MAC address
+ */
 struct AggrStopIperf {
-  1: string node_id;
+  1: string nodeId;
 }
 
 struct AggrStopAgentIperf {}
 
+/**
+ * @apiDefine AggrGetIperfStatus
+ * @apiParam {String} nodeId The node MAC address
+ */
 struct AggrGetIperfStatus {
-  1: string node_id;
+  1: string nodeId;
 }
 
+/**
+ * @apiDefine AggrIperfStatusReport_SUCCESS
+ * @apiSuccess {Map(Int32:Object(AggrStartAgentIperf))} clients
+ *             The client statuses, keyed by iperf port
+ * @apiSuccess {Map(Int32:Object(AggrStartAgentIperf))} servers
+ *             The server statuses, keyed by iperf port
+ */
 struct AggrIperfStatusReport {
-  1: map<i32, AggrStartAgentIperfClient> clients;
-  2: map<i32, AggrStartAgentIperfServer> servers;
+  1: map<i32 /* port */, AggrStartAgentIperf> clients;
+  2: map<i32 /* port */, AggrStartAgentIperf> servers;
 }
 
 ############# Common #############
@@ -152,6 +263,11 @@ struct AggrMessage {
   2: binary value;
 }
 
+/**
+ * @apiDefine AggrAck_SUCCESS
+ * @apiSuccess {Boolean} success The response status
+ * @apiSuccess {String} message The response message
+ */
 // Ack to asynchronous requests
 struct AggrAck {
   1: bool success;
