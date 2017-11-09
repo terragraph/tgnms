@@ -12,5 +12,3 @@ cp -v /etc/resolv.conf "${E2E_ROOTFS}/etc/resolv.conf"
 cp -v "$E2E_TOPOLOGY_FILE" "${E2E_ROOTFS}/etc/e2e_config/topology.conf"
 chroot $E2E_ROOTFS /bin/mknod /dev/urandom c 1 9 2>/dev/null
 chroot $E2E_ROOTFS /usr/sbin/e2e_controller -v 2 -topology-file /etc/e2e_config/topology.conf ${E2E_ARGS}
-# copy topology file from chroot
-cp -v "${E2E_ROOTFS}/etc/e2e_config/topology.conf" "$E2E_TOPOLOGY_FILE"
