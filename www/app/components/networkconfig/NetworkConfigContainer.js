@@ -130,7 +130,7 @@ export default class NetworkConfigContainer extends React.Component {
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.setState({
             nodeDraftConfig: this.editNodeConfig(this.state.nodeDraftConfig, payload.editPath, REVERT_VALUE),
-            nodeConfigWithChanges: this.unsetAndCleanupNodes(this.state.nodeConfigWithChanges, payload.editPath),
+            nodeConfigWithChanges: this.unsetAndCleanupNodes(this.state.nodeConfigWithChanges, payload.editPath, false),
           });
         } else {
           this.revertNetworkConfig(payload.editPath);
@@ -211,10 +211,13 @@ export default class NetworkConfigContainer extends React.Component {
     return _.set(config, editPath, value);
   }
 
-  unsetAndCleanupNodes = (config, editPath) => {
+  unsetAndCleanupNodes = (config, editPath, unsetNodeMac) => {
+    // if a config for a node becomes empty, remove the node mac_addr as a key if unsetNodeMac is set
+    const stopIdx = unsetNodeMac ? 0 : 1;
+
     let newConfig = _.cloneDeep(config);
     this.state.selectedNodes.forEach((node) => {
-      newConfig = unsetAndCleanup(newConfig, [node.mac_addr, ...editPath], 1);
+      newConfig = unsetAndCleanup(newConfig, [node.mac_addr, ...editPath], stopIdx);
     });
 
     return newConfig;
@@ -266,7 +269,7 @@ export default class NetworkConfigContainer extends React.Component {
       );
     });
     this.setState({
-      nodeDraftConfig: this.unsetAndCleanupNodes(this.state.nodeDraftConfig, editPath),
+      nodeDraftConfig: this.unsetAndCleanupNodes(this.state.nodeDraftConfig, editPath, true),
       nodeConfigWithChanges: newNodeConfigWithChanges,
     });
   }

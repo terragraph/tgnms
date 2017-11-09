@@ -21,7 +21,7 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   let cleanedObj = _.cloneDeep(obj);
 
   let newEditPath = [...editPath]; // copy the editpath as we need to change the copy
-  if (newEditPath.length == 0) {
+  if (newEditPath.length === 0) {
     console.error(`error, editPath cannot be empty`);
   }
 
