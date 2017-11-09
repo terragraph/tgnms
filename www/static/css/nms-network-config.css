@@ -43,7 +43,7 @@
 }
 
 .nc-view-option-selected {
-  background-color: #6b7df3;
+  background-color: rgb(183,210,255);
 }
 
 .nc-view-option p {
@@ -60,11 +60,76 @@
 
 .rc-network-config-nodes {
   overflow-y: auto;
+  margin-bottom: 424px;
+}
+
+/* NETWORK CONFIG LEGEND */
+/* WE DA BEST MUSIC! DJ KHALED! */
+.rc-network-config-legend {
+  height: 424px;
+  width: inherit;
+  background-color: #eee;
+  border-right: 1px solid #aaa;
+  border-top: 1px solid #aaa;
+
+  position: absolute;
+  bottom: 0;
+
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.nc-legend-heading {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.nc-legend-subheading {
+  font-weight: 600;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.nc-legend-section {
+  margin-left: 10px;
+}
+
+.nc-legend-node {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  background-color: #fff;
+  border: 1px solid #eee;
+
+  /* to force a "100% width look" */
+  margin-left: -20px;
+  margin-right: -10px;
+}
+
+.nc-field-op-legend td {
+  padding-right: 15px;
+  padding-bottom: 5px;
+}
+
+.nc-field-op-desc {
+  vertical-align: middle;
+}
+
+.nc-json-field-legend {
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+}
+
+.nc-json-field-legend input {
+  width: 128px;
+  margin-right: 5px;
+  margin-bottom: 5px;
 }
 
 /* NETWORK CONFIG BODY */
 .rc-network-config-body {
-  padding-top: 110px;
+  padding-top: 60px;
   margin-bottom: 65px;
 
   width: calc(100% - 300px);
@@ -89,20 +154,8 @@
 
 .nc-header-title {
   margin-left: 20px;
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-
-.nc-legend {
-  display: flex;
-  flex-direction: column;
-  margin-top: 5px;
-}
-
-.nc-legend input {
-  width: 150px;
-  margin-right: 5px;
-  margin-bottom: 5px;
+  margin-top: 11px;
+  margin-bottom: 11px;
 }
 
 /* NETWORK CONFIG FOOTER */
@@ -152,8 +205,11 @@
 }
 
 .config-form-checkbox {
-  /*background-color: #fff;*/
+  display: inline;
+  position: relative;
+
   padding: 3px;
+  border: 1px solid #bbb;
 }
 
 .config-expand-marker {
@@ -204,14 +260,14 @@
 }
 
 .rc-json-field-tooltip::after {
-    content: " ";
-    position: absolute;
-    top: 50%;
-    right: 100%; /* To the left of the tooltip */
-    margin-top: -10px;
-    border-width: 10px;
-    border-style: solid;
-    border-color: transparent #777 transparent transparent;
+  content: " ";
+  position: absolute;
+  top: 50%;
+  right: 100%; /* To the left of the tooltip */
+  margin-top: -10px;
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent #777 transparent transparent;
 }
 
 .rc-json-field-tooltip tr {

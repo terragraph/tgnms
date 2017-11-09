@@ -6,12 +6,15 @@ import React from 'react';
 import { render } from 'react-dom';
 
 const classNames = require('classnames');
+var _ = require('lodash');
 
 import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
 import {changeEditMode} from '../../actions/NetworkConfigActions.js';
 
 import NetworkConfigImageSelector from './NetworkConfigImageSelector.js';
 import NetworkConfigNodes from './NetworkConfigNodes.js';
+import NetworkConfigLegend from './NetworkConfigLegend.js';
+
 
 export default class NetworkConfigLeftPane extends React.Component {
   constructor(props) {
@@ -22,7 +25,8 @@ export default class NetworkConfigLeftPane extends React.Component {
     const {editMode, networkDraftExists, nodesWithDrafts} = this.props;
 
     const unsavedAsterisk = (
-      <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
+      // <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
+      <img height='20' src='/static/images/bullet_red.png'/>
     );
 
     return (
@@ -50,8 +54,15 @@ export default class NetworkConfigLeftPane extends React.Component {
   }
 
   render() {
-    const {nodes, selectedNodes, editMode, nodesWithDrafts, imageVersions, selectedImage} = this.props;
+    const {nodes, selectedNodes, editMode, nodesWithDrafts, nodeOverrideConfig, imageVersions, selectedImage} = this.props;
     const viewModeSelector = this.renderViewModeSelector();
+
+    const nodesWithOverrides = _.isPlainObject(nodeOverrideConfig) ?
+      new Set(
+        Object.keys(nodeOverrideConfig).filter((node) => {
+          return (_.isPlainObject(nodeOverrideConfig[node]) && Object.keys(nodeOverrideConfig[node]).length > 0);
+        })
+      ) : new Set();
 
     return (
       <div className='rc-network-config-left-pane'>
@@ -61,6 +72,7 @@ export default class NetworkConfigLeftPane extends React.Component {
             nodes={nodes}
             selectedNodes={selectedNodes}
             nodesWithDrafts={nodesWithDrafts}
+            nodesWithOverrides={nodesWithOverrides}
           />
         }
         {editMode === CONFIG_VIEW_MODE.NETWORK &&
@@ -69,6 +81,9 @@ export default class NetworkConfigLeftPane extends React.Component {
             selectedImage={selectedImage}
           />
         }
+        <NetworkConfigLegend
+          editMode={editMode}
+        />
       </div>
     );
   }
@@ -86,4 +101,5 @@ NetworkConfigLeftPane.propTypes = {
   nodes: React.PropTypes.array.isRequired,
   selectedNodes: React.PropTypes.array.isRequired,
   nodesWithDrafts: React.PropTypes.array.isRequired,
+  nodeOverrideConfig: React.PropTypes.object.isRequired,
 }

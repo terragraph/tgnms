@@ -68,7 +68,7 @@ export default class JSONFormField extends React.Component {
       case 'boolean':
         // hack: clicking the checkbox focuses it
         inputItem = (
-          <div className={checkboxClass} style={{display: 'inline', position: 'relative', padding: '3px', border: '1px solid #bbb'}}>
+          <div className={checkboxClass}>
             <input type='checkbox' checked={displayVal}
               onChange={(event) => this.editField(event.target.checked)}
               onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}

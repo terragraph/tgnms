@@ -6,7 +6,7 @@ import { render } from 'react-dom';
 
 const classNames = require('classnames');
 
-import { CONFIG_VIEW_MODE } from '../../constants/NetworkConfigConstants.js';
+import { CONFIG_VIEW_MODE, CONFIG_CLASSNAMES } from '../../constants/NetworkConfigConstants.js';
 import {changeEditMode, selectNodes} from '../../actions/NetworkConfigActions.js';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
@@ -22,7 +22,8 @@ export default class NetworkConfigNodes extends React.Component {
     const nodesWithDraftsSet = new Set(this.props.nodesWithDrafts);
 
     const unsavedAsterisk = nodesWithDraftsSet.has(mac_addr) ? (
-      <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
+      // <span style={{color: '#cc0000', 'fontWeight': 800}}>*</span>
+      <img height='20' src='/static/images/bullet_red.png'/>
     ) : '';
 
     return (
@@ -39,6 +40,11 @@ export default class NetworkConfigNodes extends React.Component {
 
   getSelectedKeys = (selectedNodes) => {
     return selectedNodes.map(node => node[KEY_FIELD]);
+  }
+
+  getRowClassName = (row) => {
+    const {nodesWithOverrides} = this.props;
+    return ( nodesWithOverrides.has(row[KEY_FIELD]) ) ? CONFIG_CLASSNAMES.NODE : '';
   }
 
   renderNodeTable = () => {
@@ -58,6 +64,7 @@ export default class NetworkConfigNodes extends React.Component {
         keyField={KEY_FIELD}
         bordered={ false }
         selectRow={selectRowProp}
+        trClassName={this.getRowClassName}
       >
         <TableHeaderColumn
           dataField='name'
@@ -85,4 +92,5 @@ NetworkConfigNodes.propTypes = {
   nodes: React.PropTypes.array.isRequired,
   selectedNodes: React.PropTypes.array.isRequired,
   nodesWithDrafts: React.PropTypes.array.isRequired,
+  nodesWithOverrides: React.PropTypes.instanceOf(Set).isRequired,
 }
