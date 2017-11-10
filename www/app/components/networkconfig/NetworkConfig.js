@@ -88,8 +88,7 @@ export default class NetworkConfig extends React.Component {
           configs={stackedConfigs}
           draftConfig={selectedDraftConfig}
 
-          networkConfigWithChanges={networkConfigWithChanges}
-          nodeConfigWithChanges={nodeConfigWithChanges}
+          selectedNodes={selectedNodes}
           editMode={editMode}
         />
       </div>

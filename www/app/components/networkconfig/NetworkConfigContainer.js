@@ -67,11 +67,22 @@ export default class NetworkConfigContainer extends React.Component {
 
   componentDidMount() {
     const topologyName = this.props.networkConfig.topology.name;
-    this.fetchConfigsForCurrentTopology(topologyName);
+    this.fetchConfigsForCurrentTopology(topologyName, this.props.networkConfig.topology);
   }
 
   componentWillReceiveProps(nextProps) {
+    const topology = this.props.networkConfig.topology;
+    const oldTopologyName = this.props.networkConfig.topology.name;
 
+    if (
+      _.hasIn(nextProps.networkConfig, ['topology', 'name']) &&
+      nextProps.networkConfig.topology.name !== topology.name
+    ) {
+      // perform the update if next topology is real/has a name and is a different topology that what we have now
+      // console.log(`topology switched from ${topology.name} to ${_.get(nextProps.networkConfig, ['topology', 'name'])}`);
+      const newTopology = nextProps.networkConfig.topology;
+      this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
+    }
   }
 
   componentWillUnmount() {
@@ -94,6 +105,7 @@ export default class NetworkConfigContainer extends React.Component {
           name: node.name,
           mac_addr: node.mac_addr,
           imageVersion: (node.status_dump) ? node.status_dump.version : null,
+          ignited: (node.status == 2 || node.status == 3),
         };
       }) : []; // fetch from the topology
   }
@@ -345,9 +357,9 @@ export default class NetworkConfigContainer extends React.Component {
     });
   }
 
-  fetchConfigsForCurrentTopology = (topologyName) => {
+  fetchConfigsForCurrentTopology = (topologyName, topology) => {
     // const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
-    const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
+    const imageVersions = getImageVersionsForNetwork(topology);
 
     // node macs are outdated
     getConfigsForTopology(topologyName, imageVersions);

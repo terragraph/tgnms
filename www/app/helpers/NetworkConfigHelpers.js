@@ -30,6 +30,11 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
     console.error(`could not unset value at path ${newEditPath} for object ${cleanedObj}`);
   }
 
+  // hack for flag for stopIdx, this means we do not clean up any empty objects
+  if (stopIdx === -1) {
+    return cleanedObj;
+  }
+
   // if we're here then the value in cleanedObj specified by editPath is unset
   // we then clean up to remove any empty objects
   newEditPath.pop();

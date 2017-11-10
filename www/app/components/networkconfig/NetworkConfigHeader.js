@@ -10,13 +10,25 @@ export default class NetworkConfigHeader extends React.Component {
   }
 
   render() {
-    const {editMode} = this.props;
+    const {editMode, selectedNodes} = this.props;
     const editModeText = (editMode === CONFIG_VIEW_MODE.NODE) ? 'Node' : 'Network';
     const titleText = `View/Edit ${editModeText} Override`;
+
+    // hack: not sure what to display for multiple nodes
+    // maybe color the node status differently in the left pane?
+    let nodeStatusText = '';
+    if (editMode === CONFIG_VIEW_MODE.NODE) {
+      nodeStatusText = selectedNodes[0].ignited ? (
+        <span style={{color: '#009900', marginRight: '40px'}}>Node is Online</span>
+      ) : (
+        <span style={{color: '#990000', marginRight: '40px'}}>Node is Offline</span>
+      );
+    }
 
     return (
       <div className='rc-network-config-header'>
         <h3 className='nc-header-title'>{titleText}</h3>
+        {nodeStatusText}
       </div>
     );
   }
@@ -24,4 +36,5 @@ export default class NetworkConfigHeader extends React.Component {
 
 NetworkConfigHeader.propTypes = {
   editMode: React.PropTypes.string.isRequired,
+  selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
 }

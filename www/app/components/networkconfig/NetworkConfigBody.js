@@ -17,15 +17,15 @@ export default class NetworkConfigBody extends React.Component {
     const {
       configs,
       draftConfig,
+      selectedNodes,
       editMode,
-      networkConfigWithChanges,
-      nodeConfigWithChanges,
     } = this.props;
 
     return (
       <div className='rc-network-config-body'>
         <NetworkConfigHeader
           editMode={editMode}
+          selectedNodes={selectedNodes}
         />
         <JSONConfigForm
           configs={configs}
@@ -44,8 +44,7 @@ export default class NetworkConfigBody extends React.Component {
 NetworkConfigBody.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
-  networkConfigWithChanges: React.PropTypes.object.isRequired,
-  nodeConfigWithChanges: React.PropTypes.object.isRequired,
 
+  selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   editMode: React.PropTypes.string.isRequired,
 }
