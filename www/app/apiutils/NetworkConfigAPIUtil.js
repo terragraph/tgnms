@@ -11,12 +11,15 @@ import {
   setNodeConfigSuccess,
 } from '../actions/NetworkConfigActions.js';
 
-export const getConfigsForTopology = (topologyName) => {
+import { DEFAULT_BASE_KEY } from '../constants/NetworkConfigConstants.js';
+
+export const getConfigsForTopology = (topologyName, imageVersions) => {
   const uri = '/controller/getBaseConfig';
 
   return axios.get(uri, {
     params: {
       topologyName,
+      imageVersions: [DEFAULT_BASE_KEY, ...imageVersions],
     }
   }).then((response) => {
     const {config} = response.data;

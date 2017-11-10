@@ -12,7 +12,7 @@ import {
   setNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
 
-import { CONFIG_VIEW_MODE, REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
+import { CONFIG_VIEW_MODE, REVERT_VALUE, DEFAULT_BASE_KEY } from '../../constants/NetworkConfigConstants.js';
 
 import { Actions } from '../../constants/NetworkConstants.js';
 import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
@@ -58,7 +58,7 @@ export default class NetworkConfigContainer extends React.Component {
       editMode: CONFIG_VIEW_MODE.NETWORK,
 
       // currently selected image version
-      selectedImage: '',
+      selectedImage: DEFAULT_BASE_KEY,
 
       // currently selected set of nodes which the config is being viewed as
       selectedNodes: [],
@@ -68,6 +68,10 @@ export default class NetworkConfigContainer extends React.Component {
   componentDidMount() {
     const topologyName = this.props.networkConfig.topology.name;
     this.fetchConfigsForCurrentTopology(topologyName);
+  }
+
+  componentWillReceiveProps(nextProps) {
+
   }
 
   componentWillUnmount() {
@@ -100,7 +104,8 @@ export default class NetworkConfigContainer extends React.Component {
     switch (payload.actionType) {
       // handle common actions
       case Actions.TOPOLOGY_SELECTED:
-        this.fetchConfigsForCurrentTopology(payload.networkName);
+        // only fetch when switching to a different topology succeeds
+        // this.fetchConfigsForCurrentTopology(payload.networkConfig.topology.name);
         break;
 
       // handle network config specific actions
@@ -342,17 +347,10 @@ export default class NetworkConfigContainer extends React.Component {
 
   fetchConfigsForCurrentTopology = (topologyName) => {
     // const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
-    const nodeMacs = this.getNodeMacs();
+    const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
 
     // node macs are outdated
-    getConfigsForTopology(topologyName);
-
-
-    // each API call's success actions will update different parts of the state
-    // so it's safe to fire all 3 at once
-    // setTimeout(() => getNetworkOverrideConfig(topologyName), 10);
-    // getNetworkOverrideConfig(topologyName);
-    // getNodeOverrideConfig(this.getNodeMacs(), topologyName);
+    getConfigsForTopology(topologyName, imageVersions);
   }
 
   render() {
@@ -381,7 +379,7 @@ export default class NetworkConfigContainer extends React.Component {
       <NetworkConfig
         topologyName={topologyName}
         nodes={nodes}
-        imageVersions={getImageVersionsForNetwork(networkConfig.topology)}
+        imageVersions={[DEFAULT_BASE_KEY, ...getImageVersionsForNetwork(networkConfig.topology)]}
         selectedImage={selectedImage}
         selectedNodes={selectedNodes}
         editMode={editMode}

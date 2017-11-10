@@ -1441,12 +1441,13 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, ne
 
 // network config endpoints
 app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
-  const {topologyName} = req.query;
+  const {topologyName, imageVersions} = req.query;
   const topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync({
     type: 'getBaseConfig',
     topology: topology,
+    imageVersions: imageVersions,
   }, '', res);
 });
 

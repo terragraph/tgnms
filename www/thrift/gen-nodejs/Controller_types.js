@@ -8,7 +8,6 @@ var BWAllocation_ttypes = require('./BWAllocation_types');
 var Topology_ttypes = require('./Topology_types');
 var NodeConfig_ttypes = require('./NodeConfig_types');
 
-
 var ttypes = module.exports = {};
 ttypes.MessageType = {
 'GET_STATUS_DUMP' : 101,

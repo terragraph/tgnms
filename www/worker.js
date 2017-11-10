@@ -523,10 +523,9 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(delUpgradeImageParams);
 
       break;
-    // config messages. These are sent asynchronously
     case 'getBaseConfig':
-      var getCtrlConfigBaseReqParams = new Controller_ttypes.GetCtrlConfigReq();
-      getCtrlConfigBaseReqParams.swVersions = [];
+      var getCtrlConfigBaseReqParams = new Controller_ttypes.GetCtrlConfigBaseReq();
+      getCtrlConfigBaseReqParams.swVersions = msg.imageVersions;
       send(getCtrlConfigBaseReqParams);
 
       break;
