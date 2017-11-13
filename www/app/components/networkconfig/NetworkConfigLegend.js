@@ -17,10 +17,16 @@ export default class NetworkConfigLegend extends React.Component {
     return (
       <ul className='nc-legend-section' style={{listStyleType: 'none', padding: 0}}>
         <li className='nc-legend-node'>
-          Unsaved Node<img height='20' style={{float: 'right'}} src='/static/images/bullet_red.png'/>
+          Node with Unsaved Changes<img height='20' style={{float: 'right'}} src='/static/images/bullet_red.png'/>
         </li>
-        <li className='nc-legend-node' style={{backgroundColor: '#aaffaa'}}>
+        <li className={classNames('nc-legend-node', 'nc-node-with-override')} style={{fontWeight: 600}}>
           Node With Override
+        </li>
+        <li className={classNames('nc-legend-node', CONFIG_CLASSNAMES.NODE)}>
+          Online Node
+        </li>
+        <li className={classNames('nc-legend-node', CONFIG_CLASSNAMES.DRAFT)}>
+          Offline Node
         </li>
       </ul>
     );
@@ -73,13 +79,13 @@ export default class NetworkConfigLegend extends React.Component {
         <p className='nc-legend-heading'>
           Config Field
         </p>
-        <p className='nc-legend-subheading'>
+        {/* <p className='nc-legend-subheading'>
           Field Operations
         </p>
-        {this.renderFieldOperations()}
-        <p className='nc-legend-subheading'>
+        {this.renderFieldOperations()} */}
+        {/* <p className='nc-legend-subheading'>
           Field Status
-        </p>
+        </p> */}
         {this.renderFieldLegend()}
       </div>
     );

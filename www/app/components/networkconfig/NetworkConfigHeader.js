@@ -19,9 +19,9 @@ export default class NetworkConfigHeader extends React.Component {
     let nodeStatusText = '';
     if (editMode === CONFIG_VIEW_MODE.NODE) {
       nodeStatusText = selectedNodes[0].ignited ? (
-        <span style={{color: '#009900', marginRight: '40px'}}>Node is Online</span>
+        <span style={{color: '#009900'}}>Node is Online running: <strong>{selectedNodes[0].imageVersion}</strong></span>
       ) : (
-        <span style={{color: '#990000', marginRight: '40px'}}>Node is Offline</span>
+        <span style={{color: '#990000'}}>Node is Offline</span>
       );
     }
 

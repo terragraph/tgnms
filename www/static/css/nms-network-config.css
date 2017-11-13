@@ -63,8 +63,12 @@
   margin-bottom: 424px;
 }
 
+.nc-node-with-override {
+  font-weight: 600;
+  font-size: 15px;
+}
+
 /* NETWORK CONFIG LEGEND */
-/* WE DA BEST MUSIC! DJ KHALED! */
 .rc-network-config-legend {
   height: 424px;
   width: inherit;
@@ -141,7 +145,6 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
 
   position: absolute;
   top: 0;
@@ -151,9 +154,9 @@
 }
 
 .nc-header-title {
-  margin-left: 20px;
-  margin-top: 11px;
-  margin-bottom: 11px;
+  /* top right bottom left */
+  margin: 11px 40px 11px 20px;
+  flex-shrink: 0;
 }
 
 /* NETWORK CONFIG FOOTER */
@@ -232,7 +235,6 @@
 }
 
 .nc-draft-field {
-  border: 1px solid red;
   background-color: #ffaaaa;
 }
 
