@@ -73,7 +73,6 @@ export default class JSONFormField extends React.Component {
             <input type='checkbox' checked={displayVal}
               onChange={(event) => this.editField(event.target.checked)}
               onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
-              onMouseEnter={() => this.setState({hover: true})} onMouseLeave={() => this.setState({hover: false})}
             />
             {(hover) && <JSONFieldTooltip values={this.props.values}/>}
           </div>
@@ -85,7 +84,6 @@ export default class JSONFormField extends React.Component {
             <input className={inputClass} type='number' value={displayVal}
               onChange={(event) => this.editField( Number(event.target.value) )}
               onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
-              onMouseEnter={() => this.setState({hover: true})} onMouseLeave={() => this.setState({hover: false})}
             />
             {(focus || hover) && <JSONFieldTooltip values={this.props.values}/>}
           </div>
@@ -97,7 +95,6 @@ export default class JSONFormField extends React.Component {
             <input className={inputClass} type='text' value={displayVal}
               onChange={(event) => this.editField(event.target.value)}
               onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
-              onMouseEnter={() => this.setState({hover: true})} onMouseLeave={() => this.setState({hover: false})}
             />
             {(focus || hover) && <JSONFieldTooltip values={this.props.values}/>}
           </div>
@@ -118,7 +115,11 @@ export default class JSONFormField extends React.Component {
     const formInputElement = this.renderInputItem(displayVal, displayIdx, isDraft, isReverted);
 
     return (
-      <div className={classNames({'rc-json-form-field': true, 'json-field-focused': focus || hover})}>
+      <div
+        className={classNames({'rc-json-form-field': true, 'json-field-focused': focus || hover})}
+        onMouseEnter={() => this.setState({hover: true})}
+        onMouseLeave={() => this.setState({hover: false})}
+      >
         <label className='config-form-label'>{formLabel}:</label>
         {formInputElement}
 
