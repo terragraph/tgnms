@@ -15,6 +15,7 @@ export default class JSONFormField extends React.Component {
     this.state = {
       focus: false,
       hover: false,
+
     };
   }
 
@@ -122,18 +123,22 @@ export default class JSONFormField extends React.Component {
         {formInputElement}
 
         {this.isRevertable(displayIdx, values) && !isDraft &&
-          <img src='/static/images/undo.png'
-            style={{marginLeft: '5px'}}
-            onClick={this.revertField}
-            title='Remove override value'
-          />
+          <div className='nc-form-action'>
+            <img src='/static/images/undo.png'
+              style={{marginLeft: '5px'}}
+              onClick={this.revertField}
+            />
+            <span className='nc-form-action-tooltip'>Remove override value</span>
+          </div>
         }
         {(isReverted || isDraft) &&
-          <img src='/static/images/refresh.png'
-            style={{marginLeft: '5px', height: '18px', 'width': '18px'}}
-            onClick={this.undoRevert}
-            title='Discard unsaved value'
-          />
+          <div className='nc-form-action'>
+            <img src='/static/images/refresh.png'
+              style={{marginLeft: '5px', height: '18px', 'width': '18px'}}
+              onClick={this.undoRevert}
+            />
+            <span className='nc-form-action-tooltip'>Discard unsaved value</span>
+          </div>
         }
       </div>
     );
