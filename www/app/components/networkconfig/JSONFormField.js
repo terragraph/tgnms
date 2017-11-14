@@ -67,7 +67,7 @@ export default class JSONFormField extends React.Component {
     } : {};
 
     return (
-      <div style={{display: 'inline', position: 'relative'}}>
+      <div className='nc-form-input-wrapper'>
         <input
           type='checkbox' className='nc-custom-checkbox' id={checkboxId} checked={displayVal}
           onChange={(event) => this.editField(event.target.checked)}
@@ -102,7 +102,7 @@ export default class JSONFormField extends React.Component {
         break;
       case 'number':
         inputItem = (
-          <div style={{display: 'inline', position: 'relative'}}>
+          <div className='nc-form-input-wrapper'>
             <input className={inputClass} type='number' value={displayVal}
               onChange={(event) => this.editField( Number(event.target.value) )}
               onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
@@ -113,7 +113,7 @@ export default class JSONFormField extends React.Component {
         break;
       case 'string':
         inputItem = (
-          <div style={{display: 'inline', position: 'relative'}}>
+          <div className='nc-form-input-wrapper'>
             <input className={inputClass} type='text' value={displayVal}
               onChange={(event) => this.editField(event.target.value)}
               onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
@@ -138,31 +138,33 @@ export default class JSONFormField extends React.Component {
 
     return (
       <div
-        className={classNames({'rc-json-form-field': true, 'json-field-focused': focus || hover})}
+        className={classNames('rc-json-form-field', {'json-field-focused': focus || hover})}
         onMouseEnter={() => this.setState({hover: true})}
         onMouseLeave={() => this.setState({hover: false})}
       >
-        <label className='config-form-label'>{formLabel}:</label>
-        {formInputElement}
+        <label className='nc-form-label'>{formLabel}:</label>
 
-        {this.isRevertable(displayIdx, values) && !isDraft &&
-          <div className='nc-form-action'>
-            <img src='/static/images/undo.png'
-              style={{marginLeft: '5px'}}
-              onClick={this.revertField}
-            />
-            <span className='nc-form-action-tooltip'>Remove override value</span>
-          </div>
-        }
-        {(isReverted || isDraft) &&
-          <div className='nc-form-action'>
-            <img src='/static/images/refresh.png'
-              style={{marginLeft: '5px', height: '18px', 'width': '18px'}}
-              onClick={this.undoRevert}
-            />
-            <span className='nc-form-action-tooltip'>Discard unsaved value</span>
-          </div>
-        }
+        <div className='nc-form-body'>
+          {formInputElement}
+          {this.isRevertable(displayIdx, values) && !isDraft &&
+            <div className='nc-form-action'>
+              <img src='/static/images/undo.png'
+                style={{marginLeft: '5px'}}
+                onClick={this.revertField}
+              />
+              <span className='nc-form-action-tooltip'>Remove override value</span>
+            </div>
+          }
+          {(isReverted || isDraft) &&
+            <div className='nc-form-action'>
+              <img src='/static/images/refresh.png'
+                style={{marginLeft: '5px', height: '18px', 'width': '18px'}}
+                onClick={this.undoRevert}
+              />
+              <span className='nc-form-action-tooltip'>Discard unsaved value</span>
+            </div>
+          }
+        </div>
       </div>
     );
   }

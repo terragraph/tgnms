@@ -1,5 +1,6 @@
 @import url("nms-nc-left-pane.css");
 @import url("nms-nc-form.css");
+@import url("nms-nc-form-tooltip.css");
 @import url("nms-nc-custom-toggle.css");
 
 .rc-network-config {
