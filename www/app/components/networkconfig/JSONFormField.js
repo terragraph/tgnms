@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
+const uuidv4 = require('uuid/v4');
 
 import { REVERT_VALUE, CONFIG_CLASSNAMES } from '../../constants/NetworkConfigConstants.js';
 import {editConfigForm, revertConfigOverride, undoRevertConfig} from '../../actions/NetworkConfigActions.js';
@@ -15,12 +16,10 @@ export default class JSONFormField extends React.Component {
     this.state = {
       focus: false,
       hover: false,
-
     };
   }
 
   editField = (value) => {
-    // console.log('edit value', value, typeof value);
     editConfigForm({
       editPath: this.props.editPath,
       value
@@ -28,14 +27,12 @@ export default class JSONFormField extends React.Component {
   }
 
   revertField = () => {
-    // console.log('reverting field: ', this.props.editPath);
     revertConfigOverride({
       editPath: this.props.editPath,
     });
   }
 
   undoRevert = () => {
-    // console.log('undoing revert: ', this.props.editPath);
     undoRevertConfig({
       editPath: this.props.editPath,
     });
@@ -56,6 +53,40 @@ export default class JSONFormField extends React.Component {
     return classNames(className);
   }
 
+  // hack: since we need the htmlFor and an id for the checkbox,
+  renderToggle = (displayVal, displayIdx, isDraft, isReverted) => {
+    const {focus, hover} = this.state;
+
+    // or we can use a stringified version of the editPath for the id
+    const checkboxId = JSON.stringify(this.props.editPath);
+    const selectorClass = this.getClassName('nc-slider-option', displayIdx, isDraft, false);
+
+    // style hack because the revert class cannot override the class for the wrapper
+    const wrapperStyle = isReverted ? {
+      border: '2px solid #000077'
+    } : {};
+
+    return (
+      <div style={{display: 'inline', position: 'relative'}}>
+        <input
+          type='checkbox' className='nc-custom-checkbox' id={checkboxId} checked={displayVal}
+          onChange={(event) => this.editField(event.target.checked)}
+          onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
+        />
+        <label className='nc-slider-label' htmlFor={checkboxId} style={{marginBottom: '0px'}}>
+          <div className='nc-slider-wrapper' style={wrapperStyle}>
+            <div className='nc-slider-options'>
+              <div className={selectorClass}>Yes</div>
+              <div className='nc-slider-option-selector'></div>
+              <div className={selectorClass}>No</div>
+            </div>
+          </div>
+        </label>
+        {hover && <JSONFieldTooltip values={this.props.values}/>}
+      </div>
+    );
+  }
+
   renderInputItem = (displayVal, displayIdx, isDraft, isReverted) => {
     const {focus, hover} = this.state;
 
@@ -67,16 +98,7 @@ export default class JSONFormField extends React.Component {
     const checkboxClass = this.getClassName('config-form-checkbox', displayIdx, isDraft, isReverted);
     switch (typeof displayVal) {
       case 'boolean':
-        // hack: clicking the checkbox focuses it
-        inputItem = (
-          <div className={checkboxClass}>
-            <input type='checkbox' checked={displayVal}
-              onChange={(event) => this.editField(event.target.checked)}
-              onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
-            />
-            {(hover) && <JSONFieldTooltip values={this.props.values}/>}
-          </div>
-        );
+        inputItem = this.renderToggle(displayVal, displayIdx, isDraft, isReverted);
         break;
       case 'number':
         inputItem = (
