@@ -82,6 +82,13 @@ export default class NetworkConfigContainer extends React.Component {
       // console.log(`topology switched from ${topology.name} to ${_.get(nextProps.networkConfig, ['topology', 'name'])}`);
       const newTopology = nextProps.networkConfig.topology;
       this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
+
+      // reset the view mode
+      this.setState({
+        editMode: CONFIG_VIEW_MODE.NETWORK,
+        selectedImage: DEFAULT_BASE_KEY,
+        selectedNodes: [],
+      });
     }
   }
 

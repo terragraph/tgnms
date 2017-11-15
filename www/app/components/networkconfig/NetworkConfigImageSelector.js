@@ -25,11 +25,10 @@ export default class NetworkConfigImageSelector extends React.Component {
         value: image,
       };
     });
-
+// className='rc-network-config-image-selector'
     return (
       <Select
         name='Select Base Version'
-        className='rc-network-config-image-selector'
         value={selectedImage}
         options={selectOptions}
         onChange={this.selectImage}

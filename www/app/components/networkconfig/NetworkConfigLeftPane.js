@@ -64,6 +64,9 @@ export default class NetworkConfigLeftPane extends React.Component {
         })
       ) : new Set();
 
+    // styling hack to fill the remaining space
+    const spacerDiv = (<div style={{flex: 1}}></div>);
+
     return (
       <div className='rc-network-config-left-pane'>
         {viewModeSelector}
@@ -80,7 +83,9 @@ export default class NetworkConfigLeftPane extends React.Component {
             imageVersions={imageVersions}
             selectedImage={selectedImage}
           />
+
         }
+        {editMode === CONFIG_VIEW_MODE.NETWORK && spacerDiv}
         <NetworkConfigLegend
           editMode={editMode}
         />

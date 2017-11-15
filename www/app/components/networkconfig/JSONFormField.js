@@ -1,7 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
-const uuidv4 = require('uuid/v4');
 
 import { REVERT_VALUE, CONFIG_CLASSNAMES } from '../../constants/NetworkConfigConstants.js';
 import {editConfigForm, revertConfigOverride, undoRevertConfig} from '../../actions/NetworkConfigActions.js';
@@ -32,7 +31,7 @@ export default class JSONFormField extends React.Component {
     });
   }
 
-  undoRevert = () => {
+  discardUnsavedValue = () => {
     undoRevertConfig({
       editPath: this.props.editPath,
     });
@@ -159,7 +158,7 @@ export default class JSONFormField extends React.Component {
             <div className='nc-form-action'>
               <img src='/static/images/refresh.png'
                 style={{marginLeft: '5px', height: '18px', 'width': '18px'}}
-                onClick={this.undoRevert}
+                onClick={this.discardUnsavedValue}
               />
               <span className='nc-form-action-tooltip'>Discard unsaved value</span>
             </div>
