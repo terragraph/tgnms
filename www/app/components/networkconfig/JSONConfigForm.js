@@ -214,11 +214,15 @@ export default class JSONConfigForm extends React.Component {
       );
     });
 
+/*
+<div className={
+  classNames({'config-form-root': editPath.length === 0, 'rc-json-config-form': true})
+}>
+*/
+
     return (
-      <div className={
-        classNames({'config-form-root': editPath.length === 0, 'rc-json-config-form': true})
-      }>
-        <ul className={classNames({'config-form-root': editPath.length === 0})}>{childItems}</ul>
+      <div className='rc-json-config-form'>
+        <ul>{childItems}</ul>
       </div>
     );
   }

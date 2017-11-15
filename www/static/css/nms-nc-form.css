@@ -1,12 +1,17 @@
 /* NETWORK CONFIG JSON FORM */
 .rc-json-config-form ul {
   list-style-type: none;
+  /*width: 100%;*/
+  width: 1200px;
+  /*max-width: 1200px;*/
 }
 
 .config-form-root {
   padding-left: 10px;
-  width: 100%;
-  max-width: 1200px;
+  padding-top: 10px;
+
+  flex: 1;
+  overflow-y: auto;
 }
 
 .json-field-focused {

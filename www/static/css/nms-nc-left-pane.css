@@ -45,9 +45,13 @@
   font-weight: 600;
 }
 
+.rc-network-config-image-selector {
+  flex: 1;
+}
+
 .rc-network-config-nodes {
   overflow-y: auto;
-  margin-bottom: 424px;
+  flex: 1;
 }
 
 .nc-node-with-override {
@@ -57,17 +61,25 @@
 
 /* NETWORK CONFIG LEGEND */
 .rc-network-config-legend {
-  height: 424px;
   width: inherit;
   background-color: #eee;
   border-right: 1px solid #aaa;
   border-top: 1px solid #aaa;
-
-  position: absolute;
-  bottom: 0;
-
   box-sizing: border-box;
   padding: 10px;
+}
+
+.legend-expand-marker {
+  margin-left: 10px;
+}
+
+.nc-legend-title {
+  font-weight: 600;
+  font-size: 22px;
+}
+
+.nc-collapsed-title {
+  margin: 0;
 }
 
 .nc-legend-heading {

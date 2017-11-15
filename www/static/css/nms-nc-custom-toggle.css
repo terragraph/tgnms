@@ -6,7 +6,7 @@
   cursor: pointer;
   display: inline-flex;
 
-  z-index: 10;
+  z-index: 1;
   border-top: 2px solid #aaa;
   border-bottom: 2px solid #aaa;
   border-left: 1px solid #aaa;
@@ -22,7 +22,6 @@ input[type=checkbox]:not(:checked) + label .nc-slider-options {
 .nc-slider-options {
   position: relative;
   left: 0;
-  z-index: -1;
   white-space: nowrap;
   -ms-transition: left 0.2s ease-in-out;
   -webkit-transition: left 0.2s ease-in-out;
@@ -30,13 +29,13 @@ input[type=checkbox]:not(:checked) + label .nc-slider-options {
   -o-transition: left 0.2s ease-in-out;
   transition: left 0.2s ease-in-out;
 
-  z-index: 10;
+  z-index: 1;
 }
 
 .nc-slider-option-selector {
   display: inline-block;
   width: 25px;
-  z-index: 10;
+  z-index: 1;
 }
 
 .nc-slider-option {
@@ -47,7 +46,7 @@ input[type=checkbox]:not(:checked) + label .nc-slider-options {
   border-left: 1px solid #aaa;
   border-right: 1px solid #aaa;
 
-  z-index: 10;
+  z-index: 1;
 }
 
 .nc-custom-checkbox {

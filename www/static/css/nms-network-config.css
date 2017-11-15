@@ -19,8 +19,8 @@
 
 /* NETWORK CONFIG BODY */
 .rc-network-config-body {
-  padding-top: 60px;
-  margin-bottom: 65px;
+  display: flex;
+  flex-direction: column;
 
   width: calc(100% - 300px);
   overflow-y: auto;
@@ -28,17 +28,15 @@
 
 /* NETWORK CONFIG HEADER */
 .rc-network-config-header {
-  width: calc(100% - 300px);
-
   display: flex;
   flex-direction: row;
   align-items: center;
 
-  position: absolute;
-  top: 0;
+  flex-shrink: 0;
+  height: 50px;
   border-bottom: 1px solid #777;
   background-color: #fff;
-  z-index: 1;
+  z-index: 5;
 }
 
 .nc-header-title {
@@ -50,9 +48,7 @@
 /* NETWORK CONFIG FOOTER */
 .rc-network-config-footer {
   border-top: 1px solid #777;
-  width: calc(100% - 300px);
-  position: absolute;
-  bottom: 0;
+  background-color: #fff;
 }
 
 .rc-network-config-footer button {

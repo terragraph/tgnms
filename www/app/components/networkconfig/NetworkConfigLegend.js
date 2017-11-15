@@ -11,6 +11,16 @@ import { CONFIG_VIEW_MODE, CONFIG_CLASSNAMES } from '../../constants/NetworkConf
 export default class NetworkConfigLegend extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      expanded: true,
+    };
+  }
+
+  toggleExpandLegend = () => {
+    this.setState({
+      expanded: !this.state.expanded
+    });
   }
 
   renderNodeStatus = () => {
@@ -65,12 +75,12 @@ export default class NetworkConfigLegend extends React.Component {
 
   render() {
     const {editMode} = this.props;
+    const {expanded} = this.state;
+    const expandMarker = expanded ?
+      '/static/images/down-chevron.png' : '/static/images/up-chevron.png';
 
-    return (
-      <div className='rc-network-config-legend'>
-        <p style={{fontWeight: 600, fontSize: '22px'}}>
-          Legend
-        </p>
+    const legendBody = (
+      <div>
         <p className='nc-legend-heading'>
           Node Status
         </p>
@@ -79,14 +89,17 @@ export default class NetworkConfigLegend extends React.Component {
         <p className='nc-legend-heading'>
           Config Field
         </p>
-        {/* <p className='nc-legend-subheading'>
-          Field Operations
-        </p>
-        {this.renderFieldOperations()} */}
-        {/* <p className='nc-legend-subheading'>
-          Field Status
-        </p> */}
         {this.renderFieldLegend()}
+      </div>
+    );
+
+    return (
+      <div className='rc-network-config-legend'>
+        <p className={classNames('nc-legend-title', {'nc-collapsed-title': !expanded})} onClick={this.toggleExpandLegend}>
+          Legend
+          <img src={expandMarker} className='legend-expand-marker'/>
+        </p>
+        {expanded && legendBody}
       </div>
     );
   }

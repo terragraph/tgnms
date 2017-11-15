@@ -28,11 +28,13 @@ export default class NetworkConfigBody extends React.Component {
           editMode={editMode}
           selectedNodes={selectedNodes}
         />
-        <JSONConfigForm
-          configs={configs}
-          draftConfig={draftConfig}
-          editPath={[]}
-        />
+        <div className='config-form-root'>
+          <JSONConfigForm
+            configs={configs}
+            draftConfig={draftConfig}
+            editPath={[]}
+          />
+        </div>
         <NetworkConfigFooter
           draftConfig={draftConfig}
           editMode={editMode}
