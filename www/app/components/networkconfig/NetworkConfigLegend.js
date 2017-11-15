@@ -27,16 +27,16 @@ export default class NetworkConfigLegend extends React.Component {
     return (
       <ul className='nc-legend-section' style={{listStyleType: 'none', padding: 0}}>
         <li className='nc-legend-node'>
+          Online Node
+        </li>
+        <li className={classNames('nc-legend-node', 'nc-offline-node')}>
+          Offline Node
+        </li>
+        <li className='nc-legend-node'>
           Node with Unsaved Changes<img height='20' style={{float: 'right'}} src='/static/images/bullet_red.png'/>
         </li>
         <li className={classNames('nc-legend-node', 'nc-node-with-override')} style={{fontWeight: 600}}>
           Node With Override
-        </li>
-        <li className={classNames('nc-legend-node', CONFIG_CLASSNAMES.NODE)}>
-          Online Node
-        </li>
-        <li className={classNames('nc-legend-node', CONFIG_CLASSNAMES.DRAFT)}>
-          Offline Node
         </li>
       </ul>
     );

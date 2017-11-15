@@ -127,3 +127,7 @@
   margin-right: 5px;
   margin-bottom: 5px;
 }
+
+.nc-offline-node {
+  background-color: #ffaaaa;
+}

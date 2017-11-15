@@ -1,9 +1,10 @@
 /* NETWORK CONFIG JSON FORM */
 .rc-json-config-form ul {
   list-style-type: none;
-  /*width: 100%;*/
-  width: 1200px;
-  /*max-width: 1200px;*/
+  width: 100%;
+  /*width: 1200px;*/
+  min-width: 700px;
+  max-width: 1200px;
 }
 
 .config-form-root {
@@ -61,6 +62,7 @@
 }
 
 .nc-network-field {
+  /*background-color: #8Bd6c8;*/
   background-color: rgb(183,210,255);
 }
 
@@ -69,7 +71,7 @@
 }
 
 .nc-draft-field {
-  background-color: #ffaaaa;
+  background-color: #fdf498;
 }
 
 .nc-revert-field {

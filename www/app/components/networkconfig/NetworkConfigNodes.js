@@ -43,12 +43,8 @@ export default class NetworkConfigNodes extends React.Component {
 
   getRowClassName = (row) => {
     const {nodesWithOverrides} = this.props;
-    // node Online
-    // node offline
-    // node has
     let rowClasses = {};
-    rowClasses[CONFIG_CLASSNAMES.NODE] = row.ignited;
-    rowClasses[CONFIG_CLASSNAMES.DRAFT] = !row.ignited;
+    rowClasses['nc-offline-node'] = !row.ignited;
     rowClasses['nc-node-with-override'] = nodesWithOverrides.has(row[KEY_FIELD]);
 
     // return ( nodesWithOverrides.has(row[KEY_FIELD]) ) ? CONFIG_CLASSNAMES.NODE : '';
