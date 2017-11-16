@@ -11,6 +11,7 @@ const pool = mysql.createPool({
     waitForConnections: false,
     multipleStatements: true,
 });
+const Topology_ttypes = require('./thrift/gen-nodejs/Topology_types');
 
 const METRIC_KEY_NAMES = [
   'snr',
@@ -121,6 +122,7 @@ var self = {
     // map name => node
     let nodesByName = {};
     postData.topology.nodes.forEach(node => {
+      // clean-up state data
       nodesByName[node.name] = node;
     });
     // fetch all keys for nodes in topology
@@ -185,8 +187,8 @@ var self = {
               let {title, description, scale, keys} =
                 self.formatLinkKeyName(
                   metricName,
-                  {name: aNode.name, mac: aNode.mac_addr},
-                  {name: zNode.name, mac: zNode.mac_addr});
+                  aNode,
+                  zNode);
               keys.forEach(data => {
                 let {node, keyName, titleAppend} = data;
                 // find and tag the associated keys
@@ -254,10 +256,49 @@ var self = {
                                      'PER', 'Packet Error Rate',
                                      'staPkt.perE6');
       case 'fw_uptime':
-        // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
-        return self.createLinkMetric(aNode, zNode,
-                                     'FW Uptime', 'Mgmt Tx Keepalive Count',
-                                     'mgmtTx.keepAlive');
+        // this depends on A/Z nodes and DN versus CN
+        if (aNode.node_type == Topology_ttypes.NodeType.DN &&
+            zNode.node_type == Topology_ttypes.NodeType.DN) {
+          // both sides DN, use keep-alive
+          //console.log('DN<->CN: ' + ' tgf.' + aNode.mac_addr + '.mgmtTx.keepAlive');
+          return self.createLinkMetric(aNode, zNode,
+                                       'FW Uptime', 'Mgmt Tx Keepalive Count',
+                                       'mgmtTx.keepAlive');
+        } else if (aNode.node_type == Topology_ttypes.NodeType.DN &&
+                   zNode.node_type == Topology_ttypes.NodeType.CN) {
+          // DN->CN, use uplinkBwReq on DN?
+          //console.log('DN<->CN: ' + ' tgf.' + zNode.mac_addr + '.mgmtRx.uplinkBwreq');
+          return {
+            title: "Uplink BW req",
+            description: "Uplink BW requests received by DN",
+            scale: undefined,
+            keys: [
+              {
+                node: aNode,
+                keyName: 'tgf.' + zNode.mac_addr + '.mgmtRx.uplinkBwreq',
+                titleAppend: ' (A)'
+              },
+            ]
+          };
+        } else if (aNode.node_type == Topology_ttypes.NodeType.CN &&
+                   zNode.node_type == Topology_ttypes.NodeType.DN) {
+          //console.log('CN<->DN: ' + ' tgf.' + aNode.mac_addr + '.mgmtRx.uplinkBwreq');
+          return {
+            title: "Uplink BW req",
+            description: "Uplink BW requests received by DN",
+            scale: undefined,
+            keys: [
+              {
+                node: zNode,
+                keyName: 'tgf.' + aNode.mac_addr + '.mgmtRx.uplinkBwreq',
+                titleAppend: ' (Z)'
+              },
+            ]
+          };
+        } else {
+          console.error("Unhandled node type combination", aNode, zNode);
+        }
+        
       case 'rx_ok':
         return self.createLinkMetric(aNode, zNode,
                                      'RX Packets', 'Received packets',
@@ -333,7 +374,7 @@ var self = {
               /* This is reported by controller MAC (TODO) */
               node: aNode,
               keyName: 'e2e_controller.link_status.WIRELESS.' +
-                aNode.mac + '.' + zNode.mac,
+                aNode.mac_addr + '.' + zNode.mac_addr,
               titleAppend: ' (A)'
             },
           ]
@@ -356,11 +397,11 @@ var self = {
           keys: [
             {
               node: aNode,
-              keyName: keyPrefix + '.' + zNode.mac + '.' + keyName,
+              keyName: keyPrefix + '.' + zNode.mac_addr + '.' + keyName,
               titleAppend: ' (A)'
             },{
               node: zNode,
-              keyName: keyPrefix + '.' + aNode.mac + '.' + keyName,
+              keyName: keyPrefix + '.' + aNode.mac_addr + '.' + keyName,
               titleAppend: ' (Z)'
             },
           ]
@@ -371,15 +412,15 @@ var self = {
   fetchLinkKeyIds: function(metricName, aNode, zNode) {
     let keyIds = [];
     // skip if mac empty
-    if (!aNode.mac || !aNode.mac.length ||
-        !zNode.mac || !zNode.mac.length) {
+    if (!aNode.mac_addr || !aNode.mac_addr.length ||
+        !zNode.mac_addr || !zNode.mac_addr.length) {
       return;
     }
     let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
     linkKeys.keys.forEach(keyData => {
-      if (aNode.mac in self.nodeKeyIds &&
-          keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac]) {
-        let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName.toLowerCase()];
+      if (aNode.mac_addr in self.nodeKeyIds &&
+          keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac_addr]) {
+        let keyId = self.nodeKeyIds[aNode.mac_addr][keyData.keyName.toLowerCase()];
         keyIds.push(keyId);
       }
     });
@@ -401,10 +442,9 @@ var self = {
     let nodesByName = {};
     let nodesByMac = {};
     topology.nodes.forEach(node => {
-      nodesByName[node.name] = {
-        name: node.name,
-        mac: node.mac_addr ? node.mac_addr : ""
-      };
+      // clean-up state
+      delete node.status_dump;
+      nodesByName[node.name] = node;
       if (!node.mac_addr || !node.mac_addr.length) {
         return;
       }
@@ -473,17 +513,17 @@ var self = {
       if (!zNode) {
         return;
       }
-      if (!aNode.mac || !aNode.mac.length ||
-          !zNode.mac || !zNode.mac.length) {
+      if (!aNode.mac_addr || !aNode.mac_addr.length ||
+          !zNode.mac_addr || !zNode.mac_addr.length) {
         return;
       }
       // add nodes to request list
       linkMetrics.forEach(linkMetric => {
         let linkKeys = self.formatLinkKeyName(linkMetric.metric, aNode, zNode);
         linkKeys.keys.forEach(keyData => {
-          if (aNode.mac in self.nodeKeyIds &&
-              keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac]) {
-            let keyId = self.nodeKeyIds[aNode.mac][keyData.keyName.toLowerCase()];
+          if (aNode.mac_addr in self.nodeKeyIds &&
+              keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac_addr]) {
+            let keyId = self.nodeKeyIds[aNode.mac_addr][keyData.keyName.toLowerCase()];
             nodeKeyIds.push(keyId);
             nodeData.push({
               keyId: keyId,
@@ -491,9 +531,9 @@ var self = {
               displayName: link.name,
               linkTitleAppend: "(A)"
             });
-          } else if (zNode.mac in self.nodeKeyIds &&
-                     keyData.keyName.toLowerCase() in self.nodeKeyIds[zNode.mac]) {
-            let keyId = self.nodeKeyIds[zNode.mac][keyData.keyName.toLowerCase()];
+          } else if (zNode.mac_addr in self.nodeKeyIds &&
+                     keyData.keyName.toLowerCase() in self.nodeKeyIds[zNode.mac_addr]) {
+            let keyId = self.nodeKeyIds[zNode.mac_addr][keyData.keyName.toLowerCase()];
             nodeKeyIds.push(keyId);
             nodeData.push({
              keyId: keyId,
