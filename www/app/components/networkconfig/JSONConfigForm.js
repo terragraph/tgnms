@@ -8,10 +8,6 @@ const classNames = require('classnames');
 import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
 
-const isReverted = (draftValue) => {
-  return draftValue === REVERT_VALUE;
-}
-
 const PLACEHOLDER_VALUE = 'base value for field not set';
 
 // internal config form class that wraps a JSONConfigForm with a label
@@ -21,8 +17,17 @@ class ExpandableConfigForm extends React.Component {
     super(props);
 
     this.state = {
-      expanded: true
+      expanded: props.parentExpanded
     };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // expand or collapse this component when the parent expands or collapses
+    if (this.props.parentExpanded !== nextProps.parentExpanded) {
+      this.setState({
+        expanded: nextProps.parentExpanded
+      });
+    }
   }
 
   toggleExpandConfig = () => {
@@ -45,6 +50,7 @@ class ExpandableConfigForm extends React.Component {
           configs={configs}
           draftConfig={draftConfig}
           editPath={editPath}
+          parentExpanded={true}
         />}
       </div>
     );
@@ -55,103 +61,21 @@ ExpandableConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
   formLabel: React.PropTypes.string.isRequired,
-  editPath: React.PropTypes.array.isRequired
-}
-
-class JSONConfigInput extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  renderNestedObject = (fieldName, editPath, configs, draftConfig) => {
-    const processedConfigs = configs.map((config) => {
-      return config === undefined ? {} : config;
-    });
-
-    const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
-
-    return (
-      <ExpandableConfigForm
-        configs={processedConfigs}
-        draftConfig={processedDraftConfig}
-        formLabel={fieldName}
-        editPath={editPath}
-      />
-    );
-  }
-
-  renderFormField = (isReverted, isDraft, displayVal) => {
-    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
-    return (
-      <JSONFormField
-        editPath={editPath}
-        formLabel={fieldName}
-        displayIdx={displayIdx}
-        values={values}
-        draftValue={draftValue}
-        isReverted={isReverted}
-        isDraft={isDraft}
-        displayVal={displayVal}
-      />
-    );
-  }
-
-  renderInputItem = (isReverted, isDraft, displayVal) => {
-    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
-
-    let childItem = (
-      <span>Error: unable to render child val of {displayVal}</span>
-    );
-
-    if (displayIdx >= 0) {
-      // value is found in a config
-      switch (typeof displayVal) {
-        case 'boolean':
-        case 'number':
-        case 'string':
-          childItem = this.renderFormField(isReverted, isDraft, displayVal);
-          break;
-        case 'object':
-          childItem = this.renderNestedObject(fieldName, editPath, values, draftValue);
-          break;
-      }
-    } else {
-      childItem = this.renderFormField(isReverted, isDraft, PLACEHOLDER_VALUE);
-    }
-
-    return childItem;
-  }
-
-  render() {
-    const {values, draftValue, displayIdx, fieldName, editPath} = this.props;
-
-    // some values are undefined
-    const isFieldReverted = isReverted(draftValue);
-    const isDraft = draftValue !== undefined && !isFieldReverted;
-
-    const displayVal = isDraft ? draftValue : values[displayIdx];
-    const inputItem = this.renderInputItem(isFieldReverted, isDraft, displayVal);
-
-    return (
-      <div className='rc-json-config-input'>
-        <li>{inputItem}</li>
-      </div>
-    );
-  }
-}
-
-JSONConfigInput.propTypes = {
-  values: React.PropTypes.array.isRequired,
-  draftValue: React.PropTypes.any.isRequired,
-  displayIdx: React.PropTypes.number.isRequired,
-
-  fieldName: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired,
+  parentExpanded: React.PropTypes.bool.isRequired,
 }
 
 export default class JSONConfigForm extends React.Component {
   constructor(props) {
     super(props);
+  }
+
+  isReverted = (draftValue) => {
+    return draftValue === REVERT_VALUE;
+  }
+
+  isDraft = (draftValue) => {
+    return draftValue !== undefined && !this.isReverted(draftValue);
   }
 
   getStackedFields(configs) {
@@ -165,7 +89,7 @@ export default class JSONConfigForm extends React.Component {
     return [...dedupedFields];
   }
 
-  getDisplayIdx = (configVals, isReverted) => {
+  getDisplayIdx = (configVals) => {
     // traverse the array backwards and stop at the first value that is not undefined
     // this lets us get the "highest" override for a value, aka what to display
     for (var idx = configVals.length - 1; idx >= 0; idx --) {
@@ -176,6 +100,82 @@ export default class JSONConfigForm extends React.Component {
     return -1;
   }
 
+  renderNestedObject = ({configs, draftConfig, fieldName, editPath}) => {
+    const processedConfigs = configs.map((config) => {
+      return config === undefined ? {} : config;
+    });
+    const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
+
+    return (
+      <ExpandableConfigForm
+        configs={processedConfigs}
+        draftConfig={processedDraftConfig}
+        formLabel={fieldName}
+        editPath={editPath}
+        parentExpanded={true}
+      />
+    );
+  }
+
+  renderFormField = ({values, draftValue, displayIdx, fieldName, editPath, displayVal}) => {
+    return (
+      <JSONFormField
+        editPath={editPath}
+        formLabel={fieldName}
+        displayIdx={displayIdx}
+        values={values}
+        draftValue={draftValue}
+        isReverted={this.isReverted(draftValue)}
+        isDraft={this.isDraft(draftValue)}
+        displayVal={displayVal}
+      />
+    );
+  }
+
+  renderChildItem = ({values, draftValue, fieldName, editPath}) => {
+    // disregard the highest level of override if we have decided to revert the value (to display)
+    const displayIdx = this.getDisplayIdx(this.isReverted(draftValue) ?
+      values.slice(0, values.length - 1) : values
+    );
+
+    if (displayIdx === -1) {
+      console.warn('base not found for field', fieldName, 'in path', editPath);
+    }
+
+    const displayVal = this.isDraft(draftValue) ? draftValue : values[displayIdx];
+    let childItem = (
+      <span>Error: unable to render child val of {displayVal}</span>
+    );
+
+    const formFieldArgs = {values, draftValue, displayIdx, fieldName, editPath};
+    if (displayIdx >= 0) {
+      // value is found in a config
+      switch (typeof displayVal) {
+        case 'boolean':
+        case 'number':
+        case 'string':
+          formFieldArgs.displayVal = displayVal;
+          childItem = this.renderFormField(formFieldArgs);
+          break;
+        case 'object':
+          childItem = this.renderNestedObject({
+            configs: values,
+            draftConfig: draftValue,
+            fieldName: fieldName,
+            editPath: editPath,
+          });
+          break;
+      }
+    } else {
+      formFieldArgs.displayVal = PLACEHOLDER_VALUE;
+      childItem = this.renderFormField(formFieldArgs);
+    }
+
+    return (
+      <li className='rc-json-config-input'>{childItem}</li>
+    );
+  }
+
   render() {
     const {
       configs,
@@ -183,42 +183,19 @@ export default class JSONConfigForm extends React.Component {
       editPath
     } = this.props;
 
-    // TODO: ASSUMPTION: configs are all JSON objects, so is draftConfig
-    // ASSUMPTION: draftConfig does not change types for fields or introduce new fields
-
     // retrieve the union of fields for all json objects in the array
     const configFields = this.getStackedFields(configs);
-
     const childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];
-      const configVals = configs.map(config => config[field]);
+      const configValues = configs.map(config => config[field]);
 
-      // disregard the highest level of override if we have decided to revert the value
-      const displayIdx = this.getDisplayIdx(
-        isReverted(draftValue) ? configVals.slice(0, configVals.length - 1) : configVals
-      );
-
-      if (displayIdx === -1) {
-        console.warn('base not found for field', field, 'in path', editPath);
-      }
-
-      return (
-        <JSONConfigInput
-          values={configVals}
-          draftValue={draftConfig[field]}
-          displayIdx={displayIdx}
-
-          fieldName={field}
-          editPath={editPath.concat(field)}
-        />
-      );
+      return this.renderChildItem({
+        values: configValues,
+        draftValue: draftValue,
+        fieldName: field,
+        editPath: editPath.concat(field),
+      });
     });
-
-/*
-<div className={
-  classNames({'config-form-root': editPath.length === 0, 'rc-json-config-form': true})
-}>
-*/
 
     return (
       <div className='rc-json-config-form'>
@@ -235,5 +212,8 @@ JSONConfigForm.propTypes = {
   // the "path" of keys that identifies the root of the component's config
   // vs the entire config object
   // useful for nested config components
-  editPath: React.PropTypes.array.isRequired
+  editPath: React.PropTypes.array.isRequired,
+
+  // for collapse/expand all
+  parentExpanded: React.PropTypes.bool.isRequired,
 }

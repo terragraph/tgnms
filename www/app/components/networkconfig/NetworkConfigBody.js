@@ -33,6 +33,7 @@ export default class NetworkConfigBody extends React.Component {
             configs={configs}
             draftConfig={draftConfig}
             editPath={[]}
+            parentExpanded={true}
           />
         </div>
         <NetworkConfigFooter

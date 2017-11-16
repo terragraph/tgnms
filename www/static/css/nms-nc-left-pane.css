@@ -75,7 +75,7 @@
 
 .nc-legend-title {
   font-weight: 600;
-  font-size: 22px;
+  font-size: 30px;
 }
 
 .nc-collapsed-title {
@@ -84,17 +84,23 @@
 
 .nc-legend-heading {
   font-weight: 600;
-  font-size: 18px;
-}
-
-.nc-legend-subheading {
-  font-weight: 600;
-  margin-top: 10px;
-  margin-bottom: 5px;
+  font-size: 16px;
 }
 
 .nc-legend-section {
   margin-left: 10px;
+}
+
+.nc-inline-legend-node {
+  padding: 10px;
+  border: 1px solid #eee;
+  width: 50%;
+}
+
+.nc-legend-inline-node-container {
+  display: flex;
+  margin-left: -20px;
+  margin-right: -10px;
 }
 
 .nc-legend-node {
@@ -126,6 +132,10 @@
   width: 128px;
   margin-right: 5px;
   margin-bottom: 5px;
+}
+
+.nc-online-node {
+  background-color: #aaffaa;
 }
 
 .nc-offline-node {

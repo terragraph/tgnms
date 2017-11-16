@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 const classNames = require('classnames');
 
 import { REVERT_VALUE, CONFIG_CLASSNAMES } from '../../constants/NetworkConfigConstants.js';
-import {editConfigForm, revertConfigOverride, undoRevertConfig} from '../../actions/NetworkConfigActions.js';
+import {editConfigForm, revertConfigOverride, discardUnsavedConfig} from '../../actions/NetworkConfigActions.js';
 import JSONFieldTooltip from './JSONFieldTooltip.js';
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
@@ -32,7 +32,7 @@ export default class JSONFormField extends React.Component {
   }
 
   discardUnsavedValue = () => {
-    undoRevertConfig({
+    discardUnsavedConfig({
       editPath: this.props.editPath,
     });
   }

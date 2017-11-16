@@ -26,11 +26,13 @@ export default class NetworkConfigLegend extends React.Component {
   renderNodeStatus = () => {
     return (
       <ul className='nc-legend-section' style={{listStyleType: 'none', padding: 0}}>
-        <li className='nc-legend-node'>
-          Online Node
-        </li>
-        <li className={classNames('nc-legend-node', 'nc-offline-node')}>
-          Offline Node
+        <li className='nc-legend-inline-node-container'>
+          <div className={classNames('nc-inline-legend-node', 'nc-online-node')}>
+            Online Node
+          </div>
+          <div className={classNames('nc-inline-legend-node', 'nc-offline-node')}>
+            Offline Node
+          </div>
         </li>
         <li className='nc-legend-node'>
           Node with Unsaved Changes<img height='20' style={{float: 'right'}} src='/static/images/bullet_red.png'/>
@@ -39,20 +41,6 @@ export default class NetworkConfigLegend extends React.Component {
           Node With Override
         </li>
       </ul>
-    );
-  }
-
-  renderFieldOperations = () => {
-    return (
-      <div className='nc-legend-section'>
-        <table className='nc-field-op-legend'><tr>
-          <td className='nc-field-op-desc'>Remove Override</td>
-          <td><img src='/static/images/undo.png'/></td>
-        </tr><tr>
-          <td className='nc-field-op-desc'>Discard Unsaved Value</td>
-          <td><img src='/static/images/refresh.png'/></td>
-        </tr></table>
-      </div>
     );
   }
 

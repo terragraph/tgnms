@@ -62,12 +62,11 @@
 }
 
 .nc-network-field {
-  /*background-color: #8Bd6c8;*/
-  background-color: rgb(183,210,255);
+  background-color: #3bd6c6;
 }
 
 .nc-node-field {
-  background-color: #aaffaa;
+  background-color: #f1cbff;
 }
 
 .nc-draft-field {

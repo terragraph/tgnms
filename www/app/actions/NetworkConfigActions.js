@@ -5,12 +5,13 @@ export const NetworkConfigActions = {
   CHANGE_EDIT_MODE: 'CHANGE_EDIT_MODE',
   EDIT_CONFIG_FORM: 'EDIT_CONFIG_FORM',
   REVERT_CONFIG_OVERRIDE: 'REVERT_CONFIG_OVERRIDE',
-  UNDO_REVERT_CONFIG: 'UNDO_REVERT_CONFIG',
+  DISCARD_UNSAVED_CONFIG: 'DISCARD_UNSAVED_CONFIG',
 
   SUBMIT_CONFIG: 'SUBMIT_CONFIG',
   SUBMIT_CONFIG_FOR_ALL_NODES: 'SUBMIT_CONFIG_FOR_ALL_NODES',
   RESET_CONFIG: 'RESET_CONFIG',
   RESET_CONFIG_FOR_ALL_NODES: 'RESET_CONFIG_FOR_ALL_NODES',
+  REFRESH_CONFIG: 'REFRESH_CONFIG',
 
   SELECT_IMAGE: 'SELECT_IMAGE',
   SELECT_NODES: 'SELECT_NODES',
@@ -71,9 +72,9 @@ export const revertConfigOverride = ({editPath}) => {
   });
 }
 
-export const undoRevertConfig = ({editPath}) => {
+export const discardUnsavedConfig = ({editPath}) => {
   Dispatcher.dispatch({
-    actionType: NetworkConfigActions.UNDO_REVERT_CONFIG,
+    actionType: NetworkConfigActions.DISCARD_UNSAVED_CONFIG,
     editPath,
   });
 }
@@ -102,6 +103,12 @@ export const resetConfigForAllNodes = () => {
   });
 };
 
+export const refreshConfig = () => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.REFRESH_CONFIG,
+  });
+}
+
 // actions sent from the API handler once API returns
 export const getBaseConfigSuccess = ({config, topologyName}) => {
   Dispatcher.dispatch({
@@ -127,7 +134,7 @@ export const getNodeConfigSuccess = ({config, topologyName}) => {
   });
 };
 
-// set
+// API returns when setting an override is successful
 export const setNetworkConfigSuccess = ({config}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SET_NETWORK_CONFIG_SUCCESS,

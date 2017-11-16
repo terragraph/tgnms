@@ -79,7 +79,6 @@ export default class NetworkConfigContainer extends React.Component {
       nextProps.networkConfig.topology.name !== topology.name
     ) {
       // perform the update if next topology is real/has a name and is a different topology that what we have now
-      // console.log(`topology switched from ${topology.name} to ${_.get(nextProps.networkConfig, ['topology', 'name'])}`);
       const newTopology = nextProps.networkConfig.topology;
       this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
 
@@ -93,17 +92,16 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   componentWillUnmount() {
-    // un-register once hidden
     Dispatcher.unregister(this.dispatchToken);
   }
 
   getNodeMacs = () => {
     const {networkConfig} = this.props;
     return (networkConfig.topology && networkConfig.topology.nodes) ?
-      networkConfig.topology.nodes.map(node => node.mac_addr) : []; // fetch from the topology
+      networkConfig.topology.nodes.map(node => node.mac_addr) : [];
   }
 
-  // get node name, MAC and image version
+  // get node name, MAC, image version and if node is online
   getNodes = () => {
     const {networkConfig} = this.props;
     return (networkConfig.topology && networkConfig.topology.nodes) ?
@@ -114,19 +112,13 @@ export default class NetworkConfigContainer extends React.Component {
           imageVersion: (node.status_dump) ? node.status_dump.version : null,
           ignited: (node.status == 2 || node.status == 3),
         };
-      }) : []; // fetch from the topology
+      }) : [];
   }
 
   handleDispatchEvent(payload) {
     const topologyName = this.props.networkConfig.topology.name;
 
     switch (payload.actionType) {
-      // handle common actions
-      case Actions.TOPOLOGY_SELECTED:
-        // only fetch when switching to a different topology succeeds
-        // this.fetchConfigsForCurrentTopology(payload.networkConfig.topology.name);
-        break;
-
       // handle network config specific actions
       // actions that change the editing context
       case NetworkConfigActions.CHANGE_EDIT_MODE:
@@ -160,7 +152,7 @@ export default class NetworkConfigContainer extends React.Component {
           this.revertNetworkConfig(payload.editPath);
         }
         break;
-      case NetworkConfigActions.UNDO_REVERT_CONFIG:
+      case NetworkConfigActions.DISCARD_UNSAVED_CONFIG:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.undoRevertNodeConfig(payload.editPath);
         } else {
@@ -190,6 +182,9 @@ export default class NetworkConfigContainer extends React.Component {
         break;
       case NetworkConfigActions.RESET_CONFIG_FOR_ALL_NODES:
         this.resetAllNodesConfig();
+        break;
+      case NetworkConfigActions.REFRESH_CONFIG:
+        this.refreshConfig();
         break;
 
       // actions from API call returns
@@ -364,11 +359,23 @@ export default class NetworkConfigContainer extends React.Component {
     });
   }
 
-  fetchConfigsForCurrentTopology = (topologyName, topology) => {
-    // const imageVersions = getImageVersionsForNetwork(this.props.networkConfig.topology);
-    const imageVersions = getImageVersionsForNetwork(topology);
+  refreshConfig = () => {
+    // first we clear the drafts
+    this.setState({
+      networkDraftConfig: {},
+      networkConfigWithChanges: _.cloneDeep(this.state.networkOverrideConfig),
+      nodeDraftConfig: {},
+      nodeConfigWithChanges: _.cloneDeep(this.state.nodeOverrideConfig),
+    });
 
-    // node macs are outdated
+    // then we make the API calls
+    const topology = this.props.networkConfig.topology;
+    const topologyName = topology.name;
+    this.fetchConfigsForCurrentTopology(topologyName, topology);
+  }
+
+  fetchConfigsForCurrentTopology = (topologyName, topology) => {
+    const imageVersions = getImageVersionsForNetwork(topology);
     getConfigsForTopology(topologyName, imageVersions);
   }
 
