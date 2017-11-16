@@ -32,6 +32,8 @@ export const NetworkConfigActions = {
 
   SET_NODE_CONFIG_SUCCESS: 'SET_NODE_CONFIG_SUCCESS',
   SET_NODE_CONFIG_FAILED: 'SET_NODE_CONFIG_FAILED',
+
+  TOGGLE_EXPAND_ALL: 'TOGGLE_EXPAND_ALL',
 };
 
 // actions that switch editing context
@@ -149,3 +151,10 @@ export const setNodeConfigSuccess = ({config, saveSelected}) => {
     saveSelected,
   });
 };
+
+export const toggleExpandAll = ({isExpanded}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.TOGGLE_EXPAND_ALL,
+    isExpanded,
+  });
+}

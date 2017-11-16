@@ -26,11 +26,15 @@ export default class NetworkConfigHeader extends React.Component {
   }
 
   onRefresh = () => {
-    swal(refreshAlertProps, (isConfirm) => {
-      if (isConfirm) {
-        refreshConfig();
-      }
-    });
+    if (this.props.hasUnsavedChanges) {
+      swal(refreshAlertProps, (isConfirm) => {
+        if (isConfirm) {
+          refreshConfig();
+        }
+      });
+    } else {
+      refreshConfig();
+    }
   }
 
   render() {
@@ -68,4 +72,5 @@ export default class NetworkConfigHeader extends React.Component {
 NetworkConfigHeader.propTypes = {
   editMode: React.PropTypes.string.isRequired,
   selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+  hasUnsavedChanges: React.PropTypes.bool.isRequired,
 }

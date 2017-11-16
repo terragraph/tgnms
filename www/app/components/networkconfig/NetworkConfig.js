@@ -69,6 +69,9 @@ export default class NetworkConfig extends React.Component {
       return Object.keys(nodeDraftConfig[node]).length > 0
     });
 
+    const networkDraftExists = Object.keys(networkDraftConfig).length > 0;
+    const hasUnsavedChanges = networkDraftExists || nodesWithDrafts.length > 0;
+
     return (
       <div className='rc-network-config'>
         <NetworkConfigLeftPane
@@ -77,7 +80,7 @@ export default class NetworkConfig extends React.Component {
           selectedImage={selectedImage}
 
           editMode={editMode}
-          networkDraftExists={Object.keys(networkDraftConfig).length > 0}
+          networkDraftExists={networkDraftExists}
 
           nodes={nodes}
           selectedNodes={selectedNodes}
@@ -91,6 +94,7 @@ export default class NetworkConfig extends React.Component {
 
           selectedNodes={selectedNodes}
           editMode={editMode}
+          hasUnsavedChanges={hasUnsavedChanges}
         />
       </div>
     );

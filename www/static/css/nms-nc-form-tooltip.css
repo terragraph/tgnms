@@ -10,7 +10,7 @@
   display: inline-table;
   z-index: 1;
   position: absolute;
-  left: calc(100% + 80px);
+  left: calc(100% + 40px);
   top: 0;
   bottom: 0;
 }

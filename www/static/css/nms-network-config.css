@@ -26,6 +26,15 @@
   overflow-y: auto;
 }
 
+.nc-expand-all-wrapper {
+  margin-left: 20px;
+  margin-top: 20px;
+}
+
+.nc-expand-all-wrapper label {
+  padding-left: 10px;
+}
+
 /* NETWORK CONFIG HEADER */
 .rc-network-config-header {
   display: flex;

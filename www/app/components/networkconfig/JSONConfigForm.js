@@ -5,6 +5,9 @@ import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
 
+import Dispatcher from '../../NetworkDispatcher.js';
+import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
+
 import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
 
@@ -15,18 +18,40 @@ const PLACEHOLDER_VALUE = 'base value for field not set';
 class ExpandableConfigForm extends React.Component {
   constructor(props) {
     super(props);
+    let listenForDispatch = false;
+
+    // hack, because this method involves making the least changes
+    // make the extendable component listen to actions ONLY IF it is a top level config
+    // i.e. if its editPath has a length of 1 - its formLabel
+    // this allows the form to expand/collapse from an outside action
+    // without having too many components listen to the action
+    if (props.editPath.length <= 1) {
+      this.dispatchToken = Dispatcher.register(
+        this.handleExpandAll.bind(this)
+      );
+
+      listenForDispatch = true;
+    }
 
     this.state = {
-      expanded: props.parentExpanded
+      expanded: true,
+      listenForDispatch: listenForDispatch,
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-    // expand or collapse this component when the parent expands or collapses
-    if (this.props.parentExpanded !== nextProps.parentExpanded) {
-      this.setState({
-        expanded: nextProps.parentExpanded
-      });
+  componentWillUnmount = () => {
+    if (this.state.listenForDispatch) {
+      Dispatcher.unregister(this.dispatchToken);
+    }
+  }
+
+  handleExpandAll(payload) {
+    switch(payload.actionType) {
+      case NetworkConfigActions.TOGGLE_EXPAND_ALL:
+        this.setState({
+          expanded: payload.isExpanded
+        });
+        break;
     }
   }
 
@@ -50,7 +75,6 @@ class ExpandableConfigForm extends React.Component {
           configs={configs}
           draftConfig={draftConfig}
           editPath={editPath}
-          parentExpanded={true}
         />}
       </div>
     );
@@ -62,7 +86,6 @@ ExpandableConfigForm.propTypes = {
   draftConfig: React.PropTypes.object.isRequired,
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired,
-  parentExpanded: React.PropTypes.bool.isRequired,
 }
 
 export default class JSONConfigForm extends React.Component {
@@ -112,7 +135,6 @@ export default class JSONConfigForm extends React.Component {
         draftConfig={processedDraftConfig}
         formLabel={fieldName}
         editPath={editPath}
-        parentExpanded={true}
       />
     );
   }
@@ -213,7 +235,4 @@ JSONConfigForm.propTypes = {
   // vs the entire config object
   // useful for nested config components
   editPath: React.PropTypes.array.isRequired,
-
-  // for collapse/expand all
-  parentExpanded: React.PropTypes.bool.isRequired,
 }
