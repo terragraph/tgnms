@@ -21,6 +21,7 @@ export default class NetworkLinksTable extends React.Component {
     linkHealth: NetworkStore.linkHealth,
     hideWired: true,
     showEventsChart: true,
+    hideDnToDnLinks: false,
     toplink: null,
     // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
     linkRequestButtonEnabled: true,
@@ -137,6 +138,19 @@ export default class NetworkLinksTable extends React.Component {
         linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
       }
       if (link.link_type == 2 && this.state.hideWired) {
+        return;
+      }
+      // check if either side of the node is a CN
+      if (!this.nodesByName.hasOwnProperty(link.a_node_name) ||
+          !this.nodesByName.hasOwnProperty(link.z_node_name)) {
+        return;
+      }
+      let aNode = this.nodesByName[link.a_node_name];
+      let zNode = this.nodesByName[link.z_node_name];
+      if (this.state.hideDnToDnLinks &&
+          aNode.node_type == 2 &&
+          zNode.node_type == 2) {
+        // skip since it's DN to DN
         return;
       }
       rows.push({
@@ -361,7 +375,11 @@ export default class NetworkLinksTable extends React.Component {
         <li key="linksTable">
           <button className={this.state.hideWired ? 'graph-button graph-button-selected' : 'graph-button'}
                   onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
-            Hide Wired
+          Hide Wired
+          </button>
+          <button className={this.state.hideDnToDnLinks ? 'graph-button graph-button-selected' : 'graph-button'}
+                  onClick={btn => this.setState({hideDnToDnLinks: !this.state.hideDnToDnLinks})}>
+            CNs Only
           </button>
           <button className={this.state.showEventsChart ? 'graph-button graph-button-selected' : 'graph-button'}
                   onClick={btn => this.setState({showEventsChart: !this.state.showEventsChart})}>

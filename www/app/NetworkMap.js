@@ -727,6 +727,23 @@ export default class NetworkMap extends React.Component {
             }
             linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
             break;
+          case 'FLAPS':
+            // flaps is a special case, can use health data to count # of events
+            if (this.state.linkHealth.hasOwnProperty('metrics') &&
+                this.state.linkHealth.metrics.hasOwnProperty(link.name)) {
+              // we have health data for this link
+              let linkHealthEvents = this.state.linkHealth.metrics[link.name].events.length;
+              // linear scaling
+              let healthScaleColor = d3.scaleLinear()
+                  .domain([0, 5, 15, 100])
+                  .range(['#006600', '#7f9900', '#b34a00', '#990000']);
+              let linkColor = d3.rgb(healthScaleColor(linkHealthEvents));
+              linkLine = this.getLinkLine(link, linkCoords, linkColor);
+            } else {
+              // no data
+              linkLine = this.getLinkLine(link, linkCoords, 'black');
+            }
+            break;
           default:
             linkLine = this.getLinkLine(link, linkCoords, 'grey');
         }
