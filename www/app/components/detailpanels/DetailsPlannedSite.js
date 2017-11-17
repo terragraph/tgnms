@@ -92,7 +92,12 @@ export default class DetailsPlannedSite extends React.Component {
     }
 
     return (
-      <div id="myModal" className="details">
+      <div
+        id="myModal"
+        className="details"
+        onMouseEnter={this.props.onEnter}
+        onMouseLeave={this.props.onLeave}
+      >
         <div className="details-content">
           <div className="details-header">
             <h3 style={{marginTop: "0px"}}>Planned Site</h3>

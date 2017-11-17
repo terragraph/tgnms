@@ -468,7 +468,7 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  removePlannedSite() {
+  removePlannedSite = () => {
     this.setState({
       plannedSite: null,
     });
@@ -480,6 +480,19 @@ export default class NetworkMap extends React.Component {
       marker: { lat, lng },
     });
   };
+
+  enableMapScrolling = () => {
+    this.refs.map.leafletElement.scrollWheelZoom.enable();
+  }
+
+  disableMapScrolling = () => {
+    this.refs.map.leafletElement.scrollWheelZoom.disable();
+  }
+
+  closeModal = () => {
+    this.enableMapScrolling();
+    this.setState({detailsExpanded: false});
+  }
 
   render() {
     // use the center position from the topology if set
@@ -727,6 +740,23 @@ export default class NetworkMap extends React.Component {
             }
             linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
             break;
+          case 'FLAPS':
+            // flaps is a special case, can use health data to count # of events
+            if (this.state.linkHealth.hasOwnProperty('metrics') &&
+                this.state.linkHealth.metrics.hasOwnProperty(link.name)) {
+              // we have health data for this link
+              let linkHealthEvents = this.state.linkHealth.metrics[link.name].events.length;
+              // linear scaling
+              let healthScaleColor = d3.scaleLinear()
+                  .domain([0, 5, 15, 100])
+                  .range(['#006600', '#7f9900', '#b34a00', '#990000']);
+              let linkColor = d3.rgb(healthScaleColor(linkHealthEvents));
+              linkLine = this.getLinkLine(link, linkCoords, linkColor);
+            } else {
+              // no data
+              linkLine = this.getLinkLine(link, linkCoords, 'black');
+            }
+            break;
           default:
             linkLine = this.getLinkLine(link, linkCoords, 'grey');
         }
@@ -784,10 +814,14 @@ export default class NetworkMap extends React.Component {
       }
     }
 
-    let layersControl =
+    let layersControl = (
       <Control position="topright">
-        <img src="/static/images/layers.png" onClick={() => this.setState({detailsExpanded: true})}/>
-      </Control>;
+        <img src="/static/images/layers.png" onClick={() => {
+          this.disableMapScrolling();
+          this.setState({detailsExpanded: true});
+        }}/>
+      </Control>
+    );
     let showOverview = false;
     let topologyIssuesControl;
 
@@ -800,7 +834,9 @@ export default class NetworkMap extends React.Component {
                          link={this.state.selectedLink}
                          nodes={this.nodesByName}
                          maxHeight={maxModalHeight}
-                         onClose={() => this.setState({detailsExpanded: false})}
+                         onClose={this.closeModal}
+                         onEnter={this.disableMapScrolling}
+                         onLeave={this.enableMapScrolling}
             />
           </Control>
       } else if (this.state.selectedNode) {
@@ -811,7 +847,9 @@ export default class NetworkMap extends React.Component {
                          node={node}
                          links={this.linksByName}
                          maxHeight={maxModalHeight}
-                         onClose={() => this.setState({detailsExpanded: false})}
+                         onClose={this.closeModal}
+                         onEnter={this.disableMapScrolling}
+                         onLeave={this.enableMapScrolling}
             />
           </Control>
       } else if (this.state.selectedSite) {
@@ -827,7 +865,9 @@ export default class NetworkMap extends React.Component {
                          nodes={this.nodesByName}
                          links={this.linksByName}
                          maxHeight={maxModalHeight}
-                         onClose={() => this.setState({detailsExpanded: false})}
+                         onClose={this.closeModal}
+                         onEnter={this.disableMapScrolling}
+                         onLeave={this.enableMapScrolling}
             />
           </Control>
       } else {
@@ -843,7 +883,9 @@ export default class NetworkMap extends React.Component {
                            nodes={this.nodesByName}
                            links={this.linksByName}
                            maxHeight={maxModalHeight}
-                           onClose={() => this.setState({detailsExpanded: false})}
+                           onClose={this.closeModal}
+                           onEnter={this.disableMapScrolling}
+                           onLeave={this.enableMapScrolling}
           />
         </Control>;
     }
@@ -884,7 +926,13 @@ export default class NetworkMap extends React.Component {
               topologyName={this.props.networkConfig.topology.name}
               onUpdate={this.updatePlannedSite.bind(this)}
               maxHeight={maxModalHeight}
-              onClose={this.removePlannedSite.bind(this)}/>
+              onClose={() => {
+                this.removePlannedSite();
+                this.enableMapScrolling();
+              }}
+              onEnter={this.disableMapScrolling}
+              onLeave={this.enableMapScrolling}
+            />
           </Control>
     }
 

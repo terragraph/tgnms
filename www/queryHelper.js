@@ -260,14 +260,12 @@ var self = {
         if (aNode.node_type == Topology_ttypes.NodeType.DN &&
             zNode.node_type == Topology_ttypes.NodeType.DN) {
           // both sides DN, use keep-alive
-          //console.log('DN<->CN: ' + ' tgf.' + aNode.mac_addr + '.mgmtTx.keepAlive');
           return self.createLinkMetric(aNode, zNode,
                                        'FW Uptime', 'Mgmt Tx Keepalive Count',
                                        'mgmtTx.keepAlive');
         } else if (aNode.node_type == Topology_ttypes.NodeType.DN &&
                    zNode.node_type == Topology_ttypes.NodeType.CN) {
           // DN->CN, use uplinkBwReq on DN?
-          //console.log('DN<->CN: ' + ' tgf.' + zNode.mac_addr + '.mgmtRx.uplinkBwreq');
           return {
             title: "Uplink BW req",
             description: "Uplink BW requests received by DN",
@@ -282,7 +280,6 @@ var self = {
           };
         } else if (aNode.node_type == Topology_ttypes.NodeType.CN &&
                    zNode.node_type == Topology_ttypes.NodeType.DN) {
-          //console.log('CN<->DN: ' + ' tgf.' + aNode.mac_addr + '.mgmtRx.uplinkBwreq');
           return {
             title: "Uplink BW req",
             description: "Uplink BW requests received by DN",
@@ -379,6 +376,8 @@ var self = {
             },
           ]
         };
+      case 'flaps':
+        return {};
       default:
         throw "Undefined metric: " + metricName;
     }

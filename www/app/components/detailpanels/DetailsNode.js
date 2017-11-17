@@ -286,7 +286,12 @@ export default class DetailsNode extends React.Component {
     type += this.props.node.pop_node ? '-POP' : '';
 
     return (
-      <div id="myModal" className="details">
+      <div
+        id="myModal"
+        className="details"
+        onMouseEnter={this.props.onEnter}
+        onMouseLeave={this.props.onLeave}
+      >
         <div className="details-content">
           <div className="details-header">
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
