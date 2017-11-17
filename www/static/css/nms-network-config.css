@@ -31,8 +31,18 @@
   margin-top: 20px;
 }
 
-.nc-expand-all-wrapper label {
-  padding-left: 10px;
+.nc-expand-all-btn {
+  margin-right: 10px;
+  border: 1px solid black;
+  padding: 3px 10px;
+
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+}
+
+.nc-expand-all-btn:hover {
+  cursor: pointer;
+  background-color: rgb(183,210,255);
 }
 
 /* NETWORK CONFIG HEADER */

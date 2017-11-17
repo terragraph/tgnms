@@ -11,6 +11,7 @@ import {changeEditMode, selectNodes} from '../../actions/NetworkConfigActions.js
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 
 const KEY_FIELD = 'mac_addr';
+const TABLE_HEADER_OFFSET = 78;
 
 export default class NetworkConfigNodes extends React.Component {
   constructor(props) {
@@ -85,7 +86,7 @@ export default class NetworkConfigNodes extends React.Component {
 
   render() {
     return (
-      <div className='rc-network-config-nodes'>
+      <div className='rc-network-config-nodes' ref='nodeTable'>
         {this.renderNodeTable()}
       </div>
     );

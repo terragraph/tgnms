@@ -5,21 +5,19 @@ const classNames = require('classnames');
 
 import { CONFIG_VIEW_MODE, CONFIG_CLASSNAMES } from '../../constants/NetworkConfigConstants.js';
 
-
 // legend for the network config
-// big mess of css and html
 export default class NetworkConfigLegend extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      expanded: true,
+      isExpanded: true,
     };
   }
 
   toggleExpandLegend = () => {
     this.setState({
-      expanded: !this.state.expanded
+      isExpanded: !this.state.isExpanded
     });
   }
 
@@ -63,8 +61,8 @@ export default class NetworkConfigLegend extends React.Component {
 
   render() {
     const {editMode} = this.props;
-    const {expanded} = this.state;
-    const expandMarker = expanded ?
+    const {isExpanded} = this.state
+    const expandMarker = isExpanded ?
       '/static/images/down-chevron.png' : '/static/images/up-chevron.png';
 
     const legendBody = (
@@ -82,12 +80,12 @@ export default class NetworkConfigLegend extends React.Component {
     );
 
     return (
-      <div className='rc-network-config-legend'>
-        <p className={classNames('nc-legend-title', {'nc-collapsed-title': !expanded})} onClick={this.toggleExpandLegend}>
+      <div className='rc-network-config-legend' ref='networkLegend'>
+        <p className={classNames('nc-legend-title', {'nc-collapsed-title': !isExpanded})} onClick={this.toggleExpandLegend}>
           Legend
           <img src={expandMarker} className='legend-expand-marker'/>
         </p>
-        {expanded && legendBody}
+        {isExpanded && legendBody}
       </div>
     );
   }

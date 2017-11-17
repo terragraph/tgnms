@@ -83,7 +83,6 @@ export default class NetworkConfigLeftPane extends React.Component {
             imageVersions={imageVersions}
             selectedImage={selectedImage}
           />
-
         }
         {editMode === CONFIG_VIEW_MODE.NETWORK && spacerDiv}
         <NetworkConfigLegend

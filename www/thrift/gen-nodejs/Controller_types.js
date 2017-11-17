@@ -2360,10 +2360,10 @@ GetCtrlConfigNetworkOverridesResp.prototype.write = function(output) {
 };
 
 SetCtrlConfigNetworkOverridesReq = module.exports.SetCtrlConfigNetworkOverridesReq = function(args) {
-  this.config = null;
+  this.overrides = null;
   if (args) {
-    if (args.config !== undefined) {
-      this.config = args.config;
+    if (args.overrides !== undefined) {
+      this.overrides = args.overrides;
     }
   }
 };
@@ -2383,7 +2383,7 @@ SetCtrlConfigNetworkOverridesReq.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.STRING) {
-        this.config = input.readString();
+        this.overrides = input.readString();
       } else {
         input.skip(ftype);
       }
@@ -2402,9 +2402,9 @@ SetCtrlConfigNetworkOverridesReq.prototype.read = function(input) {
 
 SetCtrlConfigNetworkOverridesReq.prototype.write = function(output) {
   output.writeStructBegin('SetCtrlConfigNetworkOverridesReq');
-  if (this.config !== null && this.config !== undefined) {
-    output.writeFieldBegin('config', Thrift.Type.STRING, 1);
-    output.writeString(this.config);
+  if (this.overrides !== null && this.overrides !== undefined) {
+    output.writeFieldBegin('overrides', Thrift.Type.STRING, 1);
+    output.writeString(this.overrides);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

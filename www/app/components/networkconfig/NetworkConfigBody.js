@@ -45,10 +45,12 @@ export default class NetworkConfigBody extends React.Component {
           hasUnsavedChanges={hasUnsavedChanges}
         />
         <div className='nc-expand-all-wrapper'>
-          <input id='nc-expand-all' type='checkbox' checked={this.state.isExpanded}
-            onChange={(event) => this.onToggleExpandAll(event.target.checked)}
-          />
-          <label htmlFor='nc-expand-all' >Expand all</label>
+          <button className='nc-expand-all-btn'
+            onClick={() => this.onToggleExpandAll(true)}
+          >Expand All</button>
+          <button className='nc-expand-all-btn'
+            onClick={() => this.onToggleExpandAll(false)}
+          >Collapse All</button>
         </div>
         <div className='config-form-root'>
           <JSONConfigForm

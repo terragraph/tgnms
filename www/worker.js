@@ -542,7 +542,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'setNetworkOverrideConfig':
       var setNetworkOverrideParams = new Controller_ttypes.SetCtrlConfigNetworkOverridesReq();
-      setNetworkOverrideParams.config = JSON.stringify(msg.config);
+      setNetworkOverrideParams.overrides = JSON.stringify(msg.config);
       send(setNetworkOverrideParams);
 
       break;
