@@ -121,6 +121,22 @@ const linkOverlayKeys = {
     values: [-40, -35, -30, -25],
     colors: ["hsl(0,100%,20%)", "hsl(0,100%,40%)", "hsl(50,100%,40%)", "hsl(120,100%,40%)", "hsl(120,100%,20%)"]
   },
+  FLAPS: {
+    name: 'Link Flaps',
+    metric: 'flaps',
+    // not used
+    values: [1, 3, 5, 10, 15, 25, 50],
+    colors: [
+      "hsl(120, 100%, 40%)",
+      "hsl(75, 100%, 40%)",
+      "hsl(30, 100%, 50%)",
+      "hsl(15, 100%, 30%)",
+      "hsl(0, 100%, 60%)",
+      "hsl(0, 100%, 40%)",
+      "hsl(0, 100%, 30%)",
+      "hsl(0, 100%, 20%)",
+    ]
+  },
 }
 
 const UploadStatus = {
