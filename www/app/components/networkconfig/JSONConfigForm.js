@@ -18,31 +18,20 @@ const PLACEHOLDER_VALUE = 'base value for field not set';
 class ExpandableConfigForm extends React.Component {
   constructor(props) {
     super(props);
-    let listenForDispatch = false;
 
-    // hack, because this method involves making the least changes
-    // make the extendable component listen to actions ONLY IF it is a top level config
-    // i.e. if its editPath has a length of 1 - its formLabel
-    // this allows the form to expand/collapse from an outside action
-    // without having too many components listen to the action
-    if (props.editPath.length <= 1) {
-      this.dispatchToken = Dispatcher.register(
-        this.handleExpandAll.bind(this)
-      );
-
-      listenForDispatch = true;
-    }
+    // quick fix but it's hacky: have all expandable components listen for the action to expand all
+    // an alternative solution (keeping this as a single state) will be investigated soon
+    this.dispatchToken = Dispatcher.register(
+      this.handleExpandAll.bind(this)
+    );
 
     this.state = {
       expanded: true,
-      listenForDispatch: listenForDispatch,
     };
   }
 
   componentWillUnmount = () => {
-    if (this.state.listenForDispatch) {
-      Dispatcher.unregister(this.dispatchToken);
-    }
+    Dispatcher.unregister(this.dispatchToken);
   }
 
   handleExpandAll(payload) {
@@ -51,6 +40,7 @@ class ExpandableConfigForm extends React.Component {
         this.setState({
           expanded: payload.isExpanded
         });
+
         break;
     }
   }

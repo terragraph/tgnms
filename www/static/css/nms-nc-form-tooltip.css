@@ -5,14 +5,19 @@
   border-radius: 5px;
   border: 1px solid #777;
   padding: 5px;
-  margin: auto;
 
-  display: inline-table;
   z-index: 1;
   position: absolute;
   left: calc(100% + 40px);
-  top: 0;
-  bottom: 0;
+  top: 50%;
+
+  -webkit-transform: translateY(-50%);
+  -moz-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  -o-transform: translateY(-50%);
+  transform: translateY(-50%);
+
+  display: inline-table;
 }
 
 .rc-json-field-tooltip::after {

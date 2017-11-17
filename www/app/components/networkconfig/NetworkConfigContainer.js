@@ -297,7 +297,8 @@ export default class NetworkConfigContainer extends React.Component {
   // save (returned when API sends us a successful ack)
   saveNetworkConfig = (config) => {
     this.setState({
-      networkOverrideConfig: _.cloneDeep(this.state.networkConfigWithChanges),
+      networkOverrideConfig: _.cloneDeep(config),
+      networkConfigWithChanges: _.cloneDeep(config),
       networkDraftConfig: {},
     });
   }

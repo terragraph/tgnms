@@ -15,19 +15,23 @@
   overflow-y: auto;
 }
 
-.json-field-focused {
-  background-color: #ddd;
-}
-
-.nc-form-label {
-  margin-right: 10px;
-  min-width: 250px; /* fixed min width so we can align the input fields */
+.config-form-label {
+  cursor: pointer;
 }
 
 /* NETWORK CONFIG JSON FORM INPUTS */
 .rc-json-form-field {
   display: inline-flex;
   margin-bottom: 5px;
+}
+
+.rc-json-form-field:hover, .json-field-focused {
+  background-color: #ddd;
+}
+
+.nc-form-label {
+  margin-right: 10px;
+  min-width: 250px; /* fixed min width so we can align the input fields */
 }
 
 .nc-form-input-wrapper {
@@ -50,6 +54,7 @@
 
 .config-expand-marker {
   padding-right: 10px;
+  cursor: pointer;
 }
 
 .nc-missing-field {

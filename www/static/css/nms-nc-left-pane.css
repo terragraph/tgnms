@@ -76,6 +76,7 @@
 .nc-legend-title {
   font-weight: 600;
   font-size: 30px;
+  cursor: pointer;
 }
 
 .nc-collapsed-title {

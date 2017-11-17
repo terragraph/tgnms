@@ -29,7 +29,6 @@ export const getConfigsForTopology = (topologyName, imageVersions) => {
     });
 
     getNetworkOverrideConfig(topologyName);
-    // getNodeOverrideConfig(this.getNodeMacs(), topologyName);
   }).catch((error) => {
     getNetworkOverrideConfig(topologyName);
   });

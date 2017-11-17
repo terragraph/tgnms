@@ -10,8 +10,7 @@ import { refreshConfig } from '../../actions/NetworkConfigActions.js';
 
 const refreshAlertProps = {
   title: 'Refresh Configuration?',
-  text: `You are about to fetch the latest configuration for both network and node overrides.
-  This will discard any unsaved changes you have.
+  text: `Fetching the latest configuration will discard any unsaved changes you have.
 
   Proceed?`,
   type: 'warning',

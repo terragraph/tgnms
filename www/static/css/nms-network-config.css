@@ -27,8 +27,8 @@
 }
 
 .nc-expand-all-wrapper {
-  margin-left: 20px;
-  margin-top: 20px;
+  padding: 10px;
+  border-bottom: 1px solid #aaa;
 }
 
 .nc-expand-all-btn {

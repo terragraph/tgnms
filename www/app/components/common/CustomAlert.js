@@ -1,7 +1,8 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-// because it takes less time for me to write this than to upgrade sweetalert to version 2
+// custom alert component with more features than our current version of sweetalert (1.3)
+// to be implemented for phase 2
 export default class CustomAlert extends React.Component {
   constructor(props) {
     super(props);

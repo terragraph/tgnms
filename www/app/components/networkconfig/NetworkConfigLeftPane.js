@@ -79,6 +79,9 @@ export default class NetworkConfigLeftPane extends React.Component {
           />
         }
         {editMode === CONFIG_VIEW_MODE.NETWORK &&
+          <span style={{padding: '5px 10px', fontWeight: 600}}>Select Base Version</span>
+        }
+        {editMode === CONFIG_VIEW_MODE.NETWORK &&
           <NetworkConfigImageSelector
             imageVersions={imageVersions}
             selectedImage={selectedImage}
