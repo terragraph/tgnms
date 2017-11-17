@@ -222,7 +222,12 @@ export default class DetailsTopology extends React.Component {
         );
       });
     return (
-      <div id="myModal" className="details">
+      <div
+        id="myModal"
+        className="details"
+        onMouseEnter={this.props.onEnter}
+        onMouseLeave={this.props.onLeave}
+      >
         <div className="details-content">
           <div className="details-header">
             <span className="details-close" onClick={() => {this.props.onClose()}}>&times;</span>
