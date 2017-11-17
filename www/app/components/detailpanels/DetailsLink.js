@@ -182,7 +182,12 @@ export default class DetailsLink extends React.Component {
       alivePerc = parseInt(this.props.link.alive_perc * 1000) / 1000.0;
     }
     return (
-      <div id="myModal" className="details">
+      <div
+        id="myModal"
+        className="details"
+        onMouseEnter={this.props.onEnter}
+        onMouseLeave={this.props.onLeave}
+      >
         {ignitionStateModal}
         <div className="details-content">
           <div className="details-header">
