@@ -873,9 +873,8 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
     res.status(500).send('No topology data for: ' + topologyName);
     return;
   }
-  let queries = queryHelper.makeTableQuery(res, topology, [], [metricName], "key_ids", "none", 10 * 60);
+  let queryRequest = queryHelper.makeTableQuery(res, topology, [], [metricName], "key_ids", "none", 10 * 60);
   let chartUrl = 'http://localhost:8086/query';
-  let queryRequest = {queries: queries};
   request.post({url: chartUrl,
                 body: JSON.stringify(queryRequest)}, (err, httpResponse, body) => {
     if (err) {
