@@ -839,7 +839,6 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
       "time": 24 * 60 * 60 /* 24 hours */
     }
   ];
-  nodeMetrics = [];
   let linkMetrics = [
     {
       "name": "alive",
