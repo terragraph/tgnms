@@ -19,6 +19,39 @@
   cursor: pointer;
 }
 
+/* NETWORK CONFIG JSON FORM ADD AND NEW FIELD */
+.rc-add-json-config-field {
+  position: relative;
+  display: inline-flex;
+}
+
+.nc-add-new-field {
+  font-size: 16px;
+  color: #aaaaff;
+}
+
+.nc-add-new-field:hover {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rc-add-field-dropdown {
+  position: absolute;
+  border: 1px solid black;
+  background-color: #fff;
+  z-index: 3;
+  top: 30px;
+}
+
+.rc-add-field-dropdown-hidden {
+  display: none;
+}
+
+.rc-add-field-dropdown span {
+  padding: 6px 10px;
+  display: block;
+}
+
 /* NETWORK CONFIG JSON FORM INPUTS */
 .rc-json-form-field {
   display: inline-flex;

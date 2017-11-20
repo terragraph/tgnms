@@ -52,6 +52,7 @@
     "react-dom": "^0.14.3",
     "react-layout-components": "^3.0.4",
     "react-leaflet": "^1.1.0",
+    "react-onclickoutside": "^6.7.0",
     "react-stonecutter": "^0.3.3",
     "react-svg-piechart": "^1.4.0",
     "react-timeseries-charts": "^0.11.2",

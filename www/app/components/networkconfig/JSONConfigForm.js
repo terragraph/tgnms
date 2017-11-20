@@ -10,6 +10,7 @@ import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
 
 import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
+import AddJSONConfigField from './AddJSONConfigField.js';
 
 const PLACEHOLDER_VALUE = 'base value for field not set';
 
@@ -197,7 +198,7 @@ export default class JSONConfigForm extends React.Component {
 
     // retrieve the union of fields for all json objects in the array
     const configFields = this.getStackedFields(configs);
-    const childItems = configFields.map((field) => {
+    let childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
 
@@ -208,6 +209,12 @@ export default class JSONConfigForm extends React.Component {
         editPath: editPath.concat(field),
       });
     });
+
+    childItems = childItems.concat(
+      <AddJSONConfigField
+        onAddField={(type) => {console.log('TODO: add field of type ', type)}}
+      />
+    );
 
     return (
       <div className='rc-json-config-form'>
