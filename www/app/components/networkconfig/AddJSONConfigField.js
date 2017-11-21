@@ -7,6 +7,8 @@ import onClickOutside from 'react-onclickoutside';
 
 const classNames = require('classnames');
 
+import { ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
+
 class AddJSONConfigField extends React.Component {
   constructor(props) {
     super(props);
@@ -40,9 +42,9 @@ class AddJSONConfigField extends React.Component {
         </div>
         <div className={classNames('rc-add-field-dropdown', {'rc-add-field-dropdown-hidden': !this.state.expanded})}>
           <span>Select Field Type</span>
-          <span onClick={() => this.selectAddOption('boolean')}>Toggle (Yes/No)</span>
-          <span onClick={() => this.selectAddOption('number')}>Number</span>
-          <span onClick={() => this.selectAddOption('string')}>Text</span>
+          <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.BOOLEAN)}>Toggle (Yes/No)</span>
+          <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.NUMBER)}>Number</span>
+          <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.STRING)}>Text</span>
         </div>
       </div>
     );

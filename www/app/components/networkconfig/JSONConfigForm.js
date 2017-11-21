@@ -8,9 +8,10 @@ const classNames = require('classnames');
 import Dispatcher from '../../NetworkDispatcher.js';
 import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
 
-import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
+import { REVERT_VALUE, ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
+import NewJSONConfigField from './NewJSONConfigField.js';
 
 const PLACEHOLDER_VALUE = 'base value for field not set';
 
@@ -82,6 +83,11 @@ ExpandableConfigForm.propTypes = {
 export default class JSONConfigForm extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      newFieldKey: 0,
+      newFieldsByKey: {},
+    };
   }
 
   isReverted = (draftValue) => {
@@ -189,12 +195,48 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
+  addField = (type) => {
+    const {newFieldKey, newFieldsByKey} = this.state;
+
+    let newFieldEntry = {};
+    newFieldEntry[newFieldKey] = {
+      key: newFieldKey,
+      fieldType: type,
+    }
+
+    // copy the old state and add the new entry
+    const updatedNewFieldsByKey = Object.assign({},
+      newFieldsByKey,
+      newFieldEntry
+    );
+
+    // yodate the state
+    this.setState({
+      newFieldKey: newFieldKey + 1,
+      newFieldsByKey: updatedNewFieldsByKey,
+    });
+  }
+
+  renderNewField = ({key, fieldType}) => {
+    return (
+      <li className='rc-json-config-input'>
+        <NewJSONConfigField
+          key={key}
+          type={fieldType}
+          editPath={this.props.editPath}
+        />
+      </li>
+    );
+  }
+
   render() {
     const {
       configs,
       draftConfig,
       editPath
     } = this.props;
+
+    const {newFieldsByKey} = this.state;
 
     // retrieve the union of fields for all json objects in the array
     const configFields = this.getStackedFields(configs);
@@ -210,15 +252,20 @@ export default class JSONConfigForm extends React.Component {
       });
     });
 
-    childItems = childItems.concat(
+    const addField = (
       <AddJSONConfigField
-        onAddField={(type) => {console.log('TODO: add field of type ', type)}}
+        onAddField={(type) => {this.addField(type)}}
       />
     );
 
+    const newFields = Object.keys(newFieldsByKey).map((id) => {
+      const field = newFieldsByKey[id];
+      return this.renderNewField(field);
+    });
+
     return (
       <div className='rc-json-config-form'>
-        <ul>{childItems}</ul>
+        <ul>{[...childItems, newFields, addField]}</ul>
       </div>
     );
   }
