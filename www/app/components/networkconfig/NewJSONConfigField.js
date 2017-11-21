@@ -43,19 +43,17 @@ export default class NewJSONConfigField extends React.Component {
 
   onSubmitNewField = (event) => {
     const {field, value} = this.state;
-    console.log(`submitting: ${field}: ${value}`);
-    // TODO: dispatch an action here!
+    this.props.onSubmit(this.props.fieldId, field, value);
     event.preventDefault();
   }
 
   onDeleteNewField = () => {
-    const {field, value} = this.state;
-    console.log(`deleting: ${field}: ${value}`);
+    this.props.onDelete(this.props.fieldId);
   }
 
   renderToggle = () => {
     // or we can use a stringified version of the editPath for the id
-    const checkboxId = JSON.stringify([...this.props.editPath, this.props.key]);
+    const checkboxId = JSON.stringify([...this.props.editPath, this.props.fieldId]);
 
     return (
       <div className='nc-form-input-wrapper'>
@@ -111,7 +109,7 @@ export default class NewJSONConfigField extends React.Component {
   }
 
   render() {
-    const {key, type} = this.props;
+    const {fieldId, type} = this.props;
     const {field, value} = this.state;
     const newFieldInput = this.renderInputItem(type);
 
@@ -129,11 +127,18 @@ export default class NewJSONConfigField extends React.Component {
         <div className='nc-form-body'>
           {newFieldInput}
           <div className='nc-form-action'>
-            <img src='/static/images/undo.png'
+            <img src='/static/images/check.png'
               style={{marginLeft: '5px'}}
+              onClick={this.onSubmitNewField}
+            />
+            <span className='nc-form-action-tooltip'>Add new field to override</span>
+          </div>
+          <div className='nc-form-action'>
+            <img src='/static/images/delete.png'
+              style={{marginLeft: '5px', height: '19px'}}
               onClick={this.onDeleteNewField}
             />
-            <span className='nc-form-action-tooltip'>Delete New Field</span>
+            <span className='nc-form-action-tooltip'>Delete new field</span>
           </div>
         </div>
       </div>
@@ -143,7 +148,8 @@ export default class NewJSONConfigField extends React.Component {
 
 NewJSONConfigField.propTypes = {
   editPath: React.PropTypes.array.isRequired,
-  key: React.PropTypes.number.isRequired,
+  fieldId: React.PropTypes.number.isRequired,
   type: React.PropTypes.string.isRequired,
+  onSubmit: React.PropTypes.func.isRequired,
   onDelete: React.PropTypes.func.isRequired,
 }

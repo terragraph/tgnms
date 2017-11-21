@@ -4,9 +4,11 @@
 import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
+import { NetworkConfigActions, editConfigForm } from '../../actions/NetworkConfigActions.js';
 
 import { REVERT_VALUE, ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
@@ -79,6 +81,18 @@ ExpandableConfigForm.propTypes = {
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired,
 }
+
+const emptyFieldAlertProps = {
+  title: 'Field Name Cannot be Empty',
+  text: `Configuration field names cannot be empty, please rename your field and try again`,
+  type: 'error',
+};
+
+const duplicateFieldAlertProps = (duplicateField) => ({
+  title: 'Duplicate Field Name Detected',
+  text: `There exists another field ${duplicateField} in the configuration, please rename your field and try again`,
+  type: 'error',
+});
 
 export default class JSONConfigForm extends React.Component {
   constructor(props) {
@@ -157,10 +171,6 @@ export default class JSONConfigForm extends React.Component {
       values.slice(0, values.length - 1) : values
     );
 
-    if (displayIdx === -1) {
-      console.warn('base not found for field', fieldName, 'in path', editPath);
-    }
-
     const displayVal = this.isDraft(draftValue) ? draftValue : values[displayIdx];
     let childItem = (
       <span>Error: unable to render child val of {displayVal}</span>
@@ -186,7 +196,7 @@ export default class JSONConfigForm extends React.Component {
           break;
       }
     } else {
-      formFieldArgs.displayVal = PLACEHOLDER_VALUE;
+      formFieldArgs.displayVal = this.isDraft(draftValue) ? draftValue : PLACEHOLDER_VALUE;
       childItem = this.renderFormField(formFieldArgs);
     }
 
@@ -217,18 +227,54 @@ export default class JSONConfigForm extends React.Component {
     });
   }
 
-  renderNewField = ({key, fieldType}) => {
+  submitNewField = (key, field, value) => {
+    const {configs, draftConfig, editPath} = this.props;
+
+    // retrieve the union of fields for all json objects in the array
+    const configFields = new Set(this.getStackedFields([...configs, draftConfig]));
+
+    // swal if field is empty or it conflicts with the current layer
+    // or we can just submit the config FOR THIS FIELD
+    if (field === '') {
+      swal(emptyFieldAlertProps);
+      return;
+    } else if (configFields.has(field)) {
+      swal(duplicateFieldAlertProps(field));
+      return;
+    }
+
+    this.onDeleteNewField(key);
+
+    // field is valid so we add it to the override
+    editConfigForm({
+      editPath: [...editPath, field],
+      value
+    });
+  }
+
+  onDeleteNewField = (key) => {
+    let updatedNewFieldsByKey = Object.assign({}, this.state.newFieldsByKey);
+    delete updatedNewFieldsByKey[key];
+    this.setState({
+      newFieldsByKey: updatedNewFieldsByKey
+    });
+  }
+
+  renderNewField = (field) => {
     return (
       <li className='rc-json-config-input'>
         <NewJSONConfigField
-          key={key}
-          type={fieldType}
+          fieldId={field.key}
+          type={field.fieldType}
           editPath={this.props.editPath}
+          onSubmit={this.submitNewField}
+          onDelete={this.onDeleteNewField}
         />
       </li>
     );
   }
 
+  // TODO: think of the case where something exists in draftConfig but not configs
   render() {
     const {
       configs,
@@ -239,7 +285,7 @@ export default class JSONConfigForm extends React.Component {
     const {newFieldsByKey} = this.state;
 
     // retrieve the union of fields for all json objects in the array
-    const configFields = this.getStackedFields(configs);
+    const configFields = this.getStackedFields([...configs, draftConfig]);
     let childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
