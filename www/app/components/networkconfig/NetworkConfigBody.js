@@ -31,6 +31,7 @@ export default class NetworkConfigBody extends React.Component {
     const {
       configs,
       draftConfig,
+      newFields,
       selectedNodes,
       editMode,
       nodesWithDrafts,
@@ -73,6 +74,7 @@ export default class NetworkConfigBody extends React.Component {
 NetworkConfigBody.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
+  newFields: React.PropTypes.object.isRequired,
   nodesWithDrafts: React.PropTypes.array.isRequired,
 
   selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,

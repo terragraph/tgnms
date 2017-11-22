@@ -35,6 +35,10 @@ export default class NetworkConfigContainer extends React.Component {
       // map of software version to config
       baseConfig: {},
 
+      // new fields to be added to the specified config
+      // is cleared when the user switches a view as this is more "temporary" than even the unsaved config
+      newConfigFields: {},
+
       // network override
       // one object for the entire network
       networkOverrideConfig: {},
@@ -385,6 +389,7 @@ export default class NetworkConfigContainer extends React.Component {
 
     const {
       baseConfig,
+      newConfigFields,
 
       networkOverrideConfig,
       networkDraftConfig,
@@ -411,6 +416,7 @@ export default class NetworkConfigContainer extends React.Component {
         selectedNodes={selectedNodes}
         editMode={editMode}
         baseConfigByVersion={baseConfig}
+        newConfigFields={newConfigFields}
 
         networkOverrideConfig={networkOverrideConfig}
         networkDraftConfig={networkDraftConfig}
