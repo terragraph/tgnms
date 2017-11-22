@@ -13,6 +13,7 @@ const Actions = {
   SITE_SELECTED: 202,
   DISPLAY_ROUTE: 203,
   CLEAR_ROUTE: 204,
+  MAP_DIMENSIONS: 205,
   CLEAR_NODE_LINK_SELECTED: 290,
   // primary pane view
   VIEW_SELECTED: 300,
@@ -153,9 +154,26 @@ const DeleteStatus = {
   SUCCESS: 'SUCCESS',
   FAILURE: 'FAILURE'
 };
+// marker/line constants
+const MapDimensions = {
+  Default: {
+    SITE_RADIUS: 10,
+    LINK_LINE_WEIGHT: 6,
+  },
+  BigLine: {
+    SITE_RADIUS: 3,
+    LINK_LINE_WEIGHT: 10,
+  },
+};
+const MapTiles = {
+  Default: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  Monochrome: '//stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+};
 
 module.exports = {
   Actions,
+  MapDimensions,
+  MapTiles,
   SiteOverlayKeys,
   linkOverlayKeys,
   UploadStatus,

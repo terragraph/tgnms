@@ -1,8 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import Modal from 'react-modal';
-import {SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
-
+import {SiteOverlayKeys, linkOverlayKeys, MapDimensions, MapTiles} from './constants/NetworkConstants.js';
 
 const customModalStyle = {
   content : {
@@ -19,18 +18,29 @@ export default class ModalOverlays extends React.Component {
   state = {
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
+    selectedMapDimType: 'STANDARD',
+    selectedMapTile: 'Default',
   }
 
   componentDidMount() {
-    if (this.props.selectedSiteOverlay && this.props.selectedLinkOverlay)
-    this.setState({
-      selectedSiteOverlay: this.props.selectedSiteOverlay,
-      selectedLinkOverlay: this.props.selectedLinkOverlay,
-    });
+    if (this.props.selectedSiteOverlay &&
+        this.props.selectedLinkOverlay &&
+        this.props.selectedMapDimType &&
+        this.props.selectedMapTile) {
+      this.setState({
+        selectedSiteOverlay: this.props.selectedSiteOverlay,
+        selectedLinkOverlay: this.props.selectedLinkOverlay,
+        selectedMapDimType: this.props.selectedMapDimType,
+        selectedMapTile: this.props.selectedMapTile,
+      });
+    }
   }
 
   modalClose() {
-    this.props.onClose(this.state.selectedSiteOverlay, this.state.selectedLinkOverlay);
+    this.props.onClose(this.state.selectedSiteOverlay,
+                       this.state.selectedLinkOverlay,
+                       this.state.selectedMapDimType,
+                       this.state.selectedMapTile);
   }
 
   render() {
@@ -88,7 +98,7 @@ export default class ModalOverlays extends React.Component {
         <table>
           <tbody>
           <tr>
-            <td width={100}>Site Overlay</td>
+            <td width={120}>Site Overlay</td>
             <td width={100}>
               <div style={{width:100}}>
                 <select
@@ -96,7 +106,7 @@ export default class ModalOverlays extends React.Component {
                   value={this.state.selectedSiteOverlay}
                   onChange={ (ev) => { this.setState({ selectedSiteOverlay: ev.currentTarget.value }); } }
                 >
-                  {Object.keys(SiteOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                  {Object.keys(SiteOverlayKeys).map(overlay => (<option key={overlay} value={overlay}>{overlay}</option>)) }
                 </select>
               </div>
             </td>
@@ -105,7 +115,7 @@ export default class ModalOverlays extends React.Component {
           <tr className="blank_row">
           </tr>
           <tr>
-            <td width={100}>Link Overlay</td>
+            <td width={120}>Link Overlay</td>
             <td width={100}>
               <div style={{width:100}}>
                 <select
@@ -113,12 +123,40 @@ export default class ModalOverlays extends React.Component {
                   value={this.state.selectedLinkOverlay}
                   onChange={ (ev) => { this.setState({ selectedLinkOverlay: ev.currentTarget.value }); } }
                 >
-                  {Object.keys(linkOverlayKeys).map(overlay => (<option key={ overlay } value={ overlay }>{ overlay }</option>)) }
+                  {Object.keys(linkOverlayKeys).map(overlay => (<option key={overlay} value={overlay}>{overlay}</option>)) }
                 </select>
               </div>
             </td>
           </tr>
           {linkOverlayKeyRows}
+          <tr>
+            <td width={120}>Map Markers</td>
+            <td width={100}>
+              <div style={{width:100}}>
+                <select
+                  style={{width:100}}
+                  value={this.state.selectedMapDimType}
+                  onChange={ (ev) => { this.setState({selectedMapDimType: ev.currentTarget.value }); } }
+                >
+                  {Object.keys(MapDimensions).map(name => (<option key={name} value={name}>{name}</option>)) }
+                </select>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width={120}>Map Tile</td>
+            <td width={100}>
+              <div style={{width:100}}>
+                <select
+                  style={{width:100}}
+                  value={this.state.selectedMapTile}
+                  onChange={ (ev) => { this.setState({selectedMapTile: ev.currentTarget.value }); } }
+                >
+                  {Object.keys(MapTiles).map(name => (<option key={name} value={name}>{name}</option>)) }
+                </select>
+              </div>
+            </td>
+          </tr>
           <tr className="blank_row">
           </tr>
           <tr>

@@ -57,6 +57,8 @@ export default class NetworkUI extends React.Component {
 
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
+    selectedMapDimType: 'Default',
+    selectedMapTile: 'Default',
     topology: {},
     // additional topology to render on the map
     pendingTopology: {},
@@ -287,11 +289,13 @@ export default class NetworkUI extends React.Component {
     }
   }
 
-  overlaysModalClose(siteOverlay, linkOverlay) {
+  overlaysModalClose(siteOverlay, linkOverlay, mapDimType, mapTile) {
     this.setState({
       overlaysModalOpen: false,
       selectedSiteOverlay: siteOverlay,
       selectedLinkOverlay: linkOverlay,
+      selectedMapDimType: mapDimType,
+      selectedMapTile: mapTile,
     });
     Dispatcher.dispatch({
       actionType: Actions.LINK_OVERLAY_REFRESHED,
@@ -427,6 +431,8 @@ export default class NetworkUI extends React.Component {
           {...viewProps}
           linkOverlay={this.state.selectedLinkOverlay}
           siteOverlay={this.state.selectedSiteOverlay}
+          mapDimType={this.state.selectedMapDimType}
+          mapTile={this.state.selectedMapTile}
         />;
     }
     // add all selected keys
@@ -438,14 +444,16 @@ export default class NetworkUI extends React.Component {
     return (
       <div>
         <ModalOverlays
-          isOpen= {this.state.overlaysModalOpen}
-          selectedSiteOverlay= {this.state.selectedSiteOverlay}
-          selectedLinkOverlay= {this.state.selectedLinkOverlay}
-          onClose= {this.overlaysModalClose.bind(this)}/>
+          isOpen={this.state.overlaysModalOpen}
+          selectedSiteOverlay={this.state.selectedSiteOverlay}
+          selectedLinkOverlay={this.state.selectedLinkOverlay}
+          selectedMapDimensions={this.state.selectedMapDimType}
+          selectedMapTile={this.state.selectedMapTile}
+          onClose={this.overlaysModalClose.bind(this)}/>
         <ModalTopology
-          isOpen= {this.state.topologyModalOpen}
-          onClose= {() => this.setState({topologyModalOpen: false})}
-          topology= {this.state.topology}
+          isOpen={this.state.topologyModalOpen}
+          onClose={() => this.setState({topologyModalOpen: false})}
+          topology={this.state.topology}
         />
 
         <div className="top-menu-bar">
