@@ -3,6 +3,7 @@ namespace py terragraph_thrift.Controller
 
 include "BWAllocation.thrift"
 include "Topology.thrift"
+include "NodeConfig.thrift"
 
 enum MessageType {
 
@@ -72,6 +73,24 @@ enum MessageType {
   UPGRADE_COMMIT_PLAN = 452,
   UPGRADE_LIST_IMAGES_RESP = 453,
 
+  // ===  ConfigApp  === //
+  // Requests handled (by minion ConfigApp)
+  GET_MINION_CONFIG_REQ = 721,
+  GET_MINION_CONFIG_RESP = 722,
+  SET_MINION_CONFIG_REQ = 723,
+
+  // Requests handled (by ctrl ConfigApp)
+  GET_CTRL_CONFIG_REQ = 731,
+  GET_CTRL_CONFIG_RESP = 732,
+  GET_CTRL_CONFIG_NODE_OVERRIDES_REQ = 733,
+  GET_CTRL_CONFIG_NODE_OVERRIDES_RESP = 734,
+  GET_CTRL_CONFIG_BASE_REQ = 735,
+  GET_CTRL_CONFIG_BASE_RESP = 736,
+  GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ = 737,
+  GET_CTRL_CONFIG_NETWORK_OVERRIDES_RESP = 738,
+  SET_CTRL_CONFIG_NODE_OVERRIDES_REQ = 739,
+  SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ = 740,
+
   // ===  ScanApp === //
   // E2E -> Minion and Minion -> FW
   SCAN_REQ = 601,
@@ -81,8 +100,18 @@ enum MessageType {
   START_SCAN = 641,
   GET_SCAN_STATUS = 642,
   RESET_SCAN_STATUS = 643,
+  GET_SCAN_SCHEDULE = 644,
+  SET_SCAN_SCHEDULE = 645,
   // E2E -> CLI
   SCAN_STATUS = 661,
+  SCAN_SCHEDULE = 662,
+
+  // === SchedulerApp === //
+  // CLI -> E2E
+  GET_SLOT_MAP_CONFIG = 701,
+  SET_SLOT_MAP_CONFIG = 702,
+  // E2E -> CLI
+  SLOT_MAP_CONFIG = 703,
 
   // === DriverApp === //
   // Message exchange with driver
@@ -152,12 +181,32 @@ enum UpgradeStatusType {
   COMMIT_FAILED = 70,
 }
 
+/**
+ * @apiDefine ImageMeta_SUCCESS
+ * @apiSuccess (:ImageMeta) {String} md5 The image MD5 digest
+ * @apiSuccess (:ImageMeta) {String} version The image version string
+ */
 // terragraph image meta struct
 struct ImageMeta {
   1: string md5; // image md5
   2: string version; // image version
 }
 
+/**
+ * @apiDefine UpgradeStatus_SUCCESS
+ * @apiSuccess (:UpgradeStatus) {Int(UpgradeStatusType)=10,20,30,40,50,60,70} usType
+ *                              The upgrade status type
+ *                              (10=NONE, 20=DOWNLOADING_IMAGE,
+ *                               30=DOWNLOAD_FAILED, 40=FLASHING_IMAGE,
+ *                               50=FLASH_FAILED, 60=FLASHED, 70=COMMIT_FAILED)
+ * @apiSuccess (:UpgradeStatus) {Object(ImageMeta)} nextImage
+ *                              The meta-info for the next image
+ * @apiSuccess (:UpgradeStatus) {String} reason
+ *                              The reason for the current status (if any)
+ * @apiSuccess (:UpgradeStatus) {String} upgradeReqId The upgrade request ID
+ * @apiSuccess (:UpgradeStatus) {Int64} whenToCommit
+ *                              When to commit the upgrade (UNIX time)
+ */
 struct UpgradeStatus {
   1: UpgradeStatusType usType;
   2: ImageMeta nextImage;
@@ -259,21 +308,129 @@ struct UpgradeListImagesResp {
   1: list<UpgradeImage> images;
 }
 
+############# Config App #############
+
+struct GetMinionConfigReq {}
+
+struct GetMinionConfigResp {
+  1: NodeConfig.NodeConfig config;
+}
+
+// Node action after setting config
+enum CfgMinionAction {
+  NO_ACTION = 0,
+  REBOOT = 10,
+}
+
+struct SetMinionConfigReq {
+  1: NodeConfig.NodeConfig config;
+  2: CfgMinionAction action;
+}
+
+struct GetCtrlConfigReq {
+  1: list<string> nodes; // Get for all nodes if empty
+  2: string swVersion; // To determine the config base to use
+}
+
+struct GetCtrlConfigResp {
+  1: map<string, NodeConfig.NodeConfig> config;
+}
+
+/**
+ * @apiDefine GetCtrlConfigNodeOverridesReq
+ * @apiParam {String[]} nodes The list of nodes, or all nodes if empty
+ */
+struct GetCtrlConfigNodeOverridesReq {
+  1: list<string> nodes; // get for all nodes if empty
+}
+
+/**
+ * @apiDefine GetCtrlConfigNodeOverridesResp_SUCCESS
+ * @apiSuccess {String} overrides The node config overrides (JSON)
+ */
+struct GetCtrlConfigNodeOverridesResp {
+  1: string overrides; // Json of node overrides
+}
+
+/**
+ * @apiDefine SetCtrlConfigNodeOverridesReq
+ * @apiParam {String} overrides The node config overrides (JSON), mapping node
+ *           MAC addresses to their config overrides
+ */
+struct SetCtrlConfigNodeOverridesReq {
+  1: string overrides; // Json of node overrides (maps Mac to overrides)
+}
+
+/**
+ * @apiDefine GetCtrlConfigBaseReq
+ * @apiParam {String[]} swVersions
+ *           The software versions, or all versions if empty
+ */
+struct GetCtrlConfigBaseReq {
+  1: list<string> swVersions; // get all base configs if empty
+}
+
+/**
+ * @apiDefine GetCtrlConfigBaseResp_SUCCESS
+ * @apiSuccess {String} config The base configs (JSON), mapping software version
+ *             names to their base configs
+ */
+struct GetCtrlConfigBaseResp {
+  1: string config; // Json of base configs (maps SW version to base config)
+}
+
+/**
+ * @apiDefine GetCtrlConfigNetworkOverridesReq
+ */
+struct GetCtrlConfigNetworkOverridesReq {}
+
+/**
+ * @apiDefine GetCtrlConfigNetworkOverridesResp_SUCCESS
+ * @apiSuccess {String} overrides The network config overrides (JSON)
+ */
+struct GetCtrlConfigNetworkOverridesResp {
+  1: string overrides; // Json of network overrides
+}
+
+/**
+ * @apiDefine SetCtrlConfigNetworkOverridesReq
+ * @apiParam {String} overrides The network config overrides (JSON)
+ */
+struct SetCtrlConfigNetworkOverridesReq {
+  1: string overrides; // Json of network overrides
+}
+
 #############  StatusApp ##############
 
+/**
+ * @apiDefine GetStatusDump
+ */
 struct GetStatusDump {}
 
+/**
+ * @apiDefine RebootReq
+ * @apiParam {String[]} nodes The list of nodes
+ * @apiParam {Boolean} force Force reboot
+ * @apiParam {Int32} secondsToReboot The number of seconds until reboot
+ */
 struct RebootReq {
   1: list<string> nodes;
-  2: bool forced;
+  2: bool force;
   3: i32 secondsToReboot;
 }
 
 struct RebootNode {
-  1: bool forced;
+  1: bool force;
   2: optional i32 secondsToReboot = 5;
 }
 
+/**
+ * @apiDefine StatusDump_SUCCESS
+ * @apiSuccess {Int64} timeStamp
+ *             The time at which this response was generated
+ * @apiSuccess {Map(String:Object(StatusReport))} statusReports
+ *             The per-node status reports
+ */
 struct StatusDump {
   1: i64 timeStamp;  // timestamp at which this response was generated
   2: map<string /* node id */, StatusReport> statusReports;
@@ -290,26 +447,66 @@ struct NodeParams {
   7: optional byte channel;
 }
 
+/**
+ * @apiDefine StatusReport_SUCCESS
+ * @apiSuccess (:StatusReport) {Int64} timeStamp
+ *                             The time at which this response was received
+ * @apiSuccess (:StatusReport) {String} ipv6Address
+ *                             The globally-reachable IPv6 address of the minion
+ * @apiSuccess (:StatusReport) {String} version
+ *                             The current minion version (from "/etc/version")
+ * @apiSuccess (:StatusReport) {String} ubootVersion
+ *                             The uboot version string (obtained at startup)
+ * @apiSuccess (:StatusReport) {Int(NodeStatusType)=1,2,3} status
+ *                             The ignition state of the minion
+ *                             (1=OFFLINE, 2=ONLINE, 3=ONLINE_INITIATOR)
+ * @apiSuccess (:StatusReport) {Object(UpgradeStatus)} upgradeStatus
+ *                             The upgrade status
+ */
 struct StatusReport {
   1: i64 timeStamp;  // timestamp at which this response was received
   2: string ipv6Address;  // global-reachable IPv6 address for minion
   3: string version; // current minion version obtained from "/etc/version"
-  6: string uboot_version; // uboot version string obtained during startup
+  6: string ubootVersion; // uboot version string obtained during startup
   4: Topology.NodeStatusType status; // ignition state of minion
   5: UpgradeStatus upgradeStatus;
+  7: string configMd5;
 }
 
 #############  IgnitionApp ##############
 
+/**
+ * @apiDefine GetIgnitionState
+ */
 struct GetIgnitionState {}
 
+/**
+ * @apiDefine IgnitionParams
+ * @apiParam {Boolean} [enable] The state of network-wide ignition
+ * @apiParam {Int64} [linkUpInterval] The frequency of ignition
+ * @apiParam {Int64} [linkUpDampenInterval]
+ *           The interval of ignition on the same link
+ * @apiParam {Map(String:Boolean)} [linkAutoIgnite]
+ *           The per-link auto ignition (linkName:enable)
+ */
+/**
+ * @apiDefine IgnitionParams_SUCCESS
+ * @apiSuccess (:IgnitionParams) {Boolean} [enable]
+ *                               The state of network-wide ignition
+ * @apiSuccess (:IgnitionParams) {Int64} [linkUpInterval]
+ *                               The frequency of ignition
+ * @apiSuccess (:IgnitionParams) {Int64} [linkUpDampenInterval]
+ *                               The interval of ignition on the same link
+ * @apiSuccess (:IgnitionParams) {Map(String:Boolean)} [linkAutoIgnite]
+ *                               The per-link auto ignition (linkName:enable)
+ */
 // Parameters controlling the ignition in the controller
 struct IgnitionParams {
   1: optional bool enable;  // Network-wide auto-ignition from the controller
   2: optional i64 linkUpInterval;  // set frequency of ignition
   3: optional i64 linkUpDampenInterval; // interval of ignition on same link
   // per-link auto ignition
-  4: optional map<string /* link name */, bool> link_auto_ignite;
+  4: optional map<string /* link name */, bool> linkAutoIgnite;
 }
 
 // Set Link Status Request sent from cli to controller ignition app
@@ -320,11 +517,26 @@ struct SetLinkStatusReq {
   3: string responderNodeName;
 }
 
+/**
+ * @apiDefine IgnitionCandidate_SUCCESS
+ * @apiSuccess (:IgnitionCandidate) {String} initiatorNodeName
+ *                                  The name of the initiator node
+ * @apiSuccess (:IgnitionCandidate) {String} linkName The link name
+ */
 struct IgnitionCandidate {
   1: string initiatorNodeName;
   2: string linkName;
 }
 
+/**
+ * @apiDefine IgnitionState_SUCCESS
+ * @apiSuccess {String[]} visitedNodeNames The names of the visited nodes
+ * @apiSuccess {Object(IgnitionCandidate)[]} igCandidates
+ *             The ignition candidates
+ * @apiSuccess {Object(IgnitionCandidate)[]} lastIgCandidates
+ *             The last ignition candidates
+ * @apiSuccess {Object(IgnitionParams)} igParams The ignition parameters
+ */
 struct IgnitionState {
   1: list<string> visitedNodeNames;
   2: list<IgnitionCandidate> igCandidates;
@@ -380,12 +592,29 @@ struct SetNetworkParamsReq {
   3: optional byte channel;
 }
 
+/**
+ * @apiDefine SetNodeMac
+ * @apiParam {String} nodeName The node name
+ * @apiParam {String} nodeMac The node MAC address to set
+ * @apiParam {Boolean} force Force set
+ */
+/**
+ * @apiDefine SetNodeMac_GROUP
+ * @apiParam (:SetNodeMac) {String} nodeName The node name
+ * @apiParam (:SetNodeMac) {String} nodeMac The node MAC address to set
+ * @apiParam (:SetNodeMac) {Boolean} force Force set
+ */
 struct SetNodeMac {
   1: string nodeName;
   2: string nodeMac;
   3: bool force;
 }
 
+/**
+ * @apiDefine SetNodeMacList
+ * @apiParam {Object(SetNodeMac)[]} setNodeMacList
+ *           The list of node MAC addresses to set
+ */
 struct SetNodeMacList {
   1: list<SetNodeMac> setNodeMacList;
 }
@@ -398,13 +627,22 @@ struct BumpLinkUpAttempts {
   1: string linkName;
 }
 
+/**
+ * @apiDefine AddNode
+ * @apiParam {Object(Node)} node The node
+ */
 struct AddNode {
   1: Topology.Node node;
 }
 
+/**
+ * @apiDefine DelNode
+ * @apiParam {String} nodeName The node name
+ * @apiParam {Boolean} force Force node deletion
+ */
 struct DelNode {
   1: string nodeName;
-  2: bool forceDelete;
+  2: bool force;
 }
 
 // only supports editing the name for now
@@ -413,20 +651,38 @@ struct EditNode {
   2: Topology.Node newNode;
 }
 
+/**
+ * @apiDefine AddLink
+ * @apiParam {Object(Link)} link The link
+ */
 struct AddLink {
   1: Topology.Link link;
 }
 
+/**
+ * @apiDefine DelLink
+ * @apiParam {String} aNodeName The A-node name
+ * @apiParam {String} zNodeName The Z-node name
+ * @apiParam {Boolean} force Force link deletion
+ */
 struct DelLink {
-  1: string a_node_name;
-  2: string z_node_name;
-  3: bool forceDelete;
+  1: string aNodeName;
+  2: string zNodeName;
+  3: bool force;
 }
 
+/**
+ * @apiDefine AddSite
+ * @apiParam {Object(Site)} site The site
+ */
 struct AddSite {
   1: Topology.Site site;
 }
 
+/**
+ * @apiDefine DelSite
+ * @apiParam {String} siteName The site name
+ */
 struct DelSite {
   1: string siteName;
 }
@@ -441,6 +697,12 @@ struct ResetTopologyState {
   1: bool resetLinkupAttempts;
 }
 
+/**
+ * @apiDefine BulkAdd
+ * @apiParam {Object(Site)[]} sites The sites to add
+ * @apiParam {Object(Node)[]} nodes The nodes to add
+ * @apiParam {Object(Link)[]} links The links to add
+ */
 struct BulkAdd {
   1: list<Topology.Site> sites;
   2: list<Topology.Node> nodes;
@@ -555,6 +817,36 @@ struct ScanStatus {
   1: map<i32 /* token */, ScanData> scans;
 }
 
+struct GetScanSchedule {}
+
+struct ScanSchedule {
+  1: optional i32 imScanTimeoutSec;
+  2: optional i32 pbfScanTimeoutSec;
+}
+
+struct GetSlotMapConfig {}
+
+struct Slot {
+  1: i32 start;
+  2: i32 len;
+}
+
+enum SlotPurpose {
+  SP_IM = 0,
+  SP_PBF = 1,
+  SP_RTAC = 2,
+  SP_VBF = 3,
+  SP_NULLING = 4,
+  SP_IGNITION = 5,
+}
+
+struct SlotMapConfig {
+  1: i32 slotLen; // in BWGDs
+  2: i32 periodLen; // in slots
+  3: map<SlotPurpose, list<Slot>> mapping; // List of permissible slots
+                                           // per purpose/app
+}
+
 ############# Common #############
 
 struct Message {
@@ -566,6 +858,11 @@ struct Message {
 // communication channel
 struct Hello {}
 
+/**
+ * @apiDefine E2EAck_SUCCESS
+ * @apiSuccess {Boolean} success The response status
+ * @apiSuccess {String} message The response message
+ */
 // Ack to asynchronous requests
 struct E2EAck {
   1: bool success;
@@ -594,6 +891,9 @@ struct NetworkInfo {
   3: string network;
   4: BgpNeighbors bgpNeighbors; // TODO: depreacte
   5: BgpConfig bgpConfig;
+  6: string dhcpNameServer;
+  7: i64 dhcpRangeMin;
+  8: i64 dhcpRangeMax;
 }
 
 // Empty message

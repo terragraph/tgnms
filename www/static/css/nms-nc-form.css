@@ -1,0 +1,83 @@
+/* NETWORK CONFIG JSON FORM */
+.rc-json-config-form ul {
+  list-style-type: none;
+  width: 100%;
+  /*width: 1200px;*/
+  min-width: 700px;
+  max-width: 1200px;
+}
+
+.config-form-root {
+  padding-left: 10px;
+  padding-top: 10px;
+
+  flex: 1;
+  overflow-y: auto;
+}
+
+.config-form-label {
+  cursor: pointer;
+}
+
+/* NETWORK CONFIG JSON FORM INPUTS */
+.rc-json-form-field {
+  display: inline-flex;
+  margin-bottom: 5px;
+}
+
+.rc-json-form-field:hover, .json-field-focused {
+  background-color: #ddd;
+}
+
+.nc-form-label {
+  margin-right: 10px;
+  min-width: 250px; /* fixed min width so we can align the input fields */
+}
+
+.nc-form-input-wrapper {
+  display: inline;
+  position: relative;
+}
+
+.config-form-input {
+  /*background-color: #fff;*/
+  min-width: 250px;
+}
+
+.config-form-checkbox {
+  display: inline;
+  position: relative;
+
+  padding: 3px;
+  border: 1px solid #bbb;
+}
+
+.config-expand-marker {
+  padding-right: 10px;
+  cursor: pointer;
+}
+
+.nc-missing-field {
+  background-color: #fff;
+  color: #777;
+}
+
+.nc-base-field {
+  background-color: #fff;
+}
+
+.nc-network-field {
+  background-color: #3bd6c6;
+}
+
+.nc-node-field {
+  background-color: #f1cbff;
+}
+
+.nc-draft-field {
+  background-color: #fdf498;
+}
+
+.nc-revert-field {
+  border: 2px solid #000077;
+}

@@ -1,6 +1,7 @@
 /* loading image is 40x40, column width is 450, height = 350 */
 
 @import url("nms-upgrade.css");
+@import url("nms-network-config.css");
 
 #root {
   margin: auto;

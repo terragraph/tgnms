@@ -1425,7 +1425,6 @@ app.get(/\/controller\/listUpgradeImages\/(.+)$/i, function (req, res, next) {
   }, '', res);
 });
 
-
 app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
   const imageName = req.params[1];
@@ -1437,6 +1436,78 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (req, res, ne
     topology: topology,
     name: imageName
   }, '', res);
+});
+
+// network config endpoints
+app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
+  const {topologyName, imageVersions} = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'getBaseConfig',
+    topology: topology,
+    imageVersions: imageVersions,
+  }, '', res);
+});
+
+app.get(/\/controller\/getNetworkOverrideConfig/i, (req, res, next) => {
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'getNetworkOverrideConfig',
+    topology: topology,
+  }, '', res);
+});
+
+app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
+  const {topologyName, nodes} = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  const nodeMacs = nodes ?
+    nodes : topology.topology.nodes.map(node => node.mac_addr);
+
+  syncWorker.sendCtrlMsgSync({
+    type: 'getNodeOverrideConfig',
+    topology: topology,
+    nodes: nodeMacs,
+  }, '', res);
+});
+
+app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {config, topologyName} = postData;
+    const topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'setNetworkOverrideConfig',
+      topology: topology,
+      config: config,
+    }, '', res);
+  });
+});
+
+app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {config, topologyName} = postData;
+    const topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'setNodeOverrideConfig',
+      topology: topology,
+      config: config,
+    }, '', res);
+  });
 });
 
 // aggregator endpoints

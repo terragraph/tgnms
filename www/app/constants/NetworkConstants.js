@@ -54,6 +54,8 @@ const Actions = {
 
   // pending topology
   PENDING_TOPOLOGY: 700,
+
+  // network config actions can be found in NetworkConfigActions.js
 };
 
 const SiteOverlayKeys = {

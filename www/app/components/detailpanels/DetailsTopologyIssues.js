@@ -326,7 +326,7 @@ export default class DetailsTopologyIssues extends React.Component {
     let addNodesButton = "nodes";
     let addLinksButton = "links";
     if (this.state.processing || !this.remainingSites.length) {
-      addSitesButton = 
+      addSitesButton =
         <input type="button"
                value={"Add Sites (" + this.remainingSites.length + ")"}
                disabled />;
