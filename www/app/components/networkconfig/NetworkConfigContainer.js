@@ -134,10 +134,18 @@ export default class NetworkConfigContainer extends React.Component {
         this.changeEditMode(payload.editMode);
         break;
       case NetworkConfigActions.SELECT_IMAGE:
-        this.setState({selectedImage: payload.image});
+        // reset the new fields whenever user switches viewing context
+        this.setState({
+          selectedImage: payload.image,
+          newConfigFields: {},
+        });
         break;
       case NetworkConfigActions.SELECT_NODES:
-        this.setState({selectedNodes: payload.nodes});
+        // reset the new fields whenever user switches viewing context
+        this.setState({
+          selectedNodes: payload.nodes,
+          newConfigFields: {},
+        });
         break;
 
       // actions that directly change the form on ONE FIELD
@@ -237,9 +245,11 @@ export default class NetworkConfigContainer extends React.Component {
       const newSelectedNodes = (newEditMode === CONFIG_VIEW_MODE.NODE && nodes.length > 0) ?
         [nodes[0]] : [];
 
+      // reset the new fields whenever user switches viewing context
       this.setState({
         editMode: newEditMode,
         selectedNodes: newSelectedNodes,
+        newConfigFields: {},
       });
     }
   }
@@ -275,11 +285,6 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   deleteNewField = (editPath, id) => {
-    // cannot convert undefined or null to object
-    // something wrong with the editpath then?
-
-    console.log(this.getConfig(this.state.newConfigFields, [...editPath]), id);
-
     this.setState({
       newConfigFields: unsetAndCleanup(this.state.newConfigFields, [...editPath, id], 0),
     });

@@ -7,6 +7,7 @@ import { render } from 'react-dom';
 const classNames = require('classnames');
 
 import { ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
+import CustomToggle from '../common/CustomToggle.js';
 
 export default class NewJSONConfigField extends React.Component {
   constructor(props) {
@@ -38,21 +39,11 @@ export default class NewJSONConfigField extends React.Component {
     const checkboxId = JSON.stringify([...editPath, fieldId]);
 
     return (
-      <div className='nc-form-input-wrapper'>
-        <input
-          type='checkbox' className='nc-custom-checkbox' id={checkboxId} checked={value}
-          onChange={(event) => this.changeValue(event.target.checked)}
-        />
-        <label className='nc-slider-label' htmlFor={checkboxId} style={{marginBottom: '0px'}}>
-          <div className='nc-slider-wrapper'>
-            <div className='nc-slider-options'>
-              <div className='nc-slider-option'>Yes</div>
-              <div className='nc-slider-option-selector'></div>
-              <div className='nc-slider-option'>No</div>
-            </div>
-          </div>
-        </label>
-      </div>
+      <CustomToggle
+        checkboxId={checkboxId}
+        value={value}
+        onChange={(value) => this.changeValue(value)}
+      />
     );
   }
 

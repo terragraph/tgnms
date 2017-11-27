@@ -4,6 +4,8 @@
 import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
+var _ = require('lodash');
+
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
@@ -310,16 +312,8 @@ export default class JSONConfigForm extends React.Component {
 
     const newFields = Object.keys(newConfigFields).filter((id) => {
       const newField = newConfigFields[id];
-      if (
-        !newField.hasOwnProperty('id') ||
-        !newField.hasOwnProperty('type') ||
-        !newField.hasOwnProperty('field') ||
-        !newField.hasOwnProperty('value')
-      ) {
-        return false;
-      }
-      // TODO: this is a hack check, will do a proper check later
-      return true;
+      // newField must have an id that is not a plain object
+      return newField.hasOwnProperty('id') && !_.isPlainObject(newField.id);
     }).map((id) => {
       const newField = newConfigFields[id];
       return this.renderNewField(id, newField.type, newField.field, newField.value);
