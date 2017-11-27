@@ -8,7 +8,9 @@ import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import { NetworkConfigActions, editConfigForm } from '../../actions/NetworkConfigActions.js';
+import {
+  NetworkConfigActions, editConfigForm, addNewField, editNewField, submitNewField, deleteNewField
+} from '../../actions/NetworkConfigActions.js';
 
 import { REVERT_VALUE, ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
@@ -56,7 +58,7 @@ class ExpandableConfigForm extends React.Component {
   }
 
   render() {
-    const {configs, draftConfig, formLabel, editPath} = this.props;
+    const {configs, draftConfig, newConfigFields, formLabel, editPath} = this.props;
     const {expanded} = this.state;
     const expandMarker = expanded ?
       '/static/images/down-chevron.png' : '/static/images/right-chevron.png';
@@ -68,6 +70,7 @@ class ExpandableConfigForm extends React.Component {
         {expanded && <JSONConfigForm
           configs={configs}
           draftConfig={draftConfig}
+          newConfigFields={newConfigFields}
           editPath={editPath}
         />}
       </div>
@@ -78,6 +81,7 @@ class ExpandableConfigForm extends React.Component {
 ExpandableConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
+  newConfigFields: React.PropTypes.object.isRequired,
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired,
 }
@@ -97,11 +101,6 @@ const duplicateFieldAlertProps = (duplicateField) => ({
 export default class JSONConfigForm extends React.Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      newFieldKey: 0,
-      newFieldsByKey: {},
-    };
   }
 
   isReverted = (draftValue) => {
@@ -134,16 +133,18 @@ export default class JSONConfigForm extends React.Component {
     return -1;
   }
 
-  renderNestedObject = ({configs, draftConfig, fieldName, editPath}) => {
+  renderNestedObject = ({configs, draftConfig, newConfigFields, fieldName, editPath}) => {
     const processedConfigs = configs.map((config) => {
       return config === undefined ? {} : config;
     });
     const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
+    const processedNewConfigFields = newConfigFields === undefined ? {} : newConfigFields;
 
     return (
       <ExpandableConfigForm
         configs={processedConfigs}
         draftConfig={processedDraftConfig}
+        newConfigFields={processedNewConfigFields}
         formLabel={fieldName}
         editPath={editPath}
       />
@@ -165,7 +166,7 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
-  renderChildItem = ({values, draftValue, fieldName, editPath}) => {
+  renderChildItem = ({values, draftValue, newField, fieldName, editPath}) => {
     // disregard the highest level of override if we have decided to revert the value (to display)
     const displayIdx = this.getDisplayIdx(this.isReverted(draftValue) ?
       values.slice(0, values.length - 1) : values
@@ -190,6 +191,7 @@ export default class JSONConfigForm extends React.Component {
           childItem = this.renderNestedObject({
             configs: values,
             draftConfig: draftValue,
+            newConfigFields: newField,
             fieldName: fieldName,
             editPath: editPath,
           });
@@ -206,29 +208,23 @@ export default class JSONConfigForm extends React.Component {
   }
 
   addField = (type) => {
-    const {newFieldKey, newFieldsByKey} = this.state;
-
-    let newFieldEntry = {};
-    newFieldEntry[newFieldKey] = {
-      key: newFieldKey,
-      fieldType: type,
-    }
-
-    // copy the old state and add the new entry
-    const updatedNewFieldsByKey = Object.assign({},
-      newFieldsByKey,
-      newFieldEntry
-    );
-
-    // yodate the state
-    this.setState({
-      newFieldKey: newFieldKey + 1,
-      newFieldsByKey: updatedNewFieldsByKey,
+    addNewField({
+      editPath: this.props.editPath,
+      type,
     });
   }
 
-  submitNewField = (key, field, value) => {
-    const {configs, draftConfig, editPath} = this.props;
+  onEditNewField = (editPath, id, field, value) => {
+    editNewField({
+      editPath,
+      id,
+      field,
+      value
+    });
+  }
+
+  onSubmitNewField = (editPath, id, field, value) => {
+    const {configs, draftConfig} = this.props;
 
     // retrieve the union of fields for all json objects in the array
     const configFields = new Set(this.getStackedFields([...configs, draftConfig]));
@@ -243,7 +239,7 @@ export default class JSONConfigForm extends React.Component {
       return;
     }
 
-    this.onDeleteNewField(key);
+    this.onDeleteNewField(id);
 
     // field is valid so we add it to the override
     editConfigForm({
@@ -252,66 +248,86 @@ export default class JSONConfigForm extends React.Component {
     });
   }
 
-  onDeleteNewField = (key) => {
-    let updatedNewFieldsByKey = Object.assign({}, this.state.newFieldsByKey);
-    delete updatedNewFieldsByKey[key];
-    this.setState({
-      newFieldsByKey: updatedNewFieldsByKey
+  onDeleteNewField = (id) => {
+    deleteNewField({
+      editPath: this.props.editPath,
+      id
     });
+    // let updatedNewFieldsByKey = Object.assign({}, this.state.newFieldsByKey);
+    // delete updatedNewFieldsByKey[id];
+    // this.setState({
+    //   newFieldsByKey: updatedNewFieldsByKey
+    // });
   }
 
-  renderNewField = (field) => {
+  // TODO: object class!
+  renderNewField = (id, type, field, value) => {
     return (
       <li className='rc-json-config-input'>
         <NewJSONConfigField
-          fieldId={field.key}
-          type={field.fieldType}
+          fieldId={id}
+          type={type}
+          field={field}
+          value={value}
           editPath={this.props.editPath}
-          onSubmit={this.submitNewField}
+          onEdit={this.onEditNewField}
+          onSubmit={this.onSubmitNewField}
           onDelete={this.onDeleteNewField}
         />
       </li>
     );
   }
 
-  // TODO: think of the case where something exists in draftConfig but not configs
   render() {
     const {
       configs,
       draftConfig,
+      newConfigFields,
       editPath
     } = this.props;
-
-    const {newFieldsByKey} = this.state;
 
     // retrieve the union of fields for all json objects in the array
     const configFields = this.getStackedFields([...configs, draftConfig]);
     let childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
+      const newField = newConfigFields[field];
 
       return this.renderChildItem({
         values: configValues,
         draftValue: draftValue,
+        newField: newField,
         fieldName: field,
         editPath: editPath.concat(field),
       });
     });
 
-    const addField = (
+    const addFieldButton = (
       <AddJSONConfigField
         onAddField={(type) => {this.addField(type)}}
       />
     );
 
-    const newFields = Object.keys(newFieldsByKey).map((id) => {
-      const field = newFieldsByKey[id];
-      return this.renderNewField(field);
+    const newFields = Object.keys(newConfigFields).filter((id) => {
+      const newField = newConfigFields[id];
+      if (
+        !newField.hasOwnProperty('id') ||
+        !newField.hasOwnProperty('type') ||
+        !newField.hasOwnProperty('field') ||
+        !newField.hasOwnProperty('value')
+      ) {
+        return false;
+      }
+      // TODO: this is a hack check, will do a proper check later
+      return true;
+    }).map((id) => {
+      const newField = newConfigFields[id];
+      return this.renderNewField(id, newField.type, newField.field, newField.value);
     });
 
     return (
       <div className='rc-json-config-form'>
-        <ul>{[...childItems, newFields, addField]}</ul>
+        <ul>{[...childItems, newFields, addFieldButton]}</ul>
       </div>
     );
   }
@@ -320,6 +336,7 @@ export default class JSONConfigForm extends React.Component {
 JSONConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
+  newConfigFields: React.PropTypes.object.isRequired,
 
   // the "path" of keys that identifies the root of the component's config
   // vs the entire config object

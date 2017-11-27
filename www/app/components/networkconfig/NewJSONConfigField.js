@@ -11,39 +11,21 @@ import { ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
 export default class NewJSONConfigField extends React.Component {
   constructor(props) {
     super(props);
-
-    let defaultValue = '';
-    switch(props.type) {
-      case ADD_FIELD_TYPES.BOOLEAN:
-        defaultValue = true;
-        break;
-      case ADD_FIELD_TYPES.NUMBER:
-        defaultValue = 0;
-        break;
-      case ADD_FIELD_TYPES.STRING:
-        defaultValue = '';
-        break;
-      default:
-        console.error('Error, invalid type detected for adding a new field');
-    }
-
-    this.state = {
-      field: '',
-      value: defaultValue,
-    };
   }
 
   changeField = (field) => {
-    this.setState({field: field});
+    const {editPath, fieldId, value} = this.props;
+    this.props.onEdit(editPath, fieldId, field, value);
   }
 
   changeValue = (value) => {
-    this.setState({value: value});
+    const {editPath, fieldId, field} = this.props;
+    this.props.onEdit(editPath, fieldId, field, value);
   }
 
   onSubmitNewField = (event) => {
-    const {field, value} = this.state;
-    this.props.onSubmit(this.props.fieldId, field, value);
+    const {editPath, fieldId, field, value} = this.props;
+    this.props.onSubmit(editPath, fieldId, field, value);
     event.preventDefault();
   }
 
@@ -52,13 +34,13 @@ export default class NewJSONConfigField extends React.Component {
   }
 
   renderToggle = () => {
-    // or we can use a stringified version of the editPath for the id
-    const checkboxId = JSON.stringify([...this.props.editPath, this.props.fieldId]);
+    const {editPath, fieldId, value} = this.props;
+    const checkboxId = JSON.stringify([...editPath, fieldId]);
 
     return (
       <div className='nc-form-input-wrapper'>
         <input
-          type='checkbox' className='nc-custom-checkbox' id={checkboxId} checked={this.state.value}
+          type='checkbox' className='nc-custom-checkbox' id={checkboxId} checked={value}
           onChange={(event) => this.changeValue(event.target.checked)}
         />
         <label className='nc-slider-label' htmlFor={checkboxId} style={{marginBottom: '0px'}}>
@@ -74,8 +56,7 @@ export default class NewJSONConfigField extends React.Component {
     );
   }
 
-  renderInputItem = (type) => {
-    const {value} = this.state;
+  renderInputItem = (type, value) => {
     let inputItem = (
       <span>Invalid Type!</span>
     );
@@ -109,9 +90,8 @@ export default class NewJSONConfigField extends React.Component {
   }
 
   render() {
-    const {fieldId, type} = this.props;
-    const {field, value} = this.state;
-    const newFieldInput = this.renderInputItem(type);
+    const {fieldId, type, field, value} = this.props;
+    const newFieldInput = this.renderInputItem(type, value);
 
     const fieldClass = '';
 
@@ -146,10 +126,15 @@ export default class NewJSONConfigField extends React.Component {
   }
 }
 
+// add is handled by the parent
 NewJSONConfigField.propTypes = {
-  editPath: React.PropTypes.array.isRequired,
-  fieldId: React.PropTypes.number.isRequired,
+  fieldId: React.PropTypes.string.isRequired,
   type: React.PropTypes.string.isRequired,
+  field: React.PropTypes.string.isRequired,
+  value: React.PropTypes.any.isRequired,
+
+  editPath: React.PropTypes.array.isRequired,
+  onEdit: React.PropTypes.func.isRequired,
   onSubmit: React.PropTypes.func.isRequired,
   onDelete: React.PropTypes.func.isRequired,
 }

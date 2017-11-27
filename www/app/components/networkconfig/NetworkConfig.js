@@ -45,15 +45,14 @@ export default class NetworkConfig extends React.Component {
 
       editMode,
       baseConfigByVersion,
+      newConfigFields,
 
       networkOverrideConfig,
       networkDraftConfig,
-      networkConfigNewFields,
       networkConfigWithChanges,
 
       nodeOverrideConfig,
       nodeDraftConfig,
-      nodeConfigNewFields,
       nodeConfigWithChanges,
     } = this.props;
 
@@ -66,9 +65,6 @@ export default class NetworkConfig extends React.Component {
 
     const selectedDraftConfig = (editMode === CONFIG_VIEW_MODE.NODE) ?
       this.combineNodeConfigs(selectedNodes, nodeDraftConfig) : networkDraftConfig;
-
-    const newFields = (editMode === CONFIG_VIEW_MODE.NODE) ?
-      this.combineNodeConfigs(selectedNodes, nodeConfigNewFields) : networkConfigNewFields;
 
     const nodesWithDrafts = Object.keys(nodeDraftConfig).filter((node) => {
       return Object.keys(nodeDraftConfig[node]).length > 0

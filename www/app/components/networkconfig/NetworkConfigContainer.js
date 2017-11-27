@@ -5,6 +5,7 @@ import React from 'react';
 import { render } from 'react-dom';
 
 var _ = require('lodash');
+const uuidv4 = require('uuid/v4');
 
 import {
   getConfigsForTopology,
@@ -18,7 +19,11 @@ import { Actions } from '../../constants/NetworkConstants.js';
 import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
-import { getImageVersionsForNetwork, unsetAndCleanup } from '../../helpers/NetworkConfigHelpers.js';
+import {
+  getImageVersionsForNetwork,
+  unsetAndCleanup,
+  getDefaultValueForType,
+} from '../../helpers/NetworkConfigHelpers.js';
 import NetworkConfig from './NetworkConfig.js';
 
 export default class NetworkConfigContainer extends React.Component {
@@ -44,17 +49,17 @@ export default class NetworkConfigContainer extends React.Component {
       networkOverrideConfig: {},
       networkDraftConfig: {},
 
-      // a version of the config that is akin to a merged copy of the 3 configs above
-      // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
+      // a version of the config that is akin to a merged copy of the 2 configs above
+      // ONLY USED when an API call is submitted due to implementation pain for merging the 2 objects when submitting
       networkConfigWithChanges: {},
 
       // node override
-      // config objects mapped by node
+      // config objects mapped by node mac_addr
       nodeOverrideConfig: {},
       nodeDraftConfig: {},
 
-      // a version of the config that is akin to a merged copy of the 3 configs above
-      // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
+      // a version of the config that is akin to a merged copy of the 2 configs above
+      // ONLY USED when an API call is submitted due to implementation pain for merging the 2 objects when submitting
       nodeConfigWithChanges: {},
 
       // edit mode to determine whether the user edits the network override or node override
@@ -164,6 +169,17 @@ export default class NetworkConfigContainer extends React.Component {
         }
         break;
 
+      // actions that for adding new fields for the form
+      case NetworkConfigActions.ADD_NEW_FIELD:
+        this.addNewField(payload.editPath, payload.type);
+        break;
+      case NetworkConfigActions.EDIT_NEW_FIELD:
+        this.editNewField(payload.editPath, payload.id, payload.field, payload.value);
+        break;
+      case NetworkConfigActions.DELETE_NEW_FIELD:
+        this.deleteNewField(payload.editPath, payload.id);
+        break;
+
       // actions that change the ENTIRE FORM
       case NetworkConfigActions.SUBMIT_CONFIG:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
@@ -226,6 +242,51 @@ export default class NetworkConfigContainer extends React.Component {
         selectedNodes: newSelectedNodes,
       });
     }
+  }
+
+  addNewField = (editPath, type) => {
+    // first generate id, then construct a new object with fields
+    // then set it
+    const newId = uuidv4();
+    const newField = {
+      id: newId,
+      type: type,
+      field: '',
+      value: getDefaultValueForType(type),
+    };
+
+    this.setState({
+      newConfigFields: this.editConfig(this.state.newConfigFields, [...editPath, newId], newField),
+    });
+  }
+
+  editNewField = (editPath, id, field, value) => {
+    let newField = _.cloneDeep(this.getConfig(
+      this.state.newConfigFields,
+      [...editPath, id]
+    ));
+
+    newField.field = field;
+    newField.value = value;
+
+    this.setState({
+      newConfigFields: this.editConfig(this.state.newConfigFields, [...editPath, id], newField),
+    });
+  }
+
+  deleteNewField = (editPath, id) => {
+    // cannot convert undefined or null to object
+    // something wrong with the editpath then?
+
+    console.log(this.getConfig(this.state.newConfigFields, [...editPath]), id);
+
+    this.setState({
+      newConfigFields: unsetAndCleanup(this.state.newConfigFields, [...editPath, id], 0),
+    });
+  }
+
+  getConfig = (config, editPath) => {
+    return _.get(config, editPath);
   }
 
   editConfig = (config, editPath, value) => {

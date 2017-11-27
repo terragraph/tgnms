@@ -1,4 +1,5 @@
 var _ = require('lodash');
+import { ADD_FIELD_TYPES } from '../constants/NetworkConfigConstants.js';
 
 export const getImageVersionsForNetwork = (topology) => {
   if (!topology || !topology.nodes) {
@@ -44,4 +45,23 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   }
 
   return cleanedObj;
+}
+
+export const getDefaultValueForType = (type) => {
+  let defaultValue = '';
+  switch(type) {
+    case ADD_FIELD_TYPES.BOOLEAN:
+      defaultValue = true;
+      break;
+    case ADD_FIELD_TYPES.NUMBER:
+      defaultValue = 0;
+      break;
+    case ADD_FIELD_TYPES.STRING:
+      defaultValue = '';
+      break;
+    default:
+      console.error('Error, invalid type detected for adding a new field');
+  }
+
+  return defaultValue;
 }
