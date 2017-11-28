@@ -73,21 +73,35 @@ export default class NetworkConfigContainer extends React.Component {
   componentWillReceiveProps(nextProps) {
     const topology = this.props.networkConfig.topology;
     const oldTopologyName = this.props.networkConfig.topology.name;
+    const newTopologyName = nextProps.networkConfig.topology.name;
 
-    if (
-      _.hasIn(nextProps.networkConfig, ['topology', 'name']) &&
-      nextProps.networkConfig.topology.name !== topology.name
-    ) {
-      // perform the update if next topology is real/has a name and is a different topology that what we have now
-      const newTopology = nextProps.networkConfig.topology;
-      this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
+    const isNextTopologyValid = _.hasIn(nextProps.networkConfig, ['topology', 'name']);
+    if (isNextTopologyValid) {
+      if (newTopologyName !== topology.name) {
+        // perform the update if next topology is real/has a name and is a different topology that what we have now
+        const newTopology = nextProps.networkConfig.topology;
+        this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
 
-      // reset the view mode
-      this.setState({
-        editMode: CONFIG_VIEW_MODE.NETWORK,
-        selectedImage: DEFAULT_BASE_KEY,
-        selectedNodes: [],
-      });
+        // reset the view mode
+        this.setState({
+          editMode: CONFIG_VIEW_MODE.NETWORK,
+          selectedImage: DEFAULT_BASE_KEY,
+          selectedNodes: [],
+        });
+      } else {
+        // still on the same topology, now check for nodes
+        const oldImageVersionsSet = new Set(getImageVersionsForNetwork(topology));
+        const newImageVersions = getImageVersionsForNetwork(nextProps.networkConfig.topology);
+
+        // if the incoming nodes has a base version difference compared to the old ones
+        // then we need to re-fetch the base configs
+        if (newImageVersions.some(
+          newImage => !oldImageVersionsSet.has(newImage)
+        )) {
+          // only get the base config
+          getConfigsForTopology(newTopologyName, newImageVersions, false);
+        }
+      }
     }
   }
 
@@ -377,7 +391,7 @@ export default class NetworkConfigContainer extends React.Component {
 
   fetchConfigsForCurrentTopology = (topologyName, topology) => {
     const imageVersions = getImageVersionsForNetwork(topology);
-    getConfigsForTopology(topologyName, imageVersions);
+    getConfigsForTopology(topologyName, imageVersions, true);
   }
 
   render() {
