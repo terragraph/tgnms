@@ -11,13 +11,14 @@ import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
 import {
-  NetworkConfigActions, editConfigForm, editNewField, submitNewField, deleteNewField
+  NetworkConfigActions, editConfigForm, submitNewField, deleteNewField
 } from '../../actions/NetworkConfigActions.js';
 
 import { REVERT_VALUE, ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
 import JSONFormField from './JSONFormField.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
 import NewJSONConfigField from './NewJSONConfigField.js';
+import NewJSONConfigObject from './NewJSONConfigObject.js';
 
 const PLACEHOLDER_VALUE = 'base value for field not set';
 
@@ -209,15 +210,6 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
-  onEditNewField = (editPath, id, field, value) => {
-    editNewField({
-      editPath,
-      id,
-      field,
-      value
-    });
-  }
-
   onSubmitNewField = (editPath, id, field, value) => {
     const {configs, draftConfig} = this.props;
 
@@ -233,7 +225,7 @@ export default class JSONConfigForm extends React.Component {
       return;
     }
 
-    this.onDeleteNewField(id);
+    this.onDeleteNewField(editPath, id);
 
     // field is valid so we add it to the override
     editConfigForm({
@@ -242,9 +234,9 @@ export default class JSONConfigForm extends React.Component {
     });
   }
 
-  onDeleteNewField = (id) => {
+  onDeleteNewField = (editPath, id) => {
     deleteNewField({
-      editPath: this.props.editPath,
+      editPath,
       id
     });
   }
@@ -252,20 +244,42 @@ export default class JSONConfigForm extends React.Component {
   // TODO: object class!
   renderNewField = (id, type, field, value) => {
     // switch on type for object class
+    const newFieldProps = {
+      canSubmit: true,
+      fieldId: id,
+      type: type,
+      field: field,
+      value: value,
+      editPath: this.props.editPath,
+      onSubmit: this.onSubmitNewField,
+      onDelete: this.onDeleteNewField,
+    };
+
+    switch (type) {
+      case ADD_FIELD_TYPES.BOOLEAN:
+      case ADD_FIELD_TYPES.STRING:
+      case ADD_FIELD_TYPES.NUMBER:
+        return (
+          <li className='rc-json-config-input'>
+            <NewJSONConfigField
+              {...newFieldProps}
+            />
+          </li>
+        );
+        break;
+      case ADD_FIELD_TYPES.OBJECT:
+        return (
+          <li className='rc-json-config-input'>
+            <NewJSONConfigObject
+              {...newFieldProps}
+            />
+          </li>
+        );
+        break;
+    }
 
     return (
-      <li className='rc-json-config-input'>
-        <NewJSONConfigField
-          fieldId={id}
-          type={type}
-          field={field}
-          value={value}
-          editPath={this.props.editPath}
-          onEdit={this.onEditNewField}
-          onSubmit={this.onSubmitNewField}
-          onDelete={this.onDeleteNewField}
-        />
-      </li>
+      <li className='rc-json-config-input'>Invalid type!</li>
     );
   }
 
@@ -310,7 +324,7 @@ export default class JSONConfigForm extends React.Component {
 
     return (
       <div className='rc-json-config-form'>
-        <ul>{[...childItems, newFields, addFieldButton]}</ul>
+        <ul>{[...childItems, ...newFields, addFieldButton]}</ul>
       </div>
     );
   }

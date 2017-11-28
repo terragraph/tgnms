@@ -6,6 +6,7 @@ import { render } from 'react-dom';
 
 const classNames = require('classnames');
 
+import { editNewField } from '../../actions/NetworkConfigActions.js';
 import { ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
 import CustomToggle from '../common/CustomToggle.js';
 
@@ -16,12 +17,22 @@ export default class NewJSONConfigField extends React.Component {
 
   changeField = (field) => {
     const {editPath, fieldId, value} = this.props;
-    this.props.onEdit(editPath, fieldId, field, value);
+    editNewField({
+      editPath,
+      id: fieldId,
+      field,
+      value
+    });
   }
 
   changeValue = (value) => {
     const {editPath, fieldId, field} = this.props;
-    this.props.onEdit(editPath, fieldId, field, value);
+    editNewField({
+      editPath,
+      id: fieldId,
+      field,
+      value
+    });
   }
 
   onSubmitNewField = (event) => {
@@ -31,7 +42,8 @@ export default class NewJSONConfigField extends React.Component {
   }
 
   onDeleteNewField = () => {
-    this.props.onDelete(this.props.fieldId);
+    const {editPath, fieldId} = this.props;
+    this.props.onDelete(editPath, fieldId);
   }
 
   renderToggle = () => {
@@ -81,7 +93,7 @@ export default class NewJSONConfigField extends React.Component {
   }
 
   render() {
-    const {fieldId, type, field, value} = this.props;
+    const {canSubmit, fieldId, type, field, value} = this.props;
     const newFieldInput = this.renderInputItem(type, value);
 
     const fieldClass = '';
@@ -97,13 +109,17 @@ export default class NewJSONConfigField extends React.Component {
         </form>
         <div className='nc-form-body'>
           {newFieldInput}
-          <div className='nc-form-action'>
-            <img src='/static/images/check.png'
-              style={{marginLeft: '5px'}}
-              onClick={this.onSubmitNewField}
-            />
-            <span className='nc-form-action-tooltip'>Add new field to override</span>
-          </div>
+
+          {canSubmit &&
+            <div className='nc-form-action'>
+              <img src='/static/images/check.png'
+                style={{marginLeft: '5px'}}
+                onClick={this.onSubmitNewField}
+              />
+              <span className='nc-form-action-tooltip'>Add new field to override</span>
+            </div>
+          }
+
           <div className='nc-form-action'>
             <img src='/static/images/delete.png'
               style={{marginLeft: '5px', height: '19px'}}
@@ -119,13 +135,18 @@ export default class NewJSONConfigField extends React.Component {
 
 // add is handled by the parent
 NewJSONConfigField.propTypes = {
+  canSubmit: React.PropTypes.bool.isRequired,
+
   fieldId: React.PropTypes.string.isRequired,
   type: React.PropTypes.string.isRequired,
   field: React.PropTypes.string.isRequired,
   value: React.PropTypes.any.isRequired,
 
   editPath: React.PropTypes.array.isRequired,
-  onEdit: React.PropTypes.func.isRequired,
-  onSubmit: React.PropTypes.func.isRequired,
+  onSubmit: React.PropTypes.func,
   onDelete: React.PropTypes.func.isRequired,
+}
+
+NewJSONConfigField.defaultProps = {
+  onSubmit: () => {}
 }
