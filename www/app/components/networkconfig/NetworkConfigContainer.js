@@ -98,7 +98,6 @@ export default class NetworkConfigContainer extends React.Component {
         if (newImageVersions.some(
           newImage => !oldImageVersionsSet.has(newImage)
         )) {
-          console.log('base versions updated, refetching configs');
           // only get the base config
           getConfigsForTopology(newTopologyName, newImageVersions, false);
         }
