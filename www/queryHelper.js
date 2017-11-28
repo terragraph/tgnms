@@ -362,7 +362,7 @@ var self = {
                                      'Speed', 'Speed (mbps)',
                                      'speed', 'link');
       case 'link_status':
-        return {
+        return [{
           title: 'Link status',
           description: 'Link status reported by controller',
           scale: undefined,
@@ -375,9 +375,9 @@ var self = {
               titleAppend: ' (A)'
             },
           ]
-        };
+        }];
       case 'flaps':
-        return {};
+        return [];
       default:
         throw "Undefined metric: " + metricName;
     }
@@ -416,6 +416,7 @@ var self = {
       return;
     }
     let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
+    console.log('fetch link key ids', metricName);
     linkKeys.keys.forEach(keyData => {
       if (aNode.mac_addr in self.nodeKeyIds &&
           keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac_addr]) {
@@ -519,6 +520,9 @@ var self = {
       // add nodes to request list
       linkMetrics.forEach(linkMetric => {
         let linkKeys = self.formatLinkKeyName(linkMetric.metric, aNode, zNode);
+        if (!linkKeys.hasOwnProperty('keys')) {
+          return;
+        }
         linkKeys.keys.forEach(keyData => {
           if (aNode.mac_addr in self.nodeKeyIds &&
               keyData.keyName.toLowerCase() in self.nodeKeyIds[aNode.mac_addr]) {

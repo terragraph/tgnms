@@ -7,7 +7,7 @@ import Control from 'react-leaflet-control';
 import LeafletGeom from 'leaflet-geometryutil';
 
 // dispatcher
-import {Actions, SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
+import {Actions, SiteOverlayKeys, linkOverlayKeys, MapDimensions, MapTiles} from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkStore from './stores/NetworkStore.js';
 // ui components
@@ -375,7 +375,7 @@ export default class NetworkMap extends React.Component {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
     return (
       <CircleMarker center={pos}
-        radius={10}
+        radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
         clickable
         fillOpacity={1}
         color = {color}
@@ -392,7 +392,7 @@ export default class NetworkMap extends React.Component {
       <Polyline
         key={link.name}
         positions={coords}
-        weight={6}
+        weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
@@ -417,7 +417,7 @@ export default class NetworkMap extends React.Component {
       <Polyline
         key={link.name+'(A)'}
         positions={[coords_a, midPoint]}
-        weight={6}
+        weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
@@ -435,7 +435,7 @@ export default class NetworkMap extends React.Component {
       <Polyline
         key={link.name+'(Z)'}
         positions={[coords_z, midPoint]}
-        weight={6}
+        weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
@@ -626,6 +626,27 @@ export default class NetworkMap extends React.Component {
     });
 
     let ignitionLinks = new Set(this.props.networkConfig.ignition_state);
+    // find min/max for flap events
+    let linkEventCounts = [];
+    topology.links.map(link => {
+      if (link.link_type != 1) {
+        return;
+      }
+      if (!this.nodesByName.hasOwnProperty(link.a_node_name) ||
+          !this.nodesByName.hasOwnProperty(link.z_node_name)) {
+        return;
+      }
+      if (this.state.linkHealth.hasOwnProperty('metrics') &&
+          this.state.linkHealth.metrics.hasOwnProperty(link.name)) {
+        // we have health data for this link
+        let linkHealthEvents = this.state.linkHealth.metrics[link.name].events.length;
+//        min = min == undefined ? linkHealthEvents : (linkHealthEvents < min ? linkHealthEvents : min);
+//        max = max == undefined ? linkHealthEvents : (linkHealthEvents > max ? linkHealthEvents : max);
+        linkEventCounts.push(linkHealthEvents);
+      }
+    });
+    linkEventCounts.sort(function(a, b) {return a > b ? 1 : ((a == b) ? 0 : -1);});
+    // use min/max/std dev or something else here (TODO)
     topology.links.map(link => {
       if (link.link_type != 1) {
         return;
@@ -748,8 +769,8 @@ export default class NetworkMap extends React.Component {
               let linkHealthEvents = this.state.linkHealth.metrics[link.name].events.length;
               // linear scaling
               let healthScaleColor = d3.scaleLinear()
-                  .domain([0, 5, 15, 100])
-                  .range(['#006600', '#7f9900', '#b34a00', '#990000']);
+                  .domain([0, 5, 50])
+                  .range(['green', 'yellow', 'red']);
               let linkColor = d3.rgb(healthScaleColor(linkHealthEvents));
               linkLine = this.getLinkLine(link, linkCoords, linkColor);
             } else {
@@ -903,10 +924,12 @@ export default class NetworkMap extends React.Component {
         <img style={{backgroundColor: "rgba(245, 245, 245, 0.8)"}} src={this.state.tablesExpanded? "/static/images/table.png" : "/static/images/table-accent.png"} onClick={this.handleExpandTablesClick}/>
       </Control>
 
-
-    let tileUrl = CONFIG.use_tile_proxy ?
-        '/tile/{s}/{z}/{x}/{y}.png' :
-        window.location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    let tileUrl = '/tile/{s}/{z}/{x}/{y}.png';
+    if (!CONFIG.use_tile_proxy) {
+        tileUrl = window.location.protocol + MapTiles[this.props.mapTile];
+//        tileUrl = window.location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+//        tileUrl = window.location.protocol + '//stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
+    }
 
     let plannedSite = <div/>;
     if (this.state.plannedSite) {
