@@ -8,6 +8,7 @@ import onClickOutside from 'react-onclickoutside';
 const classNames = require('classnames');
 
 import { ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
+import { addNewField } from '../../actions/NetworkConfigActions.js';
 
 class AddJSONConfigField extends React.Component {
   constructor(props) {
@@ -25,7 +26,10 @@ class AddJSONConfigField extends React.Component {
   }
 
   selectAddOption = (type) => {
-    this.props.onAddField(type);
+    addNewField({
+      editPath: this.props.editPath,
+      type: type,
+    });
     this.setState({expanded: false});
   }
 
@@ -45,6 +49,7 @@ class AddJSONConfigField extends React.Component {
           <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.BOOLEAN)}>Toggle (Yes/No)</span>
           <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.NUMBER)}>Number</span>
           <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.STRING)}>Text</span>
+          <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.OBJECT)}>Nested Field (Object)</span>
         </div>
       </div>
     );
@@ -52,7 +57,8 @@ class AddJSONConfigField extends React.Component {
 }
 
 AddJSONConfigField.propTypes = {
-  onAddField: React.PropTypes.func.isRequired,
+  editPath: React.PropTypes.array.isRequired
 }
 
+// needed so we can collapse the drop down when a click happens outside this component
 export default onClickOutside(AddJSONConfigField);

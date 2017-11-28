@@ -20,6 +20,7 @@ export const CONFIG_CLASSNAMES = {
 export const DEFAULT_BASE_KEY = 'default';
 
 export const ADD_FIELD_TYPES = {
+  OBJECT: 'object',
   BOOLEAN: 'boolean',
   STRING: 'string',
   NUMBER: 'number',

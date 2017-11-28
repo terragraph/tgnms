@@ -50,6 +50,9 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
 export const getDefaultValueForType = (type) => {
   let defaultValue = '';
   switch(type) {
+    case ADD_FIELD_TYPES.OBJECT:
+      defaultValue = {};
+      break;
     case ADD_FIELD_TYPES.BOOLEAN:
       defaultValue = true;
       break;

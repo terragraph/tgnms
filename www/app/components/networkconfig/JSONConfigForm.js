@@ -11,7 +11,7 @@ import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
 import {
-  NetworkConfigActions, editConfigForm, addNewField, editNewField, submitNewField, deleteNewField
+  NetworkConfigActions, editConfigForm, editNewField, submitNewField, deleteNewField
 } from '../../actions/NetworkConfigActions.js';
 
 import { REVERT_VALUE, ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
@@ -209,13 +209,6 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
-  addField = (type) => {
-    addNewField({
-      editPath: this.props.editPath,
-      type,
-    });
-  }
-
   onEditNewField = (editPath, id, field, value) => {
     editNewField({
       editPath,
@@ -232,7 +225,6 @@ export default class JSONConfigForm extends React.Component {
     const configFields = new Set(this.getStackedFields([...configs, draftConfig]));
 
     // swal if field is empty or it conflicts with the current layer
-    // or we can just submit the config FOR THIS FIELD
     if (field === '') {
       swal(emptyFieldAlertProps);
       return;
@@ -255,15 +247,12 @@ export default class JSONConfigForm extends React.Component {
       editPath: this.props.editPath,
       id
     });
-    // let updatedNewFieldsByKey = Object.assign({}, this.state.newFieldsByKey);
-    // delete updatedNewFieldsByKey[id];
-    // this.setState({
-    //   newFieldsByKey: updatedNewFieldsByKey
-    // });
   }
 
   // TODO: object class!
   renderNewField = (id, type, field, value) => {
+    // switch on type for object class
+
     return (
       <li className='rc-json-config-input'>
         <NewJSONConfigField
@@ -306,7 +295,7 @@ export default class JSONConfigForm extends React.Component {
 
     const addFieldButton = (
       <AddJSONConfigField
-        onAddField={(type) => {this.addField(type)}}
+        editPath={editPath}
       />
     );
 
