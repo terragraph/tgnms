@@ -13,7 +13,7 @@ import {
 
 import { DEFAULT_BASE_KEY } from '../constants/NetworkConfigConstants.js';
 
-export const getConfigsForTopology = (topologyName, imageVersions) => {
+export const getConfigsForTopology = (topologyName, imageVersions, getNetworkConfig) => {
   const uri = '/controller/getBaseConfig';
 
   return axios.get(uri, {
@@ -28,9 +28,13 @@ export const getConfigsForTopology = (topologyName, imageVersions) => {
       topologyName,
     });
 
-    getNetworkOverrideConfig(topologyName);
+    if (getNetworkConfig) {
+      getNetworkOverrideConfig(topologyName);
+    }
   }).catch((error) => {
-    getNetworkOverrideConfig(topologyName);
+    if (getNetworkConfig) {
+      getNetworkOverrideConfig(topologyName);
+    }
   });
 }
 
