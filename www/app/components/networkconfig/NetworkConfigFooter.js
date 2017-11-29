@@ -56,20 +56,20 @@ export default class NetworkConfigFooter extends React.Component {
 
   // TODO: 4 button system for phase 1, custom alert system for phase 2
   render() {
-    const {draftConfig, editMode, nodesWithDrafts} = this.props;
+    const {newConfigFields, draftConfig, editMode, nodesWithDrafts} = this.props;
 
     return (
       <div className='rc-network-config-footer'>
         <button
           className='nc-footer-btn'
           onClick={this.onResetConfig}
-          disabled={Object.keys(draftConfig).length === 0}
+          disabled={Object.keys(draftConfig).length === 0 && Object.keys(newConfigFields) === 0}
         >Discard Changes</button>
         {editMode === CONFIG_VIEW_MODE.NODE &&
           <button
             className='nc-footer-btn'
             onClick={this.onResetAllConfig}
-            disabled={Object.keys(nodesWithDrafts).length === 0}
+            disabled={Object.keys(nodesWithDrafts).length === 0 && Object.keys(newConfigFields) === 0}
           >Discard changes for all nodes</button>
         }
         <button
@@ -90,6 +90,7 @@ export default class NetworkConfigFooter extends React.Component {
 }
 
 NetworkConfigFooter.propTypes = {
+  newConfigFields: React.PropTypes.object.isRequired,
   draftConfig: React.PropTypes.object.isRequired,
   editMode: React.PropTypes.string.isRequired,
   nodesWithDrafts: React.PropTypes.array.isRequired,

@@ -385,6 +385,7 @@ export default class NetworkConfigContainer extends React.Component {
       networkOverrideConfig: _.cloneDeep(config),
       networkConfigWithChanges: _.cloneDeep(config),
       networkDraftConfig: {},
+      newConfigFields: {},
     });
   }
 
@@ -404,11 +405,13 @@ export default class NetworkConfigContainer extends React.Component {
       this.setState({
         nodeOverrideConfig: newNodeOverrideConfig,
         nodeDraftConfig: newNodeDraftConfig,
+        newConfigFields: {},
       });
     } else {
       this.setState({
         nodeOverrideConfig: _.cloneDeep(this.state.nodeConfigWithChanges),
         nodeDraftConfig: {},
+        newConfigFields: {},
       });
     }
   }
@@ -417,6 +420,7 @@ export default class NetworkConfigContainer extends React.Component {
     this.setState({
       networkDraftConfig: {},
       networkConfigWithChanges: _.cloneDeep(this.state.networkOverrideConfig),
+      newConfigFields: {},
     });
   }
 
@@ -435,6 +439,7 @@ export default class NetworkConfigContainer extends React.Component {
     this.setState({
       nodeDraftConfig: newNodeDraftConfig,
       nodeConfigWithChanges: newNodeConfigWithChanges,
+      newConfigFields: {},
     });
   }
 
@@ -442,6 +447,7 @@ export default class NetworkConfigContainer extends React.Component {
     this.setState({
       nodeDraftConfig: {},
       nodeConfigWithChanges: _.cloneDeep(this.state.nodeOverrideConfig),
+      newConfigFields: {},
     });
   }
 
@@ -452,6 +458,7 @@ export default class NetworkConfigContainer extends React.Component {
       networkConfigWithChanges: _.cloneDeep(this.state.networkOverrideConfig),
       nodeDraftConfig: {},
       nodeConfigWithChanges: _.cloneDeep(this.state.nodeOverrideConfig),
+      newConfigFields: {},
     });
 
     // then we make the API calls

@@ -63,6 +63,7 @@ export default class NetworkConfigBody extends React.Component {
           />
         </div>
         <NetworkConfigFooter
+          newConfigFields={newConfigFields}
           draftConfig={draftConfig}
           editMode={editMode}
           nodesWithDrafts={nodesWithDrafts}
