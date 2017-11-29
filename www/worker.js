@@ -387,7 +387,6 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       delLinkReq.aNodeName = msg.nodeA;
       delLinkReq.zNodeName = msg.nodeZ;
       delLinkReq.forceDelete = msg.forceDelete;
-      console.log('del link', delLinkReq.aNodeName, delLinkReq.zNodeName);
       send(delLinkReq);
       break;
     case 'delNode':
