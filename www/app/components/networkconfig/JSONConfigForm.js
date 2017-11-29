@@ -176,6 +176,7 @@ export default class JSONConfigForm extends React.Component {
     );
 
     const displayVal = this.isDraft(draftValue) ? draftValue : values[displayIdx];
+
     let childItem = (
       <span>Error: unable to render child val of {displayVal}</span>
     );
@@ -201,8 +202,22 @@ export default class JSONConfigForm extends React.Component {
           break;
       }
     } else {
+      // here we know that there is only a draft, or something marked to be reverted
+      // if it's reverted then we can display a placeholder
       formFieldArgs.displayVal = this.isDraft(draftValue) ? draftValue : PLACEHOLDER_VALUE;
-      childItem = this.renderFormField(formFieldArgs);
+
+      // we display a nested object for the case where a user adds a nested object and submits it as a draft
+      if (_.isPlainObject(draftValue)) {
+        childItem = this.renderNestedObject({
+          configs: values,
+          draftConfig: draftValue,
+          newConfigFields: newField,
+          fieldName: fieldName,
+          editPath: editPath,
+        });
+      } else {
+        childItem = this.renderFormField(formFieldArgs);
+      }
     }
 
     return (
@@ -227,7 +242,6 @@ export default class JSONConfigForm extends React.Component {
 
     this.onDeleteNewField(editPath, id);
 
-    // field is valid so we add it to the override
     editConfigForm({
       editPath: [...editPath, field],
       value
@@ -241,7 +255,6 @@ export default class JSONConfigForm extends React.Component {
     });
   }
 
-  // TODO: object class!
   renderNewField = (id, type, field, value) => {
     // switch on type for object class
     const newFieldProps = {

@@ -299,8 +299,9 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   deleteNewField = (editPath, id) => {
+    // do not clean up empty objects as empty objects are allowed as new fields
     this.setState({
-      newConfigFields: unsetAndCleanup(this.state.newConfigFields, [...editPath, id], 0),
+      newConfigFields: unsetAndCleanup(this.state.newConfigFields, [...editPath, id], -1),
     });
   }
 
