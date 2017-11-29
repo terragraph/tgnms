@@ -70,7 +70,7 @@ export const sortConfig = (config) => {
   let newConfig = {};
 
   Object.keys(config).sort(alphabeticalSort).forEach((key) => {
-    const value = config[key]
+    const value = config[key];
     const newValue = _.isPlainObject(value) ? sortConfig(value) : value;
     newConfig[key] = newValue;
   });
