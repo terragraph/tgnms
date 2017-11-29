@@ -187,8 +187,7 @@ export default class JSONConfigForm extends React.Component {
     } = this.props;
 
     // retrieve the union of fields for all json objects in the array
-    const configFields = getStackedFields(configs, [], true);
-    const configFieldsWithDraft = getStackedFields([draftConfig], configFields);
+    const configFields = getStackedFields([...configs, draftConfig]);
 
     const childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];

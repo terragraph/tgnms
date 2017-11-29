@@ -46,6 +46,17 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   return cleanedObj;
 }
 
+export const getStackedFields = (configs) => {
+  // aggregate all config fields
+  const stackedFields = configs.reduce((stacked, config) => {
+    return [...stacked, ...Object.keys(config)];
+  }, []);
+
+  // now dedupe the fields by adding to a set
+  const dedupedFields = new Set(stackedFields);
+  return [...dedupedFields];
+}
+
 const alphabeticalSort = (a, b) => {
   if (a.toLowerCase() < b.toLowerCase()) {
     return -1;
@@ -55,16 +66,14 @@ const alphabeticalSort = (a, b) => {
   return 0;
 }
 
-// initialFields is for the... edge case where we append some fields to a sorted list of fields
-// returned by this function
-// we're also going to assume that users want things alphabetically sorted
-export const getStackedFields = (configs, initialFields = [], sortFields = false) => {
-  // aggregate all config fields
-  const stackedFields = configs.reduce((stacked, config) => {
-    return [...stacked, ...Object.keys(config)];
-  }, initialFields);
+export const sortConfig = (config) => {
+  let newConfig = {};
 
-  // now dedupe the fields by adding to a set
-  const dedupedFields = new Set(stackedFields);
-  return sortFields ? [...dedupedFields].sort(alphabeticalSort) : [...dedupedFields];
+  Object.keys(config).sort(alphabeticalSort).forEach((key) => {
+    const value = config[key]
+    const newValue = _.isPlainObject(value) ? sortConfig(value) : value;
+    newConfig[key] = newValue;
+  });
+
+  return newConfig;
 }
