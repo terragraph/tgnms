@@ -9,6 +9,8 @@ import Dispatcher from '../../NetworkDispatcher.js';
 import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
 
 import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
+import { getStackedFields } from '../../helpers/NetworkConfigHelpers.js';
+
 import JSONFormField from './JSONFormField.js';
 
 const PLACEHOLDER_VALUE = 'base value for field not set';
@@ -89,17 +91,6 @@ export default class JSONConfigForm extends React.Component {
 
   isDraft = (draftValue) => {
     return draftValue !== undefined && !this.isReverted(draftValue);
-  }
-
-  getStackedFields(configs) {
-    // aggregate all config fields
-    const stackedFields = configs.reduce((stacked, config) => {
-      return [...stacked, ...Object.keys(config)];
-    }, []);
-
-    // now dedupe the fields by adding to a set
-    const dedupedFields = new Set(stackedFields);
-    return [...dedupedFields];
   }
 
   getDisplayIdx = (configVals) => {
@@ -196,7 +187,9 @@ export default class JSONConfigForm extends React.Component {
     } = this.props;
 
     // retrieve the union of fields for all json objects in the array
-    const configFields = this.getStackedFields(configs);
+    const configFields = getStackedFields(configs, [], true);
+    const configFieldsWithDraft = getStackedFields([draftConfig], configFields);
+
     const childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
