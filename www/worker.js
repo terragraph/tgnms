@@ -384,15 +384,16 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'delLink':
       var delLinkReq = new Controller_ttypes.DelLink();
-      delLinkReq.a_node_name = msg.nodeA;
-      delLinkReq.z_node_name = msg.nodeZ;
+      delLinkReq.aNodeName = msg.nodeA;
+      delLinkReq.zNodeName = msg.nodeZ;
       delLinkReq.forceDelete = msg.forceDelete;
+      console.log('del link', delLinkReq.aNodeName, delLinkReq.zNodeName);
       send(delLinkReq);
       break;
     case 'delNode':
       var delNodeReq = new Controller_ttypes.DelNode();
       delNodeReq.nodeName = msg.node;
-      delNodeReq.forceDelete = msg.forceDelete;
+      delNodeReq.force = msg.forceDelete;
       send(delNodeReq);
       break;
     case 'delSite':
@@ -437,8 +438,8 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'setLinkIgnitionState':
       var setIgnitionParamsReq = new Controller_ttypes.IgnitionParams();
-      setIgnitionParamsReq.link_auto_ignite = {};
-      setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
+      setIgnitionParamsReq.linkAutoIgnite = {};
+      setIgnitionParamsReq.linkAutoIgnite[msg.linkName] = msg.state;
       send(setIgnitionParamsReq);
       break;
     case 'prepareUpgrade':
