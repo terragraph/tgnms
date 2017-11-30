@@ -248,7 +248,7 @@ export default class DetailsTopology extends React.Component {
               <button className="prevNextButton" onClick={this.commitPlanPrev.bind(this)}>&larr;</button> : 
               <button className="prevNextButtonDisabled" disabled>&larr;</button>}
             <span style={{padding: '0px 10px 0px 10px', fontSize: '24px'}}>
-              {this.props.commitPlanBatch}/{this.props.commitPlan.commitBatches.length}
+              {this.props.commitPlanBatch + 1}/{this.props.commitPlan.commitBatches.length}
             </span>
             {(this.props.commitPlanBatch + 1) < this.props.commitPlan.commitBatches.length ?
               <button className="prevNextButton" onClick={this.commitPlanNext.bind(this)}>&rarr;</button> : 
