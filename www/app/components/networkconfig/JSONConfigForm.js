@@ -26,7 +26,9 @@ class ExpandableConfigForm extends React.Component {
     );
 
     this.state = {
-      expanded: true,
+      // expanded: true
+      expanded: props.initExpanded,
+      expandChildren: props.initExpanded,
     };
   }
 
@@ -38,7 +40,8 @@ class ExpandableConfigForm extends React.Component {
     switch(payload.actionType) {
       case NetworkConfigActions.TOGGLE_EXPAND_ALL:
         this.setState({
-          expanded: payload.isExpanded
+          expanded: payload.isExpanded,
+          expandChildren: true,
         });
 
         break;
@@ -46,8 +49,10 @@ class ExpandableConfigForm extends React.Component {
   }
 
   toggleExpandConfig = () => {
+    // children not expanded by default
     this.setState({
-      expanded: !this.state.expanded
+      expanded: !this.state.expanded,
+      expandChildren: false,
     });
   }
 
@@ -57,15 +62,20 @@ class ExpandableConfigForm extends React.Component {
     const expandMarker = expanded ?
       '/static/images/down-chevron.png' : '/static/images/right-chevron.png';
 
+    const configForm = (
+      <JSONConfigForm
+        configs={configs}
+        draftConfig={draftConfig}
+        editPath={editPath}
+        initExpanded={this.state.expandChildren}
+      />
+    );
+
     return (
       <div className='rc-expandable-config-form'>
         <img src={expandMarker} className='config-expand-marker' onClick={this.toggleExpandConfig}/>
         <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel}:</label>
-        {expanded && <JSONConfigForm
-          configs={configs}
-          draftConfig={draftConfig}
-          editPath={editPath}
-        />}
+        {expanded && configForm}
       </div>
     );
   }
@@ -76,6 +86,7 @@ ExpandableConfigForm.propTypes = {
   draftConfig: React.PropTypes.object.isRequired,
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired,
+  initExpanded: React.PropTypes.bool.isRequired,
 }
 
 export default class JSONConfigForm extends React.Component {
@@ -125,6 +136,8 @@ export default class JSONConfigForm extends React.Component {
         draftConfig={processedDraftConfig}
         formLabel={fieldName}
         editPath={editPath}
+
+        initExpanded={this.props.initExpanded}
       />
     );
   }
@@ -225,4 +238,11 @@ JSONConfigForm.propTypes = {
   // vs the entire config object
   // useful for nested config components
   editPath: React.PropTypes.array.isRequired,
+
+  // is the component initially expanded? only using this to pass to children
+  initExpanded: React.PropTypes.bool.isRequired,
+}
+
+JSONConfigForm.defaultProps = {
+  initExpanded: true,
 }
