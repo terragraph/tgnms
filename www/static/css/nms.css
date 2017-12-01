@@ -71,6 +71,22 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
     width: 100%;
 }
 
+.prevNextButton {
+  background-color: cadetblue;
+  padding: 0px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid;
+}
+
+.prevNextButtonDisabled {
+  background-color: darkgray;
+  padding: 0px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid;
+}
+
 .details-close {
     color: white;
     float: right;

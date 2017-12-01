@@ -145,6 +145,7 @@ enum MessageType {
   FW_ACK = 591,  // fw ack for passthru message
   FW_HEALTHY = 592,
   FW_GET_CODEBOOK = 593,
+  FW_CONFIG_RESP = 594,
 
   // Miscellaneous (common)
   NONE = 1001,
@@ -313,7 +314,7 @@ struct UpgradeListImagesResp {
 struct GetMinionConfigReq {}
 
 struct GetMinionConfigResp {
-  1: NodeConfig.NodeConfig config;
+  1: string config;
 }
 
 // Node action after setting config
@@ -323,17 +324,17 @@ enum CfgMinionAction {
 }
 
 struct SetMinionConfigReq {
-  1: NodeConfig.NodeConfig config;
+  1: string config; // node config json string
   2: CfgMinionAction action;
 }
 
 struct GetCtrlConfigReq {
-  1: list<string> nodes; // Get for all nodes if empty
+  1: string node;
   2: string swVersion; // To determine the config base to use
 }
 
 struct GetCtrlConfigResp {
-  1: map<string, NodeConfig.NodeConfig> config;
+  1: string config;
 }
 
 /**
@@ -430,10 +431,13 @@ struct RebootNode {
  *             The time at which this response was generated
  * @apiSuccess {Map(String:Object(StatusReport))} statusReports
  *             The per-node status reports
+ * @apiSuccess {String} version
+ *             The controller version sourced from "/etc/version"
  */
 struct StatusDump {
   1: i64 timeStamp;  // timestamp at which this response was generated
   2: map<string /* node id */, StatusReport> statusReports;
+  3: optional string version;
 }
 
 // Node parameters configured on each node.
@@ -838,6 +842,7 @@ enum SlotPurpose {
   SP_VBF = 3,
   SP_NULLING = 4,
   SP_IGNITION = 5,
+  SP_HYBRID_PBF = 6,
 }
 
 struct SlotMapConfig {

@@ -84,6 +84,7 @@ const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED ?
                                 process.env.IM_SCAN_POLLING_ENABLED == '1' : 0;
 
 var refreshIntervalTimer = undefined;
+var networkHealthTimer = undefined;
 var eventLogsTables = {};
 var systemLogsSources = {};
 var networkInstanceConfig = {};
@@ -98,6 +99,7 @@ var ignitionStateByName = {};
 var aggrStatusDumpsByName = {};
 var adjacencyMapsByName = {};
 var upgradeStateByName = {};
+var networkHealth = {};
 
 var dashboards = {};
 fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
@@ -443,6 +445,7 @@ function getNodesWithUpgradeStatus(nodes, upgradeState) {
 function reloadInstanceConfig() {
   if (refreshIntervalTimer) {
     clearInterval(refreshIntervalTimer);
+    clearInterval(networkHealthTimer);
   }
   configByName = {};
   fileTopologyByName = {};
@@ -495,9 +498,16 @@ function reloadInstanceConfig() {
     }
 
     let refresh_interval = 5000;
+    let health_interval = 30000;
     if ('refresh_interval' in networkInstanceConfig) {
       refresh_interval = networkInstanceConfig['refresh_interval'];
     }
+    networkHealthTimer = setInterval(() => {
+      Object.keys(configByName).forEach(configName => {
+        console.log('Refreshing network health for', configName);
+        refreshNetworkHealth(configName);
+      });
+    }, health_interval);
     // start poll request interval
     refreshIntervalTimer = setInterval(() =>
       {
@@ -824,11 +834,19 @@ app.post(/\/metrics$/i, function (req, res, next) {
 // raw stats data
 app.get(/\/health\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
+  if (networkHealth.hasOwnProperty(topologyName)) {
+    res.send(networkHealth[topologyName]).end();
+  } else {
+    console.log('No cache found for', topologyName);
+    res.send("No cache").end();
+  }
+});
+
+function refreshNetworkHealth(topologyName) {
   let liveTopology = topologyByName[topologyName];
   let topology = (liveTopology && liveTopology.nodes) ?
                   liveTopology : fileTopologyByName[topologyName];
   if (!topology) {
-    res.status(500).send('No topology data for: ' + topologyName);
     return;
   }
   let nodeMetrics = [
@@ -847,19 +865,21 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
       "time": 24 * 60 * 60 /* 24 hours */
     }
   ];
-  let queries = queryHelper.makeTableQuery(res, topology, nodeMetrics, linkMetrics);
+  let startTime = new Date();
+  let queries = queryHelper.makeTableQuery(undefined, topology, nodeMetrics, linkMetrics);
   let chartUrl = 'http://localhost:8086/query';
   request.post({url: chartUrl,
                 body: JSON.stringify(queries)}, (err, httpResponse, body) => {
     if (err) {
       console.error("Error fetching from beringei:", err);
-      res.status(500).send("Error fetching data").end();
       return;
     }
+    let totalTime = new Date() - startTime;
+    console.log('Fetched health for', topologyName,'in', totalTime, 'ms');
     // join the results
-    res.send(httpResponse.body).end();
+    networkHealth[topologyName] = httpResponse.body;
   });
-});
+}
 
 // raw stats data
 app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
@@ -1374,6 +1394,26 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
       limit,
       skipLinks,
       scheduleToCommit,
+      topology
+    }, "", res);
+  });
+});
+
+app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {topologyName, limit, excludeNodes} = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'commitUpgradePlan',
+      limit,
+      excludeNodes,
       topology
     }, "", res);
   });

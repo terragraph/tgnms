@@ -21,6 +21,21 @@ export default class DetailsTopology extends React.Component {
     this.setState({expandedVersion: sector})
   }
 
+  commitPlanPrev() {
+    this.commitPlanBatch(-1);
+  }
+
+  commitPlanNext() {
+    this.commitPlanBatch(1);
+  }
+
+  commitPlanBatch(increment) {
+    Dispatcher.dispatch({
+      actionType: Actions.COMMIT_PLAN_BATCH,
+      batch: this.props.commitPlanBatch + increment,
+    });
+  }
+
   render() {
     let versionCounts = {};
     let totalReported = 0;
@@ -221,6 +236,27 @@ export default class DetailsTopology extends React.Component {
           </tr>
         );
       });
+    let commitPlan;
+    if (this.props.commitPlan &&
+        this.props.commitPlan.hasOwnProperty('commitBatches') &&
+        this.props.commitOverlayEnabled) {
+      commitPlan = (
+        <tr>
+          <td>Commit Batch</td>
+          <td colSpan="2">
+            {this.props.commitPlanBatch > 0 ?
+              <button className="prevNextButton" onClick={this.commitPlanPrev.bind(this)}>&larr;</button> : 
+              <button className="prevNextButtonDisabled" disabled>&larr;</button>}
+            <span style={{padding: '0px 10px 0px 10px', fontSize: '24px'}}>
+              {this.props.commitPlanBatch + 1}/{this.props.commitPlan.commitBatches.length}
+            </span>
+            {(this.props.commitPlanBatch + 1) < this.props.commitPlan.commitBatches.length ?
+              <button className="prevNextButton" onClick={this.commitPlanNext.bind(this)}>&rarr;</button> : 
+              <button className="prevNextButtonDisabled" disabled>&rarr;</button>}
+          </td>
+        </tr>
+      );
+    }
     return (
       <div
         id="myModal"
@@ -248,6 +284,7 @@ export default class DetailsTopology extends React.Component {
                 {polarityRows}
                 {polarityBySiteRows}
                 {versionRows}
+                {commitPlan}
               </tbody>
             </table>
           </div>

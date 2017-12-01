@@ -169,6 +169,7 @@ const command2MsgType = {
   // upgrade requests (sent to controller)
   'prepareUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
   'commitUpgrade': Controller_ttypes.MessageType.UPGRADE_GROUP_REQ,
+  'commitUpgradePlan': Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN_REQ,
   'abortUpgrade': Controller_ttypes.MessageType.UPGRADE_ABORT_REQ,
 
   // upgrade images
@@ -242,6 +243,9 @@ msgType2Params[Controller_ttypes.MessageType.RESET_SCAN_STATUS] = {
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_GROUP_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE'};
+msgType2Params[Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN_REQ] = {
+  'recvApp': 'ctrl-app-UPGRADE_APP',
+  'nmsAppId': 'NMS_WEB_UPGRADE'};
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_ABORT_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE'};
@@ -257,6 +261,7 @@ msgType2Params[Controller_ttypes.MessageType.UPGRADE_DEL_IMAGE_REQ] = {
 msgType2Params[Controller_ttypes.MessageType.UPGRADE_LIST_IMAGES_REQ] = {
   'recvApp': 'ctrl-app-UPGRADE_APP',
   'nmsAppId': 'NMS_WEB_UPGRADE'};
+
 msgType2Params[Aggregator_ttypes.AggrMessageType.START_IPERF] = {
   'recvApp': 'aggr-app-TRAFFIC_APP',
   'nmsAppId': 'NMS_WEB_TRAFFIC'};
@@ -384,15 +389,15 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'delLink':
       var delLinkReq = new Controller_ttypes.DelLink();
-      delLinkReq.a_node_name = msg.nodeA;
-      delLinkReq.z_node_name = msg.nodeZ;
+      delLinkReq.aNodeName = msg.nodeA;
+      delLinkReq.zNodeName = msg.nodeZ;
       delLinkReq.forceDelete = msg.forceDelete;
       send(delLinkReq);
       break;
     case 'delNode':
       var delNodeReq = new Controller_ttypes.DelNode();
       delNodeReq.nodeName = msg.node;
-      delNodeReq.forceDelete = msg.forceDelete;
+      delNodeReq.force = msg.forceDelete;
       send(delNodeReq);
       break;
     case 'delSite':
@@ -437,8 +442,8 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'setLinkIgnitionState':
       var setIgnitionParamsReq = new Controller_ttypes.IgnitionParams();
-      setIgnitionParamsReq.link_auto_ignite = {};
-      setIgnitionParamsReq.link_auto_ignite[msg.linkName] = msg.state;
+      setIgnitionParamsReq.linkAutoIgnite = {};
+      setIgnitionParamsReq.linkAutoIgnite[msg.linkName] = msg.state;
       send(setIgnitionParamsReq);
       break;
     case 'prepareUpgrade':
@@ -498,6 +503,12 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       upgradeGroupReqParams.limit = msg.limit;
 
       send(upgradeGroupReqParams);
+      break;
+    case 'commitUpgradePlan':
+      var upgradeReqParams = new Controller_ttypes.UpgradeCommitPlanReq();
+      upgradeReqParams.limit = msg.limit;
+      upgradeReqParams.excludeNodes = msg.excludeNodes;
+      send(upgradeReqParams);
       break;
     case 'abortUpgrade':
       var abortUpgradeParams = new Controller_ttypes.UpgradeAbortReq();
@@ -707,6 +718,11 @@ class ControllerProxy extends EventEmitter {
                 reject(receivedAck.message);
               }
               break;
+            case Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN_REQ:
+              var commitPlan = new Controller_ttypes.UpgradeCommitPlan();
+              commitPlan.read(tProtocol);
+              resolve({type: 'msg', msg: commitPlan});
+              break;
             case Controller_ttypes.MessageType.GET_IGNITION_STATE:
               var ignitionState = new Controller_ttypes.IgnitionState();
               ignitionState.read(tProtocol);
@@ -825,6 +841,11 @@ class ControllerProxy extends EventEmitter {
               let networkOverrideConfig = new Controller_ttypes.GetCtrlConfigNetworkOverridesResp();
               networkOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: networkOverrideConfig});
+              break;
+            case Controller_ttypes.MessageType.UPGRADE_COMMIT_PLAN_REQ:
+              let upgradeCommitPlan = new Controller_ttypes.UpgradeCommitPlan();
+              upgradeCommitPlan.read(tProtocol);
+              resolve({type: 'msg', msg: upgradeCommitPlan});
               break;
             default:
               console.error('[controller] No receive handler defined for', msgType);
