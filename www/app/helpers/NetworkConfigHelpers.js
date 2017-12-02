@@ -58,9 +58,11 @@ export const getStackedFields = (configs) => {
 }
 
 const alphabeticalSort = (a, b) => {
-  if (a.toLowerCase() < b.toLowerCase()) {
+  const lowerA = a.toLowerCase();
+  const lowerB = b.toLowerCase()
+  if (lowerA < lowerB) {
     return -1;
-  } else if (a.toLowerCase() > b.toLowerCase()) {
+  } else if (lowerA > lowerB) {
     return 1;
   }
   return 0;
