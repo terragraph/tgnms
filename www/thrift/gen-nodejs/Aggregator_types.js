@@ -83,12 +83,16 @@ AggrGetStatusDump.prototype.write = function(output) {
 AggrStatusDump_Deprecated = module.exports.AggrStatusDump_Deprecated = function(args) {
   this.adjacencyMap = null;
   this.statusReports = null;
+  this.version = null;
   if (args) {
     if (args.adjacencyMap !== undefined && args.adjacencyMap !== null) {
       this.adjacencyMap = Thrift.copyMap(args.adjacencyMap, [Lsdb_ttypes.AdjacencyDatabase]);
     }
     if (args.statusReports !== undefined && args.statusReports !== null) {
       this.statusReports = Thrift.copyMap(args.statusReports, [null]);
+    }
+    if (args.version !== undefined) {
+      this.version = args.version;
     }
   }
 };
@@ -156,6 +160,13 @@ AggrStatusDump_Deprecated.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 3:
+      if (ftype == Thrift.Type.STRING) {
+        this.version = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -195,6 +206,11 @@ AggrStatusDump_Deprecated.prototype.write = function(output) {
       }
     }
     output.writeMapEnd();
+    output.writeFieldEnd();
+  }
+  if (this.version !== null && this.version !== undefined) {
+    output.writeFieldBegin('version', Thrift.Type.STRING, 3);
+    output.writeString(this.version);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

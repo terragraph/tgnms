@@ -56,6 +56,7 @@ const Actions = {
   PENDING_TOPOLOGY: 700,
 
   // network config actions can be found in NetworkConfigActions.js
+  COMMIT_PLAN_BATCH: 800,
 };
 
 const SiteOverlayKeys = {
@@ -73,6 +74,12 @@ const SiteOverlayKeys = {
   Pending: {
     Site: {color: 'pink'},
     Node: {color: 'pink'}
+  },
+  CommitPlan: {
+    Full: {color: 'red'},
+    Partial: {color: 'orange'},
+    None: {color: 'green'},
+    NoData: {color: 'black'},
   },
 }
 
@@ -139,6 +146,14 @@ const linkOverlayKeys = {
       "hsl(0, 100%, 30%)",
       "hsl(0, 100%, 20%)",
     ]
+  },
+  CommitPlan: {
+    name: 'Commit Plan',
+    metric: 'commit_plan',
+    colors: [
+      "green",
+      "red",
+    ],
   },
 }
 

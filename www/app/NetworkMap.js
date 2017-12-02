@@ -80,6 +80,8 @@ export default class NetworkMap extends React.Component {
     linkOverlayData: null,
     showTopologyIssuesPane: false,
     newTopology: {},
+    // commit batch selected
+    commitPlanBatch: 0,
   }
 
   constructor(props) {
@@ -236,6 +238,11 @@ export default class NetworkMap extends React.Component {
         this.setState({
           showTopologyIssuesPane: payload.visible,
           newTopology: payload.topology,
+        });
+        break;
+      case Actions.COMMIT_PLAN_BATCH:
+        this.setState({
+          commitPlanBatch: payload.batch,
         });
         break;
     }
@@ -537,10 +544,15 @@ export default class NetworkMap extends React.Component {
 
       let healthyCount = 0;
       let totalCount = 0;
+      let inCommitBatch = 0;
       let hasPop = false;
       let hasMac = false;
       let isCn = false;
       let sitePolarity = null;
+      let sitePlan = 'NoData';
+      if (this.props.commitPlan != null) {
+        sitePlan = 'None';
+      }
       Object.keys(topology.nodes).map(nodeIndex => {
         let node = topology.nodes[nodeIndex];
         if (node.site_name == site.name) {
@@ -555,8 +567,22 @@ export default class NetworkMap extends React.Component {
           // TODO: check for mixed sites (error)
           isCn = node.node_type == 1 ? true : isCn;
           hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
+          if (this.props.commitPlan != null &&
+              this.props.commitPlan.commitBatches.length >=
+                this.state.commitPlanBatch &&
+              this.props.commitPlan.commitBatches[this.state.commitPlanBatch]
+                .has(node.name)) {
+            inCommitBatch++;
+          }
         }
       });
+
+      // commit plan
+      if (inCommitBatch == totalCount) {
+        sitePlan = 'Full';
+      } else if (inCommitBatch > 0) {
+        sitePlan = 'Partial';
+      }
 
       let contextualMarker = null;
       if (site.hasOwnProperty('pending') && site.pending) {
@@ -576,6 +602,10 @@ export default class NetworkMap extends React.Component {
             break;
           case 'Polarity':
             contextualMarker = this.getSiteMarker(siteCoords, polarityColor(sitePolarity), siteIndex);
+            break;
+          case 'CommitPlan':
+            // fetch commit plan
+            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.CommitPlan[sitePlan].color);
             break;
           default:
             contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
@@ -655,6 +685,9 @@ export default class NetworkMap extends React.Component {
           !this.nodesByName.hasOwnProperty(link.z_node_name)) {
         return;
       }
+      let aNode = this.nodesByName[link.a_node_name];
+      let zNode = this.nodesByName[link.z_node_name];
+
       let aSite = this.nodesByName[link.a_node_name].site_name;
       let zSite = this.nodesByName[link.z_node_name].site_name;
       if (!this.sitesByName.hasOwnProperty(aSite) ||
@@ -760,6 +793,13 @@ export default class NetworkMap extends React.Component {
               color_z = 'grey';
             }
             linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
+            break;
+          case 'CommitPlan':
+            let commitBatch = this.props.commitPlan.commitBatches[this.state.commitPlanBatch];
+            linkLine = this.getLinkLineTwoSides(link,
+              linkCoords,
+              overlayKey.colors[commitBatch.has(aNode.name) ? 1 : 0],
+              overlayKey.colors[commitBatch.has(zNode.name) ? 1 : 0]);
             break;
           case 'FLAPS':
             // flaps is a special case, can use health data to count # of events
@@ -897,12 +937,17 @@ export default class NetworkMap extends React.Component {
     }
     if (showOverview) {
       // overview
+      let commitOverlayEnabled = this.props.siteOverlay == 'CommitPlan' ||
+                                 this.props.linkOverlay == 'CommitPlan';
       layersControl =
         <Control position="topright">
           <DetailsTopology topologyName={this.props.networkConfig.topology.name}
                            topology={this.props.networkConfig.topology}
                            nodes={this.nodesByName}
                            links={this.linksByName}
+                           commitPlan={this.props.commitPlan}
+                           commitPlanBatch={this.state.commitPlanBatch}
+                           commitOverlayEnabled={commitOverlayEnabled}
                            maxHeight={maxModalHeight}
                            onClose={this.closeModal}
                            onEnter={this.disableMapScrolling}
