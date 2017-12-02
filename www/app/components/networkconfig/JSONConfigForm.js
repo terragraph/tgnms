@@ -76,17 +76,23 @@ class ExpandableConfigForm extends React.Component {
 
     let hasOverrideText = '';
     if (hasNodeOverride && hasNetworkOverride) {
-      hasOverrideText = ' (has network and node override)';
+      hasOverrideText = (
+        <span className='nc-override-indicator'>(has network and node override)</span>
+      );
     } else if (hasNodeOverride) {
-      hasOverrideText = ' (has node override)';
+      hasOverrideText = (
+        <span className='nc-override-indicator'>(has node override)</span>
+      );
     } else if (hasNetworkOverride) {
-      hasOverrideText = ' (has network override)';
+      hasOverrideText = (
+        <span className='nc-override-indicator'>(has network override)</span>
+      );
     }
 
     return (
       <div className='rc-expandable-config-form'>
         <img src={expandMarker} className='config-expand-marker' onClick={this.toggleExpandConfig}/>
-        <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel + hasOverrideText}:</label>
+        <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel}{hasOverrideText}:</label>
         {expanded && configForm}
       </div>
     );
