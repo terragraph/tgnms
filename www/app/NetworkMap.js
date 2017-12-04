@@ -570,6 +570,7 @@ export default class NetworkMap extends React.Component {
           if (this.props.commitPlan != null &&
               this.props.commitPlan.commitBatches.length >=
                 this.state.commitPlanBatch &&
+              this.props.commitPlan.commitBatches[this.state.commitPlanBatch] &&
               this.props.commitPlan.commitBatches[this.state.commitPlanBatch]
                 .has(node.name)) {
             inCommitBatch++;
