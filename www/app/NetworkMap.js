@@ -6,6 +6,9 @@ import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker, LayerGroup } fro
 import Control from 'react-leaflet-control';
 import LeafletGeom from 'leaflet-geometryutil';
 
+// helper methods
+import { getNodeMarker } from './helpers/NetworkMapHelpers.js';
+
 // dispatcher
 import {Actions, SiteOverlayKeys, linkOverlayKeys, MapDimensions, MapTiles} from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
@@ -378,65 +381,7 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  getNodeMarker = (pos) => {
-    const options = {
-      data: {
-        'dataPoint1': Math.random() * 20,
-        'dataPoint2': Math.random() * 20,
-        'dataPoint3': Math.random() * 20,
-        'dataPoint4': Math.random() * 20
-      },
-      chartOptions: {
-        'dataPoint1': {
-          fillColor: '#FEE5D9',
-          minValue: 0,
-          maxValue: 20,
-          maxHeight: 20,
-          displayText: function (value) {
-            return value.toFixed(2);
-          }
-        },
-        'dataPoint2': {
-          fillColor: '#FCAE91',
-          minValue: 0,
-          maxValue: 20,
-          maxHeight: 20,
-          displayText: function (value) {
-            return value.toFixed(2);
-          }
-        },
-        'dataPoint3': {
-          fillColor: '#FB6A4A',
-          minValue: 0,
-          maxValue: 20,
-          maxHeight: 20,
-          displayText: function (value) {
-            return value.toFixed(2);
-          }
-        },
-        'dataPoint4': {
-          fillColor: '#CB181D',
-          minValue: 0,
-          maxValue: 20,
-          maxHeight: 20,
-          displayText: function (value) {
-            return value.toFixed(2);
-          }
-        }
-      },
-      weight: 1,
-      color: '#000000',
-      radius: 20,
-    };
-    const nodeMarker = new Leaflet.PieChartMarker(
-      new LatLng(pos[0], pos[1]),
-      options
-    );
 
-    if (this.refs.nodes) {
-      nodeMarker.addTo(this.refs.nodes.leafletElement);
-    }
-  }
 
   getSiteMarker(pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
@@ -643,7 +588,10 @@ export default class NetworkMap extends React.Component {
         }
       });
 
-      this.getNodeMarker(siteCoords);
+      if (this.refs.nodes) {
+        const nodeMarker = getNodeMarker(siteCoords);
+        nodeMarker.addTo(this.refs.nodes.leafletElement);
+      }
 
       // commit plan
       if (inCommitBatch == totalCount) {
