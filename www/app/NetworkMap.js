@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 // leaflet maps
 import Leaflet, { Point, LatLng } from 'leaflet';
-import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker } from 'react-leaflet';
+import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker, LayerGroup } from 'react-leaflet';
 import Control from 'react-leaflet-control';
 import LeafletGeom from 'leaflet-geometryutil';
 
@@ -433,8 +433,8 @@ export default class NetworkMap extends React.Component {
       options
     );
 
-    if (this.refs.map) {
-      nodeMarker.addTo(this.refs.map.leafletElement);
+    if (this.refs.nodes) {
+      nodeMarker.addTo(this.refs.nodes.leafletElement);
     }
   }
 
@@ -563,6 +563,11 @@ export default class NetworkMap extends React.Component {
   }
 
   render() {
+    if (this.refs.nodes) {
+      // clear the nodes layer
+      this.refs.nodes.leafletElement.clearLayers();
+    }
+
     // use the center position from the topology if set
     const centerPosition = this.props.networkConfig ?
       [this.props.networkConfig.latitude,
@@ -1090,6 +1095,7 @@ export default class NetworkMap extends React.Component {
             {linkComponents}
             {siteComponents}
             {siteMarkers}
+            <LayerGroup ref='nodes' />
             {layersControl}
             {tablesControl}
             {topologyIssuesControl}
