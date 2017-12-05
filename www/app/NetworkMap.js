@@ -564,35 +564,41 @@ export default class NetworkMap extends React.Component {
       if (this.props.commitPlan != null) {
         sitePlan = 'None';
       }
-      Object.keys(topology.nodes).map(nodeIndex => {
-        let node = topology.nodes[nodeIndex];
-        if (node.site_name == site.name) {
-          totalCount++;
-          healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
-          if (sitePolarity == null) {
-            sitePolarity = node.polarity;
-          }
-          // mark as hybrid if anything in the site differs
-          sitePolarity = node.polarity != sitePolarity ? 3 : sitePolarity;
-          hasPop = node.pop_node ? true : hasPop;
-          // TODO: check for mixed sites (error)
-          isCn = node.node_type == 1 ? true : isCn;
-          hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
-          if (this.props.commitPlan != null &&
-              this.props.commitPlan.commitBatches.length >=
-                this.state.commitPlanBatch &&
-              this.props.commitPlan.commitBatches[this.state.commitPlanBatch] &&
-              this.props.commitPlan.commitBatches[this.state.commitPlanBatch]
-                .has(node.name)) {
-            inCommitBatch++;
-          }
-        }
+
+      const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
+        const node = topology.nodes[nodeIndex];
+        return node.site_name === site.name;
       });
 
-      if (this.refs.nodes) {
-        const nodeMarker = getNodeMarker(siteCoords);
-        nodeMarker.addTo(this.refs.nodes.leafletElement);
-      }
+      nodeKeysInSite.forEach((nodeIndex) => {
+        const node = topology.nodes[nodeIndex];
+
+        totalCount++;
+        healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
+        if (sitePolarity == null) {
+          sitePolarity = node.polarity;
+        }
+        // mark as hybrid if anything in the site differs
+        sitePolarity = node.polarity != sitePolarity ? 3 : sitePolarity;
+        hasPop = node.pop_node ? true : hasPop;
+        // TODO: check for mixed sites (error)
+        isCn = node.node_type == 1 ? true : isCn;
+        hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
+        if (this.props.commitPlan != null &&
+            this.props.commitPlan.commitBatches.length >=
+              this.state.commitPlanBatch &&
+            this.props.commitPlan.commitBatches[this.state.commitPlanBatch] &&
+            this.props.commitPlan.commitBatches[this.state.commitPlanBatch]
+              .has(node.name)) {
+          inCommitBatch++;
+        }
+      })
+
+      // if (this.refs.nodes) {
+      //   const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
+      //   const nodeMarkersForSite = getNodeMarker(siteCoords, nodesInSite);
+      //   nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
+      // }
 
       // commit plan
       if (inCommitBatch == totalCount) {
@@ -865,6 +871,16 @@ export default class NetworkMap extends React.Component {
     if (this.state.selectedSite != null) {
       let site = this.sitesByName[this.state.selectedSite];
       if (site && site.location) {
+        const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
+          const node = topology.nodes[nodeIndex];
+          return node.site_name === site.name;
+        });
+
+        if (this.refs.nodes) {
+          const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
+          const nodeMarkersForSite = getNodeMarker([site.location.latitude, site.location.longitude], nodesInSite, topology.links);
+          nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
+        }
         siteMarkers =
           <CircleMarker center={[site.location.latitude, site.location.longitude]}
                   radius={18}
@@ -1044,11 +1060,12 @@ export default class NetworkMap extends React.Component {
             {linkComponents}
             {siteComponents}
             {siteMarkers}
-            <LayerGroup ref='nodes' />
+
             {layersControl}
             {tablesControl}
             {topologyIssuesControl}
             {plannedSite}
+            <LayerGroup ref='nodes' />
           </CustomMap>
           <NetworkDataTable height={this.state.lowerPaneHeight}
                             networkConfig={this.props.networkConfig} />
