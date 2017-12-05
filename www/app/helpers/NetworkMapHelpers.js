@@ -1,13 +1,14 @@
 import Leaflet, { Point, LatLng } from 'leaflet';
 
+import {Actions} from '../constants/NetworkConstants.js';
+import Dispatcher from '../NetworkDispatcher.js';
+
 export const getLinkAnglesForNodes = (nodeNames, links) => {
-  // console.log(links);
-  // another dumb assumption for now
-  const actualLinks = links.filter(link => link.distance > 0 && link.link_type === 1);
-  console.log(actualLinks);
+  const DNLinks = links.filter(link => link.link_type === 1);
 
   // gets a map of node name to link that extends out of the node
-  const anglesByANode = actualLinks.reduce((curLinks, link) => {
+  // first for nodes at the outgoing end of links
+  const anglesByANode = DNLinks.reduce((curLinks, link) => {
     let newLink = {};
     // assume range is -180 to 180. we want to convert to 0 to 360
     const newAngle = link.angle < 0 ? link.angle + 360 : link.angle;
@@ -16,7 +17,8 @@ export const getLinkAnglesForNodes = (nodeNames, links) => {
     return Object.assign(curLinks, newLink);
   }, {});
 
-  const anglesByZNode = actualLinks.reduce((curLinks, link) => {
+  // then for nodes at the incoming end of links
+  const anglesByZNode = DNLinks.reduce((curLinks, link) => {
     let newLink = {};
     // assume range is -180 to 180. we want to convert to 0 to 360
     const newAngleOfA = link.angle < 0 ? link.angle + 360 : link.angle;
@@ -56,10 +58,12 @@ const sortkeysByValue = (toSort) => {
 
 export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
   let nodeValues = {};
-  // so we iterate using the order in sortedNodesByAngle
-
   let leftAngles = {};
   let rightAngles = {};
+
+  // we iterate using the order in sortedNodesByAngle (implicitly, we go around the circle of a site)
+  // populate a map of node name --> the rightmost angle of a node's sector in the pie chart
+  // the rightmost angle is the bisector of the angle between the current node's and next node's links
   sortedNodesByAngle.forEach((node, idx) => {
     // treat as a circular array
     const ownAngle = linkAnglesForNodes[sortedNodesByAngle[idx]];
@@ -72,7 +76,10 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
     rightAngles[node] = (ownAngle + ((adjNextAngle - ownAngle) / 2)) % 360;
   });
 
-  // reuse the rightAngles to get the leftAngles, and then calculate the node values
+  // populate a map of node name --> the LEFTmost angle of a node's sector in the pie chart
+  // the leftmost angle is the bisector of the angle between the current node's and previous node's links
+  // we also calculate the relative value of the node's sector in the pie chart through the difference
+  // of the node's right-angle and left-angle
   sortedNodesByAngle.forEach((node, idx) => {
     const leftIdx = idx === 0 ? sortedNodesByAngle.length - 1 : idx - 1;
 
@@ -87,83 +94,79 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
   });
 
   // console.log(linkAnglesForNodes, nodeValues);
+  // use the left-angle of the first sector to calculate the rotation offset needed for the pie chart
   return {
     nodeValues,
     offset: leftAngles[sortedNodesByAngle[0]] - 90,
   };
-  // populate a map representing the angle for the right limit of the node in the chart
-  // and one for the left
-
-  // so right - left mod 360 is the amount of space the node should take up
-  // and we guarantee that a link that a node is part of is always between the start and end
-  // of the node's piece in the pie chart in a site
-
-  // offset: rotate CCW
 }
 
-export const getNodeMarker = (siteCoords, nodesInSite, links) => {
-  const nodeNames = nodesInSite.map(node => node.name);
+// TODO: Kelvin: assume that we can only select ONE node at once
+export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
+  let nodeNames = [];
+  let nodesByName = {};
+  nodesInSite.forEach((node) => {
+    nodeNames = nodeNames.concat(node.name);
+    nodesByName[node.name] = node;
+  });
 
   const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, links);
+
+  // filter the link angles for only the nodes in the site (the ones that we care about)
   const linksForNodesInSite = {};
   nodeNames.forEach(node => {linksForNodesInSite[node] = linkAnglesForNodes[node]});
 
   const { nodeValues, offset } = getNodeValues(linksForNodesInSite, sortkeysByValue(linksForNodesInSite));
 
   const chartOptions = {};
-  Object.keys(nodeValues).forEach(node => {
-    chartOptions[node] = {
-      fillColor: '#0000FF',
+  Object.keys(nodeValues).forEach(nodeName => {
+    const node = nodesByName[nodeName];
+    const fillColor = node.status === 1 ? '#ff2222' : '#44ff44';
+
+    const nodeOptions = {
+      fillColor: fillColor,
+      fillOpacity: 0.7,
+      maxHeight: 20,
+    };
+
+    const selectedNodeOptions = {
+      weight: 3,
       fillOpacity: 1,
     }
+    console.log(nodeName, selectedNode);
+
+    chartOptions[nodeName] = nodeName === selectedNode ?
+      Object.assign({}, nodeOptions, selectedNodeOptions) : nodeOptions;
   });
 
   const options = {
     data: nodeValues,
     chartOptions: chartOptions,
-    // chartOptions: {
-    //   'dataPoint1': {
-    //     fillColor: '#FF0000',
-    //     fillOpacity: 1,
-    //     displayText: function (value) {
-    //       return value.toFixed(2);
-    //     }
-    //   },
-    //   'dataPoint2': {
-    //     fillColor: '#00FF00',
-    //     fillOpacity: 1,
-    //     displayText: function (value) {
-    //       return value.toFixed(2);
-    //     }
-    //   },
-    //   'dataPoint3': {
-    //     fillColor: '#0000FF',
-    //     fillOpacity: 1,
-    //     displayText: function (value) {
-    //       return value.toFixed(2);
-    //     }
-    //   },
-    //   'dataPoint4': {
-    //     fillColor: '#000000',
-    //     fillOpacity: 1,
-    //     displayText: function (value) {
-    //       return value.toFixed(2);
-    //     }
-    //   }
-    // },
     weight: 1,
     color: '#000000',
-    radius: 20,
-    opacity: 1,
     fillOpacity: 1,
+    radius: 20,
     rotation: offset,
+    barThickness: 10,
+    level: 1000,
   };
-  // return {};
 
-  return new Leaflet.PieChartMarker(
+  const newMarker = new Leaflet.PieChartMarker(
     new LatLng(siteCoords[0], siteCoords[1]),
     options
   );
+
+  // TODO: hacky but only way we can bind onClick to each segment
+  newMarker.eachLayer((layer) => {
+    layer.on('click', (e) => {
+      const nodeName = e.target.options.key;
+      Dispatcher.dispatch({
+        actionType: Actions.NODE_SELECTED,
+        nodeSelected: nodeName,
+      });
+    })
+  })
+  return newMarker;
 }
 
 // TODO: some sites do NOT select properly

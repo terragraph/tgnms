@@ -41,6 +41,7 @@ export class CustomMap extends Map {
   componentDidUpdate (prevProps: Object) {
     this.updateLeafletElement(prevProps, this.props);
     const layers = this.leafletElement._layers;
+    // console.log('layers on dah map', layers);
     Object.values(layers)
       .filter((layer) => {
         return typeof layer.options.level !== "undefined";
@@ -381,8 +382,6 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-
-
   getSiteMarker(pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
 
@@ -594,12 +593,6 @@ export default class NetworkMap extends React.Component {
         }
       })
 
-      // if (this.refs.nodes) {
-      //   const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
-      //   const nodeMarkersForSite = getNodeMarker(siteCoords, nodesInSite);
-      //   nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
-      // }
-
       // commit plan
       if (inCommitBatch == totalCount) {
         sitePlan = 'Full';
@@ -607,36 +600,39 @@ export default class NetworkMap extends React.Component {
         sitePlan = 'Partial';
       }
 
-      let contextualMarker = null;
+      let siteColor = SiteOverlayKeys.Health.Unhealthy.color; // default
+      let siteIndexForMarker = siteIndex;
+
       if (site.hasOwnProperty('pending') && site.pending) {
-        contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Pending.Site, siteIndex);
+        siteColor = SiteOverlayKeys.Pending.Site;
       } else {
         switch (this.props.siteOverlay) {
           case 'Health':
             if (totalCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Empty.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Empty.color;
             } else if (totalCount == healthyCount) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Healthy.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Healthy.color;
             } else if (healthyCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Unhealthy.color;
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Partial.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Partial.color;
             }
             break;
           case 'Polarity':
-            contextualMarker = this.getSiteMarker(siteCoords, polarityColor(sitePolarity), siteIndex);
+            siteColor = polarityColor(sitePolarity);
             break;
           case 'CommitPlan':
             // fetch commit plan
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.CommitPlan[sitePlan].color);
+            siteColor = SiteOverlayKeys.CommitPlan[sitePlan].color;
+            siteIndexForMarker = undefined; // hack
             break;
           default:
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
+            siteColor = SiteOverlayKeys.Health.Unhealthy.color;
+            siteIndexForMarker = undefined; // hack
         }
       }
-      siteComponents.push(contextualMarker);
 
-
+      siteComponents.push( this.getSiteMarker(siteCoords, siteColor, siteIndexForMarker) );
 
       if (hasPop) {
         let secondaryMarker =
@@ -878,8 +874,16 @@ export default class NetworkMap extends React.Component {
 
         if (this.refs.nodes) {
           const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
-          const nodeMarkersForSite = getNodeMarker([site.location.latitude, site.location.longitude], nodesInSite, topology.links);
+          const nodeMarkersForSite = getNodeMarker(
+            [site.location.latitude, site.location.longitude],
+            nodesInSite,
+            topology.links,
+            this.state.selectedNode
+          );
           nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
+
+          this.refs.nodes.leafletElement.setZIndex(1000);
+          // console.log(this.refs.nodes.leafletElement);
         }
         siteMarkers =
           <CircleMarker center={[site.location.latitude, site.location.longitude]}
@@ -1065,7 +1069,7 @@ export default class NetworkMap extends React.Component {
             {tablesControl}
             {topologyIssuesControl}
             {plannedSite}
-            <LayerGroup ref='nodes' />
+            <LayerGroup ref='nodes'/>
           </CustomMap>
           <NetworkDataTable height={this.state.lowerPaneHeight}
                             networkConfig={this.props.networkConfig} />
