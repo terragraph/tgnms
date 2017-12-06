@@ -396,7 +396,8 @@ export default class NetworkMap extends React.Component {
         nodesInSite,
         topology.links,
         this.state.selectedNode,
-        topology.nodes,
+        () => this.setState({hoveredSite: site}),
+        () => this.setState({hoveredSite: null})
       );
       nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
     }
@@ -405,6 +406,7 @@ export default class NetworkMap extends React.Component {
   getSiteMarker(site, pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
 
+    // onMouseOut={() => this.setState({hoveredSite: null})}
      return (
       <CircleMarker center={pos}
         radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
@@ -415,7 +417,6 @@ export default class NetworkMap extends React.Component {
         siteIndex={siteIndex}
         onClick={this.handleMarkerClick}
         onMouseOver={() => this.setState({hoveredSite: site})}
-        onMouseOut={() => this.setState({hoveredSite: null})}
         fillColor={color}
         level={10}
       />

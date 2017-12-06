@@ -5,6 +5,30 @@ import Dispatcher from '../NetworkDispatcher.js';
 
 export const MAX_SECTOR_SIZE = 45; // max size allocated for a node sector, in degrees
 
+const DEFAULT_SEGMENT_OPTIONS = {
+  weight: 1,
+  color: '#000000',
+  fillOpacity: 1,
+  radius: 20,
+  barThickness: 10,
+  level: 1000,
+};
+
+const sortkeysByValue = (toSort) => {
+  const kvPairs = Object.keys(toSort).map(key => ( [key, toSort[key]] ));
+
+  kvPairs.sort((a, b) => {
+    if (a[1] < b[1]) {
+      return -1;
+    } else if (a[1] > b[1]) {
+      return 1;
+    }
+    return 0;
+  });
+
+  return kvPairs.map(pair => pair[0]); // retrieve keys only
+}
+
 const getLinkAnglesForNodes = (nodeNames, links) => {
   const nodeSet = new Set(nodeNames);
   const DNLinks = links.filter((link) => {
@@ -38,25 +62,6 @@ const getLinkAnglesForNodes = (nodeNames, links) => {
 
   // assume each node has EXACTLY 0 or 1 link either coming into it or going out of it
   return Object.assign({}, anglesByANode, anglesByZNode);
-}
-
-const sortkeysByValue = (toSort) => {
-  // outputs the keys of an object such that when the values are retrieved in the order
-  // of the keys, they will be sorted
-  const kvPairs = Object.keys(toSort).map((key) => {
-    return [key, toSort[key]];
-  });
-
-  kvPairs.sort((a, b) => {
-    if (a[1] < b[1]) {
-      return -1;
-    } else if (a[1] > b[1]) {
-      return 1;
-    }
-    return 0;
-  });
-
-  return kvPairs.map(pair => pair[0]); // retrieve keys only
 }
 
 const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
@@ -141,7 +146,6 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
       rightAngle,
       nodesByName[node].mac_addr
     ));
-    // nodeValues[node] = rightAngle - adjLeftAngle;
   });
 
   // use the left-angle of the first sector to calculate the rotation offset needed for the pie chart
@@ -151,7 +155,7 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
   };
 }
 
-export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, nodes) => {
+export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, mouseEnterFunc, mouseLeaveFunc) => {
   let nodeNames = [];
   let nodesByName = {};
   let linkAnglesForSiteNodes = {};
@@ -182,17 +186,11 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, node
     };
   });
 
-  const options = {
+  const options = Object.assign({}, DEFAULT_SEGMENT_OPTIONS, {
     data: nodeValues,
     chartOptions: chartOptions,
-    weight: 1,
-    color: '#000000',
-    fillOpacity: 1,
-    radius: 20,
     rotation: offset,
-    barThickness: 10,
-    level: 1000,
-  };
+  });
 
   const newMarker = new Leaflet.PieChartMarker(
     new LatLng(siteCoords[0], siteCoords[1]),
@@ -236,6 +234,11 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, node
         });
       });
     }
+
+    layer.on('mouseout', (e) => {
+      console.log('lefth');
+      mouseLeaveFunc();
+    });
   });
 
   return newMarker;
