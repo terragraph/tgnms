@@ -3,7 +3,47 @@ import Leaflet, { Point, LatLng } from 'leaflet';
 import {Actions} from '../constants/NetworkConstants.js';
 import Dispatcher from '../NetworkDispatcher.js';
 
-export const getLinkAnglesForNodes = (nodeNames, links) => {
+export const MAX_SECTOR_SIZE = 45; // max size allocated for a node sector, in degrees
+
+// diagnostic function
+const getAllLinksForNodes = (nodes, links) => {
+  const nodeNames = nodes.map(node => node.name);
+
+  const DNLinks = links.filter(link => link.link_type === 1);
+
+  // gets a map of node name to link that extends out of the node
+  // first for nodes at the outgoing end of links
+  let anglesByANode = DNLinks.reduce((curLinks, link) => {
+    let newLink = {};
+    const newAngle = link.angle < 0 ? link.angle + 360 : link.angle;
+    newLink[link.a_node_name] = newLink[link.a_node_name] ?
+      [...(newLink[link.a_node_name]), newAngle] : [newAngle];
+    return Object.assign(curLinks, newLink);
+  }, {});
+
+  // then for nodes at the incoming end of links
+  let anglesByNode = DNLinks.reduce((curLinks, link) => {
+    let newLink = {};
+    const newAngleOfA = link.angle < 0 ? link.angle + 360 : link.angle;
+    const newAngle = (newAngleOfA + 180) % 360;
+
+    newLink[link.z_node_name] = newLink[link.z_node_name] ?
+      [...(newLink[link.z_node_name]), newAngle] : [newAngle];
+    return Object.assign(curLinks, newLink);
+  }, anglesByANode);
+
+  // TODO: Kelvin: this is a VERY simple case where we assume each node
+  // has EXACTLY 1 link either coming into it or going out of it
+  nodeNames.forEach((node) => {
+    if (!anglesByNode[node]) {
+      anglesByNode[node] = [];
+    }
+  })
+
+  // console.log('here are your damn angles!', anglesByNode);
+}
+
+const getLinkAnglesForNodes = (nodeNames, links) => {
   const DNLinks = links.filter(link => link.link_type === 1);
 
   // gets a map of node name to link that extends out of the node
@@ -13,7 +53,6 @@ export const getLinkAnglesForNodes = (nodeNames, links) => {
     // assume range is -180 to 180. we want to convert to 0 to 360
     const newAngle = link.angle < 0 ? link.angle + 360 : link.angle;
     newLink[link.a_node_name] = newAngle;
-    // console.log(link.a_node_name, newAngle);
     return Object.assign(curLinks, newLink);
   }, {});
 
@@ -25,20 +64,16 @@ export const getLinkAnglesForNodes = (nodeNames, links) => {
     const newAngle = (newAngleOfA + 180) % 360;
 
     newLink[link.z_node_name] = newAngle; // convert the angle here
-    // console.log(link.z_node_name, newAngle);
     return Object.assign(curLinks, newLink);
   }, {});
 
-  // TODO: Kelvin: this is a VERY simple case where we assume each node
-  // has EXACTLY 1 link either coming into it or going out of it
+  // assume each node has EXACTLY 0 or 1 link either coming into it or going out of it
   return Object.assign({}, anglesByANode, anglesByZNode);
 }
 
 const sortkeysByValue = (toSort) => {
   // outputs the keys of an object such that when the values are retrieved in the order
   // of the keys, they will be sorted
-
-  // [key, value] pairs for the given object
   const kvPairs = Object.keys(toSort).map((key) => {
     return [key, toSort[key]];
   });
@@ -52,14 +87,24 @@ const sortkeysByValue = (toSort) => {
     return 0;
   });
 
-  // just get the keys
-  return kvPairs.map(pair => pair[0]);
+  return kvPairs.map(pair => pair[0]); // retrieve keys only
 }
 
-export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
+export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
   let nodeValues = {};
   let leftAngles = {};
   let rightAngles = {};
+
+  // special case when we have one node
+  if (sortedNodesByAngle.length === 1) {
+    const node = sortedNodesByAngle[0];
+    nodeValues[node] = MAX_SECTOR_SIZE;
+
+    return {
+      nodeValues,
+      offset: linkAnglesForNodes[node] - (MAX_SECTOR_SIZE / 2) - 90,
+    };
+  }
 
   // we iterate using the order in sortedNodesByAngle (implicitly, we go around the circle of a site)
   // populate a map of node name --> the rightmost angle of a node's sector in the pie chart
@@ -72,7 +117,6 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
     const nextAngle = linkAnglesForNodes[sortedNodesByAngle[(idx + 1) % sortedNodesByAngle.length]];
     const adjNextAngle = nextAngle >= ownAngle ? nextAngle : nextAngle + 360;
 
-    // console.log(node, ownAngle, nextAngle, (ownAngle + ((adjNextAngle - ownAngle) / 2)) % 360);
     rightAngles[node] = (ownAngle + ((adjNextAngle - ownAngle) / 2)) % 360;
   });
 
@@ -87,13 +131,10 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
     const leftAngle = rightAngles[sortedNodesByAngle[leftIdx]];
     const adjLeftAngle = leftAngle > rightAngle ? leftAngle - 360 : leftAngle;
 
-    // console.log(node, rightAngle, leftAngle, adjLeftAngle, rightAngle - adjLeftAngle);
-
     leftAngles[node] = adjLeftAngle;
     nodeValues[node] = rightAngle - adjLeftAngle;
   });
 
-  // console.log(linkAnglesForNodes, nodeValues);
   // use the left-angle of the first sector to calculate the rotation offset needed for the pie chart
   return {
     nodeValues,
@@ -101,10 +142,10 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
   };
 }
 
-export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
+export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, nodes) => {
   let nodeNames = [];
   let nodesByName = {};
-  let linksForNodesInSite = {};
+  let linkAnglesForSiteNodes = {};
   nodesInSite.forEach((node) => {
     nodeNames = nodeNames.concat(node.name);
     nodesByName[node.name] = node;
@@ -112,9 +153,14 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
 
   // filter the link angles for only the nodes in the site (the ones that we care about)
   const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, links);
-  nodeNames.forEach(node => {linksForNodesInSite[node] = linkAnglesForNodes[node]});
+  nodeNames.forEach(node => {
+    // filter out nodes in the site that are not connected to a DN link
+    if (linkAnglesForNodes.hasOwnProperty(node)) {
+      linkAnglesForSiteNodes[node] = linkAnglesForNodes[node];
+    }
+  });
 
-  const { nodeValues, offset } = getNodeValues(linksForNodesInSite, sortkeysByValue(linksForNodesInSite));
+  const { nodeValues, offset } = getNodeValues(linkAnglesForSiteNodes, sortkeysByValue(linkAnglesForSiteNodes), nodesByName);
 
   const chartOptions = {};
   Object.keys(nodeValues).forEach(nodeName => {

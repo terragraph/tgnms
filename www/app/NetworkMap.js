@@ -395,7 +395,8 @@ export default class NetworkMap extends React.Component {
         [site.location.latitude, site.location.longitude],
         nodesInSite,
         topology.links,
-        this.state.selectedNode
+        this.state.selectedNode,
+        topology.nodes,
       );
       nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
     }
