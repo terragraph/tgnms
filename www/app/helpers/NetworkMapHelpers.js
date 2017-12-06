@@ -101,19 +101,17 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle) => {
   };
 }
 
-// TODO: Kelvin: assume that we can only select ONE node at once
 export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
   let nodeNames = [];
   let nodesByName = {};
+  let linksForNodesInSite = {};
   nodesInSite.forEach((node) => {
     nodeNames = nodeNames.concat(node.name);
     nodesByName[node.name] = node;
   });
 
-  const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, links);
-
   // filter the link angles for only the nodes in the site (the ones that we care about)
-  const linksForNodesInSite = {};
+  const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, links);
   nodeNames.forEach(node => {linksForNodesInSite[node] = linkAnglesForNodes[node]});
 
   const { nodeValues, offset } = getNodeValues(linksForNodesInSite, sortkeysByValue(linksForNodesInSite));
@@ -123,20 +121,10 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
     const node = nodesByName[nodeName];
     const fillColor = node.status === 1 ? '#ff2222' : '#44ff44';
 
-    const nodeOptions = {
+    chartOptions[nodeName] = {
       fillColor: fillColor,
-      fillOpacity: 0.7,
-      maxHeight: 20,
-    };
-
-    const selectedNodeOptions = {
-      weight: 3,
       fillOpacity: 1,
-    }
-    console.log(nodeName, selectedNode);
-
-    chartOptions[nodeName] = nodeName === selectedNode ?
-      Object.assign({}, nodeOptions, selectedNodeOptions) : nodeOptions;
+    };
   });
 
   const options = {
@@ -158,15 +146,34 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
 
   // TODO: hacky but only way we can bind onClick to each segment
   newMarker.eachLayer((layer) => {
+    const node = nodesByName[layer.options.key];
+    let segmentOptions = {};
+    if (node.name === selectedNode) {
+      segmentOptions = {
+        barThickness: 12,
+        radiusX: 24,
+        radiusY: 24,
+        color: '#0000bb',
+        weight: 3
+      };
+    }
+
+    layer.setStyle(Object.assign({}, layer.options, segmentOptions));
+
+    // create a new options object, and assign it if needed
+    layer.off();
+
     layer.on('click', (e) => {
       const nodeName = e.target.options.key;
       Dispatcher.dispatch({
         actionType: Actions.NODE_SELECTED,
         nodeSelected: nodeName,
       });
-    })
+    });
+
+    // bind more mouseevents here
+    // layer.on('mouseover', () => {});
+    // layer.on('mouseout', () => {});
   })
   return newMarker;
 }
-
-// TODO: some sites do NOT select properly

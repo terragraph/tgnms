@@ -382,6 +382,24 @@ export default class NetworkMap extends React.Component {
     });
   }
 
+  addNodeMarkerForSite = (topology, site) => {
+    const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
+      const node = topology.nodes[nodeIndex];
+      return node.site_name === site.name;
+    });
+
+    if (this.refs.nodes) {
+      const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
+      const nodeMarkersForSite = getNodeMarker(
+        [site.location.latitude, site.location.longitude],
+        nodesInSite,
+        topology.links,
+        this.state.selectedNode
+      );
+      nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
+    }
+  }
+
   getSiteMarker(pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
 
@@ -867,24 +885,7 @@ export default class NetworkMap extends React.Component {
     if (this.state.selectedSite != null) {
       let site = this.sitesByName[this.state.selectedSite];
       if (site && site.location) {
-        const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
-          const node = topology.nodes[nodeIndex];
-          return node.site_name === site.name;
-        });
-
-        if (this.refs.nodes) {
-          const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
-          const nodeMarkersForSite = getNodeMarker(
-            [site.location.latitude, site.location.longitude],
-            nodesInSite,
-            topology.links,
-            this.state.selectedNode
-          );
-          nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
-
-          this.refs.nodes.leafletElement.setZIndex(1000);
-          // console.log(this.refs.nodes.leafletElement);
-        }
+        this.addNodeMarkerForSite(topology, site);
         siteMarkers =
           <CircleMarker center={[site.location.latitude, site.location.longitude]}
                   radius={18}
@@ -897,19 +898,26 @@ export default class NetworkMap extends React.Component {
         let site_a = this.sitesByName[node_a.site_name];
         let site_z = this.sitesByName[node_z.site_name];
         if (site_a && site_z && site_a.location && site_z.location) {
+          this.addNodeMarkerForSite(topology, site_a);
+
           siteMarkers = [
-            <CircleMarker center={[site_a.location.latitude,
-                             site_a.location.longitude]}
-                    radius={18}
-                    key="a_node"
-                    color="rgb(30,116,255)"/>];
+            <CircleMarker
+              center={[site_a.location.latitude, site_a.location.longitude]}
+              radius={18}
+              key="a_node"
+              color="rgb(30,116,255)"
+            />
+          ];
           if (site_a.name != site_z.name) {
+            this.addNodeMarkerForSite(topology, site_z);
+
             siteMarkers.push(
-              <CircleMarker center={[site_z.location.latitude,
-                               site_z.location.longitude]}
-                      radius={18}
-                      key="z_node"
-                      color="rgb(30,116,255)"/>);
+              <CircleMarker
+                center={[site_z.location.latitude, site_z.location.longitude]}
+                radius={18}
+                key="z_node"
+                color="rgb(30,116,255)"/>
+            );
           }
         }
       }
