@@ -5,46 +5,15 @@ import Dispatcher from '../NetworkDispatcher.js';
 
 export const MAX_SECTOR_SIZE = 45; // max size allocated for a node sector, in degrees
 
-// diagnostic function
-const getAllLinksForNodes = (nodes, links) => {
-  const nodeNames = nodes.map(node => node.name);
-
-  const DNLinks = links.filter(link => link.link_type === 1);
-
-  // gets a map of node name to link that extends out of the node
-  // first for nodes at the outgoing end of links
-  let anglesByANode = DNLinks.reduce((curLinks, link) => {
-    let newLink = {};
-    const newAngle = link.angle < 0 ? link.angle + 360 : link.angle;
-    newLink[link.a_node_name] = newLink[link.a_node_name] ?
-      [...(newLink[link.a_node_name]), newAngle] : [newAngle];
-    return Object.assign(curLinks, newLink);
-  }, {});
-
-  // then for nodes at the incoming end of links
-  let anglesByNode = DNLinks.reduce((curLinks, link) => {
-    let newLink = {};
-    const newAngleOfA = link.angle < 0 ? link.angle + 360 : link.angle;
-    const newAngle = (newAngleOfA + 180) % 360;
-
-    newLink[link.z_node_name] = newLink[link.z_node_name] ?
-      [...(newLink[link.z_node_name]), newAngle] : [newAngle];
-    return Object.assign(curLinks, newLink);
-  }, anglesByANode);
-
-  // TODO: Kelvin: this is a VERY simple case where we assume each node
-  // has EXACTLY 1 link either coming into it or going out of it
-  nodeNames.forEach((node) => {
-    if (!anglesByNode[node]) {
-      anglesByNode[node] = [];
-    }
-  })
-
-  // console.log('here are your damn angles!', anglesByNode);
-}
-
 const getLinkAnglesForNodes = (nodeNames, links) => {
-  const DNLinks = links.filter(link => link.link_type === 1);
+  const nodeSet = new Set(nodeNames);
+  const DNLinks = links.filter((link) => {
+    return (
+      link.link_type === 1 && (
+        nodeSet.has(link.a_node_name) || nodeSet.has(link.z_node_name)
+      )
+    );
+  });
 
   // gets a map of node name to link that extends out of the node
   // first for nodes at the outgoing end of links
@@ -90,7 +59,36 @@ const sortkeysByValue = (toSort) => {
   return kvPairs.map(pair => pair[0]); // retrieve keys only
 }
 
-export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
+const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
+  // use padID as a identifier for the node in the site
+  const leftOffset = ownAngle - leftAngle < 0 ? ownAngle - leftAngle + 360 : ownAngle - leftAngle;
+  const rightOffset = rightAngle - ownAngle < 0 ? rightAngle - ownAngle + 360 : rightAngle - ownAngle;
+
+  // desired offset from the midpoint to one side. we want to make the sector symmetrical about the link line
+  const desiredOffset = Math.min(leftOffset, rightOffset, MAX_SECTOR_SIZE / 2);
+
+  let nodeValues = {};
+
+  /*
+  Visualizing the above:
+  leftAngle                                                     ownAngle                                      rightAngle
+  |----------------------------------------|-----------------------|-----------------------|---------------------------|
+                                  ownAngle - desiredOffset                        ownAngle + desiredOffset
+  */
+
+  // note: we are leveraging the property that objects in ES6 are iterated in the order of insertion, hence the control structure shown
+  if (leftOffset > desiredOffset) {
+    nodeValues[padID + '_left'] = ownAngle - desiredOffset - leftAngle;
+  }
+  nodeValues[node] = 2 * desiredOffset;
+  if (rightOffset > desiredOffset) {
+    nodeValues[padID + '_right'] = rightAngle - desiredOffset - ownAngle;
+  }
+
+  return nodeValues;
+}
+
+const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
   let nodeValues = {};
   let leftAngles = {};
   let rightAngles = {};
@@ -98,11 +96,15 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByNam
   // special case when we have one node
   if (sortedNodesByAngle.length === 1) {
     const node = sortedNodesByAngle[0];
+    const nodeMac = nodesByName[node].mac_addr;
+
+    nodeValues[nodeMac + '_left'] = (360 - MAX_SECTOR_SIZE) / 2;
     nodeValues[node] = MAX_SECTOR_SIZE;
+    nodeValues[nodeMac + '_right'] = (360 - MAX_SECTOR_SIZE) / 2;
 
     return {
       nodeValues,
-      offset: linkAnglesForNodes[node] - (MAX_SECTOR_SIZE / 2) - 90,
+      offset: linkAnglesForNodes[node] - (MAX_SECTOR_SIZE / 2) - 90 - ((360 - MAX_SECTOR_SIZE) / 2),
     };
   }
 
@@ -111,7 +113,7 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByNam
   // the rightmost angle is the bisector of the angle between the current node's and next node's links
   sortedNodesByAngle.forEach((node, idx) => {
     // treat as a circular array
-    const ownAngle = linkAnglesForNodes[sortedNodesByAngle[idx]];
+    const ownAngle = linkAnglesForNodes[node];
 
     // get the angle for the next sector
     const nextAngle = linkAnglesForNodes[sortedNodesByAngle[(idx + 1) % sortedNodesByAngle.length]];
@@ -132,7 +134,14 @@ export const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByNam
     const adjLeftAngle = leftAngle > rightAngle ? leftAngle - 360 : leftAngle;
 
     leftAngles[node] = adjLeftAngle;
-    nodeValues[node] = rightAngle - adjLeftAngle;
+    Object.assign(nodeValues, partitionNodeSector(
+      node,
+      linkAnglesForNodes[node],
+      adjLeftAngle,
+      rightAngle,
+      nodesByName[node].mac_addr
+    ));
+    // nodeValues[node] = rightAngle - adjLeftAngle;
   });
 
   // use the left-angle of the first sector to calculate the rotation offset needed for the pie chart
@@ -165,7 +174,7 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, node
   const chartOptions = {};
   Object.keys(nodeValues).forEach(nodeName => {
     const node = nodesByName[nodeName];
-    const fillColor = node.status === 1 ? '#ff2222' : '#44ff44';
+    const fillColor = node && node.status === 1 ? '#ff2222' : '#44ff44';
 
     chartOptions[nodeName] = {
       fillColor: fillColor,
@@ -196,7 +205,14 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, node
 
     // per-segment styling
     let segmentOptions = {};
-    if (node.name === selectedNode) {
+    if (!node) {
+      // don't draw the segment for padding
+      segmentOptions = {
+        opacity: 0,
+        fillOpacity: 0,
+        weight: 0
+      };
+    } else if (node.name === selectedNode) {
       segmentOptions = {
         barThickness: 12,
         radiusX: 24,
@@ -205,21 +221,22 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, node
         weight: 3
       };
     }
+
     layer.setStyle(Object.assign({}, layer.options, segmentOptions));
 
     // remove the pre-built event listeners and then add our own
     layer.off();
-    layer.on('click', (e) => {
-      const nodeName = e.target.options.key;
-      Dispatcher.dispatch({
-        actionType: Actions.NODE_SELECTED,
-        nodeSelected: nodeName,
-      });
-    });
 
-    // bind more mouseevents here
-    // layer.on('mouseover', () => {});
-    // layer.on('mouseout', () => {});
-  })
+    if (nodesByName.hasOwnProperty(layer.options.key)) {
+      layer.on('click', (e) => {
+        const nodeName = e.target.options.key;
+        Dispatcher.dispatch({
+          actionType: Actions.NODE_SELECTED,
+          nodeSelected: nodeName,
+        });
+      });
+    }
+  });
+
   return newMarker;
 }
