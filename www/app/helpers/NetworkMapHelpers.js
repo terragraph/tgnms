@@ -236,7 +236,6 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, mous
     }
 
     layer.on('mouseout', (e) => {
-      console.log('lefth');
       mouseLeaveFunc();
     });
   });
