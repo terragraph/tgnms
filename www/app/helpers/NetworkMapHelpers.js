@@ -109,7 +109,7 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
 
     return {
       nodeValues,
-      offset: linkAnglesForNodes[node] - (MAX_SECTOR_SIZE / 2) - 90 - ((360 - MAX_SECTOR_SIZE) / 2),
+      offset: linkAnglesForNodes[node] + 90,
     };
   }
 

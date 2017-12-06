@@ -41,7 +41,6 @@ export class CustomMap extends Map {
   componentDidUpdate (prevProps: Object) {
     this.updateLeafletElement(prevProps, this.props);
     const layers = this.leafletElement._layers;
-    // console.log('layers on dah map', layers);
     Object.values(layers)
       .filter((layer) => {
         return typeof layer.options.level !== "undefined";
@@ -405,8 +404,6 @@ export default class NetworkMap extends React.Component {
 
   getSiteMarker(site, pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
-
-    // onMouseOut={() => this.setState({hoveredSite: null})}
      return (
       <CircleMarker center={pos}
         radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
