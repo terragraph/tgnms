@@ -147,6 +147,8 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
   // TODO: hacky but only way we can bind onClick to each segment
   newMarker.eachLayer((layer) => {
     const node = nodesByName[layer.options.key];
+
+    // per-segment styling
     let segmentOptions = {};
     if (node.name === selectedNode) {
       segmentOptions = {
@@ -157,12 +159,10 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode) => {
         weight: 3
       };
     }
-
     layer.setStyle(Object.assign({}, layer.options, segmentOptions));
 
-    // create a new options object, and assign it if needed
+    // remove the pre-built event listeners and then add our own
     layer.off();
-
     layer.on('click', (e) => {
       const nodeName = e.target.options.key;
       Dispatcher.dispatch({

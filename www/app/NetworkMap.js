@@ -61,6 +61,7 @@ export default class NetworkMap extends React.Component {
   sitesByName = {}
 
   state = {
+    hoveredSite: null,
     selectedSite: null,
     selectedLink: null,
     routeWeights: {},
@@ -400,10 +401,10 @@ export default class NetworkMap extends React.Component {
     }
   }
 
-  getSiteMarker(pos, color, siteIndex): ReactElement<any> {
+  getSiteMarker(site, pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
 
-    return (
+     return (
       <CircleMarker center={pos}
         radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
         clickable
@@ -412,8 +413,12 @@ export default class NetworkMap extends React.Component {
         key={siteIndex}
         siteIndex={siteIndex}
         onClick={this.handleMarkerClick}
+        onMouseOver={() => this.setState({hoveredSite: site})}
+        onMouseOut={() => this.setState({hoveredSite: null})}
         fillColor={color}
-        level={10}/>);
+        level={10}
+      />
+    );
   }
 
   getLinkLine(link, coords, color): ReactElement<any> {
@@ -650,7 +655,7 @@ export default class NetworkMap extends React.Component {
         }
       }
 
-      siteComponents.push( this.getSiteMarker(siteCoords, siteColor, siteIndexForMarker) );
+      siteComponents.push( this.getSiteMarker(site, siteCoords, siteColor, siteIndexForMarker) );
 
       if (hasPop) {
         let secondaryMarker =
@@ -662,6 +667,8 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
+            onMouseOver={() => this.setState({hoveredSite: site})}
+            onMouseOut={() => this.setState({hoveredSite: null})}
             fillColor="blue"
             level={11}/>;
         siteComponents.push(secondaryMarker);
@@ -675,6 +682,8 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
+            onMouseOver={() => this.setState({hoveredSite: site})}
+            onMouseOut={() => this.setState({hoveredSite: null})}
             fillColor="pink"
             level={11}/>;
         siteComponents.push(secondaryMarker);
@@ -689,6 +698,8 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
+            onMouseOver={() => this.setState({hoveredSite: site})}
+            onMouseOut={() => this.setState({hoveredSite: null})}
             fillColor="white"
             level={11}/>;
         siteComponents.push(secondaryMarker);
@@ -1050,6 +1061,10 @@ export default class NetworkMap extends React.Component {
               onLeave={this.enableMapScrolling}
             />
           </Control>
+    }
+
+    if (this.state.hoveredSite) {
+      this.addNodeMarkerForSite(topology, this.state.hoveredSite);
     }
 
     return (
