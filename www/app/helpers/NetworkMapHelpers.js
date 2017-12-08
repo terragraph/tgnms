@@ -160,7 +160,7 @@ export const getNodeMarker = (siteCoords, nodesInSite, linksByNode, selectedNode
   const chartOptions = {};
   Object.keys(nodeValues).forEach(nodeName => {
     const node = nodesByName[nodeName];
-    const fillColor = node && node.status === 1 ? '#ff2222' : '#44ff44';
+    const fillColor = node && (node.status === 2 || node.status === 3) ? '#44ff44' : '#ff2222';
 
     chartOptions[nodeName] = {
       fillColor: fillColor,
