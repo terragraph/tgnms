@@ -57,6 +57,7 @@ export class CustomMap extends Map {
 export default class NetworkMap extends React.Component {
   nodesByName = {}
   linksByName = {}
+  linksByNode = {}
   sitesByName = {}
 
   state = {
@@ -267,6 +268,7 @@ export default class NetworkMap extends React.Component {
       nodesByName[node.name] = node;
     });
     let linksByName = {};
+    let linksByNode = {};
     Object.keys(topologyJson.links).map(linkIndex => {
       let link = topologyJson.links[linkIndex];
       linksByName[link.name] = link;
@@ -283,6 +285,13 @@ export default class NetworkMap extends React.Component {
         console.error('Skipping invalid link', link);
         return;
       }
+
+      linksByNode[link.a_node_name] = linksByNode[link.a_node_name] ?
+        linksByNode[link.a_node_name].concat(link) : [link];
+
+      linksByNode[link.z_node_name] = linksByNode[link.z_node_name] ?
+        linksByNode[link.z_node_name].concat(link) : [link];
+
       let aSite = sitesByName[aNode.site_name];
       let zSite = sitesByName[zNode.site_name];
       let aSiteCoords = new LatLng(aSite.location.latitude,
@@ -332,6 +341,7 @@ export default class NetworkMap extends React.Component {
     this.resetZoomOnNextRefresh = false;
     this.nodesByName = nodesByName;
     this.linksByName = linksByName;
+    this.linksByNode = linksByNode;
     this.sitesByName = sitesByName;
     // update zoom level
     let zoomLevel = resetZoom ? networkConfig.zoom_level : this.state.zoomLevel;
@@ -393,7 +403,7 @@ export default class NetworkMap extends React.Component {
       const nodeMarkersForSite = getNodeMarker(
         [site.location.latitude, site.location.longitude],
         nodesInSite,
-        topology.links,
+        this.linksByNode,
         this.state.selectedNode,
         () => this.setState({hoveredSite: site}),
         () => this.setState({hoveredSite: null})

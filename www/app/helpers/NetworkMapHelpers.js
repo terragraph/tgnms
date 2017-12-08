@@ -29,39 +29,27 @@ const sortkeysByValue = (toSort) => {
   return kvPairs.map(pair => pair[0]); // retrieve keys only
 }
 
-const getLinkAnglesForNodes = (nodeNames, links) => {
-  const nodeSet = new Set(nodeNames);
-  const DNLinks = links.filter((link) => {
-    return (
-      link.link_type === 1 && (
-        nodeSet.has(link.a_node_name) || nodeSet.has(link.z_node_name)
-      )
-    );
+const getLinkAnglesForNodes = (nodeNames, linksByNode) => {
+  let anglesByNode = {};
+
+  nodeNames.forEach((node) => {
+    // assume 1 DN link per node, and we retrieve it here
+    const DNLinks = linksByNode[node].filter(link => link.link_type === 1);
+    if (DNLinks.length === 0) {
+      return; // skip node with no DN links
+    }
+
+    const link = DNLinks[0];
+    const linkAngle = link.angle;
+    if (node === link.a_node_name) {
+      anglesByNode[node] = linkAngle < 0 ? linkAngle + 360 : linkAngle;
+    } else if (node === link.z_node_name) {
+      const angleOfANode = linkAngle < 0 ? linkAngle + 360 : linkAngle;
+      anglesByNode[node] = (angleOfANode + 180) % 360;
+    }
   });
 
-  // gets a map of node name to link that extends out of the node
-  // first for nodes at the outgoing end of links
-  const anglesByANode = DNLinks.reduce((curLinks, link) => {
-    let newLink = {};
-    // assume range is -180 to 180. we want to convert to 0 to 360
-    const newAngle = link.angle < 0 ? link.angle + 360 : link.angle;
-    newLink[link.a_node_name] = newAngle;
-    return Object.assign(curLinks, newLink);
-  }, {});
-
-  // then for nodes at the incoming end of links
-  const anglesByZNode = DNLinks.reduce((curLinks, link) => {
-    let newLink = {};
-    // assume range is -180 to 180. we want to convert to 0 to 360
-    const newAngleOfA = link.angle < 0 ? link.angle + 360 : link.angle;
-    const newAngle = (newAngleOfA + 180) % 360;
-
-    newLink[link.z_node_name] = newAngle; // convert the angle here
-    return Object.assign(curLinks, newLink);
-  }, {});
-
-  // assume each node has EXACTLY 0 or 1 link either coming into it or going out of it
-  return Object.assign({}, anglesByANode, anglesByZNode);
+  return anglesByNode;
 }
 
 const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
@@ -155,7 +143,7 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
   };
 }
 
-export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, mouseEnterFunc, mouseLeaveFunc) => {
+export const getNodeMarker = (siteCoords, nodesInSite, linksByNode, selectedNode, mouseEnterFunc, mouseLeaveFunc) => {
   let nodeNames = [];
   let nodesByName = {};
   let linkAnglesForSiteNodes = {};
@@ -165,15 +153,9 @@ export const getNodeMarker = (siteCoords, nodesInSite, links, selectedNode, mous
   });
 
   // filter the link angles for only the nodes in the site (the ones that we care about)
-  const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, links);
-  nodeNames.forEach(node => {
-    // filter out nodes in the site that are not connected to a DN link
-    if (linkAnglesForNodes.hasOwnProperty(node)) {
-      linkAnglesForSiteNodes[node] = linkAnglesForNodes[node];
-    }
-  });
+  const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, linksByNode);
 
-  const { nodeValues, offset } = getNodeValues(linkAnglesForSiteNodes, sortkeysByValue(linkAnglesForSiteNodes), nodesByName);
+  const { nodeValues, offset } = getNodeValues(linkAnglesForNodes, sortkeysByValue(linkAnglesForNodes), nodesByName);
 
   const chartOptions = {};
   Object.keys(nodeValues).forEach(nodeName => {
