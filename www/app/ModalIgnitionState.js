@@ -67,12 +67,13 @@ export default class ModalIgnitionState extends React.Component {
           let otherIgState = [];
           if (json.igParams) {
             networkIgState = json.igParams.enable;
-            if (json.igParams.link_auto_ignite) {
-              if (networkIgState == false) {
+            if (json.igParams.linkAutoIgnite) {
+              // explicitly check because coercing a null into a boolean will return a false
+              if (networkIgState === false) {
                 linkIgState = false;
               } else {
                 linkIgState = true;
-                Object.keys(json.igParams.link_auto_ignite).map(linkName => {
+                Object.keys(json.igParams.linkAutoIgnite).map(linkName => {
                   if (linkName == this.props.link.name) {
                     linkIgState = false;
                   } else {
