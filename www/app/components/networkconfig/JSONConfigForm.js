@@ -117,7 +117,7 @@ export default class JSONConfigForm extends React.Component {
   getStackedFields(configs) {
     // aggregate all config fields
     const stackedFields = configs.reduce((stacked, config) => {
-      return [...stacked, ...Object.keys(config)];
+      return _.isPlainObject(config) ? [...stacked, ...Object.keys(config)] : stacked;
     }, []);
 
     // now dedupe the fields by adding to a set
