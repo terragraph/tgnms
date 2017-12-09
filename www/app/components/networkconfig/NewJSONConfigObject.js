@@ -100,11 +100,6 @@ export default class NewJSONConfigObject extends React.Component {
 
   render() {
     const {canSubmit, editPath, fieldId, type, field, value} = this.props;
-    if (canSubmit) {
-      // console.log('new object', value);
-      // console.log('value to submit', convertAndValidateNewConfigObject(value));
-    }
-
     const fieldClass = '';
     const nestedNewFields = this.renderChildren(value);
 
