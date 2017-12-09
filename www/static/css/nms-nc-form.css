@@ -111,6 +111,11 @@
   min-width: 250px; /* fixed min width so we can align the input fields */
 }
 
+.nc-override-indicator {
+  margin-left: 10px;
+  color: #777;
+}
+
 .nc-form-input-wrapper {
   display: inline;
   position: relative;
