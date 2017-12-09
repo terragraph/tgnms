@@ -15,6 +15,8 @@ import {
 } from '../../actions/NetworkConfigActions.js';
 
 import { REVERT_VALUE, ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
+import { getStackedFields } from '../../helpers/NetworkConfigHelpers.js';
+
 import JSONFormField from './JSONFormField.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
 import NewJSONConfigField from './NewJSONConfigField.js';
@@ -112,17 +114,6 @@ export default class JSONConfigForm extends React.Component {
 
   isDraft = (draftValue) => {
     return draftValue !== undefined && !this.isReverted(draftValue);
-  }
-
-  getStackedFields(configs) {
-    // aggregate all config fields
-    const stackedFields = configs.reduce((stacked, config) => {
-      return _.isPlainObject(config) ? [...stacked, ...Object.keys(config)] : stacked;
-    }, []);
-
-    // now dedupe the fields by adding to a set
-    const dedupedFields = new Set(stackedFields);
-    return [...dedupedFields];
   }
 
   getDisplayIdx = (configVals) => {
@@ -229,7 +220,7 @@ export default class JSONConfigForm extends React.Component {
     const {configs, draftConfig} = this.props;
 
     // retrieve the union of fields for all json objects in the array
-    const configFields = new Set(this.getStackedFields([...configs, draftConfig]));
+    const configFields = new Set(getStackedFields([...configs, draftConfig]));
 
     // swal if field is empty or it conflicts with the current layer
     if (field === '') {
@@ -305,8 +296,8 @@ export default class JSONConfigForm extends React.Component {
     } = this.props;
 
     // retrieve the union of fields for all json objects in the array
-    const configFields = this.getStackedFields([...configs, draftConfig]);
-    let childItems = configFields.map((field) => {
+    const configFields = getStackedFields([...configs, draftConfig]);
+    const childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
       const newField = newConfigFields[field];

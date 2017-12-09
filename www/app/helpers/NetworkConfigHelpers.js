@@ -47,6 +47,40 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   return cleanedObj;
 }
 
+export const getStackedFields = (configs) => {
+  // aggregate all config fields
+  const stackedFields = configs.reduce((stacked, config) => {
+    return _.isPlainObject(config) ? [...stacked, ...Object.keys(config)] : stacked;
+  }, []);
+
+  // now dedupe the fields by adding to a set
+  const dedupedFields = new Set(stackedFields);
+  return [...dedupedFields];
+}
+
+const alphabeticalSort = (a, b) => {
+  const lowerA = a.toLowerCase();
+  const lowerB = b.toLowerCase()
+  if (lowerA < lowerB) {
+    return -1;
+  } else if (lowerA > lowerB) {
+    return 1;
+  }
+  return 0;
+}
+
+export const sortConfig = (config) => {
+  let newConfig = {};
+
+  Object.keys(config).sort(alphabeticalSort).forEach((key) => {
+    const value = config[key];
+    const newValue = _.isPlainObject(value) ? sortConfig(value) : value;
+    newConfig[key] = newValue;
+  });
+
+  return newConfig;
+}
+
 export const getDefaultValueForType = (type) => {
   let defaultValue = '';
   switch(type) {
@@ -122,8 +156,3 @@ export const convertAndValidateNewConfigObject = (newConfig) => {
 
   return {config, validationMsg};
 }
-
-/*
-
-
-*/
