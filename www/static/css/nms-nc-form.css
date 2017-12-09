@@ -19,8 +19,76 @@
   cursor: pointer;
 }
 
+/* NETWORK CONFIG JSON FORM ADD AND NEW FIELD */
+.rc-add-json-config-field {
+  position: relative;
+  display: inline-flex;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.nc-add-new-field {
+  font-size: 16px;
+  color: #aaaaff;
+}
+
+.nc-add-new-field:hover {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rc-add-field-dropdown {
+  position: absolute;
+  border: 1px solid #aaa;
+  background-color: #fff;
+  z-index: 3;
+  top: 30px;
+  width: 150px;
+}
+
+.rc-add-field-dropdown-hidden {
+  display: none;
+}
+
+.rc-add-field-dropdown span:first-child {
+  color: #777;
+  border-top: 0px;
+  border-bottom: 1px solid #aaa;
+  font-style: italic;
+}
+
+.rc-add-field-dropdown span:first-child:hover {
+  background-color: #fff;
+}
+
+.rc-add-field-dropdown span {
+  padding: 6px 10px;
+  display: block;
+}
+
+.rc-add-field-dropdown span:hover {
+  background-color: #eee;
+}
+
+.rc-new-json-config-object {
+  background-color: rgba(200, 200, 200, 0.2);
+  border: 1px solid #aaa;
+  padding: 5px;
+  display: inline-block;
+}
+
+.nc-object-field-body {
+  display: inline-flex;
+}
+
+.nc-object-field-label {
+  display: inline-flex;
+  margin-bottom: 5px;
+  margin-right: 10px;
+}
+
 /* NETWORK CONFIG JSON FORM INPUTS */
-.rc-json-form-field {
+.rc-json-form-field, .rc-new-json-config-field {
   display: inline-flex;
   margin-bottom: 5px;
 }
@@ -29,9 +97,23 @@
   background-color: #ddd;
 }
 
+.nc-new-field-label {
+  margin-right: 10px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  min-width: 250px; /* fixed min width so we can align the input fields */
+}
+
 .nc-form-label {
   margin-right: 10px;
+  margin-top: 5px;
+  margin-bottom: 0px;
   min-width: 250px; /* fixed min width so we can align the input fields */
+}
+
+.nc-override-indicator {
+  margin-left: 10px;
+  color: #777;
 }
 
 .nc-form-input-wrapper {

@@ -31,6 +31,7 @@ export default class NetworkConfigBody extends React.Component {
     const {
       configs,
       draftConfig,
+      newConfigFields,
       selectedNodes,
       editMode,
       nodesWithDrafts,
@@ -56,11 +57,13 @@ export default class NetworkConfigBody extends React.Component {
           <JSONConfigForm
             configs={configs}
             draftConfig={draftConfig}
+            newConfigFields={newConfigFields}
             editPath={[]}
             parentExpanded={true}
           />
         </div>
         <NetworkConfigFooter
+          newConfigFields={newConfigFields}
           draftConfig={draftConfig}
           editMode={editMode}
           nodesWithDrafts={nodesWithDrafts}
@@ -73,6 +76,7 @@ export default class NetworkConfigBody extends React.Component {
 NetworkConfigBody.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
+  newConfigFields: React.PropTypes.object.isRequired,
   nodesWithDrafts: React.PropTypes.array.isRequired,
 
   selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,

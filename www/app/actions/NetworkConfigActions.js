@@ -16,8 +16,13 @@ export const NetworkConfigActions = {
   SELECT_IMAGE: 'SELECT_IMAGE',
   SELECT_NODES: 'SELECT_NODES',
 
+  ADD_NEW_FIELD: 'ADD_NEW_FIELD',
+  EDIT_NEW_FIELD: 'EDIT_NEW_FIELD',
+  DELETE_NEW_FIELD: 'DELETE_NEW_FIELD',
+  SUBMIT_NEW_FIELD: 'SUBMIT_NEW_FIELD',
+
   // API call resolution actions for get
-  GET_BASE_CONFIG_SUCCESS_TEST: 'GET_BASE_CONFIG_SUCCESS',
+  GET_BASE_CONFIG_SUCCESS: 'GET_BASE_CONFIG_SUCCESS',
   GET_BASE_CONFIG_FAILED: 'GET_BASE_CONFIG_FAILED',
 
   GET_NETWORK_CONFIG_SUCCESS: 'GET_NETWORK_CONFIG_SUCCESS',
@@ -81,6 +86,41 @@ export const discardUnsavedConfig = ({editPath}) => {
   });
 }
 
+export const addNewField = ({editPath, type}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.ADD_NEW_FIELD,
+    editPath,
+    type
+  });
+}
+
+export const editNewField = ({editPath, id, field, value}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.EDIT_NEW_FIELD,
+    editPath,
+    id,
+    field,
+    value
+  });
+}
+
+export const submitNewField = ({editPath, id}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SUBMIT_NEW_FIELD,
+    editPath,
+    id
+  });
+}
+
+export const deleteNewField = ({editPath, id}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.DELETE_NEW_FIELD,
+    editPath,
+    id
+  });
+}
+
+// actions that modify the entire config (no editpath)
 export const submitConfig = () => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SUBMIT_CONFIG,

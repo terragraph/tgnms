@@ -52,12 +52,14 @@
     "react-dom": "^0.14.3",
     "react-layout-components": "^3.0.4",
     "react-leaflet": "^1.1.0",
+    "react-onclickoutside": "^6.7.0",
     "react-stonecutter": "^0.3.3",
     "react-svg-piechart": "^1.4.0",
     "react-timeseries-charts": "^0.11.2",
     "request": "^2.79.0",
     "style-loader": "^0.16.0",
     "utf8": "^2.1.2",
+    "uuid": "^3.1.0",
     "zmq": "^2.15.3"
   },
   "devDependencies": {
