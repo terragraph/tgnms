@@ -78,6 +78,7 @@ class ExpandableConfigForm extends React.Component {
         configs={configs}
         draftConfig={draftConfig}
         editPath={editPath}
+        newConfigFields={newConfigFields}
         initExpanded={this.state.expandChildren}
       />
     );
