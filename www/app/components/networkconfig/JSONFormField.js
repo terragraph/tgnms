@@ -5,6 +5,7 @@ const classNames = require('classnames');
 import { REVERT_VALUE, CONFIG_CLASSNAMES } from '../../constants/NetworkConfigConstants.js';
 import {editConfigForm, revertConfigOverride, discardUnsavedConfig} from '../../actions/NetworkConfigActions.js';
 import JSONFieldTooltip from './JSONFieldTooltip.js';
+import CustomToggle from '../common/CustomToggle.js';
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
@@ -65,25 +66,20 @@ export default class JSONFormField extends React.Component {
       border: '2px solid #000077'
     } : {};
 
+    const tooltip = hover ? <JSONFieldTooltip values={this.props.values}/> : null;
+
     return (
-      <div className='nc-form-input-wrapper'>
-        <input
-          type='checkbox' className='nc-custom-checkbox' id={checkboxId} checked={displayVal}
-          onChange={(event) => this.editField(event.target.checked)}
-          onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
-        />
-        <label className='nc-slider-label' htmlFor={checkboxId} style={{marginBottom: '0px'}}>
-          <div className='nc-slider-wrapper' style={wrapperStyle}>
-            <div className='nc-slider-options'>
-              <div className={selectorClass}>Yes</div>
-              <div className='nc-slider-option-selector'></div>
-              <div className={selectorClass}>No</div>
-            </div>
-          </div>
-        </label>
-        {hover && <JSONFieldTooltip values={this.props.values}/>}
-      </div>
-    );
+      <CustomToggle
+        checkboxId={checkboxId}
+        value={displayVal}
+        tooltip={tooltip}
+        onChange={(value) => this.editField(value)}
+        onFocus={() => this.setState({focus: true})}
+        onBlur={() => this.setState({focus: false})}
+        selectorClass={selectorClass}
+        wrapperStyle={wrapperStyle}
+      />
+    )
   }
 
   renderInputItem = (displayVal, displayIdx, isDraft, isReverted) => {
