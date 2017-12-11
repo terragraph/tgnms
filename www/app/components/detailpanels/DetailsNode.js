@@ -72,7 +72,7 @@ export default class DetailsNode extends React.Component {
       let promis = new Promise((resolve, reject) => {
         let exec = new Request(
           '/controller\/rebootNode/' + this.props.topologyName +
-            '/' + this.props.node.mac_addr + '/' + forceReboot,
+            '/' + this.props.node.name + '/' + forceReboot,
           {"credentials": "same-origin"});
         fetch(exec).then(function(response) {
           if (response.status == 200) {
