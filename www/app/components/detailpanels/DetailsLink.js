@@ -6,6 +6,7 @@ import { availabilityColor } from '../../NetworkHelper.js';
 import swal from 'sweetalert';
 import 'sweetalert/dist/sweetalert.css';
 import ModalIgnitionState from '../../ModalIgnitionState.js';
+import classnames from 'classnames';
 
 export default class DetailsLink extends React.Component {
 
@@ -77,7 +78,8 @@ export default class DetailsLink extends React.Component {
           '/controller\/setlinkStatus/' + this.props.topologyName +
             '/' + iNode +
             '/' + rNode + '/' + status,
-          {"credentials": "same-origin"});
+          {"credentials": "same-origin"}
+        );
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             swal({
@@ -120,7 +122,8 @@ export default class DetailsLink extends React.Component {
           '/controller\/delLink/' + this.props.topologyName +
             '/' + this.props.link.a_node_name +
             '/' + this.props.link.z_node_name + '/' + forceDelete,
-          {"credentials": "same-origin"});
+          {"credentials": "same-origin"}
+        );
         fetch(exec).then(function(response) {
           if (response.status == 200) {
             swal({
@@ -149,9 +152,106 @@ export default class DetailsLink extends React.Component {
     }.bind(this));
   }
 
+  startIPerfTraffic(src, dest) {
+    var srcIP = src.status_dump && src.status_dump.ipv6Address;
+    var destIP = src.status_dump && src.status_dump.ipv6Address;
+
+    if (!srcIP || !destIP) {
+      return;
+    }
+
+    swal({
+      title: "Are you sure?",
+      text: "This will start sending IPerf traffic from\n" + src.name + "\nto\n" + dest.name + '\n\nPlease provide a bitrate (bps):',
+      type: "input",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, do it!",
+      closeOnConfirm: false,
+      inputPlaceholder: "Bitrate (bps)",
+      inputValue: 100,
+    },
+    (inputValue) => {
+      const bitrate = parseInt(inputValue, 10);
+      if (isNaN(bitrate) || bitrate < 1) {
+        swal({
+          title: "Invalid bitrate!",
+          text: "Please provide a valid bitrate",
+          type: "error",
+        });
+        return;
+      }
+      let exec = new Request(
+        '/controller\/startTraffic/' + this.props.topologyName +
+        '/' + src.name +
+        '/' + dest.name +
+        '/' + srcIP +
+        '/' + destIP +
+        '/' + bitrate +  // bitrate
+        '/' + 100,   // time in seconds
+        {"credentials": "same-origin"}
+      );
+      fetch(exec).then((response) => {
+        if (response.status == 200) {
+          swal({
+            title: "Request successful!",
+            text: "Response: "+response.statusText,
+            type: "success"
+          });
+        } else {
+          swal({
+            title: "Request failed!",
+            text: "Starting IPerf failed \nReason: "+response.statusText,
+            type: "error"
+          });
+        }
+      });
+    });
+  }
+
+  stopIPerfTraffic(node) {
+    var nodeIP = node.status_dump && node.status_dump.ipv6Address;
+
+    if (!nodeIP) {
+      return;
+    }
+
+    swal({
+      title: "Are you sure?",
+      text: "This will stop sending IPerf traffic from " + node.name,
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, do it!",
+      closeOnConfirm: false
+    },
+    () => {
+      let exec = new Request(
+        '/controller\/stopTraffic/' + this.props.topologyName +
+        '/' + node.name,
+        {"credentials": "same-origin"}
+      );
+      fetch(exec).then((response) => {
+        if (response.status == 200) {
+          swal({
+            title: "Request successful!",
+            text: "Response: "+response.statusText,
+            type: "success"
+          });
+        } else {
+          swal({
+            title: "Request failed!",
+            text: "Stopping IPerf failed \nReason: "+response.statusText,
+            type: "error"
+          });
+        }
+      });
+    });
+  }
+
   render() {
     if (!this.props.link || !this.props.link.name) {
-        return (<div/>);
+      return (<div/>);
     }
 
     let nodeA = this.props.nodes[this.props.link.a_node_name];
@@ -170,24 +270,30 @@ export default class DetailsLink extends React.Component {
 
     let ignitionStateModal = null;
     if (this.state.ignitionStateModalOpen) {
-      ignitionStateModal =
+      ignitionStateModal = (
         <ModalIgnitionState
-        isOpen= {true}
-        onClose= {() => this.setState({ignitionStateModalOpen: false})}
-        link= {this.props.link}
-        topologyName= {this.props.topologyName}/>;
+          isOpen= {true}
+          onClose= {() => this.setState({ignitionStateModalOpen: false})}
+          link= {this.props.link}
+          topologyName= {this.props.topologyName}/>
+      );
     }
     let alivePerc = 0;
     if (this.props.link.hasOwnProperty("alive_perc")) {
       alivePerc = parseInt(this.props.link.alive_perc * 1000) / 1000.0;
     }
+
+    const IPerfEnabled =
+      nodeA.status_dump &&
+      nodeA.status_dump.ipv6Address &&
+      nodeZ.status_dump &&
+      nodeZ.status_dump.ipv6Address;
     return (
       <div
         id="myModal"
         className="details"
         onMouseEnter={this.props.onEnter}
-        onMouseLeave={this.props.onLeave}
-      >
+        onMouseLeave={this.props.onLeave}>
         {ignitionStateModal}
         <div className="details-content">
           <div className="details-header">
@@ -259,6 +365,32 @@ export default class DetailsLink extends React.Component {
                     <span className="details-link" onClick={() => {this.changeLinkStatus(true, false)}}>Z-Node</span></div>
                     <div>Send Link Down (pick initiator): <span className="details-link" onClick={() => {this.changeLinkStatus(false, true)}}>A-Node</span> &nbsp;&nbsp;
                     <span className="details-link" onClick={() => {this.changeLinkStatus(false, false)}}>Z-Node</span></div>
+                    <hr className="details-separator"/>
+                    <div>Start IPerf (pick initiator):&nbsp;
+                      <span
+                        className={classnames('details-link', {'details-link--disabled': !IPerfEnabled})}
+                        onClick={() => {this.startIPerfTraffic(nodeA, nodeZ)}}>
+                        A-Node
+                      </span> &nbsp;&nbsp;
+                      <span
+                        className={classnames('details-link', {'details-link--disabled': !IPerfEnabled})}
+                        onClick={() => {this.startIPerfTraffic(nodeZ, nodeA)}}>
+                        Z-Node
+                      </span> &nbsp;&nbsp;
+                    </div>
+                    <div>Stop IPerf:&nbsp;
+                      <span
+                        className={classnames('details-link', {'details-link--disabled': !IPerfEnabled})}
+                        onClick={() => {this.stopIPerfTraffic(nodeA)}}>
+                        A-Node
+                      </span> &nbsp;&nbsp;
+                      <span
+                        className={classnames('details-link', {'details-link--disabled': !IPerfEnabled})}
+                        onClick={() => {this.stopIPerfTraffic(nodeZ)}}>
+                        Z-Node
+                      </span> &nbsp;&nbsp;
+                    </div>
+                    <hr className="details-separator"/>
                     <div><span className="details-link" onClick={() => this.setState({ignitionStateModalOpen: true})}>Check Ignition State</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteLink(false)}}>Delete Link</span></div>
                     <div><span className="details-link" onClick={() => {this.deleteLink(true)}}>Delete Link (Force)</span></div>

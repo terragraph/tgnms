@@ -105,6 +105,10 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-link {
     color: blue;
 }
+.details-link--disabled {
+    color: #333;
+    cursor: default !important;
+}
 
 .details-link:hover,
 .details-link:focus {
@@ -132,6 +136,9 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 }
 .details-table tr {
   background: #fff;
+}
+.details-separator {
+  margin: 1px;
 }
 .controller-status-icon {
   float: right;
