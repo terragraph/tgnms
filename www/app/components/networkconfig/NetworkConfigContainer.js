@@ -33,6 +33,18 @@ export default class NetworkConfigContainer extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this));
 
+    const {viewContext} = props;
+
+    // set up based on the view context when we change views
+    // only needs to be done here because we know that this component will be un-mounted when the user switches out of it
+    const editMode = viewContext.hasOwnProperty('node') ? CONFIG_VIEW_MODE.NODE : CONFIG_VIEW_MODE.NETWORK;
+    const selectedNodes = viewContext.hasOwnProperty('node') ? [{
+      name: viewContext.node.name,
+      mac_addr: viewContext.node.mac_addr,
+      imageVersion: (viewContext.node.status_dump) ? viewContext.node.status_dump.version : null,
+      ignited: (viewContext.node.status == 2 || viewContext.node.status == 3),
+    }] : [];
+
     // TODO: @Tariq: the fact that this state is huge makes a compelling case for converting to redux.js
     // and splitting this into multiple data stores somewhere down the line
     this.state = {
@@ -64,13 +76,13 @@ export default class NetworkConfigContainer extends React.Component {
 
       // edit mode to determine whether the user edits the network override or node override
       // changed by selecting node(s) or the network in the left pane in the UI
-      editMode: CONFIG_VIEW_MODE.NETWORK,
+      editMode: editMode,
 
       // currently selected image version
       selectedImage: DEFAULT_BASE_KEY,
 
       // currently selected set of nodes which the config is being viewed as
-      selectedNodes: [],
+      selectedNodes: selectedNodes,
     }
   }
 
@@ -519,5 +531,6 @@ export default class NetworkConfigContainer extends React.Component {
 }
 
 NetworkConfigContainer.propTypes = {
-  networkConfig: React.PropTypes.object.isRequired
+  networkConfig: React.PropTypes.object.isRequired,
+  viewContext: React.PropTypes.object.isRequired
 }
