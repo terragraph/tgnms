@@ -62,10 +62,13 @@ struct AggrGetStatusDump {}
  *             The per-node adjacency map
  * @apiSuccess {Map(String:Object(AggrStatusReport))} statusReports
  *             The per-node status reports
+ * @apiSuccess {String} version
+ *	       The aggregator version sourced from "/etc/version"
  */
 struct AggrStatusDump_Deprecated {
   1: map<string /* node id */, Lsdb.AdjacencyDatabase> adjacencyMap;
   2: map<string /* node id */, AggrStatusReport_Deprecated> statusReports;
+  3: optional string version;
 }
 
 /**

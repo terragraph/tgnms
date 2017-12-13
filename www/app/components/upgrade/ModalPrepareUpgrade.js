@@ -259,14 +259,14 @@ export default class ModalPrepareUpgrade extends React.Component {
               </div>
 
               <div className="upgrade-modal-row">
-                <label>Max download speed (-1 for unlimited):</label>
+                <label>Max download speed (Bps) (-1 for unlimited):</label>
                 <input type="number" value={this.state.downloadLimit}
                   onChange={(event) => this.setState({'downloadLimit': event.target.value})}
                 />
               </div>
 
               <div className="upgrade-modal-row">
-                <label>Max upload speed (-1 for unlimited):</label>
+                <label>Max upload speed (Bps) (-1 for unlimited):</label>
                 <input type="number" value={this.state.uploadLimit}
                   onChange={(event) => this.setState({'uploadLimit': event.target.value})}
                 />

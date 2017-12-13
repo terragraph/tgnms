@@ -18,7 +18,7 @@ export default class ModalOverlays extends React.Component {
   state = {
     selectedSiteOverlay: 'Health',
     selectedLinkOverlay: 'Health',
-    selectedMapDimType: 'STANDARD',
+    selectedMapDimType: 'Default',
     selectedMapTile: 'Default',
   }
 

@@ -2,9 +2,12 @@ import React from 'react';
 import { render } from 'react-dom';
 // leaflet maps
 import Leaflet, { Point, LatLng } from 'leaflet';
-import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker } from 'react-leaflet';
+import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker, LayerGroup } from 'react-leaflet';
 import Control from 'react-leaflet-control';
 import LeafletGeom from 'leaflet-geometryutil';
+
+// helper methods
+import { getNodeMarker } from './helpers/NetworkMapHelpers.js';
 
 // dispatcher
 import {Actions, SiteOverlayKeys, linkOverlayKeys, MapDimensions, MapTiles} from './constants/NetworkConstants.js';
@@ -54,9 +57,11 @@ export class CustomMap extends Map {
 export default class NetworkMap extends React.Component {
   nodesByName = {}
   linksByName = {}
+  linksByNode = {}
   sitesByName = {}
 
   state = {
+    hoveredSite: null,
     selectedSite: null,
     selectedLink: null,
     routeWeights: {},
@@ -80,6 +85,8 @@ export default class NetworkMap extends React.Component {
     linkOverlayData: null,
     showTopologyIssuesPane: false,
     newTopology: {},
+    // commit batch selected
+    commitPlanBatch: 0,
   }
 
   constructor(props) {
@@ -238,6 +245,11 @@ export default class NetworkMap extends React.Component {
           newTopology: payload.topology,
         });
         break;
+      case Actions.COMMIT_PLAN_BATCH:
+        this.setState({
+          commitPlanBatch: payload.batch,
+        });
+        break;
     }
   }
 
@@ -256,6 +268,7 @@ export default class NetworkMap extends React.Component {
       nodesByName[node.name] = node;
     });
     let linksByName = {};
+    let linksByNode = {};
     Object.keys(topologyJson.links).map(linkIndex => {
       let link = topologyJson.links[linkIndex];
       linksByName[link.name] = link;
@@ -272,6 +285,13 @@ export default class NetworkMap extends React.Component {
         console.error('Skipping invalid link', link);
         return;
       }
+
+      linksByNode[link.a_node_name] = linksByNode[link.a_node_name] ?
+        linksByNode[link.a_node_name].concat(link) : [link];
+
+      linksByNode[link.z_node_name] = linksByNode[link.z_node_name] ?
+        linksByNode[link.z_node_name].concat(link) : [link];
+
       let aSite = sitesByName[aNode.site_name];
       let zSite = sitesByName[zNode.site_name];
       let aSiteCoords = new LatLng(aSite.location.latitude,
@@ -321,6 +341,7 @@ export default class NetworkMap extends React.Component {
     this.resetZoomOnNextRefresh = false;
     this.nodesByName = nodesByName;
     this.linksByName = linksByName;
+    this.linksByNode = linksByNode;
     this.sitesByName = sitesByName;
     // update zoom level
     let zoomLevel = resetZoom ? networkConfig.zoom_level : this.state.zoomLevel;
@@ -371,9 +392,29 @@ export default class NetworkMap extends React.Component {
     });
   }
 
-  getSiteMarker(pos, color, siteIndex): ReactElement<any> {
+  addNodeMarkerForSite = (topology, site) => {
+    const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
+      const node = topology.nodes[nodeIndex];
+      return node.site_name === site.name;
+    });
+
+    if (this.refs.nodes) {
+      const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
+      const nodeMarkersForSite = getNodeMarker(
+        [site.location.latitude, site.location.longitude],
+        nodesInSite,
+        this.linksByNode,
+        this.state.selectedNode,
+        () => this.setState({hoveredSite: site}),
+        () => this.setState({hoveredSite: null})
+      );
+      nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
+    }
+  }
+
+  getSiteMarker(site, pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
-    return (
+     return (
       <CircleMarker center={pos}
         radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
         clickable
@@ -382,8 +423,11 @@ export default class NetworkMap extends React.Component {
         key={siteIndex}
         siteIndex={siteIndex}
         onClick={this.handleMarkerClick}
+        onMouseOver={() => this.setState({hoveredSite: site})}
         fillColor={color}
-        level={10}/>);
+        level={10}
+      />
+    );
   }
 
   getLinkLine(link, coords, color): ReactElement<any> {
@@ -495,6 +539,11 @@ export default class NetworkMap extends React.Component {
   }
 
   render() {
+    if (this.refs.nodes) {
+      // clear the nodes layer
+      this.refs.nodes.leafletElement.clearLayers();
+    }
+
     // use the center position from the topology if set
     const centerPosition = this.props.networkConfig ?
       [this.props.networkConfig.latitude,
@@ -537,51 +586,86 @@ export default class NetworkMap extends React.Component {
 
       let healthyCount = 0;
       let totalCount = 0;
+      let inCommitBatch = 0;
       let hasPop = false;
       let hasMac = false;
       let isCn = false;
       let sitePolarity = null;
-      Object.keys(topology.nodes).map(nodeIndex => {
-        let node = topology.nodes[nodeIndex];
-        if (node.site_name == site.name) {
-          totalCount++;
-          healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
-          if (sitePolarity == null) {
-            sitePolarity = node.polarity;
-          }
-          // mark as hybrid if anything in the site differs
-          sitePolarity = node.polarity != sitePolarity ? 3 : sitePolarity;
-          hasPop = node.pop_node ? true : hasPop;
-          // TODO: check for mixed sites (error)
-          isCn = node.node_type == 1 ? true : isCn;
-          hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
-        }
+      let sitePlan = 'NoData';
+      if (this.props.commitPlan != null) {
+        sitePlan = 'None';
+      }
+
+      const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
+        const node = topology.nodes[nodeIndex];
+        return node.site_name === site.name;
       });
 
-      let contextualMarker = null;
+      nodeKeysInSite.forEach((nodeIndex) => {
+        const node = topology.nodes[nodeIndex];
+
+        totalCount++;
+        healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
+        if (sitePolarity == null) {
+          sitePolarity = node.polarity;
+        }
+        // mark as hybrid if anything in the site differs
+        sitePolarity = node.polarity != sitePolarity ? 3 : sitePolarity;
+        hasPop = node.pop_node ? true : hasPop;
+        // TODO: check for mixed sites (error)
+        isCn = node.node_type == 1 ? true : isCn;
+        hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
+        if (this.props.commitPlan != null &&
+            this.props.commitPlan.commitBatches.length >=
+              this.state.commitPlanBatch &&
+            this.props.commitPlan.commitBatches[this.state.commitPlanBatch] &&
+            this.props.commitPlan.commitBatches[this.state.commitPlanBatch]
+              .has(node.name)) {
+          inCommitBatch++;
+        }
+      })
+
+      // commit plan
+      if (inCommitBatch == totalCount) {
+        sitePlan = 'Full';
+      } else if (inCommitBatch > 0) {
+        sitePlan = 'Partial';
+      }
+
+      let siteColor = SiteOverlayKeys.Health.Unhealthy.color; // default
+      let siteIndexForMarker = siteIndex;
+
       if (site.hasOwnProperty('pending') && site.pending) {
-        contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Pending.Site, siteIndex);
+        siteColor = SiteOverlayKeys.Pending.Site;
       } else {
         switch (this.props.siteOverlay) {
           case 'Health':
             if (totalCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Empty.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Empty.color;
             } else if (totalCount == healthyCount) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Healthy.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Healthy.color;
             } else if (healthyCount == 0) {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Unhealthy.color;
             } else {
-              contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Partial.color, siteIndex);
+              siteColor = SiteOverlayKeys.Health.Partial.color;
             }
             break;
           case 'Polarity':
-            contextualMarker = this.getSiteMarker(siteCoords, polarityColor(sitePolarity), siteIndex);
+            siteColor = polarityColor(sitePolarity);
+            break;
+          case 'CommitPlan':
+            // fetch commit plan
+            siteColor = SiteOverlayKeys.CommitPlan[sitePlan].color;
+            siteIndexForMarker = undefined; // hack
             break;
           default:
-            contextualMarker = this.getSiteMarker(siteCoords, SiteOverlayKeys.Health.Unhealthy.color);
+            siteColor = SiteOverlayKeys.Health.Unhealthy.color;
+            siteIndexForMarker = undefined; // hack
         }
       }
-      siteComponents.push(contextualMarker);
+
+      siteComponents.push( this.getSiteMarker(site, siteCoords, siteColor, siteIndexForMarker) );
+
       if (hasPop) {
         let secondaryMarker =
           <CircleMarker center={siteCoords}
@@ -592,6 +676,8 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
+            onMouseOver={() => this.setState({hoveredSite: site})}
+            onMouseOut={() => this.setState({hoveredSite: null})}
             fillColor="blue"
             level={11}/>;
         siteComponents.push(secondaryMarker);
@@ -605,6 +691,8 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
+            onMouseOver={() => this.setState({hoveredSite: site})}
+            onMouseOut={() => this.setState({hoveredSite: null})}
             fillColor="pink"
             level={11}/>;
         siteComponents.push(secondaryMarker);
@@ -619,6 +707,8 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
+            onMouseOver={() => this.setState({hoveredSite: site})}
+            onMouseOut={() => this.setState({hoveredSite: null})}
             fillColor="white"
             level={11}/>;
         siteComponents.push(secondaryMarker);
@@ -655,6 +745,9 @@ export default class NetworkMap extends React.Component {
           !this.nodesByName.hasOwnProperty(link.z_node_name)) {
         return;
       }
+      let aNode = this.nodesByName[link.a_node_name];
+      let zNode = this.nodesByName[link.z_node_name];
+
       let aSite = this.nodesByName[link.a_node_name].site_name;
       let zSite = this.nodesByName[link.z_node_name].site_name;
       if (!this.sitesByName.hasOwnProperty(aSite) ||
@@ -761,6 +854,13 @@ export default class NetworkMap extends React.Component {
             }
             linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
             break;
+          case 'CommitPlan':
+            let commitBatch = this.props.commitPlan.commitBatches[this.state.commitPlanBatch];
+            linkLine = this.getLinkLineTwoSides(link,
+              linkCoords,
+              overlayKey.colors[commitBatch.has(aNode.name) ? 1 : 0],
+              overlayKey.colors[commitBatch.has(zNode.name) ? 1 : 0]);
+            break;
           case 'FLAPS':
             // flaps is a special case, can use health data to count # of events
             if (this.state.linkHealth.hasOwnProperty('metrics') &&
@@ -805,6 +905,7 @@ export default class NetworkMap extends React.Component {
     if (this.state.selectedSite != null) {
       let site = this.sitesByName[this.state.selectedSite];
       if (site && site.location) {
+        this.addNodeMarkerForSite(topology, site);
         siteMarkers =
           <CircleMarker center={[site.location.latitude, site.location.longitude]}
                   radius={18}
@@ -817,19 +918,26 @@ export default class NetworkMap extends React.Component {
         let site_a = this.sitesByName[node_a.site_name];
         let site_z = this.sitesByName[node_z.site_name];
         if (site_a && site_z && site_a.location && site_z.location) {
+          this.addNodeMarkerForSite(topology, site_a);
+
           siteMarkers = [
-            <CircleMarker center={[site_a.location.latitude,
-                             site_a.location.longitude]}
-                    radius={18}
-                    key="a_node"
-                    color="rgb(30,116,255)"/>];
+            <CircleMarker
+              center={[site_a.location.latitude, site_a.location.longitude]}
+              radius={18}
+              key="a_node"
+              color="rgb(30,116,255)"
+            />
+          ];
           if (site_a.name != site_z.name) {
+            this.addNodeMarkerForSite(topology, site_z);
+
             siteMarkers.push(
-              <CircleMarker center={[site_z.location.latitude,
-                               site_z.location.longitude]}
-                      radius={18}
-                      key="z_node"
-                      color="rgb(30,116,255)"/>);
+              <CircleMarker
+                center={[site_z.location.latitude, site_z.location.longitude]}
+                radius={18}
+                key="z_node"
+                color="rgb(30,116,255)"/>
+            );
           }
         }
       }
@@ -897,12 +1005,17 @@ export default class NetworkMap extends React.Component {
     }
     if (showOverview) {
       // overview
+      let commitOverlayEnabled = this.props.siteOverlay == 'CommitPlan' ||
+                                 this.props.linkOverlay == 'CommitPlan';
       layersControl =
         <Control position="topright">
           <DetailsTopology topologyName={this.props.networkConfig.topology.name}
                            topology={this.props.networkConfig.topology}
                            nodes={this.nodesByName}
                            links={this.linksByName}
+                           commitPlan={this.props.commitPlan}
+                           commitPlanBatch={this.state.commitPlanBatch}
+                           commitOverlayEnabled={commitOverlayEnabled}
                            maxHeight={maxModalHeight}
                            onClose={this.closeModal}
                            onEnter={this.disableMapScrolling}
@@ -959,6 +1072,10 @@ export default class NetworkMap extends React.Component {
           </Control>
     }
 
+    if (this.state.hoveredSite) {
+      this.addNodeMarkerForSite(topology, this.state.hoveredSite);
+    }
+
     return (
       <div>
         <SplitPane
@@ -979,10 +1096,12 @@ export default class NetworkMap extends React.Component {
             {linkComponents}
             {siteComponents}
             {siteMarkers}
+
             {layersControl}
             {tablesControl}
             {topologyIssuesControl}
             {plannedSite}
+            <LayerGroup ref='nodes'/>
           </CustomMap>
           <NetworkDataTable height={this.state.lowerPaneHeight}
                             networkConfig={this.props.networkConfig} />

@@ -92,12 +92,22 @@ export default class NetworkStatusTable extends React.Component {
               <td>{this.props.instance.controller_ip}</td>
               <td>{this.statusColor(this.props.instance.controller_online)}</td>
             </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td>{this.props.instance.controller_version}</td>
+              <td>&nbsp;</td>
+	    </tr>
             {controllerErrorRow}
             <tr>
               <td>Aggregator</td>
               <td>{this.props.instance.aggregator_ip}</td>
               <td>{this.statusColor(this.props.instance.aggregator_online)}</td>
             </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td>{this.props.instance.aggregator_version}</td>
+              <td>&nbsp;</td>
+	    </tr>
             <tr>
               <td>Latitude</td>
               <td>{this.props.instance.latitude}</td>

@@ -5,6 +5,7 @@ import React from 'react';
 import { render } from 'react-dom';
 
 var _ = require('lodash');
+const uuidv4 = require('uuid/v4');
 
 import {
   getConfigsForTopology,
@@ -18,7 +19,11 @@ import { Actions } from '../../constants/NetworkConstants.js';
 import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 
-import { getImageVersionsForNetwork, unsetAndCleanup } from '../../helpers/NetworkConfigHelpers.js';
+import {
+  getImageVersionsForNetwork,
+  unsetAndCleanup,
+  getDefaultValueForType,
+} from '../../helpers/NetworkConfigHelpers.js';
 import NetworkConfig from './NetworkConfig.js';
 
 export default class NetworkConfigContainer extends React.Component {
@@ -47,22 +52,26 @@ export default class NetworkConfigContainer extends React.Component {
       // map of software version to config
       baseConfig: {},
 
+      // new fields to be added to the specified config
+      // is cleared when the user switches a view as this is more "temporary" than even the unsaved config
+      newConfigFields: {},
+
       // network override
       // one object for the entire network
       networkOverrideConfig: {},
       networkDraftConfig: {},
 
-      // a version of the config that is akin to a merged copy of the 3 configs above
-      // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
+      // a version of the config that is akin to a merged copy of the 2 configs above
+      // ONLY USED when an API call is submitted due to implementation pain for merging the 2 objects when submitting
       networkConfigWithChanges: {},
 
       // node override
-      // config objects mapped by node
+      // config objects mapped by node mac_addr
       nodeOverrideConfig: {},
       nodeDraftConfig: {},
 
-      // a version of the config that is akin to a merged copy of the 3 configs above
-      // ONLY USED when an API call is submitted due to implementation pain for merging the 3 objects when submitting
+      // a version of the config that is akin to a merged copy of the 2 configs above
+      // ONLY USED when an API call is submitted due to implementation pain for merging the 2 objects when submitting
       nodeConfigWithChanges: {},
 
       // edit mode to determine whether the user edits the network override or node override
@@ -151,10 +160,18 @@ export default class NetworkConfigContainer extends React.Component {
         this.changeEditMode(payload.editMode);
         break;
       case NetworkConfigActions.SELECT_IMAGE:
-        this.setState({selectedImage: payload.image});
+        // reset the new fields whenever user switches viewing context
+        this.setState({
+          selectedImage: payload.image,
+          newConfigFields: {},
+        });
         break;
       case NetworkConfigActions.SELECT_NODES:
-        this.setState({selectedNodes: payload.nodes});
+        // reset the new fields whenever user switches viewing context
+        this.setState({
+          selectedNodes: payload.nodes,
+          newConfigFields: {},
+        });
         break;
 
       // actions that directly change the form on ONE FIELD
@@ -184,6 +201,17 @@ export default class NetworkConfigContainer extends React.Component {
         } else {
           this.undoRevertNetworkConfig(payload.editPath);
         }
+        break;
+
+      // actions that for adding new fields for the form
+      case NetworkConfigActions.ADD_NEW_FIELD:
+        this.addNewField(payload.editPath, payload.type);
+        break;
+      case NetworkConfigActions.EDIT_NEW_FIELD:
+        this.editNewField(payload.editPath, payload.id, payload.field, payload.value);
+        break;
+      case NetworkConfigActions.DELETE_NEW_FIELD:
+        this.deleteNewField(payload.editPath, payload.id);
         break;
 
       // actions that change the ENTIRE FORM
@@ -243,11 +271,54 @@ export default class NetworkConfigContainer extends React.Component {
       const newSelectedNodes = (newEditMode === CONFIG_VIEW_MODE.NODE && nodes.length > 0) ?
         [nodes[0]] : [];
 
+      // reset the new fields whenever user switches viewing context
       this.setState({
         editMode: newEditMode,
         selectedNodes: newSelectedNodes,
+        newConfigFields: {},
       });
     }
+  }
+
+  addNewField = (editPath, type) => {
+    // first generate id, then construct a new object with fields
+    // then set it
+    const newId = uuidv4();
+    const newField = {
+      id: newId,
+      type: type,
+      field: '',
+      value: getDefaultValueForType(type),
+    };
+
+    this.setState({
+      newConfigFields: this.editConfig(this.state.newConfigFields, [...editPath, newId], newField),
+    });
+  }
+
+  editNewField = (editPath, id, field, value) => {
+    let newField = _.cloneDeep(this.getConfig(
+      this.state.newConfigFields,
+      [...editPath, id]
+    ));
+
+    newField.field = field;
+    newField.value = value;
+
+    this.setState({
+      newConfigFields: this.editConfig(this.state.newConfigFields, [...editPath, id], newField),
+    });
+  }
+
+  deleteNewField = (editPath, id) => {
+    // do not clean up empty objects as empty objects are allowed as new fields
+    this.setState({
+      newConfigFields: unsetAndCleanup(this.state.newConfigFields, [...editPath, id], -1),
+    });
+  }
+
+  getConfig = (config, editPath) => {
+    return _.get(config, editPath);
   }
 
   editConfig = (config, editPath, value) => {
@@ -326,6 +397,7 @@ export default class NetworkConfigContainer extends React.Component {
       networkOverrideConfig: _.cloneDeep(config),
       networkConfigWithChanges: _.cloneDeep(config),
       networkDraftConfig: {},
+      newConfigFields: {},
     });
   }
 
@@ -345,11 +417,13 @@ export default class NetworkConfigContainer extends React.Component {
       this.setState({
         nodeOverrideConfig: newNodeOverrideConfig,
         nodeDraftConfig: newNodeDraftConfig,
+        newConfigFields: {},
       });
     } else {
       this.setState({
         nodeOverrideConfig: _.cloneDeep(this.state.nodeConfigWithChanges),
         nodeDraftConfig: {},
+        newConfigFields: {},
       });
     }
   }
@@ -358,6 +432,7 @@ export default class NetworkConfigContainer extends React.Component {
     this.setState({
       networkDraftConfig: {},
       networkConfigWithChanges: _.cloneDeep(this.state.networkOverrideConfig),
+      newConfigFields: {},
     });
   }
 
@@ -376,6 +451,7 @@ export default class NetworkConfigContainer extends React.Component {
     this.setState({
       nodeDraftConfig: newNodeDraftConfig,
       nodeConfigWithChanges: newNodeConfigWithChanges,
+      newConfigFields: {},
     });
   }
 
@@ -383,6 +459,7 @@ export default class NetworkConfigContainer extends React.Component {
     this.setState({
       nodeDraftConfig: {},
       nodeConfigWithChanges: _.cloneDeep(this.state.nodeOverrideConfig),
+      newConfigFields: {},
     });
   }
 
@@ -393,6 +470,7 @@ export default class NetworkConfigContainer extends React.Component {
       networkConfigWithChanges: _.cloneDeep(this.state.networkOverrideConfig),
       nodeDraftConfig: {},
       nodeConfigWithChanges: _.cloneDeep(this.state.nodeOverrideConfig),
+      newConfigFields: {},
     });
 
     // then we make the API calls
@@ -411,6 +489,7 @@ export default class NetworkConfigContainer extends React.Component {
 
     const {
       baseConfig,
+      newConfigFields,
 
       networkOverrideConfig,
       networkDraftConfig,
@@ -437,6 +516,7 @@ export default class NetworkConfigContainer extends React.Component {
         selectedNodes={selectedNodes}
         editMode={editMode}
         baseConfigByVersion={baseConfig}
+        newConfigFields={newConfigFields}
 
         networkOverrideConfig={networkOverrideConfig}
         networkDraftConfig={networkDraftConfig}

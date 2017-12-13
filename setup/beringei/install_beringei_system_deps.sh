@@ -12,11 +12,11 @@ fi
 pushd autoconf-2.69
 ./configure --prefix=/usr && make && make install
 popd
-if [ ! -f "autoconf-archive-2017.03.21.tar.xz" ]; then
-	wget http://mirror.easthsia.com/gnu/autoconf-archive/autoconf-archive-2017.03.21.tar.xz
-	tar -xf autoconf-archive-2017.03.21.tar.xz
+if [ ! -f "autoconf-archive-2017.09.28.tar.xz" ]; then
+  wget http://mirror.us-midwest-1.nexcess.net/gnu/autoconf-archive/autoconf-archive-2017.09.28.tar.xz
+	tar -xf autoconf-archive-2017.09.28.tar.xz
 fi
-pushd autoconf-archive-2017.03.21
+pushd autoconf-archive-2017.09.28
 ./configure --prefix=/usr && make && make install
 popd
 # more recent version of boost

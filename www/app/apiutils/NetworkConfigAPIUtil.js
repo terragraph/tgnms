@@ -12,6 +12,7 @@ import {
 } from '../actions/NetworkConfigActions.js';
 
 import { DEFAULT_BASE_KEY } from '../constants/NetworkConfigConstants.js';
+import { sortConfig } from '../helpers/NetworkConfigHelpers.js';
 
 export const getConfigsForTopology = (topologyName, imageVersions, getNetworkConfig) => {
   const uri = '/controller/getBaseConfig';
@@ -24,7 +25,7 @@ export const getConfigsForTopology = (topologyName, imageVersions, getNetworkCon
   }).then((response) => {
     const {config} = response.data;
     getBaseConfigSuccess({
-      config: JSON.parse(config),
+      config: sortConfig(JSON.parse(config)),
       topologyName,
     });
 
@@ -48,7 +49,7 @@ export const getNetworkOverrideConfig = (topologyName) => {
   }).then((response) => {
     const {overrides} = response.data;
     getNetworkConfigSuccess({
-      config: JSON.parse(overrides),
+      config: sortConfig(JSON.parse(overrides)),
       topologyName,
     });
 
@@ -69,7 +70,7 @@ export const getNodeOverrideConfig = (topologyName) => {
   }).then((response) => {
     const {overrides} = response.data;
     getNodeConfigSuccess({
-      config: JSON.parse(overrides),
+      config: sortConfig(JSON.parse(overrides)),
       topologyName,
     });
   });

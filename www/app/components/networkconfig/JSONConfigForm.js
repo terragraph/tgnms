@@ -4,12 +4,23 @@
 import React from 'react';
 import { render } from 'react-dom';
 const classNames = require('classnames');
+var _ = require('lodash');
+
+import swal from 'sweetalert';
+import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import { NetworkConfigActions } from '../../actions/NetworkConfigActions.js';
+import {
+  NetworkConfigActions, editConfigForm, submitNewField, deleteNewField
+} from '../../actions/NetworkConfigActions.js';
 
-import { REVERT_VALUE } from '../../constants/NetworkConfigConstants.js';
+import { REVERT_VALUE, ADD_FIELD_TYPES } from '../../constants/NetworkConfigConstants.js';
+import { getStackedFields } from '../../helpers/NetworkConfigHelpers.js';
+
 import JSONFormField from './JSONFormField.js';
+import AddJSONConfigField from './AddJSONConfigField.js';
+import NewJSONConfigField from './NewJSONConfigField.js';
+import NewJSONConfigObject from './NewJSONConfigObject.js';
 
 const PLACEHOLDER_VALUE = 'base value for field not set';
 
@@ -26,7 +37,9 @@ class ExpandableConfigForm extends React.Component {
     );
 
     this.state = {
-      expanded: true,
+      // expanded: true
+      expanded: props.initExpanded,
+      expandChildren: props.initExpanded,
     };
   }
 
@@ -38,7 +51,8 @@ class ExpandableConfigForm extends React.Component {
     switch(payload.actionType) {
       case NetworkConfigActions.TOGGLE_EXPAND_ALL:
         this.setState({
-          expanded: payload.isExpanded
+          expanded: payload.isExpanded,
+          expandChildren: true,
         });
 
         break;
@@ -46,26 +60,52 @@ class ExpandableConfigForm extends React.Component {
   }
 
   toggleExpandConfig = () => {
+    // children not expanded by default
     this.setState({
-      expanded: !this.state.expanded
+      expanded: !this.state.expanded,
+      expandChildren: false,
     });
   }
 
   render() {
-    const {configs, draftConfig, formLabel, editPath} = this.props;
+    const {configs, draftConfig, newConfigFields, formLabel, editPath} = this.props;
     const {expanded} = this.state;
     const expandMarker = expanded ?
       '/static/images/down-chevron.png' : '/static/images/right-chevron.png';
 
+    const configForm = (
+      <JSONConfigForm
+        configs={configs}
+        draftConfig={draftConfig}
+        editPath={editPath}
+        newConfigFields={newConfigFields}
+        initExpanded={this.state.expandChildren}
+      />
+    );
+
+    const hasNodeOverride = configs[2] && _.isPlainObject(configs[2]) && Object.keys(configs[2]).length > 0;
+    const hasNetworkOverride = configs[1] && _.isPlainObject(configs[1]) && Object.keys(configs[1]).length > 0;
+
+    let hasOverrideText = '';
+    if (hasNodeOverride && hasNetworkOverride) {
+      hasOverrideText = (
+        <span className='nc-override-indicator'>(has network and node override)</span>
+      );
+    } else if (hasNodeOverride) {
+      hasOverrideText = (
+        <span className='nc-override-indicator'>(has node override)</span>
+      );
+    } else if (hasNetworkOverride) {
+      hasOverrideText = (
+        <span className='nc-override-indicator'>(has network override)</span>
+      );
+    }
+
     return (
       <div className='rc-expandable-config-form'>
         <img src={expandMarker} className='config-expand-marker' onClick={this.toggleExpandConfig}/>
-        <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel}:</label>
-        {expanded && <JSONConfigForm
-          configs={configs}
-          draftConfig={draftConfig}
-          editPath={editPath}
-        />}
+        <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel}{hasOverrideText}:</label>
+        {expanded && configForm}
       </div>
     );
   }
@@ -74,9 +114,23 @@ class ExpandableConfigForm extends React.Component {
 ExpandableConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
+  newConfigFields: React.PropTypes.object.isRequired,
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired,
+  initExpanded: React.PropTypes.bool.isRequired,
 }
+
+const emptyFieldAlertProps = {
+  title: 'Field Name Cannot be Empty',
+  text: `Configuration field names cannot be empty, please rename your field and try again`,
+  type: 'error',
+};
+
+const duplicateFieldAlertProps = (duplicateField) => ({
+  title: 'Duplicate Field Name Detected',
+  text: `There exists another field ${duplicateField} in the configuration, please rename your field and try again`,
+  type: 'error',
+});
 
 export default class JSONConfigForm extends React.Component {
   constructor(props) {
@@ -91,17 +145,6 @@ export default class JSONConfigForm extends React.Component {
     return draftValue !== undefined && !this.isReverted(draftValue);
   }
 
-  getStackedFields(configs) {
-    // aggregate all config fields
-    const stackedFields = configs.reduce((stacked, config) => {
-      return [...stacked, ...Object.keys(config)];
-    }, []);
-
-    // now dedupe the fields by adding to a set
-    const dedupedFields = new Set(stackedFields);
-    return [...dedupedFields];
-  }
-
   getDisplayIdx = (configVals) => {
     // traverse the array backwards and stop at the first value that is not undefined
     // this lets us get the "highest" override for a value, aka what to display
@@ -113,18 +156,22 @@ export default class JSONConfigForm extends React.Component {
     return -1;
   }
 
-  renderNestedObject = ({configs, draftConfig, fieldName, editPath}) => {
+  renderNestedObject = ({configs, draftConfig, newConfigFields, fieldName, editPath}) => {
     const processedConfigs = configs.map((config) => {
       return config === undefined ? {} : config;
     });
     const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
+    const processedNewConfigFields = newConfigFields === undefined ? {} : newConfigFields;
 
     return (
       <ExpandableConfigForm
         configs={processedConfigs}
         draftConfig={processedDraftConfig}
+        newConfigFields={processedNewConfigFields}
         formLabel={fieldName}
         editPath={editPath}
+
+        initExpanded={this.props.initExpanded}
       />
     );
   }
@@ -144,17 +191,14 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
-  renderChildItem = ({values, draftValue, fieldName, editPath}) => {
+  renderChildItem = ({values, draftValue, newField, fieldName, editPath}) => {
     // disregard the highest level of override if we have decided to revert the value (to display)
     const displayIdx = this.getDisplayIdx(this.isReverted(draftValue) ?
       values.slice(0, values.length - 1) : values
     );
 
-    if (displayIdx === -1) {
-      console.warn('base not found for field', fieldName, 'in path', editPath);
-    }
-
     const displayVal = this.isDraft(draftValue) ? draftValue : values[displayIdx];
+
     let childItem = (
       <span>Error: unable to render child val of {displayVal}</span>
     );
@@ -173,14 +217,29 @@ export default class JSONConfigForm extends React.Component {
           childItem = this.renderNestedObject({
             configs: values,
             draftConfig: draftValue,
+            newConfigFields: newField,
             fieldName: fieldName,
             editPath: editPath,
           });
           break;
       }
     } else {
-      formFieldArgs.displayVal = PLACEHOLDER_VALUE;
-      childItem = this.renderFormField(formFieldArgs);
+      // here we know that there is only a draft, or something marked to be reverted
+      // if it's reverted then we can display a placeholder
+      formFieldArgs.displayVal = this.isDraft(draftValue) ? draftValue : PLACEHOLDER_VALUE;
+
+      // we display a nested object for the case where a user adds a nested object and submits it as a draft
+      if (_.isPlainObject(draftValue)) {
+        childItem = this.renderNestedObject({
+          configs: values,
+          draftConfig: draftValue,
+          newConfigFields: newField,
+          fieldName: fieldName,
+          editPath: editPath,
+        });
+      } else {
+        childItem = this.renderFormField(formFieldArgs);
+      }
     }
 
     return (
@@ -188,30 +247,119 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
+  onSubmitNewField = (editPath, id, field, value) => {
+    const {configs, draftConfig} = this.props;
+
+    // retrieve the union of fields for all json objects in the array
+    const configFields = new Set(getStackedFields([...configs, draftConfig]));
+
+    // swal if field is empty or it conflicts with the current layer
+    if (field === '') {
+      swal(emptyFieldAlertProps);
+      return;
+    } else if (configFields.has(field)) {
+      swal(duplicateFieldAlertProps(field));
+      return;
+    }
+
+    this.onDeleteNewField(editPath, id);
+
+    editConfigForm({
+      editPath: [...editPath, field],
+      value
+    });
+  }
+
+  onDeleteNewField = (editPath, id) => {
+    deleteNewField({
+      editPath,
+      id
+    });
+  }
+
+  renderNewField = (id, type, field, value) => {
+    // switch on type for object class
+    const newFieldProps = {
+      canSubmit: true,
+      fieldId: id,
+      type: type,
+      field: field,
+      value: value,
+      editPath: this.props.editPath,
+      onSubmit: this.onSubmitNewField,
+      onDelete: this.onDeleteNewField,
+    };
+
+    switch (type) {
+      case ADD_FIELD_TYPES.BOOLEAN:
+      case ADD_FIELD_TYPES.STRING:
+      case ADD_FIELD_TYPES.NUMBER:
+        return (
+          <li className='rc-json-config-input'>
+            <NewJSONConfigField
+              {...newFieldProps}
+            />
+          </li>
+        );
+        break;
+      case ADD_FIELD_TYPES.OBJECT:
+        return (
+          <li className='rc-json-config-input'>
+            <NewJSONConfigObject
+              {...newFieldProps}
+            />
+          </li>
+        );
+        break;
+    }
+
+    return (
+      <li className='rc-json-config-input'>Invalid type!</li>
+    );
+  }
+
   render() {
     const {
       configs,
       draftConfig,
+      newConfigFields,
       editPath
     } = this.props;
 
     // retrieve the union of fields for all json objects in the array
-    const configFields = this.getStackedFields(configs);
+    const configFields = getStackedFields([...configs, draftConfig]);
     const childItems = configFields.map((field) => {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
+      const newField = newConfigFields[field];
 
       return this.renderChildItem({
         values: configValues,
         draftValue: draftValue,
+        newField: newField,
         fieldName: field,
         editPath: editPath.concat(field),
       });
     });
 
+    const addFieldButton = (
+      <AddJSONConfigField
+        editPath={editPath}
+      />
+    );
+
+    const newFields = Object.keys(newConfigFields).filter((id) => {
+      const newField = newConfigFields[id];
+      // newField must have an id that is not a plain object
+      return newField.hasOwnProperty('id') && !_.isPlainObject(newField.id);
+    }).map((id) => {
+      const newField = newConfigFields[id];
+      return this.renderNewField(id, newField.type, newField.field, newField.value);
+    });
+
     return (
       <div className='rc-json-config-form'>
-        <ul>{childItems}</ul>
+        <ul>{[...childItems, ...newFields, addFieldButton]}</ul>
       </div>
     );
   }
@@ -220,9 +368,17 @@ export default class JSONConfigForm extends React.Component {
 JSONConfigForm.propTypes = {
   configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   draftConfig: React.PropTypes.object.isRequired,
+  newConfigFields: React.PropTypes.object.isRequired,
 
   // the "path" of keys that identifies the root of the component's config
   // vs the entire config object
   // useful for nested config components
   editPath: React.PropTypes.array.isRequired,
+
+  // is the component initially expanded? only using this to pass to children
+  initExpanded: React.PropTypes.bool.isRequired,
+}
+
+JSONConfigForm.defaultProps = {
+  initExpanded: true,
 }

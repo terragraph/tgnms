@@ -154,6 +154,9 @@ worker.on('message', (msg) => {
       var currentTime = new Date().getTime();
       // remove nodes with old timestamps in status report
       if (msg.success && msg.status_dump && msg.status_dump.statusReports) {
+        if (msg.status_dump.version) {
+          config.controller_version = msg.status_dump.version.slice(0, -2);
+        }
         Object.keys(msg.status_dump.statusReports).forEach((nodeMac) => {
           const report = msg.status_dump.statusReports[nodeMac];
           const ts = parseInt(Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)) * 1000;
@@ -216,6 +219,9 @@ worker.on('message', (msg) => {
       var currentTime = new Date().getTime();
       // remove nodes with old timestamps in status report
       if (msg.success && msg.status_dump && msg.status_dump.statusReports) {
+        if (msg.status_dump.version) {
+          config.aggregator_version = msg.status_dump.version.slice(0, -2);
+        }
         Object.keys(msg.status_dump.statusReports).forEach((nodeMac) => {
           const report = msg.status_dump.statusReports[nodeMac];
           const ts = parseInt(Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)) * 1000;
@@ -1394,6 +1400,26 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
       limit,
       skipLinks,
       scheduleToCommit,
+      topology
+    }, "", res);
+  });
+});
+
+app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function() {
+    let postData = JSON.parse(httpPostData);
+    const {topologyName, limit, excludeNodes} = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync({
+      type: 'commitUpgradePlan',
+      limit,
+      excludeNodes,
       topology
     }, "", res);
   });

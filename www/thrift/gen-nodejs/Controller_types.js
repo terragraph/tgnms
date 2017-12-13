@@ -1844,6 +1844,13 @@ GetCtrlConfigReq.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 3:
+      if (ftype == Thrift.Type.STRING) {
+        this.version = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       default:
         input.skip(ftype);
     }
@@ -1916,6 +1923,11 @@ GetCtrlConfigResp.prototype.write = function(output) {
   if (this.config !== null && this.config !== undefined) {
     output.writeFieldBegin('config', Thrift.Type.STRING, 1);
     output.writeString(this.config);
+    output.writeFieldEnd();
+  }
+  if (this.version !== null && this.version !== undefined) {
+    output.writeFieldBegin('version', Thrift.Type.STRING, 3);
+    output.writeString(this.version);
     output.writeFieldEnd();
   }
   output.writeFieldStop();
@@ -2576,6 +2588,9 @@ StatusDump = module.exports.StatusDump = function(args) {
       this.statusReports = Thrift.copyMap(args.statusReports, [null]);
     }
     if (args.version !== undefined && args.version !== null) {
+      this.version = args.version;
+    }
+    if (args.version !== undefined) {
       this.version = args.version;
     }
   }
