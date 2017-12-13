@@ -157,7 +157,7 @@ const command2MsgType = {
   'delNode': Controller_ttypes.MessageType.DEL_NODE,
   'addSite': Controller_ttypes.MessageType.ADD_SITE,
   'delSite': Controller_ttypes.MessageType.DEL_SITE,
-  'rebootNode': Controller_ttypes.MessageType.REBOOT_NODE,
+  'rebootNode': Controller_ttypes.MessageType.REBOOT_REQUEST,
   'editSite': Controller_ttypes.MessageType.EDIT_SITE,
   'editNode': Controller_ttypes.MessageType.EDIT_NODE,
   'setMac': Controller_ttypes.MessageType.SET_NODE_MAC,
@@ -219,8 +219,8 @@ msgType2Params[Controller_ttypes.MessageType.DEL_SITE] = {
 msgType2Params[Controller_ttypes.MessageType.EDIT_SITE] = {
   'recvApp': 'ctrl-app-TOPOLOGY_APP',
   'nmsAppId': 'NMS_WEB_TOPO_CONFIG'};
-msgType2Params[Controller_ttypes.MessageType.REBOOT_NODE] = {
-  'recvApp': 'minion-app-STATUS_APP',
+msgType2Params[Controller_ttypes.MessageType.REBOOT_REQUEST] = {
+  'recvApp': 'ctrl-app-STATUS_APP',
   'nmsAppId': 'NMS_WEB_STATUS_CONFIG'};
 msgType2Params[Controller_ttypes.MessageType.SET_NODE_MAC] = {
   'recvApp': 'ctrl-app-TOPOLOGY_APP',
@@ -406,8 +406,10 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(delSiteReq);
       break;
     case 'rebootNode':
-      var rebootNode = new Controller_ttypes.RebootNode();
-      rebootNode.forced = msg.forceReboot;
+      var rebootNode = new Controller_ttypes.RebootReq();
+      rebootNode.force = msg.forceReboot;
+      rebootNode.nodes = msg.nodes;
+      rebootNode.secondsToReboot = msg.secondsToReboot;
       send(rebootNode);
       break;
     case 'setMac':
@@ -700,7 +702,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_SITE:
             case Controller_ttypes.MessageType.EDIT_NODE:
             case Controller_ttypes.MessageType.EDIT_SITE:
-            case Controller_ttypes.MessageType.REBOOT_NODE:
+            case Controller_ttypes.MessageType.REBOOT_REQUEST:
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:
@@ -799,7 +801,7 @@ class ControllerProxy extends EventEmitter {
             case Controller_ttypes.MessageType.DEL_SITE:
             case Controller_ttypes.MessageType.EDIT_NODE:
             case Controller_ttypes.MessageType.EDIT_SITE:
-            case Controller_ttypes.MessageType.REBOOT_NODE:
+            case Controller_ttypes.MessageType.REBOOT_REQUEST:
             case Controller_ttypes.MessageType.SET_NODE_MAC:
             case Controller_ttypes.MessageType.SET_NODE_MAC_LIST:
             case Controller_ttypes.MessageType.SET_IGNITION_PARAMS:

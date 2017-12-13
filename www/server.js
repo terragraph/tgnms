@@ -1323,15 +1323,18 @@ app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (req,
 
 app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
-  let nodeMac = req.params[1];
+  let nodeName = req.params[1];
   let forceReboot = req.params[2] == "force" ? true : false;
   var topology = getTopologyByName(topologyName);
+  const SECONDS_TO_REBOOT = 5;
 
   syncWorker.sendCtrlMsgSync({
     type: 'rebootNode',
     topology: topology,
     forceReboot: forceReboot,
-  }, nodeMac, res);
+    nodes: [nodeName],
+    secondsToReboot: SECONDS_TO_REBOOT,
+  }, "", res);
 });
 
 app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
