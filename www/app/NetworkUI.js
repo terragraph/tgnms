@@ -47,6 +47,9 @@ const NETWORK_HEALTH_INTERVAL_MIN = 30;
 export default class NetworkUI extends React.Component {
   state = {
     view: NetworkStore.viewName,
+    // additional props for a view
+    viewContext: {},
+
     networkName: NetworkStore.networkName,
     networkConfig: {},
     nodesByName: {},
@@ -172,6 +175,7 @@ export default class NetworkUI extends React.Component {
         }
         this.setState({
           view: viewName,
+          viewContext: payload.context ? payload.context : {},
         });
         // construct new URL from selected view
         break;
@@ -430,6 +434,7 @@ export default class NetworkUI extends React.Component {
       commitPlan: this.state.commitPlan,
       pendingTopology: this.state.pendingTopology,
       config: this.state.topologies,
+      viewContext: this.state.viewContext,
     };
     let paneComponent = <div/>;
     switch (this.state.view) {

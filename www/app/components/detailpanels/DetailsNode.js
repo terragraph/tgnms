@@ -49,6 +49,17 @@ export default class DetailsNode extends React.Component {
     }.bind(this), 1);
   }
 
+  changeToConfigView = (node) => {
+    Dispatcher.dispatch({
+      actionType: Actions.VIEW_SELECTED,
+      viewName: 'config',
+      context: {
+        node,
+      },
+    });
+    // dispatch an action here, that would be good
+  }
+
   connectToTerminal(ipv6) {
     if (ipv6 != "Not Available") {
       let myRequest = new Request('/xterm/'+ipv6, {"credentials": "same-origin"});
@@ -341,6 +352,7 @@ export default class DetailsNode extends React.Component {
                     <div><span className="details-link" onClick={() => {this.deleteNode(false)}}>Delete Node</span>
                          <span className="details-link" style={{float: 'right'}} onClick={() => {this.deleteNode(true)}}>(forced)</span></div>
                     <div><span className="details-link" onClick={this.renameNode.bind(this)}>Rename Node</span></div>
+                    <div><span className="details-link" onClick={() => this.changeToConfigView(this.props.node)}>Node Configuration</span></div>
                   </td>
                 </tr>
               </tbody>
