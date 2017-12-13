@@ -352,7 +352,7 @@ export default class DetailsNode extends React.Component {
                     <div><span className="details-link" onClick={() => {this.deleteNode(false)}}>Delete Node</span>
                          <span className="details-link" style={{float: 'right'}} onClick={() => {this.deleteNode(true)}}>(forced)</span></div>
                     <div><span className="details-link" onClick={this.renameNode.bind(this)}>Rename Node</span></div>
-                    <div><span className="details-link" onClick={() => this.changeToConfigView(this.props.node)}>Configure Node</span></div>
+                    <div><span className="details-link" onClick={() => this.changeToConfigView(this.props.node)}>Node Configuration</span></div>
                   </td>
                 </tr>
               </tbody>
