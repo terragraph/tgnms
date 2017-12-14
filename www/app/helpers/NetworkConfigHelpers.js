@@ -47,7 +47,7 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   return cleanedObj;
 }
 
-export const getStackedFields = (configs, viewOverridesOnly) => {
+export const getStackedFields = (configs) => {
   // aggregate all config fields
   const stackedFields = configs.reduce((stacked, config) => {
     return _.isPlainObject(config) ? [...stacked, ...Object.keys(config)] : stacked;

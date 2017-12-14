@@ -3,11 +3,9 @@
 
 import React from 'react';
 import { render } from 'react-dom';
-const uuidv4 = require('uuid/v4');
 
 import { toggleExpandAll } from '../../actions/NetworkConfigActions.js';
 
-import CustomToggle from '../common/CustomToggle.js';
 import JSONConfigForm from './JSONConfigForm.js';
 import NetworkConfigHeader from './NetworkConfigHeader.js';
 import NetworkConfigFooter from './NetworkConfigFooter.js';
@@ -17,10 +15,7 @@ export default class NetworkConfigBody extends React.Component {
     super(props);
 
     this.state = {
-      isExpanded: true,
-      viewContext: {
-        viewOverridesOnly: false,
-      },
+      isExpanded: true
     };
   }
 
@@ -43,8 +38,6 @@ export default class NetworkConfigBody extends React.Component {
       hasUnsavedChanges,
     } = this.props;
 
-    const {isExpanded, viewContext} = this.state;
-
     return (
       <div className='rc-network-config-body'>
         <NetworkConfigHeader
@@ -59,16 +52,6 @@ export default class NetworkConfigBody extends React.Component {
           <button className='nc-expand-all-btn'
             onClick={() => this.onToggleExpandAll(false)}
           >Collapse All</button>
-          <span style={{marginRight: '5px', marginLeft: '15px'}}>View Overrides Only</span>
-          <CustomToggle
-            checkboxId={uuidv4()}
-            value={viewContext.viewOverridesOnly}
-            onChange={(value) => this.setState({
-              viewContext: {
-                viewOverridesOnly: value
-              }
-            })}
-          />
         </div>
         <div className='config-form-root'>
           <JSONConfigForm
@@ -76,8 +59,7 @@ export default class NetworkConfigBody extends React.Component {
             draftConfig={draftConfig}
             newConfigFields={newConfigFields}
             editPath={[]}
-            initExpanded={false}
-            viewContext={viewContext}
+            parentExpanded={true}
           />
         </div>
         <NetworkConfigFooter

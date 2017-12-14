@@ -24,16 +24,8 @@ export const getConfigsForTopology = (topologyName, imageVersions, getNetworkCon
     }
   }).then((response) => {
     const {config} = response.data;
-    const parsedConfig = JSON.parse(config);
-    // assume here that it's a map of base version to config object
-    let cleanedConfig = {};
-    Object.keys(parsedConfig).forEach((baseVersion) => {
-      const configValue = _.isPlainObject(parsedConfig[baseVersion]) ? parsedConfig[baseVersion] : {};
-      cleanedConfig[baseVersion] = configValue;
-    }, {});
-
     getBaseConfigSuccess({
-      config: sortConfig(cleanedConfig),
+      config: sortConfig(JSON.parse(config)),
       topologyName,
     });
 
@@ -56,9 +48,8 @@ export const getNetworkOverrideConfig = (topologyName) => {
     }
   }).then((response) => {
     const {overrides} = response.data;
-    const cleanedOverride = _.isPlainObject(JSON.parse(overrides)) ? JSON.parse(overrides) : {};
     getNetworkConfigSuccess({
-      config: sortConfig(cleanedOverride),
+      config: sortConfig(JSON.parse(overrides)),
       topologyName,
     });
 
