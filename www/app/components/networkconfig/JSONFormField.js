@@ -131,6 +131,8 @@ export default class JSONFormField extends React.Component {
 
     const formInputElement = this.renderInputItem(displayVal, displayIdx, isDraft, isReverted);
 
+
+
     return (
       <div
         className={classNames('rc-json-form-field', {'json-field-focused': focus || hover})}
@@ -176,4 +178,8 @@ JSONFormField.propTypes = {
   isReverted: React.PropTypes.bool.isRequired,
   isDraft: React.PropTypes.bool.isRequired,
   displayVal: React.PropTypes.any.isRequired,
+
+  viewContext: React.PropTypes.shape({
+    viewOverridesOnly: React.PropTypes.bool.isRequired,
+  }).isRequired,
 }

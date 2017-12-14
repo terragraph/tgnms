@@ -68,7 +68,7 @@ class ExpandableConfigForm extends React.Component {
   }
 
   render() {
-    const {configs, draftConfig, newConfigFields, formLabel, editPath} = this.props;
+    const {configs, draftConfig, newConfigFields, formLabel, editPath, viewContext} = this.props;
     const {expanded} = this.state;
     const expandMarker = expanded ?
       '/static/images/down-chevron.png' : '/static/images/right-chevron.png';
@@ -80,11 +80,13 @@ class ExpandableConfigForm extends React.Component {
         editPath={editPath}
         newConfigFields={newConfigFields}
         initExpanded={this.state.expandChildren}
+        viewContext={viewContext}
       />
     );
 
     const hasNodeOverride = configs[2] && _.isPlainObject(configs[2]) && Object.keys(configs[2]).length > 0;
     const hasNetworkOverride = configs[1] && _.isPlainObject(configs[1]) && Object.keys(configs[1]).length > 0;
+    const hasDraft = draftConfig && _.isPlainObject(draftConfig) && Object.keys(draftConfig).length > 0;
 
     let hasOverrideText = '';
     if (hasNodeOverride && hasNetworkOverride) {
@@ -101,13 +103,19 @@ class ExpandableConfigForm extends React.Component {
       );
     }
 
-    return (
+    const expandableConfigForm = (
       <div className='rc-expandable-config-form'>
         <img src={expandMarker} className='config-expand-marker' onClick={this.toggleExpandConfig}/>
         <label className='config-form-label' onClick={this.toggleExpandConfig}>{formLabel}{hasOverrideText}:</label>
         {expanded && configForm}
       </div>
     );
+
+    // don't show if only viewing overrides, and there are no drafts or overrides
+    return (viewContext.viewOverridesOnly && ! hasDraft && !hasNodeOverride && !hasNetworkOverride ) ? (
+      <div></div>
+    ) : expandableConfigForm;
+    // return expandableConfigForm;
   }
 }
 
@@ -118,6 +126,10 @@ ExpandableConfigForm.propTypes = {
   formLabel: React.PropTypes.string.isRequired,
   editPath: React.PropTypes.array.isRequired,
   initExpanded: React.PropTypes.bool.isRequired,
+
+  viewContext: React.PropTypes.shape({
+    viewOverridesOnly: React.PropTypes.bool.isRequired,
+  }).isRequired,
 }
 
 const emptyFieldAlertProps = {
@@ -156,7 +168,7 @@ export default class JSONConfigForm extends React.Component {
     return -1;
   }
 
-  renderNestedObject = ({configs, draftConfig, newConfigFields, fieldName, editPath}) => {
+  renderNestedObject = ({configs, draftConfig, newConfigFields, fieldName, editPath, viewContext}) => {
     const processedConfigs = configs.map((config) => {
       return config === undefined ? {} : config;
     });
@@ -172,11 +184,17 @@ export default class JSONConfigForm extends React.Component {
         editPath={editPath}
 
         initExpanded={this.props.initExpanded}
+        viewContext={viewContext}
       />
     );
   }
 
-  renderFormField = ({values, draftValue, displayIdx, fieldName, editPath, displayVal}) => {
+  renderFormField = ({values, draftValue, displayIdx, fieldName, editPath, displayVal, viewContext}) => {
+    // if there are no drafts and no overrides and we only show overrides, hide field
+    if (viewContext.viewOverridesOnly && displayIdx <= 0 && !this.isDraft(draftValue) && !this.isReverted(draftValue)) {
+      return (<div></div>);
+    }
+
     return (
       <JSONFormField
         editPath={editPath}
@@ -203,7 +221,7 @@ export default class JSONConfigForm extends React.Component {
       <span>Error: unable to render child val of {displayVal}</span>
     );
 
-    const formFieldArgs = {values, draftValue, displayIdx, fieldName, editPath};
+    const formFieldArgs = {values, draftValue, displayIdx, fieldName, editPath, viewContext: this.props.viewContext};
     if (displayIdx >= 0) {
       // value is found in a config
       switch (typeof displayVal) {
@@ -220,6 +238,7 @@ export default class JSONConfigForm extends React.Component {
             newConfigFields: newField,
             fieldName: fieldName,
             editPath: editPath,
+            viewContext: this.props.viewContext,
           });
           break;
       }
@@ -236,6 +255,7 @@ export default class JSONConfigForm extends React.Component {
           newConfigFields: newField,
           fieldName: fieldName,
           editPath: editPath,
+          viewContext: this.props.viewContext,
         });
       } else {
         childItem = this.renderFormField(formFieldArgs);
@@ -288,6 +308,7 @@ export default class JSONConfigForm extends React.Component {
       editPath: this.props.editPath,
       onSubmit: this.onSubmitNewField,
       onDelete: this.onDeleteNewField,
+      viewContext: this.props.viewContext,
     };
 
     switch (type) {
@@ -377,6 +398,10 @@ JSONConfigForm.propTypes = {
 
   // is the component initially expanded? only using this to pass to children
   initExpanded: React.PropTypes.bool.isRequired,
+
+  viewContext: React.PropTypes.shape({
+    viewOverridesOnly: React.PropTypes.bool.isRequired,
+  }).isRequired,
 }
 
 JSONConfigForm.defaultProps = {
