@@ -1823,7 +1823,7 @@ app.post(
     const { topologyName } = req.body;
     const topology = getTopologyByName(topologyName);
 
-    const urlPrefix = req.protocol + '://' + req.get('host');
+    const urlPrefix = process.env.E2E_DL_URL ? process.env.E2E_DL_URL : (req.protocol + '://' + req.get('host'));
     const uriPath = querystring.escape(req.file.filename);
     const imagePath = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
 
