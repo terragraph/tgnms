@@ -77,7 +77,8 @@ process.on('message', (msg) => {
         // request the old and new structures until everyone is on the latest
         // don't pre-fetch routing
         aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_REPORT, '\0');
-        aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED, '\0');
+        // DISABLED due to high cpu in sjc
+        // aggrProxy.sendAggrMsgType(Aggregator_ttypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED, '\0');
         aggrProxy.on('event', (type, success, response_time, data) => {
           switch (type) {
             case Aggregator_ttypes.AggrMessageType.GET_STATUS_REPORT:

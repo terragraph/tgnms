@@ -142,11 +142,13 @@ export default class NetworkDataTable extends React.Component {
         <TabPanel>
           <NetworkAdjacencyTable {...tableProps} />
         </TabPanel>
+      </Tabs>
+    );
+    /* DISABLED until status_dump is split into status_report and routing_report (pmccut)
         <TabPanel>
           <NetworkRoutingTable {...tableProps} />
         </TabPanel>
-      </Tabs>
-    );
+    */
   }
 }
 NetworkDataTable.propTypes = {

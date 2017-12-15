@@ -235,7 +235,8 @@ worker.on('message', (msg) => {
         });
       }
       // adjacencies
-      if (msg.success && msg.status_dump && msg.status_dump.adjacencyMap) {
+      // DISABLED due to high cpu in sjc
+/*      if (msg.success && msg.status_dump && msg.status_dump.adjacencyMap) {
         if (!adjacencyMapsByName[msg.name]) {
           adjacencyMapsByName[msg.name] = {};
         }
@@ -252,7 +253,7 @@ worker.on('message', (msg) => {
               adjacencyMapsByName[msg.name][node_mac][llAddr] = nextMac;
           }
         });
-      }
+      }*/
       break;
     case 'scan_status':
       if (!msg.success) {
@@ -1567,9 +1568,11 @@ app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
     res.status(404).end("No such topology\n");
     return;
   }
+  // DISABLED due to high cpu in sjc
+  // adjacencyMapsByName[topologyName],
   res.json({
     status: aggrStatusDumpsByName[topologyName],
-    AdjMapAcuum: adjacencyMapsByName[topologyName],
+    AdjMapAcuum: {},
   });
 });
 
