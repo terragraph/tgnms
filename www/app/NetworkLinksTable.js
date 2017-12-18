@@ -7,9 +7,12 @@ import Dispatcher from "./NetworkDispatcher.js";
 import NetworkStore from "./stores/NetworkStore.js";
 import ReactEventChart from "./ReactEventChart.js";
 import { availabilityColor } from "./NetworkHelper.js";
+import { variableColorDown, variableColorUp } from "./NetworkHelper.js";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
-var linkNyName = {};
+var SECONDS_HOUR = 60 * 60;
+var SECONDS_DAY = SECONDS_HOUR * 24;
+var INVALID_VALUE = 255;
 
 export default class NetworkLinksTable extends React.Component {
   nodesByName = {};
@@ -19,12 +22,14 @@ export default class NetworkLinksTable extends React.Component {
     sortOrder: undefined,
     selectedLink: NetworkStore.selectedName,
     linkHealth: NetworkStore.linkHealth,
+    analyzerTable: NetworkStore.analyzerTable,
     hideWired: true,
     showEventsChart: true,
     hideDnToDnLinks: false,
     toplink: null,
     // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
-    linkRequestButtonEnabled: true
+    linkRequestButtonEnabled: true,
+    showAnalyzer2: false
   };
 
   constructor(props) {
@@ -60,6 +65,8 @@ export default class NetworkLinksTable extends React.Component {
           link.alive_perc = nodeHealth.alive;
           link.events = nodeHealth.events;
         }
+        // link.name is the full name: e.g. link-15-46.p1-15-46.s2
+        // link.a_node_name would be 15-46.p1 in this case
         this.linksByName[link.name] = link;
       });
     }
@@ -90,6 +97,11 @@ export default class NetworkLinksTable extends React.Component {
       case Actions.HEALTH_REFRESHED:
         this.setState({
           linkHealth: payload.linkHealth
+        });
+        break;
+      case Actions.ANALYZER_REFRESHED:
+        this.setState({
+          analyzerTable: payload.analyzerTable
         });
         break;
     }
@@ -128,6 +140,12 @@ export default class NetworkLinksTable extends React.Component {
       sortOrder,
       toplink: sortName == "name" ? this.state.toplink : null
     });
+  }
+
+  checkInvalidVal(obj, propertyName) {
+    return obj.hasOwnProperty(propertyName)
+      ? obj[propertyName] == INVALID_VALUE ? "-" : obj[propertyName]
+      : "-";
   }
 
   getTableRows(): Array<{
@@ -172,6 +190,110 @@ export default class NetworkLinksTable extends React.Component {
         type: link.link_type == 1 ? "Wireless" : "Wired",
         alive_perc: link.alive_perc,
         linkup_attempts: linkupAttempts,
+        distance: link.distance
+      });
+    });
+    return rows;
+  }
+
+  getTableRowsAnalyzer2(): Array<{
+    name: string,
+    a_node_name: string,
+    z_node_name: string,
+    alive: boolean
+  }> {
+    const rows = [];
+    if (this.linksByName === undefined) {
+      console.log("linksByName undefined");
+      return;
+    }
+    Object.keys(this.linksByName).forEach(linkName => {
+      let link = this.linksByName[linkName];
+      // TODO(csm) IS THIS RIGHT?  I WAS GETTING A RED SCREEN WITH AN ERROR
+      // "CANNOT READ PROPERTY METRICS OF UNDEFINED"
+      if (this.state.analyzerTable === undefined) {
+        return;
+      }
+      let analyzerLink = this.state.analyzerTable.metrics.hasOwnProperty(
+        linkName
+      )
+        ? this.state.analyzerTable.metrics[linkName]
+        : [];
+      let analyzerLinkA = analyzerLink.hasOwnProperty("A")
+        ? analyzerLink["A"]
+        : analyzerLink;
+      let analyzerLinkZ = analyzerLink.hasOwnProperty("Z")
+        ? analyzerLink["Z"]
+        : analyzerLink;
+      let linkupAttempts = 0;
+      if (link.linkup_attempts && link.linkup_attempts.buffer) {
+        const buf = Buffer.from(link.linkup_attempts.buffer.data);
+        linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
+      }
+      if (link.link_type == 2 && this.state.hideWired) {
+        return;
+      }
+      // check if either side of the node is a CN
+      if (
+        !this.nodesByName.hasOwnProperty(link.a_node_name) ||
+        !this.nodesByName.hasOwnProperty(link.z_node_name)
+      ) {
+        return;
+      }
+      let aNode = this.nodesByName[link.a_node_name];
+      let zNode = this.nodesByName[link.z_node_name];
+      if (
+        this.state.hideDnToDnLinks &&
+        aNode.node_type == 2 &&
+        zNode.node_type == 2
+      ) {
+        // skip since it's DN to DN
+        return;
+      }
+
+      let perA = this.checkInvalidVal(analyzerLinkA, "avgper");
+      let perZ = this.checkInvalidVal(analyzerLinkZ, "avgper");
+      let tputA = this.checkInvalidVal(analyzerLinkA, "tput");
+      let tputZ = this.checkInvalidVal(analyzerLinkZ, "tput");
+      let mcsA = this.checkInvalidVal(analyzerLinkA, "avgmcs");
+      let mcsZ = this.checkInvalidVal(analyzerLinkZ, "avgmcs");
+      let snrA = this.checkInvalidVal(analyzerLinkA, "avgsnr");
+      let snrZ = this.checkInvalidVal(analyzerLinkZ, "avgsnr");
+      let txpowerA = this.checkInvalidVal(analyzerLinkA, "avgtxpower");
+      let txpowerZ = this.checkInvalidVal(analyzerLinkZ, "avgtxpower");
+
+      // this is the A->Z link
+      rows.push({
+        name: link.name,
+        a_node_name: link.a_node_name,
+        z_node_name: link.z_node_name,
+        alive: link.is_alive,
+        type: link.link_type == 1 ? "Wireless" : "Wired",
+        alive_perc: link.alive_perc,
+        fw_restarts: analyzerLinkA["flaps"],
+        uptime: analyzerLinkA["uptime"] / 60.0,
+        mcs: mcsA, // MCS, PER, throughput and power are measured at the tx
+        snr: snrZ, // SNR is measured at the rx
+        per: perA,
+        tputPPS: tputA,
+        txpower: txpowerA,
+        distance: link.distance
+      });
+      // this is the Z->A link
+      rows.push({
+        name: link.name,
+        a_node_name: link.z_node_name,
+        z_node_name: link.a_node_name,
+        alive: link.is_alive,
+        type: link.link_type == 1 ? "Wireless" : "Wired",
+        alive_perc: link.alive_perc,
+        fw_restarts: analyzerLinkZ["flaps"],
+        uptime: analyzerLinkZ["uptime"] / 60.0,
+        mcs: mcsZ,
+        snr: snrA,
+        per: perZ,
+        tputPPS: tputZ,
+        txpower: txpowerZ,
         distance: link.distance
       });
     });
@@ -225,6 +347,109 @@ export default class NetworkLinksTable extends React.Component {
     );
   }
 
+  // convert time in ms to hh:MM:ss<AM/PM> format
+  // used by the function that creates the Scuba dashboard link
+  hhMMss(tm) {
+    let tmm = new Date(tm);
+    let seconds = tmm.getSeconds();
+    let minutes = tmm.getMinutes();
+    let hour = tmm.getHours();
+    let ampm = "";
+    if (hour > 12) {
+      hour = hour - 12;
+      ampm = "PM";
+    } else {
+      ampm = "AM";
+    }
+    return hour + ":" + minutes + ":" + seconds + ampm;
+  }
+
+  // this creates a link to a Scuba dashboard showing the last one hour of
+  // PHY statistics; the link will only work when connected to the FB
+  // corporate network
+  renderDashboardLink(cell, row) {
+    let linkStyle = {
+      color: "blue",
+      cursor: "pointer",
+      paddingLeft: "5px"
+    };
+
+    // if the field doesn't exist, don't display the link
+    if (
+      !this.nodesByName.hasOwnProperty(row.a_node_name) ||
+      !this.nodesByName.hasOwnProperty(row.z_node_name)
+    ) {
+      return;
+    }
+    let aNode = this.nodesByName[row.a_node_name];
+    let zNode = this.nodesByName[row.z_node_name];
+    let now = new Date();
+    // put in a two minute window because it takes some time for data to
+    // reach Scuba
+    let endTms = now.getTime() - 120 * 1000; // ms since 1970
+    let endTs = (endTms / 1000.0).toFixed(0);
+    let startTms = endTms - (SECONDS_HOUR - 120) * 1000;
+    let startTs = (startTms / 1000.0).toFixed(0);
+
+    let url =
+      "https://our.intern.facebook.com/intern/network/terragraph/link_log/?";
+    let node_a = "node_a=" + aNode.mac_addr;
+    let node_z = "&node_z=" + zNode.mac_addr;
+
+    // getTimezoneOffset is the difference between UTC and local in
+    // minutes
+    let hour_diff = now.getTimezoneOffset() / 60;
+    let start_time = (startTs - hour_diff * SECONDS_HOUR) % SECONDS_DAY;
+    let start_date = (startTs - start_time) * 1000; // ms
+    // local time display
+    let start_time_local = this.hhMMss(startTms);
+    let start_time_display = "&start_time_display=" + start_time_local;
+
+    let end_time = (endTs - hour_diff * SECONDS_HOUR) % SECONDS_DAY;
+    let end_date = (endTs - end_time) * 1000; // ms
+    // local time display
+    let end_time_local = this.hhMMss(endTms);
+    let end_time_display = "&end_time_display=" + end_time_local;
+
+    // Calculate configs based on (startT - endT): sample ratio and sample
+    // num
+    let total_sample_num = endTs - startTs;
+    // more than 3700 samples gets slow for Scuba fetch
+    let sampling_ratio = Math.ceil(total_sample_num / 3700).toFixed(0);
+    // assume 1 sample/second
+    let sample_num = (total_sample_num / sampling_ratio).toFixed(0);
+    let sample = "&sample=" + sample_num;
+    let sampling_ratio_txt = "&sampling_ratio=" + sampling_ratio;
+    let myURL =
+      url +
+      node_a +
+      "&start_date=" +
+      start_date +
+      start_time_display +
+      "&start_time=" +
+      start_time +
+      sample +
+      sampling_ratio_txt +
+      node_z +
+      "&end_date=" +
+      end_date +
+      end_time_display +
+      "&end_time=" +
+      end_time;
+    return (
+      <span>
+        {/* TODO(csm) i would like this to open in a new tab but it doesn't open a new tab  */}{" "}
+        {cell}
+        <a
+          href={myURL}
+          onclick="window.open(this.href,&quot;_blank&quot;).focus();"
+        >
+          ( Scuba Dashboard FB only)
+        </a>
+      </span>
+    );
+  }
+
   renderAlivePerc(cell, row) {
     let cellColor = "red";
     let cellText = "-";
@@ -236,6 +461,48 @@ export default class NetworkLinksTable extends React.Component {
       cellText = Math.round(cell * 100) / 100;
       cellColor = availabilityColor(cellText);
     }
+    return <span style={{ color: cellColor }}>{"" + cellText}</span>;
+  }
+
+  // round and set color
+  renderFloatPoint(cell, row, tpxx) {
+    let cellColor = "red";
+    let cellText = "-";
+    if (!isNaN(cell)) {
+      switch (tpxx) {
+        case "mcs":
+          // if value>thresh1 green, elseif >thresh2 orange, else red
+          cellText = cell.toFixed(1);
+          cellColor = variableColorUp(cell, 9, 5);
+          break;
+        case "snr":
+          cellText = cell.toFixed(1);
+          cellColor = variableColorUp(cell, 12, 9);
+          break;
+        case "txpower":
+          cellText = cell.toFixed(1);
+          cellColor = variableColorUp(cell, 0, 0);
+          break;
+        case "tput":
+          cellText = cell.toFixed(0);
+          cellColor = variableColorUp(cell, 0, 0);
+          break;
+        case "per":
+          cellText = cell.toExponential(2);
+          // if value<thresh1 green, elseif <thresh2 orange, else red
+          cellColor = variableColorDown(cell, 0.005, 0.01);
+          break;
+        case "uptime":
+          cellText = cell.toFixed(0);
+          cellColor = variableColorUp(cell, 59, 59);
+          break;
+        case "fw_restarts":
+          cellText = cell.toFixed(0);
+          cellColor = variableColorDown(cell, 0, 1);
+          break;
+      }
+    }
+
     return <span style={{ color: cellColor }}>{"" + cellText}</span>;
   }
 
@@ -282,7 +549,110 @@ export default class NetworkLinksTable extends React.Component {
       sortOrder: this.state.sortOrder,
       onSortChange: this.onSortChange.bind(this)
     };
-    if (this.state.showEventsChart) {
+    if (this.state.showAnalyzer2) {
+      return (
+        <BootstrapTable
+          height={adjustedHeight + "px"}
+          key="linksTable"
+          data={this.getTableRowsAnalyzer2()}
+          striped={true}
+          hover={true}
+          options={tableOpts}
+          selectRow={linksSelectRowProp}
+        >
+          <TableHeaderColumn
+            width="120"
+            isKey={true}
+            dataSort={true}
+            dataFormat={this.renderDashboardLink.bind(this)}
+            dataField="a_node_name"
+          >
+            A-Node
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="120"
+            dataSort={true}
+            dataField="z_node_name"
+          >
+            Z-Node
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderStatusColor}
+            dataField="alive"
+          >
+            Alive
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderFloatPoint}
+            formatExtraData={"mcs"}
+            dataField="mcs"
+          >
+            Avg MCS
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderFloatPoint}
+            formatExtraData={"snr"}
+            dataField="snr"
+          >
+            Avg SNR
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderFloatPoint}
+            formatExtraData={"per"}
+            dataField="per"
+          >
+            Avg PER
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderFloatPoint}
+            formatExtraData={"tput"}
+            dataField="tputPPS"
+          >
+            Avg tput(PPS)
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderFloatPoint}
+            formatExtraData={"txpower"}
+            dataField="txpower"
+          >
+            Avg txPower
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            dataSort={true}
+            width="80"
+            dataFormat={this.renderFloatPoint}
+            formatExtraData={"fw_restarts"}
+            dataField="fw_restarts"
+          >
+            #Restarts
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            dataSort={true}
+            width="80"
+            dataFormat={this.renderFloatPoint}
+            formatExtraData={"uptime"}
+            dataField="uptime"
+          >
+            Uptime (minutes)
+          </TableHeaderColumn>
+          <TableHeaderColumn dataSort={true} width="80" dataField="distance">
+            Distance (m)
+          </TableHeaderColumn>
+        </BootstrapTable>
+      );
+    } else if (this.state.showEventsChart) {
       return (
         <BootstrapTable
           height={adjustedHeight + "px"}
@@ -424,6 +794,8 @@ export default class NetworkLinksTable extends React.Component {
           >
             CNs Only
           </button>
+          &nbsp;&nbsp;&nbsp;
+          {/* TODO(csm) would like clicking on Show Link Events to deselect Analyzer */}
           <button
             className={
               this.state.showEventsChart
@@ -435,6 +807,18 @@ export default class NetworkLinksTable extends React.Component {
             }
           >
             Show Link Events
+          </button>
+          <button
+            className={
+              this.state.showAnalyzer2
+                ? "graph-button graph-button-selected"
+                : "graph-button"
+            }
+            onClick={btn =>
+              this.setState({ showAnalyzer2: !this.state.showAnalyzer2 })
+            }
+          >
+            Analyzer
           </button>
           {linksTable}
         </li>

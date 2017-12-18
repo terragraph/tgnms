@@ -23,11 +23,11 @@ NetworkStore.layers = [];
 
 const BrowserHistory = createHistory();
 const PushUrl = () => {
-  //console.log('url stuff', NetworkStore);
+  // console.log('url stuff', NetworkStore);
   // layer 1
   if (NetworkStore.viewName) {
     if (NetworkStore.networkName) {
-      //console.log('network store contents', NetworkStore);
+      // console.log('network store contents', NetworkStore);
       // determine the next data to push
       switch (NetworkStore.viewName) {
         case "map":
@@ -90,7 +90,7 @@ const PushUrl = () => {
   }
 };
 // initial load, parse URL and set initial values
-//console.log('parsing the url..', BrowserHistory.location);
+// console.log('parsing the url..', BrowserHistory.location);
 const InitialUrl = BrowserHistory.location.pathname;
 let urlParts = InitialUrl.split("/");
 urlParts.shift();
@@ -100,13 +100,13 @@ for (let layer = 0; layer < urlParts.length; layer++) {
   }
   switch (layer) {
     case 0:
-      //view
+      // view
       NetworkStore.viewName = urlParts[layer];
-      //console.log('updated initial view to', NetworkStore.viewName);
+      // console.log('updated initial view to', NetworkStore.viewName);
       break;
     case 1:
       NetworkStore.networkName = urlParts[layer];
-      //console.log('updated initial network name to', NetworkStore.networkName);
+      // console.log('updated initial network name to', NetworkStore.networkName);
       break;
     case 2:
       switch (NetworkStore.viewName) {
@@ -135,7 +135,7 @@ for (let layer = 0; layer < urlParts.length; layer++) {
 }
 
 Dispatcher.register(function(payload) {
-  //console.log('dispatched', payload);
+  // console.log('dispatched', payload);
   switch (payload.actionType) {
     case Actions.URL_CHANGED:
       NetworkStore.urlParts = payload.urlParts;
@@ -200,7 +200,7 @@ const urlHistory = BrowserHistory.listen((location, action) => {
   switch (action) {
     case "PUSH":
       // we changed the URL
-      //console.log('url pushed', location.pathname, location.hash);
+      // console.log('url pushed', location.pathname, location.hash);
       break;
     case "POP":
       // re-acting to a user changed URL
@@ -208,14 +208,15 @@ const urlHistory = BrowserHistory.listen((location, action) => {
       let url = location.pathname + location.hash;
       let urlParts = url.split("/");
       urlParts.shift();
-      //console.log('url popped', urlParts);
+      // console.log('url popped', urlParts);
       Dispatcher.dispatch({
         actionType: Actions.LAYER_CHANGED,
         layers: urlParts
       });
       // pass the changes down to sub-components
-      // we'll take the first two parts, then pass the rest down somehow i have no idea
-      // the components need a way to push a new url once they've made a change
+      // we'll take the first two parts, then pass the rest down somehow i have no
+      // idea the components need a way to push a new url once they've made a
+      // change
       if (urlParts.length >= 1) {
         // first is view
         if (
@@ -246,7 +247,7 @@ const urlHistory = BrowserHistory.listen((location, action) => {
     default:
       console.error("Unknown history action", action, location);
   }
-  //console.log('action', action, 'location', location);
+  // console.log('action', action, 'location', location);
 });
 
 module.exports = NetworkStore;

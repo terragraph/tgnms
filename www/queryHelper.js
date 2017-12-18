@@ -3,10 +3,10 @@ const mysql = require('mysql');
 const pool = mysql.createPool({
   connectionLimit: 50,
   dateStrings: true,
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
-  database: 'cxl',
+  host: "2620:10d:c089:e009:1a66:daff:fee8:de0",
+  user: "cmodlin",
+  password: "UiRox",
+  database: "cxl",
   queueLimit: 10,
   waitForConnections: false,
   multipleStatements: true
@@ -14,25 +14,27 @@ const pool = mysql.createPool({
 const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 
 const METRIC_KEY_NAMES = [
-  'snr',
-  'rssi',
-  'mcs',
-  'per',
-  'fw_uptime',
-  'tx_power',
-  'rx_bytes',
-  'tx_bytes',
-  'rx_pps',
-  'tx_pps',
-  'rx_errors',
-  'tx_errors',
-  'rx_dropped',
-  'tx_dropped',
-  'rx_frame',
-  'rx_overruns',
-  'tx_overruns',
-  'tx_collisions',
-  'speed'
+  "snr",
+  "rssi",
+  "mcs",
+  "per",
+  "fw_uptime",
+  "tx_power",
+  "rx_bytes",
+  "tx_bytes",
+  "rx_pps",
+  "tx_pps",
+  "rx_errors",
+  "tx_errors",
+  "rx_dropped",
+  "tx_dropped",
+  "rx_frame",
+  "rx_overruns",
+  "tx_overruns",
+  "tx_collisions",
+  "speed",
+  "tx_ok",
+  "tx_fail"
   /* 'link_status' (published from controller node */
 ];
 
@@ -88,10 +90,7 @@ var self = {
           return;
         }
         results.forEach(result => {
-          self.keyIds[result.id] = {
-            mac: result.mac,
-            name: result.key
-          };
+          self.keyIds[result.id] = { mac: result.mac, name: result.key };
           if (!(result.mac in self.nodeKeyIds)) {
             self.nodeKeyIds[result.mac] = {};
           }
@@ -151,9 +150,7 @@ var self = {
           if (!(mac in nodeMetrics)) {
             nodeMetrics[mac] = {};
           }
-          nodeMetrics[mac][result.key.toLowerCase()] = {
-            dbKeyId: result.id
-          };
+          nodeMetrics[mac][result.key.toLowerCase()] = { dbKeyId: result.id };
         });
         // index by siteData['Site-A']['nodeName'] = [];
         postData.topology.nodes.forEach(node => {
@@ -272,7 +269,36 @@ var self = {
           'Packet Error Rate',
           'staPkt.perE6'
         );
-      case 'fw_uptime':
+      case "tx_ok":
+        // tgf.xx:xx:xx:xx:xx:xx.staPkt.txOk
+        return self.createLinkMetric(
+          aNode,
+          zNode,
+          "txOk",
+          "successful MPDUs",
+          "staPkt.txOk"
+        );
+      case "tx_fail":
+        // tgf.xx:xx:xx:xx:xx:xx.staPkt.txFail
+        return self.createLinkMetric(
+          aNode,
+          zNode,
+          "txFail",
+          "failed MPDUs",
+          "staPkt.txFail"
+        );
+
+      case "tx_power":
+        // tgf.xx:xx:xx:xx:xx:xx.staPkt.txOk
+        return self.createLinkMetric(
+          aNode,
+          zNode,
+          "txPowerIndex",
+          "tx power index",
+          "staPkt.txPowerIndex"
+        );
+
+      case "fw_uptime":
         // this depends on A/Z nodes and DN versus CN
         if (
           aNode.node_type === topologyTTypes.NodeType.DN &&
@@ -290,35 +316,28 @@ var self = {
           aNode.node_type === topologyTTypes.NodeType.DN &&
           zNode.node_type === topologyTTypes.NodeType.CN
         ) {
-          // DN->CN, use uplinkBwReq on DN?
-          return {
-            title: 'Uplink BW req',
-            description: 'Uplink BW requests received by DN',
-            scale: undefined,
-            keys: [
-              {
-                node: aNode,
-                keyName: 'tgf.' + zNode.mac_addr + '.mgmtRx.uplinkBwreq',
-                titleAppend: ' (A)'
-              }
-            ]
-          };
+          // CN->DN, use uplinkBwReq; DN->CN heartBeat
+          return self.createLinkMetric2(
+            aNode,
+            zNode,
+            "FW Uptime",
+            "Mgmt Tx ULBWREQ and HB",
+            "mgmtTx.heartBeat",
+            "mgmtTx.uplinkBwreq"
+          );
         } else if (
           aNode.node_type === topologyTTypes.NodeType.CN &&
           zNode.node_type === topologyTTypes.NodeType.DN
         ) {
-          return {
-            title: 'Uplink BW req',
-            description: 'Uplink BW requests received by DN',
-            scale: undefined,
-            keys: [
-              {
-                node: zNode,
-                keyName: 'tgf.' + aNode.mac_addr + '.mgmtRx.uplinkBwreq',
-                titleAppend: ' (Z)'
-              }
-            ]
-          };
+          // CN->DN, use uplinkBwReq; DN->CN heartBeat
+          return self.createLinkMetric2(
+            zNode,
+            aNode,
+            "FW Uptime",
+            "Mgmt Tx ULBWREQ and HB",
+            "mgmtTx.heartBeat",
+            "mgmtTx.uplinkBwreq"
+          );
         } else {
           throw new Error('Unhandled node type combination: ' +
                           aNode.name + '/' + zNode.name);
@@ -519,7 +538,35 @@ var self = {
     };
   },
 
-  fetchLinkKeyIds: function (metricName, aNode, zNode) {
+  createLinkMetric2: function(
+    aNode,
+    zNode,
+    title,
+    description,
+    keyNamea,
+    keyNamez,
+    keyPrefix = "tgf"
+  ) {
+    return {
+      title: title,
+      description: description,
+      scale: undefined,
+      keys: [
+        {
+          node: aNode,
+          keyName: keyPrefix + "." + zNode.mac_addr + "." + keyNamea,
+          titleAppend: " (A)"
+        },
+        {
+          node: zNode,
+          keyName: keyPrefix + "." + aNode.mac_addr + "." + keyNamez,
+          titleAppend: " (Z)"
+        }
+      ]
+    };
+  },
+
+  fetchLinkKeyIds: function(metricName, aNode, zNode) {
     let keyIds = [];
     // skip if mac empty
     if (
@@ -607,6 +654,7 @@ var self = {
     // reset key list
     nodeKeyIds = [];
     nodeData = [];
+    type = "event";
     topology.links.forEach(link => {
       // ignore wired links
       if (link.link_type !== 1) {
@@ -660,6 +708,8 @@ var self = {
         if (!linkKeys.hasOwnProperty('keys')) {
           return;
         }
+        duration = linkMetric.time;
+        type = linkMetric.type;
         linkKeys.keys.forEach(keyData => {
           if (
             aNode.mac_addr in self.nodeKeyIds &&
@@ -692,7 +742,7 @@ var self = {
       });
     });
     queries.push({
-      type: 'event',
+      type: type,
       key_ids: nodeKeyIds,
       data: nodeData,
       start_ts: now - duration,

@@ -1,4 +1,3 @@
-/* eslint no-console: 0 */
 
 const express = require('express');
 const fs = require('fs');
@@ -930,6 +929,34 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
     );
   });
 });
+
+app.post(/\/analyzer\/$/i, function(req, res, next) {
+  let httpPostData = "";
+  req.on("data", function(chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on("end", function() {
+    // proxy query
+    let chartUrl = "http://localhost:8086/query";
+    let httpData = JSON.parse(httpPostData);
+    let queryRequest = { queries: httpData };
+    console.log("CSM: analyzer queryRequest: ", JSON.stringify(queryRequest));
+    request.post(
+      { url: chartUrl, body: JSON.stringify(queryRequest) },
+      (err, httpResponse, body) => {
+        if (httpResponse) {
+          res.send(httpResponse.body).end();
+        } else {
+          res
+            .status(500)
+            .send("No Data")
+            .end();
+        }
+      }
+    );
+  });
+});
+
 // metric lists
 app.post(/\/metrics$/i, function (req, res, next) {
   let httpPostData = '';
@@ -972,9 +999,9 @@ function refreshNetworkHealth (topologyName) {
   ];
   let linkMetrics = [
     {
-      name: 'alive',
-      metric: 'fw_uptime',
-      type: 'event_keepalive',
+      name: "alive",
+      metric: "fw_uptime",
+      type: "event",
       time: 24 * 60 * 60 /* 24 hours */
     }
   ];
@@ -1005,7 +1032,84 @@ function refreshNetworkHealth (topologyName) {
 }
 
 // raw stats data
-app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
+app.get(/\/analyzer2\/(.+)$/i, function(req, res, next) {
+  let topologyName = req.params[0];
+  let liveTopology = topologyByName[topologyName];
+  let topology =
+    liveTopology && liveTopology.nodes
+      ? liveTopology
+      : fileTopologyByName[topologyName];
+  if (!topology) {
+    res.status(500).send("No topology data for: " + topologyName);
+    return;
+  }
+  let nodeMetrics = [];
+  let linkMetrics = [
+    {
+      name: "not_used",
+      metric: "fw_uptime",
+      type: "analyzer_table",
+      time: 60 * 60 /* 1 hour */
+    },
+    {
+      name: "not_used",
+      metric: "tx_ok",
+      type: "analyzer_table",
+      time: 60 * 60 /* 1 hour */
+    },
+    {
+      name: "not_used",
+      metric: "tx_fail",
+      type: "analyzer_table",
+      time: 60 * 60 /* 1 hour */
+    },
+    {
+      name: "not_used",
+      metric: "mcs",
+      type: "analyzer_table",
+      time: 60 * 60 /* 1 hour */
+    },
+    {
+      name: "not_used",
+      metric: "tx_power",
+      type: "analyzer_table",
+      time: 60 * 60 /* 1 hour */
+    },
+    {
+      name: "not_used",
+      metric: "snr",
+      type: "analyzer_table",
+      time: 60 * 60 /* 1 hour */
+    }
+  ];
+  let queries = queryHelper.makeTableQuery(
+    res,
+    topology,
+    nodeMetrics,
+    linkMetrics
+  );
+  console.log("in server.js analyzer2: fetching data from Beringei");
+  console.log("json:", JSON.stringify(queries));
+  let chartUrl = "http://localhost:8086/query";
+  request.post(
+    { url: chartUrl, body: JSON.stringify(queries) },
+    (err, httpResponse, body) => {
+      if (err) {
+        console.error("Error fetching from beringei:", err);
+        res
+          .status(500)
+          .send("Error fetching data")
+          .end();
+        return;
+      }
+      // join the results
+      res.send(httpResponse.body).end();
+    }
+  );
+});
+
+// raw stats data
+app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
   let topologyName = req.params[0];
   let metricName = req.params[1];
   let liveTopology = topologyByName[topologyName];

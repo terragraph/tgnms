@@ -211,6 +211,7 @@ export default class NetworkUI extends React.Component {
         });
         // reset our health updater (make this better)
         this.lastHealthRequestTime = 0;
+        this.lastAnalyzerRequestTime = 0;
         // update the browser URL history
         break;
       case Actions.TOPOLOGY_REFRESHED:
@@ -225,6 +226,7 @@ export default class NetworkUI extends React.Component {
         });
         // update link health
         this.updateNetworkLinkHealth(this.state.networkName);
+        this.updateNetworkAnalyzer(this.state.networkName);
         this.updateLinkOverlayStat(this.state.networkName);
         break;
       case Actions.PENDING_TOPOLOGY:
@@ -259,6 +261,38 @@ export default class NetworkUI extends React.Component {
                 actionType: Actions.HEALTH_REFRESHED,
                 nodeHealth: json[0],
                 linkHealth: json[1]
+              });
+            }.bind(this)
+          );
+        }
+      }.bind(this)
+    );
+  }
+
+  updateNetworkAnalyzer(networkName) {
+    // refresh link health
+    let lastAttemptAgo = new Date() / 1000 - this.lastAnalyzerRequestTime;
+    if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
+      return;
+    }
+    let linkAnalyzerFetch = new Request("/analyzer2/" + networkName, {
+      credentials: "same-origin"
+    });
+    // update last request time
+    this.lastAnalyzerRequestTime = new Date() / 1000;
+    fetch(linkAnalyzerFetch).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              // merge data
+              if (json.length != 2) {
+                return;
+              }
+              Dispatcher.dispatch({
+                actionType: Actions.ANALYZER_REFRESHED,
+                dummy: json[0], // not used
+                analyzerTable: json[1]
               });
             }.bind(this)
           );

@@ -195,11 +195,7 @@ export default class NetworkNodesTable extends React.Component {
   }
 
   tableOnSortChange(sortName, sortOrder) {
-    this.setState({
-      sortName,
-      sortOrder,
-      selectedSiteName: undefined
-    });
+    this.setState({ sortName, sortOrder, selectedSiteName: undefined });
   }
 
   tableOnRowMouseOver(row, e) {

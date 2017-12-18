@@ -15,6 +15,26 @@ module.exports = {
       return "red";
     }
   },
+
+  variableColorUp: function(value, thresh1, thresh2) {
+    if (value >= thresh1) {
+      return "green";
+    } else if (value >= thresh2) {
+      return "orange";
+    } else {
+      return "red";
+    }
+  },
+
+  variableColorDown: function(value, thresh1, thresh2) {
+    if (value <= thresh1) {
+      return "green";
+    } else if (value <= thresh2) {
+      return "orange";
+    } else {
+      return "red";
+    }
+  },
   // accepts the polarity id, not name
   polarityColor: function(polarity) {
     if (polarity == null || polarity == undefined) {
@@ -47,9 +67,6 @@ module.exports = {
     let releaseName = versionName.substring(releaseIdx + 8, splitIndex);
     return releaseName;
   },
-
-  // color node based on DN/CN
-  nodeTypeColor: function(nodeType) {},
 
   linkLength: function(aSite, zSite) {
     let aSiteCoords = new LatLng(
