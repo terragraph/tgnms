@@ -999,9 +999,9 @@ function refreshNetworkHealth (topologyName) {
   ];
   let linkMetrics = [
     {
-      name: "alive",
-      metric: "fw_uptime",
-      type: "event",
+      name: 'alive',
+      metric: 'fw_uptime',
+      type: 'event',
       time: 24 * 60 * 60 /* 24 hours */
     }
   ];

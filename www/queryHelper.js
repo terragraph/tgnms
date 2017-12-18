@@ -3,10 +3,10 @@ const mysql = require('mysql');
 const pool = mysql.createPool({
   connectionLimit: 50,
   dateStrings: true,
-  host: "2620:10d:c089:e009:1a66:daff:fee8:de0",
-  user: "cmodlin",
-  password: "UiRox",
-  database: "cxl",
+  host: '2620:10d:c089:e009:1a66:daff:fee8:de0',
+  user: 'cmodlin',
+  password: 'UiRox',
+  database: 'cxl',
   queueLimit: 10,
   waitForConnections: false,
   multipleStatements: true
@@ -14,27 +14,27 @@ const pool = mysql.createPool({
 const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 
 const METRIC_KEY_NAMES = [
-  "snr",
-  "rssi",
-  "mcs",
-  "per",
-  "fw_uptime",
-  "tx_power",
-  "rx_bytes",
-  "tx_bytes",
-  "rx_pps",
-  "tx_pps",
-  "rx_errors",
-  "tx_errors",
-  "rx_dropped",
-  "tx_dropped",
-  "rx_frame",
-  "rx_overruns",
-  "tx_overruns",
-  "tx_collisions",
-  "speed",
-  "tx_ok",
-  "tx_fail"
+  'snr',
+  'rssi',
+  'mcs',
+  'per',
+  'fw_uptime',
+  'tx_power',
+  'rx_bytes',
+  'tx_bytes',
+  'rx_pps',
+  'tx_pps',
+  'rx_errors',
+  'tx_errors',
+  'rx_dropped',
+  'tx_dropped',
+  'rx_frame',
+  'rx_overruns',
+  'tx_overruns',
+  'tx_collisions',
+  'speed',
+  'tx_ok',
+  'tx_fail'
   /* 'link_status' (published from controller node */
 ];
 
@@ -90,7 +90,10 @@ var self = {
           return;
         }
         results.forEach(result => {
-          self.keyIds[result.id] = { mac: result.mac, name: result.key };
+          self.keyIds[result.id] = {
+             mac: result.mac,
+             name: result.key
+          };
           if (!(result.mac in self.nodeKeyIds)) {
             self.nodeKeyIds[result.mac] = {};
           }
