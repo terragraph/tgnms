@@ -1,44 +1,46 @@
-import React from 'react';
-import moment from 'moment';
+import React from "react";
+import moment from "moment";
 // menu bar
-import Menu, { SubMenu, Item as MenuItem, Divider } from 'rc-menu';
+import Menu, { SubMenu, Item as MenuItem, Divider } from "rc-menu";
 // leaflet maps
-import { render } from 'react-dom';
+import { render } from "react-dom";
 // dispatcher
-import { Actions } from './constants/NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './stores/NetworkStore.js';
+import { Actions } from "./constants/NetworkConstants.js";
+import Dispatcher from "./NetworkDispatcher.js";
+import NetworkStore from "./stores/NetworkStore.js";
 
-import NetworkStats from './NetworkStats.js';
-import NetworkDashboards from './NetworkDashboards.js';
-import NetworkMap from './NetworkMap.js';
-import EventLogs from './EventLogs.js';
-import SystemLogs from './SystemLogs.js';
-import NetworkAlerts from './NetworkAlerts.js';
-import NMSConfig from './NMSConfig.js';
-import ModalOverlays from './ModalOverlays.js';
-import ModalTopology from './ModalTopology.js';
-import {SiteOverlayKeys, linkOverlayKeys} from './constants/NetworkConstants.js';
+import NetworkStats from "./NetworkStats.js";
+import NetworkDashboards from "./NetworkDashboards.js";
+import NetworkMap from "./NetworkMap.js";
+import EventLogs from "./EventLogs.js";
+import SystemLogs from "./SystemLogs.js";
+import NetworkAlerts from "./NetworkAlerts.js";
+import NMSConfig from "./NMSConfig.js";
+import ModalOverlays from "./ModalOverlays.js";
+import ModalTopology from "./ModalTopology.js";
+import {
+  SiteOverlayKeys,
+  linkOverlayKeys
+} from "./constants/NetworkConstants.js";
 
-import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
-import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
-
+import NetworkConfigContainer from "./components/networkconfig/NetworkConfigContainer.js";
+import NetworkUpgrade from "./components/upgrade/NetworkUpgrade.js";
 
 const VIEWS = {
-  'map': 'Map',
-  'dashboards': 'Dashboards',
-  'stats': 'Stats',
-  'eventlogs': 'Event Logs',
-  'systemlogs': 'System Logs',
-  'alerts': 'Alerts',
-  'upgrade': 'Upgrade',
-  'nms-config': 'NMS Instance Config (Alpha)',
-  'config': 'Network Config',
+  map: "Map",
+  dashboards: "Dashboards",
+  stats: "Stats",
+  eventlogs: "Event Logs",
+  systemlogs: "System Logs",
+  alerts: "Alerts",
+  upgrade: "Upgrade",
+  "nms-config": "NMS Instance Config (Alpha)",
+  config: "Network Config"
 };
 
 const SETTINGS = {
-  'overlays': 'Site/Link Overlays',
-  'topology': 'Topology Operations',
+  overlays: "Site/Link Overlays",
+  topology: "Topology Operations"
 };
 
 // update network health at a lower interval (seconds)
@@ -58,24 +60,26 @@ export default class NetworkUI extends React.Component {
     overlaysModalOpen: false,
     topologyModalOpen: false,
 
-    selectedSiteOverlay: 'Health',
-    selectedLinkOverlay: 'Health',
-    selectedMapDimType: 'Default',
-    selectedMapTile: 'Default',
+    selectedSiteOverlay: "Health",
+    selectedLinkOverlay: "Health",
+    selectedMapDimType: "Default",
+    selectedMapTile: "Default",
     topology: {},
     // additional topology to render on the map
     pendingTopology: {},
-    commitPlan: null,
-  }
+    commitPlan: null
+  };
 
   constructor(props) {
     super(props);
     // register for menu changes
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
+      this.handleDispatchEvent.bind(this)
+    );
     // refresh network config
-    let refresh_interval = CONFIG.refresh_interval ? CONFIG.refresh_interval :
-                                                     5000;
+    let refresh_interval = CONFIG.refresh_interval
+      ? CONFIG.refresh_interval
+      : 5000;
     // load data if network name known
     this.getNetworkStatusPeriodic();
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
@@ -93,50 +97,61 @@ export default class NetworkUI extends React.Component {
   }
 
   getNetworkStatus(networkName) {
-    let topoGetFetch = new Request('/topology/get/' +
-      networkName, {"credentials": "same-origin"});
-    fetch(topoGetFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          // TODO: normalize the topology with health data if it exists
-          this.setState({
-            networkConfig: json,
-          });
-          // dispatch the updated topology json
-          Dispatcher.dispatch({
-            actionType: Actions.TOPOLOGY_REFRESHED,
-            networkConfig: json,
-          });
-        }.bind(this));
-      } else if (response.status == 404) {
-        // topology is invalid, switch to the first topology in the list
-        if (this.state.topologies.length) {
-          Dispatcher.dispatch({
-            actionType: Actions.TOPOLOGY_SELECTED,
-            networkName: this.state.topologies[0].name,
-          });
+    let topoGetFetch = new Request("/topology/get/" + networkName, {
+      credentials: "same-origin"
+    });
+    fetch(topoGetFetch).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              // TODO: normalize the topology with health data if it exists
+              this.setState({
+                networkConfig: json
+              });
+              // dispatch the updated topology json
+              Dispatcher.dispatch({
+                actionType: Actions.TOPOLOGY_REFRESHED,
+                networkConfig: json
+              });
+            }.bind(this)
+          );
+        } else if (response.status == 404) {
+          // topology is invalid, switch to the first topology in the list
+          if (this.state.topologies.length) {
+            Dispatcher.dispatch({
+              actionType: Actions.TOPOLOGY_SELECTED,
+              networkName: this.state.topologies[0].name
+            });
+          }
         }
-      }
-    }.bind(this));
+      }.bind(this)
+    );
   }
 
   getAggregatorDump(networkName) {
-    let aggregatorDumpFetch = new Request('/aggregator/getStatusDump/' +
-      networkName, {"credentials": "same-origin"});
-    fetch(aggregatorDumpFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          this.setState({
-            routing: json,
-          });
-          // dispatch the updated topology json
-          Dispatcher.dispatch({
-            actionType: Actions.AGGREGATOR_DUMP_REFRESHED,
-            routing: json,
-          });
-        }.bind(this));
-      }
-    }.bind(this));
+    let aggregatorDumpFetch = new Request(
+      "/aggregator/getStatusDump/" + networkName,
+      { credentials: "same-origin" }
+    );
+    fetch(aggregatorDumpFetch).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              this.setState({
+                routing: json
+              });
+              // dispatch the updated topology json
+              Dispatcher.dispatch({
+                actionType: Actions.AGGREGATOR_DUMP_REFRESHED,
+                routing: json
+              });
+            }.bind(this)
+          );
+        }
+      }.bind(this)
+    );
   }
 
   fetchCommitPlan(networkName) {
@@ -144,25 +159,30 @@ export default class NetworkUI extends React.Component {
     let commitPlanReq = {
       topologyName: networkName,
       limit: 100,
-      excludeNodes: [],
+      excludeNodes: []
     };
-    let commitPlanFetch = new Request('/controller/commitUpgradePlan',
-      {method: 'POST',
-       body: JSON.stringify(commitPlanReq),
-       credentials: "same-origin"});
-    fetch(commitPlanFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          let commitPlan = json;
-          commitPlan.commitBatches = commitPlan.commitBatches.map(batch => {
-            return new Set(batch);
-          });
-          this.setState({
-            commitPlan: commitPlan,
-          });
-        }.bind(this));
-      }
-    }.bind(this));
+    let commitPlanFetch = new Request("/controller/commitUpgradePlan", {
+      method: "POST",
+      body: JSON.stringify(commitPlanReq),
+      credentials: "same-origin"
+    });
+    fetch(commitPlanFetch).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              let commitPlan = json;
+              commitPlan.commitBatches = commitPlan.commitBatches.map(batch => {
+                return new Set(batch);
+              });
+              this.setState({
+                commitPlan: commitPlan
+              });
+            }.bind(this)
+          );
+        }
+      }.bind(this)
+    );
   }
 
   handleDispatchEvent(payload) {
@@ -170,12 +190,12 @@ export default class NetworkUI extends React.Component {
       case Actions.VIEW_SELECTED:
         let viewName = payload.viewName;
         // ignore the menu
-        if (viewName == '#') {
+        if (viewName == "#") {
           break;
         }
         this.setState({
           view: viewName,
-          viewContext: payload.context ? payload.context : {},
+          viewContext: payload.context ? payload.context : {}
         });
         // construct new URL from selected view
         break;
@@ -187,7 +207,7 @@ export default class NetworkUI extends React.Component {
         this.fetchCommitPlan(payload.networkName);
         this.getAggregatorDump(payload.networkName);
         this.setState({
-          networkName: payload.networkName,
+          networkName: payload.networkName
         });
         // reset our health updater (make this better)
         this.lastHealthRequestTime = 0;
@@ -201,7 +221,7 @@ export default class NetworkUI extends React.Component {
         // update node name mapping
         this.setState({
           nodesByName: nodesByName,
-          topology: payload.networkConfig.topology,
+          topology: payload.networkConfig.topology
         });
         // update link health
         this.updateNetworkLinkHealth(this.state.networkName);
@@ -209,7 +229,7 @@ export default class NetworkUI extends React.Component {
         break;
       case Actions.PENDING_TOPOLOGY:
         this.setState({
-          pendingTopology: payload.topology,
+          pendingTopology: payload.topology
         });
         break;
     }
@@ -221,24 +241,30 @@ export default class NetworkUI extends React.Component {
     if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
       return;
     }
-    let linkHealthFetch = new Request('/health/' + networkName, {"credentials": "same-origin"});
+    let linkHealthFetch = new Request("/health/" + networkName, {
+      credentials: "same-origin"
+    });
     // update last request time
     this.lastHealthRequestTime = new Date() / 1000;
-    fetch(linkHealthFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          // merge data
-          if (json.length != 2) {
-            return;
-          }
-          Dispatcher.dispatch({
-            actionType: Actions.HEALTH_REFRESHED,
-            nodeHealth: json[0],
-            linkHealth: json[1],
-          });
-        }.bind(this));
-      }
-    }.bind(this));
+    fetch(linkHealthFetch).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              // merge data
+              if (json.length != 2) {
+                return;
+              }
+              Dispatcher.dispatch({
+                actionType: Actions.HEALTH_REFRESHED,
+                nodeHealth: json[0],
+                linkHealth: json[1]
+              });
+            }.bind(this)
+          );
+        }
+      }.bind(this)
+    );
   }
 
   updateLinkOverlayStat(networkName) {
@@ -248,51 +274,63 @@ export default class NetworkUI extends React.Component {
 
       if (metric) {
         // refresh link overlay stat
-        let linkHealthFetch = new Request('/overlay/linkStat/' + networkName + '/' + metric, {"credentials": "same-origin"});
-        fetch(linkHealthFetch).then(function(response) {
-          if (response.status == 200) {
-            response.json().then(function(json) {
-              Dispatcher.dispatch({
-                actionType: Actions.LINK_OVERLAY_REFRESHED,
-                overlay: json[0],
-              });
-            }.bind(this));
-          }
-        }.bind(this));
+        let linkHealthFetch = new Request(
+          "/overlay/linkStat/" + networkName + "/" + metric,
+          { credentials: "same-origin" }
+        );
+        fetch(linkHealthFetch).then(
+          function(response) {
+            if (response.status == 200) {
+              response.json().then(
+                function(json) {
+                  Dispatcher.dispatch({
+                    actionType: Actions.LINK_OVERLAY_REFRESHED,
+                    overlay: json[0]
+                  });
+                }.bind(this)
+              );
+            }
+          }.bind(this)
+        );
       }
     }
   }
 
   refreshTopologyList() {
     // topology list
-    let topoListFetch = new Request('/topology/list',
-      {"credentials": "same-origin"});
-    fetch(topoListFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          this.setState({
-            topologies: json,
-          });
-          // dispatch the whole network topology struct
-          Dispatcher.dispatch({
-            actionType: Actions.TOPOLOGY_LIST_REFRESHED,
-            topologies: json,
-          });
-          // select the first topology by default
-          if (!this.state.networkName && this.state.topologies.length) {
-            Dispatcher.dispatch({
-              actionType: Actions.TOPOLOGY_SELECTED,
-              networkName: this.state.topologies[0].name,
-            });
-          }
-        }.bind(this));
-      }
-    }.bind(this));
+    let topoListFetch = new Request("/topology/list", {
+      credentials: "same-origin"
+    });
+    fetch(topoListFetch).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              this.setState({
+                topologies: json
+              });
+              // dispatch the whole network topology struct
+              Dispatcher.dispatch({
+                actionType: Actions.TOPOLOGY_LIST_REFRESHED,
+                topologies: json
+              });
+              // select the first topology by default
+              if (!this.state.networkName && this.state.topologies.length) {
+                Dispatcher.dispatch({
+                  actionType: Actions.TOPOLOGY_SELECTED,
+                  networkName: this.state.topologies[0].name
+                });
+              }
+            }.bind(this)
+          );
+        }
+      }.bind(this)
+    );
   }
 
   componentWillMount() {
     this.setState({
-      topologies: [],
+      topologies: []
     });
     // fetch topology config
     this.refreshTopologyList();
@@ -301,26 +339,26 @@ export default class NetworkUI extends React.Component {
   }
 
   handleMenuBarSelect(info) {
-    if (info.key.indexOf('#') > -1) {
-      let keySplit = info.key.split('#');
+    if (info.key.indexOf("#") > -1) {
+      let keySplit = info.key.split("#");
       switch (keySplit[0]) {
-        case 'view':
+        case "view":
           Dispatcher.dispatch({
             actionType: Actions.VIEW_SELECTED,
-            viewName: keySplit[1],
+            viewName: keySplit[1]
           });
           break;
-        case 'topo':
+        case "topo":
           Dispatcher.dispatch({
             actionType: Actions.TOPOLOGY_SELECTED,
-            networkName: keySplit[1],
+            networkName: keySplit[1]
           });
           break;
-        case 'settings':
-          if (keySplit[1] == 'overlays') {
-            this.setState({overlaysModalOpen: true});
-          } else if (keySplit[1] == 'topology') {
-            this.setState({topologyModalOpen: true});
+        case "settings":
+          if (keySplit[1] == "overlays") {
+            this.setState({ overlaysModalOpen: true });
+          } else if (keySplit[1] == "topology") {
+            this.setState({ topologyModalOpen: true });
           }
           break;
       }
@@ -333,11 +371,11 @@ export default class NetworkUI extends React.Component {
       selectedSiteOverlay: siteOverlay,
       selectedLinkOverlay: linkOverlay,
       selectedMapDimType: mapDimType,
-      selectedMapTile: mapTile,
+      selectedMapTile: mapTile
     });
     Dispatcher.dispatch({
       actionType: Actions.LINK_OVERLAY_REFRESHED,
-      overlay: null,
+      overlay: null
     });
   }
 
@@ -346,59 +384,88 @@ export default class NetworkUI extends React.Component {
     for (let i = 0; i < this.state.topologies.length; i++) {
       let topologyConfig = this.state.topologies[i];
       let keyName = "topo#" + topologyConfig.name;
-      let online = topologyConfig.controller_online ||
-                   topologyConfig.aggregator_online;
+      let online =
+        topologyConfig.controller_online || topologyConfig.aggregator_online;
       let controllerErrorMsg;
-      if (topologyConfig.hasOwnProperty('controller_error')) {
+      if (topologyConfig.hasOwnProperty("controller_error")) {
         online = false;
-        controllerErrorMsg =
-          <span style={{color: 'red', fontWeight: 'bold'}}>
-            (Error)
-          </span>;
+        controllerErrorMsg = (
+          <span style={{ color: "red", fontWeight: "bold" }}>(Error)</span>
+        );
       }
       topologyMenuItems.push(
         <MenuItem key={keyName}>
-          <img src={"/static/images/" + (online ? 'online' : 'offline') + ".png"} />
-          {topologyConfig.name}{controllerErrorMsg}
+          <img
+            src={"/static/images/" + (online ? "online" : "offline") + ".png"}
+          />
+          {topologyConfig.name}
+          {controllerErrorMsg}
         </MenuItem>
       );
     }
     let networkStatusMenuItems = [];
     if (this.state.networkConfig && this.state.networkConfig.topology) {
       const topology = this.state.networkConfig.topology;
-      let linksOnline = topology.links.filter(link =>
-          link.link_type == 1 && link.is_alive).length;
-      let linksWireless = topology.links.filter(link =>
-          link.link_type == 1).length;
+      let linksOnline = topology.links.filter(
+        link => link.link_type == 1 && link.is_alive
+      ).length;
+      let linksWireless = topology.links.filter(link => link.link_type == 1)
+        .length;
       // online + online initiator
-      let sectorsOnline = topology.nodes.filter(node =>
-          node.status == 2 || node.status == 3).length;
+      let sectorsOnline = topology.nodes.filter(
+        node => node.status == 2 || node.status == 3
+      ).length;
       let e2eStatusList = [];
-      if (this.state.networkConfig.hasOwnProperty('controller_events')) {
-        this.state.networkConfig.controller_events.slice().reverse().forEach((eventArr, index) => {
-          if (eventArr.length != 2) {
-            return;
-          }
-          let timeStr = moment(new Date(eventArr[0])).format('M/D/YY HH:mm:ss');
-          e2eStatusList.push(
-            <MenuItem key={"e2e-status-events" + index} disabled>
-              <img src={"/static/images/" +
-                (eventArr[1] ? 'online' : 'offline') + ".png"} />
-              {timeStr}
-            </MenuItem>
-          );
-        });
+      if (this.state.networkConfig.hasOwnProperty("controller_events")) {
+        this.state.networkConfig.controller_events
+          .slice()
+          .reverse()
+          .forEach((eventArr, index) => {
+            if (eventArr.length != 2) {
+              return;
+            }
+            let timeStr = moment(new Date(eventArr[0])).format(
+              "M/D/YY HH:mm:ss"
+            );
+            e2eStatusList.push(
+              <MenuItem key={"e2e-status-events" + index} disabled>
+                <img
+                  src={
+                    "/static/images/" +
+                    (eventArr[1] ? "online" : "offline") +
+                    ".png"
+                  }
+                />
+                {timeStr}
+              </MenuItem>
+            );
+          });
       }
       networkStatusMenuItems = [
-        <SubMenu key="e2e-status-menu" mode="vertical" title="E2E"
-                 className={this.state.networkConfig.controller_online ?
-                            'svcOnline' : 'svcOffline'}>
+        <SubMenu
+          key="e2e-status-menu"
+          mode="vertical"
+          title="E2E"
+          className={
+            this.state.networkConfig.controller_online
+              ? "svcOnline"
+              : "svcOffline"
+          }
+        >
           {e2eStatusList}
         </SubMenu>,
-        <Divider key= "status-divider" />,
-        <SubMenu key="nms-status-menu" mode="vertical" title="NMS" disabled
-                 className={this.state.networkConfig.aggregator_online ?
-                            'svcOnline' : 'svcOffline'}>
+        <Divider key="status-divider" />,
+        <SubMenu
+          key="nms-status-menu"
+          mode="vertical"
+          title="NMS"
+          disabled
+          className={
+            this.state.networkConfig.aggregator_online
+              ? "svcOnline"
+              : "svcOffline"
+          }
+        >
           NMS
         </SubMenu>,
         <Divider key="site-divider" />,
@@ -416,14 +483,16 @@ export default class NetworkUI extends React.Component {
       ];
     }
     // don't load components without topology config
-    if (!this.state.networkName ||
-        !this.state.networkConfig ||
-        !this.state.networkConfig.topology ||
-        !this.state.networkConfig.topology.sites ||
-        !this.state.networkConfig.topology.nodes) {
+    if (
+      !this.state.networkName ||
+      !this.state.networkConfig ||
+      !this.state.networkConfig.topology ||
+      !this.state.networkConfig.topology.sites ||
+      !this.state.networkConfig.topology.nodes
+    ) {
       return (
-        <div style={{float: 'left', width: '100%', margin: '5px'}}>
-          <img src='/static/images/loading-graphs.gif' />
+        <div style={{ float: "left", width: "100%", margin: "5px" }}>
+          <img src="/static/images/loading-graphs.gif" />
         </div>
       );
     }
@@ -434,46 +503,49 @@ export default class NetworkUI extends React.Component {
       commitPlan: this.state.commitPlan,
       pendingTopology: this.state.pendingTopology,
       config: this.state.topologies,
-      viewContext: this.state.viewContext,
+      viewContext: this.state.viewContext
     };
-    let paneComponent = <div/>;
+    let paneComponent = <div />;
     switch (this.state.view) {
-      case 'eventlogs':
+      case "eventlogs":
         paneComponent = <EventLogs {...viewProps} />;
         break;
-      case 'systemlogs':
+      case "systemlogs":
         paneComponent = <SystemLogs {...viewProps} />;
         break;
-      case 'dashboards':
+      case "dashboards":
         paneComponent = <NetworkDashboards {...viewProps} />;
         break;
-      case 'stats':
+      case "stats":
         paneComponent = <NetworkStats {...viewProps} />;
         break;
-      case 'alerts':
+      case "alerts":
         paneComponent = <NetworkAlerts {...viewProps} />;
         break;
-      case 'upgrade':
-        paneComponent = <NetworkUpgrade
-          {...viewProps}
-          upgradeStateDump={this.state.networkConfig.upgradeStateDump}
-        />;
+      case "upgrade":
+        paneComponent = (
+          <NetworkUpgrade
+            {...viewProps}
+            upgradeStateDump={this.state.networkConfig.upgradeStateDump}
+          />
+        );
         break;
-      case 'nms-config':
+      case "nms-config":
         paneComponent = <NMSConfig {...viewProps} />;
         break;
-      case 'config':
+      case "config":
         paneComponent = <NetworkConfigContainer {...viewProps} />;
         break;
       default:
-        paneComponent =
-        <NetworkMap
-          {...viewProps}
-          linkOverlay={this.state.selectedLinkOverlay}
-          siteOverlay={this.state.selectedSiteOverlay}
-          mapDimType={this.state.selectedMapDimType}
-          mapTile={this.state.selectedMapTile}
-        />;
+        paneComponent = (
+          <NetworkMap
+            {...viewProps}
+            linkOverlay={this.state.selectedLinkOverlay}
+            siteOverlay={this.state.selectedSiteOverlay}
+            mapDimType={this.state.selectedMapDimType}
+            mapTile={this.state.selectedMapTile}
+          />
+        );
     }
     // add all selected keys
     let selectedKeys = ["view#" + this.state.view];
@@ -489,19 +561,21 @@ export default class NetworkUI extends React.Component {
           selectedLinkOverlay={this.state.selectedLinkOverlay}
           selectedMapDimensions={this.state.selectedMapDimType}
           selectedMapTile={this.state.selectedMapTile}
-          onClose={this.overlaysModalClose.bind(this)}/>
+          onClose={this.overlaysModalClose.bind(this)}
+        />
         <ModalTopology
           isOpen={this.state.topologyModalOpen}
-          onClose={() => this.setState({topologyModalOpen: false})}
+          onClose={() => this.setState({ topologyModalOpen: false })}
           topology={this.state.topology}
         />
 
         <div className="top-menu-bar">
           <Menu
-              onSelect={this.handleMenuBarSelect.bind(this)}
-              mode="horizontal"
-              selectedKeys={selectedKeys}
-              style={{float: 'left'}}>
+            onSelect={this.handleMenuBarSelect.bind(this)}
+            mode="horizontal"
+            selectedKeys={selectedKeys}
+            style={{ float: "left" }}
+          >
             <SubMenu title="View" key="view" mode="vertical">
               {Object.keys(VIEWS).map(viewKey => {
                 let viewName = VIEWS[viewKey];
@@ -509,7 +583,8 @@ export default class NetworkUI extends React.Component {
                   <MenuItem key={"view#" + viewKey}>
                     <img src={"/static/images/" + viewKey + ".png"} />
                     {viewName}
-                  </MenuItem>);
+                  </MenuItem>
+                );
               })}
             </SubMenu>
             <MenuItem key="view-selected" disabled>
@@ -521,7 +596,7 @@ export default class NetworkUI extends React.Component {
               {topologyMenuItems}
             </SubMenu>
             <MenuItem key="topology-selected" disabled>
-              {this.state.networkName ? this.state.networkName : '-'}
+              {this.state.networkName ? this.state.networkName : "-"}
             </MenuItem>
             <Divider />
             <SubMenu title="Settings" key="settings" mode="vertical">
@@ -531,18 +606,17 @@ export default class NetworkUI extends React.Component {
                   <MenuItem key={"settings#" + settingKey}>
                     <img src={"/static/images/" + settingKey + ".png"} />
                     {settingName}
-                  </MenuItem>);
+                  </MenuItem>
+                );
               })}
             </SubMenu>
             <Divider />
           </Menu>
-          <Menu mode="horizontal" style={{float: 'right'}}>
+          <Menu mode="horizontal" style={{ float: "right" }}>
             {networkStatusMenuItems}
           </Menu>
         </div>
-        <div>
-          {paneComponent}
-        </div>
+        <div>{paneComponent}</div>
       </div>
     );
   }

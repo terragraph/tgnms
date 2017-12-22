@@ -1,7 +1,15 @@
-import React from 'react';
-import { Dispatcher } from 'flux';
-import { Charts, ChartContainer, ChartRow, YAxis, AreaChart, LineChart,
-         Legend, styler } from "react-timeseries-charts";
+import React from "react";
+import { Dispatcher } from "flux";
+import {
+  Charts,
+  ChartContainer,
+  ChartRow,
+  YAxis,
+  AreaChart,
+  LineChart,
+  Legend,
+  styler
+} from "react-timeseries-charts";
 import { Index, TimeSeries, TimeRange } from "pondjs";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
@@ -13,7 +21,7 @@ export default class ReactMultiGraph extends React.Component {
     this.state = {
       data: [],
       tracker: null,
-      indicator: 'IDLE',
+      indicator: "IDLE"
     };
     this.chartRequest = undefined;
   }
@@ -39,20 +47,21 @@ export default class ReactMultiGraph extends React.Component {
     // TODO - this is used for all metrics, we need more context
     return Math.ceil(bps * 100) / 100;
     if (bps > 1000000) {
-      return Math.round(bps/1000000) + ' mbps'
+      return Math.round(bps / 1000000) + " mbps";
     }
     if (bps > 1000) {
-      return Math.round(bps/1000) + ' kbps';
+      return Math.round(bps / 1000) + " kbps";
     }
-    return bps + ' bps';
+    return bps + " bps";
   }
 
   componentDidUpdate(prevProps, prevState) {
     // compare list of nodes and key names only for each list item
     // the 'status' item for each node has a timestamp, so this gets changed
     // each iteration
-    let changed = (this.props.options.length != prevProps.options.length) &&
-                  (this.props.options.length);
+    let changed =
+      this.props.options.length != prevProps.options.length &&
+      this.props.options.length;
     if (!changed) {
       for (let i = 0; i < this.props.options.length; i++) {
         let curOpts = this.props.options[i];
@@ -67,7 +76,7 @@ export default class ReactMultiGraph extends React.Component {
       this.cancelAsyncRequests();
       this.setState({
         data: [],
-        indicator: 'LOAD',
+        indicator: "LOAD"
       });
       this.timer = setInterval(this.refreshData.bind(this), 10000);
       this.refreshData();
@@ -75,18 +84,26 @@ export default class ReactMultiGraph extends React.Component {
   }
 
   nextColor(index) {
-    const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3",
-                    "#ff7f00", "#ffff33", "#a65628", "#f781bf"];
+    const colors = [
+      "#e41a1c",
+      "#377eb8",
+      "#4daf4a",
+      "#984ea3",
+      "#ff7f00",
+      "#ffff33",
+      "#a65628",
+      "#f781bf"
+    ];
     return colors.length > index ? colors[index] : "#000000";
   }
 
   handleTrackerChanged(tracker) {
     // need to find the series first
-    this.setState({tracker});
+    this.setState({ tracker });
   }
 
   handleTimeRangeChange(timerange) {
-    this.setState({timerange});
+    this.setState({ timerange });
   }
 
   refreshData() {
@@ -103,64 +120,63 @@ export default class ReactMultiGraph extends React.Component {
         // no data to display, should show a different indicator
         this.setState({
           data: [],
-          indicator: 'NO_DATA',
+          indicator: "NO_DATA"
         });
         return;
       }
-      let jsonResp = '';
+      let jsonResp = "";
       try {
         let respTxt = this.chartRequest.responseText;
         jsonResp = JSON.parse(respTxt);
       } catch (e) {
-        console.log('Unable to parse json',
-                    e,
-                    this.chartRequest.responseText);
+        console.log("Unable to parse json", e, this.chartRequest.responseText);
       }
       this.setState({
         data: jsonResp,
-        indicator: jsonResp ? 'LOADED' : 'NO_DATA',
+        indicator: jsonResp ? "LOADED" : "NO_DATA"
       });
     }.bind(this);
     // handle failed requests
     this.chartRequest.onreadystatechange = function(chartEvent) {
-      if (this.chartRequest.readyState == 4 &&
-          this.chartRequest.status == 0) {
+      if (this.chartRequest.readyState == 4 && this.chartRequest.status == 0) {
         this.setState({
           data: [],
-          indicator: 'FAILED',
+          indicator: "FAILED"
         });
       }
     }.bind(this);
     try {
-      this.chartRequest.open('POST', '/multi_chart/', true);
+      this.chartRequest.open("POST", "/multi_chart/", true);
       this.chartRequest.send(JSON.stringify(this.props.options));
     } catch (e) {}
   }
 
   shortenName(name) {
     // shorten name for tg lab nodes
-    return name.replace(".tg.a404-if","");
+    return name.replace(".tg.a404-if", "");
   }
 
   renderMarker() {
     if (!this.state.tracker) {
       return <g />;
     }
-    return
-      <EventMarker
-        type="flag"
-        axis="axis"
-        event={this.state.tracker}
-        column=""
-        info={[{
+    return;
+    <EventMarker
+      type="flag"
+      axis="axis"
+      event={this.state.tracker}
+      column=""
+      info={[
+        {
           label: "Test",
           value: 2
-        }]}
-        infoTimeFormat="%Y"
-        infoWidth={120}
-        markerRadius={2}
-        markerStyle={{fill: "black" }}
-      />;
+        }
+      ]}
+      infoTimeFormat="%Y"
+      infoWidth={120}
+      markerRadius={2}
+      markerStyle={{ fill: "black" }}
+    />;
   }
 
   render() {
@@ -180,24 +196,26 @@ export default class ReactMultiGraph extends React.Component {
     // reduce legend selectors
     // {key, {label, [time series?]}}
     switch (this.props.size) {
-      case 'large':
+      case "large":
         width = 800;
         height = 500;
         break;
     }
     opts.forEach(rowOpts => {
-      if (this.state.data[reqIdx] != undefined &&
-          this.state.data[reqIdx].points.length) {
+      if (
+        this.state.data[reqIdx] != undefined &&
+        this.state.data[reqIdx].points.length
+      ) {
         // we have data, let's render
         let timeSeries = new TimeSeries(this.state.data[reqIdx]);
         let columnNames = this.state.data[reqIdx].columns.slice(1);
         for (let i = 0; i < columnNames.length; i++) {
           let columnName = columnNames[i];
-          let labelName = '';
+          let labelName = "";
           // TODO - this isn't done well
-          if (rowOpts.type == 'link') {
+          if (rowOpts.type == "link") {
             labelName = rowOpts.keys[i];
-          } else if (rowOpts.type == 'node') {
+          } else if (rowOpts.type == "node") {
             labelName = this.shortenName(rowOpts.nodes[i].name);
           } else {
             labelName = columnName;
@@ -209,20 +227,20 @@ export default class ReactMultiGraph extends React.Component {
               legend.push({
                 key: columnName,
                 label: labelName,
-                value: this.formatSpeed(trackerEvent.get(columnName)),
+                value: this.formatSpeed(trackerEvent.get(columnName))
               });
             } else {
               legend.push({
                 key: columnName,
-                label: labelName,
+                label: labelName
               });
             }
             legendLabels.add(columnName);
           }
           legendStyle.push({
-              key: columnName,
-              color: this.nextColor(i),
-              width: 2,
+            key: columnName,
+            color: this.nextColor(i),
+            width: 2
           });
         }
         let minValue = Number.MAX_VALUE;
@@ -241,14 +259,16 @@ export default class ReactMultiGraph extends React.Component {
         if (minValue > 0) {
           minValue = 0;
         }
-        let labelName = '';
+        let labelName = "";
         switch (rowOpts.type) {
-          case 'node':
+          case "node":
             labelName = rowOpts.key;
             break;
-          case 'link':
-            labelName = this.shortenName(rowOpts.a_node.name) + " / " +
-                        this.shortenName(rowOpts.z_node.name);
+          case "link":
+            labelName =
+              this.shortenName(rowOpts.a_node.name) +
+              " / " +
+              this.shortenName(rowOpts.z_node.name);
             break;
         }
         chartRows.push(
@@ -258,7 +278,8 @@ export default class ReactMultiGraph extends React.Component {
               label={labelName}
               width="70"
               min={minValue}
-              max={maxValue} />
+              max={maxValue}
+            />
             <Charts>
               <LineChart
                 axis="a1"
@@ -268,9 +289,9 @@ export default class ReactMultiGraph extends React.Component {
                 style={styler(legendStyle)}
                 interpolation="curveBasisOpen"
                 highlight={this.state.highlight}
-                onHighlightChange={highlight => this.setState({highlight})}
+                onHighlightChange={highlight => this.setState({ highlight })}
                 selection={this.state.selection}
-                onSelectionChange={selection => this.setState({selection})}
+                onSelectionChange={selection => this.setState({ selection })}
               />
             </Charts>
           </ChartRow>
@@ -284,13 +305,13 @@ export default class ReactMultiGraph extends React.Component {
       //    // show indicator if graph is loading, failed, etc
       let indicatorImg = "/static/images/loading-graphs.gif";
       switch (this.state.indicator) {
-        case 'NO_DATA':
+        case "NO_DATA":
           indicatorImg = "/static/images/empty-trash.gif";
           break;
-        case 'FAILED':
+        case "FAILED":
           indicatorImg = "/static/images/cancel-file.png";
           break;
-        case 'LOAD':
+        case "LOAD":
           indicatorImg = "/static/images/loading-graphs.gif";
           break;
         default:
@@ -309,43 +330,50 @@ export default class ReactMultiGraph extends React.Component {
     const timeStyle = {
       fontSize: "1.2rem",
       color: "#999",
-      height: "30px",
+      height: "30px"
     };
     // fetch the display name or key name of each graph
-    let title = this.props.options.map(opts =>
-      Array.from(new Set(opts.data.map(data =>
-        (data.description ? data.description : data.key)
-      ))).join(", ")
-    ).join("<br />");
+    let title = this.props.options
+      .map(opts =>
+        Array.from(
+          new Set(
+            opts.data.map(
+              data => (data.description ? data.description : data.key)
+            )
+          )
+        ).join(", ")
+      )
+      .join("<br />");
     return (
-      <div width="700" style={{borderBottom: '2px solid #ddd'}}>
-        <div style={{fontSize: '16px', marginLeft: '20px'}}>{title}</div>
+      <div width="700" style={{ borderBottom: "2px solid #ddd" }}>
+        <div style={{ fontSize: "16px", marginLeft: "20px" }}>{title}</div>
         <div className="col-md-6" style={timeStyle}>
           {this.state.tracker ? `${df(this.state.tracker)}` : "-"}
         </div>
-        <div id="legend" width="700" style={{clear: 'both', height: '40px'}}>
+        <div id="legend" width="700" style={{ clear: "both", height: "40px" }}>
           <Legend
             type="line"
             align="left"
             type="dot"
             style={styler(legendStyle)}
-            onSelectionChange={selection => this.setState({selection})}
+            onSelectionChange={selection => this.setState({ selection })}
             selection={this.state.selection}
-            onHighlightChange={highlight => this.setState({highlight})}
+            onHighlightChange={highlight => this.setState({ highlight })}
             highlight={this.state.highlight}
             categories={legend}
           />
         </div>
         <div id="chart">
           <ChartContainer
-              timeRange={timeRange}
-              trackerPosition={this.state.tracker}
-              onTrackerChanged={this.handleTrackerChanged.bind(this)}
-              onBackgroundClick={() => this.setState({selection: null})}
-              enablePanZoom={true}
-              onTimeRangeChanged={this.handleTimeRangeChange.bind(this)}
-              minDuration={1000 * 60 * 60 * 5} /* 5 min */
-              width={width}>
+            timeRange={timeRange}
+            trackerPosition={this.state.tracker}
+            onTrackerChanged={this.handleTrackerChanged.bind(this)}
+            onBackgroundClick={() => this.setState({ selection: null })}
+            enablePanZoom={true}
+            onTimeRangeChanged={this.handleTimeRangeChange.bind(this)}
+            minDuration={1000 * 60 * 60 * 5} /* 5 min */
+            width={width}
+          >
             {chartRows}
           </ChartContainer>
         </div>
@@ -356,5 +384,5 @@ export default class ReactMultiGraph extends React.Component {
 
 ReactMultiGraph.propTypes = {
   size: React.PropTypes.string.isRequired,
-  options: React.PropTypes.array.isRequired,
+  options: React.PropTypes.array.isRequired
 };

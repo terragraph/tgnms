@@ -1,19 +1,19 @@
-import React from 'react';
-import { render } from 'react-dom';
+import React from "react";
+import { render } from "react-dom";
 import equals from "equals";
 // dispatcher
-import { Actions } from './constants/NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './stores/NetworkStore.js';
-import ReactEventChart from './ReactEventChart.js';
-import { availabilityColor } from './NetworkHelper.js';
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import { Actions } from "./constants/NetworkConstants.js";
+import Dispatcher from "./NetworkDispatcher.js";
+import NetworkStore from "./stores/NetworkStore.js";
+import ReactEventChart from "./ReactEventChart.js";
+import { availabilityColor } from "./NetworkHelper.js";
+import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
 var linkNyName = {};
 
 export default class NetworkLinksTable extends React.Component {
-  nodesByName = {}
-  linksByName = {}
+  nodesByName = {};
+  linksByName = {};
   state = {
     sortName: undefined,
     sortOrder: undefined,
@@ -24,8 +24,8 @@ export default class NetworkLinksTable extends React.Component {
     hideDnToDnLinks: false,
     toplink: null,
     // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
-    linkRequestButtonEnabled: true,
-  }
+    linkRequestButtonEnabled: true
+  };
 
   constructor(props) {
     super(props);
@@ -37,7 +37,8 @@ export default class NetworkLinksTable extends React.Component {
   componentWillMount() {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
+      this.handleDispatchEvent.bind(this)
+    );
   }
 
   componentWillUnmount() {
@@ -50,9 +51,11 @@ export default class NetworkLinksTable extends React.Component {
     if (topology.links) {
       // order - 0 = nodes, 1 = links
       topology.links.forEach(link => {
-        if (this.state.linkHealth &&
-            this.state.linkHealth.metrics &&
-            link.name in this.state.linkHealth.metrics) {
+        if (
+          this.state.linkHealth &&
+          this.state.linkHealth.metrics &&
+          link.name in this.state.linkHealth.metrics
+        ) {
           let nodeHealth = this.state.linkHealth.metrics[link.name];
           link.alive_perc = nodeHealth.alive;
           link.events = nodeHealth.events;
@@ -71,27 +74,29 @@ export default class NetworkLinksTable extends React.Component {
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
           selectedLink: null,
-          linkRequestButtonEnabled: true,
+          linkRequestButtonEnabled: true
         });
         break;
       case Actions.LINK_SELECTED:
         this.setState({
           sortName: payload.source == "table" ? this.state.sortName : "name",
           sortOrder: payload.source == "table" ? this.state.sortOrder : "asc",
-          topLink: payload.source == "table" ? this.state.topLink : payload.link,
+          topLink:
+            payload.source == "table" ? this.state.topLink : payload.link,
           selectedLink: payload.link.name,
-          linkRequestButtonEnabled: true,
+          linkRequestButtonEnabled: true
         });
         break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
-          linkHealth: payload.linkHealth,
+          linkHealth: payload.linkHealth
         });
         break;
     }
   }
 
-  linkSortFunc(a, b, order) {   // order is desc or asc
+  linkSortFunc(a, b, order) {
+    // order is desc or asc
     if (this.state.topLink) {
       if (a.name == this.state.topLink.name) {
         return -1;
@@ -100,7 +105,7 @@ export default class NetworkLinksTable extends React.Component {
       }
     }
 
-    if (order === 'desc') {
+    if (order === "desc") {
       if (a.name > b.name) {
         return -1;
       } else if (a.name < b.name) {
@@ -121,14 +126,16 @@ export default class NetworkLinksTable extends React.Component {
     this.setState({
       sortName,
       sortOrder,
-      toplink: sortName=="name" ? this.state.toplink : null,
+      toplink: sortName == "name" ? this.state.toplink : null
     });
   }
 
-  getTableRows(): Array<{name:string,
-                         a_node_name:string,
-                         z_node_name:string,
-                         alive:boolean}> {
+  getTableRows(): Array<{
+    name: string,
+    a_node_name: string,
+    z_node_name: string,
+    alive: boolean
+  }> {
     const rows = [];
     Object.keys(this.linksByName).forEach(linkName => {
       let link = this.linksByName[linkName];
@@ -141,15 +148,19 @@ export default class NetworkLinksTable extends React.Component {
         return;
       }
       // check if either side of the node is a CN
-      if (!this.nodesByName.hasOwnProperty(link.a_node_name) ||
-          !this.nodesByName.hasOwnProperty(link.z_node_name)) {
+      if (
+        !this.nodesByName.hasOwnProperty(link.a_node_name) ||
+        !this.nodesByName.hasOwnProperty(link.z_node_name)
+      ) {
         return;
       }
       let aNode = this.nodesByName[link.a_node_name];
       let zNode = this.nodesByName[link.z_node_name];
-      if (this.state.hideDnToDnLinks &&
-          aNode.node_type == 2 &&
-          zNode.node_type == 2) {
+      if (
+        this.state.hideDnToDnLinks &&
+        aNode.node_type == 2 &&
+        zNode.node_type == 2
+      ) {
         // skip since it's DN to DN
         return;
       }
@@ -158,10 +169,10 @@ export default class NetworkLinksTable extends React.Component {
         a_node_name: link.a_node_name,
         z_node_name: link.z_node_name,
         alive: link.is_alive,
-        type: link.link_type == 1 ? 'Wireless' : 'Wired',
+        type: link.link_type == 1 ? "Wireless" : "Wired",
         alive_perc: link.alive_perc,
         linkup_attempts: linkupAttempts,
-        distance: link.distance,
+        distance: link.distance
       });
     });
     return rows;
@@ -171,57 +182,61 @@ export default class NetworkLinksTable extends React.Component {
     Dispatcher.dispatch({
       actionType: Actions.LINK_SELECTED,
       link: this.linksByName[row.name],
-      source: "table",
+      source: "table"
     });
   }
 
   renderNameWithStatsLinks(cell, row) {
     let linkStyle = {
-      color: 'blue',
-      cursor: 'pointer',
-      paddingLeft: '5px',
+      color: "blue",
+      cursor: "pointer",
+      paddingLeft: "5px"
     };
     return (
       <span>
-        {cell}<br />
+        {cell}
+        <br />
         Stats:
-        <span style={linkStyle} onClick={click => {
+        <span
+          style={linkStyle}
+          onClick={click => {
             Dispatcher.dispatch({
               actionType: Actions.VIEW_SELECTED,
-              viewName: 'stats',
-              nodeRestrictor: row.name,
+              viewName: "stats",
+              nodeRestrictor: row.name
             });
-        }}>
+          }}
+        >
           Link
         </span>
-        <span style={linkStyle} onClick={click => {
+        <span
+          style={linkStyle}
+          onClick={click => {
             Dispatcher.dispatch({
               actionType: Actions.VIEW_SELECTED,
-              viewName: 'stats',
-              nodeRestrictor: [row.a_node_name, row.z_node_name].join(','),
+              viewName: "stats",
+              nodeRestrictor: [row.a_node_name, row.z_node_name].join(",")
             });
-        }}>
+          }}
+        >
           Nodes
         </span>
-      </span>);
+      </span>
+    );
   }
 
   renderAlivePerc(cell, row) {
-    let cellColor = 'red';
-    let cellText = '-';
+    let cellColor = "red";
+    let cellText = "-";
     if (row.type == "Wired") {
       // color wired links as unavailable
-      cellColor = 'grey';
-      cellText = 'X';
+      cellColor = "grey";
+      cellText = "X";
     } else if (cell) {
       cellText = Math.round(cell * 100) / 100;
       cellColor = availabilityColor(cellText);
     }
-    return (
-      <span style={{color: cellColor}}>
-        {"" + cellText}
-      </span>
-    );
+    return <span style={{ color: cellColor }}>{"" + cellText}</span>;
   }
 
   renderLinkAvailability(cell, row) {
@@ -231,19 +246,23 @@ export default class NetworkLinksTable extends React.Component {
         let startTime = this.state.linkHealth.start;
         let endTime = this.state.linkHealth.end;
         return (
-            <ReactEventChart events={link.events}
-                             startTime={startTime}
-                             endTime={endTime}
-                             size="small" />);
+          <ReactEventChart
+            events={link.events}
+            startTime={startTime}
+            endTime={endTime}
+            size="small"
+          />
+        );
       }
     }
   }
 
   renderStatusColor(cell, row) {
     return (
-      <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
+      <span style={{ color: cell ? "forestgreen" : "firebrick" }}>
         {"" + cell}
-      </span>);
+      </span>
+    );
   }
 
   renderLinksTable() {
@@ -256,57 +275,66 @@ export default class NetworkLinksTable extends React.Component {
       hideSelectColumn: true,
       bgColor: "rgb(183,210,255)",
       onSelect: this.tableOnRowSelect,
-      selected: this.state.selectedLink ? [this.state.selectedLink] : [],
+      selected: this.state.selectedLink ? [this.state.selectedLink] : []
     };
     const tableOpts = {
       sortName: this.state.sortName,
       sortOrder: this.state.sortOrder,
-      onSortChange: this.onSortChange.bind(this),
+      onSortChange: this.onSortChange.bind(this)
     };
     if (this.state.showEventsChart) {
       return (
         <BootstrapTable
-            height={adjustedHeight + 'px'}
-            key="linksTable"
-            data={this.getTableRows()}
-            striped={true}
-            hover={true}
-            options={tableOpts}
-            selectRow={linksSelectRowProp}>
-         <TableHeaderColumn width="150"
-                            dataSort={true}
-                            dataField="name"
-                            dataFormat={this.renderNameWithStatsLinks.bind(this)}
-                            isKey={ true }
-                            sortFunc={this.linkSortFunc}>
+          height={adjustedHeight + "px"}
+          key="linksTable"
+          data={this.getTableRows()}
+          striped={true}
+          hover={true}
+          options={tableOpts}
+          selectRow={linksSelectRowProp}
+        >
+          <TableHeaderColumn
+            width="150"
+            dataSort={true}
+            dataField="name"
+            dataFormat={this.renderNameWithStatsLinks.bind(this)}
+            isKey={true}
+            sortFunc={this.linkSortFunc}
+          >
             Name
           </TableHeaderColumn>
-          <TableHeaderColumn width="80"
-                             dataSort={true}
-                             dataFormat={this.renderStatusColor}
-                             dataField="alive">
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderStatusColor}
+            dataField="alive"
+          >
             Alive
           </TableHeaderColumn>
-          <TableHeaderColumn width="140"
-                             dataSort={true}
-                             dataField="alive_perc"
-                             dataFormat={this.renderAlivePerc}>
+          <TableHeaderColumn
+            width="140"
+            dataSort={true}
+            dataField="alive_perc"
+            dataFormat={this.renderAlivePerc}
+          >
             Uptime (24 hours)
           </TableHeaderColumn>
-          <TableHeaderColumn width="700"
-                             dataSort={true}
-                             dataField="availability_chart"
-                             dataFormat={this.renderLinkAvailability.bind(this)}>
+          <TableHeaderColumn
+            width="700"
+            dataSort={true}
+            dataField="availability_chart"
+            dataFormat={this.renderLinkAvailability.bind(this)}
+          >
             Availability (24 hours)
           </TableHeaderColumn>
-          <TableHeaderColumn dataSort={true}
-                             width="100"
-                             dataField="linkup_attempts">
+          <TableHeaderColumn
+            dataSort={true}
+            width="100"
+            dataField="linkup_attempts"
+          >
             Attempts
           </TableHeaderColumn>
-          <TableHeaderColumn dataSort={true}
-                             width="100"
-                             dataField="distance">
+          <TableHeaderColumn dataSort={true} width="100" dataField="distance">
             Distance (m)
           </TableHeaderColumn>
         </BootstrapTable>
@@ -314,49 +342,50 @@ export default class NetworkLinksTable extends React.Component {
     } else {
       return (
         <BootstrapTable
-            height={adjustedHeight + 'px'}
-            key="linksTable"
-            data={this.getTableRows()}
-            striped={true}
-            hover={true}
-            options={tableOpts}
-            selectRow={linksSelectRowProp}>
-         <TableHeaderColumn width="350"
-                            dataSort={true}
-                            dataField="name"
-                            isKey={ true }
-                            sortFunc={this.linkSortFunc}>
+          height={adjustedHeight + "px"}
+          key="linksTable"
+          data={this.getTableRows()}
+          striped={true}
+          hover={true}
+          options={tableOpts}
+          selectRow={linksSelectRowProp}
+        >
+          <TableHeaderColumn
+            width="350"
+            dataSort={true}
+            dataField="name"
+            isKey={true}
+            sortFunc={this.linkSortFunc}
+          >
             Name
           </TableHeaderColumn>
-          <TableHeaderColumn width="180"
-                             dataField="a_node_name">
+          <TableHeaderColumn width="180" dataField="a_node_name">
             A-Node
           </TableHeaderColumn>
-          <TableHeaderColumn width="180"
-                             dataField="z_node_name">
+          <TableHeaderColumn width="180" dataField="z_node_name">
             Z-Node
           </TableHeaderColumn>
-          <TableHeaderColumn width="80"
-                             dataSort={true}
-                             dataFormat={this.renderStatusColor}
-                             dataField="alive">
+          <TableHeaderColumn
+            width="80"
+            dataSort={true}
+            dataFormat={this.renderStatusColor}
+            dataField="alive"
+          >
             Alive
           </TableHeaderColumn>
-          <TableHeaderColumn width="140"
-                             dataSort={true}
-                             dataField="alive_perc"
-                             dataFormat={this.renderAlivePerc}>
+          <TableHeaderColumn
+            width="140"
+            dataSort={true}
+            dataField="alive_perc"
+            dataFormat={this.renderAlivePerc}
+          >
             Uptime (24 hours)
           </TableHeaderColumn>
-          <TableHeaderColumn dataField="type">
-            Type
-          </TableHeaderColumn>
-          <TableHeaderColumn dataSort={true}
-                             dataField="linkup_attempts">
+          <TableHeaderColumn dataField="type">Type</TableHeaderColumn>
+          <TableHeaderColumn dataSort={true} dataField="linkup_attempts">
             Attempts
           </TableHeaderColumn>
-          <TableHeaderColumn dataSort={true}
-                             dataField="distance">
+          <TableHeaderColumn dataSort={true} dataField="distance">
             Distance (m)
           </TableHeaderColumn>
         </BootstrapTable>
@@ -371,18 +400,40 @@ export default class NetworkLinksTable extends React.Component {
     // render display with or without events chart
     let linksTable = this.renderLinksTable();
     return (
-      <ul style={{listStyleType: 'none', paddingLeft: '0px'}}>
+      <ul style={{ listStyleType: "none", paddingLeft: "0px" }}>
         <li key="linksTable">
-          <button className={this.state.hideWired ? 'graph-button graph-button-selected' : 'graph-button'}
-                  onClick={btn => this.setState({hideWired: !this.state.hideWired})}>
-          Hide Wired
+          <button
+            className={
+              this.state.hideWired
+                ? "graph-button graph-button-selected"
+                : "graph-button"
+            }
+            onClick={btn => this.setState({ hideWired: !this.state.hideWired })}
+          >
+            Hide Wired
           </button>
-          <button className={this.state.hideDnToDnLinks ? 'graph-button graph-button-selected' : 'graph-button'}
-                  onClick={btn => this.setState({hideDnToDnLinks: !this.state.hideDnToDnLinks})}>
+          <button
+            className={
+              this.state.hideDnToDnLinks
+                ? "graph-button graph-button-selected"
+                : "graph-button"
+            }
+            onClick={btn =>
+              this.setState({ hideDnToDnLinks: !this.state.hideDnToDnLinks })
+            }
+          >
             CNs Only
           </button>
-          <button className={this.state.showEventsChart ? 'graph-button graph-button-selected' : 'graph-button'}
-                  onClick={btn => this.setState({showEventsChart: !this.state.showEventsChart})}>
+          <button
+            className={
+              this.state.showEventsChart
+                ? "graph-button graph-button-selected"
+                : "graph-button"
+            }
+            onClick={btn =>
+              this.setState({ showEventsChart: !this.state.showEventsChart })
+            }
+          >
             Show Link Events
           </button>
           {linksTable}
@@ -392,5 +443,5 @@ export default class NetworkLinksTable extends React.Component {
   }
 }
 NetworkLinksTable.propTypes = {
-  topology: React.PropTypes.object.isRequired,
+  topology: React.PropTypes.object.isRequired
 };

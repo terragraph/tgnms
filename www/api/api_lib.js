@@ -1,13 +1,13 @@
-const thrift = require('thrift');
+const thrift = require("thrift");
 
-const ApiConsts = require('./api_consts');
+const ApiConsts = require("./api_consts");
 const ApiMethods = ApiConsts.ApiMethods;
 const VerificationType = ApiConsts.VerificationType;
-const ControllerProxy = require('../worker.js').ControllerProxy;
-const AggregatorProxy = require('../worker.js').AggregatorProxy;
-const Topology_ttypes = require('../thrift/gen-nodejs/Topology_types');
-const Controller_ttypes = require('../thrift/gen-nodejs/Controller_types');
-const Aggregator_ttypes = require('../thrift/gen-nodejs/Aggregator_types');
+const ControllerProxy = require("../worker.js").ControllerProxy;
+const AggregatorProxy = require("../worker.js").AggregatorProxy;
+const Topology_ttypes = require("../thrift/gen-nodejs/Topology_types");
+const Controller_ttypes = require("../thrift/gen-nodejs/Controller_types");
+const Aggregator_ttypes = require("../thrift/gen-nodejs/Aggregator_types");
 
 class ApiLib {
   constructor(networkConfigs, topologyList, liveTopologies, postData) {
@@ -22,8 +22,10 @@ class ApiLib {
       return false;
     }
     let topologyName = this._data["topology"];
-    if (!this._networkConfigs.hasOwnProperty(topologyName) ||
-        !this._topologyList.hasOwnProperty(topologyName)) {
+    if (
+      !this._networkConfigs.hasOwnProperty(topologyName) ||
+      !this._topologyList.hasOwnProperty(topologyName)
+    ) {
       return false;
     }
     let networkConfig = Object.assign({}, this._networkConfigs[topologyName]);
@@ -35,15 +37,17 @@ class ApiLib {
     }
     this._networkConfig = networkConfig;
     // ensure a controller IP exists
-    if (!this._networkConfig.controller_ip ||
-        this._networkConfig.controller_ip.length == 0) {
+    if (
+      !this._networkConfig.controller_ip ||
+      this._networkConfig.controller_ip.length == 0
+    ) {
       return false;
     }
     let fields = ApiMethods[methodName].required;
     Object.keys(fields).forEach(fieldName => {
       let fieldVerType = fields[fieldName];
       if (!this._data.hasOwnProperty(fieldName)) {
-        throw new Error('Missing required field: ' + fieldName);
+        throw new Error("Missing required field: " + fieldName);
       }
       let fieldValue = this._data[fieldName];
       switch (fieldVerType) {
@@ -58,8 +62,12 @@ class ApiLib {
             }
           });
           if (!foundNode) {
-            throw new Error('Field ' + fieldName +
-                            ' specified with invalid node: ' + fieldValue);
+            throw new Error(
+              "Field " +
+                fieldName +
+                " specified with invalid node: " +
+                fieldValue
+            );
           }
           break;
         case VerificationType.LINK_NAME:
@@ -70,8 +78,12 @@ class ApiLib {
             }
           });
           if (!foundLink) {
-            throw new Error('Field ' + fieldName +
-                            ' specified with invalid link: ' + fieldValue);
+            throw new Error(
+              "Field " +
+                fieldName +
+                " specified with invalid link: " +
+                fieldValue
+            );
           }
           break;
         case VerificationType.SITE_NAME:
@@ -82,8 +94,12 @@ class ApiLib {
             }
           });
           if (!foundSite) {
-            throw new Error('Field ' + fieldName +
-                            ' specified with invalid site: ' + fieldValue);
+            throw new Error(
+              "Field " +
+                fieldName +
+                " specified with invalid site: " +
+                fieldValue
+            );
           }
           break;
         case VerificationType.IS_BOOLEAN:
@@ -92,62 +108,77 @@ class ApiLib {
             this._data[fieldName] = fieldValue;
           }
           if (typeof fieldValue != "boolean") {
-            throw new Error('Field ' + fieldName +
-                            ' is not a boolean: ' + fieldValue);
+            throw new Error(
+              "Field " + fieldName + " is not a boolean: " + fieldValue
+            );
           }
           break;
         case VerificationType.IS_DOUBLE:
         case VerificationType.IS_NUMBER:
           if (typeof fieldValue != "number") {
-            throw new Error('Field ' + fieldName +
-                            ' is not a number: ' + fieldValue);
+            throw new Error(
+              "Field " + fieldName + " is not a number: " + fieldValue
+            );
           }
           break;
         case VerificationType.IS_IP_ADDR:
-          // TODO - real ip check
+        // TODO - real ip check
         case VerificationType.IS_STRING:
           if (typeof fieldValue != "string") {
-            throw new Error('Field ' + fieldName +
-                            ' is not a string: ' + fieldValue);
+            throw new Error(
+              "Field " + fieldName + " is not a string: " + fieldValue
+            );
           }
           break;
         case VerificationType.VALID_MAC:
-          if (fieldValue.length != (6 * 2 + 5)) {
-            throw new Error('Field ' + fieldName +
-                            ' is not a valid MAC address: ' + fieldValue);
+          if (fieldValue.length != 6 * 2 + 5) {
+            throw new Error(
+              "Field " +
+                fieldName +
+                " is not a valid MAC address: " +
+                fieldValue
+            );
           }
           break;
         case VerificationType.LINK_TYPE:
-          if (fieldValue == 'ETHERNET') {
+          if (fieldValue == "ETHERNET") {
             this._data[fieldName] = Topology_ttypes.LinkType.ETHERNET;
-          } else if (fieldValue == 'WIRELESS') {
+          } else if (fieldValue == "WIRELESS") {
             this._data[fieldName] = Topology_ttypes.LinkType.WIRELESS;
           } else {
-            throw new Error('Link type unknown: ' + fieldValue);
+            throw new Error("Link type unknown: " + fieldValue);
           }
           break;
         case VerificationType.IS_NODE_TYPE:
           fieldValue = fieldValue.toUpperCase();
           this._data[fieldName] = fieldValue;
           if (!Object.keys(Topology_ttypes.NodeType).includes(fieldValue)) {
-            throw new Error('Node type for ' + fieldName + ' must be one of: ' +
-                            Object.keys(Topology_ttypes.NodeType).join(", ") +
-                            ', invalid value: ' + fieldValue);
+            throw new Error(
+              "Node type for " +
+                fieldName +
+                " must be one of: " +
+                Object.keys(Topology_ttypes.NodeType).join(", ") +
+                ", invalid value: " +
+                fieldValue
+            );
           }
           break;
         case VerificationType.IS_POLARITY_TYPE:
           fieldValue = fieldValue.toUpperCase();
           this._data[fieldName] = fieldValue;
           if (!Object.keys(Topology_ttypes.PolarityType).includes(fieldValue)) {
-            throw new Error('Polarity type for ' + fieldName +
-                            ' must be one of: ' +
-                            Object.keys(Topology_ttypes.PolarityType)
-                              .join(", ") +
-                            ', invalid value: ' + fieldValue);
+            throw new Error(
+              "Polarity type for " +
+                fieldName +
+                " must be one of: " +
+                Object.keys(Topology_ttypes.PolarityType).join(", ") +
+                ", invalid value: " +
+                fieldValue
+            );
           }
           break;
         default:
-          console.error('Unhandled verification type', fieldVerType);
+          console.error("Unhandled verification type", fieldVerType);
       }
     });
     // finish validating input from ApiMethods
@@ -155,39 +186,42 @@ class ApiLib {
   }
 
   call(res, methodName) {
-    var transport = new thrift.TFramedTransport(null, function(byteArray) {
-      var api = ApiMethods[methodName];
-      // Flush puts a 4-byte header, which needs to be parsed/sliced.
-      byteArray = byteArray.slice(4);
-      var endpoint;
-      switch (api.endpoint) {
-        case ApiConsts.EndpointType.CONTROLLER:
-          endpoint = new ControllerProxy(
-            this._networkConfig.controller_ip);
-          break;
-        case ApiConsts.EndpointType.AGGREGATOR:
-          endpoint = new AggregatorProxy(
-            this._networkConfig.aggregator_ip);
-          break;
-      }
-      // inject the dest mac if needed
-      let nodeMac;
-      switch (methodName) {
-        case 'rebootNode':
-          this._networkConfig.topology.nodes.forEach(node => {
-            if (node.name == this._data.node) {
-              nodeMac = node.mac_addr;
-            }
-          });
-          break;
-        default:
-          nodeMac = "";
-      }
-      endpoint.sendMsgType(ApiMethods[methodName].command,
-                           byteArray,
-                           nodeMac,
-                           res);
-    }.bind(this));
+    var transport = new thrift.TFramedTransport(
+      null,
+      function(byteArray) {
+        var api = ApiMethods[methodName];
+        // Flush puts a 4-byte header, which needs to be parsed/sliced.
+        byteArray = byteArray.slice(4);
+        var endpoint;
+        switch (api.endpoint) {
+          case ApiConsts.EndpointType.CONTROLLER:
+            endpoint = new ControllerProxy(this._networkConfig.controller_ip);
+            break;
+          case ApiConsts.EndpointType.AGGREGATOR:
+            endpoint = new AggregatorProxy(this._networkConfig.aggregator_ip);
+            break;
+        }
+        // inject the dest mac if needed
+        let nodeMac;
+        switch (methodName) {
+          case "rebootNode":
+            this._networkConfig.topology.nodes.forEach(node => {
+              if (node.name == this._data.node) {
+                nodeMac = node.mac_addr;
+              }
+            });
+            break;
+          default:
+            nodeMac = "";
+        }
+        endpoint.sendMsgType(
+          ApiMethods[methodName].command,
+          byteArray,
+          nodeMac,
+          res
+        );
+      }.bind(this)
+    );
     var tProtocol = new thrift.TCompactProtocol(transport);
     /**
      * @apiDefine InvalidInputError
@@ -257,7 +291,7 @@ class ApiLib {
     /**
      * @apiDefine ConfigSetResponseBlock
      *
-     * @apiSuccess (200) {Bool} success If controller was able to set or 
+     * @apiSuccess (200) {Bool} success If controller was able to set or
      * schedule the config change.
      *
      * @apiSuccessExample Success-Response:
@@ -288,8 +322,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'setLinkStatus':
+       */
+
+      case "setLinkStatus":
         var setLinkStatusReq = new Controller_ttypes.SetLinkStatusReq();
         // find node names
         let foundLink = false;
@@ -300,9 +335,9 @@ class ApiLib {
             setLinkStatusReq.responderNodeName = link.z_node_name;
           }
         });
-        setLinkStatusReq.action = this._data.linkUp ?
-          Controller_ttypes.LinkActionType.LINK_UP :
-          Controller_ttypes.LinkActionType.LINK_DOWN;
+        setLinkStatusReq.action = this._data.linkUp
+          ? Controller_ttypes.LinkActionType.LINK_UP
+          : Controller_ttypes.LinkActionType.LINK_DOWN;
         setLinkStatusReq.write(tProtocol);
         transport.flush();
         break;
@@ -321,8 +356,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'setNodeMacAddress':
+       */
+
+      case "setNodeMacAddress":
         var setNodeMacReq = new Controller_ttypes.SetNodeMac();
         setNodeMacReq.nodeName = this._data.node;
         setNodeMacReq.nodeMac = this._data.mac;
@@ -345,8 +381,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'addLink':
+       */
+
+      case "addLink":
         var addLinkReq = new Controller_ttypes.AddLink();
         var link = new Topology_ttypes.Link();
         link.name = this._data.linkName;
@@ -373,8 +410,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'delLink':
+       */
+
+      case "delLink":
         var delLinkReq = new Controller_ttypes.DelLink();
         this._networkConfig.topology.links.forEach(link => {
           if (link.name == this._data.linkName) {
@@ -410,8 +448,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'addNode':
+       */
+
+      case "addNode":
         var addNodeReq = new Controller_ttypes.AddNode();
         var node = new Topology_ttypes.Node();
         var golay = new Topology_ttypes.GolayIdx();
@@ -420,11 +459,17 @@ class ApiLib {
         golay.rxGolayIdx = this._data.rxGolay;
 
         node.name = this._data.nodeName;
-        node.node_type = this._data.nodeType == "CN" ? Topology_ttypes.NodeType.CN : Topology_ttypes.NodeType.DN;
+        node.node_type =
+          this._data.nodeType == "CN"
+            ? Topology_ttypes.NodeType.CN
+            : Topology_ttypes.NodeType.DN;
         node.is_primary = this._data.isPrimary;
         node.mac_addr = this._data.macAddr;
-        node.pop_node = this._data.popNode
-        node.polarity = this._data.polarityType == "EVEN" ? Topology_ttypes.PolarityType.EVEN : Topology_ttypes.PolarityType.ODD;
+        node.pop_node = this._data.popNode;
+        node.polarity =
+          this._data.polarityType == "EVEN"
+            ? Topology_ttypes.PolarityType.EVEN
+            : Topology_ttypes.PolarityType.ODD;
         node.golay_idx = golay;
         node.site_name = this._data.siteName;
         node.ant_azimuth = this._data.antAzimuth;
@@ -449,8 +494,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'delNode':
+       */
+
+      case "delNode":
         var delNodeReq = new Controller_ttypes.DelNode();
         delNodeReq.nodeName = this._data.node;
         delNodeReq.forceDelete = this._data.force;
@@ -473,8 +519,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'addSite':
+       */
+
+      case "addSite":
         var addSiteReq = new Controller_ttypes.AddSite();
         var site = new Topology_ttypes.Site();
         var location = new Topology_ttypes.Location();
@@ -484,7 +531,7 @@ class ApiLib {
         location.altitude = this._data.altitude;
 
         site.name = this._data.site;
-        site.location = location
+        site.location = location;
         addSiteReq.site = site;
         addSiteReq.write(tProtocol);
         transport.flush();
@@ -502,8 +549,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'delSite':
+       */
+
+      case "delSite":
         var delSiteReq = new Controller_ttypes.DelSite();
         delSiteReq.siteName = this._data.site;
         delSiteReq.write(tProtocol);
@@ -523,8 +571,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'rebootNode':
+       */
+
+      case "rebootNode":
         var rebootNode = new Controller_ttypes.RebootNode();
         rebootNode.forced = this._data.force;
         rebootNode.write(tProtocol);
@@ -602,8 +651,9 @@ class ApiLib {
                 "terra322.f5.td.a404-if"
             ]
         }
-       */ 
-      case 'getIgnitionState':
+       */
+
+      case "getIgnitionState":
         var getIgnitionStateReq = new Controller_ttypes.GetIgnitionState();
         getIgnitionStateReq.write(tProtocol);
         transport.flush();
@@ -621,8 +671,9 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'setNetworkIgnitionState':
+       */
+
+      case "setNetworkIgnitionState":
         var setIgnitionParamsReq = new Controller_ttypes.IgnitionParams();
         setIgnitionParamsReq.enable = this._data.enabled;
         setIgnitionParamsReq.write(tProtocol);
@@ -642,11 +693,14 @@ class ApiLib {
        *
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
-       */ 
-      case 'setLinkIgnitionState':
+       */
+
+      case "setLinkIgnitionState":
         var setIgnitionParamsReq = new Controller_ttypes.IgnitionParams();
         setIgnitionParamsReq.link_auto_ignite = {};
-        setIgnitionParamsReq.link_auto_ignite[this._data.linkName] = this._data.enabled;
+        setIgnitionParamsReq.link_auto_ignite[
+          this._data.linkName
+        ] = this._data.enabled;
         setIgnitionParamsReq.write(tProtocol);
         transport.flush();
         break;
@@ -669,7 +723,7 @@ class ApiLib {
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
        */
-      case 'startTraffic':
+      case "startTraffic":
         var startTrafficReq = new Aggregator_ttypes.AggrStartIperf();
         startTrafficReq.src_node_ipv6 = this._data.srcIp;
         startTrafficReq.dst_node_ipv6 = this._data.dstIp;
@@ -700,7 +754,7 @@ class ApiLib {
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
        */
-      case 'stopTraffic':
+      case "stopTraffic":
         var stopTrafficReq = new Aggregator_ttypes.AggrStopIperf();
         this._networkConfig.topology.nodes.forEach(node => {
           if (this._data.node == node.name) {
@@ -724,7 +778,7 @@ class ApiLib {
        * @apiUse CallSuccess
        * @apiUse InvalidInputError
        */
-      case 'statusTraffic':
+      case "statusTraffic":
         var getIperfStatusReq = new Aggregator_ttypes.AggrGetIperfStatus();
         this._networkConfig.topology.nodes.forEach(node => {
           if (this._data.node == node.name) {
@@ -745,7 +799,7 @@ class ApiLib {
        * @apiParam {String[]} nodes List of node names
        * @apiUse ConfigNodesResponseBlock
        */
-      case 'getNodesConfig':
+      case "getNodesConfig":
         break;
       /**
        * @api {post} /setNodesOverrideConfig Set Node(s) Override Config
@@ -772,8 +826,9 @@ class ApiLib {
        * @apiParam {String="LINK","NODE","NETWORK"} maxAction Maximum
        * action to allow when applying changes.
        * @apiUse ConfigSetResponseBlock
-       */ 
-      case 'setNodesOverrideConfig':
+       */
+
+      case "setNodesOverrideConfig":
         break;
       /**
        * @api {post} /setNetworkOverrideConfig Set Network Override Config
@@ -798,8 +853,9 @@ class ApiLib {
        * @apiParam {String="LINK","NODE","NETWORK"} maxAction Maximum
        * action to allow when applying changes.
        * @apiUse ConfigSetResponseBlock
-       */ 
-      case 'setNetworkOverrideConfig':
+       */
+
+      case "setNetworkOverrideConfig":
         break;
       /**
        * @api {post} /getNodesOverrideConfig Get Node(s) Override Config
@@ -813,7 +869,7 @@ class ApiLib {
        * @apiParam {String[]} nodes List of node names
        * @apiUse ConfigNodesResponseBlock
        */
-      case 'getNodesOverrideConfig':
+      case "getNodesOverrideConfig":
         break;
       /**
        * @api {post} /getNetworkOverridesConfig Get Network Override Config
@@ -825,7 +881,7 @@ class ApiLib {
        *
        * @apiUse ConfigNetworkResponseBlock
        */
-      case 'getNetworkOverridesConfig':
+      case "getNetworkOverridesConfig":
         break;
       /**
        * @api {post} /getConfigActions Get action per config option
@@ -834,7 +890,7 @@ class ApiLib {
        * EX: fwParams.txPower -> LINK
        *     envParams.OPENR_ENABLED -> NODE
        * @apiGroup ConfigTodo
-       */ 
+       */
     }
   }
 }

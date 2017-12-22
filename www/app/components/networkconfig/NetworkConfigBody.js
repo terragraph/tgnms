@@ -1,16 +1,16 @@
 // NetworkConfigBody.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
-import React from 'react';
-import { render } from 'react-dom';
-const uuidv4 = require('uuid/v4');
+import React from "react";
+import { render } from "react-dom";
+const uuidv4 = require("uuid/v4");
 
-import { toggleExpandAll } from '../../actions/NetworkConfigActions.js';
+import { toggleExpandAll } from "../../actions/NetworkConfigActions.js";
 
-import CustomToggle from '../common/CustomToggle.js';
-import JSONConfigForm from './JSONConfigForm.js';
-import NetworkConfigHeader from './NetworkConfigHeader.js';
-import NetworkConfigFooter from './NetworkConfigFooter.js';
+import CustomToggle from "../common/CustomToggle.js";
+import JSONConfigForm from "./JSONConfigForm.js";
+import NetworkConfigHeader from "./NetworkConfigHeader.js";
+import NetworkConfigFooter from "./NetworkConfigFooter.js";
 
 export default class NetworkConfigBody extends React.Component {
   constructor(props) {
@@ -19,18 +19,18 @@ export default class NetworkConfigBody extends React.Component {
     this.state = {
       isExpanded: true,
       viewContext: {
-        viewOverridesOnly: false,
-      },
+        viewOverridesOnly: false
+      }
     };
   }
 
-  onToggleExpandAll = (isExpanded) => {
-    toggleExpandAll({isExpanded});
+  onToggleExpandAll = isExpanded => {
+    toggleExpandAll({ isExpanded });
 
     this.setState({
       isExpanded
     });
-  }
+  };
 
   render() {
     const {
@@ -40,37 +40,47 @@ export default class NetworkConfigBody extends React.Component {
       selectedNodes,
       editMode,
       nodesWithDrafts,
-      hasUnsavedChanges,
+      hasUnsavedChanges
     } = this.props;
 
-    const {isExpanded, viewContext} = this.state;
+    const { isExpanded, viewContext } = this.state;
 
     return (
-      <div className='rc-network-config-body'>
+      <div className="rc-network-config-body">
         <NetworkConfigHeader
           editMode={editMode}
           selectedNodes={selectedNodes}
           hasUnsavedChanges={hasUnsavedChanges}
         />
-        <div className='nc-expand-all-wrapper'>
-          <button className='nc-expand-all-btn'
+        <div className="nc-expand-all-wrapper">
+          <button
+            className="nc-expand-all-btn"
             onClick={() => this.onToggleExpandAll(true)}
-          >Expand All</button>
-          <button className='nc-expand-all-btn'
+          >
+            Expand All
+          </button>
+          <button
+            className="nc-expand-all-btn"
             onClick={() => this.onToggleExpandAll(false)}
-          >Collapse All</button>
-          <span style={{marginRight: '5px', marginLeft: '15px'}}>View Overrides Only</span>
+          >
+            Collapse All
+          </button>
+          <span style={{ marginRight: "5px", marginLeft: "15px" }}>
+            View Overrides Only
+          </span>
           <CustomToggle
             checkboxId={uuidv4()}
             value={viewContext.viewOverridesOnly}
-            onChange={(value) => this.setState({
-              viewContext: {
-                viewOverridesOnly: value
-              }
-            })}
+            onChange={value =>
+              this.setState({
+                viewContext: {
+                  viewOverridesOnly: value
+                }
+              })
+            }
           />
         </div>
-        <div className='config-form-root'>
+        <div className="config-form-root">
           <JSONConfigForm
             configs={configs}
             draftConfig={draftConfig}
@@ -100,5 +110,5 @@ NetworkConfigBody.propTypes = {
   selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
   editMode: React.PropTypes.string.isRequired,
 
-  hasUnsavedChanges: React.PropTypes.bool.isRequired,
-}
+  hasUnsavedChanges: React.PropTypes.bool.isRequired
+};

@@ -1,33 +1,29 @@
-import React from 'react';
+import React from "react";
 // leaflet maps
-import { render } from 'react-dom';
+import { render } from "react-dom";
 // dispatcher
-import { Actions } from './constants/NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './stores/NetworkStore.js';
+import { Actions } from "./constants/NetworkConstants.js";
+import Dispatcher from "./NetworkDispatcher.js";
+import NetworkStore from "./stores/NetworkStore.js";
 
-import NetworkNodesTable from './NetworkNodesTable.js';
-import NetworkLinksTable from './NetworkLinksTable.js';
-import NetworkAdjacencyTable from './NetworkAdjacencyTable.js';
-import NetworkRoutingTable from './NetworkRoutingTable.js';
-import NetworkStatusTable from './NetworkStatusTable.js';
+import NetworkNodesTable from "./NetworkNodesTable.js";
+import NetworkLinksTable from "./NetworkLinksTable.js";
+import NetworkAdjacencyTable from "./NetworkAdjacencyTable.js";
+import NetworkRoutingTable from "./NetworkRoutingTable.js";
+import NetworkStatusTable from "./NetworkStatusTable.js";
 
 // tabs
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 
-const TAB_NAMES = ['status',
-                   'nodes',
-                   'links',
-                   'adjacencies',
-                   'routing'];
+const TAB_NAMES = ["status", "nodes", "links", "adjacencies", "routing"];
 
 export default class NetworkDataTable extends React.Component {
   state = {
     routing: {},
-    zoomLevel: NetworkStore.zoomLevel,
-  }
+    zoomLevel: NetworkStore.zoomLevel
+  };
 
-  tabNameToIndex = {}
+  tabNameToIndex = {};
 
   constructor(props) {
     super(props);
@@ -54,10 +50,13 @@ export default class NetworkDataTable extends React.Component {
   componentWillMount() {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
+      this.handleDispatchEvent.bind(this)
+    );
     this.setState({
-      selectedTabIndex: NetworkStore.tabName in this.tabNameToIndex ?
-                        this.tabNameToIndex[NetworkStore.tabName] : 0,
+      selectedTabIndex:
+        NetworkStore.tabName in this.tabNameToIndex
+          ? this.tabNameToIndex[NetworkStore.tabName]
+          : 0
     });
   }
 
@@ -74,18 +73,18 @@ export default class NetworkDataTable extends React.Component {
       case Actions.AGGREGATOR_DUMP_REFRESHED:
         this.shouldUpdate = true;
         this.setState({
-          routing: payload.routing,
+          routing: payload.routing
         });
         break;
       case Actions.TAB_SELECTED:
         this.shouldUpdate = true;
         if (!(payload.tabName in this.tabNameToIndex)) {
-          console.error('Tab not found', payload.tabName);
+          console.error("Tab not found", payload.tabName);
           break;
         }
         const tabIndex = this.tabNameToIndex[payload.tabName];
         this.setState({
-          selectedTabIndex: tabIndex,
+          selectedTabIndex: tabIndex
         });
         break;
     }
@@ -93,15 +92,15 @@ export default class NetworkDataTable extends React.Component {
 
   _handleTabSelect(index, last) {
     this.setState({
-      selectedTabIndex: index,
+      selectedTabIndex: index
     });
     // TODO - should we null the selected node?
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
-      tabName: TAB_NAMES[index],
+      tabName: TAB_NAMES[index]
     });
     Dispatcher.dispatch({
-      actionType: Actions.CLEAR_NODE_LINK_SELECTED,
+      actionType: Actions.CLEAR_NODE_LINK_SELECTED
     });
     Dispatcher.dispatch({
       actionType: Actions.CLEAR_ROUTE
@@ -116,7 +115,7 @@ export default class NetworkDataTable extends React.Component {
       height: adjustedHeight,
       topology: this.props.networkConfig.topology,
       routing: this.state.routing,
-      zoomLevel: this.state.zoomLevel,
+      zoomLevel: this.state.zoomLevel
     };
     return (
       <Tabs
@@ -152,5 +151,5 @@ export default class NetworkDataTable extends React.Component {
   }
 }
 NetworkDataTable.propTypes = {
-  networkConfig: React.PropTypes.object.isRequired,
+  networkConfig: React.PropTypes.object.isRequired
 };

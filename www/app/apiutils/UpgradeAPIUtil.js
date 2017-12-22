@@ -1,18 +1,22 @@
 // util class for making API calls to the node server for upgrade commands
-import axios from 'axios';
-import swal from 'sweetalert';
-import 'sweetalert/dist/sweetalert.css';
+import axios from "axios";
+import swal from "sweetalert";
+import "sweetalert/dist/sweetalert.css";
 
-import { REVERT_UPGRADE_IMAGE_STATUS } from '../constants/UpgradeConstants.js';
-import { Actions, UploadStatus, DeleteStatus } from '../constants/NetworkConstants.js';
-import Dispatcher from '../NetworkDispatcher.js';
+import { REVERT_UPGRADE_IMAGE_STATUS } from "../constants/UpgradeConstants.js";
+import {
+  Actions,
+  UploadStatus,
+  DeleteStatus
+} from "../constants/NetworkConstants.js";
+import Dispatcher from "../NetworkDispatcher.js";
 
-
-const getErrorText = (error) => {
+const getErrorText = error => {
   // try to get the status text from the API response, otherwise, default to the error object
-  return (error.response && error.response.statusText) ?
-    error.response.statusText : error;
-}
+  return error.response && error.response.statusText
+    ? error.response.statusText
+    : error;
+};
 
 export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
   if (!upgradeBinary) {
@@ -22,16 +26,18 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
   // dispatch an action stating that the upgrade is in progress
   Dispatcher.dispatch({
     actionType: Actions.UPGRADE_UPLOAD_STATUS,
-    uploadStatus: UploadStatus.UPLOADING,
+    uploadStatus: UploadStatus.UPLOADING
   });
 
   let data = new FormData();
-  data.append('binary', upgradeBinary);
-  data.append('topologyName', topologyName);
+  data.append("binary", upgradeBinary);
+  data.append("topologyName", topologyName);
 
   const config = {
     onUploadProgress: function(progressEvent) {
-      var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
+      var percentCompleted = Math.round(
+        progressEvent.loaded * 100 / progressEvent.total
+      );
 
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_UPLOAD_PROGRESS,
@@ -40,179 +46,193 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     }
   };
 
-  const uri = '/controller/uploadUpgradeBinary';
-  axios.post(
-    uri, data, config
-  ).then((response) => {
-    // dispatch an action when upload has succeeded
-    Dispatcher.dispatch({
-      actionType: Actions.UPGRADE_UPLOAD_STATUS,
-      uploadStatus: UploadStatus.SUCCESS
-    });
-
-    // revert the upload status after a specified interval
-    setTimeout(() => {
+  const uri = "/controller/uploadUpgradeBinary";
+  axios
+    .post(uri, data, config)
+    .then(response => {
+      // dispatch an action when upload has succeeded
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_UPLOAD_STATUS,
-        uploadStatus: UploadStatus.NONE
+        uploadStatus: UploadStatus.SUCCESS
       });
-    }, REVERT_UPGRADE_IMAGE_STATUS);
 
-    listUpgradeImages(topologyName);
+      // revert the upload status after a specified interval
+      setTimeout(() => {
+        Dispatcher.dispatch({
+          actionType: Actions.UPGRADE_UPLOAD_STATUS,
+          uploadStatus: UploadStatus.NONE
+        });
+      }, REVERT_UPGRADE_IMAGE_STATUS);
 
-    swal({
-      title: 'Upload Image Success',
-      text: `Your selected image has been uploaded successfully and is currently being prepared for use
+      listUpgradeImages(topologyName);
+
+      swal({
+        title: "Upload Image Success",
+        text: `Your selected image has been uploaded successfully and is currently being prepared for use
       and should be ready soon.
 
       Please refresh the list of images periodically. If your image does not show up, please try again.
       `,
-      type: 'info'
-    });
-  }).catch((error) => {
-    Dispatcher.dispatch({
-      actionType: Actions.UPGRADE_UPLOAD_STATUS,
-      uploadStatus: UploadStatus.FAILURE
-    });
+        type: "info"
+      });
+    })
+    .catch(error => {
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_UPLOAD_STATUS,
+        uploadStatus: UploadStatus.FAILURE
+      });
 
-    listUpgradeImages(topologyName);
+      listUpgradeImages(topologyName);
 
-    const errorText = getErrorText(error);
-    swal({
-      title: 'Upload Image Failed',
-      text: `There was an error while uploading your selected image with the following message: ${errorText}
+      const errorText = getErrorText(error);
+      swal({
+        title: "Upload Image Failed",
+        text: `There was an error while uploading your selected image with the following message: ${errorText}
 
       Please try again.
       `,
-      type: 'error'
+        type: "error"
+      });
     });
-  })
 };
 
-export const listUpgradeImages = (topologyName) => {
+export const listUpgradeImages = topologyName => {
   const uri = `/controller/listUpgradeImages/${topologyName}`;
 
-  axios.get(uri).then((response) => {
-    Dispatcher.dispatch({
-      actionType: Actions.UPGRADE_IMAGES_LOADED,
-      upgradeImages: response.data.images
+  axios
+    .get(uri)
+    .then(response => {
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_IMAGES_LOADED,
+        upgradeImages: response.data.images
+      });
+    })
+    .catch(error => {
+      console.error("failed to fetch upgrade images", error);
+      Dispatcher.dispatch({
+        actionType: Actions.FETCH_UPGRADE_IMAGES_FAILED
+      });
     });
-  }).catch((error) => {
-    console.error('failed to fetch upgrade images', error);
-    Dispatcher.dispatch({
-      actionType: Actions.FETCH_UPGRADE_IMAGES_FAILED
-    });
-  })
 };
 
 export const deleteUpgradeImage = (imageName, topologyName) => {
   const uri = `controller/deleteUpgradeImage/${topologyName}/${imageName}`;
 
-  axios.get(uri).then((response) => {
-    Dispatcher.dispatch({
-      actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
-      deleteStatus: DeleteStatus.SUCCESS
-    });
-
-    // revert the delete status after a specified interval
-    setTimeout(() => {
+  axios
+    .get(uri)
+    .then(response => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
-        deleteStatus: DeleteStatus.NONE
+        deleteStatus: DeleteStatus.SUCCESS
       });
-    }, REVERT_UPGRADE_IMAGE_STATUS);
 
-    listUpgradeImages(topologyName);
-  }).catch((error) => {
-    const errorText = getErrorText(error);
+      // revert the delete status after a specified interval
+      setTimeout(() => {
+        Dispatcher.dispatch({
+          actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
+          deleteStatus: DeleteStatus.NONE
+        });
+      }, REVERT_UPGRADE_IMAGE_STATUS);
 
-    swal({
-      title: 'Prepare upgrade failed',
-      text: `There was an error while trying to delete your requested image.
+      listUpgradeImages(topologyName);
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+
+      swal({
+        title: "Prepare upgrade failed",
+        text: `There was an error while trying to delete your requested image.
 
       ${errorText}`,
-      type: 'error'
-    });
+        type: "error"
+      });
 
-    Dispatcher.dispatch({
-      actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
-      deleteStatus: DeleteStatus.FAILURE
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
+        deleteStatus: DeleteStatus.FAILURE
+      });
+      listUpgradeImages(topologyName);
     });
-    listUpgradeImages(topologyName);
-  })
 };
 
-export const prepareUpgrade = (upgradeGroupReq) => {
-  const uri = '/controller/prepareUpgrade';
-  axios.post(
-    uri, upgradeGroupReq
-  ).then((response) => {
-    swal({
-      title: 'Prepare upgrade submitted',
-      text: `You have initiated the "prepare upgrade" process with requestId ${upgradeGroupReq.requestId}
+export const prepareUpgrade = upgradeGroupReq => {
+  const uri = "/controller/prepareUpgrade";
+  axios
+    .post(uri, upgradeGroupReq)
+    .then(response => {
+      swal({
+        title: "Prepare upgrade submitted",
+        text: `You have initiated the "prepare upgrade" process with requestId ${
+          upgradeGroupReq.requestId
+        }
 
       The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
-      type: 'info'
-    });
-  }).catch((error) => {
-    const errorText = getErrorText(error);
+        type: "info"
+      });
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
 
-    swal({
-      title: 'Prepare upgrade failed',
-      text: `Your upgrade command failed with the following message:
+      swal({
+        title: "Prepare upgrade failed",
+        text: `Your upgrade command failed with the following message:
       ${errorText}`,
-      type: 'error'
+        type: "error"
+      });
     });
-  });
 };
 
-export const commitUpgrade = (upgradeGroupReq) => {
-  const uri = '/controller/commitUpgrade';
-  axios.post(
-    uri, upgradeGroupReq
-  ).then((response) => {
-    swal({
-      title: 'Commit upgrade submitted',
-      text: `You have initiated the "commit upgrade" process with requestId ${upgradeGroupReq.requestId}
+export const commitUpgrade = upgradeGroupReq => {
+  const uri = "/controller/commitUpgrade";
+  axios
+    .post(uri, upgradeGroupReq)
+    .then(response => {
+      swal({
+        title: "Commit upgrade submitted",
+        text: `You have initiated the "commit upgrade" process with requestId ${
+          upgradeGroupReq.requestId
+        }
 
       The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
-      type: 'info'
-    });
-  }).catch((error) => {
-    const errorText = getErrorText(error);
+        type: "info"
+      });
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
 
-    swal({
-      title: 'Commit upgrade failed',
-      text: `Your upgrade command failed with the following message:
+      swal({
+        title: "Commit upgrade failed",
+        text: `Your upgrade command failed with the following message:
       ${errorText}`,
-      type: 'error'
+        type: "error"
+      });
     });
-  });
 };
 
-export const abortUpgrade = (upgradeAbortReq) => {
-  const uri = '/controller/abortUpgrade';
-  axios.post(
-    uri, upgradeAbortReq
-  ).then((response) => {
-    swal({
-      title: 'Abort upgrade(s) success',
-      text: `You have initiated the "abort upgrade" process successfully
+export const abortUpgrade = upgradeAbortReq => {
+  const uri = "/controller/abortUpgrade";
+  axios
+    .post(uri, upgradeAbortReq)
+    .then(response => {
+      swal({
+        title: "Abort upgrade(s) success",
+        text: `You have initiated the "abort upgrade" process successfully
 
       The status of your upgrade should be shown on the "Node Upgrade Status" table.
       `,
-      type: 'info'
-    });
-  }).catch((error) => {
-    const errorText = getErrorText(error);
+        type: "info"
+      });
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
 
-    swal({
-      title: 'Abort upgrade failed',
-      text: `Your abort upgrade command failed with the following message:
+      swal({
+        title: "Abort upgrade failed",
+        text: `Your abort upgrade command failed with the following message:
       ${errorText}`,
-      type: 'error'
+        type: "error"
+      });
     });
-  });
 };

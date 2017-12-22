@@ -1,37 +1,37 @@
-import React from 'react';
-import { render } from 'react-dom';
-import Modal from 'react-modal';
+import React from "react";
+import { render } from "react-dom";
+import Modal from "react-modal";
 
-import { commitUpgrade } from '../../apiutils/UpgradeAPIUtil.js';
+import { commitUpgrade } from "../../apiutils/UpgradeAPIUtil.js";
 
 const modalStyle = {
-  content : {
-    width                 : 'calc(100% - 40px)',
-    maxWidth              : '800px',
-    display               : 'table',
-    top                   : '50%',
-    left                  : '50%',
-    right                 : 'auto',
-    bottom                : 'auto',
-    marginRight           : '-50%',
-    transform             : 'translate(-50%, -50%)'
+  content: {
+    width: "calc(100% - 40px)",
+    maxWidth: "800px",
+    display: "table",
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)"
   }
-}
+};
 
 export default class ModalCommitUpgrade extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      timeout: 180,         // timeout for the entire commit operation per node
-      skipFailure: true,    // skip failed nodes (will not stop operation)
-      isParallel: true,     // parallelize teh operation? (put all nodes in one batch)
-      limit: 1,             // limit per batch. max batch size is infinite if this is set to 0
+      timeout: 180, // timeout for the entire commit operation per node
+      skipFailure: true, // skip failed nodes (will not stop operation)
+      isParallel: true, // parallelize teh operation? (put all nodes in one batch)
+      limit: 1, // limit per batch. max batch size is infinite if this is set to 0
 
       overrideBatch: false, // override batching logic (and send a node level request instead)
 
-      scheduleToCommit: 0,  // delay between issuing the command and each node starting the commit
-    }
+      scheduleToCommit: 0 // delay between issuing the command and each node starting the commit
+    };
   }
 
   submitCommit() {
@@ -50,17 +50,17 @@ export default class ModalCommitUpgrade extends React.Component {
       ugType,
       nodes,
       excludeNodes,
-      timeout:          this.state.timeout,
-      skipFailure:      this.state.skipFailure,
-      skipLinks:        [],
+      timeout: this.state.timeout,
+      skipFailure: this.state.skipFailure,
+      skipLinks: [],
 
       // limit of 0 means unlimited max batch size
-      limit:            this.state.isParallel ? 0 : this.state.limit,
+      limit: this.state.isParallel ? 0 : this.state.limit,
 
       scheduleToCommit: this.state.scheduleToCommit,
 
-      requestId:        'NMS' + new Date().getTime(),
-      topologyName:     this.props.topologyName,
+      requestId: "NMS" + new Date().getTime(),
+      topologyName: this.props.topologyName
     };
 
     commitUpgrade(requestBody);
@@ -72,7 +72,7 @@ export default class ModalCommitUpgrade extends React.Component {
   }
 
   render() {
-    const {isOpen} = this.props;
+    const { isOpen } = this.props;
     /*
     Commit modal:
       List nodes
@@ -88,7 +88,7 @@ export default class ModalCommitUpgrade extends React.Component {
           return idx % 2 == 0 ? (
             <p>{node}</p>
           ) : (
-            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
+            <p style={{ backgroundColor: "#f9f9f9" }}>{node}</p>
           );
         })}
       </div>
@@ -101,58 +101,89 @@ export default class ModalCommitUpgrade extends React.Component {
         onRequestClose={this.modalClose.bind(this)}
       >
         <div className="upgrade-modal-content">
-          <label>Nodes to commit for upgrade ({this.props.upgradeNodes.length})</label>
-          <div className="upgrade-modal-row">
-            {nodesList}
-          </div>
+          <label>
+            Nodes to commit for upgrade ({this.props.upgradeNodes.length})
+          </label>
+          <div className="upgrade-modal-row">{nodesList}</div>
 
           <div className="upgrade-modal-row">
             <label>Upgrade timeout (s):</label>
-            <input type="number" value={this.state.timeout}
-              onChange={(event) => this.setState({'timeout': event.target.value})}
+            <input
+              type="number"
+              value={this.state.timeout}
+              onChange={event => this.setState({ timeout: event.target.value })}
             />
           </div>
 
           <div className="upgrade-modal-row">
             <label>Skip failures?</label>
-            <input type="checkbox" checked={this.state.skipFailure}
-              onChange={(event) => this.setState({'skipFailure': event.target.checked})}
+            <input
+              type="checkbox"
+              checked={this.state.skipFailure}
+              onChange={event =>
+                this.setState({ skipFailure: event.target.checked })
+              }
             />
           </div>
 
           <div className="upgrade-modal-row">
             <label>Fully Parallelize upgrade?</label>
-            <input type="checkbox" checked={this.state.isParallel}
-              onChange={(event) => this.setState({'isParallel': event.target.checked})}
+            <input
+              type="checkbox"
+              checked={this.state.isParallel}
+              onChange={event =>
+                this.setState({ isParallel: event.target.checked })
+              }
             />
           </div>
 
           {!this.state.isParallel && (
             <div className="upgrade-modal-row">
               <label>Batch size limit:</label>
-              <input type="number" value={this.state.limit}
-                onChange={(event) => this.setState({'limit': event.target.value})}
+              <input
+                type="number"
+                value={this.state.limit}
+                onChange={event => this.setState({ limit: event.target.value })}
               />
             </div>
           )}
 
           <div className="upgrade-modal-row">
             <label>Commit all nodes at once (override batching logic)?</label>
-            <input type="checkbox" checked={this.state.overrideBatch}
-              onChange={(event) => this.setState({'overrideBatch': event.target.checked})}
+            <input
+              type="checkbox"
+              checked={this.state.overrideBatch}
+              onChange={event =>
+                this.setState({ overrideBatch: event.target.checked })
+              }
             />
           </div>
 
           <div className="upgrade-modal-row">
             <label>Commit delay:</label>
-            <input type="number" value={this.state.scheduleToCommit}
-              onChange={(event) => this.setState({'scheduleToCommit': event.target.value})}
+            <input
+              type="number"
+              value={this.state.scheduleToCommit}
+              onChange={event =>
+                this.setState({ scheduleToCommit: event.target.value })
+              }
             />
           </div>
         </div>
         <div className="upgrade-modal-footer">
-          <button className='upgrade-modal-btn' onClick={this.modalClose.bind(this)}>Close</button>
-          <button className='upgrade-modal-btn' onClick={this.submitCommit.bind(this)} style={{'backgroundColor': '#8b9dc3'}}>Submit</button>
+          <button
+            className="upgrade-modal-btn"
+            onClick={this.modalClose.bind(this)}
+          >
+            Close
+          </button>
+          <button
+            className="upgrade-modal-btn"
+            onClick={this.submitCommit.bind(this)}
+            style={{ backgroundColor: "#8b9dc3" }}
+          >
+            Submit
+          </button>
         </div>
       </Modal>
     );
@@ -165,5 +196,5 @@ ModalCommitUpgrade.propTypes = {
   upgradeNodes: React.PropTypes.array.isRequired,
   isOpen: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
-  topologyName: React.PropTypes.string.isRequred,
-}
+  topologyName: React.PropTypes.string.isRequred
+};

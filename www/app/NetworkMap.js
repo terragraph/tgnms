@@ -1,64 +1,78 @@
-import React from 'react';
-import { render } from 'react-dom';
+import React from "react";
+import { render } from "react-dom";
 // leaflet maps
-import Leaflet, { Point, LatLng } from 'leaflet';
-import { Map, Polyline, Popup, TileLayer, Marker, CircleMarker, LayerGroup } from 'react-leaflet';
-import Control from 'react-leaflet-control';
-import LeafletGeom from 'leaflet-geometryutil';
+import Leaflet, { Point, LatLng } from "leaflet";
+import {
+  Map,
+  Polyline,
+  Popup,
+  TileLayer,
+  Marker,
+  CircleMarker,
+  LayerGroup
+} from "react-leaflet";
+import Control from "react-leaflet-control";
+import LeafletGeom from "leaflet-geometryutil";
 
 // helper methods
-import { getNodeMarker } from './helpers/NetworkMapHelpers.js';
+import { getNodeMarker } from "./helpers/NetworkMapHelpers.js";
 
 // dispatcher
-import {Actions, SiteOverlayKeys, linkOverlayKeys, MapDimensions, MapTiles} from './constants/NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './stores/NetworkStore.js';
+import {
+  Actions,
+  SiteOverlayKeys,
+  linkOverlayKeys,
+  MapDimensions,
+  MapTiles
+} from "./constants/NetworkConstants.js";
+import Dispatcher from "./NetworkDispatcher.js";
+import NetworkStore from "./stores/NetworkStore.js";
 // ui components
-import NetworkDataTable from './NetworkDataTable.js';
+import NetworkDataTable from "./NetworkDataTable.js";
 
-import DetailsNode from './components/detailpanels/DetailsNode.js';
-import DetailsLink from './components/detailpanels/DetailsLink.js';
-import DetailsSite from './components/detailpanels/DetailsSite.js';
-import DetailsTopology from './components/detailpanels/DetailsTopology.js';
-import DetailsPlannedSite from './components/detailpanels/DetailsPlannedSite.js';
-import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssues.js';
+import DetailsNode from "./components/detailpanels/DetailsNode.js";
+import DetailsLink from "./components/detailpanels/DetailsLink.js";
+import DetailsSite from "./components/detailpanels/DetailsSite.js";
+import DetailsTopology from "./components/detailpanels/DetailsTopology.js";
+import DetailsPlannedSite from "./components/detailpanels/DetailsPlannedSite.js";
+import DetailsTopologyIssues from "./components/detailpanels/DetailsTopologyIssues.js";
 
-import SplitPane from 'react-split-pane';
-import { polarityColor } from './NetworkHelper.js';
-const d3 = require('d3');
+import SplitPane from "react-split-pane";
+import { polarityColor } from "./NetworkHelper.js";
+const d3 = require("d3");
 import { Index, TimeSeries, TimeRange, TimeRangeEvent } from "pondjs";
 
 const SITE_MARKER = Leaflet.icon({
-  iconUrl: '/static/images/site.png',
+  iconUrl: "/static/images/site.png",
   iconSize: [50, 50],
-  iconAnchor: [7, 8],
+  iconAnchor: [7, 8]
 });
 
 export class CustomMap extends Map {
-  createLeafletElement (props: Object): Object {
+  createLeafletElement(props: Object): Object {
     return Leaflet.map(this.container, props);
   }
-  componentDidUpdate (prevProps: Object) {
+  componentDidUpdate(prevProps: Object) {
     this.updateLeafletElement(prevProps, this.props);
     const layers = this.leafletElement._layers;
     Object.values(layers)
-      .filter((layer) => {
+      .filter(layer => {
         return typeof layer.options.level !== "undefined";
       })
       .sort((layerA, layerB) => {
         return layerA.options.level - layerB.options.level;
       })
-      .forEach((layer) => {
+      .forEach(layer => {
         layer.bringToFront();
       });
   }
 }
 
 export default class NetworkMap extends React.Component {
-  nodesByName = {}
-  linksByName = {}
-  linksByNode = {}
-  sitesByName = {}
+  nodesByName = {};
+  linksByName = {};
+  linksByNode = {};
+  sitesByName = {};
 
   state = {
     hoveredSite: null,
@@ -86,8 +100,8 @@ export default class NetworkMap extends React.Component {
     showTopologyIssuesPane: false,
     newTopology: {},
     // commit batch selected
-    commitPlanBatch: 0,
-  }
+    commitPlanBatch: 0
+  };
 
   constructor(props) {
     super(props);
@@ -99,9 +113,11 @@ export default class NetworkMap extends React.Component {
     this.resetZoomOnNextRefresh = true;
   }
 
-
   componentWillReceiveProps(nextProps) {
-    if (this.props.networkConfig.topology.name != nextProps.networkConfig.topology.name) {
+    if (
+      this.props.networkConfig.topology.name !=
+      nextProps.networkConfig.topology.name
+    ) {
       this.resetZoomOnNextRefresh = true;
     }
     this.updateTopologyState(nextProps.networkConfig);
@@ -113,40 +129,51 @@ export default class NetworkMap extends React.Component {
     this.setState({
       // TODO: hacky, we need the Math.min here because the resize can happen in 2 ways:
       // both panes resize at the same time, and the upper one shrinks when it has the height of the whole window
-      upperPaneHeight: Math.min(window.innerHeight, this.refs.split_pane.splitPane.childNodes[0].clientHeight),
-      lowerPaneHeight: this.state.tablesExpanded ? window.innerHeight - this.refs.split_pane.splitPane.childNodes[0].clientHeight : this.state.lowerPaneHeight,
+      upperPaneHeight: Math.min(
+        window.innerHeight,
+        this.refs.split_pane.splitPane.childNodes[0].clientHeight
+      ),
+      lowerPaneHeight: this.state.tablesExpanded
+        ? window.innerHeight -
+          this.refs.split_pane.splitPane.childNodes[0].clientHeight
+        : this.state.lowerPaneHeight
     });
   }
 
   componentWillMount() {
     // register once we're visible
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
-    window.addEventListener('resize', this.resizeWindow);
+      this.handleDispatchEvent.bind(this)
+    );
+    window.addEventListener("resize", this.resizeWindow);
     this.setState({
-      linkHealth: NetworkStore.linkHealth,
+      linkHealth: NetworkStore.linkHealth
     });
     // update helper maps
-    this.updateTopologyState(this.props.networkConfig)
+    this.updateTopologyState(this.props.networkConfig);
     // initial site selection
-    if (NetworkStore.tabName == 'links' &&
-        NetworkStore.selectedName &&
-        NetworkStore.selectedName in this.linksByName) {
+    if (
+      NetworkStore.tabName == "links" &&
+      NetworkStore.selectedName &&
+      NetworkStore.selectedName in this.linksByName
+    ) {
       this.setState({
-        selectedLink: this.linksByName[NetworkStore.selectedName],
+        selectedLink: this.linksByName[NetworkStore.selectedName]
       });
-    } else if (NetworkStore.tabName == 'nodes' &&
-               NetworkStore.selectedName &&
-               NetworkStore.selectedName in this.sitesByName) {
+    } else if (
+      NetworkStore.tabName == "nodes" &&
+      NetworkStore.selectedName &&
+      NetworkStore.selectedName in this.sitesByName
+    ) {
       this.setState({
-        selectedSite: NetworkStore.selectedName,
+        selectedSite: NetworkStore.selectedName
       });
     }
   }
 
   componentWillUnmount() {
     // un-register if we're no longer visible
-    window.removeEventListener('resize', this.resizeWindow);
+    window.removeEventListener("resize", this.resizeWindow);
     Dispatcher.unregister(this.dispatchToken);
   }
 
@@ -160,7 +187,7 @@ export default class NetworkMap extends React.Component {
           routingOverlayEnabled: false,
           selectedSite: null,
           selectedLink: null,
-          selectedNode: null,
+          selectedNode: null
         });
         break;
       case Actions.NODE_SELECTED:
@@ -168,21 +195,21 @@ export default class NetworkMap extends React.Component {
         this.setState({
           selectedSite: site,
           selectedNode: payload.nodeSelected,
-          selectedLink: null,
+          selectedLink: null
         });
         break;
       case Actions.LINK_SELECTED:
         this.setState({
           selectedLink: payload.link,
           selectedSite: null,
-          selectedNode: null,
+          selectedNode: null
         });
         break;
       case Actions.SITE_SELECTED:
         this.setState({
           selectedSite: payload.siteSelected,
           selectedLink: null,
-          selectedNode: null,
+          selectedNode: null
         });
         break;
       case Actions.DISPLAY_ROUTE:
@@ -193,7 +220,7 @@ export default class NetworkMap extends React.Component {
           routingOverlayEnabled: true,
           selectedSite: null,
           selectedLink: null,
-          selectedNode: null,
+          selectedNode: null
         });
         break;
       case Actions.CLEAR_ROUTE:
@@ -201,16 +228,20 @@ export default class NetworkMap extends React.Component {
           routeWeights: null,
           routeSourceNode: null,
           routeDestNode: null,
-          routingOverlayEnabled: false,
+          routingOverlayEnabled: false
         });
         break;
       case Actions.PLANNED_SITE_CREAT:
         let plannedSite = {
           name: payload.siteName,
-          lat: this.props.networkConfig ? this.props.networkConfig.latitude : 37.484494,
-          long: this.props.networkConfig ? this.props.networkConfig.longitude : -122.1483976,
+          lat: this.props.networkConfig
+            ? this.props.networkConfig.latitude
+            : 37.484494,
+          long: this.props.networkConfig
+            ? this.props.networkConfig.longitude
+            : -122.1483976,
           alt: 0
-        }
+        };
         this.setState({
           plannedSite: plannedSite
         });
@@ -219,35 +250,35 @@ export default class NetworkMap extends React.Component {
         this.setState({
           selectedSite: null,
           selectedLink: null,
-          selectedNode: null,
+          selectedNode: null
         });
         break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
-          linkHealth: payload.linkHealth,
+          linkHealth: payload.linkHealth
         });
         break;
       case Actions.LINK_OVERLAY_REFRESHED:
         if (payload.overlay) {
           let series = new TimeSeries(payload.overlay);
           this.setState({
-            linkOverlayData: series,
+            linkOverlayData: series
           });
         } else {
           this.setState({
-            linkOverlayData: null,
+            linkOverlayData: null
           });
         }
         break;
       case Actions.TOPOLOGY_ISSUES_PANE:
         this.setState({
           showTopologyIssuesPane: payload.visible,
-          newTopology: payload.topology,
+          newTopology: payload.topology
         });
         break;
       case Actions.COMMIT_PLAN_BATCH:
         this.setState({
-          commitPlanBatch: payload.batch,
+          commitPlanBatch: payload.batch
         });
         break;
     }
@@ -273,65 +304,86 @@ export default class NetworkMap extends React.Component {
       let link = topologyJson.links[linkIndex];
       linksByName[link.name] = link;
       // calculate distance and angle for each link
-      if (!nodesByName.hasOwnProperty(link.a_node_name) ||
-          !nodesByName.hasOwnProperty(link.z_node_name)) {
-        console.error('Skipping invalid link', link);
+      if (
+        !nodesByName.hasOwnProperty(link.a_node_name) ||
+        !nodesByName.hasOwnProperty(link.z_node_name)
+      ) {
+        console.error("Skipping invalid link", link);
         return;
       }
       let aNode = nodesByName[link.a_node_name];
       let zNode = nodesByName[link.z_node_name];
-      if (!sitesByName.hasOwnProperty(aNode.site_name) ||
-          !sitesByName.hasOwnProperty(zNode.site_name)) {
-        console.error('Skipping invalid link', link);
+      if (
+        !sitesByName.hasOwnProperty(aNode.site_name) ||
+        !sitesByName.hasOwnProperty(zNode.site_name)
+      ) {
+        console.error("Skipping invalid link", link);
         return;
       }
 
-      linksByNode[link.a_node_name] = linksByNode[link.a_node_name] ?
-        linksByNode[link.a_node_name].concat(link) : [link];
+      linksByNode[link.a_node_name] = linksByNode[link.a_node_name]
+        ? linksByNode[link.a_node_name].concat(link)
+        : [link];
 
-      linksByNode[link.z_node_name] = linksByNode[link.z_node_name] ?
-        linksByNode[link.z_node_name].concat(link) : [link];
+      linksByNode[link.z_node_name] = linksByNode[link.z_node_name]
+        ? linksByNode[link.z_node_name].concat(link)
+        : [link];
 
       let aSite = sitesByName[aNode.site_name];
       let zSite = sitesByName[zNode.site_name];
-      let aSiteCoords = new LatLng(aSite.location.latitude,
-                                   aSite.location.longitude);
-      let zSiteCoords = new LatLng(zSite.location.latitude,
-                                   zSite.location.longitude);
+      let aSiteCoords = new LatLng(
+        aSite.location.latitude,
+        aSite.location.longitude
+      );
+      let zSiteCoords = new LatLng(
+        zSite.location.latitude,
+        zSite.location.longitude
+      );
       let linkAngle = LeafletGeom.bearing(aSiteCoords, zSiteCoords);
       link.angle = linkAngle;
       let linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
       link.distance = parseInt(linkLength * 100) / 100; /* meters */
       // apply health data
-      if (this.state.linkHealth &&
-          this.state.linkHealth.metrics &&
-          link.name in this.state.linkHealth.metrics) {
+      if (
+        this.state.linkHealth &&
+        this.state.linkHealth.metrics &&
+        link.name in this.state.linkHealth.metrics
+      ) {
         let nodeHealth = this.state.linkHealth.metrics[link.name];
         link["alive_perc"] = nodeHealth.alive;
       }
 
       if (this.state.linkOverlayData) {
-        let modLinkName = link.name.replace(/\./g, ' ') + ' (A)';
+        let modLinkName = link.name.replace(/\./g, " ") + " (A)";
         let overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
         link["overlay_a"] = overlayValue;
-        modLinkName = link.name.replace(/\./g, ' ') + ' (Z)';
+        modLinkName = link.name.replace(/\./g, " ") + " (Z)";
         overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
         link["overlay_z"] = overlayValue;
-      } else if (this.props.linkOverlay == "RxGolayIdx" || this.props.linkOverlay == "TxGolayIdx") {
+      } else if (
+        this.props.linkOverlay == "RxGolayIdx" ||
+        this.props.linkOverlay == "TxGolayIdx"
+      ) {
         let a_node = nodesByName[link.a_node_name];
         let z_node = nodesByName[link.z_node_name];
 
         if (a_node && a_node.golay_idx) {
-          let idx = this.props.linkOverlay == "RxGolayIdx" ?
-                    a_node.golay_idx.rxGolayIdx :
-                    a_node.golay_idx.txGolayIdx;
-          link["overlay_a"] = parseInt(Buffer.from(idx.buffer.data).readUIntBE(0, 8));
+          let idx =
+            this.props.linkOverlay == "RxGolayIdx"
+              ? a_node.golay_idx.rxGolayIdx
+              : a_node.golay_idx.txGolayIdx;
+          link["overlay_a"] = parseInt(
+            Buffer.from(idx.buffer.data).readUIntBE(0, 8)
+          );
         }
         if (z_node && z_node.golay_idx) {
-          let idx = this.props.linkOverlay == "RxGolayIdx" ?
-                    z_node.golay_idx.rxGolayIdx :
-                    z_node.golay_idx.txGolayIdx;
-          link["overlay_z"] = parseInt(Buffer.from(idx.buffer.data).readUIntBE(0, 8));
+          let idx =
+            this.props.linkOverlay == "RxGolayIdx"
+              ? z_node.golay_idx.rxGolayIdx
+              : z_node.golay_idx.txGolayIdx;
+          link["overlay_z"] = parseInt(
+            Buffer.from(idx.buffer.data).readUIntBE(0, 8)
+          );
         }
       }
     });
@@ -346,7 +398,7 @@ export default class NetworkMap extends React.Component {
     // update zoom level
     let zoomLevel = resetZoom ? networkConfig.zoom_level : this.state.zoomLevel;
     this.setState({
-      zoomLevel: zoomLevel,
+      zoomLevel: zoomLevel
     });
   }
 
@@ -356,7 +408,7 @@ export default class NetworkMap extends React.Component {
 
   _onMapZoom(data) {
     this.setState({
-      zoomLevel: data.target._zoom,
+      zoomLevel: data.target._zoom
     });
   }
 
@@ -364,36 +416,42 @@ export default class NetworkMap extends React.Component {
     this.refs.map.leafletElement.invalidateSize();
     this.setState({
       upperPaneHeight: newSize,
-      lowerPaneHeight: window.innerHeight - newSize,
+      lowerPaneHeight: window.innerHeight - newSize
     });
   }
 
   handleMarkerClick(ev) {
     let site = this.props.networkConfig.topology.sites[
-      ev.target.options.siteIndex];
+      ev.target.options.siteIndex
+    ];
     // dispatch to update all UIs
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
-      tabName: 'nodes',
+      tabName: "nodes"
     });
     Dispatcher.dispatch({
       actionType: Actions.SITE_SELECTED,
-      siteSelected: site.name,
+      siteSelected: site.name
     });
   }
 
   handleExpandTablesClick(ev) {
-    setTimeout(function() {
-      this.refs.map.leafletElement.invalidateSize();
-    }.bind(this), 1);
+    setTimeout(
+      function() {
+        this.refs.map.leafletElement.invalidateSize();
+      }.bind(this),
+      1
+    );
     this.setState({
-      upperPaneHeight: (this.state.tablesExpanded ? window.innerHeight: window.innerHeight - this.state.lowerPaneHeight),
-      tablesExpanded: this.state.tablesExpanded ? false : true,
+      upperPaneHeight: this.state.tablesExpanded
+        ? window.innerHeight
+        : window.innerHeight - this.state.lowerPaneHeight,
+      tablesExpanded: this.state.tablesExpanded ? false : true
     });
   }
 
   addNodeMarkerForSite = (topology, site) => {
-    const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
+    const nodeKeysInSite = Object.keys(topology.nodes).filter(nodeIndex => {
       const node = topology.nodes[nodeIndex];
       return node.site_name === site.name;
     });
@@ -405,25 +463,26 @@ export default class NetworkMap extends React.Component {
         nodesInSite,
         this.linksByNode,
         this.state.selectedNode,
-        () => this.setState({hoveredSite: site}),
-        () => this.setState({hoveredSite: null})
+        () => this.setState({ hoveredSite: site }),
+        () => this.setState({ hoveredSite: null })
       );
       nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
     }
-  }
+  };
 
   getSiteMarker(site, pos, color, siteIndex): ReactElement<any> {
     let radiusByZoomLevel = this.state.zoomLevel - 9;
-     return (
-      <CircleMarker center={pos}
+    return (
+      <CircleMarker
+        center={pos}
         radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
         clickable
         fillOpacity={1}
-        color = {color}
+        color={color}
         key={siteIndex}
         siteIndex={siteIndex}
         onClick={this.handleMarkerClick}
-        onMouseOver={() => this.setState({hoveredSite: site})}
+        onMouseOver={() => this.setState({ hoveredSite: site })}
         fillColor={color}
         level={10}
       />
@@ -440,60 +499,65 @@ export default class NetworkMap extends React.Component {
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
-            tabName: "links",
+            tabName: "links"
           });
           Dispatcher.dispatch({
             actionType: Actions.LINK_SELECTED,
             link: link,
-            source: "map",
-          })
+            source: "map"
+          });
         }}
         color={color}
-        level={5}>
-      </Polyline>);
+        level={5}
+      />
+    );
   }
 
   getLinkLineTwoSides(link, coords, color_a, color_z): ReactElement<any> {
     let coords_a = coords[0];
     let coords_z = coords[1];
-    let midPoint = [(coords_a[0] + coords_z[0]) /2, (coords_a[1] + coords_z[1]) /2];
-    return ([
+    let midPoint = [
+      (coords_a[0] + coords_z[0]) / 2,
+      (coords_a[1] + coords_z[1]) / 2
+    ];
+    return [
       <Polyline
-        key={link.name+'(A)'}
+        key={link.name + "(A)"}
         positions={[coords_a, midPoint]}
         weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
-            tabName: "links",
+            tabName: "links"
           });
           Dispatcher.dispatch({
             actionType: Actions.LINK_SELECTED,
             link: link,
-            source: "map",
-          })
+            source: "map"
+          });
         }}
         color={color_a}
-        level={5}>
-      </Polyline>,
+        level={5}
+      />,
       <Polyline
-        key={link.name+'(Z)'}
+        key={link.name + "(Z)"}
         positions={[coords_z, midPoint]}
         weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
         onClick={e => {
           Dispatcher.dispatch({
             actionType: Actions.TAB_SELECTED,
-            tabName: "links",
+            tabName: "links"
           });
           Dispatcher.dispatch({
             actionType: Actions.LINK_SELECTED,
             link: link,
-            source: "map",
-          })
+            source: "map"
+          });
         }}
         color={color_z}
-        level={5}>
-      </Polyline>]);
+        level={5}
+      />
+    ];
   }
 
   updatePlannedPosition() {
@@ -502,41 +566,41 @@ export default class NetworkMap extends React.Component {
     plannedSite.lat = lat;
     plannedSite.long = lng;
     this.setState({
-      plannedSite: plannedSite,
+      plannedSite: plannedSite
     });
   }
 
   updatePlannedSite(plannedSite) {
     this.setState({
-      plannedSite: plannedSite,
+      plannedSite: plannedSite
     });
   }
 
   removePlannedSite = () => {
     this.setState({
-      plannedSite: null,
+      plannedSite: null
     });
-  }
+  };
 
   updatePosition = () => {
     const { lat, lng } = this.refs.marker.leafletElement.getLatLng();
     this.setState({
-      marker: { lat, lng },
+      marker: { lat, lng }
     });
   };
 
   enableMapScrolling = () => {
     this.refs.map.leafletElement.scrollWheelZoom.enable();
-  }
+  };
 
   disableMapScrolling = () => {
     this.refs.map.leafletElement.scrollWheelZoom.disable();
-  }
+  };
 
   closeModal = () => {
     this.enableMapScrolling();
-    this.setState({detailsExpanded: false});
-  }
+    this.setState({ detailsExpanded: false });
+  };
 
   render() {
     if (this.refs.nodes) {
@@ -545,19 +609,20 @@ export default class NetworkMap extends React.Component {
     }
 
     // use the center position from the topology if set
-    const centerPosition = this.props.networkConfig ?
-      [this.props.networkConfig.latitude,
-       this.props.networkConfig.longitude] :
-      [37.484494, -122.1483976];
+    const centerPosition = this.props.networkConfig
+      ? [this.props.networkConfig.latitude, this.props.networkConfig.longitude]
+      : [37.484494, -122.1483976];
     let siteComponents = [];
     let linkComponents = [];
     let siteMarkers = [];
     let topology = this.props.networkConfig.topology;
     // assign pending sites, marking them with a pending flag
-    if (this.props.pendingTopology &&
-        this.props.pendingTopology.sites &&
-        this.props.pendingTopology.nodes &&
-        this.props.pendingTopology.links) {
+    if (
+      this.props.pendingTopology &&
+      this.props.pendingTopology.sites &&
+      this.props.pendingTopology.nodes &&
+      this.props.pendingTopology.links
+    ) {
       this.props.pendingTopology.sites.forEach(site => {
         let pendingSite = Object.assign({}, site);
         pendingSite.pending = true;
@@ -591,21 +656,21 @@ export default class NetworkMap extends React.Component {
       let hasMac = false;
       let isCn = false;
       let sitePolarity = null;
-      let sitePlan = 'NoData';
+      let sitePlan = "NoData";
       if (this.props.commitPlan != null) {
-        sitePlan = 'None';
+        sitePlan = "None";
       }
 
-      const nodeKeysInSite = Object.keys(topology.nodes).filter((nodeIndex) => {
+      const nodeKeysInSite = Object.keys(topology.nodes).filter(nodeIndex => {
         const node = topology.nodes[nodeIndex];
         return node.site_name === site.name;
       });
 
-      nodeKeysInSite.forEach((nodeIndex) => {
+      nodeKeysInSite.forEach(nodeIndex => {
         const node = topology.nodes[nodeIndex];
 
         totalCount++;
-        healthyCount += (node.status == 2 || node.status == 3) ? 1 : 0;
+        healthyCount += node.status == 2 || node.status == 3 ? 1 : 0;
         if (sitePolarity == null) {
           sitePolarity = node.polarity;
         }
@@ -614,32 +679,40 @@ export default class NetworkMap extends React.Component {
         hasPop = node.pop_node ? true : hasPop;
         // TODO: check for mixed sites (error)
         isCn = node.node_type == 1 ? true : isCn;
-        hasMac = node.hasOwnProperty('mac_addr') && node.mac_addr && node.mac_addr.length ? true : hasMac;
-        if (this.props.commitPlan != null &&
-            this.props.commitPlan.commitBatches.length >=
-              this.state.commitPlanBatch &&
-            this.props.commitPlan.commitBatches[this.state.commitPlanBatch] &&
-            this.props.commitPlan.commitBatches[this.state.commitPlanBatch]
-              .has(node.name)) {
+        hasMac =
+          node.hasOwnProperty("mac_addr") &&
+          node.mac_addr &&
+          node.mac_addr.length
+            ? true
+            : hasMac;
+        if (
+          this.props.commitPlan != null &&
+          this.props.commitPlan.commitBatches.length >=
+            this.state.commitPlanBatch &&
+          this.props.commitPlan.commitBatches[this.state.commitPlanBatch] &&
+          this.props.commitPlan.commitBatches[this.state.commitPlanBatch].has(
+            node.name
+          )
+        ) {
           inCommitBatch++;
         }
-      })
+      });
 
       // commit plan
       if (inCommitBatch == totalCount) {
-        sitePlan = 'Full';
+        sitePlan = "Full";
       } else if (inCommitBatch > 0) {
-        sitePlan = 'Partial';
+        sitePlan = "Partial";
       }
 
       let siteColor = SiteOverlayKeys.Health.Unhealthy.color; // default
       let siteIndexForMarker = siteIndex;
 
-      if (site.hasOwnProperty('pending') && site.pending) {
+      if (site.hasOwnProperty("pending") && site.pending) {
         siteColor = SiteOverlayKeys.Pending.Site;
       } else {
         switch (this.props.siteOverlay) {
-          case 'Health':
+          case "Health":
             if (totalCount == 0) {
               siteColor = SiteOverlayKeys.Health.Empty.color;
             } else if (totalCount == healthyCount) {
@@ -650,10 +723,10 @@ export default class NetworkMap extends React.Component {
               siteColor = SiteOverlayKeys.Health.Partial.color;
             }
             break;
-          case 'Polarity':
+          case "Polarity":
             siteColor = polarityColor(sitePolarity);
             break;
-          case 'CommitPlan':
+          case "CommitPlan":
             // fetch commit plan
             siteColor = SiteOverlayKeys.CommitPlan[sitePlan].color;
             siteIndexForMarker = undefined; // hack
@@ -664,11 +737,14 @@ export default class NetworkMap extends React.Component {
         }
       }
 
-      siteComponents.push( this.getSiteMarker(site, siteCoords, siteColor, siteIndexForMarker) );
+      siteComponents.push(
+        this.getSiteMarker(site, siteCoords, siteColor, siteIndexForMarker)
+      );
 
       if (hasPop) {
-        let secondaryMarker =
-          <CircleMarker center={siteCoords}
+        let secondaryMarker = (
+          <CircleMarker
+            center={siteCoords}
             radius={5}
             clickable
             fillOpacity={1}
@@ -676,14 +752,17 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
-            onMouseOver={() => this.setState({hoveredSite: site})}
-            onMouseOut={() => this.setState({hoveredSite: null})}
+            onMouseOver={() => this.setState({ hoveredSite: site })}
+            onMouseOut={() => this.setState({ hoveredSite: null })}
             fillColor="blue"
-            level={11}/>;
+            level={11}
+          />
+        );
         siteComponents.push(secondaryMarker);
       } else if (isCn) {
-        let secondaryMarker =
-          <CircleMarker center={siteCoords}
+        let secondaryMarker = (
+          <CircleMarker
+            center={siteCoords}
             radius={5}
             clickable
             fillOpacity={1}
@@ -691,15 +770,18 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
-            onMouseOver={() => this.setState({hoveredSite: site})}
-            onMouseOut={() => this.setState({hoveredSite: null})}
+            onMouseOver={() => this.setState({ hoveredSite: site })}
+            onMouseOut={() => this.setState({ hoveredSite: null })}
             fillColor="pink"
-            level={11}/>;
+            level={11}
+          />
+        );
         siteComponents.push(secondaryMarker);
       } else if (!hasMac) {
         // no macs for this site
-        let secondaryMarker =
-          <CircleMarker center={siteCoords}
+        let secondaryMarker = (
+          <CircleMarker
+            center={siteCoords}
             radius={this.state.zoomLevel - 12}
             clickable
             fillOpacity={1}
@@ -707,10 +789,12 @@ export default class NetworkMap extends React.Component {
             key={"pop-node" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
-            onMouseOver={() => this.setState({hoveredSite: site})}
-            onMouseOut={() => this.setState({hoveredSite: null})}
+            onMouseOver={() => this.setState({ hoveredSite: site })}
+            onMouseOut={() => this.setState({ hoveredSite: null })}
             fillColor="white"
-            level={11}/>;
+            level={11}
+          />
+        );
         siteComponents.push(secondaryMarker);
       }
     });
@@ -722,27 +806,36 @@ export default class NetworkMap extends React.Component {
       if (link.link_type != 1) {
         return;
       }
-      if (!this.nodesByName.hasOwnProperty(link.a_node_name) ||
-          !this.nodesByName.hasOwnProperty(link.z_node_name)) {
+      if (
+        !this.nodesByName.hasOwnProperty(link.a_node_name) ||
+        !this.nodesByName.hasOwnProperty(link.z_node_name)
+      ) {
         return;
       }
-      if (this.state.linkHealth.hasOwnProperty('metrics') &&
-          this.state.linkHealth.metrics.hasOwnProperty(link.name)) {
+      if (
+        this.state.linkHealth.hasOwnProperty("metrics") &&
+        this.state.linkHealth.metrics.hasOwnProperty(link.name)
+      ) {
         // we have health data for this link
-        let linkHealthEvents = this.state.linkHealth.metrics[link.name].events.length;
-//        min = min == undefined ? linkHealthEvents : (linkHealthEvents < min ? linkHealthEvents : min);
-//        max = max == undefined ? linkHealthEvents : (linkHealthEvents > max ? linkHealthEvents : max);
+        let linkHealthEvents = this.state.linkHealth.metrics[link.name].events
+          .length;
+        //        min = min == undefined ? linkHealthEvents : (linkHealthEvents < min ? linkHealthEvents : min);
+        //        max = max == undefined ? linkHealthEvents : (linkHealthEvents > max ? linkHealthEvents : max);
         linkEventCounts.push(linkHealthEvents);
       }
     });
-    linkEventCounts.sort(function(a, b) {return a > b ? 1 : ((a == b) ? 0 : -1);});
+    linkEventCounts.sort(function(a, b) {
+      return a > b ? 1 : a == b ? 0 : -1;
+    });
     // use min/max/std dev or something else here (TODO)
     topology.links.map(link => {
       if (link.link_type != 1) {
         return;
       }
-      if (!this.nodesByName.hasOwnProperty(link.a_node_name) ||
-          !this.nodesByName.hasOwnProperty(link.z_node_name)) {
+      if (
+        !this.nodesByName.hasOwnProperty(link.a_node_name) ||
+        !this.nodesByName.hasOwnProperty(link.z_node_name)
+      ) {
         return;
       }
       let aNode = this.nodesByName[link.a_node_name];
@@ -750,48 +843,57 @@ export default class NetworkMap extends React.Component {
 
       let aSite = this.nodesByName[link.a_node_name].site_name;
       let zSite = this.nodesByName[link.z_node_name].site_name;
-      if (!this.sitesByName.hasOwnProperty(aSite) ||
-          !this.sitesByName.hasOwnProperty(zSite)) {
-        console.error('Node defined invalid site:', aSite, zSite);
+      if (
+        !this.sitesByName.hasOwnProperty(aSite) ||
+        !this.sitesByName.hasOwnProperty(zSite)
+      ) {
+        console.error("Node defined invalid site:", aSite, zSite);
         return;
       }
       let aNodeSite = this.sitesByName[aSite];
       let zNodeSite = this.sitesByName[zSite];
 
-      if (!aNodeSite || !zNodeSite ||
-          !aNodeSite.location || !zNodeSite.location) {
-        console.error('Site mis-match for link', link.name);
+      if (
+        !aNodeSite ||
+        !zNodeSite ||
+        !aNodeSite.location ||
+        !zNodeSite.location
+      ) {
+        console.error("Site mis-match for link", link.name);
         return;
       }
 
       const linkCoords = [
         [aNodeSite.location.latitude, aNodeSite.location.longitude],
-        [zNodeSite.location.latitude, zNodeSite.location.longitude],
+        [zNodeSite.location.latitude, zNodeSite.location.longitude]
       ];
 
       let linkLine = null;
       if (this.state.routingOverlayEnabled) {
         if (this.state.routeWeights && this.state.routeWeights[link.name]) {
-          var bwUsageColor = d3.scaleLinear()
-              .domain([0, 100])
-              .range(['white', '#4169e1']);
-          var linkColor = d3.rgb(bwUsageColor(this.state.routeWeights[link.name]));
+          var bwUsageColor = d3
+            .scaleLinear()
+            .domain([0, 100])
+            .range(["white", "#4169e1"]);
+          var linkColor = d3.rgb(
+            bwUsageColor(this.state.routeWeights[link.name])
+          );
           linkLine = this.getLinkLine(link, linkCoords, linkColor);
         }
       } else {
         let overlayKey = linkOverlayKeys[this.props.linkOverlay];
         switch (this.props.linkOverlay) {
-          case 'Health':
+          case "Health":
             // TODO - move color assignment into separate function for legend
             if (link.is_alive) {
-              linkLine = this.getLinkLine(link, linkCoords, 'green');
+              linkLine = this.getLinkLine(link, linkCoords, "green");
             } else if (ignitionLinks.has(link.name)) {
-              linkLine = this.getLinkLine(link, linkCoords, 'purple');
+              linkLine = this.getLinkLine(link, linkCoords, "purple");
             } else {
-              linkLine = this.getLinkLine(link, linkCoords, 'red');
+              linkLine = this.getLinkLine(link, linkCoords, "red");
             }
             break;
-          case 'Uptime':
+          case "Uptime":
             let color = overlayKey.colors[overlayKey.values.length];
             if (link.hasOwnProperty("alive_perc")) {
               for (var i = 0; i < overlayKey.values.length; ++i) {
@@ -802,13 +904,13 @@ export default class NetworkMap extends React.Component {
               }
               linkLine = this.getLinkLine(link, linkCoords, color);
             } else {
-              linkLine = this.getLinkLine(link, linkCoords, 'grey');
+              linkLine = this.getLinkLine(link, linkCoords, "grey");
             }
             break;
-          case 'RxGolayIdx':
-          case 'TxGolayIdx':
-            color_a = 'grey';
-            color_z = 'grey';
+          case "RxGolayIdx":
+          case "TxGolayIdx":
+            color_a = "grey";
+            color_z = "grey";
             if (link.hasOwnProperty("overlay_a")) {
               for (var i = 0; i < overlayKey.values.length; ++i) {
                 if (link.overlay_a == overlayKey.values[i]) {
@@ -825,14 +927,22 @@ export default class NetworkMap extends React.Component {
                 }
               }
             }
-            linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
+            linkLine = this.getLinkLineTwoSides(
+              link,
+              linkCoords,
+              color_a,
+              color_z
+            );
             break;
-          case 'SNR':
-          case 'MCS':
-          case 'RSSI':
+          case "SNR":
+          case "MCS":
+          case "RSSI":
             let color_a = overlayKey.colors[overlayKey.values.length];
             let color_z = overlayKey.colors[overlayKey.values.length];
-            if (this.state.linkOverlayData && link.hasOwnProperty("overlay_a")) {
+            if (
+              this.state.linkOverlayData &&
+              link.hasOwnProperty("overlay_a")
+            ) {
               for (var i = 0; i < overlayKey.values.length; ++i) {
                 if (link.overlay_a < overlayKey.values[i]) {
                   color_a = overlayKey.colors[i];
@@ -840,9 +950,12 @@ export default class NetworkMap extends React.Component {
                 }
               }
             } else {
-              color_a = 'grey';
+              color_a = "grey";
             }
-            if (this.state.linkOverlayData && link.hasOwnProperty("overlay_z")) {
+            if (
+              this.state.linkOverlayData &&
+              link.hasOwnProperty("overlay_z")
+            ) {
               for (var i = 0; i < overlayKey.values.length; ++i) {
                 if (link.overlay_z < overlayKey.values[i]) {
                   color_z = overlayKey.colors[i];
@@ -850,36 +963,49 @@ export default class NetworkMap extends React.Component {
                 }
               }
             } else {
-              color_z = 'grey';
+              color_z = "grey";
             }
-            linkLine = this.getLinkLineTwoSides(link, linkCoords, color_a, color_z);
+            linkLine = this.getLinkLineTwoSides(
+              link,
+              linkCoords,
+              color_a,
+              color_z
+            );
             break;
-          case 'CommitPlan':
-            let commitBatch = this.props.commitPlan.commitBatches[this.state.commitPlanBatch];
-            linkLine = this.getLinkLineTwoSides(link,
+          case "CommitPlan":
+            let commitBatch = this.props.commitPlan.commitBatches[
+              this.state.commitPlanBatch
+            ];
+            linkLine = this.getLinkLineTwoSides(
+              link,
               linkCoords,
               overlayKey.colors[commitBatch.has(aNode.name) ? 1 : 0],
-              overlayKey.colors[commitBatch.has(zNode.name) ? 1 : 0]);
+              overlayKey.colors[commitBatch.has(zNode.name) ? 1 : 0]
+            );
             break;
-          case 'FLAPS':
+          case "FLAPS":
             // flaps is a special case, can use health data to count # of events
-            if (this.state.linkHealth.hasOwnProperty('metrics') &&
-                this.state.linkHealth.metrics.hasOwnProperty(link.name)) {
+            if (
+              this.state.linkHealth.hasOwnProperty("metrics") &&
+              this.state.linkHealth.metrics.hasOwnProperty(link.name)
+            ) {
               // we have health data for this link
-              let linkHealthEvents = this.state.linkHealth.metrics[link.name].events.length;
+              let linkHealthEvents = this.state.linkHealth.metrics[link.name]
+                .events.length;
               // linear scaling
-              let healthScaleColor = d3.scaleLinear()
-                  .domain([0, 5, 50])
-                  .range(['green', 'yellow', 'red']);
+              let healthScaleColor = d3
+                .scaleLinear()
+                .domain([0, 5, 50])
+                .range(["green", "yellow", "red"]);
               let linkColor = d3.rgb(healthScaleColor(linkHealthEvents));
               linkLine = this.getLinkLine(link, linkCoords, linkColor);
             } else {
               // no data
-              linkLine = this.getLinkLine(link, linkCoords, 'black');
+              linkLine = this.getLinkLine(link, linkCoords, "black");
             }
             break;
           default:
-            linkLine = this.getLinkLine(link, linkCoords, 'grey');
+            linkLine = this.getLinkLine(link, linkCoords, "grey");
         }
       }
       if (linkLine) {
@@ -891,25 +1017,34 @@ export default class NetworkMap extends React.Component {
       let sourceSite = this.sitesByName[this.state.routeSourceNode.site_name];
       let destSite = this.sitesByName[this.state.routeDestNode.site_name];
       siteMarkers.push(
-          <CircleMarker center={[sourceSite.location.latitude, sourceSite.location.longitude]}
-                  radius={18}
-                  key="source_node"
-                  color="blue"/>);
+        <CircleMarker
+          center={[sourceSite.location.latitude, sourceSite.location.longitude]}
+          radius={18}
+          key="source_node"
+          color="blue"
+        />
+      );
       siteMarkers.push(
-          <CircleMarker center={[destSite.location.latitude, destSite.location.longitude]}
-                  radius={18}
-                  key="dest_node"
-                  color="magenta"/>);
+        <CircleMarker
+          center={[destSite.location.latitude, destSite.location.longitude]}
+          radius={18}
+          key="dest_node"
+          color="magenta"
+        />
+      );
     }
 
     if (this.state.selectedSite != null) {
       let site = this.sitesByName[this.state.selectedSite];
       if (site && site.location) {
         this.addNodeMarkerForSite(topology, site);
-        siteMarkers =
-          <CircleMarker center={[site.location.latitude, site.location.longitude]}
-                  radius={18}
-                  color="rgb(30,116,255)"/>;
+        siteMarkers = (
+          <CircleMarker
+            center={[site.location.latitude, site.location.longitude]}
+            radius={18}
+            color="rgb(30,116,255)"
+          />
+        );
       }
     } else if (this.state.selectedLink != null) {
       let node_a = this.nodesByName[this.state.selectedLink.a_node_name];
@@ -936,7 +1071,8 @@ export default class NetworkMap extends React.Component {
                 center={[site_z.location.latitude, site_z.location.longitude]}
                 radius={18}
                 key="z_node"
-                color="rgb(30,116,255)"/>
+                color="rgb(30,116,255)"
+              />
             );
           }
         }
@@ -945,10 +1081,13 @@ export default class NetworkMap extends React.Component {
 
     let layersControl = (
       <Control position="topright">
-        <img src="/static/images/layers.png" onClick={() => {
-          this.disableMapScrolling();
-          this.setState({detailsExpanded: true});
-        }}/>
+        <img
+          src="/static/images/layers.png"
+          onClick={() => {
+            this.disableMapScrolling();
+            this.setState({ detailsExpanded: true });
+          }}
+        />
       </Control>
     );
     let showOverview = false;
@@ -957,119 +1096,142 @@ export default class NetworkMap extends React.Component {
     const maxModalHeight = this.state.upperPaneHeight - 120; // offset
     if (this.state.detailsExpanded) {
       if (this.state.selectedLink) {
-        layersControl =
+        layersControl = (
           <Control position="topright">
-            <DetailsLink topologyName={this.props.networkConfig.topology.name}
-                         link={this.state.selectedLink}
-                         nodes={this.nodesByName}
-                         maxHeight={maxModalHeight}
-                         onClose={this.closeModal}
-                         onEnter={this.disableMapScrolling}
-                         onLeave={this.enableMapScrolling}
+            <DetailsLink
+              topologyName={this.props.networkConfig.topology.name}
+              link={this.state.selectedLink}
+              nodes={this.nodesByName}
+              maxHeight={maxModalHeight}
+              onClose={this.closeModal}
+              onEnter={this.disableMapScrolling}
+              onLeave={this.enableMapScrolling}
             />
           </Control>
+        );
       } else if (this.state.selectedNode) {
-        let node  = this.nodesByName[this.state.selectedNode];
-        layersControl =
+        let node = this.nodesByName[this.state.selectedNode];
+        layersControl = (
           <Control position="topright">
-            <DetailsNode topologyName={this.props.networkConfig.topology.name}
-                         node={node}
-                         links={this.linksByName}
-                         maxHeight={maxModalHeight}
-                         onClose={this.closeModal}
-                         onEnter={this.disableMapScrolling}
-                         onLeave={this.enableMapScrolling}
+            <DetailsNode
+              topologyName={this.props.networkConfig.topology.name}
+              node={node}
+              links={this.linksByName}
+              maxHeight={maxModalHeight}
+              onClose={this.closeModal}
+              onEnter={this.disableMapScrolling}
+              onLeave={this.enableMapScrolling}
             />
           </Control>
+        );
       } else if (this.state.selectedSite) {
         let site = this.sitesByName[this.state.selectedSite];
         // determine color to use per link connected to the site
         // first get nodes connected to the site
         // second get links connected to the nodes
-        layersControl =
+        layersControl = (
           <Control position="topright">
-            <DetailsSite topologyName={this.props.networkConfig.topology.name}
-                         site={site}
-                         sites={this.sitesByName}
-                         nodes={this.nodesByName}
-                         links={this.linksByName}
-                         maxHeight={maxModalHeight}
-                         onClose={this.closeModal}
-                         onEnter={this.disableMapScrolling}
-                         onLeave={this.enableMapScrolling}
+            <DetailsSite
+              topologyName={this.props.networkConfig.topology.name}
+              site={site}
+              sites={this.sitesByName}
+              nodes={this.nodesByName}
+              links={this.linksByName}
+              maxHeight={maxModalHeight}
+              onClose={this.closeModal}
+              onEnter={this.disableMapScrolling}
+              onLeave={this.enableMapScrolling}
             />
           </Control>
+        );
       } else {
         showOverview = true;
       }
     }
     if (showOverview) {
       // overview
-      let commitOverlayEnabled = this.props.siteOverlay == 'CommitPlan' ||
-                                 this.props.linkOverlay == 'CommitPlan';
-      layersControl =
+      let commitOverlayEnabled =
+        this.props.siteOverlay == "CommitPlan" ||
+        this.props.linkOverlay == "CommitPlan";
+      layersControl = (
         <Control position="topright">
-          <DetailsTopology topologyName={this.props.networkConfig.topology.name}
-                           topology={this.props.networkConfig.topology}
-                           nodes={this.nodesByName}
-                           links={this.linksByName}
-                           commitPlan={this.props.commitPlan}
-                           commitPlanBatch={this.state.commitPlanBatch}
-                           commitOverlayEnabled={commitOverlayEnabled}
-                           maxHeight={maxModalHeight}
-                           onClose={this.closeModal}
-                           onEnter={this.disableMapScrolling}
-                           onLeave={this.enableMapScrolling}
+          <DetailsTopology
+            topologyName={this.props.networkConfig.topology.name}
+            topology={this.props.networkConfig.topology}
+            nodes={this.nodesByName}
+            links={this.linksByName}
+            commitPlan={this.props.commitPlan}
+            commitPlanBatch={this.state.commitPlanBatch}
+            commitOverlayEnabled={commitOverlayEnabled}
+            maxHeight={maxModalHeight}
+            onClose={this.closeModal}
+            onEnter={this.disableMapScrolling}
+            onLeave={this.enableMapScrolling}
           />
-        </Control>;
+        </Control>
+      );
     }
     if (this.state.showTopologyIssuesPane) {
-      topologyIssuesControl =
+      topologyIssuesControl = (
         <Control position="topleft">
-          <DetailsTopologyIssues topology={this.props.networkConfig.topology}
-                                 maxHeight={maxModalHeight}
-                                 newTopology={this.state.newTopology} />
-        </Control>;
+          <DetailsTopologyIssues
+            topology={this.props.networkConfig.topology}
+            maxHeight={maxModalHeight}
+            newTopology={this.state.newTopology}
+          />
+        </Control>
+      );
     }
 
-    let tablesControl =
-      <Control position="bottomright" >
-        <img style={{backgroundColor: "rgba(245, 245, 245, 0.8)"}} src={this.state.tablesExpanded? "/static/images/table.png" : "/static/images/table-accent.png"} onClick={this.handleExpandTablesClick}/>
+    let tablesControl = (
+      <Control position="bottomright">
+        <img
+          style={{ backgroundColor: "rgba(245, 245, 245, 0.8)" }}
+          src={
+            this.state.tablesExpanded
+              ? "/static/images/table.png"
+              : "/static/images/table-accent.png"
+          }
+          onClick={this.handleExpandTablesClick}
+        />
       </Control>
+    );
 
-    let tileUrl = '/tile/{s}/{z}/{x}/{y}.png';
+    let tileUrl = "/tile/{s}/{z}/{x}/{y}.png";
     if (!CONFIG.use_tile_proxy) {
-        tileUrl = window.location.protocol + MapTiles[this.props.mapTile];
-//        tileUrl = window.location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-//        tileUrl = window.location.protocol + '//stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
+      tileUrl = window.location.protocol + MapTiles[this.props.mapTile];
+      //        tileUrl = window.location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      //        tileUrl = window.location.protocol + '//stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
     }
 
-    let plannedSite = <div/>;
+    let plannedSite = <div />;
     if (this.state.plannedSite) {
-        plannedSite =
-          <Marker
-            icon={SITE_MARKER}
-            draggable={true}
-            onDragend={this.updatePlannedPosition.bind(this)}
-            position={[this.state.plannedSite.lat, this.state.plannedSite.long]}
-            ref="palnnedSiteMarker"
-            radius={20}>
-          </Marker>
-        layersControl =
-          <Control position="topright">
-            <DetailsPlannedSite
-              site={this.state.plannedSite}
-              topologyName={this.props.networkConfig.topology.name}
-              onUpdate={this.updatePlannedSite.bind(this)}
-              maxHeight={maxModalHeight}
-              onClose={() => {
-                this.removePlannedSite();
-                this.enableMapScrolling();
-              }}
-              onEnter={this.disableMapScrolling}
-              onLeave={this.enableMapScrolling}
-            />
-          </Control>
+      plannedSite = (
+        <Marker
+          icon={SITE_MARKER}
+          draggable={true}
+          onDragend={this.updatePlannedPosition.bind(this)}
+          position={[this.state.plannedSite.lat, this.state.plannedSite.long]}
+          ref="palnnedSiteMarker"
+          radius={20}
+        />
+      );
+      layersControl = (
+        <Control position="topright">
+          <DetailsPlannedSite
+            site={this.state.plannedSite}
+            topologyName={this.props.networkConfig.topology.name}
+            onUpdate={this.updatePlannedSite.bind(this)}
+            maxHeight={maxModalHeight}
+            onClose={() => {
+              this.removePlannedSite();
+              this.enableMapScrolling();
+            }}
+            onEnter={this.disableMapScrolling}
+            onLeave={this.enableMapScrolling}
+          />
+        </Control>
+      );
     }
 
     if (this.state.hoveredSite) {
@@ -1080,18 +1242,20 @@ export default class NetworkMap extends React.Component {
       <div>
         <SplitPane
           split="horizontal"
-          ref='split_pane'
-          defaultSize= "50%"
-          className= {this.state.tablesExpanded ? "SplitPane" : "soloPane1"}
+          ref="split_pane"
+          defaultSize="50%"
+          className={this.state.tablesExpanded ? "SplitPane" : "soloPane1"}
           onChange={this._paneChange.bind(this)}
         >
           <CustomMap
-            ref='map'
+            ref="map"
             onZoom={this._onMapZoom.bind(this)}
-            center={centerPosition} zoom={this.state.zoomLevel}>
+            center={centerPosition}
+            zoom={this.state.zoomLevel}
+          >
             <TileLayer
               url={tileUrl}
-              attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+              attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
             />
             {linkComponents}
             {siteComponents}
@@ -1101,15 +1265,17 @@ export default class NetworkMap extends React.Component {
             {tablesControl}
             {topologyIssuesControl}
             {plannedSite}
-            <LayerGroup ref='nodes'/>
+            <LayerGroup ref="nodes" />
           </CustomMap>
-          <NetworkDataTable height={this.state.lowerPaneHeight}
-                            networkConfig={this.props.networkConfig} />
+          <NetworkDataTable
+            height={this.state.lowerPaneHeight}
+            networkConfig={this.props.networkConfig}
+          />
         </SplitPane>
       </div>
     );
   }
 }
 NetworkMap.propTypes = {
-  networkConfig: React.PropTypes.object.isRequired,
+  networkConfig: React.PropTypes.object.isRequired
 };

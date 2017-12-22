@@ -1,79 +1,79 @@
-import React from 'react';
-import equals from 'equals';
+import React from "react";
+import equals from "equals";
 // leaflet maps
-import { render } from 'react-dom';
+import { render } from "react-dom";
 // graphs
-import ReactMultiGraph from './ReactMultiGraph.js';
+import ReactMultiGraph from "./ReactMultiGraph.js";
 // dispatcher
-import { Actions } from './constants/NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './stores/NetworkStore.js';
-import moment from 'moment';
+import { Actions } from "./constants/NetworkConstants.js";
+import Dispatcher from "./NetworkDispatcher.js";
+import NetworkStore from "./stores/NetworkStore.js";
+import moment from "moment";
 // layout components
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-import { SpringGrid } from 'react-stonecutter';
-import { ScaleModal } from 'boron';
-import { Menu, MenuItem, Token, Typeahead } from 'react-bootstrap-typeahead';
-import 'react-bootstrap-typeahead/css/Token.css';
-import 'react-bootstrap-typeahead/css/Typeahead.css';
+import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+import { SpringGrid } from "react-stonecutter";
+import { ScaleModal } from "boron";
+import { Menu, MenuItem, Token, Typeahead } from "react-bootstrap-typeahead";
+import "react-bootstrap-typeahead/css/Token.css";
+import "react-bootstrap-typeahead/css/Typeahead.css";
 
 // time picker
-import Datetime from 'react-datetime';
-import 'react-datetime/css/react-datetime.css';
+import Datetime from "react-datetime";
+import "react-datetime/css/react-datetime.css";
 
 const TIME_PICKER_OPTS = [
   {
-    label: '30 Minutes',
-    minAgo: 30,
+    label: "30 Minutes",
+    minAgo: 30
   },
   {
-    label: '60 Minutes',
-    minAgo: 60,
+    label: "60 Minutes",
+    minAgo: 60
   },
   {
-    label: '2 Hours',
-    minAgo: 60 * 2,
+    label: "2 Hours",
+    minAgo: 60 * 2
   },
   {
-    label: '6 Hours',
-    minAgo: 60 * 6,
+    label: "6 Hours",
+    minAgo: 60 * 6
   },
   {
-    label: '12 Hours',
-    minAgo: 60 * 12,
+    label: "12 Hours",
+    minAgo: 60 * 12
   },
   {
-    label: '1 Day',
-    minAgo: 60 * 24,
+    label: "1 Day",
+    minAgo: 60 * 24
   },
   {
-    label: '3 Days',
-    minAgo: 60 * 24 * 3,
-  },
+    label: "3 Days",
+    minAgo: 60 * 24 * 3
+  }
 ];
 
 const GRAPH_AGG_OPTS = [
   {
-    name: 'top',
-    title: 'Top',
+    name: "top",
+    title: "Top"
   },
   {
-    name: 'bottom',
-    title: 'Bottom',
+    name: "bottom",
+    title: "Bottom"
   },
   {
-    name: 'avg',
-    title: 'Avg + Min/Max',
+    name: "avg",
+    title: "Avg + Min/Max"
   },
   {
-    name: 'sum',
-    title: 'Sum',
+    name: "sum",
+    title: "Sum"
   },
   {
-    name: 'count',
-    title: 'Count',
-  },
-/*  {
+    name: "count",
+    title: "Count"
+  }
+  /*  {
     name: 'split',
     title: 'Split',
   },
@@ -102,9 +102,9 @@ export default class NetworkStats extends React.Component {
     // specific start+end time, doesn't support 'now' yet
     startTime: new Date(),
     endTime: new Date(),
-    
-    graphAggType: 'top',
-  }
+
+    graphAggType: "top"
+  };
 
   constructor(props) {
     super(props);
@@ -113,7 +113,8 @@ export default class NetworkStats extends React.Component {
   componentWillMount() {
     // register to receive topology updates
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
+      this.handleDispatchEvent.bind(this)
+    );
   }
 
   componentDidMount() {
@@ -122,27 +123,32 @@ export default class NetworkStats extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     // check for time differences
-    let changed = (this.state.startTime != nextState.startTime ||
-                   this.state.endTime != nextState.endTime ||
-                   this.state.minAgo != nextState.minAgo ||
-                   this.state.graphAggType != nextState.graphAggType ||
-                   this.state.useCustomTime != nextState.useCustomTime ||
-                   this.state.nodesSelected != nextState.nodesSelected ||
-                   this.state.keysSelected != nextState.keysSelected ||
-                   !equals(Object.keys(this.state.siteMetrics),
-                           Object.keys(nextState.siteMetrics)));
+    let changed =
+      this.state.startTime != nextState.startTime ||
+      this.state.endTime != nextState.endTime ||
+      this.state.minAgo != nextState.minAgo ||
+      this.state.graphAggType != nextState.graphAggType ||
+      this.state.useCustomTime != nextState.useCustomTime ||
+      this.state.nodesSelected != nextState.nodesSelected ||
+      this.state.keysSelected != nextState.keysSelected ||
+      !equals(
+        Object.keys(this.state.siteMetrics),
+        Object.keys(nextState.siteMetrics)
+      );
     return changed;
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.networkConfig &&
-        this.props.networkConfig.topology &&
-        this.props.networkConfig.topology.name &&
-        nextProps.networkConfig &&
-        nextProps.networkConfig.topology &&
-        nextProps.networkConfig.topology.name &&
-        (this.props.networkConfig.topology.name !=
-         nextProps.networkConfig.topology.name)) {
+    if (
+      this.props.networkConfig &&
+      this.props.networkConfig.topology &&
+      this.props.networkConfig.topology.name &&
+      nextProps.networkConfig &&
+      nextProps.networkConfig.topology &&
+      nextProps.networkConfig.topology.name &&
+      this.props.networkConfig.topology.name !=
+        nextProps.networkConfig.topology.name
+    ) {
       this.refreshData();
     }
   }
@@ -157,18 +163,20 @@ export default class NetworkStats extends React.Component {
         let data = JSON.parse(this.metricRequest.responseText);
         this.setState({
           siteMetrics: data.site_metrics,
-          keyOptions: this.getKeyOptions(this.state.nodesSelected,
-                                         data.site_metrics),
+          keyOptions: this.getKeyOptions(
+            this.state.nodesSelected,
+            data.site_metrics
+          )
         });
       } catch (e) {
-        console.error('Unable to parse JSON', this.metricRequest);
+        console.error("Unable to parse JSON", this.metricRequest);
       }
     }.bind(this);
     try {
-      this.metricRequest.open('POST', '/metrics', true);
+      this.metricRequest.open("POST", "/metrics", true);
       let opts = {
-        'topology': this.props.networkConfig.topology,
-        'minAgo': this.state.minAgo,
+        topology: this.props.networkConfig.topology,
+        minAgo: this.state.minAgo
       };
       this.metricRequest.send(JSON.stringify(opts));
     } catch (e) {}
@@ -187,7 +195,7 @@ export default class NetworkStats extends React.Component {
         this._typeaheadNode.getInstance().clear();
         this._typeaheadKey.getInstance().clear();
         this.setState({
-          siteMetrics: {},
+          siteMetrics: {}
         });
         break;
     }
@@ -207,7 +215,7 @@ export default class NetworkStats extends React.Component {
   metricSelectionChanged(selectedOpts) {
     // update graph options
     this.setState({
-      keysSelected: selectedOpts,
+      keysSelected: selectedOpts
     });
   }
 
@@ -215,29 +223,31 @@ export default class NetworkStats extends React.Component {
     // update site + link metrics
     let keyOptions = this.getKeyOptions(selectedOpts, this.state.siteMetrics);
     // underlying key data may have changed
-    let keysSelected = this.state.keysSelected.map(keyOpts => {
-      let found = false;
-      keyOptions.forEach(newKeyOpts => {
-        if (keyOpts.name == newKeyOpts.name) {
-          // we need to replace this key
-          keyOpts = newKeyOpts;
-          found = true;
-        }
-      });
-      return (found ? keyOpts : null);
-    }).filter(keyOpts => keyOpts);;
+    let keysSelected = this.state.keysSelected
+      .map(keyOpts => {
+        let found = false;
+        keyOptions.forEach(newKeyOpts => {
+          if (keyOpts.name == newKeyOpts.name) {
+            // we need to replace this key
+            keyOpts = newKeyOpts;
+            found = true;
+          }
+        });
+        return found ? keyOpts : null;
+      })
+      .filter(keyOpts => keyOpts);
     // restrict metric/key data
     this.setState({
       nodesSelected: selectedOpts,
       keyOptions: keyOptions,
-      keysSelected: keysSelected,
+      keysSelected: keysSelected
     });
     // clear key list
   }
 
   renderTypeaheadRestrictorMenu(results, menuProps) {
     let i = 0;
-    let lastType = '';
+    let lastType = "";
     const items = results.map(item => {
       i++;
       if (item.type != lastType) {
@@ -245,11 +255,15 @@ export default class NetworkStats extends React.Component {
         return [
           <MenuDivider key={"divider" + i} />,
           <MenuHeader key={"header" + i}>{item.type}</MenuHeader>,
-          <MenuItem option={item} key={"item" + i}>{item.name}</MenuItem>
+          <MenuItem option={item} key={"item" + i}>
+            {item.name}
+          </MenuItem>
         ];
       }
       return [
-        <MenuItem option={item} key={"item" + i}>{item.name}</MenuItem>
+        <MenuItem option={item} key={"item" + i}>
+          {item.name}
+        </MenuItem>
       ];
     });
     return <Menu {...menuProps}>{items}</Menu>;
@@ -259,23 +273,19 @@ export default class NetworkStats extends React.Component {
     if (option.data.length > 1) {
       return [
         <strong key="name">{option.name}</strong>,
-        <div key="data">
-          Nodes: {option.data.length}
-        </div>
+        <div key="data">Nodes: {option.data.length}</div>
       ];
     }
     return [
       <strong key="name">{option.name}</strong>,
-      <div key="data">
-        Site: {option.data[0].siteName}
-      </div>
+      <div key="data">Site: {option.data[0].siteName}</div>
     ];
   }
 
   renderInitialOptions() {
-    let restrictor = [''];
+    let restrictor = [""];
     if (NetworkStore.nodeRestrictor.length > 0) {
-      restrictor = NetworkStore.nodeRestrictor.split(',');
+      restrictor = NetworkStore.nodeRestrictor.split(",");
     }
     // determine initial list
     let nodeOptions = this.renderNodeOptions(restrictor);
@@ -288,10 +298,10 @@ export default class NetworkStats extends React.Component {
       if (!filter.length || filter.includes(site.name)) {
         nodeOptions.push({
           name: "Site " + site.name,
-          type: 'Sites',
+          type: "Sites",
           restrictor: {
-            siteName: site.name,
-          },
+            siteName: site.name
+          }
         });
       }
     });
@@ -299,10 +309,10 @@ export default class NetworkStats extends React.Component {
       if (!filter.length || filter.includes(node.name)) {
         nodeOptions.push({
           name: node.name,
-          type: 'Nodes',
+          type: "Nodes",
           restrictor: {
-            nodeName: node.name,
-          },
+            nodeName: node.name
+          }
         });
       }
     });
@@ -314,14 +324,14 @@ export default class NetworkStats extends React.Component {
       if (!filter.length || filter.includes(link.name)) {
         nodeOptions.push({
           name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
-          type: 'Links',
+          type: "Links",
           restrictor: {
-            linkName: link.name,
-          },
+            linkName: link.name
+          }
         });
       }
     });
-    return nodeOptions
+    return nodeOptions;
   }
 
   /**
@@ -344,7 +354,8 @@ export default class NetworkStats extends React.Component {
     });
     let uniqMetricNames = {};
     let priorityMetricNames = {};
-    let restrictionsPresent = siteNames.length || nodeNames.length || linkNames.length;
+    let restrictionsPresent =
+      siteNames.length || nodeNames.length || linkNames.length;
     // iterate all options/keys
     Object.keys(siteMetrics).forEach(siteName => {
       let nodeMetrics = siteMetrics[siteName];
@@ -360,8 +371,16 @@ export default class NetworkStats extends React.Component {
         }
         Object.keys(metrics).forEach(metricName => {
           let metric = metrics[metricName];
-          if (restrictionsPresent && !includeAllSiteMetrics && !includeAllNodeMetrics &&
-              !(linkNames.length && metric.linkName && linkNames.includes(metric.linkName))) {
+          if (
+            restrictionsPresent &&
+            !includeAllSiteMetrics &&
+            !includeAllNodeMetrics &&
+            !(
+              linkNames.length &&
+              metric.linkName &&
+              linkNames.includes(metric.linkName)
+            )
+          ) {
             return;
           }
           let newKey = metric.displayName ? metric.displayName : metricName;
@@ -372,13 +391,13 @@ export default class NetworkStats extends React.Component {
             keyId: metric.dbKeyId,
             nodeName: nodeName,
             siteName: siteName,
-            displayName: metric.displayName ? metric.displayName : '',
-            linkName: metric.linkName ? metric.linkName : '',
+            displayName: metric.displayName ? metric.displayName : "",
+            linkName: metric.linkName ? metric.linkName : "",
             title: metric.title,
-            description: metric.description,
+            description: metric.description
           };
           if (metric.linkTitleAppend) {
-            rowData['linkTitleAppend'] =  metric.linkTitleAppend;
+            rowData["linkTitleAppend"] = metric.linkTitleAppend;
           }
           if (metric.displayName) {
             if (!(newKey in priorityMetricNames)) {
@@ -400,14 +419,14 @@ export default class NetworkStats extends React.Component {
       let metrics = priorityMetricNames[metricName];
       keyOptions.push({
         name: metricName,
-        data: metrics,
+        data: metrics
       });
     });
     Object.keys(uniqMetricNames).forEach(metricName => {
       let metrics = uniqMetricNames[metricName];
       keyOptions.push({
         name: metricName,
-        data: metrics,
+        data: metrics
       });
     });
     return keyOptions;
@@ -415,15 +434,14 @@ export default class NetworkStats extends React.Component {
 
   isValidStartDate(date) {
     // TODO - more dynamic than one fixed week
-    let minDate = moment().subtract(7, 'days');
-    return (date.toDate() >= minDate.toDate() && date.toDate() < new Date());
+    let minDate = moment().subtract(7, "days");
+    return date.toDate() >= minDate.toDate() && date.toDate() < new Date();
   }
 
   isValidEndDate(date) {
     // TODO - more dynamic than one fixed week
     // TODO - this should be more based on the day since that's the main view
-    return (date.toDate() >= this.state.startTime &&
-            date.toDate() <= new Date());
+    return date.toDate() >= this.state.startTime && date.toDate() <= new Date();
   }
 
   render() {
@@ -442,8 +460,8 @@ export default class NetworkStats extends React.Component {
     let nodes = {};
     this.props.networkConfig.topology.nodes.forEach(node => {
       nodes[node.mac_addr] = {
-        'name':     node.name,
-        'version':  'Unknown',
+        name: node.name,
+        version: "Unknown"
       };
     });
     // index nodes
@@ -452,7 +470,7 @@ export default class NetworkStats extends React.Component {
       nodesByName[node.name] = {
         name: node.name,
         mac_addr: node.mac_addr,
-        site_name: node.site_name,
+        site_name: node.site_name
       };
     });
     // construct links
@@ -464,17 +482,17 @@ export default class NetworkStats extends React.Component {
         return;
       }
       linkRows.push({
-        name: link.name,
+        name: link.name
       });
       links[link.name] = {
-        'a_node': {
-          'name': link.a_node_name,
-          'mac':  nodesByName[link.a_node_name].mac_addr,
+        a_node: {
+          name: link.a_node_name,
+          mac: nodesByName[link.a_node_name].mac_addr
         },
-        'z_node': {
-          'name': link.z_node_name,
-          'mac':  nodesByName[link.z_node_name].mac_addr,
-        },
+        z_node: {
+          name: link.z_node_name,
+          mac: nodesByName[link.z_node_name].mac_addr
+        }
       };
     });
     // add the list of node restrictors
@@ -483,29 +501,24 @@ export default class NetworkStats extends React.Component {
     let pos = 0;
     let multiGraphs = this.state.keysSelected.map(keyIds => {
       let graphOpts = {
-        type: 'key_ids',
+        type: "key_ids",
         key_ids: keyIds.data.map(data => data.keyId),
         data: keyIds.data,
-        agg_type: this.state.graphAggType,
+        agg_type: this.state.graphAggType
       };
       if (this.state.useCustomTime) {
-        graphOpts['start_ts'] = this.state.startTime.getTime() / 1000;
-        graphOpts['end_ts'] = this.state.endTime.getTime() / 1000;
+        graphOpts["start_ts"] = this.state.startTime.getTime() / 1000;
+        graphOpts["end_ts"] = this.state.endTime.getTime() / 1000;
       } else {
-        graphOpts['min_ago'] = this.state.minAgo;
+        graphOpts["min_ago"] = this.state.minAgo;
       }
       pos++;
-      return (
-        <ReactMultiGraph
-          options={[graphOpts]}
-          key={pos}
-          size="large"/>
-      );
+      return <ReactMultiGraph options={[graphOpts]} key={pos} size="large" />;
     });
     // custom time selector
     let customInputProps = {};
     if (!this.state.useCustomTime) {
-      customInputProps = {disabled: true};
+      customInputProps = { disabled: true };
     }
     return (
       <div width="800">
@@ -514,7 +527,7 @@ export default class NetworkStats extends React.Component {
           labelKey="name"
           multiple
           options={nodeOptions}
-          ref={ref => this._typeaheadNode = ref}
+          ref={ref => (this._typeaheadNode = ref)}
           renderMenu={this.renderTypeaheadRestrictorMenu.bind(this)}
           selected={this.state.nodesSelected}
           paginate={true}
@@ -526,7 +539,7 @@ export default class NetworkStats extends React.Component {
           labelKey="name"
           multiple
           options={this.state.keyOptions}
-          ref={ref => this._typeaheadKey = ref}
+          ref={ref => (this._typeaheadKey = ref)}
           renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(this)}
           selected={this.state.keysSelected}
           paginate={true}
@@ -534,29 +547,41 @@ export default class NetworkStats extends React.Component {
           placeholder="Enter metric/key name"
         />
         <span className="graph-opt-title">Time Window</span>
-        {TIME_PICKER_OPTS.map(opts =>
+        {TIME_PICKER_OPTS.map(opts => (
           <button
-              label={opts.label}
-              key={opts.label}
-              className={(!this.state.useCustomTime &&
-                          opts.minAgo == this.state.minAgo) ?
-                        "graph-button graph-button-selected" :
-                        "graph-button"}
-              onClick={clk => this.setState({useCustomTime: false,
-                                             minAgo: opts.minAgo})}>
+            label={opts.label}
+            key={opts.label}
+            className={
+              !this.state.useCustomTime && opts.minAgo == this.state.minAgo
+                ? "graph-button graph-button-selected"
+                : "graph-button"
+            }
+            onClick={clk =>
+              this.setState({
+                useCustomTime: false,
+                minAgo: opts.minAgo
+              })
+            }
+          >
             {opts.label}
           </button>
-        )}
+        ))}
         <br />
         <span className="graph-opt-title">Custom Time</span>
         <button
-            label="Custom"
-            key="customButton"
-            className={this.state.useCustomTime ?
-                      "graph-button graph-button-selected" :
-                      "graph-button"}
-            onClick={clk => this.setState({
-                useCustomTime: !this.state.useCustomTime})}>
+          label="Custom"
+          key="customButton"
+          className={
+            this.state.useCustomTime
+              ? "graph-button graph-button-selected"
+              : "graph-button"
+          }
+          onClick={clk =>
+            this.setState({
+              useCustomTime: !this.state.useCustomTime
+            })
+          }
+        >
           Custom
         </button>
         <span className="timeTitle">Start</span>
@@ -567,9 +592,10 @@ export default class NetworkStats extends React.Component {
           isValidDate={this.isValidStartDate.bind(this)}
           onChange={change => {
             if (typeof change == "object") {
-              this.setState({startTime: change.toDate()});
+              this.setState({ startTime: change.toDate() });
             }
-          }}/>
+          }}
+        />
         <span className="timeTitle">End</span>
         <Datetime
           open={false}
@@ -579,22 +605,26 @@ export default class NetworkStats extends React.Component {
           key="endTime"
           onChange={change => {
             if (typeof change == "object") {
-              this.setState({endTime: change.toDate()});
+              this.setState({ endTime: change.toDate() });
             }
-          }}/>
+          }}
+        />
         <br />
         <span className="graph-opt-title">Graph Aggregation</span>
-        {GRAPH_AGG_OPTS.map(opts =>
+        {GRAPH_AGG_OPTS.map(opts => (
           <button
-              label={opts.name}
-              key={opts.name}
-              className={opts.name == this.state.graphAggType ?
-                        "graph-button graph-button-selected" :
-                        "graph-button"}
-              onClick={clk => this.setState({graphAggType: opts.name})}>
+            label={opts.name}
+            key={opts.name}
+            className={
+              opts.name == this.state.graphAggType
+                ? "graph-button graph-button-selected"
+                : "graph-button"
+            }
+            onClick={clk => this.setState({ graphAggType: opts.name })}
+          >
             {opts.title}
           </button>
-        )}
+        ))}
         {multiGraphs}
       </div>
     );

@@ -1,13 +1,13 @@
-import React from 'react';
-import { render } from 'react-dom';
-import { Actions } from './constants/NetworkConstants.js';
-import Dispatcher from './NetworkDispatcher.js';
-import NetworkStore from './stores/NetworkStore.js';
-import ReactGridLayout, { WidthProvider } from 'react-grid-layout';
+import React from "react";
+import { render } from "react-dom";
+import { Actions } from "./constants/NetworkConstants.js";
+import Dispatcher from "./NetworkDispatcher.js";
+import NetworkStore from "./stores/NetworkStore.js";
+import ReactGridLayout, { WidthProvider } from "react-grid-layout";
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
-import Select from 'react-select';
-import ModalGraphEdit from './ModalGraphEdit.js';
-import ReactDyGraph from './ReactDyGraph.js';
+import Select from "react-select";
+import ModalGraphEdit from "./ModalGraphEdit.js";
+import ReactDyGraph from "./ReactDyGraph.js";
 
 export default class NetworkDashboards extends React.Component {
   state = {
@@ -18,7 +18,7 @@ export default class NetworkDashboards extends React.Component {
     editedGraph: null,
     editedGraphIndex: null,
     siteMetrics: null
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -27,19 +27,24 @@ export default class NetworkDashboards extends React.Component {
   }
 
   getDashboards(topologyName) {
-    let getDashboards = new Request('/dashboards/get/' +
-      topologyName, {"credentials": "same-origin"});
-    fetch(getDashboards).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          this.setState({
-            dashboards: json,
-            selectedDashboard: null,
-            editView: false,
-          });
-        }.bind(this));
-      }
-    }.bind(this));
+    let getDashboards = new Request("/dashboards/get/" + topologyName, {
+      credentials: "same-origin"
+    });
+    fetch(getDashboards).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              this.setState({
+                dashboards: json,
+                selectedDashboard: null,
+                editView: false
+              });
+            }.bind(this)
+          );
+        }
+      }.bind(this)
+    );
   }
 
   onLayoutChange(layout) {
@@ -57,7 +62,7 @@ export default class NetworkDashboards extends React.Component {
         index++;
       });
       this.setState({
-        dashboards: dashboards,
+        dashboards: dashboards
       });
     }
   }
@@ -65,7 +70,8 @@ export default class NetworkDashboards extends React.Component {
   componentWillMount() {
     // register to receive topology updates
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this));
+      this.handleDispatchEvent.bind(this)
+    );
   }
 
   componentDidMount() {
@@ -78,7 +84,13 @@ export default class NetworkDashboards extends React.Component {
     clearInterval(this.timer);
   }
 
-  getGraphOptions(selectedSiteOpts, selectedKeys, timeframe, aggregation, siteMetrics) {
+  getGraphOptions(
+    selectedSiteOpts,
+    selectedKeys,
+    timeframe,
+    aggregation,
+    siteMetrics
+  ) {
     let siteNames = [];
     let nodeNames = [];
     let linkNames = [];
@@ -94,7 +106,8 @@ export default class NetworkDashboards extends React.Component {
       }
     });
     let uniqMetricNames = {};
-    let restrictionsPresent = siteNames.length || nodeNames.length || linkNames.length;
+    let restrictionsPresent =
+      siteNames.length || nodeNames.length || linkNames.length;
     // iterate all options/keys
     Object.keys(siteMetrics).forEach(siteName => {
       let nodeMetrics = siteMetrics[siteName];
@@ -110,8 +123,16 @@ export default class NetworkDashboards extends React.Component {
         }
         Object.keys(metrics).forEach(metricName => {
           let metric = metrics[metricName];
-          if (restrictionsPresent && !includeAllSiteMetrics && !includeAllNodeMetrics &&
-              !(linkNames.length && metric.linkName && linkNames.includes(metric.linkName))) {
+          if (
+            restrictionsPresent &&
+            !includeAllSiteMetrics &&
+            !includeAllNodeMetrics &&
+            !(
+              linkNames.length &&
+              metric.linkName &&
+              linkNames.includes(metric.linkName)
+            )
+          ) {
             return;
           }
           let newKey = metric.displayName ? metric.displayName : metricName;
@@ -122,13 +143,13 @@ export default class NetworkDashboards extends React.Component {
             keyId: metric.dbKeyId,
             nodeName: nodeName,
             siteName: siteName,
-            displayName: metric.displayName ? metric.displayName : '',
-            linkName: metric.linkName ? metric.linkName : '',
+            displayName: metric.displayName ? metric.displayName : "",
+            linkName: metric.linkName ? metric.linkName : "",
             title: metric.title,
-            description: metric.description,
+            description: metric.description
           };
           if (metric.linkTitleAppend) {
-            rowData['linkTitleAppend'] = metric.linkTitleAppend;
+            rowData["linkTitleAppend"] = metric.linkTitleAppend;
           }
           if (!(newKey in uniqMetricNames)) {
             uniqMetricNames[newKey] = [];
@@ -147,11 +168,11 @@ export default class NetworkDashboards extends React.Component {
     });
 
     let graphOpts = {
-      type: 'key_ids',
+      type: "key_ids",
       key_ids: keys.map(data => data.keyId),
       data: keys,
       min_ago: timeframe,
-      agg_type: aggregation,
+      agg_type: aggregation
     };
     return graphOpts;
   }
@@ -168,17 +189,17 @@ export default class NetworkDashboards extends React.Component {
           siteMetrics: data.site_metrics
         });
       } catch (e) {
-        console.error('Unable to parse JSON', this.metricRequest);
+        console.error("Unable to parse JSON", this.metricRequest);
         this.setState({
           siteMetrics: null
         });
       }
     }.bind(this);
     try {
-      this.metricRequest.open('POST', '/metrics', true);
+      this.metricRequest.open("POST", "/metrics", true);
       let opts = {
-        'topology': this.props.networkConfig.topology,
-        'minAgo': 60*24,
+        topology: this.props.networkConfig.topology,
+        minAgo: 60 * 24
       };
       this.metricRequest.send(JSON.stringify(opts));
     } catch (e) {}
@@ -195,40 +216,42 @@ export default class NetworkDashboards extends React.Component {
   }
 
   selectDashboardChange(val) {
-    if (val.value == '#New') {
+    if (val.value == "#New") {
       let dashboards = this.state.dashboards;
-      swal({
-        title: "New Dashboard!",
-        text: "Enter dashboard name:",
-        type: "input",
-        showCancelButton: true,
-        closeOnConfirm: false,
-        animation: "slide-from-top",
-        inputPlaceholder: "Write something"
-      },
-      function(inputValue){
-        if (inputValue === false) return false;
+      swal(
+        {
+          title: "New Dashboard!",
+          text: "Enter dashboard name:",
+          type: "input",
+          showCancelButton: true,
+          closeOnConfirm: false,
+          animation: "slide-from-top",
+          inputPlaceholder: "Write something"
+        },
+        function(inputValue) {
+          if (inputValue === false) return false;
 
-        if (inputValue === "") {
-          swal.showInputError("You need to write something!");
-          return false
-        }
-        if (dashboards[inputValue]) {
-          swal.showInputError("Name Already exists");
-          return false
-        }
-        dashboards[inputValue] = {"graphs": []};
-        this.setState({
-          dashboards: dashboards,
-          selectedDashboard: inputValue,
-          editView: false,
-        });
-        swal("Added!", "dashboard: " + inputValue, "success");
-      }.bind(this));
+          if (inputValue === "") {
+            swal.showInputError("You need to write something!");
+            return false;
+          }
+          if (dashboards[inputValue]) {
+            swal.showInputError("Name Already exists");
+            return false;
+          }
+          dashboards[inputValue] = { graphs: [] };
+          this.setState({
+            dashboards: dashboards,
+            selectedDashboard: inputValue,
+            editView: false
+          });
+          swal("Added!", "dashboard: " + inputValue, "success");
+        }.bind(this)
+      );
     } else {
       this.setState({
         selectedDashboard: val.label,
-        editView: false,
+        editView: false
       });
     }
   }
@@ -244,22 +267,22 @@ export default class NetworkDashboards extends React.Component {
     let dashboard = dashboards[this.state.selectedDashboard];
     let graphs = dashboard.graphs;
     graphs.push({
-      "name": "Graph Name",
-      "timeframe": 30,
-      "aggregation": "top",
-      "selectedNodes": "",
-      "selectedKeys": "",
-      "nodes": [],
-      "keys": [],
-      "container": {
-        "x": 0,
-        "y": Infinity,
-        "w": 3,
-        "h": 3
+      name: "Graph Name",
+      timeframe: 30,
+      aggregation: "top",
+      selectedNodes: "",
+      selectedKeys: "",
+      nodes: [],
+      keys: [],
+      container: {
+        x: 0,
+        y: Infinity,
+        w: 3,
+        h: 3
       }
     });
     this.setState({
-      dashboards: dashboards,
+      dashboards: dashboards
     });
   }
 
@@ -270,7 +293,7 @@ export default class NetworkDashboards extends React.Component {
     this.setState({
       graphEditOpen: true,
       editedGraph: graphs[index],
-      editedGraphIndex: index,
+      editedGraphIndex: index
     });
   }
 
@@ -289,7 +312,7 @@ export default class NetworkDashboards extends React.Component {
       graphEditOpen: false,
       dashboards: dashboards,
       editedGraph: null,
-      editedGraphIndex: null,
+      editedGraphIndex: null
     });
   }
 
@@ -299,30 +322,32 @@ export default class NetworkDashboards extends React.Component {
     let graphs = dashboard.graphs;
     graphs.splice(index, 1);
     this.setState({
-      dashboards: dashboards,
+      dashboards: dashboards
     });
   }
 
   deleteDashboard() {
-    swal({
-      title: "Are you sure?",
-      text: "This will delete the dashboard: " + this.state.selectedDashboard,
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: "Yes, do it!",
-      closeOnConfirm: false
-    },
-    function(){
-      let dashboards = this.state.dashboards;
-      delete dashboards[this.state.selectedDashboard];
-      this.setState({
-        dashboards: dashboards,
-        selectedDashboard: null,
-      });
-      swal("Deleted!", "The selected dashboard was deleted.", "success");
-      this.saveDashboards();
-    }.bind(this));
+    swal(
+      {
+        title: "Are you sure?",
+        text: "This will delete the dashboard: " + this.state.selectedDashboard,
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes, do it!",
+        closeOnConfirm: false
+      },
+      function() {
+        let dashboards = this.state.dashboards;
+        delete dashboards[this.state.selectedDashboard];
+        this.setState({
+          dashboards: dashboards,
+          selectedDashboard: null
+        });
+        swal("Deleted!", "The selected dashboard was deleted.", "success");
+        this.saveDashboards();
+      }.bind(this)
+    );
   }
 
   saveDashboards() {
@@ -334,85 +359,120 @@ export default class NetworkDashboards extends React.Component {
       swal("Saved!", "Dashboard get saved to server!", "success");
     }.bind(this);
     try {
-      this.saveDashboardsRequest.open('POST', '/dashboards/save/', true);
+      this.saveDashboardsRequest.open("POST", "/dashboards/save/", true);
       let data = {
         dashboards: this.state.dashboards,
-        topologyName: this.props.networkConfig.topology.name,
-      }
+        topologyName: this.props.networkConfig.topology.name
+      };
       this.saveDashboardsRequest.send(JSON.stringify(data));
     } catch (e) {}
   }
 
-  onDashboardNameChange () {
+  onDashboardNameChange() {
     let dashboards = this.state.dashboards;
-    swal({
-      title: "Dashboard Name",
-      text: "Enter dashboard name:",
-      type: "input",
-      inputValue: this.state.selectedDashboard,
-      showCancelButton: true,
-      closeOnConfirm: false,
-      animation: "slide-from-top",
-      inputPlaceholder: "Write something"
-    },
-    function(inputValue){
-      if (inputValue === false) return false;
-      if (inputValue === "") {
-        swal.showInputError("You need to write something!");
-        return false
-      }
-      if (inputValue != this.state.selectedDashboard && dashboards[inputValue]) {
-        swal.showInputError("Name Already exists");
-        return false
-      }
-      dashboards[inputValue] = dashboards[this.state.selectedDashboard];
-      delete dashboards[this.state.selectedDashboard];
-      this.setState({
-        dashboards: dashboards,
-        selectedDashboard: inputValue,
-      });
-      swal("Dashboard Name Chnaged!", "New dashboard name is: " + inputValue, "success");
-    }.bind(this));
-
+    swal(
+      {
+        title: "Dashboard Name",
+        text: "Enter dashboard name:",
+        type: "input",
+        inputValue: this.state.selectedDashboard,
+        showCancelButton: true,
+        closeOnConfirm: false,
+        animation: "slide-from-top",
+        inputPlaceholder: "Write something"
+      },
+      function(inputValue) {
+        if (inputValue === false) return false;
+        if (inputValue === "") {
+          swal.showInputError("You need to write something!");
+          return false;
+        }
+        if (
+          inputValue != this.state.selectedDashboard &&
+          dashboards[inputValue]
+        ) {
+          swal.showInputError("Name Already exists");
+          return false;
+        }
+        dashboards[inputValue] = dashboards[this.state.selectedDashboard];
+        delete dashboards[this.state.selectedDashboard];
+        this.setState({
+          dashboards: dashboards,
+          selectedDashboard: inputValue
+        });
+        swal(
+          "Dashboard Name Chnaged!",
+          "New dashboard name is: " + inputValue,
+          "success"
+        );
+      }.bind(this)
+    );
   }
 
   render() {
     var layout = [];
     var layoutDivs = [];
 
-    if (this.state.dashboards && this.state.selectedDashboard &&  this.state.siteMetrics) {
+    if (
+      this.state.dashboards &&
+      this.state.selectedDashboard &&
+      this.state.siteMetrics
+    ) {
       let dashboard = this.state.dashboards[this.state.selectedDashboard];
       let graphs = dashboard.graphs;
       var index = 0;
       graphs.forEach(graph => {
-        let id = 'graph' + index.toString()
+        let id = "graph" + index.toString();
         let options = [];
-        options.push(this.getGraphOptions(graph.nodes, graph.keys, graph.timeframe, graph.aggregation, this.state.siteMetrics));
+        options.push(
+          this.getGraphOptions(
+            graph.nodes,
+            graph.keys,
+            graph.timeframe,
+            graph.aggregation,
+            this.state.siteMetrics
+          )
+        );
         layout.push({
           i: id,
           x: graph.container.x,
           y: graph.container.y,
           w: graph.container.w,
           h: graph.container.h,
-          static: (this.state.editView ? false : true)
+          static: this.state.editView ? false : true
         });
         if (!this.state.editView) {
           layoutDivs.push(
             <div key={id}>
               <ReactDyGraph
-                divkey={id+'dy'}
+                divkey={id + "dy"}
                 title={graph.name}
-                options={options}/>
-            </div>);
+                options={options}
+              />
+            </div>
+          );
         } else {
           layoutDivs.push(
             <div key={id}>
               <div>
                 {graph.name}
-                <button style={{'width': '100px', 'height': '34px', float: 'right'}} className='graph-button' onClick={this.editGraph.bind(this, index)}>Edit Graph</button>
-                <button style={{'width': '100px', 'height': '34px', float: 'right'}} className='graph-button' onClick={this.deleteGraph.bind(this, index)}>Delete Graph</button>
+                <button
+                  style={{ width: "100px", height: "34px", float: "right" }}
+                  className="graph-button"
+                  onClick={this.editGraph.bind(this, index)}
+                >
+                  Edit Graph
+                </button>
+                <button
+                  style={{ width: "100px", height: "34px", float: "right" }}
+                  className="graph-button"
+                  onClick={this.deleteGraph.bind(this, index)}
+                >
+                  Delete Graph
+                </button>
               </div>
-            </div>);
+            </div>
+          );
         }
         ++index;
       });
@@ -421,77 +481,121 @@ export default class NetworkDashboards extends React.Component {
     var dashboardsOptions = [];
     if (this.state.dashboards) {
       Object.keys(this.state.dashboards).forEach(dashboardName => {
-        dashboardsOptions.push(
-          {
-            value: dashboardName,
-            label: dashboardName
-          }
-        );
+        dashboardsOptions.push({
+          value: dashboardName,
+          label: dashboardName
+        });
       });
-      dashboardsOptions.push(
-        {
-          value: '#New',
-          label: 'New Dashboard ...',
-        }
-      );
+      dashboardsOptions.push({
+        value: "#New",
+        label: "New Dashboard ..."
+      });
     }
 
     let topButtons = [];
-    let selector =
+    let selector = (
       <td width={310}>
-        <div style={{width:300}}>
+        <div style={{ width: 300 }}>
           <Select
             options={dashboardsOptions}
-            name = "Select Dashboard"
-            placeholder = "Select Dashboard"
+            name="Select Dashboard"
+            placeholder="Select Dashboard"
             value={this.state.selectedDashboard}
             onChange={this.selectDashboardChange.bind(this)}
-            clearable={false}/>
+            clearable={false}
+          />
         </div>
-      </td>;
+      </td>
+    );
     if (this.state.selectedDashboard) {
       if (this.state.editView) {
-        selector =
-          <td width={330} key='b_name'>
-            <button style={{'width': '300px', 'height': '34px'}} className='graph-button' onClick={this.onDashboardNameChange.bind(this)}>{this.state.selectedDashboard}</button>
-          </td>;
+        selector = (
+          <td width={330} key="b_name">
+            <button
+              style={{ width: "300px", height: "34px" }}
+              className="graph-button"
+              onClick={this.onDashboardNameChange.bind(this)}
+            >
+              {this.state.selectedDashboard}
+            </button>
+          </td>
+        );
         topButtons = [
-          <td key='b_add'>
-            <button style={{'width': '100px', 'height': '34px'}} className='graph-button' onClick={this.addGraph.bind(this)}>Add Graph</button>
+          <td key="b_add">
+            <button
+              style={{ width: "100px", height: "34px" }}
+              className="graph-button"
+              onClick={this.addGraph.bind(this)}
+            >
+              Add Graph
+            </button>
           </td>,
-          <td key='b_done'>
-            <button style={{'width': '100px', 'height': '34px'}} className='graph-button' onClick={this.doneEditing.bind(this)}>Done Editing</button>
-          </td>];
+          <td key="b_done">
+            <button
+              style={{ width: "100px", height: "34px" }}
+              className="graph-button"
+              onClick={this.doneEditing.bind(this)}
+            >
+              Done Editing
+            </button>
+          </td>
+        ];
       } else {
         topButtons = [
-          <td key='b_delete'>
-            <button style={{'width': '80px', 'height': '34px'}} className='graph-button' onClick={this.deleteDashboard.bind(this)}>Delete</button>
+          <td key="b_delete">
+            <button
+              style={{ width: "80px", height: "34px" }}
+              className="graph-button"
+              onClick={this.deleteDashboard.bind(this)}
+            >
+              Delete
+            </button>
           </td>,
-          <td key='b_edit'>
-            <button style={{'width': '80px', 'height': '34px'}} className='graph-button' onClick={() => this.setState({editView: true})}>Edit</button>
+          <td key="b_edit">
+            <button
+              style={{ width: "80px", height: "34px" }}
+              className="graph-button"
+              onClick={() => this.setState({ editView: true })}
+            >
+              Edit
+            </button>
           </td>,
-          <td key='b_save'>
-            <button style={{'width': '100px', 'height': '34px'}} className='graph-button' onClick={this.saveDashboards.bind(this)}>Save Changes</button>
-          </td>];
+          <td key="b_save">
+            <button
+              style={{ width: "100px", height: "34px" }}
+              className="graph-button"
+              onClick={this.saveDashboards.bind(this)}
+            >
+              Save Changes
+            </button>
+          </td>
+        ];
       }
     }
 
     return (
-      <div style={{width:'100%', float: 'left'}}>
-        {this.state.graphEditOpen ? <ModalGraphEdit
-          isOpen= {this.state.graphEditOpen}
-          onClose= {this.graphEditClose.bind(this)}
-          {...this.props}
-          siteMetrics= {this.state.siteMetrics}
-          graph= {this.state.editedGraph}/> : <div/>}
+      <div style={{ width: "100%", float: "left" }}>
+        {this.state.graphEditOpen ? (
+          <ModalGraphEdit
+            isOpen={this.state.graphEditOpen}
+            onClose={this.graphEditClose.bind(this)}
+            {...this.props}
+            siteMetrics={this.state.siteMetrics}
+            graph={this.state.editedGraph}
+          />
+        ) : (
+          <div />
+        )}
 
-        <table style={{borderCollapse: "separate", borderSpacing: "15px 5px"}}>
-         <tbody>
-          <tr>
-            {selector}
-            {topButtons}
-          </tr>
-         </tbody>
+        <table
+          style={{ borderCollapse: "separate", borderSpacing: "15px 5px" }}
+        >
+          <tbody>
+            <tr>
+              {selector}
+              {topButtons}
+            </tr>
+          </tbody>
         </table>
         <ReactGridLayoutWidthProvider
           className="layout"
@@ -499,8 +603,9 @@ export default class NetworkDashboards extends React.Component {
           cols={12}
           rowHeight={100}
           verticalCompact={true}
-          onLayoutChange={this.onLayoutChange.bind(this)}>
-        {layoutDivs}
+          onLayoutChange={this.onLayoutChange.bind(this)}
+        >
+          {layoutDivs}
         </ReactGridLayoutWidthProvider>
       </div>
     );

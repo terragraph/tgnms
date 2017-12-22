@@ -1,15 +1,15 @@
-const assert = require('assert');
-const express = require('express');
+const assert = require("assert");
+const express = require("express");
 const app = express();
-const ApiLib = require('./api_lib');
-const worker = require('../worker.js');
-const ApiConsts = require('./api_consts');
+const ApiLib = require("./api_lib");
+const worker = require("../worker.js");
+const ApiConsts = require("./api_consts");
 // api methods
 const ApiMethods = ApiConsts.ApiMethods;
 const VerificationType = ApiConsts.VerificationType;
 
 module.exports = function(app, configs, topologies, liveTopologies) {
-  app.post(/\/api\/([a-zA-Z]+)/, function (req, res) {
+  app.post(/\/api\/([a-zA-Z]+)/, function(req, res) {
     let apiMethod = req.params[0];
     // validate api method exists
     if (!ApiMethods.hasOwnProperty(apiMethod)) {
@@ -17,13 +17,13 @@ module.exports = function(app, configs, topologies, liveTopologies) {
       res.status(500).end("Invalid API method");
       return;
     }
-    let httpPostData = '';
+    let httpPostData = "";
     // while receiving input
-    req.on('data', function(chunk) {
+    req.on("data", function(chunk) {
       httpPostData += chunk.toString();
     });
     // respond to input
-    req.on('end', function() {
+    req.on("end", function() {
       if (!httpPostData.length) {
         res.status(500).end("Empty input");
         return;
@@ -41,16 +41,16 @@ module.exports = function(app, configs, topologies, liveTopologies) {
       try {
         if (!apiLib.validateInput(apiMethod)) {
           let result = {
-            "success": "false",
-            "error": "Input validation failed, please reference the api docs"
+            success: "false",
+            error: "Input validation failed, please reference the api docs"
           };
           res.status(400).end(JSON.stringify(result));
           return;
         }
       } catch (err) {
         let result = {
-          "success": "false",
-          "error": "Input validation failed: " + err
+          success: "false",
+          error: "Input validation failed: " + err
         };
         res.status(400).end(JSON.stringify(result));
         return;

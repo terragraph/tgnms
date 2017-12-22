@@ -2,34 +2,34 @@
  * Shared methods
  */
 
-import LeafletGeom from 'leaflet-geometryutil';
-import { LatLng } from 'leaflet';
+import LeafletGeom from "leaflet-geometryutil";
+import { LatLng } from "leaflet";
 
 module.exports = {
   availabilityColor: function(alive_perc) {
     if (alive_perc >= 99.99) {
-      return 'green';
+      return "green";
     } else if (alive_perc >= 99) {
-      return 'yellowgreen';
+      return "yellowgreen";
     } else {
-      return 'red';
+      return "red";
     }
   },
   // accepts the polarity id, not name
   polarityColor: function(polarity) {
     if (polarity == null || polarity == undefined) {
-      return 'red';
+      return "red";
     }
     switch (polarity) {
       case 1:
-        return 'blue';
+        return "blue";
       case 2:
-        return 'magenta';
+        return "magenta";
       case 3:
-        return 'orange';
+        return "orange";
       default:
-        return 'red';
-    } 
+        return "red";
+    }
   },
 
   chartColor: function(colors, index) {
@@ -38,23 +38,28 @@ module.exports = {
   },
 
   versionSlicer: function(versionName) {
-    //RELEASE_M12_3 (michaelcallahan@devbig730 Tue Aug 8 10:48:29 PDT 2017) 
-    let releaseIdx = versionName.indexOf('RELEASE_');
-    let splitIndex = Math.min(versionName.indexOf('-', releaseIdx), versionName.indexOf(' ', releaseIdx));
+    //RELEASE_M12_3 (michaelcallahan@devbig730 Tue Aug 8 10:48:29 PDT 2017)
+    let releaseIdx = versionName.indexOf("RELEASE_");
+    let splitIndex = Math.min(
+      versionName.indexOf("-", releaseIdx),
+      versionName.indexOf(" ", releaseIdx)
+    );
     let releaseName = versionName.substring(releaseIdx + 8, splitIndex);
     return releaseName;
   },
 
   // color node based on DN/CN
-  nodeTypeColor: function(nodeType) {
-    
-  },
+  nodeTypeColor: function(nodeType) {},
 
   linkLength: function(aSite, zSite) {
-    let aSiteCoords = new LatLng(aSite.location.latitude,
-                                 aSite.location.longitude);
-    let zSiteCoords = new LatLng(zSite.location.latitude,
-                                 zSite.location.longitude);
+    let aSiteCoords = new LatLng(
+      aSite.location.latitude,
+      aSite.location.longitude
+    );
+    let zSiteCoords = new LatLng(
+      zSite.location.latitude,
+      zSite.location.longitude
+    );
     let linkAngle = LeafletGeom.bearing(aSiteCoords, zSiteCoords);
     let linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
     return linkLength;

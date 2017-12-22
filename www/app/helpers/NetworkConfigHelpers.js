@@ -1,20 +1,22 @@
-var _ = require('lodash');
-import { ADD_FIELD_TYPES } from '../constants/NetworkConfigConstants.js';
+var _ = require("lodash");
+import { ADD_FIELD_TYPES } from "../constants/NetworkConfigConstants.js";
 
-export const getImageVersionsForNetwork = (topology) => {
+export const getImageVersionsForNetwork = topology => {
   if (!topology || !topology.nodes) {
     return [];
   }
 
-  const imageVersions = topology.nodes.filter((node) => {
-    return node.status_dump;
-  }).map((node) => {
-    return node.status_dump.version;
-  });
+  const imageVersions = topology.nodes
+    .filter(node => {
+      return node.status_dump;
+    })
+    .map(node => {
+      return node.status_dump.version;
+    });
 
   const dedupedImageVersions = new Set(imageVersions);
   return [...dedupedImageVersions];
-}
+};
 
 // unsets the property in obj retrieved using editPath
 // then cleans up all empty objects within obj
@@ -28,7 +30,9 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
 
   const isValueUnset = _.unset(cleanedObj, newEditPath);
   if (!isValueUnset) {
-    console.error(`could not unset value at path ${newEditPath} for object ${cleanedObj}`);
+    console.error(
+      `could not unset value at path ${newEditPath} for object ${cleanedObj}`
+    );
   }
 
   // hack for flag for stopIdx, this means we do not clean up any empty objects
@@ -39,51 +43,58 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   // if we're here then the value in cleanedObj specified by editPath is unset
   // we then clean up to remove any empty objects
   newEditPath.pop();
-  while (newEditPath.length > stopIdx && Object.keys( _.get(cleanedObj, newEditPath) ).length === 0) {
+  while (
+    newEditPath.length > stopIdx &&
+    Object.keys(_.get(cleanedObj, newEditPath)).length === 0
+  ) {
     _.unset(cleanedObj, newEditPath);
     newEditPath.pop();
   }
 
   return cleanedObj;
-}
+};
 
 export const getStackedFields = (configs, viewOverridesOnly) => {
   // aggregate all config fields
   const stackedFields = configs.reduce((stacked, config) => {
-    return _.isPlainObject(config) ? [...stacked, ...Object.keys(config)] : stacked;
+    return _.isPlainObject(config)
+      ? [...stacked, ...Object.keys(config)]
+      : stacked;
   }, []);
 
   // now dedupe the fields by adding to a set
   const dedupedFields = new Set(stackedFields);
   return [...dedupedFields];
-}
+};
 
 const alphabeticalSort = (a, b) => {
   const lowerA = a.toLowerCase();
-  const lowerB = b.toLowerCase()
+  const lowerB = b.toLowerCase();
   if (lowerA < lowerB) {
     return -1;
   } else if (lowerA > lowerB) {
     return 1;
   }
   return 0;
-}
+};
 
-export const sortConfig = (config) => {
+export const sortConfig = config => {
   let newConfig = {};
 
-  Object.keys(config).sort(alphabeticalSort).forEach((key) => {
-    const value = config[key];
-    const newValue = _.isPlainObject(value) ? sortConfig(value) : value;
-    newConfig[key] = newValue;
-  });
+  Object.keys(config)
+    .sort(alphabeticalSort)
+    .forEach(key => {
+      const value = config[key];
+      const newValue = _.isPlainObject(value) ? sortConfig(value) : value;
+      newConfig[key] = newValue;
+    });
 
   return newConfig;
-}
+};
 
-export const getDefaultValueForType = (type) => {
-  let defaultValue = '';
-  switch(type) {
+export const getDefaultValueForType = type => {
+  let defaultValue = "";
+  switch (type) {
     case ADD_FIELD_TYPES.OBJECT:
       defaultValue = {};
       break;
@@ -94,14 +105,14 @@ export const getDefaultValueForType = (type) => {
       defaultValue = 0;
       break;
     case ADD_FIELD_TYPES.STRING:
-      defaultValue = '';
+      defaultValue = "";
       break;
     default:
-      console.error('Error, invalid type detected for adding a new field');
+      console.error("Error, invalid type detected for adding a new field");
   }
 
   return defaultValue;
-}
+};
 
 /*
   converts a new config object into a more "plain" javascript object
@@ -110,34 +121,38 @@ export const getDefaultValueForType = (type) => {
     validationMsg: empty string if config is valid, something else if not
   }
 */
-export const convertAndValidateNewConfigObject = (newConfig) => {
+export const convertAndValidateNewConfigObject = newConfig => {
   // newConfig is a map of id => {id, type, field, value}
 
   // empty/null check
-  if (newConfig === undefined || newConfig === null || Object.keys(newConfig).length === 0) {
+  if (
+    newConfig === undefined ||
+    newConfig === null ||
+    Object.keys(newConfig).length === 0
+  ) {
     return {
       config: undefined,
-      validationMsg: 'New config is empty',
+      validationMsg: "New config is empty"
     };
   }
 
   let config = {};
-  let validationMsg = '';
+  let validationMsg = "";
 
   // for all keys in the new config object that we wish to convert
   for (var id in newConfig) {
-    const {type, field, value} = newConfig[id];
+    const { type, field, value } = newConfig[id];
     // check for empty and duplicate fields, and terminate if we encounter them
     if (config.hasOwnProperty(field)) {
       return {
         config: undefined,
-        validationMsg: `Duplicate field ${field} detected, Please rename the field`,
+        validationMsg: `Duplicate field ${field} detected, Please rename the field`
       };
       break;
-    } else if (field === '') {
+    } else if (field === "") {
       return {
         config: undefined,
-        validationMsg: `Field cannot be empty. Please provide a name for the field`,
+        validationMsg: `Field cannot be empty. Please provide a name for the field`
       };
     }
 
@@ -145,7 +160,9 @@ export const convertAndValidateNewConfigObject = (newConfig) => {
       // recurse on the nested object
       const nestedConfig = convertAndValidateNewConfigObject(value);
       // first check if the nested object has any errors while converting, and cascade the error returned if an error exists
-      if (nestedConfig.config === undefined) { return nestedConfig; }
+      if (nestedConfig.config === undefined) {
+        return nestedConfig;
+      }
       // no errors: set the value (object)
       config[field] = nestedConfig.config;
     } else {
@@ -154,5 +171,5 @@ export const convertAndValidateNewConfigObject = (newConfig) => {
     }
   }
 
-  return {config, validationMsg};
-}
+  return { config, validationMsg };
+};

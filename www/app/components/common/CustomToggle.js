@@ -1,10 +1,10 @@
 // CustomToggle.js
 // custom toggle component (hides away a lot of raw html)
 
-import React from 'react';
-import { render } from 'react-dom';
+import React from "react";
+import { render } from "react-dom";
 
-const classNames = require('classnames');
+const classNames = require("classnames");
 export default class CustomToggle extends React.Component {
   constructor(props) {
     super(props);
@@ -23,21 +23,29 @@ export default class CustomToggle extends React.Component {
       onFocus,
       onBlur,
       selectorClass,
-      wrapperStyle,
+      wrapperStyle
     } = this.props;
 
     return (
-      <div className='nc-form-input-wrapper'>
+      <div className="nc-form-input-wrapper">
         <input
-          type='checkbox' className='nc-custom-checkbox' id={checkboxId} checked={value}
-          onChange={(event) => onChange(event.target.checked)}
-          onFocus={() => this.setState({focus: true})} onBlur={() => this.setState({focus: false})}
+          type="checkbox"
+          className="nc-custom-checkbox"
+          id={checkboxId}
+          checked={value}
+          onChange={event => onChange(event.target.checked)}
+          onFocus={() => this.setState({ focus: true })}
+          onBlur={() => this.setState({ focus: false })}
         />
-        <label className='nc-slider-label' htmlFor={checkboxId} style={{marginBottom: '0px'}}>
-          <div className='nc-slider-wrapper' style={wrapperStyle}>
-            <div className='nc-slider-options'>
+        <label
+          className="nc-slider-label"
+          htmlFor={checkboxId}
+          style={{ marginBottom: "0px" }}
+        >
+          <div className="nc-slider-wrapper" style={wrapperStyle}>
+            <div className="nc-slider-options">
               <div className={selectorClass}>Yes</div>
-              <div className='nc-slider-option-selector'></div>
+              <div className="nc-slider-option-selector" />
               <div className={selectorClass}>No</div>
             </div>
           </div>
@@ -60,13 +68,13 @@ CustomToggle.propTypes = {
 
   // optional style props
   selectorClass: React.PropTypes.any,
-  wrapperStyle: React.PropTypes.object,
-}
+  wrapperStyle: React.PropTypes.object
+};
 
 CustomToggle.defaultProps = {
   tooltip: null,
   onFocus: () => {},
   onBlur: () => {},
-  selectorClass: 'nc-slider-option',
-  wrapperStyle: {},
-}
+  selectorClass: "nc-slider-option",
+  wrapperStyle: {}
+};
