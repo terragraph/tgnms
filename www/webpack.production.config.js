@@ -1,39 +1,38 @@
-"use strict";
+'use strict';
 
-var path = require("path");
-var webpack = require("webpack");
-var HtmlWebpackPlugin = require("html-webpack-plugin");
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+var path = require('path');
+var webpack = require('webpack');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin;
 
 module.exports = {
-  devtool: "source-map",
+  devtool: 'source-map',
   entry: {
-    map: [path.join(__dirname, "app/main.js")]
+    map: [path.join(__dirname, 'app/main.js')]
   },
   externals: [
     {
-      xmlhttprequest: "{XMLHttpRequest:XMLHttpRequest}"
+      xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
     }
   ],
   output: {
-    path: path.join(__dirname, "/dist/"),
-    filename: "[name].js",
-    publicPath: "/"
+    path: path.join(__dirname, '/dist/'),
+    filename: '[name].js',
+    publicPath: '/'
   },
   plugins: [
-    new ExtractTextPlugin("bootstrap.css", {
+    new ExtractTextPlugin('bootstrap.css', {
       allChunks: true
     }),
     new BundleAnalyzerPlugin({
-      analyzerMode: "static",
-      reportFilename: "report.html"
+      analyzerMode: 'static',
+      reportFilename: 'report.html'
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
-      "process.env.NODE_ENV": JSON.stringify("production")
+      'process.env.NODE_ENV': JSON.stringify('production')
     }),
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin({
@@ -51,25 +50,25 @@ module.exports = {
       }
     }),
     // remove excess locales in moment bloating the bundle
-    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/)
+    new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/)
   ],
   module: {
     loaders: [
       {
         test: /\.jsx?$/,
         exclude: /node_modules/,
-        loader: "babel",
+        loader: 'babel',
         query: {
-          presets: ["react", "es2015", "stage-0"]
+          presets: ['react', 'es2015', 'stage-0']
         }
       },
       {
         test: /\.json?$/,
-        loader: "json"
+        loader: 'json'
       },
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract("style-loader", "css-loader")
+        loader: ExtractTextPlugin.extract('style-loader', 'css-loader')
       }
     ]
   }

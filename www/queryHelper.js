@@ -1,100 +1,90 @@
-const fs = require("fs");
-const mysql = require("mysql");
+const fs = require('fs');
+const mysql = require('mysql');
 const pool = mysql.createPool({
   connectionLimit: 50,
   dateStrings: true,
-  host: "127.0.0.1",
-  user: "root",
-  password: "",
-  database: "cxl",
+  host: '127.0.0.1',
+  user: 'root',
+  password: '',
+  database: 'cxl',
   queueLimit: 10,
   waitForConnections: false,
   multipleStatements: true
 });
-const Topology_ttypes = require("./thrift/gen-nodejs/Topology_types");
+const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 
 const METRIC_KEY_NAMES = [
-  "snr",
-  "rssi",
-  "mcs",
-  "per",
-  "fw_uptime",
-  "tx_power",
-  "rx_bytes",
-  "tx_bytes",
-  "rx_pps",
-  "tx_pps",
-  "rx_errors",
-  "tx_errors",
-  "rx_dropped",
-  "tx_dropped",
-  "rx_frame",
-  "rx_overruns",
-  "tx_overruns",
-  "tx_collisions",
-  "speed"
+  'snr',
+  'rssi',
+  'mcs',
+  'per',
+  'fw_uptime',
+  'tx_power',
+  'rx_bytes',
+  'tx_bytes',
+  'rx_pps',
+  'tx_pps',
+  'rx_errors',
+  'tx_errors',
+  'rx_dropped',
+  'tx_dropped',
+  'rx_frame',
+  'rx_overruns',
+  'tx_overruns',
+  'tx_collisions',
+  'speed'
   /* 'link_status' (published from controller node */
 ];
 
 // TODO - restrict this correctly
-METRIC_NAMES =
-  "SELECT `ts_key`.`id`, `mac`, `key` FROM `ts_key` " +
-  "JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) " +
-  "WHERE `mac` IN ? " +
-  "LIMIT 100000";
+const METRIC_NAMES =
+  'SELECT `ts_key`.`id`, `mac`, `key` FROM `ts_key` ' +
+  'JOIN (`nodes`) ON (`nodes`.`id`=`ts_key`.`node_id`) ' +
+  'WHERE `mac` IN ? ' +
+  'LIMIT 100000';
 
-SYSLOG_BY_MAC =
-  "SELECT `log` FROM `sys_logs` " +
-  "JOIN (`log_sources`) ON (`log_sources`.`id`=`sys_logs`.`source_id`) " +
-  "JOIN (`nodes`) ON (`nodes`.`id`=`log_sources`.`node_id`) " +
-  "WHERE `mac` = ? " +
-  "AND `filename` = ? " +
-  "ORDER BY `sys_logs`.`id` DESC " +
-  "LIMIT ?, ?;";
+const EVENTLOG_BY_MAC_PART1 = 'SELECT `sample` FROM `events` PARTITION ';
+const EVENTLOG_BY_MAC_PART2 =
+  'JOIN (`event_categories`) ON (`event_categories`.`id`=`events`.`category_id`) ' +
+  'JOIN (`nodes`) ON (`nodes`.`id`=`event_categories`.`node_id`) ' +
+  'WHERE `mac` IN ? ' +
+  'AND `category` = ? ' +
+  'ORDER BY `events`.`id` DESC ' +
+  'LIMIT ?, ?;';
 
-EVENTLOG_BY_MAC_PART1 = "SELECT `sample` FROM `events` PARTITION ";
-EVENTLOG_BY_MAC_PART2 =
-  "JOIN (`event_categories`) ON (`event_categories`.`id`=`events`.`category_id`) " +
-  "JOIN (`nodes`) ON (`nodes`.`id`=`event_categories`.`node_id`) " +
-  "WHERE `mac` IN ? " +
-  "AND `category` = ? " +
-  "ORDER BY `events`.`id` DESC " +
-  "LIMIT ?, ?;";
+const ALERTS_BY_MAC =
+  'SELECT *, `alerts`.`id` AS row_id FROM `alerts` ' +
+  'JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) ' +
+  'WHERE `mac` IN ? ' +
+  'ORDER BY `alerts`.`id` DESC ' +
+  'LIMIT ?, ?;';
 
-ALERTS_BY_MAC =
-  "SELECT *, `alerts`.`id` AS row_id FROM `alerts` " +
-  "JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) " +
-  "WHERE `mac` IN ? " +
-  "ORDER BY `alerts`.`id` DESC " +
-  "LIMIT ?, ?;";
+const DELETE_ALERTS_BY_ID = 'DELETE FROM `alerts` ' + 'WHERE `id` IN ? ;';
 
-DELETE_ALERTS_BY_ID = "DELETE FROM `alerts` " + "WHERE `id` IN ? ;";
+const DELETE_ALERTS_BY_MAC =
+  'DELETE `alerts` FROM `alerts` ' +
+  'JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) ' +
+  'WHERE `mac` IN ? ;';
 
-DELETE_ALERTS_BY_MAC =
-  "DELETE `alerts` FROM `alerts` " +
-  "JOIN (`nodes`) ON (`nodes`.`id`=`alerts`.`node_id`) " +
-  "WHERE `mac` IN ? ;";
+const DATA_FOLDER_PATH = '/home/nms/data/';
 
-const DATA_FOLDER_PATH = "/home/nms/data/";
-
-MAX_COLUMNS = 7;
 var self = {
   keyIds: {},
   nodeKeyIds: {},
 
-  refreshKeyNames: function() {
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
+  refreshKeyNames: function () {
+    pool.getConnection(function (err, conn) {
+      if (!conn || err) {
+        console.error('Unable to get mysql connection');
         return;
       }
       let sqlQuery =
-        "SELECT ts_key.id, nodes.mac, ts_key.key FROM ts_key " +
-        "JOIN (nodes) ON (nodes.id=ts_key.node_id)";
-      conn.query(sqlQuery, function(err, results) {
+        'SELECT ts_key.id, nodes.mac, ts_key.key FROM ts_key ' +
+        'JOIN (nodes) ON (nodes.id=ts_key.node_id)';
+      conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
-          console.log("Error", err);
+          console.log('Error', err);
           return;
         }
         results.forEach(result => {
@@ -112,7 +102,7 @@ var self = {
   },
 
   // fetch metric names from DB
-  fetchMetricNames: function(res, jsonPostData) {
+  fetchMetricNames: function (res, jsonPostData) {
     let postData = JSON.parse(jsonPostData);
     if (
       !postData ||
@@ -133,16 +123,16 @@ var self = {
     });
     // fetch all keys for nodes in topology
     let sqlQuery = mysql.format(METRIC_NAMES, [[nodeMacs]]);
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
+    pool.getConnection(function (err, conn) {
+      if (!conn || err) {
+        console.error('Unable to get mysql connection');
         res.status(500).end();
         return;
       }
-      conn.query(sqlQuery, function(err, results) {
+      conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
-          console.log("Error", err);
+          console.log('Error', err);
           return;
         }
         let nodeMetrics = {};
@@ -150,9 +140,9 @@ var self = {
         results.forEach(result => {
           // filter results
           if (
-            result.key.endsWith("count.0") ||
-            result.key.endsWith("count.600") ||
-            result.key.endsWith("count.3600")
+            result.key.endsWith('count.0') ||
+            result.key.endsWith('count.600') ||
+            result.key.endsWith('count.3600')
           ) {
             return;
           }
@@ -169,7 +159,7 @@ var self = {
         postData.topology.nodes.forEach(node => {
           if (
             !node ||
-            !node.hasOwnProperty("mac_addr") ||
+            !node.hasOwnProperty('mac_addr') ||
             !node.mac_addr.length
           ) {
             return;
@@ -208,13 +198,13 @@ var self = {
                 ) {
                   let nodeData = nodeMetrics[node.mac][keyName.toLowerCase()];
                   // display name in the typeahead
-                  nodeData["displayName"] = title;
-                  nodeData["linkName"] = link.name;
-                  nodeData["linkTitleAppend"] = titleAppend ? titleAppend : "";
+                  nodeData['displayName'] = title;
+                  nodeData['linkName'] = link.name;
+                  nodeData['linkTitleAppend'] = titleAppend || '';
                   // title when graphing
-                  nodeData["title"] = titleAppend ? title + titleAppend : title;
-                  nodeData["description"] = description;
-                  nodeData["scale"] = scale;
+                  nodeData['title'] = titleAppend ? title + titleAppend : title;
+                  nodeData['description'] = description;
+                  nodeData['scale'] = scale;
                 }
               });
             } catch (e) {
@@ -229,287 +219,286 @@ var self = {
     });
   },
 
-  timePeriod: function(secondDiff) {
+  timePeriod: function (secondDiff) {
     if (secondDiff > 60 * 60) {
-      return self.round(secondDiff / 60 / 60) + " hours";
+      return self.round(secondDiff / 60 / 60) + ' hours';
     } else if (secondDiff > 60) {
-      return self.round(secondDiff / 60) + " minutes";
+      return self.round(secondDiff / 60) + ' minutes';
     } else {
-      return secondDiff + " seconds";
+      return secondDiff + ' seconds';
     }
   },
 
-  round: function(value) {
+  round: function (value) {
     return Math.ceil(value * 100) / 100;
   },
 
-  formatLinkKeyName: function(metricName, aNode, zNode) {
+  formatLinkKeyName: function (metricName, aNode, zNode) {
     switch (metricName) {
-      case "rssi":
+      case 'rssi':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RSSI",
-          "Received Signal Strength Indicator",
-          "phystatus.srssi"
+          'RSSI',
+          'Received Signal Strength Indicator',
+          'phystatus.srssi'
         );
-      case "alive_perc":
-      case "alive_snr":
-      case "snr":
+      case 'alive_perc':
+      case 'alive_snr':
+      case 'snr':
         // tgf.00:00:00:10:0d:45.phystatus.ssnrEst
         return self.createLinkMetric(
           aNode,
           zNode,
-          "SnR",
-          "Signal to Noise Ratio",
-          "phystatus.ssnrEst"
+          'SnR',
+          'Signal to Noise Ratio',
+          'phystatus.ssnrEst'
         );
-        break;
-      case "mcs":
+      case 'mcs':
         // tgf.38:3a:21:b0:05:d1.staPkt.mcs
         return self.createLinkMetric(
           aNode,
           zNode,
-          "MCS",
-          "MCS Index",
-          "staPkt.mcs"
+          'MCS',
+          'MCS Index',
+          'staPkt.mcs'
         );
-      case "per":
+      case 'per':
         // tgf.38:3a:21:b0:05:d1.staPkt.perE6
         return self.createLinkMetric(
           aNode,
           zNode,
-          "PER",
-          "Packet Error Rate",
-          "staPkt.perE6"
+          'PER',
+          'Packet Error Rate',
+          'staPkt.perE6'
         );
-      case "fw_uptime":
+      case 'fw_uptime':
         // this depends on A/Z nodes and DN versus CN
         if (
-          aNode.node_type == Topology_ttypes.NodeType.DN &&
-          zNode.node_type == Topology_ttypes.NodeType.DN
+          aNode.node_type === topologyTTypes.NodeType.DN &&
+          zNode.node_type === topologyTTypes.NodeType.DN
         ) {
           // both sides DN, use keep-alive
           return self.createLinkMetric(
             aNode,
             zNode,
-            "FW Uptime",
-            "Mgmt Tx Keepalive Count",
-            "mgmtTx.keepAlive"
+            'FW Uptime',
+            'Mgmt Tx Keepalive Count',
+            'mgmtTx.keepAlive'
           );
         } else if (
-          aNode.node_type == Topology_ttypes.NodeType.DN &&
-          zNode.node_type == Topology_ttypes.NodeType.CN
+          aNode.node_type === topologyTTypes.NodeType.DN &&
+          zNode.node_type === topologyTTypes.NodeType.CN
         ) {
           // DN->CN, use uplinkBwReq on DN?
           return {
-            title: "Uplink BW req",
-            description: "Uplink BW requests received by DN",
+            title: 'Uplink BW req',
+            description: 'Uplink BW requests received by DN',
             scale: undefined,
             keys: [
               {
                 node: aNode,
-                keyName: "tgf." + zNode.mac_addr + ".mgmtRx.uplinkBwreq",
-                titleAppend: " (A)"
+                keyName: 'tgf.' + zNode.mac_addr + '.mgmtRx.uplinkBwreq',
+                titleAppend: ' (A)'
               }
             ]
           };
         } else if (
-          aNode.node_type == Topology_ttypes.NodeType.CN &&
-          zNode.node_type == Topology_ttypes.NodeType.DN
+          aNode.node_type === topologyTTypes.NodeType.CN &&
+          zNode.node_type === topologyTTypes.NodeType.DN
         ) {
           return {
-            title: "Uplink BW req",
-            description: "Uplink BW requests received by DN",
+            title: 'Uplink BW req',
+            description: 'Uplink BW requests received by DN',
             scale: undefined,
             keys: [
               {
                 node: zNode,
-                keyName: "tgf." + aNode.mac_addr + ".mgmtRx.uplinkBwreq",
-                titleAppend: " (Z)"
+                keyName: 'tgf.' + aNode.mac_addr + '.mgmtRx.uplinkBwreq',
+                titleAppend: ' (Z)'
               }
             ]
           };
         } else {
-          console.error("Unhandled node type combination", aNode, zNode);
+          throw new Error('Unhandled node type combination: ' +
+                          aNode.name + '/' + zNode.name);
         }
-
-      case "rx_ok":
+      case 'rx_ok':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RX Packets",
-          "Received packets",
-          "staPkt.rxOk"
+          'RX Packets',
+          'Received packets',
+          'staPkt.rxOk'
         );
-      case "tx_ok":
+      case 'tx_ok':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX Packets",
-          "Transferred packets",
-          "staPkt.txOk"
+          'TX Packets',
+          'Transferred packets',
+          'staPkt.txOk'
         );
-      case "tx_bytes":
+      case 'tx_bytes':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX bps",
-          "Transferred bits/second",
-          "tx_bytes",
-          "link"
+          'TX bps',
+          'Transferred bits/second',
+          'tx_bytes',
+          'link'
         );
-      case "rx_bytes":
+      case 'rx_bytes':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RX bps",
-          "Received bits/second",
-          "rx_bytes",
-          "link"
+          'RX bps',
+          'Received bits/second',
+          'rx_bytes',
+          'link'
         );
-      case "tx_errors":
+      case 'tx_errors':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX errors",
-          "Transmit errors/second",
-          "tx_errors",
-          "link"
+          'TX errors',
+          'Transmit errors/second',
+          'tx_errors',
+          'link'
         );
-      case "rx_errors":
+      case 'rx_errors':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RX errors",
-          "Receive errors/second",
-          "rx_errors",
-          "link"
+          'RX errors',
+          'Receive errors/second',
+          'rx_errors',
+          'link'
         );
-      case "tx_dropped":
+      case 'tx_dropped':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX dropped",
-          "Transmit dropped/second",
-          "tx_dropped",
-          "link"
+          'TX dropped',
+          'Transmit dropped/second',
+          'tx_dropped',
+          'link'
         );
-      case "rx_dropped":
+      case 'rx_dropped':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RX dropped",
-          "Receive dropped/second",
-          "rx_dropped",
-          "link"
+          'RX dropped',
+          'Receive dropped/second',
+          'rx_dropped',
+          'link'
         );
-      case "tx_pps":
+      case 'tx_pps':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX pps",
-          "Transmit packets/second",
-          "tx_packets",
-          "link"
+          'TX pps',
+          'Transmit packets/second',
+          'tx_packets',
+          'link'
         );
-      case "rx_pps":
+      case 'rx_pps':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RX pps",
-          "Receive packets/second",
-          "rx_packets",
-          "link"
+          'RX pps',
+          'Receive packets/second',
+          'rx_packets',
+          'link'
         );
-      case "tx_power":
+      case 'tx_power':
         // tgf.38:3a:21:b0:05:d1.tpcStats.txPowerIndex
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX Power",
-          "Transmit Power",
-          "tpcStats.txPowerIndex"
+          'TX Power',
+          'Transmit Power',
+          'tpcStats.txPowerIndex'
         );
-      case "rx_frame":
+      case 'rx_frame':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RX Frame",
-          "RX Frame",
-          "rx_frame",
-          "link"
+          'RX Frame',
+          'RX Frame',
+          'rx_frame',
+          'link'
         );
-      case "rx_overruns":
+      case 'rx_overruns':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "RX Overruns",
-          "RX Overruns",
-          "rx_overruns",
-          "link"
+          'RX Overruns',
+          'RX Overruns',
+          'rx_overruns',
+          'link'
         );
-      case "tx_overruns":
+      case 'tx_overruns':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX Overruns",
-          "TX Overruns",
-          "tx_overruns",
-          "link"
+          'TX Overruns',
+          'TX Overruns',
+          'tx_overruns',
+          'link'
         );
-      case "tx_collisions":
+      case 'tx_collisions':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "TX Collisions",
-          "TX Collisions",
-          "tx_collisions",
-          "link"
+          'TX Collisions',
+          'TX Collisions',
+          'tx_collisions',
+          'link'
         );
-      case "speed":
+      case 'speed':
         return self.createLinkMetric(
           aNode,
           zNode,
-          "Speed",
-          "Speed (mbps)",
-          "speed",
-          "link"
+          'Speed',
+          'Speed (mbps)',
+          'speed',
+          'link'
         );
-      case "link_status":
+      case 'link_status':
         return [
           {
-            title: "Link status",
-            description: "Link status reported by controller",
+            title: 'Link status',
+            description: 'Link status reported by controller',
             scale: undefined,
             keys: [
               {
                 /* This is reported by controller MAC (TODO) */
                 node: aNode,
                 keyName:
-                  "e2e_controller.link_status.WIRELESS." +
+                  'e2e_controller.link_status.WIRELESS.' +
                   aNode.mac_addr +
-                  "." +
+                  '.' +
                   zNode.mac_addr,
-                titleAppend: " (A)"
+                titleAppend: ' (A)'
               }
             ]
           }
         ];
-      case "flaps":
+      case 'flaps':
         return [];
       default:
-        throw "Undefined metric: " + metricName;
+        throw new Error('Undefined metric: ' + metricName);
     }
   },
 
-  createLinkMetric: function(
+  createLinkMetric: function (
     aNode,
     zNode,
     title,
     description,
     keyName,
-    keyPrefix = "tgf"
+    keyPrefix = 'tgf'
   ) {
     return {
       title: title,
@@ -518,19 +507,19 @@ var self = {
       keys: [
         {
           node: aNode,
-          keyName: keyPrefix + "." + zNode.mac_addr + "." + keyName,
-          titleAppend: " (A)"
+          keyName: keyPrefix + '.' + zNode.mac_addr + '.' + keyName,
+          titleAppend: ' (A)'
         },
         {
           node: zNode,
-          keyName: keyPrefix + "." + aNode.mac_addr + "." + keyName,
-          titleAppend: " (Z)"
+          keyName: keyPrefix + '.' + aNode.mac_addr + '.' + keyName,
+          titleAppend: ' (Z)'
         }
       ]
     };
   },
 
-  fetchLinkKeyIds: function(metricName, aNode, zNode) {
+  fetchLinkKeyIds: function (metricName, aNode, zNode) {
     let keyIds = [];
     // skip if mac empty
     if (
@@ -541,8 +530,13 @@ var self = {
     ) {
       return;
     }
-    let linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
-    console.log("fetch link key ids", metricName);
+    let linkKeys;
+    try {
+      linkKeys = self.formatLinkKeyName(metricName, aNode, zNode);
+    } catch (e) {
+      console.error('formatLinkKeyName error: ' + e);
+      return keyIds;
+    }
     linkKeys.keys.forEach(keyData => {
       if (
         aNode.mac_addr in self.nodeKeyIds &&
@@ -562,7 +556,7 @@ var self = {
    * We need to walk all nodes and links, formatting each into key ids,
    * then mapping the key id back to a metric.
    */
-  makeTableQuery: function(res, topology, nodeMetrics, linkMetrics) {
+  makeTableQuery: function (res, topology, nodeMetrics, linkMetrics) {
     // nodes by name
     let queries = [];
     let nodesByName = {};
@@ -603,19 +597,19 @@ var self = {
       });
     });
     queries.push({
-      type: "uptime_sec",
+      type: 'uptime_sec',
       key_ids: nodeKeyIds,
       data: nodeData,
       start_ts: now - duration,
       end_ts: now,
-      agg_type: "none"
+      agg_type: 'none'
     });
     // reset key list
     nodeKeyIds = [];
     nodeData = [];
     topology.links.forEach(link => {
       // ignore wired links
-      if (link.link_type != 1) {
+      if (link.link_type !== 1) {
         return;
       }
       let aNode = nodesByName[link.a_node_name];
@@ -623,19 +617,19 @@ var self = {
       // nodes without mac addrs set
       if (!aNode) {
         console.error("Can't find node name", link.a_node_name);
-        let aNodeNameSplit = link.a_node_name.split(".");
-        if (aNodeNameSplit.length != 2) {
+        let aNodeNameSplit = link.a_node_name.split('.');
+        if (aNodeNameSplit.length !== 2) {
           return;
         }
         let aNodeName = aNodeNameSplit[0];
         Object.keys(nodesByName).forEach(nodeName => {
           if (nodeName.length > aNodeName.length) {
             let nodeNameSubstr = nodeName.substr(0, aNodeName.length);
-            if (nodeNameSubstr == aNodeName) {
+            if (nodeNameSubstr === aNodeName) {
               console.error(
-                "\tFound match for",
+                '\tFound match for',
                 link.a_node_name,
-                "=",
+                '=',
                 nodeName
               );
             }
@@ -656,8 +650,14 @@ var self = {
       }
       // add nodes to request list
       linkMetrics.forEach(linkMetric => {
-        let linkKeys = self.formatLinkKeyName(linkMetric.metric, aNode, zNode);
-        if (!linkKeys.hasOwnProperty("keys")) {
+        let linkKeys;
+        try {
+          linkKeys = self.formatLinkKeyName(linkMetric.metric, aNode, zNode);
+        } catch (ex) {
+          console.error('formatLinkKeyName error: ' + ex);
+          return;
+        }
+        if (!linkKeys.hasOwnProperty('keys')) {
           return;
         }
         linkKeys.keys.forEach(keyData => {
@@ -672,7 +672,7 @@ var self = {
               keyId: keyId,
               key: keyData.keyName,
               displayName: link.name,
-              linkTitleAppend: "(A)"
+              linkTitleAppend: '(A)'
             });
           } else if (
             zNode.mac_addr in self.nodeKeyIds &&
@@ -685,34 +685,34 @@ var self = {
               keyId: keyId,
               key: keyData.keyName,
               displayName: link.name,
-              linkTitleAppend: "(Z)"
+              linkTitleAppend: '(Z)'
             });
           }
         });
       });
     });
     queries.push({
-      type: "event",
+      type: 'event',
       key_ids: nodeKeyIds,
       data: nodeData,
       start_ts: now - duration,
       end_ts: now,
-      agg_type: "none"
+      agg_type: 'none'
     });
     return { queries: queries };
   },
 
-  fetchSysLogs: function(res, mac_addr, sourceFile, offset, size, date) {
-    let folder = DATA_FOLDER_PATH + mac_addr + "/";
-    let fileName = folder + date + "_" + sourceFile + ".log";
+  fetchSysLogs: function (res, macAddr, sourceFile, offset, size, date) {
+    let folder = DATA_FOLDER_PATH + macAddr + '/';
+    let fileName = folder + date + '_' + sourceFile + '.log';
 
-    fs.readFile(fileName, "utf-8", function(err, data) {
+    fs.readFile(fileName, 'utf-8', function (err, data) {
       if (err) {
         res.json([]);
         return;
       }
 
-      var lines = data.trim().split("\n");
+      var lines = data.trim().split('\n');
 
       let numLines = lines.length;
       let begin = numLines - size - offset;
@@ -726,23 +726,23 @@ var self = {
     });
   },
 
-  fetchEventLogs: function(res, mac_addr, category, from, size, partition) {
+  fetchEventLogs: function (res, macAddr, category, from, size, partition) {
     // execute query
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
+    pool.getConnection(function (err, conn) {
+      if (!conn || err) {
+        console.error('Unable to get mysql connection');
         res.status(500).end();
         return;
       }
 
-      let fields = [[mac_addr], category, from, size];
+      let fields = [[macAddr], category, from, size];
       let queryString =
-        EVENTLOG_BY_MAC_PART1 + "(" + partition + ") " + EVENTLOG_BY_MAC_PART2;
+        EVENTLOG_BY_MAC_PART1 + '(' + partition + ') ' + EVENTLOG_BY_MAC_PART2;
       let sqlQuery = mysql.format(queryString, fields);
-      conn.query(sqlQuery, function(err, results) {
+      conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
-          console.log("Error", err);
+          console.log('Error', err);
           return;
         }
         let dataPoints = [];
@@ -754,21 +754,21 @@ var self = {
     });
   },
 
-  fetchAlerts: function(res, mac_addr, from, size) {
+  fetchAlerts: function (res, macAddr, from, size) {
     // execute query
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
+    pool.getConnection(function (err, conn) {
+      if (!conn || err) {
+        console.error('Unable to get mysql connection');
         res.status(500).end();
         return;
       }
 
-      let fields = [[mac_addr], from, size];
+      let fields = [[macAddr], from, size];
       let sqlQuery = mysql.format(ALERTS_BY_MAC, fields);
-      conn.query(sqlQuery, function(err, results) {
+      conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
-          console.log("Error", err);
+          console.log('Error', err);
           return;
         }
         let dataPoints = [];
@@ -791,43 +791,41 @@ var self = {
     });
   },
 
-  deleteAlertsById: function(res, ids) {
+  deleteAlertsById: function (res, ids) {
     // execute query
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
+    pool.getConnection(function (err, conn) {
+      if (!conn || err) {
+        console.error('Unable to get mysql connection');
         res.status(500).end();
         return;
       }
 
       let fields = [[ids]];
       let sqlQuery = mysql.format(DELETE_ALERTS_BY_ID, fields);
-      conn.query(sqlQuery, function(err, results) {
+      conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
-          console.log("Error", err);
-          return;
+          console.log('Error', err);
         }
       });
     });
   },
 
-  deleteAlertsByMac: function(res, mac_addr) {
+  deleteAlertsByMac: function (res, macAddr) {
     // execute query
-    pool.getConnection(function(err, conn) {
-      if (!conn) {
-        console.error("Unable to get mysql connection");
+    pool.getConnection(function (err, conn) {
+      if (!conn || err) {
+        console.error('Unable to get mysql connection');
         res.status(500).end();
         return;
       }
 
-      let fields = [[mac_addr]];
+      let fields = [[macAddr]];
       let sqlQuery = mysql.format(DELETE_ALERTS_BY_MAC, fields);
-      conn.query(sqlQuery, function(err, results) {
+      conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
-          console.log("Error", err);
-          return;
+          console.log('Error', err);
         }
       });
     });

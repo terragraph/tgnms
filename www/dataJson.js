@@ -1,22 +1,19 @@
 // aggregate data points in buckets for easier grouping
-const AGG_BUCKET_SECONDS = 30;
-const DATA_FOLDER_PATH = "/home/nms/data/";
-const fs = require("fs");
-const mysql = require("mysql");
+const mysql = require('mysql');
 const pool = mysql.createPool({
   connectionLimit: 50,
-  host: "127.0.0.1",
-  user: "root",
-  password: "",
-  database: "cxl",
+  host: '127.0.0.1',
+  user: 'root',
+  password: '',
+  database: 'cxl',
   queueLimit: 10,
   waitForConnections: false
 });
-pool.on("enqueue", function() {
-  console.log("Waiting for available connection slot");
+pool.on('enqueue', function () {
+  console.log('Waiting for available connection slot');
 });
-pool.on("error", function() {
-  console.log("pool error");
+pool.on('error', function () {
+  console.log('pool error');
 });
 
 // Convert thrift's Int64 (after conversion to plain json) to a number
@@ -29,13 +26,16 @@ var self = {
   macAddrToNode: {},
   nodeNameToNode: {},
 
-  refreshNodes: function() {
-    pool.getConnection(function(err, conn) {
+  refreshNodes: function () {
+    pool.getConnection(function (err, conn) {
       if (err) {
-        console.error("DB error", err);
+        console.error('DB error', err);
         return;
       }
-      conn.query("SELECT * FROM `nodes`", function(err, results) {
+      conn.query('SELECT * FROM `nodes`', function (err, results) {
+        if (err) {
+          return;
+        }
         results.forEach(row => {
           self.macAddrToNode[row.mac.toLowerCase()] = row;
           if (!(row.network in self.nodeNameToNode)) {
@@ -48,47 +48,47 @@ var self = {
     });
   },
 
-  writeScanResults: function(network, scan_results) {
+  writeScanResults: function (network, scanResults) {
     var rows = [];
     let refreshNodesList = false;
 
-    Object.keys(scan_results.scans).forEach(token => {
-      var scanData = scan_results.scans[token];
+    Object.keys(scanResults.scans).forEach(token => {
+      var scanData = scanResults.scans[token];
       if (!self.nodeNameToNode[network][scanData.txNode]) {
         console.error(
-          "writeScanResults: txNode " + scanData.txNode + " not present in DB"
+          'writeScanResults: txNode ' + scanData.txNode + ' not present in DB'
         );
         refreshNodesList = true;
         return;
       }
-      var tx_node_id = self.nodeNameToNode[network][scanData.txNode].id;
-      var start_bwgd = toUint64(scanData.startBwgdIdx);
-      Object.keys(scanData.responses).forEach(rx_node_name => {
-        if (!self.nodeNameToNode[network][rx_node_name]) {
+      var txNodeId = self.nodeNameToNode[network][scanData.txNode].id;
+      var startBwgd = toUint64(scanData.startBwgdIdx);
+      Object.keys(scanData.responses).forEach(rxNodeName => {
+        if (!self.nodeNameToNode[network][rxNodeName]) {
           console.error(
-            "writeScanResults: rxNode " + rx_node_name + " not present in DB"
+            'writeScanResults: rxNode ' + rxNodeName + ' not present in DB'
           );
           refreshNodesList = true;
           return;
         }
-        var rx_node_id = self.nodeNameToNode[network][rx_node_name].id;
-        var scanResp = scanData.responses[rx_node_name];
-        var superframe_num = toUint64(scanResp.curSuperframeNum);
+        var rxNodeId = self.nodeNameToNode[network][rxNodeName].id;
+        var scanResp = scanData.responses[rxNodeName];
+        var superframeNum = toUint64(scanResp.curSuperframeNum);
 
-        scanResp.routeInfoList.forEach(route_info => {
+        scanResp.routeInfoList.forEach(routeInfo => {
           var row = [
             token,
-            tx_node_id,
-            start_bwgd,
-            rx_node_id,
-            superframe_num,
-            route_info.route.tx,
-            route_info.route.rx,
-            route_info.rssi,
-            route_info.snrEst,
-            route_info.postSnr,
-            route_info.rxStart,
-            route_info.packetIdx
+            txNodeId,
+            startBwgd,
+            rxNodeId,
+            superframeNum,
+            routeInfo.route.tx,
+            routeInfo.route.rx,
+            routeInfo.rssi,
+            routeInfo.snrEst,
+            routeInfo.postSnr,
+            routeInfo.rxStart,
+            routeInfo.packetIdx
           ];
           rows.push(row);
         });
@@ -102,21 +102,21 @@ var self = {
       return;
     }
 
-    pool.getConnection(function(err, conn) {
+    pool.getConnection(function (err, conn) {
       if (err) {
-        console.error("DB error", err);
+        console.error('DB error', err);
         return;
       }
       conn.query(
-        "INSERT INTO scan_results" +
-          "(`token`, `tx_node_id`, `start_bwgd`, `rx_node_id`, `superframe_num`, " +
-          "`tx_beam`, `rx_beam`, `rssi`, `snr_est`, `post_snr`, `rx_start`, `packet_idx`) VALUES ?",
+        'INSERT INTO scan_results' +
+          '(`token`, `tx_node_id`, `start_bwgd`, `rx_node_id`, `superframe_num`, ' +
+          '`tx_beam`, `rx_beam`, `rssi`, `snr_est`, `post_snr`, `rx_start`, `packet_idx`) VALUES ?',
         [rows],
-        function(err, result) {
+        function (err, result) {
           if (err) {
-            console.log("Some error", err);
+            console.log('Some error', err);
           }
-          console.log("wrote " + rows.length + " rows into scan_results");
+          console.log('wrote ' + rows.length + ' rows into scan_results');
           conn.release();
         }
       );
