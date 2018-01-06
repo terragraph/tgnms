@@ -29,7 +29,7 @@ export default class NetworkLinksTable extends React.Component {
     toplink: null,
     // 0 = no status, 1 = sent request, 2 = request success, 3 = request error
     linkRequestButtonEnabled: true,
-    showAnalyzer2: false
+    showAnalyzer: false
   };
 
   constructor(props) {
@@ -37,6 +37,7 @@ export default class NetworkLinksTable extends React.Component {
     this.tableOnRowSelect = this.tableOnRowSelect.bind(this);
     this.linkSortFunc = this.linkSortFunc.bind(this);
     this.getTableRows = this.getTableRows.bind(this);
+    this.getTableRowsAnalyzer = this.getTableRowsAnalyzer.bind(this);
   }
 
   componentWillMount() {
@@ -107,31 +108,54 @@ export default class NetworkLinksTable extends React.Component {
     }
   }
 
-  linkSortFunc(a, b, order) {
-    // order is desc or asc
-    if (this.state.topLink) {
-      if (a.name == this.state.topLink.name) {
-        return -1;
-      } else if (b.name == this.state.topLink.name) {
-        return 1;
-      }
-    }
-
+  linkSortFuncHelper(a, b, order) {
     if (order === "desc") {
       if (a.name > b.name) {
         return -1;
       } else if (a.name < b.name) {
         return 1;
       }
-      return 0;
+      // both entries have the same name, sort based on a/z node name
+      if (a.a_node_name > a.z_node_name) {
+        return -1;
+      } else {
+        return +1;
+      }
     } else {
       if (a.name < b.name) {
         return -1;
       } else if (a.name > b.name) {
         return 1;
       }
-      return 0;
+      // both entries have the same name, sort based on a/z node name
+      if (a.a_node_name < a.z_node_name) {
+        return -1;
+      } else {
+        return +1;
+      }
     }
+  }
+
+  linkSortFunc(a, b, order) {
+    // order is desc or asc
+    if (this.state.topLink) {
+      if (a.name == this.state.topLink.name) {
+        if (a.name == b.name) {
+          return this.linkSortFuncHelper(a, b, order);
+        }
+        else {
+          return -1;
+        }
+      } else if (b.name == this.state.topLink.name) {
+        if (a.name == b.name) {
+          return this.linkSortFuncHelper(a, b, order);
+        }
+        else {
+          return +1;
+        }
+      }
+    }
+    return this.linkSortFuncHelper(a, b, order);
   }
 
   onSortChange(sortName, sortOrder) {
@@ -142,7 +166,7 @@ export default class NetworkLinksTable extends React.Component {
     });
   }
 
-  checkInvalidVal(obj, propertyName) {
+  formatAnalyzerValue(obj, propertyName) {
     return obj.hasOwnProperty(propertyName)
       ? obj[propertyName] == INVALID_VALUE ? "-" : obj[propertyName]
       : "-";
@@ -196,22 +220,19 @@ export default class NetworkLinksTable extends React.Component {
     return rows;
   }
 
-  getTableRowsAnalyzer2(): Array<{
+  getTableRowsAnalyzer(): Array<{
     name: string,
     a_node_name: string,
     z_node_name: string,
     alive: boolean
   }> {
     const rows = [];
-    if (this.linksByName === undefined) {
-      console.log("linksByName undefined");
+    if (!this.linksByName) {
       return;
     }
     Object.keys(this.linksByName).forEach(linkName => {
       let link = this.linksByName[linkName];
-      // TODO(csm) IS THIS RIGHT?  I WAS GETTING A RED SCREEN WITH AN ERROR
-      // "CANNOT READ PROPERTY METRICS OF UNDEFINED"
-      if (this.state.analyzerTable === undefined) {
+      if (!this.state.analyzerTable) {
         return;
       }
       let analyzerLink = this.state.analyzerTable.metrics.hasOwnProperty(
@@ -251,17 +272,6 @@ export default class NetworkLinksTable extends React.Component {
         return;
       }
 
-      let perA = this.checkInvalidVal(analyzerLinkA, "avgper");
-      let perZ = this.checkInvalidVal(analyzerLinkZ, "avgper");
-      let tputA = this.checkInvalidVal(analyzerLinkA, "tput");
-      let tputZ = this.checkInvalidVal(analyzerLinkZ, "tput");
-      let mcsA = this.checkInvalidVal(analyzerLinkA, "avgmcs");
-      let mcsZ = this.checkInvalidVal(analyzerLinkZ, "avgmcs");
-      let snrA = this.checkInvalidVal(analyzerLinkA, "avgsnr");
-      let snrZ = this.checkInvalidVal(analyzerLinkZ, "avgsnr");
-      let txpowerA = this.checkInvalidVal(analyzerLinkA, "avgtxpower");
-      let txpowerZ = this.checkInvalidVal(analyzerLinkZ, "avgtxpower");
-
       // this is the A->Z link
       rows.push({
         name: link.name,
@@ -272,11 +282,11 @@ export default class NetworkLinksTable extends React.Component {
         alive_perc: link.alive_perc,
         fw_restarts: analyzerLinkA["flaps"],
         uptime: analyzerLinkA["uptime"] / 60.0,
-        mcs: mcsA, // MCS, PER, throughput and power are measured at the tx
-        snr: snrZ, // SNR is measured at the rx
-        per: perA,
-        tputPPS: tputA,
-        txpower: txpowerA,
+        mcs: this.formatAnalyzerValue(analyzerLinkA, "avgmcs"),
+        snr: this.formatAnalyzerValue(analyzerLinkZ, "avgsnr"),
+        per: this.formatAnalyzerValue(analyzerLinkA, "avgper"),
+        tputPPS: this.formatAnalyzerValue(analyzerLinkA, "tput"),
+        txpower: this.formatAnalyzerValue(analyzerLinkA, "avgtxpower"),
         distance: link.distance
       });
       // this is the Z->A link
@@ -289,11 +299,11 @@ export default class NetworkLinksTable extends React.Component {
         alive_perc: link.alive_perc,
         fw_restarts: analyzerLinkZ["flaps"],
         uptime: analyzerLinkZ["uptime"] / 60.0,
-        mcs: mcsZ,
-        snr: snrA,
-        per: perZ,
-        tputPPS: tputZ,
-        txpower: txpowerZ,
+        mcs: this.formatAnalyzerValue(analyzerLinkZ, "avgmcs"),
+        snr: this.formatAnalyzerValue(analyzerLinkA, "avgsnr"),
+        per: this.formatAnalyzerValue(analyzerLinkZ, "avgper"),
+        tputPPS: this.formatAnalyzerValue(analyzerLinkZ, "tput"),
+        txpower: this.formatAnalyzerValue(analyzerLinkZ, "avgtxpower"),
         distance: link.distance
       });
     });
@@ -368,11 +378,15 @@ export default class NetworkLinksTable extends React.Component {
   // PHY statistics; the link will only work when connected to the FB
   // corporate network
   renderDashboardLink(cell, row) {
-    let linkStyle = {
-      color: "blue",
-      cursor: "pointer",
-      paddingLeft: "5px"
-    };
+      // let linkStyle = {
+      //   color: "blue",
+      //   cursor: "pointer",
+      //   paddingLeft: "5px"
+      // };
+    let fbinternal = false;
+    if (this.props.instance.hasOwnProperty("fbinternal")) {
+      fbinternal = this.props.instance.fbinternal;
+    }
 
     // if the field doesn't exist, don't display the link
     if (
@@ -381,6 +395,7 @@ export default class NetworkLinksTable extends React.Component {
     ) {
       return;
     }
+
     let aNode = this.nodesByName[row.a_node_name];
     let zNode = this.nodesByName[row.z_node_name];
     let now = new Date();
@@ -436,18 +451,25 @@ export default class NetworkLinksTable extends React.Component {
       end_time_display +
       "&end_time=" +
       end_time;
-    return (
-      <span>
-        {/* TODO(csm) i would like this to open in a new tab but it doesn't open a new tab  */}{" "}
-        {cell}
-        <a
-          href={myURL}
-          onclick="window.open(this.href,&quot;_blank&quot;).focus();"
-        >
-          ( Scuba Dashboard FB only)
-        </a>
-      </span>
-    );
+    if (fbinternal) {
+      return (
+        <span>
+          {/* TODO(csm) i would like this to open in a new tab but it doesn't open a new tab  */}{" "}
+          {cell}
+          <a
+            href={myURL}
+            onclick="window.open(this.href,&quot;_blank&quot;).focus();"
+          >
+            (Scuba Dashboard FB only)
+          </a>
+        </span>
+      );
+    }
+    else {
+      return (
+        <span> {cell} </span>
+      );
+    }
   }
 
   renderAlivePerc(cell, row) {
@@ -549,22 +571,30 @@ export default class NetworkLinksTable extends React.Component {
       sortOrder: this.state.sortOrder,
       onSortChange: this.onSortChange.bind(this)
     };
-    if (this.state.showAnalyzer2) {
+    if (this.state.showAnalyzer) {
       return (
         <BootstrapTable
           height={adjustedHeight + "px"}
           key="linksTable"
-          data={this.getTableRowsAnalyzer2()}
+          data={this.getTableRowsAnalyzer()}
           striped={true}
           hover={true}
           options={tableOpts}
           selectRow={linksSelectRowProp}
         >
+        <TableHeaderColumn
+          width="350"
+          dataSort={true}
+          dataField="name"
+          isKey={true}
+          dataFormat={this.renderDashboardLink.bind(this)}
+          sortFunc={this.linkSortFunc}
+        >
+          Name
+        </TableHeaderColumn>
           <TableHeaderColumn
             width="120"
-            isKey={true}
             dataSort={true}
-            dataFormat={this.renderDashboardLink.bind(this)}
             dataField="a_node_name"
           >
             A-Node
@@ -766,7 +796,6 @@ export default class NetworkLinksTable extends React.Component {
   render() {
     // update topology to health mappings
     this.updateMappings(this.props.topology);
-
     // render display with or without events chart
     let linksTable = this.renderLinksTable();
     return (
@@ -795,7 +824,6 @@ export default class NetworkLinksTable extends React.Component {
             CNs Only
           </button>
           &nbsp;&nbsp;&nbsp;
-          {/* TODO(csm) would like clicking on Show Link Events to deselect Analyzer */}
           <button
             className={
               this.state.showEventsChart
@@ -803,22 +831,22 @@ export default class NetworkLinksTable extends React.Component {
                 : "graph-button"
             }
             onClick={btn =>
-              this.setState({ showEventsChart: !this.state.showEventsChart })
+              this.setState({ showEventsChart: !this.state.showEventsChart, showAnalyzer: false })
             }
           >
             Show Link Events
           </button>
           <button
             className={
-              this.state.showAnalyzer2
+              this.state.showAnalyzer
                 ? "graph-button graph-button-selected"
                 : "graph-button"
             }
             onClick={btn =>
-              this.setState({ showAnalyzer2: !this.state.showAnalyzer2 })
+              this.setState({ showAnalyzer: !this.state.showAnalyzer, showEventsChart: false })
             }
           >
-            Analyzer
+            Link Stats
           </button>
           {linksTable}
         </li>

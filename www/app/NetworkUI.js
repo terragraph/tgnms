@@ -275,7 +275,7 @@ export default class NetworkUI extends React.Component {
     if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
       return;
     }
-    let linkAnalyzerFetch = new Request("/analyzer2/" + networkName, {
+    let linkAnalyzerFetch = new Request("/link_analyzer/" + networkName, {
       credentials: "same-origin"
     });
     // update last request time

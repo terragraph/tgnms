@@ -31,6 +31,7 @@ const Actions = {
   // network health
   HEALTH_REFRESHED: 400,
   LINK_OVERLAY_REFRESHED: 401,
+  ANALYZER_REFRESHED: 402,
 
   // upgrade actions (UI related)
   OPEN_UPGRADE_BINARY_MODAL: 500,

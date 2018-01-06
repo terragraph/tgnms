@@ -320,7 +320,7 @@ var self = {
           zNode.node_type === topologyTTypes.NodeType.CN
         ) {
           // CN->DN, use uplinkBwReq; DN->CN heartBeat
-          return self.createLinkMetric2(
+          return self.createLinkMetricAsymmetric(
             aNode,
             zNode,
             "FW Uptime",
@@ -333,7 +333,7 @@ var self = {
           zNode.node_type === topologyTTypes.NodeType.DN
         ) {
           // CN->DN, use uplinkBwReq; DN->CN heartBeat
-          return self.createLinkMetric2(
+          return self.createLinkMetricAsymmetric(
             zNode,
             aNode,
             "FW Uptime",
@@ -541,7 +541,7 @@ var self = {
     };
   },
 
-  createLinkMetric2: function(
+  createLinkMetricAsymmetric: function(
     aNode,
     zNode,
     title,

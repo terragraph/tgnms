@@ -96,6 +96,8 @@ var ignitionStateByName = {};
 var aggrStatusDumpsByName = {};
 var upgradeStateByName = {};
 var networkHealth = {};
+var analyzerData = {}; // cached results
+var fbinternal = {};
 
 var dashboards = {};
 fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
@@ -430,6 +432,7 @@ function getTopologyByName (topologyName) {
   }
 
   networkConfig.upgradeStateDump = upgradeStateDump;
+  networkConfig.fbinternal = fbinternal;
 
   return networkConfig;
 }
@@ -534,6 +537,11 @@ function reloadInstanceConfig () {
         process.exit(1);
       }
 
+      fbinternal = false;
+      if ('fbinternal' in networkInstanceConfig) {
+        fbinternal = networkInstanceConfig['fbinternal'];
+      }
+
       let refreshInterval = 5000;
       let healthInterval = 30000;
       if ('refresh_interval' in networkInstanceConfig) {
@@ -543,6 +551,7 @@ function reloadInstanceConfig () {
         Object.keys(configByName).forEach(configName => {
           console.log('Refreshing network health for', configName);
           refreshNetworkHealth(configName);
+          refreshAnalyzerData(configName);
         });
       }, healthInterval);
       // start poll request interval
@@ -930,32 +939,6 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
   });
 });
 
-app.post(/\/analyzer\/$/i, function(req, res, next) {
-  let httpPostData = "";
-  req.on("data", function(chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on("end", function() {
-    // proxy query
-    let chartUrl = "http://localhost:8086/query";
-    let httpData = JSON.parse(httpPostData);
-    let queryRequest = { queries: httpData };
-    console.log("CSM: analyzer queryRequest: ", JSON.stringify(queryRequest));
-    request.post(
-      { url: chartUrl, body: JSON.stringify(queryRequest) },
-      (err, httpResponse, body) => {
-        if (httpResponse) {
-          res.send(httpResponse.body).end();
-        } else {
-          res
-            .status(500)
-            .send("No Data")
-            .end();
-        }
-      }
-    );
-  });
-});
 
 // metric lists
 app.post(/\/metrics$/i, function (req, res, next) {
@@ -1032,15 +1015,23 @@ function refreshNetworkHealth (topologyName) {
 }
 
 // raw stats data
-app.get(/\/analyzer2\/(.+)$/i, function(req, res, next) {
+app.get(/\/link_analyzer\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];
+  if (analyzerData.hasOwnProperty(topologyName)) {
+    res.send(analyzerData[topologyName]).end();
+  } else {
+    console.log('No analyzer cache found for', topologyName);
+    res.send('No analyzer cache').end();
+  }
+});
+
+function refreshAnalyzerData (topologyName) {
   let liveTopology = topologyByName[topologyName];
   let topology =
     liveTopology && liveTopology.nodes
       ? liveTopology
       : fileTopologyByName[topologyName];
   if (!topology) {
-    res.status(500).send("No topology data for: " + topologyName);
     return;
   }
   let nodeMetrics = [];
@@ -1082,31 +1073,28 @@ app.get(/\/analyzer2\/(.+)$/i, function(req, res, next) {
       time: 60 * 60 /* 1 hour */
     }
   ];
+  let startTime = new Date();
   let queries = queryHelper.makeTableQuery(
-    res,
+    undefined,
     topology,
     nodeMetrics,
     linkMetrics
   );
-  console.log("in server.js analyzer2: fetching data from Beringei");
-  console.log("json:", JSON.stringify(queries));
   let chartUrl = "http://localhost:8086/query";
   request.post(
     { url: chartUrl, body: JSON.stringify(queries) },
     (err, httpResponse, body) => {
       if (err) {
         console.error("Error fetching from beringei:", err);
-        res
-          .status(500)
-          .send("Error fetching data")
-          .end();
         return;
       }
+      let totalTime = new Date() - startTime;
+      console.log('Fetched analyzer data for', topologyName, 'in', totalTime, 'ms');
       // join the results
-      res.send(httpResponse.body).end();
+      analyzerData[topologyName] = httpResponse.body;
     }
   );
-});
+}
 
 // raw stats data
 app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {

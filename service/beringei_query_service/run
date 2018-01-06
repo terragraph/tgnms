@@ -19,4 +19,5 @@ ${BERINGEI_EXEC_PATH}/beringei/tools/query_service/beringei_query_service \
   -ip $BERINGEI_QUERY_HOST \
   -threads $BERINGEI_QUERY_THREADS \
   -writer_queue_size 500000 \
+  -v 2 \
   -logtostderr 2>&1

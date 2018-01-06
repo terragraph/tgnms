@@ -1,6 +1,7 @@
 {
   "use_tile_proxy": false,
   "refresh_interval": 5000,
+  "fbinternal": true,
   "topologies": [
     {
       "topology_file": "mpk_jio.json",

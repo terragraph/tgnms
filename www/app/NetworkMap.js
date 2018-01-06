@@ -90,6 +90,7 @@ export default class NetworkMap extends React.Component {
     detailsExpanded: true,
     tablesExpanded: true,
     linkHealth: {},
+    analyzerTable: {},
 
     // UI
     upperPaneHeight: window.innerHeight / 2, // available height of the upper pane
@@ -147,7 +148,8 @@ export default class NetworkMap extends React.Component {
     );
     window.addEventListener("resize", this.resizeWindow);
     this.setState({
-      linkHealth: NetworkStore.linkHealth
+      linkHealth: NetworkStore.linkHealth,
+      analyzerTable: NetworkStore.analyzerTable
     });
     // update helper maps
     this.updateTopologyState(this.props.networkConfig);
@@ -256,6 +258,11 @@ export default class NetworkMap extends React.Component {
       case Actions.HEALTH_REFRESHED:
         this.setState({
           linkHealth: payload.linkHealth
+        });
+        break;
+      case Actions.ANALYZER_REFRESHED:
+        this.setState({
+          analyzerTable: payload.analyzerTable
         });
         break;
       case Actions.LINK_OVERLAY_REFRESHED:
