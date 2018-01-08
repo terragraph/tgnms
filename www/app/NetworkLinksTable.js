@@ -232,7 +232,7 @@ export default class NetworkLinksTable extends React.Component {
     }
     Object.keys(this.linksByName).forEach(linkName => {
       let link = this.linksByName[linkName];
-      if (!this.state.analyzerTable) {
+      if (!this.state.analyzerTable || !this.state.analyzerTable.metrics) {
         return;
       }
       let analyzerLink = this.state.analyzerTable.metrics.hasOwnProperty(
