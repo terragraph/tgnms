@@ -15,6 +15,12 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- Print on run so we can see it's executing properly in logs
+SELECT 'Running mysql init script' AS '';
+-- Move the DB creation into the config instead of the command line
+CREATE DATABASE IF NOT EXISTS `cxl`;
+USE cxl;
+
 --
 -- Table structure for table `alerts`
 --
