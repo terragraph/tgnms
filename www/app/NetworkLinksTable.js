@@ -456,9 +456,10 @@ export default class NetworkLinksTable extends React.Component {
         <span>
           {/* TODO(csm) i would like this to open in a new tab but it doesn't open a new tab  */}{" "}
           {cell}
+          {" "}
           <a
             href={myURL}
-            onclick="window.open(this.href,&quot;_blank&quot;).focus();"
+            target="_new"
           >
             (Scuba Dashboard FB only)
           </a>
