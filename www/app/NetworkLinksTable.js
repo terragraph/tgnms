@@ -374,30 +374,56 @@ export default class NetworkLinksTable extends React.Component {
     return hour + ":" + minutes + ":" + seconds + ampm;
   }
 
-  // this creates a link to a Scuba dashboard showing the last one hour of
-  // PHY statistics; the link will only work when connected to the FB
-  // corporate network
-  renderDashboardLink(cell, row) {
-      // let linkStyle = {
-      //   color: "blue",
-      //   cursor: "pointer",
-      //   paddingLeft: "5px"
-      // };
-    let fbinternal = false;
-    if (this.props.instance.hasOwnProperty("fbinternal")) {
-      fbinternal = this.props.instance.fbinternal;
-    }
-
-    // if the field doesn't exist, don't display the link
-    if (
-      !this.nodesByName.hasOwnProperty(row.a_node_name) ||
-      !this.nodesByName.hasOwnProperty(row.z_node_name)
-    ) {
-      return;
-    }
-
+  // create a link to an ODS Chart
+  renderODSLink(row) {
     let aNode = this.nodesByName[row.a_node_name];
     let zNode = this.nodesByName[row.z_node_name];
+    if (!aNode || !zNode) {
+      return;
+    }
+    let keystr = {keys: [
+      {
+        keyname: "phystatus.ssnrEst",
+        az: "Z"
+      },
+      {
+        keyname: "staPkt.mcs",
+        az: "A"
+      },
+      {
+        keyname: "staPkt.txPowerIndex",
+        az: "A"
+      }]};
+
+    let url = 'https://our.intern.facebook.com/intern/ods/chart/?submitted=1&period={"minutes_back":"60"}&chart_params={"type":"linechart","renderer":"highcharts","y_min":"","y_max":""}';
+    let queries = {};
+    let i = 0;
+
+    queries["active"] = true;
+    queries["source"] = "ods";
+    keystr.keys.forEach(keyData => {
+      if (keyData.az === "Z") {
+        queries["key"] = "tgf." + zNode.mac_addr + "." + keyData.keyname;
+        queries["entity"] = "CXL-Node-Test-" + aNode.mac_addr;
+      }
+      else {
+        queries["key"] = "tgf." + aNode.mac_addr + "." + keyData.keyname;
+        queries["entity"] = "CXL-Node-Test-" + zNode.mac_addr;
+      }
+      url = url + "&queries["+i+"]=" + JSON.stringify(queries);
+      i = i + 1;
+    });
+
+    return url;
+  }
+
+  // create a link to the high frequency Scuba dashboard
+  renderScubaLink(row) {
+    let aNode = this.nodesByName[row.a_node_name];
+    let zNode = this.nodesByName[row.z_node_name];
+    if (!aNode || !zNode) {
+      return;
+    }
     let now = new Date();
     // put in a two minute window because it takes some time for data to
     // reach Scuba
@@ -451,17 +477,45 @@ export default class NetworkLinksTable extends React.Component {
       end_time_display +
       "&end_time=" +
       end_time;
+    return myURL;
+  }
+
+  // this creates a link to a Scuba dashboard showing the last one hour of
+  // PHY statistics; the link will only work when connected to the FB
+  // corporate network
+  renderDashboardLink(cell, row) {
+    let fbinternal = false;
+    if (this.props.instance.hasOwnProperty("fbinternal")) {
+      fbinternal = this.props.instance.fbinternal;
+    }
+
+    // if the field doesn't exist, don't display the link
+    if (
+      !this.nodesByName.hasOwnProperty(row.a_node_name) ||
+      !this.nodesByName.hasOwnProperty(row.z_node_name)
+    ) {
+      return;
+    }
+    let scubaURL = this.renderScubaLink(row);
+    let odsURL = this.renderODSLink(row);
+
     if (fbinternal) {
       return (
         <span>
-          {/* TODO(csm) i would like this to open in a new tab but it doesn't open a new tab  */}{" "}
+          {" "}
           {cell}
           {" "}
           <a
-            href={myURL}
+            href={scubaURL}
             target="_new"
           >
-            (Scuba Dashboard FB only)
+            (Scuba)
+          </a>
+          <a
+            href={odsURL}
+            target="_new"
+          >
+            (ODS)
           </a>
         </span>
       );
