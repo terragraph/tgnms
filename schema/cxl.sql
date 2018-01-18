@@ -15,6 +15,12 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- Print on run so we can see it's executing properly in logs
+SELECT 'Running mysql init script' AS '';
+-- Move the DB creation into the config instead of the command line
+CREATE DATABASE IF NOT EXISTS `cxl`;
+USE cxl;
+
 --
 -- Table structure for table `alerts`
 --
@@ -178,28 +184,6 @@ CREATE TABLE `sys_logs` (
  PARTITION d_2017_03_29 VALUES LESS THAN (1490770800) ENGINE = InnoDB,
  PARTITION d_2017_03_30 VALUES LESS THAN (1490857200) ENGINE = InnoDB,
  PARTITION d_2017_03_31 VALUES LESS THAN (1490943600) ENGINE = InnoDB) */;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `tg_stats`
---
-
-DROP TABLE IF EXISTS `tg_stats`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `tg_stats` (
-  `row_id` int(11) NOT NULL AUTO_INCREMENT,
-  `network` varchar(100) DEFAULT NULL,
-  `node` varchar(100) DEFAULT NULL,
-  `mac` varchar(100) NOT NULL,
-  `site` varchar(100) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `time` timestamp(2) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `value` double DEFAULT NULL,
-  PRIMARY KEY (`row_id`),
-  KEY `mac` (`mac`),
-  KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

@@ -3,9 +3,9 @@ const mysql = require('mysql');
 const pool = mysql.createPool({
   connectionLimit: 50,
   dateStrings: true,
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
+  host: process.env.MYSQL_HOST || '127.0.0.1',
+  user: process.env.MYSQL_USER || 'root',
+  password: process.env.MYSQL_PASS || '',
   database: 'cxl',
   queueLimit: 10,
   waitForConnections: false,
