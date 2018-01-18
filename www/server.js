@@ -59,9 +59,6 @@ if (!fs.existsSync(NETWORK_CONFIG_INSTANCES_PATH + networkConfig)) {
 const app = express();
 app.use(compression());
 const queryHelper = require('./queryHelper');
-queryHelper.refreshKeyNames();
-setInterval(queryHelper.refreshKeyNames, 30000);
-
 // new json writer
 const dataJson = require('./dataJson');
 // load the initial node ids
@@ -76,6 +73,7 @@ const maxThriftRequestFailures = 1;
 const maxThriftReportAge = 30; // seconds
 const maxControllerEvents = 10;
 
+const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086'
 const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
   ? process.env.IM_SCAN_POLLING_ENABLED === '1'
   : 0;
@@ -543,12 +541,16 @@ function reloadInstanceConfig () {
       }
 
       let refreshInterval = 5000;
-      let healthInterval = 30000;
+      // TODO - temp change from 30sec
+      let healthInterval = 10000;
       if ('refresh_interval' in networkInstanceConfig) {
         refreshInterval = networkInstanceConfig['refresh_interval'];
       }
       networkHealthTimer = setInterval(() => {
         Object.keys(configByName).forEach(configName => {
+          if (configName !== "outdoor MPK 17 F8") {
+            return;
+          }
           console.log('Refreshing network health for', configName);
           refreshNetworkHealth(configName);
           refreshAnalyzerData(configName);
@@ -752,10 +754,6 @@ app.ws('/terminals/:pid', function (ws, req) {
   });
 });
 
-// single node
-app.get(/\/chart\/([a-z_]+)\/([a-z0-9:,]+)$/i, function (req, res, next) {
-  queryHelper.query(req, res, next);
-});
 app.get(/\/getEventLogsTables/, function (req, res, next) {
   res.json(eventLogsTables);
 });
@@ -883,7 +881,7 @@ app.post(/\/event\/?$/i, function (req, res, next) {
       end_ts: now,
       agg_type: 'event'
     };
-    let chartUrl = process.env.BQS || 'http://localhost:8086/query';
+    let chartUrl = BERINGEI_QUERY_URL + '/query';
     let queryRequest = { queries: [eventQuery] };
     request.post(
       {
@@ -913,7 +911,7 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
   });
   req.on('end', function () {
     // proxy query
-    let chartUrl = process.env.BQS || 'http://localhost:8086/query';
+    let chartUrl = BERINGEI_QUERY_URL + '/query';
     let httpData = JSON.parse(httpPostData);
     let queryRequest = { queries: httpData };
     request.post(
@@ -939,17 +937,60 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
   });
 });
 
+app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
+  let taUrl = 'http://localhost:8087/stats_typeahead';
+  let taRequest = {
+    topologyName: req.params.topology,
+    input: req.params.pattern
+  };
+  request.post(
+    {
+      url: taUrl,
+      body: JSON.stringify(taRequest)
+    },
+    (err, httpResponse, body) => {
+      if (err) {
+        console.error('Error fetching from beringei:', err);
+        res.status(500).end();
+        return;
+      }
+      res.send(body).end();
+    }
+  );
+});
 
-// metric lists
-app.post(/\/metrics$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
+app.get('/stats_ta_cache/:topology', function (req, res, next) {
+  let topologyName = req.params.topology;
+  console.log('Request to update stats type-ahead cache for topology', topologyName);
+  let topology = getTopologyByName(topologyName);
+  if (!topology) {
+    console.error('No topology found for', topologyName);
+    return;
+  }
+  topology = topology.topology;
+  topology.nodes.map(node => {
+    delete node.status_dump;
+    delete node.golay_idx;
   });
-  req.on('end', function () {
-    // push query
-    queryHelper.fetchMetricNames(res, httpPostData);
+  topology.links.map(link => {
+    delete link.linkup_attempts;
   });
+  let chartUrl = 'http://localhost:8087/stats_typeahead_cache';
+  request.post(
+    {
+      url: chartUrl,
+      body: JSON.stringify(topology)
+    },
+    (err, httpResponse, body) => {
+      if (err) {
+        console.error('Error fetching from beringei:', err);
+        res.status(500).end();
+        return;
+      }
+      console.log('Fetched stats_ta_cache for', topologyName);
+      res.send("Completed").end();
+    }
+  );
 });
 
 // raw stats data
@@ -964,20 +1005,12 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
 });
 
 function refreshNetworkHealth (topologyName) {
-  let liveTopology = topologyByName[topologyName];
-  let topology =
-    liveTopology && liveTopology.nodes
-      ? liveTopology
-      : fileTopologyByName[topologyName];
-  if (!topology) {
-    return;
-  }
   let nodeMetrics = [
     {
       name: 'minion_uptime',
       metric: 'e2e_minion.uptime',
-      type: 'event_sec',
-      time: 24 * 60 * 60 /* 24 hours */
+      type: 'uptime_sec',
+      min_ago: 24 * 60 /* 24 hours */
     }
   ];
   let linkMetrics = [
@@ -985,21 +1018,20 @@ function refreshNetworkHealth (topologyName) {
       name: 'alive',
       metric: 'fw_uptime',
       type: 'event',
-      time: 24 * 60 * 60 /* 24 hours */
+      min_ago: 24 * 60 /* 24 hours */
     }
   ];
   let startTime = new Date();
-  let queries = queryHelper.makeTableQuery(
-    undefined,
-    topology,
-    nodeMetrics,
-    linkMetrics
-  );
-  let chartUrl = process.env.BQS || 'http://localhost:8086/query';
+  let query = {
+    topologyName: topologyName,
+    nodeQueries: [],//nodeMetrics,
+    linkQueries: linkMetrics,
+  };
+  let chartUrl = BERINGEI_QUERY_URL + '/table_query';
   request.post(
     {
       url: chartUrl,
-      body: JSON.stringify(queries)
+      body: JSON.stringify(query)
     },
     (err, httpResponse, body) => {
       if (err) {
@@ -1008,8 +1040,15 @@ function refreshNetworkHealth (topologyName) {
       }
       let totalTime = new Date() - startTime;
       console.log('Fetched health for', topologyName, 'in', totalTime, 'ms');
+      let parsed;
+      try {
+        parsed = JSON.parse(httpResponse.body);
+      } catch (ex) {
+        console.error('failed to parse json:', ex, httpResponse.body);
+        return;
+      }
       // join the results
-      networkHealth[topologyName] = httpResponse.body;
+      networkHealth[topologyName] = parsed;
     }
   );
 }
@@ -1026,63 +1065,53 @@ app.get(/\/link_analyzer\/(.+)$/i, function (req, res, next) {
 });
 
 function refreshAnalyzerData (topologyName) {
-  let liveTopology = topologyByName[topologyName];
-  let topology =
-    liveTopology && liveTopology.nodes
-      ? liveTopology
-      : fileTopologyByName[topologyName];
-  if (!topology) {
-    return;
-  }
-  let nodeMetrics = [];
   let linkMetrics = [
     {
       name: "not_used",
       metric: "fw_uptime",
       type: "analyzer_table",
-      time: 60 * 60 /* 1 hour */
+      min_ago: 60 /* 1 hour */
     },
     {
       name: "not_used",
       metric: "tx_ok",
       type: "analyzer_table",
-      time: 60 * 60 /* 1 hour */
+      min_ago: 60 /* 1 hour */
     },
     {
       name: "not_used",
       metric: "tx_fail",
       type: "analyzer_table",
-      time: 60 * 60 /* 1 hour */
+      min_ago: 60 /* 1 hour */
     },
     {
       name: "not_used",
       metric: "mcs",
       type: "analyzer_table",
-      time: 60 * 60 /* 1 hour */
+      min_ago: 60 /* 1 hour */
     },
     {
       name: "not_used",
       metric: "tx_power",
       type: "analyzer_table",
-      time: 60 * 60 /* 1 hour */
+      min_ago: 60 /* 1 hour */
     },
     {
       name: "not_used",
       metric: "snr",
       type: "analyzer_table",
-      time: 60 * 60 /* 1 hour */
+      min_ago: 60 /* 1 hour */
     }
   ];
   let startTime = new Date();
-  let queries = queryHelper.makeTableQuery(
-    undefined,
-    topology,
-    nodeMetrics,
-    linkMetrics
-  );
-  let chartUrl = "http://localhost:8086/query";
+  let query = {
+    topologyName: topologyName,
+    nodeQueries: [],
+    linkQueries: linkMetrics,
+  };
+  let chartUrl = BERINGEI_QUERY_URL + '/table_query';
   request.post(
-    { url: chartUrl, body: JSON.stringify(queries) },
+    { url: chartUrl, body: JSON.stringify(query) },
     (err, httpResponse, body) => {
       if (err) {
         console.error("Error fetching from beringei:", err);
@@ -1090,8 +1119,14 @@ function refreshAnalyzerData (topologyName) {
       }
       let totalTime = new Date() - startTime;
       console.log('Fetched analyzer data for', topologyName, 'in', totalTime, 'ms');
-      // join the results
-      analyzerData[topologyName] = httpResponse.body;
+      let parsed;
+      try {
+        parsed = JSON.parse(httpResponse.body);
+      } catch (ex) {
+        console.error('failed to parse json:', ex);
+        return;
+      }
+      analyzerData[topologyName] = parsed;
     }
   );
 }
@@ -1100,29 +1135,24 @@ function refreshAnalyzerData (topologyName) {
 app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
   let topologyName = req.params[0];
   let metricName = req.params[1];
-  let liveTopology = topologyByName[topologyName];
-  let topology =
-    liveTopology && liveTopology.nodes
-      ? liveTopology
-      : fileTopologyByName[topologyName];
-  if (!topology) {
-    res.status(500).send('No topology data for: ' + topologyName);
-    return;
-  }
-  let queryRequest = queryHelper.makeTableQuery(
-    res,
-    topology,
-    [],
-    [metricName],
-    'key_ids',
-    'none',
-    10 * 60
-  );
-  let chartUrl = process.env.BQS || 'http://localhost:8086/query';
+  let linkMetrics = [
+    {
+      name: 'not_used',
+      metric: metricName,
+      type: 'latest',
+      min_ago: 60 /* 1 hour */
+    }
+  ];
+  let query = {
+    topologyName: topologyName,
+    nodeQueries: [],
+    linkQueries: linkMetrics,
+  };
+  let chartUrl = BERINGEI_QUERY_URL + '/table_query';
   request.post(
     {
       url: chartUrl,
-      body: JSON.stringify(queryRequest)
+      body: JSON.stringify(query)
     },
     (err, httpResponse, body) => {
       if (err) {

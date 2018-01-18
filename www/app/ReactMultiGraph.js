@@ -279,6 +279,7 @@ export default class ReactMultiGraph extends React.Component {
               width="70"
               min={minValue}
               max={maxValue}
+              type="linear"
             />
             <Charts>
               <LineChart
@@ -287,7 +288,7 @@ export default class ReactMultiGraph extends React.Component {
                 key={"lc" + name}
                 columns={columnNames}
                 style={styler(legendStyle)}
-                interpolation="curveBasisOpen"
+                interpolation="curveLinear"
                 highlight={this.state.highlight}
                 onHighlightChange={highlight => this.setState({ highlight })}
                 selection={this.state.selection}

@@ -97,7 +97,7 @@ export default class NetworkMap extends React.Component {
     lowerPaneHeight: window.innerHeight / 2, // available height of the lower pane
 
     plannedSite: null,
-    linkOverlayData: null,
+    linkOverlayData: {},
     showTopologyIssuesPane: false,
     newTopology: {},
     // commit batch selected
@@ -267,13 +267,12 @@ export default class NetworkMap extends React.Component {
         break;
       case Actions.LINK_OVERLAY_REFRESHED:
         if (payload.overlay) {
-          let series = new TimeSeries(payload.overlay);
           this.setState({
-            linkOverlayData: series
+            linkOverlayData: payload.overlay,
           });
         } else {
           this.setState({
-            linkOverlayData: null
+            linkOverlayData: {},
           });
         }
         break;
@@ -361,6 +360,12 @@ export default class NetworkMap extends React.Component {
       }
 
       if (this.state.linkOverlayData) {
+        if (this.state.linkOverlayData.hasOwnProperty(link.name)) {
+          link["overlay_a"] = this.state.linkOverlayData[link.name];
+          link["overlay_z"] = this.state.linkOverlayData[link.name];
+        }
+        return;
+        // TODO - A/Z
         let modLinkName = link.name.replace(/\./g, " ") + " (A)";
         let overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
         link["overlay_a"] = overlayValue;

@@ -13,7 +13,7 @@ import moment from "moment";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 import { SpringGrid } from "react-stonecutter";
 import { ScaleModal } from "boron";
-import { Menu, MenuItem, Token, Typeahead } from "react-bootstrap-typeahead";
+import { Menu, MenuItem, Token, AsyncTypeahead } from "react-bootstrap-typeahead";
 import "react-bootstrap-typeahead/css/Token.css";
 import "react-bootstrap-typeahead/css/Typeahead.css";
 
@@ -90,10 +90,8 @@ const MenuHeader = props => <li {...props} className="dropdown-header" />;
 export default class NetworkStats extends React.Component {
   state = {
     // type-ahead data
-    siteMetrics: {},
     keyOptions: [],
     // type-ahead graphs
-    nodesSelected: this.renderInitialOptions(),
     keysSelected: [],
     // time selection
     useCustomTime: false,
@@ -103,7 +101,9 @@ export default class NetworkStats extends React.Component {
     startTime: new Date(),
     endTime: new Date(),
 
-    graphAggType: "top"
+    graphAggType: "top",
+    keyIsLoading: false,
+    keyOptions: []
   };
 
   constructor(props) {
@@ -117,71 +117,6 @@ export default class NetworkStats extends React.Component {
     );
   }
 
-  componentDidMount() {
-    this.refreshData();
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    // check for time differences
-    let changed =
-      this.state.startTime != nextState.startTime ||
-      this.state.endTime != nextState.endTime ||
-      this.state.minAgo != nextState.minAgo ||
-      this.state.graphAggType != nextState.graphAggType ||
-      this.state.useCustomTime != nextState.useCustomTime ||
-      this.state.nodesSelected != nextState.nodesSelected ||
-      this.state.keysSelected != nextState.keysSelected ||
-      !equals(
-        Object.keys(this.state.siteMetrics),
-        Object.keys(nextState.siteMetrics)
-      );
-    return changed;
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (
-      this.props.networkConfig &&
-      this.props.networkConfig.topology &&
-      this.props.networkConfig.topology.name &&
-      nextProps.networkConfig &&
-      nextProps.networkConfig.topology &&
-      nextProps.networkConfig.topology.name &&
-      this.props.networkConfig.topology.name !=
-        nextProps.networkConfig.topology.name
-    ) {
-      this.refreshData();
-    }
-  }
-
-  refreshData() {
-    this.metricRequest = new XMLHttpRequest();
-    this.metricRequest.onload = function() {
-      if (!this.metricRequest.responseText.length) {
-        return;
-      }
-      try {
-        let data = JSON.parse(this.metricRequest.responseText);
-        this.setState({
-          siteMetrics: data.site_metrics,
-          keyOptions: this.getKeyOptions(
-            this.state.nodesSelected,
-            data.site_metrics
-          )
-        });
-      } catch (e) {
-        console.error("Unable to parse JSON", this.metricRequest);
-      }
-    }.bind(this);
-    try {
-      this.metricRequest.open("POST", "/metrics", true);
-      let opts = {
-        topology: this.props.networkConfig.topology,
-        minAgo: this.state.minAgo
-      };
-      this.metricRequest.send(JSON.stringify(opts));
-    } catch (e) {}
-  }
-
   componentWillUnmount() {
     // un-register once hidden
     Dispatcher.unregister(this.dispatchToken);
@@ -192,11 +127,7 @@ export default class NetworkStats extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // TODO - this needs to be a comparison of topology names in props
         // clear selected data
-        this._typeaheadNode.getInstance().clear();
         this._typeaheadKey.getInstance().clear();
-        this.setState({
-          siteMetrics: {}
-        });
         break;
     }
   }
@@ -219,219 +150,6 @@ export default class NetworkStats extends React.Component {
     });
   }
 
-  nodeSelectionChanged(selectedOpts, siteMetrics) {
-    // update site + link metrics
-    let keyOptions = this.getKeyOptions(selectedOpts, this.state.siteMetrics);
-    // underlying key data may have changed
-    let keysSelected = this.state.keysSelected
-      .map(keyOpts => {
-        let found = false;
-        keyOptions.forEach(newKeyOpts => {
-          if (keyOpts.name == newKeyOpts.name) {
-            // we need to replace this key
-            keyOpts = newKeyOpts;
-            found = true;
-          }
-        });
-        return found ? keyOpts : null;
-      })
-      .filter(keyOpts => keyOpts);
-    // restrict metric/key data
-    this.setState({
-      nodesSelected: selectedOpts,
-      keyOptions: keyOptions,
-      keysSelected: keysSelected
-    });
-    // clear key list
-  }
-
-  renderTypeaheadRestrictorMenu(results, menuProps) {
-    let i = 0;
-    let lastType = "";
-    const items = results.map(item => {
-      i++;
-      if (item.type != lastType) {
-        lastType = item.type;
-        return [
-          <MenuDivider key={"divider" + i} />,
-          <MenuHeader key={"header" + i}>{item.type}</MenuHeader>,
-          <MenuItem option={item} key={"item" + i}>
-            {item.name}
-          </MenuItem>
-        ];
-      }
-      return [
-        <MenuItem option={item} key={"item" + i}>
-          {item.name}
-        </MenuItem>
-      ];
-    });
-    return <Menu {...menuProps}>{items}</Menu>;
-  }
-
-  renderTypeaheadKeyMenu(option, props, index) {
-    if (option.data.length > 1) {
-      return [
-        <strong key="name">{option.name}</strong>,
-        <div key="data">Nodes: {option.data.length}</div>
-      ];
-    }
-    return [
-      <strong key="name">{option.name}</strong>,
-      <div key="data">Site: {option.data[0].siteName}</div>
-    ];
-  }
-
-  renderInitialOptions() {
-    let restrictor = [""];
-    if (NetworkStore.nodeRestrictor.length > 0) {
-      restrictor = NetworkStore.nodeRestrictor.split(",");
-    }
-    // determine initial list
-    let nodeOptions = this.renderNodeOptions(restrictor);
-    return nodeOptions;
-  }
-
-  renderNodeOptions(filter = []) {
-    let nodeOptions = [];
-    this.props.networkConfig.topology.sites.forEach(site => {
-      if (!filter.length || filter.includes(site.name)) {
-        nodeOptions.push({
-          name: "Site " + site.name,
-          type: "Sites",
-          restrictor: {
-            siteName: site.name
-          }
-        });
-      }
-    });
-    this.props.networkConfig.topology.nodes.map(node => {
-      if (!filter.length || filter.includes(node.name)) {
-        nodeOptions.push({
-          name: node.name,
-          type: "Nodes",
-          restrictor: {
-            nodeName: node.name
-          }
-        });
-      }
-    });
-    this.props.networkConfig.topology.links.map(link => {
-      // skip wired links
-      if (link.link_type == 2) {
-        return;
-      }
-      if (!filter.length || filter.includes(link.name)) {
-        nodeOptions.push({
-          name: "Link " + link.a_node_name + " <-> " + link.z_node_name,
-          type: "Links",
-          restrictor: {
-            linkName: link.name
-          }
-        });
-      }
-    });
-    return nodeOptions;
-  }
-
-  /**
-   * Update the key data based on the selected sites/links.
-   */
-  getKeyOptions(selectedSiteOpts, siteMetrics) {
-    let siteNames = [];
-    let nodeNames = [];
-    let linkNames = [];
-    selectedSiteOpts.forEach(opts => {
-      if (opts.restrictor.siteName) {
-        siteNames.push(opts.restrictor.siteName);
-      }
-      if (opts.restrictor.nodeName) {
-        nodeNames.push(opts.restrictor.nodeName);
-      }
-      if (opts.restrictor.linkName) {
-        linkNames.push(opts.restrictor.linkName);
-      }
-    });
-    let uniqMetricNames = {};
-    let priorityMetricNames = {};
-    let restrictionsPresent =
-      siteNames.length || nodeNames.length || linkNames.length;
-    // iterate all options/keys
-    Object.keys(siteMetrics).forEach(siteName => {
-      let nodeMetrics = siteMetrics[siteName];
-      let includeAllSiteMetrics = false;
-      if (siteNames.length && siteNames.includes(siteName)) {
-        includeAllSiteMetrics = true;
-      }
-      Object.keys(nodeMetrics).forEach(nodeName => {
-        let metrics = nodeMetrics[nodeName];
-        let includeAllNodeMetrics = false;
-        if (nodeNames.length && nodeNames.includes(nodeName)) {
-          includeAllNodeMetrics = true;
-        }
-        Object.keys(metrics).forEach(metricName => {
-          let metric = metrics[metricName];
-          if (
-            restrictionsPresent &&
-            !includeAllSiteMetrics &&
-            !includeAllNodeMetrics &&
-            !(
-              linkNames.length &&
-              metric.linkName &&
-              linkNames.includes(metric.linkName)
-            )
-          ) {
-            return;
-          }
-          let newKey = metric.displayName ? metric.displayName : metricName;
-          // TODO - fix this plz..
-          let rowData = {
-            key: newKey,
-            node: nodeName,
-            keyId: metric.dbKeyId,
-            nodeName: nodeName,
-            siteName: siteName,
-            displayName: metric.displayName ? metric.displayName : "",
-            linkName: metric.linkName ? metric.linkName : "",
-            title: metric.title,
-            description: metric.description
-          };
-          if (metric.linkTitleAppend) {
-            rowData["linkTitleAppend"] = metric.linkTitleAppend;
-          }
-          if (metric.displayName) {
-            if (!(newKey in priorityMetricNames)) {
-              priorityMetricNames[newKey] = [];
-            }
-            priorityMetricNames[newKey].push(rowData);
-          } else {
-            if (!(newKey in uniqMetricNames)) {
-              uniqMetricNames[newKey] = [];
-            }
-            uniqMetricNames[newKey].push(rowData);
-          }
-        });
-      });
-      // add one entry for each metric name (or full key name)
-    });
-    let keyOptions = [];
-    Object.keys(priorityMetricNames).forEach(metricName => {
-      let metrics = priorityMetricNames[metricName];
-      keyOptions.push({
-        name: metricName,
-        data: metrics
-      });
-    });
-    Object.keys(uniqMetricNames).forEach(metricName => {
-      let metrics = uniqMetricNames[metricName];
-      keyOptions.push({
-        name: metricName,
-        data: metrics
-      });
-    });
-    return keyOptions;
-  }
-
   isValidStartDate(date) {
     // TODO - more dynamic than one fixed week
     let minDate = moment().subtract(7, "days");
@@ -442,6 +160,22 @@ export default class NetworkStats extends React.Component {
     // TODO - more dynamic than one fixed week
     // TODO - this should be more based on the day since that's the main view
     return date.toDate() >= this.state.startTime && date.toDate() <= new Date();
+  }
+
+  formatKeyOptions(keyOptions) {
+    let retKeys = [];
+    keyOptions.forEach(keyList => {
+      // aggregate data for this key
+      retKeys.push({name: keyList[0].name, data: keyList});
+    });
+    return retKeys;
+  }
+
+  renderTypeaheadKeyMenu(option, props, index) {
+    return [
+      <strong key="name">{option.name}</strong>,
+      <div key="data">Nodes: {option.data.length}</div>
+    ];
   }
 
   render() {
@@ -495,14 +229,12 @@ export default class NetworkStats extends React.Component {
         }
       };
     });
-    // add the list of node restrictors
-    let nodeOptions = this.renderNodeOptions();
     // all graphs
     let pos = 0;
     let multiGraphs = this.state.keysSelected.map(keyIds => {
       let graphOpts = {
         type: "key_ids",
-        key_ids: keyIds.data.map(data => data.keyId),
+        key_ids: keyIds.data.map(data => data.id),
         data: keyIds.data,
         agg_type: this.state.graphAggType
       };
@@ -520,31 +252,36 @@ export default class NetworkStats extends React.Component {
     if (!this.state.useCustomTime) {
       customInputProps = { disabled: true };
     }
+
     return (
       <div width="800">
-        <Typeahead
-          key="nodes"
-          labelKey="name"
-          multiple
-          options={nodeOptions}
-          ref={ref => (this._typeaheadNode = ref)}
-          renderMenu={this.renderTypeaheadRestrictorMenu.bind(this)}
-          selected={this.state.nodesSelected}
-          paginate={true}
-          onChange={this.nodeSelectionChanged.bind(this)}
-          placeholder="Node Options"
-        />
-        <Typeahead
+        <AsyncTypeahead
           key="keys"
           labelKey="name"
           multiple
-          options={this.state.keyOptions}
-          ref={ref => (this._typeaheadKey = ref)}
-          renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(this)}
-          selected={this.state.keysSelected}
-          paginate={true}
-          onChange={this.metricSelectionChanged.bind(this)}
           placeholder="Enter metric/key name"
+          ref={ref => (this._typeaheadKey = ref)}
+          isLoading={this.state.keyIsLoading}
+          onSearch={query => {
+            this.setState({keyIsLoading: true, keyOptions: []});
+            let taRequest = {
+              topologyName: this.props.networkConfig.topology.name,
+              input: query
+            };
+            fetch('/stats_ta/' + this.props.networkConfig.topology.name + '/' + query)
+              .then(resp => resp.json())
+              .then(json => this.setState({
+                keyIsLoading: false,
+                keyOptions: this.formatKeyOptions(json),
+              }));
+          }}
+          selected={this.state.keysSelected}
+          onChange={this.metricSelectionChanged.bind(this)}
+          useCache={false}
+          emptyLabel={false}
+          filterBy={(opt, txt) => {return true;}}
+          renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(this)}
+          options={this.state.keyOptions}
         />
         <span className="graph-opt-title">Time Window</span>
         {TIME_PICKER_OPTS.map(opts => (

@@ -6,7 +6,7 @@ import NetworkStore from "./stores/NetworkStore.js";
 import ReactGridLayout, { WidthProvider } from "react-grid-layout";
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 import Select from "react-select";
-import ModalGraphEdit from "./ModalGraphEdit.js";
+import NetworkStats from "./NetworkStats.js";
 import ReactDyGraph from "./ReactDyGraph.js";
 
 export default class NetworkDashboards extends React.Component {
@@ -576,7 +576,7 @@ export default class NetworkDashboards extends React.Component {
     return (
       <div style={{ width: "100%", float: "left" }}>
         {this.state.graphEditOpen ? (
-          <ModalGraphEdit
+          <NetworkStats
             isOpen={this.state.graphEditOpen}
             onClose={this.graphEditClose.bind(this)}
             {...this.props}
