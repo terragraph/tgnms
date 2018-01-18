@@ -875,7 +875,7 @@ app.post(/\/event\/?$/i, function (req, res, next) {
       end_ts: now,
       agg_type: 'event'
     };
-    let chartUrl = 'http://localhost:8086/query';
+    let chartUrl = process.env.BQS || 'http://localhost:8086/query';
     let queryRequest = { queries: [eventQuery] };
     request.post(
       {
@@ -905,7 +905,7 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
   });
   req.on('end', function () {
     // proxy query
-    let chartUrl = 'http://localhost:8086/query';
+    let chartUrl = process.env.BQS || 'http://localhost:8086/query';
     let httpData = JSON.parse(httpPostData);
     let queryRequest = { queries: httpData };
     request.post(
@@ -985,7 +985,7 @@ function refreshNetworkHealth (topologyName) {
     nodeMetrics,
     linkMetrics
   );
-  let chartUrl = 'http://localhost:8086/query';
+  let chartUrl = process.env.BQS || 'http://localhost:8086/query';
   request.post(
     {
       url: chartUrl,
@@ -1026,7 +1026,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function (req, res, next) {
     'none',
     10 * 60
   );
-  let chartUrl = 'http://localhost:8086/query';
+  let chartUrl = process.env.BQS || 'http://localhost:8086/query';
   request.post(
     {
       url: chartUrl,
