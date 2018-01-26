@@ -1,6 +1,12 @@
 #!/bin/bash
-# Check on Events partitions
 MAX_EVENTS_PARTITIONS=15 # Number of days to keep for events
+MAX_ALERTS_PARTITIONS=15 # Number of days to keep for alerts
+LOG_FILE_PATH="/home/nms/data"
+MAX_USED_GB=10
+# override defaults
+CONFIG="/etc/sysconfig/nms"
+[ -f "$CONFIG" ] && source "$CONFIG"
+# Check on Events partitions
 # Create partitions for today and tomorrow writes (if they dont exist)
 for i in {0..1}
 do
@@ -28,7 +34,6 @@ then
 fi
 
 # Check on Alerts partitions
-MAX_ALERTS_PARTITIONS=15 # Number of days to keep for alerts
 # Create partitions for today and tomorrow writes (if they dont exist)
 for i in {0..1}
 do
@@ -56,8 +61,6 @@ then
 fi
 
 # Clean old log files
-LOG_FILE_PATH="/home/nms/data"
-MAX_USED_GB=40
 DATA_USED_GB=$(printf %.0f $(find /home/nms/data/ -type f -printf '%k\n'|awk '{SUM+=$1} END {print SUM/1000000}'))
 if [ "$DATA_USED_GB" -gt "$MAX_USED_GB" ]; then
   # determine how much to delete
