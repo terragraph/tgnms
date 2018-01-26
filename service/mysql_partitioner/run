@@ -57,7 +57,7 @@ fi
 
 # Clean old log files
 LOG_FILE_PATH="/home/nms/data"
-MAX_USED_GB=10
+MAX_USED_GB=40
 DATA_USED_GB=$(printf %.0f $(find /home/nms/data/ -type f -printf '%k\n'|awk '{SUM+=$1} END {print SUM/1000000}'))
 if [ "$DATA_USED_GB" -gt "$MAX_USED_GB" ]; then
   # determine how much to delete
