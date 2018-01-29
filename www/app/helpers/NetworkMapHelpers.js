@@ -33,6 +33,9 @@ const getLinkAnglesForNodes = (nodeNames, linksByNode) => {
   let anglesByNode = {};
 
   nodeNames.forEach(node => {
+    if (!linksByNode[node]) {
+      return;
+    }
     // assume 1 DN link per node, and we retrieve it here
     const DNLinks = linksByNode[node].filter(link => link.link_type === 1);
     if (DNLinks.length === 0) {
