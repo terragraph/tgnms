@@ -5,7 +5,7 @@ RUN apk upgrade
 RUN apk add python make g++ zeromq-dev
 
 WORKDIR /usr/src/nms
-COPY tgnms/www .
+COPY www/ .
 RUN npm install
 RUN sh ./patch.sh
 
