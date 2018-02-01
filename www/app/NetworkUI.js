@@ -28,7 +28,8 @@ import NetworkUpgrade from "./components/upgrade/NetworkUpgrade.js";
 
 const VIEWS = {
   map: "Map",
-  dashboards: "Dashboards",
+// TODO - disabled until this is modularized
+//  dashboards: "Dashboards",
   stats: "Stats",
   eventlogs: "Event Logs",
   systemlogs: "System Logs",
@@ -286,13 +287,12 @@ export default class NetworkUI extends React.Component {
           response.json().then(
             function(json) {
               // merge data
-              if (json.length != 2) {
+              if (json.length != 1) {
                 return;
               }
               Dispatcher.dispatch({
                 actionType: Actions.ANALYZER_REFRESHED,
-                dummy: json[0], // not used
-                analyzerTable: json[1]
+                analyzerTable: json[0]
               });
             }.bind(this)
           );

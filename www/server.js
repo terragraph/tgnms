@@ -541,20 +541,23 @@ function reloadInstanceConfig () {
       }
 
       let refreshInterval = 5000;
-      // TODO - temp change from 30sec
-      let healthInterval = 10000;
+      let healthInterval = 30000;
       if ('refresh_interval' in networkInstanceConfig) {
         refreshInterval = networkInstanceConfig['refresh_interval'];
       }
-      networkHealthTimer = setInterval(() => {
+      let refreshAllData = () => {
         Object.keys(configByName).forEach(configName => {
-          if (configName !== "outdoor MPK 17 F8") {
-            return;
-          }
-          console.log('Refreshing network health for', configName);
+          console.log('Refreshing cache (health, analyzer, type-ahead) for',
+                      configName);
+          refreshStatsTypeaheadCache(configName);
           refreshNetworkHealth(configName);
           refreshAnalyzerData(configName);
         });
+      };
+      // initial load
+      refreshAllData();
+      networkHealthTimer = setInterval(() => {
+        refreshAllData();
       }, healthInterval);
       // start poll request interval
       refreshIntervalTimer = setInterval(() => {
@@ -938,7 +941,7 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
 });
 
 app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
-  let taUrl = 'http://localhost:8087/stats_typeahead';
+  let taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
   let taRequest = {
     topologyName: req.params.topology,
     input: req.params.pattern
@@ -959,8 +962,17 @@ app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
   );
 });
 
-app.get('/stats_ta_cache/:topology', function (req, res, next) {
-  let topologyName = req.params.topology;
+app.get(/\/health\/(.+)$/i, function (req, res, next) {
+  let topologyName = req.params[0];
+  if (networkHealth.hasOwnProperty(topologyName)) {
+    res.send(networkHealth[topologyName]).end();
+  } else {
+    console.log('No cache found for', topologyName);
+    res.send('No cache').end();
+  }
+});
+
+function refreshStatsTypeaheadCache(topologyName) {
   console.log('Request to update stats type-ahead cache for topology', topologyName);
   let topology = getTopologyByName(topologyName);
   if (!topology) {
@@ -975,7 +987,7 @@ app.get('/stats_ta_cache/:topology', function (req, res, next) {
   topology.links.map(link => {
     delete link.linkup_attempts;
   });
-  let chartUrl = 'http://localhost:8087/stats_typeahead_cache';
+  let chartUrl = BERINGEI_QUERY_URL + '/stats_typeahead_cache';
   request.post(
     {
       url: chartUrl,
@@ -983,26 +995,14 @@ app.get('/stats_ta_cache/:topology', function (req, res, next) {
     },
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from beringei:', err);
+        console.error('Error fetching from query service:', err);
         res.status(500).end();
         return;
       }
       console.log('Fetched stats_ta_cache for', topologyName);
-      res.send("Completed").end();
     }
   );
-});
-
-// raw stats data
-app.get(/\/health\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  if (networkHealth.hasOwnProperty(topologyName)) {
-    res.send(networkHealth[topologyName]).end();
-  } else {
-    console.log('No cache found for', topologyName);
-    res.send('No cache').end();
-  }
-});
+}
 
 function refreshNetworkHealth (topologyName) {
   let nodeMetrics = [
@@ -1024,7 +1024,7 @@ function refreshNetworkHealth (topologyName) {
   let startTime = new Date();
   let query = {
     topologyName: topologyName,
-    nodeQueries: [],//nodeMetrics,
+    nodeQueries: nodeMetrics,
     linkQueries: linkMetrics,
   };
   let chartUrl = BERINGEI_QUERY_URL + '/table_query';
@@ -1044,7 +1044,7 @@ function refreshNetworkHealth (topologyName) {
       try {
         parsed = JSON.parse(httpResponse.body);
       } catch (ex) {
-        console.error('failed to parse json:', ex, httpResponse.body);
+        console.error('Failed to parse health json:', httpResponse.body);
         return;
       }
       // join the results
@@ -1123,7 +1123,7 @@ function refreshAnalyzerData (topologyName) {
       try {
         parsed = JSON.parse(httpResponse.body);
       } catch (ex) {
-        console.error('failed to parse json:', ex);
+        console.error('Failed to parse json for analyzer data:', httpResponse.body);
         return;
       }
       analyzerData[topologyName] = parsed;
