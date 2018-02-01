@@ -319,7 +319,7 @@ export default class NetworkUI extends React.Component {
                 function(json) {
                   Dispatcher.dispatch({
                     actionType: Actions.LINK_OVERLAY_REFRESHED,
-                    overlay: json[1]
+                    overlay: json[0]
                   });
                 }.bind(this)
               );
