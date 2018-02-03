@@ -80,6 +80,7 @@ const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
 
 var refreshIntervalTimer;
 var networkHealthTimer;
+var statsTypeaheadTimer;
 var eventLogsTables = {};
 var systemLogsSources = {};
 var networkInstanceConfig = {};
@@ -270,26 +271,6 @@ worker.on('message', msg => {
           }
         });
       }
-      // adjacencies
-      // DISABLED due to high cpu in sjc
-      /*      if (msg.success && msg.status_dump && msg.status_dump.adjacencyMap) {
-        if (!adjacencyMapsByName[msg.name]) {
-          adjacencyMapsByName[msg.name] = {};
-        }
-        let adjMap = msg.status_dump.adjacencyMap;
-        Object.keys(adjMap).forEach(name => {
-          let vec = adjMap[name].adjacencies;
-          let node_mac = name.slice(5).replace(/\./g, ':').toUpperCase();
-          if (!adjacencyMapsByName[msg.name][node_mac]) {
-            adjacencyMapsByName[msg.name][node_mac] = {};
-          }
-          for (let j = 0; j < vec.length; j++) {
-            let llAddr = ipaddr.fromByteArray(Buffer.from(vec[j].nextHopV6.addr, 'ASCII')).toString();
-            let nextMac = vec[j].otherNodeName.slice(5).replace(/\./g, ':').toUpperCase();
-              adjacencyMapsByName[msg.name][node_mac][llAddr] = nextMac;
-          }
-        });
-      } */
       break;
     case 'scan_status':
       if (!msg.success) {
@@ -540,26 +521,42 @@ function reloadInstanceConfig () {
         fbinternal = networkInstanceConfig['fbinternal'];
       }
 
-      let refreshInterval = 5000;
-      let healthInterval = 30000;
+      // topology/statis refresh
+      let refreshInterval = 5 /* seconds */ * 1000;
+      // health + analyzer cache
+      let healthRefreshInterval = 30 /* seconds */ * 1000;
+      // stats type-ahead node/key list
+      let typeaheadRefreshInterval = 5 /* minutes */ * 60 * 1000;
       if ('refresh_interval' in networkInstanceConfig) {
         refreshInterval = networkInstanceConfig['refresh_interval'];
       }
-      let refreshAllData = () => {
+      let refreshHealthData = () => {
         Object.keys(configByName).forEach(configName => {
-          console.log('Refreshing cache (health, analyzer, type-ahead) for',
+          console.log('Refreshing cache (health, analyzer) for',
                       configName);
-          refreshStatsTypeaheadCache(configName);
           refreshNetworkHealth(configName);
           refreshAnalyzerData(configName);
         });
       };
+      
+      let refreshTypeaheadData = () => {
+        Object.keys(configByName).forEach(configName => {
+          console.log('Refreshing cache (stats type-ahead) for',
+                      configName);
+          refreshStatsTypeaheadCache(configName);
+        });
+      };
       // initial load
-      refreshAllData();
+      refreshHealthData();
+      refreshTypeaheadData();
+      // start refresh timers
       networkHealthTimer = setInterval(() => {
-        refreshAllData();
-      }, healthInterval);
-      // start poll request interval
+        refreshHealthData();
+      }, healthRefreshInterval);
+      statsTypeaheadTimer = setInterval(() => {
+        refreshTypeaheadData();
+      }, typeaheadRefreshInterval);
+      // start poll request interval for topology/statis
       refreshIntervalTimer = setInterval(() => {
         worker.send({
           type: 'poll',
@@ -996,7 +993,6 @@ function refreshStatsTypeaheadCache(topologyName) {
     (err, httpResponse, body) => {
       if (err) {
         console.error('Error fetching from query service:', err);
-        res.status(500).end();
         return;
       }
       console.log('Fetched stats_ta_cache for', topologyName);
@@ -2003,8 +1999,6 @@ app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
     res.status(404).end('No such topology\n');
     return;
   }
-  // DISABLED due to high cpu in sjc
-  // adjacencyMapsByName[topologyName],
   res.json({
     status: aggrStatusDumpsByName[topologyName],
     AdjMapAcuum: {}

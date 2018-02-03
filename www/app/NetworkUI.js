@@ -290,6 +290,7 @@ export default class NetworkUI extends React.Component {
               if (json.length != 1) {
                 return;
               }
+              // ensure we can decode the response
               Dispatcher.dispatch({
                 actionType: Actions.ANALYZER_REFRESHED,
                 analyzerTable: json[0]

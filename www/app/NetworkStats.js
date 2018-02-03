@@ -268,7 +268,10 @@ export default class NetworkStats extends React.Component {
               topologyName: this.props.networkConfig.topology.name,
               input: query
             };
-            fetch('/stats_ta/' + this.props.networkConfig.topology.name + '/' + query)
+            let statsTaRequest = new Request("/stats_ta/" + this.props.networkConfig.topology.name + '/' + query, {
+              credentials: "same-origin"
+            });
+            fetch(statsTaRequest)
               .then(resp => resp.json())
               .then(json => this.setState({
                 keyIsLoading: false,
