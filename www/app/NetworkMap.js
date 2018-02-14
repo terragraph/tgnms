@@ -359,7 +359,8 @@ export default class NetworkMap extends React.Component {
         link["alive_perc"] = nodeHealth.alive;
       }
 
-      if (this.state.linkOverlayData) {
+      if (typeof this.state.linkOverlayData == "object" &&
+          Object.keys(this.state.linkOverlayData).length > 0) {
         if (this.state.linkOverlayData.hasOwnProperty(link.name)) {
           link["overlay_a"] = this.state.linkOverlayData[link.name];
           link["overlay_z"] = this.state.linkOverlayData[link.name];
