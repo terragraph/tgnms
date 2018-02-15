@@ -67,7 +67,7 @@ export default class ReactDyGraph extends React.Component {
   }
 
   refreshData() {
-    if (!this.props.options.length || !this.props.options[0].key_ids.length) {
+    if (!this.props.options.key_ids.length) {
       this.setState({
         data: null,
         indicator: "NO_DATA"
@@ -117,7 +117,7 @@ export default class ReactDyGraph extends React.Component {
     }.bind(this);
     try {
       this.chartRequest.open("POST", "/multi_chart/", true);
-      this.chartRequest.send(JSON.stringify(this.props.options));
+      this.chartRequest.send(JSON.stringify([this.props.options]));
     } catch (e) {}
   }
 

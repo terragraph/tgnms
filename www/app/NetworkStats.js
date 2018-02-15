@@ -12,7 +12,6 @@ import moment from "moment";
 // layout components
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 import { SpringGrid } from "react-stonecutter";
-import { ScaleModal } from "boron";
 import { Menu, MenuItem, Token, AsyncTypeahead } from "react-bootstrap-typeahead";
 import "react-bootstrap-typeahead/css/Token.css";
 import "react-bootstrap-typeahead/css/Typeahead.css";
@@ -166,7 +165,7 @@ export default class NetworkStats extends React.Component {
     let retKeys = [];
     keyOptions.forEach(keyList => {
       // aggregate data for this key
-      retKeys.push({name: keyList[0].name, data: keyList});
+      retKeys.push({name: keyList[0].displayName, data: keyList});
     });
     return retKeys;
   }
@@ -234,7 +233,7 @@ export default class NetworkStats extends React.Component {
     let multiGraphs = this.state.keysSelected.map(keyIds => {
       let graphOpts = {
         type: "key_ids",
-        key_ids: keyIds.data.map(data => data.id),
+        key_ids: keyIds.data.map(data => data.keyId),
         data: keyIds.data,
         agg_type: this.state.graphAggType
       };

@@ -28,8 +28,7 @@ import NetworkUpgrade from "./components/upgrade/NetworkUpgrade.js";
 
 const VIEWS = {
   map: "Map",
-// TODO - disabled until this is modularized
-//  dashboards: "Dashboards",
+  dashboards: "Dashboards",
   stats: "Stats",
   eventlogs: "Event Logs",
   systemlogs: "System Logs",
@@ -255,16 +254,16 @@ export default class NetworkUI extends React.Component {
           response.json().then(
             function(json) {
               // merge data
-              if (json.length != 2) {
+              if (json.length != 1) {
                 return;
               }
               Dispatcher.dispatch({
                 actionType: Actions.HEALTH_REFRESHED,
-                nodeHealth: json[0],
-                linkHealth: json[1]
+                nodeHealth: {},//json[0],
+                linkHealth: json[0]
               });
             }.bind(this)
-          );
+          ).catch(error => {});
         }
       }.bind(this)
     );
@@ -285,7 +284,7 @@ export default class NetworkUI extends React.Component {
       function(response) {
         if (response.status == 200) {
           response.json().then(
-            function(json) {
+            json => {
               // merge data
               if (json.length != 1) {
                 return;
@@ -295,8 +294,8 @@ export default class NetworkUI extends React.Component {
                 actionType: Actions.ANALYZER_REFRESHED,
                 analyzerTable: json[0]
               });
-            }.bind(this)
-          );
+            }
+          ).catch(error => {});
         }
       }.bind(this)
     );
