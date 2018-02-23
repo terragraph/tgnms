@@ -30,11 +30,14 @@ class AggregatorService {
   // run eventbase
   void start();
   void timerCallback();
+  // fetch ruckus ap stats
+  void fetchRuckusStats();
   // requests topology from an api_service endpoint
   query::Topology fetchTopology();
   void buildQuery(
     std::unordered_map<std::string, double>& values,
-    const std::shared_ptr<StatsTypeAheadCache> cache);
+    const std::unordered_set<std::string>& popNodeNames,
+    const StatsTypeAheadCache* cache);
 
  private:
   folly::EventBase eb_;

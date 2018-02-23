@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
   for (const auto& keyData : result) {
     const auto& keyName = keyData.first.key;
     for (const auto& timeValue : keyData.second) {
-      std::cout << keyName << "\t" << timeValue.value << "\t"
+      std::cout << keyName << "\t" << std::to_string(timeValue.value) << "\t"
                 << timeValue.unixTime << std::endl;
     }
   }

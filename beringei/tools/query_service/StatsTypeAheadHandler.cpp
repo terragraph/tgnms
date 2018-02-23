@@ -102,6 +102,7 @@ void StatsTypeAheadHandler::onEOM() noexcept {
           ("nodeName", key.nodeName)
           ("siteName", key.siteName)
           ("node", key.node)
+        ("unit", (int)key.unit)
         );
       }
       // add to json

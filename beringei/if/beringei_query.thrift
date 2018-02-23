@@ -13,8 +13,12 @@ namespace cpp2 facebook.gorilla.query
 namespace py facebook.gorilla.beringei_query
 
 enum KeyUnit {
+  // no scaling
   NONE = 0,
-  BPS = 1,
+  // no scaling, range [0,100]
+  PERC = 1,
+  // assume data in bytes/sec, will convert to bits/sec
+  BYTES_PER_SEC,
 }
 
 struct KeyData {

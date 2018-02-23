@@ -17,7 +17,8 @@
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-DEFINE_int32(time_period, 30, "Beringei time period");
+DEFINE_int32(agg_time_period, 30, "Beringei time period");
+DEFINE_bool(write_agg_data, true, "Write aggregator data to beringei");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -60,12 +61,12 @@ AggregatorService::AggregatorService(
   timer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
     timerCallback();
   });
-  timer_->scheduleTimeout(FLAGS_time_period * 1000);
+  timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
 }
 
 void
 AggregatorService::timerCallback() {
-  timer_->scheduleTimeout(FLAGS_time_period * 1000);
+  timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
   // run some aggregation
   std::unordered_map<std::string /* key name */, double> aggValues;
   auto topology = fetchTopology();
@@ -75,19 +76,21 @@ AggregatorService::timerCallback() {
     int64_t timeStamp = folly::to<int64_t>(
        ceil(std::time(nullptr) / 30.0)) * 30;
     // pop traffic
-    std::vector<query::Node> popNodes;
+    std::unordered_set<std::string> popNodes;
     // nodes up + down
     int onlineNodes = 0;
     for (const auto& node : topology.nodes) {
       onlineNodes += (node.status != query::NodeStatusType::OFFLINE);
       if (node.pop_node) {
-        popNodes.push_back(node);
-      } 
+        popNodes.insert(node.name);
+      }
+      // for each pop, sum all terra links
     }
     aggValues["total_nodes"] = topology.nodes.size();
     aggValues["online_nodes"] = onlineNodes;
     aggValues["online_nodes_perc"] = (double)onlineNodes / topology.nodes.size() * 100.0;
     aggValues["pop_nodes"] = popNodes.size();
+
     // (wireless) links up + down
     int wirelessLinks = 0;
     int onlineLinks = 0;
@@ -102,10 +105,6 @@ AggregatorService::timerCallback() {
     aggValues["online_wireless_links"] = onlineLinks;
     aggValues["online_wireless_links_perc"] = (double)onlineLinks / wirelessLinks * 100.0;
     // report metrics somewhere? TBD
-    for (const auto& metric : aggValues) {
-      LOG(INFO) << "Agg: " << metric.first << " = " << metric.second
-                << ", ts: " << timeStamp;
-    }
     LOG(INFO) << "--------------------------------------";
     std::vector<DataPoint> bDataPoints;
     // query metric data from beringei
@@ -116,11 +115,16 @@ AggregatorService::timerCallback() {
         LOG(INFO) << "Cache found for: " << topology.name;
         // fetch back the metrics we care about (PER, MCS?)
         // and average the values
-        buildQuery(aggValues, taCacheIt->second);
+        buildQuery(aggValues, popNodes, &taCacheIt->second);
+        for (const auto& metric : aggValues) {
+          LOG(INFO) << "Agg: " << metric.first << " = "
+                    << std::to_string(metric.second)
+                    << ", ts: " << timeStamp;
+        }
         // find metrics, update beringei
         for (const auto& metric : aggValues) {
           std::vector<query::KeyData> keyData =
-            taCacheIt->second->getKeyData(metric.first);
+            taCacheIt->second.getKeyData(metric.first);
           if (keyData.size() != 1) {
             LOG(INFO) << "Metric not found: " << metric.first;
             continue;
@@ -138,19 +142,21 @@ AggregatorService::timerCallback() {
           bDataPoint.value = bTimePair;
           bDataPoints.push_back(bDataPoint);
         }
-        folly::EventBase eb;
-        eb.runInLoop([this, &bDataPoints]() mutable {
-          auto pushedPoints = beringeiWriteClient_->putDataPoints(bDataPoints);
-          if (!pushedPoints) {
-            LOG(ERROR) << "Failed to perform the put!";
-          }
-        });
-        std::thread tEb([&eb]() { eb.loop(); });
-        tEb.join();
-        LOG(INFO) << "Data-points written";
-      } else {
-        LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
       }
+    }
+    if (FLAGS_write_agg_data) {
+      folly::EventBase eb;
+      eb.runInLoop([this, &bDataPoints]() mutable {
+        auto pushedPoints = beringeiWriteClient_->putDataPoints(bDataPoints);
+        if (!pushedPoints) {
+          LOG(ERROR) << "Failed to perform the put!";
+        }
+      });
+      std::thread tEb([&eb]() { eb.loop(); });
+      tEb.join();
+      LOG(INFO) << "Data-points written";
+    } else {
+      LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
     }
     // push metrics into beringei
   } else {
@@ -161,7 +167,8 @@ AggregatorService::timerCallback() {
 void
 AggregatorService::buildQuery(
     std::unordered_map<std::string, double>& values,
-    const std::shared_ptr<StatsTypeAheadCache> cache) {
+    const std::unordered_set<std::string>& popNodeNames,
+    const StatsTypeAheadCache* cache) {
   // build queries
   query::QueryRequest queryRequest;
   std::vector<query::Query> queries;
@@ -184,25 +191,105 @@ AggregatorService::buildQuery(
     query.__isset.min_ago = true;
     queries.push_back(query);
   }
+  // pop-specific keys
+  std::vector<std::string> popKeyNames = {"tx_bytes", "rx_bytes"};
+  keyNames.insert(keyNames.end(), popKeyNames.begin(), popKeyNames.end());
+  for (const auto keyName : popKeyNames) {
+    auto keyData = cache->getKeyData(keyName);
+    query::Query query;
+    query.type = "latest";
+    std::vector<int64_t> keyIds;
+    std::vector<query::KeyData> keyDataRenamed;
+    // restrict to pop nodes
+    for (const auto& key : keyData) {
+      if (!popNodeNames.count(key.nodeName)) {
+        continue;
+      }
+      LOG(INFO) << "Key: " << key.key << ", id: " << key.keyId
+                << ", node: " << key.node << ", name: " << key.nodeName
+                << ", unit: " << (int)key.unit;
+      keyIds.push_back(key.keyId);
+      auto newKeyData = key;
+      newKeyData.displayName = key.linkName;
+      keyDataRenamed.push_back(newKeyData);
+    }
+    query.key_ids = keyIds;
+    query.data = keyDataRenamed;
+    query.min_ago = 5;
+    query.__isset.min_ago = true;
+    queries.push_back(query);
+  }
   // fetch the last few minutes to receive the latest data point
   queryRequest.queries = queries;
   BeringeiData dataFetcher(configurationAdapter_, beringeiReadClient_, queryRequest);
   folly::dynamic results = dataFetcher.process();
   int queryIdx = 0;
+  // iterate over the results - the displayName is the key
   for (const auto& query : results) {
     double sum = 0;
     int items = 0;
     for (const auto& pair : query.items()) {
+      LOG(INFO) << "Name: " << pair.first
+                << ", value: " << pair.second.asDouble();
       sum += pair.second.asDouble();
       items++;
     }
     double avg = sum / items;
-    std::string keyName = keyNames[queryIdx] + ".avg";
-    values[keyName] = avg;
+    // prefix keys with pop
+    std::string keyNameSum = "pop." + keyNames[queryIdx];
+    values[keyNameSum] = sum;
     queryIdx++;
   }
 }
 
+void
+AggregatorService::fetchRuckusStats() {
+  // construct login request
+  folly::dynamic loginObj = folly::dynamic::object("username", "admin")("password", "Terra@171");
+  try {
+    CURL* curl;
+    CURLcode res;
+    curl = curl_easy_init();
+    if (!curl) {
+      throw std::runtime_error("Unable to initialize CURL");
+    }
+    std::string postData(folly::toJson(loginObj));
+    // we have to forward the v4 address right now since no local v6
+    std::string endpoint("https://[2001:470:f0:3e8::100\]:7443/api/public/v5_0/session");
+    // we can't verify the peer with our current image/lack of certs
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postData.length());
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15000 /* 1 second */);
+
+    // read data from request
+    struct HTTPDataStruct dataChunk;
+    dataChunk.data = (char*)malloc(1);
+    dataChunk.size = 0;
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curlWriteCb);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&dataChunk);
+    res = curl_easy_perform(curl);
+    if (res == CURLE_OK) {
+      long response_code;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+      // response code 204 is a success
+    }
+    // cleanup
+    curl_easy_cleanup(curl);
+    LOG(INFO) << "Login service: " << dataChunk.data;
+    free(dataChunk.data);
+    if (res != CURLE_OK) {
+      LOG(WARNING) << "CURL error for endpoint " << endpoint << ": "
+                   << curl_easy_strerror(res);
+    }
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << "CURL Error: " << ex.what();
+  }
+}
 query::Topology
 AggregatorService::fetchTopology() {
   query::Topology topology;
