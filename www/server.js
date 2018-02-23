@@ -1020,7 +1020,7 @@ function refreshNetworkHealth (topologyName) {
   let startTime = new Date();
   let query = {
     topologyName: topologyName,
-    nodeQueries: [], //nodeMetrics,
+    nodeQueries: nodeMetrics,
     linkQueries: linkMetrics,
   };
   let chartUrl = BERINGEI_QUERY_URL + '/table_query';

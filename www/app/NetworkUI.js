@@ -254,13 +254,13 @@ export default class NetworkUI extends React.Component {
           response.json().then(
             function(json) {
               // merge data
-              if (json.length != 1) {
+              if (json.length != 2) {
                 return;
               }
               Dispatcher.dispatch({
                 actionType: Actions.HEALTH_REFRESHED,
-                nodeHealth: {},//json[0],
-                linkHealth: json[0]
+                nodeHealth: json[0],
+                linkHealth: json[1]
               });
             }.bind(this)
           ).catch(error => {});

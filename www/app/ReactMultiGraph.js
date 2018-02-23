@@ -29,7 +29,7 @@ export default class ReactMultiGraph extends React.Component {
   componentDidMount() {
     this.refreshData();
     // schedule fixed interval refresh
-    this.timer = setInterval(this.refreshData.bind(this), 10000);
+    this.timer = setInterval(this.refreshData.bind(this), 30000);
   }
 
   componentWillUnmount() {

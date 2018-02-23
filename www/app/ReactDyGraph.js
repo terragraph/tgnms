@@ -160,6 +160,7 @@ export default class ReactDyGraph extends React.Component {
           highlightCircleSize: 2,
           strokeWidth: 1,
           strokeBorderWidth: 1,
+          connectSeparatedPoints: true,
           highlightSeriesOpts: {
             strokeWidth: 3,
             strokeBorderWidth: 1,
