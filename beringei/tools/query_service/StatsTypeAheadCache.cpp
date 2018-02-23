@@ -103,6 +103,10 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology &request) {
       keyData->node = node->mac;
       keyData->nodeName = node->node;
       keyData->siteName = node->site;
+      // update units
+      if (keyName.endsWith("_bytes")) {
+        keyData->unit = query::KeyUnit::BYTES_PER_SEC;
+      }
       metricIdMetadata_[key.first] = keyData;
       // index the key name to its db id
       keyToMetricIds_[key.second].push_back(key.first);
@@ -119,6 +123,7 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology &request) {
     auto zNode = nodesByName_[link.z_node_name];
     for (auto &metricName : linkMetricKeyNames_) {
       folly::dynamic linkMetrics = getLinkMetrics(metricName, aNode, zNode);
+      
       for (auto &key : linkMetrics["keys"]) {
         auto node = SimpleJSONSerializer::deserialize<query::Node>(
             key["node"].asString());
@@ -142,6 +147,11 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology &request) {
         keyData->linkName = link.name;
         keyData->linkTitleAppend = key["titleAppend"].asString();
         keyData->displayName = metricName;
+        // update the unit
+        if (key.count("unit")) {
+          query::KeyUnit unit = (query::KeyUnit)(key["unit"].asInt());
+          keyData->unit = unit;
+        }
       }
     }
   }
@@ -159,10 +169,12 @@ folly::dynamic StatsTypeAheadCache::createLinkMetric(
       folly::dynamic::array(
           folly::dynamic::object(
               "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
+              "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + zNode.mac_addr + "." +
                              keyName)("titleAppend", " (A)"),
           folly::dynamic::object(
               "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
+              "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + aNode.mac_addr + "." +
                              keyName)("titleAppend", " (Z)")));
 }
@@ -179,10 +191,12 @@ folly::dynamic StatsTypeAheadCache::createLinkMetricAsymmetric(
       folly::dynamic::array(
           folly::dynamic::object(
               "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
+              "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + zNode.mac_addr + "." +
                              keyNameA)("titleAppend", " (A)"),
           folly::dynamic::object(
               "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
+              "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + aNode.mac_addr + "." +
                              keyNameZ)("titleAppend", " (Z)")));
 }
@@ -234,10 +248,10 @@ StatsTypeAheadCache::getLinkMetrics(const std::string &metricName,
                             "staPkt.txFail");
   } else if (metricName == "tx_bytes") {
     return createLinkMetric(aNode, zNode, "TX bps", "Transferred bits/second",
-                            "tx_bytes", query::KeyUnit::BPS, "link");
+                            "tx_bytes", query::KeyUnit::BYTES_PER_SEC, "link");
   } else if (metricName == "rx_bytes") {
     return createLinkMetric(aNode, zNode, "RX bps", "Received bits/second",
-                            "rx_bytes", query::KeyUnit::BPS, "link");
+                            "rx_bytes", query::KeyUnit::BYTES_PER_SEC, "link");
   } else if (metricName == "tx_errors") {
     return createLinkMetric(aNode, zNode, "TX errors", "Transmit errors/second",
                             "tx_errors", query::KeyUnit::NONE, "link");
@@ -273,7 +287,7 @@ StatsTypeAheadCache::getLinkMetrics(const std::string &metricName,
                             "tx_collisions", query::KeyUnit::NONE, "link");
   } else if (metricName == "speed") {
     return createLinkMetric(aNode, zNode, "Speed", "Speed (mbps)", "speed",
-                            query::KeyUnit::BPS, "link");
+                            query::KeyUnit::BYTES_PER_SEC, "link");
   } else if (metricName == "link_status") {
     // TODO - reported by controller (zero-mac)
     return folly::dynamic::object("title", "Link status")(

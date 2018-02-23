@@ -306,7 +306,11 @@ folly::dynamic BeringeiData::latest() {
   for (const auto &keyTimeSeries : beringeiTimeSeries_) {
     const std::string &keyName = keyTimeSeries.first.key;
     if (keyTimeSeries.second.size()) {
-      response[query_.data[keyIndex].displayName] =
+      const std::string& displayName = query_.data[keyIndex].displayName;
+      if (response.count(displayName)) {
+        LOG(WARNING) << "Over-writing response for " << displayName;
+      }
+      response[displayName] =
         keyTimeSeries.second.back().value;
     }
     keyIndex++;
@@ -338,25 +342,40 @@ folly::dynamic BeringeiData::transform() {
     dataPointAggCount = std::ceil((double)timeBucketCount / MAX_DATA_POINTS);
   }
   int condensedBucketCount = std::ceil((double)timeBucketCount / dataPointAggCount);
-  int countPerBucket[keyCount][condensedBucketCount + 1]{};
+  int countPerBucket[keyCount][condensedBucketCount]{};
   // allocate condensed time series, sum series (by key) for later
   // sorting, and sum of time bucket
-  double cTimeSeries[keyCount][condensedBucketCount + 1]{};
+  double cTimeSeries[keyCount][condensedBucketCount]{};
   double sumSeries[keyCount]{};
   // sum of all known data points in each bucket
-  double sumTimeBucket[condensedBucketCount + 1]{};
+  double sumTimeBucket[condensedBucketCount]{};
   // sum of the average of known data points in each bucket
-  double sumOfAvgTimeBucket[condensedBucketCount + 1]{};
-  int countTimeBucket[condensedBucketCount + 1]{};
+  double sumOfAvgTimeBucket[condensedBucketCount]{};
+  int countTimeBucket[condensedBucketCount]{};
   int keyIndex = 0;
   // store the latest value for each key
   for (const auto &keyTimeSeries : beringeiTimeSeries_) {
     const std::string &keyName = keyTimeSeries.first.key;
+//    VLOG(1) << "Key: " << keyName << ", index: " << keyIndex;
     // fetch the last value, assume 0 for not-found
     for (const auto &timePair : keyTimeSeries.second) {
       int timeBucketId = (timePair.unixTime - startTime_) / 30;
       // log # of dps per bucket for DP smoothing
       int condensedBucketId = timeBucketId > 0 ? (timeBucketId / dataPointAggCount) : 0;
+      if (condensedBucketId == condensedBucketCount) {
+        condensedBucketId = condensedBucketCount - 1;
+//        LOG(INFO) << "Rolling back condensedBucketId -> " << condensedBucketId
+//                  << ", keyIndex: " << keyIndex;
+      }
+//      VLOG(1) << "\t(" << timePair.unixTime << ") = " << std::to_string(timePair.value);
+      // drop obviously-bad data?
+/*      if (timePair.value > 100000000000) {
+        LOG(INFO) << "Obviously bad data...dropping to test. keyName: "
+                  << keyName << ", index: " << keyIndex
+                  << ", time: " << timePair.unixTime
+                  << ", value: " << timePair.value;
+        continue;
+      }*/
       int oldIndex = (keyIndex * timeBucketCount + timeBucketId);
       int newIndex = (keyIndex * timeBucketCount + (condensedBucketId * dataPointAggCount) + countPerBucket[keyIndex][condensedBucketId]);
       if (isnan(timePair.value)) {
@@ -381,6 +400,11 @@ folly::dynamic BeringeiData::transform() {
     int startBucketId = 0;
     while (startBucketId < timeBucketCount) {
       // number of data-points in condensed bucket (ignoring missing)
+      if (timeBucketId == condensedBucketCount) {
+        timeBucketId = condensedBucketCount - 1;
+//        LOG(INFO) << "Rolling back timeBucketId -> " << timeBucketId
+//                  << ", key (i): " << i;
+      }
       int bucketDpCount = countPerBucket[i][timeBucketId];
       double sum = std::numeric_limits<double>::max();
       double avg = std::numeric_limits<double>::max();
