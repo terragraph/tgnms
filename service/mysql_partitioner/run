@@ -59,21 +59,32 @@ then
     mysql cxl -e"ALTER TABLE alerts DROP PARTITION ${partition}"
   done
 fi
+which lz4 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  # compress log files older than one hour
+  find $LOG_FILE_PATH -type f -name '*.log' -mmin +60 -print|xargs -P 4 -i lz4 --rm {} {}.lz4
+else
+  echo "ERROR: Unable to locate lz4 binary, unable to compress logs"
+fi
 
 # Clean old log files
-DATA_USED_GB=$(printf %.0f $(find /home/nms/data/ -type f -printf '%k\n'|awk '{SUM+=$1} END {print SUM/1000000}'))
+DATA_USED_GB=$(printf %.0f $(find $LOG_FILE_PATH -type f -printf '%k\n'|awk '{SUM+=$1} END {print SUM/1000000}'))
 if [ "$DATA_USED_GB" -gt "$MAX_USED_GB" ]; then
   # determine how much to delete
   GB_TO_DELETE=$(expr $DATA_USED_GB - $MAX_USED_GB)
   KB_TO_DELETE=$(expr $GB_TO_DELETE \* 1000000)
   echo "We need to delete ${GB_TO_DELETE}GB"
   # delete oldest files until we're below the threshold
+  TMP_FILE=$(mktemp)
+  find $LOG_FILE_PATH -type f -printf '%T+ %k %p\n'|sort -n > $TMP_FILE
   DELETE_TOTAL_KB=0
   while [ "$DELETE_TOTAL_KB" -lt "$KB_TO_DELETE" ]; do
-    TOP_FILE=$(find $LOG_FILE_PATH -type f -printf '%T+ %k %p\n'|sort -n|head -1)
-    TOP_FILE_NAME=$(echo $TOP_FILE|awk '{print $3}')
-    TOP_FILE_KB=$(echo $TOP_FILE|awk '{print $2}')
+    # delete 100 log files at a time
+    TOP_FILE_NAME=$(head -1 $TOP_FILE|awk '{print $3}')
+    TOP_FILE_KB=$(head -1 $TOP_FILE|awk '{print $2}')
     DELETE_TOTAL_KB=$(expr $DELETE_TOTAL_KB + $TOP_FILE_KB)
+    # delete entry
+    sed -i '1d' $TMP_FILE
     echo -e "\tDeleting ${TOP_FILE_NAME} (${TOP_FILE_KB}KB) - Total (${DELETE_TOTAL_KB}/${KB_TO_DELETE}KB)"
     rm -f $TOP_FILE_NAME
   done
