@@ -59,6 +59,16 @@ cd zeromq-4.2.1
 ./configure --prefix=/usr && make && make install
 popd
 ```
+#### Install LZ4 (for log compression)
+[LZ4](https://github.com/lz4/lz4)
+```
+pushd ~nms
+wget https://github.com/lz4/lz4/archive/v1.8.1.2.tar.gz
+tar -xf v1.8.1.2.tar.gz
+cd lz4-1.8.1.2
+make && make install
+popd
+```
 ### Install NodeJS
 [NodeJS instructions](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora)
 Commands:

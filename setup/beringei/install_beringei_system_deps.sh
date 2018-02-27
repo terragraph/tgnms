@@ -3,7 +3,7 @@ yum install -y git vim libtool automake \
         openssl-devel libevent-devel \
         python-devel flex flex-devel bison bison-devel snappy \
         snappy-devel cyrus-sasl-devel gperf libcap-devel wget \
-	unzip
+        unzip libcurl-devel
 # autoconf + archive
 if [ ! -f "autoconf-2.69.tar.xz" ]; then
 	wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz
