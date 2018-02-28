@@ -168,6 +168,33 @@ export default class NetworkDashboards extends React.Component {
     this.refs.stats_ta.show();
   }
 
+  editGraphName(index) {
+    let dashboards = this.state.dashboards;
+    let dashboard = dashboards[this.state.selectedDashboard];
+    let graph = dashboard.graphs[index];
+    swal(
+      {
+        title: "New name",
+        type: "input",
+        inputValue: graph.name,
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Rename",
+        closeOnConfirm: false
+      },
+      function(value) {
+        let dashboards = this.state.dashboards;
+        // update name
+        dashboards[this.state.selectedDashboard].graphs[index].name = value;
+        this.setState({
+          dashboards: dashboards,
+        });
+        swal("Renamed", "The selected dashboard was renamed.", "success");
+        this.saveDashboards();
+      }.bind(this)
+    );
+  }
+
   graphEditClose(graph) {
     this.refs.stats_ta.hide();
     let dashboards = this.state.dashboards;
@@ -319,6 +346,13 @@ export default class NetworkDashboards extends React.Component {
                   onClick={this.editGraph.bind(this, index)}
                 >
                   Edit Graph
+                </button>
+                <button
+                  style={{ width: "100px", height: "34px", float: "right" }}
+                  className="graph-button"
+                  onClick={this.editGraphName.bind(this, index)}
+                >
+                  Edit Name
                 </button>
                 <button
                   style={{ width: "100px", height: "34px", float: "right" }}

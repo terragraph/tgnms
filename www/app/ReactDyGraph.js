@@ -8,7 +8,8 @@ export default class ReactDyGraph extends React.Component {
     this.state = {
       data: null,
       indicator: "IDLE",
-      dataCounter: 0
+      dataCounter: 0,
+      unit: 0
     };
     this.chartRequest = undefined;
   }
@@ -100,10 +101,16 @@ export default class ReactDyGraph extends React.Component {
       for (; i < graphData.points.length; i++) {
         graphData.points[i][0] = new Date(graphData.points[i][0]);
       }
+      // get the units for all requested keys
+      let lastUnit = 0;
+      this.props.options.data.forEach(data => {
+        lastUnit = data.unit ? data.unit : 0;
+      });
       this.setState({
         data: graphData,
         indicator: jsonResp ? "LOADED" : "NO_DATA",
-        dataCounter: this.state.dataCounter + 1
+        dataCounter: this.state.dataCounter + 1,
+        unit: lastUnit
       });
     }.bind(this);
     // handle failed requests
@@ -119,6 +126,18 @@ export default class ReactDyGraph extends React.Component {
       this.chartRequest.open("POST", "/multi_chart/", true);
       this.chartRequest.send(JSON.stringify([this.props.options]));
     } catch (e) {}
+  }
+
+  axisFormatter(value) {
+    if (this.state.unit == 2) {
+      // format mbps
+      let valueBps = value * 8;
+      if (valueBps > 1000000000 /* 1 gbit */) {
+        return Math.round(valueBps / 1000000000 * 100) / 100 + ' gbit';
+      }
+      return Math.round(valueBps / 1000000 * 100) / 100 + ' mbit';
+    }
+    return value;
   }
 
   legendFormatter(data) {
@@ -167,6 +186,12 @@ export default class ReactDyGraph extends React.Component {
             highlightCircleSize: 5
           },
           labelsDiv: this.refs[this.props.divkey + "_ledend"],
+          axes: {
+            y: {
+              axisLabelFormatter: this.axisFormatter.bind(this),
+              valueFormatter: this.axisFormatter.bind(this)
+            }
+          },
           legendFormatter: this.legendFormatter
         }
       );
