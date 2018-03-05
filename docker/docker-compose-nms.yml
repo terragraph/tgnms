@@ -53,3 +53,13 @@ services:
     depends_on:
       - db
     command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei && sleep 30 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
+  sshd:
+    build:
+      context: .
+      dockerfile: Dockerfile.sshd
+    image: terragraph/sshd:latest
+    volumes:
+      - ./sshd:/etc/ssh
+    command: ["/bin/sh", "-c", "chown -R root:root /etc/ssh && chmod 700 /etc/ssh && chmod 600 /etc/ssh/authorized_keys && chmod 600 /etc/ssh/ssh_host_ed25519_key && ls -lah /etc/ssh && /usr/sbin/sshd -D -f /etc/ssh/sshd_config -h /etc/ssh/ssh_host_ed25519_key"]
+    ports:
+      - "2222:22"
