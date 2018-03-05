@@ -37,7 +37,7 @@ namespace gorilla {
 
 StatsTypeAheadHandler::StatsTypeAheadHandler(
     std::shared_ptr<MySqlClient> mySqlClient,
-    std::shared_ptr<TACacheMap> typeaheadCache)
+    const TACacheMap& typeaheadCache)
     : RequestHandler(), mySqlClient_(mySqlClient),
       typeaheadCache_(typeaheadCache) {}
 
@@ -72,36 +72,41 @@ void StatsTypeAheadHandler::onEOM() noexcept {
   }
   LOG(INFO) << "Stats type ahead request for \"" << request.input
             << "\" on \"" << request.topologyName << "\"";
-  // check for cache client
-  auto taIt = typeaheadCache_->find(request.topologyName);
-  if (taIt == typeaheadCache_->cend()) {
-    LOG(ERROR) << "No type-ahead cache for \"" << request.topologyName << "\"";
-    ResponseBuilder(downstream_)
-        .status(500, "OK")
-        .header("Content-Type", "application/json")
-        .body("No type-ahead cache found")
-        .sendWithEOM();
-    return;
-  }
-  auto taCache = taIt->second;
-  auto retMetrics = taCache.searchMetrics(request.input);
   folly::dynamic orderedMetricList = folly::dynamic::array;
-  for (const auto& metricList : retMetrics) {
-    folly::dynamic keyList = folly::dynamic::array;
-    for (const auto& key : metricList) {
-      VLOG(1) << "\t\tName: " << key.displayName << ", key: " << key.key
-              << ", node: " << key.nodeName;
-      keyList.push_back(folly::dynamic::object
-        ("displayName", key.displayName)
-        ("key", key.key)
-        ("keyId", key.keyId)
-        ("nodeName", key.nodeName)
-        ("siteName", key.siteName)
-        ("node", key.node)
-      );
+  {
+    // check for cache client
+    auto locked = typeaheadCache_.rlock();
+    auto taIt = locked->find(request.topologyName);
+    if (taIt == locked->cend()) {
+      LOG(ERROR) << "No type-ahead cache for \"" << request.topologyName << "\"";
+      ResponseBuilder(downstream_)
+          .status(500, "OK")
+          .header("Content-Type", "application/json")
+          .body("No type-ahead cache found")
+          .sendWithEOM();
+      return;
     }
-    // add to json
-    orderedMetricList.push_back(keyList);
+    // this loop can be pretty lengthy so holding a lock the whole time isn't ideal
+    auto taCache = taIt->second;
+    auto retMetrics = taCache->searchMetrics(request.input);
+    locked.unlock();
+    for (const auto& metricList : retMetrics) {
+      folly::dynamic keyList = folly::dynamic::array;
+      for (const auto& key : metricList) {
+        VLOG(1) << "\t\tName: " << key.displayName << ", key: " << key.key
+                << ", node: " << key.nodeName;
+        keyList.push_back(folly::dynamic::object
+          ("displayName", key.displayName)
+          ("key", key.key)
+          ("keyId", key.keyId)
+          ("nodeName", key.nodeName)
+          ("siteName", key.siteName)
+          ("node", key.node)
+        );
+      }
+      // add to json
+      orderedMetricList.push_back(keyList);
+    }
   }
   // build type-ahead list
   ResponseBuilder(downstream_)

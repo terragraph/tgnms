@@ -48,7 +48,7 @@ namespace facebook {
 namespace gorilla {
 
 AggregatorService::AggregatorService(
-  std::shared_ptr<TACacheMap> typeaheadCache,
+  const TACacheMap& typeaheadCache,
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
   std::shared_ptr<BeringeiClient> beringeiReadClient,
   std::shared_ptr<BeringeiClient> beringeiWriteClient)
@@ -109,45 +109,48 @@ AggregatorService::timerCallback() {
     LOG(INFO) << "--------------------------------------";
     std::vector<DataPoint> bDataPoints;
     // query metric data from beringei
-    auto taCacheIt = typeaheadCache_->find(topology.name);
-    if (taCacheIt != typeaheadCache_->cend()) {
-      LOG(INFO) << "Cache found for: " << topology.name;
-      // fetch back the metrics we care about (PER, MCS?)
-      // and average the values
-      buildQuery(aggValues, &taCacheIt->second);
-      // find metrics, update beringei
-      for (const auto& metric : aggValues) {
-        std::vector<query::KeyData> keyData =
-          taCacheIt->second.getKeyData(metric.first);
-        if (keyData.size() != 1) {
-          LOG(INFO) << "Metric not found: " << metric.first;
-          continue;
-        }
-        int keyId = keyData.front().keyId;
-        // create beringei data-point
-        DataPoint bDataPoint;
-        TimeValuePair bTimePair;
-        Key bKey;
+    {
+      auto locked = typeaheadCache_.rlock();
+      auto taCacheIt = locked->find(topology.name);
+      if (taCacheIt != locked->cend()) {
+        LOG(INFO) << "Cache found for: " << topology.name;
+        // fetch back the metrics we care about (PER, MCS?)
+        // and average the values
+        buildQuery(aggValues, taCacheIt->second);
+        // find metrics, update beringei
+        for (const auto& metric : aggValues) {
+          std::vector<query::KeyData> keyData =
+            taCacheIt->second->getKeyData(metric.first);
+          if (keyData.size() != 1) {
+            LOG(INFO) << "Metric not found: " << metric.first;
+            continue;
+          }
+          int keyId = keyData.front().keyId;
+          // create beringei data-point
+          DataPoint bDataPoint;
+          TimeValuePair bTimePair;
+          Key bKey;
 
-        bKey.key = std::to_string(keyId);
-        bDataPoint.key = bKey;
-        bTimePair.unixTime = timeStamp;
-        bTimePair.value = metric.second;
-        bDataPoint.value = bTimePair;
-        bDataPoints.push_back(bDataPoint);
-      }
-      folly::EventBase eb;
-      eb.runInLoop([this, &bDataPoints]() mutable {
-        auto pushedPoints = beringeiWriteClient_->putDataPoints(bDataPoints);
-        if (!pushedPoints) {
-          LOG(ERROR) << "Failed to perform the put!";
+          bKey.key = std::to_string(keyId);
+          bDataPoint.key = bKey;
+          bTimePair.unixTime = timeStamp;
+          bTimePair.value = metric.second;
+          bDataPoint.value = bTimePair;
+          bDataPoints.push_back(bDataPoint);
         }
-      });
-      std::thread tEb([&eb]() { eb.loop(); });
-      tEb.join();
-      LOG(INFO) << "Data-points written";
-    } else {
-      LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
+        folly::EventBase eb;
+        eb.runInLoop([this, &bDataPoints]() mutable {
+          auto pushedPoints = beringeiWriteClient_->putDataPoints(bDataPoints);
+          if (!pushedPoints) {
+            LOG(ERROR) << "Failed to perform the put!";
+          }
+        });
+        std::thread tEb([&eb]() { eb.loop(); });
+        tEb.join();
+        LOG(INFO) << "Data-points written";
+      } else {
+        LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
+      }
     }
     // push metrics into beringei
   } else {
@@ -158,7 +161,7 @@ AggregatorService::timerCallback() {
 void
 AggregatorService::buildQuery(
     std::unordered_map<std::string, double>& values,
-    const StatsTypeAheadCache* cache) {
+    const std::shared_ptr<StatsTypeAheadCache> cache) {
   // build queries
   query::QueryRequest queryRequest;
   std::vector<query::Query> queries;

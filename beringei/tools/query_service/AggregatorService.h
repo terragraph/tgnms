@@ -22,7 +22,7 @@ namespace gorilla {
 class AggregatorService {
  public:
   explicit AggregatorService(
-    std::shared_ptr<TACacheMap> typeaheadCache,
+    const TACacheMap& typeaheadCache,
     std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
     std::shared_ptr<BeringeiClient> beringeiReadClient,
     std::shared_ptr<BeringeiClient> beringeiWriteClient);
@@ -34,13 +34,13 @@ class AggregatorService {
   query::Topology fetchTopology();
   void buildQuery(
     std::unordered_map<std::string, double>& values,
-    const StatsTypeAheadCache* cache);
+    const std::shared_ptr<StatsTypeAheadCache> cache);
 
  private:
   folly::EventBase eb_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   // from queryservicefactory
-  std::shared_ptr<TACacheMap> typeaheadCache_;
+  const TACacheMap typeaheadCache_;
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
   std::shared_ptr<BeringeiClient> beringeiReadClient_;
   std::shared_ptr<BeringeiClient> beringeiWriteClient_;

@@ -18,6 +18,7 @@
 #include <folly/init/Init.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <folly/Memory.h>
+#include <folly/Synchronized.h>
 #include <gflags/gflags.h>
 #include <proxygen/httpserver/HTTPServer.h>
 #include <proxygen/httpserver/RequestHandlerFactory.h>
@@ -56,8 +57,7 @@ int main(int argc, char *argv[]) {
   auto configurationAdapter = std::make_shared<BeringeiConfigurationAdapter>();
   auto mySqlClient = std::make_shared<MySqlClient>();
   mySqlClient->refreshAll();
-  auto typeaheadCache =
-      std::make_shared<TACacheMap>();
+  TACacheMap typeaheadCache;
   auto beringeiReadClient = std::make_shared<BeringeiClient>(
       configurationAdapter, 1, BeringeiClient::kNoWriterThreads);
   auto beringeiWriteClient = std::make_shared<BeringeiClient>(

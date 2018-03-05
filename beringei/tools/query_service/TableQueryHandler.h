@@ -31,7 +31,7 @@ class TableQueryHandler : public proxygen::RequestHandler {
   explicit TableQueryHandler(
       std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
       std::shared_ptr<BeringeiClient> beringeiClient,
-      std::shared_ptr<TACacheMap> typeaheadCache);
+      const TACacheMap& typeaheadCache);
   void
   onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
 
@@ -49,7 +49,7 @@ class TableQueryHandler : public proxygen::RequestHandler {
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
   std::shared_ptr<BeringeiClient> beringeiClient_;
   std::unique_ptr<folly::IOBuf> body_;
-  std::shared_ptr<TACacheMap> typeaheadCache_;
+  const TACacheMap typeaheadCache_;
 };
 }
 } // facebook::gorilla

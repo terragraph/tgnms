@@ -11,9 +11,9 @@
 
 #include "MySqlClient.h"
 
-#include <folly/concurrency/ConcurrentHashMap.h>
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
+#include <folly/Synchronized.h>
 #include <folly/Memory.h>
 
 #include "beringei/client/BeringeiClient.h"
@@ -82,7 +82,7 @@ private:
   std::shared_ptr<MySqlClient> mySqlClient_;
 };
 
-using TACacheMap = folly::ConcurrentHashMap<std::string, StatsTypeAheadCache>;
+using TACacheMap = folly::Synchronized<std::unordered_map<std::string, std::shared_ptr<StatsTypeAheadCache>>>;
 
 }
 } // facebook::gorilla
