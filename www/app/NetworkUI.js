@@ -234,6 +234,9 @@ export default class NetworkUI extends React.Component {
           pendingTopology: payload.topology
         });
         break;
+      case Actions.SCAN_FETCH:
+        this.updateScanResults(this.state.networkName, payload.mysqlfilter);
+        break;
     }
   }
 
@@ -296,6 +299,38 @@ export default class NetworkUI extends React.Component {
               });
             }
           ).catch(error => {});
+        }
+      }.bind(this)
+    );
+  }
+
+  // see scan_results in server.js
+  updateScanResults(networkName, filter) {
+    let lastAttemptAgo = new Date() / 1000 - this.lastAnalyzerRequestTime;
+    let scanResultsFetch = [];
+    // if a nodeName is given, use it, otherwise use the topology name
+    scanResultsFetch = new Request("/scan_results?topology=" + networkName +
+      '&filter[row_count]=' + filter.row_count +
+      '&filter[offset]=' + filter.offset +
+      '&filter[nodeFilter0]=' + filter.nodeFilter[0] +
+      '&filter[nodeFilter1]=' + filter.nodeFilter[1],
+      {
+        credentials: "same-origin"
+      });
+
+    // update last request time
+    this.lastScanRequestTime = new Date() / 1000;
+    fetch(scanResultsFetch).then(
+      function(response) {
+        if (response.status == 200) {
+          response.json().then(
+            function(json) {
+              Dispatcher.dispatch({
+                actionType: Actions.SCAN_REFRESHED,
+                scanResults: json
+              });
+            }.bind(this)
+          );
         }
       }.bind(this)
     );

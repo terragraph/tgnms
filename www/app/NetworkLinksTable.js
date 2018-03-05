@@ -105,7 +105,7 @@ export default class NetworkLinksTable extends React.Component {
           analyzerTable: payload.analyzerTable
         });
         break;
-    }
+      }
   }
 
   linkSortFuncHelper(a, b, order) {

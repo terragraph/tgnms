@@ -8,6 +8,7 @@ import NetworkStore from "./stores/NetworkStore.js";
 
 import NetworkNodesTable from "./NetworkNodesTable.js";
 import NetworkLinksTable from "./NetworkLinksTable.js";
+import NetworkScans from "./NetworkScans.js";
 import NetworkAdjacencyTable from "./NetworkAdjacencyTable.js";
 import NetworkRoutingTable from "./NetworkRoutingTable.js";
 import NetworkStatusTable from "./NetworkStatusTable.js";
@@ -15,7 +16,7 @@ import NetworkStatusTable from "./NetworkStatusTable.js";
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 
-const TAB_NAMES = ["status", "nodes", "links", "adjacencies", "routing"];
+const TAB_NAMES = ["status", "nodes", "links", "scans", "adjacencies", "routing"];
 
 export default class NetworkDataTable extends React.Component {
   state = {
@@ -83,9 +84,13 @@ export default class NetworkDataTable extends React.Component {
           break;
         }
         const tabIndex = this.tabNameToIndex[payload.tabName];
-        this.setState({
-          selectedTabIndex: tabIndex
-        });
+        // prevent clicking on link/node on the map from switching tabs
+        // when the current tab is Scans
+        if (this.state.selectedTabIndex !== this.tabNameToIndex["scans"]) {
+          this.setState({
+            selectedTabIndex: tabIndex
+          });
+        }
         break;
     }
   }
@@ -126,6 +131,7 @@ export default class NetworkDataTable extends React.Component {
           <Tab>Status</Tab>
           <Tab>Nodes</Tab>
           <Tab>Links</Tab>
+          <Tab>Scans</Tab>
           <Tab>Adjacencies</Tab>
           <Tab>Routing</Tab>
         </TabList>
@@ -137,6 +143,9 @@ export default class NetworkDataTable extends React.Component {
         </TabPanel>
         <TabPanel>
           <NetworkLinksTable {...tableProps} />
+        </TabPanel>
+        <TabPanel>
+          <NetworkScans {...tableProps} />
         </TabPanel>
         <TabPanel>
           <NetworkAdjacencyTable {...tableProps} />

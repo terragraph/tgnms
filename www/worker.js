@@ -131,6 +131,9 @@ process.on('message', msg => {
         ctrlProxy.on('event', (type, success, responseTime, data) => {
           switch (type) {
             case controllerTTypes.MessageType.GET_SCAN_STATUS:
+              // this clears the scan memory from the controller
+              let clearScanEnable = true; // for development
+              if (clearScanEnable) {
               if (success && Object.keys(data.scan_status.scans).length !== 0) {
                 var resetScanStatus = new controllerTTypes.ResetScanStatus();
                 resetScanStatus.tokenFrom = Math.min.apply(
@@ -157,7 +160,7 @@ process.on('message', msg => {
                       console.error('Unhandled message type', type);
                   }
                 });
-              }
+              }}
               process.send({
                 name: topology.name,
                 type: 'scan_status',

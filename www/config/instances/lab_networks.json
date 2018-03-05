@@ -125,6 +125,14 @@
             "topology_file": "Kite.json"
         },
         {
+            "topology_file": "mpk_rcp.json",
+            "latitude": 37.48473865184717,
+            "longitude": -122.14626967906953,
+            "zoom_level": 18,
+            "controller_ip": "2620:10d:c089:f003:3a3a:21ff:feb0:512",
+            "aggregator_ip": "2620:10d:c089:f003:3a3a:21ff:feb0:512"
+        },
+        {
       "controller_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
       "aggregator_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
       "latitude": 37.478375,

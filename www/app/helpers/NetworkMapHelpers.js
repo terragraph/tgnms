@@ -239,7 +239,8 @@ export const getNodeMarker = (
         const nodeName = e.target.options.key;
         Dispatcher.dispatch({
           actionType: Actions.NODE_SELECTED,
-          nodeSelected: nodeName
+          nodeSelected: nodeName,
+          source: "map"
         });
       });
     }

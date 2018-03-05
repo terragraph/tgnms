@@ -30,7 +30,8 @@ export default class DetailsTopologyIssues extends React.Component {
   selectNode(nodeName) {
     Dispatcher.dispatch({
       actionType: Actions.NODE_SELECTED,
-      nodeSelected: nodeName
+      nodeSelected: nodeName,
+      source: "detailsTopologyIssues"
     });
   }
 

@@ -47,7 +47,8 @@ export default class DetailsSite extends React.Component {
       function() {
         Dispatcher.dispatch({
           actionType: Actions.NODE_SELECTED,
-          nodeSelected: nodeName
+          nodeSelected: nodeName,
+          source: "map"
         });
       }.bind(this),
       1

@@ -152,7 +152,8 @@ export default class NetworkNodesTable extends React.Component {
     // dispatch event for the map
     Dispatcher.dispatch({
       actionType: Actions.NODE_SELECTED,
-      nodeSelected: row.name
+      nodeSelected: row.name,
+      source: "table"
     });
   }
 

@@ -20,6 +20,7 @@ NetworkStore.nodeRestrictor = [];
 NetworkStore.linkHealth = {};
 NetworkStore.nodeHealth = {};
 NetworkStore.analyzerTable = {};
+NetworkStore.scanResults = undefined;
 NetworkStore.layers = [];
 
 const BrowserHistory = createHistory();
@@ -182,6 +183,9 @@ Dispatcher.register(function(payload) {
       break;
     case Actions.ANALYZER_REFRESHED:
       NetworkStore.analyzerTable = payload.analyzerTable;
+      break;
+    case Actions.SCAN_REFRESHED:
+      NetworkStore.scanResults = payload.scanResults;
       break;
     case Actions.TAB_SELECTED:
       NetworkStore.tabName = payload.tabName;

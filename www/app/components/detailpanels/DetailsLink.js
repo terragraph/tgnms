@@ -53,7 +53,8 @@ export default class DetailsLink extends React.Component {
       function() {
         Dispatcher.dispatch({
           actionType: Actions.NODE_SELECTED,
-          nodeSelected: nodeName
+          nodeSelected: nodeName,
+          source: "details"
         });
       }.bind(this),
       1

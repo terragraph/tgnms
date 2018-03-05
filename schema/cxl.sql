@@ -139,22 +139,43 @@ CREATE TABLE `nodes` (
 ) ENGINE=InnoDB AUTO_INCREMENT=365420 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE TABLE `scan_results` (
+/* one row per scan, jsonCompressedObj is the compressed scan
+   results for one scan */
+DROP TABLE IF EXISTS `rx_scan_results`;
+CREATE TABLE `rx_scan_results` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `token` int,
+  `json_obj` blob,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `token` smallint unsigned,
+  `rx_node_id` int,
+  `start_bwgd` bigint,
+  `status` int,
+  `network` varchar(100) DEFAULT NULL,
+  KEY `rx_node_id` (`rx_node_id`),
+  KEY `network` (`network`),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS `tx_scan_results`;
+CREATE TABLE `tx_scan_results` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `json_obj` blob,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `token` smallint unsigned,
   `tx_node_id` int,
   `start_bwgd` bigint,
-  `rx_node_id` int,
-  `superframe_num` bigint,
-  `tx_beam` int,
-  `rx_beam` int,
-  `rssi` float,
-  `snr_est` float,
-  `post_snr` float,
-  `rx_start` int,
-  `packet_idx` smallint,
+  `scan_type` tinyint,
+  `scan_sub_type` tinyint,
+  `scan_mode` tinyint,
+  `apply_flag` tinyint,
+  `status` int,
+  `tx_power` tinyint,
+  `network` varchar(100) DEFAULT NULL,
+  KEY `tx_node_id` (`tx_node_id`),
+  KEY `network` (`network`),
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB;
+
 
 --
 -- Table structure for table `sys_logs`

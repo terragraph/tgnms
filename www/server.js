@@ -538,7 +538,7 @@ function reloadInstanceConfig () {
           refreshAnalyzerData(configName);
         });
       };
-      
+
       let refreshTypeaheadData = () => {
         Object.keys(configByName).forEach(configName => {
           console.log('Refreshing cache (stats type-ahead) for',
@@ -567,6 +567,7 @@ function reloadInstanceConfig () {
       }, refreshInterval);
 
       if (IM_SCAN_POLLING_ENABLED) {
+        console.log("IM_SCAN_POLLING_ENABLED is set");
         let scanPollInterval = 60000;
         if ('scan_poll_interval' in networkInstanceConfig) {
           scanPollInterval = networkInstanceConfig['scan_poll_interval'];
@@ -958,6 +959,24 @@ app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
     }
   );
 });
+
+// http://<address>/scan_results?topology=<topology name>&
+//    filter[row_count]=<row_count>&
+//    filter[offset]=<offset>&
+//    filter[nodeFilter0]=<nodeFilter0>
+//    filter[nodeFilter1]=<nodeFilter1>
+// /i means ignore case
+app.get(/\/scan_results$/i, function(req, res) {
+  let topologyName = req.query.topology;
+  let filter = {};
+  filter.nodeFilter = [];
+  filter.row_count = parseInt(req.query.filter.row_count, 10);
+  filter.nodeFilter[0] = req.query.filter.nodeFilter0;
+  filter.nodeFilter[1] = req.query.filter.nodeFilter1;
+  filter.offset = parseInt(req.query.filter.offset, 10);
+  dataJson.readScanResults(topologyName, res, filter);
+});
+
 
 app.get(/\/health\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];

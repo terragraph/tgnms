@@ -28,6 +28,21 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   margin-left: 205px;
   margin-top: 155px;
 }
+.graph-button-fetch {
+  font-size: 12px;
+  padding: 4px;
+  border: 2px solid;
+  margin-left: 4px;
+  width: 220px;
+}
+.graph-button-fetch-disabled {
+  font-size: 12px;
+  padding: 4px;
+  border: 2px solid;
+  margin-left: 4px;
+  width: 220px;
+  color: lightgray;
+}
 .graph-button {
   font-size: 12px;
   padding: 4px;
