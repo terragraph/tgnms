@@ -126,8 +126,12 @@ vector<DataPoint> BeringeiNetworkClient::performPut(PutRequestMap& requests) {
                   }
                 } else {
                   auto exn = state.exception();
-                  auto error = exn.what().toStdString();
-                  LOG(ERROR) << "putDataPoints Failed. Reason: " << error;
+                  try {
+                    std::rethrow_exception(exn);
+                  } catch (const std::exception& ex) {
+                    auto error = ex.what();
+                    LOG(ERROR) << "putDataPoints Failed. Reason: " << error;
+                  }
 
                   std::lock_guard<std::mutex> guard(droppedMutex);
                   dropped.insert(
@@ -199,8 +203,12 @@ void BeringeiNetworkClient::performGet(GetRequestMap& requests) {
             }
           } else {
             auto exn = state.exception();
-            auto error = exn.what().toStdString();
-            LOG(ERROR) << "getData failed. Reason: " << error;
+            try {
+              std::rethrow_exception(exn);
+            } catch (const std::exception& ex) {
+              auto error = ex.what();
+              LOG(ERROR) << "getData failed. Reason: " << error;
+            }
 
             markRequestResultFailed(
                 request.second.first, request.second.second);

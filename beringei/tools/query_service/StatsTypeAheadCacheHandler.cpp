@@ -39,7 +39,7 @@ namespace gorilla {
 
 StatsTypeAheadCacheHandler::StatsTypeAheadCacheHandler(
     std::shared_ptr<MySqlClient> mySqlClient,
-    std::shared_ptr<TACacheMap> typeaheadCache)
+    const TACacheMap& typeaheadCache)
     : RequestHandler(), mySqlClient_(mySqlClient),
       typeaheadCache_(typeaheadCache) {}
 
@@ -78,13 +78,20 @@ void StatsTypeAheadCacheHandler::onEOM() noexcept {
   try {
     // insert cache handler
     LOG(INFO) << "Got topology: " << request.name;
-    StatsTypeAheadCache taCache(mySqlClient_);
-    taCache.fetchMetricNames(request);
+    auto taCache = std::make_shared<StatsTypeAheadCache>(mySqlClient_);
+    taCache->fetchMetricNames(request);
     LOG(INFO) << "Type-ahead cache loaded for: " << request.name;
     // re-insert into the map
-    typeaheadCache_->insert_or_assign(request.name, taCache);
-  }
-  catch (const std::exception &ex) {
+    {
+      auto locked = typeaheadCache_.wlock();
+      auto taCacheIt = locked->find(request.name);
+      if (taCacheIt != locked->end()) {
+        taCacheIt->second.swap(taCache);
+      } else {
+        locked->insert(std::make_pair(request.name, taCache));
+      }
+    }
+  } catch (const std::exception &ex) {
     LOG(ERROR) << "Unable to handle stats type-ahead cache request: "
                << ex.what();
     ResponseBuilder(downstream_)

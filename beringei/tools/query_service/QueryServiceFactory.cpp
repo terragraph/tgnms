@@ -32,7 +32,7 @@ namespace gorilla {
 QueryServiceFactory::QueryServiceFactory(
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
   std::shared_ptr<MySqlClient> mySqlClient,
-  std::shared_ptr<TACacheMap> typeaheadCache,
+  const TACacheMap& typeaheadCache,
   std::shared_ptr<BeringeiClient> beringeiReadClient,
   std::shared_ptr<BeringeiClient> beringeiWriteClient)
   : RequestHandlerFactory(),

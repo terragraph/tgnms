@@ -35,7 +35,7 @@ const int NUM_HBS_PER_SEC = 39; // approximately
 TableQueryHandler::TableQueryHandler(
     std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
     std::shared_ptr<BeringeiClient> beringeiClient,
-    std::shared_ptr<TACacheMap> typeaheadCache)
+    const TACacheMap& typeaheadCache)
     : RequestHandler(), configurationAdapter_(configurationAdapter),
       beringeiClient_(beringeiClient),
       typeaheadCache_(typeaheadCache) {}
@@ -72,69 +72,72 @@ void TableQueryHandler::onEOM() noexcept {
     return;
   }
   // match to a type-ahead cache
-  auto taCacheIt = typeaheadCache_->find(request.topologyName);
-  if (taCacheIt == typeaheadCache_->cend()) {
-    LOG(INFO) << "\tTopology cache not found: " << request.topologyName;
-    ResponseBuilder(downstream_)
-        .status(500, "OK")
-        .header("Content-Type", "application/json")
-        .body("Topology cache not found: " + request.topologyName)
-        .sendWithEOM();
-    return;
-  }
-  auto taCache = taCacheIt->second;
   query::QueryRequest queryRequest;
   // build node queries
   std::vector<int64_t> keyIdList;
   std::vector<query::KeyData> keyDataListRenamed;
   std::string lastType;
   int minAgo;
-  for (const auto& nodeQuery : request.nodeQueries) {
-    VLOG(1) << "\tFetching node query metric: " << nodeQuery.metric;
-    // fetch KeyData
-    auto keyDataList = taCache.getKeyData(nodeQuery.metric);
-    for (auto& keyData : keyDataList) {
-      VLOG(1) << "\t\tNode: " << keyData.nodeName
-              << ", displayName: " << keyData.displayName
-              << ", keyId: " << keyData.keyId;
-      keyIdList.push_back(keyData.keyId);
-      keyData.displayName = keyData.nodeName;
-      keyDataListRenamed.push_back(keyData);
+  {
+    auto locked = typeaheadCache_.rlock();
+    auto taCacheIt = locked->find(request.topologyName);
+    if (taCacheIt == locked->cend()) {
+      LOG(INFO) << "\tTopology cache not found: " << request.topologyName;
+      ResponseBuilder(downstream_)
+          .status(500, "OK")
+          .header("Content-Type", "application/json")
+          .body("Topology cache not found: " + request.topologyName)
+          .sendWithEOM();
+      return;
     }
-    lastType = nodeQuery.type;
-    if (nodeQuery.__isset.min_ago) {
-      // use min_ago if set
-      minAgo = nodeQuery.min_ago;
+    auto taCache = taCacheIt->second;
+    for (const auto& nodeQuery : request.nodeQueries) {
+      VLOG(1) << "\tFetching node query metric: " << nodeQuery.metric;
+      // fetch KeyData
+      auto keyDataList = taCache->getKeyData(nodeQuery.metric);
+      for (auto& keyData : keyDataList) {
+        VLOG(1) << "\t\tNode: " << keyData.nodeName
+                << ", displayName: " << keyData.displayName
+                << ", keyId: " << keyData.keyId;
+        keyIdList.push_back(keyData.keyId);
+        keyData.displayName = keyData.nodeName;
+        keyDataListRenamed.push_back(keyData);
+      }
+      lastType = nodeQuery.type;
+      if (nodeQuery.__isset.min_ago) {
+        // use min_ago if set
+        minAgo = nodeQuery.min_ago;
+      }
     }
-  }
-  // TODO - the JS does one query for all, which is silly
-  // we should switch this to be one per request
-  query::Query nodeQuery;
-  nodeQuery.type = lastType;
-  nodeQuery.key_ids = keyIdList;
-  nodeQuery.data = keyDataListRenamed;
-  nodeQuery.min_ago = minAgo;
-  nodeQuery.__isset.min_ago = true;
-  queryRequest.queries.push_back(nodeQuery);
-  // build node queries
-  keyIdList.clear();
-  keyDataListRenamed.clear();
-  for (const auto& linkQuery : request.linkQueries) {
-    VLOG(1) << "\tFetching link query metric: " << linkQuery.metric;
-    // fetch KeyData
-    auto keyDataList = taCache.getKeyData(linkQuery.metric);
-    for (auto& keyData : keyDataList) {
-      VLOG(1) << "\t\tLink: " << keyData.linkName
-              << ", displayName: " << keyData.displayName
-              << ", keyId: " << keyData.keyId;
-      keyIdList.push_back(keyData.keyId);
-      keyData.displayName = keyData.linkName;
-      keyDataListRenamed.push_back(keyData);
-    }
-    lastType = linkQuery.type;
-    if (linkQuery.__isset.min_ago) {
-      // use min_ago if set
-      minAgo = linkQuery.min_ago;
+    // TODO - the JS does one query for all, which is silly
+    // we should switch this to be one per request
+    query::Query nodeQuery;
+    nodeQuery.type = lastType;
+    nodeQuery.key_ids = keyIdList;
+    nodeQuery.data = keyDataListRenamed;
+    nodeQuery.min_ago = minAgo;
+    nodeQuery.__isset.min_ago = true;
+    queryRequest.queries.push_back(nodeQuery);
+    // build node queries
+    keyIdList.clear();
+    keyDataListRenamed.clear();
+    for (const auto& linkQuery : request.linkQueries) {
+      VLOG(1) << "\tFetching link query metric: " << linkQuery.metric;
+      // fetch KeyData
+      auto keyDataList = taCache->getKeyData(linkQuery.metric);
+      for (auto& keyData : keyDataList) {
+        VLOG(1) << "\t\tLink: " << keyData.linkName
+                << ", displayName: " << keyData.displayName
+                << ", keyId: " << keyData.keyId;
+        keyIdList.push_back(keyData.keyId);
+        keyData.displayName = keyData.linkName;
+        keyDataListRenamed.push_back(keyData);
+      }
+      lastType = linkQuery.type;
+      if (linkQuery.__isset.min_ago) {
+        // use min_ago if set
+        minAgo = linkQuery.min_ago;
+      }
     }
   }
   // TODO - same as above

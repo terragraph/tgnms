@@ -30,7 +30,7 @@ class QueryServiceFactory : public proxygen::RequestHandlerFactory {
   explicit QueryServiceFactory(
     std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
     std::shared_ptr<MySqlClient> mySqlClient,
-    std::shared_ptr<TACacheMap> typeaheadCache,
+    const TACacheMap& typeaheadCache,
     std::shared_ptr<BeringeiClient> beringeiReadClient,
     std::shared_ptr<BeringeiClient> beringeiWriteClient);
 
@@ -47,7 +47,7 @@ class QueryServiceFactory : public proxygen::RequestHandlerFactory {
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
   std::shared_ptr<MySqlClient> mySqlClient_;
   // topology name -> type-ahead cache
-  std::shared_ptr<TACacheMap> typeaheadCache_;
+  const TACacheMap typeaheadCache_;
   std::shared_ptr<BeringeiClient> beringeiReadClient_;
   std::shared_ptr<BeringeiClient> beringeiWriteClient_;
 };
