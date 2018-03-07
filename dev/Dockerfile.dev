@@ -1,0 +1,30 @@
+FROM beringeisetup
+
+ENV WORKDIR /usr/local/beringei
+ENV RUN_CMD ./beringei/service/beringei_main \
+              -beringei_configuration_path $WORKDIR/beringei.json \
+              -create_directories \
+              -sleep_between_bucket_finalization_secs 60 \
+              -allowed_timestamp_behind 300 \
+              -bucket_size 600 \
+              -buckets 144 \
+              -logtostderr \
+              -v=2
+
+COPY . $WORKDIR
+
+# Define default command.
+CMD ["bash"]
+
+# Create a build directory.
+RUN mkdir $WORKDIR/build
+WORKDIR $WORKDIR/build
+
+# Compile and install
+ENV BERINGEI_AUTOSETUP true
+RUN cmake ..
+RUN make -j $(nproc --all) install
+
+RUN ./beringei/tools/beringei_configuration_generator --host_names localhost --file_path $WORKDIR/beringei.json
+
+ENTRYPOINT $RUN_CMD
