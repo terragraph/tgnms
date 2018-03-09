@@ -137,7 +137,7 @@ export default class ReactDyGraph extends React.Component {
       }
       return Math.round(valueBps / 1000000 * 100) / 100 + ' mbit';
     }
-    return value;
+    return Math.round(value * 10) / 10;
   }
 
   legendFormatter(data) {

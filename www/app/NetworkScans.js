@@ -6,7 +6,7 @@ import { Actions } from "./constants/NetworkConstants.js";
 import Dispatcher from "./NetworkDispatcher.js";
 import NetworkStore from "./stores/NetworkStore.js";
 import ReactEventChart from "./ReactEventChart.js";
-import ReactPlotlyHeatmap from "./ReactPlotlyHeatmap.js";
+//import ReactPlotlyHeatmap from "./ReactPlotlyHeatmap.js";
 import { availabilityColor } from "./NetworkHelper.js";
 import { variableColorDown, variableColorUp } from "./NetworkHelper.js";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
@@ -567,6 +567,13 @@ export default class NetworkScans extends React.Component {
     } catch (e) {}
 
     let heatMapHeightWidth = 500;
+// temp disabled
+/*            <ReactPlotlyHeatmap
+              zmap={this.state.zmap}
+              heatmaprender={this.state.heatmaprender}
+              heatmaptitle={this.state.heatmaptitle}
+              height_width={heatMapHeightWidth}
+            />*/
     return (
         <div style={{ marginLeft: "10px", marginRight: "10px", overflow: "auto", height: this.props.height}}>
           {fetchButton[0]}
@@ -581,12 +588,6 @@ export default class NetworkScans extends React.Component {
             </td></tr></table>
             <table style={{ float: "right", width: "35%" }}>
             <tr><td>
-            <ReactPlotlyHeatmap
-              zmap={this.state.zmap}
-              heatmaprender={this.state.heatmaprender}
-              heatmaptitle={this.state.heatmaptitle}
-              height_width={heatMapHeightWidth}
-            />
             </td></tr></table>
             </div>
           </div>

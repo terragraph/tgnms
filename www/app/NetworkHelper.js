@@ -60,10 +60,11 @@ module.exports = {
   versionSlicer: function(versionName) {
     //RELEASE_M12_3 (michaelcallahan@devbig730 Tue Aug 8 10:48:29 PDT 2017)
     let releaseIdx = versionName.indexOf("RELEASE_");
-    let splitIndex = Math.min(
-      versionName.indexOf("-", releaseIdx),
-      versionName.indexOf(" ", releaseIdx)
-    );
+    let splitIdxA = versionName.indexOf("-", releaseIdx);
+    let splitIdxB = versionName.indexOf(" ", releaseIdx);
+    let splitIndex = (splitIdxA >= 0 && splitIdxB >= 0) ?
+                        Math.min(splitIdxA, splitIdxB) :
+                        Math.max(splitIdxA, splitIdxB);
     let releaseName = versionName.substring(releaseIdx + 8, splitIndex);
     return releaseName;
   },

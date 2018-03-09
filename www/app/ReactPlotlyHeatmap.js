@@ -1,6 +1,6 @@
 import React from "react";
 
-import Plot from 'react-plotly.js'
+//import Plot from 'react-plotly.js'
 
 export default class ReactPlotlyHeatmap extends React.Component {
   constructor(props, context) {
