@@ -113,6 +113,8 @@
     "webpack-bundle-analyzer": "^2.9.0",
     "webpack-dev-middleware": "^1.2.0",
     "webpack-hot-middleware": "^2.2.0",
-    "xterm": "^2.2.1"
+    "xterm": "^2.2.1",
+    "react-plotly.js": "^1.7.0",
+    "plotly.js": "^1.0.6"
   }
 }
