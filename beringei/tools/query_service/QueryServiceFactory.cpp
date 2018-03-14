@@ -9,17 +9,17 @@
 
 #include "QueryServiceFactory.h"
 
-#include "AlertsWriteHandler.h"
-#include "EventsWriteHandler.h"
-#include "LogsWriteHandler.h"
-#include "NotFoundHandler.h"
-#include "QueryHandler.h"
-#include "RuckusControllerStatsHandler.h"
+#include "handlers/AlertsWriteHandler.h"
+#include "handlers/EventsWriteHandler.h"
+#include "handlers/LogsWriteHandler.h"
+#include "handlers/NotFoundHandler.h"
+#include "handlers/QueryHandler.h"
+#include "handlers/RuckusControllerStatsHandler.h"
 #include "StatsTypeAheadCache.h"
-#include "StatsTypeAheadCacheHandler.h"
-#include "StatsTypeAheadHandler.h"
-#include "StatsWriteHandler.h"
-#include "TableQueryHandler.h"
+#include "handlers/StatsTypeAheadCacheHandler.h"
+#include "handlers/StatsTypeAheadHandler.h"
+#include "handlers/StatsWriteHandler.h"
+#include "handlers/TableQueryHandler.h"
 
 #include "beringei/plugins/BeringeiConfigurationAdapter.h"
 

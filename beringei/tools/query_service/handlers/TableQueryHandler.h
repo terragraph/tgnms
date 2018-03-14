@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "StatsTypeAheadCache.h"
+#include "../StatsTypeAheadCache.h"
 
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>

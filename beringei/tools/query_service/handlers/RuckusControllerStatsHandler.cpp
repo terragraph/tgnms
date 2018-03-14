@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "RuckusController.h"
+#include "../RuckusController.h"
 #include "RuckusControllerStatsHandler.h"
 
 #include <utility>

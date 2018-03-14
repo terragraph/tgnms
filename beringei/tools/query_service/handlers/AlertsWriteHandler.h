@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include "MySqlClient.h"
+#include "../MySqlClient.h"
 
+#include <folly/Memory.h>
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
-#include <folly/Memory.h>
 #include <proxygen/httpserver/RequestHandler.h>
 
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
@@ -22,9 +22,9 @@
 namespace facebook {
 namespace gorilla {
 
-class EventsWriteHandler : public proxygen::RequestHandler {
+class AlertsWriteHandler : public proxygen::RequestHandler {
  public:
-  explicit EventsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient);
+  explicit AlertsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient);
 
   void
   onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -40,9 +40,9 @@ class EventsWriteHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  void logRequest(query::EventsWriteRequest request);
+  void logRequest(query::AlertsWriteRequest request);
 
-  void writeData(query::EventsWriteRequest request);
+  void writeData(query::AlertsWriteRequest request);
 
   int64_t getTimestamp(int64_t timeInUsec);
 

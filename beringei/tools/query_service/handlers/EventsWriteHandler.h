@@ -9,27 +9,22 @@
 
 #pragma once
 
-#include "MySqlClient.h"
-#include "StatsTypeAheadCache.h"
+#include "../MySqlClient.h"
 
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 #include <folly/Memory.h>
 #include <proxygen/httpserver/RequestHandler.h>
 
-#include "beringei/client/BeringeiClient.h"
-#include "beringei/client/BeringeiConfigurationAdapterIf.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 
 namespace facebook {
 namespace gorilla {
 
-class StatsTypeAheadHandler : public proxygen::RequestHandler {
-public:
-  explicit StatsTypeAheadHandler(
-      std::shared_ptr<MySqlClient> mySqlClient,
-      const TACacheMap& typeaheadCache);
+class EventsWriteHandler : public proxygen::RequestHandler {
+ public:
+  explicit EventsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient);
 
   void
   onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -44,10 +39,15 @@ public:
 
   void onError(proxygen::ProxygenError err) noexcept override;
 
-private:
+ private:
+  void logRequest(query::EventsWriteRequest request);
+
+  void writeData(query::EventsWriteRequest request);
+
+  int64_t getTimestamp(int64_t timeInUsec);
+
   std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
-  const TACacheMap typeaheadCache_;
 };
 }
 } // facebook::gorilla

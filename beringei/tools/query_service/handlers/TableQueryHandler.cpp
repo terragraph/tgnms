@@ -9,7 +9,7 @@
 
 #include "TableQueryHandler.h"
 
-#include "BeringeiData.h"
+#include "../BeringeiData.h"
 
 #include <utility>
 
