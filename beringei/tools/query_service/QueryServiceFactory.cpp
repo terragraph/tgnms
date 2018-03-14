@@ -14,6 +14,7 @@
 #include "LogsWriteHandler.h"
 #include "NotFoundHandler.h"
 #include "QueryHandler.h"
+#include "RuckusControllerStatsHandler.h"
 #include "StatsTypeAheadCache.h"
 #include "StatsTypeAheadCacheHandler.h"
 #include "StatsTypeAheadHandler.h"
@@ -72,6 +73,8 @@ QueryServiceFactory::onRequest(proxygen::RequestHandler * /* unused */,
   } else if (path == "/stats_typeahead_cache") {
     // accepts a topology object to refresh the cache
     return new StatsTypeAheadCacheHandler(mySqlClient_, typeaheadCache_);
+  } else if (path == "/ruckus_ap_stats") {
+    return new RuckusControllerStatsHandler();
   }
 
   // return not found for all other uris
