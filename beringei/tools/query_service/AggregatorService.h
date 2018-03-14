@@ -9,9 +9,11 @@
 
 #pragma once
 
+#include "RuckusController.h"
 #include "StatsTypeAheadCache.h"
 
 #include <folly/io/async/EventBaseManager.h>
+#include <folly/Synchronized.h>
 
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
@@ -29,24 +31,31 @@ class AggregatorService {
 
   // run eventbase
   void start();
-  void timerCallback();
+  void timerCb();
+  void ruckusControllerCb();
   // fetch ruckus ap stats
   void fetchRuckusStats();
+  void ruckusControllerStats();
   // requests topology from an api_service endpoint
   query::Topology fetchTopology();
   void buildQuery(
     std::unordered_map<std::string, double>& values,
     const std::unordered_set<std::string>& popNodeNames,
-    const StatsTypeAheadCache* cache);
+    const std::shared_ptr<StatsTypeAheadCache> cache);
 
  private:
   folly::EventBase eb_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
+  std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
   // from queryservicefactory
   const TACacheMap typeaheadCache_;
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
   std::shared_ptr<BeringeiClient> beringeiReadClient_;
   std::shared_ptr<BeringeiClient> beringeiWriteClient_;
+  // store the last set of ruckus stats to push
+  folly::Synchronized<std::unordered_map<std::string /* key name */, double>>
+      ruckusStats_{};
+  RuckusController ruckusController_;
 };
 }
 } // facebook::gorilla

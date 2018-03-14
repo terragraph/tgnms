@@ -13,11 +13,14 @@
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 
 #include <curl/curl.h>
+#include <folly/String.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_int32(agg_time_period, 30, "Beringei time period");
+DEFINE_int32(ruckus_controller_time_period, 30,
+             "Ruckus controller stats fetch time period");
 DEFINE_bool(write_agg_data, true, "Write aggregator data to beringei");
 
 extern "C" {
@@ -58,14 +61,106 @@ AggregatorService::AggregatorService(
     beringeiReadClient_(beringeiReadClient),
     beringeiWriteClient_(beringeiWriteClient) {
 
+  // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
-    timerCallback();
+    timerCb();
   });
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
+
+  // fetch ruckus data less frequently
+/*  ruckusTimer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
+    ruckusControllerCb();
+  });
+  ruckusTimer_->scheduleTimeout(FLAGS_ruckus_controller_time_period * 1000);*/
 }
 
 void
-AggregatorService::timerCallback() {
+AggregatorService::ruckusControllerStats() {
+  std::unordered_map<std::string, double> ruckusValues;
+  // login and get a new session id
+  LOG(INFO) << "Ruckus controller stats fetch running...";
+  folly::dynamic loginObj = folly::dynamic::object
+      ("username", "admin")
+      ("password", "Terra@171");
+  struct CurlResponse loginResp = ruckusController_.ruckusControllerRequest(
+      "session", "", folly::toJson(loginObj));
+  VLOG(1) << "Header: " << loginResp.header << ", body: " << loginResp.body;
+  // find the cookie string
+  std::string cookieStr;
+  std::vector<folly::StringPiece> pieces;
+  folly::split("\n", loginResp.header, pieces);
+  for (const auto& piece : pieces) {
+    if (piece.startsWith("Set-Cookie: JSESSIONID")) {
+      size_t cookieLen = 12;
+      cookieStr = piece.subpiece(cookieLen, piece.find(";") - cookieLen).str();
+    }
+  }
+  if (cookieStr.empty()) {
+    LOG(ERROR) << "Unable to login to ruckus controller, response code: "
+               << loginResp.responseCode;
+    return;
+  }
+  // fetch ap list
+  struct CurlResponse apListResp = ruckusController_.ruckusControllerRequest("aps", cookieStr, "");
+  if (apListResp.responseCode != 200) {
+    LOG(ERROR) << "Unable to fetch AP list, response code: "
+               << apListResp.responseCode;
+    return;
+  }
+  folly::dynamic apListObj = folly::parseJson(apListResp.body);
+  auto apListObjIt = apListObj.find("list");
+  if (apListObjIt != apListObj.items().end()) {
+    long totalClientCount = 0L;
+    for (const auto& apItem : apListObjIt->second) {
+      std::string apName = apItem["name"].asString();
+      std::string macAddr = apItem["mac"].asString();
+      // fetch details for each ap
+      struct CurlResponse apDetailsResp = ruckusController_.ruckusControllerRequest(
+          folly::sformat("aps/{}/operational/summary", macAddr),
+          cookieStr,
+          "");
+      folly::dynamic apDetailsObj = folly::parseJson(apDetailsResp.body);
+      try {
+        long apUptime = apDetailsObj["uptime"].asInt();
+        long clientCount = apDetailsObj["clientCount"].asInt();
+        totalClientCount += clientCount;
+        std::string registrationState(apDetailsObj["registrationState"].asString());
+        std::string administrativeState(apDetailsObj["administrativeState"].asString());
+        std::string ipAddr(apDetailsObj["externalIp"].asString());
+        LOG(INFO) << "AP: " << apName
+                  << ", MAC: " << macAddr
+                  << ", uptime: " << apUptime
+                  << ", reg state: " << registrationState
+                  << ", client count: " << clientCount
+                  << ", admin state: " << administrativeState
+                  << ", ip: " << ipAddr;
+        // add client count reporting for each AP MAC
+        // TODO - should this be site name?
+        ruckusValues[folly::sformat("ruckus.{}.client_count", macAddr)] = clientCount;
+      } catch (const folly::TypeError& error) {
+        LOG(ERROR) << "\tType-error: " << error.what();
+        for (const auto& apDetailsItem : apDetailsObj.items()) {
+          LOG(INFO) << "\t\t" << apDetailsItem.first << " = " << apDetailsItem.second;
+        }
+      }
+    }
+    ruckusValues["ruckus.total_client_count"] = totalClientCount;
+    LOG(INFO) << "Total client count: " << totalClientCount;
+  }
+  // swap stats pointer
+  ruckusStats_.wlock()->swap(ruckusValues);
+}
+
+void
+AggregatorService::ruckusControllerCb() {
+//  std::thread ruckusThread([this]() {
+    ruckusControllerStats();
+//  });
+  ruckusTimer_->scheduleTimeout(FLAGS_ruckus_controller_time_period * 1000);
+}
+void
+AggregatorService::timerCb() {
+  LOG(INFO) << "Aggregator running";
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
   // run some aggregation
   std::unordered_map<std::string /* key name */, double> aggValues;
@@ -104,6 +199,13 @@ AggregatorService::timerCallback() {
     aggValues["total_wireless_links"] = wirelessLinks;
     aggValues["online_wireless_links"] = onlineLinks;
     aggValues["online_wireless_links_perc"] = (double)onlineLinks / wirelessLinks * 100.0;
+    // ruckus controller stats
+    {
+      auto ruckusStats = ruckusStats_.rlock();
+      for (const auto& ruckusStat : *ruckusStats) {
+        aggValues[ruckusStat.first] = ruckusStat.second;
+      }
+    }
     // report metrics somewhere? TBD
     LOG(INFO) << "--------------------------------------";
     std::vector<DataPoint> bDataPoints;
@@ -115,7 +217,7 @@ AggregatorService::timerCallback() {
         LOG(INFO) << "Cache found for: " << topology.name;
         // fetch back the metrics we care about (PER, MCS?)
         // and average the values
-        buildQuery(aggValues, popNodes, &taCacheIt->second);
+        buildQuery(aggValues, popNodes, taCacheIt->second);
         for (const auto& metric : aggValues) {
           LOG(INFO) << "Agg: " << metric.first << " = "
                     << std::to_string(metric.second)
@@ -124,7 +226,7 @@ AggregatorService::timerCallback() {
         // find metrics, update beringei
         for (const auto& metric : aggValues) {
           std::vector<query::KeyData> keyData =
-            taCacheIt->second.getKeyData(metric.first);
+            taCacheIt->second->getKeyData(metric.first);
           if (keyData.size() != 1) {
             LOG(INFO) << "Metric not found: " << metric.first;
             continue;
@@ -168,7 +270,7 @@ void
 AggregatorService::buildQuery(
     std::unordered_map<std::string, double>& values,
     const std::unordered_set<std::string>& popNodeNames,
-    const StatsTypeAheadCache* cache) {
+    const std::shared_ptr<StatsTypeAheadCache> cache) {
   // build queries
   query::QueryRequest queryRequest;
   std::vector<query::Query> queries;
@@ -242,54 +344,6 @@ AggregatorService::buildQuery(
   }
 }
 
-void
-AggregatorService::fetchRuckusStats() {
-  // construct login request
-  folly::dynamic loginObj = folly::dynamic::object("username", "admin")("password", "Terra@171");
-  try {
-    CURL* curl;
-    CURLcode res;
-    curl = curl_easy_init();
-    if (!curl) {
-      throw std::runtime_error("Unable to initialize CURL");
-    }
-    std::string postData(folly::toJson(loginObj));
-    // we have to forward the v4 address right now since no local v6
-    std::string endpoint("https://[2001:470:f0:3e8::100\]:7443/api/public/v5_0/session");
-    // we can't verify the peer with our current image/lack of certs
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postData.length());
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15000 /* 1 second */);
-
-    // read data from request
-    struct HTTPDataStruct dataChunk;
-    dataChunk.data = (char*)malloc(1);
-    dataChunk.size = 0;
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curlWriteCb);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&dataChunk);
-    res = curl_easy_perform(curl);
-    if (res == CURLE_OK) {
-      long response_code;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-      // response code 204 is a success
-    }
-    // cleanup
-    curl_easy_cleanup(curl);
-    LOG(INFO) << "Login service: " << dataChunk.data;
-    free(dataChunk.data);
-    if (res != CURLE_OK) {
-      LOG(WARNING) << "CURL error for endpoint " << endpoint << ": "
-                   << curl_easy_strerror(res);
-    }
-  } catch (const std::exception& ex) {
-    LOG(ERROR) << "CURL Error: " << ex.what();
-  }
-}
 query::Topology
 AggregatorService::fetchTopology() {
   query::Topology topology;

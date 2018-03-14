@@ -26,6 +26,10 @@ set(BERINGEI_QUERY_SRCS
     BeringeiData.h
     AggregatorService.cpp
     AggregatorService.h
+    RuckusController.cpp
+    RuckusController.h
+    RuckusControllerStatsHandler.cpp
+    RuckusControllerStatsHandler.h
     StatsWriteHandler.cpp
     StatsWriteHandler.h
     StatsTypeAheadCache.cpp

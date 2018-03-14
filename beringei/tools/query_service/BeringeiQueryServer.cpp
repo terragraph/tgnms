@@ -15,6 +15,7 @@
 
 #include "beringei/plugins/BeringeiConfigurationAdapter.h"
 
+#include <curl/curl.h>
 #include <folly/init/Init.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <folly/Memory.h>
@@ -52,6 +53,9 @@ int main(int argc, char *argv[]) {
     FLAGS_threads = sysconf(_SC_NPROCESSORS_ONLN);
     CHECK_GT(FLAGS_threads, 0);
   }
+
+  // initialize curl thread un-safe operations
+  curl_global_init(CURL_GLOBAL_ALL);
 
   // initialize beringei config, and type-ahead
   auto configurationAdapter = std::make_shared<BeringeiConfigurationAdapter>();
@@ -93,6 +97,7 @@ int main(int argc, char *argv[]) {
 
   aggThread.join();
   httpThread.join();
-
+  // clean-up curl memory
+  curl_global_cleanup();
   return 0;
 }
