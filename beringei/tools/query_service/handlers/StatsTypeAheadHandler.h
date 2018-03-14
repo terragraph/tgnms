@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "MySqlClient.h"
-#include "StatsTypeAheadCache.h"
+#include "../MySqlClient.h"
+#include "../StatsTypeAheadCache.h"
 
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
@@ -25,9 +25,9 @@
 namespace facebook {
 namespace gorilla {
 
-class StatsTypeAheadCacheHandler : public proxygen::RequestHandler {
+class StatsTypeAheadHandler : public proxygen::RequestHandler {
 public:
-  explicit StatsTypeAheadCacheHandler(
+  explicit StatsTypeAheadHandler(
       std::shared_ptr<MySqlClient> mySqlClient,
       const TACacheMap& typeaheadCache);
 
@@ -47,7 +47,7 @@ public:
 private:
   std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
-  TACacheMap typeaheadCache_;
+  const TACacheMap typeaheadCache_;
 };
 }
 } // facebook::gorilla

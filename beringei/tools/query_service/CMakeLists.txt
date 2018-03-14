@@ -14,38 +14,41 @@ find_library(MYSQL_CLIENT_LIB NAMES "mysqlclient"
 find_library(CURL curl)
 
 set(BERINGEI_QUERY_SRCS
-    QueryServiceFactory.cpp
-    QueryServiceFactory.h
-    NotFoundHandler.cpp
-    NotFoundHandler.h
-    TableQueryHandler.cpp
-    TableQueryHandler.h
-    QueryHandler.cpp
-    QueryHandler.h
-    BeringeiData.cpp
-    BeringeiData.h
     AggregatorService.cpp
     AggregatorService.h
-    RuckusController.cpp
-    RuckusController.h
-    RuckusControllerStatsHandler.cpp
-    RuckusControllerStatsHandler.h
-    StatsWriteHandler.cpp
-    StatsWriteHandler.h
-    StatsTypeAheadCache.cpp
-    StatsTypeAheadCache.h
-    StatsTypeAheadCacheHandler.cpp
-    StatsTypeAheadCacheHandler.h
-    StatsTypeAheadHandler.cpp
-    StatsTypeAheadHandler.h
+    BeringeiData.cpp
+    BeringeiData.h
     MySqlClient.cpp
     MySqlClient.h
-    EventsWriteHandler.cpp
-    EventsWriteHandler.h
-    AlertsWriteHandler.cpp
-    AlertsWriteHandler.h
-    LogsWriteHandler.cpp
-    LogsWriteHandler.h
+    QueryServiceFactory.cpp
+    QueryServiceFactory.h
+    RuckusController.cpp
+    RuckusController.h
+    StatsTypeAheadCache.cpp
+    StatsTypeAheadCache.h
+)
+
+set(BERINGEI_QUERY_HANDLER_SRCS
+    handlers/AlertsWriteHandler.cpp
+    handlers/AlertsWriteHandler.h
+    handlers/EventsWriteHandler.cpp
+    handlers/EventsWriteHandler.h
+    handlers/LogsWriteHandler.cpp
+    handlers/LogsWriteHandler.h
+    handlers/NotFoundHandler.cpp
+    handlers/NotFoundHandler.h
+    handlers/QueryHandler.cpp
+    handlers/QueryHandler.h
+    handlers/RuckusControllerStatsHandler.cpp
+    handlers/RuckusControllerStatsHandler.h
+    handlers/StatsTypeAheadCacheHandler.cpp
+    handlers/StatsTypeAheadCacheHandler.h
+    handlers/StatsTypeAheadHandler.cpp
+    handlers/StatsTypeAheadHandler.h
+    handlers/StatsWriteHandler.cpp
+    handlers/StatsWriteHandler.h
+    handlers/TableQueryHandler.cpp
+    handlers/TableQueryHandler.h
 )
 
 set(BERINGEI_QUERY_SERVICE_SRCS
@@ -53,8 +56,10 @@ set(BERINGEI_QUERY_SERVICE_SRCS
 )
 
 add_library(beringei_query_lib STATIC ${BERINGEI_QUERY_SRCS})
+add_library(beringei_query_handlers_lib STATIC ${BERINGEI_QUERY_HANDLER_SRCS})
 target_link_libraries(
     beringei_query_lib
+    beringei_query_handlers_lib
     beringei_client
     beringei_plugin
     ${CURL}
@@ -73,6 +78,7 @@ add_executable(beringei_query_service ${BERINGEI_QUERY_SERVICE_SRCS})
 target_link_libraries(
     beringei_query_service
     beringei_query_lib
+    beringei_query_handlers_lib
     ${FBTHRIFT_LIBRARIES}
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
