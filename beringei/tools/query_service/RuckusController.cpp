@@ -95,6 +95,7 @@ RuckusController::ruckusControllerStats() {
     long totalClientCount = 0L;
     for (const auto& apItem : apListObjIt->second) {
       std::string apName = apItem["name"].asString();
+      std::transform(apName.begin(), apName.end(), apName.begin(), ::tolower);
       std::string macAddr = apItem["mac"].asString();
       // fetch details for each ap
       struct CurlResponse apDetailsResp = RuckusController::ruckusControllerRequest(
@@ -109,13 +110,13 @@ RuckusController::ruckusControllerStats() {
         std::string registrationState(apDetailsObj["registrationState"].asString());
         std::string administrativeState(apDetailsObj["administrativeState"].asString());
         std::string ipAddr(apDetailsObj["externalIp"].asString());
-        LOG(INFO) << "AP: " << apName
+        /*LOG(INFO) << "AP: " << apName
                   << ", MAC: " << macAddr
                   << ", uptime: " << apUptime
                   << ", reg state: " << registrationState
                   << ", client count: " << clientCount
                   << ", admin state: " << administrativeState
-                  << ", ip: " << ipAddr;
+                  << ", ip: " << ipAddr;*/
         apStats[apName] = apDetailsObj;
       } catch (const folly::TypeError& error) {
         LOG(ERROR) << "\tType-error: " << error.what();

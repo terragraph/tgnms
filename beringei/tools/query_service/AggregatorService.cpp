@@ -22,6 +22,7 @@ DEFINE_int32(agg_time_period, 30, "Beringei time period");
 DEFINE_int32(ruckus_controller_time_period, 30,
              "Ruckus controller stats fetch time period");
 DEFINE_bool(write_agg_data, true, "Write aggregator data to beringei");
+DEFINE_string(api_service_endpoint, "http://10.56.68.18:8088/api/getTopology", "Endpoint for pulling topology");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -356,7 +357,7 @@ AggregatorService::fetchTopology() {
     }
     std::string postData("{}");
     // we have to forward the v4 address right now since no local v6
-    std::string endpoint("http://10.56.68.18:8088/api/getTopology");
+    std::string endpoint(FLAGS_api_service_endpoint);
     // we can't verify the peer with our current image/lack of certs
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
     curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
