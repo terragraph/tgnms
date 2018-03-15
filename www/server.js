@@ -81,6 +81,7 @@ const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
 var refreshIntervalTimer;
 var networkHealthTimer;
 var statsTypeaheadTimer;
+var ruckusControllerTimer;
 var eventLogsTables = {};
 var systemLogsSources = {};
 var networkInstanceConfig = {};
@@ -97,6 +98,7 @@ var upgradeStateByName = {};
 var networkHealth = {};
 var analyzerData = {}; // cached results
 var fbinternal = {};
+var ruckusApsBySite = {};
 
 var dashboards = {};
 fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
@@ -381,6 +383,14 @@ function getTopologyByName (topologyName) {
         status.statusReports[nodes[j].mac_addr];
     }
   }
+  // add ruckus aps
+  topology.sites = topology.sites.map(site => {
+    // add ruckus ap information to the site
+    if (ruckusApsBySite.hasOwnProperty(site.name.toLowerCase())) {
+      site.ruckus = ruckusApsBySite[site.name.toLowerCase()];
+    }
+    return site;
+  });
   let networkConfig = Object.assign({}, config);
   networkConfig.topology = topology;
   if (config.site_coords_override) {
@@ -527,8 +537,20 @@ function reloadInstanceConfig () {
       let healthRefreshInterval = 30 /* seconds */ * 1000;
       // stats type-ahead node/key list
       let typeaheadRefreshInterval = 5 /* minutes */ * 60 * 1000;
+      // ruckus controller cache
+      let ruckusControllerRefreshInterval = 1 /* minutes */ * 60 * 1000;
       if ('refresh_interval' in networkInstanceConfig) {
         refreshInterval = networkInstanceConfig['refresh_interval'];
+      }
+      // ruckus ap controller
+      if ('ruckus_controller' in networkInstanceConfig &&
+          networkInstanceConfig['ruckus_controller'] === true) {
+        // ruckus data is fetched from BQS
+        // all topologies will use the same ruckus controller for now
+        refreshRuckusControllerCache();
+        ruckusControllerTimer = setInterval(() => {
+          refreshRuckusControllerCache();
+        }, ruckusControllerRefreshInterval);
       }
       let refreshHealthData = () => {
         Object.keys(configByName).forEach(configName => {
@@ -1015,6 +1037,26 @@ function refreshStatsTypeaheadCache(topologyName) {
         return;
       }
       console.log('Fetched stats_ta_cache for', topologyName);
+    }
+  );
+}
+function refreshRuckusControllerCache() {
+  console.log('Request to update ruckus controller cache');
+  let ruckusUrl = BERINGEI_QUERY_URL + '/ruckus_ap_stats';
+  request.post(
+    {
+      url: ruckusUrl,
+      body: JSON.stringify({})
+    },
+    (err, httpResponse, body) => {
+      if (err) {
+        console.error('Error fetching from query service:', err);
+        return;
+      }
+      
+      console.log('Fetched ruckus controller stats.');
+      let ruckusCache = JSON.parse(body);
+      ruckusApsBySite = ruckusCache;
     }
   );
 }

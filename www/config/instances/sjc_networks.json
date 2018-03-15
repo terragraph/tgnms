@@ -2,6 +2,7 @@
   "use_tile_proxy": false,
   "refresh_interval": 5000,
   "fbinternal": true,
+  "ruckus_controller": true,
   "topologies": [
     {
       "topology_file": "sjc_area2.json",

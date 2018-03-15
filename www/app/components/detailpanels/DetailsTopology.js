@@ -174,6 +174,26 @@ export default class DetailsTopology extends React.Component {
       }
       polarityCountBySite[polarity]++;
     });
+    let ruckusApRows = [];
+    let totalRuckusAps = 0;
+    let totalRuckusClients = 0;
+    this.props.topology.sites.forEach(site => {
+      if (site.hasOwnProperty('ruckus')) {
+        totalRuckusAps++;
+        totalRuckusClients += site.ruckus.clientCount;
+      }
+    });
+    // show the stats for aps matched to sites
+    // we need to reconcile aps not matched to sites somewhere else
+    if (totalRuckusAps) {
+      ruckusApRows.push(
+        <tr key="ruckus_ap_row">
+          <td>Ruckus AP</td>
+          <td>{totalRuckusAps} aps</td>
+          <td>{totalRuckusClients} clients</td>
+        </tr>
+      );
+    }
     let polarityBySiteRows = Object.keys(polarityCountBySite).map(
       (polarity, index) => {
         polarity = parseInt(polarity);
@@ -363,6 +383,7 @@ export default class DetailsTopology extends React.Component {
                     </span>
                   </td>
                 </tr>
+                {ruckusApRows}
                 {nodeTypeRows}
                 {polarityRows}
                 {polarityBySiteRows}

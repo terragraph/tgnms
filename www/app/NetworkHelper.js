@@ -69,6 +69,19 @@ module.exports = {
     return releaseName;
   },
 
+  uptimeSec: function(seconds) {
+    if (seconds < 0) {
+      return '-';
+    }
+    if (seconds > (60 * 60 * 24)) {
+      return Math.round(seconds / 60.0 / 60.0 / 24.0) + ' day';
+    } else if (seconds > (60 * 60)) {
+      return Math.round(seconds / 60.0 / 60.0) + ' hr';
+    } else if (seconds > 60) {
+      return Math.round(seconds / 60.0) + ' min';
+    }
+  },
+
   linkLength: function(aSite, zSite) {
     let aSiteCoords = new LatLng(
       aSite.location.latitude,

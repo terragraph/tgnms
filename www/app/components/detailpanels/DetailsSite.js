@@ -2,7 +2,7 @@ import React from "react";
 import { render } from "react-dom";
 import { Actions } from "../../constants/NetworkConstants.js";
 import Dispatcher from "../../NetworkDispatcher.js";
-import { availabilityColor, polarityColor } from "../../NetworkHelper.js";
+import { availabilityColor, polarityColor, uptimeSec } from "../../NetworkHelper.js";
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
 
@@ -358,6 +358,18 @@ export default class DetailsSite extends React.Component {
       }
       index++;
     });
+    let ruckusRows = [];
+    if (this.props.site.hasOwnProperty('ruckus')) {
+      ruckusRows.push(
+        <tr key="ruckus">
+          <td>Ruckus AP</td>
+          <td>{this.props.site.ruckus.clientCount} clients</td>
+          <td>{uptimeSec(this.props.site.ruckus.uptime)}</td>
+          <td>{this.props.site.ruckus.connectionState}</td>
+          <td>{this.props.site.ruckus.registrationState}</td>
+        </tr>
+      );
+    }
     alivePercAvg /= linksList.length;
     alivePercAvg = parseInt(alivePercAvg * 1000) / 1000.0;
     let actionsList = [];
@@ -457,6 +469,7 @@ export default class DetailsSite extends React.Component {
                 </tr>
                 {nodesRows}
                 {linksRows}
+                {ruckusRows}
                 <tr>
                   <td width="100px">Availability</td>
                   <td colSpan="4">

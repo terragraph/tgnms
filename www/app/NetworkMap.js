@@ -668,6 +668,7 @@ export default class NetworkMap extends React.Component {
       let hasPop = false;
       let hasMac = false;
       let isCn = false;
+      let hasAp = site.hasOwnProperty('ruckus');
       let sitePolarity = null;
       let sitePlan = "NoData";
       if (this.props.commitPlan != null) {
@@ -754,6 +755,26 @@ export default class NetworkMap extends React.Component {
         this.getSiteMarker(site, siteCoords, siteColor, siteIndexForMarker)
       );
 
+      // add a purple circle around the site if we have an ap
+      if (hasAp) {
+        let apMarker = (
+          <CircleMarker
+            center={siteCoords}
+            radius={this.state.zoomLevel - 5}
+            weight={4}
+            clickable
+            fill={false}
+            color="purple"
+            key={"pop-node" + siteIndex}
+            siteIndex={siteIndex}
+            onClick={this.handleMarkerClick}
+            onMouseOver={() => this.setState({ hoveredSite: site })}
+            onMouseOut={() => this.setState({ hoveredSite: null })}
+            level={11}
+          />
+        );
+        siteComponents.push(apMarker);
+      }
       if (hasPop) {
         let secondaryMarker = (
           <CircleMarker
