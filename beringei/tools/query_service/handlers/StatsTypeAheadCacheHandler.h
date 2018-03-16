@@ -29,7 +29,7 @@ class StatsTypeAheadCacheHandler : public proxygen::RequestHandler {
 public:
   explicit StatsTypeAheadCacheHandler(
       std::shared_ptr<MySqlClient> mySqlClient,
-      const TACacheMap& typeaheadCache);
+      TACacheMap& typeaheadCache);
 
   void
   onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -47,7 +47,7 @@ public:
 private:
   std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
-  TACacheMap typeaheadCache_;
+  TACacheMap& typeaheadCache_;
 };
 }
 } // facebook::gorilla

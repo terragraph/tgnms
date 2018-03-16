@@ -35,7 +35,7 @@ const int NUM_HBS_PER_SEC = 39; // approximately
 TableQueryHandler::TableQueryHandler(
     std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
     std::shared_ptr<BeringeiClient> beringeiClient,
-    const TACacheMap& typeaheadCache)
+    TACacheMap& typeaheadCache)
     : RequestHandler(), configurationAdapter_(configurationAdapter),
       beringeiClient_(beringeiClient),
       typeaheadCache_(typeaheadCache) {}
@@ -83,6 +83,9 @@ void TableQueryHandler::onEOM() noexcept {
     auto taCacheIt = locked->find(request.topologyName);
     if (taCacheIt == locked->cend()) {
       LOG(INFO) << "\tTopology cache not found: " << request.topologyName;
+      for (const auto& topo : *locked) {
+        LOG(INFO) << "FOUND TOPO: " << topo.first;
+      }
       ResponseBuilder(downstream_)
           .status(500, "OK")
           .header("Content-Type", "application/json")

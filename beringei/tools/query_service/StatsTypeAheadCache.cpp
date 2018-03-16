@@ -123,7 +123,6 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology &request) {
     auto zNode = nodesByName_[link.z_node_name];
     for (auto &metricName : linkMetricKeyNames_) {
       folly::dynamic linkMetrics = getLinkMetrics(metricName, aNode, zNode);
-      
       for (auto &key : linkMetrics["keys"]) {
         auto node = SimpleJSONSerializer::deserialize<query::Node>(
             key["node"].asString());

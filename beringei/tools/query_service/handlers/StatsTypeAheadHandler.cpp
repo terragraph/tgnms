@@ -37,7 +37,7 @@ namespace gorilla {
 
 StatsTypeAheadHandler::StatsTypeAheadHandler(
     std::shared_ptr<MySqlClient> mySqlClient,
-    const TACacheMap& typeaheadCache)
+    TACacheMap& typeaheadCache)
     : RequestHandler(), mySqlClient_(mySqlClient),
       typeaheadCache_(typeaheadCache) {}
 

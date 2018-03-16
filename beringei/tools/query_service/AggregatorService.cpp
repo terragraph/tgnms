@@ -53,7 +53,7 @@ namespace facebook {
 namespace gorilla {
 
 AggregatorService::AggregatorService(
-  const TACacheMap& typeaheadCache,
+  TACacheMap& typeaheadCache,
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
   std::shared_ptr<BeringeiClient> beringeiReadClient,
   std::shared_ptr<BeringeiClient> beringeiWriteClient)
@@ -245,6 +245,8 @@ AggregatorService::timerCb() {
           bDataPoint.value = bTimePair;
           bDataPoints.push_back(bDataPoint);
         }
+      } else {
+        LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
       }
     }
     if (FLAGS_write_agg_data) {
@@ -258,8 +260,6 @@ AggregatorService::timerCb() {
       std::thread tEb([&eb]() { eb.loop(); });
       tEb.join();
       LOG(INFO) << "Data-points written";
-    } else {
-      LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
     }
     // push metrics into beringei
   } else {
@@ -332,8 +332,8 @@ AggregatorService::buildQuery(
     double sum = 0;
     int items = 0;
     for (const auto& pair : query.items()) {
-      LOG(INFO) << "Name: " << pair.first
-                << ", value: " << pair.second.asDouble();
+      VLOG(1) << "Name: " << pair.first
+              << ", value: " << pair.second.asDouble();
       sum += pair.second.asDouble();
       items++;
     }
