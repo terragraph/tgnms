@@ -87,13 +87,12 @@ process.on('message', msg => {
         const aggrProxy = new AggregatorProxy(topology.aggregator_ip);
         // request the old and new structures until everyone is on the latest
         // don't pre-fetch routing
-        aggrProxy.sendAggrMsgType(
+/*        aggrProxy.sendAggrMsgType(
           aggregatorTTypes.AggrMessageType.GET_STATUS_REPORT,
           '\0'
-        );
+        );*/
         // DISABLED due to high cpu in sjc
-        // aggrProxy.sendAggrMsgType(aggregatorTTypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED, '\0');
-        aggrProxy.on('event', (type, success, responseTime, data) => {
+/*        aggrProxy.on('event', (type, success, responseTime, data) => {
           switch (type) {
             case aggregatorTTypes.AggrMessageType.GET_STATUS_REPORT:
               process.send({
@@ -104,19 +103,10 @@ process.on('message', msg => {
                 status_report: success ? data.status_report : null
               });
               break;
-            case aggregatorTTypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED:
-              process.send({
-                name: topology.name,
-                type: 'aggr_status_dump_update',
-                success: success,
-                response_time: responseTime,
-                status_dump: success ? data.status_dump : null
-              });
-              break;
             default:
               console.error('Unhandled message type', type);
           }
-        });
+        });*/
       });
       break;
     case 'scan_poll':

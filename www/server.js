@@ -93,7 +93,6 @@ var fileSiteByName = {};
 var topologyByName = {};
 var statusDumpsByName = {};
 var ignitionStateByName = {};
-var aggrStatusDumpsByName = {};
 var upgradeStateByName = {};
 var networkHealth = {};
 var analyzerData = {}; // cached results
@@ -172,91 +171,6 @@ worker.on('message', msg => {
       if (msg.success && msg.status_dump && msg.status_dump.statusReports) {
         if (msg.status_dump.version) {
           config.controller_version = msg.status_dump.version.slice(0, -2);
-        }
-        Object.keys(msg.status_dump.statusReports).forEach(nodeMac => {
-          const report = msg.status_dump.statusReports[nodeMac];
-          const ts =
-            parseInt(
-              Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)
-            ) * 1000;
-          if (ts !== 0) {
-            const timeDiffMs = currentTime - ts;
-            if (timeDiffMs > statusReportExpiry) {
-              // status older than 2 minuets
-              delete msg.status_dump.statusReports[nodeMac];
-            }
-          }
-        });
-      }
-      break;
-    case 'aggr_status_report_update':
-      // log the last success time so this can be shared on old/new types
-      if (msg.success) {
-        config.aggregator_last_success = new Date().getTime();
-        aggrStatusDumpsByName[msg.name] = msg.status_report;
-      }
-      curOnline =
-        new Date().getTime() <
-        config.aggregator_last_success + maxThriftReportAge * 1000;
-      config.aggregator_online = curOnline;
-      // log online/offline changes
-      if (config.aggregator_online !== curOnline) {
-        console.log(
-          new Date().toString(),
-          msg.name,
-          'aggregator',
-          msg.success ? 'online' : 'offline',
-          'in',
-          msg.response_time,
-          'ms'
-        );
-      }
-      currentTime = new Date().getTime();
-      // remove nodes with old timestamps in status report
-      if (msg.success && msg.status_report && msg.status_report.statusReports) {
-        Object.keys(msg.status_report.statusReports).forEach(nodeMac => {
-          const report = msg.status_report.statusReports[nodeMac];
-          const ts =
-            parseInt(
-              Buffer.from(report.timeStamp.buffer.data).readUIntBE(1, 8)
-            ) * 1000;
-          if (ts !== 0) {
-            const timeDiffMs = currentTime - ts;
-            if (timeDiffMs > statusReportExpiry) {
-              // status older than 2 minuets
-              delete msg.status_report.statusReports[nodeMac];
-            }
-          }
-        });
-      }
-      break;
-    case 'aggr_status_dump_update':
-      // log the last success time so this can be shared on old/new types
-      if (msg.success) {
-        config.aggregator_last_success = new Date().getTime();
-      }
-      curOnline =
-        new Date().getTime() <
-        config.aggregator_last_success + maxThriftReportAge * 1000;
-      config.aggregator_online = curOnline;
-      // log online/offline changes
-      if (config.aggregator_online !== curOnline) {
-        console.log(
-          new Date().toString(),
-          msg.name,
-          'aggregator',
-          msg.success ? 'online' : 'offline',
-          'in',
-          msg.response_time,
-          'ms'
-        );
-      }
-      aggrStatusDumpsByName[msg.name] = msg.success ? msg.status_dump : {};
-      currentTime = new Date().getTime();
-      // remove nodes with old timestamps in status report
-      if (msg.success && msg.status_dump && msg.status_dump.statusReports) {
-        if (msg.status_dump.version) {
-          config.aggregator_version = msg.status_dump.version.slice(0, -2);
         }
         Object.keys(msg.status_dump.statusReports).forEach(nodeMac => {
           const report = msg.status_dump.statusReports[nodeMac];
@@ -509,7 +423,7 @@ function reloadInstanceConfig () {
           let config = topologyConfig;
           config['controller_online'] = false;
           config['controller_failures'] = 0;
-          config['aggregator_online'] = false;
+          config['query_service_online'] = false;
           config['aggregator_failures'] = 0;
           config['name'] = topology['name'];
           config['controller_events'] = [];
@@ -1062,6 +976,10 @@ function refreshRuckusControllerCache() {
 }
 
 function refreshNetworkHealth (topologyName) {
+  if (!configByName.hasOwnProperty(topologyName)) {
+    console.error('Unknown topology', topologyName);
+    return;
+  }
   let nodeMetrics = [
     {
       name: 'minion_uptime',
@@ -1093,8 +1011,11 @@ function refreshNetworkHealth (topologyName) {
     (err, httpResponse, body) => {
       if (err) {
         console.error('Error fetching from beringei:', err);
+        configByName[topologyName].query_service_online = false;
         return;
       }
+      // set BQS online
+      configByName[topologyName].query_service_online = true;
       let totalTime = new Date() - startTime;
       console.log('Fetched health for', topologyName, 'in', totalTime, 'ms');
       let parsed;
@@ -2053,18 +1974,6 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
 });
 
 // aggregator endpoints
-
-app.get(/\/aggregator\/getStatusDump\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  if (!configByName[topologyName]) {
-    res.status(404).end('No such topology\n');
-    return;
-  }
-  res.json({
-    status: aggrStatusDumpsByName[topologyName],
-    AdjMapAcuum: {}
-  });
-});
 
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
   let topologyName = req.params[0];

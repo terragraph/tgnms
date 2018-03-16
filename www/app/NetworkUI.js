@@ -88,7 +88,6 @@ export default class NetworkUI extends React.Component {
   getNetworkStatusPeriodic() {
     if (this.state.networkName != null) {
       this.getNetworkStatus(this.state.networkName);
-      this.getAggregatorDump(this.state.networkName);
       // initial load
       if (this.state.commitPlan == null) {
         this.fetchCommitPlan(this.state.networkName);
@@ -124,31 +123,6 @@ export default class NetworkUI extends React.Component {
               networkName: this.state.topologies[0].name
             });
           }
-        }
-      }.bind(this)
-    );
-  }
-
-  getAggregatorDump(networkName) {
-    let aggregatorDumpFetch = new Request(
-      "/aggregator/getStatusDump/" + networkName,
-      { credentials: "same-origin" }
-    );
-    fetch(aggregatorDumpFetch).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              this.setState({
-                routing: json
-              });
-              // dispatch the updated topology json
-              Dispatcher.dispatch({
-                actionType: Actions.AGGREGATOR_DUMP_REFRESHED,
-                routing: json
-              });
-            }.bind(this)
-          );
         }
       }.bind(this)
     );
@@ -205,7 +179,6 @@ export default class NetworkUI extends React.Component {
         // fetch commit plan once per topology
         // TODO: add refresh ability
         this.fetchCommitPlan(payload.networkName);
-        this.getAggregatorDump(payload.networkName);
         this.setState({
           networkName: payload.networkName
         });
@@ -453,8 +426,7 @@ export default class NetworkUI extends React.Component {
     for (let i = 0; i < this.state.topologies.length; i++) {
       let topologyConfig = this.state.topologies[i];
       let keyName = "topo#" + topologyConfig.name;
-      let online =
-        topologyConfig.controller_online || topologyConfig.aggregator_online;
+      let online = topologyConfig.controller_online;
       let controllerErrorMsg;
       if (topologyConfig.hasOwnProperty("controller_error")) {
         online = false;
@@ -527,10 +499,10 @@ export default class NetworkUI extends React.Component {
         <SubMenu
           key="nms-status-menu"
           mode="vertical"
-          title="NMS"
+          title="STATS"
           disabled
           className={
-            this.state.networkConfig.aggregator_online
+            this.state.networkConfig.query_service_online
               ? "svcOnline"
               : "svcOffline"
           }
