@@ -176,6 +176,26 @@ export default class NetworkConfigContainer extends React.Component {
       : [];
   };
 
+  getNodesName2MacMap = () => {
+    const { networkConfig } = this.props;
+    return networkConfig.topology && networkConfig.topology.nodes
+      ? networkConfig.topology.nodes.reduce(function(map, node) {
+        map[node.name] = node.mac_addr;
+        return map;
+        }, {})
+      : {};
+  };
+
+  getNodesMac2NameMap = () => {
+    const { networkConfig } = this.props;
+    return networkConfig.topology && networkConfig.topology.nodes
+      ? networkConfig.topology.nodes.reduce(function(map, node) {
+        map[node.mac_addr] = node.name;
+        return map;
+        }, {})
+      : {};
+  };
+
   handleDispatchEvent(payload) {
     const topologyName = this.props.networkConfig.topology.name;
 
@@ -263,10 +283,20 @@ export default class NetworkConfigContainer extends React.Component {
 
       // actions that change the ENTIRE FORM
       case NetworkConfigActions.SUBMIT_CONFIG:
+        // TODO a quick hack to support nameBased config for M19 onwards
+        // remove after cleaning code to use node name
+        var useNameAsKey = false;
+        var mac2NameMap = {};
+        if (!this.isOldControllerVersion()) {
+          useNameAsKey = true;
+          mac2NameMap = this.getNodesMac2NameMap();
+        }
+
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           const pathsToPick = this.state.selectedNodes.map(
             node => node.mac_addr
           );
+
           const nodeConfigToSubmit = _.pick(
             this.state.nodeConfigWithChanges,
             pathsToPick
@@ -275,7 +305,9 @@ export default class NetworkConfigContainer extends React.Component {
             topologyName,
             nodeConfigToSubmit,
             Object.keys(this.state.nodeDraftConfig),
-            true
+            true,
+            useNameAsKey,
+            mac2NameMap
           );
         } else {
           setNetworkOverrideConfig(
@@ -285,11 +317,22 @@ export default class NetworkConfigContainer extends React.Component {
         }
         break;
       case NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES:
+        // TODO a quick hack to support nameBased config for M19 onwards
+        // remove after cleaning code to use node name
+        var useNameAsKey = false;
+        var mac2NameMap = {};
+        if (!this.isOldControllerVersion()) {
+          useNameAsKey = true;
+          mac2NameMap = this.getNodesMac2NameMap();
+        }
+
         setNodeOverrideConfig(
           topologyName,
           this.state.nodeConfigWithChanges,
           Object.keys(this.state.nodeDraftConfig),
-          false
+          false,
+          useNameAsKey,
+          mac2NameMap
         );
         break;
       case NetworkConfigActions.RESET_CONFIG:
@@ -317,10 +360,28 @@ export default class NetworkConfigContainer extends React.Component {
         });
         break;
       case NetworkConfigActions.GET_NODE_CONFIG_SUCCESS:
-        this.setState({
-          nodeOverrideConfig: payload.config,
-          nodeConfigWithChanges: payload.config
-        });
+        // TODO a quick hack to support nameBased config for M19 onwards
+        // remove after cleaning code to use node name
+        if (!this.isOldControllerVersion()) {
+          // Change name key to mac key
+          var name2MacMap = this.getNodesName2MacMap();
+          var config = {};
+          Object.keys(payload.config).forEach(function(key) {
+            var newkey = name2MacMap[key];
+            if (newkey) {
+              config[newkey] = payload.config[key];
+            }
+          });
+          this.setState({
+            nodeOverrideConfig: config,
+            nodeConfigWithChanges: config
+          });
+        } else {
+          this.setState({
+            nodeOverrideConfig: payload.config,
+            nodeConfigWithChanges: payload.config
+          });
+        }
         break;
       case NetworkConfigActions.SET_NETWORK_CONFIG_SUCCESS:
         this.saveNetworkConfig(payload.config);
@@ -332,6 +393,17 @@ export default class NetworkConfigContainer extends React.Component {
         break;
     }
   }
+
+  // return true if controller vervion is older than M19
+  isOldControllerVersion = () => {
+    const { networkConfig } = this.props;
+    if (networkConfig.controller_version) {
+      let releaseIdx = networkConfig.controller_version.indexOf("RELEASE_");
+      let releaseName = networkConfig.controller_version.substring(releaseIdx + 8);
+      return releaseName.startsWith("M17") || releaseName.startsWith("M18");
+    }
+    return false;
+  };
 
   changeEditMode = newEditMode => {
     if (this.state.editMode !== newEditMode) {
