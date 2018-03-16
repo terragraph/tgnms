@@ -24,7 +24,7 @@ namespace gorilla {
 class AggregatorService {
  public:
   explicit AggregatorService(
-    const TACacheMap& typeaheadCache,
+    TACacheMap& typeaheadCache,
     std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
     std::shared_ptr<BeringeiClient> beringeiReadClient,
     std::shared_ptr<BeringeiClient> beringeiWriteClient);
@@ -48,7 +48,7 @@ class AggregatorService {
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
   // from queryservicefactory
-  const TACacheMap typeaheadCache_;
+  TACacheMap& typeaheadCache_;
   std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
   std::shared_ptr<BeringeiClient> beringeiReadClient_;
   std::shared_ptr<BeringeiClient> beringeiWriteClient_;

@@ -48,8 +48,8 @@ BeringeiData::process() {
     if (query_.key_ids.empty()) {
       continue;
     }
-    LOG(INFO) << "Request for " << query_.key_ids.size() << " key ids of "
-              << query_.agg_type << " aggregation, for " << query_.min_ago
+    LOG(INFO) << "Request for " << query_.key_ids.size() << " key ids of '"
+              << query_.agg_type << "' aggregation, for " << query_.min_ago
               << " minutes ago.";
     folly::dynamic jsonQueryResp;
     jsonQueryResp = handleQuery();
