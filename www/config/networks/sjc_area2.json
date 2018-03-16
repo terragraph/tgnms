@@ -7,7 +7,6 @@
             "a_node_name": "11K40.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11K40.1-11K40.2",
             "z_node_name": "11K40.2"
         },
@@ -15,7 +14,6 @@
             "a_node_name": "11K311.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11K311.2-11K40.1",
             "z_node_name": "11K40.1"
         },
@@ -23,7 +21,6 @@
             "a_node_name": "11K40.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11K40.2-12L259.1",
             "z_node_name": "12L259.1"
         },
@@ -31,7 +28,6 @@
             "a_node_name": "11L100.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L100.1-11L100.2",
             "z_node_name": "11L100.2"
         },
@@ -39,7 +35,6 @@
             "a_node_name": "11L100.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L100.1-11L101.2",
             "z_node_name": "11L101.2"
         },
@@ -47,7 +42,6 @@
             "a_node_name": "11L100.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11L100.2-12L775.1",
             "z_node_name": "12L775.1"
         },
@@ -55,7 +49,6 @@
             "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L101.1-11L101.2",
             "z_node_name": "11L101.2"
         },
@@ -63,7 +56,6 @@
             "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L101.1-11L101.3",
             "z_node_name": "11L101.3"
         },
@@ -71,7 +63,6 @@
             "a_node_name": "11K311.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11K311.3-11L101.1",
             "z_node_name": "11L101.1"
         },
@@ -79,7 +70,6 @@
             "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L101.1-11L940.CN",
             "z_node_name": "11L940.CN"
         },
@@ -87,7 +77,6 @@
             "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L101.1-11L941.CN",
             "z_node_name": "11L941.CN"
         },
@@ -95,7 +84,6 @@
             "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L101.1-11L942.CN",
             "z_node_name": "11L942.CN"
         },
@@ -103,7 +91,6 @@
             "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 338,
             "name": "link-11L101.1-11L943.CN",
             "z_node_name": "11L943.CN"
         },
@@ -111,7 +98,6 @@
             "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-11L101.1-11L944.CN",
             "z_node_name": "11L944.CN"
         },
@@ -119,7 +105,6 @@
             "a_node_name": "11L101.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L101.3-11L95.1",
             "z_node_name": "11L95.1"
         },
@@ -127,7 +112,6 @@
             "a_node_name": "11L1078.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1078.1-11L1078.2",
             "z_node_name": "11L1078.2"
         },
@@ -135,7 +119,6 @@
             "a_node_name": "11L1078.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11L1078.1-11L1087.1",
             "z_node_name": "11L1087.1"
         },
@@ -143,7 +126,6 @@
             "a_node_name": "11L1078.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 29,
             "name": "link-11L1078.2-11L1187.1",
             "z_node_name": "11L1187.1"
         },
@@ -151,7 +133,6 @@
             "a_node_name": "11L1078.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 87,
             "name": "link-11L1078.2-11L1190.CN",
             "z_node_name": "11L1190.CN"
         },
@@ -159,7 +140,6 @@
             "a_node_name": "11L1087.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1087.1-11L1087.2",
             "z_node_name": "11L1087.2"
         },
@@ -167,7 +147,6 @@
             "a_node_name": "11L1087.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1087.1-11L1087.3",
             "z_node_name": "11L1087.3"
         },
@@ -176,7 +155,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 54,
             "name": "link-11L1087.2-11L1094.1",
             "z_node_name": "11L1094.1"
         },
@@ -184,7 +162,6 @@
             "a_node_name": "11L1087.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11L1087.3-12L770.1",
             "z_node_name": "12L770.1"
         },
@@ -192,7 +169,6 @@
             "a_node_name": "11L1088.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1088.1-11L1088.2",
             "z_node_name": "11L1088.2"
         },
@@ -200,7 +176,6 @@
             "a_node_name": "11L1088.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1088.1-11L1249.1",
             "z_node_name": "11L1249.1"
         },
@@ -208,7 +183,6 @@
             "a_node_name": "11L1088.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11L1088.2-12L197.1",
             "z_node_name": "12L197.1"
         },
@@ -216,7 +190,6 @@
             "a_node_name": "11L1091.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 10,
             "name": "link-11L1091.CN-11L1094.s1",
             "z_node_name": "11L1094.s1"
         },
@@ -224,7 +197,6 @@
             "a_node_name": "11L1094.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1094.1-11L1094.p1",
             "z_node_name": "11L1094.p1"
         },
@@ -233,7 +205,6 @@
             "control_superframe": 1,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 53,
             "name": "link-11L1094.1-12L197.p1",
             "z_node_name": "12L197.p1"
         },
@@ -241,7 +212,6 @@
             "a_node_name": "11L1094.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1094.p1-11L1094.s1",
             "z_node_name": "11L1094.s1"
         },
@@ -249,7 +219,6 @@
             "a_node_name": "11L1094.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1094.p1-11L1094.s2",
             "z_node_name": "11L1094.s2"
         },
@@ -257,7 +226,6 @@
             "a_node_name": "11L1094.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 73,
             "name": "link-11L1094.p1-11L38.p1",
             "z_node_name": "11L38.p1"
         },
@@ -265,7 +233,6 @@
             "a_node_name": "11L1137.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1137.1-11L1137.2",
             "z_node_name": "11L1137.2"
         },
@@ -274,7 +241,6 @@
             "control_superframe": 1,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11L1137.1-11L456.3",
             "z_node_name": "11L456.3"
         },
@@ -282,7 +248,6 @@
             "a_node_name": "11L1137.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 53,
             "name": "link-11L1137.2-11L552.CN",
             "z_node_name": "11L552.CN"
         },
@@ -290,7 +255,6 @@
             "a_node_name": "11L1137.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1137.2-11L558.1",
             "z_node_name": "11L558.1"
         },
@@ -298,7 +262,6 @@
             "a_node_name": "11L1183.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1183.1-11L1183.2",
             "z_node_name": "11L1183.2"
         },
@@ -306,7 +269,6 @@
             "a_node_name": "11L1183.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 67,
             "name": "link-11L1183.1-11L1187.2",
             "z_node_name": "11L1187.2"
         },
@@ -314,7 +276,6 @@
             "a_node_name": "11L1183.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11L1183.2-11L127.CN",
             "z_node_name": "11L127.CN"
         },
@@ -322,7 +283,6 @@
             "a_node_name": "11L1187.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1187.1-11L1187.2",
             "z_node_name": "11L1187.2"
         },
@@ -330,7 +290,6 @@
             "a_node_name": "11L1187.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1187.1-11L1187.3",
             "z_node_name": "11L1187.3"
         },
@@ -338,7 +297,6 @@
             "a_node_name": "11L1187.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 71,
             "name": "link-11L1187.3-12L773.1",
             "z_node_name": "12L773.1"
         },
@@ -346,7 +304,6 @@
             "a_node_name": "11L1196.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1196.1-11L1196.2",
             "z_node_name": "11L1196.2"
         },
@@ -354,7 +311,6 @@
             "a_node_name": "11L1196.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 9,
             "name": "link-11L1196.1-11L397.1",
             "z_node_name": "11L397.1"
         },
@@ -362,7 +318,6 @@
             "a_node_name": "11L1196.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1196.2-11L95.2",
             "z_node_name": "11L95.2"
         },
@@ -370,7 +325,6 @@
             "a_node_name": "11L120.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L120.p1-11L120.s1",
             "z_node_name": "11L120.s1"
         },
@@ -379,7 +333,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 246,
             "name": "link-11L120.p1-11M795.s1",
             "z_node_name": "11M795.s1"
         },
@@ -387,7 +340,6 @@
             "a_node_name": "11L120.s1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L120.s1-11L120.s2",
             "z_node_name": "11L120.s2"
         },
@@ -395,7 +347,6 @@
             "a_node_name": "11L120.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 33,
             "name": "link-11L120.s1-CHALL-WING-NW.p1",
             "z_node_name": "CHALL-WING-NW.p1"
         },
@@ -403,7 +354,6 @@
             "a_node_name": "11L120.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L120.s2-11L565.1",
             "z_node_name": "11L565.1"
         },
@@ -411,7 +361,6 @@
             "a_node_name": "11L12.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L12.1-11L12.2",
             "z_node_name": "11L12.2"
         },
@@ -419,7 +368,6 @@
             "a_node_name": "11L12.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L12.1-11L12.3",
             "z_node_name": "11L12.3"
         },
@@ -427,7 +375,6 @@
             "a_node_name": "11L12.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L12.2-11M919.1",
             "z_node_name": "11M919.1"
         },
@@ -435,7 +382,6 @@
             "a_node_name": "11L12.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11L12.3-CHALL-WING-NW.1",
             "z_node_name": "CHALL-WING-NW.1"
         },
@@ -443,7 +389,6 @@
             "a_node_name": "11L124.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L124.1-11L124.2",
             "z_node_name": "11L124.2"
         },
@@ -451,7 +396,6 @@
             "a_node_name": "11L124.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L124.1-12L770.2",
             "z_node_name": "12L770.2"
         },
@@ -459,7 +403,6 @@
             "a_node_name": "11L124.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 37,
             "name": "link-11L124.2-12L96.1",
             "z_node_name": "12L96.1"
         },
@@ -467,7 +410,6 @@
             "a_node_name": "11L1249.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1249.1-11L1249.2",
             "z_node_name": "11L1249.2"
         },
@@ -475,7 +417,6 @@
             "a_node_name": "11L1249.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11L1249.2-11L132.CN",
             "z_node_name": "11L132.CN"
         },
@@ -483,7 +424,6 @@
             "a_node_name": "11L1268.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1268.1-11L1268.2",
             "z_node_name": "11L1268.2"
         },
@@ -491,7 +431,6 @@
             "a_node_name": "11L1268.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 8,
             "name": "link-11L1268.1-11L456.2",
             "z_node_name": "11L456.2"
         },
@@ -499,7 +438,6 @@
             "a_node_name": "11L1268.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1268.2-11L575.CN",
             "z_node_name": "11L575.CN"
         },
@@ -507,7 +445,6 @@
             "a_node_name": "11L1268.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1268.2-11L577.CN",
             "z_node_name": "11L577.CN"
         },
@@ -515,7 +452,6 @@
             "a_node_name": "11L1268.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1268.2-11L579.CN",
             "z_node_name": "11L579.CN"
         },
@@ -524,7 +460,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1268.2-11L580.1",
             "z_node_name": "11L580.1"
         },
@@ -533,7 +468,6 @@
             "control_superframe": 1,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L1268.2-11L573.1",
             "z_node_name": "11L573.1"
         },
@@ -541,7 +475,6 @@
             "a_node_name": "11L1269.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1269.1-11L1269.2",
             "z_node_name": "11L1269.2"
         },
@@ -549,7 +482,6 @@
             "a_node_name": "11L1269.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L1269.1-11L1269.3",
             "z_node_name": "11L1269.3"
         },
@@ -557,7 +489,6 @@
             "a_node_name": "11L1269.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11L1269.1-11L32.1",
             "z_node_name": "11L32.1"
         },
@@ -565,7 +496,6 @@
             "a_node_name": "11L1269.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 13,
             "name": "link-11L1269.2-11L572.1",
             "z_node_name": "11L572.1"
         },
@@ -573,7 +503,6 @@
             "a_node_name": "11L1269.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11L1269.3-11L580.2",
             "z_node_name": "11L580.2"
         },
@@ -581,7 +510,6 @@
             "a_node_name": "11L151.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L151.1-11L151.2",
             "z_node_name": "11L151.2"
         },
@@ -589,7 +517,6 @@
             "a_node_name": "11L151.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L151.1-11L152.1",
             "z_node_name": "11L152.1"
         },
@@ -597,7 +524,6 @@
             "a_node_name": "11L151.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 10,
             "name": "link-11L151.2-11L251.2",
             "z_node_name": "11L251.2"
         },
@@ -605,7 +531,6 @@
             "a_node_name": "11L152.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L152.1-11L152.2",
             "z_node_name": "11L152.2"
         },
@@ -613,7 +538,6 @@
             "a_node_name": "11L152.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 10,
             "name": "link-11L152.2-11L828.1",
             "z_node_name": "11L828.1"
         },
@@ -621,7 +545,6 @@
             "a_node_name": "11L186.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L186.1-11L186.2",
             "z_node_name": "11L186.2"
         },
@@ -629,7 +552,6 @@
             "a_node_name": "11L186.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L186.1-11L186.3",
             "z_node_name": "11L186.3"
         },
@@ -637,7 +559,6 @@
             "a_node_name": "11L186.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 14,
             "name": "link-11L186.1-11L189Y.1",
             "z_node_name": "11L189Y.1"
         },
@@ -645,7 +566,6 @@
             "a_node_name": "11L186.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 288,
             "name": "link-11L186.3-REP-SW.1",
             "z_node_name": "REP-SW.1"
         },
@@ -653,7 +573,6 @@
             "a_node_name": "11L189Y.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L189Y.1-11L189Y.2",
             "z_node_name": "11L189Y.2"
         },
@@ -661,7 +580,6 @@
             "a_node_name": "11L189Y.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 14,
             "name": "link-11L189Y.2-11M769.1",
             "z_node_name": "11M769.1"
         },
@@ -669,7 +587,6 @@
             "a_node_name": "11L19.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L19.p1-11L19.s1",
             "z_node_name": "11L19.s1"
         },
@@ -677,7 +594,6 @@
             "a_node_name": "11L19.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 115,
             "name": "link-11L19.p1-11L263.s1",
             "z_node_name": "11L263.s1"
         },
@@ -685,7 +601,6 @@
             "a_node_name": "11L19.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 10,
             "name": "link-11L19.s1-11L5.CN",
             "z_node_name": "11L5.CN"
         },
@@ -693,7 +608,6 @@
             "a_node_name": "11L19.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 9,
             "name": "link-11L19.s1-11L6.CN",
             "z_node_name": "11L6.CN"
         },
@@ -701,7 +615,6 @@
             "a_node_name": "11L19.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 140,
             "name": "link-11L19.s1-11L779.p1",
             "z_node_name": "11L779.p1"
         },
@@ -709,7 +622,6 @@
             "a_node_name": "11L19Y.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 20,
             "name": "link-11L19Y.CN-11L263.s1",
             "z_node_name": "11L263.s1"
         },
@@ -717,7 +629,6 @@
             "a_node_name": "11L22.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L22.1-11L22.p1",
             "z_node_name": "11L22.p1"
         },
@@ -725,7 +636,6 @@
             "a_node_name": "11L22.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L22.p1-11L22.s1",
             "z_node_name": "11L22.s1"
         },
@@ -733,7 +643,6 @@
             "a_node_name": "11L22.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 96,
             "name": "link-11L22.p1-CHALL-WING-NW.s1",
             "z_node_name": "CHALL-WING-NW.s1"
         },
@@ -741,7 +650,6 @@
             "a_node_name": "11L22.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 52,
             "name": "link-11L22.s1-11L263.p1",
             "z_node_name": "11L263.p1"
         },
@@ -749,7 +657,6 @@
             "a_node_name": "11L227.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L227.2-11L227.p1",
             "z_node_name": "11L227.p1"
         },
@@ -757,7 +664,6 @@
             "a_node_name": "11L227.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 65,
             "name": "link-11L227.2-12L96.2",
             "z_node_name": "12L96.2"
         },
@@ -765,7 +671,6 @@
             "a_node_name": "11L227.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L227.p1-11L227.s2",
             "z_node_name": "11L227.s2"
         },
@@ -773,7 +678,6 @@
             "a_node_name": "11L227.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 103,
             "name": "link-11L227.s2-11L38.s1",
             "z_node_name": "11L38.s1"
         },
@@ -781,7 +685,6 @@
             "a_node_name": "11L251.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L251.1-11L251.2",
             "z_node_name": "11L251.2"
         },
@@ -789,7 +692,6 @@
             "a_node_name": "11L251.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L251.1-11L251.3",
             "z_node_name": "11L251.3"
         },
@@ -797,7 +699,6 @@
             "a_node_name": "11L251.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 8,
             "name": "link-11L251.3-11L397.2",
             "z_node_name": "11L397.2"
         },
@@ -805,7 +706,6 @@
             "a_node_name": "11L262.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 15,
             "name": "link-11L262.CN-11L263.p1",
             "z_node_name": "11L263.p1"
         },
@@ -813,7 +713,6 @@
             "a_node_name": "11L263.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L263.1-11L263.p1",
             "z_node_name": "11L263.p1"
         },
@@ -821,7 +720,6 @@
             "a_node_name": "11L263.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L263.1-11L266.CN",
             "z_node_name": "11L266.CN"
         },
@@ -829,7 +727,6 @@
             "a_node_name": "11L263.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11L263.1-11L361.1",
             "z_node_name": "11L361.1"
         },
@@ -837,7 +734,6 @@
             "a_node_name": "11L263.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L263.2-11L263.p1",
             "z_node_name": "11L263.p1"
         },
@@ -845,7 +741,6 @@
             "a_node_name": "11L263.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3269,
             "name": "link-11L263.2-11M769.2",
             "z_node_name": "11M769.2"
         },
@@ -853,7 +748,6 @@
             "a_node_name": "11L263.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L263.p1-11L263.s1",
             "z_node_name": "11L263.s1"
         },
@@ -861,7 +755,6 @@
             "a_node_name": "11L263.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 163,
             "name": "link-11L263.p1-11L8.CN",
             "z_node_name": "11L8.CN"
         },
@@ -869,7 +762,6 @@
             "a_node_name": "11L309.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L309.1-11L309.2",
             "z_node_name": "11L309.2"
         },
@@ -877,7 +769,6 @@
             "a_node_name": "11K311.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11K311.1-11L309.1",
             "z_node_name": "11L309.1"
         },
@@ -885,7 +776,6 @@
             "a_node_name": "11L309.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L309.2-12L798.1",
             "z_node_name": "12L798.1"
         },
@@ -893,7 +783,6 @@
             "a_node_name": "11K311.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11K311.1-11K311.2",
             "z_node_name": "11K311.2"
         },
@@ -901,7 +790,6 @@
             "a_node_name": "11K311.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11K311.1-11K311.3",
             "z_node_name": "11K311.3"
         },
@@ -909,7 +797,6 @@
             "a_node_name": "11K311.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 20,
             "name": "link-11K311.3-11L945.CN",
             "z_node_name": "11L945.CN"
         },
@@ -917,7 +804,6 @@
             "a_node_name": "11K311.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 12,
             "name": "link-11K311.3-11L947.CN",
             "z_node_name": "11L947.CN"
         },
@@ -925,7 +811,6 @@
             "a_node_name": "11L312.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 10,
             "name": "link-11L312.CN-11L779.s1",
             "z_node_name": "11L779.s1"
         },
@@ -933,7 +818,6 @@
             "a_node_name": "11L32.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L32.1-11L32.2",
             "z_node_name": "11L32.2"
         },
@@ -941,7 +825,6 @@
             "a_node_name": "11L32.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L32.1-11L32.3",
             "z_node_name": "11L32.3"
         },
@@ -949,7 +832,6 @@
             "a_node_name": "11L32.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L32.2-11L558.2",
             "z_node_name": "11L558.2"
         },
@@ -957,7 +839,6 @@
             "a_node_name": "11L32.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-11L32.3-11L561.1",
             "z_node_name": "11L561.1"
         },
@@ -965,7 +846,6 @@
             "a_node_name": "11L361.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L361.1-11L361.2",
             "z_node_name": "11L361.2"
         },
@@ -973,7 +853,6 @@
             "a_node_name": "11L361.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11L361.2-11L561.2",
             "z_node_name": "11L561.2"
         },
@@ -981,7 +860,6 @@
             "a_node_name": "11L376.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L376.1-11L376.2",
             "z_node_name": "11L376.2"
         },
@@ -989,7 +867,6 @@
             "a_node_name": "11L376.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L376.2-11L379.1",
             "z_node_name": "11L379.1"
         },
@@ -997,7 +874,6 @@
             "a_node_name": "11L379.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L379.1-11L379.2",
             "z_node_name": "11L379.2"
         },
@@ -1005,7 +881,6 @@
             "a_node_name": "11L379.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L379.2-11L548.1",
             "z_node_name": "11L548.1"
         },
@@ -1013,7 +888,6 @@
             "a_node_name": "11L38.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L38.1-11L38.s1",
             "z_node_name": "11L38.s1"
         },
@@ -1021,15 +895,13 @@
             "a_node_name": "11L38.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 10,
-            "name": "link-11L38.1-11L747.1",
-            "z_node_name": "11L747.1"
+            "name": "link-11L38.1-11L746.1",
+            "z_node_name": "11L746.1"
         },
         {
             "a_node_name": "11L38.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L38.p1-11L38.s1",
             "z_node_name": "11L38.s1"
         },
@@ -1037,7 +909,6 @@
             "a_node_name": "11L38.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 35,
             "name": "link-11L38.p1-11L64.CN",
             "z_node_name": "11L64.CN"
         },
@@ -1045,7 +916,6 @@
             "a_node_name": "11L38.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 39,
             "name": "link-11L38.s1-11L39.CN",
             "z_node_name": "11L39.CN"
         },
@@ -1053,7 +923,6 @@
             "a_node_name": "11L397.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L397.1-11L397.2",
             "z_node_name": "11L397.2"
         },
@@ -1061,7 +930,6 @@
             "a_node_name": "11L456.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L456.1-11L456.2",
             "z_node_name": "11L456.2"
         },
@@ -1069,7 +937,6 @@
             "a_node_name": "11L456.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L456.1-11L456.3",
             "z_node_name": "11L456.3"
         },
@@ -1078,7 +945,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11L456.3-11L911.1",
             "z_node_name": "11L911.1"
         },
@@ -1086,7 +952,6 @@
             "a_node_name": "11L548.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L548.1-11L548.2",
             "z_node_name": "11L548.2"
         },
@@ -1094,7 +959,6 @@
             "a_node_name": "11L548.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L548.2-11L549.1",
             "z_node_name": "11L549.1"
         },
@@ -1102,7 +966,6 @@
             "a_node_name": "11L549.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L549.1-11L549.2",
             "z_node_name": "11L549.2"
         },
@@ -1110,7 +973,6 @@
             "a_node_name": "11L549.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11L549.2-11L699.1",
             "z_node_name": "11L699.1"
         },
@@ -1118,7 +980,6 @@
             "a_node_name": "11L558.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L558.1-11L558.2",
             "z_node_name": "11L558.2"
         },
@@ -1126,7 +987,6 @@
             "a_node_name": "11L561.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L561.1-11L561.2",
             "z_node_name": "11L561.2"
         },
@@ -1134,7 +994,6 @@
             "a_node_name": "11L565.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L565.1-11L565.2",
             "z_node_name": "11L565.2"
         },
@@ -1142,7 +1001,6 @@
             "a_node_name": "11L565.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L565.1-11L565.3",
             "z_node_name": "11L565.3"
         },
@@ -1150,7 +1008,6 @@
             "a_node_name": "11L565.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L565.2-11L572.2",
             "z_node_name": "11L572.2"
         },
@@ -1158,7 +1015,6 @@
             "a_node_name": "11L565.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11L565.3-11L699.2",
             "z_node_name": "11L699.2"
         },
@@ -1166,7 +1022,6 @@
             "a_node_name": "11L572.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L572.1-11L572.2",
             "z_node_name": "11L572.2"
         },
@@ -1174,7 +1029,6 @@
             "a_node_name": "11L580.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L580.1-11L580.2",
             "z_node_name": "11L580.2"
         },
@@ -1182,55 +1036,48 @@
             "a_node_name": "11L699.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L699.1-11L699.2",
             "z_node_name": "11L699.2"
-        },
-        {
-            "a_node_name": "11L746.1",
-            "is_alive": true,
-            "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-11L746.1-11L746.p1",
-            "z_node_name": "11L746.p1"
-        },
-        {
-            "a_node_name": "11L746.1",
-            "is_alive": true,
-            "link_type": 1,
-            "linkup_attempts": 6,
-            "name": "link-11L746.1-11L747.2",
-            "z_node_name": "11L747.2"
-        },
-        {
-            "a_node_name": "11L746.p1",
-            "is_alive": true,
-            "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-11L746.p1-11L746.s1",
-            "z_node_name": "11L746.s1"
-        },
-        {
-            "a_node_name": "11L746.p1",
-            "is_alive": true,
-            "link_type": 1,
-            "linkup_attempts": 6,
-            "name": "link-11L746.p1-11L779.s1",
-            "z_node_name": "11L779.s1"
         },
         {
             "a_node_name": "11L747.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-11L747.1-11L747.2",
-            "z_node_name": "11L747.2"
+            "name": "link-11L747.1-11L747.p1",
+            "z_node_name": "11L747.p1"
+        },
+        {
+            "a_node_name": "11L746.2",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L746.2-11L747.1",
+            "z_node_name": "11L747.1"
+        },
+        {
+            "a_node_name": "11L747.p1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L747.p1-11L747.s1",
+            "z_node_name": "11L747.s1"
+        },
+        {
+            "a_node_name": "11L747.p1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L747.p1-11L779.s1",
+            "z_node_name": "11L779.s1"
+        },
+        {
+            "a_node_name": "11L746.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L746.1-11L746.2",
+            "z_node_name": "11L746.2"
         },
         {
             "a_node_name": "11L779.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L779.p1-11L779.s1",
             "z_node_name": "11L779.s1"
         },
@@ -1238,7 +1085,6 @@
             "a_node_name": "11L828.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L828.1-11L828.2",
             "z_node_name": "11L828.2"
         },
@@ -1246,7 +1092,6 @@
             "a_node_name": "11L828.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11L828.2-11L911.2",
             "z_node_name": "11L911.2"
         },
@@ -1254,7 +1099,6 @@
             "a_node_name": "11L911.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L911.1-11L911.2",
             "z_node_name": "11L911.2"
         },
@@ -1262,7 +1106,6 @@
             "a_node_name": "11L917.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L917.p1-11L917.s1",
             "z_node_name": "11L917.s1"
         },
@@ -1270,7 +1113,6 @@
             "a_node_name": "11L917.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 83,
             "name": "link-11L917.p1-11M1072.s1",
             "z_node_name": "11M1072.s1"
         },
@@ -1278,7 +1120,6 @@
             "a_node_name": "11L917.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-11L917.p1-11M770.CN",
             "z_node_name": "11M770.CN"
         },
@@ -1286,7 +1127,6 @@
             "a_node_name": "11L917.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 106,
             "name": "link-11L917.s1-11L922.p1",
             "z_node_name": "11L922.p1"
         },
@@ -1294,7 +1134,6 @@
             "a_node_name": "11L922.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L922.p1-11L922.s1",
             "z_node_name": "11L922.s1"
         },
@@ -1302,7 +1141,6 @@
             "a_node_name": "11L922.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 8,
             "name": "link-11L922.s1-12L111.CN",
             "z_node_name": "12L111.CN"
         },
@@ -1310,7 +1148,6 @@
             "a_node_name": "11L922.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 82,
             "name": "link-11L922.s1-12L112.p1",
             "z_node_name": "12L112.p1"
         },
@@ -1318,7 +1155,6 @@
             "a_node_name": "11L95.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L95.1-11L95.2",
             "z_node_name": "11L95.2"
         },
@@ -1326,7 +1162,6 @@
             "a_node_name": "11M100.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M100.1-11M100.2",
             "z_node_name": "11M100.2"
         },
@@ -1334,7 +1169,6 @@
             "a_node_name": "11M100.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M100.1-11M100.3",
             "z_node_name": "11M100.3"
         },
@@ -1342,7 +1176,6 @@
             "a_node_name": "11M100.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 28,
             "name": "link-11M100.1-11M258.1",
             "z_node_name": "11M258.1"
         },
@@ -1350,7 +1183,6 @@
             "a_node_name": "11M100.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M100.2-11M867.1",
             "z_node_name": "11M867.1"
         },
@@ -1358,7 +1190,6 @@
             "a_node_name": "11M100.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M100.3-11M872.1",
             "z_node_name": "11M872.1"
         },
@@ -1366,7 +1197,6 @@
             "a_node_name": "11M1001.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M1001.1-11M1001.2",
             "z_node_name": "11M1001.2"
         },
@@ -1374,7 +1204,6 @@
             "a_node_name": "11M1001.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M1001.1-11M1001.3",
             "z_node_name": "11M1001.3"
         },
@@ -1382,7 +1211,6 @@
             "a_node_name": "11M1001.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M1001.1-11M794.1",
             "z_node_name": "11M794.1"
         },
@@ -1390,7 +1218,6 @@
             "a_node_name": "11M1001.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M1001.2-11M903.1",
             "z_node_name": "11M903.1"
         },
@@ -1398,7 +1225,6 @@
             "a_node_name": "11M1001.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M1001.3-11M950.1",
             "z_node_name": "11M950.1"
         },
@@ -1406,7 +1232,6 @@
             "a_node_name": "11M107.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M107.1-11M107.2",
             "z_node_name": "11M107.2"
         },
@@ -1414,7 +1239,6 @@
             "a_node_name": "11M107.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 122,
             "name": "link-11M107.1-11M83.1",
             "z_node_name": "11M83.1"
         },
@@ -1422,7 +1246,6 @@
             "a_node_name": "11M107.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 431,
             "name": "link-11M107.2-11M422.1",
             "z_node_name": "11M422.1"
         },
@@ -1430,7 +1253,6 @@
             "a_node_name": "11M1072.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M1072.p1-11M1072.s1",
             "z_node_name": "11M1072.s1"
         },
@@ -1438,7 +1260,6 @@
             "a_node_name": "11M1072.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M1072.p1-11M794.p1",
             "z_node_name": "11M794.p1"
         },
@@ -1446,7 +1267,6 @@
             "a_node_name": "11M1072.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M1072.p1-11M902.CN",
             "z_node_name": "11M902.CN"
         },
@@ -1454,7 +1274,6 @@
             "a_node_name": "11M15.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M15.1-11M15.2",
             "z_node_name": "11M15.2"
         },
@@ -1462,7 +1281,6 @@
             "a_node_name": "11M15.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M15.1-11M258.2",
             "z_node_name": "11M258.2"
         },
@@ -1470,7 +1288,6 @@
             "a_node_name": "11M15.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 10,
             "name": "link-11M15.2-11M859.1",
             "z_node_name": "11M859.1"
         },
@@ -1478,7 +1295,6 @@
             "a_node_name": "11M177Y.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M177Y.p1-11M177Y.s1",
             "z_node_name": "11M177Y.s1"
         },
@@ -1486,7 +1302,6 @@
             "a_node_name": "11M177Y.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 112,
             "name": "link-11M177Y.p1-12M233.s2",
             "z_node_name": "12M233.s2"
         },
@@ -1494,7 +1309,6 @@
             "a_node_name": "11M177Y.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 252,
             "name": "link-11M177Y.s1-11M795.p1",
             "z_node_name": "11M795.p1"
         },
@@ -1502,7 +1316,6 @@
             "a_node_name": "11M237.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M237.1-11M237.2",
             "z_node_name": "11M237.2"
         },
@@ -1510,7 +1323,6 @@
             "a_node_name": "11M237.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M237.1-11M237.3",
             "z_node_name": "11M237.3"
         },
@@ -1518,7 +1330,6 @@
             "a_node_name": "11M237.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11M237.1-11M239.1",
             "z_node_name": "11M239.1"
         },
@@ -1526,7 +1337,6 @@
             "a_node_name": "11M237.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M237.2-11M422.2",
             "z_node_name": "11M422.2"
         },
@@ -1534,7 +1344,6 @@
             "a_node_name": "11M237.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M237.3-11M872.2",
             "z_node_name": "11M872.2"
         },
@@ -1542,7 +1351,6 @@
             "a_node_name": "11M239.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M239.1-11M239.2",
             "z_node_name": "11M239.2"
         },
@@ -1550,7 +1358,6 @@
             "a_node_name": "11M239.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M239.1-11M239.3",
             "z_node_name": "11M239.3"
         },
@@ -1558,7 +1365,6 @@
             "a_node_name": "11M239.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M239.2-11M903.2",
             "z_node_name": "11M903.2"
         },
@@ -1566,7 +1372,6 @@
             "a_node_name": "11M239.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 19,
             "name": "link-11M239.3-11M926.1",
             "z_node_name": "11M926.1"
         },
@@ -1574,7 +1379,6 @@
             "a_node_name": "11M258.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M258.1-11M258.2",
             "z_node_name": "11M258.2"
         },
@@ -1582,7 +1386,6 @@
             "a_node_name": "11M262.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M262.1-11M262.2",
             "z_node_name": "11M262.2"
         },
@@ -1590,7 +1393,6 @@
             "a_node_name": "11M262.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-11M262.1-11M903.3",
             "z_node_name": "11M903.3"
         },
@@ -1598,7 +1400,6 @@
             "a_node_name": "11M262.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M262.2-11M919.2",
             "z_node_name": "11M919.2"
         },
@@ -1606,7 +1407,6 @@
             "a_node_name": "11M411.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11M411.CN-11M795.s1",
             "z_node_name": "11M795.s1"
         },
@@ -1614,7 +1414,6 @@
             "a_node_name": "11M422.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M422.1-11M422.2",
             "z_node_name": "11M422.2"
         },
@@ -1622,7 +1421,6 @@
             "a_node_name": "11M6.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11M6.CN-11M975.2",
             "z_node_name": "11M975.2"
         },
@@ -1630,7 +1428,6 @@
             "a_node_name": "11M7.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11M7.CN-11M975.2",
             "z_node_name": "11M975.2"
         },
@@ -1638,7 +1435,6 @@
             "a_node_name": "11M769.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M769.1-11M769.2",
             "z_node_name": "11M769.2"
         },
@@ -1646,7 +1442,6 @@
             "a_node_name": "11M794.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M794.1-11M794.s1",
             "z_node_name": "11M794.s1"
         },
@@ -1654,7 +1449,6 @@
             "a_node_name": "11M794.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M794.2-11M794.s1",
             "z_node_name": "11M794.s1"
         },
@@ -1662,7 +1456,6 @@
             "a_node_name": "11M794.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M794.p1-11M794.s1",
             "z_node_name": "11M794.s1"
         },
@@ -1671,7 +1464,6 @@
             "control_superframe": 1,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 234,
             "name": "link-11M794.s1-11M795.s1",
             "z_node_name": "11M795.s1"
         },
@@ -1679,7 +1471,6 @@
             "a_node_name": "11M795.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M795.p1-11M795.s1",
             "z_node_name": "11M795.s1"
         },
@@ -1687,7 +1478,6 @@
             "a_node_name": "11M795.s1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M795.s1-11M795.s2",
             "z_node_name": "11M795.s2"
         },
@@ -1695,7 +1485,6 @@
             "a_node_name": "11M79.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M79.CN-11M859.1",
             "z_node_name": "11M859.1"
         },
@@ -1703,7 +1492,6 @@
             "a_node_name": "11M83.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M83.1-11M83.2",
             "z_node_name": "11M83.2"
         },
@@ -1712,7 +1500,6 @@
             "control_superframe": 1,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M83.2-11M859.3",
             "z_node_name": "11M859.3"
         },
@@ -1720,7 +1507,6 @@
             "a_node_name": "11M842.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M842.1-11M842.2",
             "z_node_name": "11M842.2"
         },
@@ -1728,7 +1514,6 @@
             "a_node_name": "11M842.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11M842.2-12M260.1",
             "z_node_name": "12M260.1"
         },
@@ -1736,7 +1521,6 @@
             "a_node_name": "11M858.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M858.CN-11M859.1",
             "z_node_name": "11M859.1"
         },
@@ -1744,7 +1528,6 @@
             "a_node_name": "11M859.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M859.1-11M859.2",
             "z_node_name": "11M859.2"
         },
@@ -1752,7 +1535,6 @@
             "a_node_name": "11M859.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M859.1-11M859.3",
             "z_node_name": "11M859.3"
         },
@@ -1761,7 +1543,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11M859.3-11M975.1",
             "z_node_name": "11M975.1"
         },
@@ -1769,7 +1550,6 @@
             "a_node_name": "11M867.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M867.1-11M867.2",
             "z_node_name": "11M867.2"
         },
@@ -1777,7 +1557,6 @@
             "a_node_name": "11M867.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M867.2-11M870.1",
             "z_node_name": "11M870.1"
         },
@@ -1785,7 +1564,6 @@
             "a_node_name": "11M870.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M870.1-11M870.2",
             "z_node_name": "11M870.2"
         },
@@ -1793,7 +1571,6 @@
             "a_node_name": "11M870.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 9,
             "name": "link-11M870.2-11M96.1",
             "z_node_name": "11M96.1"
         },
@@ -1801,7 +1578,6 @@
             "a_node_name": "11M871.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M871.CN-11M872.2",
             "z_node_name": "11M872.2"
         },
@@ -1809,7 +1585,6 @@
             "a_node_name": "11M872.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M872.1-11M872.2",
             "z_node_name": "11M872.2"
         },
@@ -1817,7 +1592,6 @@
             "a_node_name": "11M903.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M903.1-11M903.2",
             "z_node_name": "11M903.2"
         },
@@ -1825,7 +1599,6 @@
             "a_node_name": "11M903.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M903.1-11M903.3",
             "z_node_name": "11M903.3"
         },
@@ -1833,7 +1606,6 @@
             "a_node_name": "11M919.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M919.1-11M919.2",
             "z_node_name": "11M919.2"
         },
@@ -1841,7 +1613,6 @@
             "a_node_name": "11M919.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M919.1-11M919.3",
             "z_node_name": "11M919.3"
         },
@@ -1849,7 +1620,6 @@
             "a_node_name": "11M919.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11M919.3-11M975.2",
             "z_node_name": "11M975.2"
         },
@@ -1857,7 +1627,6 @@
             "a_node_name": "11M926.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M926.1-11M926.2",
             "z_node_name": "11M926.2"
         },
@@ -1865,7 +1634,6 @@
             "a_node_name": "11M926.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 65,
             "name": "link-11M926.2-11M975.3",
             "z_node_name": "11M975.3"
         },
@@ -1873,7 +1641,6 @@
             "a_node_name": "11M95.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M95.1-11M95.2",
             "z_node_name": "11M95.2"
         },
@@ -1881,7 +1648,6 @@
             "a_node_name": "11M95.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-11M95.2-11M96.2",
             "z_node_name": "11M96.2"
         },
@@ -1889,7 +1655,6 @@
             "a_node_name": "11M950.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M950.1-11M950.2",
             "z_node_name": "11M950.2"
         },
@@ -1897,7 +1662,6 @@
             "a_node_name": "11M950.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M950.1-11M950.3",
             "z_node_name": "11M950.3"
         },
@@ -1905,7 +1669,6 @@
             "a_node_name": "11M950.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11M950.3-CHALL-WING-SE.1",
             "z_node_name": "CHALL-WING-SE.1"
         },
@@ -1913,7 +1676,6 @@
             "a_node_name": "11M96.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M96.1-11M96.2",
             "z_node_name": "11M96.2"
         },
@@ -1921,7 +1683,6 @@
             "a_node_name": "11M973.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 32,
             "name": "link-11M973.CN-11M975.2",
             "z_node_name": "11M975.2"
         },
@@ -1929,7 +1690,6 @@
             "a_node_name": "11M975.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M975.1-11M975.2",
             "z_node_name": "11M975.2"
         },
@@ -1937,7 +1697,6 @@
             "a_node_name": "11M975.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11M975.1-11M975.3",
             "z_node_name": "11M975.3"
         },
@@ -1945,7 +1704,6 @@
             "a_node_name": "12L1004Y.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7564,
             "name": "link-12L1004Y.CN-12L394.p1",
             "z_node_name": "12L394.p1"
         },
@@ -1953,7 +1711,6 @@
             "a_node_name": "12L1026.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L1026.1-12L1026.2",
             "z_node_name": "12L1026.2"
         },
@@ -1961,7 +1718,6 @@
             "a_node_name": "12L1026.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 11,
             "name": "link-12L1026.1-12L118.1",
             "z_node_name": "12L118.1"
         },
@@ -1969,7 +1725,6 @@
             "a_node_name": "12L1026.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 327,
             "name": "link-12L1026.2-12L804.1",
             "z_node_name": "12L804.1"
         },
@@ -1977,7 +1732,6 @@
             "a_node_name": "12L104.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L104.p1-12L104.s1",
             "z_node_name": "12L104.s1"
         },
@@ -1985,7 +1739,6 @@
             "a_node_name": "12L104.s1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L104.s1-12L104.s2",
             "z_node_name": "12L104.s2"
         },
@@ -1993,7 +1746,6 @@
             "a_node_name": "12L104.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L104.s1-12L189.p1",
             "z_node_name": "12L189.p1"
         },
@@ -2001,7 +1753,6 @@
             "a_node_name": "12L104.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L104.s2-12L96.3",
             "z_node_name": "12L96.3"
         },
@@ -2009,7 +1760,6 @@
             "a_node_name": "12L105.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L105.CN-12L189.p1",
             "z_node_name": "12L189.p1"
         },
@@ -2017,7 +1767,6 @@
             "a_node_name": "12L106.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L106.CN-12L189.p1",
             "z_node_name": "12L189.p1"
         },
@@ -2025,7 +1774,6 @@
             "a_node_name": "12L107.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L107.p1-12L107.s2",
             "z_node_name": "12L107.s2"
         },
@@ -2033,7 +1781,6 @@
             "a_node_name": "12L107.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-12L107.p1-12L109.CN",
             "z_node_name": "12L109.CN"
         },
@@ -2041,7 +1788,6 @@
             "a_node_name": "12L107.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L107.p1-12L112.s1",
             "z_node_name": "12L112.s1"
         },
@@ -2049,7 +1795,6 @@
             "a_node_name": "12L107.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 33,
             "name": "link-12L107.s2-12L56.p1",
             "z_node_name": "12L56.p1"
         },
@@ -2057,7 +1802,6 @@
             "a_node_name": "12L110.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L110.CN-12L112.s1",
             "z_node_name": "12L112.s1"
         },
@@ -2065,7 +1809,6 @@
             "a_node_name": "12L112.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L112.p1-12L112.s1",
             "z_node_name": "12L112.s1"
         },
@@ -2073,7 +1816,6 @@
             "a_node_name": "12L1149.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L1149.CN-12L206.p1",
             "z_node_name": "12L206.p1"
         },
@@ -2081,7 +1823,6 @@
             "a_node_name": "12L115.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L115.1-12L115.2",
             "z_node_name": "12L115.2"
         },
@@ -2089,7 +1830,6 @@
             "a_node_name": "12L115.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L115.1-12L115.3",
             "z_node_name": "12L115.3"
         },
@@ -2097,7 +1837,6 @@
             "a_node_name": "12L115.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L115.1-12L115.4",
             "z_node_name": "12L115.4"
         },
@@ -2105,7 +1844,6 @@
             "a_node_name": "12L115.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 21,
             "name": "link-12L115.1-12L118.2",
             "z_node_name": "12L118.2"
         },
@@ -2113,7 +1851,6 @@
             "a_node_name": "12L115.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L115.2-12L269.2",
             "z_node_name": "12L269.2"
         },
@@ -2121,7 +1858,6 @@
             "a_node_name": "12L115.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L115.3-12L73.1",
             "z_node_name": "12L73.1"
         },
@@ -2129,7 +1865,6 @@
             "a_node_name": "12L115.4",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L115.4-12L816.1",
             "z_node_name": "12L816.1"
         },
@@ -2137,7 +1872,6 @@
             "a_node_name": "12L118.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L118.1-12L118.2",
             "z_node_name": "12L118.2"
         },
@@ -2145,7 +1879,6 @@
             "a_node_name": "12L118.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L118.1-12L118.3",
             "z_node_name": "12L118.3"
         },
@@ -2153,7 +1886,6 @@
             "a_node_name": "12L118.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L118.1-12L118.4",
             "z_node_name": "12L118.4"
         },
@@ -2161,7 +1893,6 @@
             "a_node_name": "12L118.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 8,
             "name": "link-12L118.3-12L156.1",
             "z_node_name": "12L156.1"
         },
@@ -2169,7 +1900,6 @@
             "a_node_name": "12L12.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L12.1-12L12.2",
             "z_node_name": "12L12.2"
         },
@@ -2177,7 +1907,6 @@
             "a_node_name": "12L12.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L12.1-12L669.1",
             "z_node_name": "12L669.1"
         },
@@ -2185,7 +1914,6 @@
             "a_node_name": "12L12.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L12.2-CPA-S.1",
             "z_node_name": "CPA-S.1"
         },
@@ -2193,7 +1921,6 @@
             "a_node_name": "12L138.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L138.CN-12L82.1",
             "z_node_name": "12L82.1"
         },
@@ -2201,7 +1928,6 @@
             "a_node_name": "12L156.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L156.1-12L156.2",
             "z_node_name": "12L156.2"
         },
@@ -2209,7 +1935,6 @@
             "a_node_name": "12L156.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L156.2-12L74.1",
             "z_node_name": "12L74.1"
         },
@@ -2217,7 +1942,6 @@
             "a_node_name": "12L189.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L189.p1-12L189.s1",
             "z_node_name": "12L189.s1"
         },
@@ -2225,7 +1949,6 @@
             "a_node_name": "12L189.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L189.s1-12L418.p1",
             "z_node_name": "12L418.p1"
         },
@@ -2233,7 +1956,6 @@
             "a_node_name": "12L696.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L696.1-12L696.2",
             "z_node_name": "12L696.2"
         },
@@ -2241,7 +1963,6 @@
             "a_node_name": "12L198.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L198.1-12L696.1",
             "z_node_name": "12L696.1"
         },
@@ -2249,7 +1970,6 @@
             "a_node_name": "12L696.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L696.2-12L773.2",
             "z_node_name": "12L773.2"
         },
@@ -2257,7 +1977,6 @@
             "a_node_name": "12L197.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L197.1-12L197.p1",
             "z_node_name": "12L197.p1"
         },
@@ -2265,7 +1984,6 @@
             "a_node_name": "12L197.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L197.p1-12L197.s1",
             "z_node_name": "12L197.s1"
         },
@@ -2273,7 +1991,6 @@
             "a_node_name": "12L197.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L197.s1-12L198.p1",
             "z_node_name": "12L198.p1"
         },
@@ -2281,7 +1998,6 @@
             "a_node_name": "12L197.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L197.s1-12L200.CN",
             "z_node_name": "12L200.CN"
         },
@@ -2289,7 +2005,6 @@
             "a_node_name": "12L197.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L197.s1-12L789.CN",
             "z_node_name": "12L789.CN"
         },
@@ -2297,7 +2012,6 @@
             "a_node_name": "12L198.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L198.1-12L198.s2",
             "z_node_name": "12L198.s2"
         },
@@ -2305,7 +2019,6 @@
             "a_node_name": "12L198.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L198.2-12L198.s2",
             "z_node_name": "12L198.s2"
         },
@@ -2313,7 +2026,6 @@
             "a_node_name": "12L198.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 8,
             "name": "link-12L198.2-12L75.1",
             "z_node_name": "12L75.1"
         },
@@ -2321,7 +2033,6 @@
             "a_node_name": "12L198.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L198.p1-12L198.s2",
             "z_node_name": "12L198.s2"
         },
@@ -2329,7 +2040,6 @@
             "a_node_name": "12L198.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L198.s2-12L202.CN",
             "z_node_name": "12L202.CN"
         },
@@ -2337,7 +2047,6 @@
             "a_node_name": "12L198.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 33,
             "name": "link-12L198.s2-12L203.p1",
             "z_node_name": "12L203.p1"
         },
@@ -2345,7 +2054,6 @@
             "a_node_name": "12L198.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 82,
             "name": "link-12L198.s2-12L204.CN",
             "z_node_name": "12L204.CN"
         },
@@ -2353,7 +2061,6 @@
             "a_node_name": "12L203.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L203.p1-12L203.s1",
             "z_node_name": "12L203.s1"
         },
@@ -2361,7 +2068,6 @@
             "a_node_name": "12L203.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 57,
             "name": "link-12L203.s1-12L206.s1",
             "z_node_name": "12L206.s1"
         },
@@ -2369,7 +2075,6 @@
             "a_node_name": "12L203.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 21,
             "name": "link-12L203.s1-12L54Y.CN",
             "z_node_name": "12L54Y.CN"
         },
@@ -2377,7 +2082,6 @@
             "a_node_name": "12L203.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 62,
             "name": "link-12L203.s1-12L934.CN",
             "z_node_name": "12L934.CN"
         },
@@ -2385,7 +2089,6 @@
             "a_node_name": "12L205.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 110,
             "name": "link-12L205.CN-12L394.s1",
             "z_node_name": "12L394.s1"
         },
@@ -2393,7 +2096,6 @@
             "a_node_name": "12L206.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L206.1-12L206.s3",
             "z_node_name": "12L206.s3"
         },
@@ -2401,7 +2103,6 @@
             "a_node_name": "12L206.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-12L206.1-12L781.1",
             "z_node_name": "12L781.1"
         },
@@ -2409,7 +2110,6 @@
             "a_node_name": "12L206.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L206.p1-12L206.s3",
             "z_node_name": "12L206.s3"
         },
@@ -2417,7 +2117,6 @@
             "a_node_name": "12L206.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 15,
             "name": "link-12L206.p1-12L56.s1",
             "z_node_name": "12L56.s1"
         },
@@ -2425,7 +2124,6 @@
             "a_node_name": "12L206.s1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L206.s1-12L206.s3",
             "z_node_name": "12L206.s3"
         },
@@ -2433,7 +2131,6 @@
             "a_node_name": "12L206.s3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 102,
             "name": "link-12L206.s3-12L394.s1",
             "z_node_name": "12L394.s1"
         },
@@ -2441,7 +2138,6 @@
             "a_node_name": "12L212.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L212.1-12L212.p1",
             "z_node_name": "12L212.p1"
         },
@@ -2449,7 +2145,6 @@
             "a_node_name": "12L212.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7798,
             "name": "link-12L212.1-12L659.1",
             "z_node_name": "12L659.1"
         },
@@ -2457,7 +2152,6 @@
             "a_node_name": "12L212.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L212.p1-12L212.s1",
             "z_node_name": "12L212.s1"
         },
@@ -2465,7 +2159,6 @@
             "a_node_name": "12L212.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 2065,
             "name": "link-12L212.p1-12L305.p1",
             "z_node_name": "12L305.p1"
         },
@@ -2473,7 +2166,6 @@
             "a_node_name": "12L212.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L212.p1-12L423.CN",
             "z_node_name": "12L423.CN"
         },
@@ -2482,7 +2174,6 @@
             "control_superframe": 1,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 8,
             "name": "link-12L212.s1-12L82.p1",
             "z_node_name": "12L82.p1"
         },
@@ -2490,7 +2181,6 @@
             "a_node_name": "12L218.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L218.CN-12L61Y.2",
             "z_node_name": "12L61Y.2"
         },
@@ -2498,7 +2188,6 @@
             "a_node_name": "12L251.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L251.1-12L251.s1",
             "z_node_name": "12L251.s1"
         },
@@ -2506,7 +2195,6 @@
             "a_node_name": "12L251.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L251.1-12M789.1",
             "z_node_name": "12M789.1"
         },
@@ -2514,7 +2202,6 @@
             "a_node_name": "12L251.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L251.p1-12L251.s1",
             "z_node_name": "12L251.s1"
         },
@@ -2522,7 +2209,6 @@
             "a_node_name": "12L251.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L251.p1-12L418.s1",
             "z_node_name": "12L418.s1"
         },
@@ -2530,7 +2216,6 @@
             "a_node_name": "12L251.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L251.s1-12L59.p1",
             "z_node_name": "12L59.p1"
         },
@@ -2538,7 +2223,6 @@
             "a_node_name": "12L259.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L259.1-12L259.2",
             "z_node_name": "12L259.2"
         },
@@ -2546,7 +2230,6 @@
             "a_node_name": "12L259.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 23,
             "name": "link-12L259.2-12L261.1",
             "z_node_name": "12L261.1"
         },
@@ -2554,7 +2237,6 @@
             "a_node_name": "12L261.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L261.1-12L261.2",
             "z_node_name": "12L261.2"
         },
@@ -2562,7 +2244,6 @@
             "a_node_name": "12L261.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L261.1-12L261.3",
             "z_node_name": "12L261.3"
         },
@@ -2570,7 +2251,6 @@
             "a_node_name": "12L261.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L261.2-12L269.3",
             "z_node_name": "12L269.3"
         },
@@ -2578,7 +2258,6 @@
             "a_node_name": "12L261.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L261.3-12L798.2",
             "z_node_name": "12L798.2"
         },
@@ -2586,7 +2265,6 @@
             "a_node_name": "12L269.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L269.1-12L269.2",
             "z_node_name": "12L269.2"
         },
@@ -2594,7 +2272,6 @@
             "a_node_name": "12L269.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L269.1-12L269.3",
             "z_node_name": "12L269.3"
         },
@@ -2602,7 +2279,6 @@
             "a_node_name": "12L303.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L303.CN-12L418.s2",
             "z_node_name": "12L418.s2"
         },
@@ -2610,7 +2286,6 @@
             "a_node_name": "12L305.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L305.p1-12L305.s1",
             "z_node_name": "12L305.s1"
         },
@@ -2618,7 +2293,6 @@
             "a_node_name": "12L305.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L305.s1-TECH-NW.p1",
             "z_node_name": "TECH-NW.p1"
         },
@@ -2626,7 +2300,6 @@
             "a_node_name": "12L305.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L305.s2-12L418.s2",
             "z_node_name": "12L418.s2"
         },
@@ -2634,7 +2307,6 @@
             "a_node_name": "12L334.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L334.1-12L334.2",
             "z_node_name": "12L334.2"
         },
@@ -2642,7 +2314,6 @@
             "a_node_name": "12L334.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L334.1-12L334.3",
             "z_node_name": "12L334.3"
         },
@@ -2650,7 +2321,6 @@
             "a_node_name": "12L334.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L334.1-12L766.1",
             "z_node_name": "12L766.1"
         },
@@ -2658,7 +2328,6 @@
             "a_node_name": "12L334.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 89,
             "name": "link-12L334.2-12L804.2",
             "z_node_name": "12L804.2"
         },
@@ -2666,7 +2335,6 @@
             "a_node_name": "12L334.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L334.3-12L962.1",
             "z_node_name": "12L962.1"
         },
@@ -2674,7 +2342,6 @@
             "a_node_name": "12L394.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L394.p1-12L394.s1",
             "z_node_name": "12L394.s1"
         },
@@ -2683,7 +2350,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7520,
             "name": "link-12L394.p1-12L82.p1",
             "z_node_name": "12L82.p1"
         },
@@ -2691,7 +2357,6 @@
             "a_node_name": "12L418.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L418.1-12L418.s1",
             "z_node_name": "12L418.s1"
         },
@@ -2699,7 +2364,6 @@
             "a_node_name": "12L418.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L418.1-REP-SE.1",
             "z_node_name": "REP-SE.1"
         },
@@ -2707,7 +2371,6 @@
             "a_node_name": "12L418.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L418.p1-12L418.s1",
             "z_node_name": "12L418.s1"
         },
@@ -2715,7 +2378,6 @@
             "a_node_name": "12L418.s1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L418.s1-12L418.s2",
             "z_node_name": "12L418.s2"
         },
@@ -2723,7 +2385,6 @@
             "a_node_name": "12L452.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L452.1-12L452.2",
             "z_node_name": "12L452.2"
         },
@@ -2731,7 +2392,6 @@
             "a_node_name": "12L452.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L452.1-12L452.3",
             "z_node_name": "12L452.3"
         },
@@ -2739,7 +2399,6 @@
             "a_node_name": "12L452.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-12L452.2-12L74.2",
             "z_node_name": "12L74.2"
         },
@@ -2747,7 +2406,6 @@
             "a_node_name": "12L452.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L452.3-12L899.1",
             "z_node_name": "12L899.1"
         },
@@ -2755,7 +2413,6 @@
             "a_node_name": "12L535.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L535.1-12L535.2",
             "z_node_name": "12L535.2"
         },
@@ -2763,7 +2420,6 @@
             "a_node_name": "12L535.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L535.1-12L535.3",
             "z_node_name": "12L535.3"
         },
@@ -2771,7 +2427,6 @@
             "a_node_name": "12L535.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 61,
             "name": "link-12L535.2-12L61Y.1",
             "z_node_name": "12L61Y.1"
         },
@@ -2779,7 +2434,6 @@
             "a_node_name": "12L535.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 62,
             "name": "link-12L535.3-CC-SW.1",
             "z_node_name": "CC-SW.1"
         },
@@ -2787,7 +2441,6 @@
             "a_node_name": "12L56.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L56.p1-12L56.s1",
             "z_node_name": "12L56.s1"
         },
@@ -2795,7 +2448,6 @@
             "a_node_name": "12L59.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L59.1-12L59.s1",
             "z_node_name": "12L59.s1"
         },
@@ -2803,7 +2455,6 @@
             "a_node_name": "12L59.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 38,
             "name": "link-12L59.1-12M886.1",
             "z_node_name": "12M886.1"
         },
@@ -2811,7 +2462,6 @@
             "a_node_name": "12L59.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L59.p1-12L59.s1",
             "z_node_name": "12L59.s1"
         },
@@ -2819,7 +2469,6 @@
             "a_node_name": "12L59.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L59.s1-CC-N-CENT.s1",
             "z_node_name": "CC-N-CENT.s1"
         },
@@ -2827,7 +2476,6 @@
             "a_node_name": "12L607.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L607.1-12L607.2",
             "z_node_name": "12L607.2"
         },
@@ -2835,7 +2483,6 @@
             "a_node_name": "12L607.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L607.1-12L607.3",
             "z_node_name": "12L607.3"
         },
@@ -2843,7 +2490,6 @@
             "a_node_name": "12L607.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-12L607.2-12L711A.1",
             "z_node_name": "12L711A.1"
         },
@@ -2852,7 +2498,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L607.3-CC-SW.2",
             "z_node_name": "CC-SW.2"
         },
@@ -2860,7 +2505,6 @@
             "a_node_name": "12L61Y.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L61Y.1-12L61Y.2",
             "z_node_name": "12L61Y.2"
         },
@@ -2868,7 +2512,6 @@
             "a_node_name": "12L61Y.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L61Y.1-12L61Y.3",
             "z_node_name": "12L61Y.3"
         },
@@ -2876,7 +2519,6 @@
             "a_node_name": "12L61Y.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7811,
             "name": "link-12L61Y.2-12L82.1",
             "z_node_name": "12L82.1"
         },
@@ -2884,7 +2526,6 @@
             "a_node_name": "12L61Y.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 29,
             "name": "link-12L61Y.3-CPA-S.2",
             "z_node_name": "CPA-S.2"
         },
@@ -2892,7 +2533,6 @@
             "a_node_name": "12L669.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L669.1-12L669.2",
             "z_node_name": "12L669.2"
         },
@@ -2900,7 +2540,6 @@
             "a_node_name": "12L669.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L669.2-12L674.1",
             "z_node_name": "12L674.1"
         },
@@ -2908,7 +2547,6 @@
             "a_node_name": "12L674.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L674.1-12L674.2",
             "z_node_name": "12L674.2"
         },
@@ -2916,7 +2554,6 @@
             "a_node_name": "12L674.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L674.2-12L680.1",
             "z_node_name": "12L680.1"
         },
@@ -2924,7 +2561,6 @@
             "a_node_name": "12L678.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 42,
             "name": "link-12L678.CN-12L704.1",
             "z_node_name": "12L704.1"
         },
@@ -2932,7 +2568,6 @@
             "a_node_name": "12L679.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 14,
             "name": "link-12L679.CN-12L704.1",
             "z_node_name": "12L704.1"
         },
@@ -2940,7 +2575,6 @@
             "a_node_name": "12L680.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L680.1-12L680.2",
             "z_node_name": "12L680.2"
         },
@@ -2948,7 +2582,6 @@
             "a_node_name": "12L680.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 15,
             "name": "link-12L680.2-12L704.1",
             "z_node_name": "12L704.1"
         },
@@ -2956,7 +2589,6 @@
             "a_node_name": "12L685.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 11,
             "name": "link-12L685.CN-12L704.1",
             "z_node_name": "12L704.1"
         },
@@ -2964,7 +2596,6 @@
             "a_node_name": "12L687.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-12L687.CN-12L704.1",
             "z_node_name": "12L704.1"
         },
@@ -2972,7 +2603,6 @@
             "a_node_name": "12L703.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 385,
             "name": "link-12L703.CN-12L704.1",
             "z_node_name": "12L704.1"
         },
@@ -2980,7 +2610,6 @@
             "a_node_name": "12L704.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L704.1-12L704.2",
             "z_node_name": "12L704.2"
         },
@@ -2988,7 +2617,6 @@
             "a_node_name": "12L704.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 29,
             "name": "link-12L704.2-12L711A.2",
             "z_node_name": "12L711A.2"
         },
@@ -2996,7 +2624,6 @@
             "a_node_name": "12L711A.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L711A.1-12L711A.2",
             "z_node_name": "12L711A.2"
         },
@@ -3004,7 +2631,6 @@
             "a_node_name": "12L73.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L73.1-12L73.2",
             "z_node_name": "12L73.2"
         },
@@ -3012,7 +2638,6 @@
             "a_node_name": "12L73.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L73.1-12L73.3",
             "z_node_name": "12L73.3"
         },
@@ -3020,7 +2645,6 @@
             "a_node_name": "12L73.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-12L73.3-12L899.2",
             "z_node_name": "12L899.2"
         },
@@ -3028,7 +2652,6 @@
             "a_node_name": "12L74.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L74.1-12L74.2",
             "z_node_name": "12L74.2"
         },
@@ -3036,7 +2659,6 @@
             "a_node_name": "12L75.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L75.1-12L75.2",
             "z_node_name": "12L75.2"
         },
@@ -3044,7 +2666,6 @@
             "a_node_name": "12L75.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L75.2-12L842.1",
             "z_node_name": "12L842.1"
         },
@@ -3052,7 +2673,6 @@
             "a_node_name": "12L764.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L764.1-12L764.2",
             "z_node_name": "12L764.2"
         },
@@ -3060,7 +2680,6 @@
             "a_node_name": "12L764.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L764.1-12L764.3",
             "z_node_name": "12L764.3"
         },
@@ -3068,7 +2687,6 @@
             "a_node_name": "12L764.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 83,
             "name": "link-12L764.1-12L875.1",
             "z_node_name": "12L875.1"
         },
@@ -3076,7 +2694,6 @@
             "a_node_name": "12L764.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L764.2-12L967.1",
             "z_node_name": "12L967.1"
         },
@@ -3084,7 +2701,6 @@
             "a_node_name": "12L766.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L766.1-12L766.2",
             "z_node_name": "12L766.2"
         },
@@ -3092,7 +2708,6 @@
             "a_node_name": "12L766.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L766.1-12L766.3",
             "z_node_name": "12L766.3"
         },
@@ -3100,7 +2715,6 @@
             "a_node_name": "12L766.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L766.3-12L80.1",
             "z_node_name": "12L80.1"
         },
@@ -3108,7 +2722,6 @@
             "a_node_name": "12L768.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L768.1-12L768.2",
             "z_node_name": "12L768.2"
         },
@@ -3117,7 +2730,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L768.2-12L80.2",
             "z_node_name": "12L80.2"
         },
@@ -3125,7 +2737,6 @@
             "a_node_name": "12L770.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L770.1-12L770.2",
             "z_node_name": "12L770.2"
         },
@@ -3133,7 +2744,6 @@
             "a_node_name": "12L773.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L773.1-12L773.2",
             "z_node_name": "12L773.2"
         },
@@ -3141,7 +2751,6 @@
             "a_node_name": "12L773.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L773.1-12L773.3",
             "z_node_name": "12L773.3"
         },
@@ -3149,7 +2758,6 @@
             "a_node_name": "12L773.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L773.3-12L774.1",
             "z_node_name": "12L774.1"
         },
@@ -3157,7 +2765,6 @@
             "a_node_name": "12L774.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L774.1-12L774.2",
             "z_node_name": "12L774.2"
         },
@@ -3165,7 +2772,6 @@
             "a_node_name": "12L774.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L774.2-12L775.2",
             "z_node_name": "12L775.2"
         },
@@ -3173,7 +2779,6 @@
             "a_node_name": "12L775.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L775.1-12L775.2",
             "z_node_name": "12L775.2"
         },
@@ -3181,7 +2786,6 @@
             "a_node_name": "12L781.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L781.1-12L781.2",
             "z_node_name": "12L781.2"
         },
@@ -3189,7 +2793,6 @@
             "a_node_name": "12L781.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L781.2-12L782.1",
             "z_node_name": "12L782.1"
         },
@@ -3197,7 +2800,6 @@
             "a_node_name": "12L782.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L782.1-12L782.2",
             "z_node_name": "12L782.2"
         },
@@ -3205,7 +2807,6 @@
             "a_node_name": "12L782.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-12L782.2-12L875.2",
             "z_node_name": "12L875.2"
         },
@@ -3213,7 +2814,6 @@
             "a_node_name": "12L798.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L798.1-12L798.2",
             "z_node_name": "12L798.2"
         },
@@ -3221,7 +2821,6 @@
             "a_node_name": "12L799.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L799.1-12L799.2",
             "z_node_name": "12L799.2"
         },
@@ -3229,7 +2828,6 @@
             "a_node_name": "12L799.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L799.1-12L816.2",
             "z_node_name": "12L816.2"
         },
@@ -3237,7 +2835,6 @@
             "a_node_name": "12L799.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L799.2-12L967.2",
             "z_node_name": "12L967.2"
         },
@@ -3245,7 +2842,6 @@
             "a_node_name": "12L80.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L80.1-12L80.2",
             "z_node_name": "12L80.2"
         },
@@ -3253,7 +2849,6 @@
             "a_node_name": "12L80.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L80.1-12LNN44.CN",
             "z_node_name": "12LNN44.CN"
         },
@@ -3261,7 +2856,6 @@
             "a_node_name": "12L804.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L804.1-12L804.2",
             "z_node_name": "12L804.2"
         },
@@ -3269,7 +2863,6 @@
             "a_node_name": "12L816.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L816.1-12L816.2",
             "z_node_name": "12L816.2"
         },
@@ -3277,7 +2870,6 @@
             "a_node_name": "12L816.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L816.1-12L816.3",
             "z_node_name": "12L816.3"
         },
@@ -3285,7 +2877,6 @@
             "a_node_name": "12L816.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-12L816.3-12L817.CN",
             "z_node_name": "12L817.CN"
         },
@@ -3293,7 +2884,6 @@
             "a_node_name": "12L816.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-12L816.3-12L819.CN",
             "z_node_name": "12L819.CN"
         },
@@ -3301,7 +2891,6 @@
             "a_node_name": "12L816.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12L816.3-12L821.CN",
             "z_node_name": "12L821.CN"
         },
@@ -3309,7 +2898,6 @@
             "a_node_name": "12L816.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12L816.3-12L823.CN",
             "z_node_name": "12L823.CN"
         },
@@ -3317,7 +2905,6 @@
             "a_node_name": "12L816.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 15,
             "name": "link-12L816.3-12L842.2",
             "z_node_name": "12L842.2"
         },
@@ -3325,7 +2912,6 @@
             "a_node_name": "12L82.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L82.1-12L82.s2",
             "z_node_name": "12L82.s2"
         },
@@ -3333,7 +2919,6 @@
             "a_node_name": "12L82.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L82.p1-12L82.s2",
             "z_node_name": "12L82.s2"
         },
@@ -3341,7 +2926,6 @@
             "a_node_name": "12L82.s1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L82.s1-12L82.s2",
             "z_node_name": "12L82.s2"
         },
@@ -3349,15 +2933,13 @@
             "a_node_name": "12L82.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7818,
-            "name": "link-12L82.s2-CPA-N.p1",
-            "z_node_name": "CPA-N.p1"
+            "name": "link-12L82.s2-CPA-N.2",
+            "z_node_name": "CPA-N.2"
         },
         {
             "a_node_name": "12L842.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L842.1-12L842.2",
             "z_node_name": "12L842.2"
         },
@@ -3365,7 +2947,6 @@
             "a_node_name": "12L875.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L875.1-12L875.2",
             "z_node_name": "12L875.2"
         },
@@ -3373,7 +2954,6 @@
             "a_node_name": "12L899.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L899.1-12L899.2",
             "z_node_name": "12L899.2"
         },
@@ -3381,7 +2961,6 @@
             "a_node_name": "12L96.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L96.1-12L96.2",
             "z_node_name": "12L96.2"
         },
@@ -3389,7 +2968,6 @@
             "a_node_name": "12L96.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L96.1-12L96.3",
             "z_node_name": "12L96.3"
         },
@@ -3397,7 +2975,6 @@
             "a_node_name": "12L962.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L962.1-12L962.2",
             "z_node_name": "12L962.2"
         },
@@ -3405,7 +2982,6 @@
             "a_node_name": "12L962.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L962.1-12L962.3",
             "z_node_name": "12L962.3"
         },
@@ -3413,7 +2989,6 @@
             "a_node_name": "12L962.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L962.3-12L967.3",
             "z_node_name": "12L967.3"
         },
@@ -3421,7 +2996,6 @@
             "a_node_name": "12L967.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L967.1-12L967.2",
             "z_node_name": "12L967.2"
         },
@@ -3429,7 +3003,6 @@
             "a_node_name": "12L967.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L967.1-12L967.3",
             "z_node_name": "12L967.3"
         },
@@ -3437,7 +3010,6 @@
             "a_node_name": "12L659.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12L659.1-12L659.2",
             "z_node_name": "12L659.2"
         },
@@ -3445,7 +3017,6 @@
             "a_node_name": "12L659.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12L659.2-CPA-N.1",
             "z_node_name": "CPA-N.1"
         },
@@ -3453,7 +3024,6 @@
             "a_node_name": "12M1042.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M1042.1-12M1042.2",
             "z_node_name": "12M1042.2"
         },
@@ -3461,7 +3031,6 @@
             "a_node_name": "12M1042.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M1042.1-12M1042.3",
             "z_node_name": "12M1042.3"
         },
@@ -3469,7 +3038,6 @@
             "a_node_name": "12M1042.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-12M1042.1-12M1136.1",
             "z_node_name": "12M1136.1"
         },
@@ -3477,7 +3045,6 @@
             "a_node_name": "12M1042.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12M1042.2-12M1154.1",
             "z_node_name": "12M1154.1"
         },
@@ -3485,7 +3052,6 @@
             "a_node_name": "12M1042.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M1042.3-12M412.2",
             "z_node_name": "12M412.2"
         },
@@ -3493,7 +3059,6 @@
             "a_node_name": "12M1134.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M1134.1-12M1134.2",
             "z_node_name": "12M1134.2"
         },
@@ -3502,7 +3067,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M1134.1-12M1136.3",
             "z_node_name": "12M1136.3"
         },
@@ -3511,7 +3075,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M1134.2-12M886.2",
             "z_node_name": "12M886.2"
         },
@@ -3519,7 +3082,6 @@
             "a_node_name": "12M1136.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M1136.1-12M1136.2",
             "z_node_name": "12M1136.2"
         },
@@ -3527,7 +3089,6 @@
             "a_node_name": "12M1136.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M1136.1-12M1136.3",
             "z_node_name": "12M1136.3"
         },
@@ -3535,7 +3096,6 @@
             "a_node_name": "12M1141.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M1141.CN-12M1154.2",
             "z_node_name": "12M1154.2"
         },
@@ -3543,7 +3103,6 @@
             "a_node_name": "12M1144.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 27,
             "name": "link-12M1144.CN-12M1154.2",
             "z_node_name": "12M1154.2"
         },
@@ -3551,7 +3110,6 @@
             "a_node_name": "12M1154.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M1154.1-12M1154.2",
             "z_node_name": "12M1154.2"
         },
@@ -3559,7 +3117,6 @@
             "a_node_name": "12M1154.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 11,
             "name": "link-12M1154.2-12M131.CN",
             "z_node_name": "12M131.CN"
         },
@@ -3567,7 +3124,6 @@
             "a_node_name": "12M1230.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M1230.1-12M1230.2",
             "z_node_name": "12M1230.2"
         },
@@ -3575,7 +3131,6 @@
             "a_node_name": "12M1230.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12M1230.1-12M789.2",
             "z_node_name": "12M789.2"
         },
@@ -3583,7 +3138,6 @@
             "a_node_name": "12M195.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M195.2-12M243.1",
             "z_node_name": "12M243.1"
         },
@@ -3591,7 +3145,6 @@
             "a_node_name": "12M232.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M232.1-12M232.2",
             "z_node_name": "12M232.2"
         },
@@ -3599,7 +3152,6 @@
             "a_node_name": "12M232.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M232.1-12M232.3",
             "z_node_name": "12M232.3"
         },
@@ -3607,7 +3159,6 @@
             "a_node_name": "12M233.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M233.1-12M233.s2",
             "z_node_name": "12M233.s2"
         },
@@ -3615,7 +3166,6 @@
             "a_node_name": "12M233.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M233.1-12M243.2",
             "z_node_name": "12M243.2"
         },
@@ -3623,7 +3173,6 @@
             "a_node_name": "12M233.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M233.p1-12M233.s2",
             "z_node_name": "12M233.s2"
         },
@@ -3631,7 +3180,6 @@
             "a_node_name": "12M233.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M233.p1-12M544.s1",
             "z_node_name": "12M544.s1"
         },
@@ -3639,7 +3187,6 @@
             "a_node_name": "12M243.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M243.1-12M243.2",
             "z_node_name": "12M243.2"
         },
@@ -3647,7 +3194,6 @@
             "a_node_name": "12M250.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M250.p1-12M250.s1",
             "z_node_name": "12M250.s1"
         },
@@ -3655,7 +3201,6 @@
             "a_node_name": "12M250.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12M250.p1-CC-SE.p1",
             "z_node_name": "CC-SE.p1"
         },
@@ -3663,7 +3208,6 @@
             "a_node_name": "12M250.s1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 57,
             "name": "link-12M250.s1-12M257.p1",
             "z_node_name": "12M257.p1"
         },
@@ -3671,7 +3215,6 @@
             "a_node_name": "12M257.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M257.p1-12M257.s1",
             "z_node_name": "12M257.s1"
         },
@@ -3680,7 +3223,6 @@
             "control_superframe": 0,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 61,
             "name": "link-12M257.s1-12M260.p1",
             "z_node_name": "12M260.p1"
         },
@@ -3688,7 +3230,6 @@
             "a_node_name": "12M260.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M260.1-12M260.p1",
             "z_node_name": "12M260.p1"
         },
@@ -3696,7 +3237,6 @@
             "a_node_name": "12M260.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M260.p1-12M260.s1",
             "z_node_name": "12M260.s1"
         },
@@ -3705,7 +3245,6 @@
             "control_superframe": 1,
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-12M260.p1-12M544.p1",
             "z_node_name": "12M544.p1"
         },
@@ -3713,7 +3252,6 @@
             "a_node_name": "12M412.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M412.1-12M412.2",
             "z_node_name": "12M412.2"
         },
@@ -3721,7 +3259,6 @@
             "a_node_name": "12M544.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M544.p1-12M544.s1",
             "z_node_name": "12M544.s1"
         },
@@ -3729,7 +3266,6 @@
             "a_node_name": "12M789.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M789.1-12M789.2",
             "z_node_name": "12M789.2"
         },
@@ -3737,7 +3273,6 @@
             "a_node_name": "12M789.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M789.2-12M789.3",
             "z_node_name": "12M789.3"
         },
@@ -3745,7 +3280,6 @@
             "a_node_name": "12M886.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M886.1-12M886.2",
             "z_node_name": "12M886.2"
         },
@@ -3753,7 +3287,6 @@
             "a_node_name": "12M886.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M886.2-12M886.4",
             "z_node_name": "12M886.4"
         },
@@ -3761,7 +3294,6 @@
             "a_node_name": "12M886.4",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 9,
             "name": "link-12M886.4-CC-SE.1",
             "z_node_name": "CC-SE.1"
         },
@@ -3769,7 +3301,6 @@
             "a_node_name": "CC-N-CENT.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CC-N-CENT.p1-CC-N-CENT.s1",
             "z_node_name": "CC-N-CENT.s1"
         },
@@ -3777,7 +3308,6 @@
             "a_node_name": "CC-N-CENT.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CC-N-CENT.p1-CC-N-CENT.s2",
             "z_node_name": "CC-N-CENT.s2"
         },
@@ -3785,7 +3315,6 @@
             "a_node_name": "CC-N-CENT.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-CC-N-CENT.p1-CPA-S.p1",
             "z_node_name": "CPA-S.p1"
         },
@@ -3793,7 +3322,6 @@
             "a_node_name": "CC-N-CENT.s2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 28,
             "name": "link-CC-N-CENT.s2-TECH-NW.s1",
             "z_node_name": "TECH-NW.s1"
         },
@@ -3801,7 +3329,6 @@
             "a_node_name": "CC-SE.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CC-SE.1-CC-SE.p1",
             "z_node_name": "CC-SE.p1"
         },
@@ -3809,7 +3336,6 @@
             "a_node_name": "CC-SW.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CC-SW.1-CC-SW.2",
             "z_node_name": "CC-SW.2"
         },
@@ -3817,7 +3343,6 @@
             "a_node_name": "CHALL-WING-NW.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CHALL-WING-NW.1-CHALL-WING-NW.p1",
             "z_node_name": "CHALL-WING-NW.p1"
         },
@@ -3825,39 +3350,20 @@
             "a_node_name": "CHALL-WING-NW.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CHALL-WING-NW.p1-CHALL-WING-NW.s1",
             "z_node_name": "CHALL-WING-NW.s1"
         },
         {
-            "a_node_name": "CPA-N.1",
+            "a_node_name": "CPA-N.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-CPA-N.1-CPA-N.s1",
-            "z_node_name": "CPA-N.s1"
-        },
-        {
-            "a_node_name": "CPA-N.p1",
-            "is_alive": true,
-            "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-CPA-N.p1-CPA-N.s1",
-            "z_node_name": "CPA-N.s1"
-        },
-        {
-            "a_node_name": "CPA-N.p1",
-            "is_alive": true,
-            "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-CPA-N.p1-CPA-S.p1",
+            "name": "link-CPA-N.2-CPA-S.p1",
             "z_node_name": "CPA-S.p1"
         },
         {
             "a_node_name": "CPA-S.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CPA-S.1-CPA-S.p1",
             "z_node_name": "CPA-S.p1"
         },
@@ -3865,23 +3371,13 @@
             "a_node_name": "CPA-S.2",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-CPA-S.2-CPA-S.p1",
             "z_node_name": "CPA-S.p1"
-        },
-        {
-            "a_node_name": "CPA-S.p1",
-            "is_alive": true,
-            "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-CPA-S.p1-CPA-S.s1",
-            "z_node_name": "CPA-S.s1"
         },
         {
             "a_node_name": "REP-SE.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-REP-SE.1-REP-SW.1",
             "z_node_name": "REP-SW.1"
         },
@@ -3889,7 +3385,6 @@
             "a_node_name": "PKSEC-E.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-PKSEC-E.1-PKSEC-W.1",
             "z_node_name": "PKSEC-W.1"
         },
@@ -3897,7 +3392,6 @@
             "a_node_name": "SJART-BELFRY-SW.p1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-SJART-BELFRY-SW.p1-TECH-NE.p1",
             "z_node_name": "TECH-NE.p1"
         },
@@ -3905,7 +3399,6 @@
             "a_node_name": "TECH-NE.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-TECH-NE.p1-TECH-NW.p1",
             "z_node_name": "TECH-NW.p1"
         },
@@ -3913,7 +3406,6 @@
             "a_node_name": "12L1003Y.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7293,
             "name": "link-12L1003Y.CN-12L394.p1",
             "z_node_name": "12L394.p1"
         },
@@ -3921,7 +3413,6 @@
             "a_node_name": "11L316.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-11L316.CN-11L779.p1",
             "z_node_name": "11L779.p1"
         },
@@ -3929,7 +3420,6 @@
             "a_node_name": "11L60.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 13,
             "name": "link-11L60.CN-12L197.p1",
             "z_node_name": "12L197.p1"
         },
@@ -3937,7 +3427,6 @@
             "a_node_name": "12M1230.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-12M1230.2-PKSEC-W.1",
             "z_node_name": "PKSEC-W.1"
         },
@@ -3945,31 +3434,13 @@
             "a_node_name": "11M81.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 7,
             "name": "link-11M81.1-11M859.2",
             "z_node_name": "11M859.2"
-        },
-        {
-            "a_node_name": "SJART-BELFRY-SW.p1",
-            "is_alive": true,
-            "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-SJART-BELFRY-SW.p1-SJART-BELFRY-SW.s1",
-            "z_node_name": "SJART-BELFRY-SW.s1"
-        },
-        {
-            "a_node_name": "SJART-BELFRY-NE.p1",
-            "is_alive": true,
-            "link_type": 2,
-            "linkup_attempts": 0,
-            "name": "link-SJART-BELFRY-NE.p1-SJART-BELFRY-NE.s1",
-            "z_node_name": "SJART-BELFRY-NE.s1"
         },
         {
             "a_node_name": "TECH-NE.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-TECH-NE.p1-TECH-NE.s1",
             "z_node_name": "TECH-NE.s1"
         },
@@ -3977,7 +3448,6 @@
             "a_node_name": "12M886.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-12M886.1-12M886.3",
             "z_node_name": "12M886.3"
         },
@@ -3985,7 +3455,6 @@
             "a_node_name": "12M43.CN",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 6,
             "name": "link-12M43.CN-CC-SE.p1",
             "z_node_name": "CC-SE.p1"
         },
@@ -3993,7 +3462,6 @@
             "a_node_name": "11L1249.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 17,
             "name": "link-11L1249.2-11L130.1",
             "z_node_name": "11L130.1"
         },
@@ -4001,23 +3469,13 @@
             "a_node_name": "11L117.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 4,
             "name": "link-11L117.2-11L130.2",
             "z_node_name": "11L130.2"
-        },
-        {
-            "a_node_name": "11L1183.2",
-            "is_alive": true,
-            "link_type": 1,
-            "linkup_attempts": 19,
-            "name": "link-11L1183.2-11L129.2",
-            "z_node_name": "11L129.2"
         },
         {
             "a_node_name": "11L117.1",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11L117.1-11L129.1",
             "z_node_name": "11L129.1"
         },
@@ -4025,7 +3483,6 @@
             "a_node_name": "11L129.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L129.1-11L129.2",
             "z_node_name": "11L129.2"
         },
@@ -4033,7 +3490,6 @@
             "a_node_name": "11L117.1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-11L117.1-11L117.2",
             "z_node_name": "11L117.2"
         },
@@ -4041,23 +3497,13 @@
             "a_node_name": "11L186.2",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 5,
             "name": "link-11L186.2-12M232.1",
             "z_node_name": "12M232.1"
         },
         {
-            "a_node_name": "12M195.1",
+            "a_node_name": "12M232.3",
             "is_alive": true,
             "link_type": 1,
-            "linkup_attempts": 2642,
-            "name": "link-12M195.1-12M232.2",
-            "z_node_name": "12M232.2"
-        },
-        {
-            "a_node_name": "12M232.3",
-            "is_alive": false,
-            "link_type": 1,
-            "linkup_attempts": 3,
             "name": "link-12M232.3-PKSEC-E.1",
             "z_node_name": "PKSEC-E.1"
         },
@@ -4065,9 +3511,197 @@
             "a_node_name": "TECH-NW.p1",
             "is_alive": true,
             "link_type": 2,
-            "linkup_attempts": 0,
             "name": "link-TECH-NW.p1-TECH-NW.s1",
             "z_node_name": "TECH-NW.s1"
+        },
+        {
+            "a_node_name": "12M195.3",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-12M195.3-12M232.2",
+            "z_node_name": "12M232.2"
+        },
+        {
+            "a_node_name": "12M195.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-12M195.1-12M789.3",
+            "z_node_name": "12M789.3"
+        },
+        {
+            "a_node_name": "11L1143.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.1-11L227.s3",
+            "z_node_name": "11L227.s3"
+        },
+        {
+            "a_node_name": "11L1143.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.1-11L233.CN",
+            "z_node_name": "11L233.CN"
+        },
+        {
+            "a_node_name": "11L129.2",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L129.2-11L141.1",
+            "z_node_name": "11L141.1"
+        },
+        {
+            "a_node_name": "11L1183.2",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1183.2-11L129.3",
+            "z_node_name": "11L129.3"
+        },
+        {
+            "a_node_name": "11L1143.4",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.4-11L376.1",
+            "z_node_name": "11L376.1"
+        },
+        {
+            "a_node_name": "11L1143.4",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.4-11L715.CN",
+            "z_node_name": "11L715.CN"
+        },
+        {
+            "a_node_name": "11L130.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L130.1-11L130.2",
+            "z_node_name": "11L130.2"
+        },
+        {
+            "a_node_name": "11L141.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L141.1-11L141.2",
+            "z_node_name": "11L141.2"
+        },
+        {
+            "a_node_name": "11L1143.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L1143.1-11L1143.2",
+            "z_node_name": "11L1143.2"
+        },
+        {
+            "a_node_name": "11L1143.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L1143.1-11L1143.3",
+            "z_node_name": "11L1143.3"
+        },
+        {
+            "a_node_name": "11L1143.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L1143.1-11L1143.4",
+            "z_node_name": "11L1143.4"
+        },
+        {
+            "a_node_name": "11L227.p1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L227.p1-11L227.s3",
+            "z_node_name": "11L227.s3"
+        },
+        {
+            "a_node_name": "11L129.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L129.1-11L129.3",
+            "z_node_name": "11L129.3"
+        },
+        {
+            "a_node_name": "11M696Y.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11M696Y.1-11M95.1",
+            "z_node_name": "11M95.1"
+        },
+        {
+            "a_node_name": "11M696Y.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11M696Y.1-11M696Y.2",
+            "z_node_name": "11M696Y.2"
+        },
+        {
+            "a_node_name": "11M201.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11M201.1-11M696Y.2",
+            "z_node_name": "11M696Y.2"
+        },
+        {
+            "a_node_name": "11M201.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11M201.1-11M201.2",
+            "z_node_name": "11M201.2"
+        },
+        {
+            "a_node_name": "11M201.2",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11M201.2-12M265.1",
+            "z_node_name": "12M265.1"
+        },
+        {
+            "a_node_name": "12M265.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-12M265.1-12M265.2",
+            "z_node_name": "12M265.2"
+        },
+        {
+            "a_node_name": "11M828.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11M828.1-12M265.2",
+            "z_node_name": "12M265.2"
+        },
+        {
+            "a_node_name": "11M828.2",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11M828.2-12M1224.1",
+            "z_node_name": "12M1224.1"
+        },
+        {
+            "a_node_name": "12M1224.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-12M1224.1-12M1224.2",
+            "z_node_name": "12M1224.2"
+        },
+        {
+            "a_node_name": "11M828.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11M828.1-11M828.2",
+            "z_node_name": "11M828.2"
+        },
+        {
+            "a_node_name": "REP-SW.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-REP-SW.1-REP-SW.2",
+            "z_node_name": "REP-SW.2"
+        },
+        {
+            "a_node_name": "REP-SW.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-REP-SW.1-REP-SW.3",
+            "z_node_name": "REP-SW.3"
         }
     ],
     "name": "SJC",
@@ -5061,7 +4695,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:08:5d",
+            "mac_addr": "74:6f:f7:ca:20:9d",
             "name": "11L227.2",
             "node_type": 2,
             "polarity": 2,
@@ -5077,7 +4711,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:07:60",
+            "mac_addr": "74:6f:f7:ca:1e:60",
             "name": "11L227.p1",
             "node_type": 2,
             "polarity": 2,
@@ -5093,7 +4727,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": false,
-            "mac_addr": "74:6f:f7:ca:21:45",
+            "mac_addr": "74:6f:f7:dd:cd:ad",
             "name": "11L227.s2",
             "node_type": 2,
             "polarity": 2,
@@ -5438,7 +5072,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "11L376",
-            "status": 2
+            "status": 3
         },
         {
             "ant_azimuth": 0,
@@ -5512,7 +5146,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:02:d6",
+            "mac_addr": "74:6f:f7:ca:1d:7f",
             "name": "11L38.p1",
             "node_type": 2,
             "polarity": 1,
@@ -5528,7 +5162,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:08:d1",
+            "mac_addr": "74:6f:f7:ca:20:55",
             "name": "11L38.s1",
             "node_type": 2,
             "polarity": 1,
@@ -6033,11 +5667,11 @@
             },
             "is_primary": false,
             "mac_addr": "74:6f:f7:ca:20:cb",
-            "name": "11L746.1",
+            "name": "11L747.1",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11L746",
+            "site_name": "11L747",
             "status": 3
         },
         {
@@ -6049,11 +5683,11 @@
             },
             "is_primary": true,
             "mac_addr": "38:3a:21:b0:11:be",
-            "name": "11L746.p1",
+            "name": "11L747.p1",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11L746",
+            "site_name": "11L747",
             "status": 3
         },
         {
@@ -6065,9 +5699,41 @@
             },
             "is_primary": false,
             "mac_addr": "38:3a:21:b0:10:37",
-            "name": "11L746.s1",
+            "name": "11L747.s1",
             "node_type": 2,
             "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L747",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:21:79",
+            "name": "11L746.1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11L746",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:28:e6:4a",
+            "name": "11L746.2",
+            "node_type": 2,
+            "polarity": 2,
             "pop_node": false,
             "site_name": "11L746",
             "status": 3
@@ -6079,40 +5745,8 @@
                 "rxGolayIdx": 1,
                 "txGolayIdx": 1
             },
-            "is_primary": false,
-            "mac_addr": "74:6f:f7:ca:1f:03",
-            "name": "11L747.1",
-            "node_type": 2,
-            "polarity": 2,
-            "pop_node": false,
-            "site_name": "11L747",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 2,
-                "txGolayIdx": 2
-            },
             "is_primary": true,
-            "mac_addr": "74:6f:f7:ca:1e:45",
-            "name": "11L747.2",
-            "node_type": 2,
-            "polarity": 2,
-            "pop_node": false,
-            "site_name": "11L747",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "is_primary": true,
-            "mac_addr": "38:3a:21:b0:07:e4",
+            "mac_addr": "74:6f:f7:ca:1d:9a",
             "name": "11L779.p1",
             "node_type": 2,
             "polarity": 2,
@@ -6128,7 +5762,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:04:97",
+            "mac_addr": "74:6f:f7:ca:20:67",
             "name": "11L779.s1",
             "node_type": 2,
             "polarity": 2,
@@ -6568,7 +6202,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:0d:51",
+            "mac_addr": "74:6f:f7:ca:1d:df",
             "name": "11M1072.p1",
             "node_type": 2,
             "polarity": 2,
@@ -6584,7 +6218,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:0f:17",
+            "mac_addr": "74:6f:f7:ca:21:71",
             "name": "11M1072.s1",
             "node_type": 2,
             "polarity": 2,
@@ -7591,7 +7225,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "11M973",
-            "status": 2
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -7880,7 +7514,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:07:48",
+            "mac_addr": "74:6f:f7:ca:1d:5b",
             "name": "12L112.p1",
             "node_type": 2,
             "polarity": 1,
@@ -7896,7 +7530,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:08:c1",
+            "mac_addr": "74:6f:f7:ca:21:07",
             "name": "12L112.s1",
             "node_type": 2,
             "polarity": 1,
@@ -8282,7 +7916,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:06:d6",
+            "mac_addr": "74:6f:f7:ca:1d:79",
             "name": "12L198.p1",
             "node_type": 2,
             "polarity": 2,
@@ -8559,7 +8193,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:0e:35",
+            "mac_addr": "2c:dc:ad:28:e6:56",
             "name": "12L251.p1",
             "node_type": 2,
             "polarity": 2,
@@ -8575,7 +8209,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:10:01",
+            "mac_addr": "74:6f:f7:ca:21:23",
             "name": "12L251.s1",
             "node_type": 2,
             "polarity": 2,
@@ -10814,22 +10448,6 @@
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "is_primary": true,
-            "mac_addr": "74:6f:f7:ca:1b:ea",
-            "name": "12M195.3",
-            "node_type": 2,
-            "polarity": 2,
-            "pop_node": false,
-            "site_name": "12M195",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
                 "rxGolayIdx": 2,
                 "txGolayIdx": 2
             },
@@ -11106,7 +10724,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:12:4b",
+            "mac_addr": "74:6f:f7:ca:1c:e3",
             "name": "12M544.p1",
             "node_type": 2,
             "polarity": 1,
@@ -11122,7 +10740,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:10:19",
+            "mac_addr": "74:6f:f7:ca:20:99",
             "name": "12M544.s1",
             "node_type": 2,
             "polarity": 1,
@@ -11234,7 +10852,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:0e:a1",
+            "mac_addr": "2c:dc:ad:28:e6:98",
             "name": "CC-N-CENT.p1",
             "node_type": 2,
             "polarity": 2,
@@ -11250,7 +10868,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:0f:21",
+            "mac_addr": "74:6f:f7:ca:21:c7",
             "name": "CC-N-CENT.s1",
             "node_type": 2,
             "polarity": 2,
@@ -11266,7 +10884,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:0f:6b",
+            "mac_addr": "74:6f:f7:ca:1b:0a",
             "name": "CC-N-CENT.s2",
             "node_type": 2,
             "polarity": 2,
@@ -11298,7 +10916,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "36:3a:21:b0:0d:cc",
+            "mac_addr": "2c:dc:ad:28:e6:77",
             "name": "CC-SE.p1",
             "node_type": 2,
             "polarity": 1,
@@ -11362,7 +10980,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:12:6f",
+            "mac_addr": "2c:dc:ad:28:e7:22",
             "name": "CHALL-WING-NW.p1",
             "node_type": 2,
             "polarity": 2,
@@ -11378,7 +10996,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:05:9d",
+            "mac_addr": "74:6f:f7:dd:cd:99",
             "name": "CHALL-WING-NW.s1",
             "node_type": 2,
             "polarity": 2,
@@ -11426,24 +11044,8 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:0e:5c",
-            "name": "CPA-N.p1",
-            "node_type": 2,
-            "polarity": 1,
-            "pop_node": false,
-            "site_name": "CPA-N",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "is_primary": false,
-            "mac_addr": "38:3a:21:b0:10:57",
-            "name": "CPA-N.s1",
+            "mac_addr": "2c:dc:ad:28:e6:80",
+            "name": "CPA-N.2",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
@@ -11473,8 +11075,8 @@
                 "rxGolayIdx": 1,
                 "txGolayIdx": 1
             },
-            "is_primary": false,
-            "mac_addr": "74:6f:f7:ca:20:bd",
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:28:e7:fa",
             "name": "CPA-S.2",
             "node_type": 2,
             "polarity": 2,
@@ -11489,25 +11091,9 @@
                 "rxGolayIdx": 1,
                 "txGolayIdx": 1
             },
-            "is_primary": true,
-            "mac_addr": "38:3a:21:b0:0e:29",
-            "name": "CPA-S.p1",
-            "node_type": 2,
-            "polarity": 1,
-            "pop_node": false,
-            "site_name": "CPA-S",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:10:65",
-            "name": "CPA-S.s1",
+            "mac_addr": "74:6f:f7:ca:20:bd",
+            "name": "CPA-S.p1",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
@@ -11587,7 +11173,7 @@
             },
             "has_cpe": false,
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:12:54",
+            "mac_addr": "2c:dc:ad:28:e6:e6",
             "name": "SJART-BELFRY-SW.p1",
             "node_type": 2,
             "polarity": 2,
@@ -11706,7 +11292,7 @@
             },
             "has_cpe": false,
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:0d:8a",
+            "mac_addr": "2c:dc:ad:28:e7:13",
             "name": "SJART-BELFRY-NE.p1",
             "node_type": 2,
             "polarity": 2,
@@ -11752,23 +11338,6 @@
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "golay_idx": {
-                "rxGolayIdx": 2,
-                "txGolayIdx": 2
-            },
-            "has_cpe": false,
-            "is_primary": true,
-            "mac_addr": "74:6f:f7:ca:1d:df",
-            "name": "11L573.2",
-            "node_type": 2,
-            "polarity": 1,
-            "pop_node": false,
-            "site_name": "11L573",
-            "status": 1
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
                 "rxGolayIdx": 1,
                 "txGolayIdx": 1
             },
@@ -11803,23 +11372,6 @@
             "ant_azimuth": 0,
             "ant_elevation": 0,
             "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "has_cpe": false,
-            "is_primary": true,
-            "mac_addr": "74:6f:f7:ca:1c:e3",
-            "name": "11M81.2",
-            "node_type": 2,
-            "polarity": 2,
-            "pop_node": false,
-            "site_name": "11M81",
-            "status": 1
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
                 "rxGolayIdx": 2,
                 "txGolayIdx": 2
             },
@@ -11842,46 +11394,12 @@
             },
             "has_cpe": false,
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:05:53",
+            "mac_addr": "74:6f:f7:ca:20:85",
             "name": "11L227.s3",
             "node_type": 2,
             "polarity": 2,
             "pop_node": false,
             "site_name": "11L227",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "has_cpe": false,
-            "is_primary": false,
-            "mac_addr": "38:3a:21:b0:10:d7",
-            "name": "SJART-BELFRY-SW.s1",
-            "node_type": 2,
-            "polarity": 2,
-            "pop_node": false,
-            "site_name": "SJART-BELFRY-SW",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "has_cpe": false,
-            "is_primary": false,
-            "mac_addr": "38:3a:21:b0:10:c1",
-            "name": "SJART-BELFRY-NE.s1",
-            "node_type": 2,
-            "polarity": 2,
-            "pop_node": false,
-            "site_name": "SJART-BELFRY-NE",
             "status": 3
         },
         {
@@ -12045,13 +11563,353 @@
                 "txGolayIdx": 2
             },
             "has_cpe": false,
-            "is_primary": false,
-            "mac_addr": "74:6f:f7:ca:20:19",
-            "name": "12M195.1",
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:dd:ac:2d",
+            "name": "12M195.3",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
             "site_name": "12M195",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:20:19",
+            "name": "12M195.1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "12M195",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:21:85",
+            "name": "11L1143.1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L1143",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:20:63",
+            "name": "11L1143.2",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L1143",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:20:f7",
+            "name": "11L1143.3",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L1143",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1b:9c",
+            "name": "11L233.CN",
+            "node_type": 1,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11L233",
+            "status": 2
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1b:57",
+            "name": "11L141.1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11L141",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:1f:cf",
+            "name": "11L129.3",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L129",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:21:d1",
+            "name": "11L141.2",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11L141",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1e:5a",
+            "name": "11L1143.4",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11L1143",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1c:ec",
+            "name": "11L715.CN",
+            "node_type": 1,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L715",
+            "status": 2
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:20:95",
+            "name": "11M696Y.1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11M696Y",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1e:15",
+            "name": "11M696Y.2",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11M696Y",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1d:7c",
+            "name": "11M201.1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11M201",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:21:4b",
+            "name": "11M201.2",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11M201",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1b:9f",
+            "name": "12M265.1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "12M265",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:21:7f",
+            "name": "12M265.2",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "12M265",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1e:4b",
+            "name": "11M828.1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11M828",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:1f:3d",
+            "name": "11M828.2",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11M828",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1b:f9",
+            "name": "12M1224.1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "12M1224",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:20:ad",
+            "name": "12M1224.2",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "12M1224",
             "status": 3
         }
     ],
@@ -12301,10 +12159,10 @@
         },
         {
             "location": {
-                "accuracy": 40000000,
-                "altitude": 0,
-                "latitude": 37.336772,
-                "longitude": -121.894919
+                "accuracy": 9.408786106613329,
+                "altitude": -0.979,
+                "latitude": 37.3367591,
+                "longitude": -121.8949144
             },
             "name": "11L141"
         },
@@ -12738,7 +12596,7 @@
                 "latitude": 37.3363337,
                 "longitude": -121.8905108
             },
-            "name": "11L746"
+            "name": "11L747"
         },
         {
             "location": {
@@ -12747,7 +12605,7 @@
                 "latitude": 37.3363561,
                 "longitude": -121.8905289
             },
-            "name": "11L747"
+            "name": "11L746"
         },
         {
             "location": {
@@ -14362,19 +14220,19 @@
         },
         {
             "location": {
-                "accuracy": 40000000,
-                "altitude": 0,
-                "latitude": 37.33311133930667,
-                "longitude": -121.87958334950964
+                "accuracy": 0.30588396492787917,
+                "altitude": 1.961,
+                "latitude": 37.3330921,
+                "longitude": -121.8794867
             },
             "name": "12M1224"
         },
         {
             "location": {
-                "accuracy": 40000000,
-                "altitude": 0,
-                "latitude": 37.33385785578582,
-                "longitude": -121.87818888960467
+                "accuracy": 4.073822529271495,
+                "altitude": 4.047,
+                "latitude": 37.3338958,
+                "longitude": -121.8779694
             },
             "name": "11M828"
         }
