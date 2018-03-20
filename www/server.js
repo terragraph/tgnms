@@ -297,14 +297,21 @@ function getTopologyByName (topologyName) {
         status.statusReports[nodes[j].mac_addr];
     }
   }
-  // add ruckus aps
-  topology.sites = topology.sites.map(site => {
-    // add ruckus ap information to the site
-    if (ruckusApsBySite.hasOwnProperty(site.name.toLowerCase())) {
-      site.ruckus = ruckusApsBySite[site.name.toLowerCase()];
-    }
-    return site;
-  });
+  // detect aps without a matching site name
+  let allRuckusApNames = new Set(Object.keys(ruckusApsBySite));
+  if (allRuckusApNames.size > 0) {
+    // add ruckus aps
+    topology.sites = topology.sites.map(site => {
+      let siteName = site.name.toLowerCase();
+      // add ruckus ap information to the site
+      if (ruckusApsBySite.hasOwnProperty(siteName)) {
+        site.ruckus = ruckusApsBySite[siteName];
+      }
+      allRuckusApNames.delete(siteName);
+      return site;
+    });
+    console.log('[Ruckus AP] Missing site associations for', allRuckusApNames);
+  }
   let networkConfig = Object.assign({}, config);
   networkConfig.topology = topology;
   if (config.site_coords_override) {

@@ -456,16 +456,10 @@ export default class DetailsSite extends React.Component {
                   </td>
                 </tr>
                 <tr>
-                  <td width="100px">Latitude</td>
-                  <td colSpan="4">{this.props.site.location.latitude}</td>
-                </tr>
-                <tr>
-                  <td width="100px">Longitude</td>
-                  <td colSpan="4">{this.props.site.location.longitude}</td>
-                </tr>
-                <tr>
+                  <td width="100px">Lat / Lng</td>
+                  <td colSpan="2">{this.props.site.location.latitude} / {this.props.site.location.longitude}</td>
                   <td width="100px">Altitude</td>
-                  <td colSpan="4">{this.props.site.location.altitude} m</td>
+                  <td colSpan="1">{this.props.site.location.altitude} m</td>
                 </tr>
                 {nodesRows}
                 {linksRows}
