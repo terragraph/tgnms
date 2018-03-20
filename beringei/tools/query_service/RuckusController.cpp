@@ -83,7 +83,8 @@ RuckusController::ruckusControllerStats() {
     return apStats;
   }
   // fetch ap list
-  struct CurlResponse apListResp = RuckusController::ruckusControllerRequest("aps", cookieStr, "");
+  struct CurlResponse apListResp = RuckusController::ruckusControllerRequest
+    ("aps?listSize=500", cookieStr, "");
   if (apListResp.responseCode != 200) {
     LOG(ERROR) << "Unable to fetch AP list, response code: "
                << apListResp.responseCode;
