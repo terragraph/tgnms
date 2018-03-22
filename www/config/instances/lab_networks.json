@@ -5,7 +5,7 @@
     "topologies": [
         {
             "topology_file": "lab_f8_b.json",
-            "site_coords_override": "true",
+            "site_coords_override": true,
             "latitude": 37.4848280435154,
             "longitude": -122.1472245455607,
             "zoom_level": 18,
@@ -91,7 +91,7 @@
         {
             "controller_ip": "2620:10d:c089:e001:8b10:b6bd:5ce2:24fc",
             "aggregator_ip": "2620:10d:c089:e001:8b10:b6bd:5ce2:24fc",
-            "site_coords_override": "true",
+            "site_coords_override": true,
             "latitude": 37.333057579551586,
             "longitude": -121.88882589372953,
             "zoom_level": 16,
@@ -100,7 +100,7 @@
         {
             "controller_ip": "2620:10d:c089:e00e:3a3a:21ff:feb0:335",
             "aggregator_ip": "2620:10d:c089:e00e:3a3a:21ff:feb0:335",
-            "site_coords_override": "true",
+            "site_coords_override": true,
             "latitude": 37.333057579551586,
             "longitude": -121.88882589372953,
             "zoom_level": 16,
@@ -109,7 +109,7 @@
         {
             "controller_ip": "2620:10d:c089:ff02:250:56ff:fea8:2dd",
             "aggregator_ip": "2620:10d:c089:ff02:250:56ff:fea8:2dd",
-            "site_coords_override": "true",
+            "site_coords_override": true,
             "latitude": 37.484946,
             "longitude": -122.1475237,
             "zoom_level": 16,
@@ -118,7 +118,7 @@
         {
             "controller_ip": "2620:10d:c089:ff07:250:c2ff:fec9:9ef3",
             "aggregator_ip": "2620:10d:c089:ff07:250:c2ff:fec9:9ef3",
-            "site_coords_override": "true",
+            "site_coords_override": true,
             "latitude": 37.484946,
             "longitude": -122.1475237,
             "zoom_level": 18,
@@ -133,12 +133,21 @@
             "aggregator_ip": "2620:10d:c089:f003:3a3a:21ff:feb0:512"
         },
         {
-      "controller_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
-      "aggregator_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
-      "latitude": 37.478375,
-      "longitude": -122.150477,
-      "zoom_level": 18,
-      "topology_file": "mobo_farm.json"
+            "controller_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
+            "aggregator_ip": "2620:10d:c089:f004:3a3a:21ff:feb0:d5f",
+            "latitude": 37.478375,
+            "longitude": -122.150477,
+            "zoom_level": 18,
+            "topology_file": "mobo_farm.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e00a:250:c2ff:fec9:9e0e",
+            "aggregator_ip": "2620:10d:c089:e00a:250:c2ff:fec9:9e0e",
+            "site_coords_override": true,
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "topology_file": "Ra_F5.json"
         }
     ]
 }
