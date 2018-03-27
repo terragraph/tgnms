@@ -92,7 +92,7 @@ RuckusController::ruckusControllerStats() {
   }
   folly::dynamic apListObj;
   try {
-    folly::parseJson(apListResp.body);
+    apListObj = folly::parseJson(apListResp.body);
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Unable to parse JSON: " << apListResp.body;
     return apStats;
