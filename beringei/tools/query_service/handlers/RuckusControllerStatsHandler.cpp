@@ -46,9 +46,10 @@ void RuckusControllerStatsHandler::onEOM() noexcept {
   folly::dynamic ruckusStats = RuckusController::ruckusControllerStats();
   try {
     responseJson = folly::toJson(ruckusStats);
-  }
-  catch (const std::runtime_error &ex) {
+  } catch (const std::runtime_error &ex) {
     LOG(ERROR) << "Failed executing beringei query: " << ex.what();
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << "Failed pushing json";
   }
   ResponseBuilder(downstream_)
       .status(200, "OK")
