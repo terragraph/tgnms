@@ -90,7 +90,13 @@ RuckusController::ruckusControllerStats() {
                << apListResp.responseCode;
     return apStats;
   }
-  folly::dynamic apListObj = folly::parseJson(apListResp.body);
+  folly::dynamic apListObj;
+  try {
+    folly::parseJson(apListResp.body);
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << "Unable to parse JSON: " << apListResp.body;
+    return apStats;
+  }
   auto apListObjIt = apListObj.find("list");
   if (apListObjIt != apListObj.items().end()) {
     long totalClientCount = 0L;
@@ -103,8 +109,8 @@ RuckusController::ruckusControllerStats() {
           folly::sformat("aps/{}/operational/summary", macAddr),
           cookieStr,
           "");
-      folly::dynamic apDetailsObj = folly::parseJson(apDetailsResp.body);
       try {
+        folly::dynamic apDetailsObj = folly::parseJson(apDetailsResp.body);
         long apUptime = apDetailsObj["uptime"].asInt();
         long clientCount = apDetailsObj["clientCount"].asInt();
         totalClientCount += clientCount;
@@ -121,9 +127,8 @@ RuckusController::ruckusControllerStats() {
         apStats[apName] = apDetailsObj;
       } catch (const folly::TypeError& error) {
         LOG(ERROR) << "\tType-error: " << error.what();
-        for (const auto& apDetailsItem : apDetailsObj.items()) {
-          LOG(INFO) << "\t\t" << apDetailsItem.first << " = " << apDetailsItem.second;
-        }
+      } catch (const std::exception& error) {
+        LOG(ERROR) << "Unable to parse JSON: " << apDetailsResp.body;
       }
     }
     LOG(INFO) << "Total client count: " << totalClientCount;
