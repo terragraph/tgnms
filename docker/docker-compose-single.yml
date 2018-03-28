@@ -6,7 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 12345
     volumes:
-      - ./cxl:/docker-entrypoint-initdb.d:ro
+      - ./docker_volumes/cxl:/docker-entrypoint-initdb.d:ro
     ports:
       - "3306:3306"
 
