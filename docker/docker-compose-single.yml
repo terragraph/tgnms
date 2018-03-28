@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.nms
-    image: terragraph/nms:299
+    image: terragraph/nms:2796
     environment:
       - MYSQL_HOST=db
       - MYSQL_USER=root
@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.beringei
-    image: terragraph/beringei:362
+    image: terragraph/beringei:2723
     environment:
       - BERINGEI_HOST=beringei
     cap_add:
