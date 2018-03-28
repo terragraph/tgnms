@@ -62,6 +62,18 @@ export default class ModalPrepareUpgrade extends React.Component {
 
     const excludeNodes = this.props.getExcludedNodes();
 
+    if (!this.state.isParallel) {
+      var n = parseInt(this.state.limit, 10);
+      if (n == NaN || String(n) !== this.state.limit || n < 1) {
+        swal({
+          title: "Invalid input!",
+          text: `Batch size limit is invalid. Use integers greater than 0.`,
+          type: "error"
+        });
+        return;
+      }
+    }
+
     const requestBody = {
       excludeNodes,
       imageUrl: this.state.selectedImage.magnetUri,

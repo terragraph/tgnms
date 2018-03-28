@@ -69,8 +69,6 @@ export default class UpgradeBatchTable extends React.Component {
         upgradeStatus: upgradeStatus,
         upgradeReqId: upgradeReqId,
 
-        batchIdx: node.batchIdx,
-
         key: node.name
       });
     });
@@ -78,17 +76,11 @@ export default class UpgradeBatchTable extends React.Component {
   }
 
   render() {
-    const { nodes, height, pendingBatch } = this.props;
+    const { nodes, height } = this.props;
 
     const tableOptions = {
       trClassName: "break-word"
     };
-
-    const batchColumn = (
-      <TableHeaderColumn width="70" dataSort={true} dataField="batchIdx">
-        Batch number
-      </TableHeaderColumn>
-    );
 
     return (
       <div className="rc-upgrade-batch-table">
@@ -104,14 +96,6 @@ export default class UpgradeBatchTable extends React.Component {
           striped={true}
           hover={true}
         >
-          <TableHeaderColumn
-            width="70"
-            dataSort={true}
-            dataField="batchIdx"
-            hidden={!pendingBatch}
-          >
-            Batch number
-          </TableHeaderColumn>
           <TableHeaderColumn
             width="170"
             dataSort={true}
@@ -152,10 +136,5 @@ export default class UpgradeBatchTable extends React.Component {
 
 UpgradeBatchTable.propTypes = {
   height: React.PropTypes.number.isRequired,
-  nodes: React.PropTypes.array.isRequired,
-  pendingBatch: React.PropTypes.bool
-};
-
-UpgradeBatchTable.defaultProps = {
-  pendingBatch: false
+  nodes: React.PropTypes.array.isRequired
 };
