@@ -1,0 +1,74 @@
+- hosts: nms
+  become_user: root
+  become: yes
+  roles:
+    - role: docker-ce-ansible-role
+  tasks:
+    - name: Adding existing ubuntu user to docker group
+      user: 
+        name: ubuntu
+        groups: docker
+        append: yes
+    
+    - name: Install python3-pip
+      apt:
+        name: python3-pip
+        state: present
+    
+    - name: pip3 install docker
+      pip:
+        name: docker
+        state: present
+    
+    - name: pip3 install docker-compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: mkdir docker_volumes
+      file:
+        path: docker_volumes
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0755
+
+    - name: mkdir cxl
+      file:
+        path: docker_volumes/cxl
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0775
+    
+    - name: copy cxl.sql
+      template:
+        src: cxl.sql
+        dest: ./docker_volumes/cxl/cxl.sql
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+    
+    - name: copy compose
+      template:
+        src: docker-compose-nms.yml
+        dest: ./docker_volumes/docker-compose.yml
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+    
+    - name: log into dockerhub
+      docker_login:
+        username: tgdeploy
+        password: placeholder
+        email: tgdeploy18@illuminatus.org
+        reauthorize: yes
+    
+    - name: run compose
+      docker_service:
+        project_src: .
+        build: no
+        state: present
+        pull: yes
+        stopped: no
+        debug: yes
