@@ -260,7 +260,7 @@ export default class ModalPrepareUpgrade extends React.Component {
                 checked={this.state.isHttp}
                 disabled={true}
               />
-              <label for="http" style={{ marginRight: "20px", opacity: 0.5 }}>
+              <label for="http" style={{ marginRight: "20px", opacity: 0.5, marginLeft: "5px" }}>
                 Http
               </label>
 
@@ -271,7 +271,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                 onChange={this.onChangeDownloadMode}
                 checked={!this.state.isHttp}
               />
-              <label for="torrent">Torrent</label>
+              <label for="torrent" style={{ marginRight: "20px", marginLeft: "5px" }}>
+                Torrent
+              </label>
             </div>
           </form>
 

@@ -25,12 +25,13 @@ export default class ModalCommitUpgrade extends React.Component {
     this.state = {
       timeout: 180, // timeout for the entire commit operation per node
       skipFailure: true, // skip failed nodes (will not stop operation)
-      isParallel: true, // parallelize teh operation? (put all nodes in one batch)
       limit: 1, // limit per batch. max batch size is infinite if this is set to 0
 
-      overrideBatch: false, // override batching logic (and send a node level request instead)
+      requestType: 'network', // network vs nodes upgrade request
 
-      scheduleToCommit: 0 // delay between issuing the command and each node starting the commit
+      scheduleToCommit: 0, // delay between issuing the command and each node starting the commit
+
+      batchingAlgorithm: 'auto_unlimited'
     };
   }
 
@@ -38,14 +39,31 @@ export default class ModalCommitUpgrade extends React.Component {
     let nodes = [];
     let excludeNodes = [];
 
-    if (this.state.overrideBatch) {
+    if (this.state.requestType === 'nodes') {
       // node level request
       nodes = this.props.upgradeNodes;
     } else {
       excludeNodes = this.props.getExcludedNodes();
     }
 
-    const ugType = this.state.overrideBatch ? 10 : 20;
+    const ugType = this.state.requestType === 'nodes' ? 10 : 20;
+
+    var limit = 0;
+    if (this.state.batchingAlgorithm === 'auto_limited') {
+      var n = parseInt(this.state.limit, 10);
+      if (n == NaN || String(n) !== this.state.limit || n < 1) {
+        swal({
+          title: "Invalid input!",
+          text: `Batch size limit is invalid. Use integers greater than 0.`,
+          type: "error"
+        });
+        return;
+      }
+      limit = this.state.limit;
+    } else if (this.state.batchingAlgorithm === 'all_at_once') {
+      limit = -1;
+    }
+
     const requestBody = {
       ugType,
       nodes,
@@ -54,8 +72,7 @@ export default class ModalCommitUpgrade extends React.Component {
       skipFailure: this.state.skipFailure,
       skipLinks: [],
 
-      // limit of 0 means unlimited max batch size
-      limit: this.state.isParallel ? 0 : this.state.limit,
+      limit: limit,
 
       scheduleToCommit: this.state.scheduleToCommit,
 
@@ -126,18 +143,45 @@ export default class ModalCommitUpgrade extends React.Component {
             />
           </div>
 
-          <div className="upgrade-modal-row">
-            <label>Fully Parallelize upgrade?</label>
-            <input
-              type="checkbox"
-              checked={this.state.isParallel}
-              onChange={event =>
-                this.setState({ isParallel: event.target.checked })
-              }
-            />
-          </div>
+          <form style={{ marginBottom: "10px" }}>
+            <label style={{ float: "left", width: "55%" }}>
+              Batching Algorithm:
+            </label>
+            <div className="batching-type-selector">
+              <input
+                type="radio"
+                name="batching_algo"
+                value="auto_unlimited"
+                checked={this.state.batchingAlgorithm === 'auto_unlimited'}
+                onChange={event =>
+                  this.setState({ batchingAlgorithm: 'auto_unlimited' })
+                }
+              />
+              <label for="auto_unlimited" style={{ marginRight: "20px", marginLeft: "5px" }}>
+                Automatic (No size limit)
+              </label>
+            </div>
+          </form>
 
-          {!this.state.isParallel && (
+          <form style={{ marginBottom: "10px" }}>
+            <label style={{ float: "left", width: "55%" }}> </label>
+            <div className="batching-type-selector">
+              <input
+                type="radio"
+                name="batching_algo"
+                value="auto_limited"
+                checked={this.state.batchingAlgorithm === 'auto_limited'}
+                onChange={event =>
+                  this.setState({ batchingAlgorithm: 'auto_limited' })
+                }
+              />
+              <label for="auto_limited" style={{ marginRight: "20px", marginLeft: "5px" }}>
+                Automatic (with limit)
+              </label>
+            </div>
+          </form>
+
+          {(this.state.batchingAlgorithm === 'auto_limited') && (
             <div className="upgrade-modal-row">
               <label>Batch size limit:</label>
               <input
@@ -148,16 +192,23 @@ export default class ModalCommitUpgrade extends React.Component {
             </div>
           )}
 
-          <div className="upgrade-modal-row">
-            <label>Commit all nodes at once (override batching logic)?</label>
-            <input
-              type="checkbox"
-              checked={this.state.overrideBatch}
-              onChange={event =>
-                this.setState({ overrideBatch: event.target.checked })
-              }
-            />
-          </div>
+          <form style={{ marginBottom: "10px" }}>
+            <label style={{ float: "left", width: "55%" }}> </label>
+            <div className="batching-type-selector">
+              <input
+                type="radio"
+                name="batching_algo"
+                value="all_at_once"
+                checked={this.state.batchingAlgorithm === 'all_at_once'}
+                onChange={event =>
+                  this.setState({ batchingAlgorithm: 'all_at_once' })
+                }
+              />
+              <label for="all_at_once" style={{ marginRight: "20px", marginLeft: "5px" }}>
+                All at once!
+              </label>
+            </div>
+          </form>
 
           <div className="upgrade-modal-row">
             <label>Commit delay:</label>
@@ -169,6 +220,36 @@ export default class ModalCommitUpgrade extends React.Component {
               }
             />
           </div>
+
+          <form style={{ marginBottom: "10px" }}>
+            <label style={{ float: "left", width: "55%" }}> Request Type</label>
+            <div className="batching-type-selector">
+              <input
+                type="radio"
+                name="request_type"
+                value="network"
+                checked={this.state.requestType === 'network'}
+                onChange={event =>
+                  this.setState({ requestType: 'network' })
+                }
+              />
+              <label for="network" style={{ marginRight: "20px", marginLeft: "5px" }}>
+                Network
+              </label>
+              <input
+                type="radio"
+                name="request_type"
+                value="nodes"
+                checked={this.state.requestType === 'nodes'}
+                onChange={event =>
+                  this.setState({ requestType: 'nodes' })
+                }
+              />
+              <label for="nodes" style={{ marginRight: "20px", marginLeft: "5px" }}>
+                Nodes
+              </label>
+            </div>
+          </form>
         </div>
         <div className="upgrade-modal-footer">
           <button

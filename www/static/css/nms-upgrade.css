@@ -96,6 +96,10 @@
   width: 45%;
 }
 
+.upgrade-modal-row .batching-type-selector {
+  width: 45%;
+}
+
 .upgrade-modal-row input:disabled {
   background: #ddd;
 }
