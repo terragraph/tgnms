@@ -151,7 +151,7 @@ journalctl -u nms_prod -f
 # Beringei [![CircleCI](https://circleci.com/gh/facebookincubator/beringei/tree/master.svg?style=svg)](https://circleci.com/gh/facebookincubator/beringei/tree/master)
 A high performance, in memory time series storage engine
 
-<img src="./beringei_logo_clear.png" height=200 width=200>
+<img src="./beringei/beringei_logo_clear.png" height=200 width=200>
 
 In the fall of 2015, we published the [paper “Gorilla: A Fast, Scalable, In-Memory Time Series Database”](http://www.vldb.org/pvldb/vol8/p1816-teller.pdf) at VLDB 2015. Beringei is the open source representation of the ideas presented in this paper.
 
