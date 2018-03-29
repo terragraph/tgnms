@@ -14,10 +14,14 @@ find_library(MYSQL_CLIENT_LIB NAMES "mysqlclient"
 find_library(CURL curl)
 
 set(BERINGEI_QUERY_SRCS
+    ApiServiceClient.cpp
+    ApiServiceClient.h
     AggregatorService.cpp
     AggregatorService.h
     BeringeiClientStore.cpp
     BeringeiClientStore.h
+    ScanRespService.cpp
+    ScanRespService.h
     BeringeiData.cpp
     BeringeiData.h
     MySqlClient.cpp

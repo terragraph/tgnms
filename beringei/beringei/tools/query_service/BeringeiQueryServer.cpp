@@ -11,6 +11,7 @@
 
 #include "AggregatorService.h"
 #include "QueryServiceFactory.h"
+#include "ScanRespService.h"
 #include "StatsTypeAheadCache.h"
 #include "TopologyFetcher.h"
 
@@ -79,20 +80,31 @@ int main(int argc, char* argv[]) {
   std::thread httpThread([server]() { server->start(); });
 
   LOG(INFO) << "Starting Topology Update Service";
+  auto apiServiceClient = std::make_shared<ApiServiceClient>();
   // create timer thread
-  auto topologyFetch =
-      std::make_shared<TopologyFetcher>(mySqlClient, typeaheadCache);
+  auto topologyFetch = std::make_shared<TopologyFetcher>(
+      mySqlClient, typeaheadCache, apiServiceClient);
   std::thread topologyFetchThread(
       [&topologyFetch]() { topologyFetch->start(); });
 
   LOG(INFO) << "Starting Aggregator Service";
   // create timer thread
-  auto aggregator = std::make_shared<AggregatorService>(mySqlClient, typeaheadCache);
+  auto aggregator =
+      std::make_shared<AggregatorService>(mySqlClient, typeaheadCache);
   std::thread aggThread([&aggregator]() { aggregator->start(); });
+
+  LOG(INFO) << "Starting Scan Response Service";
+  auto mySqlClientScan = std::make_shared<MySqlClient>();
+  mySqlClientScan->refreshAll();
+  // create timer thread
+  auto scanRespService =
+      std::make_shared<ScanRespService>(mySqlClientScan, apiServiceClient);
+  std::thread scanThread([&scanRespService]() { scanRespService->start(); });
 
   aggThread.join();
   topologyFetchThread.join();
   httpThread.join();
+  scanThread.join();
   // clean-up curl memory
   curl_global_cleanup();
   return 0;
