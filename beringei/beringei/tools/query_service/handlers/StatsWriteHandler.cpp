@@ -140,9 +140,9 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
   }
   // write newly found macs and node/key combos
   if (!unknownNodes.empty() || !missingNodeKey.empty()) {
-    mySqlClient_->addNodes(unknownNodes);
+    mySqlClient_->addOrUpdateNodes(unknownNodes);
     mySqlClient_->addStatKeys(missingNodeKey);
-    LOG(INFO) << "Ran addNodes/addStatKeys, refreshing";
+    LOG(INFO) << "Ran addOrUpdateNodes/addStatKeys, refreshing";
     mySqlCacheClient_->refreshAll();
   }
 

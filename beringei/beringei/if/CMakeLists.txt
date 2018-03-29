@@ -18,6 +18,7 @@ set(
     beringei_query.thrift
     beringei.thrift
     Topology.thrift
+    scans.thrift
 )
 
 set(
@@ -69,6 +70,14 @@ set(
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_types.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_types.tcc
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_types_custom_protocol.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_constants.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_constants.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_data.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_data.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types.tcc
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types_custom_protocol.h
 )
 
 add_custom_command(

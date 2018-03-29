@@ -57,10 +57,9 @@ namespace facebook {
 namespace gorilla {
 
 AggregatorService::AggregatorService(
-  std::shared_ptr<MySqlClient> mySqlClient,
-  TACacheMap& typeaheadCache)
-    : mySqlClient_(mySqlClient),
-      typeaheadCache_(typeaheadCache) {
+    std::shared_ptr<MySqlClient> mySqlClient,
+    TACacheMap& typeaheadCache)
+    : mySqlClient_(mySqlClient), typeaheadCache_(typeaheadCache) {
   // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
@@ -161,7 +160,7 @@ void AggregatorService::ruckusControllerCb() {
 
 void AggregatorService::timerCb() {
   LOG(INFO) << "Aggregator running";
-  timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
+  // timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
   // run some aggregation
   std::unordered_map<std::string /* key name */, double> aggValues;
   auto topologyInstance = TopologyStore::getInstance();
@@ -230,7 +229,8 @@ void AggregatorService::timerCb() {
           // find metrics, update beringei
           std::unordered_set<std::string> aggMetricNamesToAdd;
           for (const auto& metric : aggValues) {
-            auto topologyAggKeyIt = topologyConfig.second->keys.find(metric.first);
+            auto topologyAggKeyIt =
+                topologyConfig.second->keys.find(metric.first);
             if (topologyAggKeyIt == topologyConfig.second->keys.end()) {
               // add key name to db
               aggMetricNamesToAdd.insert(metric.first);

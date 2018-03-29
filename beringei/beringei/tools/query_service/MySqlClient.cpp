@@ -10,6 +10,7 @@
 #include "MySqlClient.h"
 
 #include <utility>
+#include <unistd.h>
 
 #include <folly/DynamicConverter.h>
 #include <folly/io/IOBuf.h>
@@ -120,7 +121,8 @@ void MySqlClient::refreshTopologies() noexcept {
 }
 
 void MySqlClient::refreshAggregateKeys(
-    std::map<int64_t, std::shared_ptr<query::TopologyConfig>>& topologyIdMap) noexcept {
+    std::map<int64_t, std::shared_ptr<query::TopologyConfig>>&
+        topologyIdMap) noexcept {
   try {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
@@ -136,8 +138,8 @@ void MySqlClient::refreshAggregateKeys(
       // insert into node id -> key mapping
       auto topologyIt = topologyIdMap.find(topologyId);
       if (topologyIt == topologyIdMap.end()) {
-        LOG(WARNING) << "Invalid topology id (" << topologyId << ") for key: "
-                     << keyName;
+        LOG(WARNING) << "Invalid topology id (" << topologyId
+                     << ") for key: " << keyName;
         continue;
       }
       // insert into keys map for topology
@@ -182,10 +184,13 @@ void MySqlClient::refreshNodes() noexcept {
       auto node = std::make_shared<query::MySqlNodeData>();
       node->id = res->getInt("id");
       node->mac = res->getString("mac");
+      node->node = res->getString("node");
       node->network = res->getString("network");
+      node->site = res->getString("site");
       std::transform(
           node->mac.begin(), node->mac.end(), node->mac.begin(), ::tolower);
       macAddrToNode_[node->mac] = node;
+      nodeNameToNodeId_[node->node] = node;
       nodeIdToNode_[node->id] = node;
       nodesTmp.push_back(node);
     }
@@ -231,34 +236,44 @@ void MySqlClient::refreshStatKeys() noexcept {
   }
 }
 
-void MySqlClient::addNodes(
-    std::unordered_map<std::string, query::MySqlNodeData> newNodes) noexcept {
+void MySqlClient::addOrUpdateNodes(
+    const std::unordered_map<std::string, query::MySqlNodeData>&
+        newNodes) noexcept {
   if (!newNodes.size()) {
     return;
   }
   try {
+    // if there is a duplicate MAC address in the table, replace the node,
+    // site, and network names; otherwise insert the new row
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         connection_->prepareStatement(
-            "INSERT IGNORE INTO `nodes` (`mac`, `network`)"
-            " VALUES (?, ?)"));
+            "INSERT INTO `nodes` (`mac`, `node`, "
+            "`site`, `network`) VALUES (?, ?, ?, ?) "
+            "ON DUPLICATE KEY UPDATE `node`=?, `site`=?, "
+            "`network`=?"));
 
     for (const auto& node : newNodes) {
       prep_stmt->setString(1, node.second.mac);
-      prep_stmt->setString(2, node.second.network);
+      prep_stmt->setString(2, node.second.node);
+      prep_stmt->setString(3, node.second.site);
+      prep_stmt->setString(4, node.second.network);
+      prep_stmt->setString(5, node.second.node);
+      prep_stmt->setString(6, node.second.site);
+      prep_stmt->setString(7, node.second.network);
       prep_stmt->execute();
-      LOG(INFO) << "addNode => mac: " << node.second.mac
-                << " Network: " << node.second.network;
+      VLOG(4) << "addNode => mac: " << node.second.mac
+              << " Network: " << node.second.network;
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "addNode ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode() << ")";
   }
 
-  //  refreshNodes();
+  refreshNodes();
 }
 
 void MySqlClient::addStatKeys(
-    std::unordered_map<int64_t, std::unordered_set<std::string>>
+    const std::unordered_map<int64_t, std::unordered_set<std::string>>&
         nodeKeys) noexcept {
   if (!nodeKeys.size()) {
     return;
@@ -301,6 +316,15 @@ folly::Optional<int64_t> MySqlClient::getNodeId(
   return folly::none;
 }
 
+folly::Optional<int64_t> MySqlClient::getNodeIdFromNodeName(
+    const std::string& nodeName) const {
+  auto it = nodeNameToNodeId_.find(nodeName);
+  if (it != nodeNameToNodeId_.end()) {
+    return (it->second->id);
+  }
+  return folly::none;
+}
+
 folly::Optional<int64_t> MySqlClient::getKeyId(
     const int64_t nodeId,
     const std::string& keyName) const {
@@ -319,6 +343,125 @@ folly::Optional<int64_t> MySqlClient::getKeyId(
     }
   }
   return folly::none;
+}
+
+int64_t MySqlClient::getLastId(
+    const int token,
+    const int64_t startBwgd,
+    const std::string& network) noexcept {
+  try {
+    std::string query =
+        "SELECT id FROM tx_scan_results WHERE token=" + std::to_string(token) +
+        " AND start_bwgd=" + std::to_string(startBwgd) +
+        " AND network='" + network + "'";
+    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
+    if (res->next()) {
+      return res->getInt64("id");
+    } else {
+      return -1;
+    }
+
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "ERROR reading last inserted ID: " << e.what();
+    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+  }
+}
+
+// there are two mySQL tables for scan responses - tx and rx
+// each row of the table is a single scan response from a node
+// to retrieve scan results, the tables are JOINed by token/network/bwgd
+int MySqlClient::writeTxScanResponse(
+    const scans::MySqlScanTxResp& scanResponse) noexcept {
+  try {
+    std::string query =
+        "INSERT INTO `tx_scan_results` "
+        "(`token`, `combined_status`, `tx_node_id`, `start_bwgd`, "
+        "`scan_type`, `network`,`scan_sub_type`, `scan_mode`, "
+        "`apply_flag`, `status`, `tx_power`, `resp_id`, `tx_node_name`, "
+        "`scan_resp`) VALUES "
+        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COMPRESS(?))";
+    std::unique_ptr<sql::PreparedStatement> prep_stmt(
+        connection_->prepareStatement(query));
+    LOG(INFO) << "Scan response token:" << scanResponse.token
+              << " respId:" << scanResponse.respId;
+    prep_stmt->setInt(1, scanResponse.token);
+    prep_stmt->setInt(2, scanResponse.combinedStatus);
+    prep_stmt->setInt(3, scanResponse.txNodeId);
+    prep_stmt->setUInt64(4, scanResponse.startBwgd);
+    prep_stmt->setInt(5, scanResponse.scanType);
+    prep_stmt->setString(6, scanResponse.network);
+    prep_stmt->setInt(7, scanResponse.scanSubType);
+    prep_stmt->setInt(8, scanResponse.scanMode);
+    prep_stmt->setInt(9, scanResponse.applyFlag);
+    prep_stmt->setInt(10, scanResponse.status);
+    prep_stmt->setInt(11, scanResponse.txPower);
+    prep_stmt->setInt(12, scanResponse.respId);
+    prep_stmt->setString(13, scanResponse.txNodeName);
+    prep_stmt->setString(14, scanResponse.scanResp);
+    prep_stmt->execute();
+    return MYSQL_NO_ERROR;
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "Tx scan response ERR: " << e.what();
+    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+    return e.getErrorCode();
+  }
+}
+
+bool MySqlClient::writeRxScanResponse(
+    const scans::MySqlScanRxResp& scanResponse,
+    const int64_t txId) noexcept {
+  try {
+    std::string query =
+        "INSERT INTO `rx_scan_results` "
+        "(`status`, `scan_resp`, `rx_node_id`, `tx_id`, `rx_node_name`, "
+        "`new_beam_flag`) VALUES (?, COMPRESS(?), ?, ?, ?, ?)";
+    std::unique_ptr<sql::PreparedStatement> prep_stmt(
+        connection_->prepareStatement(query));
+    prep_stmt->setInt(1, scanResponse.status);
+    prep_stmt->setString(2, scanResponse.scanResp);
+    prep_stmt->setInt(3, scanResponse.rxNodeId);
+    prep_stmt->setUInt64(4, txId);
+    prep_stmt->setString(5, scanResponse.rxNodeName);
+    prep_stmt->setInt(6, scanResponse.newBeamFlag);
+    prep_stmt->execute();
+    return true;
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "Rx scan response ERR: " << e.what();
+    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+    return false;
+  }
+}
+
+bool MySqlClient::writeScanResponses(
+    const std::vector<scans::MySqlScanResp>& mySqlScanResponses) noexcept {
+  int numScansWritten = 0;
+  for (const auto& mySqlScanResponse : mySqlScanResponses) {
+    int errCode;
+    if ((errCode = writeTxScanResponse(mySqlScanResponse.txResponse)) ==
+        MYSQL_NO_ERROR) {
+      numScansWritten++;
+      int64_t tx_id = getLastId(
+          mySqlScanResponse.txResponse.token,
+          mySqlScanResponse.txResponse.startBwgd,
+          mySqlScanResponse.txResponse.network);
+      if (tx_id > 0) {
+        for (const auto& rxResponse : mySqlScanResponse.rxResponses) {
+          if (!writeRxScanResponse(rxResponse, tx_id)) {
+            return false;
+          }
+        }
+      } else {
+        return false;
+      }
+    } else if (errCode != MYSQL_DUPLICATE_ENTRY) {
+      // if the error is something other than duplicate entry,
+      // something is wrong
+      return false;
+    }
+  }
+  LOG(INFO) << "Successfully wrote " << numScansWritten << " scans";
+  return true;
 }
 
 } // namespace gorilla
