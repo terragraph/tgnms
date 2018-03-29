@@ -4,12 +4,6 @@ npm-debug.log
 service/*/supervise
 service/*/log/supervise
 www/config/dashboards.json
-setup/beringei/*.xz
-setup/beringei/*.gz
-setup/beringei/beringei/
-setup/beringei/autoconf-*/
-setup/beringei/boost_*/
-setup/beringei/cmake-*/
-setup/beringei/double-conversion/
-setup/beringei/gflags/
-setup/beringei/glog/
+beringei/if/gen-cpp2/
+build/
+.vagrant
