@@ -1,0 +1,274 @@
+{
+    "links": [
+        {
+            "a_node_name": "14-17.s2", 
+            "is_alive": true, 
+            "link_type": 1, 
+            "name": "link-14-17.s2-14-8.p1", 
+            "z_node_name": "14-8.p1"
+        }, 
+        {
+            "a_node_name": "14-11.s1", 
+            "is_alive": true, 
+            "link_type": 1, 
+            "name": "link-14-11.s1-14-8.s1", 
+            "z_node_name": "14-8.s1"
+        }, 
+        {
+            "a_node_name": "14-11.p1", 
+            "is_alive": true, 
+            "link_type": 1, 
+            "name": "link-14-11.p1-14-19.s2", 
+            "z_node_name": "14-19.s2"
+        }, 
+        {
+            "a_node_name": "12-x.s1", 
+            "is_alive": true, 
+            "link_type": 1, 
+            "name": "link-12-x.s1-14-17.p1", 
+            "z_node_name": "14-17.p1"
+        }, 
+        {
+            "a_node_name": "14-17.s1", 
+            "is_alive": true, 
+            "link_type": 1, 
+            "name": "link-14-17.s1-14-19.s1", 
+            "z_node_name": "14-19.s1"
+        }, 
+        {
+            "a_node_name": "14-19.p1", 
+            "is_alive": true, 
+            "link_type": 1, 
+            "name": "link-14-19.p1-driveway-12.s2", 
+            "z_node_name": "driveway-12.s2"
+        }, 
+        {
+            "a_node_name": "12-x.p1", 
+            "is_alive": true, 
+            "link_type": 1, 
+            "name": "link-12-x.p1-driveway-12.s1", 
+            "z_node_name": "driveway-12.s1"
+        }, 
+        {
+            "a_node_name": "driveway-12.s1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-driveway-12.s1-driveway-12.s2", 
+            "z_node_name": "driveway-12.s2"
+        }, 
+        {
+            "a_node_name": "14-8.p1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-8.p1-14-8.s1", 
+            "z_node_name": "14-8.s1"
+        }, 
+        {
+            "a_node_name": "12-x.p1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-12-x.p1-12-x.s1", 
+            "z_node_name": "12-x.s1"
+        }, 
+        {
+            "a_node_name": "14-19.p1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-19.p1-14-19.s2", 
+            "z_node_name": "14-19.s2"
+        }, 
+        {
+            "a_node_name": "14-19.s1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-19.s1-14-19.s2", 
+            "z_node_name": "14-19.s2"
+        }, 
+        {
+            "a_node_name": "14-19.p1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-19.p1-14-19.s1", 
+            "z_node_name": "14-19.s1"
+        }, 
+        {
+            "a_node_name": "14-17.p1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-17.p1-14-17.s2", 
+            "z_node_name": "14-17.s2"
+        }, 
+        {
+            "a_node_name": "14-17.s1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-17.s1-14-17.s2", 
+            "z_node_name": "14-17.s2"
+        }, 
+        {
+            "a_node_name": "14-17.p1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-17.p1-14-17.s1", 
+            "z_node_name": "14-17.s1"
+        }, 
+        {
+            "a_node_name": "14-11.p1", 
+            "is_alive": true, 
+            "link_type": 2, 
+            "name": "link-14-11.p1-14-11.s1", 
+            "z_node_name": "14-11.s1"
+        }
+    ], 
+    "name": "mpk-14 figure-8", 
+    "nodes": [
+        {
+            "mac_addr": "38:3A:21:B0:07:7E", 
+            "name": "14-8.p1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-8"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:10:7D", 
+            "name": "14-8.s1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-8"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:06:B2", 
+            "name": "14-11.p1", 
+            "node_type": 2, 
+            "pop_node": true, 
+            "site_name": "14-11"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:0F:39", 
+            "name": "14-11.s1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-11"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:07:4E", 
+            "name": "14-17.p1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-17"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:05:3F", 
+            "name": "14-17.s2", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-17"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:10:F3", 
+            "name": "14-17.s1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-17"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:03:15", 
+            "name": "14-19.p1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-19"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:05:E9", 
+            "name": "14-19.s2", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-19"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:0F:9F", 
+            "name": "14-19.s1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "14-19"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:05:89", 
+            "name": "12-x.s1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "12-x"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:0D:12", 
+            "name": "12-x.p1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "12-x"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:05:03", 
+            "name": "driveway-12.s2", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "driveway-12"
+        }, 
+        {
+            "mac_addr": "38:3A:21:B0:0F:43", 
+            "name": "driveway-12.s1", 
+            "node_type": 2, 
+            "pop_node": false, 
+            "site_name": "driveway-12"
+        }
+    ], 
+    "sites": [
+        {
+            "location": {
+                "altitude": -8.531, 
+                "latitude": 37.4854276, 
+                "longitude": -122.1494611
+            }, 
+            "name": "14-8"
+        }, 
+        {
+            "location": {
+                "altitude": -23.276, 
+                "latitude": 37.4860493, 
+                "longitude": -122.1500713
+            }, 
+            "name": "14-11"
+        }, 
+        {
+            "location": {
+                "altitude": -21.734, 
+                "latitude": 37.4850922, 
+                "longitude": -122.1499552
+            }, 
+            "name": "14-17"
+        }, 
+        {
+            "location": {
+                "altitude": -24.024, 
+                "latitude": 37.4855905, 
+                "longitude": -122.1505865
+            }, 
+            "name": "14-19"
+        }, 
+        {
+            "location": {
+                "altitude": -7.717, 
+                "latitude": 37.4847475, 
+                "longitude": -122.149907
+            }, 
+            "name": "12-x"
+        }, 
+        {
+            "location": {
+                "altitude": -25.001, 
+                "latitude": 37.4848364, 
+                "longitude": -122.1507104
+            }, 
+            "name": "driveway-12"
+        }
+    ]
+}

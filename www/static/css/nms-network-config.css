@@ -1,0 +1,94 @@
+@import url("nms-nc-left-pane.css");
+@import url("nms-nc-form.css");
+@import url("nms-nc-form-tooltip.css");
+@import url("nms-nc-custom-toggle.css");
+
+.rc-network-config {
+  margin-top: 40px;
+  top: 0;
+  bottom: 0;
+  position: fixed !important;
+
+  display: flex;
+  flex-direction: row;
+
+  overflow-y: auto;
+  float: left;
+  width: 100%;
+}
+
+/* NETWORK CONFIG BODY */
+.rc-network-config-body {
+  display: flex;
+  flex-direction: column;
+
+  width: calc(100% - 300px);
+  overflow-y: auto;
+}
+
+.nc-expand-all-wrapper {
+  padding: 10px;
+  border-bottom: 1px solid #aaa;
+}
+
+.nc-expand-all-btn {
+  margin-right: 10px;
+  border: 1px solid black;
+  padding: 3px 10px;
+  font-size: 14px;
+
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+}
+
+.nc-expand-all-btn:hover {
+  cursor: pointer;
+  background-color: rgb(183,210,255);
+}
+
+/* NETWORK CONFIG HEADER */
+.rc-network-config-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  flex-shrink: 0;
+  height: 50px;
+  border-bottom: 1px solid #777;
+  background-color: #fff;
+  z-index: 5;
+}
+
+.nc-header-title {
+  /* top right bottom left */
+  margin: 11px 40px 11px 20px;
+  flex-shrink: 0;
+}
+
+.nc-header-refresh-wrapper {
+  flex: 1;
+}
+
+.nc-header-refresh {
+  float: right;
+  margin-right: 20px;
+}
+
+.nc-header-refresh:hover {
+  cursor: pointer;
+}
+
+/* NETWORK CONFIG FOOTER */
+.rc-network-config-footer {
+  border-top: 1px solid #777;
+  background-color: #fff;
+}
+
+.rc-network-config-footer button {
+  border: 2px solid;
+  margin: 10px;
+}
+
+.rc-network-config-footer button:disabled {
+  opacity: 0.5;
+}

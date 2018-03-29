@@ -1,0 +1,192 @@
+/* loading image is 40x40, column width is 450, height = 350 */
+
+@import url("nms-upgrade.css");
+@import url("nms-network-config.css");
+
+#root {
+  margin: auto;
+}
+div.SplitPane {
+  margin-top: 40px;
+  position: fixed !important;
+}
+
+div.SplitPane.soloPane1.horizontal > .Pane2,
+div.SplitPane.soloPane2.horizontal > .Pane1 {
+    height: 0px !important;
+}
+
+div.SplitPane.soloPane1.horizontal > .Pane1,
+div.SplitPane.soloPane2.horizontal > .Pane2 {
+    height: 100% !important;
+    padding-bottom: 40px;
+}
+
+.loading-indicator {
+  width: 100%;
+  text-align: center;
+  margin-left: 205px;
+  margin-top: 155px;
+}
+.graph-button-fetch {
+  font-size: 12px;
+  padding: 4px;
+  border: 2px solid;
+  margin-left: 4px;
+  width: 220px;
+}
+.graph-button-fetch-disabled {
+  font-size: 12px;
+  padding: 4px;
+  border: 2px solid;
+  margin-left: 4px;
+  width: 220px;
+  color: lightgray;
+}
+.graph-button {
+  font-size: 12px;
+  padding: 4px;
+  border: 2px solid;
+  margin-left: 4px;
+  width: 110px;
+}
+.graph-button-selected {
+  background-color: cornflowerblue;
+}
+.graph-button-disabled {
+  background-color: darkgray;
+}
+.graph-opt-title {
+  width: 150px;
+  height: 30px;
+  display: inline-block;
+}
+.status-table {
+  padding: 10px;
+  float: left;
+}
+.status-table td {
+  padding: 5px;
+}
+.status-table tr:nth-child(2n+1) {
+  background: #eee;
+}
+.status-table tr:nth-child(2n) {
+  background: #ddd;
+}
+
+.details {
+    overflow: auto; /* Enable scroll if needed */
+    background-color: #fefefe;
+}
+
+.details-content {
+    bottom: 0;
+    background-color: #fefefe;
+    width: 100%;
+}
+
+.prevNextButton {
+  background-color: cadetblue;
+  padding: 0px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid;
+}
+
+.prevNextButtonDisabled {
+  background-color: darkgray;
+  padding: 0px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid;
+}
+
+.details-close {
+    color: white;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: -10px;
+}
+
+.details-close:hover,
+.details-close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.details-link {
+    color: blue;
+}
+.details-link--disabled {
+    color: #333;
+    cursor: default !important;
+}
+
+.details-link:hover,
+.details-link:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.details-header {
+    padding: 0px 2px;
+    background-color: #5cb85c;
+    color: white;
+}
+
+.details-body {
+  padding: 2px 8px;
+}
+
+.details-table {
+  padding: 2px;
+}
+.details-table td {
+  padding: 5px;
+  border: 1px solid black;
+}
+.details-table tr {
+  background: #fff;
+}
+.details-separator {
+  margin: 1px;
+}
+.controller-status-icon {
+  float: right;
+}
+
+.many .dygraph-legend > span { display: none; }
+.many .dygraph-legend > span.highlight { display: inline; }
+.dygraph-title {text-align: center;}
+.svcOnline div {
+  background-image: url(/static/images/online.png);
+  background-repeat: no-repeat;
+  padding-left: 22px !important;
+  background-size: 20px 20px;
+  background-position: left;
+}
+.svcOffline div {
+  background-image: url(/static/images/offline.png);
+  background-repeat: no-repeat;
+  padding-left: 22px !important;
+  background-size: 20px 20px;
+  background-position: left;
+}
+.timePicker {
+  display: inline-block;
+}
+.timeTitle {
+  padding-right: 4px;
+  font-weight: bold;
+  margin-left: 4px;
+}
+.topoDiffNew {
+  color: red;
+}
+.topoDiffExisting {
+  color: green;
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Terragraph xterm</title>
+        <link rel="stylesheet" href="./xterm.css" />
+        <link rel="stylesheet" href="./addons/fullscreen/fullscreen.css" />
+        <link rel="stylesheet" href="./style.css" />
+        <script src="./xterm.js" ></script>
+        <script src="./addons/attach/attach.js" ></script>
+        <script src="./addons/fit/fit.js" ></script>
+        <script src="./addons/fullscreen/fullscreen.js" ></script>
+    </head>
+    <body>
+        <h1>Terragraph xterm</h1>
+        <div id="terminal-container"></div>
+        <div>
+        	<h3>Size</h3>
+          <div>
+            <div style="display: inline-block; margin-right: 16px;">
+              <label for="cols">Columns</label>
+              <input type="number" id="cols" />
+            </div>
+            <div style="display: inline-block; margin-right: 16px;">
+              <label for="rows">Rows</label>
+              <input type="number" id="rows" />
+            </div>
+          </div>
+        </div>
+        <script src="main.js" defer ></script>
+    </body>
+</html>

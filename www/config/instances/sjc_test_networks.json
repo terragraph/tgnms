@@ -1,0 +1,23 @@
+{
+  "use_tile_proxy": false,
+  "refresh_interval": 5000,
+  "fbinternal": true,
+  "topologies": [
+    {
+      "topology_file": "sjc_area2.json",
+      "latitude": 37.333057579551586,
+      "longitude": -121.88882589372953,
+      "zoom_level": 16,
+      "controller_ip": "127.0.0.1",
+      "aggregator_ip": "127.0.0.1"
+    },
+    {
+      "topology_file": "sjc_area2_polarity_from_area1_only.json",
+      "latitude": 37.333057579551586,
+      "longitude": -121.88882589372953,
+      "zoom_level": 16,
+      "controller_ip": "10.56.68.18",
+      "aggregator_ip": "10.56.68.18"
+    }
+  ]
+}
