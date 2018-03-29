@@ -115,6 +115,7 @@
     "webpack-hot-middleware": "^2.2.0",
     "xterm": "^2.2.1",
     "react-plotly.js": "^1.7.0",
-    "plotly.js": "^1.0.6"
+    "plotly.js": "^1.0.6",
+    "sweetalert-react": "^0.4.11"
   }
 }

@@ -38,7 +38,9 @@ export const NetworkConfigActions = {
   SET_NODE_CONFIG_SUCCESS: "SET_NODE_CONFIG_SUCCESS",
   SET_NODE_CONFIG_FAILED: "SET_NODE_CONFIG_FAILED",
 
-  TOGGLE_EXPAND_ALL: "TOGGLE_EXPAND_ALL"
+  TOGGLE_EXPAND_ALL: "TOGGLE_EXPAND_ALL",
+
+  SHOW_CONFIG_ERROR: "SHOW_CONFIG_ERROR"
 };
 
 // actions that switch editing context
@@ -189,6 +191,13 @@ export const setNodeConfigSuccess = ({ config, saveSelected }) => {
     actionType: NetworkConfigActions.SET_NODE_CONFIG_SUCCESS,
     config,
     saveSelected
+  });
+};
+
+export const showConfigError = (errorText) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SHOW_CONFIG_ERROR,
+    errorText
   });
 };
 

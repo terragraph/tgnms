@@ -3,6 +3,8 @@
 
 import React from "react";
 import { render } from "react-dom";
+import SweetAlert from 'sweetalert-react';
+import "sweetalert/dist/sweetalert.css";
 
 var _ = require("lodash");
 const uuidv4 = require("uuid/v4");
@@ -96,7 +98,9 @@ export default class NetworkConfigContainer extends React.Component {
       selectedImage: DEFAULT_BASE_KEY,
 
       // currently selected set of nodes which the config is being viewed as
-      selectedNodes: selectedNodes
+      selectedNodes: selectedNodes,
+
+      errorMsg: null
     };
   }
 
@@ -388,6 +392,11 @@ export default class NetworkConfigContainer extends React.Component {
         break;
       case NetworkConfigActions.SET_NODE_CONFIG_SUCCESS:
         this.saveNodeConfig(payload.config, payload.saveSelected);
+        break;
+      case NetworkConfigActions.SHOW_CONFIG_ERROR:
+        this.setState({
+          errorMsg: payload.errorText
+        });
         break;
       default:
         break;
@@ -697,32 +706,42 @@ export default class NetworkConfigContainer extends React.Component {
 
       editMode,
       selectedImage,
-      selectedNodes
+      selectedNodes,
+      errorMsg
     } = this.state;
 
     const topologyName = networkConfig.topology.name;
     const nodes = this.getNodes();
 
     return (
-      <NetworkConfig
-        topologyName={topologyName}
-        nodes={nodes}
-        imageVersions={[
-          DEFAULT_BASE_KEY,
-          ...getImageVersionsForNetwork(networkConfig.topology)
-        ]}
-        selectedImage={selectedImage}
-        selectedNodes={selectedNodes}
-        editMode={editMode}
-        baseConfigByVersion={baseConfig}
-        newConfigFields={newConfigFields}
-        networkOverrideConfig={networkOverrideConfig}
-        networkDraftConfig={networkDraftConfig}
-        networkConfigWithChanges={networkConfigWithChanges}
-        nodeOverrideConfig={nodeOverrideConfig}
-        nodeDraftConfig={nodeDraftConfig}
-        nodeConfigWithChanges={nodeConfigWithChanges}
-      />
+      <div>
+        <NetworkConfig
+          topologyName={topologyName}
+          nodes={nodes}
+          imageVersions={[
+            DEFAULT_BASE_KEY,
+            ...getImageVersionsForNetwork(networkConfig.topology)
+          ]}
+          selectedImage={selectedImage}
+          selectedNodes={selectedNodes}
+          editMode={editMode}
+          baseConfigByVersion={baseConfig}
+          newConfigFields={newConfigFields}
+          networkOverrideConfig={networkOverrideConfig}
+          networkDraftConfig={networkDraftConfig}
+          networkConfigWithChanges={networkConfigWithChanges}
+          nodeOverrideConfig={nodeOverrideConfig}
+          nodeDraftConfig={nodeDraftConfig}
+          nodeConfigWithChanges={nodeConfigWithChanges}
+        />
+        <SweetAlert
+          type='error'
+          show={this.state.errorMsg}
+          title="Error"
+          text={this.state.errorMsg}
+          onConfirm={() => this.setState({ errorMsg: null })}
+        />
+      </div>
     );
   }
 }

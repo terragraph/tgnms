@@ -7,11 +7,19 @@ import {
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
   setNetworkConfigSuccess,
-  setNodeConfigSuccess
+  setNodeConfigSuccess,
+  showConfigError
 } from "../actions/NetworkConfigActions.js";
 
 import { DEFAULT_BASE_KEY } from "../constants/NetworkConfigConstants.js";
 import { sortConfig } from "../helpers/NetworkConfigHelpers.js";
+
+const getErrorText = error => {
+  // try to get the status text from the API response, otherwise, default to the error object
+  return error.response && error.response.statusText
+    ? error.response.statusText
+    : error;
+};
 
 export const getConfigsForTopology = (
   topologyName,
@@ -110,6 +118,10 @@ export const setNetworkOverrideConfig = (topologyName, config) => {
     })
     .then(response => {
       setNetworkConfigSuccess({ config });
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+      showConfigError(errorText);
     });
 };
 
@@ -146,5 +158,9 @@ export const setNodeOverrideConfig = (
     })
     .then(response => {
       setNodeConfigSuccess({ config, saveSelected });
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+      showConfigError(errorText);
     });
 };
