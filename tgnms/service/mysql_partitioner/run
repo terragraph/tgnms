@@ -76,12 +76,12 @@ if [ "$DATA_USED_GB" -gt "$MAX_USED_GB" ]; then
   echo "We need to delete ${GB_TO_DELETE}GB"
   # delete oldest files until we're below the threshold
   TMP_FILE=$(mktemp)
-  find $LOG_FILE_PATH -type f -printf '%T+ %k %p\n'|sort -n > $TMP_FILE
+  find $LOG_FILE_PATH -type f -printf '%T+ %k %p\n'|sort -n|head -10000 > $TMP_FILE
   DELETE_TOTAL_KB=0
-  while [ "$DELETE_TOTAL_KB" -lt "$KB_TO_DELETE" ]; do
+  while [ "$DELETE_TOTAL_KB" -lt "$KB_TO_DELETE" ] && [ -n "$(head -1 $TMP_FILE)" ]; do
     # delete 100 log files at a time
-    TOP_FILE_NAME=$(head -1 $TOP_FILE|awk '{print $3}')
-    TOP_FILE_KB=$(head -1 $TOP_FILE|awk '{print $2}')
+    TOP_FILE_NAME=$(head -1 $TMP_FILE|awk '{print $3}')
+    TOP_FILE_KB=$(head -1 $TMP_FILE|awk '{print $2}')
     DELETE_TOTAL_KB=$(expr $DELETE_TOTAL_KB + $TOP_FILE_KB)
     # delete entry
     sed -i '1d' $TMP_FILE
