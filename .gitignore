@@ -1,9 +1,0 @@
-www/node_modules/
-www/data/
-npm-debug.log
-service/*/supervise
-service/*/log/supervise
-www/config/dashboards.json
-beringei/if/gen-cpp2/
-build/
-.vagrant
