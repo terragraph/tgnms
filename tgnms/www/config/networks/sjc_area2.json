@@ -11,18 +11,11 @@
             "z_node_name": "11K40.2"
         },
         {
-            "a_node_name": "11K311.2",
+            "a_node_name": "11K40.1",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-11K311.2-11K40.1",
-            "z_node_name": "11K40.1"
-        },
-        {
-            "a_node_name": "11K40.2",
-            "is_alive": true,
-            "link_type": 1,
-            "name": "link-11K40.2-12L259.1",
-            "z_node_name": "12L259.1"
+            "name": "link-11K40.1-11L311.2",
+            "z_node_name": "11L311.2"
         },
         {
             "a_node_name": "11L100.1",
@@ -60,11 +53,11 @@
             "z_node_name": "11L101.3"
         },
         {
-            "a_node_name": "11K311.3",
+            "a_node_name": "11L101.1",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-11K311.3-11L101.1",
-            "z_node_name": "11L101.1"
+            "name": "link-11L101.1-11L311.3",
+            "z_node_name": "11L311.3"
         },
         {
             "a_node_name": "11L101.1",
@@ -358,31 +351,31 @@
             "z_node_name": "11L565.1"
         },
         {
-            "a_node_name": "11L12.1",
+            "a_node_name": "11L1200.1",
             "is_alive": true,
             "link_type": 2,
-            "name": "link-11L12.1-11L12.2",
-            "z_node_name": "11L12.2"
+            "name": "link-11L1200.1-11L1200.2",
+            "z_node_name": "11L1200.2"
         },
         {
-            "a_node_name": "11L12.1",
+            "a_node_name": "11L1200.1",
             "is_alive": true,
             "link_type": 2,
-            "name": "link-11L12.1-11L12.3",
-            "z_node_name": "11L12.3"
+            "name": "link-11L1200.1-11L1200.3",
+            "z_node_name": "11L1200.3"
         },
         {
-            "a_node_name": "11L12.2",
+            "a_node_name": "11L1200.2",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-11L12.2-11M919.1",
+            "name": "link-11L1200.2-11M919.1",
             "z_node_name": "11M919.1"
         },
         {
-            "a_node_name": "11L12.3",
+            "a_node_name": "11L1200.3",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-11L12.3-CHALL-WING-NW.1",
+            "name": "link-11L1200.3-CHALL-WING-NW.1",
             "z_node_name": "CHALL-WING-NW.1"
         },
         {
@@ -766,11 +759,11 @@
             "z_node_name": "11L309.2"
         },
         {
-            "a_node_name": "11K311.1",
+            "a_node_name": "11L309.1",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-11K311.1-11L309.1",
-            "z_node_name": "11L309.1"
+            "name": "link-11L309.1-11L311.1",
+            "z_node_name": "11L311.1"
         },
         {
             "a_node_name": "11L309.2",
@@ -780,31 +773,31 @@
             "z_node_name": "12L798.1"
         },
         {
-            "a_node_name": "11K311.1",
+            "a_node_name": "11L311.1",
             "is_alive": true,
             "link_type": 2,
-            "name": "link-11K311.1-11K311.2",
-            "z_node_name": "11K311.2"
+            "name": "link-11L311.1-11L311.2",
+            "z_node_name": "11L311.2"
         },
         {
-            "a_node_name": "11K311.1",
+            "a_node_name": "11L311.1",
             "is_alive": true,
             "link_type": 2,
-            "name": "link-11K311.1-11K311.3",
-            "z_node_name": "11K311.3"
+            "name": "link-11L311.1-11L311.3",
+            "z_node_name": "11L311.3"
         },
         {
-            "a_node_name": "11K311.3",
+            "a_node_name": "11L311.3",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-11K311.3-11L945.CN",
+            "name": "link-11L311.3-11L945.CN",
             "z_node_name": "11L945.CN"
         },
         {
-            "a_node_name": "11K311.3",
+            "a_node_name": "11L311.3",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-11K311.3-11L947.CN",
+            "name": "link-11L311.3-11L947.CN",
             "z_node_name": "11L947.CN"
         },
         {
@@ -1111,14 +1104,14 @@
         },
         {
             "a_node_name": "11L917.p1",
-            "is_alive": true,
+            "is_alive": false,
             "link_type": 1,
             "name": "link-11L917.p1-11M1072.s1",
             "z_node_name": "11M1072.s1"
         },
         {
             "a_node_name": "11L917.p1",
-            "is_alive": true,
+            "is_alive": false,
             "link_type": 1,
             "name": "link-11L917.p1-11M770.CN",
             "z_node_name": "11M770.CN"
@@ -1856,7 +1849,7 @@
         },
         {
             "a_node_name": "12L115.3",
-            "is_alive": true,
+            "is_alive": false,
             "link_type": 1,
             "name": "link-12L115.3-12L73.1",
             "z_node_name": "12L73.1"
@@ -1933,7 +1926,7 @@
         },
         {
             "a_node_name": "12L156.2",
-            "is_alive": true,
+            "is_alive": false,
             "link_type": 1,
             "name": "link-12L156.2-12L74.1",
             "z_node_name": "12L74.1"
@@ -1953,24 +1946,24 @@
             "z_node_name": "12L418.p1"
         },
         {
-            "a_node_name": "12L696.1",
+            "a_node_name": "12L197-A2.1",
             "is_alive": true,
             "link_type": 2,
-            "name": "link-12L696.1-12L696.2",
-            "z_node_name": "12L696.2"
+            "name": "link-12L197-A2.1-12L197-A2.2",
+            "z_node_name": "12L197-A2.2"
         },
         {
-            "a_node_name": "12L198.1",
+            "a_node_name": "12L197-A2.1",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-12L198.1-12L696.1",
-            "z_node_name": "12L696.1"
+            "name": "link-12L197-A2.1-12L198.1",
+            "z_node_name": "12L198.1"
         },
         {
-            "a_node_name": "12L696.2",
+            "a_node_name": "12L197-A2.2",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-12L696.2-12L773.2",
+            "name": "link-12L197-A2.2-12L773.2",
             "z_node_name": "12L773.2"
         },
         {
@@ -2145,8 +2138,8 @@
             "a_node_name": "12L212.1",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-12L212.1-12L659.1",
-            "z_node_name": "12L659.1"
+            "name": "link-12L212.1-12LA659.1",
+            "z_node_name": "12LA659.1"
         },
         {
             "a_node_name": "12L212.p1",
@@ -2218,20 +2211,6 @@
             "link_type": 1,
             "name": "link-12L251.s1-12L59.p1",
             "z_node_name": "12L59.p1"
-        },
-        {
-            "a_node_name": "12L259.1",
-            "is_alive": true,
-            "link_type": 2,
-            "name": "link-12L259.1-12L259.2",
-            "z_node_name": "12L259.2"
-        },
-        {
-            "a_node_name": "12L259.2",
-            "is_alive": true,
-            "link_type": 1,
-            "name": "link-12L259.2-12L261.1",
-            "z_node_name": "12L261.1"
         },
         {
             "a_node_name": "12L261.1",
@@ -2397,14 +2376,14 @@
         },
         {
             "a_node_name": "12L452.2",
-            "is_alive": true,
+            "is_alive": false,
             "link_type": 1,
             "name": "link-12L452.2-12L74.2",
             "z_node_name": "12L74.2"
         },
         {
             "a_node_name": "12L452.3",
-            "is_alive": true,
+            "is_alive": false,
             "link_type": 1,
             "name": "link-12L452.3-12L899.1",
             "z_node_name": "12L899.1"
@@ -2643,7 +2622,7 @@
         },
         {
             "a_node_name": "12L73.3",
-            "is_alive": true,
+            "is_alive": false,
             "link_type": 1,
             "name": "link-12L73.3-12L899.2",
             "z_node_name": "12L899.2"
@@ -3007,17 +2986,17 @@
             "z_node_name": "12L967.3"
         },
         {
-            "a_node_name": "12L659.1",
+            "a_node_name": "12LA659.1",
             "is_alive": true,
             "link_type": 2,
-            "name": "link-12L659.1-12L659.2",
-            "z_node_name": "12L659.2"
+            "name": "link-12LA659.1-12LA659.2",
+            "z_node_name": "12LA659.2"
         },
         {
-            "a_node_name": "12L659.2",
+            "a_node_name": "12LA659.2",
             "is_alive": true,
             "link_type": 1,
-            "name": "link-12L659.2-CPA-N.1",
+            "name": "link-12LA659.2-CPA-N.1",
             "z_node_name": "CPA-N.1"
         },
         {
@@ -3702,6 +3681,76 @@
             "link_type": 2,
             "name": "link-REP-SW.1-REP-SW.3",
             "z_node_name": "REP-SW.3"
+        },
+        {
+            "a_node_name": "11M842.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11M842.1-12M1224.2",
+            "z_node_name": "12M1224.2"
+        },
+        {
+            "a_node_name": "11L1143.4",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.4-11L372.CN",
+            "z_node_name": "11L372.CN"
+        },
+        {
+            "a_node_name": "11L1143.4",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.4-11L400Y.CN",
+            "z_node_name": "11L400Y.CN"
+        },
+        {
+            "a_node_name": "12L816.3",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-12L816.3-12L825.CN",
+            "z_node_name": "12L825.CN"
+        },
+        {
+            "a_node_name": "12L104.s2",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-12L104.s2-12L99.CN",
+            "z_node_name": "12L99.CN"
+        },
+        {
+            "a_node_name": "11L1146.1",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1146.1-11L141.2",
+            "z_node_name": "11L141.2"
+        },
+        {
+            "a_node_name": "11L1143.2",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.2-11L1146.2",
+            "z_node_name": "11L1146.2"
+        },
+        {
+            "a_node_name": "11L1146.1",
+            "is_alive": true,
+            "link_type": 2,
+            "name": "link-11L1146.1-11L1146.2",
+            "z_node_name": "11L1146.2"
+        },
+        {
+            "a_node_name": "11L1143.3",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.3-11L1144.CN",
+            "z_node_name": "11L1144.CN"
+        },
+        {
+            "a_node_name": "11L1143.4",
+            "is_alive": true,
+            "link_type": 1,
+            "name": "link-11L1143.4-11L348.CN",
+            "z_node_name": "11L348.CN"
         }
     ],
     "name": "SJC",
@@ -3971,7 +4020,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:01:c8",
+            "mac_addr": "2c:dc:ad:28:e7:04",
             "name": "11L1094.p1",
             "node_type": 2,
             "polarity": 2,
@@ -4003,7 +4052,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:0f:89",
+            "mac_addr": "74:6f:f7:ca:20:83",
             "name": "11L1094.s2",
             "node_type": 2,
             "polarity": 2,
@@ -4229,11 +4278,11 @@
             },
             "is_primary": false,
             "mac_addr": "74:6f:f7:ca:1f:bb",
-            "name": "11L12.1",
+            "name": "11L1200.1",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11L12",
+            "site_name": "11L1200",
             "status": 3
         },
         {
@@ -4245,11 +4294,11 @@
             },
             "is_primary": true,
             "mac_addr": "74:6f:f7:ca:1c:4a",
-            "name": "11L12.2",
+            "name": "11L1200.2",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11L12",
+            "site_name": "11L1200",
             "status": 3
         },
         {
@@ -4261,11 +4310,11 @@
             },
             "is_primary": false,
             "mac_addr": "74:6f:f7:ca:1f:53",
-            "name": "11L12.3",
+            "name": "11L1200.3",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11L12",
+            "site_name": "11L1200",
             "status": 3
         },
         {
@@ -4922,11 +4971,11 @@
             },
             "is_primary": false,
             "mac_addr": "74:6f:f7:ca:1f:71",
-            "name": "11K311.1",
+            "name": "11L311.1",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11K311",
+            "site_name": "11L311",
             "status": 3
         },
         {
@@ -4938,11 +4987,11 @@
             },
             "is_primary": true,
             "mac_addr": "74:6f:f7:ca:1b:4b",
-            "name": "11K311.2",
+            "name": "11L311.2",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11K311",
+            "site_name": "11L311",
             "status": 3
         },
         {
@@ -4954,11 +5003,11 @@
             },
             "is_primary": false,
             "mac_addr": "74:6f:f7:ca:20:05",
-            "name": "11K311.3",
+            "name": "11L311.3",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "11K311",
+            "site_name": "11L311",
             "status": 3
         },
         {
@@ -5682,7 +5731,7 @@
                 "txGolayIdx": 2
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:11:be",
+            "mac_addr": "2c:dc:ad:28:e7:3d",
             "name": "11L747.p1",
             "node_type": 2,
             "polarity": 1,
@@ -5698,7 +5747,7 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "38:3a:21:b0:10:37",
+            "mac_addr": "74:6f:f7:ca:21:49",
             "name": "11L747.s1",
             "node_type": 2,
             "polarity": 1,
@@ -5865,7 +5914,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "11L917",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -6580,7 +6629,7 @@
             "polarity": 2,
             "pop_node": false,
             "site_name": "11M770",
-            "status": 2
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -7805,11 +7854,11 @@
             },
             "is_primary": false,
             "mac_addr": "74:6f:f7:ca:1f:63",
-            "name": "12L696.1",
+            "name": "12L197-A2.1",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "12L696",
+            "site_name": "12L197-A2",
             "status": 3
         },
         {
@@ -7821,11 +7870,11 @@
             },
             "is_primary": true,
             "mac_addr": "74:6f:f7:ca:1c:ad",
-            "name": "12L696.2",
+            "name": "12L197-A2.2",
             "node_type": 2,
             "polarity": 1,
             "pop_node": false,
-            "site_name": "12L696",
+            "site_name": "12L197-A2",
             "status": 3
         },
         {
@@ -8225,38 +8274,6 @@
                 "txGolayIdx": 1
             },
             "is_primary": false,
-            "mac_addr": "74:6f:f7:ca:20:31",
-            "name": "12L259.1",
-            "node_type": 2,
-            "polarity": 1,
-            "pop_node": false,
-            "site_name": "12L259",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "is_primary": true,
-            "mac_addr": "74:6f:f7:ca:1a:5b",
-            "name": "12L259.2",
-            "node_type": 2,
-            "polarity": 1,
-            "pop_node": false,
-            "site_name": "12L259",
-            "status": 3
-        },
-        {
-            "ant_azimuth": 0,
-            "ant_elevation": 0,
-            "golay_idx": {
-                "rxGolayIdx": 1,
-                "txGolayIdx": 1
-            },
-            "is_primary": false,
             "mac_addr": "74:6f:f7:ca:20:23",
             "name": "12L261.1",
             "node_type": 2,
@@ -8586,7 +8603,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "12L452",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -8602,7 +8619,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "12L452",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -8618,7 +8635,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "12L452",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -9120,7 +9137,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "12L73",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -9136,7 +9153,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "12L73",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -9152,7 +9169,7 @@
             "polarity": 1,
             "pop_node": false,
             "site_name": "12L73",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -9168,7 +9185,7 @@
             "polarity": 2,
             "pop_node": false,
             "site_name": "12L74",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -9184,7 +9201,7 @@
             "polarity": 2,
             "pop_node": false,
             "site_name": "12L74",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -9957,7 +9974,7 @@
             "polarity": 2,
             "pop_node": false,
             "site_name": "12L899",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -9973,7 +9990,7 @@
             "polarity": 2,
             "pop_node": false,
             "site_name": "12L899",
-            "status": 3
+            "status": 1
         },
         {
             "ant_azimuth": 0,
@@ -10145,11 +10162,11 @@
             },
             "is_primary": false,
             "mac_addr": "74:6f:f7:ca:1a:de",
-            "name": "12L659.1",
+            "name": "12LA659.1",
             "node_type": 2,
             "polarity": 2,
             "pop_node": false,
-            "site_name": "12L659",
+            "site_name": "12LA659",
             "status": 3
         },
         {
@@ -10160,12 +10177,12 @@
                 "txGolayIdx": 2
             },
             "is_primary": true,
-            "mac_addr": "38:3a:21:b0:0d:0f",
-            "name": "12L659.2",
+            "mac_addr": "2c:dc:ad:28:e7:c1",
+            "name": "12LA659.2",
             "node_type": 2,
             "polarity": 2,
             "pop_node": false,
-            "site_name": "12L659",
+            "site_name": "12LA659",
             "status": 3
         },
         {
@@ -11911,6 +11928,142 @@
             "pop_node": false,
             "site_name": "12M1224",
             "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1d:4c",
+            "name": "11L372.CN",
+            "node_type": 1,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L372",
+            "status": 2
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1d:52",
+            "name": "11L400Y.CN",
+            "node_type": 1,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L400Y",
+            "status": 2
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:19:c5:1d",
+            "name": "12L825.CN",
+            "node_type": 1,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "12L825",
+            "status": 2
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "74:6f:f7:ca:1e:03",
+            "name": "12L99.CN",
+            "node_type": 1,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "12L99",
+            "status": 2
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:28:e6:aa",
+            "name": "11L1146.1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L1146",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "has_cpe": false,
+            "is_primary": false,
+            "mac_addr": "74:6f:f7:ca:21:0b",
+            "name": "11L1146.2",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11L1146",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:28:e6:7a",
+            "name": "11L1144.CN",
+            "node_type": 1,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "11L1144",
+            "status": 2
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:19:c5:26",
+            "name": "11L348.CN",
+            "node_type": 1,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "11L348_B",
+            "status": 2
         }
     ],
     "sites": [
@@ -12006,10 +12159,10 @@
         },
         {
             "location": {
-                "accuracy": 40000000,
-                "altitude": 0,
-                "latitude": 37.337253,
-                "longitude": -121.893597
+                "accuracy": 4.421732465900668,
+                "altitude": 7.113,
+                "latitude": 37.337239,
+                "longitude": -121.8935588
             },
             "name": "11L1146"
         },
@@ -12083,7 +12236,7 @@
                 "latitude": 37.3381926,
                 "longitude": -121.8865121
             },
-            "name": "11L12"
+            "name": "11L1200"
         },
         {
             "location": {
@@ -12299,7 +12452,7 @@
                 "latitude": 37.3358154,
                 "longitude": -121.9020509
             },
-            "name": "11K311"
+            "name": "11L311"
         },
         {
             "location": {
@@ -12416,7 +12569,7 @@
                 "latitude": 37.3373904,
                 "longitude": -121.892099
             },
-            "name": "11L400"
+            "name": "11L400Y"
         },
         {
             "location": {
@@ -13262,7 +13415,7 @@
                 "latitude": 37.3345663,
                 "longitude": -121.895494
             },
-            "name": "12L696"
+            "name": "12L197-A2"
         },
         {
             "location": {
@@ -13883,7 +14036,7 @@
                 "latitude": 37.3305049,
                 "longitude": -121.8936933
             },
-            "name": "12L659"
+            "name": "12LA659"
         },
         {
             "location": {
