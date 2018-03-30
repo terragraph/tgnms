@@ -310,7 +310,10 @@ function getTopologyByName (topologyName) {
       allRuckusApNames.delete(siteName);
       return site;
     });
-    console.log('[Ruckus AP] Missing site associations for', allRuckusApNames);
+    // log missing site associations
+    if (allRuckusApNames.size > 0) {
+      console.log('[Ruckus AP] Missing site associations for', allRuckusApNames);
+    }
   }
   let networkConfig = Object.assign({}, config);
   networkConfig.topology = topology;
