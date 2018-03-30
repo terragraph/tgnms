@@ -1,0 +1,3 @@
+rootProject.name = 'TGMap2'
+
+include ':app'
