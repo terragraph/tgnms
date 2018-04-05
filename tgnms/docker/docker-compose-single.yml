@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.nms
-    image: terragraph/nms:2796
+    image: secure.cxl-terragraph.com:443/nms:latest
     environment:
       - MYSQL_HOST=db
       - MYSQL_USER=root
@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.beringei
-    image: terragraph/beringei:2723
+    image: secure.cxl-terragraph.com:443/beringei:latest
     environment:
       - BERINGEI_HOST=beringei
     cap_add:
@@ -46,7 +46,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.beringei
-    image: terragraph/beringei:362
+    image: secure.cxl-terragraph.com:443/beringei:latest
     environment:
       - BERINGEI_HOST=beringei_query_service
     cap_add:
@@ -56,7 +56,3 @@ services:
     depends_on:
       - db
     command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei && sleep 30 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
-
-  e2e:
-    image: terragraph/e2e
-    command: "/usr/sbin/e2e_controller"
