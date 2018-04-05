@@ -57,9 +57,9 @@
         group: ubuntu
         mode: 0644
     
-    - name: log into dockerhub
+    - name: log into registry
       docker_login:
-        username: deploy
+        username: tgdeploy
         password: 4l5C46xVJ0h74OmRWPK5
         registry_url: https://secure.cxl-terragraph.com:443/v2
         reauthorize: yes
