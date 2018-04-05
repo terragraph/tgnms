@@ -29,7 +29,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.beringei
-    image: terragraph/beringei:2723
+    image: terragraph/beringei:latest
     environment:
       - BERINGEI_HOST=beringei
     cap_add:
@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.beringei
-    image: terragraph/beringei:362
+    image: terragraph/beringei:latest
     environment:
       - BERINGEI_HOST=beringei_query_service
     cap_add:
