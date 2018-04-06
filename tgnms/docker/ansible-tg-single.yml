@@ -25,9 +25,33 @@
         name: docker-compose
         state: present
 
+    - name: mkdir terragraph
+      file:
+        path: terragraph
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0755
+
     - name: mkdir docker_volumes
       file:
-        path: docker_volumes
+        path: terragraph/docker_volumes
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0755
+
+    - name: mkdir mysql
+      file:
+        path: terragraph/docker_volumes/mysql_db
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0755
+
+    - name: mkdir beringei
+      file:
+        path: terragraph/docker_volumes/beringei
         state: directory
         owner: ubuntu
         group: ubuntu
@@ -35,7 +59,7 @@
 
     - name: mkdir cxl
       file:
-        path: docker_volumes/cxl
+        path: terragraph/docker_volumes/cxl
         state: directory
         owner: ubuntu
         group: ubuntu
@@ -44,7 +68,7 @@
     - name: copy cxl.sql
       template:
         src: cxl.sql
-        dest: ./docker_volumes/cxl/cxl.sql
+        dest: terragraph/docker_volumes/cxl/cxl.sql
         owner: ubuntu
         group: ubuntu
         mode: 0644
@@ -52,7 +76,7 @@
     - name: copy compose
       template:
         src: docker-compose-single.yml
-        dest: ./docker_volumes/docker-compose.yml
+        dest: terragraph/docker-compose.yml
         owner: ubuntu
         group: ubuntu
         mode: 0644
@@ -66,7 +90,7 @@
     
     - name: run compose
       docker_service:
-        project_src: docker_volumes/.
+        project_src: terragraph/.
         build: no
         state: present
         pull: yes
