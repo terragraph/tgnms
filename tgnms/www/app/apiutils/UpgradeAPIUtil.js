@@ -155,6 +155,34 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
     });
 };
 
+export const resetStatus = upgradeGroupReq => {
+  const uri = "/controller/resetStatus";
+  axios
+    .post(uri, upgradeGroupReq)
+    .then(response => {
+      swal({
+        title: "Reset status submitted",
+        text: `You have initiated the "reset status" process with requestId ${
+          upgradeGroupReq.requestId
+        }
+
+      The status of your upgrade should be shown on the "Node Upgrade Status" table.
+      `,
+        type: "info"
+      });
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+
+      swal({
+        title: "Reset status failed",
+        text: `Your upgrade command failed with the following message:
+      ${errorText}`,
+        type: "error"
+      });
+    });
+};
+
 export const prepareUpgrade = upgradeGroupReq => {
   const uri = "/controller/prepareUpgrade";
   axios
