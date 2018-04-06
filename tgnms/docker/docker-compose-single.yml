@@ -6,8 +6,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 12345
     volumes:
-      - mysql_db:/var/lib/mysql
       - ./docker_volumes/cxl:/docker-entrypoint-initdb.d:ro
+      - ./docker_volumes/mysql_db:/var/lib/mysql
     ports:
       - "3306:3306"
 
@@ -31,7 +31,7 @@ services:
 
   beringei_1s:
     volumes:
-      - beringei:/data
+      - ./docker_volumes/beringei:/data
     build:
       context: .
       dockerfile: Dockerfile.beringei
@@ -55,7 +55,7 @@ services:
 
   beringei_30s:
     volumes:
-      - beringei:/data
+      - ./docker_volumes/beringei:/data
     build:
       context: .
       dockerfile: Dockerfile.beringei
@@ -89,7 +89,3 @@ services:
     depends_on:
       - db
     command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei && sleep 30 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
-
-volumes:
-  beringei:
-  mysql_db:
