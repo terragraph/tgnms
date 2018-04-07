@@ -5,7 +5,7 @@ echo
 echo "Set TARGET_BOX to the target box and TARGET_USER to set the user. The default box is localhost and the default user us ubuntu."
 echo "The user must be a user that can connect to the target box over ssh and passwordlessly sudo to root.  An ssh key is recommended here, ssh key forwarding works."
 echo
-echo "It attempts to create a local python virtualenv for ansible, asks for a user builds an inventory file and tests to make sure that the user can connect."
+echo "It attempts to create a local python virtualenv for ansible, builds an inventory file and tests to make sure that the user can connect."
 echo "python is required on both ends and the virtualenv module is require locally. python2 requires 2.6+ and python3 requires 3.5+"
 echo
 echo "If your pythons are not named 'python3', add it to the environment variables TG_LOCAL_PYTHON and TG_REMOTE_PYTHON. Full paths are acceptable as well."
@@ -69,10 +69,11 @@ echo
 
 $LPY -m venv terragraph-venv
 source terragraph-venv/bin/activate
-pip3 install ansible
+pip install ansible
 ansible-galaxy install zaxos.docker-ce-ansible-role
 
 ansible-playbook -v -i $INV ./ansible-tg-single.yml -e docker_user=$user -e pip_package=$PP
 deactivate
 rm -rf /tmp/tgtmp
+rm -rf terragraph-venv
 
