@@ -89,7 +89,7 @@
         state: directory
         owner: "{{ docker_user }}"
         group: docker
-        mode: 0775
+        mode: 0755
     
     - name: copy cxl.sql
       template:
