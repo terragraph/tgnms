@@ -1,10 +1,13 @@
 #!/bin/bash
 
-echo "This script is for installing Terragraph a server via ansible."
-echo "set TARGET_BOX to the target box and TARGET_USER to set the user. The default box is localhost and the default user us ubuntu."
+echo "This script is for installing the Terragraph controller suite on a server via ansible."
+echo
+echo "Set TARGET_BOX to the target box and TARGET_USER to set the user. The default box is localhost and the default user us ubuntu."
 echo "The user must be a user that can connect to the target box over ssh and passwordlessly sudo to root.  An ssh key is recommended here, ssh key forwarding works."
+echo
 echo "It attempts to create a local python virtualenv for ansible, asks for a user builds an inventory file and tests to make sure that the user can connect."
 echo "python is required on both ends and the virtualenv module is require locally. python2 requires 2.6+ and python3 requires 3.5+"
+echo
 echo "If your pythons are not named 'python3', add it to the environment variables TG_LOCAL_PYTHON and TG_REMOTE_PYTHON. Full paths are acceptable as well."
 echo "The pip package is assumed to be python3-pip. If yours is different (centos, redhat on py2 is python2-pip for example), set PIP_PACKAGE"
 echo
