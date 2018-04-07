@@ -1,26 +1,52 @@
 - hosts: nms
   become_user: root
   become: yes
+  vars:
+    docker_user: "ubuntu"
+    pip_package: "python3-pip"
+  pre_tasks:
+    - name: version check
+      assert:
+        that: "ansible_version.full is version_compare('2.5', '>=')"
+        msg: "You must have ansible version 2.5 or later"
+    - name: announcement
+      debug:
+        msg: "Ansible go"
   roles:
     - role: zaxos.docker-ce-ansible-role
   tasks:
-    - name: Adding existing ubuntu user to docker group
+    - name: Adding existing user to docker group
       user: 
-        name: ubuntu
+        name: "{{ docker_user }}"
         groups: docker
         append: yes
     
-    - name: Install python3-pip
+    - name: Install pip (Ubuntu)
       apt:
-        name: python3-pip
+        name: "{{ pip_package }}"
         state: present
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Add EPEL repo (Centos)
+      yum_repository:
+        name: epel
+        description: EPEL YUM repo
+        baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+        gpgcheck: no
+      when: ansible_distribution == "CentOS"
     
-    - name: pip3 install docker
+    - name: Install pip (Centos)
+      yum:
+        name: "{{ pip_package }}"
+        state: present
+      when: ansible_distribution == "CentOS"
+    
+    - name: pip install docker
       pip:
         name: docker
         state: present
     
-    - name: pip3 install docker-compose
+    - name: pip install docker-compose
       pip:
         name: docker-compose
         state: present
@@ -29,56 +55,64 @@
       file:
         path: terragraph
         state: directory
-        owner: ubuntu
-        group: ubuntu
+        owner: "{{ docker_user }}"
+        group: docker
         mode: 0755
 
     - name: mkdir docker_volumes
       file:
         path: terragraph/docker_volumes
         state: directory
-        owner: ubuntu
-        group: ubuntu
+        owner: "{{ docker_user }}"
+        group: docker
         mode: 0755
 
     - name: mkdir mysql
       file:
         path: terragraph/docker_volumes/mysql_db
         state: directory
-        owner: ubuntu
-        group: ubuntu
+        owner: "{{ docker_user }}"
+        group: docker
         mode: 0755
 
     - name: mkdir beringei
       file:
         path: terragraph/docker_volumes/beringei
         state: directory
-        owner: ubuntu
-        group: ubuntu
+        owner: "{{ docker_user }}"
+        group: docker
         mode: 0755
 
     - name: mkdir cxl
       file:
         path: terragraph/docker_volumes/cxl
         state: directory
-        owner: ubuntu
-        group: ubuntu
+        owner: "{{ docker_user }}"
+        group: docker
         mode: 0775
     
     - name: copy cxl.sql
       template:
         src: cxl.sql
         dest: terragraph/docker_volumes/cxl/cxl.sql
-        owner: ubuntu
-        group: ubuntu
+        owner: "{{ docker_user }}"
+        group: docker
         mode: 0644
-    
+
+    - name: add cleaner
+      template:
+        src: destructively-clean-all-docker.sh
+        dest: terragraph/destructively-clean-all-docker.sh
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0755
+
     - name: copy compose
       template:
         src: docker-compose-single.yml
         dest: terragraph/docker-compose.yml
-        owner: ubuntu
-        group: ubuntu
+        owner: "{{ docker_user }}"
+        group: docker
         mode: 0644
     
     - name: log into registry
