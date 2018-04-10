@@ -42,6 +42,27 @@ export default class UpgradeLeftPane extends React.Component {
     });
   }
 
+  resetStatusWithAlert = () => {
+    const { selectedNodes } = this.props;
+    if (selectedNodes.length === 0) {
+      swal(noNodesAlertProps);
+    } else if (this.isUpgradeInProgress()) {
+      swal(warningAlertProps, isConfirm => {
+        if (isConfirm) {
+          this.resetStatus();
+        }
+      });
+    } else {
+      this.resetStatus();
+    }
+  };
+
+  resetStatus = () => {
+    Dispatcher.dispatch({
+      actionType: Actions.OPEN_RESET_STATUS_MODAL
+    });
+  };
+
   prepareUpgradeWithAlert = () => {
     const { selectedNodes } = this.props;
     if (selectedNodes.length === 0) {
@@ -100,6 +121,9 @@ export default class UpgradeLeftPane extends React.Component {
         </label>
         <button className="upgrade-btn" onClick={this.launchUpgradeServer}>
           Manage Upgrade Images
+        </button>
+        <button className="upgrade-btn" onClick={this.resetStatusWithAlert}>
+          Reset Status
         </button>
         <button className="upgrade-btn" onClick={this.prepareUpgradeWithAlert}>
           Prepare

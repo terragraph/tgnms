@@ -15,6 +15,7 @@ import UpgradeLeftPane from "./UpgradeLeftPane.js";
 import UpgradeMonitor from "./UpgradeMonitor.js";
 
 import ModalUpgradeBinary from "./ModalUpgradeBinary.js";
+import ModalResetStatus from "./ModalResetStatus.js";
 import ModalPrepareUpgrade from "./ModalPrepareUpgrade.js";
 import ModalCommitUpgrade from "./ModalCommitUpgrade.js";
 import ModalAbortUpgrade from "./ModalAbortUpgrade.js";
@@ -23,7 +24,8 @@ const UPGRADE_OPERATIONS = {
   BINARY: "binary",
   PREPARE: "prepare",
   COMMIT: "commit",
-  ABORT: "abort"
+  ABORT: "abort",
+  RESET: "reset"
 };
 
 export default class NetworkUpgrade extends React.Component {
@@ -113,6 +115,12 @@ export default class NetworkUpgrade extends React.Component {
           upgradeModalMode: UPGRADE_OPERATIONS.BINARY
         });
         break;
+      case Actions.OPEN_RESET_STATUS_MODAL:
+        this.setState({
+          upgradeModalOpen: true,
+          upgradeModalMode: UPGRADE_OPERATIONS.RESET
+        });
+        break;
       case Actions.OPEN_PREPARE_UPGRADE_MODAL:
         this.setState({
           upgradeModalOpen: true,
@@ -184,6 +192,16 @@ export default class NetworkUpgrade extends React.Component {
             uploadStatus={uploadStatus}
             uploadProgress={uploadProgress}
             deleteStatus={deleteStatus}
+          />
+        );
+        break;
+      case UPGRADE_OPERATIONS.RESET:
+        upgradeNetworkModal = (
+          <ModalResetStatus
+            isOpen={this.state.upgradeModalOpen}
+            onClose={() => this.setState({ upgradeModalOpen: false })}
+            topologyName={networkConfig.topology.name}
+            upgradeNodes={this.state.selectedNodesForUpgrade}
           />
         );
         break;

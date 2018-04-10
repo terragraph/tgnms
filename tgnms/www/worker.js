@@ -187,6 +187,7 @@ const command2MsgType = {
   setLinkIgnitionState: controllerTTypes.MessageType.SET_IGNITION_PARAMS,
 
   // upgrade requests (sent to controller)
+  resetStatus: controllerTTypes.MessageType.UPGRADE_GROUP_REQ,
   prepareUpgrade: controllerTTypes.MessageType.UPGRADE_GROUP_REQ,
   commitUpgrade: controllerTTypes.MessageType.UPGRADE_GROUP_REQ,
   commitUpgradePlan: controllerTTypes.MessageType.UPGRADE_COMMIT_PLAN_REQ,
@@ -518,6 +519,18 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       setLinkIgnitionParamsReq.linkAutoIgnite = {};
       setLinkIgnitionParamsReq.linkAutoIgnite[msg.linkName] = msg.state;
       send(setLinkIgnitionParamsReq);
+      break;
+    case 'resetStatus':
+      var upgradeReqParams = new controllerTTypes.UpgradeReq();
+      upgradeReqParams.urType =
+        controllerTTypes.UpgradeReqType.RESET_STATUS;
+      upgradeReqParams.upgradeReqId = msg.requestId;
+      // then set up the group upgrade req
+      var upgradeGroupReqParams = new controllerTTypes.UpgradeGroupReq();
+      upgradeGroupReqParams.urReq = upgradeReqParams;
+      upgradeGroupReqParams.ugType = controllerTTypes.UpgradeGroupType.NODES;
+      upgradeGroupReqParams.nodes = msg.nodes;
+      send(upgradeGroupReqParams);
       break;
     case 'prepareUpgrade':
       // first set up the upgrade req that the controller sends to minions
