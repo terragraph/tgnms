@@ -978,9 +978,14 @@ function refreshRuckusControllerCache() {
         return;
       }
       
+      try {
+        let ruckusCache = JSON.parse(body);
+        ruckusApsBySite = ruckusCache;
+      } catch (ex) {
+        console.error('Unable to parse ruckus stats');
+        return;
+      }
       console.log('Fetched ruckus controller stats.');
-      let ruckusCache = JSON.parse(body);
-      ruckusApsBySite = ruckusCache;
     }
   );
 }
