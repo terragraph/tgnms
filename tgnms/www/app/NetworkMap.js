@@ -765,7 +765,7 @@ export default class NetworkMap extends React.Component {
             clickable
             fill={false}
             color="purple"
-            key={"pop-node" + siteIndex}
+            key={"ap-site" + siteIndex}
             siteIndex={siteIndex}
             onClick={this.handleMarkerClick}
             onMouseOver={() => this.setState({ hoveredSite: site })}
