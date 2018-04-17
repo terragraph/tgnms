@@ -51,7 +51,7 @@ services:
       - SYS_NICE
     ports:
       - "9991:9991"
-    command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names beringei --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
+    command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names $${HOSTNAME} --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
 
   beringei_30s:
     volumes:
@@ -68,12 +68,12 @@ services:
       - BUCKETS=48
       - BUCKET_SIZE=3600 # one hour
       - BUCKET_FINALIZE_SEC=120
-      - ALLOWED_TIMESTAMP_BEHIND=30
+      - ALLOWED_TIMESTAMP_BEHIND=120
     cap_add:
       - SYS_NICE
     ports:
       - "9992:9992"
-    command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names beringei --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
+    command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names $${HOSTNAME} --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
 
   bqs:
     build:
@@ -88,4 +88,5 @@ services:
       - "8086:8086"
     depends_on:
       - db
-    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei && sleep 30 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
+      - beringei_30s
+    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei_30s && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
