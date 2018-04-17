@@ -89,4 +89,4 @@ services:
     depends_on:
       - db
       - beringei_30s
-    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei_30s && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
+    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei_30s --port 9992 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
