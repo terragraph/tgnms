@@ -3,35 +3,49 @@ version: '3.4'
 services:
   db:
     image: mysql
+    env_file:
+      - ./env/mysql.env
     environment:
-      MYSQL_ROOT_PASSWORD: 12345
+      - MYSQL_ROOT_PASSWORD=12345
+    restart: always
     volumes:
-      - ./docker_volumes/cxl:/docker-entrypoint-initdb.d:ro
+      - ./mysql_init_scripts:/docker-entrypoint-initdb.d:ro
       - ./docker_volumes/mysql_db:/var/lib/mysql
     ports:
       - "3306:3306"
+
+  db_log_cleanup:
+    build:
+      context: .
+      dockerfile: Dockerfile.nms
+    image: secure.cxl-terragraph.com:443/nms:latest
+    env_file:
+      - ./env/mysql.env
+      - ./env/cleaner.env
+    restart: always
+    volumes:
+      - ./docker_volumes/logs:/logs
+    command: ["/bin/sh", "-c", "until nc -z $${MYSQL_HOST} 3306; do sleep 1; done && /usr/src/service/mysql_partitioner/run"]
+    depends_on:
+      - db
 
   nms:
     build:
       context: .
       dockerfile: Dockerfile.nms
     image: secure.cxl-terragraph.com:443/nms:latest
-    environment:
-      - MYSQL_HOST=db
-      - MYSQL_USER=root
-      - MYSQL_PASS=12345
-      - BERINGEI_HOST=beringei
-      - BQS=http://bqs:8086/query
-    command: ["/bin/sh", "-c", "until nc -z bqs 8086; do sleep 1; done && npm start"]
+    env_file:
+      - ./env/mysql.env
+      - ./env/nms.env
+    restart: always
     ports:
       - "80:80"
+    command: ["/bin/sh", "-c", "until nc -z bqs 8086; do sleep 1; done && npm start"]
     depends_on:
       - db
       - bqs
 
   beringei_1s:
-    volumes:
-      - ./docker_volumes/beringei:/data
     build:
       context: .
       dockerfile: Dockerfile.beringei
@@ -49,13 +63,14 @@ services:
       - ALLOWED_TIMESTAMP_BEHIND=30
     cap_add:
       - SYS_NICE
+    restart: always
+    volumes:
+      - ./docker_volumes/beringei:/data
     ports:
       - "9991:9991"
     command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names $${HOSTNAME} --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
 
   beringei_30s:
-    volumes:
-      - ./docker_volumes/beringei:/data
     build:
       context: .
       dockerfile: Dockerfile.beringei
@@ -71,6 +86,9 @@ services:
       - ALLOWED_TIMESTAMP_BEHIND=120
     cap_add:
       - SYS_NICE
+    restart: always
+    volumes:
+      - ./docker_volumes/beringei:/data
     ports:
       - "9992:9992"
     command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names $${HOSTNAME} --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
@@ -80,13 +98,19 @@ services:
       context: .
       dockerfile: Dockerfile.beringei
     image: secure.cxl-terragraph.com:443/beringei:latest
+    env_file:
+      - ./env/mysql.env
+      - ./env/bqs.env
     environment:
-      - BERINGEI_HOST=beringei_query_service
+      - BERINGEI_PORT=9992
     cap_add:
       - SYS_NICE
+    restart: always
+    volumes:
+      - ./docker_volumes/logs:/home/nms/data
     ports:
       - "8086:8086"
+    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && until nc -z beringei_30s $${BERINGEI_PORT}; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei_30s --port $${BERINGEI_PORT} && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads $${BQS_THREADS} -writer_queue_size 500000 -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -v 2 -logtostderr"]
     depends_on:
       - db
       - beringei_30s
-    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei_30s --port 9992 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]

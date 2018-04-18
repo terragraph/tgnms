@@ -67,14 +67,6 @@
         group: docker
         mode: 0755
 
-    - name: mkdir mysql
-      file:
-        path: terragraph/docker_volumes/mysql_db
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
     - name: mkdir beringei
       file:
         path: terragraph/docker_volumes/beringei
@@ -83,21 +75,45 @@
         group: docker
         mode: 0755
 
-    - name: mkdir cxl
+    - name: mkdir logs
       file:
-        path: terragraph/docker_volumes/cxl
+        path: terragraph/docker_volumes/logs
         state: directory
         owner: "{{ docker_user }}"
         group: docker
         mode: 0755
-    
-    - name: copy cxl.sql
+
+    - name: mkdir mysql_db
+      file:
+        path: terragraph/docker_volumes/mysql_db
+        state: directory
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0755
+
+    - name: mkdir mysql_init_scripts
+      file:
+        path: terragraph/mysql_init_scripts
+        state: directory
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0755
+
+    - name: copy mysql init script
       template:
-        src: cxl.sql
-        dest: terragraph/docker_volumes/cxl/cxl.sql
+        src: mysql_init_scripts/cxl.sql
+        dest: terragraph/mysql_init_scripts/cxl.sql
         owner: "{{ docker_user }}"
         group: docker
         mode: 0644
+
+    - name: mkdir nms_config
+      file:
+        path: terragraph/docker_volumes/nms_config
+        state: directory
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0755
 
     - name: add cleaner
       template:
@@ -114,6 +130,25 @@
         owner: "{{ docker_user }}"
         group: docker
         mode: 0644
+
+    - name: mkdir environment configs
+      file:
+        path: terragraph/env
+        state: directory
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0755
+
+    - name: copy environment configs
+      template:
+        src: "{{ item }}"
+        dest: terragraph/env/
+        force: no
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0644
+      with_fileglob:
+        - env/*
     
     - name: log into registry
       docker_login:
