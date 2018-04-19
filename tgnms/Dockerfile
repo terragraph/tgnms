@@ -2,10 +2,12 @@ FROM node:9-alpine
 
 RUN apk update
 RUN apk upgrade
-RUN apk add python make g++ zeromq-dev bash vim
+RUN apk add python make g++ zeromq-dev bash vim findutils mysql-client grep lz4
 
-WORKDIR /usr/src/nms
-COPY www/ .
+WORKDIR /usr/src/
+COPY www/ nms/
+COPY service/ service/
+WORKDIR nms
 RUN npm install
 RUN sh ./patch.sh
 
