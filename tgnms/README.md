@@ -11,99 +11,29 @@ UI to visualize the terragraph wireless network.
 4. **IP Connectivity to E2E Controller and NMS Aggregator**. The NMS UI updates based on the E2E controller topology and NMS Aggregator status.
 
 ## Install
-Perform all instructions as the root user.
-### Pre-requisites
-#### Check for IPv4-connectivity to the internet
-Try pinging an ipv4-only site such as github.com to verify connectivity.
-```
-ping www.github.com
-```
-If you are missing direct connectivity you can specify a proxy to git, npm, and wget for the installation instructions to succeed.
-##### Example proxy configs
-**~/.gitconfig**
-```
-[http]
-proxy = <PROXY_ADDRESS>
+We have recently switched to using docker + ansible. This greatly simplifies the installation process, but we're still working through exposing more configuration options. Perform all instructions as the root user.
 
-[https]
-proxy = <PROXY_ADDRESS>
+You'll need to request access to our terragraph-nms github + docker repository.  These are separate logins.
+1. Clone the repository.
 ```
-**~/.npmrc**
+git clone https://github.com/facebookexternal/terragraph-nms
 ```
-proxy=<PROXY_ADDRESS>
-https-proxy=<PROXY_ADDRESS>
+2. Ensure ssh-keys work locally as root.
 ```
-**~/.wgetrc**
+ssh-keygen -t rsa
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 ```
-http_proxy=<PROXY_ADDRESS>
-https_proxy=<PROXY_ADDRESS>
+3. Run the launch script as root.
 ```
-#### Add the nms user
+cd tgnms/docker
+TARGET_USER=root ./launch.sh
 ```
-useradd nms
-```
-#### Dependencies
-```
-yum -y install gcc-c++ git mariadb-server wget
-systemctl start mariadb
-systemctl enable mariadb
-```
-#### Install ZeroMQ
-[ZeroMQ download](http://zeromq.org/intro:get-the-software)
-Commands:
-```
-pushd ~nms
-wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.gz
-tar -xf zeromq-4.2.1.tar.gz
-cd zeromq-4.2.1
-./configure --prefix=/usr && make && make install
-popd
-```
-#### Install LZ4 (for log compression)
-[LZ4](https://github.com/lz4/lz4)
-```
-pushd ~nms
-wget https://github.com/lz4/lz4/archive/v1.8.1.2.tar.gz
-tar -xf v1.8.1.2.tar.gz
-cd lz4-1.8.1.2
-make && make install
-popd
-```
-### Install NodeJS
-[NodeJS instructions](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora)
-Commands:
-```
-pushd ~nms
-curl --silent --location https://rpm.nodesource.com/setup_7.x | bash -
-yum -y install nodejs
-popd
-```
-### NMS UI setup
-#### Checkout the repository
-```
-pushd ~nms
-git clone https://github.com/pmccut/tgnms.git
-ln -s tgnms/www www
-cd www && npm install
-popd
-```
-#### Run patch script
-```
-pushd ~nms/www
-./patch.sh
-popd
-```
-##### Import initial schema
-```
-mysql -uroot -e"create database cxl"
-mysql -uroot cxl < ~nms/tgnms/schema/cxl.sql
-```
+
+This will pull down and run all required images. This doc will be updated shortly with configuration options.
+
 ### UI Configuration
 The UI needs to be configured to know which topologies it should display.
 #### Instance config
-```
-pushd ~nms/www/config/instances
-```
 Use **example_networks.json** as an example instance config. Important parameters to update:
 * **topology_file** topology file name. Ensure the file exists within ~nms/www/config/networks/
 * **latitude/longitude** Initial coordinates for the center of the map.
@@ -116,34 +46,3 @@ Once the instance config is ready you must tell the UI which instance you want t
 ```
 echo 'export NETWORK="example_networks"' > /etc/sysconfig/nms
 ```
-
-### Build Beringei (stats daemon)
-Beringei is a Facebook open sourced project that is extremely efficient at storing a large amount of stats in memory. We write all stats data to beringei, storing the 30-second interval data for 7 days. MySQL is used to store the node to key mappings and beringei is only aware of the key id from MySQL.
-**Beringei requires many FB open sourced projects which require newer versions of system packages, this requires us to compile a large amount of packages for CentOS 7**
-```
-pushd ~nms/tgnms/setup/beringei/
-./dev_env.sh
-ldconfig
-echo "/usr/local/lib" > /etc/ld.so.conf.d/usr_local_lib.conf
-echo "/usr/local/lib64" > /etc/ld.so.conf.d/usr_local_lib64.conf
-ldconfig
-./install_beringei_system_deps.sh
-ldconfig
-./install_beringei_fb_deps.sh
-./build_beringei_reader.sh
-popd
-```
-
-### Enable and Start systemd services
-Run these commands to enable the two primary services - nms_prod and nms_mysql_writer
-```
-for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && cp -v $dir/$(basename $dir).service /usr/lib/systemd/system/ && systemctl enable $(basename $dir).service; done
-for dir in ~nms/tgnms/service/*; do [ -d "$dir" ] && systemctl start $(basename $dir).service; done
-```
-### Log files
-The services should now be running using systemd. You can view the log files using journalctl.
-```
-journalctl -u nms_prod -f
-```
-* **nms_prod** is the UI service listening on port 80.
-* **nms_mysql_writer** is the stats/events/alerts backend writer listening on port 8086.
