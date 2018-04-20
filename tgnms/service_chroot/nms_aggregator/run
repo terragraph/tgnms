@@ -1,7 +1,0 @@
-#!/bin/bash
-if [ -n "$NMS_ROOTFS" ] && [ -d "$NMS_ROOTFS" ]; then
-  chroot $NMS_ROOTFS /bin/mknod /dev/urandom c 1 9 2>/dev/null
-  chroot $NMS_ROOTFS /usr/sbin/nms_aggregator ${NMS_ARGS}
-else
-  echo "NMS_ROOTFS not set, please configure in /etc/sysconfig/tg_services"
-fi
