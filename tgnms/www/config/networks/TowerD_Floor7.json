@@ -1,0 +1,302 @@
+{
+  "name": "Lab TD F7",
+  "nodes": [
+    {
+      "name": "terraController.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "38:3A:21:B0:02:DF",
+      "pop_node": false,
+      "site_name": "A",
+          "polarity": 1
+    },
+    {
+      "name": "terra111.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "38:3A:21:B0:02:9D",
+      "pop_node": true,
+      "site_name": "A",
+          "polarity": 1
+    },
+    {
+      "name": "terra114.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:50:43:5A:31:2C",
+      "pop_node": true,
+      "site_name": "A",
+          "polarity": 1
+    },
+    {
+      "name": "terra121.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:00:00:10:0e:42",
+      "pop_node": false,
+      "site_name": "F",
+          "polarity": 2
+    },
+    {
+      "name": "terra211.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:00:00:10:0e:44",
+      "pop_node": false,
+      "site_name": "B",
+          "polarity": 2
+    },
+    {
+      "name": "terra212.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:00:00:10:0e:45",
+      "pop_node": false,
+      "site_name": "B",
+          "polarity": 2
+    },
+    {
+      "name": "terra214.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "38:3A:21:B0:0B:DF",
+      "pop_node": false,
+      "site_name": "B",
+          "polarity": 2
+    },
+    {
+      "name": "terra221.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:00:00:10:0e:47",
+      "pop_node": false,
+      "site_name": "E",
+          "polarity": 1
+    },
+    {
+      "name": "terra222.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "38:3A:21:B0:0B:26",
+      "pop_node": false,
+      "site_name": "E",
+          "polarity": 1
+    },
+    {
+      "name": "terra223.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "38:3A:21:B0:0B:BF",
+      "pop_node": false,
+      "site_name": "E",
+          "polarity": 1
+    },
+    {
+      "name": "terra312.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:00:00:10:0e:4d",
+      "pop_node": false,
+      "site_name": "C",
+          "polarity": 1
+    },
+    {
+      "name": "terra314.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "38:3A:21:B0:0C:37",
+      "pop_node": false,
+      "site_name": "C",
+          "polarity": 1
+    },
+    {
+      "name": "terra322.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:00:00:10:0e:4b",
+      "pop_node": false,
+      "site_name": "D",
+          "polarity": 2
+    },
+    {
+      "name": "terra323.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "00:00:00:10:0e:4a",
+      "pop_node": false,
+      "site_name": "D",
+          "polarity": 2
+    },
+    {
+      "name": "terraEndpoint.f7.td.a404-if",
+      "node_type": 2,
+      "mac_addr": "38:3A:21:B0:0B:E9",
+      "pop_node": false,
+      "site_name": "D",
+          "polarity": 2
+    }
+  ],
+  "links": [
+    {
+      "name": "link-terra111.f7.td.a404-if-terraController.f7.td.a404-if",
+      "a_node_name": "terra111.f7.td.a404-if",
+      "z_node_name": "terraController.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra114.f7.td.a404-if-terraController.f7.td.a404-if",
+      "a_node_name": "terra114.f7.td.a404-if",
+      "z_node_name": "terraController.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra111.f7.td.a404-if-terra212.f7.td.a404-if",
+      "a_node_name": "terra111.f7.td.a404-if",
+      "z_node_name": "terra212.f7.td.a404-if",
+      "link_type": 1,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra111.f7.td.a404-if-terra114.f7.td.a404-if",
+      "a_node_name": "terra111.f7.td.a404-if",
+      "z_node_name": "terra114.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra121.f7.td.a404-if-terra222.f7.td.a404-if",
+      "a_node_name": "terra121.f7.td.a404-if",
+      "z_node_name": "terra222.f7.td.a404-if",
+      "link_type": 1,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra211.f7.td.a404-if-terra312.f7.td.a404-if",
+      "a_node_name": "terra211.f7.td.a404-if",
+      "z_node_name": "terra312.f7.td.a404-if",
+      "link_type": 1,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra211.f7.td.a404-if-terra212.f7.td.a404-if",
+      "a_node_name": "terra211.f7.td.a404-if",
+      "z_node_name": "terra212.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra211.f7.td.a404-if-terra214.f7.td.a404-if",
+      "a_node_name": "terra211.f7.td.a404-if",
+      "z_node_name": "terra214.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra212.f7.td.a404-if-terra214.f7.td.a404-if",
+      "a_node_name": "terra212.f7.td.a404-if",
+      "z_node_name": "terra214.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra214.f7.td.a404-if-terra223.f7.td.a404-if",
+      "a_node_name": "terra214.f7.td.a404-if",
+      "z_node_name": "terra223.f7.td.a404-if",
+      "link_type": 1,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra221.f7.td.a404-if-terra322.f7.td.a404-if",
+      "a_node_name": "terra221.f7.td.a404-if",
+      "z_node_name": "terra322.f7.td.a404-if",
+      "link_type": 1,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra221.f7.td.a404-if-terra222.f7.td.a404-if",
+      "a_node_name": "terra221.f7.td.a404-if",
+      "z_node_name": "terra222.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra221.f7.td.a404-if-terra223.f7.td.a404-if",
+      "a_node_name": "terra221.f7.td.a404-if",
+      "z_node_name": "terra223.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra222.f7.td.a404-if-terra223.f7.td.a404-if",
+      "a_node_name": "terra222.f7.td.a404-if",
+      "z_node_name": "terra223.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra312.f7.td.a404-if-terra314.f7.td.a404-if",
+      "a_node_name": "terra312.f7.td.a404-if",
+      "z_node_name": "terra314.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    },
+    {
+      "name": "link-terra314.f7.td.a404-if-terra323.f7.td.a404-if",
+      "a_node_name": "terra314.f7.td.a404-if",
+      "z_node_name": "terra323.f7.td.a404-if",
+      "link_type": 1,
+      "is_alive": false
+    },
+    {
+      "name": "link-terra322.f7.td.a404-if-terra323.f7.td.a404-if",
+      "a_node_name": "terra322.f7.td.a404-if",
+      "z_node_name": "terra323.f7.td.a404-if",
+      "link_type": 2,
+      "is_alive": true
+    }
+  ],
+  "sites": [
+    {
+      "name": "A",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1475237,
+        "altitude": 0,
+                "accuracy": 30
+      }
+    },
+    {
+      "name": "B",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1472237,
+        "altitude": 0,
+                "accuracy": 30
+      }
+    },
+    {
+      "name": "C",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1469237,
+        "altitude": 0,
+                "accuracy": 30
+      }
+    },
+    {
+      "name": "D",
+      "location": {
+        "latitude": 37.484746,
+        "longitude": -122.1469237,
+        "altitude": 0,
+                "accuracy": 30
+      }
+    },
+    {
+      "name": "E",
+      "location": {
+        "latitude": 37.484746,
+        "longitude": -122.1472237,
+        "altitude": 0,
+                "accuracy": 30
+      }
+    },
+    {
+      "name": "F",
+      "location": {
+        "latitude": 37.484746,
+        "longitude": -122.1475237,
+        "altitude": 0,
+                "accuracy": 30
+      }
+    }
+  ]
+}
