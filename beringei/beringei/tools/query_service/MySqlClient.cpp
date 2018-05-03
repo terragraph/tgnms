@@ -44,7 +44,6 @@ MySqlClient::MySqlClient() {
 void MySqlClient::refreshAll() noexcept {
   refreshNodes();
   refreshStatKeys();
-  refreshEventCategories();
 }
 
 std::vector<std::shared_ptr<query::MySqlNodeData> > MySqlClient::getNodes() {
@@ -145,34 +144,6 @@ void MySqlClient::refreshStatKeys() noexcept {
   }
 }
 
-void MySqlClient::refreshEventCategories() noexcept {
-  try {
-    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
-    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
-        "SELECT `id`, `node_id`, `category` FROM `event_categories`"));
-
-    LOG(INFO) << "refreshEventCategories: Number of categories: "
-              << res->rowsCount();
-    while (res->next()) {
-      int64_t categoryId = res->getInt("id");
-      int64_t nodeId = res->getInt("node_id");
-      std::string categoryName = res->getString("category");
-
-      std::transform(categoryName.begin(), categoryName.end(),
-                     categoryName.begin(), ::tolower);
-
-      if (!nodeCategoryIds_.count(nodeId)) {
-        nodeCategoryIds_[nodeId] = {};
-      }
-      nodeCategoryIds_[nodeId][categoryName] = categoryId;
-    }
-  }
-  catch (sql::SQLException &e) {
-    LOG(ERROR) << "refreshEventCategories ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
-  }
-}
-
 void MySqlClient::addNodes(
     std::unordered_map<std::string, query::MySqlNodeData> newNodes) noexcept {
   if (!newNodes.size()) {
@@ -231,36 +202,6 @@ void MySqlClient::addStatKeys(std::unordered_map<
   refreshStatKeys();
 }
 
-void MySqlClient::addEventCategories(std::unordered_map<
-    int64_t, std::unordered_set<std::string> > eventCategories) noexcept {
-  if (!eventCategories.size()) {
-    return;
-  }
-  LOG(INFO) << "addEventCategories for " << eventCategories.size() << " nodes";
-  try {
-    sql::PreparedStatement *prep_stmt;
-    prep_stmt = connection_->prepareStatement(
-        "INSERT IGNORE INTO `event_categories` (`node_id`, `category`) VALUES "
-        "(?, ?)");
-
-    for (const auto &categories : eventCategories) {
-      LOG(INFO) << "addEventCategories => node_id: " << categories.first
-                << " Num of categories: " << categories.second.size();
-      for (const auto &category : categories.second) {
-        prep_stmt->setInt(1, categories.first);
-        prep_stmt->setString(2, category);
-        prep_stmt->execute();
-      }
-    }
-  }
-  catch (sql::SQLException &e) {
-    LOG(ERROR) << "addEventCategories ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
-  }
-
-  //  refreshEventCategories();
-}
-
 folly::Optional<int64_t>
 MySqlClient::getNodeId(const std::string &macAddr) const {
   std::string macAddrLower = macAddr;
@@ -289,78 +230,5 @@ MySqlClient::getKeyId(const int64_t nodeId, const std::string &keyName) const {
   return folly::none;
 }
 
-folly::Optional<int64_t>
-MySqlClient::getEventCategoryId(const int64_t nodeId,
-                                const std::string &category) const {
-  std::string categoryLower = category;
-  std::transform(categoryLower.begin(), categoryLower.end(),
-                 categoryLower.begin(), ::tolower);
-
-  auto itNode = nodeCategoryIds_.find(nodeId);
-  if (itNode != nodeCategoryIds_.end()) {
-    auto itCategory = itNode->second.find(categoryLower);
-    if (itCategory != itNode->second.end()) {
-      return (itCategory->second);
-    }
-  }
-  return folly::none;
-}
-
-void
-MySqlClient::addEvents(std::vector<query::MySqlEventData> events) noexcept {
-  if (!events.size()) {
-    return;
-  }
-  try {
-    std::string query =
-        "INSERT INTO `events` (`sample`, `timestamp`, `category_id`) VALUES ";
-    std::vector<std::string> vec(events.size(), "(?, FROM_UNIXTIME(?), ?)");
-    query += folly::join(",", vec);
-    int64_t index = 0;
-
-    std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        connection_->prepareStatement(query));
-
-    LOG(INFO) << "addEvents: " << events.size();
-    for (const auto &event : events) {
-      prep_stmt->setString(++index, event.sample);
-      prep_stmt->setInt(++index, event.timestamp);
-      prep_stmt->setInt(++index, event.category_id);
-    }
-    prep_stmt->execute();
-  }
-  catch (sql::SQLException &e) {
-    LOG(ERROR) << "addEvents ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
-  }
-}
-
-void MySqlClient::addAlert(query::MySqlAlertData alert) noexcept {
-  try {
-    std::string query =
-        "INSERT INTO `alerts` (`node_id`, `timestamp`, `alert_id`, "
-        "`alert_regex`, `alert_threshold`, `alert_comparator`, `alert_level`, "
-        "`trigger_key`, `trigger_value`) VALUES (?, FROM_UNIXTIME(?), ?, ?, ?, "
-        "?, ?, ?, ?)";
-    std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        connection_->prepareStatement(query));
-
-    LOG(INFO) << "addAlert: " << alert.alert_id;
-    prep_stmt->setInt(1, alert.node_id);
-    prep_stmt->setInt(2, alert.timestamp);
-    prep_stmt->setString(3, alert.alert_id);
-    prep_stmt->setString(4, alert.alert_regex);
-    prep_stmt->setDouble(5, alert.alert_threshold);
-    prep_stmt->setString(6, alert.alert_comparator);
-    prep_stmt->setString(7, alert.alert_level);
-    prep_stmt->setString(8, alert.trigger_key);
-    prep_stmt->setDouble(9, alert.trigger_value);
-    prep_stmt->execute();
-  }
-  catch (sql::SQLException &e) {
-    LOG(ERROR) << "addAlert ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
-  }
-}
 }
 } // facebook::gorilla
