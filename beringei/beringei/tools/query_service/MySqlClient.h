@@ -56,27 +56,16 @@ class MySqlClient {
 
   void refreshStatKeys() noexcept;
 
-  void refreshEventCategories() noexcept;
-
   void addNodes(
       std::unordered_map<std::string, query::MySqlNodeData> newNodes) noexcept;
 
   void addStatKeys(std::unordered_map<int64_t, std::unordered_set<std::string> >
                        nodeKeys) noexcept;
 
-  void addEventCategories(std::unordered_map<
-      int64_t, std::unordered_set<std::string> > eventCategories) noexcept;
-
   folly::Optional<int64_t> getNodeId(const std::string &macAddr) const;
 
   folly::Optional<int64_t> getKeyId(const int64_t nodeId,
                                     const std::string &keyName) const;
-
-  folly::Optional<int64_t>
-  getEventCategoryId(const int64_t nodeId, const std::string &category) const;
-
-  void addEvents(std::vector<query::MySqlEventData> events) noexcept;
-  void addAlert(query::MySqlAlertData alert) noexcept;
 
  private:
   sql::Driver *driver_;
