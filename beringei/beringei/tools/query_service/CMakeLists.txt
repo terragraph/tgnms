@@ -29,10 +29,6 @@ set(BERINGEI_QUERY_SRCS
 )
 
 set(BERINGEI_QUERY_HANDLER_SRCS
-    handlers/AlertsWriteHandler.cpp
-    handlers/AlertsWriteHandler.h
-    handlers/EventsWriteHandler.cpp
-    handlers/EventsWriteHandler.h
     handlers/LogsWriteHandler.cpp
     handlers/LogsWriteHandler.h
     handlers/NotFoundHandler.cpp

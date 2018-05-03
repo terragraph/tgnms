@@ -9,8 +9,6 @@
 
 #include "QueryServiceFactory.h"
 
-#include "handlers/AlertsWriteHandler.h"
-#include "handlers/EventsWriteHandler.h"
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/QueryHandler.h"
@@ -61,10 +59,6 @@ QueryServiceFactory::onRequest(proxygen::RequestHandler * /* unused */,
     return new QueryHandler(configurationAdapter_, beringeiReadClient_);
   } else if (path == "/table_query") {
     return new TableQueryHandler(configurationAdapter_, beringeiReadClient_, typeaheadCache_);
-  } else if (path == "/events_writer") {
-    return new EventsWriteHandler(mySqlClient_);
-  } else if (path == "/alerts_writer") {
-    return new AlertsWriteHandler(mySqlClient_);
   } else if (path == "/logs_writer") {
     return new LogsWriteHandler();
   } else if (path == "/stats_typeahead") {
