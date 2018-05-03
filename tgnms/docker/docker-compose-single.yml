@@ -117,7 +117,7 @@ services:
       - ./docker_volumes/logs:/home/nms/data
     ports:
       - "8086:8086"
-    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z db 3306; do sleep 1; done && until nc -z beringei_30s $${BERINGEI_PORT}; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei_30s --port $${BERINGEI_PORT} && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads $${BQS_THREADS} -writer_queue_size 500000 -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -v 2 -logtostderr"]
+    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z db 3306; do sleep 1; done && until nc -z beringei_30s $${BERINGEI_PORT}; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei_30s --port $${BERINGEI_PORT} && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads $${BQS_THREADS} -writer_queue_size 500000 -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -logtostderr"]
     depends_on:
       - db
       - beringei_30s
