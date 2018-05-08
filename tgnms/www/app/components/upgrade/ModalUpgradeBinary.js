@@ -1,7 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
 import Modal from "react-modal";
-const classNames = require("classnames");
 
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
@@ -17,6 +16,8 @@ import {
 } from "../../apiutils/UpgradeAPIUtil.js";
 
 import UpgradeImagesTable from "./UpgradeImagesTable.js";
+
+const classNames = require("classnames");
 
 const modalStyle = {
   content: {

@@ -2,13 +2,13 @@ import React from "react";
 import { render } from "react-dom";
 import Modal from "react-modal";
 import Select from "react-select";
+import { prepareUpgrade } from "../../apiutils/UpgradeAPIUtil.js";
 
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
 
 const classNames = require("classnames");
 
-import { prepareUpgrade } from "../../apiutils/UpgradeAPIUtil.js";
 
 const modalStyle = {
   content: {

@@ -2,10 +2,10 @@ import React from "react";
 import { render } from "react-dom";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
-const classNames = require("classnames");
-
 import { Actions } from "../../constants/NetworkConstants.js";
 import Dispatcher from "../../NetworkDispatcher.js";
+
+const classNames = require("classnames");
 
 const upgradeStatusToString = {
   10: "NONE",

@@ -1,8 +1,10 @@
 import React from "react";
 import { render } from "react-dom";
-const classNames = require("classnames");
 
 import { CONFIG_LAYER_DESC } from "../../constants/NetworkConfigConstants.js";
+
+const classNames = require("classnames");
+
 
 const UNDEFINED_PLACEHOLDER = [
   <span className="nc-tooltip-undefined">No Base Version found</span>,

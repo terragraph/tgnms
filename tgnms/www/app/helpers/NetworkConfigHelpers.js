@@ -1,5 +1,6 @@
-var _ = require("lodash");
 import { ADD_FIELD_TYPES } from "../constants/NetworkConfigConstants.js";
+
+var _ = require("lodash");
 
 export const getImageVersionsForNetwork = topology => {
   if (!topology || !topology.nodes) {

@@ -6,6 +6,10 @@ import Dispatcher from "./NetworkDispatcher.js";
 import NetworkStore from "./stores/NetworkStore.js";
 import AsyncButton from "react-async-button";
 import NumericInput from "react-numeric-input";
+// tabs
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+
 
 class ListEditor extends React.Component {
   constructor(props) {
@@ -90,8 +94,6 @@ class NumberEditor extends React.Component {
     );
   }
 }
-// tabs
-import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 
 const Spinner = () => (
   <div className="spinner">
@@ -203,7 +205,7 @@ export default class NetworkAlerts extends React.Component {
 
       if (
         !errors &&
-        confirm("Are you sure you want to overwrite Alerts Config?")
+        window.confirm("Are you sure you want to overwrite Alerts Config?")
       ) {
         let f = new Request(
           "/aggregator/setAlertsConfig/" +

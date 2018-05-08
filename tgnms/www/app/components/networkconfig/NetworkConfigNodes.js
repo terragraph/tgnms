@@ -4,8 +4,6 @@
 import React from "react";
 import { render } from "react-dom";
 
-const classNames = require("classnames");
-
 import {
   CONFIG_VIEW_MODE,
   CONFIG_CLASSNAMES
@@ -18,6 +16,7 @@ import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
 const KEY_FIELD = "mac_addr";
 const TABLE_HEADER_OFFSET = 78;
+const classNames = require("classnames");
 
 export default class NetworkConfigNodes extends React.Component {
   constructor(props) {

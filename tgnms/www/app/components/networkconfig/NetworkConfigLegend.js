@@ -1,12 +1,12 @@
 import React from "react";
 import { render } from "react-dom";
 
-const classNames = require("classnames");
-
 import {
   CONFIG_VIEW_MODE,
   CONFIG_CLASSNAMES
 } from "../../constants/NetworkConfigConstants.js";
+
+const classNames = require("classnames");
 
 // legend for the network config
 export default class NetworkConfigLegend extends React.Component {

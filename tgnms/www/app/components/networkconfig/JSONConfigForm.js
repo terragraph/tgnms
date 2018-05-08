@@ -3,9 +3,6 @@
 
 import React from "react";
 import { render } from "react-dom";
-const classNames = require("classnames");
-var _ = require("lodash");
-
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
 
@@ -27,6 +24,9 @@ import JSONFormField from "./JSONFormField.js";
 import AddJSONConfigField from "./AddJSONConfigField.js";
 import NewJSONConfigField from "./NewJSONConfigField.js";
 import NewJSONConfigObject from "./NewJSONConfigObject.js";
+
+const classNames = require("classnames");
+var _ = require("lodash");
 
 const PLACEHOLDER_VALUE = "base value for field not set";
 
