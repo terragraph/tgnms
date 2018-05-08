@@ -157,6 +157,15 @@
             "longitude": -122.1472245455607,
             "zoom_level": 18,
             "topology_file": "TowerD_Floor7.json"
+        },
+        {
+            "controller_ip": "2620:10d:c089:e001:20c:29ff:fe5a:b21f",
+            "aggregator_ip": "2620:10d:c089:e001:20c:29ff:fe5a:b21f",
+            "site_coords_override": true,
+            "latitude": 37.4848280435154,
+            "longitude": -122.1472245455607,
+            "zoom_level": 18,
+            "topology_file": "lab_alignment.json"
         }
     ]
 }
