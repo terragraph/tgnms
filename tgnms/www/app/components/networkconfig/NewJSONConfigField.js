@@ -4,11 +4,11 @@
 import React from "react";
 import { render } from "react-dom";
 
-const classNames = require("classnames");
-
 import { editNewField } from "../../actions/NetworkConfigActions.js";
 import { ADD_FIELD_TYPES } from "../../constants/NetworkConfigConstants.js";
 import CustomToggle from "../common/CustomToggle.js";
+
+const classNames = require("classnames");
 
 export default class NewJSONConfigField extends React.Component {
   constructor(props) {

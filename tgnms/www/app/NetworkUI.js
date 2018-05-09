@@ -77,8 +77,8 @@ export default class NetworkUI extends React.Component {
       this.handleDispatchEvent.bind(this)
     );
     // refresh network config
-    let refresh_interval = CONFIG.refresh_interval
-      ? CONFIG.refresh_interval
+    let refresh_interval = window.CONFIG.refresh_interval
+      ? window.CONFIG.refresh_interval
       : 5000;
     // load data if network name known
     this.getNetworkStatusPeriodic();

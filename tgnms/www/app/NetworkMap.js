@@ -39,8 +39,9 @@ import DetailsTopologyIssues from "./components/detailpanels/DetailsTopologyIssu
 
 import SplitPane from "react-split-pane";
 import { polarityColor } from "./NetworkHelper.js";
-const d3 = require("d3");
 import { Index, TimeSeries, TimeRange, TimeRangeEvent } from "pondjs";
+const d3 = require("d3");
+
 
 const SITE_MARKER = Leaflet.icon({
   iconUrl: "/static/images/site.png",
@@ -1232,7 +1233,7 @@ export default class NetworkMap extends React.Component {
     );
 
     let tileUrl = "/tile/{s}/{z}/{x}/{y}.png";
-    if (!CONFIG.use_tile_proxy) {
+    if (!window.CONFIG.use_tile_proxy) {
       tileUrl = window.location.protocol + MapTiles[this.props.mapTile];
       //        tileUrl = window.location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
       //        tileUrl = window.location.protocol + '//stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';

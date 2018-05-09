@@ -4,16 +4,16 @@
 
 import React from "react";
 import { render } from "react-dom";
-
-const classNames = require("classnames");
-var _ = require("lodash");
-
 import { CONFIG_VIEW_MODE } from "../../constants/NetworkConfigConstants.js";
 import { changeEditMode } from "../../actions/NetworkConfigActions.js";
 
 import NetworkConfigImageSelector from "./NetworkConfigImageSelector.js";
 import NetworkConfigNodes from "./NetworkConfigNodes.js";
 import NetworkConfigLegend from "./NetworkConfigLegend.js";
+
+const classNames = require("classnames");
+var _ = require("lodash");
+
 
 export default class NetworkConfigLeftPane extends React.Component {
   constructor(props) {

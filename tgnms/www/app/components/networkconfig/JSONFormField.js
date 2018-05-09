@@ -1,6 +1,5 @@
 import React from "react";
 import { render } from "react-dom";
-const classNames = require("classnames");
 
 import {
   REVERT_VALUE,
@@ -13,6 +12,8 @@ import {
 } from "../../actions/NetworkConfigActions.js";
 import JSONFieldTooltip from "./JSONFieldTooltip.js";
 import CustomToggle from "../common/CustomToggle.js";
+
+const classNames = require("classnames");
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm

@@ -1,6 +1,5 @@
 // util class for making API calls to the node server for network config
 import axios from "axios";
-var _ = require("lodash");
 
 import {
   getBaseConfigSuccess,
@@ -13,6 +12,8 @@ import {
 
 import { DEFAULT_BASE_KEY } from "../constants/NetworkConfigConstants.js";
 import { sortConfig } from "../helpers/NetworkConfigHelpers.js";
+
+var _ = require("lodash");
 
 const getErrorText = error => {
   // try to get the status text from the API response, otherwise, default to the error object

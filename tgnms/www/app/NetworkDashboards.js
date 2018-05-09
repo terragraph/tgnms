@@ -4,11 +4,13 @@ import { Actions } from "./constants/NetworkConstants.js";
 import Dispatcher from "./NetworkDispatcher.js";
 import NetworkStore from "./stores/NetworkStore.js";
 import ReactGridLayout, { WidthProvider } from "react-grid-layout";
-const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 import Select from "react-select";
 import { ScaleModal } from "boron";
 import NetworkDashboardStats from "./NetworkDashboardStats.js";
 import ReactDyGraph from "./ReactDyGraph.js";
+import swal from "sweetalert";
+
+const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
 export default class NetworkDashboards extends React.Component {
   state = {

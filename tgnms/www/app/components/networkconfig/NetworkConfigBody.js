@@ -3,7 +3,6 @@
 
 import React from "react";
 import { render } from "react-dom";
-const uuidv4 = require("uuid/v4");
 
 import { toggleExpandAll } from "../../actions/NetworkConfigActions.js";
 
@@ -11,6 +10,8 @@ import CustomToggle from "../common/CustomToggle.js";
 import JSONConfigForm from "./JSONConfigForm.js";
 import NetworkConfigHeader from "./NetworkConfigHeader.js";
 import NetworkConfigFooter from "./NetworkConfigFooter.js";
+
+const uuidv4 = require("uuid/v4");
 
 export default class NetworkConfigBody extends React.Component {
   constructor(props) {

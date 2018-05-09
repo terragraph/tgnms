@@ -4,7 +4,6 @@
 import React from "react";
 import { render } from "react-dom";
 
-const classNames = require("classnames");
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
 
@@ -17,6 +16,8 @@ import { convertAndValidateNewConfigObject } from "../../helpers/NetworkConfigHe
 
 import AddJSONConfigField from "./AddJSONConfigField.js";
 import NewJSONConfigField from "./NewJSONConfigField.js";
+
+const classNames = require("classnames");
 
 const validationAlertProps = validationMsg => ({
   title: "Submit failed: validation errors",

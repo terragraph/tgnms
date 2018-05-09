@@ -1,3 +1,5 @@
 import { Dispatcher } from "flux";
 
-module.exports = new Dispatcher();
+const NetworkDispatcher = new Dispatcher();
+
+export default NetworkDispatcher;

@@ -2,13 +2,13 @@ import React from "react";
 import { render } from "react-dom";
 import Select from "react-select";
 
-const classNames = require("classnames");
-
 import { CONFIG_VIEW_MODE } from "../../constants/NetworkConfigConstants.js";
 import {
   changeEditMode,
   selectImage
 } from "../../actions/NetworkConfigActions.js";
+
+const classNames = require("classnames");
 
 export default class NetworkConfigImageSelector extends React.Component {
   constructor(props) {

@@ -4,11 +4,10 @@
 import React from "react";
 import { render } from "react-dom";
 import onClickOutside from "react-onclickoutside";
-
-const classNames = require("classnames");
-
 import { ADD_FIELD_TYPES } from "../../constants/NetworkConfigConstants.js";
 import { addNewField } from "../../actions/NetworkConfigActions.js";
+
+const classNames = require("classnames");
 
 class AddJSONConfigField extends React.Component {
   constructor(props) {

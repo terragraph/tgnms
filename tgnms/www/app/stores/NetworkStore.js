@@ -258,4 +258,4 @@ const urlHistory = BrowserHistory.listen((location, action) => {
   // console.log('action', action, 'location', location);
 });
 
-module.exports = NetworkStore;
+export default NetworkStore;

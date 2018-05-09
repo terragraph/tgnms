@@ -6,9 +6,6 @@ import { render } from "react-dom";
 import SweetAlert from 'sweetalert-react';
 import "sweetalert/dist/sweetalert.css";
 
-var _ = require("lodash");
-const uuidv4 = require("uuid/v4");
-
 import {
   getConfigsForTopology,
   setNetworkOverrideConfig,
@@ -31,6 +28,9 @@ import {
   getDefaultValueForType
 } from "../../helpers/NetworkConfigHelpers.js";
 import NetworkConfig from "./NetworkConfig.js";
+
+var _ = require("lodash");
+const uuidv4 = require("uuid/v4");
 
 export default class NetworkConfigContainer extends React.Component {
   constructor(props) {
