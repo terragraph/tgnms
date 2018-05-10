@@ -67,7 +67,10 @@ export default class NetworkUI extends React.Component {
     topology: {},
     // additional topology to render on the map
     pendingTopology: {},
-    commitPlan: null
+    commitPlan: null,
+
+    // Last selected dashboard for NetworkDashboards
+    selectedDashboard: null
   };
 
   constructor(props) {
@@ -76,6 +79,7 @@ export default class NetworkUI extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this)
     );
+    this.handleSelectedDashboardChange = this.handleSelectedDashboardChange.bind(this);
     // refresh network config
     let refresh_interval = window.CONFIG.refresh_interval
       ? window.CONFIG.refresh_interval
@@ -83,6 +87,10 @@ export default class NetworkUI extends React.Component {
     // load data if network name known
     this.getNetworkStatusPeriodic();
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
+  }
+
+  handleSelectedDashboardChange(selectedDashboard) {
+    this.setState({selectedDashboard: selectedDashboard});
   }
 
   getNetworkStatusPeriodic() {
@@ -555,7 +563,11 @@ export default class NetworkUI extends React.Component {
         paneComponent = <SystemLogs {...viewProps} />;
         break;
       case "dashboards":
-        paneComponent = <NetworkDashboards {...viewProps} />;
+        paneComponent = <NetworkDashboards
+                          {...viewProps}
+                          selectedDashboard={this.state.selectedDashboard}
+                          onHandleSelectedDashboardChange={
+                            this.handleSelectedDashboardChange} />;
         break;
       case "stats":
         paneComponent = <NetworkStats {...viewProps} />;
