@@ -15,7 +15,6 @@ const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 export default class NetworkDashboards extends React.Component {
   state = {
     editView: false,
-    selectedDashboard: null,
     dashboards: null,
     graphEditOpen: false,
     editedGraph: null,
@@ -25,10 +24,10 @@ export default class NetworkDashboards extends React.Component {
   constructor(props) {
     super(props);
     this.getDashboards = this.getDashboards.bind(this);
-    this.getDashboards(this.props.networkConfig.topology.name, this.props.selectedDashboard);
+    this.getDashboards(this.props.networkConfig.topology.name);
   }
 
-  getDashboards(topologyName, selectedDashboard) {
+  getDashboards(topologyName) {
     let getDashboards = new Request("/dashboards/get/" + topologyName, {
       credentials: "same-origin"
     });
@@ -39,7 +38,6 @@ export default class NetworkDashboards extends React.Component {
             function(json) {
               this.setState({
                 dashboards: json,
-                selectedDashboard: selectedDashboard,
                 editView: false
               });
             }.bind(this)
@@ -312,7 +310,7 @@ export default class NetworkDashboards extends React.Component {
 
     if (
       this.state.dashboards &&
-      this.props.selectedDashboard
+      this.state.dashboards[this.props.selectedDashboard]
     ) {
       let dashboard = this.state.dashboards[this.props.selectedDashboard];
       let graphs = dashboard.graphs;
