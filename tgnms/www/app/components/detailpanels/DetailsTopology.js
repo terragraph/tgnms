@@ -367,7 +367,7 @@ export default class DetailsTopology extends React.Component {
             >
               &times;
             </span>
-            <h3 style={{ marginTop: "0px" }}>Overview</h3>
+            <h3>Overview</h3>
           </div>
           <div
             className="details-body"

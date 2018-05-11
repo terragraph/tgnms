@@ -10,7 +10,8 @@ import classnames from "classnames";
 
 export default class DetailsLink extends React.Component {
   state = {
-    ignitionStateModalOpen: false
+    ignitionStateModalOpen: false,
+    showActions: true,
   };
 
   constructor(props) {
@@ -302,6 +303,11 @@ export default class DetailsLink extends React.Component {
     );
   }
 
+  onHeadingClick(showTable) {
+    let show = this.state[showTable]
+    this.setState({[showTable]: !show});
+  }
+
   render() {
     if (!this.props.link || !this.props.link.name) {
       return <div />;
@@ -363,7 +369,7 @@ export default class DetailsLink extends React.Component {
             >
               &times;
             </span>
-            <h3 style={{ marginTop: "0px" }}>
+            <h3>
               {this.props.link.pending ? "(Pending) " : ""}Link Details
             </h3>
           </div>
@@ -371,13 +377,9 @@ export default class DetailsLink extends React.Component {
             className="details-body"
             style={{ maxHeight: this.props.maxHeight }}
           >
+            <h3>{this.props.link.name}</h3>
             <table className="details-table" style={{ width: "100%" }}>
               <tbody>
-                <tr>
-                  <td colSpan="3">
-                    <h4>{this.props.link.name}</h4>
-                  </td>
-                </tr>
                 <tr>
                   <td width="100px">A-Node</td>
                   <td>
@@ -462,139 +464,143 @@ export default class DetailsLink extends React.Component {
                     </span>
                   </td>
                 </tr>
-                <tr>
-                  <td colSpan="3">
-                    <h4>Actions</h4>
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan="3">
-                    <div>
-                      Send Link Up (pick initiator):{" "}
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.changeLinkStatus(true, true);
-                        }}
-                      >
-                        A-Node
-                      </span>{" "}
-                      &nbsp;&nbsp;
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.changeLinkStatus(true, false);
-                        }}
-                      >
-                        Z-Node
-                      </span>
-                    </div>
-                    <div>
-                      Send Link Down (pick initiator):{" "}
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.changeLinkStatus(false, true);
-                        }}
-                      >
-                        A-Node
-                      </span>{" "}
-                      &nbsp;&nbsp;
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.changeLinkStatus(false, false);
-                        }}
-                      >
-                        Z-Node
-                      </span>
-                    </div>
-                    <hr className="details-separator" />
-                    <div>
-                      Start IPerf (pick initiator):&nbsp;
-                      <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
-                        })}
-                        onClick={() => {
-                          this.startIPerfTraffic(nodeA, nodeZ);
-                        }}
-                      >
-                        A-Node
-                      </span>{" "}
-                      &nbsp;&nbsp;
-                      <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
-                        })}
-                        onClick={() => {
-                          this.startIPerfTraffic(nodeZ, nodeA);
-                        }}
-                      >
-                        Z-Node
-                      </span>{" "}
-                      &nbsp;&nbsp;
-                    </div>
-                    <div>
-                      Stop IPerf:&nbsp;
-                      <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
-                        })}
-                        onClick={() => {
-                          this.stopIPerfTraffic(nodeA);
-                        }}
-                      >
-                        A-Node
-                      </span>{" "}
-                      &nbsp;&nbsp;
-                      <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
-                        })}
-                        onClick={() => {
-                          this.stopIPerfTraffic(nodeZ);
-                        }}
-                      >
-                        Z-Node
-                      </span>{" "}
-                      &nbsp;&nbsp;
-                    </div>
-                    <hr className="details-separator" />
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() =>
-                          this.setState({ ignitionStateModalOpen: true })
-                        }
-                      >
-                        Check Ignition State
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.deleteLink(false);
-                        }}
-                      >
-                        Delete Link
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.deleteLink(true);
-                        }}
-                      >
-                        Delete Link (Force)
-                      </span>
-                    </div>
-                  </td>
-                </tr>
               </tbody>
             </table>
+            {this.state.showActions &&
+              <div>
+                <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
+                <table className="details-table" style={{ width: "100%" }}>
+                  <tbody>
+                    <tr>
+                      <td colSpan="3">
+                        <div>
+                          Send Link Up (pick initiator):{" "}
+                          <span
+                            className="details-link"
+                            onClick={() => {
+                              this.changeLinkStatus(true, true);
+                            }}
+                          >
+                            A-Node
+                          </span>{" "}
+                          &nbsp;&nbsp;
+                          <span
+                            className="details-link"
+                            onClick={() => {
+                              this.changeLinkStatus(true, false);
+                            }}
+                          >
+                            Z-Node
+                          </span>
+                        </div>
+                        <div>
+                          Send Link Down (pick initiator):{" "}
+                          <span
+                            className="details-link"
+                            onClick={() => {
+                              this.changeLinkStatus(false, true);
+                            }}
+                          >
+                            A-Node
+                          </span>{" "}
+                          &nbsp;&nbsp;
+                          <span
+                            className="details-link"
+                            onClick={() => {
+                              this.changeLinkStatus(false, false);
+                            }}
+                          >
+                            Z-Node
+                          </span>
+                        </div>
+                        <hr className="details-separator" />
+                        <div>
+                          Start IPerf (pick initiator):&nbsp;
+                          <span
+                            className={classnames("details-link", {
+                              "details-link--disabled": !IPerfEnabled
+                            })}
+                            onClick={() => {
+                              this.startIPerfTraffic(nodeA, nodeZ);
+                            }}
+                          >
+                            A-Node
+                          </span>{" "}
+                          &nbsp;&nbsp;
+                          <span
+                            className={classnames("details-link", {
+                              "details-link--disabled": !IPerfEnabled
+                            })}
+                            onClick={() => {
+                              this.startIPerfTraffic(nodeZ, nodeA);
+                            }}
+                          >
+                            Z-Node
+                          </span>{" "}
+                          &nbsp;&nbsp;
+                        </div>
+                        <div>
+                          Stop IPerf:&nbsp;
+                          <span
+                            className={classnames("details-link", {
+                              "details-link--disabled": !IPerfEnabled
+                            })}
+                            onClick={() => {
+                              this.stopIPerfTraffic(nodeA);
+                            }}
+                          >
+                            A-Node
+                          </span>{" "}
+                          &nbsp;&nbsp;
+                          <span
+                            className={classnames("details-link", {
+                              "details-link--disabled": !IPerfEnabled
+                            })}
+                            onClick={() => {
+                              this.stopIPerfTraffic(nodeZ);
+                            }}
+                          >
+                            Z-Node
+                          </span>{" "}
+                          &nbsp;&nbsp;
+                        </div>
+                        <hr className="details-separator" />
+                        <div>
+                          <span
+                            className="details-link"
+                            onClick={() =>
+                              this.setState({ ignitionStateModalOpen: true })
+                            }
+                          >
+                            Check Ignition State
+                          </span>
+                        </div>
+                        <div>
+                          <span
+                            className="details-link"
+                            onClick={() => {
+                              this.deleteLink(false);
+                            }}
+                          >
+                            Delete Link
+                          </span>
+                        </div>
+                        <div>
+                          <span
+                            className="details-link"
+                            onClick={() => {
+                              this.deleteLink(true);
+                            }}
+                          >
+                            Delete Link (Force)
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            }
           </div>
         </div>
       </div>
