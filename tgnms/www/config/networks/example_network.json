@@ -1,46 +1,9 @@
 {
-  "name": "Example Network",
+  "name": "example",
   "nodes": [
-    {
-      "name": "terragraph-example-1",
-      "node_type": 2,
-      "mac_addr": "00:00:00:00:00:00",
-      "pop_node": true,
-      "site_name": "Left"
-    },
-    {
-      "name": "terragraph-example-2",
-      "node_type": 2,
-      "mac_addr": "00:00:00:00:00:01",
-      "pop_node": false,
-      "site_name": "Right"
-    }
   ],
   "links": [
-    {
-      "name": "link-terragraph-example-1-terragraph-example-2",
-      "a_node_name": "terragraph-example-1",
-      "z_node_name": "terragraph-example-2",
-      "link_type": 1,
-      "is_alive": false
-    }
   ],
   "sites": [
-    {
-      "name": "Left",
-      "location": {
-        "latitude": 37.484946,
-        "longitude": -122.1475237,
-        "altitude": 0
-      }
-    },
-    {
-      "name": "Right",
-      "location": {
-        "latitude": 37.484946,
-        "longitude": -122.1472237,
-        "altitude": 0
-      }
-    }
   ]
 }
