@@ -79,7 +79,6 @@ export default class NetworkUI extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this)
     );
-    this.handleSelectedDashboardChange = this.handleSelectedDashboardChange.bind(this);
     // refresh network config
     let refresh_interval = window.CONFIG.refresh_interval
       ? window.CONFIG.refresh_interval
@@ -567,7 +566,12 @@ export default class NetworkUI extends React.Component {
                           {...viewProps}
                           selectedDashboard={this.state.selectedDashboard}
                           onHandleSelectedDashboardChange={
-                            this.handleSelectedDashboardChange} />;
+                            selectedDashboard => {
+                              this.setState({
+                                selectedDashboard: selectedDashboard
+                              });
+                            }
+                          } />;
         break;
       case "stats":
         paneComponent = <NetworkStats {...viewProps} />;
