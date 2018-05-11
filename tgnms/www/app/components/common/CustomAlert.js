@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -14,14 +15,14 @@ export default class CustomAlert extends React.Component {
 }
 
 CustomAlert.propTypes = {
-  title: React.PropTypes.string.isRequired,
-  text: React.PropTypes.string.isRequired,
-  options: React.PropTypes.shape({
-    optionText: React.PropTypes.string,
-    value: React.PropTypes.string,
-    style: React.PropTypes.object
+  title: PropTypes.string.isRequired,
+  text: PropTypes.string.isRequired,
+  options: PropTypes.shape({
+    optionText: PropTypes.string,
+    value: PropTypes.string,
+    style: PropTypes.object
   }).isRequired,
 
-  isOpen: React.PropTypes.bool.isRequired,
-  onClose: React.PropTypes.func.isRequired
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired
 };

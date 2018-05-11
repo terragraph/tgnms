@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import equals from "equals";
 import { render } from "react-dom";
@@ -318,9 +319,9 @@ export default class NetworkDashboardStats extends React.Component {
   }
 }
 NetworkDashboardStats.propTypes = {
-  allowCustomTime: React.PropTypes.bool.isRequired,
-  graph: React.PropTypes.object.isRequired,
+  allowCustomTime: PropTypes.bool.isRequired,
+  graph: PropTypes.object.isRequired,
   // call-back to receive the selected options
-  onClose: React.PropTypes.func.isRequired,
-  topology: React.PropTypes.object.isRequired
+  onClose: PropTypes.func.isRequired,
+  topology: PropTypes.object.isRequired
 };

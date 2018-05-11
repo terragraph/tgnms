@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { Dispatcher } from "flux";
 import {
@@ -98,8 +99,8 @@ export default class ReactEventChart extends React.Component {
 }
 
 ReactEventChart.propTypes = {
-  startTime: React.PropTypes.number.isRequired,
-  endTime: React.PropTypes.number.isRequired,
-  size: React.PropTypes.string.isRequired,
-  events: React.PropTypes.array.isRequired
+  startTime: PropTypes.number.isRequired,
+  endTime: PropTypes.number.isRequired,
+  size: PropTypes.string.isRequired,
+  events: PropTypes.array.isRequired
 };

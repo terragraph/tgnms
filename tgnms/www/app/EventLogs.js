@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 // dispatcher
@@ -318,6 +319,6 @@ export default class EventLogs extends React.Component {
   }
 }
 EventLogs.propTypes = {
-  networkName: React.PropTypes.string.isRequired,
-  networkConfig: React.PropTypes.object.isRequired
+  networkName: PropTypes.string.isRequired,
+  networkConfig: PropTypes.object.isRequired
 };

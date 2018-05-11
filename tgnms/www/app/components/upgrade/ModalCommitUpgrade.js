@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import Modal from "react-modal";
@@ -273,10 +274,10 @@ export default class ModalCommitUpgrade extends React.Component {
 }
 
 ModalCommitUpgrade.propTypes = {
-  getExcludedNodes: React.PropTypes.func.isRequired,
+  getExcludedNodes: PropTypes.func.isRequired,
 
-  upgradeNodes: React.PropTypes.array.isRequired,
-  isOpen: React.PropTypes.bool.isRequired,
-  onClose: React.PropTypes.func.isRequired,
-  topologyName: React.PropTypes.string.isRequred
+  upgradeNodes: PropTypes.array.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  topologyName: PropTypes.string.isRequred
 };

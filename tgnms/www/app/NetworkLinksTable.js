@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import equals from "equals";
@@ -910,5 +911,5 @@ export default class NetworkLinksTable extends React.Component {
   }
 }
 NetworkLinksTable.propTypes = {
-  topology: React.PropTypes.object.isRequired
+  topology: PropTypes.object.isRequired
 };

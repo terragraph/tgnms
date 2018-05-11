@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import equals from "equals";
@@ -588,5 +589,5 @@ export default class NMSConfig extends React.Component {
   }
 }
 NMSConfig.propTypes = {
-  config: React.PropTypes.array.isRequired
+  config: PropTypes.array.isRequired
 };

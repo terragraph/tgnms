@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import Modal from "react-modal";
@@ -151,9 +152,9 @@ export default class ModalAbortUpgrade extends React.Component {
 }
 
 ModalAbortUpgrade.propTypes = {
-  upgradeRequests: React.PropTypes.array.isRequired,
+  upgradeRequests: PropTypes.array.isRequired,
 
-  isOpen: React.PropTypes.bool.isRequired,
-  onClose: React.PropTypes.func.isRequired,
-  topologyName: React.PropTypes.string.isRequired
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  topologyName: PropTypes.string.isRequired
 };

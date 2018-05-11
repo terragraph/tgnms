@@ -1,6 +1,8 @@
 // JSONConfigForm.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 import swal from "sweetalert";
@@ -155,15 +157,15 @@ class ExpandableConfigForm extends React.Component {
 }
 
 ExpandableConfigForm.propTypes = {
-  configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-  draftConfig: React.PropTypes.object.isRequired,
-  newConfigFields: React.PropTypes.object.isRequired,
-  formLabel: React.PropTypes.string.isRequired,
-  editPath: React.PropTypes.array.isRequired,
-  initExpanded: React.PropTypes.bool.isRequired,
+  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+  draftConfig: PropTypes.object.isRequired,
+  newConfigFields: PropTypes.object.isRequired,
+  formLabel: PropTypes.string.isRequired,
+  editPath: PropTypes.array.isRequired,
+  initExpanded: PropTypes.bool.isRequired,
 
-  viewContext: React.PropTypes.shape({
-    viewOverridesOnly: React.PropTypes.bool.isRequired
+  viewContext: PropTypes.shape({
+    viewOverridesOnly: PropTypes.bool.isRequired
   }).isRequired
 };
 
@@ -443,20 +445,20 @@ export default class JSONConfigForm extends React.Component {
 }
 
 JSONConfigForm.propTypes = {
-  configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-  draftConfig: React.PropTypes.object.isRequired,
-  newConfigFields: React.PropTypes.object.isRequired,
+  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+  draftConfig: PropTypes.object.isRequired,
+  newConfigFields: PropTypes.object.isRequired,
 
   // the "path" of keys that identifies the root of the component's config
   // vs the entire config object
   // useful for nested config components
-  editPath: React.PropTypes.array.isRequired,
+  editPath: PropTypes.array.isRequired,
 
   // is the component initially expanded? only using this to pass to children
-  initExpanded: React.PropTypes.bool.isRequired,
+  initExpanded: PropTypes.bool.isRequired,
 
-  viewContext: React.PropTypes.shape({
-    viewOverridesOnly: React.PropTypes.bool.isRequired
+  viewContext: PropTypes.shape({
+    viewOverridesOnly: PropTypes.bool.isRequired
   }).isRequired
 };
 

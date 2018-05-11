@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
@@ -254,9 +255,9 @@ export default class UpgradeNodesTable extends React.Component {
 }
 
 UpgradeNodesTable.propTypes = {
-  nodes: React.PropTypes.array.isRequired,
-  selectedNodes: React.PropTypes.array.isRequired,
-  onNodesSelected: React.PropTypes.func
+  nodes: PropTypes.array.isRequired,
+  selectedNodes: PropTypes.array.isRequired,
+  onNodesSelected: PropTypes.func
 };
 
 UpgradeNodesTable.defaultProps = {

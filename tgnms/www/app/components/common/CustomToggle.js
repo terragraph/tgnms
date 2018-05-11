@@ -1,6 +1,8 @@
 // CustomToggle.js
 // custom toggle component (hides away a lot of raw html)
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 
@@ -58,17 +60,17 @@ export default class CustomToggle extends React.Component {
 
 // add is handled by the parent
 CustomToggle.propTypes = {
-  checkboxId: React.PropTypes.string.isRequired,
-  value: React.PropTypes.any.isRequired,
-  tooltip: React.PropTypes.any,
+  checkboxId: PropTypes.string.isRequired,
+  value: PropTypes.any.isRequired,
+  tooltip: PropTypes.any,
 
-  onChange: React.PropTypes.func.isRequired,
-  onFocus: React.PropTypes.func,
-  onBlur: React.PropTypes.func,
+  onChange: PropTypes.func.isRequired,
+  onFocus: PropTypes.func,
+  onBlur: PropTypes.func,
 
   // optional style props
-  selectorClass: React.PropTypes.any,
-  wrapperStyle: React.PropTypes.object
+  selectorClass: PropTypes.any,
+  wrapperStyle: PropTypes.object
 };
 
 CustomToggle.defaultProps = {

@@ -1,6 +1,8 @@
 // NetworkConfigBody.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 
@@ -103,13 +105,13 @@ export default class NetworkConfigBody extends React.Component {
 }
 
 NetworkConfigBody.propTypes = {
-  configs: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-  draftConfig: React.PropTypes.object.isRequired,
-  newConfigFields: React.PropTypes.object.isRequired,
-  nodesWithDrafts: React.PropTypes.array.isRequired,
+  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+  draftConfig: PropTypes.object.isRequired,
+  newConfigFields: PropTypes.object.isRequired,
+  nodesWithDrafts: PropTypes.array.isRequired,
 
-  selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-  editMode: React.PropTypes.string.isRequired,
+  selectedNodes: PropTypes.arrayOf(PropTypes.object).isRequired,
+  editMode: PropTypes.string.isRequired,
 
-  hasUnsavedChanges: React.PropTypes.bool.isRequired
+  hasUnsavedChanges: PropTypes.bool.isRequired
 };

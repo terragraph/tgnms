@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -399,7 +400,7 @@ export default class DetailsTopologyIssues extends React.Component {
 }
 
 DetailsTopologyIssues.propTypes = {
-  topology: React.PropTypes.object.isRequired,
-  newTopology: React.PropTypes.object.isRequired,
-  maxHeight: React.PropTypes.number.isRequired
+  topology: PropTypes.object.isRequired,
+  newTopology: PropTypes.object.isRequired,
+  maxHeight: PropTypes.number.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -102,5 +103,5 @@ export default class ModalTopologyDiffer extends React.Component {
 }
 
 ModalTopologyDiffer.propTypes = {
-  topology: React.PropTypes.object.isRequired
+  topology: PropTypes.object.isRequired
 };

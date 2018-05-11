@@ -1,6 +1,8 @@
 // JSONConfigForm.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 import onClickOutside from "react-onclickoutside";
@@ -68,7 +70,7 @@ class AddJSONConfigField extends React.Component {
 }
 
 AddJSONConfigField.propTypes = {
-  editPath: React.PropTypes.array.isRequired
+  editPath: PropTypes.array.isRequired
 };
 
 // needed so we can collapse the drop down when a click happens outside this component

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import equals from "equals";
@@ -595,5 +596,5 @@ export default class NetworkScans extends React.Component {
   }
 }
 NetworkScans.propTypes = {
-  topology: React.PropTypes.object.isRequired
+  topology: PropTypes.object.isRequired
 };

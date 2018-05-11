@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -232,18 +233,18 @@ export default class JSONFormField extends React.Component {
 }
 
 JSONFormField.propTypes = {
-  editPath: React.PropTypes.array.isRequired,
+  editPath: PropTypes.array.isRequired,
 
-  formLabel: React.PropTypes.string.isRequired, // the field name for the value we are displaying
-  displayIdx: React.PropTypes.number.isRequired, // the index within values to display if not a draft
-  values: React.PropTypes.array.isRequired,
-  draftValue: React.PropTypes.any.isRequired,
+  formLabel: PropTypes.string.isRequired, // the field name for the value we are displaying
+  displayIdx: PropTypes.number.isRequired, // the index within values to display if not a draft
+  values: PropTypes.array.isRequired,
+  draftValue: PropTypes.any.isRequired,
 
-  isReverted: React.PropTypes.bool.isRequired,
-  isDraft: React.PropTypes.bool.isRequired,
-  displayVal: React.PropTypes.any.isRequired,
+  isReverted: PropTypes.bool.isRequired,
+  isDraft: PropTypes.bool.isRequired,
+  displayVal: PropTypes.any.isRequired,
 
-  viewContext: React.PropTypes.shape({
-    viewOverridesOnly: React.PropTypes.bool.isRequired
+  viewContext: PropTypes.shape({
+    viewOverridesOnly: PropTypes.bool.isRequired
   }).isRequired
 };

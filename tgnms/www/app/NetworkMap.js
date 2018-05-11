@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 // leaflet maps
@@ -1312,5 +1313,5 @@ export default class NetworkMap extends React.Component {
   }
 }
 NetworkMap.propTypes = {
-  networkConfig: React.PropTypes.object.isRequired
+  networkConfig: PropTypes.object.isRequired
 };

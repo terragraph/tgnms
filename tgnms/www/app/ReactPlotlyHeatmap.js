@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 //import Plot from 'react-plotly.js'
@@ -73,6 +74,6 @@ export default class ReactPlotlyHeatmap extends React.Component {
 }
 
 ReactPlotlyHeatmap.propTypes = {
-  zmap: React.PropTypes.array.isRequired,
-  heatmaptitle: React.PropTypes.array.isRequired
+  zmap: PropTypes.array.isRequired,
+  heatmaptitle: PropTypes.array.isRequired
 };

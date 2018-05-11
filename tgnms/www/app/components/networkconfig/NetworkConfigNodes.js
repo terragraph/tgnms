@@ -1,6 +1,8 @@
 // NetworkConfigNodes.js
 // list of nodes + a search bar
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 
@@ -112,8 +114,8 @@ export default class NetworkConfigNodes extends React.Component {
 }
 
 NetworkConfigNodes.propTypes = {
-  nodes: React.PropTypes.array.isRequired,
-  selectedNodes: React.PropTypes.array.isRequired,
-  nodesWithDrafts: React.PropTypes.array.isRequired,
-  nodesWithOverrides: React.PropTypes.instanceOf(Set).isRequired
+  nodes: PropTypes.array.isRequired,
+  selectedNodes: PropTypes.array.isRequired,
+  nodesWithDrafts: PropTypes.array.isRequired,
+  nodesWithOverrides: PropTypes.instanceOf(Set).isRequired
 };

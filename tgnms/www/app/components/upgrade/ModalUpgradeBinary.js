@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import Modal from "react-modal";
@@ -239,12 +240,12 @@ export default class ModalUpgradeBinary extends React.Component {
 }
 
 ModalUpgradeBinary.propTypes = {
-  upgradeImages: React.PropTypes.array.isRequired,
-  uploadStatus: React.PropTypes.string.isRequired,
-  deleteStatus: React.PropTypes.string.isRequired,
-  uploadProgress: React.PropTypes.number.isRequired,
+  upgradeImages: PropTypes.array.isRequired,
+  uploadStatus: PropTypes.string.isRequired,
+  deleteStatus: PropTypes.string.isRequired,
+  uploadProgress: PropTypes.number.isRequired,
 
-  isOpen: React.PropTypes.bool.isRequired,
-  onClose: React.PropTypes.func.isRequired,
-  topologyName: React.PropTypes.string.isRequired
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  topologyName: PropTypes.string.isRequired
 };

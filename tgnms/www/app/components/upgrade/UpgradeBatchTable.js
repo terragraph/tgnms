@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
@@ -135,6 +136,6 @@ export default class UpgradeBatchTable extends React.Component {
 }
 
 UpgradeBatchTable.propTypes = {
-  height: React.PropTypes.number.isRequired,
-  nodes: React.PropTypes.array.isRequired
+  height: PropTypes.number.isRequired,
+  nodes: PropTypes.array.isRequired
 };

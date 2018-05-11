@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -303,6 +304,6 @@ export default class NetworkUpgrade extends React.Component {
 }
 
 NetworkUpgrade.propTypes = {
-  networkConfig: React.PropTypes.object.isRequired,
-  upgradeStateDump: React.PropTypes.object.isRequired
+  networkConfig: PropTypes.object.isRequired,
+  upgradeStateDump: PropTypes.object.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -47,6 +48,6 @@ export default class UpgradeLeftPaneStatus extends React.Component {
 }
 
 UpgradeLeftPaneStatus.propTypes = {
-  currentRequest: React.PropTypes.object.isRequired,
-  pendingRequests: React.PropTypes.array.isRequired
+  currentRequest: PropTypes.object.isRequired,
+  pendingRequests: PropTypes.array.isRequired
 };

@@ -2,6 +2,8 @@
 // the left pane of the network config view, allows users to select either the entire network
 // or one or more nodes to view the config
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 import { CONFIG_VIEW_MODE } from "../../constants/NetworkConfigConstants.js";
@@ -106,16 +108,16 @@ export default class NetworkConfigLeftPane extends React.Component {
 }
 
 NetworkConfigLeftPane.propTypes = {
-  topologyName: React.PropTypes.string.isRequired,
-  selectedImage: React.PropTypes.string.isRequired,
+  topologyName: PropTypes.string.isRequired,
+  selectedImage: PropTypes.string.isRequired,
 
-  editMode: React.PropTypes.string.isRequired,
-  networkDraftExists: React.PropTypes.bool.isRequired,
+  editMode: PropTypes.string.isRequired,
+  networkDraftExists: PropTypes.bool.isRequired,
 
-  imageVersions: React.PropTypes.array.isRequired,
+  imageVersions: PropTypes.array.isRequired,
 
-  nodes: React.PropTypes.array.isRequired,
-  selectedNodes: React.PropTypes.array.isRequired,
-  nodesWithDrafts: React.PropTypes.array.isRequired,
-  nodeOverrideConfig: React.PropTypes.object.isRequired
+  nodes: PropTypes.array.isRequired,
+  selectedNodes: PropTypes.array.isRequired,
+  nodesWithDrafts: PropTypes.array.isRequired,
+  nodeOverrideConfig: PropTypes.object.isRequired
 };
