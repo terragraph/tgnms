@@ -10,6 +10,12 @@ export default class DetailsSite extends React.Component {
   constructor(props) {
     super(props);
     this.selectLink = this.selectLink.bind(this);
+    this.state = {
+      showNodes: true,
+      showLinks: true,
+      showRuckus: true,
+      showActions: true,
+    }
   }
 
   statusColor(onlineStatus, trueText = "True", falseText = "False") {
@@ -222,6 +228,25 @@ export default class DetailsSite extends React.Component {
     );
   }
 
+  formatGolay(golayIdx) {
+    if (golayIdx) {
+      return Buffer.from(golayIdx.buffer.data).readUIntBE(0, 8);
+    } else {
+      return "N/A";
+    }
+  }
+
+  genNodeType(nodeType, isPrimary) {
+    let type = nodeType == 1 ? "CN " : "DN ";
+    type += isPrimary ? "(Primary)" : "(Secondary)"
+    return type;
+  }
+
+  onHeadingClick(showTable) {
+    let show = this.state[showTable]
+    this.setState({[showTable]: !show});
+  }
+
   render() {
     if (!this.props.site || !this.props.site.name) {
       return <div />;
@@ -250,16 +275,20 @@ export default class DetailsSite extends React.Component {
     });
 
     let nodesRows = [];
-    let index = 0;
     nodesList.forEach(node => {
       let headerColumn = (
         <td rowSpan={nodesList.length} colSpan="1" width="100px">
           Nodes
         </td>
       );
+      let txGolayIdx = null;
+      let rxGolayIdx = null;
+      if (node.golay_idx) {
+        txGolayIdx = node.golay_idx.txGolayIdx;
+        rxGolayIdx = node.golay_idx.rxGolayIdx;
+      }
       nodesRows.push(
         <tr key={node.name}>
-          {index == 0 ? headerColumn : ""}
           <td>
             <span
               className="details-link"
@@ -274,8 +303,7 @@ export default class DetailsSite extends React.Component {
               )}
             </span>
           </td>
-          <td>{node.node_type == 1 ? "CN" : "DN"}</td>
-          <td>{node.is_primary ? "Primary" : "Secondary"}</td>
+          <td>{this.genNodeType(node.node_type, node.is_primary)}</td>
           <td>
             <span style={{ color: polarityColor(node.polarity) }}>
               {node.polarity == 1
@@ -283,15 +311,15 @@ export default class DetailsSite extends React.Component {
                 : node.polarity == 2 ? "Even" : "Not Set"}
             </span>
           </td>
+          <td title="txGolayIdx">{this.formatGolay(txGolayIdx)}</td>
+          <td title="rxGolayIdx">{this.formatGolay(rxGolayIdx)}</td>
         </tr>
       );
-      index++;
     });
 
     // average availability of all links across site
     let alivePercAvg = 0;
     let linksRows = [];
-    index = 0;
     // show link availability average
     linksList.forEach(link => {
       let alivePerc = 0;
@@ -299,64 +327,31 @@ export default class DetailsSite extends React.Component {
         alivePerc = parseInt(link.alive_perc * 1000) / 1000.0;
       }
       alivePercAvg += alivePerc;
-      if (index == 0) {
-        // TODO Kelvin: think of some way to make this its own component to avoid the bloat here?
-        linksRows.push(
-          <tr key={link.name}>
-            <td rowSpan={linksList.length} width="100px">
-              Links
-            </td>
-            <td>
-              <span
-                className="details-link"
-                onClick={() => {
-                  this.selectLink(link.name);
-                }}
-              >
-                {this.statusColor(link.is_alive, link.name, link.name)}
-              </span>
-            </td>
-            <td>
-              <span style={{ color: availabilityColor(alivePerc) }}>
-                {alivePerc}%
-              </span>
-            </td>
-            <td>
-              <span>{parseInt(link.angle * 100) / 100}&deg;</span>
-            </td>
-            <td>
-              <span>{parseInt(link.distance * 100) / 100} m</span>
-            </td>
-          </tr>
-        );
-      } else {
-        linksRows.push(
-          <tr key={link.name}>
-            <td>
-              <span
-                className="details-link"
-                onClick={() => {
-                  this.selectLink(link.name);
-                }}
-              >
-                {this.statusColor(link.is_alive, link.name, link.name)}
-              </span>
-            </td>
-            <td>
-              <span style={{ color: availabilityColor(alivePerc) }}>
-                {alivePerc}%
-              </span>
-            </td>
-            <td>
-              <span>{parseInt(link.angle * 100) / 100}&deg;</span>
-            </td>
-            <td>
-              <span>{parseInt(link.distance * 100) / 100} m</span>
-            </td>
-          </tr>
-        );
-      }
-      index++;
+      linksRows.push(
+        <tr key={link.name}>
+          <td>
+            <span
+              className="details-link"
+              onClick={() => {
+                this.selectLink(link.name);
+              }}
+            >
+              {this.statusColor(link.is_alive, link.name, link.name)}
+            </span>
+          </td>
+          <td>
+            <span style={{ color: availabilityColor(alivePerc) }}>
+              {alivePerc}%
+            </span>
+          </td>
+          <td>
+            <span>{parseInt(link.angle * 100) / 100}&deg;</span>
+          </td>
+          <td>
+            <span>{parseInt(link.distance * 100) / 100} m</span>
+          </td>
+        </tr>
+      );
     });
     let ruckusRows = [];
     if (this.props.site.hasOwnProperty('ruckus')) {
@@ -373,17 +368,10 @@ export default class DetailsSite extends React.Component {
     alivePercAvg /= linksList.length;
     alivePercAvg = parseInt(alivePercAvg * 1000) / 1000.0;
     let actionsList = [];
-    actionsList.push(
-      <tr>
-        <td colSpan="5">
-          <h4>Actions</h4>
-        </td>
-      </tr>
-    );
     if (this.props.site.hasOwnProperty("pending") && this.props.site.pending) {
       actionsList.push(
         <tr>
-          <td colSpan="5">
+          <td>
             <span
               className="details-link"
               onClick={() => {
@@ -398,7 +386,7 @@ export default class DetailsSite extends React.Component {
     } else {
       actionsList.push(
         <tr>
-          <td colSpan="5">
+          <td>
             <div>
               <span
                 className="details-link"
@@ -409,6 +397,12 @@ export default class DetailsSite extends React.Component {
                 Delete Site
               </span>
             </div>
+          </td>
+        </tr>
+      );
+      actionsList.push(
+        <tr>
+          <td>
             <div>
               <span
                 className="details-link"
@@ -440,7 +434,7 @@ export default class DetailsSite extends React.Component {
             >
               &times;
             </span>
-            <h3 style={{ marginTop: "0px" }}>
+            <h3>
               {this.props.site.pending ? "(Pending) " : ""}Site Details
             </h3>
           </div>
@@ -448,33 +442,89 @@ export default class DetailsSite extends React.Component {
             className="details-body"
             style={{ maxHeight: this.props.maxHeight }}
           >
-            <table className="details-table" style={{ width: "100%" }}>
-              <tbody>
-                <tr>
-                  <td colSpan="5">
-                    <h4>{this.props.site.name}</h4>
-                  </td>
-                </tr>
-                <tr>
-                  <td width="100px">Lat / Lng</td>
-                  <td colSpan="2">{this.props.site.location.latitude} / {this.props.site.location.longitude}</td>
-                  <td width="100px">Altitude</td>
-                  <td colSpan="1">{this.props.site.location.altitude} m</td>
-                </tr>
-                {nodesRows}
-                {linksRows}
-                {ruckusRows}
-                <tr>
-                  <td width="100px">Availability</td>
-                  <td colSpan="4">
-                    <span style={{ color: availabilityColor(alivePercAvg) }}>
-                      {alivePercAvg}%
-                    </span>
-                  </td>
-                </tr>
-                {actionsList}
-              </tbody>
-            </table>
+            <div>
+              <h3>{this.props.site.name}</h3>
+              <table className="details-table" style={{ width: "100%", border: "0px solid black" }}>
+                <tbody>
+                  <tr>
+                    <td width="100px">Lat / Lng</td>
+                    <td colSpan="2">{this.props.site.location.latitude} / {this.props.site.location.longitude}</td>
+                  </tr>
+                  <tr>
+                    <td width="100px">Altitude</td>
+                    <td colSpan="3">{this.props.site.location.altitude} m</td>
+                  </tr>
+                  <tr>
+                    <td width="100px">Availability</td>
+                    <td colSpan="6">
+                      <span style={{ color: availabilityColor(alivePercAvg) }}>
+                        {alivePercAvg}%
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <h4 onClick={() => {this.onHeadingClick("showNodes")}}>Nodes</h4>
+              {this.state.showNodes &&
+                <table className="details-table" style={{ width: "100%" }}>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Polarity</th>
+                      <th>Tx Golay</th>
+                      <th>Rx Golay</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {nodesRows}
+                  </tbody>
+                </table>
+              }
+            </div>
+            <div>
+              <h4 onClick={() => {this.onHeadingClick("showLinks")}}>Links</h4>
+              {this.state.showLinks &&
+                <table className="details-table" style={{ width: "100%" }}>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Availability</th>
+                      <th>Azimuth</th>
+                      <th>Length</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {linksRows}
+                  </tbody>
+                </table>
+              }
+            </div>
+            {ruckusRows.length > 0 &&
+              <div>
+                <h4 onClick={() => {this.onHeadingClick("showRuckus")}}>Ruckus</h4>
+                {this.state.showRuckus &&
+                <table className="details-table" style={{ width: "100%" }}>
+                  <tbody>
+                    {ruckusRows}
+                  </tbody>
+                </table>
+              }
+              </div>
+            }
+            <div>
+              <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
+              {this.state.showActions &&
+                <table className="details-table" style={{ width: "100%" }}>
+                  <tbody>
+                    {actionsList}
+                  </tbody>
+                </table>
+              }
+            </div>
+
           </div>
         </div>
       </div>

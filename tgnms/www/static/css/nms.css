@@ -107,12 +107,13 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
     float: right;
     font-size: 24px;
     font-weight: bold;
-    margin-top: -10px;
+    margin-top: -7px;
+    padding: 0px 5px;
 }
 
 .details-close:hover,
 .details-close:focus {
-    color: #000;
+    color: #d3d3d3;
     text-decoration: none;
     cursor: pointer;
 }
@@ -133,21 +134,37 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 }
 
 .details-header {
-    padding: 0px 2px;
     background-color: #5cb85c;
     color: white;
+    margin-bottom: 5px;
+    padding: 5px;
+}
+.details-header h3 {
+    margin: 0px;
 }
 
 .details-body {
   padding: 2px 8px;
 }
+.details-body h3 {
+  margin-top: 0px;
+}
+.details-body h4 {
+  margin-top: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #d3d3d3;
+}
 
 .details-table {
   padding: 2px;
+  margin-bottom: 5px;
+}
+.details-table th {
+  padding-right: 10px;
 }
 .details-table td {
   padding: 5px;
-  border: 1px solid black;
+  border: 1px solid #d3d3d3;
 }
 .details-table tr {
   background: #fff;
