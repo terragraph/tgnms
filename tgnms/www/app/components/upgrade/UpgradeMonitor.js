@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -82,9 +83,9 @@ export default class UpgradeMonitor extends React.Component {
 }
 
 UpgradeMonitor.propTypes = {
-  topology: React.PropTypes.object.isRequired,
-  selectedNodes: React.PropTypes.array.isRequired,
-  curBatch: React.PropTypes.array.isRequired,
-  pendingBatches: React.PropTypes.array.isRequired,
-  pendingRequests: React.PropTypes.array.isRequired
+  topology: PropTypes.object.isRequired,
+  selectedNodes: PropTypes.array.isRequired,
+  curBatch: PropTypes.array.isRequired,
+  pendingBatches: PropTypes.array.isRequired,
+  pendingRequests: PropTypes.array.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -109,8 +110,8 @@ export default class NetworkConfigFooter extends React.Component {
 }
 
 NetworkConfigFooter.propTypes = {
-  newConfigFields: React.PropTypes.object.isRequired,
-  draftConfig: React.PropTypes.object.isRequired,
-  editMode: React.PropTypes.string.isRequired,
-  nodesWithDrafts: React.PropTypes.array.isRequired
+  newConfigFields: PropTypes.object.isRequired,
+  draftConfig: PropTypes.object.isRequired,
+  editMode: PropTypes.string.isRequired,
+  nodesWithDrafts: PropTypes.array.isRequired
 };

@@ -1,6 +1,8 @@
 // NetworkConfigContainer.js
 // a container for NetworkConfig.js that acts as a store (stores state) and action dispatch handler
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 import SweetAlert from 'sweetalert-react';
@@ -747,6 +749,6 @@ export default class NetworkConfigContainer extends React.Component {
 }
 
 NetworkConfigContainer.propTypes = {
-  networkConfig: React.PropTypes.object.isRequired,
-  viewContext: React.PropTypes.object.isRequired
+  networkConfig: PropTypes.object.isRequired,
+  viewContext: PropTypes.object.isRequired
 };

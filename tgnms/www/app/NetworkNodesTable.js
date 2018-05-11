@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 // leaflet maps
 import { render } from "react-dom";
@@ -384,5 +385,5 @@ export default class NetworkNodesTable extends React.Component {
   }
 }
 NetworkNodesTable.propTypes = {
-  topology: React.PropTypes.object.isRequired
+  topology: PropTypes.object.isRequired
 };

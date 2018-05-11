@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -51,5 +52,5 @@ export default class JSONFieldTooltip extends React.Component {
 }
 
 JSONFieldTooltip.propTypes = {
-  values: React.PropTypes.array.isRequired
+  values: PropTypes.array.isRequired
 };

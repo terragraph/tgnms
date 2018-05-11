@@ -1,4 +1,6 @@
 // NetworkConfigHeader.js
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 
@@ -76,7 +78,7 @@ export default class NetworkConfigHeader extends React.Component {
 }
 
 NetworkConfigHeader.propTypes = {
-  editMode: React.PropTypes.string.isRequired,
-  selectedNodes: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-  hasUnsavedChanges: React.PropTypes.bool.isRequired
+  editMode: PropTypes.string.isRequired,
+  selectedNodes: PropTypes.arrayOf(PropTypes.object).isRequired,
+  hasUnsavedChanges: PropTypes.bool.isRequired
 };

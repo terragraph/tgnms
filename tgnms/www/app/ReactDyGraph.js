@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import equals from "equals";
 import Dygraph from "dygraphs";
@@ -222,7 +223,7 @@ export default class ReactDyGraph extends React.Component {
 }
 
 ReactDyGraph.propTypes = {
-  divkey: React.PropTypes.string.isRequired,
-  title: React.PropTypes.string.isRequired,
-  options: React.PropTypes.array.isRequired
+  divkey: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  options: PropTypes.array.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { Dispatcher } from "flux";
 import {
@@ -374,6 +375,6 @@ export default class ReactMultiGraph extends React.Component {
 }
 
 ReactMultiGraph.propTypes = {
-  size: React.PropTypes.string.isRequired,
-  options: React.PropTypes.array.isRequired
+  size: PropTypes.string.isRequired,
+  options: PropTypes.array.isRequired
 };

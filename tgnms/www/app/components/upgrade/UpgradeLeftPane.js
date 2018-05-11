@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import swal from "sweetalert";
@@ -144,7 +145,7 @@ export default class UpgradeLeftPane extends React.Component {
 }
 
 UpgradeLeftPane.propTypes = {
-  currentRequest: React.PropTypes.object.isRequired,
-  pendingRequests: React.PropTypes.array.isRequired,
-  selectedNodes: React.PropTypes.array.isRequired
+  currentRequest: PropTypes.object.isRequired,
+  pendingRequests: PropTypes.array.isRequired,
+  selectedNodes: PropTypes.array.isRequired
 };

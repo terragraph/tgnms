@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 // dispatcher
@@ -754,5 +755,5 @@ export default class NetworkAlerts extends React.Component {
   }
 }
 NetworkAlerts.propTypes = {
-  networkName: React.PropTypes.string.isRequired
+  networkName: PropTypes.string.isRequired
 };

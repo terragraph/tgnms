@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 // leaflet maps
 import { render } from "react-dom";
@@ -287,5 +288,5 @@ export default class SystemLogs extends React.Component {
   }
 }
 SystemLogs.propTypes = {
-  networkConfig: React.PropTypes.object.isRequired
+  networkConfig: PropTypes.object.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
@@ -101,6 +102,6 @@ export default class UpgradeImagesTable extends React.Component {
 }
 
 UpgradeImagesTable.propTypes = {
-  images: React.PropTypes.array.isRequired,
-  onDeleteImage: React.PropTypes.func.isRequired
+  images: PropTypes.array.isRequired,
+  onDeleteImage: PropTypes.func.isRequired
 };

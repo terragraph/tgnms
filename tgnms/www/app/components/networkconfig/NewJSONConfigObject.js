@@ -1,6 +1,8 @@
 // JSONConfigForm.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 
@@ -151,15 +153,15 @@ export default class NewJSONConfigObject extends React.Component {
 
 // add is handled by the parent
 NewJSONConfigObject.propTypes = {
-  canSubmit: React.PropTypes.bool.isRequired,
+  canSubmit: PropTypes.bool.isRequired,
 
-  fieldId: React.PropTypes.string.isRequired,
-  field: React.PropTypes.string.isRequired,
-  value: React.PropTypes.any.isRequired,
+  fieldId: PropTypes.string.isRequired,
+  field: PropTypes.string.isRequired,
+  value: PropTypes.any.isRequired,
 
-  editPath: React.PropTypes.array.isRequired,
-  onSubmit: React.PropTypes.func,
-  onDelete: React.PropTypes.func.isRequired
+  editPath: PropTypes.array.isRequired,
+  onSubmit: PropTypes.func,
+  onDelete: PropTypes.func.isRequired
 };
 
 NewJSONConfigObject.defaultProps = {

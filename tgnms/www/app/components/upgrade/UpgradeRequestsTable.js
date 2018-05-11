@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
@@ -94,12 +95,12 @@ export default class UpgradeRequestsTable extends React.Component {
 }
 
 UpgradeRequestsTable.propTypes = {
-  height: React.PropTypes.number.isRequired,
-  pendingRequests: React.PropTypes.array.isRequired,
-  selectedReqs: React.PropTypes.array,
+  height: PropTypes.number.isRequired,
+  pendingRequests: PropTypes.array.isRequired,
+  selectedReqs: PropTypes.array,
 
-  isSelectable: React.PropTypes.bool.isRequired,
-  onReqsSelected: React.PropTypes.func
+  isSelectable: PropTypes.bool.isRequired,
+  onReqsSelected: PropTypes.func
 };
 
 UpgradeRequestsTable.defaultProps = {

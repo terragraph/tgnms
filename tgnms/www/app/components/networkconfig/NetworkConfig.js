@@ -1,6 +1,8 @@
 // NetworkConfig.js
 // top level "pure" component for rendering the network config of the given topology
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import { render } from "react-dom";
 
@@ -125,21 +127,21 @@ export default class NetworkConfig extends React.Component {
 }
 
 NetworkConfig.propTypes = {
-  topologyName: React.PropTypes.string.isRequired,
-  nodes: React.PropTypes.array.isRequired,
-  imageVersions: React.PropTypes.array.isRequired,
-  selectedImage: React.PropTypes.string.isRequired,
-  selectedNodes: React.PropTypes.array.isRequired,
+  topologyName: PropTypes.string.isRequired,
+  nodes: PropTypes.array.isRequired,
+  imageVersions: PropTypes.array.isRequired,
+  selectedImage: PropTypes.string.isRequired,
+  selectedNodes: PropTypes.array.isRequired,
 
-  editMode: React.PropTypes.string.isRequired,
-  baseConfigByVersion: React.PropTypes.object.isRequired,
-  newConfigFields: React.PropTypes.object.isRequired,
+  editMode: PropTypes.string.isRequired,
+  baseConfigByVersion: PropTypes.object.isRequired,
+  newConfigFields: PropTypes.object.isRequired,
 
-  networkOverrideConfig: React.PropTypes.object.isRequired,
-  networkDraftConfig: React.PropTypes.object.isRequired,
-  networkConfigWithChanges: React.PropTypes.object.isRequired,
+  networkOverrideConfig: PropTypes.object.isRequired,
+  networkDraftConfig: PropTypes.object.isRequired,
+  networkConfigWithChanges: PropTypes.object.isRequired,
 
-  nodeOverrideConfig: React.PropTypes.object.isRequired,
-  nodeDraftConfig: React.PropTypes.object.isRequired,
-  nodeConfigWithChanges: React.PropTypes.object.isRequired
+  nodeOverrideConfig: PropTypes.object.isRequired,
+  nodeDraftConfig: PropTypes.object.isRequired,
+  nodeConfigWithChanges: PropTypes.object.isRequired
 };

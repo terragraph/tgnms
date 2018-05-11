@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 
@@ -145,5 +146,5 @@ export default class NetworkConfigLegend extends React.Component {
 }
 
 NetworkConfigLegend.propTypes = {
-  editMode: React.PropTypes.string.isRequired
+  editMode: PropTypes.string.isRequired
 };

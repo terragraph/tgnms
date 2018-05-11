@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
 import Select from "react-select";
@@ -47,6 +48,6 @@ export default class NetworkConfigImageSelector extends React.Component {
 }
 
 NetworkConfigImageSelector.propTypes = {
-  selectedImage: React.PropTypes.string.isRequired,
-  imageVersions: React.PropTypes.array.isRequired
+  selectedImage: PropTypes.string.isRequired,
+  imageVersions: PropTypes.array.isRequired
 };
