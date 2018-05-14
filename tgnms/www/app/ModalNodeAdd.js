@@ -132,7 +132,7 @@ export default class ModalNodeAdd extends React.Component {
           <tbody>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>Name</td>
+              <td width={100}>Name <span className="required-asterisk">*</span></td>
               <td>
                 <input
                   style={{ width: "100%", height: "34px" }}
@@ -160,7 +160,7 @@ export default class ModalNodeAdd extends React.Component {
             </tr>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>Site</td>
+              <td width={100}>Site <span className="required-asterisk">*</span></td>
               <td>
                 <Select
                   options={sitesVector}
@@ -173,7 +173,7 @@ export default class ModalNodeAdd extends React.Component {
             </tr>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>Type</td>
+              <td width={100}>Type <span className="required-asterisk">*</span></td>
               <td>
                 <Select
                   options={nodeTypesVector}
@@ -251,6 +251,16 @@ export default class ModalNodeAdd extends React.Component {
             </tr>
             <tr className="blank_row" />
             <tr>
+              <td colSpan="3">
+                <span className="text-muted">
+                  <em>
+                    <span className="required-asterisk">*</span> Indicates required field
+                  </em>
+                </span>
+              </td>
+            </tr>
+            <tr className="blank_row" />
+            <tr>
               <td width={100} />
               <td>
                 <button
@@ -258,7 +268,7 @@ export default class ModalNodeAdd extends React.Component {
                   className="graph-button"
                   onClick={this.modalClose.bind(this)}
                 >
-                  close
+                  Close
                 </button>
                 <button
                   style={{ float: "right" }}

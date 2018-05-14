@@ -16,8 +16,9 @@ import EventLogs from "./EventLogs.js";
 import SystemLogs from "./SystemLogs.js";
 import NetworkAlerts from "./NetworkAlerts.js";
 import NMSConfig from "./NMSConfig.js";
+import ModalLinkAdd from "./ModalLinkAdd.js";
+import ModalNodeAdd from "./ModalNodeAdd.js";
 import ModalOverlays from "./ModalOverlays.js";
-import ModalTopology from "./ModalTopology.js";
 import {
   SiteOverlayKeys,
   linkOverlayKeys
@@ -38,10 +39,11 @@ const VIEWS = {
   config: "Network Config"
 };
 
-const SETTINGS = {
-  overlays: "Site/Link Overlays",
-  topology: "Topology Operations"
-};
+const TOPOLOGY_OPS = {
+  addSite: "Add Planned Site",
+  addNode: "Add Node",
+  addLink: "Add Link",
+}
 
 // update network health at a lower interval (seconds)
 const NETWORK_HEALTH_INTERVAL_MIN = 30;
@@ -387,6 +389,25 @@ export default class NetworkUI extends React.Component {
     setInterval(this.refreshTopologyList.bind(this), 10000);
   }
 
+  onAddSite() {
+    Dispatcher.dispatch({
+      actionType: Actions.PLANNED_SITE_CREAT,
+      siteName: "planned_site"
+    });
+    swal(
+      {
+        title: "Planned Site Added",
+        text:
+          "Drag the planned site on the map to desired location. Then, you can commit it from the details menu",
+        type: "info",
+        closeOnConfirm: true
+      },
+      function() {
+        this.setState({ topologyModalOpen: false })
+      }.bind(this)
+    );
+  }
+
   handleMenuBarSelect(info) {
     if (info.key.indexOf("#") > -1) {
       let keySplit = info.key.split("#");
@@ -403,11 +424,20 @@ export default class NetworkUI extends React.Component {
             networkName: keySplit[1]
           });
           break;
-        case "settings":
-          if (keySplit[1] == "overlays") {
-            this.setState({ overlaysModalOpen: true });
-          } else if (keySplit[1] == "topology") {
-            this.setState({ topologyModalOpen: true });
+        case "overlays":
+          this.setState({overlaysModalOpen: true});
+          break;
+        case "topOps":
+          switch (keySplit[1]) {
+            case "addSite":
+              this.onAddSite();
+              break;
+            case "addNode":
+              this.setState({topOpsAddNodeModalOpen: true});
+              break;
+            case "addLink":
+              this.setState({topOpsAddLinkModalOpen: true});
+              break;
           }
           break;
       }
@@ -610,6 +640,45 @@ export default class NetworkUI extends React.Component {
       selectedKeys.push("topo#" + this.state.networkName);
     }
 
+    let visibleModal = null;
+    if (this.state.topOpsAddNodeModalOpen) {
+      visibleModal = (
+        <ModalNodeAdd
+          isOpen={this.state.topOpsAddNodeModalOpen}
+          onClose={() => this.setState({ topOpsAddNodeModalOpen: false })}
+          topology={this.state.topology} />
+      );
+    } else if (this.state.topOpsAddLinkModalOpen) {
+      visibleModal = (
+        <ModalLinkAdd
+          isOpen={this.state.topOpsAddLinkModalOpen}
+          onClose={() => this.setState({ topOpsAddLinkModalOpen: false })}
+          topology={this.state.topology} />
+      );
+    }
+
+    let mapMenuItems = [];
+    if (this.state.view === 'map') {
+      mapMenuItems = [
+        (<Divider />),
+        (<SubMenu title="Topology Operations" key="topOps" mode="vertical">
+          {Object.keys(TOPOLOGY_OPS).map(topOpsKey => {
+            let topOpsName = TOPOLOGY_OPS[topOpsKey];
+            return (
+              <MenuItem key={"topOps#" + topOpsKey}>
+                {topOpsName}
+              </MenuItem>
+            );
+          })}
+        </SubMenu>),
+        (<Divider />),
+        (<MenuItem key={'overlays#'}>
+          <img src={"/static/images/overlays.png"} />
+          Site/Link Overlays
+        </MenuItem>)
+      ]
+    }
+
     return (
       <div>
         <ModalOverlays
@@ -620,11 +689,7 @@ export default class NetworkUI extends React.Component {
           selectedMapTile={this.state.selectedMapTile}
           onClose={this.overlaysModalClose.bind(this)}
         />
-        <ModalTopology
-          isOpen={this.state.topologyModalOpen}
-          onClose={() => this.setState({ topologyModalOpen: false })}
-          topology={this.state.topology}
-        />
+        {visibleModal}
 
         <div className="top-menu-bar">
           <Menu
@@ -655,19 +720,7 @@ export default class NetworkUI extends React.Component {
             <MenuItem key="topology-selected" disabled>
               {this.state.networkName ? this.state.networkName : "-"}
             </MenuItem>
-            <Divider />
-            <SubMenu title="Settings" key="settings" mode="vertical">
-              {Object.keys(SETTINGS).map(settingKey => {
-                let settingName = SETTINGS[settingKey];
-                return (
-                  <MenuItem key={"settings#" + settingKey}>
-                    <img src={"/static/images/" + settingKey + ".png"} />
-                    {settingName}
-                  </MenuItem>
-                );
-              })}
-            </SubMenu>
-            <Divider />
+            {mapMenuItems}
           </Menu>
           <Menu mode="horizontal" style={{ float: "right" }}>
             {networkStatusMenuItems}

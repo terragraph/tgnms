@@ -207,3 +207,8 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .topoDiffExisting {
   color: green;
 }
+
+.required-asterisk {
+  color: red;
+  font-size: 125%;
+}

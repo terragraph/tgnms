@@ -187,7 +187,7 @@ export default class ModalLinkAdd extends React.Component {
                   className="graph-button"
                   onClick={this.modalClose.bind(this)}
                 >
-                  close
+                  Close
                 </button>
                 <button
                   style={{ float: "right" }}
