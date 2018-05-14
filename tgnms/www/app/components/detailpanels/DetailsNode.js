@@ -1,5 +1,7 @@
 import React from "react";
 import { render } from "react-dom";
+import moment from "moment";
+
 import { Actions } from "../../constants/NetworkConstants.js";
 import Dispatcher from "../../NetworkDispatcher.js";
 import swal from "sweetalert";
@@ -386,6 +388,16 @@ export default class DetailsNode extends React.Component {
     let type = this.props.node.node_type == 2 ? "DN" : "CN";
     type += this.props.node.pop_node ? "-POP" : "";
 
+    let elapsedTime = "N/A";
+    if (this.props.node.status_dump) {
+      let timeStampSec =
+        Buffer
+          .from(this.props.node.status_dump.timeStamp.buffer.data)
+          .readUIntBE(0, 8);
+      let timeStamp = new Date(timeStampSec * 1000);
+      elapsedTime = moment().diff(timeStamp, 'seconds') + ' seconds ago';
+    }
+
     return (
       <div
         id="myModal"
@@ -440,6 +452,10 @@ export default class DetailsNode extends React.Component {
                   </td>
                 </tr>
                 {linksRows}
+              <tr>
+                <td width="100px">Last seen</td>
+                <td>{elapsedTime}</td>
+              </tr>
               </tbody>
             </table>
             <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
