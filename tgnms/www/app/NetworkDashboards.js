@@ -2,10 +2,10 @@ import React from "react";
 import { render } from "react-dom";
 import { Actions } from "./constants/NetworkConstants.js";
 import Dispatcher from "./NetworkDispatcher.js";
+import Modal from "react-modal";
 import NetworkStore from "./stores/NetworkStore.js";
 import ReactGridLayout, { WidthProvider } from "react-grid-layout";
 import Select from "react-select";
-import { ScaleModal } from "boron";
 import NetworkDashboardStats from "./NetworkDashboardStats.js";
 import ReactDyGraph from "./ReactDyGraph.js";
 import swal from "sweetalert";
@@ -19,6 +19,7 @@ export default class NetworkDashboards extends React.Component {
     graphEditOpen: false,
     editedGraph: null,
     editedGraphIndex: null,
+    modalIsOpen: false,
   };
 
   constructor(props) {
@@ -163,9 +164,9 @@ export default class NetworkDashboards extends React.Component {
     this.setState({
       graphEditOpen: true,
       editedGraph: graphs[index],
-      editedGraphIndex: index
+      editedGraphIndex: index,
+      modalIsOpen: true,
     });
-    this.refs.stats_ta.show();
   }
 
   editGraphName(index) {
@@ -196,7 +197,6 @@ export default class NetworkDashboards extends React.Component {
   }
 
   graphEditClose(graph) {
-    this.refs.stats_ta.hide();
     let dashboards = this.state.dashboards;
     let dashboard = dashboards[this.props.selectedDashboard];
     let graphs = dashboard.graphs;
@@ -207,7 +207,8 @@ export default class NetworkDashboards extends React.Component {
       graphEditOpen: false,
       dashboards: dashboards,
       editedGraph: null,
-      editedGraphIndex: null
+      editedGraphIndex: null,
+      modalIsOpen: false,
     });
   }
 
@@ -467,7 +468,10 @@ export default class NetworkDashboards extends React.Component {
     return (
       <div>
         <div style={{width: "1000px"}}>
-          <ScaleModal ref="stats_ta">
+          <Modal
+            isOpen={this.state.modalIsOpen}
+            onRequestClose={() => this.setState({modalIsOpen: false})}
+          >
             <div style={{width: "1000px"}}>
               <NetworkDashboardStats
                 allowCustomTime={false}
@@ -476,7 +480,7 @@ export default class NetworkDashboards extends React.Component {
                 topology={this.props.networkConfig.topology}
               />
             </div>
-          </ScaleModal>
+          </Modal>
         </div>
         <table
           style={{borderCollapse: "separate", borderSpacing: "5px 5px", display: "block", width: "100px"}}

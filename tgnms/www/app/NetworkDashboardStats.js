@@ -7,7 +7,6 @@ import { Actions } from "./constants/NetworkConstants.js";
 import Dispatcher from "./NetworkDispatcher.js";
 import moment from "moment";
 // layout components
-import { ScaleModal } from "boron";
 import { Menu, MenuItem, Token, AsyncTypeahead } from "react-bootstrap-typeahead";
 import "react-bootstrap-typeahead/css/Token.css";
 import "react-bootstrap-typeahead/css/Typeahead.css";
