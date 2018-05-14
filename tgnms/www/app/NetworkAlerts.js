@@ -10,6 +10,7 @@ import NumericInput from "react-numeric-input";
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+import 'react-tabs/style/react-tabs.css';
 
 
 class ListEditor extends React.Component {

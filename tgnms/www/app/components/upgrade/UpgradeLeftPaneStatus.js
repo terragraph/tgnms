@@ -48,6 +48,6 @@ export default class UpgradeLeftPaneStatus extends React.Component {
 }
 
 UpgradeLeftPaneStatus.propTypes = {
-  currentRequest: PropTypes.object.isRequired,
+  currentRequest: PropTypes.object,
   pendingRequests: PropTypes.array.isRequired
 };
