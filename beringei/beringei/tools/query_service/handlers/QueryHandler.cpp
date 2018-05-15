@@ -42,6 +42,7 @@ QueryHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
 }
 
 void QueryHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
+  receivedBody_ = true;
   if (body_) {
     body_->prependChain(move(body));
   } else {
@@ -50,6 +51,15 @@ void QueryHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
 }
 
 void QueryHandler::onEOM() noexcept {
+  if (!receivedBody_) {
+    LOG(INFO) << "No data received for POST";
+    ResponseBuilder(downstream_)
+        .status(500, "OK")
+        .header("Content-Type", "application/text")
+        .body("Empty request")
+        .sendWithEOM();
+    return;
+  }
   auto body = body_->moveToFbString();
   query::QueryRequest request;
   try {
