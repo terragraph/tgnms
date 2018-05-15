@@ -17,8 +17,8 @@ module.exports = {
   },
   externals: [
     {
-      xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
-    }
+      xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',
+    },
   ],
   output: {
     pathinfo: true,

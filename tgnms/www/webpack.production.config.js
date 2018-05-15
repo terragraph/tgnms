@@ -13,12 +13,12 @@ const eslintFormatter = require('react-dev-utils/eslintFormatter');
 module.exports = {
   devtool: false,
   entry: {
-    map: [paths.appIndexJs,]
+    map: [paths.appIndexJs],
   },
   externals: [
     {
-      xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
-    }
+      xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',
+    },
   ],
   output: {
     pathinfo: true,
@@ -30,7 +30,7 @@ module.exports = {
   plugins: [
     new BundleAnalyzerPlugin({
       analyzerMode: 'static',
-      reportFilename: 'report.html'
+      reportFilename: 'report.html',
     }),
     new UglifyJsPlugin({
       uglifyOptions: {
@@ -50,7 +50,7 @@ module.exports = {
     }),
     new webpack.NoEmitOnErrorsPlugin(),
     // remove excess locales in moment bloating the bundle
-    new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/)
+    new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
   ],
   module: {
     rules: [
