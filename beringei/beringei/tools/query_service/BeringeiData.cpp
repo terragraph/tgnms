@@ -892,9 +892,27 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
   return response;
 }
 
+void
+BeringeiData::selectBeringeiDb() {
+  // determine which data-source to query from based on total time
+  int64_t timeBucketSec = (endTime_ - startTime_);
+  // TODO: we need to define a generic way of stating retention per time
+  // interval (1s, 30s) for querying from the right data source
+
+  // if request is for <= 1 hour use the 1-second stats, otherwise 30 for now
+//  if (timeBucketSec <= (60 * 60)) {
+//    timeInterval_ = 1;
+//  } else {
+    timeInterval_ = 1;
+//  }
+  LOG(INFO) << "Selected time interval = " << timeInterval_;
+}
+
 folly::dynamic BeringeiData::handleQuery() {
   auto startTime = (int64_t)duration_cast<milliseconds>(
       system_clock::now().time_since_epoch()).count();
+  // select the data source based on time interval
+  selectBeringeiDb();
   // validate first, prefer to throw here (no futures)
   validateQuery(query_);
   // fetch async data
@@ -950,12 +968,14 @@ int BeringeiData::getShardId(const std::string &key, const int numShards) {
 
 void BeringeiData::validateQuery(const query::Query &request) {
   if (request.__isset.min_ago) {
-    startTime_ = std::time(nullptr) - (60 * request.min_ago);
     endTime_ = std::time(nullptr);
+    startTime_ = endTime_ - (60 * request.min_ago) + timeInterval_;
+    LOG(INFO) << "Start: " << startTime_ << ", End: " << endTime_;
   } else if (request.start_ts != 0 && request.end_ts != 0) {
     // TODO - sanity check time
-    startTime_ = std::ceil(request.start_ts / 30.0) * 30;
-    endTime_ = std::ceil(request.end_ts / 30.0) * 30;
+    startTime_ = std::ceil(request.start_ts / (double)timeInterval_) * timeInterval_;
+    endTime_ = std::ceil(request.end_ts / (double)timeInterval_) * timeInterval_;
+    LOG(INFO) << "Start: " << startTime_ << ", End: " << endTime_;
     if (endTime_ <= startTime_) {
       LOG(ERROR) << "Request for invalid time window: " << startTime_ << " <-> "
                  << endTime_;

@@ -58,7 +58,7 @@ void StatsWriteHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
   }
 }
 
-int64_t timeCalc(int64_t timeIn) {
+int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
   /*
     int64_t timeInSeconds;
     int64_t currentTime = std::time(nullptr);
@@ -93,8 +93,8 @@ int64_t timeCalc(int64_t timeIn) {
       * FLAGS_agg_bucket_seconds;
   */
   return folly::to<int64_t>(
-             ceil(std::time(nullptr) / FLAGS_agg_bucket_seconds)) *
-         FLAGS_agg_bucket_seconds;
+             ceil(std::time(nullptr) / intervalSec)) *
+         intervalSec;
 }
 
 void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
@@ -104,6 +104,8 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
 
   auto startTime = (int64_t)duration_cast<milliseconds>(
       system_clock::now().time_since_epoch()).count();
+
+  int interval = request.interval;
 
   for (const auto &agent : request.agents) {
     auto nodeId = mySqlCacheClient_->getNodeId(agent.mac);
@@ -120,7 +122,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
 
     for (const auto &stat : agent.stats) {
       // check timestamp
-      int64_t tsParsed = timeCalc(stat.ts);
+      int64_t tsParsed = timeCalc(stat.ts, interval);
       auto keyId = mySqlCacheClient_->getKeyId(*nodeId, stat.key);
       // verify node/key combo exists
       if (keyId) {
@@ -189,12 +191,12 @@ void StatsWriteHandler::onEOM() noexcept {
   }
   logRequest(request);
   LOG(INFO) << "Stats writer request from \"" << request.topology.name
-            << "\" for " << request.agents.size() << " nodes";
+            << "\" for " << request.agents.size() << " nodes with "
+            << request.interval << " second interval.";
 
   try {
     writeData(request);
-  }
-  catch (const std::exception &ex) {
+  } catch (const std::exception &ex) {
     LOG(ERROR) << "Unable to handle stats_writer request: " << ex.what();
     ResponseBuilder(downstream_)
         .status(500, "OK")

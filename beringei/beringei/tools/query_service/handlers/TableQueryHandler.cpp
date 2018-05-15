@@ -127,10 +127,11 @@ void TableQueryHandler::onEOM() noexcept {
       auto keyDataList = taCache->getKeyData(linkQuery.metric);
       for (auto& keyData : keyDataList) {
         VLOG(1) << "\t\tLink: " << keyData.linkName
+                << ", titleAppend: " << keyData.linkTitleAppend
                 << ", displayName: " << keyData.displayName
                 << ", keyId: " << keyData.keyId;
         keyIdList.push_back(keyData.keyId);
-        keyData.displayName = keyData.linkName;
+        keyData.displayName = keyData.linkName + keyData.linkTitleAppend + " - " + keyData.displayName;
         keyDataListRenamed.push_back(keyData);
       }
       lastType = linkQuery.type;
@@ -146,6 +147,7 @@ void TableQueryHandler::onEOM() noexcept {
   linkQuery.key_ids = keyIdList;
   linkQuery.data = keyDataListRenamed;
   linkQuery.min_ago = minAgo;
+  linkQuery.agg_type = "none";
   linkQuery.__isset.min_ago = true;
   queryRequest.queries.push_back(linkQuery);
   // build link queries
