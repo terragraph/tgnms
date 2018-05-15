@@ -8,6 +8,8 @@
  */
 
 #include "AggregatorService.h"
+
+#include "BeringeiClientStore.h"
 #include "BeringeiData.h"
 #include "TopologyStore.h"
 
@@ -53,14 +55,8 @@ namespace facebook {
 namespace gorilla {
 
 AggregatorService::AggregatorService(
-  TACacheMap& typeaheadCache,
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-  std::shared_ptr<BeringeiClient> beringeiReadClient,
-  std::shared_ptr<BeringeiClient> beringeiWriteClient)
-  : typeaheadCache_(typeaheadCache),
-    configurationAdapter_(configurationAdapter),
-    beringeiReadClient_(beringeiReadClient),
-    beringeiWriteClient_(beringeiWriteClient) {
+  TACacheMap& typeaheadCache)
+  : typeaheadCache_(typeaheadCache) {
 
   // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
@@ -253,22 +249,25 @@ AggregatorService::timerCb() {
           LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
         }
       }
+      if (FLAGS_write_agg_data) {
+        folly::EventBase eb;
+        eb.runInLoop([this, &bDataPoints]() mutable {
+          auto beringeiClientStore = BeringeiClientStore::getInstance();
+          // TODO - change to write..
+          auto beringeiWriteClient = beringeiClientStore->getReadClient(30);
+          auto pushedPoints = beringeiWriteClient->putDataPoints(bDataPoints);
+          if (!pushedPoints) {
+            LOG(ERROR) << "Failed to perform the put!";
+          }
+        });
+        std::thread tEb([&eb]() { eb.loop(); });
+        tEb.join();
+        LOG(INFO) << "Data-points written";
+      }
+      // push metrics into beringei
+    } else {
+      LOG(INFO) << "Invalid topology";
     }
-    if (FLAGS_write_agg_data) {
-      folly::EventBase eb;
-      eb.runInLoop([this, &bDataPoints]() mutable {
-        auto pushedPoints = beringeiWriteClient_->putDataPoints(bDataPoints);
-        if (!pushedPoints) {
-          LOG(ERROR) << "Failed to perform the put!";
-        }
-      });
-      std::thread tEb([&eb]() { eb.loop(); });
-      tEb.join();
-      LOG(INFO) << "Data-points written";
-    }
-    // push metrics into beringei
-  } else {
-    LOG(INFO) << "Invalid topology";
   }
 }
 
@@ -329,7 +328,7 @@ AggregatorService::buildQuery(
   }
   // fetch the last few minutes to receive the latest data point
   queryRequest.queries = queries;
-  BeringeiData dataFetcher(configurationAdapter_, beringeiReadClient_, queryRequest);
+  BeringeiData dataFetcher(queryRequest);
   folly::dynamic results = dataFetcher.process();
   int queryIdx = 0;
   // iterate over the results - the displayName is the key

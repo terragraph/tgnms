@@ -32,11 +32,9 @@ const int MAX_COLUMNS = 7;
 const int MAX_DATA_POINTS = 60;
 const int NUM_HBS_PER_SEC = 39; // approximately
 
-QueryHandler::QueryHandler(
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-    std::shared_ptr<BeringeiClient> beringeiClient)
-    : RequestHandler(), configurationAdapter_(configurationAdapter),
-      beringeiClient_(beringeiClient) {}
+QueryHandler::QueryHandler()
+    : RequestHandler(),
+      receivedBody_(false) {}
 
 void
 QueryHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -66,7 +64,7 @@ void QueryHandler::onEOM() noexcept {
         .sendWithEOM();
     return;
   }
-  BeringeiData dataFetcher(configurationAdapter_, beringeiClient_, request);
+  BeringeiData dataFetcher(request);
   std::string responseJson;
   try {
     responseJson = folly::toJson(dataFetcher.process());

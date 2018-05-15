@@ -28,10 +28,8 @@ typedef std::vector<std::pair<Key, std::vector<TimeValuePair> > > TimeSeries;
 
 class TableQueryHandler : public proxygen::RequestHandler {
  public:
-  explicit TableQueryHandler(
-      std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-      std::shared_ptr<BeringeiClient> beringeiClient,
-      TACacheMap& typeaheadCache);
+  explicit TableQueryHandler(TACacheMap& typeaheadCache);
+
   void
   onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
 
@@ -46,8 +44,6 @@ class TableQueryHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
-  std::shared_ptr<BeringeiClient> beringeiClient_;
   std::unique_ptr<folly::IOBuf> body_;
   TACacheMap& typeaheadCache_;
 };
