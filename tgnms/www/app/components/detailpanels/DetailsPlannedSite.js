@@ -5,6 +5,7 @@ import Dispatcher from "../../NetworkDispatcher.js";
 import NumericInput from "react-numeric-input";
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
+import { Panel } from "react-bootstrap";
 
 export default class DetailsPlannedSite extends React.Component {
   constructor(props) {
@@ -93,93 +94,91 @@ export default class DetailsPlannedSite extends React.Component {
     }
 
     return (
-      <div
+      <Panel
+        bsStyle="primary"
         id="myModal"
-        className="details"
         onMouseEnter={this.props.onEnter}
         onMouseLeave={this.props.onLeave}
       >
-        <div className="details-content">
-          <div className="details-header">
-            <h3 style={{ marginTop: "0px" }}>Planned Site</h3>
-          </div>
-          <div
-            className="details-body"
-            style={{ maxHeight: this.props.maxHeight }}
-          >
-            <table className="details-table" style={{ width: "100%" }}>
-              <tbody>
-                <tr>
-                  <td width={100}>Name</td>
-                  <td>
-                    <input
-                      style={{ width: "100%", height: "34px" }}
-                      type="text"
-                      value={this.props.site.name}
-                      onChange={this.somethingChanged.bind(this, "name")}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td width={100}>Latitude</td>
-                  <td>
-                    <NumericInput
-                      className="form-control"
-                      style={false}
-                      value={this.props.site.lat}
-                      precision={10}
-                      onChange={this.somethingChanged.bind(this, "lat")}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td width={100}>Longitude</td>
-                  <td>
-                    <NumericInput
-                      className="form-control"
-                      style={false}
-                      value={this.props.site.long}
-                      precision={10}
-                      onChange={this.somethingChanged.bind(this, "long")}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td width={100}>Altitude</td>
-                  <td>
-                    <NumericInput
-                      className="form-control"
-                      style={false}
-                      value={this.props.site.alt}
-                      precision={10}
-                      onChange={this.somethingChanged.bind(this, "alt")}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td width={100} />
-                  <td>
-                    <button
-                      style={{ float: "right" }}
-                      className="graph-button"
-                      onClick={this.commitSite.bind(this)}
-                    >
-                      Commit Site
-                    </button>
-                    <button
-                      style={{ float: "right" }}
-                      className="graph-button"
-                      onClick={this.props.onClose}
-                    >
-                      Discard Site
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+        <Panel.Heading>
+          <Panel.Title componentClass="h3">Planned Site</Panel.Title>
+        </Panel.Heading>
+        <Panel.Body
+          className="details"
+          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
+        >
+          <table className="details-table" style={{ width: "100%" }}>
+            <tbody>
+              <tr>
+                <td width={100}>Name</td>
+                <td>
+                  <input
+                    style={{ width: "100%", height: "34px" }}
+                    type="text"
+                    value={this.props.site.name}
+                    onChange={this.somethingChanged.bind(this, "name")}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td width={100}>Latitude</td>
+                <td>
+                  <NumericInput
+                    className="form-control"
+                    style={false}
+                    value={this.props.site.lat}
+                    precision={10}
+                    onChange={this.somethingChanged.bind(this, "lat")}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td width={100}>Longitude</td>
+                <td>
+                  <NumericInput
+                    className="form-control"
+                    style={false}
+                    value={this.props.site.long}
+                    precision={10}
+                    onChange={this.somethingChanged.bind(this, "long")}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td width={100}>Altitude</td>
+                <td>
+                  <NumericInput
+                    className="form-control"
+                    style={false}
+                    value={this.props.site.alt}
+                    precision={10}
+                    onChange={this.somethingChanged.bind(this, "alt")}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td width={100} />
+                <td>
+                  <button
+                    style={{ float: "right" }}
+                    className="graph-button"
+                    onClick={this.commitSite.bind(this)}
+                  >
+                    Commit Site
+                  </button>
+                  <button
+                    style={{ float: "right" }}
+                    className="graph-button"
+                    onClick={this.props.onClose}
+                  >
+                    Discard Site
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Panel.Body>
+      </Panel>
     );
   }
 }

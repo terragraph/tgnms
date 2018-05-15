@@ -234,7 +234,7 @@ export default class ModalOverlays extends React.Component {
                   className="graph-button"
                   onClick={this.modalClose.bind(this)}
                 >
-                  close
+                  Close
                 </button>
               </td>
             </tr>

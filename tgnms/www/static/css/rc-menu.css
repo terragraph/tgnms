@@ -16,8 +16,8 @@
   overflow: hidden;
 }
 .rc-menu-collapse-active {
-  -webkit-transition: height 0.3s ease-out;
-  transition: height 0.3s ease-out;
+  -webkit-transition: height 0.2s ease-out;
+  transition: height 0.2s ease-out;
 }
 .rc-menu-item-group-list {
   margin: 0;
@@ -42,8 +42,8 @@
 #23527c */
 .rc-menu-item-selected {
   background-color: #3E525C !important;
-  -webkit-transform: translateZ(0);
-          transform: translateZ(0);
+  /*-webkit-transform: translateZ(0);*/
+  /*        transform: translateZ(0);*/
 }
 .rc-menu-submenu-selected {
   background-color: #3E525C;
@@ -61,6 +61,15 @@
 div.top-menu-bar {
   height: 40px;
   background: #303336;
+  padding-left: 5px;
+  padding-right: 5px;
+  /* TODO: fix top menu dropdowns overflowing when top bar is 'fixed'
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
+  */
 }
 .rc-menu-submenu-vertical > .rc-menu {
   top: 0;
@@ -108,7 +117,6 @@ div.top-menu-bar {
 .rc-menu-horizontal {
   background-color: #303336;
   border: none;
-  border-bottom: 1px solid transparent;
   border-bottom: 1px solid #d9d9d9;
   box-shadow: none;
 }
@@ -126,7 +134,7 @@ div.top-menu-bar {
 .rc-menu-horizontal > .rc-menu-item-active {
   border-bottom: 2px solid #2db7f5;
   background-color: #F3F5F7;
-  color: #2baee9;
+  /*color: #2baee9;*/
 }
 .rc-menu-horizontal:after {
   content: "\20";
@@ -145,6 +153,7 @@ div.top-menu-bar {
   padding: 6px;
 }
 .rc-menu-vertical.rc-menu-sub {
+  min-width: 100%;
   padding: 0;
 }
 .rc-menu-sub.rc-menu-inline {
@@ -169,8 +178,8 @@ div.top-menu-bar {
 }
 .rc-menu-open-slide-up-enter,
 .rc-menu-open-slide-up-appear {
-  -webkit-animation-duration: .3s;
-          animation-duration: .3s;
+  -webkit-animation-duration: .2s;
+          animation-duration: .2s;
   -webkit-animation-fill-mode: both;
           animation-fill-mode: both;
   -webkit-transform-origin: 0 0;
@@ -182,8 +191,8 @@ div.top-menu-bar {
           animation-play-state: paused;
 }
 .rc-menu-open-slide-up-leave {
-  -webkit-animation-duration: .3s;
-          animation-duration: .3s;
+  -webkit-animation-duration: .2s;
+          animation-duration: .2s;
   -webkit-animation-fill-mode: both;
           animation-fill-mode: both;
   -webkit-transform-origin: 0 0;
@@ -274,8 +283,8 @@ div.top-menu-bar {
 .rc-menu-open-zoom-enter,
 .rc-menu-open-zoom-appear {
   opacity: 0;
-  -webkit-animation-duration: .3s;
-          animation-duration: .3s;
+  -webkit-animation-duration: .2s;
+          animation-duration: .2s;
   -webkit-animation-fill-mode: both;
           animation-fill-mode: both;
   -webkit-transform-origin: 0 0;
@@ -286,8 +295,8 @@ div.top-menu-bar {
           animation-play-state: paused;
 }
 .rc-menu-open-zoom-leave {
-  -webkit-animation-duration: .3s;
-          animation-duration: .3s;
+  -webkit-animation-duration: .2s;
+          animation-duration: .2s;
   -webkit-animation-fill-mode: both;
           animation-fill-mode: both;
   -webkit-transform-origin: 0 0;
