@@ -42,8 +42,7 @@ class QueryHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
-  std::shared_ptr<BeringeiClient> beringeiClient_;
+  bool receivedBody_;
   std::unique_ptr<folly::IOBuf> body_;
 };
 }
