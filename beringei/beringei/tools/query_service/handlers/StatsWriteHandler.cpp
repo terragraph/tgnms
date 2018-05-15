@@ -8,6 +8,7 @@
  */
 
 #include "StatsWriteHandler.h"
+#include "../BeringeiClientStore.h"
 #include "mysql_connection.h"
 #include "mysql_driver.h"
 
@@ -31,17 +32,15 @@ using std::chrono::milliseconds;
 using std::chrono::system_clock;
 using namespace proxygen;
 
-DEFINE_int32(agg_bucket_seconds, 30, "time aggregation bucket size");
+//DEFINE_int32(agg_bucket_seconds, 30, "time aggregation bucket size");
 
 namespace facebook {
 namespace gorilla {
 
 StatsWriteHandler::StatsWriteHandler(
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-    std::shared_ptr<MySqlClient> mySqlClient,
-    std::shared_ptr<BeringeiClient> beringeiClient)
-    : RequestHandler(), configurationAdapter_(configurationAdapter),
-      mySqlCacheClient_(mySqlClient), beringeiClient_(beringeiClient) {
+    std::shared_ptr<MySqlClient> mySqlClient)
+    : RequestHandler(),
+      mySqlCacheClient_(mySqlClient) {
 
   mySqlClient_ = std::make_shared<MySqlClient>();
 }
@@ -152,9 +151,11 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
 
   // insert rows
   if (!bRows.empty()) {
+    auto beringeiClientStore = BeringeiClientStore::getInstance();
+    auto beringeiClient = beringeiClientStore->getWriteClient(interval);
     folly::EventBase eb;
-    eb.runInLoop([this, &bRows]() mutable {
-      auto pushedPoints = beringeiClient_->putDataPoints(bRows);
+    eb.runInLoop([this, beringeiClient, &bRows]() mutable {
+      auto pushedPoints = beringeiClient->putDataPoints(bRows);
       if (!pushedPoints) {
         LOG(ERROR) << "Failed to perform the put!";
       }

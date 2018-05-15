@@ -16,6 +16,8 @@ find_library(CURL curl)
 set(BERINGEI_QUERY_SRCS
     AggregatorService.cpp
     AggregatorService.h
+    BeringeiClientStore.cpp
+    BeringeiClientStore.h
     BeringeiData.cpp
     BeringeiData.h
     MySqlClient.cpp

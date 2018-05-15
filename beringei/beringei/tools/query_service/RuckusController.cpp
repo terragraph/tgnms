@@ -8,7 +8,6 @@
  */
 
 #include "RuckusController.h"
-#include "BeringeiData.h"
 
 #include <curl/curl.h>
 #include <folly/Conv.h>

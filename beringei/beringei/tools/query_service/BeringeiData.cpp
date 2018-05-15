@@ -9,6 +9,8 @@
 
 #include "BeringeiData.h"
 
+#include "BeringeiClientStore.h"
+
 #include <utility>
 
 #include <folly/DynamicConverter.h>
@@ -28,19 +30,16 @@ const int MAX_COLUMNS = 7;
 const int MAX_DATA_POINTS = 60;
 const int NUM_HBS_PER_SEC = 39; // approximately
 
-BeringeiData::BeringeiData(
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-    std::shared_ptr<BeringeiClient> beringeiClient,
-    const query::QueryRequest& request)
-    : configurationAdapter_(configurationAdapter),
-      beringeiClient_(beringeiClient),
-      request_(request) {}
+BeringeiData::BeringeiData(const query::QueryRequest& request)
+    : request_(request) {}
 
 folly::dynamic
 BeringeiData::process() {
   columnNames_.clear();
   timeSeries_.clear();
   aggSeries_.clear();
+  beringeiTimeSeries_.clear();
+  timeSeries_.clear();
   // one json response
   folly::dynamic response = folly::dynamic::array();
   for (const auto &query : request_.queries) {
@@ -333,7 +332,11 @@ BeringeiData::valueOrNull(folly::dynamic& obj, double value, int count) {
 
 folly::dynamic BeringeiData::transform() {
   // time align all data
-  int64_t timeBucketCount = (endTime_ - startTime_) / 30;
+  // with the query to beringei we're receiving the start and end time slots
+  // which gives us (dps + 1) slots
+  // EX: 1-minute query is 61 dps
+  int64_t timeBucketCount = (endTime_ - startTime_) / timeInterval_ + 1;
+  // 1-minute = 60 DPs
   int keyCount = beringeiTimeSeries_.size();
   // pre-allocate the array size
   double *timeSeries = new double[keyCount * timeBucketCount]{};
@@ -359,7 +362,7 @@ folly::dynamic BeringeiData::transform() {
 //    VLOG(1) << "Key: " << keyName << ", index: " << keyIndex;
     // fetch the last value, assume 0 for not-found
     for (const auto &timePair : keyTimeSeries.second) {
-      int timeBucketId = (timePair.unixTime - startTime_) / 30;
+      int timeBucketId = (timePair.unixTime - startTime_) / timeInterval_;
       // log # of dps per bucket for DP smoothing
       int condensedBucketId = timeBucketId > 0 ? (timeBucketId / dataPointAggCount) : 0;
       if (condensedBucketId == condensedBucketCount) {
@@ -897,11 +900,11 @@ folly::dynamic BeringeiData::handleQuery() {
   // fetch async data
   folly::EventBase eb;
   eb.runInLoop([this]() mutable {
-    BeringeiClient client(configurationAdapter_, 1,
-                          BeringeiClient::kNoWriterThreads);
-    int numShards = client.getNumShards();
+    auto beringeiClientStore = BeringeiClientStore::getInstance();
+    auto beringeiClient = beringeiClientStore->getReadClient(timeInterval_);
+    int numShards = beringeiClient->getNumShards();
     auto beringeiRequest = createBeringeiRequest(query_, numShards);
-    beringeiClient_->get(beringeiRequest, beringeiTimeSeries_);
+    beringeiClient->get(beringeiRequest, beringeiTimeSeries_);
   });
   std::thread tEb([&eb]() { eb.loop(); });
   tEb.join();

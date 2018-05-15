@@ -24,10 +24,7 @@ namespace gorilla {
 class AggregatorService {
  public:
   explicit AggregatorService(
-    TACacheMap& typeaheadCache,
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-    std::shared_ptr<BeringeiClient> beringeiReadClient,
-    std::shared_ptr<BeringeiClient> beringeiWriteClient);
+    TACacheMap& typeaheadCache);
 
   // run eventbase
   void start();
@@ -47,9 +44,6 @@ class AggregatorService {
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
   // from queryservicefactory
   TACacheMap& typeaheadCache_;
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
-  std::shared_ptr<BeringeiClient> beringeiReadClient_;
-  std::shared_ptr<BeringeiClient> beringeiWriteClient_;
   // store the last set of ruckus stats to push
   folly::Synchronized<std::unordered_map<std::string /* key name */, double>>
       ruckusStats_{};

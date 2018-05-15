@@ -26,9 +26,8 @@ typedef std::vector<std::pair<Key, std::vector<TimeValuePair> > > TimeSeries;
 
 class QueryHandler : public proxygen::RequestHandler {
  public:
-  explicit QueryHandler(
-      std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-      std::shared_ptr<BeringeiClient> beringeiClient);
+  explicit QueryHandler();
+
   void
   onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
 

@@ -27,9 +27,7 @@ namespace gorilla {
 class StatsWriteHandler : public proxygen::RequestHandler {
  public:
   explicit StatsWriteHandler(
-      std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-      std::shared_ptr<MySqlClient> mySqlClient,
-      std::shared_ptr<BeringeiClient> beringeiClient);
+      std::shared_ptr<MySqlClient> mySqlClient);
 
   void
   onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -49,12 +47,10 @@ class StatsWriteHandler : public proxygen::RequestHandler {
 
   void writeData(query::StatsWriteRequest request);
 
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
   // keep shared client holding key ids
   std::shared_ptr<MySqlClient> mySqlCacheClient_;
   // client per-thread for writing
   std::shared_ptr<MySqlClient> mySqlClient_;
-  std::shared_ptr<BeringeiClient> beringeiClient_;
   std::unique_ptr<folly::IOBuf> body_;
 };
 }
