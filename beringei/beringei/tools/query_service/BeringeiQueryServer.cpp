@@ -12,8 +12,7 @@
 #include "AggregatorService.h"
 #include "QueryServiceFactory.h"
 #include "StatsTypeAheadCache.h"
-
-#include "beringei/plugins/BeringeiConfigurationAdapter.h"
+#include "TopologyFetcher.h"
 
 #include <curl/curl.h>
 #include <folly/init/Init.h>
@@ -84,6 +83,13 @@ int main(int argc, char *argv[]) {
   server->bind(IPs);
   std::thread httpThread([server]() { server->start(); });
 
+  LOG(INFO) << "Starting Topology Update Service";
+  // create timer thread
+  auto topologyFetch = std::make_shared<TopologyFetcher>(mySqlClient, typeaheadCache);
+  std::thread topologyFetchThread([&topologyFetch]() {
+    topologyFetch->start();
+  });
+
   LOG(INFO) << "Starting Aggregator Service";
   // create timer thread
   auto aggregator = std::make_shared<AggregatorService>(
@@ -96,6 +102,7 @@ int main(int argc, char *argv[]) {
   });
 
   aggThread.join();
+  topologyFetchThread.join();
   httpThread.join();
   // clean-up curl memory
   curl_global_cleanup();

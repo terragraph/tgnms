@@ -26,6 +26,10 @@ set(BERINGEI_QUERY_SRCS
     RuckusController.h
     StatsTypeAheadCache.cpp
     StatsTypeAheadCache.h
+    TopologyFetcher.cpp
+    TopologyFetcher.h
+    TopologyStore.cpp
+    TopologyStore.h
 )
 
 set(BERINGEI_QUERY_HANDLER_SRCS
@@ -37,8 +41,6 @@ set(BERINGEI_QUERY_HANDLER_SRCS
     handlers/QueryHandler.h
     handlers/RuckusControllerStatsHandler.cpp
     handlers/RuckusControllerStatsHandler.h
-    handlers/StatsTypeAheadCacheHandler.cpp
-    handlers/StatsTypeAheadCacheHandler.h
     handlers/StatsTypeAheadHandler.cpp
     handlers/StatsTypeAheadHandler.h
     handlers/StatsWriteHandler.cpp

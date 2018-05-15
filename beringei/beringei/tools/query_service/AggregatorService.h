@@ -36,8 +36,6 @@ class AggregatorService {
   // fetch ruckus ap stats
   void fetchRuckusStats();
   void ruckusControllerStats();
-  // requests topology from an api_service endpoint
-  query::Topology fetchTopology();
   void buildQuery(
     std::unordered_map<std::string, double>& values,
     const std::unordered_set<std::string>& popNodeNames,
