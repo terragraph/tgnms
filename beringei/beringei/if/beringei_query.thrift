@@ -118,9 +118,25 @@ struct NodeEvents {
   4: list<Event> events,
 }
 
+struct TopologyConfig {
+  1: i32 id,
+  10: string name,
+  20: double initial_latitude,
+  21: double initial_longitude,
+  22: i32 initial_zoom_level,
+
+  100: string e2e_ip,
+  101: i32 e2e_port,
+  110: string api_ip,
+  111: i32 api_port,
+
+  200: optional Topology.Topology topology,
+}
+
 struct StatsWriteRequest {
   1: Topology.Topology topology,
   2: list<NodeStates> agents,
+  3: i32 interval = 30, /* In seconds */
 }
 
 struct LogsWriteRequest {
