@@ -5,6 +5,8 @@
  */
 'use strict';
 
+import 'react-datepicker/dist/react-datepicker.css';
+
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
@@ -18,8 +20,6 @@ import {render} from 'react-dom';
 import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
 import React from 'react';
-
-import 'react-datepicker/dist/react-datepicker.css';
 
 const Spinner = () => (
   <div className="spinner">

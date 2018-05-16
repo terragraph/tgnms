@@ -5,8 +5,6 @@
  */
 'use strict';
 
-import { rgb, scaleLinear } from 'd3';
-
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
 import Dispatcher from './NetworkDispatcher.js';
@@ -28,6 +26,7 @@ import {
 // helper methods
 import {getNodeMarker} from './helpers/NetworkMapHelpers.js';
 import NetworkStore from './stores/NetworkStore.js';
+import {rgb, scaleLinear} from 'd3';
 import LeafletGeom from 'leaflet-geometryutil';
 // leaflet maps
 import Leaflet, {Point, LatLng} from 'leaflet';
@@ -917,9 +916,7 @@ export default class NetworkMap extends React.Component {
           var bwUsageColor = scaleLinear()
             .domain([0, 100])
             .range(['white', '#4169e1']);
-          var linkColor = rgb(
-            bwUsageColor(this.state.routeWeights[link.name]),
-          );
+          var linkColor = rgb(bwUsageColor(this.state.routeWeights[link.name]));
           linkLine = this.getLinkLine(link, linkCoords, linkColor);
         }
       } else {

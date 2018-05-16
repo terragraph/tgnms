@@ -9,14 +9,13 @@
 // the left pane of the network config view, allows users to select either the entire network
 // or one or more nodes to view the config
 
-var _ = require('lodash');
-
 import {changeEditMode} from '../../actions/NetworkConfigActions.js';
 import {CONFIG_VIEW_MODE} from '../../constants/NetworkConfigConstants.js';
 import NetworkConfigImageSelector from './NetworkConfigImageSelector.js';
 import NetworkConfigLegend from './NetworkConfigLegend.js';
 import NetworkConfigNodes from './NetworkConfigNodes.js';
 import classNames from 'classnames';
+import isPlainObject from 'lodash-es/isPlainObject';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
@@ -66,11 +65,11 @@ export default class NetworkConfigLeftPane extends React.Component {
     const viewModeSelector = this.renderViewModeSelector();
 
     // TODO: move this to NetworkConfig.js
-    const nodesWithOverrides = _.isPlainObject(nodeOverrideConfig)
+    const nodesWithOverrides = isPlainObject(nodeOverrideConfig)
       ? new Set(
           Object.keys(nodeOverrideConfig).filter(node => {
             return (
-              _.isPlainObject(nodeOverrideConfig[node]) &&
+              isPlainObject(nodeOverrideConfig[node]) &&
               Object.keys(nodeOverrideConfig[node]).length > 0
             );
           }),

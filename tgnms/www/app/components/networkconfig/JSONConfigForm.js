@@ -10,8 +10,6 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-var _ = require('lodash');
-
 import Dispatcher from '../../NetworkDispatcher.js';
 import {
   NetworkConfigActions,
@@ -29,6 +27,7 @@ import JSONFormField from './JSONFormField.js';
 import NewJSONConfigField from './NewJSONConfigField.js';
 import NewJSONConfigObject from './NewJSONConfigObject.js';
 import classNames from 'classnames';
+import isPlainObject from 'lodash-es/isPlainObject';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
@@ -104,15 +103,15 @@ class ExpandableConfigForm extends React.Component {
 
     const hasNodeOverride =
       configs[2] &&
-      _.isPlainObject(configs[2]) &&
+      isPlainObject(configs[2]) &&
       Object.keys(configs[2]).length > 0;
     const hasNetworkOverride =
       configs[1] &&
-      _.isPlainObject(configs[1]) &&
+      isPlainObject(configs[1]) &&
       Object.keys(configs[1]).length > 0;
     const hasDraft =
       draftConfig &&
-      _.isPlainObject(draftConfig) &&
+      isPlainObject(draftConfig) &&
       Object.keys(draftConfig).length > 0;
 
     let hasOverrideText = '';
@@ -321,7 +320,7 @@ export default class JSONConfigForm extends React.Component {
         : PLACEHOLDER_VALUE;
 
       // we display a nested object for the case where a user adds a nested object and submits it as a draft
-      if (_.isPlainObject(draftValue)) {
+      if (isPlainObject(draftValue)) {
         childItem = this.renderNestedObject({
           configs: values,
           draftConfig: draftValue,
@@ -429,7 +428,7 @@ export default class JSONConfigForm extends React.Component {
       .filter(id => {
         const newField = newConfigFields[id];
         // newField must have an id that is not a plain object
-        return newField.hasOwnProperty('id') && !_.isPlainObject(newField.id);
+        return newField.hasOwnProperty('id') && !isPlainObject(newField.id);
       })
       .map(id => {
         const newField = newConfigFields[id];

@@ -5,9 +5,11 @@
  */
 'use strict';
 
-var _ = require('lodash');
-
 import {ADD_FIELD_TYPES} from '../constants/NetworkConfigConstants.js';
+import cloneDeep from 'lodash-es/cloneDeep';
+import get from 'lodash-es/get';
+import isPlainObject from 'lodash-es/isPlainObject';
+import unset from 'lodash-es/unset';
 
 export const getImageVersionsForNetwork = topology => {
   if (!topology || !topology.nodes) {
@@ -29,14 +31,14 @@ export const getImageVersionsForNetwork = topology => {
 // unsets the property in obj retrieved using editPath
 // then cleans up all empty objects within obj
 export const unsetAndCleanup = (obj, editPath, stopIdx) => {
-  const cleanedObj = _.cloneDeep(obj);
+  const cleanedObj = cloneDeep(obj);
 
   const newEditPath = [...editPath]; // copy the editpath as we need to change the copy
   if (newEditPath.length === 0) {
     console.error('error, editPath cannot be empty');
   }
 
-  const isValueUnset = _.unset(cleanedObj, newEditPath);
+  const isValueUnset = unset(cleanedObj, newEditPath);
   if (!isValueUnset) {
     console.error(
       `could not unset value at path ${newEditPath} for object ${cleanedObj}`,
@@ -53,9 +55,9 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   newEditPath.pop();
   while (
     newEditPath.length > stopIdx &&
-    Object.keys(_.get(cleanedObj, newEditPath)).length === 0
+    Object.keys(get(cleanedObj, newEditPath)).length === 0
   ) {
-    _.unset(cleanedObj, newEditPath);
+    unset(cleanedObj, newEditPath);
     newEditPath.pop();
   }
 
@@ -65,7 +67,7 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
 export const getStackedFields = (configs, viewOverridesOnly) => {
   // aggregate all config fields
   const stackedFields = configs.reduce((stacked, config) => {
-    return _.isPlainObject(config)
+    return isPlainObject(config)
       ? [...stacked, ...Object.keys(config)]
       : stacked;
   }, []);
@@ -93,7 +95,7 @@ export const sortConfig = config => {
     .sort(alphabeticalSort)
     .forEach(key => {
       const value = config[key];
-      const newValue = _.isPlainObject(value) ? sortConfig(value) : value;
+      const newValue = isPlainObject(value) ? sortConfig(value) : value;
       newConfig[key] = newValue;
     });
 

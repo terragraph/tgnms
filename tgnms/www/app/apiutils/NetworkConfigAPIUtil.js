@@ -6,7 +6,6 @@
 'use strict';
 
 // util class for making API calls to the node server for network config
-var _ = require('lodash');
 
 import {
   getBaseConfigSuccess,
@@ -19,6 +18,8 @@ import {
 import {DEFAULT_BASE_KEY} from '../constants/NetworkConfigConstants.js';
 import {sortConfig} from '../helpers/NetworkConfigHelpers.js';
 import axios from 'axios';
+import isPlainObject from 'lodash-es/isPlainObject';
+import pick from 'lodash-es/pick';
 
 const getErrorText = error => {
   // try to get the status text from the API response, otherwise, default to the error object
@@ -47,7 +48,7 @@ export const getConfigsForTopology = (
       // assume here that it's a map of base version to config object
       const cleanedConfig = {};
       Object.keys(parsedConfig).forEach(baseVersion => {
-        const configValue = _.isPlainObject(parsedConfig[baseVersion])
+        const configValue = isPlainObject(parsedConfig[baseVersion])
           ? parsedConfig[baseVersion]
           : {};
         cleanedConfig[baseVersion] = configValue;
@@ -80,7 +81,7 @@ export const getNetworkOverrideConfig = topologyName => {
     })
     .then(response => {
       const {overrides} = response.data;
-      const cleanedOverride = _.isPlainObject(JSON.parse(overrides))
+      const cleanedOverride = isPlainObject(JSON.parse(overrides))
         ? JSON.parse(overrides)
         : {};
       getNetworkConfigSuccess({
@@ -141,7 +142,7 @@ export const setNodeOverrideConfig = (
   mac2NameMap,
 ) => {
   // filter nodes by changes
-  var configToSubmit = _.pick(config, nodesWithChanges);
+  var configToSubmit = pick(config, nodesWithChanges);
   const uri = '/controller/setNodeOverrideConfig';
 
   // TODO a quick hack to support nameBased config for M19 onwards

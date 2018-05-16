@@ -7,13 +7,12 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import FileSaver from 'file-saver';
-
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import equals from 'equals';
+import FileSaver from 'file-saver';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';

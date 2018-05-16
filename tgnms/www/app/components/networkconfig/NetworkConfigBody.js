@@ -8,8 +8,6 @@
 // NetworkConfigBody.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
-import uuidv4 from 'uuid/v4';
-
 import {toggleExpandAll} from '../../actions/NetworkConfigActions.js';
 import CustomToggle from '../common/CustomToggle.js';
 import JSONConfigForm from './JSONConfigForm.js';
@@ -18,6 +16,7 @@ import NetworkConfigHeader from './NetworkConfigHeader.js';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
+import uuidv4 from 'uuid/v4';
 
 export default class NetworkConfigBody extends React.Component {
   constructor(props) {

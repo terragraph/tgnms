@@ -1,9 +1,9 @@
 !.eslintrc.js
 **/*.min.js
 
-**/dist/**/*.js
 **/node_modules/**/*.js
 
+dist/**/*.js
 static/apidoc/locales/**/*.js
 static/apidoc/utils/**/*.js
 static/apidoc/vendor/**/*.js
