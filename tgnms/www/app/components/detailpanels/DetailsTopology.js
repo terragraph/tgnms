@@ -5,24 +5,25 @@
  */
 'use strict';
 
-import React from "react";
-import { render } from "react-dom";
-import { Actions, ChartColors } from "../../constants/NetworkConstants.js";
-import Dispatcher from "../../NetworkDispatcher.js";
+import 'sweetalert/dist/sweetalert.css';
+
+import Dispatcher from '../../NetworkDispatcher.js';
 import {
   availabilityColor,
   chartColor,
   polarityColor,
-  versionSlicer
-} from "../../NetworkHelper.js";
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
-import PieChart from "react-svg-piechart";
-import { Panel } from "react-bootstrap";
+  versionSlicer,
+} from '../../NetworkHelper.js';
+import {Actions, ChartColors} from '../../constants/NetworkConstants.js';
+import {Panel} from 'react-bootstrap';
+import {render} from 'react-dom';
+import PieChart from 'react-svg-piechart';
+import React from 'react';
+import swal from 'sweetalert';
 
 export default class DetailsTopology extends React.Component {
   state = {
-    expandedVersion: null
+    expandedVersion: null,
   };
 
   constructor(props) {
@@ -30,7 +31,7 @@ export default class DetailsTopology extends React.Component {
   }
 
   handleMouseEnterOnSector(sector) {
-    this.setState({ expandedVersion: sector });
+    this.setState({expandedVersion: sector});
   }
 
   commitPlanPrev() {
@@ -44,19 +45,19 @@ export default class DetailsTopology extends React.Component {
   commitPlanBatch(increment) {
     Dispatcher.dispatch({
       actionType: Actions.COMMIT_PLAN_BATCH,
-      batch: this.props.commitPlanBatch + increment
+      batch: this.props.commitPlanBatch + increment,
     });
   }
 
   render() {
-    let versionCounts = {};
+    const versionCounts = {};
     let totalReported = 0;
     this.props.topology.nodes.forEach(node => {
       if (
-        node.hasOwnProperty("status_dump") &&
-        node.status_dump.hasOwnProperty("version")
+        node.hasOwnProperty('status_dump') &&
+        node.status_dump.hasOwnProperty('version')
       ) {
-        let version = node.status_dump.version;
+        const version = node.status_dump.version;
         if (!versionCounts.hasOwnProperty(version)) {
           versionCounts[version] = 0;
         }
@@ -65,15 +66,15 @@ export default class DetailsTopology extends React.Component {
       }
     });
     let i = 0;
-    let versionData = [];
+    const versionData = [];
     Object.keys(versionCounts)
       .sort()
       .forEach(version => {
-        let count = versionCounts[version];
+        const count = versionCounts[version];
         versionData.push({
           label: versionSlicer(version),
           color: chartColor(ChartColors, i),
-          value: count
+          value: count,
         });
         i++;
       });
@@ -82,7 +83,7 @@ export default class DetailsTopology extends React.Component {
     let linksWithData = 0;
     let wirelessLinksCount = 0;
     Object.keys(this.props.links).forEach(linkName => {
-      let link = this.props.links[linkName];
+      const link = this.props.links[linkName];
       if (link.link_type != 1) {
         // only wireless links
         return;
@@ -94,8 +95,8 @@ export default class DetailsTopology extends React.Component {
       ) {
         return;
       }
-      let nodeA = this.props.nodes[link.a_node_name];
-      let nodeZ = this.props.nodes[link.z_node_name];
+      const nodeA = this.props.nodes[link.a_node_name];
+      const nodeZ = this.props.nodes[link.z_node_name];
       if (
         nodeA.mac_addr == null ||
         nodeZ.mac_addr == null ||
@@ -105,17 +106,17 @@ export default class DetailsTopology extends React.Component {
         return;
       }
       let alivePerc = 0;
-      if (link.hasOwnProperty("alive_perc")) {
+      if (link.hasOwnProperty('alive_perc')) {
         alivePerc = parseInt(link.alive_perc * 1000) / 1000.0;
         linksWithData++;
       }
       wirelessLinksCount++;
       alivePercAvg += alivePerc;
     });
-    let nodeTypes = {};
-    let polarities = {};
+    const nodeTypes = {};
+    const polarities = {};
     // { site name, polarity }
-    let polarityBySite = {};
+    const polarityBySite = {};
     this.props.topology.nodes.forEach(node => {
       // calculate # of dns, cns
       if (!nodeTypes.hasOwnProperty(node.node_type)) {
@@ -145,27 +146,27 @@ export default class DetailsTopology extends React.Component {
     alivePercAvg /= wirelessLinksCount;
     alivePercAvg = parseInt(alivePercAvg * 1000) / 1000.0;
 
-    let nodeTypeRows = Object.keys(nodeTypes).map((nodeType, nodeIndex) => {
-      let nodeTypeName = "Unknown";
+    const nodeTypeRows = Object.keys(nodeTypes).map((nodeType, nodeIndex) => {
+      let nodeTypeName = 'Unknown';
       if (nodeType == 1) {
-        nodeTypeName = "CN";
+        nodeTypeName = 'CN';
       } else if (nodeType == 2) {
-        nodeTypeName = "DN";
+        nodeTypeName = 'DN';
       } else {
-        nodeTypeName = "Unknown";
+        nodeTypeName = 'Unknown';
       }
-      let nodeTypeCount = nodeTypes[nodeType];
-      let nodeTypeCountPerc = parseInt(
-        nodeTypeCount / this.props.topology.nodes.length * 100
+      const nodeTypeCount = nodeTypes[nodeType];
+      const nodeTypeCountPerc = parseInt(
+        nodeTypeCount / this.props.topology.nodes.length * 100,
       );
       return (
-        <tr key={"nodeType-" + nodeType}>
+        <tr key={'nodeType-' + nodeType}>
           {nodeIndex == 0 ? (
             <td width="150px" rowSpan={Object.keys(nodeTypes).length}>
               Node Types
             </td>
           ) : (
-            ""
+            ''
           )}
           <td>{nodeTypeName}</td>
           <td>
@@ -175,14 +176,14 @@ export default class DetailsTopology extends React.Component {
       );
     });
     // compute polarity by site
-    let polarityCountBySite = {};
+    const polarityCountBySite = {};
     Object.values(polarityBySite).forEach(polarity => {
       if (!polarityCountBySite.hasOwnProperty(polarity)) {
         polarityCountBySite[polarity] = 0;
       }
       polarityCountBySite[polarity]++;
     });
-    let ruckusApRows = [];
+    const ruckusApRows = [];
     let totalRuckusAps = 0;
     let totalRuckusClients = 0;
     this.props.topology.sites.forEach(site => {
@@ -199,38 +200,37 @@ export default class DetailsTopology extends React.Component {
           <td>Ruckus AP</td>
           <td>{totalRuckusAps} aps</td>
           <td>{totalRuckusClients} clients</td>
-        </tr>
+        </tr>,
       );
     }
-    let polarityBySiteRows = Object.keys(polarityCountBySite).map(
+    const polarityBySiteRows = Object.keys(polarityCountBySite).map(
       (polarity, index) => {
         polarity = parseInt(polarity);
-        let polarityName = "Not Set";
+        let polarityName = 'Not Set';
         if (polarity == 1) {
-          polarityName = "Odd";
+          polarityName = 'Odd';
         } else if (polarity == 2) {
-          polarityName = "Even";
+          polarityName = 'Even';
         } else if (polarity == 3) {
-          polarityName = "Hybrid";
+          polarityName = 'Hybrid';
         }
-        let polarityCount = polarityCountBySite[polarity];
-        let polarityCountPerc = parseInt(
-          polarityCount / this.props.topology.sites.length * 100
+        const polarityCount = polarityCountBySite[polarity];
+        const polarityCountPerc = parseInt(
+          polarityCount / this.props.topology.sites.length * 100,
         );
         return (
-          <tr key={"polarityBySite-" + polarity}>
+          <tr key={'polarityBySite-' + polarity}>
             {index == 0 ? (
               <td
                 width="150px"
-                rowSpan={Object.keys(polarityCountBySite).length}
-              >
+                rowSpan={Object.keys(polarityCountBySite).length}>
                 Polarities (Site)
               </td>
             ) : (
-              ""
+              ''
             )}
             <td>
-              <span style={{ color: polarityColor(parseInt(polarity)) }}>
+              <span style={{color: polarityColor(parseInt(polarity))}}>
                 {polarityName}
               </span>
             </td>
@@ -239,33 +239,31 @@ export default class DetailsTopology extends React.Component {
             </td>
           </tr>
         );
-      }
+      },
     );
-    let polarityRows = Object.keys(polarities).map((polarity, index) => {
+    const polarityRows = Object.keys(polarities).map((polarity, index) => {
       polarity = parseInt(polarity);
-      let polarityName = "Not Set";
+      let polarityName = 'Not Set';
       if (polarity == 1) {
-        polarityName = "Odd";
+        polarityName = 'Odd';
       } else if (polarity == 2) {
-        polarityName = "Even";
+        polarityName = 'Even';
       }
-      let polarityCount = polarities[polarity];
-      let polarityCountPerc = parseInt(
-        polarityCount / this.props.topology.nodes.length * 100
+      const polarityCount = polarities[polarity];
+      const polarityCountPerc = parseInt(
+        polarityCount / this.props.topology.nodes.length * 100,
       );
       return (
-        <tr key={"polarity-" + polarity}>
+        <tr key={'polarity-' + polarity}>
           {index == 0 ? (
             <td width="150px" rowSpan={Object.keys(polarities).length}>
               Polarities (Sector)
             </td>
           ) : (
-            ""
+            ''
           )}
           <td>
-            <span style={{ color: polarityColor(polarity) }}>
-              {polarityName}
-            </span>
+            <span style={{color: polarityColor(polarity)}}>{polarityName}</span>
           </td>
           <td>
             {polarityCount} ({polarityCountPerc}%)
@@ -273,7 +271,7 @@ export default class DetailsTopology extends React.Component {
         </tr>
       );
     });
-    let versionPieChart = (
+    const versionPieChart = (
       <PieChart
         data={versionData}
         shrinkOnTouchEnd
@@ -281,8 +279,8 @@ export default class DetailsTopology extends React.Component {
         expandOnHover
       />
     );
-    let versionRows = versionData.map((element, i) => {
-      let versionPerc =
+    const versionRows = versionData.map((element, i) => {
+      const versionPerc =
         element.value > 0
           ? parseInt(parseInt(element.value) / totalReported * 100)
           : 0;
@@ -291,23 +289,21 @@ export default class DetailsTopology extends React.Component {
           {i == 0 ? (
             <td rowSpan={versionData.length}>{versionPieChart}</td>
           ) : (
-            ""
+            ''
           )}
-          <td key={i} style={{ color: element.color }}>
+          <td key={i} style={{color: element.color}}>
             <span
               style={{
-                fontWeight: this.state.expandedVersion === i ? "bold" : null
-              }}
-            >
+                fontWeight: this.state.expandedVersion === i ? 'bold' : null,
+              }}>
               {element.label}
             </span>
           </td>
           <td>
             <span
               style={{
-                fontWeight: this.state.expandedVersion === i ? "bold" : null
-              }}
-            >
+                fontWeight: this.state.expandedVersion === i ? 'bold' : null,
+              }}>
               {element.value} ({versionPerc}%)
             </span>
           </td>
@@ -317,7 +313,7 @@ export default class DetailsTopology extends React.Component {
     let commitPlan;
     if (
       this.props.commitPlan &&
-      this.props.commitPlan.hasOwnProperty("commitBatches") &&
+      this.props.commitPlan.hasOwnProperty('commitBatches') &&
       this.props.commitOverlayEnabled
     ) {
       commitPlan = (
@@ -327,8 +323,7 @@ export default class DetailsTopology extends React.Component {
             {this.props.commitPlanBatch > 0 ? (
               <button
                 className="prevNextButton"
-                onClick={this.commitPlanPrev.bind(this)}
-              >
+                onClick={this.commitPlanPrev.bind(this)}>
                 &larr;
               </button>
             ) : (
@@ -336,7 +331,7 @@ export default class DetailsTopology extends React.Component {
                 &larr;
               </button>
             )}
-            <span style={{ padding: "0px 10px 0px 10px", fontSize: "24px" }}>
+            <span style={{padding: '0px 10px 0px 10px', fontSize: '24px'}}>
               {this.props.commitPlanBatch + 1}/{
                 this.props.commitPlan.commitBatches.length
               }
@@ -345,8 +340,7 @@ export default class DetailsTopology extends React.Component {
             this.props.commitPlan.commitBatches.length ? (
               <button
                 className="prevNextButton"
-                onClick={this.commitPlanNext.bind(this)}
-              >
+                onClick={this.commitPlanNext.bind(this)}>
                 &rarr;
               </button>
             ) : (
@@ -363,30 +357,27 @@ export default class DetailsTopology extends React.Component {
         bsStyle="primary"
         id="myModal"
         onMouseEnter={this.props.onEnter}
-        onMouseLeave={this.props.onLeave}
-      >
+        onMouseLeave={this.props.onLeave}>
         <Panel.Heading>
           <span
             className="details-close"
             onClick={() => {
               this.props.onClose();
-            }}
-          >
+            }}>
             &times;
           </span>
           <Panel.Title componentClass="h3">Overview</Panel.Title>
         </Panel.Heading>
         <Panel.Body
           className="details"
-          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
-        >
-          <table className="details-table" style={{ width: "100%" }}>
+          style={{maxHeight: this.props.maxHeight, width: '100%'}}>
+          <table className="details-table" style={{width: '100%'}}>
             <tbody>
               <tr>
                 <td width="150px">Availability (24 Hours)</td>
                 <td colSpan="2">
-                  <span style={{ color: availabilityColor(alivePercAvg) }}>
-                    {linksWithData ? alivePercAvg + "%" : "No Data"}
+                  <span style={{color: availabilityColor(alivePercAvg)}}>
+                    {linksWithData ? alivePercAvg + '%' : 'No Data'}
                   </span>
                 </td>
               </tr>

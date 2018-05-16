@@ -5,74 +5,74 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
-import React from "react";
-import equals from "equals";
-import { render } from "react-dom";
-// dispatcher
-import { Actions } from "./constants/NetworkConstants.js";
-import Dispatcher from "./NetworkDispatcher.js";
-import moment from "moment";
-// layout components
-import { Menu, MenuItem, Token, AsyncTypeahead } from "react-bootstrap-typeahead";
-import "react-bootstrap-typeahead/css/Typeahead.css";
+import 'react-bootstrap-typeahead/css/Typeahead.css';
+import 'react-datetime/css/react-datetime.css';
 
+import Dispatcher from './NetworkDispatcher.js';
+// dispatcher
+import {Actions} from './constants/NetworkConstants.js';
+import equals from 'equals';
+import moment from 'moment';
+import PropTypes from 'prop-types';
+// layout components
+import {Menu, MenuItem, Token, AsyncTypeahead} from 'react-bootstrap-typeahead';
 // time picker
-import Datetime from "react-datetime";
-import "react-datetime/css/react-datetime.css";
+import Datetime from 'react-datetime';
+import {render} from 'react-dom';
+import React from 'react';
 
 const TIME_PICKER_OPTS = [
   {
-    label: "30 Minutes",
-    minAgo: 30
+    label: '30 Minutes',
+    minAgo: 30,
   },
   {
-    label: "60 Minutes",
-    minAgo: 60
+    label: '60 Minutes',
+    minAgo: 60,
   },
   {
-    label: "2 Hours",
-    minAgo: 60 * 2
+    label: '2 Hours',
+    minAgo: 60 * 2,
   },
   {
-    label: "6 Hours",
-    minAgo: 60 * 6
+    label: '6 Hours',
+    minAgo: 60 * 6,
   },
   {
-    label: "12 Hours",
-    minAgo: 60 * 12
+    label: '12 Hours',
+    minAgo: 60 * 12,
   },
   {
-    label: "1 Day",
-    minAgo: 60 * 24
+    label: '1 Day',
+    minAgo: 60 * 24,
   },
   {
-    label: "3 Days",
-    minAgo: 60 * 24 * 3
-  }
+    label: '3 Days',
+    minAgo: 60 * 24 * 3,
+  },
 ];
 
 const GRAPH_AGG_OPTS = [
   {
-    name: "top",
-    title: "Top"
+    name: 'top',
+    title: 'Top',
   },
   {
-    name: "bottom",
-    title: "Bottom"
+    name: 'bottom',
+    title: 'Bottom',
   },
   {
-    name: "avg",
-    title: "Avg + Min/Max"
+    name: 'avg',
+    title: 'Avg + Min/Max',
   },
   {
-    name: "sum",
-    title: "Sum"
+    name: 'sum',
+    title: 'Sum',
   },
   {
-    name: "count",
-    title: "Count"
-  }
+    name: 'count',
+    title: 'Count',
+  },
   /*  {
     name: 'split',
     title: 'Split',
@@ -101,7 +101,7 @@ export default class NetworkDashboardStats extends React.Component {
     startTime: new Date(),
     endTime: new Date(),
 
-    graphAggType: "top",
+    graphAggType: 'top',
     keyIsLoading: false,
   };
 
@@ -113,10 +113,10 @@ export default class NetworkDashboardStats extends React.Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // register to receive topology updates
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this)
+      this.handleDispatchEvent.bind(this),
     );
   }
 
@@ -138,13 +138,13 @@ export default class NetworkDashboardStats extends React.Component {
   metricSelectionChanged(selectedOpts) {
     // update graph options
     this.setState({
-      keysSelected: selectedOpts
+      keysSelected: selectedOpts,
     });
   }
 
   isValidStartDate(date) {
     // TODO - more dynamic than one fixed week
-    let minDate = moment().subtract(7, "days");
+    const minDate = moment().subtract(7, 'days');
     return date.toDate() >= minDate.toDate() && date.toDate() < new Date();
   }
 
@@ -155,7 +155,7 @@ export default class NetworkDashboardStats extends React.Component {
   }
 
   formatKeyOptions(keyOptions) {
-    let retKeys = [];
+    const retKeys = [];
     keyOptions.forEach(keyList => {
       // aggregate data for this key
       retKeys.push({name: keyList[0].displayName, data: keyList});
@@ -166,28 +166,28 @@ export default class NetworkDashboardStats extends React.Component {
   renderTypeaheadKeyMenu(option, props, index) {
     return [
       <strong key="name">{option.name}</strong>,
-      <div key="data">Nodes: {option.data.length}</div>
+      <div key="data">Nodes: {option.data.length}</div>,
     ];
   }
 
   onClose() {
     // call-back with graph options
     if (this.state.keysSelected.length >= 1) {
-      let keyIds = [];
-      let dataList = [];
+      const keyIds = [];
+      const dataList = [];
       this.state.keysSelected.forEach(graph => {
         graph.data.forEach(data => {
           dataList.push(data);
           keyIds.push(data.keyId);
         });
       });
-      let graphOpts = this.props.graph;
-      graphOpts["name"] = this.state.keysSelected.map(key => key.name).join(" / ");
-      graphOpts["data"] = dataList;
-      graphOpts["key_ids"] = keyIds;
-      graphOpts["min_ago"] = this.state.minAgo;
-      graphOpts["agg_type"] = this.state.graphAggType;
-      graphOpts["type"] = "key_ids";
+      const graphOpts = this.props.graph;
+      graphOpts.name = this.state.keysSelected.map(key => key.name).join(' / ');
+      graphOpts.data = dataList;
+      graphOpts.key_ids = keyIds;
+      graphOpts.min_ago = this.state.minAgo;
+      graphOpts.agg_type = this.state.graphAggType;
+      graphOpts.type = 'key_ids';
       this.props.onClose(graphOpts);
     }
   }
@@ -196,11 +196,11 @@ export default class NetworkDashboardStats extends React.Component {
     // index nodes by name
     let customInputProps = {};
     if (!this.state.useCustomTime) {
-      customInputProps = { disabled: true };
+      customInputProps = {disabled: true};
     }
 
     return (
-      <div width="800" style={{background: "#fff"}}>
+      <div width="800" style={{background: '#fff'}}>
         <AsyncTypeahead
           key="keys"
           labelKey="name"
@@ -210,25 +210,32 @@ export default class NetworkDashboardStats extends React.Component {
           isLoading={this.state.keyIsLoading}
           onSearch={query => {
             this.setState({keyIsLoading: true, keyOptions: []});
-            let taRequest = {
+            const taRequest = {
               topologyName: this.props.topology.name,
-              input: query
+              input: query,
             };
-            let statsTaRequest = new Request("/stats_ta/" + this.props.topology.name + '/' + query, {
-              credentials: "same-origin"
-            });
+            const statsTaRequest = new Request(
+              '/stats_ta/' + this.props.topology.name + '/' + query,
+              {
+                credentials: 'same-origin',
+              },
+            );
             fetch(statsTaRequest)
               .then(resp => resp.json())
-              .then(json => this.setState({
-                keyIsLoading: false,
-                keyOptions: this.formatKeyOptions(json),
-              }));
+              .then(json =>
+                this.setState({
+                  keyIsLoading: false,
+                  keyOptions: this.formatKeyOptions(json),
+                }),
+              );
           }}
           selected={this.state.keysSelected}
           onChange={this.metricSelectionChanged.bind(this)}
           useCache={false}
           emptyLabel={false}
-          filterBy={(opt, txt) => {return true;}}
+          filterBy={(opt, txt) => {
+            return true;
+          }}
           renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(this)}
           options={this.state.keyOptions}
         />
@@ -239,16 +246,15 @@ export default class NetworkDashboardStats extends React.Component {
             key={opts.label}
             className={
               !this.state.useCustomTime && opts.minAgo == this.state.minAgo
-                ? "graph-button graph-button-selected"
-                : "graph-button"
+                ? 'graph-button graph-button-selected'
+                : 'graph-button'
             }
             onClick={clk =>
               this.setState({
                 useCustomTime: false,
-                minAgo: opts.minAgo
+                minAgo: opts.minAgo,
               })
-            }
-          >
+            }>
             {opts.label}
           </button>
         ))}
@@ -261,15 +267,14 @@ export default class NetworkDashboardStats extends React.Component {
               key="customButton"
               className={
                 this.state.useCustomTime
-                  ? "graph-button graph-button-selected"
-                  : "graph-button"
+                  ? 'graph-button graph-button-selected'
+                  : 'graph-button'
               }
               onClick={clk =>
                 this.setState({
-                  useCustomTime: !this.state.useCustomTime
+                  useCustomTime: !this.state.useCustomTime,
                 })
-              }
-            >
+              }>
               Custom
             </button>
             <span className="timeTitle">Start</span>
@@ -279,8 +284,8 @@ export default class NetworkDashboardStats extends React.Component {
               inputProps={customInputProps}
               isValidDate={this.isValidStartDate.bind(this)}
               onChange={change => {
-                if (typeof change == "object") {
-                  this.setState({ startTime: change.toDate() });
+                if (typeof change === 'object') {
+                  this.setState({startTime: change.toDate()});
                 }
               }}
             />
@@ -292,13 +297,15 @@ export default class NetworkDashboardStats extends React.Component {
               isValidDate={this.isValidEndDate.bind(this)}
               key="endTime"
               onChange={change => {
-                if (typeof change == "object") {
-                  this.setState({ endTime: change.toDate() });
+                if (typeof change === 'object') {
+                  this.setState({endTime: change.toDate()});
                 }
               }}
             />
           </div>
-        ) : ""}
+        ) : (
+          ''
+        )}
         <br />
         <span className="graph-opt-title">Graph Aggregation</span>
         {GRAPH_AGG_OPTS.map(opts => (
@@ -307,18 +314,19 @@ export default class NetworkDashboardStats extends React.Component {
             key={opts.name}
             className={
               opts.name == this.state.graphAggType
-                ? "graph-button graph-button-selected"
-                : "graph-button"
+                ? 'graph-button graph-button-selected'
+                : 'graph-button'
             }
-            onClick={clk => this.setState({ graphAggType: opts.name })}
-          >
+            onClick={clk => this.setState({graphAggType: opts.name})}>
             {opts.title}
           </button>
         ))}
-        <button onClick={this.onClose.bind(this)}
-                label="Close"
-                key="Close"
-                className="graph-button" />
+        <button
+          onClick={this.onClose.bind(this)}
+          label="Close"
+          key="Close"
+          className="graph-button"
+        />
       </div>
     );
   }
@@ -328,5 +336,5 @@ NetworkDashboardStats.propTypes = {
   graph: PropTypes.object,
   // call-back to receive the selected options
   onClose: PropTypes.func.isRequired,
-  topology: PropTypes.object.isRequired
+  topology: PropTypes.object.isRequired,
 };

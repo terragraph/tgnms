@@ -5,31 +5,30 @@
  */
 'use strict';
 
+import 'sweetalert/dist/sweetalert.css';
+
+const classNames = require('classnames');
+
+import {prepareUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
 import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import Modal from "react-modal";
-import Select from "react-select";
-import { prepareUpgrade } from "../../apiutils/UpgradeAPIUtil.js";
-
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
-
-const classNames = require("classnames");
-
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import Select from 'react-select';
+import React from 'react';
+import swal from 'sweetalert';
 
 const modalStyle = {
   content: {
-    width: "calc(100% - 40px)",
-    maxWidth: "800px",
-    display: "table",
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    width: 'calc(100% - 40px)',
+    maxWidth: '800px',
+    display: 'table',
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 export default class ModalPrepareUpgrade extends React.Component {
@@ -52,18 +51,18 @@ export default class ModalPrepareUpgrade extends React.Component {
       uploadLimit: -1, // limit for torrent upload speed (-1 for unlimited)
       maxConnections: -1, // max concurrent connections for torrent (-1 for unlimited)
 
-      isHttp: false // internal component state to let the user specify http or torrent properties
+      isHttp: false, // internal component state to let the user specify http or torrent properties
     };
   }
 
   submitPrepare() {
     if (Object.keys(this.state.selectedImage).length === 0) {
       swal({
-        title: "No Image Selected",
+        title: 'No Image Selected',
         text: `No image was selected for upgrade.
         Please select one from the list or upload one through the "Manage Upgrade Images" option.
         `,
-        type: "error"
+        type: 'error',
       });
       return;
     }
@@ -74,9 +73,9 @@ export default class ModalPrepareUpgrade extends React.Component {
       var n = parseInt(this.state.limit, 10);
       if (n == NaN || String(n) !== this.state.limit || n < 1) {
         swal({
-          title: "Invalid input!",
-          text: `Batch size limit is invalid. Use integers greater than 0.`,
-          type: "error"
+          title: 'Invalid input!',
+          text: 'Batch size limit is invalid. Use integers greater than 0.',
+          type: 'error',
         });
         return;
       }
@@ -93,9 +92,9 @@ export default class ModalPrepareUpgrade extends React.Component {
       // limit of 0 means unlimited max batch size
       limit: this.state.isParallel ? 0 : this.state.limit,
 
-      requestId: "NMS" + new Date().getTime(),
+      requestId: 'NMS' + new Date().getTime(),
       isHttp: this.state.isHttp,
-      topologyName: this.props.topologyName
+      topologyName: this.props.topologyName,
     };
 
     // populate either the downloadAttempts or the torrentParams depending on the user selected mode
@@ -106,7 +105,7 @@ export default class ModalPrepareUpgrade extends React.Component {
         downloadTimeout: this.state.downloadTimeout,
         downloadLimit: this.state.downloadLimit,
         uploadLimit: this.state.uploadLimit,
-        maxConnections: this.state.maxConnections
+        maxConnections: this.state.maxConnections,
       };
     }
 
@@ -116,30 +115,30 @@ export default class ModalPrepareUpgrade extends React.Component {
 
   modalClose() {
     this.setState({
-      selectedImage: {}
+      selectedImage: {},
     });
     this.props.onClose();
   }
 
   onChangeDownloadMode = e => {
-    this.setState({ isHttp: e.currentTarget.value === "http" });
+    this.setState({isHttp: e.currentTarget.value === 'http'});
   };
 
   selectUpgradeImage = val => {
-    const { upgradeImages } = this.props;
+    const {upgradeImages} = this.props;
     const selectedImageName = val.value;
 
     upgradeImages.forEach(image => {
       if (image.name === selectedImageName) {
-        this.setState({ selectedImage: image });
+        this.setState({selectedImage: image});
         return;
       }
     });
   };
 
-  renderUpgradeImages = () => {
-    const { upgradeImages } = this.props;
-    const { selectedImage } = this.state;
+  renderUpgradeImages() {
+    const {upgradeImages} = this.props;
+    const {selectedImage} = this.state;
 
     // .slice(28) is used to remove the "Facebook Terragraph Release" prefix from the image name
     // e.g:
@@ -149,7 +148,7 @@ export default class ModalPrepareUpgrade extends React.Component {
       const imageDisplayName = image.name.slice(28);
       return {
         label: imageDisplayName,
-        value: image.name
+        value: image.name,
       };
     });
 
@@ -165,10 +164,10 @@ export default class ModalPrepareUpgrade extends React.Component {
         />
       </div>
     );
-  };
+  }
 
   render() {
-    const { upgradeNodes, upgradeState, isOpen } = this.props;
+    const {upgradeNodes, upgradeState, isOpen} = this.props;
     /*
     Prepare modal:
       List nodes
@@ -193,7 +192,7 @@ export default class ModalPrepareUpgrade extends React.Component {
           return idx % 2 == 0 ? (
             <p>{node}</p>
           ) : (
-            <p style={{ backgroundColor: "#f9f9f9" }}>{node}</p>
+            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
           );
         })}
       </div>
@@ -205,8 +204,7 @@ export default class ModalPrepareUpgrade extends React.Component {
       <Modal
         style={modalStyle}
         isOpen={isOpen}
-        onRequestClose={this.modalClose.bind(this)}
-      >
+        onRequestClose={this.modalClose.bind(this)}>
         <div className="upgrade-modal-content">
           <label>Nodes to prepare for upgrade ({upgradeNodes.length})</label>
           <div className="upgrade-modal-row">{nodesList}</div>
@@ -218,7 +216,7 @@ export default class ModalPrepareUpgrade extends React.Component {
             <input
               type="number"
               value={this.state.timeout}
-              onChange={event => this.setState({ timeout: event.target.value })}
+              onChange={event => this.setState({timeout: event.target.value})}
             />
           </div>
 
@@ -228,7 +226,7 @@ export default class ModalPrepareUpgrade extends React.Component {
               type="checkbox"
               checked={this.state.skipFailure}
               onChange={event =>
-                this.setState({ skipFailure: event.target.checked })
+                this.setState({skipFailure: event.target.checked})
               }
             />
           </div>
@@ -239,7 +237,7 @@ export default class ModalPrepareUpgrade extends React.Component {
               type="checkbox"
               checked={this.state.isParallel}
               onChange={event =>
-                this.setState({ isParallel: event.target.checked })
+                this.setState({isParallel: event.target.checked})
               }
             />
           </div>
@@ -250,13 +248,13 @@ export default class ModalPrepareUpgrade extends React.Component {
               <input
                 type="number"
                 value={this.state.limit}
-                onChange={event => this.setState({ limit: event.target.value })}
+                onChange={event => this.setState({limit: event.target.value})}
               />
             </div>
           )}
 
-          <form style={{ marginBottom: "10px" }}>
-            <label style={{ float: "left", width: "55%" }}>
+          <form style={{marginBottom: '10px'}}>
+            <label style={{float: 'left', width: '55%'}}>
               Specify the mode to retrieve the image:
             </label>
             <div className="download-type-selector">
@@ -268,7 +266,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                 checked={this.state.isHttp}
                 disabled={true}
               />
-              <label for="http" style={{ marginRight: "20px", opacity: 0.5, marginLeft: "5px" }}>
+              <label
+                for="http"
+                style={{marginRight: '20px', opacity: 0.5, marginLeft: '5px'}}>
                 Http
               </label>
 
@@ -279,7 +279,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                 onChange={this.onChangeDownloadMode}
                 checked={!this.state.isHttp}
               />
-              <label for="torrent" style={{ marginRight: "20px", marginLeft: "5px" }}>
+              <label
+                for="torrent"
+                style={{marginRight: '20px', marginLeft: '5px'}}>
                 Torrent
               </label>
             </div>
@@ -292,7 +294,7 @@ export default class ModalPrepareUpgrade extends React.Component {
                 type="number"
                 value={this.state.downloadAttempts}
                 onChange={event =>
-                  this.setState({ downloadAttempts: event.target.value })
+                  this.setState({downloadAttempts: event.target.value})
                 }
               />
             </div>
@@ -306,7 +308,7 @@ export default class ModalPrepareUpgrade extends React.Component {
                   type="number"
                   value={this.state.downloadTimeout}
                   onChange={event =>
-                    this.setState({ downloadTimeout: event.target.value })
+                    this.setState({downloadTimeout: event.target.value})
                   }
                 />
               </div>
@@ -317,7 +319,7 @@ export default class ModalPrepareUpgrade extends React.Component {
                   type="number"
                   value={this.state.downloadLimit}
                   onChange={event =>
-                    this.setState({ downloadLimit: event.target.value })
+                    this.setState({downloadLimit: event.target.value})
                   }
                 />
               </div>
@@ -328,7 +330,7 @@ export default class ModalPrepareUpgrade extends React.Component {
                   type="number"
                   value={this.state.uploadLimit}
                   onChange={event =>
-                    this.setState({ uploadLimit: event.target.value })
+                    this.setState({uploadLimit: event.target.value})
                   }
                 />
               </div>
@@ -339,7 +341,7 @@ export default class ModalPrepareUpgrade extends React.Component {
                   type="number"
                   value={this.state.maxConnections}
                   onChange={event =>
-                    this.setState({ maxConnections: event.target.value })
+                    this.setState({maxConnections: event.target.value})
                   }
                 />
               </div>
@@ -349,15 +351,13 @@ export default class ModalPrepareUpgrade extends React.Component {
         <div className="upgrade-modal-footer">
           <button
             className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}
-          >
+            onClick={this.modalClose.bind(this)}>
             Close
           </button>
           <button
             className="upgrade-modal-btn"
             onClick={this.submitPrepare.bind(this)}
-            style={{ backgroundColor: "#8b9dc3" }}
-          >
+            style={{backgroundColor: '#8b9dc3'}}>
             Submit
           </button>
         </div>
@@ -373,5 +373,5 @@ ModalPrepareUpgrade.propTypes = {
   upgradeImages: PropTypes.array.isRequired,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequred
+  topologyName: PropTypes.string.isRequred,
 };

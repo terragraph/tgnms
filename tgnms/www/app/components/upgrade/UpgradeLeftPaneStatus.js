@@ -5,12 +5,11 @@
  */
 'use strict';
 
+import Dispatcher from '../../NetworkDispatcher.js';
+import {Actions} from '../../constants/NetworkConstants.js';
 import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-
-import Dispatcher from "../../NetworkDispatcher.js";
-import { Actions } from "../../constants/NetworkConstants.js";
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class UpgradeLeftPaneStatus extends React.Component {
   constructor(props) {
@@ -18,12 +17,12 @@ export default class UpgradeLeftPaneStatus extends React.Component {
   }
 
   render() {
-    const { currentRequest, pendingRequests } = this.props;
+    const {currentRequest, pendingRequests} = this.props;
 
     const currentRequestId = currentRequest ? (
       <span>{currentRequest.urReq.upgradeReqId}</span>
     ) : (
-      <span style={{ color: "#777" }}>
+      <span style={{color: '#777'}}>
         There are no upgrade requests currently running
       </span>
     );
@@ -34,7 +33,7 @@ export default class UpgradeLeftPaneStatus extends React.Component {
           return <p>{req.urReq.upgradeReqId}</p>;
         })
       ) : (
-        <span style={{ color: "#777" }}>
+        <span style={{color: '#777'}}>
           There are no pending upgrade requests
         </span>
       );
@@ -56,5 +55,5 @@ export default class UpgradeLeftPaneStatus extends React.Component {
 
 UpgradeLeftPaneStatus.propTypes = {
   currentRequest: PropTypes.object,
-  pendingRequests: PropTypes.array.isRequired
+  pendingRequests: PropTypes.array.isRequired,
 };

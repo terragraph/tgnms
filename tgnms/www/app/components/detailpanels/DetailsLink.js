@@ -5,16 +5,17 @@
  */
 'use strict';
 
-import React from "react";
-import { render } from "react-dom";
-import { Actions } from "../../constants/NetworkConstants.js";
-import Dispatcher from "../../NetworkDispatcher.js";
-import { availabilityColor } from "../../NetworkHelper.js";
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
-import ModalIgnitionState from "../../ModalIgnitionState.js";
-import classnames from "classnames";
-import { Panel } from "react-bootstrap";
+import 'sweetalert/dist/sweetalert.css';
+
+import ModalIgnitionState from '../../ModalIgnitionState.js';
+import Dispatcher from '../../NetworkDispatcher.js';
+import {availabilityColor} from '../../NetworkHelper.js';
+import {Actions} from '../../constants/NetworkConstants.js';
+import classnames from 'classnames';
+import {Panel} from 'react-bootstrap';
+import {render} from 'react-dom';
+import React from 'react';
+import swal from 'sweetalert';
 
 export default class DetailsLink extends React.Component {
   state = {
@@ -29,9 +30,9 @@ export default class DetailsLink extends React.Component {
     this.changeLinkStatus = this.changeLinkStatus.bind(this);
   }
 
-  statusColor(onlineStatus, trueText = "True", falseText = "False") {
+  statusColor(onlineStatus, trueText = 'True', falseText = 'False') {
     return (
-      <span style={{ color: onlineStatus ? "forestgreen" : "firebrick" }}>
+      <span style={{color: onlineStatus ? 'forestgreen' : 'firebrick'}}>
         {onlineStatus ? trueText : falseText}
       </span>
     );
@@ -40,159 +41,147 @@ export default class DetailsLink extends React.Component {
   selectSite(siteName) {
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
-      tabName: "nodes"
+      tabName: 'nodes',
     });
-    setTimeout(
-      function() {
-        Dispatcher.dispatch({
-          actionType: Actions.SITE_SELECTED,
-          siteSelected: siteName
-        });
-      }.bind(this),
-      1
-    );
+    setTimeout(function() {
+      Dispatcher.dispatch({
+        actionType: Actions.SITE_SELECTED,
+        siteSelected: siteName,
+      });
+    }, 1);
   }
 
   selectNode(nodeName) {
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
-      tabName: "nodes"
+      tabName: 'nodes',
     });
-    setTimeout(
-      function() {
-        Dispatcher.dispatch({
-          actionType: Actions.NODE_SELECTED,
-          nodeSelected: nodeName,
-          source: "details"
-        });
-      }.bind(this),
-      1
-    );
+    setTimeout(function() {
+      Dispatcher.dispatch({
+        actionType: Actions.NODE_SELECTED,
+        nodeSelected: nodeName,
+        source: 'details',
+      });
+    }, 1);
   }
 
   changeLinkStatus(upDown, initiatorIsAnode) {
-    let status = upDown ? "up" : "down";
-    let iNode = initiatorIsAnode
+    const status = upDown ? 'up' : 'down';
+    const iNode = initiatorIsAnode
       ? this.props.link.a_node_name
       : this.props.link.z_node_name;
-    let rNode = initiatorIsAnode
+    const rNode = initiatorIsAnode
       ? this.props.link.z_node_name
       : this.props.link.a_node_name;
     swal(
       {
-        title: "Are you sure?",
-        text: "This will send a link " + status + " request to e2e-controller",
-        type: "warning",
+        title: 'Are you sure?',
+        text: 'This will send a link ' + status + ' request to e2e-controller',
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes, do it!",
-        closeOnConfirm: false
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Yes, do it!',
+        closeOnConfirm: false,
       },
       function() {
-        let promis = new Promise((resolve, reject) => {
-          let exec = new Request(
-            "/controller/setlinkStatus/" +
+        const promis = new Promise((resolve, reject) => {
+          const exec = new Request(
+            '/controller/setlinkStatus/' +
               this.props.topologyName +
-              "/" +
+              '/' +
               iNode +
-              "/" +
+              '/' +
               rNode +
-              "/" +
+              '/' +
               status,
-            { credentials: "same-origin" }
+            {credentials: 'same-origin'},
           );
-          fetch(exec).then(
-            function(response) {
-              if (response.status == 200) {
-                swal(
-                  {
-                    title: "Request successful!",
-                    text: "Response: " + response.statusText,
-                    type: "success"
-                  },
-                  function() {
-                    resolve();
-                  }.bind(this)
-                );
-              } else {
-                swal(
-                  {
-                    title: "Request failed!",
-                    text:
-                      "Link status change failed\nReason: " +
-                      response.statusText,
-                    type: "error"
-                  },
-                  function() {
-                    resolve();
-                  }.bind(this)
-                );
-              }
-            }.bind(this)
-          );
+          fetch(exec).then(function(response) {
+            if (response.status == 200) {
+              swal(
+                {
+                  title: 'Request successful!',
+                  text: 'Response: ' + response.statusText,
+                  type: 'success',
+                },
+                function() {
+                  resolve();
+                },
+              );
+            } else {
+              swal(
+                {
+                  title: 'Request failed!',
+                  text:
+                    'Link status change failed\nReason: ' + response.statusText,
+                  type: 'error',
+                },
+                function() {
+                  resolve();
+                },
+              );
+            }
+          });
         });
-      }.bind(this)
+      }.bind(this),
     );
   }
 
   deleteLink(force) {
-    let forceDelete = force ? "force" : "no_force";
+    const forceDelete = force ? 'force' : 'no_force';
     swal(
       {
-        title: "Are you sure?",
-        text: "You will not be able to recover this Link!",
-        type: "warning",
+        title: 'Are you sure?',
+        text: 'You will not be able to recover this Link!',
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes, delete it!",
-        closeOnConfirm: false
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Yes, delete it!',
+        closeOnConfirm: false,
       },
       function() {
-        let promis = new Promise((resolve, reject) => {
-          let exec = new Request(
-            "/controller/delLink/" +
+        const promis = new Promise((resolve, reject) => {
+          const exec = new Request(
+            '/controller/delLink/' +
               this.props.topologyName +
-              "/" +
+              '/' +
               this.props.link.a_node_name +
-              "/" +
+              '/' +
               this.props.link.z_node_name +
-              "/" +
+              '/' +
               forceDelete,
-            { credentials: "same-origin" }
+            {credentials: 'same-origin'},
           );
-          fetch(exec).then(
-            function(response) {
-              if (response.status == 200) {
-                swal(
-                  {
-                    title: "Link Deleted!",
-                    text: "Response: " + response.statusText,
-                    type: "success"
-                  },
-                  function() {
-                    Dispatcher.dispatch({
-                      actionType: Actions.CLEAR_NODE_LINK_SELECTED
-                    });
-                    resolve();
-                  }.bind(this)
-                );
-              } else {
-                swal(
-                  {
-                    title: "Failed!",
-                    text:
-                      "Link deletion failed\nReason: " + response.statusText,
-                    type: "error"
-                  },
-                  function() {
-                    resolve();
-                  }.bind(this)
-                );
-              }
-            }.bind(this)
-          );
+          fetch(exec).then(function(response) {
+            if (response.status == 200) {
+              swal(
+                {
+                  title: 'Link Deleted!',
+                  text: 'Response: ' + response.statusText,
+                  type: 'success',
+                },
+                function() {
+                  Dispatcher.dispatch({
+                    actionType: Actions.CLEAR_NODE_LINK_SELECTED,
+                  });
+                  resolve();
+                },
+              );
+            } else {
+              swal(
+                {
+                  title: 'Failed!',
+                  text: 'Link deletion failed\nReason: ' + response.statusText,
+                  type: 'error',
+                },
+                function() {
+                  resolve();
+                },
+              );
+            }
+          });
         });
-      }.bind(this)
+      }.bind(this),
     );
   }
 
@@ -206,64 +195,64 @@ export default class DetailsLink extends React.Component {
 
     swal(
       {
-        title: "Are you sure?",
+        title: 'Are you sure?',
         text:
-          "This will start sending IPerf traffic from\n" +
+          'This will start sending IPerf traffic from\n' +
           src.name +
-          "\nto\n" +
+          '\nto\n' +
           dest.name +
-          "\n\nPlease provide a bitrate (bps):",
-        type: "input",
+          '\n\nPlease provide a bitrate (bps):',
+        type: 'input',
         showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes, do it!",
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Yes, do it!',
         closeOnConfirm: false,
-        inputPlaceholder: "Bitrate (bps)",
-        inputValue: 100
+        inputPlaceholder: 'Bitrate (bps)',
+        inputValue: 100,
       },
       inputValue => {
         const bitrate = parseInt(inputValue, 10);
         if (isNaN(bitrate) || bitrate < 1) {
           swal({
-            title: "Invalid bitrate!",
-            text: "Please provide a valid bitrate",
-            type: "error"
+            title: 'Invalid bitrate!',
+            text: 'Please provide a valid bitrate',
+            type: 'error',
           });
           return;
         }
-        let exec = new Request(
-          "/controller/startTraffic/" +
+        const exec = new Request(
+          '/controller/startTraffic/' +
           this.props.topologyName +
-          "/" +
+          '/' +
           src.name +
-          "/" +
+          '/' +
           dest.name +
-          "/" +
+          '/' +
           srcIP +
-          "/" +
+          '/' +
           destIP +
-          "/" +
+          '/' +
           bitrate + // bitrate
-            "/" +
+            '/' +
             100, // time in seconds
-          { credentials: "same-origin" }
+          {credentials: 'same-origin'},
         );
         fetch(exec).then(response => {
           if (response.status == 200) {
             swal({
-              title: "Request successful!",
-              text: "Response: " + response.statusText,
-              type: "success"
+              title: 'Request successful!',
+              text: 'Response: ' + response.statusText,
+              type: 'success',
             });
           } else {
             swal({
-              title: "Request failed!",
-              text: "Starting IPerf failed \nReason: " + response.statusText,
-              type: "error"
+              title: 'Request failed!',
+              text: 'Starting IPerf failed \nReason: ' + response.statusText,
+              type: 'error',
             });
           }
         });
-      }
+      },
     );
   }
 
@@ -276,43 +265,43 @@ export default class DetailsLink extends React.Component {
 
     swal(
       {
-        title: "Are you sure?",
-        text: "This will stop sending IPerf traffic from " + node.name,
-        type: "warning",
+        title: 'Are you sure?',
+        text: 'This will stop sending IPerf traffic from ' + node.name,
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes, do it!",
-        closeOnConfirm: false
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Yes, do it!',
+        closeOnConfirm: false,
       },
       () => {
-        let exec = new Request(
-          "/controller/stopTraffic/" +
+        const exec = new Request(
+          '/controller/stopTraffic/' +
             this.props.topologyName +
-            "/" +
+            '/' +
             node.name,
-          { credentials: "same-origin" }
+          {credentials: 'same-origin'},
         );
         fetch(exec).then(response => {
           if (response.status == 200) {
             swal({
-              title: "Request successful!",
-              text: "Response: " + response.statusText,
-              type: "success"
+              title: 'Request successful!',
+              text: 'Response: ' + response.statusText,
+              type: 'success',
             });
           } else {
             swal({
-              title: "Request failed!",
-              text: "Stopping IPerf failed \nReason: " + response.statusText,
-              type: "error"
+              title: 'Request failed!',
+              text: 'Stopping IPerf failed \nReason: ' + response.statusText,
+              type: 'error',
             });
           }
         });
-      }
+      },
     );
   }
 
   onHeadingClick(showTable) {
-    let show = this.state[showTable]
+    const show = this.state[showTable];
     this.setState({[showTable]: !show});
   }
 
@@ -321,13 +310,13 @@ export default class DetailsLink extends React.Component {
       return <div />;
     }
 
-    let nodeA = this.props.nodes[this.props.link.a_node_name];
-    let nodeZ = this.props.nodes[this.props.link.z_node_name];
+    const nodeA = this.props.nodes[this.props.link.a_node_name];
+    const nodeZ = this.props.nodes[this.props.link.z_node_name];
     if (!nodeA || !nodeZ) {
       return <div />;
     }
-    let siteA = nodeA ? nodeA.site_name : "Unkown Site";
-    let siteZ = nodeZ ? nodeZ.site_name : "Unkown Site";
+    const siteA = nodeA ? nodeA.site_name : 'Unkown Site';
+    const siteZ = nodeZ ? nodeZ.site_name : 'Unkown Site';
 
     let linkupAttempts = 0;
     if (
@@ -343,14 +332,14 @@ export default class DetailsLink extends React.Component {
       ignitionStateModal = (
         <ModalIgnitionState
           isOpen={true}
-          onClose={() => this.setState({ ignitionStateModalOpen: false })}
+          onClose={() => this.setState({ignitionStateModalOpen: false})}
           link={this.props.link}
           topologyName={this.props.topologyName}
         />
       );
     }
     let alivePerc = 0;
-    if (this.props.link.hasOwnProperty("alive_perc")) {
+    if (this.props.link.hasOwnProperty('alive_perc')) {
       alivePerc = parseInt(this.props.link.alive_perc * 1000) / 1000.0;
     }
 
@@ -364,28 +353,25 @@ export default class DetailsLink extends React.Component {
         bsStyle="primary"
         id="myModal"
         onMouseEnter={this.props.onEnter}
-        onMouseLeave={this.props.onLeave}
-      >
+        onMouseLeave={this.props.onLeave}>
         {ignitionStateModal}
         <Panel.Heading>
           <span
             className="details-close"
             onClick={() => {
               this.props.onClose();
-            }}
-          >
+            }}>
             &times;
           </span>
           <Panel.Title componentClass="h3">
-            {this.props.link.pending ? "(Pending) " : ""}Link Details
+            {this.props.link.pending ? '(Pending) ' : ''}Link Details
           </Panel.Title>
         </Panel.Heading>
         <Panel.Body
           className="details"
-          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
-        >
-          <h3 style={{ marginTop: "0px" }}>{this.props.link.name}</h3>
-          <table className="details-table" style={{ width: "100%" }}>
+          style={{maxHeight: this.props.maxHeight, width: '100%'}}>
+          <h3 style={{marginTop: '0px'}}>{this.props.link.name}</h3>
+          <table className="details-table" style={{width: '100%'}}>
             <tbody>
               <tr>
                 <td width="100px">A-Node</td>
@@ -394,12 +380,11 @@ export default class DetailsLink extends React.Component {
                     className="details-link"
                     onClick={() => {
                       this.selectNode(this.props.link.a_node_name);
-                    }}
-                  >
+                    }}>
                     {this.statusColor(
                       nodeA.status == 2 || nodeA.status == 3,
                       this.props.link.a_node_name,
-                      this.props.link.a_node_name
+                      this.props.link.a_node_name,
                     )}
                   </span>
                 </td>
@@ -408,8 +393,7 @@ export default class DetailsLink extends React.Component {
                     className="details-link"
                     onClick={() => {
                       this.selectSite(siteA);
-                    }}
-                  >
+                    }}>
                     {siteA}
                   </span>
                 </td>
@@ -421,12 +405,11 @@ export default class DetailsLink extends React.Component {
                     className="details-link"
                     onClick={() => {
                       this.selectNode(this.props.link.z_node_name);
-                    }}
-                  >
+                    }}>
                     {this.statusColor(
                       nodeZ.status == 2 || nodeZ.status == 3,
                       this.props.link.z_node_name,
-                      this.props.link.z_node_name
+                      this.props.link.z_node_name,
                     )}
                   </span>
                 </td>
@@ -435,8 +418,7 @@ export default class DetailsLink extends React.Component {
                     className="details-link"
                     onClick={() => {
                       this.selectSite(siteZ);
-                    }}
-                  >
+                    }}>
                     {siteZ}
                   </span>
                 </td>
@@ -466,56 +448,57 @@ export default class DetailsLink extends React.Component {
               <tr>
                 <td width="100px">Availability</td>
                 <td colSpan="2">
-                  <span style={{ color: availabilityColor(alivePerc) }}>
+                  <span style={{color: availabilityColor(alivePerc)}}>
                     {alivePerc}%
                   </span>
                 </td>
               </tr>
             </tbody>
           </table>
-          <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
-          {this.state.showActions &&
-            <table className="details-table" style={{ width: "100%" }}>
+          <h4
+            onClick={() => {
+              this.onHeadingClick('showActions');
+            }}>
+            Actions
+          </h4>
+          {this.state.showActions && (
+            <table className="details-table" style={{width: '100%'}}>
               <tbody>
                 <tr>
                   <td colSpan="3">
                     <div>
-                      Send Link Up (pick initiator):{" "}
+                      Send Link Up (pick initiator):{' '}
                       <span
                         className="details-link"
                         onClick={() => {
                           this.changeLinkStatus(true, true);
-                        }}
-                      >
+                        }}>
                         A-Node
-                      </span>{" "}
+                      </span>{' '}
                       &nbsp;&nbsp;
                       <span
                         className="details-link"
                         onClick={() => {
                           this.changeLinkStatus(true, false);
-                        }}
-                      >
+                        }}>
                         Z-Node
                       </span>
                     </div>
                     <div>
-                      Send Link Down (pick initiator):{" "}
+                      Send Link Down (pick initiator):{' '}
                       <span
                         className="details-link"
                         onClick={() => {
                           this.changeLinkStatus(false, true);
-                        }}
-                      >
+                        }}>
                         A-Node
-                      </span>{" "}
+                      </span>{' '}
                       &nbsp;&nbsp;
                       <span
                         className="details-link"
                         onClick={() => {
                           this.changeLinkStatus(false, false);
-                        }}
-                      >
+                        }}>
                         Z-Node
                       </span>
                     </div>
@@ -523,51 +506,47 @@ export default class DetailsLink extends React.Component {
                     <div>
                       Start IPerf (pick initiator):&nbsp;
                       <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
+                        className={classnames('details-link', {
+                          'details-link--disabled': !IPerfEnabled,
                         })}
                         onClick={() => {
                           this.startIPerfTraffic(nodeA, nodeZ);
-                        }}
-                      >
+                        }}>
                         A-Node
-                      </span>{" "}
+                      </span>{' '}
                       &nbsp;&nbsp;
                       <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
+                        className={classnames('details-link', {
+                          'details-link--disabled': !IPerfEnabled,
                         })}
                         onClick={() => {
                           this.startIPerfTraffic(nodeZ, nodeA);
-                        }}
-                      >
+                        }}>
                         Z-Node
-                      </span>{" "}
+                      </span>{' '}
                       &nbsp;&nbsp;
                     </div>
                     <div>
                       Stop IPerf:&nbsp;
                       <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
+                        className={classnames('details-link', {
+                          'details-link--disabled': !IPerfEnabled,
                         })}
                         onClick={() => {
                           this.stopIPerfTraffic(nodeA);
-                        }}
-                      >
+                        }}>
                         A-Node
-                      </span>{" "}
+                      </span>{' '}
                       &nbsp;&nbsp;
                       <span
-                        className={classnames("details-link", {
-                          "details-link--disabled": !IPerfEnabled
+                        className={classnames('details-link', {
+                          'details-link--disabled': !IPerfEnabled,
                         })}
                         onClick={() => {
                           this.stopIPerfTraffic(nodeZ);
-                        }}
-                      >
+                        }}>
                         Z-Node
-                      </span>{" "}
+                      </span>{' '}
                       &nbsp;&nbsp;
                     </div>
                     <hr className="details-separator" />
@@ -575,9 +554,8 @@ export default class DetailsLink extends React.Component {
                       <span
                         className="details-link"
                         onClick={() =>
-                          this.setState({ ignitionStateModalOpen: true })
-                        }
-                      >
+                          this.setState({ignitionStateModalOpen: true})
+                        }>
                         Check Ignition State
                       </span>
                     </div>
@@ -586,8 +564,7 @@ export default class DetailsLink extends React.Component {
                         className="details-link"
                         onClick={() => {
                           this.deleteLink(false);
-                        }}
-                      >
+                        }}>
                         Delete Link
                       </span>
                     </div>
@@ -596,8 +573,7 @@ export default class DetailsLink extends React.Component {
                         className="details-link"
                         onClick={() => {
                           this.deleteLink(true);
-                        }}
-                      >
+                        }}>
                         Delete Link (Force)
                       </span>
                     </div>
@@ -605,7 +581,7 @@ export default class DetailsLink extends React.Component {
                 </tr>
               </tbody>
             </table>
-          }
+          )}
         </Panel.Body>
       </Panel>
     );

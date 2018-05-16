@@ -5,24 +5,24 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
-import React from "react";
-// leaflet maps
-import { render } from "react-dom";
+import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
-import { availabilityColor } from "./NetworkHelper.js";
-import { Actions } from "./constants/NetworkConstants.js";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
-import Dispatcher from "./NetworkDispatcher.js";
-import NetworkStore from "./stores/NetworkStore.js";
-import ReactEventChart from "./ReactEventChart.js";
+import {availabilityColor} from './NetworkHelper.js';
+import ReactEventChart from './ReactEventChart.js';
+import {Actions} from './constants/NetworkConstants.js';
+import NetworkStore from './stores/NetworkStore.js';
+import PropTypes from 'prop-types';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+// leaflet maps
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class NetworkNodesTable extends React.Component {
   state = {
     selectedNodeSite: null,
     nodesSelected: [],
     nodeHealth: NetworkStore.nodeHealth,
-    showEventsChart: false
+    showEventsChart: false,
   };
 
   constructor(props) {
@@ -33,26 +33,26 @@ export default class NetworkNodesTable extends React.Component {
     this.tableOnRowMouseOver = this.tableOnRowMouseOver.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this)
+      this.handleDispatchEvent.bind(this),
     );
     // fetch selected site from store
     if (NetworkStore.selectedName) {
       var selectedRows = [];
       Object.keys(this.props.topology.nodes).map(nodeIndex => {
-        let node = this.props.topology.nodes[nodeIndex];
+        const node = this.props.topology.nodes[nodeIndex];
         if (node.site_name == NetworkStore.selectedName) {
           selectedRows.push(node.name);
         }
       });
       this.setState({
-        sortName: "site_name",
-        sortOrder: "desc",
+        sortName: 'site_name',
+        sortOrder: 'desc',
         selectedSiteName: NetworkStore.selectedName,
         selectedNodeSite: NetworkStore.selectedName,
-        nodesSelected: selectedRows
+        nodesSelected: selectedRows,
       });
     }
   }
@@ -66,41 +66,41 @@ export default class NetworkNodesTable extends React.Component {
     switch (payload.actionType) {
       case Actions.NODE_SELECTED:
         this.setState({
-          nodesSelected: [payload.nodeSelected]
+          nodesSelected: [payload.nodeSelected],
         });
         break;
       case Actions.SITE_SELECTED:
         var selectedRows = [];
         Object.keys(this.props.topology.nodes).map(nodeIndex => {
-          let node = this.props.topology.nodes[nodeIndex];
+          const node = this.props.topology.nodes[nodeIndex];
           if (node.site_name == payload.siteSelected) {
             selectedRows.push(node.name);
           }
         });
         this.setState({
-          sortName: "site_name",
-          sortOrder: "desc",
+          sortName: 'site_name',
+          sortOrder: 'desc',
           selectedSiteName: payload.siteSelected,
           selectedNodeSite: payload.siteSelected,
-          nodesSelected: selectedRows
+          nodesSelected: selectedRows,
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
           nodesSelected: null,
-          selectedLink: null
+          selectedLink: null,
         });
         break;
       case Actions.HEALTH_REFRESHED:
         this.setState({
-          nodeHealth: payload.nodeHealth
+          nodeHealth: payload.nodeHealth,
         });
         break;
     }
   }
 
   getTableRows(
-    nodes
+    nodes,
   ): Array<{
     name: string,
     mac_addr: string,
@@ -113,25 +113,25 @@ export default class NetworkNodesTable extends React.Component {
     availability: number,
     minion_restarts: number,
     events: array,
-    uboot_version: string
+    uboot_version: string,
   }> {
     const rows = [];
     nodes.forEach(node => {
       var ipv6 = node.status_dump
         ? node.status_dump.ipv6Address
-        : "Not Available";
+        : 'Not Available';
       var version = node.status_dump
         ? node.status_dump.version.slice(28)
-        : "Not Available";
+        : 'Not Available';
       var ubootVersion =
         node.status_dump && node.status_dump.uboot_version
           ? node.status_dump.uboot_version
-          : "Not Available";
+          : 'Not Available';
       let availability = 0;
       let events = [];
       if (
         this.state.nodeHealth &&
-        this.state.nodeHealth.hasOwnProperty("metrics") &&
+        this.state.nodeHealth.hasOwnProperty('metrics') &&
         this.state.nodeHealth.metrics.hasOwnProperty(node.name)
       ) {
         availability = this.state.nodeHealth.metrics[node.name].minion_uptime;
@@ -140,7 +140,7 @@ export default class NetworkNodesTable extends React.Component {
       rows.push({
         name: node.name,
         mac_addr: node.mac_addr,
-        node_type: node.node_type == 2 ? "DN" : "CN",
+        node_type: node.node_type == 2 ? 'DN' : 'CN',
         ignited: node.status == 2 || node.status == 3,
         site_name: node.site_name,
         pop_node: node.pop_node,
@@ -150,7 +150,7 @@ export default class NetworkNodesTable extends React.Component {
         key: node.name,
         availability: availability,
         events: events,
-        minion_restarts: events.length
+        minion_restarts: events.length,
       });
     });
     return rows;
@@ -161,18 +161,18 @@ export default class NetworkNodesTable extends React.Component {
     Dispatcher.dispatch({
       actionType: Actions.NODE_SELECTED,
       nodeSelected: row.name,
-      source: "table"
+      source: 'table',
     });
   }
 
   _handleTabSelect(index, last) {
     this.setState({
       selectedTabIndex: index,
-      selectedLink: null
+      selectedLink: null,
     });
     // TODO - should we null the selected node?
     Dispatcher.dispatch({
-      actionType: Actions.CLEAR_NODE_LINK_SELECTED
+      actionType: Actions.CLEAR_NODE_LINK_SELECTED,
     });
   }
 
@@ -186,7 +186,7 @@ export default class NetworkNodesTable extends React.Component {
       }
     }
 
-    if (order === "desc") {
+    if (order === 'desc') {
       if (a.site_name > b.site_name) {
         return -1;
       } else if (a.site_name < b.site_name) {
@@ -204,19 +204,19 @@ export default class NetworkNodesTable extends React.Component {
   }
 
   tableOnSortChange(sortName, sortOrder) {
-    this.setState({ sortName, sortOrder, selectedSiteName: undefined });
+    this.setState({sortName, sortOrder, selectedSiteName: undefined});
   }
 
   tableOnRowMouseOver(row, e) {
     this.setState({
-      nodesRowMouseOver: row
+      nodesRowMouseOver: row,
     });
   }
 
   renderStatusColor(cell, row) {
     return (
-      <span style={{ color: cell ? "forestgreen" : "firebrick" }}>
-        {"" + cell}
+      <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
+        {'' + cell}
       </span>
     );
   }
@@ -235,19 +235,19 @@ export default class NetworkNodesTable extends React.Component {
   }
 
   renderNodeAvailability(cell, row) {
-    let cellColor = availabilityColor(cell);
-    let cellText = Math.round(cell * 100) / 100;
-    return <span style={{ color: cellColor }}>{"" + cellText}</span>;
+    const cellColor = availabilityColor(cell);
+    const cellText = Math.round(cell * 100) / 100;
+    return <span style={{color: cellColor}}>{'' + cellText}</span>;
   }
 
   render() {
     var selectRowProp = {
-      mode: "checkbox",
+      mode: 'checkbox',
       clickToSelect: true,
       hideSelectColumn: true,
-      bgColor: "rgb(183,210,255)",
+      bgColor: 'rgb(183,210,255)',
       onSelect: this.tableOnRowSelect,
-      selected: this.state.nodesSelected
+      selected: this.state.nodesSelected,
     };
 
     const tableOptions = {
@@ -255,7 +255,7 @@ export default class NetworkNodesTable extends React.Component {
       sortOrder: this.state.sortOrder,
       onSortChange: this.tableOnSortChange,
       onRowMouseOver: this.tableOnRowMouseOver,
-      trClassName: "break-word"
+      trClassName: 'break-word',
     };
 
     let nodesData = [];
@@ -267,36 +267,32 @@ export default class NetworkNodesTable extends React.Component {
     if (this.state.showEventsChart && false) {
       nodesTable = (
         <BootstrapTable
-          height={this.props.height + "px"}
+          height={this.props.height + 'px'}
           key="nodesTable"
           options={tableOptions}
           data={this.getTableRows(nodesData)}
           striped={true}
           hover={true}
           selectRow={selectRowProp}
-          trClassName="break-word"
-        >
+          trClassName="break-word">
           <TableHeaderColumn
             width="120"
             dataSort={true}
             dataField="name"
-            isKey={true}
-          >
+            isKey={true}>
             Name
           </TableHeaderColumn>
           <TableHeaderColumn
             width="90"
             dataSort={true}
             dataField="ignited"
-            dataFormat={this.renderStatusColor}
-          >
+            dataFormat={this.renderStatusColor}>
             Ignited
           </TableHeaderColumn>
           <TableHeaderColumn
             width="700"
             dataField="availability"
-            dataFormat={this.renderNodeAvailabilityChart.bind(this)}
-          >
+            dataFormat={this.renderNodeAvailabilityChart.bind(this)}>
             Availability (24 hours)
           </TableHeaderColumn>
         </BootstrapTable>
@@ -304,21 +300,19 @@ export default class NetworkNodesTable extends React.Component {
     } else {
       nodesTable = (
         <BootstrapTable
-          height={this.props.height + "px"}
+          height={this.props.height + 'px'}
           key="nodesTable"
           options={tableOptions}
           data={this.getTableRows(nodesData)}
           striped={true}
           hover={true}
           selectRow={selectRowProp}
-          trClassName="break-word"
-        >
+          trClassName="break-word">
           <TableHeaderColumn
             width="170"
             dataSort={true}
             dataField="name"
-            isKey={true}
-          >
+            isKey={true}>
             Name
           </TableHeaderColumn>
           <TableHeaderColumn width="160" dataSort={true} dataField="mac_addr">
@@ -334,39 +328,34 @@ export default class NetworkNodesTable extends React.Component {
             width="90"
             dataSort={true}
             dataField="ignited"
-            dataFormat={this.renderStatusColor}
-          >
+            dataFormat={this.renderStatusColor}>
             Ignited
           </TableHeaderColumn>
           <TableHeaderColumn
             width="80"
             dataSort={true}
             dataField="site_name"
-            sortFunc={this.siteSortFunc}
-          >
+            sortFunc={this.siteSortFunc}>
             Site
           </TableHeaderColumn>
           <TableHeaderColumn
             width="80"
             dataSort={true}
             dataField="pop_node"
-            dataFormat={this.renderStatusColor}
-          >
+            dataFormat={this.renderStatusColor}>
             Pop?
           </TableHeaderColumn>
           <TableHeaderColumn
             width="100"
             dataSort={true}
             dataField="availability"
-            dataFormat={this.renderNodeAvailability.bind(this)}
-          >
+            dataFormat={this.renderNodeAvailability.bind(this)}>
             Availability (24 hours)
           </TableHeaderColumn>
           <TableHeaderColumn
             width="120"
             dataSort={true}
-            dataField="minion_restarts"
-          >
+            dataField="minion_restarts">
             Minion Restarts (24 hours)
           </TableHeaderColumn>
           <TableHeaderColumn width="700" dataSort={true} dataField="version">
@@ -375,8 +364,7 @@ export default class NetworkNodesTable extends React.Component {
           <TableHeaderColumn
             width="700"
             dataSort={true}
-            dataField="uboot_version"
-          >
+            dataField="uboot_version">
             Uboot Version
           </TableHeaderColumn>
         </BootstrapTable>
@@ -392,5 +380,5 @@ export default class NetworkNodesTable extends React.Component {
   }
 }
 NetworkNodesTable.propTypes = {
-  topology: PropTypes.object.isRequired
+  topology: PropTypes.object.isRequired,
 };

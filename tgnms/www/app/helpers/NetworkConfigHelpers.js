@@ -5,9 +5,9 @@
  */
 'use strict';
 
-import { ADD_FIELD_TYPES } from "../constants/NetworkConfigConstants.js";
+var _ = require('lodash');
 
-var _ = require("lodash");
+import {ADD_FIELD_TYPES} from '../constants/NetworkConfigConstants.js';
 
 export const getImageVersionsForNetwork = topology => {
   if (!topology || !topology.nodes) {
@@ -29,17 +29,17 @@ export const getImageVersionsForNetwork = topology => {
 // unsets the property in obj retrieved using editPath
 // then cleans up all empty objects within obj
 export const unsetAndCleanup = (obj, editPath, stopIdx) => {
-  let cleanedObj = _.cloneDeep(obj);
+  const cleanedObj = _.cloneDeep(obj);
 
-  let newEditPath = [...editPath]; // copy the editpath as we need to change the copy
+  const newEditPath = [...editPath]; // copy the editpath as we need to change the copy
   if (newEditPath.length === 0) {
-    console.error(`error, editPath cannot be empty`);
+    console.error('error, editPath cannot be empty');
   }
 
   const isValueUnset = _.unset(cleanedObj, newEditPath);
   if (!isValueUnset) {
     console.error(
-      `could not unset value at path ${newEditPath} for object ${cleanedObj}`
+      `could not unset value at path ${newEditPath} for object ${cleanedObj}`,
     );
   }
 
@@ -87,7 +87,7 @@ const alphabeticalSort = (a, b) => {
 };
 
 export const sortConfig = config => {
-  let newConfig = {};
+  const newConfig = {};
 
   Object.keys(config)
     .sort(alphabeticalSort)
@@ -101,7 +101,7 @@ export const sortConfig = config => {
 };
 
 export const getDefaultValueForType = type => {
-  let defaultValue = "";
+  let defaultValue = '';
   switch (type) {
     case ADD_FIELD_TYPES.OBJECT:
       defaultValue = {};
@@ -113,10 +113,10 @@ export const getDefaultValueForType = type => {
       defaultValue = 0;
       break;
     case ADD_FIELD_TYPES.STRING:
-      defaultValue = "";
+      defaultValue = '';
       break;
     default:
-      console.error("Error, invalid type detected for adding a new field");
+      console.error('Error, invalid type detected for adding a new field');
   }
 
   return defaultValue;
@@ -140,27 +140,28 @@ export const convertAndValidateNewConfigObject = newConfig => {
   ) {
     return {
       config: undefined,
-      validationMsg: "New config is empty"
+      validationMsg: 'New config is empty',
     };
   }
 
-  let config = {};
-  let validationMsg = "";
+  const config = {};
+  const validationMsg = '';
 
   // for all keys in the new config object that we wish to convert
   for (var id in newConfig) {
-    const { type, field, value } = newConfig[id];
+    const {type, field, value} = newConfig[id];
     // check for empty and duplicate fields, and terminate if we encounter them
     if (config.hasOwnProperty(field)) {
       return {
         config: undefined,
-        validationMsg: `Duplicate field ${field} detected, Please rename the field`
+        validationMsg: `Duplicate field ${field} detected, Please rename the field`,
       };
       break;
-    } else if (field === "") {
+    } else if (field === '') {
       return {
         config: undefined,
-        validationMsg: `Field cannot be empty. Please provide a name for the field`
+        validationMsg:
+          'Field cannot be empty. Please provide a name for the field',
       };
     }
 
@@ -179,5 +180,5 @@ export const convertAndValidateNewConfigObject = newConfig => {
     }
   }
 
-  return { config, validationMsg };
+  return {config, validationMsg};
 };

@@ -5,20 +5,19 @@
  */
 'use strict';
 
-import Leaflet, { Point, LatLng } from "leaflet";
-
-import { Actions } from "../constants/NetworkConstants.js";
-import Dispatcher from "../NetworkDispatcher.js";
+import Dispatcher from '../NetworkDispatcher.js';
+import {Actions} from '../constants/NetworkConstants.js';
+import Leaflet, {Point, LatLng} from 'leaflet';
 
 export const MAX_SECTOR_SIZE = 45; // max size allocated for a node sector, in degrees
 
 const DEFAULT_SEGMENT_OPTIONS = {
   weight: 1,
-  color: "#000000",
+  color: '#000000',
   fillOpacity: 1,
   radius: 20,
   barThickness: 10,
-  level: 1000
+  level: 1000,
 };
 
 const sortkeysByValue = toSort => {
@@ -37,7 +36,7 @@ const sortkeysByValue = toSort => {
 };
 
 const getLinkAnglesForNodes = (nodeNames, linksByNode) => {
-  let anglesByNode = {};
+  const anglesByNode = {};
 
   nodeNames.forEach(node => {
     if (!linksByNode[node]) {
@@ -76,7 +75,7 @@ const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
   // desired offset from the midpoint to one side. we want to make the sector symmetrical about the link line
   const desiredOffset = Math.min(leftOffset, rightOffset, MAX_SECTOR_SIZE / 2);
 
-  let nodeValues = {};
+  const nodeValues = {};
 
   /*
   Visualizing the above:
@@ -87,33 +86,33 @@ const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
 
   // note: we are leveraging the property that objects in ES6 are iterated in the order of insertion, hence the control structure shown
   if (leftOffset > desiredOffset) {
-    nodeValues[padID + "_left"] = ownAngle - desiredOffset - leftAngle;
+    nodeValues[padID + '_left'] = ownAngle - desiredOffset - leftAngle;
   }
   nodeValues[node] = 2 * desiredOffset;
   if (rightOffset > desiredOffset) {
-    nodeValues[padID + "_right"] = rightAngle - desiredOffset - ownAngle;
+    nodeValues[padID + '_right'] = rightAngle - desiredOffset - ownAngle;
   }
 
   return nodeValues;
 };
 
 const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
-  let nodeValues = {};
-  let leftAngles = {};
-  let rightAngles = {};
+  const nodeValues = {};
+  const leftAngles = {};
+  const rightAngles = {};
 
   // special case when we have one node
   if (sortedNodesByAngle.length === 1) {
     const node = sortedNodesByAngle[0];
     const nodeMac = nodesByName[node].mac_addr;
 
-    nodeValues[nodeMac + "_left"] = (360 - MAX_SECTOR_SIZE) / 2;
+    nodeValues[nodeMac + '_left'] = (360 - MAX_SECTOR_SIZE) / 2;
     nodeValues[node] = MAX_SECTOR_SIZE;
-    nodeValues[nodeMac + "_right"] = (360 - MAX_SECTOR_SIZE) / 2;
+    nodeValues[nodeMac + '_right'] = (360 - MAX_SECTOR_SIZE) / 2;
 
     return {
       nodeValues,
-      offset: linkAnglesForNodes[node] + 90
+      offset: linkAnglesForNodes[node] + 90,
     };
   }
 
@@ -153,15 +152,15 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
         linkAnglesForNodes[node],
         adjLeftAngle,
         rightAngle,
-        nodesByName[node].mac_addr
-      )
+        nodesByName[node].mac_addr,
+      ),
     );
   });
 
   // use the left-angle of the first sector to calculate the rotation offset needed for the pie chart
   return {
     nodeValues,
-    offset: leftAngles[sortedNodesByAngle[0]] - 90
+    offset: leftAngles[sortedNodesByAngle[0]] - 90,
   };
 };
 
@@ -171,11 +170,11 @@ export const getNodeMarker = (
   linksByNode,
   selectedNode,
   mouseEnterFunc,
-  mouseLeaveFunc
+  mouseLeaveFunc,
 ) => {
   let nodeNames = [];
-  let nodesByName = {};
-  let linkAnglesForSiteNodes = {};
+  const nodesByName = {};
+  const linkAnglesForSiteNodes = {};
   nodesInSite.forEach(node => {
     nodeNames = nodeNames.concat(node.name);
     nodesByName[node.name] = node;
@@ -184,33 +183,33 @@ export const getNodeMarker = (
   // filter the link angles for only the nodes in the site (the ones that we care about)
   const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, linksByNode);
 
-  const { nodeValues, offset } = getNodeValues(
+  const {nodeValues, offset} = getNodeValues(
     linkAnglesForNodes,
     sortkeysByValue(linkAnglesForNodes),
-    nodesByName
+    nodesByName,
   );
 
   const chartOptions = {};
   Object.keys(nodeValues).forEach(nodeName => {
     const node = nodesByName[nodeName];
     const fillColor =
-      node && (node.status === 2 || node.status === 3) ? "#44ff44" : "#ff2222";
+      node && (node.status === 2 || node.status === 3) ? '#44ff44' : '#ff2222';
 
     chartOptions[nodeName] = {
       fillColor: fillColor,
-      fillOpacity: 1
+      fillOpacity: 1,
     };
   });
 
   const options = Object.assign({}, DEFAULT_SEGMENT_OPTIONS, {
     data: nodeValues,
     chartOptions: chartOptions,
-    rotation: offset
+    rotation: offset,
   });
 
   const newMarker = new Leaflet.PieChartMarker(
     new LatLng(siteCoords[0], siteCoords[1]),
-    options
+    options,
   );
 
   // TODO: hacky but only way we can bind onClick to each segment
@@ -224,15 +223,15 @@ export const getNodeMarker = (
       segmentOptions = {
         opacity: 0,
         fillOpacity: 0,
-        weight: 0
+        weight: 0,
       };
     } else if (node.name === selectedNode) {
       segmentOptions = {
         barThickness: 12,
         radiusX: 24,
         radiusY: 24,
-        color: "#0000bb",
-        weight: 3
+        color: '#0000bb',
+        weight: 3,
       };
     }
 
@@ -242,17 +241,17 @@ export const getNodeMarker = (
     layer.off();
 
     if (nodesByName.hasOwnProperty(layer.options.key)) {
-      layer.on("click", e => {
+      layer.on('click', e => {
         const nodeName = e.target.options.key;
         Dispatcher.dispatch({
           actionType: Actions.NODE_SELECTED,
           nodeSelected: nodeName,
-          source: "map"
+          source: 'map',
         });
       });
     }
 
-    layer.on("mouseout", e => {
+    layer.on('mouseout', e => {
       mouseLeaveFunc();
     });
   });

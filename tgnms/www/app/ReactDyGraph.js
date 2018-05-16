@@ -5,19 +5,19 @@
  */
 'use strict';
 
+import Dygraph from 'dygraphs';
+import equals from 'equals';
 import PropTypes from 'prop-types';
-import React from "react";
-import equals from "equals";
-import Dygraph from "dygraphs";
+import React from 'react';
 
 export default class ReactDyGraph extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
       data: null,
-      indicator: "IDLE",
+      indicator: 'IDLE',
       dataCounter: 0,
-      unit: 0
+      unit: 0,
     };
     this.chartRequest = undefined;
   }
@@ -46,8 +46,8 @@ export default class ReactDyGraph extends React.Component {
       nextProps.options.length;
     if (!changed) {
       for (let i = 0; i < this.props.options.length; i++) {
-        let curOpts = this.props.options[i];
-        let nextOpts = nextProps.options[i];
+        const curOpts = this.props.options[i];
+        const nextOpts = nextProps.options[i];
         if (!equals(curOpts, nextOpts)) {
           changed = true;
           break;
@@ -58,7 +58,7 @@ export default class ReactDyGraph extends React.Component {
       this.cancelAsyncRequests();
       this.setState({
         data: null,
-        indicator: "LOAD"
+        indicator: 'LOAD',
       });
       this.timer = setInterval(this.refreshData.bind(this), 30000);
       this.refreshData();
@@ -79,7 +79,7 @@ export default class ReactDyGraph extends React.Component {
     if (!this.props.options.key_ids.length) {
       this.setState({
         data: null,
-        indicator: "NO_DATA"
+        indicator: 'NO_DATA',
       });
       return;
     }
@@ -93,18 +93,18 @@ export default class ReactDyGraph extends React.Component {
         // no data to display, should show a different indicator
         this.setState({
           data: null,
-          indicator: "NO_DATA"
+          indicator: 'NO_DATA',
         });
         return;
       }
-      let jsonResp = "";
+      let jsonResp = '';
       try {
-        let respTxt = this.chartRequest.responseText;
+        const respTxt = this.chartRequest.responseText;
         jsonResp = JSON.parse(respTxt);
       } catch (e) {
-        console.log("Unable to parse json", e, this.chartRequest.responseText);
+        console.log('Unable to parse json', e, this.chartRequest.responseText);
       }
-      let graphData = jsonResp[0];
+      const graphData = jsonResp[0];
       var i = 0;
       for (; i < graphData.points.length; i++) {
         graphData.points[i][0] = new Date(graphData.points[i][0]);
@@ -116,9 +116,9 @@ export default class ReactDyGraph extends React.Component {
       });
       this.setState({
         data: graphData,
-        indicator: jsonResp ? "LOADED" : "NO_DATA",
+        indicator: jsonResp ? 'LOADED' : 'NO_DATA',
         dataCounter: this.state.dataCounter + 1,
-        unit: lastUnit
+        unit: lastUnit,
       });
     }.bind(this);
     // handle failed requests
@@ -126,12 +126,12 @@ export default class ReactDyGraph extends React.Component {
       if (this.chartRequest.readyState == 4 && this.chartRequest.status == 0) {
         this.setState({
           data: null,
-          indicator: "FAILED"
+          indicator: 'FAILED',
         });
       }
     }.bind(this);
     try {
-      this.chartRequest.open("POST", "/multi_chart/", true);
+      this.chartRequest.open('POST', '/multi_chart/', true);
       this.chartRequest.send(JSON.stringify([this.props.options]));
     } catch (e) {}
   }
@@ -139,7 +139,7 @@ export default class ReactDyGraph extends React.Component {
   axisFormatter(value) {
     if (this.state.unit == 2) {
       // format mbps
-      let valueBps = value * 8;
+      const valueBps = value * 8;
       if (valueBps > 1000000000 /* 1 gbit */) {
         return Math.round(valueBps / 1000000000 * 100) / 100 + ' gbit';
       }
@@ -152,31 +152,33 @@ export default class ReactDyGraph extends React.Component {
     if (data.x == null) {
       // This happens when there's no selection and {legend: 'always'} is set.
       return (
-        "<br>" +
+        '<br>' +
         data.series
           .map(function(series) {
             return series.labelHTML;
           })
-          .join("<br>")
+          .join('<br>')
       );
     }
-    var html = "";
+    var html = '';
     data.series.forEach(function(series) {
-      if (!series.isVisible) return;
-      var labeledData = series.labelHTML + ": " + series.yHTML;
+      if (!series.isVisible) {
+        return;
+      }
+      var labeledData = series.labelHTML + ': ' + series.yHTML;
       if (series.isHighlighted) {
-        html += data.xHTML + " " + "<b>" + labeledData + "</b>";
+        html += data.xHTML + ' ' + '<b>' + labeledData + '</b>';
       }
     });
     return html;
   }
 
   render() {
-    let gRef = "graph";
-    let lRef = "legend";
+    const gRef = 'graph';
+    const lRef = 'legend';
 
     if (this.state.data) {
-      let graphData = this.state.data;
+      const graphData = this.state.data;
       this._dygraphs = new Dygraph(
         this.refs[this.props.divkey],
         graphData.points,
@@ -191,37 +193,37 @@ export default class ReactDyGraph extends React.Component {
           highlightSeriesOpts: {
             strokeWidth: 3,
             strokeBorderWidth: 1,
-            highlightCircleSize: 5
+            highlightCircleSize: 5,
           },
-          labelsDiv: this.refs[this.props.divkey + "_ledend"],
+          labelsDiv: this.refs[this.props.divkey + '_ledend'],
           axes: {
             y: {
               axisLabelFormatter: this.axisFormatter.bind(this),
-              valueFormatter: this.axisFormatter.bind(this)
-            }
+              valueFormatter: this.axisFormatter.bind(this),
+            },
           },
-          legendFormatter: this.legendFormatter
-        }
+          legendFormatter: this.legendFormatter,
+        },
       );
     } else {
-      let myRef = this.refs[this.props.divkey];
+      const myRef = this.refs[this.props.divkey];
       if (myRef) {
-        myRef.innerHTML = "";
+        myRef.innerHTML = '';
       }
     }
 
     return (
       <div>
-        <div ref={this.props.divkey + "_ledend"} />
+        <div ref={this.props.divkey + '_ledend'} />
         <div
           ref={this.props.divkey}
           id={gRef}
           style={{
-            position: "absolute",
-            left: "0px",
-            right: "10px",
-            top: "20px",
-            bottom: "10px"
+            position: 'absolute',
+            left: '0px',
+            right: '10px',
+            top: '20px',
+            bottom: '10px',
           }}
         />
       </div>
@@ -232,5 +234,5 @@ export default class ReactDyGraph extends React.Component {
 ReactDyGraph.propTypes = {
   divkey: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  options: PropTypes.array.isRequired
+  options: PropTypes.array.isRequired,
 };

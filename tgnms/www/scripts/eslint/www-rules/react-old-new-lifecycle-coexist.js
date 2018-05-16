@@ -40,9 +40,9 @@ function getMethods(nodes, targetType) {
   let willUpdateMethod = null;
   let willReceivePropsMethod = null;
   let newAPIMethod = null;
-  for (let p of nodes) {
+  for (const p of nodes) {
     if (p.type === targetType) {
-      let name = getMethodName(p);
+      const name = getMethodName(p);
       if (isWillMountMethod(name)) {
         willMountMethod = name;
       }
@@ -87,9 +87,9 @@ function getMessage(
 module.exports = function rule(context) {
   return {
     ObjectExpression(node) {
-      let properties = node.properties;
+      const properties = node.properties;
       if (properties) {
-        let {
+        const {
           willMountMethod,
           willUpdateMethod,
           willReceivePropsMethod,
@@ -118,7 +118,7 @@ module.exports = function rule(context) {
     ClassBody(node) {
       const body = node.body;
       if (body) {
-        let {
+        const {
           willMountMethod,
           willUpdateMethod,
           willReceivePropsMethod,

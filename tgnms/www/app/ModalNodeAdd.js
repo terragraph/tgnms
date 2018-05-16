@@ -5,53 +5,54 @@
  */
 'use strict';
 
-import React from "react";
-import { render } from "react-dom";
-import Modal from "react-modal";
-import Select from "react-select";
-import NumericInput from "react-numeric-input";
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
+import 'sweetalert/dist/sweetalert.css';
+
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import NumericInput from 'react-numeric-input';
+import Select from 'react-select';
+import React from 'react';
+import swal from 'sweetalert';
 
 const customModalStyle = {
   content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 const nodeTypesVector = [
-  { value: "DN", label: "DN" },
-  { value: "CN", label: "CN" }
+  {value: 'DN', label: 'DN'},
+  {value: 'CN', label: 'CN'},
 ];
 
 const nodePolaritiesVector = [
-  { value: "ODD", label: "ODD" },
-  { value: "EVEN", label: "EVEN" }
+  {value: 'ODD', label: 'ODD'},
+  {value: 'EVEN', label: 'EVEN'},
 ];
 
 const polarityTypesVector = [
-  { value: "ODD", label: "ODD" },
-  { value: "EVEN", label: "EVEN" }
+  {value: 'ODD', label: 'ODD'},
+  {value: 'EVEN', label: 'EVEN'},
 ];
 
 export default class ModalNodeAdd extends React.Component {
   state = {
-    node_name: "",
+    node_name: '',
     node_is_primary: false,
     node_type: null,
-    node_mac_addr: "",
+    node_mac_addr: '',
     node_is_pop: false,
     node_polarity: null,
     node_txGolayIdx: null,
     node_rxGolayIdx: null,
     node_site_name: null,
     node_ant_azimuth: null,
-    node_has_cpe: false
+    node_has_cpe: false,
   };
 
   componentDidMount() {}
@@ -61,7 +62,7 @@ export default class ModalNodeAdd extends React.Component {
   }
 
   addNode() {
-    let newNode = {
+    const newNode = {
       name: this.state.node_name,
       is_primary: this.state.node_is_primary,
       type: this.state.node_type,
@@ -72,21 +73,21 @@ export default class ModalNodeAdd extends React.Component {
       rxGolayIdx: this.state.node_rxGolayIdx,
       site_name: this.state.node_site_name,
       ant_azimuth: this.state.node_ant_azimuth,
-      has_cpe: this.state.node_has_cpe
+      has_cpe: this.state.node_has_cpe,
     };
-    let postData = {
+    const postData = {
       topology: this.props.topology.name,
-      newNode: newNode
+      newNode: newNode,
     };
     swal(
       {
-        title: "Are you sure?",
-        text: "You are adding a node to this topology!",
-        type: "warning",
+        title: 'Are you sure?',
+        text: 'You are adding a node to this topology!',
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes, add it!",
-        closeOnConfirm: false
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Yes, add it!',
+        closeOnConfirm: false,
       },
       function() {
         var request = new XMLHttpRequest();
@@ -96,23 +97,23 @@ export default class ModalNodeAdd extends React.Component {
           }
           if (request.status == 200) {
             swal({
-              title: "Node Added!",
-              text: "Response: " + request.statusText,
-              type: "success"
+              title: 'Node Added!',
+              text: 'Response: ' + request.statusText,
+              type: 'success',
             });
           } else {
             swal({
-              title: "Failed!",
-              text: "Adding a link failed\nReason: " + request.statusText,
-              type: "error"
+              title: 'Failed!',
+              text: 'Adding a link failed\nReason: ' + request.statusText,
+              type: 'error',
             });
           }
-        }.bind(this);
+        };
         try {
-          request.open("POST", "/controller/addNode", true);
+          request.open('POST', '/controller/addNode', true);
           request.send(JSON.stringify(postData));
         } catch (e) {}
-      }.bind(this)
+      },
     );
   }
 
@@ -123,7 +124,7 @@ export default class ModalNodeAdd extends React.Component {
       Object(this.props.topology.sites).forEach(site => {
         sitesVector.push({
           value: site.name,
-          label: site.name
+          label: site.name,
         });
       });
     }
@@ -133,21 +134,22 @@ export default class ModalNodeAdd extends React.Component {
         isOpen={this.props.isOpen}
         onRequestClose={this.modalClose.bind(this)}
         style={customModalStyle}
-        contentLabel="Example Modal"
-      >
+        contentLabel="Example Modal">
         <table>
           <tbody>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>Name <span className="required-asterisk">*</span></td>
+              <td width={100}>
+                Name <span className="required-asterisk">*</span>
+              </td>
               <td>
                 <input
                   className="form-control"
-                  style={{ width: "100%", height: "34px" }}
+                  style={{width: '100%', height: '34px'}}
                   type="text"
                   value={this.state.node_name}
                   onChange={event =>
-                    this.setState({ node_name: event.target.value })
+                    this.setState({node_name: event.target.value})
                   }
                 />
               </td>
@@ -158,37 +160,41 @@ export default class ModalNodeAdd extends React.Component {
               <td>
                 <input
                   className="form-control"
-                  style={{ width: "100%", height: "34px" }}
+                  style={{width: '100%', height: '34px'}}
                   type="text"
                   value={this.state.node_mac_addr}
                   onChange={event =>
-                    this.setState({ node_mac_addr: event.target.value })
+                    this.setState({node_mac_addr: event.target.value})
                   }
                 />
               </td>
             </tr>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>Site <span className="required-asterisk">*</span></td>
+              <td width={100}>
+                Site <span className="required-asterisk">*</span>
+              </td>
               <td>
                 <Select
                   options={sitesVector}
                   name="Select Site"
                   value={this.state.node_site_name}
-                  onChange={val => this.setState({ node_site_name: val.value })}
+                  onChange={val => this.setState({node_site_name: val.value})}
                   clearable={false}
                 />
               </td>
             </tr>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>Type <span className="required-asterisk">*</span></td>
+              <td width={100}>
+                Type <span className="required-asterisk">*</span>
+              </td>
               <td>
                 <Select
                   options={nodeTypesVector}
                   name="Select Site"
                   value={this.state.node_type}
-                  onChange={val => this.setState({ node_type: val.value })}
+                  onChange={val => this.setState({node_type: val.value})}
                   clearable={false}
                 />
               </td>
@@ -202,7 +208,7 @@ export default class ModalNodeAdd extends React.Component {
                   type="checkbox"
                   checked={this.state.node_is_pop}
                   onChange={event =>
-                    this.setState({ node_is_pop: event.target.checked })
+                    this.setState({node_is_pop: event.target.checked})
                   }
                 />
               </td>
@@ -216,7 +222,7 @@ export default class ModalNodeAdd extends React.Component {
                   type="checkbox"
                   checked={this.state.node_is_primary}
                   onChange={event =>
-                    this.setState({ node_is_primary: event.target.checked })
+                    this.setState({node_is_primary: event.target.checked})
                   }
                 />
               </td>
@@ -229,7 +235,7 @@ export default class ModalNodeAdd extends React.Component {
                   options={nodePolaritiesVector}
                   name="Select Polarity"
                   value={this.state.node_polarity}
-                  onChange={val => this.setState({ node_polarity: val.value })}
+                  onChange={val => this.setState({node_polarity: val.value})}
                   clearable={false}
                 />
               </td>
@@ -242,7 +248,7 @@ export default class ModalNodeAdd extends React.Component {
                   className="form-control"
                   style={false}
                   value={this.state.node_txGolayIdx}
-                  onChange={val => this.setState({ node_txGolayIdx: val })}
+                  onChange={val => this.setState({node_txGolayIdx: val})}
                 />
               </td>
             </tr>
@@ -254,7 +260,7 @@ export default class ModalNodeAdd extends React.Component {
                   className="form-control"
                   style={false}
                   value={this.state.node_rxGolayIdx}
-                  onChange={val => this.setState({ node_rxGolayIdx: val })}
+                  onChange={val => this.setState({node_rxGolayIdx: val})}
                 />
               </td>
             </tr>
@@ -263,7 +269,8 @@ export default class ModalNodeAdd extends React.Component {
               <td colSpan="3">
                 <span className="text-muted">
                   <em>
-                    <span className="required-asterisk">*</span> Indicates required field
+                    <span className="required-asterisk">*</span> Indicates
+                    required field
                   </em>
                 </span>
               </td>
@@ -273,17 +280,15 @@ export default class ModalNodeAdd extends React.Component {
               <td width={100} />
               <td>
                 <button
-                  style={{ float: "right" }}
+                  style={{float: 'right'}}
                   className="graph-button"
-                  onClick={this.modalClose.bind(this)}
-                >
+                  onClick={this.modalClose.bind(this)}>
                   Close
                 </button>
                 <button
-                  style={{ float: "right" }}
+                  style={{float: 'right'}}
                   className="graph-button"
-                  onClick={this.addNode.bind(this)}
-                >
+                  onClick={this.addNode.bind(this)}>
                   Add Node
                 </button>
               </td>

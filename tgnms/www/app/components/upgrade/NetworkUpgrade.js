@@ -5,35 +5,31 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-
+import Dispatcher from '../../NetworkDispatcher.js';
+import {listUpgradeImages} from '../../apiutils/UpgradeAPIUtil.js';
 import {
   Actions,
   UploadStatus,
-  DeleteStatus
-} from "../../constants/NetworkConstants.js";
-import { UPGRADE_IMAGE_REFRESH_INTERVAL } from "../../constants/UpgradeConstants.js";
-import Dispatcher from "../../NetworkDispatcher.js";
-
-import { listUpgradeImages } from "../../apiutils/UpgradeAPIUtil.js";
-
-import UpgradeLeftPane from "./UpgradeLeftPane.js";
-import UpgradeMonitor from "./UpgradeMonitor.js";
-
-import ModalUpgradeBinary from "./ModalUpgradeBinary.js";
-import ModalResetStatus from "./ModalResetStatus.js";
-import ModalPrepareUpgrade from "./ModalPrepareUpgrade.js";
-import ModalCommitUpgrade from "./ModalCommitUpgrade.js";
-import ModalAbortUpgrade from "./ModalAbortUpgrade.js";
+  DeleteStatus,
+} from '../../constants/NetworkConstants.js';
+import {UPGRADE_IMAGE_REFRESH_INTERVAL} from '../../constants/UpgradeConstants.js';
+import ModalAbortUpgrade from './ModalAbortUpgrade.js';
+import ModalCommitUpgrade from './ModalCommitUpgrade.js';
+import ModalPrepareUpgrade from './ModalPrepareUpgrade.js';
+import ModalResetStatus from './ModalResetStatus.js';
+import ModalUpgradeBinary from './ModalUpgradeBinary.js';
+import UpgradeLeftPane from './UpgradeLeftPane.js';
+import UpgradeMonitor from './UpgradeMonitor.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import React from 'react';
 
 const UPGRADE_OPERATIONS = {
-  BINARY: "binary",
-  PREPARE: "prepare",
-  COMMIT: "commit",
-  ABORT: "abort",
-  RESET: "reset"
+  BINARY: 'binary',
+  PREPARE: 'prepare',
+  COMMIT: 'commit',
+  ABORT: 'abort',
+  RESET: 'reset',
 };
 
 export default class NetworkUpgrade extends React.Component {
@@ -41,7 +37,7 @@ export default class NetworkUpgrade extends React.Component {
     super(props);
 
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this)
+      this.handleDispatchEvent.bind(this),
     );
 
     this.fetchUpgradeImages();
@@ -50,7 +46,7 @@ export default class NetworkUpgrade extends React.Component {
     // save the interval id so we can clear it when the component unmounts
     const intervalId = setInterval(
       this.fetchUpgradeImages,
-      UPGRADE_IMAGE_REFRESH_INTERVAL
+      UPGRADE_IMAGE_REFRESH_INTERVAL,
     );
 
     this.state = {
@@ -66,7 +62,7 @@ export default class NetworkUpgrade extends React.Component {
       upgradeModalOpen: false,
       upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
 
-      intervalId: intervalId
+      intervalId: intervalId,
     };
   }
 
@@ -81,70 +77,70 @@ export default class NetworkUpgrade extends React.Component {
 
         this.setState({
           selectedNodesForUpgrade: [],
-          upgradeImages: []
+          upgradeImages: [],
         });
         break;
       case Actions.UPGRADE_IMAGES_LOADED:
         if (Array.isArray(payload.upgradeImages)) {
           this.setState({
-            upgradeImages: payload.upgradeImages
+            upgradeImages: payload.upgradeImages,
           });
         }
         break;
       case Actions.FETCH_UPGRADE_IMAGES_FAILED:
         this.setState({
-          upgradeImages: []
+          upgradeImages: [],
         });
         break;
       case Actions.UPGRADE_UPLOAD_STATUS:
         this.setState({
           uploadStatus: payload.uploadStatus,
-          uploadProgress: 0
+          uploadProgress: 0,
         });
         break;
       case Actions.UPGRADE_UPLOAD_PROGRESS:
         this.setState({
-          uploadProgress: payload.progress
+          uploadProgress: payload.progress,
         });
         break;
       case Actions.UPGRADE_DELETE_IMAGE_STATUS:
         this.setState({
-          deleteStatus: payload.deleteStatus
+          deleteStatus: payload.deleteStatus,
         });
         break;
       case Actions.UPGRADE_NODES_SELECTED:
         this.setState({
-          selectedNodesForUpgrade: payload.nodes
+          selectedNodesForUpgrade: payload.nodes,
         });
         break;
       case Actions.OPEN_UPGRADE_BINARY_MODAL:
         this.setState({
           upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.BINARY
+          upgradeModalMode: UPGRADE_OPERATIONS.BINARY,
         });
         break;
       case Actions.OPEN_RESET_STATUS_MODAL:
         this.setState({
           upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.RESET
+          upgradeModalMode: UPGRADE_OPERATIONS.RESET,
         });
         break;
       case Actions.OPEN_PREPARE_UPGRADE_MODAL:
         this.setState({
           upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.PREPARE
+          upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
         });
         break;
       case Actions.OPEN_COMMIT_UPGRADE_MODAL:
         this.setState({
           upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.COMMIT
+          upgradeModalMode: UPGRADE_OPERATIONS.COMMIT,
         });
         break;
       case Actions.OPEN_ABORT_UPGRADE_MODAL:
         this.setState({
           upgradeModalOpen: true,
-          upgradeModalMode: UPGRADE_OPERATIONS.ABORT
+          upgradeModalMode: UPGRADE_OPERATIONS.ABORT,
         });
         break;
       default:
@@ -153,31 +149,31 @@ export default class NetworkUpgrade extends React.Component {
   }
 
   fetchUpgradeImages = () => {
-    const { topology } = this.props.networkConfig;
+    const {topology} = this.props.networkConfig;
     listUpgradeImages(topology.name);
   };
 
   getExcludedNodes = () => {
     const nodes = this.props.networkConfig.topology.nodes;
-    const { selectedNodesForUpgrade } = this.state;
+    const {selectedNodesForUpgrade} = this.state;
 
-    let selectedNames = new Set(selectedNodesForUpgrade);
+    const selectedNames = new Set(selectedNodesForUpgrade);
 
     return nodes.map(node => node.name).filter(nodeName => {
       return !selectedNames.has(nodeName);
     });
   };
 
-  hasCurrentRequest = upgradeStateDump => {
+  hasCurrentRequest(upgradeStateDump) {
     return (
       upgradeStateDump &&
-      upgradeStateDump.hasOwnProperty("curUpgradeReq") &&
-      upgradeStateDump.curUpgradeReq.urReq.upgradeReqId !== ""
+      upgradeStateDump.hasOwnProperty('curUpgradeReq') &&
+      upgradeStateDump.curUpgradeReq.urReq.upgradeReqId !== ''
     );
-  };
+  }
 
-  renderUpgradeModal = () => {
-    const { networkConfig, upgradeStateDump } = this.props;
+  renderUpgradeModal() {
+    const {networkConfig, upgradeStateDump} = this.props;
     const {
       upgradeModalOpen,
       upgradeModalMode,
@@ -185,7 +181,7 @@ export default class NetworkUpgrade extends React.Component {
       upgradeImages,
       uploadStatus,
       uploadProgress,
-      deleteStatus
+      deleteStatus,
     } = this.state;
 
     let upgradeNetworkModal = <div />;
@@ -194,7 +190,7 @@ export default class NetworkUpgrade extends React.Component {
         upgradeNetworkModal = (
           <ModalUpgradeBinary
             isOpen={this.state.upgradeModalOpen}
-            onClose={() => this.setState({ upgradeModalOpen: false })}
+            onClose={() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeImages={upgradeImages}
             uploadStatus={uploadStatus}
@@ -207,7 +203,7 @@ export default class NetworkUpgrade extends React.Component {
         upgradeNetworkModal = (
           <ModalResetStatus
             isOpen={this.state.upgradeModalOpen}
-            onClose={() => this.setState({ upgradeModalOpen: false })}
+            onClose={() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeNodes={this.state.selectedNodesForUpgrade}
           />
@@ -218,7 +214,7 @@ export default class NetworkUpgrade extends React.Component {
           <ModalPrepareUpgrade
             getExcludedNodes={this.getExcludedNodes}
             isOpen={this.state.upgradeModalOpen}
-            onClose={() => this.setState({ upgradeModalOpen: false })}
+            onClose={() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeNodes={this.state.selectedNodesForUpgrade}
             upgradeImages={upgradeImages}
@@ -231,7 +227,7 @@ export default class NetworkUpgrade extends React.Component {
           <ModalCommitUpgrade
             getExcludedNodes={this.getExcludedNodes}
             isOpen={this.state.upgradeModalOpen}
-            onClose={() => this.setState({ upgradeModalOpen: false })}
+            onClose={() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeNodes={this.state.selectedNodesForUpgrade}
             upgradeState={networkConfig.upgradeState}
@@ -239,8 +235,8 @@ export default class NetworkUpgrade extends React.Component {
         );
         break;
       case UPGRADE_OPERATIONS.ABORT:
-        let pendingRequests =
-          upgradeStateDump && upgradeStateDump.hasOwnProperty("pendingReqs")
+        const pendingRequests =
+          upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingReqs')
             ? upgradeStateDump.pendingReqs
             : [];
 
@@ -251,7 +247,7 @@ export default class NetworkUpgrade extends React.Component {
         upgradeNetworkModal = (
           <ModalAbortUpgrade
             isOpen={this.state.upgradeModalOpen}
-            onClose={() => this.setState({ upgradeModalOpen: false })}
+            onClose={() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeRequests={upgradeRequests}
           />
@@ -260,30 +256,30 @@ export default class NetworkUpgrade extends React.Component {
     }
 
     return upgradeNetworkModal;
-  };
+  }
 
   render() {
-    const { networkConfig, upgradeStateDump } = this.props;
-    const { topology } = networkConfig;
+    const {networkConfig, upgradeStateDump} = this.props;
+    const {topology} = networkConfig;
 
-    const { selectedNodesForUpgrade } = this.state;
+    const {selectedNodesForUpgrade} = this.state;
 
-    let currentRequest = this.hasCurrentRequest(upgradeStateDump)
+    const currentRequest = this.hasCurrentRequest(upgradeStateDump)
       ? upgradeStateDump.curUpgradeReq
       : null;
 
-    let curBatch =
-      upgradeStateDump && upgradeStateDump.hasOwnProperty("curBatch")
+    const curBatch =
+      upgradeStateDump && upgradeStateDump.hasOwnProperty('curBatch')
         ? upgradeStateDump.curBatch
         : [];
 
-    let pendingBatches =
-      upgradeStateDump && upgradeStateDump.hasOwnProperty("pendingBatches")
+    const pendingBatches =
+      upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingBatches')
         ? upgradeStateDump.pendingBatches
         : [];
 
-    let pendingRequests =
-      upgradeStateDump && upgradeStateDump.hasOwnProperty("pendingReqs")
+    const pendingRequests =
+      upgradeStateDump && upgradeStateDump.hasOwnProperty('pendingReqs')
         ? upgradeStateDump.pendingReqs
         : [];
 
@@ -312,5 +308,5 @@ export default class NetworkUpgrade extends React.Component {
 
 NetworkUpgrade.propTypes = {
   networkConfig: PropTypes.object.isRequired,
-  upgradeStateDump: PropTypes.object.isRequired
+  upgradeStateDump: PropTypes.object.isRequired,
 };

@@ -8,34 +8,26 @@
 // NetworkConfig.js
 // top level "pure" component for rendering the network config of the given topology
 
-import PropTypes from 'prop-types';
-
-import React from "react";
-import { render } from "react-dom";
-
 import {
   CONFIG_VIEW_MODE,
-  DEFAULT_BASE_KEY
-} from "../../constants/NetworkConfigConstants.js";
-
-import NetworkConfigLeftPane from "./NetworkConfigLeftPane.js";
-import NetworkConfigBody from "./NetworkConfigBody.js";
+  DEFAULT_BASE_KEY,
+} from '../../constants/NetworkConfigConstants.js';
+import NetworkConfigBody from './NetworkConfigBody.js';
+import NetworkConfigLeftPane from './NetworkConfigLeftPane.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class NetworkConfig extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  getBaseConfig = (
-    baseConfigByVersion,
-    editMode,
-    selectedImage,
-    selectedNodes
-  ) => {
+  getBaseConfig(baseConfigByVersion, editMode, selectedImage, selectedNodes) {
     let baseKey = DEFAULT_BASE_KEY;
     if (editMode === CONFIG_VIEW_MODE.NODE && selectedNodes[0].imageVersion) {
       baseKey = selectedNodes[0].imageVersion;
-    } else if (editMode === CONFIG_VIEW_MODE.NETWORK && selectedImage !== "") {
+    } else if (editMode === CONFIG_VIEW_MODE.NETWORK && selectedImage !== '') {
       baseKey = selectedImage;
     }
 
@@ -44,17 +36,17 @@ export default class NetworkConfig extends React.Component {
     return baseConfigByVersion[baseKey] === undefined
       ? {}
       : baseConfigByVersion[baseKey];
-  };
+  }
 
   // nodeConfig is keyed by node name
   // this function combines multiple different node configs into a single config
   // TODO: since we're assuming you can only select a single node for now,
   // we'll just take the config for that particular node
-  combineNodeConfigs = (selectedNodes, nodeConfig) => {
+  combineNodeConfigs(selectedNodes, nodeConfig) {
     return nodeConfig[selectedNodes[0].mac_addr] === undefined
       ? {}
       : nodeConfig[selectedNodes[0].mac_addr];
-  };
+  }
 
   render() {
     const {
@@ -74,14 +66,14 @@ export default class NetworkConfig extends React.Component {
 
       nodeOverrideConfig,
       nodeDraftConfig,
-      nodeConfigWithChanges
+      nodeConfigWithChanges,
     } = this.props;
 
     const baseConfig = this.getBaseConfig(
       baseConfigByVersion,
       editMode,
       selectedImage,
-      selectedNodes
+      selectedNodes,
     );
 
     // stack the configs by putting them in an array
@@ -90,7 +82,7 @@ export default class NetworkConfig extends React.Component {
         ? [
             baseConfig,
             networkOverrideConfig,
-            this.combineNodeConfigs(selectedNodes, nodeOverrideConfig)
+            this.combineNodeConfigs(selectedNodes, nodeOverrideConfig),
           ]
         : [baseConfig, networkOverrideConfig];
 
@@ -150,5 +142,5 @@ NetworkConfig.propTypes = {
 
   nodeOverrideConfig: PropTypes.object.isRequired,
   nodeDraftConfig: PropTypes.object.isRequired,
-  nodeConfigWithChanges: PropTypes.object.isRequired
+  nodeConfigWithChanges: PropTypes.object.isRequired,
 };

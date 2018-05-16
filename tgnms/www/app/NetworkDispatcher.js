@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import { Dispatcher } from "flux";
+import {Dispatcher} from 'flux';
 
 const NetworkDispatcher = new Dispatcher();
 

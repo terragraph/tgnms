@@ -6,8 +6,8 @@
 'use strict';
 
 import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
+import {render} from 'react-dom';
+import React from 'react';
 
 // custom alert component with more features than our current version of sweetalert (1.3)
 // to be implemented for phase 2
@@ -27,9 +27,9 @@ CustomAlert.propTypes = {
   options: PropTypes.shape({
     optionText: PropTypes.string,
     value: PropTypes.string,
-    style: PropTypes.object
+    style: PropTypes.object,
   }).isRequired,
 
   isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
 };

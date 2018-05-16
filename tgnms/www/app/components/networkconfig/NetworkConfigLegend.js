@@ -5,16 +5,15 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
+const classNames = require('classnames');
 
 import {
   CONFIG_VIEW_MODE,
-  CONFIG_CLASSNAMES
-} from "../../constants/NetworkConfigConstants.js";
-
-const classNames = require("classnames");
+  CONFIG_CLASSNAMES,
+} from '../../constants/NetworkConfigConstants.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import React from 'react';
 
 // legend for the network config
 export default class NetworkConfigLegend extends React.Component {
@@ -22,54 +21,50 @@ export default class NetworkConfigLegend extends React.Component {
     super(props);
 
     this.state = {
-      isExpanded: true
+      isExpanded: true,
     };
   }
 
   toggleExpandLegend = () => {
     this.setState({
-      isExpanded: !this.state.isExpanded
+      isExpanded: !this.state.isExpanded,
     });
   };
 
-  renderNodeStatus = () => {
+  renderNodeStatus() {
     return (
       <ul
         className="nc-legend-section"
-        style={{ listStyleType: "none", padding: 0 }}
-      >
+        style={{listStyleType: 'none', padding: 0}}>
         <li className="nc-legend-inline-node-container">
           <div
-            className={classNames("nc-inline-legend-node", "nc-online-node")}
-          >
+            className={classNames('nc-inline-legend-node', 'nc-online-node')}>
             Online Node
           </div>
           <div
-            className={classNames("nc-inline-legend-node", "nc-offline-node")}
-          >
+            className={classNames('nc-inline-legend-node', 'nc-offline-node')}>
             Offline Node
           </div>
         </li>
         <li className="nc-legend-node">
           Node with Unsaved Changes<img
             height="20"
-            style={{ float: "right" }}
+            style={{float: 'right'}}
             src="/static/images/bullet_red.png"
           />
         </li>
         <li
-          className={classNames("nc-legend-node", "nc-node-with-override")}
-          style={{ fontWeight: 600 }}
-        >
+          className={classNames('nc-legend-node', 'nc-node-with-override')}
+          style={{fontWeight: 600}}>
           Node With Override
         </li>
       </ul>
     );
-  };
+  }
 
-  renderFieldLegend = () => {
+  renderFieldLegend() {
     return (
-      <div className={classNames("nc-json-field-legend", "nc-legend-section")}>
+      <div className={classNames('nc-json-field-legend', 'nc-legend-section')}>
         <table>
           <tr>
             <td>
@@ -116,14 +111,14 @@ export default class NetworkConfigLegend extends React.Component {
         </table>
       </div>
     );
-  };
+  }
 
   render() {
-    const { editMode } = this.props;
-    const { isExpanded } = this.state;
+    const {editMode} = this.props;
+    const {isExpanded} = this.state;
     const expandMarker = isExpanded
-      ? "/static/images/down-chevron.png"
-      : "/static/images/up-chevron.png";
+      ? '/static/images/down-chevron.png'
+      : '/static/images/up-chevron.png';
 
     const legendBody = (
       <div>
@@ -138,11 +133,10 @@ export default class NetworkConfigLegend extends React.Component {
     return (
       <div className="rc-network-config-legend" ref="networkLegend">
         <p
-          className={classNames("nc-legend-title", {
-            "nc-collapsed-title": !isExpanded
+          className={classNames('nc-legend-title', {
+            'nc-collapsed-title': !isExpanded,
           })}
-          onClick={this.toggleExpandLegend}
-        >
+          onClick={this.toggleExpandLegend}>
           Legend
           <img src={expandMarker} className="legend-expand-marker" />
         </p>
@@ -153,5 +147,5 @@ export default class NetworkConfigLegend extends React.Component {
 }
 
 NetworkConfigLegend.propTypes = {
-  editMode: PropTypes.string.isRequired
+  editMode: PropTypes.string.isRequired,
 };

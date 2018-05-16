@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import { polarityColor } from "../NetworkHelper.js";
+import {polarityColor} from '../NetworkHelper.js';
 
 export const Actions = {
   // topology actions
@@ -67,164 +67,164 @@ export const Actions = {
   PENDING_TOPOLOGY: 700,
 
   // network config actions can be found in NetworkConfigActions.js
-  COMMIT_PLAN_BATCH: 800
+  COMMIT_PLAN_BATCH: 800,
 };
 
 export const SiteOverlayKeys = {
   Health: {
-    Healthy: { color: "green" },
-    Unhealthy: { color: "red" },
-    Partial: { color: "orange" },
-    Empty: { color: "gray" }
+    Healthy: {color: 'green'},
+    Unhealthy: {color: 'red'},
+    Partial: {color: 'orange'},
+    Empty: {color: 'gray'},
   },
   Polarity: {
-    Odd: { color: polarityColor(1) },
-    Even: { color: polarityColor(2) },
-    Hybrid: { color: polarityColor(3) }
+    Odd: {color: polarityColor(1)},
+    Even: {color: polarityColor(2)},
+    Hybrid: {color: polarityColor(3)},
   },
   Pending: {
-    Site: { color: "pink" },
-    Node: { color: "pink" }
+    Site: {color: 'pink'},
+    Node: {color: 'pink'},
   },
   CommitPlan: {
-    Full: { color: "red" },
-    Partial: { color: "orange" },
-    None: { color: "green" },
-    NoData: { color: "black" }
-  }
+    Full: {color: 'red'},
+    Partial: {color: 'orange'},
+    None: {color: 'green'},
+    NoData: {color: 'black'},
+  },
 };
 
-export const ChartColors = ["#9F1E11", "#9F6B11", "#620C68", "#0D7825"];
+export const ChartColors = ['#9F1E11', '#9F6B11', '#620C68', '#0D7825'];
 
 export const linkOverlayKeys = {
   Health: {
-    name: "Health",
-    metric: null
+    name: 'Health',
+    metric: null,
   },
   Uptime: {
-    name: "Uptime",
+    name: 'Uptime',
     metric: null,
     values: [99, 99.9, 99.99],
     colors: [
-      "hsl(0,100%,40%)",
-      "hsl(50,100%,40%)",
-      "hsl(120,100%,40%)",
-      "hsl(120,100%,20%)"
-    ]
+      'hsl(0,100%,40%)',
+      'hsl(50,100%,40%)',
+      'hsl(120,100%,40%)',
+      'hsl(120,100%,20%)',
+    ],
   },
   RxGolayIdx: {
-    name: "RxGolayIdx",
+    name: 'RxGolayIdx',
     metric: null,
     values: [0, 1, 2, 3, 4, 5, 6, 7],
     colors: [
-      "hsl(0,50%,50%)",
-      "hsl(170,50%,50%)",
-      "hsl(30,50%,50%)",
-      "hsl(200,50%,50%)",
-      "hsl(60,50%,50%)",
-      "hsl(240,50%,50%)",
-      "hsl(100,50%,50%)",
-      "hsl(280,50%,50%)"
-    ]
+      'hsl(0,50%,50%)',
+      'hsl(170,50%,50%)',
+      'hsl(30,50%,50%)',
+      'hsl(200,50%,50%)',
+      'hsl(60,50%,50%)',
+      'hsl(240,50%,50%)',
+      'hsl(100,50%,50%)',
+      'hsl(280,50%,50%)',
+    ],
   },
   TxGolayIdx: {
-    name: "TxGolayIdx",
+    name: 'TxGolayIdx',
     metric: null,
     values: [0, 1, 2, 3, 4, 5, 6, 7],
     colors: [
-      "hsl(0,50%,50%)",
-      "hsl(170,50%,50%)",
-      "hsl(30,50%,50%)",
-      "hsl(200,50%,50%)",
-      "hsl(60,50%,50%)",
-      "hsl(240,50%,50%)",
-      "hsl(100,50%,50%)",
-      "hsl(280,50%,50%)"
-    ]
+      'hsl(0,50%,50%)',
+      'hsl(170,50%,50%)',
+      'hsl(30,50%,50%)',
+      'hsl(200,50%,50%)',
+      'hsl(60,50%,50%)',
+      'hsl(240,50%,50%)',
+      'hsl(100,50%,50%)',
+      'hsl(280,50%,50%)',
+    ],
   },
   SNR: {
-    name: "SNR",
-    metric: "snr",
+    name: 'SNR',
+    metric: 'snr',
     values: [5, 10, 15, 20],
     colors: [
-      "hsl(0,100%,20%)",
-      "hsl(0,100%,40%)",
-      "hsl(50,100%,40%)",
-      "hsl(120,100%,40%)",
-      "hsl(120,100%,20%)"
-    ]
+      'hsl(0,100%,20%)',
+      'hsl(0,100%,40%)',
+      'hsl(50,100%,40%)',
+      'hsl(120,100%,40%)',
+      'hsl(120,100%,20%)',
+    ],
   },
   MCS: {
-    name: "MCS",
-    metric: "mcs",
+    name: 'MCS',
+    metric: 'mcs',
     values: [6, 7, 8, 9],
     colors: [
-      "hsl(0,100%,20%)",
-      "hsl(0,100%,40%)",
-      "hsl(50,100%,40%)",
-      "hsl(120,100%,40%)",
-      "hsl(120,100%,20%)"
-    ]
+      'hsl(0,100%,20%)',
+      'hsl(0,100%,40%)',
+      'hsl(50,100%,40%)',
+      'hsl(120,100%,40%)',
+      'hsl(120,100%,20%)',
+    ],
   },
   RSSI: {
-    name: "RSSI",
-    metric: "rssi",
+    name: 'RSSI',
+    metric: 'rssi',
     values: [-40, -35, -30, -25],
     colors: [
-      "hsl(0,100%,20%)",
-      "hsl(0,100%,40%)",
-      "hsl(50,100%,40%)",
-      "hsl(120,100%,40%)",
-      "hsl(120,100%,20%)"
-    ]
+      'hsl(0,100%,20%)',
+      'hsl(0,100%,40%)',
+      'hsl(50,100%,40%)',
+      'hsl(120,100%,40%)',
+      'hsl(120,100%,20%)',
+    ],
   },
   FLAPS: {
-    name: "Link Flaps",
-    metric: "flaps",
+    name: 'Link Flaps',
+    metric: 'flaps',
     // not used
     values: [1, 3, 5, 10, 15, 25, 50],
     colors: [
-      "hsl(120, 100%, 40%)",
-      "hsl(75, 100%, 40%)",
-      "hsl(30, 100%, 50%)",
-      "hsl(15, 100%, 30%)",
-      "hsl(0, 100%, 60%)",
-      "hsl(0, 100%, 40%)",
-      "hsl(0, 100%, 30%)",
-      "hsl(0, 100%, 20%)"
-    ]
+      'hsl(120, 100%, 40%)',
+      'hsl(75, 100%, 40%)',
+      'hsl(30, 100%, 50%)',
+      'hsl(15, 100%, 30%)',
+      'hsl(0, 100%, 60%)',
+      'hsl(0, 100%, 40%)',
+      'hsl(0, 100%, 30%)',
+      'hsl(0, 100%, 20%)',
+    ],
   },
   CommitPlan: {
-    name: "Commit Plan",
-    metric: "commit_plan",
-    colors: ["green", "red"]
-  }
+    name: 'Commit Plan',
+    metric: 'commit_plan',
+    colors: ['green', 'red'],
+  },
 };
 
 export const UploadStatus = {
-  NONE: "NONE",
-  UPLOADING: "UPLOADING",
-  SUCCESS: "SUCCESS",
-  FAILURE: "FAILURE"
+  NONE: 'NONE',
+  UPLOADING: 'UPLOADING',
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE',
 };
 
 export const DeleteStatus = {
-  NONE: "NONE",
-  SUCCESS: "SUCCESS",
-  FAILURE: "FAILURE"
+  NONE: 'NONE',
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE',
 };
 // marker/line constants
 export const MapDimensions = {
   Default: {
     SITE_RADIUS: 10,
-    LINK_LINE_WEIGHT: 6
+    LINK_LINE_WEIGHT: 6,
   },
   BigLine: {
     SITE_RADIUS: 3,
-    LINK_LINE_WEIGHT: 10
-  }
+    LINK_LINE_WEIGHT: 10,
+  },
 };
 export const MapTiles = {
-  Default: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  Monochrome: "//stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png"
+  Default: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  Monochrome: '//stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
 };

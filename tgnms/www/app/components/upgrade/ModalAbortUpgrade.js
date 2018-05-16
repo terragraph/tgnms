@@ -5,32 +5,30 @@
  */
 'use strict';
 
+import 'sweetalert/dist/sweetalert.css';
+
+const classNames = require('classnames');
+
+import {abortUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
+import UpgradeRequestsTable from './UpgradeRequestsTable.js';
 import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import Modal from "react-modal";
-
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
-
-import UpgradeRequestsTable from "./UpgradeRequestsTable.js";
-
-import { abortUpgrade } from "../../apiutils/UpgradeAPIUtil.js";
-
-const classNames = require("classnames");
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import React from 'react';
+import swal from 'sweetalert';
 
 const modalStyle = {
   content: {
-    width: "calc(100% - 40px)",
-    maxWidth: "700px",
-    display: "table",
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    width: 'calc(100% - 40px)',
+    maxWidth: '700px',
+    display: 'table',
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 export default class ModalAbortUpgrade extends React.Component {
@@ -38,13 +36,13 @@ export default class ModalAbortUpgrade extends React.Component {
     super(props);
 
     this.state = {
-      selectedRequests: []
+      selectedRequests: [],
     };
   }
 
   modalClose() {
     this.setState({
-      selectedRequests: []
+      selectedRequests: [],
     });
 
     this.props.onClose();
@@ -52,78 +50,77 @@ export default class ModalAbortUpgrade extends React.Component {
 
   onReqsSelected = requests => {
     this.setState({
-      selectedRequests: requests
+      selectedRequests: requests,
     });
   };
 
   abortSelected = () => {
     swal(
       {
-        title: "Abort Upgrade",
+        title: 'Abort Upgrade',
         text: `You are about to abort upgrades with requests
       ${this.state.selectedRequests}
 
       This operation cannot be undone once you proceed.
 
       Proceed with abort?`,
-        type: "warning",
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonText: "Proceed",
-        cancelButtonText: "Cancel"
+        confirmButtonText: 'Proceed',
+        cancelButtonText: 'Cancel',
       },
       proceed => {
         if (proceed) {
           const requestBody = {
             topologyName: this.props.topologyName,
             abortAll: false,
-            reqIds: this.state.selectedRequests
+            reqIds: this.state.selectedRequests,
           };
 
           abortUpgrade(requestBody);
         }
         this.props.onClose();
-      }
+      },
     );
   };
 
   abortAll = () => {
     swal(
       {
-        title: "Abort Upgrade",
+        title: 'Abort Upgrade',
         text: `You are about to abort ALL current and pending upgrades
       This operation cannot be undone once you proceed.
 
       Proceed with abort?`,
-        type: "warning",
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonText: "Proceed",
-        cancelButtonText: "Cancel"
+        confirmButtonText: 'Proceed',
+        cancelButtonText: 'Cancel',
       },
       proceed => {
         if (proceed) {
           const requestBody = {
             topologyName: this.props.topologyName,
             abortAll: true,
-            reqIds: []
+            reqIds: [],
           };
 
           abortUpgrade(requestBody);
         }
         this.props.onClose();
-      }
+      },
     );
   };
 
   render() {
-    const { upgradeRequests, isOpen } = this.props;
-    const { selectedRequests } = this.state;
+    const {upgradeRequests, isOpen} = this.props;
+    const {selectedRequests} = this.state;
 
     return (
       <Modal
         style={modalStyle}
         isOpen={isOpen}
-        onRequestClose={this.modalClose.bind(this)}
-      >
+        onRequestClose={this.modalClose.bind(this)}>
         <div className="upgrade-modal-content">
           <div className="upgrade-modal-row">
             <UpgradeRequestsTable
@@ -138,15 +135,13 @@ export default class ModalAbortUpgrade extends React.Component {
         <div className="upgrade-modal-footer">
           <button
             className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}
-          >
+            onClick={this.modalClose.bind(this)}>
             Close
           </button>
           <button
             className="upgrade-modal-btn"
             disabled={selectedRequests.length === 0}
-            onClick={this.abortSelected}
-          >
+            onClick={this.abortSelected}>
             Abort Selected
           </button>
           <button className="upgrade-modal-btn" onClick={this.abortAll}>
@@ -163,5 +158,5 @@ ModalAbortUpgrade.propTypes = {
 
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequired
+  topologyName: PropTypes.string.isRequired,
 };

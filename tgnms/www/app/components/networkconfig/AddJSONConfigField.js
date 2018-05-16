@@ -8,38 +8,37 @@
 // JSONConfigForm.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
+const classNames = require('classnames');
+
+import {addNewField} from '../../actions/NetworkConfigActions.js';
+import {ADD_FIELD_TYPES} from '../../constants/NetworkConfigConstants.js';
 import PropTypes from 'prop-types';
-
-import React from "react";
-import { render } from "react-dom";
-import onClickOutside from "react-onclickoutside";
-import { ADD_FIELD_TYPES } from "../../constants/NetworkConfigConstants.js";
-import { addNewField } from "../../actions/NetworkConfigActions.js";
-
-const classNames = require("classnames");
+import {render} from 'react-dom';
+import onClickOutside from 'react-onclickoutside';
+import React from 'react';
 
 class AddJSONConfigField extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      expanded: false
+      expanded: false,
     };
   }
 
-  handleClickOutside = event => {
+  handleClickOutside(event) {
     if (this.state.expanded) {
-      this.setState({ expanded: false });
+      this.setState({expanded: false});
     }
-  };
+  }
 
-  selectAddOption = type => {
+  selectAddOption(type) {
     addNewField({
       editPath: this.props.editPath,
-      type: type
+      type: type,
     });
-    this.setState({ expanded: false });
-  };
+    this.setState({expanded: false});
+  }
 
   render() {
     const {} = this.props;
@@ -48,15 +47,13 @@ class AddJSONConfigField extends React.Component {
       <div className="rc-add-json-config-field">
         <div
           className="nc-add-new-field"
-          onClick={() => this.setState({ expanded: true })}
-        >
+          onClick={() => this.setState({expanded: true})}>
           Add New Field
         </div>
         <div
-          className={classNames("rc-add-field-dropdown", {
-            "rc-add-field-dropdown-hidden": !this.state.expanded
-          })}
-        >
+          className={classNames('rc-add-field-dropdown', {
+            'rc-add-field-dropdown-hidden': !this.state.expanded,
+          })}>
           <span>Select Field Type</span>
           <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.BOOLEAN)}>
             Toggle (Yes/No)
@@ -77,7 +74,7 @@ class AddJSONConfigField extends React.Component {
 }
 
 AddJSONConfigField.propTypes = {
-  editPath: PropTypes.array.isRequired
+  editPath: PropTypes.array.isRequired,
 };
 
 // needed so we can collapse the drop down when a click happens outside this component

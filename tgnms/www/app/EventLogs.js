@@ -5,16 +5,16 @@
  */
 'use strict';
 
+import moment from 'moment';
 import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
+import AsyncButton from 'react-async-button';
 // dispatcher
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
-import AsyncButton from "react-async-button";
-import DatePicker from "react-datepicker";
-import moment from "moment";
-import NumericInput from "react-numeric-input";
-import Select from "react-select";
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import DatePicker from 'react-datepicker';
+import {render} from 'react-dom';
+import NumericInput from 'react-numeric-input';
+import Select from 'react-select';
+import React from 'react';
 
 const Spinner = () => (
   <div className="spinner">
@@ -23,7 +23,7 @@ const Spinner = () => (
   </div>
 );
 
-const conditions = ["must", "must_not"];
+const conditions = ['must', 'must_not'];
 
 export default class EventLogs extends React.Component {
   state = {
@@ -33,7 +33,7 @@ export default class EventLogs extends React.Component {
     searchResult: [],
     from: 0,
     size: 500,
-    dateFrom: moment()
+    dateFrom: moment(),
   };
 
   constructor(props) {
@@ -52,8 +52,8 @@ export default class EventLogs extends React.Component {
   }
 
   getConfigs() {
-    let getTables = new Request("/getEventLogsTables", {
-      credentials: "same-origin"
+    const getTables = new Request('/getEventLogsTables', {
+      credentials: 'same-origin',
     });
     fetch(getTables).then(
       function(response) {
@@ -61,33 +61,33 @@ export default class EventLogs extends React.Component {
           response.json().then(
             function(json) {
               this.setState({
-                tables: json.tables
+                tables: json.tables,
               });
-            }.bind(this)
+            }.bind(this),
           );
         }
-      }.bind(this)
+      }.bind(this),
     );
   }
 
   diveClick(e) {
-    var must = "[";
-    var must_not = "[";
-    must += "]";
-    must_not += "]";
+    var must = '[';
+    var must_not = '[';
+    must += ']';
+    must_not += ']';
     return new Promise((resolve, reject) => {
-      let exec = new Request(
-        "/getEventLogs/" +
+      const exec = new Request(
+        '/getEventLogs/' +
           this.state.selectedTableName +
-          "/" +
+          '/' +
           this.state.from +
-          "/" +
+          '/' +
           this.state.size +
-          "/" +
+          '/' +
           this.props.networkName +
-          "/d_" +
-          this.state.dateFrom.format("YYYY_MM_DD"),
-        { credentials: "same-origin" }
+          '/d_' +
+          this.state.dateFrom.format('YYYY_MM_DD'),
+        {credentials: 'same-origin'},
       );
       fetch(exec).then(
         function(response) {
@@ -97,22 +97,22 @@ export default class EventLogs extends React.Component {
                 var result = [];
                 Object(json).forEach(row => {
                   try {
-                    let data = JSON.parse(row);
+                    const data = JSON.parse(row);
                     result.push(data);
                   } catch (e) {
-                    console.log("Unable to parse json", e, row);
+                    console.log('Unable to parse json', e, row);
                   }
                 });
                 this.setState({
-                  searchResult: result
+                  searchResult: result,
                 });
                 resolve();
-              }.bind(this)
+              }.bind(this),
             );
           } else {
             reject();
           }
-        }.bind(this)
+        }.bind(this),
       );
     });
   }
@@ -123,7 +123,7 @@ export default class EventLogs extends React.Component {
         this.setState({
           selectedTable: table,
           selectedTableName: val.label,
-          searchResult: []
+          searchResult: [],
         });
         return;
       }
@@ -131,11 +131,13 @@ export default class EventLogs extends React.Component {
   }
 
   findprop(obj, path): Object {
-    var args = path.split(".");
+    var args = path.split('.');
     var l = args.length;
 
     for (var i = 0; i < l; i++) {
-      if (!obj.hasOwnProperty(args[i])) return;
+      if (!obj.hasOwnProperty(args[i])) {
+        return;
+      }
       obj = obj[args[i]];
     }
     return obj;
@@ -147,29 +149,29 @@ export default class EventLogs extends React.Component {
       return rows;
     }
 
-    let table = this.state.selectedTable;
-    let columns = table.display.columns;
+    const table = this.state.selectedTable;
+    const columns = table.display.columns;
     var id = 0;
     Object(this.state.searchResult).forEach(result => {
       var row = {};
       var tzoffset = new Date().getTimezoneOffset() * 60000;
 
-      row["_id"] = id++;
+      row._id = id++;
       Object(columns).forEach(column => {
         var val = this.findprop(result, column.field);
         if (column.format) {
           switch (column.format) {
-            case "TIME_MS":
+            case 'TIME_MS':
               val = new Date(val - tzoffset)
                 .toISOString()
-                .replace(/T/, " ")
-                .replace(/\..+/, "");
+                .replace(/T/, ' ')
+                .replace(/\..+/, '');
               break;
-            case "TIME_S":
+            case 'TIME_S':
               val = new Date(val * 1000 - tzoffset)
                 .toISOString()
-                .replace(/T/, " ")
-                .replace(/\..+/, "");
+                .replace(/T/, ' ')
+                .replace(/\..+/, '');
               break;
           }
         }
@@ -181,40 +183,39 @@ export default class EventLogs extends React.Component {
     return rows;
   }
 
-  renderTableColumns(): ReactElement<any> {
-    let tableColumns = [];
+  renderTableColumns(): React.Element<any> {
+    const tableColumns = [];
     tableColumns.push(
-      <TableHeaderColumn key="keyColumn" isKey={true} hidden dataField="_id" />
+      <TableHeaderColumn key="keyColumn" isKey={true} hidden dataField="_id" />,
     );
 
     if (this.state.selectedTable && this.state.tables) {
-      let table = this.state.selectedTable;
-      let columns = table.display.columns;
+      const table = this.state.selectedTable;
+      const columns = table.display.columns;
       Object(columns).forEach(column => {
         tableColumns.push(
           <TableHeaderColumn
             key={column.field}
             dataSort={true}
-            filter={{ type: "TextFilter", delay: 1000 }}
-            width={column.width ? column.width : ""}
-            dataField={column.field}
-          >
+            filter={{type: 'TextFilter', delay: 1000}}
+            width={column.width ? column.width : ''}
+            dataField={column.field}>
             {column.label}
-          </TableHeaderColumn>
+          </TableHeaderColumn>,
         );
       });
     }
     return tableColumns;
   }
 
-  renderDataTable(): ReactElement<any> {
+  renderDataTable(): React.Element<any> {
     const options = {
       sizePerPageList: [
-        { text: "50", value: 50 },
-        { text: "100", value: 100 },
-        { text: "500", value: 500 }
+        {text: '50', value: 50},
+        {text: '100', value: 100},
+        {text: '500', value: 500},
       ],
-      sizePerPage: 50
+      sizePerPage: 50,
     };
     if (this.state.selectedTable && this.state.tables) {
       return (
@@ -229,18 +230,18 @@ export default class EventLogs extends React.Component {
 
   handleFromChange(val) {
     this.setState({
-      from: val
+      from: val,
     });
   }
   handleSizeChange(val) {
     this.setState({
-      size: val
+      size: val,
     });
   }
 
   handleDateChange(date) {
     this.setState({
-      dateFrom: date
+      dateFrom: date,
     });
   }
 
@@ -250,20 +251,18 @@ export default class EventLogs extends React.Component {
       Object(this.state.tables).forEach(table => {
         options.push({
           value: table.name,
-          label: table.name
+          label: table.name,
         });
       });
     }
 
     return (
-      <div style={{ width: "100%", float: "left" }}>
-        <table
-          style={{ borderCollapse: "separate", borderSpacing: "15px 5px" }}
-        >
+      <div style={{width: '100%', float: 'left'}}>
+        <table style={{borderCollapse: 'separate', borderSpacing: '15px 5px'}}>
           <tbody>
             <tr>
               <td width={330}>
-                <div style={{ width: 300 }}>
+                <div style={{width: 300}}>
                   <Select
                     options={options}
                     name="Select Table"
@@ -307,9 +306,8 @@ export default class EventLogs extends React.Component {
                   fulFilledClass="btn-success"
                   rejectedText="Dive!"
                   rejectedClass="btn-danger"
-                  onClick={this.diveClick}
-                >
-                  {({ buttonText, isPending }) => (
+                  onClick={this.diveClick}>
+                  {({buttonText, isPending}) => (
                     <span>
                       {isPending && <Spinner />}
                       <span>{buttonText}</span>
@@ -327,5 +325,5 @@ export default class EventLogs extends React.Component {
 }
 EventLogs.propTypes = {
   networkName: PropTypes.string.isRequired,
-  networkConfig: PropTypes.object.isRequired
+  networkConfig: PropTypes.object.isRequired,
 };

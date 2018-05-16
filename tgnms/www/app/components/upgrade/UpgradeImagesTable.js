@@ -5,21 +5,21 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+const classNames = require('classnames');
 
-const classNames = require("classnames");
+import PropTypes from 'prop-types';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom';
+import React from 'react';
 
 class DeleteImageColumn extends React.Component {
   onClick = () => {
-    const { imageName, onDelete } = this.props;
+    const {imageName, onDelete} = this.props;
     onDelete(imageName);
   };
 
   render() {
-    const iconClass = classNames("fa", "fa-times", "fa-lg");
+    const iconClass = classNames('fa', 'fa-times', 'fa-lg');
     return <img src="/static/images/delete.png" onClick={this.onClick} />;
   }
 }
@@ -41,14 +41,14 @@ export default class UpgradeImagesTable extends React.Component {
 
   getTableRows(): Array<{
     name: string,
-    magnetUri: string
+    magnetUri: string,
   }> {
     const rows = [];
     this.props.images.forEach(image => {
       rows.push({
         name: image.name,
         magnetUri: image.magnetUri,
-        key: image.name
+        key: image.name,
       });
     });
     return rows;
@@ -56,47 +56,44 @@ export default class UpgradeImagesTable extends React.Component {
 
   render() {
     const tableOptions = {
-      trClassName: "break-word"
+      trClassName: 'break-word',
     };
 
     return (
       <div className="rc-upgrade-images-table">
         <BootstrapTable
-          tableStyle={{ width: "calc(100% - 20px)" }}
+          tableStyle={{width: 'calc(100% - 20px)'}}
           bodyStyle={{
-            maxHeight: "400px",
-            overflowY: "auto"
+            maxHeight: '400px',
+            overflowY: 'auto',
           }}
           key="imagesTable"
           options={tableOptions}
           data={this.getTableRows()}
           striped={true}
           hover={true}
-          trClassName="break-word"
-        >
+          trClassName="break-word">
           <TableHeaderColumn
-            tdStyle={{ wordWrap: "break-word" }}
+            tdStyle={{wordWrap: 'break-word'}}
             width="400"
             dataSort={false}
             dataField="name"
-            isKey={true}
-          >
+            isKey={true}>
             Name
           </TableHeaderColumn>
           <TableHeaderColumn
-            tdStyle={{ wordWrap: "break-word" }}
+            tdStyle={{wordWrap: 'break-word'}}
             width="400"
             dataSort={false}
-            dataField="magnetUri"
-          >
+            dataField="magnetUri">
             Magnet URI
           </TableHeaderColumn>
           <TableHeaderColumn
             width="45"
             tdStyle={{
-              textAlign: "center",
-              verticalAlign: "middle",
-              padding: 0
+              textAlign: 'center',
+              verticalAlign: 'middle',
+              padding: 0,
             }}
             dataSort={false}
             dataField="deleteImage"
@@ -110,5 +107,5 @@ export default class UpgradeImagesTable extends React.Component {
 
 UpgradeImagesTable.propTypes = {
   images: PropTypes.array.isRequired,
-  onDeleteImage: PropTypes.func.isRequired
+  onDeleteImage: PropTypes.func.isRequired,
 };

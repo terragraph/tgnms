@@ -1,8 +1,7 @@
-const zmq = require('zmq');
+var aggregatorTTypes = require('./thrift/gen-nodejs/Aggregator_types');
 // thrift serialization
 const thrift = require('thrift');
-
-var aggregatorTTypes = require('./thrift/gen-nodejs/Aggregator_types');
+const zmq = require('zmq');
 
 var self = {
   getAlertsConfig: function (config, req, res, next) {
@@ -22,7 +21,7 @@ var self = {
       res.status(404).end('No such topology\n');
     }, 4000);
 
-    let dealer = zmq.socket('dealer');
+    const dealer = zmq.socket('dealer');
     dealer.identity = 'NMS_WEB_ALERTS';
     dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
     dealer.setsockopt(zmq.ZMQ_LINGER, 0);
@@ -73,7 +72,7 @@ var self = {
   },
 
   setAlertsConfig: function (config, req, res, next) {
-    let alertsConfigRows = JSON.parse(req.params[1]);
+    const alertsConfigRows = JSON.parse(req.params[1]);
 
     // guard against hanging
     var timeout = setTimeout(function () {
@@ -88,7 +87,7 @@ var self = {
       res.status(404).end('No such topology\n');
     }, 4000);
 
-    let dealer = zmq.socket('dealer');
+    const dealer = zmq.socket('dealer');
     dealer.identity = 'NMS_WEB_ALERTS';
     dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
     dealer.setsockopt(zmq.ZMQ_LINGER, 0);
@@ -180,7 +179,7 @@ var self = {
     });
     aggrAlertConfList.write(tProtocol);
     transport1.flush();
-  }
+  },
 };
 
 module.exports = self;

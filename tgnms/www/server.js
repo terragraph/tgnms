@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
   // where to save the file on disk
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
-  }
+  },
 });
 
 const upload = multer({ storage: storage });
@@ -80,7 +80,7 @@ const maxThriftRequestFailures = 1;
 const maxThriftReportAge = 30; // seconds
 const maxControllerEvents = 10;
 
-const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086'
+const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086';
 const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
   ? process.env.IM_SCAN_POLLING_ENABLED === '1'
   : 0;
@@ -159,7 +159,7 @@ worker.on('message', msg => {
         return;
       } else if (msg.success) {
         // clear errors that no-longer exist
-        delete config['controller_error'];
+        delete config.controller_error;
       }
       config.controller_failures = msg.success
         ? 0
@@ -204,7 +204,7 @@ worker.on('message', msg => {
       break;
     case 'ignition_state':
       if (msg.success && msg.ignition_state) {
-        let linkNames = Array.from(
+        const linkNames = Array.from(
           new Set(
             msg.ignition_state.igCandidates.map(candidate => candidate.linkName)
           )
@@ -241,7 +241,7 @@ function getTopologyByName (topologyName) {
     topology = fileTopologyByName[topologyName];
   }
   // over-ride the topology name since many don't use
-  let config = configByName[topologyName];
+  const config = configByName[topologyName];
   if (!topology.name) {
     console.error(
       'No topology name received from controller for',
@@ -257,13 +257,13 @@ function getTopologyByName (topologyName) {
   // and hide the rest
   if (config.hasOwnProperty('base_topology_file')) {
     // build list of base sites to include
-    let baseTopologyConfig = baseTopologyByName[topologyName];
-    let baseSitesByName = new Set();
+    const baseTopologyConfig = baseTopologyByName[topologyName];
+    const baseSitesByName = new Set();
     baseTopologyConfig.sites.forEach(site => {
       baseSitesByName.add(site.name);
     });
-    let nodesToRemove = new Set();
-    let onlineSites = new Set();
+    const nodesToRemove = new Set();
+    const onlineSites = new Set();
     topology.nodes.forEach(node => {
       if (node.status !== 1) {
         // node is online, don't remove
@@ -296,20 +296,20 @@ function getTopologyByName (topologyName) {
       return true;
     });
   }
-  let status = statusDumpsByName[topologyName];
-  let nodes = topology.nodes;
+  const status = statusDumpsByName[topologyName];
+  const nodes = topology.nodes;
   for (var j = 0; j < nodes.length; j++) {
     if (status && status.statusReports) {
-      topology.nodes[j]['status_dump'] =
+      topology.nodes[j].status_dump =
         status.statusReports[nodes[j].mac_addr];
     }
   }
   // detect aps without a matching site name
-  let allRuckusApNames = new Set(Object.keys(ruckusApsBySite));
+  const allRuckusApNames = new Set(Object.keys(ruckusApsBySite));
   if (allRuckusApNames.size > 0) {
     // add ruckus aps
     topology.sites = topology.sites.map(site => {
-      let siteName = site.name.toLowerCase();
+      const siteName = site.name.toLowerCase();
       // add ruckus ap information to the site
       if (ruckusApsBySite.hasOwnProperty(siteName)) {
         site.ruckus = ruckusApsBySite[siteName];
@@ -322,12 +322,12 @@ function getTopologyByName (topologyName) {
       console.log('[Ruckus AP] Missing site associations for', allRuckusApNames);
     }
   }
-  let networkConfig = Object.assign({}, config);
+  const networkConfig = Object.assign({}, config);
   networkConfig.topology = topology;
   if (config.site_coords_override) {
     // swap site data
     Object.keys(networkConfig.topology.sites).forEach(function (key) {
-      let site = networkConfig.topology.sites[key];
+      const site = networkConfig.topology.sites[key];
       if (
         fileSiteByName[topologyName] &&
         fileSiteByName[topologyName][site.name]
@@ -347,7 +347,7 @@ function getTopologyByName (topologyName) {
     upgradeStateByName.hasOwnProperty(topologyName) &&
     !!upgradeStateByName[topologyName]
   ) {
-    let upgradeState = upgradeStateByName[topologyName];
+    const upgradeState = upgradeStateByName[topologyName];
     upgradeStateDump = getNodesWithUpgradeStatus(topology.nodes, upgradeState);
   }
 
@@ -358,32 +358,32 @@ function getTopologyByName (topologyName) {
 }
 
 function getNodesWithUpgradeStatus (nodes, upgradeState) {
-  let upgradeStatusDump = {
+  const upgradeStatusDump = {
     curUpgradeReq: upgradeState.curReq,
 
     curBatch: [],
     pendingBatches: [],
-    pendingReqs: upgradeState.pendingReqs
+    pendingReqs: upgradeState.pendingReqs,
     // pendingReqNodes: [], // a node might appear in multiple pending requests
   };
 
   // node mac_addr --> node object
-  let nodeNameToNode = {};
+  const nodeNameToNode = {};
   nodes.forEach(node => {
     nodeNameToNode[node.name] = node;
   });
 
   // populate current batch
-  let curBatchNodes = [];
+  const curBatchNodes = [];
   upgradeState.curBatch.filter(name => !!nodeNameToNode[name]).forEach(name => {
     curBatchNodes.push(nodeNameToNode[name]);
   });
   upgradeStatusDump.curBatch = curBatchNodes;
 
   // populate pending batches
-  let pendingBatchNodes = [];
+  const pendingBatchNodes = [];
   upgradeState.pendingBatches.forEach((batch, batchIdx) => {
-    let nodesInBatch = [];
+    const nodesInBatch = [];
     batch.filter(name => !!nodeNameToNode[name]).forEach(name => {
       nodesInBatch.push(nodeNameToNode[name]);
     });
@@ -416,37 +416,37 @@ function reloadInstanceConfig () {
       // serialize some example
       networkInstanceConfig = JSON.parse(data);
       if ('topologies' in networkInstanceConfig) {
-        let topologies = networkInstanceConfig['topologies'];
+        const topologies = networkInstanceConfig.topologies;
         Object.keys(topologies).forEach(function (key) {
-          let topologyConfig = topologies[key];
-          let topology = JSON.parse(
+          const topologyConfig = topologies[key];
+          const topology = JSON.parse(
             fs.readFileSync(
               NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file
             )
           );
           // base config
           if (topologyConfig.hasOwnProperty('base_topology_file')) {
-            baseTopologyByName[topology['name']] = JSON.parse(
+            baseTopologyByName[topology.name] = JSON.parse(
               fs.readFileSync(
                 NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.base_topology_file
               )
             );
           }
           // original sites take priority, only add missing nodes and sites
-          let sitesByName = {};
+          const sitesByName = {};
           topology.sites.forEach(site => {
             sitesByName[site.name] = site;
           });
-          let config = topologyConfig;
-          config['controller_online'] = false;
-          config['controller_failures'] = 0;
-          config['query_service_online'] = false;
-          config['aggregator_failures'] = 0;
-          config['name'] = topology['name'];
-          config['controller_events'] = [];
-          configByName[topology['name']] = config;
-          fileTopologyByName[topology['name']] = topology;
-          let topologyName = topology['name'];
+          const config = topologyConfig;
+          config.controller_online = false;
+          config.controller_failures = 0;
+          config.query_service_online = false;
+          config.aggregator_failures = 0;
+          config.name = topology.name;
+          config.controller_events = [];
+          configByName[topology.name] = config;
+          fileTopologyByName[topology.name] = topology;
+          const topologyName = topology.name;
           fileSiteByName[topologyName] = {};
           topology.sites.forEach(site => {
             fileSiteByName[topologyName][site.name] = site;
@@ -459,23 +459,23 @@ function reloadInstanceConfig () {
 
       fbinternal = false;
       if ('fbinternal' in networkInstanceConfig) {
-        fbinternal = networkInstanceConfig['fbinternal'];
+        fbinternal = networkInstanceConfig.fbinternal;
       }
 
       // topology/statis refresh
       let refreshInterval = 5 /* seconds */ * 1000;
       // health + analyzer cache
-      let healthRefreshInterval = 30 /* seconds */ * 1000;
+      const healthRefreshInterval = 30 /* seconds */ * 1000;
       // stats type-ahead node/key list
-      let typeaheadRefreshInterval = 5 /* minutes */ * 60 * 1000;
+      const typeaheadRefreshInterval = 5 /* minutes */ * 60 * 1000;
       // ruckus controller cache
-      let ruckusControllerRefreshInterval = 1 /* minutes */ * 60 * 1000;
+      const ruckusControllerRefreshInterval = 1 /* minutes */ * 60 * 1000;
       if ('refresh_interval' in networkInstanceConfig) {
-        refreshInterval = networkInstanceConfig['refresh_interval'];
+        refreshInterval = networkInstanceConfig.refresh_interval;
       }
       // ruckus ap controller
       if ('ruckus_controller' in networkInstanceConfig &&
-          networkInstanceConfig['ruckus_controller'] === true) {
+          networkInstanceConfig.ruckus_controller === true) {
         // ruckus data is fetched from BQS
         // all topologies will use the same ruckus controller for now
         refreshRuckusControllerCache();
@@ -483,7 +483,7 @@ function reloadInstanceConfig () {
           refreshRuckusControllerCache();
         }, ruckusControllerRefreshInterval);
       }
-      let refreshHealthData = () => {
+      const refreshHealthData = () => {
         Object.keys(configByName).forEach(configName => {
           console.log('Refreshing cache (health, analyzer) for',
                       configName);
@@ -492,7 +492,7 @@ function reloadInstanceConfig () {
         });
       };
 
-      let refreshTypeaheadData = () => {
+      const refreshTypeaheadData = () => {
         Object.keys(configByName).forEach(configName => {
           console.log('Refreshing cache (stats type-ahead) for',
                       configName);
@@ -515,15 +515,15 @@ function reloadInstanceConfig () {
           type: 'poll',
           topologies: Object.keys(configByName).map(
             keyName => configByName[keyName]
-          )
+          ),
         });
       }, refreshInterval);
 
       if (IM_SCAN_POLLING_ENABLED) {
-        console.log("IM_SCAN_POLLING_ENABLED is set");
+        console.log('IM_SCAN_POLLING_ENABLED is set');
         let scanPollInterval = 60000;
         if ('scan_poll_interval' in networkInstanceConfig) {
-          scanPollInterval = networkInstanceConfig['scan_poll_interval'];
+          scanPollInterval = networkInstanceConfig.scan_poll_interval;
         }
         // start scan poll request interval
         setInterval(() => {
@@ -531,7 +531,7 @@ function reloadInstanceConfig () {
             type: 'scan_poll',
             topologies: Object.keys(configByName).map(
               keyName => configByName[keyName]
-            )
+            ),
           });
         }, scanPollInterval);
       }
@@ -549,12 +549,12 @@ app.post(/\/config\/save$/i, function (req, res, next) {
     if (!httpPostData.length) {
       return;
     }
-    let configData = JSON.parse(httpPostData);
+    const configData = JSON.parse(httpPostData);
     if (configData && configData.topologies) {
       configData.topologies.forEach(config => {
         // if the topology file doesn't exist, write it
         // TODO - sanitize file name (serious)
-        let topologyFile = NETWORK_CONFIG_NETWORKS_PATH + config.topology_file;
+        const topologyFile = NETWORK_CONFIG_NETWORKS_PATH + config.topology_file;
         if (config.topology && !fs.existsSync(topologyFile)) {
           console.log(
             'Missing topology file for',
@@ -576,12 +576,12 @@ app.post(/\/config\/save$/i, function (req, res, next) {
           );
         }
         // ensure we don't write the e2e topology to the instance config
-        delete config['topology'];
+        delete config.topology;
       });
     }
 
     // update mysql time series db
-    let liveConfigFile = NETWORK_CONFIG_INSTANCES_PATH + networkConfig;
+    const liveConfigFile = NETWORK_CONFIG_INSTANCES_PATH + networkConfig;
     fs.writeFile(liveConfigFile, JSON.stringify(configData, null, 4), function (
       err
     ) {
@@ -649,7 +649,7 @@ app.post('/terminals', function (req, res) {
       cols: cols || 80,
       rows: rows || 24,
       cwd: process.env.PWD,
-      env: process.env
+      env: process.env,
     }
   );
 
@@ -716,16 +716,16 @@ app.get(/\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let tableName = req.params[0];
-  let from = parseInt(req.params[1]);
-  let size = parseInt(req.params[2]);
-  let topologyName = req.params[3];
-  let dbPartition = req.params[4];
-  let topology = getTopologyByName(topologyName);
+  const tableName = req.params[0];
+  const from = parseInt(req.params[1]);
+  const size = parseInt(req.params[2]);
+  const topologyName = req.params[3];
+  const dbPartition = req.params[4];
+  const topology = getTopologyByName(topologyName);
 
   var macAddr = [];
   if (topology) {
-    let nodes = topology.topology.nodes;
+    const nodes = topology.topology.nodes;
     for (var j = 0; j < nodes.length; j++) {
       macAddr.push(nodes[j].mac_addr);
     }
@@ -753,11 +753,11 @@ app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let sourceName = req.params[0];
-  let offset = parseInt(req.params[1]);
-  let size = parseInt(req.params[2]);
-  let macAddr = req.params[3];
-  let date = req.params[4];
+  const sourceName = req.params[0];
+  const offset = parseInt(req.params[1]);
+  const size = parseInt(req.params[2]);
+  const macAddr = req.params[3];
+  const date = req.params[4];
   for (var i = 0, len = systemLogsSources.sources.length; i < len; i++) {
     if (sourceName === systemLogsSources.sources[i].name) {
       queryHelper.fetchSysLogs(
@@ -773,14 +773,14 @@ app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
   }
 });
 app.get(/\/getAlerts\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  let from = parseInt(req.params[1]);
-  let size = parseInt(req.params[2]);
-  let topology = getTopologyByName(topologyName);
+  const topologyName = req.params[0];
+  const from = parseInt(req.params[1]);
+  const size = parseInt(req.params[2]);
+  const topology = getTopologyByName(topologyName);
 
   var macAddr = [];
   if (topology) {
-    let nodes = topology.topology.nodes;
+    const nodes = topology.topology.nodes;
     for (var j = 0; j < nodes.length; j++) {
       macAddr.push(nodes[j].mac_addr);
     }
@@ -788,12 +788,12 @@ app.get(/\/getAlerts\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
   }
 });
 app.get(/\/clearAlerts\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  let topology = getTopologyByName(topologyName);
+  const topologyName = req.params[0];
+  const topology = getTopologyByName(topologyName);
 
   var macAddr = [];
   if (topology) {
-    let nodes = topology.topology.nodes;
+    const nodes = topology.topology.nodes;
     for (var j = 0; j < nodes.length; j++) {
       macAddr.push(nodes[j].mac_addr);
     }
@@ -801,7 +801,7 @@ app.get(/\/clearAlerts\/(.+)$/i, function (req, res, next) {
   }
 });
 app.get(/\/deleteAlerts\/(.+)$/i, function (req, res, next) {
-  let ids = JSON.parse(req.params[0]);
+  const ids = JSON.parse(req.params[0]);
   queryHelper.deleteAlertsById(req, ids);
 });
 app.post(/\/event\/?$/i, function (req, res, next) {
@@ -811,8 +811,8 @@ app.post(/\/event\/?$/i, function (req, res, next) {
   });
   req.on('end', function () {
     // push query
-    let httpData = JSON.parse(httpPostData)[0];
-    let keyIds = queryHelper.fetchLinkKeyIds(
+    const httpData = JSON.parse(httpPostData)[0];
+    const keyIds = queryHelper.fetchLinkKeyIds(
       'fw_uptime',
       httpData.a_node,
       httpData.z_node
@@ -825,22 +825,22 @@ app.post(/\/event\/?$/i, function (req, res, next) {
         .end();
       return;
     }
-    let now = new Date().getTime() / 1000;
-    let eventQuery = {
+    const now = new Date().getTime() / 1000;
+    const eventQuery = {
       type: 'event',
       key_ids: keyIds,
       data: [{ keyId: keyIds[0], key: 'fw_uptime' }],
       min_ago: 24 * 60,
       start_ts: now - 24 * 60,
       end_ts: now,
-      agg_type: 'event'
+      agg_type: 'event',
     };
-    let chartUrl = BERINGEI_QUERY_URL + '/query';
-    let queryRequest = { queries: [eventQuery] };
+    const chartUrl = BERINGEI_QUERY_URL + '/query';
+    const queryRequest = { queries: [eventQuery] };
     request.post(
       {
         url: chartUrl,
-        body: JSON.stringify(queryRequest)
+        body: JSON.stringify(queryRequest),
       },
       (err, httpResponse, body) => {
         if (err) {
@@ -865,13 +865,13 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
   });
   req.on('end', function () {
     // proxy query
-    let chartUrl = BERINGEI_QUERY_URL + '/query';
-    let httpData = JSON.parse(httpPostData);
-    let queryRequest = { queries: httpData };
+    const chartUrl = BERINGEI_QUERY_URL + '/query';
+    const httpData = JSON.parse(httpPostData);
+    const queryRequest = { queries: httpData };
     request.post(
       {
         url: chartUrl,
-        body: JSON.stringify(queryRequest)
+        body: JSON.stringify(queryRequest),
       },
       (err, httpResponse, body) => {
         if (err) {
@@ -892,15 +892,15 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
 });
 
 app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
-  let taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
-  let taRequest = {
+  const taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
+  const taRequest = {
     topologyName: req.params.topology,
-    input: req.params.pattern
+    input: req.params.pattern,
   };
   request.post(
     {
       url: taUrl,
-      body: JSON.stringify(taRequest)
+      body: JSON.stringify(taRequest),
     },
     (err, httpResponse, body) => {
       if (err) {
@@ -920,8 +920,8 @@ app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
 //    filter[nodeFilter1]=<nodeFilter1>
 // /i means ignore case
 app.get(/\/scan_results$/i, function(req, res) {
-  let topologyName = req.query.topology;
-  let filter = {};
+  const topologyName = req.query.topology;
+  const filter = {};
   filter.nodeFilter = [];
   filter.row_count = parseInt(req.query.filter.row_count, 10);
   filter.nodeFilter[0] = req.query.filter.nodeFilter0;
@@ -932,7 +932,7 @@ app.get(/\/scan_results$/i, function(req, res) {
 
 
 app.get(/\/health\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
+  const topologyName = req.params[0];
   if (networkHealth.hasOwnProperty(topologyName)) {
     res.send(networkHealth[topologyName]).end();
   } else {
@@ -956,11 +956,11 @@ function refreshStatsTypeaheadCache(topologyName) {
   topology.links.map(link => {
     delete link.linkup_attempts;
   });
-  let chartUrl = BERINGEI_QUERY_URL + '/stats_typeahead_cache';
+  const chartUrl = BERINGEI_QUERY_URL + '/stats_typeahead_cache';
   request.post(
     {
       url: chartUrl,
-      body: JSON.stringify(topology)
+      body: JSON.stringify(topology),
     },
     (err, httpResponse, body) => {
       if (err) {
@@ -973,20 +973,20 @@ function refreshStatsTypeaheadCache(topologyName) {
 }
 function refreshRuckusControllerCache() {
   console.log('Request to update ruckus controller cache');
-  let ruckusUrl = BERINGEI_QUERY_URL + '/ruckus_ap_stats';
+  const ruckusUrl = BERINGEI_QUERY_URL + '/ruckus_ap_stats';
   request.post(
     {
       url: ruckusUrl,
-      body: JSON.stringify({})
+      body: JSON.stringify({}),
     },
     (err, httpResponse, body) => {
       if (err) {
         console.error('Error fetching from query service:', err);
         return;
       }
-      
+
       try {
-        let ruckusCache = JSON.parse(body);
+        const ruckusCache = JSON.parse(body);
         ruckusApsBySite = ruckusCache;
       } catch (ex) {
         console.error('Unable to parse ruckus stats');
@@ -1002,33 +1002,33 @@ function refreshNetworkHealth (topologyName) {
     console.error('Unknown topology', topologyName);
     return;
   }
-  let nodeMetrics = [
+  const nodeMetrics = [
     {
       name: 'minion_uptime',
       metric: 'e2e_minion.uptime',
       type: 'uptime_sec',
-      min_ago: 24 * 60 /* 24 hours */
-    }
+      min_ago: 24 * 60, /* 24 hours */
+    },
   ];
-  let linkMetrics = [
+  const linkMetrics = [
     {
       name: 'alive',
       metric: 'fw_uptime',
       type: 'event',
-      min_ago: 24 * 60 /* 24 hours */
-    }
+      min_ago: 24 * 60, /* 24 hours */
+    },
   ];
-  let startTime = new Date();
-  let query = {
+  const startTime = new Date();
+  const query = {
     topologyName: topologyName,
     nodeQueries: nodeMetrics,
     linkQueries: linkMetrics,
   };
-  let chartUrl = BERINGEI_QUERY_URL + '/table_query';
+  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
   request.post(
     {
       url: chartUrl,
-      body: JSON.stringify(query)
+      body: JSON.stringify(query),
     },
     (err, httpResponse, body) => {
       if (err) {
@@ -1038,7 +1038,7 @@ function refreshNetworkHealth (topologyName) {
       }
       // set BQS online
       configByName[topologyName].query_service_online = true;
-      let totalTime = new Date() - startTime;
+      const totalTime = new Date() - startTime;
       console.log('Fetched health for', topologyName, 'in', totalTime, 'ms');
       let parsed;
       try {
@@ -1055,7 +1055,7 @@ function refreshNetworkHealth (topologyName) {
 
 // raw stats data
 app.get(/\/link_analyzer\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
+  const topologyName = req.params[0];
   if (analyzerData.hasOwnProperty(topologyName)) {
     res.send(analyzerData[topologyName]).end();
   } else {
@@ -1065,59 +1065,59 @@ app.get(/\/link_analyzer\/(.+)$/i, function (req, res, next) {
 });
 
 function refreshAnalyzerData (topologyName) {
-  let linkMetrics = [
+  const linkMetrics = [
     {
-      name: "not_used",
-      metric: "fw_uptime",
-      type: "analyzer_table",
-      min_ago: 60 /* 1 hour */
+      name: 'not_used',
+      metric: 'fw_uptime',
+      type: 'analyzer_table',
+      min_ago: 60, /* 1 hour */
     },
     {
-      name: "not_used",
-      metric: "tx_ok",
-      type: "analyzer_table",
-      min_ago: 60 /* 1 hour */
+      name: 'not_used',
+      metric: 'tx_ok',
+      type: 'analyzer_table',
+      min_ago: 60, /* 1 hour */
     },
     {
-      name: "not_used",
-      metric: "tx_fail",
-      type: "analyzer_table",
-      min_ago: 60 /* 1 hour */
+      name: 'not_used',
+      metric: 'tx_fail',
+      type: 'analyzer_table',
+      min_ago: 60, /* 1 hour */
     },
     {
-      name: "not_used",
-      metric: "mcs",
-      type: "analyzer_table",
-      min_ago: 60 /* 1 hour */
+      name: 'not_used',
+      metric: 'mcs',
+      type: 'analyzer_table',
+      min_ago: 60, /* 1 hour */
     },
     {
-      name: "not_used",
-      metric: "tx_power",
-      type: "analyzer_table",
-      min_ago: 60 /* 1 hour */
+      name: 'not_used',
+      metric: 'tx_power',
+      type: 'analyzer_table',
+      min_ago: 60, /* 1 hour */
     },
     {
-      name: "not_used",
-      metric: "snr",
-      type: "analyzer_table",
-      min_ago: 60 /* 1 hour */
-    }
+      name: 'not_used',
+      metric: 'snr',
+      type: 'analyzer_table',
+      min_ago: 60, /* 1 hour */
+    },
   ];
-  let startTime = new Date();
-  let query = {
+  const startTime = new Date();
+  const query = {
     topologyName: topologyName,
     nodeQueries: [],
     linkQueries: linkMetrics,
   };
-  let chartUrl = BERINGEI_QUERY_URL + '/table_query';
+  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
   request.post(
     { url: chartUrl, body: JSON.stringify(query) },
     (err, httpResponse, body) => {
       if (err) {
-        console.error("Error fetching from beringei:", err);
+        console.error('Error fetching from beringei:', err);
         return;
       }
-      let totalTime = new Date() - startTime;
+      const totalTime = new Date() - startTime;
       console.log('Fetched analyzer data for', topologyName, 'in', totalTime, 'ms');
       let parsed;
       try {
@@ -1133,26 +1133,26 @@ function refreshAnalyzerData (topologyName) {
 
 // raw stats data
 app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
-  let topologyName = req.params[0];
-  let metricName = req.params[1];
-  let linkMetrics = [
+  const topologyName = req.params[0];
+  const metricName = req.params[1];
+  const linkMetrics = [
     {
       name: 'not_used',
       metric: metricName,
       type: 'latest',
-      min_ago: 60 /* 1 hour */
-    }
+      min_ago: 60, /* 1 hour */
+    },
   ];
-  let query = {
+  const query = {
     topologyName: topologyName,
     nodeQueries: [],
     linkQueries: linkMetrics,
   };
-  let chartUrl = BERINGEI_QUERY_URL + '/table_query';
+  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
   request.post(
     {
       url: chartUrl,
-      body: JSON.stringify(query)
+      body: JSON.stringify(query),
     },
     (err, httpResponse, body) => {
       if (err) {
@@ -1170,11 +1170,11 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
 
 // proxy requests for OSM to a v6 endpoint
 app.get(/^\/tile\/(.+)\/(.+)\/(.+)\/(.+)\.png$/, function (req, res, next) {
-  let z = req.params[1];
-  let x = req.params[2];
-  let y = req.params[3];
+  const z = req.params[1];
+  const x = req.params[2];
+  const y = req.params[3];
   // fetch png
-  let tileUrl =
+  const tileUrl =
     'http://orm.openstreetmap.org/' + z + '/' + x + '/' + y + '.png';
   request(tileUrl).pipe(res);
 });
@@ -1184,8 +1184,8 @@ app.get(/\/topology\/list$/, function (req, res, next) {
 });
 
 app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  let topology = getTopologyByName(topologyName);
+  const topologyName = req.params[0];
+  const topology = getTopologyByName(topologyName);
 
   if (Object.keys(topology).length > 0) {
     res.json(topology);
@@ -1195,21 +1195,21 @@ app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
 });
 
 app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  let networkConfig = Object.assign({}, getTopologyByName(topologyName));
-  let topology = networkConfig.topology;
+  const topologyName = req.params[0];
+  const networkConfig = Object.assign({}, getTopologyByName(topologyName));
+  const topology = networkConfig.topology;
   if (topology) {
     // when config is downloaded we shouldn't show any status
     // injected by the running e2e controller
     if (topology.links) {
       topology.links.forEach(link => {
-        delete link['linkup_attempts'];
+        delete link.linkup_attempts;
         link.is_alive = false;
       });
     }
     if (topology.nodes) {
       topology.nodes.forEach(node => {
-        delete node['status_dump'];
+        delete node.status_dump;
         // add missing parameters?
         if (!node.hasOwnProperty('ant_azimuth')) {
           node.ant_azimuth = 0;
@@ -1230,10 +1230,10 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
             node.golay_idx.txGolayIdx != null &&
             node.golay_idx.rxGolayIdx != null
           ) {
-            let txGolayIdx = Buffer.from(
+            const txGolayIdx = Buffer.from(
               node.golay_idx.txGolayIdx.buffer.data
             ).readUIntBE(0, 8);
-            let rxGolayIdx = Buffer.from(
+            const rxGolayIdx = Buffer.from(
               node.golay_idx.rxGolayIdx.buffer.data
             ).readUIntBE(0, 8);
             // update golay by parsing int buffer
@@ -1250,7 +1250,7 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
 });
 
 app.use(/\/topology\/fetch\/(.+)$/i, function (req, res, next) {
-  let controllerIp = req.params[0];
+  const controllerIp = req.params[0];
   const ctrlProxy = new syncWorker.ControllerProxy(controllerIp);
   ctrlProxy.sendCtrlMsgType(controllerTTypes.MessageType.GET_TOPOLOGY, '\0');
   ctrlProxy.on('event', (type, success, responseTime, data) => {
@@ -1266,7 +1266,7 @@ app.use(/\/topology\/fetch\/(.+)$/i, function (req, res, next) {
   });
 });
 app.get(/\/dashboards\/get\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
+  const topologyName = req.params[0];
   if (!dashboards[topologyName]) {
     dashboards[topologyName] = {};
   }
@@ -1282,7 +1282,7 @@ app.post(/\/dashboards\/save\/$/i, function (req, res, next) {
     if (!httpPostData.length) {
       return;
     }
-    let data = JSON.parse(httpPostData);
+    const data = JSON.parse(httpPostData);
     if (data.topologyName && data.dashboards) {
       dashboards[data.topologyName] = data.dashboards;
       fs.writeFile(
@@ -1307,10 +1307,10 @@ app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let nodeA = req.params[1];
-  let nodeZ = req.params[2];
-  let status = req.params[3] === 'up';
+  const topologyName = req.params[0];
+  const nodeA = req.params[1];
+  const nodeZ = req.params[2];
+  const status = req.params[3] === 'up';
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1319,7 +1319,7 @@ app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
       topology: topology,
       nodeA: nodeA,
       nodeZ: nodeZ,
-      status: status
+      status: status,
     },
     '',
     res
@@ -1331,11 +1331,11 @@ app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let linkName = req.params[1];
-  let nodeA = req.params[2];
-  let nodeZ = req.params[3];
-  let linkType = req.params[4] === 'WIRELESS' ? 1 : 2;
+  const topologyName = req.params[0];
+  const linkName = req.params[1];
+  const nodeA = req.params[2];
+  const nodeZ = req.params[3];
+  const linkType = req.params[4] === 'WIRELESS' ? 1 : 2;
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1345,7 +1345,7 @@ app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
       linkName: linkName,
       nodeA: nodeA,
       nodeZ: nodeZ,
-      linkType: linkType
+      linkType: linkType,
     },
     '',
     res
@@ -1358,14 +1358,14 @@ app.post(/\/controller\/addNode$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
-    let topologyName = postData.topology;
+    const postData = JSON.parse(httpPostData);
+    const topologyName = postData.topology;
     var topology = getTopologyByName(topologyName);
     syncWorker.sendCtrlMsgSync(
       {
         type: 'addNode',
         topology: topology,
-        node: postData.newNode
+        node: postData.newNode,
       },
       '',
       res
@@ -1379,14 +1379,14 @@ app.post(/\/controller\/addSite$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
-    let topologyName = postData.topology;
+    const postData = JSON.parse(httpPostData);
+    const topologyName = postData.topology;
     var topology = getTopologyByName(topologyName);
     syncWorker.sendCtrlMsgSync(
       {
         type: 'addSite',
         topology: topology,
-        site: postData.newSite
+        site: postData.newSite,
       },
       '',
       res
@@ -1399,10 +1399,10 @@ app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let nodeA = req.params[1];
-  let nodeZ = req.params[2];
-  let forceDelete = req.params[3] === 'force';
+  const topologyName = req.params[0];
+  const nodeA = req.params[1];
+  const nodeZ = req.params[2];
+  const forceDelete = req.params[3] === 'force';
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1411,7 +1411,7 @@ app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
       topology: topology,
       nodeA: nodeA,
       nodeZ: nodeZ,
-      forceDelete: forceDelete
+      forceDelete: forceDelete,
     },
     '',
     res
@@ -1419,9 +1419,9 @@ app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
 });
 
 app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  let nodeName = req.params[1];
-  let forceDelete = req.params[2] === 'force';
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const forceDelete = req.params[2] === 'force';
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1429,7 +1429,7 @@ app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
       type: 'delNode',
       topology: topology,
       node: nodeName,
-      forceDelete: forceDelete
+      forceDelete: forceDelete,
     },
     '',
     res
@@ -1441,9 +1441,9 @@ app.get(/\/controller\/renameSite\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let siteName = req.params[1];
-  let newSiteName = req.params[2];
+  const topologyName = req.params[0];
+  const siteName = req.params[1];
+  const newSiteName = req.params[2];
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1451,7 +1451,7 @@ app.get(/\/controller\/renameSite\/(.+)\/(.+)\/(.+)$/i, function (
       type: 'editSite',
       topology: topology,
       siteName: siteName,
-      newSiteName: newSiteName
+      newSiteName: newSiteName,
     },
     '',
     res
@@ -1463,9 +1463,9 @@ app.get(/\/controller\/renameNode\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let nodeName = req.params[1];
-  let newNodeName = req.params[2];
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const newNodeName = req.params[2];
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1473,7 +1473,7 @@ app.get(/\/controller\/renameNode\/(.+)\/(.+)\/(.+)$/i, function (
       type: 'editNode',
       topology: topology,
       nodeName: nodeName,
-      newNodeName: newNodeName
+      newNodeName: newNodeName,
     },
     '',
     res
@@ -1485,10 +1485,10 @@ app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let nodeName = req.params[1];
-  let nodeMac = req.params[2];
-  let force = req.params[3] === 'force';
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const nodeMac = req.params[2];
+  const force = req.params[3] === 'force';
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1497,7 +1497,7 @@ app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
       topology: topology,
       node: nodeName,
       mac: nodeMac,
-      force: force
+      force: force,
     },
     '',
     res
@@ -1533,7 +1533,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
     try {
       // Only care about hooks from the installer app
       if (
-        hookData['data']['form_id'] !== '299399ce-cd92-4cda-8b76-c57ebb73ab33'
+        hookData.data.form_id !== '299399ce-cd92-4cda-8b76-c57ebb73ab33'
       ) {
         console.error(
           'Fulcurm endpoint received webhook from wrong app: ',
@@ -1543,7 +1543,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
         return;
       }
       // Only care about record updates, they'll have the MACs
-      if (hookData['type'] !== 'record.update') {
+      if (hookData.type !== 'record.update') {
         console.error(
           'Fulcurm endpoint received non-update webhook: ',
           hookData
@@ -1552,10 +1552,10 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
         return;
       }
 
-      record = hookData['data']['form_values'];
+      record = hookData.data.form_values;
 
       // Hacky static definition of Fulcrum's UID-based form field representations
-      sectors = record['b15d'];
+      sectors = record.b15d;
     } catch (e) {
       console.error("JSON data doesn't contain required info: ", hookData);
       res.status(200).end();
@@ -1564,7 +1564,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
 
     let anyInstalled = false;
     sectors.forEach(sector => {
-      if (sector['form_values']['dfa8'] === 'Installed') {
+      if (sector.form_values.dfa8 === 'Installed') {
         anyInstalled = true;
       }
     });
@@ -1579,16 +1579,16 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
     }
 
     let notInstalledCount = 0;
-    let topology = getTopologyByName('SJC');
-    let nodeToMacList = {};
+    const topology = getTopologyByName('SJC');
+    const nodeToMacList = {};
     sectors.forEach((sector, index) => {
       // Skip node if it's status isn't 'installed' in Fulcrum
-      if (sector['form_values']['dfa8'] !== 'Installed') {
+      if (sector.form_values.dfa8 !== 'Installed') {
         notInstalledCount += 1;
         return;
       }
-      let nodeMac = sector['form_values']['f7f1'];
-      let nodeName = sector['form_values']['3546'];
+      const nodeMac = sector.form_values.f7f1;
+      const nodeName = sector.form_values['3546'];
       nodeToMacList[nodeName] = nodeMac;
       console.log('Fulcrum setting MAC ' + nodeMac + ' on ' + nodeName);
     });
@@ -1598,7 +1598,7 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
           type: 'setMacList',
           topology: topology,
           nodeToMac: nodeToMacList,
-          force: false
+          force: false,
         },
         '',
         res
@@ -1614,13 +1614,13 @@ app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
 });
 
 app.get(/\/controller\/getIgnitionState\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
+  const topologyName = req.params[0];
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
     {
       type: 'getIgnitionState',
-      topology: topology
+      topology: topology,
     },
     '',
     res
@@ -1632,15 +1632,15 @@ app.get(/\/controller\/setNetworkIgnitionState\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let state = req.params[1] === 'enable';
+  const topologyName = req.params[0];
+  const state = req.params[1] === 'enable';
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
     {
       type: 'setNetworkIgnitionState',
       topology: topology,
-      state: state
+      state: state,
     },
     '',
     res
@@ -1652,9 +1652,9 @@ app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let linkName = req.params[1];
-  let state = req.params[2] === 'enable';
+  const topologyName = req.params[0];
+  const linkName = req.params[1];
+  const state = req.params[2] === 'enable';
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
@@ -1662,7 +1662,7 @@ app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (
       type: 'setLinkIgnitionState',
       topology: topology,
       linkName: linkName,
-      state: state
+      state: state,
     },
     '',
     res
@@ -1674,9 +1674,9 @@ app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
-  let nodeName = req.params[1];
-  let forceReboot = req.params[2] === 'force';
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const forceReboot = req.params[2] === 'force';
   var topology = getTopologyByName(topologyName);
   const SECONDS_TO_REBOOT = 5;
 
@@ -1686,7 +1686,7 @@ app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
       topology: topology,
       forceReboot: forceReboot,
       nodes: [nodeName],
-      secondsToReboot: SECONDS_TO_REBOOT
+      secondsToReboot: SECONDS_TO_REBOOT,
     },
     '',
     res
@@ -1694,15 +1694,15 @@ app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
 });
 
 app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
-  let siteName = req.params[1];
+  const topologyName = req.params[0];
+  const siteName = req.params[1];
   var topology = getTopologyByName(topologyName);
 
   syncWorker.sendCtrlMsgSync(
     {
       type: 'delSite',
       topology: topology,
-      site: siteName
+      site: siteName,
     },
     '',
     res
@@ -1716,11 +1716,11 @@ app.post(/\/controller\/resetStatus$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
+    const postData = JSON.parse(httpPostData);
     const {
       nodes,
       requestId,
-      topologyName
+      topologyName,
     } = postData;
 
     var topology = getTopologyByName(topologyName);
@@ -1730,7 +1730,7 @@ app.post(/\/controller\/resetStatus$/i, function (req, res, next) {
         type: 'resetStatus',
 	nodes,
         requestId,
-	topology
+	topology,
       },
       '',
       res
@@ -1744,7 +1744,7 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
+    const postData = JSON.parse(httpPostData);
     const {
       topologyName,
       isHttp,
@@ -1756,7 +1756,7 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
       skipFailure,
       limit,
       downloadAttempts,
-      torrentParams
+      torrentParams,
     } = postData;
 
     var topology = getTopologyByName(topologyName);
@@ -1775,7 +1775,7 @@ app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
         isHttp,
         downloadAttempts,
         torrentParams,
-        topology
+        topology,
       },
       '',
       res
@@ -1789,7 +1789,7 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
+    const postData = JSON.parse(httpPostData);
     const {
       ugType,
       topologyName,
@@ -1800,7 +1800,7 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
       skipFailure,
       limit,
       skipLinks,
-      scheduleToCommit
+      scheduleToCommit,
     } = postData;
 
     var topology = getTopologyByName(topologyName);
@@ -1817,7 +1817,7 @@ app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
         limit,
         skipLinks,
         scheduleToCommit,
-        topology
+        topology,
       },
       '',
       res
@@ -1831,7 +1831,7 @@ app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
+    const postData = JSON.parse(httpPostData);
     const { topologyName, limit, excludeNodes } = postData;
 
     var topology = getTopologyByName(topologyName);
@@ -1841,7 +1841,7 @@ app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
         type: 'commitUpgradePlan',
         limit,
         excludeNodes,
-        topology
+        topology,
       },
       '',
       res
@@ -1855,7 +1855,7 @@ app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
+    const postData = JSON.parse(httpPostData);
     const { abortAll, reqIds, topologyName } = postData;
 
     var topology = getTopologyByName(topologyName);
@@ -1865,7 +1865,7 @@ app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
         type: 'abortUpgrade',
         abortAll,
         reqIds,
-        topology
+        topology,
       },
       '',
       res
@@ -1889,7 +1889,7 @@ app.post(
       {
         type: 'addUpgradeImage',
         topology: topology,
-        imagePath: imagePath
+        imagePath: imagePath,
       },
       '',
       res
@@ -1904,7 +1904,7 @@ app.get(/\/controller\/listUpgradeImages\/(.+)$/i, function (req, res, next) {
   syncWorker.sendCtrlMsgSync(
     {
       type: 'listUpgradeImages',
-      topology: topology
+      topology: topology,
     },
     '',
     res
@@ -1925,7 +1925,7 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (
     {
       type: 'deleteUpgradeImage',
       topology: topology,
-      name: imageName
+      name: imageName,
     },
     '',
     res
@@ -1941,7 +1941,7 @@ app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
     {
       type: 'getBaseConfig',
       topology: topology,
-      imageVersions: imageVersions
+      imageVersions: imageVersions,
     },
     '',
     res
@@ -1955,7 +1955,7 @@ app.get(/\/controller\/getNetworkOverrideConfig/i, (req, res, next) => {
   syncWorker.sendCtrlMsgSync(
     {
       type: 'getNetworkOverrideConfig',
-      topology: topology
+      topology: topology,
     },
     '',
     res
@@ -1972,7 +1972,7 @@ app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
     {
       type: 'getNodeOverrideConfig',
       topology: topology,
-      nodes: nodeMacs
+      nodes: nodeMacs,
     },
     '',
     res
@@ -1985,7 +1985,7 @@ app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
+    const postData = JSON.parse(httpPostData);
     const { config, topologyName } = postData;
     const topology = getTopologyByName(topologyName);
 
@@ -1993,7 +1993,7 @@ app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
       {
         type: 'setNetworkOverrideConfig',
         topology: topology,
-        config: config
+        config: config,
       },
       '',
       res
@@ -2007,7 +2007,7 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
     httpPostData += chunk.toString();
   });
   req.on('end', function () {
-    let postData = JSON.parse(httpPostData);
+    const postData = JSON.parse(httpPostData);
     const { config, topologyName } = postData;
     const topology = getTopologyByName(topologyName);
 
@@ -2015,7 +2015,7 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
       {
         type: 'setNodeOverrideConfig',
         topology: topology,
-        config: config
+        config: config,
       },
       '',
       res
@@ -2026,7 +2026,7 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
 // aggregator endpoints
 
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
-  let topologyName = req.params[0];
+  const topologyName = req.params[0];
   if (!configByName[topologyName]) {
     res.status(404).end('No such topology\n');
     return;
@@ -2039,7 +2039,7 @@ app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (
   res,
   next
 ) {
-  let topologyName = req.params[0];
+  const topologyName = req.params[0];
   if (!configByName[topologyName]) {
     res.status(404).end('No such topology\n');
     return;
@@ -2062,8 +2062,8 @@ if (devMode) {
       timings: true,
       chunks: false,
       chunkModules: false,
-      modules: false
-    }
+      modules: false,
+    },
   });
   app.use(middleware);
   app.use(webpackHotMiddleware(compiler));

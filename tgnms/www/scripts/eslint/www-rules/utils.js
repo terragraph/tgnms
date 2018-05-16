@@ -212,7 +212,7 @@ function _offsetToLoc(source, offset) {
     prevMatch = match;
     match = re.exec(source);
     ++line;
-  } while (match && match.index < offset)
+  } while (match && match.index < offset);
   return {
     line: line,
     // prevMatch points to the newline immediately before originOffsetLine

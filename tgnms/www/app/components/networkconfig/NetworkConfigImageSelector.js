@@ -5,35 +5,34 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import Select from "react-select";
+const classNames = require('classnames');
 
-import { CONFIG_VIEW_MODE } from "../../constants/NetworkConfigConstants.js";
 import {
   changeEditMode,
-  selectImage
-} from "../../actions/NetworkConfigActions.js";
-
-const classNames = require("classnames");
+  selectImage,
+} from '../../actions/NetworkConfigActions.js';
+import {CONFIG_VIEW_MODE} from '../../constants/NetworkConfigConstants.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import Select from 'react-select';
+import React from 'react';
 
 export default class NetworkConfigImageSelector extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  selectImage = val => {
+  selectImage(val) {
     selectImage({
-      image: val.value
+      image: val.value,
     });
-  };
+  }
 
-  renderBaseVersionSelector = (imageVersions, selectedImage) => {
+  renderBaseVersionSelector(imageVersions, selectedImage) {
     const selectOptions = imageVersions.map(image => {
       return {
         label: image,
-        value: image
+        value: image,
       };
     });
 
@@ -46,15 +45,15 @@ export default class NetworkConfigImageSelector extends React.Component {
         clearable={false}
       />
     );
-  };
+  }
 
   render() {
-    const { imageVersions, selectedImage } = this.props;
+    const {imageVersions, selectedImage} = this.props;
     return this.renderBaseVersionSelector(imageVersions, selectedImage);
   }
 }
 
 NetworkConfigImageSelector.propTypes = {
   selectedImage: PropTypes.string.isRequired,
-  imageVersions: PropTypes.array.isRequired
+  imageVersions: PropTypes.array.isRequired,
 };
