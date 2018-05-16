@@ -584,14 +584,21 @@ export default class NetworkScans extends React.Component {
           {showResultsMsg}
           <div style={{height: this.props.height + 100}}>
             <table style={{ float: "left", width: "60%" }}>
-            <tr><td>
-            {scanTable}
-            </td></tr></table>
+              <tbody>
+                <tr>
+                  <td>{scanTable}</td>
+                </tr>
+              </tbody>
+            </table>
             <table style={{ float: "right", width: "35%" }}>
-            <tr><td>
-            </td></tr></table>
-            </div>
+              <tbody>
+                <tr>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </div>
     );
   }
 }

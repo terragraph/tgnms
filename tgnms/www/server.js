@@ -1,4 +1,11 @@
 
+if (!process.env.NODE_ENV) {
+  process.env.BABEL_ENV = 'development';
+  process.env.NODE_ENV = 'development';
+} else {
+  process.env.BABEL_ENV = process.env.NODE_ENV;
+}
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');

@@ -13,7 +13,6 @@ import moment from "moment";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 import { SpringGrid } from "react-stonecutter";
 import { Menu, MenuItem, Token, AsyncTypeahead } from "react-bootstrap-typeahead";
-import "react-bootstrap-typeahead/css/Token.css";
 import "react-bootstrap-typeahead/css/Typeahead.css";
 
 // time picker

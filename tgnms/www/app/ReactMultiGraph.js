@@ -16,6 +16,8 @@ import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
 import equals from "equals";
 
+import { EventMarker } from "leaflet";
+
 export default class ReactMultiGraph extends React.Component {
   constructor(props, context) {
     super(props, context);
@@ -273,7 +275,7 @@ export default class ReactMultiGraph extends React.Component {
             break;
         }
         chartRows.push(
-          <ChartRow height={200} key={"cr" + name}>
+          <ChartRow height={200} key={"cr" + labelName}>
             <YAxis
               id="a1"
               label={labelName}
@@ -286,7 +288,7 @@ export default class ReactMultiGraph extends React.Component {
               <LineChart
                 axis="a1"
                 series={timeSeries}
-                key={"lc" + name}
+                key={"lc" + labelName}
                 columns={columnNames}
                 style={styler(legendStyle)}
                 interpolation="curveLinear"
