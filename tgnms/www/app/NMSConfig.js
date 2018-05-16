@@ -186,7 +186,7 @@ export default class NMSConfig extends React.Component {
     }
   }
 
-  getTableRows(): Array<> {
+  getTableRows(): Array<any> {
     return Object.values(this.state.pendingConfigs);
   }
 
