@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // NetworkConfig.js
 // top level "pure" component for rendering the network config of the given topology
 

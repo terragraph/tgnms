@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 import React from "react";
 import { render } from "react-dom";
 import { Actions } from "./constants/NetworkConstants.js";

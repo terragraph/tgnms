@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // NetworkConfigContainer.js
 // a container for NetworkConfig.js that acts as a store (stores state) and action dispatch handler
 

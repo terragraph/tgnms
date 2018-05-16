@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 import { Actions } from "../constants/NetworkConstants.js";
 import Dispatcher from "../NetworkDispatcher.js";
 // URL history

@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // NetworkConfigLeftPane.js
 // the left pane of the network config view, allows users to select either the entire network
 // or one or more nodes to view the config

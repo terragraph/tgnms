@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 import { ADD_FIELD_TYPES } from "../constants/NetworkConfigConstants.js";
 
 var _ = require("lodash");

@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // util class for making API calls to the node server for upgrade commands
 import axios from "axios";
 import swal from "sweetalert";

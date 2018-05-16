@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // CustomToggle.js
 // custom toggle component (hides away a lot of raw html)
 

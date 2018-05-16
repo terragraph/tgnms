@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 export const CONFIG_VIEW_MODE = {
   NETWORK: "NETWORK",
   NODE: "NODE"

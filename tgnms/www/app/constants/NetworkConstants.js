@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 import { polarityColor } from "../NetworkHelper.js";
 
 export const Actions = {

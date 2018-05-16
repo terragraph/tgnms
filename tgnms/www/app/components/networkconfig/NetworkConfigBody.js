@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // NetworkConfigBody.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
