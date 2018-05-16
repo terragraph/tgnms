@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from "react";
 import { render } from "react-dom";
+import { Panel } from "react-bootstrap";
 // leaflet maps
 import Leaflet, { Point, LatLng } from "leaflet";
 import {
@@ -37,6 +38,7 @@ import DetailsSite from "./components/detailpanels/DetailsSite.js";
 import DetailsTopology from "./components/detailpanels/DetailsTopology.js";
 import DetailsPlannedSite from "./components/detailpanels/DetailsPlannedSite.js";
 import DetailsTopologyIssues from "./components/detailpanels/DetailsTopologyIssues.js";
+import DetailsLegend from "./components/detailpanels/DetailsLegend.js";
 
 import SplitPane from "react-split-pane";
 import { polarityColor } from "./NetworkHelper.js";
@@ -1274,6 +1276,15 @@ export default class NetworkMap extends React.Component {
       this.addNodeMarkerForSite(topology, this.state.hoveredSite);
     }
 
+    let legendControl = (
+      <Control position="bottomleft">
+        <DetailsLegend
+          siteOverlay={this.props.siteOverlay}
+          linkOverlay={this.props.linkOverlay}
+        />
+      </Control>
+    );
+
     return (
       <div>
         <SplitPane
@@ -1297,6 +1308,7 @@ export default class NetworkMap extends React.Component {
             {siteComponents}
             {siteMarkers}
 
+            {legendControl}
             {layersControl}
             {tablesControl}
             {topologyIssuesControl}

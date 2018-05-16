@@ -220,7 +220,7 @@ export default class DetailsTopology extends React.Component {
                 Polarities (Site)
               </td>
             ) : (
-              ""
+              null
             )}
             <td>
               <span style={{ color: polarityColor(parseInt(polarity)) }}>
@@ -253,7 +253,7 @@ export default class DetailsTopology extends React.Component {
               Polarities (Sector)
             </td>
           ) : (
-            ""
+            null
           )}
           <td>
             <span style={{ color: polarityColor(polarity) }}>
@@ -280,11 +280,16 @@ export default class DetailsTopology extends React.Component {
           ? parseInt(parseInt(element.value) / totalReported * 100)
           : 0;
       return (
-        <tr>
+        <tr key={i}>
           {i == 0 ? (
-            <td rowSpan={versionData.length}>{versionPieChart}</td>
+            <td
+              key="versionPieChart"
+              rowSpan={versionData.length}
+            >
+              {versionPieChart}
+            </td>
           ) : (
-            ""
+            null
           )}
           <td key={i} style={{ color: element.color }}>
             <span

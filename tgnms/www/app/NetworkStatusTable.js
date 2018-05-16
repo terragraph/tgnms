@@ -92,8 +92,8 @@ export default class NetworkStatusTable extends React.Component {
         <td rowSpan={Object.keys(versionCounts).length}>Node Versions</td>
       );
       nodeVersions.push(
-        <tr>
-          {i == 0 ? versionHeader : ""}
+        <tr key={version}>
+          {i == 0 ? versionHeader : null}
           <td>{version}</td>
           <td>
             {parseInt(count / totalReported * 100)}% ({count})

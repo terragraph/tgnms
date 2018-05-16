@@ -264,3 +264,11 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .glyphicon {
   padding-right: 2px;
 }
+
+.details-legend-table {
+  width: 100%;
+}
+
+.details-legend-table td {
+  text-align: center;
+}
