@@ -135,6 +135,7 @@ export default class ModalNodeAdd extends React.Component {
               <td width={100}>Name <span className="required-asterisk">*</span></td>
               <td>
                 <input
+                  className="form-control"
                   style={{ width: "100%", height: "34px" }}
                   type="text"
                   value={this.state.node_name}
@@ -146,9 +147,10 @@ export default class ModalNodeAdd extends React.Component {
             </tr>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>MAC</td>
+              <td width={100}>MAC Address</td>
               <td>
                 <input
+                  className="form-control"
                   style={{ width: "100%", height: "34px" }}
                   type="text"
                   value={this.state.node_mac_addr}

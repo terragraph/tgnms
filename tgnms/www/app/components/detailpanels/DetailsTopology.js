@@ -11,6 +11,7 @@ import {
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
 import PieChart from "react-svg-piechart";
+import { Panel } from "react-bootstrap";
 
 export default class DetailsTopology extends React.Component {
   state = {
@@ -351,49 +352,47 @@ export default class DetailsTopology extends React.Component {
       );
     }
     return (
-      <div
+      <Panel
+        bsStyle="primary"
         id="myModal"
-        className="details"
         onMouseEnter={this.props.onEnter}
         onMouseLeave={this.props.onLeave}
       >
-        <div className="details-content">
-          <div className="details-header">
-            <span
-              className="details-close"
-              onClick={() => {
-                this.props.onClose();
-              }}
-            >
-              &times;
-            </span>
-            <h3>Overview</h3>
-          </div>
-          <div
-            className="details-body"
-            style={{ maxHeight: this.props.maxHeight }}
+        <Panel.Heading>
+          <span
+            className="details-close"
+            onClick={() => {
+              this.props.onClose();
+            }}
           >
-            <table className="details-table" style={{ width: "100%" }}>
-              <tbody>
-                <tr>
-                  <td width="150px">Availability (24 Hours)</td>
-                  <td colSpan="2">
-                    <span style={{ color: availabilityColor(alivePercAvg) }}>
-                      {linksWithData ? alivePercAvg + "%" : "No Data"}
-                    </span>
-                  </td>
-                </tr>
-                {ruckusApRows}
-                {nodeTypeRows}
-                {polarityRows}
-                {polarityBySiteRows}
-                {versionRows}
-                {commitPlan}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+            &times;
+          </span>
+          <Panel.Title componentClass="h3">Overview</Panel.Title>
+        </Panel.Heading>
+        <Panel.Body
+          className="details"
+          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
+        >
+          <table className="details-table" style={{ width: "100%" }}>
+            <tbody>
+              <tr>
+                <td width="150px">Availability (24 Hours)</td>
+                <td colSpan="2">
+                  <span style={{ color: availabilityColor(alivePercAvg) }}>
+                    {linksWithData ? alivePercAvg + "%" : "No Data"}
+                  </span>
+                </td>
+              </tr>
+              {ruckusApRows}
+              {nodeTypeRows}
+              {polarityRows}
+              {polarityBySiteRows}
+              {versionRows}
+              {commitPlan}
+            </tbody>
+          </table>
+        </Panel.Body>
+      </Panel>
     );
   }
 }

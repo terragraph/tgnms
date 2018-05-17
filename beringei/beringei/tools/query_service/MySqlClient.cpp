@@ -41,12 +41,15 @@ MySqlClient::MySqlClient() {
   }
 }
 
-void MySqlClient::refreshAll() noexcept {
+void
+MySqlClient::refreshAll() noexcept {
   refreshNodes();
   refreshStatKeys();
+  refreshTopologies();
 }
 
-std::vector<std::shared_ptr<query::MySqlNodeData> > MySqlClient::getNodes() {
+std::vector<std::shared_ptr<query::MySqlNodeData>>
+MySqlClient::getNodes() {
   std::vector<std::shared_ptr<query::MySqlNodeData> > nodes{};
   for (auto &it : macAddrToNode_) {
     nodes.push_back(it.second);
@@ -54,12 +57,12 @@ std::vector<std::shared_ptr<query::MySqlNodeData> > MySqlClient::getNodes() {
   return nodes;
 }
 
-std::vector<std::shared_ptr<query::MySqlNodeData> >
+std::vector<std::shared_ptr<query::MySqlNodeData>>
 MySqlClient::getNodesWithKeys() {
   return nodes_;
 }
 
-std::vector<std::shared_ptr<query::MySqlNodeData> >
+std::vector<std::shared_ptr<query::MySqlNodeData>>
 MySqlClient::getNodes(const std::unordered_set<std::string> &nodeMacs) {
   std::vector<std::shared_ptr<query::MySqlNodeData> > nodes{};
   for (const auto &mac : nodeMacs) {
@@ -71,7 +74,7 @@ MySqlClient::getNodes(const std::unordered_set<std::string> &nodeMacs) {
   return nodes;
 }
 
-std::vector<std::shared_ptr<query::MySqlNodeData> >
+std::vector<std::shared_ptr<query::MySqlNodeData>>
 MySqlClient::getNodesWithKeys(const std::unordered_set<std::string> &nodeMacs) {
   std::vector<std::shared_ptr<query::MySqlNodeData> > nodes{};
   for (auto node : nodes_) {
@@ -83,7 +86,43 @@ MySqlClient::getNodesWithKeys(const std::unordered_set<std::string> &nodeMacs) {
   return nodes;
 }
 
-void MySqlClient::refreshNodes() noexcept {
+std::vector<std::shared_ptr<query::TopologyConfig>>
+MySqlClient::getTopologyConfigs() {
+  return topologyList_;
+}
+
+void
+MySqlClient::refreshTopologies() noexcept {
+  // load all topologies
+  try {
+    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    std::unique_ptr<sql::ResultSet> res(
+        stmt->executeQuery("SELECT * FROM `topologies`"));
+    std::vector<std::shared_ptr<query::TopologyConfig>> topologyListTmp;
+    while (res->next()) {
+      auto config = std::make_shared<query::TopologyConfig>();
+      config->id = res->getInt("id");
+      config->name = res->getString("name");
+      config->initial_latitude = res->getDouble("initial_latitude");
+      config->initial_longitude = res->getDouble("initial_longitude");
+      config->initial_zoom_level = res->getDouble("initial_zoom_level");
+      config->e2e_ip = res->getString("e2e_ip");
+      config->e2e_port = res->getInt("e2e_port");
+      config->api_ip = res->getString("api_ip");
+      config->api_port = res->getInt("api_port");
+      // add to topology list
+      topologyListTmp.push_back(config);
+    }
+    topologyList_.swap(topologyListTmp);
+    LOG(INFO) << "refreshTopologies:  " << topologyList_.size();
+  } catch (sql::SQLException &e) {
+    LOG(ERROR) << "refreshTopologies ERR: " << e.what();
+    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+  }
+}
+
+void
+MySqlClient::refreshNodes() noexcept {
   try {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
@@ -102,14 +141,14 @@ void MySqlClient::refreshNodes() noexcept {
       nodes_.push_back(node);
     }
     LOG(INFO) << "refreshNodes: Number of nodes: " << nodeIdToNode_.size();
-  }
-  catch (sql::SQLException &e) {
+  } catch (sql::SQLException &e) {
     LOG(ERROR) << "refreshNodes ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
 }
 
-void MySqlClient::refreshStatKeys() noexcept {
+void
+MySqlClient::refreshStatKeys() noexcept {
   try {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
@@ -144,7 +183,8 @@ void MySqlClient::refreshStatKeys() noexcept {
   }
 }
 
-void MySqlClient::addNodes(
+void
+MySqlClient::addNodes(
     std::unordered_map<std::string, query::MySqlNodeData> newNodes) noexcept {
   if (!newNodes.size()) {
     return;
@@ -173,7 +213,8 @@ void MySqlClient::addNodes(
   //  refreshNodes();
 }
 
-void MySqlClient::addStatKeys(std::unordered_map<
+void
+MySqlClient::addStatKeys(std::unordered_map<
     int64_t, std::unordered_set<std::string> > nodeKeys) noexcept {
   if (!nodeKeys.size()) {
     return;

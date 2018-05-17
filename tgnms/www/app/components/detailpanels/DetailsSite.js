@@ -5,6 +5,7 @@ import Dispatcher from "../../NetworkDispatcher.js";
 import { availabilityColor, polarityColor, uptimeSec } from "../../NetworkHelper.js";
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
+import { Panel } from "react-bootstrap";
 
 export default class DetailsSite extends React.Component {
   constructor(props) {
@@ -418,116 +419,113 @@ export default class DetailsSite extends React.Component {
       );
     }
     return (
-      <div
+      <Panel
+        bsStyle="primary"
         id="myModal"
-        className="details"
         onMouseEnter={this.props.onEnter}
         onMouseLeave={this.props.onLeave}
       >
-        <div className="details-content">
-          <div className="details-header">
-            <span
-              className="details-close"
-              onClick={() => {
-                this.props.onClose();
-              }}
-            >
-              &times;
-            </span>
-            <h3>
-              {this.props.site.pending ? "(Pending) " : ""}Site Details
-            </h3>
-          </div>
-          <div
-            className="details-body"
-            style={{ maxHeight: this.props.maxHeight }}
+        <Panel.Heading>
+          <span
+            className="details-close"
+            onClick={() => {
+              this.props.onClose();
+            }}
           >
-            <div>
-              <h3>{this.props.site.name}</h3>
-              <table className="details-table" style={{ width: "100%", border: "0px solid black" }}>
+            &times;
+          </span>
+          <Panel.Title componentClass="h3">
+            {this.props.site.pending ? "(Pending) " : ""}Site Details
+          </Panel.Title>
+        </Panel.Heading>
+        <Panel.Body
+          className="details"
+          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
+        >
+          <div>
+            <h3 style={{ marginTop: "0px" }}>{this.props.site.name}</h3>
+            <table className="details-table" style={{ width: "100%", border: "0px solid black" }}>
+              <tbody>
+                <tr>
+                  <td width="100px">Lat / Lng</td>
+                  <td colSpan="2">{this.props.site.location.latitude} / {this.props.site.location.longitude}</td>
+                </tr>
+                <tr>
+                  <td width="100px">Altitude</td>
+                  <td colSpan="3">{this.props.site.location.altitude} m</td>
+                </tr>
+                <tr>
+                  <td width="100px">Availability</td>
+                  <td colSpan="6">
+                    <span style={{ color: availabilityColor(alivePercAvg) }}>
+                      {alivePercAvg}%
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h4 onClick={() => {this.onHeadingClick("showNodes")}}>Nodes</h4>
+            {this.state.showNodes &&
+              <table className="details-table" style={{ width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Polarity</th>
+                    <th>Tx Golay</th>
+                    <th>Rx Golay</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  <tr>
-                    <td width="100px">Lat / Lng</td>
-                    <td colSpan="2">{this.props.site.location.latitude} / {this.props.site.location.longitude}</td>
-                  </tr>
-                  <tr>
-                    <td width="100px">Altitude</td>
-                    <td colSpan="3">{this.props.site.location.altitude} m</td>
-                  </tr>
-                  <tr>
-                    <td width="100px">Availability</td>
-                    <td colSpan="6">
-                      <span style={{ color: availabilityColor(alivePercAvg) }}>
-                        {alivePercAvg}%
-                      </span>
-                    </td>
-                  </tr>
+                  {nodesRows}
                 </tbody>
               </table>
-            </div>
-            <div>
-              <h4 onClick={() => {this.onHeadingClick("showNodes")}}>Nodes</h4>
-              {this.state.showNodes &&
-                <table className="details-table" style={{ width: "100%" }}>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Polarity</th>
-                      <th>Tx Golay</th>
-                      <th>Rx Golay</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {nodesRows}
-                  </tbody>
-                </table>
-              }
-            </div>
-            <div>
-              <h4 onClick={() => {this.onHeadingClick("showLinks")}}>Links</h4>
-              {this.state.showLinks &&
-                <table className="details-table" style={{ width: "100%" }}>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Availability</th>
-                      <th>Azimuth</th>
-                      <th>Length</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {linksRows}
-                  </tbody>
-                </table>
-              }
-            </div>
-            {ruckusRows.length > 0 &&
-              <div>
-                <h4 onClick={() => {this.onHeadingClick("showRuckus")}}>Ruckus</h4>
-                {this.state.showRuckus &&
-                <table className="details-table" style={{ width: "100%" }}>
-                  <tbody>
-                    {ruckusRows}
-                  </tbody>
-                </table>
-              }
-              </div>
             }
-            <div>
-              <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
-              {this.state.showActions &&
-                <table className="details-table" style={{ width: "100%" }}>
-                  <tbody>
-                    {actionsList}
-                  </tbody>
-                </table>
-              }
-            </div>
-
           </div>
-        </div>
-      </div>
+          <div>
+            <h4 onClick={() => {this.onHeadingClick("showLinks")}}>Links</h4>
+            {this.state.showLinks &&
+              <table className="details-table" style={{ width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Availability</th>
+                    <th>Azimuth</th>
+                    <th>Length</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {linksRows}
+                </tbody>
+              </table>
+            }
+          </div>
+          {ruckusRows.length > 0 &&
+            <div>
+              <h4 onClick={() => {this.onHeadingClick("showRuckus")}}>Ruckus</h4>
+              {this.state.showRuckus &&
+              <table className="details-table" style={{ width: "100%" }}>
+                <tbody>
+                  {ruckusRows}
+                </tbody>
+              </table>
+            }
+            </div>
+          }
+          <div>
+            <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
+            {this.state.showActions &&
+              <table className="details-table" style={{ width: "100%" }}>
+                <tbody>
+                  {actionsList}
+                </tbody>
+              </table>
+            }
+          </div>
+        </Panel.Body>
+      </Panel>
     );
   }
 }

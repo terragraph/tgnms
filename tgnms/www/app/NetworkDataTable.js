@@ -16,6 +16,7 @@ import NetworkStatusTable from "./NetworkStatusTable.js";
 
 // tabs
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import 'react-tabs/style/react-tabs.css';
 
 const TAB_NAMES = ["status", "nodes", "links", "scans", "adjacencies", "routing"];
 
@@ -134,7 +135,6 @@ export default class NetworkDataTable extends React.Component {
           <Tab>Links</Tab>
           <Tab>Scans</Tab>
           <Tab>Adjacencies</Tab>
-          <Tab>Routing</Tab>
         </TabList>
         <TabPanel>
           <NetworkStatusTable {...tableProps} />

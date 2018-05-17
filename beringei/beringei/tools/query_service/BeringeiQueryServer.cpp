@@ -12,8 +12,7 @@
 #include "AggregatorService.h"
 #include "QueryServiceFactory.h"
 #include "StatsTypeAheadCache.h"
-
-#include "beringei/plugins/BeringeiConfigurationAdapter.h"
+#include "TopologyFetcher.h"
 
 #include <curl/curl.h>
 #include <folly/init/Init.h>
@@ -37,7 +36,6 @@ DEFINE_string(ip, "::", "IP/Hostname to bind to");
 DEFINE_int32(threads, 0,
              "Number of threads to listen on. Numbers <= 0 "
              "will use the number of cores on this machine.");
-DEFINE_int32(writer_queue_size, 100000, "Beringei writer queue size");
 
 int main(int argc, char *argv[]) {
   folly::init(&argc, &argv, true);
@@ -57,15 +55,10 @@ int main(int argc, char *argv[]) {
   // initialize curl thread un-safe operations
   curl_global_init(CURL_GLOBAL_ALL);
 
-  // initialize beringei config, and type-ahead
-  auto configurationAdapter = std::make_shared<BeringeiConfigurationAdapter>();
+  // initialize type-ahead
   auto mySqlClient = std::make_shared<MySqlClient>();
   mySqlClient->refreshAll();
   TACacheMap typeaheadCache;
-  auto beringeiReadClient = std::make_shared<BeringeiClient>(
-      configurationAdapter, 1, BeringeiClient::kNoWriterThreads);
-  auto beringeiWriteClient = std::make_shared<BeringeiClient>(
-      configurationAdapter, FLAGS_writer_queue_size, 5);
 
   HTTPServerOptions options;
   options.threads = static_cast<size_t>(FLAGS_threads);
@@ -73,29 +66,31 @@ int main(int argc, char *argv[]) {
   options.shutdownOn = { SIGINT, SIGTERM };
   options.enableContentCompression = false;
   options.handlerFactories = RequestHandlerChain().addThen<QueryServiceFactory>(
-      configurationAdapter,
       mySqlClient,
-      typeaheadCache,
-      beringeiReadClient,
-      beringeiWriteClient).build();
+      typeaheadCache).build();
 
   LOG(INFO) << "Starting Beringei Query Service server on port " << FLAGS_http_port;
   auto server = std::make_shared<HTTPServer>(std::move(options));
   server->bind(IPs);
   std::thread httpThread([server]() { server->start(); });
 
+  LOG(INFO) << "Starting Topology Update Service";
+  // create timer thread
+  auto topologyFetch = std::make_shared<TopologyFetcher>(mySqlClient, typeaheadCache);
+  std::thread topologyFetchThread([&topologyFetch]() {
+    topologyFetch->start();
+  });
+
   LOG(INFO) << "Starting Aggregator Service";
   // create timer thread
   auto aggregator = std::make_shared<AggregatorService>(
-      typeaheadCache,
-      configurationAdapter,
-      beringeiReadClient,
-      beringeiWriteClient);
+      typeaheadCache);
   std::thread aggThread([&aggregator]() {
     aggregator->start();
   });
 
   aggThread.join();
+  topologyFetchThread.join();
   httpThread.join();
   // clean-up curl memory
   curl_global_cleanup();

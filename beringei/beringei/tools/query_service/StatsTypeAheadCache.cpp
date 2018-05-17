@@ -39,8 +39,8 @@ StatsTypeAheadCache::StatsTypeAheadCache(
     "rx_overruns", "tx_overruns", "tx_collisions", "speed"
   };
 }
-  
-std::vector<query::KeyData> 
+
+std::vector<query::KeyData>
 StatsTypeAheadCache::getKeyData(const std::string& metricName) const {
   std::vector<query::KeyData> retKeyData;
   // return KeyData based on a metric name

@@ -1,6 +1,6 @@
 import { polarityColor } from "../NetworkHelper.js";
 
-const Actions = {
+export const Actions = {
   // topology actions
   TOPOLOGY_SELECTED: 100,
   TOPOLOGY_REFRESHED: 101,
@@ -63,7 +63,7 @@ const Actions = {
   COMMIT_PLAN_BATCH: 800
 };
 
-const SiteOverlayKeys = {
+export const SiteOverlayKeys = {
   Health: {
     Healthy: { color: "green" },
     Unhealthy: { color: "red" },
@@ -87,9 +87,9 @@ const SiteOverlayKeys = {
   }
 };
 
-const ChartColors = ["#9F1E11", "#9F6B11", "#620C68", "#0D7825"];
+export const ChartColors = ["#9F1E11", "#9F6B11", "#620C68", "#0D7825"];
 
-const linkOverlayKeys = {
+export const linkOverlayKeys = {
   Health: {
     name: "Health",
     metric: null
@@ -194,20 +194,20 @@ const linkOverlayKeys = {
   }
 };
 
-const UploadStatus = {
+export const UploadStatus = {
   NONE: "NONE",
   UPLOADING: "UPLOADING",
   SUCCESS: "SUCCESS",
   FAILURE: "FAILURE"
 };
 
-const DeleteStatus = {
+export const DeleteStatus = {
   NONE: "NONE",
   SUCCESS: "SUCCESS",
   FAILURE: "FAILURE"
 };
 // marker/line constants
-const MapDimensions = {
+export const MapDimensions = {
   Default: {
     SITE_RADIUS: 10,
     LINK_LINE_WEIGHT: 6
@@ -217,18 +217,7 @@ const MapDimensions = {
     LINK_LINE_WEIGHT: 10
   }
 };
-const MapTiles = {
+export const MapTiles = {
   Default: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   Monochrome: "//stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png"
-};
-
-module.exports = {
-  Actions,
-  MapDimensions,
-  MapTiles,
-  SiteOverlayKeys,
-  linkOverlayKeys,
-  UploadStatus,
-  DeleteStatus,
-  ChartColors
 };

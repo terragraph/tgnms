@@ -32,11 +32,9 @@ const int MAX_COLUMNS = 7;
 const int MAX_DATA_POINTS = 60;
 const int NUM_HBS_PER_SEC = 39; // approximately
 
-QueryHandler::QueryHandler(
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-    std::shared_ptr<BeringeiClient> beringeiClient)
-    : RequestHandler(), configurationAdapter_(configurationAdapter),
-      beringeiClient_(beringeiClient) {}
+QueryHandler::QueryHandler()
+    : RequestHandler(),
+      receivedBody_(false) {}
 
 void
 QueryHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -44,6 +42,7 @@ QueryHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
 }
 
 void QueryHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
+  receivedBody_ = true;
   if (body_) {
     body_->prependChain(move(body));
   } else {
@@ -52,6 +51,15 @@ void QueryHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
 }
 
 void QueryHandler::onEOM() noexcept {
+  if (!receivedBody_) {
+    LOG(INFO) << "No data received for POST";
+    ResponseBuilder(downstream_)
+        .status(500, "OK")
+        .header("Content-Type", "application/text")
+        .body("Empty request")
+        .sendWithEOM();
+    return;
+  }
   auto body = body_->moveToFbString();
   query::QueryRequest request;
   try {
@@ -66,7 +74,7 @@ void QueryHandler::onEOM() noexcept {
         .sendWithEOM();
     return;
   }
-  BeringeiData dataFetcher(configurationAdapter_, beringeiClient_, request);
+  BeringeiData dataFetcher(request);
   std::string responseJson;
   try {
     responseJson = folly::toJson(dataFetcher.process());

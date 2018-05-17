@@ -145,7 +145,7 @@ export default class UpgradeLeftPane extends React.Component {
 }
 
 UpgradeLeftPane.propTypes = {
-  currentRequest: PropTypes.object.isRequired,
+  currentRequest: PropTypes.object,
   pendingRequests: PropTypes.array.isRequired,
   selectedNodes: PropTypes.array.isRequired
 };

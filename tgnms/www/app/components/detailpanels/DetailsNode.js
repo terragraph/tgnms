@@ -6,6 +6,7 @@ import { Actions } from "../../constants/NetworkConstants.js";
 import Dispatcher from "../../NetworkDispatcher.js";
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
+import { Panel } from "react-bootstrap";
 
 export default class DetailsNode extends React.Component {
   constructor(props) {
@@ -399,162 +400,160 @@ export default class DetailsNode extends React.Component {
     }
 
     return (
-      <div
+      <Panel
+        bsStyle="primary"
         id="myModal"
-        className="details"
         onMouseEnter={this.props.onEnter}
         onMouseLeave={this.props.onLeave}
       >
-        <div className="details-content">
-          <div className="details-header">
-            <span
-              className="details-close"
-              onClick={() => {
-                this.props.onClose();
-              }}
-            >
-              &times;
-            </span>
-            <h3>
-              {this.props.node.pending ? "(Pending) " : ""}Node Details
-            </h3>
-          </div>
-          <div
-            className="details-body"
-            style={{ maxHeight: this.props.maxHeight }}
+        <Panel.Heading>
+          <span
+            className="details-close"
+            onClick={() => {
+              this.props.onClose();
+            }}
           >
-            <h3>{this.props.node.name}</h3>
-            <table className="details-table" style={{ width: "100%" }}>
-              <tbody>
-                <tr>
-                  <td width="100px">MAC</td>
-                  <td>{this.props.node.mac_addr}</td>
-                </tr>
-                <tr>
-                  <td width="100px">IPv6</td>
-                  <td>{ipv6}</td>
-                </tr>
-                <tr>
-                  <td width="100px">Type</td>
-                  <td>{type}</td>
-                </tr>
-                <tr>
-                  <td width="100px">Site</td>
-                  <td>
-                    <span
-                      className="details-link"
-                      onClick={() => {
-                        this.selectSite(this.props.node.site_name);
-                      }}
-                    >
-                      {this.props.node.site_name}
-                    </span>
-                  </td>
-                </tr>
-                {linksRows}
+            &times;
+          </span>
+          <Panel.Title componentClass="h3">
+            {this.props.node.pending ? "(Pending) " : ""}Node Details
+          </Panel.Title>
+        </Panel.Heading>
+        <Panel.Body
+          className="details"
+          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
+        >
+          <h3 style={{ marginTop: "0px" }}>{this.props.node.name}</h3>
+          <table className="details-table" style={{ width: "100%" }}>
+            <tbody>
+              <tr>
+                <td width="100px">MAC</td>
+                <td>{this.props.node.mac_addr}</td>
+              </tr>
+              <tr>
+                <td width="100px">IPv6</td>
+                <td>{ipv6}</td>
+              </tr>
+              <tr>
+                <td width="100px">Type</td>
+                <td>{type}</td>
+              </tr>
+              <tr>
+                <td width="100px">Site</td>
+                <td>
+                  <span
+                    className="details-link"
+                    onClick={() => {
+                      this.selectSite(this.props.node.site_name);
+                    }}
+                  >
+                    {this.props.node.site_name}
+                  </span>
+                </td>
+              </tr>
+              {linksRows}
               <tr>
                 <td width="100px">Last seen</td>
                 <td>{elapsedTime}</td>
               </tr>
+            </tbody>
+          </table>
+          <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
+          {this.state.showActions &&
+            <table className="details-table" style={{ width: "100%" }}>
+              <tbody>
+                <tr>
+                  <td colSpan="2">
+                    <div>
+                      <span
+                        className="details-link"
+                        onClick={() => {
+                          this.setMacAddr(false);
+                        }}
+                      >
+                        Set Mac Address
+                      </span>
+                      <span
+                        className="details-link"
+                        style={{ float: "right" }}
+                        onClick={() => {
+                          this.setMacAddr(true);
+                        }}
+                      >
+                        (forced)
+                      </span>
+                    </div>
+                    <div>
+                      <span
+                        className="details-link"
+                        onClick={() => {
+                          this.connectToTerminal(ipv6);
+                        }}
+                      >
+                        Connect To Terminal
+                      </span>
+                    </div>
+                    <div>
+                      <span
+                        className="details-link"
+                        onClick={() => {
+                          this.rebootNode(false);
+                        }}
+                      >
+                        Reboot Node
+                      </span>
+                      <span
+                        className="details-link"
+                        style={{ float: "right" }}
+                        onClick={() => {
+                          this.rebootNode(true);
+                        }}
+                      >
+                        (forced)
+                      </span>
+                    </div>
+                    <div>
+                      <span
+                        className="details-link"
+                        onClick={() => {
+                          this.deleteNode(false);
+                        }}
+                      >
+                        Delete Node
+                      </span>
+                      <span
+                        className="details-link"
+                        style={{ float: "right" }}
+                        onClick={() => {
+                          this.deleteNode(true);
+                        }}
+                      >
+                        (forced)
+                      </span>
+                    </div>
+                    <div>
+                      <span
+                        className="details-link"
+                        onClick={this.renameNode.bind(this)}
+                      >
+                        Rename Node
+                      </span>
+                    </div>
+                    <div>
+                      <span
+                        className="details-link"
+                        onClick={() => this.changeToConfigView(this.props.node)}
+                      >
+                        Node Configuration
+                      </span>
+                    </div>
+                  </td>
+                </tr>
               </tbody>
             </table>
-            <h4 onClick={() => {this.onHeadingClick("showActions")}}>Actions</h4>
-            {this.state.showActions &&
-              <table className="details-table" style={{ width: "100%" }}>
-                <tbody>
-                  <tr>
-                    <td colSpan="2">
-                      <div>
-                        <span
-                          className="details-link"
-                          onClick={() => {
-                            this.setMacAddr(false);
-                          }}
-                        >
-                          Set Mac Address
-                        </span>
-                        <span
-                          className="details-link"
-                          style={{ float: "right" }}
-                          onClick={() => {
-                            this.setMacAddr(true);
-                          }}
-                        >
-                          (forced)
-                        </span>
-                      </div>
-                      <div>
-                        <span
-                          className="details-link"
-                          onClick={() => {
-                            this.connectToTerminal(ipv6);
-                          }}
-                        >
-                          Connect To Terminal
-                        </span>
-                      </div>
-                      <div>
-                        <span
-                          className="details-link"
-                          onClick={() => {
-                            this.rebootNode(false);
-                          }}
-                        >
-                          Reboot Node
-                        </span>
-                        <span
-                          className="details-link"
-                          style={{ float: "right" }}
-                          onClick={() => {
-                            this.rebootNode(true);
-                          }}
-                        >
-                          (forced)
-                        </span>
-                      </div>
-                      <div>
-                        <span
-                          className="details-link"
-                          onClick={() => {
-                            this.deleteNode(false);
-                          }}
-                        >
-                          Delete Node
-                        </span>
-                        <span
-                          className="details-link"
-                          style={{ float: "right" }}
-                          onClick={() => {
-                            this.deleteNode(true);
-                          }}
-                        >
-                          (forced)
-                        </span>
-                      </div>
-                      <div>
-                        <span
-                          className="details-link"
-                          onClick={this.renameNode.bind(this)}
-                        >
-                          Rename Node
-                        </span>
-                      </div>
-                      <div>
-                        <span
-                          className="details-link"
-                          onClick={() => this.changeToConfigView(this.props.node)}
-                        >
-                          Node Configuration
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            }
-          </div>
-        </div>
-      </div>
+          }
+        </Panel.Body>
+      </Panel>
     );
   }
 }

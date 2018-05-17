@@ -11,9 +11,6 @@
 #include "MySqlClient.h"
 #include "StatsTypeAheadCache.h"
 
-#include "beringei/client/BeringeiClient.h"
-#include "beringei/client/BeringeiConfigurationAdapterIf.h"
-
 #include <folly/io/async/EventBaseManager.h>
 #include <folly/Memory.h>
 #include <folly/Portability.h>
@@ -28,11 +25,8 @@ namespace gorilla {
 class QueryServiceFactory : public proxygen::RequestHandlerFactory {
  public:
   explicit QueryServiceFactory(
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
     std::shared_ptr<MySqlClient> mySqlClient,
-    TACacheMap& typeaheadCache,
-    std::shared_ptr<BeringeiClient> beringeiReadClient,
-    std::shared_ptr<BeringeiClient> beringeiWriteClient);
+    TACacheMap& typeaheadCache);
 
   void onServerStart(folly::EventBase *evb) noexcept override;
 
@@ -44,12 +38,9 @@ class QueryServiceFactory : public proxygen::RequestHandlerFactory {
 
  private:
   folly::EventBase *eb_;
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
   std::shared_ptr<MySqlClient> mySqlClient_;
   // topology name -> type-ahead cache
   TACacheMap& typeaheadCache_;
-  std::shared_ptr<BeringeiClient> beringeiReadClient_;
-  std::shared_ptr<BeringeiClient> beringeiWriteClient_;
 };
 
 }

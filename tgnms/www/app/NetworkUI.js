@@ -2,6 +2,7 @@ import React from "react";
 import moment from "moment";
 // menu bar
 import Menu, { SubMenu, Item as MenuItem, Divider } from "rc-menu";
+import { Glyphicon } from "react-bootstrap";
 // leaflet maps
 import { render } from "react-dom";
 // dispatcher
@@ -27,16 +28,17 @@ import {
 import NetworkConfigContainer from "./components/networkconfig/NetworkConfigContainer.js";
 import NetworkUpgrade from "./components/upgrade/NetworkUpgrade.js";
 
+// icon: Glyphicon from Bootstrap 3.3.7
 const VIEWS = {
-  map: "Map",
-  dashboards: "Dashboards",
-  stats: "Stats",
-  eventlogs: "Event Logs",
-  systemlogs: "System Logs",
-  alerts: "Alerts",
-  upgrade: "Upgrade",
-  "nms-config": "NMS Instance Config (Alpha)",
-  config: "Network Config"
+  map: { name: "Map", icon: "map-marker" },
+  dashboards: { name:"Dashboards", icon: "dashboard" },
+  stats: { name:"Stats", icon: "stats" },
+  eventlogs: { name:"Event Logs", icon: "list" },
+  systemlogs: { name:"System Logs", icon: "hdd" },
+  alerts: { name:"Alerts", icon: "alert" },
+  upgrade: { name:"Upgrade", icon: "upload" },
+  "nms-config": { name:"NMS Instance Config (Alpha)", icon: "cloud" },
+  config: { name:"Network Config", icon: "cog" }
 };
 
 const TOPOLOGY_OPS = {
@@ -398,7 +400,7 @@ export default class NetworkUI extends React.Component {
       {
         title: "Planned Site Added",
         text:
-          "Drag the planned site on the map to desired location. Then, you can commit it from the details menu",
+          "Drag the planned site on the map to desired location. Then, you can commit it from the details menu.",
         type: "info",
         closeOnConfirm: true
       },
@@ -569,8 +571,12 @@ export default class NetworkUI extends React.Component {
       !this.state.networkConfig.topology.nodes
     ) {
       return (
-        <div style={{ float: "left", width: "100%", margin: "5px" }}>
-          <img src="/static/images/loading-graphs.gif" />
+        <div>
+          <div className="loading-spinner-wrapper">
+            <div className="loading-spinner">
+              <img src="/static/images/loading-graphs.gif" />
+            </div>
+          </div>
         </div>
       );
     }
@@ -661,7 +667,11 @@ export default class NetworkUI extends React.Component {
     if (this.state.view === 'map') {
       mapMenuItems = [
         (<Divider />),
-        (<SubMenu title="Topology Operations" key="topOps" mode="vertical">
+        (<SubMenu
+          title={<span>Topology Operations <span className="caret" /></span>}
+          key="topOps"
+          mode="vertical"
+        >
           {Object.keys(TOPOLOGY_OPS).map(topOpsKey => {
             let topOpsName = TOPOLOGY_OPS[topOpsKey];
             return (
@@ -697,24 +707,33 @@ export default class NetworkUI extends React.Component {
             mode="horizontal"
             selectedKeys={selectedKeys}
             style={{ float: "left" }}
+            openAnimation="slide-up"
           >
-            <SubMenu title="View" key="view" mode="vertical">
+            <SubMenu
+              title={<span>View <span className="caret" /></span>}
+              key="view"
+              mode="vertical"
+            >
               {Object.keys(VIEWS).map(viewKey => {
-                let viewName = VIEWS[viewKey];
+                let viewName = VIEWS[viewKey].name;
                 return (
                   <MenuItem key={"view#" + viewKey}>
-                    <img src={"/static/images/" + viewKey + ".png"} />
-                    {viewName}
+                    <Glyphicon glyph={VIEWS[viewKey].icon} />
+                    {VIEWS[viewKey].name}
                   </MenuItem>
                 );
               })}
             </SubMenu>
             <MenuItem key="view-selected" disabled>
-              <img src={"/static/images/" + this.state.view + ".png"} />
-              {VIEWS[this.state.view]}
+              <Glyphicon glyph={VIEWS[this.state.view].icon} />
+              {VIEWS[this.state.view].name}
             </MenuItem>
             <Divider />
-            <SubMenu title="Topology" key="topo" mode="vertical">
+            <SubMenu
+              title={<span>Topology <span className="caret" /></span>}
+              key="topo"
+              mode="vertical"
+            >
               {topologyMenuItems}
             </SubMenu>
             <MenuItem key="topology-selected" disabled>
@@ -722,7 +741,10 @@ export default class NetworkUI extends React.Component {
             </MenuItem>
             {mapMenuItems}
           </Menu>
-          <Menu mode="horizontal" style={{ float: "right" }}>
+          <Menu
+            mode="horizontal" style={{ float: "right" }}
+            openAnimation="slide-up"
+          >
             {networkStatusMenuItems}
           </Menu>
         </div>

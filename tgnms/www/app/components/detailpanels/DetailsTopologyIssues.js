@@ -7,6 +7,7 @@ import Dispatcher from "../../NetworkDispatcher.js";
 import { linkLength } from "../../NetworkHelper.js";
 import swal from "sweetalert";
 import "sweetalert/dist/sweetalert.css";
+import { Panel } from "react-bootstrap";
 
 export default class DetailsTopologyIssues extends React.Component {
   // we need an easy way to lookup nodes+sites in old+new topologies
@@ -368,20 +369,20 @@ export default class DetailsTopologyIssues extends React.Component {
       );
     }
     return (
-      <div id="myModal" className="details">
-        <div className="details-content">
-          <div className="details-header">
-            <h3 style={{ marginTop: "0px" }}>Topology Issues</h3>
-          </div>
-          <div className="details-body">
+      <Panel bsStyle="primary" id="myModal">
+        <Panel.Heading>
+          <Panel.Title componentClass="h3">Topology Issues</Panel.Title>
+        </Panel.Heading>
+        <Panel.Body
+          className="details"
+          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
+        >
+          <div>
             {addSitesButton}
             {addNodesButton}
             {addLinksButton}
           </div>
-          <div
-            className="details-body"
-            style={{ maxHeight: this.props.maxHeight - 50 }}
-          >
+          <div style={{ maxHeight: this.props.maxHeight - 50 }}>
             <table
               className="details-table"
               style={{
@@ -393,8 +394,8 @@ export default class DetailsTopologyIssues extends React.Component {
               <tbody>{issues}</tbody>
             </table>
           </div>
-        </div>
-      </div>
+        </Panel.Body>
+      </Panel>
     );
   }
 }
