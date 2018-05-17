@@ -14,6 +14,7 @@ import Dispatcher from '../../NetworkDispatcher.js';
 import {NetworkConfigActions} from '../../actions/NetworkConfigActions.js';
 import {
   getConfigsForTopology,
+  getConfigMetadata,
   setNetworkOverrideConfig,
   setNodeOverrideConfig,
 } from '../../apiutils/NetworkConfigAPIUtil.js';
@@ -55,6 +56,7 @@ export default class NetworkConfigContainer extends React.Component {
     const editMode = viewContext.hasOwnProperty('node')
       ? CONFIG_VIEW_MODE.NODE
       : CONFIG_VIEW_MODE.NETWORK;
+
     const selectedNodes = viewContext.hasOwnProperty('node')
       ? [
           {
@@ -75,6 +77,8 @@ export default class NetworkConfigContainer extends React.Component {
       // base network config
       // map of software version to config
       baseConfig: {},
+
+      configMetadata: {},
 
       // new fields to be added to the specified config
       // is cleared when the user switches a view as this is more "temporary" than even the unsaved config
@@ -698,6 +702,7 @@ export default class NetworkConfigContainer extends React.Component {
   fetchConfigsForCurrentTopology(topologyName, topology) {
     const imageVersions = getImageVersionsForNetwork(topology);
     getConfigsForTopology(topologyName, imageVersions, true);
+    getConfigMetadata(topologyName);
   }
 
   render() {
@@ -705,6 +710,7 @@ export default class NetworkConfigContainer extends React.Component {
 
     const {
       baseConfig,
+      configMetadata,
       newConfigFields,
 
       networkOverrideConfig,
@@ -738,6 +744,7 @@ export default class NetworkConfigContainer extends React.Component {
           editMode={editMode}
           baseConfigByVersion={baseConfig}
           newConfigFields={newConfigFields}
+          configMetadata={configMetadata}
           networkOverrideConfig={networkOverrideConfig}
           networkDraftConfig={networkDraftConfig}
           networkConfigWithChanges={networkConfigWithChanges}

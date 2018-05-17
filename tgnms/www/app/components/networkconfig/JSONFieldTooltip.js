@@ -99,12 +99,10 @@ export default class JSONFieldTooltip extends React.Component {
       const displayVal = !value ? UNDEFINED_PLACEHOLDER[idx] : value;
 
       return (
-        <tr>
-          <td>
-            <span className="nc-tooltip-label">{CONFIG_LAYER_DESC[idx]}:</span>
-          </td>
-          <td>{displayVal}</td>
-        </tr>
+        <div key={`${CONFIG_LAYER_DESC[idx]}-${value}`}>
+          <span className="nc-tooltip-label">{CONFIG_LAYER_DESC[idx]}:</span>
+          <span className="nc-tooltip-value">{displayVal}</span>
+        </div>
       );
     });
 
@@ -135,5 +133,6 @@ export default class JSONFieldTooltip extends React.Component {
 }
 
 JSONFieldTooltip.propTypes = {
-  values: PropTypes.array.isRequired,
+  metadata: PropTypes.object,
+  configLayerValues: PropTypes.array.isRequired,
 };

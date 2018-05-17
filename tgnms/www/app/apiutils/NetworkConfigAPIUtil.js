@@ -9,6 +9,7 @@
 
 import {
   getBaseConfigSuccess,
+  getConfigMetadataSuccess,
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
   setNetworkConfigSuccess,
@@ -67,6 +68,26 @@ export const getConfigsForTopology = (
       if (getNetworkConfig) {
         getNetworkOverrideConfig(topologyName);
       }
+    });
+};
+
+export const getConfigMetadata = topologyName => {
+  const uri = '/controller/getConfigMetadata';
+
+  axios
+    .get(uri, {
+      params: {
+        topologyName,
+      },
+    })
+    .then(response => {
+      const {metadata} = response.data;
+      const parsedMetadata = JSON.parse(metadata);
+
+      getConfigMetadataSuccess({
+        metadata: parsedMetadata,
+        topologyName,
+      });
     });
 };
 

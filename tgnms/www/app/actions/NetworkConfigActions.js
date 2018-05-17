@@ -32,6 +32,9 @@ export const NetworkConfigActions = {
   GET_BASE_CONFIG_SUCCESS: 'GET_BASE_CONFIG_SUCCESS',
   GET_BASE_CONFIG_FAILED: 'GET_BASE_CONFIG_FAILED',
 
+  GET_CONFIG_METADATA_SUCCESS: 'GET_CONFIG_METADATA_SUCCESS',
+  GET_CONFIG_METADATA_FAILED: 'GET_CONFIG_METADATA_FAILED',
+
   GET_NETWORK_CONFIG_SUCCESS: 'GET_NETWORK_CONFIG_SUCCESS',
   GET_NETWORK_CONFIG_FAILED: 'GET_NETWORK_CONFIG_FAILED',
 
@@ -166,6 +169,14 @@ export const getBaseConfigSuccess = ({config, topologyName}) => {
     actionType: NetworkConfigActions.GET_BASE_CONFIG_SUCCESS,
     topologyName,
     config,
+  });
+};
+
+export const getConfigMetadataSuccess = ({metadata, topologyName}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_CONFIG_METADATA_SUCCESS,
+    topologyName,
+    metadata,
   });
 };
 

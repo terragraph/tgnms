@@ -19,16 +19,12 @@ import React from 'react';
 import uuidv4 from 'uuid/v4';
 
 export default class NetworkConfigBody extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      isExpanded: true,
-      viewContext: {
-        viewOverridesOnly: false,
-      },
-    };
-  }
+  state = {
+    isExpanded: true,
+    viewContext: {
+      viewOverridesOnly: false,
+    },
+  };
 
   onToggleExpandAll(isExpanded) {
     toggleExpandAll({isExpanded});
@@ -41,6 +37,7 @@ export default class NetworkConfigBody extends React.Component {
   render() {
     const {
       configs,
+      configMetadata,
       draftConfig,
       newConfigFields,
       selectedNodes,
@@ -87,6 +84,7 @@ export default class NetworkConfigBody extends React.Component {
         <div className="config-form-root">
           <JSONConfigForm
             configs={configs}
+            metadata={configMetadata}
             draftConfig={draftConfig}
             newConfigFields={newConfigFields}
             editPath={[]}
@@ -107,6 +105,7 @@ export default class NetworkConfigBody extends React.Component {
 
 NetworkConfigBody.propTypes = {
   configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+  configMetadata: PropTypes.object.isRequired,
   draftConfig: PropTypes.object.isRequired,
   newConfigFields: PropTypes.object.isRequired,
   nodesWithDrafts: PropTypes.array.isRequired,
