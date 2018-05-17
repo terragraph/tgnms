@@ -10,21 +10,23 @@ import 'react-tabs/style/react-tabs.css';
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
-import NetworkStore from './stores/NetworkStore.js';
+import axios from 'axios';
 import PropTypes from 'prop-types';
 import AsyncButton from 'react-async-button';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
-import {render} from 'react-dom';
 import NumericInput from 'react-numeric-input';
 // tabs
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 import React from 'react';
 
 class ListEditor extends React.Component {
+  state = {
+    selectedItem: null,
+  };
+
   constructor(props) {
     super(props);
     this.updateData = this.updateData.bind(this);
-    this.state = {selectedItem: null};
   }
   focus() {}
   updateData() {
@@ -67,14 +69,20 @@ class NumberEditor extends React.Component {
   constructor(props) {
     super(props);
     this.updateData = this.updateData.bind(this);
-    this.state = {value: props.defaultValue.value};
   }
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    return prevState ? prevState : {value: nextProps.defaultValue.value};
+  }
+
   focus() {
     this.refs.inputRef.focus();
   }
+
   updateData() {
     this.props.onUpdate({value: parseFloat(this.state.value)});
   }
+
   render() {
     return (
       <span>
@@ -136,107 +144,78 @@ export default class NetworkAlerts extends React.Component {
     this.getAlertsTableRows = this.getAlertsTableRows.bind(this);
   }
 
-  getConfigClick(e) {
-    return new Promise((resolve, reject) => {
-      const exec = new Request(
-        '/aggregator/getAlertsConfig/' + this.props.networkName,
-        {credentials: 'same-origin'},
-      );
-      fetch(exec).then(
-        function(response) {
-          if (response.status == 200) {
-            response.json().then(
-              function(json) {
-                const rows = [];
-                var index = 0;
-                json.alerts.forEach(alertConf => {
-                  rows.push({
-                    id: alertConf.id,
-                    key: alertConf.key,
-                    comp: {item: alertComparators[alertConf.comp]},
-                    threshold: {value: alertConf.threshold},
-                    level: {item: alertLevels[alertConf.level]},
-                    node_mac: alertConf.node_mac,
-                    _id: index,
-                  });
-                  index++;
-                });
+  async getConfigClick(e) {
+    const response = await axios.get(
+      '/aggregator/getAlertsConfig/' + this.props.networkName,
+    );
+    const json = response.data;
+    const rows = [];
+    var index = 0;
+    json.alerts.forEach(alertConf => {
+      rows.push({
+        id: alertConf.id,
+        key: alertConf.key,
+        comp: {item: alertComparators[alertConf.comp]},
+        threshold: {value: alertConf.threshold},
+        level: {item: alertLevels[alertConf.level]},
+        node_mac: alertConf.node_mac,
+        _id: index,
+      });
+      index++;
+    });
 
-                this.setState({
-                  alertsConfigJson: json,
-                  alertsConfigRows: rows,
-                });
-
-                resolve();
-              }.bind(this),
-            );
-          } else {
-            reject();
-          }
-        }.bind(this),
-      );
+    this.setState({
+      alertsConfigJson: json,
+      alertsConfigRows: rows,
     });
   }
 
-  setConfigClick(e) {
-    return new Promise((resolve, reject) => {
-      var alertsConfigMap = {};
-      if (this.state.alertsConfigRows) {
-        //Check data
-        var errors = false;
-        this.state.alertsConfigRows.forEach(row => {
-          if (row.id == '' || row.id == '-') {
-            alert('ID of row ' + row._id + ' is invalid');
-            reject();
-            errors = true;
-          }
-          if (row.key == '' || row.key == '-') {
-            alert('Key of row ' + row._id + ' is invalid');
-            reject();
-            errors = true;
-          }
-          if (isNaN(row.threshold.value)) {
-            alert('Threshold of row ' + row._id + ' is invalid');
-            reject();
-            errors = true;
-          }
-          if (alertsConfigMap[row.id]) {
-            alert('ID of row ' + row._id + ' is not uneque');
-            reject();
-            errors = true;
-          }
-          alertsConfigMap[row.id] = row;
-        });
-      }
+  async setConfigClick(e) {
+    const alertsConfigMap = {};
+    let errorMessage = null;
+    if (this.state.alertsConfigRows) {
+      //Check data
+      this.state.alertsConfigRows.forEach(row => {
+        if (errorMessage) {
+          return;
+        }
+        if (row.id === '' || row.id === '-') {
+          errorMessage = 'ID of row ' + row._id + ' is invalid';
+        }
+        if (row.key === '' || row.key === '-') {
+          errorMessage = 'Key of row ' + row._id + ' is invalid';
+        }
+        if (isNaN(row.threshold.value)) {
+          errorMessage = 'Threshold of row ' + row._id + ' is invalid';
+        }
+        if (alertsConfigMap[row.id]) {
+          errorMessage = 'ID of row ' + row._id + ' is not unique';
+        }
+        alertsConfigMap[row.id] = row;
+      });
+    }
 
-      if (
-        !errors &&
-        window.confirm('Are you sure you want to overwrite Alerts Config?')
-      ) {
-        const f = new Request(
-          '/aggregator/setAlertsConfig/' +
-            this.props.networkName +
-            '/' +
-            JSON.stringify(this.state.alertsConfigRows),
-          {credentials: 'same-origin'},
-        );
-        fetch(f).then(function(response) {
-          if (response.status == 200) {
-            response.json().then(function(json) {
-              if (json.success) {
-                resolve();
-              } else {
-                reject();
-              }
-            });
-          } else {
-            reject();
-          }
-        });
-      } else {
-        reject();
-      }
-    });
+    if (errorMessage) {
+      // eslint-disable-next-line no-alert
+      alert(errorMessage);
+      throw new Error('An error occurred');
+    }
+
+    // eslint-disable-next-line no-alert
+    if (!window.confirm('Are you sure you want to overwrite Alerts Config?')) {
+      throw new Error('Aborting');
+    }
+
+    const url =
+      '/aggregator/setAlertsConfig/' +
+      this.props.networkName +
+      '/' +
+      JSON.stringify(this.state.alertsConfigRows);
+
+    const response = await axios.get(url);
+    if (!response.success) {
+      throw new Error('Request was not successful');
+    }
   }
 
   cellListFormatter(cell, row) {
@@ -254,60 +233,30 @@ export default class NetworkAlerts extends React.Component {
   }
 
   getAlerts(network) {
-    const exec = new Request(
-      '/getAlerts/' + network + '/' + this.state.from + '/' + this.state.size,
-      {credentials: 'same-origin'},
-    );
-    fetch(exec).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              this.setState({
-                alertsJson: json,
-              });
-            }.bind(this),
-          );
-        } else {
-          this.setState({
-            alertsJson: null,
-          });
-        }
-      }.bind(this),
-    );
+    const url =
+      '/getAlerts/' + network + '/' + this.state.from + '/' + this.state.size;
+    axios
+      .get(url)
+      .then(response => this.setState({alertsJson: response.data}))
+      .catch(_ => this.setState({alertsJson: null}));
   }
 
-  getAlertsClick(e) {
-    return new Promise((resolve, reject) => {
-      const exec = new Request(
-        '/getAlerts/' +
-          this.props.networkName +
-          '/' +
-          this.state.from +
-          '/' +
-          this.state.size,
-        {credentials: 'same-origin'},
-      );
-      fetch(exec).then(
-        function(response) {
-          if (response.status == 200) {
-            response.json().then(
-              function(json) {
-                this.setState({
-                  alertsJson: json,
-                });
-                resolve();
-              }.bind(this),
-            );
-          } else {
-            this.setState({
-              alertsJson: null,
-            });
-            reject();
-          }
-        }.bind(this),
-      );
-    });
+  async getAlertsClick(e) {
+    const url =
+      '/getAlerts/' +
+      this.props.networkName +
+      '/' +
+      this.state.from +
+      '/' +
+      this.state.size;
+
+    try {
+      const response = await axios.get(url);
+      this.setState({alertsJson: response.data});
+    } catch (error) {
+      this.setState({alertsJson: null});
+      throw error;
+    }
   }
 
   addAlertsConfigRow() {
@@ -334,7 +283,7 @@ export default class NetworkAlerts extends React.Component {
     rows.forEach(row => {
       var selected = false;
       this.state.alertsConfigSelected.forEach(id => {
-        if (id == row._id) {
+        if (id === row._id) {
           selected = true;
         }
       });
@@ -357,10 +306,7 @@ export default class NetworkAlerts extends React.Component {
       this.state.alertsSelected.forEach(id => {
         alertIds.push(id);
       });
-      const exec = new Request('/deleteAlerts/' + JSON.stringify(alertIds), {
-        credentials: 'same-origin',
-      });
-      fetch(exec);
+      axios.get('/deleteAlerts/' + JSON.stringify(alertIds)).then(() => {});
       this.setState({
         alertsSelected: [],
       });
@@ -369,10 +315,7 @@ export default class NetworkAlerts extends React.Component {
   }
 
   clearAllAlerts() {
-    const exec = new Request('/clearAlerts/' + this.props.networkName, {
-      credentials: 'same-origin',
-    });
-    fetch(exec);
+    axios.get('/clearAlerts/' + this.props.networkName).then(() => {});
     this.setState({
       alertsSelected: [],
     });
@@ -434,7 +377,6 @@ export default class NetworkAlerts extends React.Component {
         });
         this.getAlerts(payload.networkName);
         break;
-        break;
     }
   }
 
@@ -479,9 +421,9 @@ export default class NetworkAlerts extends React.Component {
   }
 
   columnClassNameFormat(row, rowIdx) {
-    if (row.alert_level == 'ALERT_CRITICAL') {
+    if (row.alert_level === 'ALERT_CRITICAL') {
       return 'td-column-function-alert-critical';
-    } else if (row.alert_level == 'ALERT_WARNING') {
+    } else if (row.alert_level === 'ALERT_WARNING') {
       return 'td-column-function-alert-warning';
     } else {
       return 'td-column-function-alert-info';
