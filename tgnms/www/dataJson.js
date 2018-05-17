@@ -27,6 +27,8 @@ var self = {
   nodeNameToNode: {},
   scanResults : {},
   nodeToNodeName: {},
+  selfTestColumnNames: [],
+  selfTestGroups: {},
 
   refreshNodes: function () {
     pool.getConnection(function (err, conn) {
@@ -52,6 +54,104 @@ var self = {
       });
     });
   },
+
+  refreshColumnNames: function(res, tableName, sendResult) {
+   pool.getConnection(function (err, conn) {
+     if (err) {
+       console.error('DB error', err);
+       return;
+     }
+     const queryCmd = "SELECT column_name FROM information_schema.columns " +
+                    "WHERE table_name = ?";
+     const queryArgs = [tableName];
+     conn.query(queryCmd, queryArgs, function (err, results) {
+       if (err) {
+         console.error('query error', err);
+         return;
+       }
+
+       let columnObj = [];
+       if (tableName === "tx_scan_results") {
+         columnObj = self.txColumnNames;
+       } else if (tableName === "rx_scan_results") {
+         columnObj = self.rxColumnNames;
+       } else if (tableName === "terragraph_network_analyzer") {
+         columnObj = self.selfTestColumnNames;
+       } else {
+         console.error('ERROR!! unexpected table name');
+         return;
+       }
+
+       results.forEach(row => {
+         columnObj.push(row.column_name);
+       });
+
+       if (sendResult) {
+         res.send(columnObj).end(); // send column names
+       }
+       conn.release();
+     });
+   });
+ },
+
+ readSelfTestResults: function (network, res, filter) {
+    let mysqlQueryRes = {};
+
+    pool.getConnection(function (err, conn) {
+      if (err) {
+        console.error('DB error', err);
+        return;
+      }
+
+      // filterType is either TESTRESULTS or GROUPS
+      if (!filter.hasOwnProperty('filterType')) {
+        console.error('filterType missing from filter');
+        return;
+      }
+
+      if ((filter.filterType === "TESTRESULTS") && !filter.hasOwnProperty('testtime')) {
+          console.error('testtime missing from filter');
+          return;
+      }
+
+      let queryCmd = "";
+      let queryArgs = [];
+      if (filter.filterType === "GROUPS") {
+        queryCmd = "SELECT time, test_tag FROM terragraph_network_analyzer GROUP BY time DESC, test_tag limit 50";
+      } else if (filter.filterType === "TESTRESULTS") {
+        if (filter.testtime === "mostrecentiperfudp") {
+          const querySubCmd = "SELECT time FROM terragraph_network_analyzer WHERE test_tag=? ORDER BY time DESC limit 1";
+          queryCmd = "SELECT * FROM terragraph_network_analyzer WHERE time=(" + querySubCmd + ")";
+          queryArgs.push('iperf_udp');
+
+        } else {
+          queryCmd = "SELECT * FROM terragraph_network_analyzer WHERE time=?" ;
+          queryArgs.push(filter.testtime);
+        }
+      } else {
+        console.error ("invalid filterType ", filter.filterType);
+        return;
+      }
+
+     const query = conn.query(queryCmd, queryArgs, function (err, results) {
+         if (err) {
+           console.error('ERROR: mysql query err:', query.sql, err);
+           return;
+         }
+         // put the filter used into the results so we'll know what the
+         // current fetch corresponds to
+         mysqlQueryRes.results = results;
+         mysqlQueryRes.filter = filter;
+         if (res) {
+           res.send(mysqlQueryRes).end();
+         }
+         if (filter.filterType === "GROUPS") {
+           self.selfTestGroups = results;
+         }
+         conn.release();
+       });
+     });
+   },
 
   // filter defines the mysql query
   //  row_count - the number of rows to fetch
