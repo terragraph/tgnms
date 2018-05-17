@@ -5,13 +5,13 @@
  */
 'use strict';
 
+import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import AsyncButton from 'react-async-button';
 // dispatcher
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import DatePicker from 'react-datepicker';
-import {render} from 'react-dom';
 import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
 import React from 'react';
@@ -22,8 +22,6 @@ const Spinner = () => (
     <div className="double-bounce2" />
   </div>
 );
-
-const conditions = ['must', 'must_not'];
 
 export default class EventLogs extends React.Component {
   state = {
@@ -52,74 +50,23 @@ export default class EventLogs extends React.Component {
   }
 
   getConfigs() {
-    const getTables = new Request('/getEventLogsTables', {
-      credentials: 'same-origin',
+    axios.get('/getEventLogsTables').then(response => {
+      this.setState({tables: response.data.tables});
     });
-    fetch(getTables).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              this.setState({
-                tables: json.tables,
-              });
-            }.bind(this),
-          );
-        }
-      }.bind(this),
-    );
   }
 
-  diveClick(e) {
-    var must = '[';
-    var must_not = '[';
-    must += ']';
-    must_not += ']';
-    return new Promise((resolve, reject) => {
-      const exec = new Request(
-        '/getEventLogs/' +
-          this.state.selectedTableName +
-          '/' +
-          this.state.from +
-          '/' +
-          this.state.size +
-          '/' +
-          this.props.networkName +
-          '/d_' +
-          this.state.dateFrom.format('YYYY_MM_DD'),
-        {credentials: 'same-origin'},
-      );
-      fetch(exec).then(
-        function(response) {
-          if (response.status == 200) {
-            response.json().then(
-              function(json) {
-                var result = [];
-                Object(json).forEach(row => {
-                  try {
-                    const data = JSON.parse(row);
-                    result.push(data);
-                  } catch (e) {
-                    console.log('Unable to parse json', e, row);
-                  }
-                });
-                this.setState({
-                  searchResult: result,
-                });
-                resolve();
-              }.bind(this),
-            );
-          } else {
-            reject();
-          }
-        }.bind(this),
-      );
-    });
+  async diveClick(e) {
+    const {dateFrom, from, selectedTableName, size} = this.state;
+    const {networkName} = this.props;
+    const formattedDate = dateFrom.format('YYYY_MM_DD');
+    const url = `/getEventLogs/${selectedTableName}/${from}/${size}/${networkName}/d_${formattedDate}`;
+    const response = await axios.get(url);
+    this.setState({searchResult: response.data});
   }
 
   selectChange(val) {
     Object(this.state.tables).forEach(table => {
-      if (table.name == val.value) {
+      if (table.name === val.value) {
         this.setState({
           selectedTable: table,
           selectedTableName: val.label,
@@ -130,7 +77,7 @@ export default class EventLogs extends React.Component {
     });
   }
 
-  findprop(obj, path): Object {
+  findprop(obj, path) {
     var args = path.split('.');
     var l = args.length;
 
