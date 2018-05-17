@@ -547,9 +547,15 @@ export default class NetworkLinksTable extends React.Component {
     if (!isNaN(cell)) {
       switch (tpxx) {
         case 'mcs':
-          // if value>thresh1 green, elseif >thresh2 orange, else red
-          cellText = cell.toFixed(1);
-          cellColor = variableColorUp(cell, 9, 5);
+          if (cell === 254) {
+            cellText = 'N/A';
+            cellColor = 'black';
+          }
+          else {
+            cellText = cell.toFixed(1);
+            // if value>thresh1 green, elseif >thresh2 orange, else red
+            cellColor = variableColorUp(cell, 9, 5);
+          }
           break;
         case 'snr':
           cellText = cell.toFixed(1);
@@ -564,9 +570,15 @@ export default class NetworkLinksTable extends React.Component {
           cellColor = variableColorUp(cell, 0, 0);
           break;
         case 'per':
-          cellText = cell.toExponential(2);
-          // if value<thresh1 green, elseif <thresh2 orange, else red
-          cellColor = variableColorDown(cell, 0.005, 0.01);
+          if (cell === 254) {
+            cellText = 'N/A';
+            cellColor = 'black';
+          }
+          else {
+            cellText = cell.toExponential(2);
+            // if value<thresh1 green, elseif <thresh2 orange, else red
+            cellColor = variableColorDown(cell, 0.005, 0.01);
+          }
           break;
         case 'uptime':
           cellText = cell.toFixed(0);
@@ -579,7 +591,7 @@ export default class NetworkLinksTable extends React.Component {
       }
     }
 
-    return <span style={{color: cellColor}}>{'' + cellText}</span>;
+    return <span style={{ color: cellColor }}>{'' + cellText}</span>;
   }
 
   renderLinkAvailability(cell, row) {
