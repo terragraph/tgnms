@@ -33,6 +33,10 @@ const VIEWS = {
   map: { name: "Map", icon: "map-marker" },
   dashboards: { name:"Dashboards", icon: "dashboard" },
   stats: { name:"Stats", icon: "stats" },
+  // TODO: implement these views and uncomment them
+  // eventlogs: { name:"Event Logs", icon: "list" },
+  // systemlogs: { name:"System Logs", icon: "hdd" },
+  // alerts: { name:"Alerts", icon: "alert" },
   upgrade: { name:"Upgrade", icon: "upload" },
   "nms-config": { name:"NMS Instance Config (Alpha)", icon: "cloud" },
   config: { name:"Network Config", icon: "cog" }
