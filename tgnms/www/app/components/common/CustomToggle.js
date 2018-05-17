@@ -8,8 +8,7 @@
 // CustomToggle.js
 // custom toggle component (hides away a lot of raw html)
 
-const classNames = require('classnames');
-
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';

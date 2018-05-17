@@ -7,9 +7,8 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-const classNames = require('classnames');
-
 import {prepareUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import Modal from 'react-modal';

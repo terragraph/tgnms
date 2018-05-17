@@ -7,7 +7,7 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-var FileSaver = require('file-saver');
+import FileSaver from 'file-saver';
 
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher

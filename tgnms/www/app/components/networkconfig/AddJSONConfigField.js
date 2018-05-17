@@ -8,10 +8,9 @@
 // JSONConfigForm.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
-const classNames = require('classnames');
-
 import {addNewField} from '../../actions/NetworkConfigActions.js';
 import {ADD_FIELD_TYPES} from '../../constants/NetworkConfigConstants.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import onClickOutside from 'react-onclickoutside';

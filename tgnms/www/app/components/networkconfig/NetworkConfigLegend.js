@@ -5,12 +5,11 @@
  */
 'use strict';
 
-const classNames = require('classnames');
-
 import {
   CONFIG_VIEW_MODE,
   CONFIG_CLASSNAMES,
 } from '../../constants/NetworkConfigConstants.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';

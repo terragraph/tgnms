@@ -5,13 +5,12 @@
  */
 'use strict';
 
-const classNames = require('classnames');
-
 import {
   changeEditMode,
   selectImage,
 } from '../../actions/NetworkConfigActions.js';
 import {CONFIG_VIEW_MODE} from '../../constants/NetworkConfigConstants.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import Select from 'react-select';

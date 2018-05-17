@@ -5,8 +5,6 @@
  */
 'use strict';
 
-const classNames = require('classnames');
-
 import {
   editConfigForm,
   revertConfigOverride,
@@ -18,6 +16,7 @@ import {
 } from '../../constants/NetworkConfigConstants.js';
 import CustomToggle from '../common/CustomToggle.js';
 import JSONFieldTooltip from './JSONFieldTooltip.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';

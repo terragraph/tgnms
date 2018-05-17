@@ -10,8 +10,6 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-const classNames = require('classnames');
-
 import {
   editNewField,
   deleteNewField,
@@ -20,6 +18,7 @@ import {ADD_FIELD_TYPES} from '../../constants/NetworkConfigConstants.js';
 import {convertAndValidateNewConfigObject} from '../../helpers/NetworkConfigHelpers.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
 import NewJSONConfigField from './NewJSONConfigField.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';

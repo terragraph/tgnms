@@ -8,7 +8,7 @@
 // NetworkConfigBody.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
-const uuidv4 = require('uuid/v4');
+import uuidv4 from 'uuid/v4';
 
 import {toggleExpandAll} from '../../actions/NetworkConfigActions.js';
 import CustomToggle from '../common/CustomToggle.js';

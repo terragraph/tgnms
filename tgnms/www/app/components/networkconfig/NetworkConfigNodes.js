@@ -23,7 +23,7 @@ import React from 'react';
 
 const KEY_FIELD = 'mac_addr';
 const TABLE_HEADER_OFFSET = 78;
-const classNames = require('classnames');
+import classNames from 'classnames';
 
 export default class NetworkConfigNodes extends React.Component {
   constructor(props) {

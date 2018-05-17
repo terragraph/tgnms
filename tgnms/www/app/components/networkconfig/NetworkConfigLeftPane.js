@@ -10,13 +10,13 @@
 // or one or more nodes to view the config
 
 var _ = require('lodash');
-const classNames = require('classnames');
 
 import {changeEditMode} from '../../actions/NetworkConfigActions.js';
 import {CONFIG_VIEW_MODE} from '../../constants/NetworkConfigConstants.js';
 import NetworkConfigImageSelector from './NetworkConfigImageSelector.js';
 import NetworkConfigLegend from './NetworkConfigLegend.js';
 import NetworkConfigNodes from './NetworkConfigNodes.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';

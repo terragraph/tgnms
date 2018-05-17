@@ -11,7 +11,6 @@
 import 'sweetalert/dist/sweetalert.css';
 
 var _ = require('lodash');
-const classNames = require('classnames');
 
 import Dispatcher from '../../NetworkDispatcher.js';
 import {
@@ -29,6 +28,7 @@ import AddJSONConfigField from './AddJSONConfigField.js';
 import JSONFormField from './JSONFormField.js';
 import NewJSONConfigField from './NewJSONConfigField.js';
 import NewJSONConfigObject from './NewJSONConfigObject.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';

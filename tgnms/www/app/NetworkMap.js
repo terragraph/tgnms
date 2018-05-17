@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const d3 = require('d3');
+import { rgb, scaleLinear } from 'd3';
 
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
@@ -914,11 +914,10 @@ export default class NetworkMap extends React.Component {
       let linkLine = null;
       if (this.state.routingOverlayEnabled) {
         if (this.state.routeWeights && this.state.routeWeights[link.name]) {
-          var bwUsageColor = d3
-            .scaleLinear()
+          var bwUsageColor = scaleLinear()
             .domain([0, 100])
             .range(['white', '#4169e1']);
-          var linkColor = d3.rgb(
+          var linkColor = rgb(
             bwUsageColor(this.state.routeWeights[link.name]),
           );
           linkLine = this.getLinkLine(link, linkCoords, linkColor);
@@ -1036,11 +1035,10 @@ export default class NetworkMap extends React.Component {
               const linkHealthEvents = this.state.linkHealth.metrics[link.name]
                 .events.length;
               // linear scaling
-              const healthScaleColor = d3
-                .scaleLinear()
+              const healthScaleColor = scaleLinear()
                 .domain([0, 5, 50])
                 .range(['green', 'yellow', 'red']);
-              const linkColor = d3.rgb(healthScaleColor(linkHealthEvents));
+              const linkColor = rgb(healthScaleColor(linkHealthEvents));
               linkLine = this.getLinkLine(link, linkCoords, linkColor);
             } else {
               // no data

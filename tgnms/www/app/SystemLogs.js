@@ -19,7 +19,7 @@ import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
 import React from 'react';
 
-require('react-datepicker/dist/react-datepicker.css');
+import 'react-datepicker/dist/react-datepicker.css';
 
 const Spinner = () => (
   <div className="spinner">

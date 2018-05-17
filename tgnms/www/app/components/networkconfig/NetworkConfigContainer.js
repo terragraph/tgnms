@@ -11,7 +11,7 @@
 import 'sweetalert/dist/sweetalert.css';
 
 var _ = require('lodash');
-const uuidv4 = require('uuid/v4');
+import uuidv4 from 'uuid/v4';
 
 import Dispatcher from '../../NetworkDispatcher.js';
 import {NetworkConfigActions} from '../../actions/NetworkConfigActions.js';

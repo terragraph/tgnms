@@ -5,10 +5,9 @@
  */
 'use strict';
 
-const classNames = require('classnames');
-
 import Dispatcher from '../../NetworkDispatcher.js';
 import {Actions} from '../../constants/NetworkConstants.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';
