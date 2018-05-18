@@ -1,5 +1,12 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import NetworkUI from "./NetworkUI.js";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-ReactDOM.render(<NetworkUI />, document.getElementById("root"));
+import NetworkUI from './NetworkUI.js';
+import ReactDOM from 'react-dom';
+import React from 'react';
+
+ReactDOM.render(<NetworkUI />, document.getElementById('root'));

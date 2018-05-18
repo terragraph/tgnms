@@ -1,13 +1,18 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
+import Dispatcher from '../../NetworkDispatcher.js';
+import {Actions} from '../../constants/NetworkConstants.js';
+import UpgradeBatchTable from './UpgradeBatchTable.js';
+import UpgradeNodesTable from './UpgradeNodesTable.js';
+import UpgradeRequestsTable from './UpgradeRequestsTable.js';
 import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-
-import UpgradeNodesTable from "./UpgradeNodesTable.js";
-import UpgradeBatchTable from "./UpgradeBatchTable.js";
-import UpgradeRequestsTable from "./UpgradeRequestsTable.js";
-
-import { Actions } from "../../constants/NetworkConstants.js";
-import Dispatcher from "../../NetworkDispatcher.js";
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class UpgradeMonitor extends React.Component {
   constructor(props) {
@@ -19,17 +24,17 @@ export default class UpgradeMonitor extends React.Component {
     // then associate each node with the batch it belongs to (batchIdx)
     return pendingBatches.reduce((pendingNodes, batch, batchIdx) => {
       return pendingNodes.concat(
-        batch.map(nodeInBatch => Object.assign({}, nodeInBatch, { batchIdx }))
+        batch.map(nodeInBatch => Object.assign({}, nodeInBatch, {batchIdx})),
       );
     }, []);
   }
 
-  onNodesSelected = nodes => {
+  onNodesSelected(nodes) {
     Dispatcher.dispatch({
       actionType: Actions.UPGRADE_NODES_SELECTED,
-      nodes
+      nodes,
     });
-  };
+  }
 
   render() {
     const {
@@ -37,7 +42,7 @@ export default class UpgradeMonitor extends React.Component {
       selectedNodes,
       curBatch,
       pendingBatches,
-      pendingRequests
+      pendingRequests,
     } = this.props;
     const pendingBatchNodes = this.flattenPendingBatches(pendingBatches);
 
@@ -87,5 +92,5 @@ UpgradeMonitor.propTypes = {
   selectedNodes: PropTypes.array.isRequired,
   curBatch: PropTypes.array.isRequired,
   pendingBatches: PropTypes.array.isRequired,
-  pendingRequests: PropTypes.array.isRequired
+  pendingRequests: PropTypes.array.isRequired,
 };

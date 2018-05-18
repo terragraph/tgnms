@@ -52,7 +52,11 @@ class MySqlClient {
   std::vector<std::shared_ptr<query::MySqlNodeData> >
   getNodesWithKeys(const std::unordered_set<std::string> &nodeMacs);
 
+  std::vector<std::shared_ptr<query::TopologyConfig>> getTopologyConfigs();
+
   void refreshNodes() noexcept;
+
+  void refreshTopologies() noexcept;
 
   void refreshStatKeys() noexcept;
 
@@ -71,6 +75,7 @@ class MySqlClient {
   sql::Driver *driver_;
   std::unique_ptr<sql::Connection> connection_;
   std::vector<std::shared_ptr<query::MySqlNodeData> > nodes_{};
+  std::vector<std::shared_ptr<query::TopologyConfig>> topologyList_{};
   MacToNodeMap macAddrToNode_{};
   std::unordered_map<int64_t, std::shared_ptr<query::MySqlNodeData> >
   nodeIdToNode_{};

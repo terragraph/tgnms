@@ -1,22 +1,28 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import Modal from "react-modal";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-import { resetStatus } from "../../apiutils/UpgradeAPIUtil.js";
+import {resetStatus} from '../../apiutils/UpgradeAPIUtil.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import React from 'react';
 
 const modalStyle = {
   content: {
-    width: "calc(100% - 40px)",
-    maxWidth: "800px",
-    display: "table",
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    width: 'calc(100% - 40px)',
+    maxWidth: '800px',
+    display: 'table',
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 export default class ModalResetStatus extends React.Component {
@@ -25,12 +31,12 @@ export default class ModalResetStatus extends React.Component {
   }
 
   submitReset() {
-    let nodes = this.props.upgradeNodes;
+    const nodes = this.props.upgradeNodes;
 
     const requestBody = {
       nodes,
-      requestId: "NMS" + new Date().getTime(),
-      topologyName: this.props.topologyName
+      requestId: 'NMS' + new Date().getTime(),
+      topologyName: this.props.topologyName,
     };
 
     resetStatus(requestBody);
@@ -42,7 +48,7 @@ export default class ModalResetStatus extends React.Component {
   }
 
   render() {
-    const { upgradeNodes, upgradeState, isOpen } = this.props;
+    const {upgradeNodes, upgradeState, isOpen} = this.props;
 
     const nodesList = (
       <div className="upgrade-modal-nodes-list">
@@ -50,7 +56,7 @@ export default class ModalResetStatus extends React.Component {
           return idx % 2 == 0 ? (
             <p>{node}</p>
           ) : (
-            <p style={{ backgroundColor: "#f9f9f9" }}>{node}</p>
+            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
           );
         })}
       </div>
@@ -60,8 +66,7 @@ export default class ModalResetStatus extends React.Component {
       <Modal
         style={modalStyle}
         isOpen={isOpen}
-        onRequestClose={this.modalClose.bind(this)}
-      >
+        onRequestClose={this.modalClose.bind(this)}>
         <div className="upgrade-modal-content">
           <label>
             Nodes to reset status ({this.props.upgradeNodes.length})
@@ -71,15 +76,13 @@ export default class ModalResetStatus extends React.Component {
         <div className="upgrade-modal-footer">
           <button
             className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}
-          >
+            onClick={this.modalClose.bind(this)}>
             Close
           </button>
           <button
             className="upgrade-modal-btn"
             onClick={this.submitReset.bind(this)}
-            style={{ backgroundColor: "#8b9dc3" }}
-          >
+            style={{backgroundColor: '#8b9dc3'}}>
             Submit
           </button>
         </div>
@@ -92,5 +95,5 @@ ModalResetStatus.propTypes = {
   upgradeNodes: PropTypes.array.isRequired,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequred
+  topologyName: PropTypes.string.isRequred,
 };

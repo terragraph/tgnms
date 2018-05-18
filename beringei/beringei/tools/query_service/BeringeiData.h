@@ -12,9 +12,10 @@
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 #include <folly/Memory.h>
+#include <folly/Singleton.h>
 
 #include "beringei/client/BeringeiClient.h"
-#include "beringei/client/BeringeiConfigurationAdapterIf.h"
+//#include "beringei/client/BeringeiConfigurationAdapterIf.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 
@@ -26,8 +27,9 @@ typedef std::vector<std::pair<Key, std::vector<TimeValuePair> > > TimeSeries;
 class BeringeiData {
  public:
   explicit BeringeiData(
-      std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-      std::shared_ptr<BeringeiClient> beringeiClient,
+//      std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
+//      std::shared_ptr<BeringeiClient> beringeiClient,
+//      std::shared_ptr<BeringeiClient> beringeiClientHF,
       const query::QueryRequest& request);
 
   folly::dynamic process();
@@ -52,6 +54,7 @@ class BeringeiData {
   folly::dynamic transform();
   folly::dynamic latest();
   folly::dynamic handleQuery();
+  void selectBeringeiDb();
   folly::dynamic eventHandler(int dataPointIncrementMs,
                               const std::string &metricName);
   folly::dynamic analyzerTable(int beringeiTimeWindowS);
@@ -61,13 +64,12 @@ class BeringeiData {
                           int timeSeriesStartIndex, int minIdx, int maxIdx,
                           bool mcsflag);
 
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter_;
-  std::shared_ptr<BeringeiClient> beringeiClient_;
   // request data
   query::QueryRequest request_;
   query::Query query_;
   time_t startTime_;
   time_t endTime_;
+  int32_t timeInterval_;
   std::vector<std::string> columnNames_;
   TimeSeries beringeiTimeSeries_;
   // regular key time series

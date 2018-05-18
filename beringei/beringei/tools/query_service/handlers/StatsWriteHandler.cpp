@@ -8,6 +8,7 @@
  */
 
 #include "StatsWriteHandler.h"
+#include "../BeringeiClientStore.h"
 #include "mysql_connection.h"
 #include "mysql_driver.h"
 
@@ -31,17 +32,15 @@ using std::chrono::milliseconds;
 using std::chrono::system_clock;
 using namespace proxygen;
 
-DEFINE_int32(agg_bucket_seconds, 30, "time aggregation bucket size");
+//DEFINE_int32(agg_bucket_seconds, 30, "time aggregation bucket size");
 
 namespace facebook {
 namespace gorilla {
 
 StatsWriteHandler::StatsWriteHandler(
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-    std::shared_ptr<MySqlClient> mySqlClient,
-    std::shared_ptr<BeringeiClient> beringeiClient)
-    : RequestHandler(), configurationAdapter_(configurationAdapter),
-      mySqlCacheClient_(mySqlClient), beringeiClient_(beringeiClient) {
+    std::shared_ptr<MySqlClient> mySqlClient)
+    : RequestHandler(),
+      mySqlCacheClient_(mySqlClient) {
 
   mySqlClient_ = std::make_shared<MySqlClient>();
 }
@@ -59,7 +58,7 @@ void StatsWriteHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
   }
 }
 
-int64_t timeCalc(int64_t timeIn) {
+int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
   /*
     int64_t timeInSeconds;
     int64_t currentTime = std::time(nullptr);
@@ -94,8 +93,8 @@ int64_t timeCalc(int64_t timeIn) {
       * FLAGS_agg_bucket_seconds;
   */
   return folly::to<int64_t>(
-             ceil(std::time(nullptr) / FLAGS_agg_bucket_seconds)) *
-         FLAGS_agg_bucket_seconds;
+             ceil(std::time(nullptr) / intervalSec)) *
+         intervalSec;
 }
 
 void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
@@ -105,6 +104,8 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
 
   auto startTime = (int64_t)duration_cast<milliseconds>(
       system_clock::now().time_since_epoch()).count();
+
+  int interval = request.interval;
 
   for (const auto &agent : request.agents) {
     auto nodeId = mySqlCacheClient_->getNodeId(agent.mac);
@@ -121,7 +122,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
 
     for (const auto &stat : agent.stats) {
       // check timestamp
-      int64_t tsParsed = timeCalc(stat.ts);
+      int64_t tsParsed = timeCalc(stat.ts, interval);
       auto keyId = mySqlCacheClient_->getKeyId(*nodeId, stat.key);
       // verify node/key combo exists
       if (keyId) {
@@ -152,9 +153,11 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
 
   // insert rows
   if (!bRows.empty()) {
+    auto beringeiClientStore = BeringeiClientStore::getInstance();
+    auto beringeiClient = beringeiClientStore->getWriteClient(interval);
     folly::EventBase eb;
-    eb.runInLoop([this, &bRows]() mutable {
-      auto pushedPoints = beringeiClient_->putDataPoints(bRows);
+    eb.runInLoop([this, beringeiClient, &bRows]() mutable {
+      auto pushedPoints = beringeiClient->putDataPoints(bRows);
       if (!pushedPoints) {
         LOG(ERROR) << "Failed to perform the put!";
       }
@@ -188,12 +191,12 @@ void StatsWriteHandler::onEOM() noexcept {
   }
   logRequest(request);
   LOG(INFO) << "Stats writer request from \"" << request.topology.name
-            << "\" for " << request.agents.size() << " nodes";
+            << "\" for " << request.agents.size() << " nodes with "
+            << request.interval << " second interval.";
 
   try {
     writeData(request);
-  }
-  catch (const std::exception &ex) {
+  } catch (const std::exception &ex) {
     LOG(ERROR) << "Unable to handle stats_writer request: " << ex.what();
     ResponseBuilder(downstream_)
         .status(500, "OK")

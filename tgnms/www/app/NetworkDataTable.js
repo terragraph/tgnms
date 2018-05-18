@@ -1,28 +1,42 @@
-import PropTypes from 'prop-types';
-import React from "react";
-// leaflet maps
-import { render } from "react-dom";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
+import 'react-tabs/style/react-tabs.css';
+
+import NetworkAdjacencyTable from './NetworkAdjacencyTable.js';
+import Dispatcher from './NetworkDispatcher.js';
+import NetworkLinksTable from './NetworkLinksTable.js';
+import NetworkNodesTable from './NetworkNodesTable.js';
+import NetworkRoutingTable from './NetworkRoutingTable.js';
+import NetworkScans from './NetworkScans.js';
+import NetworkStatusTable from './NetworkStatusTable.js';
 // dispatcher
-import { Actions } from "./constants/NetworkConstants.js";
-import Dispatcher from "./NetworkDispatcher.js";
-import NetworkStore from "./stores/NetworkStore.js";
-
-import NetworkNodesTable from "./NetworkNodesTable.js";
-import NetworkLinksTable from "./NetworkLinksTable.js";
-import NetworkScans from "./NetworkScans.js";
-import NetworkAdjacencyTable from "./NetworkAdjacencyTable.js";
-import NetworkRoutingTable from "./NetworkRoutingTable.js";
-import NetworkStatusTable from "./NetworkStatusTable.js";
-
+import {Actions} from './constants/NetworkConstants.js';
+import NetworkStore from './stores/NetworkStore.js';
+import PropTypes from 'prop-types';
+// leaflet maps
+import {render} from 'react-dom';
 // tabs
-import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
+import React from 'react';
 
-const TAB_NAMES = ["status", "nodes", "links", "scans", "adjacencies", "routing"];
+const TAB_NAMES = [
+  'status',
+  'nodes',
+  'links',
+  'scans',
+  'adjacencies',
+  'routing',
+];
 
 export default class NetworkDataTable extends React.Component {
   state = {
     routing: {},
-    zoomLevel: NetworkStore.zoomLevel
+    zoomLevel: NetworkStore.zoomLevel,
   };
 
   tabNameToIndex = {};
@@ -43,22 +57,22 @@ export default class NetworkDataTable extends React.Component {
     return false;
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.height != this.props.height) {
       this.shouldUpdate = true;
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this)
+      this.handleDispatchEvent.bind(this),
     );
     this.setState({
       selectedTabIndex:
         NetworkStore.tabName in this.tabNameToIndex
           ? this.tabNameToIndex[NetworkStore.tabName]
-          : 0
+          : 0,
     });
   }
 
@@ -75,21 +89,21 @@ export default class NetworkDataTable extends React.Component {
       case Actions.AGGREGATOR_DUMP_REFRESHED:
         this.shouldUpdate = true;
         this.setState({
-          routing: payload.routing
+          routing: payload.routing,
         });
         break;
       case Actions.TAB_SELECTED:
         this.shouldUpdate = true;
         if (!(payload.tabName in this.tabNameToIndex)) {
-          console.error("Tab not found", payload.tabName);
+          console.error('Tab not found', payload.tabName);
           break;
         }
         const tabIndex = this.tabNameToIndex[payload.tabName];
         // prevent clicking on link/node on the map from switching tabs
         // when the current tab is Scans
-        if (this.state.selectedTabIndex !== this.tabNameToIndex["scans"]) {
+        if (this.state.selectedTabIndex !== this.tabNameToIndex.scans) {
           this.setState({
-            selectedTabIndex: tabIndex
+            selectedTabIndex: tabIndex,
           });
         }
         break;
@@ -98,43 +112,41 @@ export default class NetworkDataTable extends React.Component {
 
   _handleTabSelect(index, last) {
     this.setState({
-      selectedTabIndex: index
+      selectedTabIndex: index,
     });
     // TODO - should we null the selected node?
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
-      tabName: TAB_NAMES[index]
+      tabName: TAB_NAMES[index],
     });
     Dispatcher.dispatch({
-      actionType: Actions.CLEAR_NODE_LINK_SELECTED
+      actionType: Actions.CLEAR_NODE_LINK_SELECTED,
     });
     Dispatcher.dispatch({
-      actionType: Actions.CLEAR_ROUTE
+      actionType: Actions.CLEAR_ROUTE,
     });
   }
 
   render() {
     let adjustedHeight = this.props.height - 95;
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
-    let tableProps = {
+    const tableProps = {
       instance: this.props.networkConfig,
       height: adjustedHeight,
       topology: this.props.networkConfig.topology,
       routing: this.state.routing,
-      zoomLevel: this.state.zoomLevel
+      zoomLevel: this.state.zoomLevel,
     };
     return (
       <Tabs
         onSelect={this._handleTabSelect.bind(this)}
-        selectedIndex={this.state.selectedTabIndex}
-      >
+        selectedIndex={this.state.selectedTabIndex}>
         <TabList>
           <Tab>Status</Tab>
           <Tab>Nodes</Tab>
           <Tab>Links</Tab>
           <Tab>Scans</Tab>
           <Tab>Adjacencies</Tab>
-          <Tab>Routing</Tab>
         </TabList>
         <TabPanel>
           <NetworkStatusTable {...tableProps} />
@@ -161,5 +173,5 @@ export default class NetworkDataTable extends React.Component {
   }
 }
 NetworkDataTable.propTypes = {
-  networkConfig: PropTypes.object.isRequired
+  networkConfig: PropTypes.object.isRequired,
 };

@@ -1,13 +1,20 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-import { Actions } from "../../constants/NetworkConstants.js";
-import Dispatcher from "../../NetworkDispatcher.js";
-import { linkLength } from "../../NetworkHelper.js";
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
-import { Panel } from "react-bootstrap";
+import 'sweetalert/dist/sweetalert.css';
+
+import Dispatcher from '../../NetworkDispatcher.js';
+import {linkLength} from '../../NetworkHelper.js';
+import {Actions} from '../../constants/NetworkConstants.js';
+import PropTypes from 'prop-types';
+import {Panel} from 'react-bootstrap';
+import {render} from 'react-dom';
+import React from 'react';
+import swal from 'sweetalert';
 
 export default class DetailsTopologyIssues extends React.Component {
   // we need an easy way to lookup nodes+sites in old+new topologies
@@ -18,7 +25,7 @@ export default class DetailsTopologyIssues extends React.Component {
   remainingSites = [];
 
   state = {
-    processing: false
+    processing: false,
   };
 
   constructor(props) {
@@ -26,36 +33,36 @@ export default class DetailsTopologyIssues extends React.Component {
   }
 
   classNameIsNew(boolVal) {
-    return boolVal ? "topoDiffNew" : "topoDiffExisting";
+    return boolVal ? 'topoDiffNew' : 'topoDiffExisting';
   }
 
   selectNode(nodeName) {
     Dispatcher.dispatch({
       actionType: Actions.NODE_SELECTED,
       nodeSelected: nodeName,
-      source: "detailsTopologyIssues"
+      source: 'detailsTopologyIssues',
     });
   }
 
   addSitesAsync(remainingSites) {
     if (!remainingSites.length) {
       swal({
-        title: "Done adding sites!"
+        title: 'Done adding sites!',
       });
-      this.setState({ processing: false });
+      this.setState({processing: false});
       return;
     }
     // fetch first site
-    let siteToAdd = remainingSites.pop();
-    let newSite = {
+    const siteToAdd = remainingSites.pop();
+    const newSite = {
       name: siteToAdd.name,
       lat: siteToAdd.location.latitude,
       long: siteToAdd.location.longitude,
-      alt: siteToAdd.location.altitude
+      alt: siteToAdd.location.altitude,
     };
-    let postData = {
+    const postData = {
       topology: this.props.topology.name,
-      newSite: newSite
+      newSite: newSite,
     };
     var request = new XMLHttpRequest();
     request.onload = function() {
@@ -66,19 +73,19 @@ export default class DetailsTopologyIssues extends React.Component {
         this.addSitesAsync(remainingSites);
       } else {
         swal({
-          title: "Failed!",
+          title: 'Failed!',
           text:
             "Adding site '" +
             siteToAdd.name +
             "' failed\nReason: " +
             request.statusText,
-          type: "error"
+          type: 'error',
         });
-        this.setState({ processing: false });
+        this.setState({processing: false});
       }
     }.bind(this);
     try {
-      request.open("POST", "/controller/addSite", true);
+      request.open('POST', '/controller/addSite', true);
       request.send(JSON.stringify(postData));
     } catch (e) {}
   }
@@ -87,32 +94,32 @@ export default class DetailsTopologyIssues extends React.Component {
     // compute remaining sites
     swal(
       {
-        title: "Add all " + this.remainingSites.length + " sites?",
-        text: "This will add sites individually",
+        title: 'Add all ' + this.remainingSites.length + ' sites?',
+        text: 'This will add sites individually',
         showCancelButton: true,
-        confirmButtonText: "Go!",
-        closeOnConfirm: true
+        confirmButtonText: 'Go!',
+        closeOnConfirm: true,
       },
       function() {
-        this.setState({ processing: true });
+        this.setState({processing: true});
         this.addSitesAsync(this.remainingSites);
-      }.bind(this)
+      }.bind(this),
     );
   }
 
   selectSite(site, isNew) {
     if (isNew) {
       // add to map
-      let nodes = [];
-      let links = [];
+      const nodes = [];
+      const links = [];
       Object.keys(site.nodes).forEach(nodeName => {
-        let node = site.nodes[nodeName];
+        const node = site.nodes[nodeName];
         nodes.push(node.node);
         node.links.forEach(link => {
           links.push(link);
           // determine if we need to add additional sites/nodes to make links
           // viewable
-          let remoteNodeName =
+          const remoteNodeName =
             link.a_node_name == node.node.name
               ? link.z_node_name
               : link.a_node_name;
@@ -121,63 +128,63 @@ export default class DetailsTopologyIssues extends React.Component {
             if (this.newNodesByName.hasOwnProperty(remoteNodeName)) {
               // remote node does exist in new topology
               // add new node+site into pendingTopology, mark as 'supporting'
-              let remoteNode = this.newNodesByName[remoteNodeName];
-              let remoteSite = this.newSitesByName[remoteNode];
+              const remoteNode = this.newNodesByName[remoteNodeName];
+              const remoteSite = this.newSitesByName[remoteNode];
             }
           }
         });
       });
-      let pendingTopology = {
+      const pendingTopology = {
         sites: [site.site],
         nodes: nodes,
-        links: links
+        links: links,
       };
       Dispatcher.dispatch({
         actionType: Actions.PENDING_TOPOLOGY,
-        topology: pendingTopology
+        topology: pendingTopology,
       });
     }
     // select site name
     Dispatcher.dispatch({
       actionType: Actions.SITE_SELECTED,
-      siteSelected: site.hasOwnProperty("site") ? site.site.name : site.name
+      siteSelected: site.hasOwnProperty('site') ? site.site.name : site.name,
     });
   }
 
   remoteSiteInfo(localSite, linkObj, localNodeName) {
     // determine local + remote node
-    let remoteNodeName =
+    const remoteNodeName =
       linkObj.a_node_name == localNodeName
         ? linkObj.z_node_name
         : linkObj.a_node_name;
     // find remote site (z)
-    let ret = {};
+    const ret = {};
     let remoteSite;
     if (this.nodesByName.hasOwnProperty(remoteNodeName)) {
       // remote node is existing
-      let remoteNode = this.nodesByName[remoteNodeName];
-      ret["siteName"] = remoteNode.site_name;
-      ret["nodeName"] = remoteNode.name;
-      ret["newNode"] = false;
+      const remoteNode = this.nodesByName[remoteNodeName];
+      ret.siteName = remoteNode.site_name;
+      ret.nodeName = remoteNode.name;
+      ret.newNode = false;
       if (this.sitesByName.hasOwnProperty(remoteNode.site_name)) {
-        ret["newSite"] = false;
+        ret.newSite = false;
         remoteSite = this.sitesByName[remoteNode.site_name];
       }
     } else if (this.newNodesByName.hasOwnProperty(remoteNodeName)) {
-      let remoteNode = this.newNodesByName[remoteNodeName];
-      ret["siteName"] = remoteNode.site_name;
-      ret["nodeName"] = remoteNode.name;
-      ret["newNode"] = true;
+      const remoteNode = this.newNodesByName[remoteNodeName];
+      ret.siteName = remoteNode.site_name;
+      ret.nodeName = remoteNode.name;
+      ret.newNode = true;
       if (this.sitesByName.hasOwnProperty(remoteNode.site_name)) {
-        ret["newSite"] = false;
+        ret.newSite = false;
         remoteSite = this.sitesByName[remoteNode.site_name];
       } else if (this.newSitesByName.hasOwnProperty(remoteNode.site_name)) {
-        ret["newSite"] = true;
+        ret.newSite = true;
         remoteSite = this.newSitesByName[remoteNode.site_name].site;
       }
     }
     // find local site
-    ret["linkLength"] = linkLength(localSite, remoteSite);
+    ret.linkLength = linkLength(localSite, remoteSite);
     return ret;
   }
 
@@ -206,34 +213,34 @@ export default class DetailsTopologyIssues extends React.Component {
       this.nodesByName[node.name] = node;
     });
     this.props.newTopology.sites.forEach(site => {
-      this.newSitesByName[site.name] = { site: site, nodes: {} };
+      this.newSitesByName[site.name] = {site: site, nodes: {}};
     });
     this.props.newTopology.nodes.forEach(node => {
       this.newNodesByName[node.name] = node;
       this.newSitesByName[node.site_name].nodes[node.name] = {
         node: node,
-        links: []
+        links: [],
       };
     });
     // mark links to each node/site
     this.props.newTopology.links.forEach(link => {
-      let aNode = this.newNodesByName[link.a_node_name];
+      const aNode = this.newNodesByName[link.a_node_name];
       this.newSitesByName[aNode.site_name].nodes[aNode.name].links.push(link);
-      let zNode = this.newNodesByName[link.z_node_name];
+      const zNode = this.newNodesByName[link.z_node_name];
       this.newSitesByName[zNode.site_name].nodes[zNode.name].links.push(link);
     });
-    let issues = [];
+    const issues = [];
     Object.keys(this.newSitesByName).forEach((siteName, i) => {
-      let newSiteByName = this.newSitesByName[siteName];
+      const newSiteByName = this.newSitesByName[siteName];
       // first we'll resolve all site issues, add/delete/rename.
       // Allow clicking on each conflict to show the site in question
       if (this.sitesByName.hasOwnProperty(siteName)) {
         // existing, compare
         // TODO - verify location proximity
         // verify nodes are the same
-        let newNodesList = newSiteByName.nodes;
+        const newNodesList = newSiteByName.nodes;
         Object.keys(newNodesList).forEach(nodeName => {
-          let node = newNodesList[nodeName].node;
+          const node = newNodesList[nodeName].node;
           // check if node exists and has the same site
           let newNode = false;
           let siteChanged = false;
@@ -250,24 +257,24 @@ export default class DetailsTopologyIssues extends React.Component {
             issues.push(
               <tr>
                 <td>{node.name}</td>
-                <td>Type: {node.node_type == 1 ? "CN" : "DN"}</td>
-                <td>MAC: {node.mac_addr ? node.mac_addr : "-"}</td>
-              </tr>
+                <td>Type: {node.node_type == 1 ? 'CN' : 'DN'}</td>
+                <td>MAC: {node.mac_addr ? node.mac_addr : '-'}</td>
+              </tr>,
             );
           }
-          let links = newNodesList[nodeName].links;
+          const links = newNodesList[nodeName].links;
         });
       } else {
         // add to remaining site list
         this.remainingSites.push(newSiteByName.site);
         // new site name
-        let nodesAndLinks = [];
+        const nodesAndLinks = [];
         let numNodesLinks = 0;
         // fetch links from each node
         Object.values(newSiteByName.nodes).forEach((nodeLinkObj, i) => {
-          let node = nodeLinkObj.node;
-          let links = nodeLinkObj.links;
-          let nodeHeader = <td rowSpan={numNodesLinks}>Nodes</td>;
+          const node = nodeLinkObj.node;
+          const links = nodeLinkObj.links;
+          const nodeHeader = <td rowSpan={numNodesLinks}>Nodes</td>;
           nodesAndLinks.push(
             <tr>
               <td>Node</td>
@@ -275,15 +282,14 @@ export default class DetailsTopologyIssues extends React.Component {
                 <span
                   onClick={() => {
                     this.selectNode(node.name);
-                  }}
-                >
+                  }}>
                   {node.name}
                 </span>
               </td>
-              <td>{node.node_type == 1 ? "CN" : "DN"}</td>
-              <td>POP? {node.pop_node ? "Y" : "N"}</td>
-              <td>Primary? {node.is_primary ? "Y" : "n"}</td>
-            </tr>
+              <td>{node.node_type == 1 ? 'CN' : 'DN'}</td>
+              <td>POP? {node.pop_node ? 'Y' : 'N'}</td>
+              <td>Primary? {node.is_primary ? 'Y' : 'n'}</td>
+            </tr>,
           );
           // add remaining nodes
           let numLinks = 0;
@@ -297,10 +303,10 @@ export default class DetailsTopologyIssues extends React.Component {
             if (link.link_type == 2) {
               return;
             }
-            let remoteSiteInfo = this.remoteSiteInfo(
+            const remoteSiteInfo = this.remoteSiteInfo(
               newSiteByName.site,
               link,
-              node.name
+              node.name,
             );
             nodesAndLinks.push(
               <tr>
@@ -314,13 +320,12 @@ export default class DetailsTopologyIssues extends React.Component {
                   <span
                     onClick={() => {
                       this.selectSite(remoteSiteInfo.siteName, false);
-                    }}
-                  >
+                    }}>
                     {remoteSiteInfo.siteName}
                   </span>
                 </td>
                 <td>{parseInt(remoteSiteInfo.linkLength)} m</td>
-              </tr>
+              </tr>,
             );
             numNodesLinks++;
           });
@@ -332,18 +337,16 @@ export default class DetailsTopologyIssues extends React.Component {
             <td
               colSpan="5"
               className={this.classNameIsNew(true)}
-              style={{ borderTop: "2px solid cadetblue" }}
-            >
+              style={{borderTop: '2px solid cadetblue'}}>
               <span
                 onClick={() => {
                   this.selectSite(newSiteByName, true);
                 }}
-                style={{ fontWeight: "bold" }}
-              >
+                style={{fontWeight: 'bold'}}>
                 {siteName} ({i + 1}/{Object.keys(this.newSitesByName).length})
               </span>
             </td>
-          </tr>
+          </tr>,
         );
         issues.push(nodesAndLinks);
       }
@@ -351,19 +354,19 @@ export default class DetailsTopologyIssues extends React.Component {
     let addSitesButton = (
       <input
         type="button"
-        value={"Add Sites (" + this.remainingSites.length + ")"}
+        value={'Add Sites (' + this.remainingSites.length + ')'}
         onClick={() => {
           this.addAllSites();
         }}
       />
     );
-    let addNodesButton = "nodes";
-    let addLinksButton = "links";
+    const addNodesButton = 'nodes';
+    const addLinksButton = 'links';
     if (this.state.processing || !this.remainingSites.length) {
       addSitesButton = (
         <input
           type="button"
-          value={"Add Sites (" + this.remainingSites.length + ")"}
+          value={'Add Sites (' + this.remainingSites.length + ')'}
           disabled
         />
       );
@@ -375,22 +378,20 @@ export default class DetailsTopologyIssues extends React.Component {
         </Panel.Heading>
         <Panel.Body
           className="details"
-          style={{ maxHeight: this.props.maxHeight, width: "100%" }}
-        >
+          style={{maxHeight: this.props.maxHeight, width: '100%'}}>
           <div>
             {addSitesButton}
             {addNodesButton}
             {addLinksButton}
           </div>
-          <div style={{ maxHeight: this.props.maxHeight - 50 }}>
+          <div style={{maxHeight: this.props.maxHeight - 50}}>
             <table
               className="details-table"
               style={{
-                width: "100%",
-                borderLeft: "2px solid cadetblue",
-                borderRight: "2px solid cadetblue"
-              }}
-            >
+                width: '100%',
+                borderLeft: '2px solid cadetblue',
+                borderRight: '2px solid cadetblue',
+              }}>
               <tbody>{issues}</tbody>
             </table>
           </div>
@@ -403,5 +404,5 @@ export default class DetailsTopologyIssues extends React.Component {
 DetailsTopologyIssues.propTypes = {
   topology: PropTypes.object.isRequired,
   newTopology: PropTypes.object.isRequired,
-  maxHeight: PropTypes.number.isRequired
+  maxHeight: PropTypes.number.isRequired,
 };

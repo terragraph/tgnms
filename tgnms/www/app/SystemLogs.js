@@ -1,18 +1,25 @@
-import PropTypes from 'prop-types';
-import React from "react";
-// leaflet maps
-import { render } from "react-dom";
-// dispatcher
-import { Actions } from "./constants/NetworkConstants.js";
-import AsyncButton from "react-async-button";
-import DatePicker from "react-datepicker";
-import Dispatcher from "./NetworkDispatcher.js";
-import moment from "moment";
-import NetworkStore from "./stores/NetworkStore.js";
-import NumericInput from "react-numeric-input";
-import Select from "react-select";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-require("react-datepicker/dist/react-datepicker.css");
+import 'react-datepicker/dist/react-datepicker.css';
+
+import Dispatcher from './NetworkDispatcher.js';
+// dispatcher
+import {Actions} from './constants/NetworkConstants.js';
+import NetworkStore from './stores/NetworkStore.js';
+import moment from 'moment';
+import PropTypes from 'prop-types';
+import AsyncButton from 'react-async-button';
+import DatePicker from 'react-datepicker';
+// leaflet maps
+import {render} from 'react-dom';
+import NumericInput from 'react-numeric-input';
+import Select from 'react-select';
+import React from 'react';
 
 const Spinner = () => (
   <div className="spinner">
@@ -28,8 +35,8 @@ export default class SystemLogs extends React.Component {
     selectedSourceName: null,
     offset: 0,
     size: 2000,
-    logText: "",
-    startDate: moment()
+    logText: '',
+    startDate: moment(),
   };
 
   constructor(props) {
@@ -45,10 +52,10 @@ export default class SystemLogs extends React.Component {
     this.getConfigs();
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // register once we're visible
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this)
+      this.handleDispatchEvent.bind(this),
     );
   }
 
@@ -62,15 +69,15 @@ export default class SystemLogs extends React.Component {
       // TODO - compare props to reset
       case Actions.TOPOLOGY_SELECTED:
         this.setState({
-          selectedNodeName: null
+          selectedNodeName: null,
         });
         break;
     }
   }
 
   getConfigs() {
-    let getLogSources = new Request("/getSystemLogsSources/", {
-      credentials: "same-origin"
+    const getLogSources = new Request('/getSystemLogsSources/', {
+      credentials: 'same-origin',
     });
     fetch(getLogSources).then(
       function(response) {
@@ -78,54 +85,54 @@ export default class SystemLogs extends React.Component {
           response.json().then(
             function(json) {
               this.setState({
-                logSources: json.sources
+                logSources: json.sources,
               });
-            }.bind(this)
+            }.bind(this),
           );
         }
-      }.bind(this)
+      }.bind(this),
     );
   }
 
   loadClick(e) {
     if (this.state.selectedNodeMac && this.state.selectedSourceName) {
       return new Promise((resolve, reject) => {
-        let exec = new Request(
-          "/getSystemLogs/" +
+        const exec = new Request(
+          '/getSystemLogs/' +
             this.state.selectedSourceName +
-            "/" +
+            '/' +
             this.state.offset +
-            "/" +
+            '/' +
             this.state.size +
-            "/" +
+            '/' +
             this.state.selectedNodeMac +
-            "/" +
-            this.state.startDate.format("MM-DD-YYYY"),
-          { credentials: "same-origin" }
+            '/' +
+            this.state.startDate.format('MM-DD-YYYY'),
+          {credentials: 'same-origin'},
         );
         fetch(exec).then(
           function(response) {
             if (response.status == 200) {
               response.json().then(
                 function(json) {
-                  var text = "";
+                  var text = '';
                   json.forEach(line => {
-                    text += line + "\n";
+                    text += line + '\n';
                   });
                   this.setState({
-                    logText: text
+                    logText: text,
                   });
                   resolve();
-                }.bind(this)
+                }.bind(this),
               );
             } else {
               reject();
             }
-          }.bind(this)
+          }.bind(this),
         );
       });
     } else {
-      alert("Please select a Log source and a Node name!");
+      alert('Please select a Log source and a Node name!');
     }
   }
 
@@ -134,7 +141,7 @@ export default class SystemLogs extends React.Component {
       if (source.name == val.value) {
         this.setState({
           selectedSource: source,
-          selectedSourceName: val.label
+          selectedSourceName: val.label,
         });
         return;
       }
@@ -146,7 +153,7 @@ export default class SystemLogs extends React.Component {
       if (node.name == val.value) {
         this.setState({
           selectedNodeMac: node.mac_addr,
-          selectedNodeName: val.label
+          selectedNodeName: val.label,
         });
         return;
       }
@@ -155,18 +162,18 @@ export default class SystemLogs extends React.Component {
 
   handleOffsetChange(val) {
     this.setState({
-      offset: val
+      offset: val,
     });
   }
   handleSizeChange(val) {
     this.setState({
-      size: val
+      size: val,
     });
   }
 
   handleDateChange(date) {
     this.setState({
-      startDate: date
+      startDate: date,
     });
   }
 
@@ -177,7 +184,7 @@ export default class SystemLogs extends React.Component {
       Object(this.state.logSources).forEach(source => {
         logsOptions.push({
           value: source.name,
-          label: source.name
+          label: source.name,
         });
       });
     }
@@ -186,22 +193,19 @@ export default class SystemLogs extends React.Component {
       Object(this.props.networkConfig.topology.nodes).forEach(node => {
         nodesOptions.push({
           value: node.name,
-          label: node.name
+          label: node.name,
         });
       });
     }
 
     return (
       <div
-        style={{ width: "100%", height: "100%", position: "fixed !important" }}
-      >
-        <table
-          style={{ borderCollapse: "separate", borderSpacing: "15px 5px" }}
-        >
+        style={{width: '100%', height: '100%', position: 'fixed !important'}}>
+        <table style={{borderCollapse: 'separate', borderSpacing: '15px 5px'}}>
           <tbody>
             <tr>
               <td width={250}>
-                <div style={{ width: 250 }}>
+                <div style={{width: 250}}>
                   <Select
                     name="Select Logs"
                     value={this.state.selectedSourceName}
@@ -212,7 +216,7 @@ export default class SystemLogs extends React.Component {
                 </div>
               </td>
               <td width={250}>
-                <div style={{ width: 250 }}>
+                <div style={{width: 250}}>
                   <Select
                     options={nodesOptions}
                     name="Select Node"
@@ -256,9 +260,8 @@ export default class SystemLogs extends React.Component {
                   fulFilledClass="btn-success"
                   rejectedText="Load!"
                   rejectedClass="btn-danger"
-                  onClick={this.loadClick}
-                >
-                  {({ buttonText, isPending }) => (
+                  onClick={this.loadClick}>
+                  {({buttonText, isPending}) => (
                     <span>
                       {isPending && <Spinner />}
                       <span>{buttonText}</span>
@@ -271,14 +274,13 @@ export default class SystemLogs extends React.Component {
         </table>
         <div
           style={{
-            marginLeft: "1em",
-            marginRight: "1em",
-            paddingBottom: "90px",
-            height: "100%"
-          }}
-        >
+            marginLeft: '1em',
+            marginRight: '1em',
+            paddingBottom: '90px',
+            height: '100%',
+          }}>
           <textarea
-            style={{ width: "100%", height: "100%", resize: "none" }}
+            style={{width: '100%', height: '100%', resize: 'none'}}
             readOnly
             value={this.state.logText}
           />
@@ -288,5 +290,5 @@ export default class SystemLogs extends React.Component {
   }
 }
 SystemLogs.propTypes = {
-  networkConfig: PropTypes.object.isRequired
+  networkConfig: PropTypes.object.isRequired,
 };

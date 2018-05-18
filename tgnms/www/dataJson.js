@@ -7,7 +7,7 @@ const pool = mysql.createPool({
   password: process.env.MYSQL_PASS || '',
   database: 'cxl',
   queueLimit: 10,
-  waitForConnections: false
+  waitForConnections: false,
 });
 pool.on('enqueue', function () {
   console.log('Waiting for available connection slot');
@@ -61,39 +61,39 @@ var self = {
   // res is a pointer to the express class to return the result
   readScanResults: function (network, res, filter) {
     let refreshNodesList = false;
-    let mysqlQueryRes = {};
+    const mysqlQueryRes = {};
     // the json_obj is a compressed blob of the scan results
     // for reasons not entirely understood, we need to CONVERT the UNCOMPRESSED
     // output
-    let UNCOMPRESS = [mysql.raw('CONVERT(UNCOMPRESS(rx_scan_results.json_obj) USING "utf8") AS json_obj')];
+    const UNCOMPRESS = [mysql.raw('CONVERT(UNCOMPRESS(rx_scan_results.json_obj) USING "utf8") AS json_obj')];
     pool.getConnection(function (err, conn) {
       if (err) {
         console.error('DB error', err);
         return;
       }
 
-      let txNodeIdFilter = [];
+      const txNodeIdFilter = [];
       try {
         if (self.nodeNameToNode[network].hasOwnProperty(filter.nodeFilter[0])) {
           txNodeIdFilter[0] =
             self.nodeNameToNode[network][filter.nodeFilter[0]].id;
-          txNodeIdFilter[1] = "undefined";
+          txNodeIdFilter[1] = 'undefined';
           if (self.nodeNameToNode[network].hasOwnProperty(filter.nodeFilter[1])) {
             txNodeIdFilter[1] =
               self.nodeNameToNode[network][filter.nodeFilter[1]].id;
           }
         }
-      } catch(e) {
-        console.error('ERROR reading filter', e)
-        console.log("self.nodeNameToNode:", self.nodeNameToNode, " network:",network);
+      } catch (e) {
+        console.error('ERROR reading filter', e);
+        console.log('self.nodeNameToNode:', self.nodeNameToNode, ' network:',network);
         return;
       }
 
-      let queryCmd = "SELECT tx_scan_results.token, tx_scan_results.tx_node_id, rx_scan_results.rx_node_id, " +
-                              "tx_scan_results.start_bwgd, tx_scan_results.scan_type, tx_scan_results.network, " +
-                              "tx_scan_results.timestamp, tx_scan_results.id, tx_scan_results.tx_power ,? FROM `tx_scan_results` JOIN `rx_scan_results` " +
-                              "ON tx_scan_results.network=rx_scan_results.network AND tx_scan_results.start_bwgd=rx_scan_results.start_bwgd AND tx_scan_results.token=rx_scan_results.token" +
-                              " WHERE tx_scan_results.network = ?";
+      let queryCmd = 'SELECT tx_scan_results.token, tx_scan_results.tx_node_id, rx_scan_results.rx_node_id, ' +
+                              'tx_scan_results.start_bwgd, tx_scan_results.scan_type, tx_scan_results.network, ' +
+                              'tx_scan_results.timestamp, tx_scan_results.id, tx_scan_results.tx_power ,? FROM `tx_scan_results` JOIN `rx_scan_results` ' +
+                              'ON tx_scan_results.network=rx_scan_results.network AND tx_scan_results.start_bwgd=rx_scan_results.start_bwgd AND tx_scan_results.token=rx_scan_results.token' +
+                              ' WHERE tx_scan_results.network = ?';
       let queryArgs = [];
       if (txNodeIdFilter.length) {
         queryCmd = queryCmd + ' AND (tx_scan_results.tx_node_id = ? OR tx_scan_results.tx_node_id= ?) LIMIT ? OFFSET ?';
@@ -105,18 +105,18 @@ var self = {
         queryArgs = [UNCOMPRESS, network, filter.row_count,
                       filter.offset];
       }
-      let query = conn.query(queryCmd, queryArgs, function (err, results) {
+      const query = conn.query(queryCmd, queryArgs, function (err, results) {
           if (err) {
             console.error('ERROR: mysql query err:', query.sql, err);
             return;
           }
           // add the node name to the results
           let i = 0;
-          let newResults = [];
+          const newResults = [];
           results.forEach(row => {
-            let json_obj = JSON.parse(row.json_obj);
+            const json_obj = JSON.parse(row.json_obj);
             delete row.json_obj;
-            let new_row = JSON.parse(JSON.stringify(row));
+            const new_row = JSON.parse(JSON.stringify(row));
             new_row.json_obj = json_obj;
 
             if (!self.nodeToNodeName[new_row.tx_node_id] ||
@@ -144,11 +144,11 @@ var self = {
     },
 
   writeScanResults: function (network, scanResults) {
-    let rows = [];
+    const rows = [];
     let refreshNodesList = false;
 
     Object.keys(scanResults.scans).forEach(token => {
-      let scanData = scanResults.scans[token];
+      const scanData = scanResults.scans[token];
       try {
         if (!self.nodeNameToNode[network][scanData.txNode]) {
           console.error(
@@ -162,12 +162,12 @@ var self = {
           'writeScanResults: txNode ' + scanData.txNode + ' not present in DB'
         );
       }
-      let txNodeId = self.nodeNameToNode[network][scanData.txNode].id;
-      let startBwgd = toUint64(scanData.startBwgdIdx);
+      const txNodeId = self.nodeNameToNode[network][scanData.txNode].id;
+      const startBwgd = toUint64(scanData.startBwgdIdx);
       let txPower = 255;
       try {
         txPower = scanData.responses[scanData.txNode].txPwrIndex;
-      } catch(e) {console.error('ERROR: could not read txPwrIndex', e)};
+      } catch (e) {console.error('ERROR: could not read txPwrIndex', e);}
       Object.keys(scanData.responses).forEach(scanRespNodeName => {
         try {
           if (!self.nodeNameToNode[network][scanRespNodeName]) {
@@ -185,16 +185,16 @@ var self = {
         // the tx node returns an empty routeInfoList and has the txPowerIndex
         // the tx node does not contain the measured scan results
         if (scanRespNodeName !== scanData.txNode) {
-          let rxNodeId = self.nodeNameToNode[network][scanRespNodeName].id;
-          let scanResp = scanData.responses[scanRespNodeName];
+          const rxNodeId = self.nodeNameToNode[network][scanRespNodeName].id;
+          const scanResp = scanData.responses[scanRespNodeName];
 
           // TODO the curSuperframeNum in the scanResp is an int64 which does
           //     not stringify need to deal with this
-          let scanRespStr = JSON.stringify(scanResp);
+          const scanRespStr = JSON.stringify(scanResp);
           // write the scan response data in compressed format
-          let scanRespStrCmprs = mysql.raw("COMPRESS('" + scanRespStr + "')");
-          let scanType = 255; // TODO needs firmware support to add scan type
-          let row = [
+          const scanRespStrCmprs = mysql.raw("COMPRESS('" + scanRespStr + "')");
+          const scanType = 255; // TODO needs firmware support to add scan type
+          const row = [
             token,
             scanRespStrCmprs,
             txNodeId,
@@ -202,7 +202,7 @@ var self = {
             startBwgd,
             scanType, // PBF, RTCAL, CBF, IM, initial BF
             txPower, // used during the scan
-            network  // name of the topology
+            network,  // name of the topology
           ];
           rows.push(row);
         }
@@ -221,7 +221,7 @@ var self = {
         console.error('DB error', err);
         return;
       }
-      let query = conn.query(
+      const query = conn.query(
         'INSERT INTO scan_results' +
           '(`token`, `json_obj`, `tx_node_id`, `rx_node_id`, `start_bwgd`, ' +
           '`scan_type`, `tx_power`,`network`) VALUES ?',
@@ -234,7 +234,7 @@ var self = {
         }
       );
     });
-  }
+  },
 };
 
 module.exports = self;

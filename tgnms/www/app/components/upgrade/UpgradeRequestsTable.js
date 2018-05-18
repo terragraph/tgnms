@@ -1,9 +1,15 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-const classNames = require("classnames");
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class UpgradeRequestsTable extends React.Component {
   constructor(props) {
@@ -15,19 +21,19 @@ export default class UpgradeRequestsTable extends React.Component {
     this.props.onReqsSelected([]);
   }
 
-  getTableRows = pendingRequests => {
+  getTableRows(pendingRequests) {
     return pendingRequests.map(pendingReq => {
       const reqId = pendingReq.urReq.upgradeReqId;
 
       return {
         reqId: reqId,
-        key: reqId
+        key: reqId,
       };
     });
-  };
+  }
 
   onSelectAll = isSelected => {
-    const { pendingRequests } = this.props;
+    const {pendingRequests} = this.props;
     const selectedReqs = isSelected
       ? pendingRequests.map(req => req.urReq.upgradeReqId)
       : [];
@@ -47,45 +53,43 @@ export default class UpgradeRequestsTable extends React.Component {
   };
 
   render() {
-    const { pendingRequests, selectedReqs, height, isSelectable } = this.props;
+    const {pendingRequests, selectedReqs, height, isSelectable} = this.props;
 
     const tableOptions = {
-      trClassName: "break-word"
+      trClassName: 'break-word',
     };
 
     var selectRowProp = isSelectable
       ? {
-          mode: "checkbox",
+          mode: 'checkbox',
           clickToSelect: true,
           hideSelectColumn: false,
-          bgColor: "rgb(183,210,255)",
+          bgColor: 'rgb(183,210,255)',
           onSelect: this.tableOnRowSelect,
           selected: selectedReqs,
-          onSelectAll: this.onSelectAll
+          onSelectAll: this.onSelectAll,
         }
       : {};
 
     return (
       <div className="rc-upgrade-requests-table">
         <BootstrapTable
-          tableStyle={{ width: "calc(100% - 20px)" }}
+          tableStyle={{width: 'calc(100% - 20px)'}}
           bodyStyle={{
-            maxHeight: height + "px",
-            overflowY: "auto"
+            maxHeight: height + 'px',
+            overflowY: 'auto',
           }}
           key="pendingReqsTable"
           options={tableOptions}
           data={this.getTableRows(pendingRequests)}
           selectRow={selectRowProp}
           striped={true}
-          hover={true}
-        >
+          hover={true}>
           <TableHeaderColumn
             width="170"
             dataSort={true}
             dataField="reqId"
-            isKey={true}
-          >
+            isKey={true}>
             Request ID
           </TableHeaderColumn>
         </BootstrapTable>
@@ -100,10 +104,10 @@ UpgradeRequestsTable.propTypes = {
   selectedReqs: PropTypes.array,
 
   isSelectable: PropTypes.bool.isRequired,
-  onReqsSelected: PropTypes.func
+  onReqsSelected: PropTypes.func,
 };
 
 UpgradeRequestsTable.defaultProps = {
   selectedReqs: [],
-  onReqsSelected: () => {}
+  onReqsSelected: () => {},
 };

@@ -1,17 +1,19 @@
 /*
  * ZMQ controller/aggregator refresh process
+ * @format
  */
 const ZMQ_TIMEOUT_MS = 4000;
 
 const EventEmitter = require('events');
-const process = require('process');
-const thrift = require('thrift');
-const zmq = require('zmq');
-// thrift types from controller
-const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
-const controllerTTypes = require('./thrift/gen-nodejs/Controller_types');
+
 // thrift types from aggregator
 const aggregatorTTypes = require('./thrift/gen-nodejs/Aggregator_types');
+const controllerTTypes = require('./thrift/gen-nodejs/Controller_types');
+const process = require('process');
+const thrift = require('thrift');
+// thrift types from controller
+const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
+const zmq = require('zmq');
 // main message loop from primary process
 process.on('message', msg => {
   if (!msg.type) {
@@ -25,19 +27,19 @@ process.on('message', msg => {
         const ctrlProxy = new ControllerProxy(topology.controller_ip);
         ctrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.GET_TOPOLOGY,
-          '\0'
+          '\0',
         );
         ctrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.GET_IGNITION_STATE,
-          '\0'
+          '\0',
         );
         ctrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.GET_STATUS_DUMP,
-          '\0'
+          '\0',
         );
         ctrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.UPGRADE_STATE_REQ,
-          '\0'
+          '\0',
         );
 
         ctrlProxy.on('event', (type, success, responseTime, data) => {
@@ -48,7 +50,7 @@ process.on('message', msg => {
                 type: 'topology_update',
                 success: success,
                 response_time: responseTime,
-                topology: success ? data.topology : null
+                topology: success ? data.topology : null,
               });
               break;
             case controllerTTypes.MessageType.GET_STATUS_DUMP:
@@ -57,7 +59,7 @@ process.on('message', msg => {
                 type: 'status_dump_update',
                 success: success,
                 response_time: responseTime,
-                status_dump: success ? data.status_dump : null
+                status_dump: success ? data.status_dump : null,
               });
               break;
             case controllerTTypes.MessageType.GET_IGNITION_STATE:
@@ -67,7 +69,7 @@ process.on('message', msg => {
                 type: 'ignition_state',
                 success: success,
                 response_time: responseTime,
-                ignition_state: success ? data.ignition_state : null
+                ignition_state: success ? data.ignition_state : null,
               });
               break;
             case controllerTTypes.MessageType.UPGRADE_STATE_REQ:
@@ -77,7 +79,7 @@ process.on('message', msg => {
                 type: 'upgrade_state',
                 success: success,
                 response_time: responseTime,
-                upgradeState: success ? data.upgradeState : null
+                upgradeState: success ? data.upgradeState : null,
               });
               break;
             default:
@@ -87,12 +89,12 @@ process.on('message', msg => {
         const aggrProxy = new AggregatorProxy(topology.aggregator_ip);
         // request the old and new structures until everyone is on the latest
         // don't pre-fetch routing
-/*        aggrProxy.sendAggrMsgType(
+        /*        aggrProxy.sendAggrMsgType(
           aggregatorTTypes.AggrMessageType.GET_STATUS_REPORT,
           '\0'
         );*/
         // DISABLED due to high cpu in sjc
-/*        aggrProxy.on('event', (type, success, responseTime, data) => {
+        /*        aggrProxy.on('event', (type, success, responseTime, data) => {
           switch (type) {
             case aggregatorTTypes.AggrMessageType.GET_STATUS_REPORT:
               process.send({
@@ -116,46 +118,55 @@ process.on('message', msg => {
         getScanStatus.isConcise = false;
         ctrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.GET_SCAN_STATUS,
-          thriftSerialize(getScanStatus)
+          thriftSerialize(getScanStatus),
         );
         ctrlProxy.on('event', (type, success, responseTime, data) => {
           switch (type) {
             case controllerTTypes.MessageType.GET_SCAN_STATUS:
               // this clears the scan memory from the controller
-              let clearScanEnable = true; // for development
+              const clearScanEnable = true; // for development
               if (clearScanEnable) {
-              if (success && Object.keys(data.scan_status.scans).length !== 0) {
-                var resetScanStatus = new controllerTTypes.ResetScanStatus();
-                resetScanStatus.tokenFrom = Math.min.apply(
-                  null,
-                  Object.keys(data.scan_status.scans)
-                );
-                resetScanStatus.tokenTo = Math.max.apply(
-                  null,
-                  Object.keys(data.scan_status.scans)
-                );
-                const ctrlProxy2 = new ControllerProxy(topology.controller_ip);
-                ctrlProxy2.sendCtrlMsgType(
-                  controllerTTypes.MessageType.RESET_SCAN_STATUS,
-                  thriftSerialize(resetScanStatus)
-                );
-                ctrlProxy2.on('event', (type, success, responseTime, data) => {
-                  switch (type) {
-                    case controllerTTypes.MessageType.RESET_SCAN_STATUS:
-                      if (!success) {
-                        console.error('Error resetting scan status', data);
+                if (
+                  success &&
+                  Object.keys(data.scan_status.scans).length !== 0
+                ) {
+                  var resetScanStatus = new controllerTTypes.ResetScanStatus();
+                  resetScanStatus.tokenFrom = Math.min.apply(
+                    null,
+                    Object.keys(data.scan_status.scans),
+                  );
+                  resetScanStatus.tokenTo = Math.max.apply(
+                    null,
+                    Object.keys(data.scan_status.scans),
+                  );
+                  const ctrlProxy2 = new ControllerProxy(
+                    topology.controller_ip,
+                  );
+                  ctrlProxy2.sendCtrlMsgType(
+                    controllerTTypes.MessageType.RESET_SCAN_STATUS,
+                    thriftSerialize(resetScanStatus),
+                  );
+                  ctrlProxy2.on(
+                    'event',
+                    (type, success, responseTime, data) => {
+                      switch (type) {
+                        case controllerTTypes.MessageType.RESET_SCAN_STATUS:
+                          if (!success) {
+                            console.error('Error resetting scan status', data);
+                          }
+                          break;
+                        default:
+                          console.error('Unhandled message type', type);
                       }
-                      break;
-                    default:
-                      console.error('Unhandled message type', type);
-                  }
-                });
-              }}
+                    },
+                  );
+                }
+              }
               process.send({
                 name: topology.name,
                 type: 'scan_status',
                 success: success,
-                scan_status: success ? data.scan_status : null
+                scan_status: success ? data.scan_status : null,
               });
               break;
             default:
@@ -207,150 +218,158 @@ const command2MsgType = {
   setNetworkOverrideConfig:
     controllerTTypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
   setNodeOverrideConfig:
-    controllerTTypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ
+    controllerTTypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
 };
 
 var msgType2Params = {};
 msgType2Params[controllerTTypes.MessageType.GET_TOPOLOGY] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_REFRESH'
+  nmsAppId: 'NMS_WEB_TOPO_REFRESH',
 };
 msgType2Params[controllerTTypes.MessageType.GET_STATUS_DUMP] = {
   recvApp: 'ctrl-app-STATUS_APP',
-  nmsAppId: 'NMS_WEB_STATUS_REFRESH'
+  nmsAppId: 'NMS_WEB_STATUS_REFRESH',
 };
 msgType2Params[controllerTTypes.MessageType.SET_LINK_STATUS_REQ] = {
   recvApp: 'ctrl-app-IGNITION_APP',
-  nmsAppId: 'NMS_WEB_IGN_CONFIG'
+  nmsAppId: 'NMS_WEB_IGN_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.ADD_LINK] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.DEL_LINK] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.ADD_NODE] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.DEL_NODE] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.EDIT_NODE] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.ADD_SITE] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.DEL_SITE] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.EDIT_SITE] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.REBOOT_REQUEST] = {
   recvApp: 'ctrl-app-STATUS_APP',
-  nmsAppId: 'NMS_WEB_STATUS_CONFIG'
+  nmsAppId: 'NMS_WEB_STATUS_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.SET_NODE_MAC] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.SET_NODE_MAC_LIST] = {
   recvApp: 'ctrl-app-TOPOLOGY_APP',
-  nmsAppId: 'NMS_WEB_TOPO_CONFIG'
+  nmsAppId: 'NMS_WEB_TOPO_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.GET_IGNITION_STATE] = {
   recvApp: 'ctrl-app-IGNITION_APP',
-  nmsAppId: 'NMS_WEB_IGN_CONFIG'
+  nmsAppId: 'NMS_WEB_IGN_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.SET_IGNITION_PARAMS] = {
   recvApp: 'ctrl-app-IGNITION_APP',
-  nmsAppId: 'NMS_WEB_IGN_CONFIG'
+  nmsAppId: 'NMS_WEB_IGN_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.GET_SCAN_STATUS] = {
   recvApp: 'ctrl-app-SCAN_APP',
-  nmsAppId: 'NMS_WEB_SCAN'
+  nmsAppId: 'NMS_WEB_SCAN',
 };
 msgType2Params[controllerTTypes.MessageType.RESET_SCAN_STATUS] = {
   recvApp: 'ctrl-app-SCAN_APP',
-  nmsAppId: 'NMS_WEB_SCAN'
+  nmsAppId: 'NMS_WEB_SCAN',
 };
 msgType2Params[controllerTTypes.MessageType.UPGRADE_GROUP_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
-  nmsAppId: 'NMS_WEB_UPGRADE'
+  nmsAppId: 'NMS_WEB_UPGRADE',
 };
 msgType2Params[controllerTTypes.MessageType.UPGRADE_COMMIT_PLAN_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
-  nmsAppId: 'NMS_WEB_UPGRADE'
+  nmsAppId: 'NMS_WEB_UPGRADE',
 };
 msgType2Params[controllerTTypes.MessageType.UPGRADE_ABORT_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
-  nmsAppId: 'NMS_WEB_UPGRADE'
+  nmsAppId: 'NMS_WEB_UPGRADE',
 };
 msgType2Params[controllerTTypes.MessageType.UPGRADE_STATE_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
-  nmsAppId: 'NMS_WEB_UPGRADE_CONFIG'
+  nmsAppId: 'NMS_WEB_UPGRADE_CONFIG',
 };
 msgType2Params[controllerTTypes.MessageType.UPGRADE_ADD_IMAGE_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
-  nmsAppId: 'NMS_WEB_UPGRADE'
+  nmsAppId: 'NMS_WEB_UPGRADE',
 };
 msgType2Params[controllerTTypes.MessageType.UPGRADE_DEL_IMAGE_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
-  nmsAppId: 'NMS_WEB_UPGRADE'
+  nmsAppId: 'NMS_WEB_UPGRADE',
 };
 msgType2Params[controllerTTypes.MessageType.UPGRADE_LIST_IMAGES_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
-  nmsAppId: 'NMS_WEB_UPGRADE'
+  nmsAppId: 'NMS_WEB_UPGRADE',
 };
 
 msgType2Params[aggregatorTTypes.AggrMessageType.START_IPERF] = {
   recvApp: 'aggr-app-TRAFFIC_APP',
-  nmsAppId: 'NMS_WEB_TRAFFIC'
+  nmsAppId: 'NMS_WEB_TRAFFIC',
 };
 msgType2Params[aggregatorTTypes.AggrMessageType.STOP_IPERF] = {
   recvApp: 'aggr-app-TRAFFIC_APP',
-  nmsAppId: 'NMS_WEB_TRAFFIC'
+  nmsAppId: 'NMS_WEB_TRAFFIC',
 };
 msgType2Params[aggregatorTTypes.AggrMessageType.GET_IPERF_STATUS] = {
   recvApp: 'aggr-app-TRAFFIC_APP',
-  nmsAppId: 'NMS_WEB_TRAFFIC'
+  nmsAppId: 'NMS_WEB_TRAFFIC',
 };
 
 // config management mappings
 msgType2Params[controllerTTypes.MessageType.GET_CTRL_CONFIG_BASE_REQ] = {
   recvApp: 'ctrl-app-CONFIG_APP',
-  nmsAppId: 'NMS_WEB_CONFIG'
+  nmsAppId: 'NMS_WEB_CONFIG',
 };
-msgType2Params[controllerTTypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ] = {
+msgType2Params[
+  controllerTTypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ
+] = {
   recvApp: 'ctrl-app-CONFIG_APP',
-  nmsAppId: 'NMS_WEB_CONFIG'
+  nmsAppId: 'NMS_WEB_CONFIG',
 };
-msgType2Params[controllerTTypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ] = {
+msgType2Params[
+  controllerTTypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ
+] = {
   recvApp: 'ctrl-app-CONFIG_APP',
-  nmsAppId: 'NMS_WEB_CONFIG'
+  nmsAppId: 'NMS_WEB_CONFIG',
 };
-msgType2Params[controllerTTypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ] = {
+msgType2Params[
+  controllerTTypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ
+] = {
   recvApp: 'ctrl-app-CONFIG_APP',
-  nmsAppId: 'NMS_WEB_CONFIG'
+  nmsAppId: 'NMS_WEB_CONFIG',
 };
-msgType2Params[controllerTTypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ] = {
+msgType2Params[
+  controllerTTypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ
+] = {
   recvApp: 'ctrl-app-CONFIG_APP',
-  nmsAppId: 'NMS_WEB_CONFIG'
+  nmsAppId: 'NMS_WEB_CONFIG',
 };
 
 const thriftSerialize = struct => {
   var result;
 
-  var transport = new thrift.TFramedTransport(null, function (byteArray) {
+  var transport = new thrift.TFramedTransport(null, function(byteArray) {
     // Flush puts a 4-byte header, which needs to be parsed/sliced.
     byteArray = byteArray.slice(4);
     result = byteArray;
@@ -375,7 +394,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       command2MsgType[msg.type],
       byteArray,
       minion,
-      res
+      res,
     );
   };
 
@@ -493,10 +512,10 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'setMacList':
       var setNodeMacListReq = new controllerTTypes.SetNodeMacList();
-      let nodeMacList = [];
+      const nodeMacList = [];
       Object.keys(msg.nodeToMac).forEach(nodeName => {
-        let macAddr = msg.nodeToMac[nodeName];
-        let setNodeMacReq = new controllerTTypes.SetNodeMac();
+        const macAddr = msg.nodeToMac[nodeName];
+        const setNodeMacReq = new controllerTTypes.SetNodeMac();
         setNodeMacReq.nodeName = nodeName;
         setNodeMacReq.nodeMac = macAddr;
         nodeMacList.push(setNodeMacReq);
@@ -510,20 +529,19 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(getIgnitionStateReq);
       break;
     case 'setNetworkIgnitionState':
-      let setIgnitionParamsReq = new controllerTTypes.IgnitionParams();
+      const setIgnitionParamsReq = new controllerTTypes.IgnitionParams();
       setIgnitionParamsReq.enable = msg.state;
       send(setIgnitionParamsReq);
       break;
     case 'setLinkIgnitionState':
-      let setLinkIgnitionParamsReq = new controllerTTypes.IgnitionParams();
+      const setLinkIgnitionParamsReq = new controllerTTypes.IgnitionParams();
       setLinkIgnitionParamsReq.linkAutoIgnite = {};
       setLinkIgnitionParamsReq.linkAutoIgnite[msg.linkName] = msg.state;
       send(setLinkIgnitionParamsReq);
       break;
     case 'resetStatus':
       var upgradeReqParams = new controllerTTypes.UpgradeReq();
-      upgradeReqParams.urType =
-        controllerTTypes.UpgradeReqType.RESET_STATUS;
+      upgradeReqParams.urType = controllerTTypes.UpgradeReqType.RESET_STATUS;
       upgradeReqParams.upgradeReqId = msg.requestId;
       // then set up the group upgrade req
       var upgradeGroupReqParams = new controllerTTypes.UpgradeGroupReq();
@@ -535,8 +553,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
     case 'prepareUpgrade':
       // first set up the upgrade req that the controller sends to minions
       var upgradeReqParams = new controllerTTypes.UpgradeReq();
-      upgradeReqParams.urType =
-        controllerTTypes.UpgradeReqType.PREPARE_UPGRADE;
+      upgradeReqParams.urType = controllerTTypes.UpgradeReqType.PREPARE_UPGRADE;
       upgradeReqParams.upgradeReqId = msg.requestId;
       upgradeReqParams.md5 = msg.md5;
       upgradeReqParams.imageUrl = msg.imageUrl;
@@ -549,7 +566,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
           downloadTimeout,
           downloadLimit,
           uploadLimit,
-          maxConnections
+          maxConnections,
         } = msg.torrentParams;
         torrentParams.downloadTimeout = downloadTimeout;
         torrentParams.downloadLimit = downloadLimit;
@@ -577,13 +594,14 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       break;
     case 'commitUpgrade':
       var upgradeCommitReqParams = new controllerTTypes.UpgradeReq();
-      upgradeCommitReqParams.urType = controllerTTypes.UpgradeReqType.COMMIT_UPGRADE;
+      upgradeCommitReqParams.urType =
+        controllerTTypes.UpgradeReqType.COMMIT_UPGRADE;
       upgradeCommitReqParams.upgradeReqId = msg.requestId;
       upgradeCommitReqParams.scheduleToCommit = msg.scheduleToCommit;
 
       var upgradeGroupCommitReqParams = new controllerTTypes.UpgradeGroupReq();
-      (upgradeGroupCommitReqParams.ugType = msg.upgradeGroupType);
-      (upgradeGroupCommitReqParams.nodes = msg.nodes);
+      upgradeGroupCommitReqParams.ugType = msg.upgradeGroupType;
+      upgradeGroupCommitReqParams.nodes = msg.nodes;
       upgradeGroupCommitReqParams.excludeNodes = msg.excludeNodes;
 
       upgradeGroupCommitReqParams.urReq = upgradeCommitReqParams;
@@ -661,7 +679,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
 };
 
 class ControllerProxy extends EventEmitter {
-  constructor (controllerIp) {
+  constructor(controllerIp) {
     super();
     this.controller_ip = controllerIp;
     //    if (typeof controllerIp != "string" ||
@@ -672,14 +690,14 @@ class ControllerProxy extends EventEmitter {
   /*
    * Send and decode the expected message based on the type.
    */
-  sendCtrlMsgType (msgType, msgBody) {
+  sendCtrlMsgType(msgType, msgBody) {
     var sendMsg = new controllerTTypes.Message();
     sendMsg.mType = msgType;
     sendMsg.value = msgBody;
     var recvMsg = new controllerTTypes.Message();
 
-    let zmqRandId = parseInt(Math.random() * 1000);
-    let nmsAppId = msgType2Params[msgType].nmsAppId + zmqRandId;
+    const zmqRandId = parseInt(Math.random() * 1000);
+    const nmsAppId = msgType2Params[msgType].nmsAppId + zmqRandId;
     // time the response
     this.sendCtrlMsg(
       sendMsg,
@@ -699,7 +717,7 @@ class ControllerProxy extends EventEmitter {
               msgType,
               true /* success */,
               endTimer - this.start_timer,
-              { topology: receivedTopology }
+              {topology: receivedTopology},
             );
             break;
           case controllerTTypes.MessageType.GET_STATUS_DUMP:
@@ -711,7 +729,7 @@ class ControllerProxy extends EventEmitter {
               msgType,
               true /* success */,
               endTimer - this.start_timer,
-              { status_dump: receivedStatusDumps }
+              {status_dump: receivedStatusDumps},
             );
             break;
           case controllerTTypes.MessageType.GET_SCAN_STATUS:
@@ -723,7 +741,7 @@ class ControllerProxy extends EventEmitter {
               msgType,
               true /* success */,
               endTimer - this.start_timer,
-              { scan_status: receivedScanStatus }
+              {scan_status: receivedScanStatus},
             );
             break;
           case controllerTTypes.MessageType.RESET_SCAN_STATUS:
@@ -734,14 +752,14 @@ class ControllerProxy extends EventEmitter {
               msgType,
               receivedAck.success,
               endTimer - this.start_timer,
-              { msg: receivedAck.message }
+              {msg: receivedAck.message},
             );
             break;
           case controllerTTypes.MessageType.GET_IGNITION_STATE:
             var ignitionState = new controllerTTypes.IgnitionState();
             ignitionState.read(tProtocol);
             this.emit('event', msgType, true, endTimer - this.start_timer, {
-              ignition_state: ignitionState
+              ignition_state: ignitionState,
             });
             break;
           case controllerTTypes.MessageType.UPGRADE_STATE_REQ:
@@ -749,13 +767,13 @@ class ControllerProxy extends EventEmitter {
             var stateDump = new controllerTTypes.UpgradeStateDump();
             stateDump.read(tProtocol);
             this.emit('event', msgType, true, endTimer - this.start_timer, {
-              upgradeState: stateDump
+              upgradeState: stateDump,
             });
             break;
           default:
             console.error(
               '[controller] No receive handler defined for',
-              msgType
+              msgType,
             );
         }
       },
@@ -767,21 +785,21 @@ class ControllerProxy extends EventEmitter {
           msgType,
           false /* success */,
           endTimer - this.start_timer,
-          { timeout: false }
+          {timeout: false},
         );
-      }
+      },
     );
   }
 
-  sendMsgType (msgType, msgBody, minion, res) {
-    let ctrlPromise = new Promise((resolve, reject) => {
+  sendMsgType(msgType, msgBody, minion, res) {
+    const ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new controllerTTypes.Message();
       sendMsg.mType = msgType;
       sendMsg.value = msgBody;
       var recvMsg = new controllerTTypes.Message();
 
       // time the response
-      let zmqRandId = parseInt(Math.random() * 1000);
+      const zmqRandId = parseInt(Math.random() * 1000);
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,
@@ -814,7 +832,7 @@ class ControllerProxy extends EventEmitter {
               var receivedAck = new controllerTTypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
-                resolve({ type: 'ack', msg: receivedAck.message });
+                resolve({type: 'ack', msg: receivedAck.message});
               } else {
                 reject(receivedAck.message);
               }
@@ -822,70 +840,70 @@ class ControllerProxy extends EventEmitter {
             case controllerTTypes.MessageType.UPGRADE_COMMIT_PLAN_REQ:
               var commitPlan = new controllerTTypes.UpgradeCommitPlan();
               commitPlan.read(tProtocol);
-              resolve({ type: 'msg', msg: commitPlan });
+              resolve({type: 'msg', msg: commitPlan});
               break;
             case controllerTTypes.MessageType.GET_IGNITION_STATE:
               var ignitionState = new controllerTTypes.IgnitionState();
               ignitionState.read(tProtocol);
-              resolve({ type: 'msg', msg: ignitionState });
+              resolve({type: 'msg', msg: ignitionState});
               break;
             case controllerTTypes.MessageType.GET_CTRL_CONFIG_BASE_REQ:
-              let baseConfig = new controllerTTypes.GetCtrlConfigBaseResp();
+              const baseConfig = new controllerTTypes.GetCtrlConfigBaseResp();
               baseConfig.read(tProtocol);
-              resolve({ type: 'msg', msg: baseConfig });
+              resolve({type: 'msg', msg: baseConfig});
               break;
             case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
-              let nodeOverrideConfig = new controllerTTypes.GetCtrlConfigNodeOverridesResp();
+              const nodeOverrideConfig = new controllerTTypes.GetCtrlConfigNodeOverridesResp();
               nodeOverrideConfig.read(tProtocol);
-              resolve({ type: 'msg', msg: nodeOverrideConfig });
+              resolve({type: 'msg', msg: nodeOverrideConfig});
               break;
             case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
-              let networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
+              const networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
               networkOverrideConfig.read(tProtocol);
-              resolve({ type: 'msg', msg: networkOverrideConfig });
+              resolve({type: 'msg', msg: networkOverrideConfig});
               break;
             default:
               console.error(
                 '[controller] No receive handler defined for',
-                msgType
+                msgType,
               );
           }
         },
         errMsg => {
           reject(errMsg);
-        }
+        },
       );
     });
 
     ctrlPromise
       .then(msg => {
         if (msg.type === 'ack') {
-          let result = { success: true };
+          const result = {success: true};
           res.status(200).end(JSON.stringify(result));
         } else {
           res.json(msg.msg);
         }
       })
       .catch(failMessage => {
-        let result = {
+        const result = {
           success: false,
-          error: failMessage
+          error: failMessage,
         };
         res.status(500).end(JSON.stringify(result));
         res.end();
       });
   }
 
-  sendMsgTypeSync (msgType, msgBody, minion, res) {
-    let ctrlPromise = new Promise((resolve, reject) => {
+  sendMsgTypeSync(msgType, msgBody, minion, res) {
+    const ctrlPromise = new Promise((resolve, reject) => {
       var sendMsg = new controllerTTypes.Message();
       sendMsg.mType = msgType;
       sendMsg.value = msgBody;
       var recvMsg = new controllerTTypes.Message();
 
-      let zmqRandId = parseInt(Math.random() * 1000);
+      const zmqRandId = parseInt(Math.random() * 1000);
       this.sendCtrlMsg(
         sendMsg,
         recvMsg,
@@ -918,7 +936,7 @@ class ControllerProxy extends EventEmitter {
               var receivedAck = new controllerTTypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
-                resolve({ type: 'ack', msg: receivedAck.message });
+                resolve({type: 'ack', msg: receivedAck.message});
               } else {
                 reject(receivedAck.message);
               }
@@ -926,52 +944,52 @@ class ControllerProxy extends EventEmitter {
             case controllerTTypes.MessageType.GET_IGNITION_STATE:
               var ignitionState = new controllerTTypes.IgnitionState();
               ignitionState.read(tProtocol);
-              resolve({ type: 'msg', msg: ignitionState });
+              resolve({type: 'msg', msg: ignitionState});
               break;
             case controllerTTypes.MessageType.UPGRADE_LIST_IMAGES_REQ:
               var upgradeImages = new controllerTTypes.UpgradeListImagesResp();
               upgradeImages.read(tProtocol);
-              resolve({ type: 'msg', msg: upgradeImages });
+              resolve({type: 'msg', msg: upgradeImages});
               break;
             case controllerTTypes.MessageType.GET_CTRL_CONFIG_BASE_REQ:
-              let baseConfig = new controllerTTypes.GetCtrlConfigBaseResp();
+              const baseConfig = new controllerTTypes.GetCtrlConfigBaseResp();
               baseConfig.read(tProtocol);
-              resolve({ type: 'msg', msg: baseConfig });
+              resolve({type: 'msg', msg: baseConfig});
               break;
             case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
-              let nodeOverrideConfig = new controllerTTypes.GetCtrlConfigNodeOverridesResp();
+              const nodeOverrideConfig = new controllerTTypes.GetCtrlConfigNodeOverridesResp();
               nodeOverrideConfig.read(tProtocol);
-              resolve({ type: 'msg', msg: nodeOverrideConfig });
+              resolve({type: 'msg', msg: nodeOverrideConfig});
               break;
             case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
-              let networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
+              const networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
               networkOverrideConfig.read(tProtocol);
-              resolve({ type: 'msg', msg: networkOverrideConfig });
+              resolve({type: 'msg', msg: networkOverrideConfig});
               break;
             case controllerTTypes.MessageType.UPGRADE_COMMIT_PLAN_REQ:
-              let upgradeCommitPlan = new controllerTTypes.UpgradeCommitPlan();
+              const upgradeCommitPlan = new controllerTTypes.UpgradeCommitPlan();
               upgradeCommitPlan.read(tProtocol);
-              resolve({ type: 'msg', msg: upgradeCommitPlan });
+              resolve({type: 'msg', msg: upgradeCommitPlan});
               break;
             default:
               console.error(
                 '[controller] No receive handler defined for',
-                msgType
+                msgType,
               );
           }
         },
         errMsg => {
           reject(errMsg);
-        }
+        },
       );
     });
 
     ctrlPromise
       .then(msg => {
         if (msg.type === 'ack') {
-          res.writeHead(200, msg.msg, { 'content-type': 'text/plain' });
+          res.writeHead(200, msg.msg, {'content-type': 'text/plain'});
           res.end();
         } else {
           res.json(msg.msg);
@@ -980,7 +998,7 @@ class ControllerProxy extends EventEmitter {
         }
       })
       .catch(failMessage => {
-        res.writeHead(500, failMessage, { 'content-type': 'text/plain' });
+        res.writeHead(500, failMessage, {'content-type': 'text/plain'});
         res.end();
       });
   }
@@ -988,21 +1006,21 @@ class ControllerProxy extends EventEmitter {
   /*
    * Send any message to the controller.
    */
-  sendCtrlMsg (
+  sendCtrlMsg(
     sendMsg,
     recvMsg,
     sendAppName,
     recvAppName,
     minion,
     recvCb,
-    errCb
+    errCb,
   ) {
     const dealer = zmq.socket('dealer');
     dealer.identity = sendAppName;
     dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
     dealer.setsockopt(zmq.ZMQ_LINGER, 0);
     dealer.connect('tcp://[' + this.controller_ip + ']:17077');
-    dealer.on('message', function (receiver, senderApp, msg) {
+    dealer.on('message', function(receiver, senderApp, msg) {
       clearTimeout(timeoutTimer);
       // Deserialize Message to get mType
       let tTransport = new thrift.TFramedTransport(msg);
@@ -1010,7 +1028,7 @@ class ControllerProxy extends EventEmitter {
       recvMsg.read(tProtocol);
       // Deserialize body
       tTransport = new thrift.TFramedTransport(
-        Buffer.from(recvMsg.value, 'ASCII')
+        Buffer.from(recvMsg.value, 'ASCII'),
       );
       tProtocol = new thrift.TCompactProtocol(tTransport);
       // run callback
@@ -1019,14 +1037,14 @@ class ControllerProxy extends EventEmitter {
       dealer.close();
     });
 
-    dealer.on('error', function (err) {
+    dealer.on('error', function(err) {
       clearTimeout(timeoutTimer);
       console.error(err);
       errCb(err.message);
       dealer.close();
     });
 
-    const transport = new thrift.TFramedTransport(null, function (byteArray) {
+    const transport = new thrift.TFramedTransport(null, function(byteArray) {
       // Flush puts a 4-byte header, which needs to be parsed/sliced.
       byteArray = byteArray.slice(4);
       dealer.send(minion, zmq.ZMQ_SNDMORE);
@@ -1057,20 +1075,20 @@ class ControllerProxy extends EventEmitter {
 }
 
 class AggregatorProxy extends EventEmitter {
-  constructor (aggregatorIp) {
+  constructor(aggregatorIp) {
     super();
     this.aggregator_ip = aggregatorIp;
   }
 
-  sendMsgType (msgType, msgBody, minion, res) {
-    let aggrPromise = new Promise((resolve, reject) => {
+  sendMsgType(msgType, msgBody, minion, res) {
+    const aggrPromise = new Promise((resolve, reject) => {
       var sendMsg = new aggregatorTTypes.AggrMessage();
       sendMsg.mType = msgType;
       sendMsg.value = msgBody;
       var recvMsg = new aggregatorTTypes.AggrMessage();
 
       // time the response
-      let zmqRandId = parseInt(Math.random() * 1000);
+      const zmqRandId = parseInt(Math.random() * 1000);
       this.sendAggrMsg(
         sendMsg,
         recvMsg,
@@ -1082,13 +1100,13 @@ class AggregatorProxy extends EventEmitter {
             case aggregatorTTypes.AggrMessageType.GET_IPERF_STATUS:
               var receivedStatus = new aggregatorTTypes.AggrIperfStatusReport();
               receivedStatus.read(tProtocol);
-              resolve({ type: 'msg', msg: receivedStatus });
+              resolve({type: 'msg', msg: receivedStatus});
               break;
             case aggregatorTTypes.AggrMessageType.START_IPERF:
               var receivedAck = new aggregatorTTypes.AggrAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
-                resolve({ type: 'ack', msg: receivedAck.message });
+                resolve({type: 'ack', msg: receivedAck.message});
               } else {
                 reject(receivedAck.message);
               }
@@ -1096,50 +1114,50 @@ class AggregatorProxy extends EventEmitter {
             default:
               console.error(
                 '[aggregator] No receive handler defined for',
-                msgType
+                msgType,
               );
           }
         },
         errMsg => {
           reject(errMsg);
-        }
+        },
       );
     });
 
     aggrPromise
       .then(msg => {
         if (msg.type === 'ack') {
-          let result = { success: true, message: msg.msg };
+          const result = {success: true, message: msg.msg};
           res.status(200).end(JSON.stringify(result));
         } else {
           res.json(msg.msg);
         }
       })
       .catch(failMessage => {
-        let result = {
+        const result = {
           success: false,
-          error: failMessage
+          error: failMessage,
         };
         res.status(500).end(JSON.stringify(result));
         res.end();
       });
   }
 
-  sendAggrMsg (
+  sendAggrMsg(
     sendMsg,
     recvMsg,
     sendAppName,
     recvAppName,
     minion,
     recvCb,
-    errCb
+    errCb,
   ) {
     const dealer = zmq.socket('dealer');
     dealer.identity = sendAppName;
     dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
     dealer.setsockopt(zmq.ZMQ_LINGER, 0);
     dealer.connect('tcp://[' + this.aggregator_ip + ']:18100');
-    dealer.on('message', function (receiver, senderApp, msg) {
+    dealer.on('message', function(receiver, senderApp, msg) {
       clearTimeout(timeoutTimer);
       // Deserialize Message to get mType
       let tTransport = new thrift.TFramedTransport(msg);
@@ -1147,7 +1165,7 @@ class AggregatorProxy extends EventEmitter {
       recvMsg.read(tProtocol);
       // Deserialize body
       tTransport = new thrift.TFramedTransport(
-        Buffer.from(recvMsg.value, 'ASCII')
+        Buffer.from(recvMsg.value, 'ASCII'),
       );
       tProtocol = new thrift.TCompactProtocol(tTransport);
       // run callback
@@ -1156,14 +1174,14 @@ class AggregatorProxy extends EventEmitter {
       dealer.close();
     });
 
-    dealer.on('error', function (err) {
+    dealer.on('error', function(err) {
       clearTimeout(timeoutTimer);
       console.error(err);
       errCb(err.message);
       dealer.close();
     });
 
-    const transport = new thrift.TFramedTransport(null, function (byteArray) {
+    const transport = new thrift.TFramedTransport(null, function(byteArray) {
       // Flush puts a 4-byte header, which needs to be parsed/sliced.
       byteArray = byteArray.slice(4);
       dealer.send(minion, zmq.ZMQ_SNDMORE);
@@ -1185,7 +1203,7 @@ class AggregatorProxy extends EventEmitter {
   /*
    * Send and decode the expected message based on the type.
    */
-  sendAggrMsgType (msgType, msgBody) {
+  sendAggrMsgType(msgType, msgBody) {
     var sendMsg = new aggregatorTTypes.AggrMessage();
     sendMsg.mType = msgType;
     sendMsg.value = msgBody;
@@ -1207,7 +1225,7 @@ class AggregatorProxy extends EventEmitter {
         console.error('[aggregator] Unknown message type', msgType);
     }
     // time the response
-    let zmqRandId = parseInt(Math.random() * 1000);
+    const zmqRandId = parseInt(Math.random() * 1000);
     this.sendMsg(
       sendMsg,
       recvMsg,
@@ -1225,7 +1243,7 @@ class AggregatorProxy extends EventEmitter {
               msgType,
               true /* success */,
               endTimer - this.start_timer,
-              { status_report: receivedStatusReport }
+              {status_report: receivedStatusReport},
             );
             break;
           case aggregatorTTypes.AggrMessageType.GET_ROUTING_REPORT:
@@ -1237,7 +1255,7 @@ class AggregatorProxy extends EventEmitter {
               msgType,
               true /* success */,
               endTimer - this.start_timer,
-              { routing_report: receivedRoutingReport }
+              {routing_report: receivedRoutingReport},
             );
             break;
           case aggregatorTTypes.AggrMessageType.GET_STATUS_DUMP_DEPRECATED:
@@ -1249,13 +1267,13 @@ class AggregatorProxy extends EventEmitter {
               msgType,
               true /* success */,
               endTimer - this.start_timer,
-              { status_dump: receivedStatusDump }
+              {status_dump: receivedStatusDump},
             );
             break;
           default:
             console.error(
               '[aggregator] No receive handler defined for',
-              msgType
+              msgType,
             );
         }
       },
@@ -1267,22 +1285,22 @@ class AggregatorProxy extends EventEmitter {
           msgType,
           false /* success */,
           endTimer - this.start_timer,
-          { timeout: false }
+          {timeout: false},
         );
-      }
+      },
     );
   }
 
   /*
    * Send any message to the controller.
    */
-  sendMsg (sendMsg, recvMsg, sendAppName, recvAppName, recvCb, errCb) {
+  sendMsg(sendMsg, recvMsg, sendAppName, recvAppName, recvCb, errCb) {
     const dealer = zmq.socket('dealer');
     dealer.identity = sendAppName;
     dealer.setsockopt(zmq.ZMQ_IPV4ONLY, 0);
     dealer.setsockopt(zmq.ZMQ_LINGER, 0);
     dealer.connect('tcp://[' + this.aggregator_ip + ']:18100');
-    dealer.on('message', function (receiver, senderApp, msg) {
+    dealer.on('message', function(receiver, senderApp, msg) {
       clearTimeout(timeoutTimer);
       // Deserialize Message to get mType
       let tTransport = new thrift.TFramedTransport(msg);
@@ -1290,7 +1308,7 @@ class AggregatorProxy extends EventEmitter {
       recvMsg.read(tProtocol);
       // Deserialize body
       tTransport = new thrift.TFramedTransport(
-        Buffer.from(recvMsg.value, 'ASCII')
+        Buffer.from(recvMsg.value, 'ASCII'),
       );
       tProtocol = new thrift.TCompactProtocol(tTransport);
       // run callback
@@ -1299,14 +1317,14 @@ class AggregatorProxy extends EventEmitter {
       dealer.close();
     });
 
-    dealer.on('error', function (err) {
+    dealer.on('error', function(err) {
       clearTimeout(timeoutTimer);
       console.error(err);
       errCb();
       dealer.close();
     });
 
-    const transport = new thrift.TFramedTransport(null, function (byteArray) {
+    const transport = new thrift.TFramedTransport(null, function(byteArray) {
       // Flush puts a 4-byte header, which needs to be parsed/sliced.
       byteArray = byteArray.slice(4);
       dealer.send('', zmq.ZMQ_SNDMORE);
@@ -1323,7 +1341,7 @@ class AggregatorProxy extends EventEmitter {
         sendMsg.mType,
         false /* success */,
         endTimer - this.start_timer,
-        { timeout: true }
+        {timeout: true},
       );
       dealer.close();
     }, ZMQ_TIMEOUT_MS);
@@ -1336,5 +1354,5 @@ class AggregatorProxy extends EventEmitter {
 module.exports = {
   ControllerProxy: ControllerProxy,
   AggregatorProxy: AggregatorProxy,
-  sendCtrlMsgSync: sendCtrlMsgSync
+  sendCtrlMsgSync: sendCtrlMsgSync,
 };

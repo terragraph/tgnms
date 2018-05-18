@@ -1,31 +1,39 @@
-import React from "react";
-import { render } from "react-dom";
-import Modal from "react-modal";
-import Select from "react-select";
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
+import 'sweetalert/dist/sweetalert.css';
+
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import Select from 'react-select';
+import React from 'react';
+import swal from 'sweetalert';
 
 const customModalStyle = {
   content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 const linkTypesVector = [
-  { value: "WIRELESS", label: "WIRELESS" },
-  { value: "ETHERNET", label: "ETHERNET" }
+  {value: 'WIRELESS', label: 'WIRELESS'},
+  {value: 'ETHERNET', label: 'ETHERNET'},
 ];
 
 export default class ModalLinkAdd extends React.Component {
   state = {
     linkNode1: null,
     linkNode2: null,
-    linkType: null
+    linkType: null,
   };
 
   componentDidMount() {}
@@ -35,8 +43,8 @@ export default class ModalLinkAdd extends React.Component {
   }
 
   addLink() {
-    let nodeA = "";
-    let nodeZ = "";
+    let nodeA = '';
+    let nodeZ = '';
     if (this.state.linkNode1 && this.state.linkNode2 && this.state.linkType) {
       if (this.state.linkNode1 < this.state.linkNode2) {
         nodeA = this.state.linkNode1;
@@ -46,66 +54,63 @@ export default class ModalLinkAdd extends React.Component {
         nodeZ = this.state.linkNode1;
       }
     } else {
-      alert("Some Params are missing");
+      alert('Some Params are missing');
       return;
     }
 
-    let linkName = "link-" + nodeA + "-" + nodeZ;
+    const linkName = 'link-' + nodeA + '-' + nodeZ;
     swal(
       {
-        title: "Are you sure?",
-        text: "You are adding a link to this topology!",
-        type: "warning",
+        title: 'Are you sure?',
+        text: 'You are adding a link to this topology!',
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes, add it!",
-        closeOnConfirm: false
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Yes, add it!',
+        closeOnConfirm: false,
       },
       function() {
-        let promis = new Promise((resolve, reject) => {
-          let exec = new Request(
-            "/controller/addLink/" +
+        const promis = new Promise((resolve, reject) => {
+          const exec = new Request(
+            '/controller/addLink/' +
               this.props.topology.name +
-              "/" +
+              '/' +
               linkName +
-              "/" +
+              '/' +
               nodeA +
-              "/" +
+              '/' +
               nodeZ +
-              "/" +
+              '/' +
               this.state.linkType,
-            { credentials: "same-origin" }
+            {credentials: 'same-origin'},
           );
-          fetch(exec).then(
-            function(response) {
-              if (response.status == 200) {
-                swal(
-                  {
-                    title: "Link Added!",
-                    text: "Response: " + response.statusText,
-                    type: "success"
-                  },
-                  function() {
-                    resolve();
-                  }.bind(this)
-                );
-              } else {
-                swal(
-                  {
-                    title: "Failed!",
-                    text:
-                      "Adding a link failed\nReason: " + response.statusText,
-                    type: "error"
-                  },
-                  function() {
-                    resolve();
-                  }.bind(this)
-                );
-              }
-            }.bind(this)
-          );
+          fetch(exec).then(function(response) {
+            if (response.status == 200) {
+              swal(
+                {
+                  title: 'Link Added!',
+                  text: 'Response: ' + response.statusText,
+                  type: 'success',
+                },
+                function() {
+                  resolve();
+                },
+              );
+            } else {
+              swal(
+                {
+                  title: 'Failed!',
+                  text: 'Adding a link failed\nReason: ' + response.statusText,
+                  type: 'error',
+                },
+                function() {
+                  resolve();
+                },
+              );
+            }
+          });
         });
-      }.bind(this)
+      }.bind(this),
     );
   }
 
@@ -116,7 +121,7 @@ export default class ModalLinkAdd extends React.Component {
       Object(this.props.topology.nodes).forEach(node => {
         nodesVector.push({
           value: node.name,
-          label: node.name
+          label: node.name,
         });
       });
     }
@@ -126,8 +131,7 @@ export default class ModalLinkAdd extends React.Component {
         isOpen={this.props.isOpen}
         onRequestClose={this.modalClose.bind(this)}
         style={customModalStyle}
-        contentLabel="Example Modal"
-      >
+        contentLabel="Example Modal">
         <table>
           <tbody>
             <tr className="blank_row" />
@@ -138,7 +142,7 @@ export default class ModalLinkAdd extends React.Component {
                   options={nodesVector}
                   name="Select Node"
                   value={this.state.linkNode1}
-                  onChange={val => this.setState({ linkNode1: val.value })}
+                  onChange={val => this.setState({linkNode1: val.value})}
                   clearable={false}
                 />
               </td>
@@ -151,7 +155,7 @@ export default class ModalLinkAdd extends React.Component {
                   options={nodesVector}
                   name="Select Node"
                   value={this.state.linkNode2}
-                  onChange={val => this.setState({ linkNode2: val.value })}
+                  onChange={val => this.setState({linkNode2: val.value})}
                   clearable={false}
                 />
               </td>
@@ -164,7 +168,7 @@ export default class ModalLinkAdd extends React.Component {
                   options={linkTypesVector}
                   name="Select Type"
                   value={this.state.linkType}
-                  onChange={val => this.setState({ linkType: val.value })}
+                  onChange={val => this.setState({linkType: val.value})}
                   clearable={false}
                 />
               </td>
@@ -174,8 +178,8 @@ export default class ModalLinkAdd extends React.Component {
               <td width={100}>Link Name</td>
               <td>
                 {this.state.linkNode1 < this.state.linkNode2
-                  ? "link-" + this.state.linkNode1 + "-" + this.state.linkNode2
-                  : "link-" + this.state.linkNode2 + "-" + this.state.linkNode1}
+                  ? 'link-' + this.state.linkNode1 + '-' + this.state.linkNode2
+                  : 'link-' + this.state.linkNode2 + '-' + this.state.linkNode1}
               </td>
             </tr>
             <tr className="blank_row" />
@@ -183,17 +187,15 @@ export default class ModalLinkAdd extends React.Component {
               <td width={100} />
               <td>
                 <button
-                  style={{ float: "right" }}
+                  style={{float: 'right'}}
                   className="graph-button"
-                  onClick={this.modalClose.bind(this)}
-                >
+                  onClick={this.modalClose.bind(this)}>
                   Close
                 </button>
                 <button
-                  style={{ float: "right" }}
+                  style={{float: 'right'}}
                   className="graph-button"
-                  onClick={this.addLink.bind(this)}
-                >
+                  onClick={this.addLink.bind(this)}>
                   Add Link
                 </button>
               </td>

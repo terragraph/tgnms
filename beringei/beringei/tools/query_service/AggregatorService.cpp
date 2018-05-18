@@ -8,7 +8,10 @@
  */
 
 #include "AggregatorService.h"
+
+#include "BeringeiClientStore.h"
 #include "BeringeiData.h"
+#include "TopologyStore.h"
 
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 
@@ -22,7 +25,6 @@ DEFINE_int32(agg_time_period, 30, "Beringei time period");
 DEFINE_int32(ruckus_controller_time_period, 30,
              "Ruckus controller stats fetch time period");
 DEFINE_bool(write_agg_data, true, "Write aggregator data to beringei");
-DEFINE_string(api_service_endpoint, "http://10.56.68.18:8088/api/getTopology", "Endpoint for pulling topology");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -53,14 +55,8 @@ namespace facebook {
 namespace gorilla {
 
 AggregatorService::AggregatorService(
-  TACacheMap& typeaheadCache,
-  std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-  std::shared_ptr<BeringeiClient> beringeiReadClient,
-  std::shared_ptr<BeringeiClient> beringeiWriteClient)
-  : typeaheadCache_(typeaheadCache),
-    configurationAdapter_(configurationAdapter),
-    beringeiReadClient_(beringeiReadClient),
-    beringeiWriteClient_(beringeiWriteClient) {
+  TACacheMap& typeaheadCache)
+  : typeaheadCache_(typeaheadCache) {
 
   // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
@@ -165,105 +161,113 @@ AggregatorService::timerCb() {
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
   // run some aggregation
   std::unordered_map<std::string /* key name */, double> aggValues;
-  auto topology = fetchTopology();
-  if (!topology.name.empty() &&
-      !topology.nodes.empty() &&
-      !topology.links.empty()) {
-    int64_t timeStamp = folly::to<int64_t>(
-       ceil(std::time(nullptr) / 30.0)) * 30;
-    // pop traffic
-    std::unordered_set<std::string> popNodes;
-    // nodes up + down
-    int onlineNodes = 0;
-    for (const auto& node : topology.nodes) {
-      onlineNodes += (node.status != query::NodeStatusType::OFFLINE);
-      if (node.pop_node) {
-        popNodes.insert(node.name);
-      }
-      // for each pop, sum all terra links
-    }
-    aggValues["total_nodes"] = topology.nodes.size();
-    aggValues["online_nodes"] = onlineNodes;
-    aggValues["online_nodes_perc"] = (double)onlineNodes / topology.nodes.size() * 100.0;
-    aggValues["pop_nodes"] = popNodes.size();
-
-    // (wireless) links up + down
-    int wirelessLinks = 0;
-    int onlineLinks = 0;
-    for (const auto& link : topology.links) {
-      if (link.link_type != query::LinkType::WIRELESS) {
-        continue;
-      }
-      wirelessLinks++;
-      onlineLinks += link.is_alive;
-    }
-    aggValues["total_wireless_links"] = wirelessLinks;
-    aggValues["online_wireless_links"] = onlineLinks;
-    aggValues["online_wireless_links_perc"] = (double)onlineLinks / wirelessLinks * 100.0;
-    // ruckus controller stats
-    {
-      auto ruckusStats = ruckusStats_.rlock();
-      for (const auto& ruckusStat : *ruckusStats) {
-        aggValues[ruckusStat.first] = ruckusStat.second;
-      }
-    }
-    // report metrics somewhere? TBD
-    LOG(INFO) << "--------------------------------------";
-    std::vector<DataPoint> bDataPoints;
-    // query metric data from beringei
-    {
-      auto locked = typeaheadCache_.rlock();
-      auto taCacheIt = locked->find(topology.name);
-      if (taCacheIt != locked->cend()) {
-        LOG(INFO) << "Cache found for: " << topology.name;
-        // fetch back the metrics we care about (PER, MCS?)
-        // and average the values
-        buildQuery(aggValues, popNodes, taCacheIt->second);
-        for (const auto& metric : aggValues) {
-          LOG(INFO) << "Agg: " << metric.first << " = "
-                    << std::to_string(metric.second)
-                    << ", ts: " << timeStamp;
+  auto topologyInstance = TopologyStore::getInstance();
+  auto topologyList = topologyInstance->getTopologyList();
+  for (const auto& topologyConfig : topologyList) {
+    LOG(INFO) << "Topology: " << topologyConfig.first;
+    auto topology = topologyConfig.second->topology;
+    if (!topology.name.empty() &&
+        !topology.nodes.empty() &&
+        !topology.links.empty()) {
+      int64_t timeStamp = folly::to<int64_t>(
+         ceil(std::time(nullptr) / 30.0)) * 30;
+      // pop traffic
+      std::unordered_set<std::string> popNodes;
+      // nodes up + down
+      int onlineNodes = 0;
+      for (const auto& node : topology.nodes) {
+        onlineNodes += (node.status != query::NodeStatusType::OFFLINE);
+        if (node.pop_node) {
+          popNodes.insert(node.name);
         }
-        // find metrics, update beringei
-        for (const auto& metric : aggValues) {
-          std::vector<query::KeyData> keyData =
-            taCacheIt->second->getKeyData(metric.first);
-          if (keyData.size() != 1) {
-            LOG(INFO) << "Metric not found: " << metric.first;
-            continue;
+        // for each pop, sum all terra links
+      }
+      aggValues["total_nodes"] = topology.nodes.size();
+      aggValues["online_nodes"] = onlineNodes;
+      aggValues["online_nodes_perc"] = (double)onlineNodes / topology.nodes.size() * 100.0;
+      aggValues["pop_nodes"] = popNodes.size();
+
+      // (wireless) links up + down
+      int wirelessLinks = 0;
+      int onlineLinks = 0;
+      for (const auto& link : topology.links) {
+        if (link.link_type != query::LinkType::WIRELESS) {
+          continue;
+        }
+        wirelessLinks++;
+        onlineLinks += link.is_alive;
+      }
+      aggValues["total_wireless_links"] = wirelessLinks;
+      aggValues["online_wireless_links"] = onlineLinks;
+      aggValues["online_wireless_links_perc"] = (double)onlineLinks / wirelessLinks * 100.0;
+      // ruckus controller stats
+      {
+        auto ruckusStats = ruckusStats_.rlock();
+        for (const auto& ruckusStat : *ruckusStats) {
+          aggValues[ruckusStat.first] = ruckusStat.second;
+        }
+      }
+      // report metrics somewhere? TBD
+      LOG(INFO) << "--------------------------------------";
+      std::vector<DataPoint> bDataPoints;
+      // query metric data from beringei
+      {
+        auto locked = typeaheadCache_.rlock();
+        auto taCacheIt = locked->find(topology.name);
+        if (taCacheIt != locked->cend()) {
+          LOG(INFO) << "Cache found for: " << topology.name;
+          // fetch back the metrics we care about (PER, MCS?)
+          // and average the values
+          buildQuery(aggValues, popNodes, taCacheIt->second);
+          for (const auto& metric : aggValues) {
+            LOG(INFO) << "Agg: " << metric.first << " = "
+                      << std::to_string(metric.second)
+                      << ", ts: " << timeStamp;
           }
-          int keyId = keyData.front().keyId;
-          // create beringei data-point
-          DataPoint bDataPoint;
-          TimeValuePair bTimePair;
-          Key bKey;
+          // find metrics, update beringei
+          for (const auto& metric : aggValues) {
+            std::vector<query::KeyData> keyData =
+              taCacheIt->second->getKeyData(metric.first);
+            if (keyData.size() != 1) {
+              LOG(INFO) << "Metric not found: " << metric.first;
+              continue;
+            }
+            int keyId = keyData.front().keyId;
+            // create beringei data-point
+            DataPoint bDataPoint;
+            TimeValuePair bTimePair;
+            Key bKey;
 
-          bKey.key = std::to_string(keyId);
-          bDataPoint.key = bKey;
-          bTimePair.unixTime = timeStamp;
-          bTimePair.value = metric.second;
-          bDataPoint.value = bTimePair;
-          bDataPoints.push_back(bDataPoint);
+            bKey.key = std::to_string(keyId);
+            bDataPoint.key = bKey;
+            bTimePair.unixTime = timeStamp;
+            bTimePair.value = metric.second;
+            bDataPoint.value = bTimePair;
+            bDataPoints.push_back(bDataPoint);
+          }
+        } else {
+          LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
         }
-      } else {
-        LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
       }
+      if (FLAGS_write_agg_data) {
+        folly::EventBase eb;
+        eb.runInLoop([this, &bDataPoints]() mutable {
+          auto beringeiClientStore = BeringeiClientStore::getInstance();
+          // TODO - change to write..
+          auto beringeiWriteClient = beringeiClientStore->getReadClient(30);
+          auto pushedPoints = beringeiWriteClient->putDataPoints(bDataPoints);
+          if (!pushedPoints) {
+            LOG(ERROR) << "Failed to perform the put!";
+          }
+        });
+        std::thread tEb([&eb]() { eb.loop(); });
+        tEb.join();
+        LOG(INFO) << "Data-points written";
+      }
+      // push metrics into beringei
+    } else {
+      LOG(INFO) << "Invalid topology";
     }
-    if (FLAGS_write_agg_data) {
-      folly::EventBase eb;
-      eb.runInLoop([this, &bDataPoints]() mutable {
-        auto pushedPoints = beringeiWriteClient_->putDataPoints(bDataPoints);
-        if (!pushedPoints) {
-          LOG(ERROR) << "Failed to perform the put!";
-        }
-      });
-      std::thread tEb([&eb]() { eb.loop(); });
-      tEb.join();
-      LOG(INFO) << "Data-points written";
-    }
-    // push metrics into beringei
-  } else {
-    LOG(INFO) << "Invalid topology";
   }
 }
 
@@ -324,7 +328,7 @@ AggregatorService::buildQuery(
   }
   // fetch the last few minutes to receive the latest data point
   queryRequest.queries = queries;
-  BeringeiData dataFetcher(configurationAdapter_, beringeiReadClient_, queryRequest);
+  BeringeiData dataFetcher(queryRequest);
   folly::dynamic results = dataFetcher.process();
   int queryIdx = 0;
   // iterate over the results - the displayName is the key
@@ -343,55 +347,6 @@ AggregatorService::buildQuery(
     values[keyNameSum] = sum;
     queryIdx++;
   }
-}
-
-query::Topology
-AggregatorService::fetchTopology() {
-  query::Topology topology;
-  try {
-    CURL* curl;
-    CURLcode res;
-    curl = curl_easy_init();
-    if (!curl) {
-      throw std::runtime_error("Unable to initialize CURL");
-    }
-    std::string postData("{}");
-    // we have to forward the v4 address right now since no local v6
-    std::string endpoint(FLAGS_api_service_endpoint);
-    // we can't verify the peer with our current image/lack of certs
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postData.length());
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1000 /* 1 second */);
-
-    // read data from request
-    struct HTTPDataStruct dataChunk;
-    dataChunk.data = (char*)malloc(1);
-    dataChunk.size = 0;
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curlWriteCb);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&dataChunk);
-    res = curl_easy_perform(curl);
-    if (res == CURLE_OK) {
-      long response_code;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-      // response code 204 is a success
-    }
-    // cleanup
-    curl_easy_cleanup(curl);
-    topology = SimpleJSONSerializer::deserialize<query::Topology>(dataChunk.data);
-    free(dataChunk.data);
-    if (res != CURLE_OK) {
-      LOG(WARNING) << "CURL error for endpoint " << endpoint << ": "
-                   << curl_easy_strerror(res);
-    }
-  } catch (const std::exception& ex) {
-    LOG(ERROR) << "CURL Error: " << ex.what();
-  }
-  return topology;
 }
 
 void

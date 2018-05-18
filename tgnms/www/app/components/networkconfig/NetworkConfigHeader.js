@@ -1,27 +1,32 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // NetworkConfigHeader.js
-import PropTypes from 'prop-types';
+import 'sweetalert/dist/sweetalert.css';
 
-import React from "react";
-import { render } from "react-dom";
-
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
-
+import {refreshConfig} from '../../actions/NetworkConfigActions.js';
 import {
   CONFIG_VIEW_MODE,
-  CONFIG_CLASSNAMES
-} from "../../constants/NetworkConfigConstants.js";
-import { refreshConfig } from "../../actions/NetworkConfigActions.js";
+  CONFIG_CLASSNAMES,
+} from '../../constants/NetworkConfigConstants.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import React from 'react';
+import swal from 'sweetalert';
 
 const refreshAlertProps = {
-  title: "Refresh Configuration?",
+  title: 'Refresh Configuration?',
   text: `Fetching the latest configuration will discard any unsaved changes you have.
 
   Proceed?`,
-  type: "warning",
+  type: 'warning',
   showCancelButton: true,
-  confirmButtonText: "Refresh",
-  cancelButtonText: "Cancel"
+  confirmButtonText: 'Refresh',
+  cancelButtonText: 'Cancel',
 };
 
 export default class NetworkConfigHeader extends React.Component {
@@ -42,21 +47,21 @@ export default class NetworkConfigHeader extends React.Component {
   };
 
   render() {
-    const { editMode, selectedNodes } = this.props;
+    const {editMode, selectedNodes} = this.props;
     const editModeText =
-      editMode === CONFIG_VIEW_MODE.NODE ? "Node" : "Network";
+      editMode === CONFIG_VIEW_MODE.NODE ? 'Node' : 'Network';
     const titleText = `View/Edit ${editModeText} Override`;
 
     // TODO: Kelvin: not sure what to display for multiple nodes
-    let nodeStatusText = "";
+    let nodeStatusText = '';
     if (editMode === CONFIG_VIEW_MODE.NODE) {
       nodeStatusText = selectedNodes[0].ignited ? (
-        <span style={{ color: "#009900" }}>
-          Node is Online running:{" "}
+        <span style={{color: '#009900'}}>
+          Node is Online running:{' '}
           <strong>{selectedNodes[0].imageVersion}</strong>
         </span>
       ) : (
-        <span style={{ color: "#990000" }}>Node is Offline</span>
+        <span style={{color: '#990000'}}>Node is Offline</span>
       );
     }
 
@@ -80,5 +85,5 @@ export default class NetworkConfigHeader extends React.Component {
 NetworkConfigHeader.propTypes = {
   editMode: PropTypes.string.isRequired,
   selectedNodes: PropTypes.arrayOf(PropTypes.object).isRequired,
-  hasUnsavedChanges: PropTypes.bool.isRequired
+  hasUnsavedChanges: PropTypes.bool.isRequired,
 };

@@ -1,34 +1,42 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-// dispatcher
-import { Actions } from "./constants/NetworkConstants.js";
-import Dispatcher from "./NetworkDispatcher.js";
-import NetworkStore from "./stores/NetworkStore.js";
-import AsyncButton from "react-async-button";
-import NumericInput from "react-numeric-input";
-// tabs
-import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
+import 'react-tabs/style/react-tabs.css';
+
+import Dispatcher from './NetworkDispatcher.js';
+// dispatcher
+import {Actions} from './constants/NetworkConstants.js';
+import NetworkStore from './stores/NetworkStore.js';
+import PropTypes from 'prop-types';
+import AsyncButton from 'react-async-button';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom';
+import NumericInput from 'react-numeric-input';
+// tabs
+import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
+import React from 'react';
 
 class ListEditor extends React.Component {
   constructor(props) {
     super(props);
     this.updateData = this.updateData.bind(this);
-    this.state = { selectedItem: null };
+    this.state = {selectedItem: null};
   }
   focus() {}
   updateData() {
     if (this.state.selectedItem) {
-      this.props.onUpdate({ item: this.state.selectedItem });
+      this.props.onUpdate({item: this.state.selectedItem});
     } else if (this.props.items) {
-      this.props.onUpdate({ item: this.props.items[0] });
+      this.props.onUpdate({item: this.props.items[0]});
     }
   }
   selectChange(val) {
     this.setState({
-      selectedItem: val.label
+      selectedItem: val.label,
     });
   }
   render() {
@@ -37,9 +45,8 @@ class ListEditor extends React.Component {
         <select
           value={this.state.selectedItem}
           onChange={ev => {
-            this.setState({ selectedItem: ev.currentTarget.value });
-          }}
-        >
+            this.setState({selectedItem: ev.currentTarget.value});
+          }}>
           {this.props.items.map(keyName => (
             <option key={keyName} value={keyName}>
               {keyName}
@@ -48,8 +55,7 @@ class ListEditor extends React.Component {
         </select>
         <button
           className="btn btn-info btn-xs textarea-save-btn"
-          onClick={this.updateData}
-        >
+          onClick={this.updateData}>
           save
         </button>
       </span>
@@ -61,13 +67,13 @@ class NumberEditor extends React.Component {
   constructor(props) {
     super(props);
     this.updateData = this.updateData.bind(this);
-    this.state = { value: props.defaultValue.value };
+    this.state = {value: props.defaultValue.value};
   }
   focus() {
     this.refs.inputRef.focus();
   }
   updateData() {
-    this.props.onUpdate({ value: parseFloat(this.state.value) });
+    this.props.onUpdate({value: parseFloat(this.state.value)});
   }
   render() {
     return (
@@ -75,20 +81,19 @@ class NumberEditor extends React.Component {
         <input
           ref="inputRef"
           className={
-            (this.props.editorClass || "") + " form-control editor edit-text"
+            (this.props.editorClass || '') + ' form-control editor edit-text'
           }
-          style={{ display: "inline", width: "50%" }}
+          style={{display: 'inline', width: '50%'}}
           type="text"
           value={this.state.value}
           onKeyDown={this.props.onKeyDown}
           onChange={ev => {
-            this.setState({ value: ev.currentTarget.value });
+            this.setState({value: ev.currentTarget.value});
           }}
         />
         <button
           className="btn btn-info btn-xs textarea-save-btn"
-          onClick={this.updateData}
-        >
+          onClick={this.updateData}>
           save
         </button>
       </span>
@@ -103,8 +108,8 @@ const Spinner = () => (
   </div>
 );
 
-const alertLevels = ["Info", "Warning", "Critical"];
-const alertComparators = ["GT", "GTE", "LT", "LTE"];
+const alertLevels = ['Info', 'Warning', 'Critical'];
+const alertComparators = ['GT', 'GTE', 'LT', 'LTE'];
 
 export default class NetworkAlerts extends React.Component {
   state = {
@@ -115,7 +120,7 @@ export default class NetworkAlerts extends React.Component {
     alertsConfigSelected: [],
     from: 0,
     size: 500,
-    alertsJson: null
+    alertsJson: null,
   };
 
   constructor(props) {
@@ -133,9 +138,9 @@ export default class NetworkAlerts extends React.Component {
 
   getConfigClick(e) {
     return new Promise((resolve, reject) => {
-      let exec = new Request(
-        "/aggregator/getAlertsConfig/" + this.props.networkName,
-        { credentials: "same-origin" }
+      const exec = new Request(
+        '/aggregator/getAlertsConfig/' + this.props.networkName,
+        {credentials: 'same-origin'},
       );
       fetch(exec).then(
         function(response) {
@@ -148,27 +153,27 @@ export default class NetworkAlerts extends React.Component {
                   rows.push({
                     id: alertConf.id,
                     key: alertConf.key,
-                    comp: { item: alertComparators[alertConf.comp] },
-                    threshold: { value: alertConf.threshold },
-                    level: { item: alertLevels[alertConf.level] },
+                    comp: {item: alertComparators[alertConf.comp]},
+                    threshold: {value: alertConf.threshold},
+                    level: {item: alertLevels[alertConf.level]},
                     node_mac: alertConf.node_mac,
-                    _id: index
+                    _id: index,
                   });
                   index++;
                 });
 
                 this.setState({
                   alertsConfigJson: json,
-                  alertsConfigRows: rows
+                  alertsConfigRows: rows,
                 });
 
                 resolve();
-              }.bind(this)
+              }.bind(this),
             );
           } else {
             reject();
           }
-        }.bind(this)
+        }.bind(this),
       );
     });
   }
@@ -180,23 +185,23 @@ export default class NetworkAlerts extends React.Component {
         //Check data
         var errors = false;
         this.state.alertsConfigRows.forEach(row => {
-          if (row.id == "" || row.id == "-") {
-            alert("ID of row " + row._id + " is invalid");
+          if (row.id == '' || row.id == '-') {
+            alert('ID of row ' + row._id + ' is invalid');
             reject();
             errors = true;
           }
-          if (row.key == "" || row.key == "-") {
-            alert("Key of row " + row._id + " is invalid");
+          if (row.key == '' || row.key == '-') {
+            alert('Key of row ' + row._id + ' is invalid');
             reject();
             errors = true;
           }
           if (isNaN(row.threshold.value)) {
-            alert("Threshold of row " + row._id + " is invalid");
+            alert('Threshold of row ' + row._id + ' is invalid');
             reject();
             errors = true;
           }
           if (alertsConfigMap[row.id]) {
-            alert("ID of row " + row._id + " is not uneque");
+            alert('ID of row ' + row._id + ' is not uneque');
             reject();
             errors = true;
           }
@@ -206,32 +211,28 @@ export default class NetworkAlerts extends React.Component {
 
       if (
         !errors &&
-        window.confirm("Are you sure you want to overwrite Alerts Config?")
+        window.confirm('Are you sure you want to overwrite Alerts Config?')
       ) {
-        let f = new Request(
-          "/aggregator/setAlertsConfig/" +
+        const f = new Request(
+          '/aggregator/setAlertsConfig/' +
             this.props.networkName +
-            "/" +
+            '/' +
             JSON.stringify(this.state.alertsConfigRows),
-          { credentials: "same-origin" }
+          {credentials: 'same-origin'},
         );
-        fetch(f).then(
-          function(response) {
-            if (response.status == 200) {
-              response.json().then(
-                function(json) {
-                  if (json.success) {
-                    resolve();
-                  } else {
-                    reject();
-                  }
-                }.bind(this)
-              );
-            } else {
-              reject();
-            }
-          }.bind(this)
-        );
+        fetch(f).then(function(response) {
+          if (response.status == 200) {
+            response.json().then(function(json) {
+              if (json.success) {
+                resolve();
+              } else {
+                reject();
+              }
+            });
+          } else {
+            reject();
+          }
+        });
       } else {
         reject();
       }
@@ -242,7 +243,7 @@ export default class NetworkAlerts extends React.Component {
     if (cell) {
       return cell.item;
     }
-    return "null";
+    return 'null';
   }
 
   cellNumberFormatter(cell, row) {
@@ -253,9 +254,9 @@ export default class NetworkAlerts extends React.Component {
   }
 
   getAlerts(network) {
-    let exec = new Request(
-      "/getAlerts/" + network + "/" + this.state.from + "/" + this.state.size,
-      { credentials: "same-origin" }
+    const exec = new Request(
+      '/getAlerts/' + network + '/' + this.state.from + '/' + this.state.size,
+      {credentials: 'same-origin'},
     );
     fetch(exec).then(
       function(response) {
@@ -263,29 +264,29 @@ export default class NetworkAlerts extends React.Component {
           response.json().then(
             function(json) {
               this.setState({
-                alertsJson: json
+                alertsJson: json,
               });
-            }.bind(this)
+            }.bind(this),
           );
         } else {
           this.setState({
-            alertsJson: null
+            alertsJson: null,
           });
         }
-      }.bind(this)
+      }.bind(this),
     );
   }
 
   getAlertsClick(e) {
     return new Promise((resolve, reject) => {
-      let exec = new Request(
-        "/getAlerts/" +
+      const exec = new Request(
+        '/getAlerts/' +
           this.props.networkName +
-          "/" +
+          '/' +
           this.state.from +
-          "/" +
+          '/' +
           this.state.size,
-        { credentials: "same-origin" }
+        {credentials: 'same-origin'},
       );
       fetch(exec).then(
         function(response) {
@@ -293,41 +294,41 @@ export default class NetworkAlerts extends React.Component {
             response.json().then(
               function(json) {
                 this.setState({
-                  alertsJson: json
+                  alertsJson: json,
                 });
                 resolve();
-              }.bind(this)
+              }.bind(this),
             );
           } else {
             this.setState({
-              alertsJson: null
+              alertsJson: null,
             });
             reject();
           }
-        }.bind(this)
+        }.bind(this),
       );
     });
   }
 
   addAlertsConfigRow() {
-    let rows = this.state.alertsConfigRows;
+    const rows = this.state.alertsConfigRows;
     var row = {
       _id: rows.length,
-      id: "-",
-      key: "-",
-      comp: { item: alertComparators[0] },
+      id: '-',
+      key: '-',
+      comp: {item: alertComparators[0]},
       threshold: NaN,
-      level: { item: alertLevels[0] },
-      node_mac: ""
+      level: {item: alertLevels[0]},
+      node_mac: '',
     };
     rows.push(row);
     this.setState({
-      alertsConfigRows: rows
+      alertsConfigRows: rows,
     });
   }
 
   deleteAlertsConfigRows() {
-    let rows = this.state.alertsConfigRows;
+    const rows = this.state.alertsConfigRows;
     var newRows = [];
     var newId = 0;
     rows.forEach(row => {
@@ -346,7 +347,7 @@ export default class NetworkAlerts extends React.Component {
     });
     this.setState({
       alertsConfigRows: newRows,
-      alertsConfigSelected: []
+      alertsConfigSelected: [],
     });
   }
 
@@ -356,24 +357,24 @@ export default class NetworkAlerts extends React.Component {
       this.state.alertsSelected.forEach(id => {
         alertIds.push(id);
       });
-      let exec = new Request("/deleteAlerts/" + JSON.stringify(alertIds), {
-        credentials: "same-origin"
+      const exec = new Request('/deleteAlerts/' + JSON.stringify(alertIds), {
+        credentials: 'same-origin',
       });
       fetch(exec);
       this.setState({
-        alertsSelected: []
+        alertsSelected: [],
       });
       this.getAlerts(this.props.networkName);
     }
   }
 
   clearAllAlerts() {
-    let exec = new Request("/clearAlerts/" + this.props.networkName, {
-      credentials: "same-origin"
+    const exec = new Request('/clearAlerts/' + this.props.networkName, {
+      credentials: 'same-origin',
     });
     fetch(exec);
     this.setState({
-      alertsSelected: []
+      alertsSelected: [],
     });
     this.getAlerts(this.props.networkName);
   }
@@ -381,13 +382,13 @@ export default class NetworkAlerts extends React.Component {
   alertsConfigOnRowSelect(row, isSelected) {
     if (isSelected) {
       this.setState({
-        alertsConfigSelected: [...this.state.alertsConfigSelected, row._id]
+        alertsConfigSelected: [...this.state.alertsConfigSelected, row._id],
       });
     } else {
       this.setState({
         alertsConfigSelected: this.state.alertsConfigSelected.filter(
-          it => it !== row._id
-        )
+          it => it !== row._id,
+        ),
       });
     }
   }
@@ -395,19 +396,19 @@ export default class NetworkAlerts extends React.Component {
   alertsOnRowSelect(row, isSelected) {
     if (isSelected) {
       this.setState({
-        alertsSelected: [...this.state.alertsSelected, row._id]
+        alertsSelected: [...this.state.alertsSelected, row._id],
       });
     } else {
       this.setState({
-        alertsSelected: this.state.alertsSelected.filter(it => it !== row._id)
+        alertsSelected: this.state.alertsSelected.filter(it => it !== row._id),
       });
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this)
+      this.handleDispatchEvent.bind(this),
     );
     this.getAlerts(this.props.networkName);
   }
@@ -429,7 +430,7 @@ export default class NetworkAlerts extends React.Component {
           alertsConfigSelected: [],
           selectedTabIndex: 0,
           networkName: payload.networkName,
-          alertsJson: null
+          alertsJson: null,
         });
         this.getAlerts(payload.networkName);
         break;
@@ -439,12 +440,12 @@ export default class NetworkAlerts extends React.Component {
 
   _handleTabSelect(index, last) {
     this.setState({
-      selectedTabIndex: index
+      selectedTabIndex: index,
     });
   }
 
   getAlertsTableRows(
-    alertsJson
+    alertsJson,
   ): Array<{
     _id: number,
     timestamp: string,
@@ -455,7 +456,7 @@ export default class NetworkAlerts extends React.Component {
     trigger_value: number,
     alert_comparator: string,
     alert_threshold: number,
-    alert_level: string
+    alert_level: string,
   }> {
     const rows = [];
     if (alertsJson) {
@@ -470,7 +471,7 @@ export default class NetworkAlerts extends React.Component {
           trigger_value: alert.trigger_value,
           alert_comparator: alert.alert_comparator,
           alert_threshold: alert.alert_threshold,
-          alert_level: alert.alert_level
+          alert_level: alert.alert_level,
         });
       });
     }
@@ -478,23 +479,23 @@ export default class NetworkAlerts extends React.Component {
   }
 
   columnClassNameFormat(row, rowIdx) {
-    if (row.alert_level == "ALERT_CRITICAL") {
-      return "td-column-function-alert-critical";
-    } else if (row.alert_level == "ALERT_WARNING") {
-      return "td-column-function-alert-warning";
+    if (row.alert_level == 'ALERT_CRITICAL') {
+      return 'td-column-function-alert-critical';
+    } else if (row.alert_level == 'ALERT_WARNING') {
+      return 'td-column-function-alert-warning';
     } else {
-      return "td-column-function-alert-info";
+      return 'td-column-function-alert-info';
     }
   }
 
   handleFromChange(val) {
     this.setState({
-      from: val
+      from: val,
     });
   }
   handleSizeChange(val) {
     this.setState({
-      size: val
+      size: val,
     });
   }
 
@@ -507,55 +508,50 @@ export default class NetworkAlerts extends React.Component {
     );
 
     const alertsConfigCellEditProp = {
-      mode: "click",
-      blurToSave: true
+      mode: 'click',
+      blurToSave: true,
     };
 
     var alertsConfigSelectRowProp = {
-      mode: "checkbox",
+      mode: 'checkbox',
       clickToSelect: true,
-      bgColor: "rgb(150, 150, 250)",
+      bgColor: 'rgb(150, 150, 250)',
       onSelect: this.alertsConfigOnRowSelect,
-      selected: this.state.alertsConfigSelected
+      selected: this.state.alertsConfigSelected,
     };
 
     var alertsSelectRowProp = {
-      mode: "checkbox",
+      mode: 'checkbox',
       clickToSelect: true,
-      bgColor: "rgb(150, 150, 250)",
+      bgColor: 'rgb(150, 150, 250)',
       onSelect: this.alertsOnRowSelect,
-      selected: this.state.alertsSelected
+      selected: this.state.alertsSelected,
     };
 
     return (
       <Tabs
         onSelect={this._handleTabSelect.bind(this)}
-        selectedIndex={this.state.selectedTabIndex}
-      >
+        selectedIndex={this.state.selectedTabIndex}>
         <TabList>
           <Tab>Alerts</Tab>
           <Tab>Config</Tab>
         </TabList>
         <TabPanel>
           <div>
-            <table
-              style={{ borderCollapse: "separate", borderSpacing: "10px" }}
-            >
+            <table style={{borderCollapse: 'separate', borderSpacing: '10px'}}>
               <tbody>
                 <tr>
                   <td>
                     <button
                       className="btn btn-primary"
-                      onClick={this.deleteSelectedAlerts.bind(this)}
-                    >
+                      onClick={this.deleteSelectedAlerts.bind(this)}>
                       Delete Selected
                     </button>
                   </td>
                   <td>
                     <button
                       className="btn btn-primary"
-                      onClick={this.clearAllAlerts.bind(this)}
-                    >
+                      onClick={this.clearAllAlerts.bind(this)}>
                       Clear All
                     </button>
                   </td>
@@ -568,9 +564,8 @@ export default class NetworkAlerts extends React.Component {
                       fulFilledClass="btn-success"
                       rejectedText="Get Alerts"
                       rejectedClass="btn-danger"
-                      onClick={this.getAlertsClick}
-                    >
-                      {({ buttonText, isPending }) => (
+                      onClick={this.getAlertsClick}>
+                      {({buttonText, isPending}) => (
                         <span>
                           {isPending && <Spinner />}
                           <span>{buttonText}</span>
@@ -604,8 +599,7 @@ export default class NetworkAlerts extends React.Component {
             key="alertsTable"
             trClassName={this.columnClassNameFormat}
             data={this.getAlertsTableRows(this.state.alertsJson)}
-            selectRow={alertsSelectRowProp}
-          >
+            selectRow={alertsSelectRowProp}>
             <TableHeaderColumn dataField="_id" isKey hidden>
               Id
             </TableHeaderColumn>
@@ -638,24 +632,20 @@ export default class NetworkAlerts extends React.Component {
         </TabPanel>
         <TabPanel>
           <div>
-            <table
-              style={{ borderCollapse: "separate", borderSpacing: "10px" }}
-            >
+            <table style={{borderCollapse: 'separate', borderSpacing: '10px'}}>
               <tbody>
                 <tr>
                   <td>
                     <button
                       className="btn btn-primary"
-                      onClick={this.addAlertsConfigRow.bind(this)}
-                    >
+                      onClick={this.addAlertsConfigRow.bind(this)}>
                       Add Alert
                     </button>
                   </td>
                   <td>
                     <button
                       className="btn btn-primary"
-                      onClick={this.deleteAlertsConfigRows.bind(this)}
-                    >
+                      onClick={this.deleteAlertsConfigRows.bind(this)}>
                       Delete Alert
                     </button>
                   </td>
@@ -668,9 +658,8 @@ export default class NetworkAlerts extends React.Component {
                       fulFilledClass="btn-success"
                       rejectedText="Remote Get"
                       rejectedClass="btn-danger"
-                      onClick={this.getConfigClick}
-                    >
-                      {({ buttonText, isPending }) => (
+                      onClick={this.getConfigClick}>
+                      {({buttonText, isPending}) => (
                         <span>
                           {isPending && <Spinner />}
                           <span>{buttonText}</span>
@@ -687,9 +676,8 @@ export default class NetworkAlerts extends React.Component {
                       fulFilledClass="btn-success"
                       rejectedText="Remote Set"
                       rejectedClass="btn-danger"
-                      onClick={this.setConfigClick}
-                    >
-                      {({ buttonText, isPending }) => (
+                      onClick={this.setConfigClick}>
+                      {({buttonText, isPending}) => (
                         <span>
                           {isPending && <Spinner />}
                           <span>{buttonText}</span>
@@ -704,8 +692,7 @@ export default class NetworkAlerts extends React.Component {
           <BootstrapTable
             data={this.state.alertsConfigRows}
             cellEdit={alertsConfigCellEditProp}
-            selectRow={alertsConfigSelectRowProp}
-          >
+            selectRow={alertsConfigSelectRowProp}>
             <TableHeaderColumn dataField="_id" hidden isKey={true}>
               _id
             </TableHeaderColumn>
@@ -722,18 +709,16 @@ export default class NetworkAlerts extends React.Component {
               dataFormat={this.cellListFormatter}
               customEditor={{
                 getElement: createListEditor,
-                customEditorParameters: { items: alertComparators }
-              }}
-            >
+                customEditorParameters: {items: alertComparators},
+              }}>
               Comparator
             </TableHeaderColumn>
             <TableHeaderColumn
               width="150"
               editable
               dataField="threshold"
-              customEditor={{ getElement: createNumberEditor }}
-              dataFormat={this.cellNumberFormatter}
-            >
+              customEditor={{getElement: createNumberEditor}}
+              dataFormat={this.cellNumberFormatter}>
               Threshold
             </TableHeaderColumn>
             <TableHeaderColumn
@@ -743,9 +728,8 @@ export default class NetworkAlerts extends React.Component {
               dataFormat={this.cellListFormatter}
               customEditor={{
                 getElement: createListEditor,
-                customEditorParameters: { items: alertLevels }
-              }}
-            >
+                customEditorParameters: {items: alertLevels},
+              }}>
               Level
             </TableHeaderColumn>
           </BootstrapTable>
@@ -755,5 +739,5 @@ export default class NetworkAlerts extends React.Component {
   }
 }
 NetworkAlerts.propTypes = {
-  networkName: PropTypes.string.isRequired
+  networkName: PropTypes.string.isRequired,
 };

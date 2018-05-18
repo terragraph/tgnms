@@ -1,16 +1,20 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
+import {CONFIG_LAYER_DESC} from '../../constants/NetworkConfigConstants.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-
-import { CONFIG_LAYER_DESC } from "../../constants/NetworkConfigConstants.js";
-
-const classNames = require("classnames");
-
+import {render} from 'react-dom';
+import React from 'react';
 
 const UNDEFINED_PLACEHOLDER = [
   <span className="nc-tooltip-undefined">No Base Version found</span>,
   <span className="nc-tooltip-undefined">Network Override not set</span>,
-  <span className="nc-tooltip-undefined">Node Override not set</span>
+  <span className="nc-tooltip-undefined">Node Override not set</span>,
 ];
 
 export default class JSONFieldTooltip extends React.Component {
@@ -19,7 +23,7 @@ export default class JSONFieldTooltip extends React.Component {
   }
 
   render() {
-    const { values } = this.props;
+    const {values} = this.props;
 
     const tooltipContents = values.map((value, idx) => {
       let displayVal =
@@ -28,9 +32,9 @@ export default class JSONFieldTooltip extends React.Component {
           : value;
       // boolean to strings...
       if (displayVal === true) {
-        displayVal = "true";
+        displayVal = 'true';
       } else if (displayVal === false) {
-        displayVal = "false";
+        displayVal = 'false';
       }
 
       return (
@@ -52,5 +56,5 @@ export default class JSONFieldTooltip extends React.Component {
 }
 
 JSONFieldTooltip.propTypes = {
-  values: PropTypes.array.isRequired
+  values: PropTypes.array.isRequired,
 };

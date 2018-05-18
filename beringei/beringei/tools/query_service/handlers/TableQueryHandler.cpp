@@ -33,11 +33,8 @@ const int MAX_DATA_POINTS = 60;
 const int NUM_HBS_PER_SEC = 39; // approximately
 
 TableQueryHandler::TableQueryHandler(
-    std::shared_ptr<BeringeiConfigurationAdapterIf> configurationAdapter,
-    std::shared_ptr<BeringeiClient> beringeiClient,
     TACacheMap& typeaheadCache)
-    : RequestHandler(), configurationAdapter_(configurationAdapter),
-      beringeiClient_(beringeiClient),
+    : RequestHandler(),
       typeaheadCache_(typeaheadCache) {}
 
 void
@@ -130,10 +127,11 @@ void TableQueryHandler::onEOM() noexcept {
       auto keyDataList = taCache->getKeyData(linkQuery.metric);
       for (auto& keyData : keyDataList) {
         VLOG(1) << "\t\tLink: " << keyData.linkName
+                << ", titleAppend: " << keyData.linkTitleAppend
                 << ", displayName: " << keyData.displayName
                 << ", keyId: " << keyData.keyId;
         keyIdList.push_back(keyData.keyId);
-        keyData.displayName = keyData.linkName;
+        keyData.displayName = keyData.linkName + keyData.linkTitleAppend + " - " + keyData.displayName;
         keyDataListRenamed.push_back(keyData);
       }
       lastType = linkQuery.type;
@@ -149,10 +147,11 @@ void TableQueryHandler::onEOM() noexcept {
   linkQuery.key_ids = keyIdList;
   linkQuery.data = keyDataListRenamed;
   linkQuery.min_ago = minAgo;
+  linkQuery.agg_type = "none";
   linkQuery.__isset.min_ago = true;
   queryRequest.queries.push_back(linkQuery);
   // build link queries
-  BeringeiData dataFetcher(configurationAdapter_, beringeiClient_, queryRequest);
+  BeringeiData dataFetcher(queryRequest);
   auto beringeiResults = dataFetcher.process();
   std::string responseJson;
   try {

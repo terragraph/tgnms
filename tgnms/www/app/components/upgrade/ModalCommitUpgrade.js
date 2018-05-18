@@ -1,23 +1,29 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import Modal from "react-modal";
-import swal from "sweetalert";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-import { commitUpgrade } from "../../apiutils/UpgradeAPIUtil.js";
+import {commitUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import React from 'react';
+import swal from 'sweetalert';
 
 const modalStyle = {
   content: {
-    width: "calc(100% - 40px)",
-    maxWidth: "800px",
-    display: "table",
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    width: 'calc(100% - 40px)',
+    maxWidth: '800px',
+    display: 'table',
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 export default class ModalCommitUpgrade extends React.Component {
@@ -33,7 +39,7 @@ export default class ModalCommitUpgrade extends React.Component {
 
       scheduleToCommit: 0, // delay between issuing the command and each node starting the commit
 
-      batchingAlgorithm: 'auto_unlimited'
+      batchingAlgorithm: 'auto_unlimited',
     };
   }
 
@@ -55,9 +61,9 @@ export default class ModalCommitUpgrade extends React.Component {
       var n = parseInt(this.state.limit, 10);
       if (n == NaN || String(n) !== this.state.limit || n < 1) {
         swal({
-          title: "Invalid input!",
-          text: `Batch size limit is invalid. Use integers greater than 0.`,
-          type: "error"
+          title: 'Invalid input!',
+          text: 'Batch size limit is invalid. Use integers greater than 0.',
+          type: 'error',
         });
         return;
       }
@@ -78,8 +84,8 @@ export default class ModalCommitUpgrade extends React.Component {
 
       scheduleToCommit: this.state.scheduleToCommit,
 
-      requestId: "NMS" + new Date().getTime(),
-      topologyName: this.props.topologyName
+      requestId: 'NMS' + new Date().getTime(),
+      topologyName: this.props.topologyName,
     };
 
     commitUpgrade(requestBody);
@@ -91,7 +97,7 @@ export default class ModalCommitUpgrade extends React.Component {
   }
 
   render() {
-    const { isOpen } = this.props;
+    const {isOpen} = this.props;
     /*
     Commit modal:
       List nodes
@@ -107,7 +113,7 @@ export default class ModalCommitUpgrade extends React.Component {
           return idx % 2 == 0 ? (
             <p>{node}</p>
           ) : (
-            <p style={{ backgroundColor: "#f9f9f9" }}>{node}</p>
+            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
           );
         })}
       </div>
@@ -117,8 +123,7 @@ export default class ModalCommitUpgrade extends React.Component {
       <Modal
         style={modalStyle}
         isOpen={isOpen}
-        onRequestClose={this.modalClose.bind(this)}
-      >
+        onRequestClose={this.modalClose.bind(this)}>
         <div className="upgrade-modal-content">
           <label>
             Nodes to commit for upgrade ({this.props.upgradeNodes.length})
@@ -130,7 +135,7 @@ export default class ModalCommitUpgrade extends React.Component {
             <input
               type="number"
               value={this.state.timeout}
-              onChange={event => this.setState({ timeout: event.target.value })}
+              onChange={event => this.setState({timeout: event.target.value})}
             />
           </div>
 
@@ -140,13 +145,13 @@ export default class ModalCommitUpgrade extends React.Component {
               type="checkbox"
               checked={this.state.skipFailure}
               onChange={event =>
-                this.setState({ skipFailure: event.target.checked })
+                this.setState({skipFailure: event.target.checked})
               }
             />
           </div>
 
-          <form style={{ marginBottom: "10px" }}>
-            <label style={{ float: "left", width: "55%" }}>
+          <form style={{marginBottom: '10px'}}>
+            <label style={{float: 'left', width: '55%'}}>
               Batching Algorithm:
             </label>
             <div className="batching-type-selector">
@@ -156,17 +161,19 @@ export default class ModalCommitUpgrade extends React.Component {
                 value="auto_unlimited"
                 checked={this.state.batchingAlgorithm === 'auto_unlimited'}
                 onChange={event =>
-                  this.setState({ batchingAlgorithm: 'auto_unlimited' })
+                  this.setState({batchingAlgorithm: 'auto_unlimited'})
                 }
               />
-              <label for="auto_unlimited" style={{ marginRight: "20px", marginLeft: "5px" }}>
+              <label
+                for="auto_unlimited"
+                style={{marginRight: '20px', marginLeft: '5px'}}>
                 Automatic (No size limit)
               </label>
             </div>
           </form>
 
-          <form style={{ marginBottom: "10px" }}>
-            <label style={{ float: "left", width: "55%" }}> </label>
+          <form style={{marginBottom: '10px'}}>
+            <label style={{float: 'left', width: '55%'}} />
             <div className="batching-type-selector">
               <input
                 type="radio"
@@ -174,28 +181,30 @@ export default class ModalCommitUpgrade extends React.Component {
                 value="auto_limited"
                 checked={this.state.batchingAlgorithm === 'auto_limited'}
                 onChange={event =>
-                  this.setState({ batchingAlgorithm: 'auto_limited' })
+                  this.setState({batchingAlgorithm: 'auto_limited'})
                 }
               />
-              <label for="auto_limited" style={{ marginRight: "20px", marginLeft: "5px" }}>
+              <label
+                for="auto_limited"
+                style={{marginRight: '20px', marginLeft: '5px'}}>
                 Automatic (with limit)
               </label>
             </div>
           </form>
 
-          {(this.state.batchingAlgorithm === 'auto_limited') && (
+          {this.state.batchingAlgorithm === 'auto_limited' && (
             <div className="upgrade-modal-row">
               <label>Batch size limit:</label>
               <input
                 type="number"
                 value={this.state.limit}
-                onChange={event => this.setState({ limit: event.target.value })}
+                onChange={event => this.setState({limit: event.target.value})}
               />
             </div>
           )}
 
-          <form style={{ marginBottom: "10px" }}>
-            <label style={{ float: "left", width: "55%" }}> </label>
+          <form style={{marginBottom: '10px'}}>
+            <label style={{float: 'left', width: '55%'}} />
             <div className="batching-type-selector">
               <input
                 type="radio"
@@ -203,10 +212,12 @@ export default class ModalCommitUpgrade extends React.Component {
                 value="all_at_once"
                 checked={this.state.batchingAlgorithm === 'all_at_once'}
                 onChange={event =>
-                  this.setState({ batchingAlgorithm: 'all_at_once' })
+                  this.setState({batchingAlgorithm: 'all_at_once'})
                 }
               />
-              <label for="all_at_once" style={{ marginRight: "20px", marginLeft: "5px" }}>
+              <label
+                for="all_at_once"
+                style={{marginRight: '20px', marginLeft: '5px'}}>
                 All at once!
               </label>
             </div>
@@ -218,24 +229,24 @@ export default class ModalCommitUpgrade extends React.Component {
               type="number"
               value={this.state.scheduleToCommit}
               onChange={event =>
-                this.setState({ scheduleToCommit: event.target.value })
+                this.setState({scheduleToCommit: event.target.value})
               }
             />
           </div>
 
-          <form style={{ marginBottom: "10px" }}>
-            <label style={{ float: "left", width: "55%" }}> Request Type</label>
+          <form style={{marginBottom: '10px'}}>
+            <label style={{float: 'left', width: '55%'}}> Request Type</label>
             <div className="batching-type-selector">
               <input
                 type="radio"
                 name="request_type"
                 value="network"
                 checked={this.state.requestType === 'network'}
-                onChange={event =>
-                  this.setState({ requestType: 'network' })
-                }
+                onChange={event => this.setState({requestType: 'network'})}
               />
-              <label for="network" style={{ marginRight: "20px", marginLeft: "5px" }}>
+              <label
+                for="network"
+                style={{marginRight: '20px', marginLeft: '5px'}}>
                 Network
               </label>
               <input
@@ -243,11 +254,11 @@ export default class ModalCommitUpgrade extends React.Component {
                 name="request_type"
                 value="nodes"
                 checked={this.state.requestType === 'nodes'}
-                onChange={event =>
-                  this.setState({ requestType: 'nodes' })
-                }
+                onChange={event => this.setState({requestType: 'nodes'})}
               />
-              <label for="nodes" style={{ marginRight: "20px", marginLeft: "5px" }}>
+              <label
+                for="nodes"
+                style={{marginRight: '20px', marginLeft: '5px'}}>
                 Nodes
               </label>
             </div>
@@ -256,15 +267,13 @@ export default class ModalCommitUpgrade extends React.Component {
         <div className="upgrade-modal-footer">
           <button
             className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}
-          >
+            onClick={this.modalClose.bind(this)}>
             Close
           </button>
           <button
             className="upgrade-modal-btn"
             onClick={this.submitCommit.bind(this)}
-            style={{ backgroundColor: "#8b9dc3" }}
-          >
+            style={{backgroundColor: '#8b9dc3'}}>
             Submit
           </button>
         </div>
@@ -279,5 +288,5 @@ ModalCommitUpgrade.propTypes = {
   upgradeNodes: PropTypes.array.isRequired,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequred
+  topologyName: PropTypes.string.isRequred,
 };

@@ -1,37 +1,38 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import Modal from "react-modal";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
+import 'sweetalert/dist/sweetalert.css';
 
-import {
-  UploadStatus,
-  DeleteStatus
-} from "../../constants/NetworkConstants.js";
 import {
   uploadUpgradeBinary,
   listUpgradeImages,
-  deleteUpgradeImage
-} from "../../apiutils/UpgradeAPIUtil.js";
-
-import UpgradeImagesTable from "./UpgradeImagesTable.js";
-
-const classNames = require("classnames");
+  deleteUpgradeImage,
+} from '../../apiutils/UpgradeAPIUtil.js';
+import {UploadStatus, DeleteStatus} from '../../constants/NetworkConstants.js';
+import UpgradeImagesTable from './UpgradeImagesTable.js';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import React from 'react';
+import swal from 'sweetalert';
 
 const modalStyle = {
   content: {
-    width: "calc(100% - 40px)",
-    maxWidth: "900px",
-    display: "table",
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    width: 'calc(100% - 40px)',
+    maxWidth: '900px',
+    display: 'table',
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 export default class ModalUpgradeBinary extends React.Component {
@@ -39,15 +40,15 @@ export default class ModalUpgradeBinary extends React.Component {
     super(props);
 
     this.state = {
-      selectedFile: null
+      selectedFile: null,
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.refreshImages();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (!this.props.isOpen && nextProps.isOpen) {
       // when the modal is opened
       this.refreshImages();
@@ -56,7 +57,7 @@ export default class ModalUpgradeBinary extends React.Component {
 
   modalClose() {
     this.setState({
-      selectedFile: null
+      selectedFile: null,
     });
 
     this.props.onClose();
@@ -69,7 +70,7 @@ export default class ModalUpgradeBinary extends React.Component {
   onSubmitFile = () => {
     // use state to ensure instantaneous update
     this.setState({
-      selectedFile: this.refs.upgradeImageFile.files[0]
+      selectedFile: this.refs.upgradeImageFile.files[0],
     });
   };
 
@@ -80,22 +81,22 @@ export default class ModalUpgradeBinary extends React.Component {
   deleteImage = imageName => {
     swal(
       {
-        title: "Are you sure?",
-        text: "You will not be able to recover the image once deleted",
-        type: "warning",
+        title: 'Are you sure?',
+        text: 'You will not be able to recover the image once deleted',
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonText: "Delete Image",
-        cancelButtonText: "Cancel"
+        confirmButtonText: 'Delete Image',
+        cancelButtonText: 'Cancel',
       },
       confirm => {
         if (confirm) {
           deleteUpgradeImage(imageName, this.props.topologyName);
         }
-      }
+      },
     );
   };
 
-  renderUploadStatus = () => {
+  renderUploadStatus() {
     let uploadStatusDisplay = <div />;
 
     switch (this.props.uploadStatus) {
@@ -107,10 +108,9 @@ export default class ModalUpgradeBinary extends React.Component {
               <div
                 className="progress-bar"
                 role="progressbar"
-                style={{ width: this.props.uploadProgress + "%" }}
+                style={{width: this.props.uploadProgress + '%'}}
                 aria-valuemin="0"
-                aria-valuemax="100"
-              >
+                aria-valuemax="100">
                 {this.props.uploadProgress}%
               </div>
             </div>
@@ -120,36 +120,36 @@ export default class ModalUpgradeBinary extends React.Component {
       case UploadStatus.SUCCESS:
         uploadStatusDisplay = (
           <div>
-            <span style={{ color: "#009900" }}>Upload Succeeded</span>
+            <span style={{color: '#009900'}}>Upload Succeeded</span>
           </div>
         );
         break;
       case UploadStatus.FAILURE:
         uploadStatusDisplay = (
           <div>
-            <span style={{ color: "#990000" }}>Upload Failed</span>
+            <span style={{color: '#990000'}}>Upload Failed</span>
           </div>
         );
         break;
     }
     return uploadStatusDisplay;
-  };
+  }
 
-  renderDeleteStatus = () => {
+  renderDeleteStatus() {
     let deleteStatusDisplay = <div />;
 
     switch (this.props.deleteStatus) {
       case DeleteStatus.SUCCESS:
         deleteStatusDisplay = (
           <div>
-            <span style={{ color: "#009900" }}>Image Successfully Deleted</span>
+            <span style={{color: '#009900'}}>Image Successfully Deleted</span>
           </div>
         );
         break;
       case DeleteStatus.FAILURE:
         deleteStatusDisplay = (
           <div>
-            <span style={{ color: "#990000" }}>
+            <span style={{color: '#990000'}}>
               There was a problem with deleting the image, please try again
             </span>
           </div>
@@ -158,15 +158,15 @@ export default class ModalUpgradeBinary extends React.Component {
     }
 
     return deleteStatusDisplay;
-  };
+  }
 
   render() {
-    const { upgradeImages, uploadStatus, uploadProgress } = this.props;
-    const { selectedFile } = this.state;
+    const {upgradeImages, uploadStatus, uploadProgress} = this.props;
+    const {selectedFile} = this.state;
 
     // we have to use refs here to initially access the file and to make sure it exists
     const isFileSelected = !!selectedFile;
-    const fileName = isFileSelected ? selectedFile.name : "";
+    const fileName = isFileSelected ? selectedFile.name : '';
 
     const uploadStatusDisplay = this.renderUploadStatus();
     const deleteStatusDisplay = this.renderDeleteStatus();
@@ -175,8 +175,7 @@ export default class ModalUpgradeBinary extends React.Component {
       <Modal
         style={modalStyle}
         isOpen={this.props.isOpen}
-        onRequestClose={this.modalClose.bind(this)}
-      >
+        onRequestClose={this.modalClose.bind(this)}>
         <div className="upgrade-modal-content">
           <div className="upgrade-modal-upload-row">
             <div className="upgrade-modal-upload-wrapper">
@@ -190,7 +189,7 @@ export default class ModalUpgradeBinary extends React.Component {
               />
             </div>
             <div>
-              <label style={{ margin: "0px 10px" }}>File selected:</label>
+              <label style={{margin: '0px 10px'}}>File selected:</label>
               {fileName}
             </div>
           </div>
@@ -200,11 +199,10 @@ export default class ModalUpgradeBinary extends React.Component {
               className="upgrade-add-img-btn"
               disabled={!isFileSelected}
               onClick={this.onUploadFile}
-              style={{ margin: "6px 14px" }}
-            >
+              style={{margin: '6px 14px'}}>
               <img
                 src="/static/images/add.png"
-                style={{ marginRight: "10px", height: "18px", width: "18px" }}
+                style={{marginRight: '10px', height: '18px', width: '18px'}}
               />Add selected binary to server
             </button>
           </div>
@@ -229,8 +227,7 @@ export default class ModalUpgradeBinary extends React.Component {
         <div className="upgrade-modal-footer">
           <button
             className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}
-          >
+            onClick={this.modalClose.bind(this)}>
             Close
           </button>
         </div>
@@ -247,5 +244,5 @@ ModalUpgradeBinary.propTypes = {
 
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequired
+  topologyName: PropTypes.string.isRequired,
 };

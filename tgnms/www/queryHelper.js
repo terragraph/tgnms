@@ -9,7 +9,7 @@ const pool = mysql.createPool({
   database: 'cxl',
   queueLimit: 10,
   waitForConnections: false,
-  multipleStatements: true
+  multipleStatements: true,
 });
 const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 
@@ -34,8 +34,9 @@ const METRIC_KEY_NAMES = [
   'tx_collisions',
   'speed',
   'tx_ok',
-  'tx_fail'
-  /* 'link_status' (published from controller node */
+  'tx_fail',
+  /* 'link_status' (published from controller node * @format
+ */
 ];
 
 // TODO - restrict this correctly
@@ -72,8 +73,8 @@ const DATA_FOLDER_PATH = '/home/nms/data/';
 
 var self = {
   fetchSysLogs: function (res, macAddr, sourceFile, offset, size, date) {
-    let folder = DATA_FOLDER_PATH + macAddr + '/';
-    let fileName = folder + date + '_' + sourceFile + '.log';
+    const folder = DATA_FOLDER_PATH + macAddr + '/';
+    const fileName = folder + date + '_' + sourceFile + '.log';
 
     fs.readFile(fileName, 'utf-8', function (err, data) {
       if (err) {
@@ -83,12 +84,12 @@ var self = {
 
       var lines = data.trim().split('\n');
 
-      let numLines = lines.length;
+      const numLines = lines.length;
       let begin = numLines - size - offset;
-      if (begin < 0) begin = 0;
+      if (begin < 0) {begin = 0;}
 
       let end = begin + size;
-      if (end > numLines) end = numLines;
+      if (end > numLines) {end = numLines;}
 
       var respLines = lines.slice(begin, end);
       res.json(respLines);
@@ -104,17 +105,17 @@ var self = {
         return;
       }
 
-      let fields = [[macAddr], category, from, size];
-      let queryString =
+      const fields = [[macAddr], category, from, size];
+      const queryString =
         EVENTLOG_BY_MAC_PART1 + '(' + partition + ') ' + EVENTLOG_BY_MAC_PART2;
-      let sqlQuery = mysql.format(queryString, fields);
+      const sqlQuery = mysql.format(queryString, fields);
       conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
           console.log('Error', err);
           return;
         }
-        let dataPoints = [];
+        const dataPoints = [];
         results.forEach(row => {
           dataPoints.push(row.sample);
         });
@@ -132,15 +133,15 @@ var self = {
         return;
       }
 
-      let fields = [[macAddr], from, size];
-      let sqlQuery = mysql.format(ALERTS_BY_MAC, fields);
+      const fields = [[macAddr], from, size];
+      const sqlQuery = mysql.format(ALERTS_BY_MAC, fields);
       conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
           console.log('Error', err);
           return;
         }
-        let dataPoints = [];
+        const dataPoints = [];
         results.forEach(row => {
           dataPoints.push({
             id: row.row_id,
@@ -152,7 +153,7 @@ var self = {
             alert_comparator: row.alert_comparator,
             alert_level: row.alert_level,
             trigger_key: row.trigger_key,
-            trigger_value: row.trigger_value
+            trigger_value: row.trigger_value,
           });
         });
         res.json(dataPoints);
@@ -169,8 +170,8 @@ var self = {
         return;
       }
 
-      let fields = [[ids]];
-      let sqlQuery = mysql.format(DELETE_ALERTS_BY_ID, fields);
+      const fields = [[ids]];
+      const sqlQuery = mysql.format(DELETE_ALERTS_BY_ID, fields);
       conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
@@ -189,8 +190,8 @@ var self = {
         return;
       }
 
-      let fields = [[macAddr]];
-      let sqlQuery = mysql.format(DELETE_ALERTS_BY_MAC, fields);
+      const fields = [[macAddr]];
+      const sqlQuery = mysql.format(DELETE_ALERTS_BY_MAC, fields);
       conn.query(sqlQuery, function (err, results) {
         conn.release();
         if (err) {
@@ -198,7 +199,7 @@ var self = {
         }
       });
     });
-  }
+  },
 };
 
 module.exports = self;

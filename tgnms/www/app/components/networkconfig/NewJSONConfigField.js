@@ -1,55 +1,59 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // JSONConfigForm.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
+import {editNewField} from '../../actions/NetworkConfigActions.js';
+import {ADD_FIELD_TYPES} from '../../constants/NetworkConfigConstants.js';
+import CustomToggle from '../common/CustomToggle.js';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
-
-import React from "react";
-import { render } from "react-dom";
-
-import { editNewField } from "../../actions/NetworkConfigActions.js";
-import { ADD_FIELD_TYPES } from "../../constants/NetworkConfigConstants.js";
-import CustomToggle from "../common/CustomToggle.js";
-
-const classNames = require("classnames");
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class NewJSONConfigField extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  changeField = field => {
-    const { editPath, fieldId, value } = this.props;
+  changeField(field) {
+    const {editPath, fieldId, value} = this.props;
     editNewField({
       editPath,
       id: fieldId,
       field,
-      value
+      value,
     });
-  };
+  }
 
-  changeValue = value => {
-    const { editPath, fieldId, field } = this.props;
+  changeValue(value) {
+    const {editPath, fieldId, field} = this.props;
     editNewField({
       editPath,
       id: fieldId,
       field,
-      value
+      value,
     });
-  };
+  }
 
   onSubmitNewField = event => {
-    const { editPath, fieldId, field, value } = this.props;
+    const {editPath, fieldId, field, value} = this.props;
     this.props.onSubmit(editPath, fieldId, field, value);
     event.preventDefault();
   };
 
   onDeleteNewField = () => {
-    const { editPath, fieldId } = this.props;
+    const {editPath, fieldId} = this.props;
     this.props.onDelete(editPath, fieldId);
   };
 
-  renderToggle = () => {
-    const { editPath, fieldId, value } = this.props;
+  renderToggle() {
+    const {editPath, fieldId, value} = this.props;
     const checkboxId = JSON.stringify([...editPath, fieldId]);
 
     return (
@@ -59,9 +63,9 @@ export default class NewJSONConfigField extends React.Component {
         onChange={value => this.changeValue(value)}
       />
     );
-  };
+  }
 
-  renderInputItem = (type, value) => {
+  renderInputItem(type, value) {
     let inputItem = <span>Invalid Type!</span>;
 
     switch (type) {
@@ -72,8 +76,7 @@ export default class NewJSONConfigField extends React.Component {
         inputItem = (
           <form
             className="nc-form-input-wrapper"
-            onSubmit={this.onSubmitNewField}
-          >
+            onSubmit={this.onSubmitNewField}>
             <input
               className="config-form-input"
               type="number"
@@ -87,8 +90,7 @@ export default class NewJSONConfigField extends React.Component {
         inputItem = (
           <form
             className="nc-form-input-wrapper"
-            onSubmit={this.onSubmitNewField}
-          >
+            onSubmit={this.onSubmitNewField}>
             <input
               className="config-form-input"
               type="text"
@@ -102,13 +104,13 @@ export default class NewJSONConfigField extends React.Component {
     }
 
     return inputItem;
-  };
+  }
 
   render() {
-    const { canSubmit, fieldId, type, field, value } = this.props;
+    const {canSubmit, fieldId, type, field, value} = this.props;
     const newFieldInput = this.renderInputItem(type, value);
 
-    const fieldClass = "";
+    const fieldClass = '';
 
     return (
       <div className="rc-new-json-config-field">
@@ -128,7 +130,7 @@ export default class NewJSONConfigField extends React.Component {
             <div className="nc-form-action">
               <img
                 src="/static/images/check.png"
-                style={{ marginLeft: "5px" }}
+                style={{marginLeft: '5px'}}
                 onClick={this.onSubmitNewField}
               />
               <span className="nc-form-action-tooltip">
@@ -140,7 +142,7 @@ export default class NewJSONConfigField extends React.Component {
           <div className="nc-form-action">
             <img
               src="/static/images/delete.png"
-              style={{ marginLeft: "5px", height: "19px" }}
+              style={{marginLeft: '5px', height: '19px'}}
               onClick={this.onDeleteNewField}
             />
             <span className="nc-form-action-tooltip">Delete new field</span>
@@ -162,9 +164,9 @@ NewJSONConfigField.propTypes = {
 
   editPath: PropTypes.array.isRequired,
   onSubmit: PropTypes.func,
-  onDelete: PropTypes.func.isRequired
+  onDelete: PropTypes.func.isRequired,
 };
 
 NewJSONConfigField.defaultProps = {
-  onSubmit: () => {}
+  onSubmit: () => {},
 };
