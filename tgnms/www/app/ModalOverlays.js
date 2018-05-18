@@ -7,7 +7,7 @@
 
 import {
   SiteOverlayKeys,
-  linkOverlayKeys,
+  LinkOverlayKeys,
   MapDimensions,
   MapTiles,
 } from './constants/NetworkConstants.js';
@@ -60,55 +60,33 @@ export default class ModalOverlays extends React.Component {
   }
 
   render() {
-    const siteOverlayKeyRows = [];
     const siteOverlaySource = SiteOverlayKeys[this.state.selectedSiteOverlay];
-    Object.keys(siteOverlaySource).map(siteState => {
-      siteOverlayKeyRows.push(
-        <tr key={siteState}>
+    const siteOverlayKeyRows = Object.keys(siteOverlaySource).map(siteState => (
+      <tr key={siteState}>
+        <td />
+        <td>
+          <font color={siteOverlaySource[siteState].color}>
+            {siteState}
+          </font>
+        </td>
+      </tr>
+    ));
+    let linkOverlayKeyRows = [];
+    const linkOverlaySource = LinkOverlayKeys[this.state.selectedLinkOverlay];
+    if (linkOverlaySource.values) {
+      linkOverlayKeyRows = linkOverlaySource.values.map((value, index) => (
+        <tr key={value}>
           <td />
           <td>
-            <font color={siteOverlaySource[siteState].color}>
-              {' '}
-              {siteState}{' '}
+            <font style={{color: linkOverlaySource.colors[index]}}>
+              {linkOverlaySource.prefix + ' ' + value}
             </font>
           </td>
-        </tr>,
-      );
-    });
-    const linkOverlayKeyRows = [];
-    const linkOverlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
-    if (linkOverlaySource.values) {
-      if (
-        this.state.selectedLinkOverlay == 'RxGolayIdx' ||
-        this.state.selectedLinkOverlay == 'TxGolayIdx'
-      ) {
-        for (var i = 0; i < linkOverlaySource.values.length; ++i) {
-          linkOverlayKeyRows.push(
-            <tr key={linkOverlaySource.values[i]}>
-              <td />
-              <td>
-                <font style={{color: linkOverlaySource.colors[i]}}>
-                  {' '}
-                  Equals {linkOverlaySource.values[i]}{' '}
-                </font>
-              </td>
-            </tr>,
-          );
-        }
-      } else {
-        for (var i = 0; i < linkOverlaySource.values.length; ++i) {
-          linkOverlayKeyRows.push(
-            <tr key={linkOverlaySource.values[i]}>
-              <td />
-              <td>
-                <font style={{color: linkOverlaySource.colors[i]}}>
-                  {' '}
-                  less than {linkOverlaySource.values[i]}{' '}
-                </font>
-              </td>
-            </tr>,
-          );
-        }
+        </tr>
+      ));
+
+      if (this.state.selectedLinkOverlay !== 'RxGolayIdx' &&
+          this.state.selectedLinkOverlay !== 'TxGolayIdx') {
         linkOverlayKeyRows.push(
           <tr key="last">
             <td />
@@ -120,11 +98,12 @@ export default class ModalOverlays extends React.Component {
                       linkOverlaySource.colors.length - 1
                     ],
                 }}>
-                {' '}
-                more than{' '}
+                More than&nbsp;
                 {
-                  linkOverlaySource.values[linkOverlaySource.values.length - 1]
-                }{' '}
+                  linkOverlaySource.values[
+                    linkOverlaySource.values.length - 1
+                  ]
+                }
               </font>
             </td>
           </tr>,
@@ -175,7 +154,7 @@ export default class ModalOverlays extends React.Component {
                         selectedLinkOverlay: ev.currentTarget.value,
                       });
                     }}>
-                    {Object.keys(linkOverlayKeys).map(overlay => (
+                    {Object.keys(LinkOverlayKeys).map(overlay => (
                       <option key={overlay} value={overlay}>
                         {overlay}
                       </option>

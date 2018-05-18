@@ -20,7 +20,7 @@ import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssu
 import {
   Actions,
   SiteOverlayKeys,
-  linkOverlayKeys,
+  LinkOverlayKeys,
   MapDimensions,
   MapTiles,
 } from './constants/NetworkConstants.js';
@@ -921,7 +921,7 @@ export default class NetworkMap extends React.Component {
           linkLine = this.getLinkLine(link, linkCoords, linkColor);
         }
       } else {
-        const overlayKey = linkOverlayKeys[this.props.linkOverlay];
+        const overlayKey = LinkOverlayKeys[this.props.linkOverlay];
         switch (this.props.linkOverlay) {
           case 'Health':
             // TODO - move color assignment into separate function for legend

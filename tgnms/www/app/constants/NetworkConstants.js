@@ -96,7 +96,7 @@ export const SiteOverlayKeys = {
 
 export const ChartColors = ['#9F1E11', '#9F6B11', '#620C68', '#0D7825'];
 
-export const linkOverlayKeys = {
+export const LinkOverlayKeys = {
   Health: {
     name: 'Health',
     metric: null,
@@ -111,6 +111,7 @@ export const linkOverlayKeys = {
       'hsl(120,100%,40%)',
       'hsl(120,100%,20%)',
     ],
+    prefix: 'Less than',
   },
   RxGolayIdx: {
     name: 'RxGolayIdx',
@@ -126,6 +127,7 @@ export const linkOverlayKeys = {
       'hsl(100,50%,50%)',
       'hsl(280,50%,50%)',
     ],
+    prefix: 'Equals',
   },
   TxGolayIdx: {
     name: 'TxGolayIdx',
@@ -141,6 +143,7 @@ export const linkOverlayKeys = {
       'hsl(100,50%,50%)',
       'hsl(280,50%,50%)',
     ],
+    prefix: 'Equals',
   },
   SNR: {
     name: 'SNR',
@@ -153,6 +156,7 @@ export const linkOverlayKeys = {
       'hsl(120,100%,40%)',
       'hsl(120,100%,20%)',
     ],
+    prefix: 'Less than',
   },
   MCS: {
     name: 'MCS',
@@ -165,6 +169,7 @@ export const linkOverlayKeys = {
       'hsl(120,100%,40%)',
       'hsl(120,100%,20%)',
     ],
+    prefix: 'Less than',
   },
   RSSI: {
     name: 'RSSI',
@@ -177,6 +182,7 @@ export const linkOverlayKeys = {
       'hsl(120,100%,40%)',
       'hsl(120,100%,20%)',
     ],
+    prefix: 'Less than',
   },
   FLAPS: {
     name: 'Link Flaps',
@@ -193,11 +199,13 @@ export const linkOverlayKeys = {
       'hsl(0, 100%, 30%)',
       'hsl(0, 100%, 20%)',
     ],
+    prefix: 'Less than',
   },
   CommitPlan: {
     name: 'Commit Plan',
     metric: 'commit_plan',
     colors: ['green', 'red'],
+    prefix: 'Less than',
   },
 };
 
