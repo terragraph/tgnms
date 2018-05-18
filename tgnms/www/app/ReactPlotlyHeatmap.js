@@ -1,5 +1,12 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 import PropTypes from 'prop-types';
-import React from "react";
+import React from 'react';
 
 //import Plot from 'react-plotly.js'
 
@@ -8,17 +15,17 @@ export default class ReactPlotlyHeatmap extends React.Component {
     super(props, context);
   }
 
-  createXYarray () {
-    let xy = Array.from(new Array(64),(val,index)=>index-33);
+  createXYarray() {
+    const xy = Array.from(new Array(64), (val, index) => index - 33);
     return xy;
   }
 
   // create a 2-D array of the same dimensions as zmap so that
   // it will say "SNR" when you hover over the heatmap
-  createSnr () {
-    let arr = [];
+  createSnr() {
+    const arr = [];
     for (let i = 0; i < this.props.zmap.length; i++) {
-      arr[i] = this.props.zmap[i].map(x => "SNR");
+      arr[i] = this.props.zmap[i].map(x => 'SNR');
     }
     return arr;
   }
@@ -27,18 +34,17 @@ export default class ReactPlotlyHeatmap extends React.Component {
   shouldComponentUpdate(nextProps, nextState) {
     if (!nextProps.heatmaprender) {
       return false;
-    }
-    else {
+    } else {
       return true;
     }
   }
 
   render() {
     if (!this.props.zmap || !this.props.heatmaptitle) {
-      return <div>  click on a row to render the heatmap</div>;
+      return <div> click on a row to render the heatmap</div>;
     }
-    let xy = this.createXYarray();
-    let snrtxt = this.createSnr();
+    const xy = this.createXYarray();
+    const snrtxt = this.createSnr();
     return (
       <Plot
         data={[
@@ -48,25 +54,29 @@ export default class ReactPlotlyHeatmap extends React.Component {
             y: xy,
             z: this.props.zmap,
             zmin: -10,
-            colorscale: "YIGnBu",
+            colorscale: 'YIGnBu',
             text: snrtxt,
-            hoverinfo: "x+y+z+text",
-            zmax: 22
-          }
+            hoverinfo: 'x+y+z+text',
+            zmax: 22,
+          },
         ]}
-
         config={{
           // displayModeBar: false,
           displaylogo: false,
-          modeBarButtonsToRemove: ["sendDataToCloud","hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines", "autoScale2d"]
+          modeBarButtonsToRemove: [
+            'sendDataToCloud',
+            'hoverClosestCartesian',
+            'hoverCompareCartesian',
+            'toggleSpikelines',
+            'autoScale2d',
+          ],
         }}
-
         layout={{
           width: this.props.height_width,
           height: this.props.height_width,
           title: this.props.heatmaptitle.title,
-          xaxis: { title: this.props.heatmaptitle.xaxis},
-          yaxis: { title: this.props.heatmaptitle.yaxis}
+          xaxis: {title: this.props.heatmaptitle.xaxis},
+          yaxis: {title: this.props.heatmaptitle.yaxis},
         }}
       />
     );
@@ -75,5 +85,5 @@ export default class ReactPlotlyHeatmap extends React.Component {
 
 ReactPlotlyHeatmap.propTypes = {
   zmap: PropTypes.array.isRequired,
-  heatmaptitle: PropTypes.array.isRequired
+  heatmaptitle: PropTypes.array.isRequired,
 };

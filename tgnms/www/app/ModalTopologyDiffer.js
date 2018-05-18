@@ -1,22 +1,29 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-import { Actions } from "./constants/NetworkConstants.js";
-import Dispatcher from "./NetworkDispatcher.js";
-import Modal from "react-modal";
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
+import 'sweetalert/dist/sweetalert.css';
+
+import Dispatcher from './NetworkDispatcher.js';
+import {Actions} from './constants/NetworkConstants.js';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import Modal from 'react-modal';
+import React from 'react';
+import swal from 'sweetalert';
 
 const customModalStyle = {
   content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)"
-  }
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
 };
 
 export default class ModalTopologyDiffer extends React.Component {
@@ -25,8 +32,8 @@ export default class ModalTopologyDiffer extends React.Component {
   }
 
   uploadTopology() {
-    let fileInput = document.getElementById("fileInput");
-    let reader = new FileReader();
+    const fileInput = document.getElementById('fileInput');
+    const reader = new FileReader();
     let topology;
 
     reader.onload = function(e) {
@@ -34,26 +41,26 @@ export default class ModalTopologyDiffer extends React.Component {
       try {
         topology = JSON.parse(reader.result);
       } catch (e) {
-        console.error("Unable to parse JSON:", reader.result);
-        swal({ title: "Error parsing input file" });
+        console.error('Unable to parse JSON:', reader.result);
+        swal({title: 'Error parsing input file'});
         return;
       }
       Dispatcher.dispatch({
         actionType: Actions.TOPOLOGY_ISSUES_PANE,
         topology: topology,
-        visible: true
+        visible: true,
       });
       this.modalClose();
     }.bind(this);
 
     if (fileInput.files.length == 0) {
-      swal({ title: "Select a file!" });
+      swal({title: 'Select a file!'});
     } else {
       try {
         reader.readAsText(fileInput.files[0]);
-        console.log("read it");
+        console.log('read it');
       } catch (ex) {
-        swal({ title: "Error uploading file" });
+        swal({title: 'Error uploading file'});
       }
     }
   }
@@ -64,15 +71,14 @@ export default class ModalTopologyDiffer extends React.Component {
         isOpen={this.props.isOpen}
         onRequestClose={this.modalClose.bind(this)}
         style={customModalStyle}
-        contentLabel="Topology Differ"
-      >
+        contentLabel="Topology Differ">
         <table>
           <tbody>
             <tr className="blank_row" />
             <tr>
               <td width={100}>E2E Topology</td>
               <td>
-                <input type="file" style={{ float: "right" }} id="fileInput" />
+                <input type="file" style={{float: 'right'}} id="fileInput" />
               </td>
             </tr>
             <tr className="blank_row" />
@@ -80,17 +86,15 @@ export default class ModalTopologyDiffer extends React.Component {
               <td width={100} />
               <td>
                 <button
-                  style={{ float: "right" }}
+                  style={{float: 'right'}}
                   className="graph-button"
-                  onClick={this.modalClose.bind(this)}
-                >
+                  onClick={this.modalClose.bind(this)}>
                   close
                 </button>
                 <button
-                  style={{ float: "right" }}
+                  style={{float: 'right'}}
                   className="graph-button"
-                  onClick={this.uploadTopology.bind(this)}
-                >
+                  onClick={this.uploadTopology.bind(this)}>
                   submit
                 </button>
               </td>
@@ -103,5 +107,5 @@ export default class ModalTopologyDiffer extends React.Component {
 }
 
 ModalTopologyDiffer.propTypes = {
-  topology: PropTypes.object.isRequired
+  topology: PropTypes.object.isRequired,
 };

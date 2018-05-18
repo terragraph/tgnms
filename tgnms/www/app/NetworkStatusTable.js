@@ -1,16 +1,23 @@
-import React from "react";
-import { render } from "react-dom";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
-import ipaddr from "ipaddr.js";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
+import ipaddr from 'ipaddr.js';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class NetworkStatusTable extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  statusColor(onlineStatus, trueText = "Online", falseText = "Offline") {
+  statusColor(onlineStatus, trueText = 'Online', falseText = 'Offline') {
     return (
-      <span style={{ color: onlineStatus ? "forestgreen" : "firebrick" }}>
+      <span style={{color: onlineStatus ? 'forestgreen' : 'firebrick'}}>
         {onlineStatus ? trueText : falseText}
       </span>
     );
@@ -20,23 +27,22 @@ export default class NetworkStatusTable extends React.Component {
     let topologyTable;
     if (this.props.instance.topology) {
       const topology = this.props.instance.topology;
-      let linksOnline = topology.links.filter(
-        link => link.link_type == 1 && link.is_alive
+      const linksOnline = topology.links.filter(
+        link => link.link_type == 1 && link.is_alive,
       ).length;
-      let linksWireless = topology.links.filter(link => link.link_type == 1)
+      const linksWireless = topology.links.filter(link => link.link_type == 1)
         .length;
       // online + online initiator
-      let sectorsOnline = topology.nodes.filter(
-        node => node.status == 2 || node.status == 3
+      const sectorsOnline = topology.nodes.filter(
+        node => node.status == 2 || node.status == 3,
       ).length;
       topologyTable = (
         <table
           className="status-table"
           style={{
-            width: "25%",
-            borderLeft: "1px solid teal"
-          }}
-        >
+            width: '25%',
+            borderLeft: '1px solid teal',
+          }}>
           <tbody>
             <tr>
               <td>Sites</td>
@@ -59,24 +65,24 @@ export default class NetworkStatusTable extends React.Component {
       );
     }
     let controllerErrorRow;
-    if (this.props.instance.hasOwnProperty("controller_error")) {
+    if (this.props.instance.hasOwnProperty('controller_error')) {
       controllerErrorRow = (
         <tr>
           <td>Controller Error</td>
-          <td colSpan="2" style={{ fontWeight: "bold", color: "red" }}>
+          <td colSpan="2" style={{fontWeight: 'bold', color: 'red'}}>
             {this.props.instance.controller_error}
           </td>
         </tr>
       );
     }
-    let versionCounts = {};
+    const versionCounts = {};
     let totalReported = 0;
     this.props.topology.nodes.forEach(node => {
       if (
-        node.hasOwnProperty("status_dump") &&
-        node.status_dump.hasOwnProperty("version")
+        node.hasOwnProperty('status_dump') &&
+        node.status_dump.hasOwnProperty('version')
       ) {
-        let version = node.status_dump.version;
+        const version = node.status_dump.version;
         if (!versionCounts.hasOwnProperty(version)) {
           versionCounts[version] = 0;
         }
@@ -84,11 +90,11 @@ export default class NetworkStatusTable extends React.Component {
         totalReported++;
       }
     });
-    let nodeVersions = [];
+    const nodeVersions = [];
     let i = 0;
     Object.keys(versionCounts).forEach(version => {
-      let count = versionCounts[version];
-      let versionHeader = (
+      const count = versionCounts[version];
+      const versionHeader = (
         <td rowSpan={Object.keys(versionCounts).length}>Node Versions</td>
       );
       nodeVersions.push(
@@ -98,13 +104,13 @@ export default class NetworkStatusTable extends React.Component {
           <td>
             {parseInt(count / totalReported * 100)}% ({count})
           </td>
-        </tr>
+        </tr>,
       );
       i++;
     });
     return (
-      <div style={{ marginLeft: "10px", marginRight: "10px" }}>
-        <table className="status-table" style={{ width: "75%" }}>
+      <div style={{marginLeft: '10px', marginRight: '10px'}}>
+        <table className="status-table" style={{width: '75%'}}>
           <tbody>
             <tr>
               <td>Controller</td>
@@ -120,7 +126,9 @@ export default class NetworkStatusTable extends React.Component {
             <tr>
               <td>Query Service</td>
               <td>-</td>
-              <td>{this.statusColor(this.props.instance.query_service_online)}</td>
+              <td>
+                {this.statusColor(this.props.instance.query_service_online)}
+              </td>
             </tr>
             <tr>
               <td>Latitude</td>
@@ -142,8 +150,8 @@ export default class NetworkStatusTable extends React.Component {
               <td>
                 {this.statusColor(
                   this.props.instance.site_coords_override,
-                  "Enabled",
-                  "Disabled"
+                  'Enabled',
+                  'Disabled',
                 )}
               </td>
               <td>&nbsp;</td>

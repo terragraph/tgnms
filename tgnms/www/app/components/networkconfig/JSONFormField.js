@@ -1,20 +1,25 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-import {
-  REVERT_VALUE,
-  CONFIG_CLASSNAMES
-} from "../../constants/NetworkConfigConstants.js";
 import {
   editConfigForm,
   revertConfigOverride,
-  discardUnsavedConfig
-} from "../../actions/NetworkConfigActions.js";
-import JSONFieldTooltip from "./JSONFieldTooltip.js";
-import CustomToggle from "../common/CustomToggle.js";
-
-const classNames = require("classnames");
+  discardUnsavedConfig,
+} from '../../actions/NetworkConfigActions.js';
+import {
+  REVERT_VALUE,
+  CONFIG_CLASSNAMES,
+} from '../../constants/NetworkConfigConstants.js';
+import CustomToggle from '../common/CustomToggle.js';
+import JSONFieldTooltip from './JSONFieldTooltip.js';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import React from 'react';
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
@@ -24,31 +29,31 @@ export default class JSONFormField extends React.Component {
 
     this.state = {
       focus: false,
-      hover: false
+      hover: false,
     };
   }
 
-  editField = value => {
+  editField(value) {
     editConfigForm({
       editPath: this.props.editPath,
-      value
+      value,
     });
-  };
+  }
 
   revertField = () => {
     revertConfigOverride({
-      editPath: this.props.editPath
+      editPath: this.props.editPath,
     });
   };
 
   discardUnsavedValue = () => {
     discardUnsavedConfig({
-      editPath: this.props.editPath
+      editPath: this.props.editPath,
     });
   };
 
-  getClassName = (providedClass, displayIdx, isDraft, isReverted) => {
-    let className = {};
+  getClassName(providedClass, displayIdx, isDraft, isReverted) {
+    const className = {};
     className[providedClass] = true;
 
     className[CONFIG_CLASSNAMES.MISSING] = displayIdx < 0 && !isDraft;
@@ -60,25 +65,25 @@ export default class JSONFormField extends React.Component {
     className[CONFIG_CLASSNAMES.REVERT] = isReverted;
 
     return classNames(className);
-  };
+  }
 
   // hack: since we need the htmlFor and an id for the checkbox,
-  renderToggle = (displayVal, displayIdx, isDraft, isReverted) => {
-    const { focus, hover } = this.state;
+  renderToggle(displayVal, displayIdx, isDraft, isReverted) {
+    const {focus, hover} = this.state;
 
     // or we can use a stringified version of the editPath for the id
     const checkboxId = JSON.stringify(this.props.editPath);
     const selectorClass = this.getClassName(
-      "nc-slider-option",
+      'nc-slider-option',
       displayIdx,
       isDraft,
-      false
+      false,
     );
 
     // style hack because the revert class cannot override the class for the wrapper
     const wrapperStyle = isReverted
       ? {
-          border: "2px solid #000077"
+          border: '2px solid #000077',
         }
       : {};
 
@@ -92,43 +97,43 @@ export default class JSONFormField extends React.Component {
         value={displayVal}
         tooltip={tooltip}
         onChange={value => this.editField(value)}
-        onFocus={() => this.setState({ focus: true })}
-        onBlur={() => this.setState({ focus: false })}
+        onFocus={() => this.setState({focus: true})}
+        onBlur={() => this.setState({focus: false})}
         selectorClass={selectorClass}
         wrapperStyle={wrapperStyle}
       />
     );
-  };
+  }
 
-  renderInputItem = (displayVal, displayIdx, isDraft, isReverted) => {
-    const { focus, hover } = this.state;
+  renderInputItem(displayVal, displayIdx, isDraft, isReverted) {
+    const {focus, hover} = this.state;
 
     let inputItem = (
       <span>Error: unable to render child val of {displayVal}</span>
     );
 
     const inputClass = this.getClassName(
-      "config-form-input",
+      'config-form-input',
       displayIdx,
       isDraft,
-      isReverted
+      isReverted,
     );
     const checkboxClass = this.getClassName(
-      "config-form-checkbox",
+      'config-form-checkbox',
       displayIdx,
       isDraft,
-      isReverted
+      isReverted,
     );
     switch (typeof displayVal) {
-      case "boolean":
+      case 'boolean':
         inputItem = this.renderToggle(
           displayVal,
           displayIdx,
           isDraft,
-          isReverted
+          isReverted,
         );
         break;
-      case "number":
+      case 'number':
         inputItem = (
           <div className="nc-form-input-wrapper">
             <input
@@ -136,8 +141,8 @@ export default class JSONFormField extends React.Component {
               type="number"
               value={displayVal}
               onChange={event => this.editField(Number(event.target.value))}
-              onFocus={() => this.setState({ focus: true })}
-              onBlur={() => this.setState({ focus: false })}
+              onFocus={() => this.setState({focus: true})}
+              onBlur={() => this.setState({focus: false})}
             />
             {(focus || hover) && (
               <JSONFieldTooltip values={this.props.values} />
@@ -145,7 +150,7 @@ export default class JSONFormField extends React.Component {
           </div>
         );
         break;
-      case "string":
+      case 'string':
         inputItem = (
           <div className="nc-form-input-wrapper">
             <input
@@ -153,8 +158,8 @@ export default class JSONFormField extends React.Component {
               type="text"
               value={displayVal}
               onChange={event => this.editField(event.target.value)}
-              onFocus={() => this.setState({ focus: true })}
-              onBlur={() => this.setState({ focus: false })}
+              onFocus={() => this.setState({focus: true})}
+              onBlur={() => this.setState({focus: false})}
             />
             {(focus || hover) && (
               <JSONFieldTooltip values={this.props.values} />
@@ -164,11 +169,11 @@ export default class JSONFormField extends React.Component {
         break;
     }
     return inputItem;
-  };
+  }
 
-  isRevertable = (displayIdx, values) => {
+  isRevertable(displayIdx, values) {
     return displayIdx === values.length - 1;
-  };
+  }
 
   render() {
     const {
@@ -178,25 +183,24 @@ export default class JSONFormField extends React.Component {
       draftValue,
       isReverted,
       isDraft,
-      displayVal
+      displayVal,
     } = this.props;
-    const { focus, hover } = this.state;
+    const {focus, hover} = this.state;
 
     const formInputElement = this.renderInputItem(
       displayVal,
       displayIdx,
       isDraft,
-      isReverted
+      isReverted,
     );
 
     return (
       <div
-        className={classNames("rc-json-form-field", {
-          "json-field-focused": focus || hover
+        className={classNames('rc-json-form-field', {
+          'json-field-focused': focus || hover,
         })}
-        onMouseEnter={() => this.setState({ hover: true })}
-        onMouseLeave={() => this.setState({ hover: false })}
-      >
+        onMouseEnter={() => this.setState({hover: true})}
+        onMouseLeave={() => this.setState({hover: false})}>
         <label className="nc-form-label">{formLabel}:</label>
 
         <div className="nc-form-body">
@@ -206,7 +210,7 @@ export default class JSONFormField extends React.Component {
               <div className="nc-form-action">
                 <img
                   src="/static/images/undo.png"
-                  style={{ marginLeft: "5px" }}
+                  style={{marginLeft: '5px'}}
                   onClick={this.revertField}
                 />
                 <span className="nc-form-action-tooltip">
@@ -218,7 +222,7 @@ export default class JSONFormField extends React.Component {
             <div className="nc-form-action">
               <img
                 src="/static/images/refresh.png"
-                style={{ marginLeft: "5px", height: "18px", width: "18px" }}
+                style={{marginLeft: '5px', height: '18px', width: '18px'}}
                 onClick={this.discardUnsavedValue}
               />
               <span className="nc-form-action-tooltip">
@@ -245,6 +249,6 @@ JSONFormField.propTypes = {
   displayVal: PropTypes.any.isRequired,
 
   viewContext: PropTypes.shape({
-    viewOverridesOnly: PropTypes.bool.isRequired
-  }).isRequired
+    viewOverridesOnly: PropTypes.bool.isRequired,
+  }).isRequired,
 };

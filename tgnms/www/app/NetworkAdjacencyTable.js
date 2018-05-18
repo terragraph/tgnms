@@ -1,7 +1,14 @@
-import React from "react";
-import { render } from "react-dom";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
-import ipaddr from "ipaddr.js";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
+import ipaddr from 'ipaddr.js';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom';
+import React from 'react';
 
 export default class NetworkAdjacencyTable extends React.Component {
   constructor(props) {
@@ -9,10 +16,10 @@ export default class NetworkAdjacencyTable extends React.Component {
   }
 
   getNodeName(mac): string {
-    var name = "";
-    mac = mac.replace(/\./g, ":").toUpperCase();
+    var name = '';
+    mac = mac.replace(/\./g, ':').toUpperCase();
     Object.keys(this.props.topology.nodes).forEach(nodeName => {
-      let node = this.props.topology.nodes[nodeName];
+      const node = this.props.topology.nodes[nodeName];
       if (node.mac_addr.toUpperCase() == mac) {
         name = node.name;
       }
@@ -21,14 +28,14 @@ export default class NetworkAdjacencyTable extends React.Component {
   }
 
   getTableRows(
-    adjMap
+    adjMap,
   ): Array<{
     name: string,
     n_name: string,
     n_mac: string,
     n_ipv6: string,
     metric: number,
-    interface: string
+    interface: string,
   }> {
     const rows = [];
     if (!adjMap) {
@@ -36,18 +43,18 @@ export default class NetworkAdjacencyTable extends React.Component {
     }
 
     Object.keys(adjMap).forEach(name => {
-      let vec = adjMap[name].adjacencies;
+      const vec = adjMap[name].adjacencies;
       for (let j = 0; j < vec.length; j++) {
         rows.push({
-          name: j == 0 ? this.getNodeName(name.slice(5)) : "",
+          name: j == 0 ? this.getNodeName(name.slice(5)) : '',
           n_name: this.getNodeName(vec[j].otherNodeName.slice(5)),
           n_mac: vec[j].otherNodeName.slice(5),
           n_ipv6: ipaddr
-            .fromByteArray(Buffer.from(vec[j].nextHopV6.addr, "ASCII"))
+            .fromByteArray(Buffer.from(vec[j].nextHopV6.addr, 'ASCII'))
             .toString(),
           metric: vec[j].metric,
           interface: vec[j].ifName,
-          key: name + j
+          key: name + j,
         });
       }
     });
@@ -56,11 +63,11 @@ export default class NetworkAdjacencyTable extends React.Component {
 
   render() {
     var selectRowProp = {
-      mode: "radio",
+      mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: true,
-      bgColor: "rgb(183,210,255)",
-      onSelect: this.tableOnRowSelect
+      bgColor: 'rgb(183,210,255)',
+      onSelect: this.tableOnRowSelect,
     };
 
     if (
@@ -73,11 +80,10 @@ export default class NetworkAdjacencyTable extends React.Component {
 
     return (
       <BootstrapTable
-        height={this.props.height + "px"}
+        height={this.props.height + 'px'}
         key="adjacencyTable"
         data={this.getTableRows(this.props.routing.status.adjacencyMap)}
-        selectRow={selectRowProp}
-      >
+        selectRow={selectRowProp}>
         <TableHeaderColumn width="180" dataField="key" isKey hidden>
           key
         </TableHeaderColumn>

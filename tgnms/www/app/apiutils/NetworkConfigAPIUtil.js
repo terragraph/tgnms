@@ -1,5 +1,11 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // util class for making API calls to the node server for network config
-import axios from "axios";
 
 import {
   getBaseConfigSuccess,
@@ -7,13 +13,13 @@ import {
   getNodeConfigSuccess,
   setNetworkConfigSuccess,
   setNodeConfigSuccess,
-  showConfigError
-} from "../actions/NetworkConfigActions.js";
-
-import { DEFAULT_BASE_KEY } from "../constants/NetworkConfigConstants.js";
-import { sortConfig } from "../helpers/NetworkConfigHelpers.js";
-
-var _ = require("lodash");
+  showConfigError,
+} from '../actions/NetworkConfigActions.js';
+import {DEFAULT_BASE_KEY} from '../constants/NetworkConfigConstants.js';
+import {sortConfig} from '../helpers/NetworkConfigHelpers.js';
+import axios from 'axios';
+import isPlainObject from 'lodash-es/isPlainObject';
+import pick from 'lodash-es/pick';
 
 const getErrorText = error => {
   // try to get the status text from the API response, otherwise, default to the error object
@@ -25,24 +31,24 @@ const getErrorText = error => {
 export const getConfigsForTopology = (
   topologyName,
   imageVersions,
-  getNetworkConfig
+  getNetworkConfig,
 ) => {
-  const uri = "/controller/getBaseConfig";
+  const uri = '/controller/getBaseConfig';
 
   return axios
     .get(uri, {
       params: {
         topologyName,
-        imageVersions: [DEFAULT_BASE_KEY, ...imageVersions]
-      }
+        imageVersions: [DEFAULT_BASE_KEY, ...imageVersions],
+      },
     })
     .then(response => {
-      const { config } = response.data;
+      const {config} = response.data;
       const parsedConfig = JSON.parse(config);
       // assume here that it's a map of base version to config object
-      let cleanedConfig = {};
+      const cleanedConfig = {};
       Object.keys(parsedConfig).forEach(baseVersion => {
-        const configValue = _.isPlainObject(parsedConfig[baseVersion])
+        const configValue = isPlainObject(parsedConfig[baseVersion])
           ? parsedConfig[baseVersion]
           : {};
         cleanedConfig[baseVersion] = configValue;
@@ -50,7 +56,7 @@ export const getConfigsForTopology = (
 
       getBaseConfigSuccess({
         config: sortConfig(cleanedConfig),
-        topologyName
+        topologyName,
       });
 
       if (getNetworkConfig) {
@@ -65,22 +71,22 @@ export const getConfigsForTopology = (
 };
 
 export const getNetworkOverrideConfig = topologyName => {
-  const uri = "/controller/getNetworkOverrideConfig";
+  const uri = '/controller/getNetworkOverrideConfig';
 
   axios
     .get(uri, {
       params: {
-        topologyName
-      }
+        topologyName,
+      },
     })
     .then(response => {
-      const { overrides } = response.data;
-      const cleanedOverride = _.isPlainObject(JSON.parse(overrides))
+      const {overrides} = response.data;
+      const cleanedOverride = isPlainObject(JSON.parse(overrides))
         ? JSON.parse(overrides)
         : {};
       getNetworkConfigSuccess({
         config: sortConfig(cleanedOverride),
-        topologyName
+        topologyName,
       });
 
       getNodeOverrideConfig(topologyName);
@@ -91,34 +97,34 @@ export const getNetworkOverrideConfig = topologyName => {
 };
 
 export const getNodeOverrideConfig = topologyName => {
-  const uri = "/controller/getNodeOverrideConfig";
+  const uri = '/controller/getNodeOverrideConfig';
 
   axios
     .get(uri, {
       params: {
         topologyName,
-        nodes: []
-      }
+        nodes: [],
+      },
     })
     .then(response => {
-      const { overrides } = response.data;
+      const {overrides} = response.data;
       getNodeConfigSuccess({
         config: sortConfig(JSON.parse(overrides)),
-        topologyName
+        topologyName,
       });
     });
 };
 
 export const setNetworkOverrideConfig = (topologyName, config) => {
-  const uri = "/controller/setNetworkOverrideConfig";
+  const uri = '/controller/setNetworkOverrideConfig';
 
   axios
     .post(uri, {
       config: config,
-      topologyName: topologyName
+      topologyName: topologyName,
     })
     .then(response => {
-      setNetworkConfigSuccess({ config });
+      setNetworkConfigSuccess({config});
     })
     .catch(error => {
       const errorText = getErrorText(error);
@@ -133,16 +139,16 @@ export const setNodeOverrideConfig = (
   nodesWithChanges,
   saveSelected,
   useNameAsKey,
-  mac2NameMap
+  mac2NameMap,
 ) => {
   // filter nodes by changes
-  var configToSubmit = _.pick(config, nodesWithChanges);
-  const uri = "/controller/setNodeOverrideConfig";
+  var configToSubmit = pick(config, nodesWithChanges);
+  const uri = '/controller/setNodeOverrideConfig';
 
   // TODO a quick hack to support nameBased config for M19 onwards
   // remove after cleaning code to use node name
   if (useNameAsKey) {
-    var nameBased = {}
+    var nameBased = {};
     Object.keys(configToSubmit).forEach(function(key) {
       var nodeName = mac2NameMap[key];
       if (nodeName) {
@@ -155,10 +161,10 @@ export const setNodeOverrideConfig = (
   axios
     .post(uri, {
       config: configToSubmit,
-      topologyName: topologyName
+      topologyName: topologyName,
     })
     .then(response => {
-      setNodeConfigSuccess({ config, saveSelected });
+      setNodeConfigSuccess({config, saveSelected});
     })
     .catch(error => {
       const errorText = getErrorText(error);

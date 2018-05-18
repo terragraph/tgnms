@@ -1,18 +1,24 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
 
-import { availabilityColor } from "../../NetworkHelper.js";
+import {availabilityColor} from '../../NetworkHelper.js';
+import PropTypes from 'prop-types';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom';
+import React from 'react';
 
 const upgradeStatusToString = {
-  10: "NONE",
-  20: "DOWNLOADING_IMAGE",
-  30: "DOWNLOAD_FAILED",
-  40: "FLASHING_IMAGE",
-  50: "FLASH_FAILED",
-  60: "FLASHED",
-  70: "COMMIT_FAILED"
+  10: 'NONE',
+  20: 'DOWNLOADING_IMAGE',
+  30: 'DOWNLOAD_FAILED',
+  40: 'FLASHING_IMAGE',
+  50: 'FLASH_FAILED',
+  60: 'FLASHED',
+  70: 'COMMIT_FAILED',
 };
 
 export default class UpgradeNodesTable extends React.Component {
@@ -24,7 +30,7 @@ export default class UpgradeNodesTable extends React.Component {
     // sort name, sort order
     // rowFilters maps a field name to the value that the user selected for that field name
     this.state = {
-      rowFilters: {}
+      rowFilters: {},
     };
   }
 
@@ -34,23 +40,23 @@ export default class UpgradeNodesTable extends React.Component {
     this.props.onNodesSelected([]);
   }
 
-  createFilterOptionsProp = (rows, filterField) => {
-    let filterOptions = {};
+  createFilterOptionsProp(rows, filterField) {
+    const filterOptions = {};
     rows.forEach(row => {
       filterOptions[row[filterField]] = row[filterField];
     });
 
     return filterOptions;
-  };
+  }
 
   getTableRows(
-    nodes
+    nodes,
   ): Array<{
     name: string,
     site_name: string,
     pop_node: boolean,
     upgradeStatus: string,
-    version: string
+    version: string,
   }> {
     const rows = [];
     nodes.forEach(node => {
@@ -60,22 +66,22 @@ export default class UpgradeNodesTable extends React.Component {
       // turns into "RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
       const version = node.status_dump
         ? node.status_dump.version.slice(28).trimRight()
-        : "Not Available";
+        : 'Not Available';
 
       // next version
       const nextVersion =
         node.status_dump &&
         node.status_dump.upgradeStatus &&
-        node.status_dump.upgradeStatus.nextImage.version !== ""
+        node.status_dump.upgradeStatus.nextImage.version !== ''
           ? node.status_dump.upgradeStatus.nextImage.version
               .slice(28)
               .trimRight()
-          : "Not Available";
+          : 'Not Available';
 
       const upgradeStatus =
         node.status_dump && node.status_dump.upgradeStatus
           ? upgradeStatusToString[node.status_dump.upgradeStatus.usType]
-          : "Not Available";
+          : 'Not Available';
 
       rows.push({
         name: node.name,
@@ -86,7 +92,7 @@ export default class UpgradeNodesTable extends React.Component {
         nextVersion: nextVersion,
         upgradeStatus: upgradeStatus,
 
-        key: node.name
+        key: node.name,
       });
     });
 
@@ -95,8 +101,8 @@ export default class UpgradeNodesTable extends React.Component {
 
   onSelectAll = isSelected => {
     // filter the nodes first
-    const { nodes } = this.props;
-    const { rowFilters } = this.state;
+    const {nodes} = this.props;
+    const {rowFilters} = this.state;
 
     const tableRows = this.getTableRows(nodes);
 
@@ -120,7 +126,7 @@ export default class UpgradeNodesTable extends React.Component {
       selectedNodes = [...this.props.selectedNodes, row.name];
     } else {
       selectedNodes = this.props.selectedNodes.filter(
-        node => node !== row.name
+        node => node !== row.name,
       );
     }
 
@@ -130,26 +136,26 @@ export default class UpgradeNodesTable extends React.Component {
   tableOnSortChange(sortName, sortOrder) {
     this.setState({
       sortName,
-      sortOrder
+      sortOrder,
     });
   }
 
   // set the active filters as a state (needed for select all)
   onFilterChange = filter => {
-    let rowFilters = {};
+    const rowFilters = {};
     Object.keys(filter).forEach(filterKey => {
       rowFilters[filterKey] = filter[filterKey].value;
     });
 
     this.setState({
-      rowFilters: rowFilters
+      rowFilters: rowFilters,
     });
   };
 
   renderStatusColor(cell, row) {
     return (
-      <span style={{ color: cell ? "forestgreen" : "firebrick" }}>
-        {"" + cell}
+      <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
+        {'' + cell}
       </span>
     );
   }
@@ -159,13 +165,13 @@ export default class UpgradeNodesTable extends React.Component {
     // tableData = [];
 
     var selectRowProp = {
-      mode: "checkbox",
+      mode: 'checkbox',
       clickToSelect: true,
       hideSelectColumn: tableData.length === 0,
-      bgColor: "rgb(183,210,255)",
+      bgColor: 'rgb(183,210,255)',
       onSelect: this.tableOnRowSelect,
       selected: this.props.selectedNodes,
-      onSelectAll: this.onSelectAll
+      onSelectAll: this.onSelectAll,
     };
 
     const tableOptions = {
@@ -173,16 +179,16 @@ export default class UpgradeNodesTable extends React.Component {
       sortOrder: this.state.sortOrder,
       onSortChange: this.tableOnSortChange,
       onFilterChange: this.onFilterChange,
-      trClassName: "break-word"
+      trClassName: 'break-word',
     };
 
     return (
       <div className="rc-upgrade-nodes-table">
         <BootstrapTable
-          tableStyle={{ width: "calc(100% - 20px)" }}
+          tableStyle={{width: 'calc(100% - 20px)'}}
           bodyStyle={{
-            maxHeight: "500px",
-            overflowY: "auto"
+            maxHeight: '500px',
+            overflowY: 'auto',
           }}
           key="nodesTable"
           options={tableOptions}
@@ -190,22 +196,19 @@ export default class UpgradeNodesTable extends React.Component {
           striped={true}
           hover={true}
           selectRow={selectRowProp}
-          trClassName="break-word"
-        >
+          trClassName="break-word">
           <TableHeaderColumn
             width="170"
             dataSort={true}
             dataField="name"
-            isKey={true}
-          >
+            isKey={true}>
             Name
           </TableHeaderColumn>
           <TableHeaderColumn
             width="90"
             dataSort={true}
             dataField="ignited"
-            dataFormat={this.renderStatusColor}
-          >
+            dataFormat={this.renderStatusColor}>
             Ignited
           </TableHeaderColumn>
           <TableHeaderColumn width="80" dataSort={true} dataField="site_name">
@@ -215,15 +218,13 @@ export default class UpgradeNodesTable extends React.Component {
             width="80"
             dataSort={true}
             dataField="pop_node"
-            dataFormat={this.renderStatusColor}
-          >
+            dataFormat={this.renderStatusColor}>
             Pop?
           </TableHeaderColumn>
           <TableHeaderColumn
             width="180"
             dataSort={true}
-            dataField="upgradeStatus"
-          >
+            dataField="upgradeStatus">
             Upgrade Status
           </TableHeaderColumn>
           <TableHeaderColumn
@@ -231,10 +232,9 @@ export default class UpgradeNodesTable extends React.Component {
             dataSort={true}
             dataField="version"
             filter={{
-              type: "SelectFilter",
-              options: this.createFilterOptionsProp(tableData, "version")
-            }}
-          >
+              type: 'SelectFilter',
+              options: this.createFilterOptionsProp(tableData, 'version'),
+            }}>
             Image Version
           </TableHeaderColumn>
           <TableHeaderColumn
@@ -242,10 +242,9 @@ export default class UpgradeNodesTable extends React.Component {
             dataSort={true}
             dataField="nextVersion"
             filter={{
-              type: "SelectFilter",
-              options: this.createFilterOptionsProp(tableData, "nextVersion")
-            }}
-          >
+              type: 'SelectFilter',
+              options: this.createFilterOptionsProp(tableData, 'nextVersion'),
+            }}>
             Next Version
           </TableHeaderColumn>
         </BootstrapTable>
@@ -257,9 +256,9 @@ export default class UpgradeNodesTable extends React.Component {
 UpgradeNodesTable.propTypes = {
   nodes: PropTypes.array.isRequired,
   selectedNodes: PropTypes.array.isRequired,
-  onNodesSelected: PropTypes.func
+  onNodesSelected: PropTypes.func,
 };
 
 UpgradeNodesTable.defaultProps = {
-  onNodesSelected: () => {}
+  onNodesSelected: () => {},
 };

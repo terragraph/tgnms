@@ -1,30 +1,33 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
 // JSONConfigForm.js
 // contains the component to render a config JSON, and buttons to save/save draft
 
-import PropTypes from 'prop-types';
-
-import React from "react";
-import { render } from "react-dom";
-
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
+import 'sweetalert/dist/sweetalert.css';
 
 import {
   editNewField,
-  deleteNewField
-} from "../../actions/NetworkConfigActions.js";
-import { ADD_FIELD_TYPES } from "../../constants/NetworkConfigConstants.js";
-import { convertAndValidateNewConfigObject } from "../../helpers/NetworkConfigHelpers.js";
-
-import AddJSONConfigField from "./AddJSONConfigField.js";
-import NewJSONConfigField from "./NewJSONConfigField.js";
-
-const classNames = require("classnames");
+  deleteNewField,
+} from '../../actions/NetworkConfigActions.js';
+import {ADD_FIELD_TYPES} from '../../constants/NetworkConfigConstants.js';
+import {convertAndValidateNewConfigObject} from '../../helpers/NetworkConfigHelpers.js';
+import AddJSONConfigField from './AddJSONConfigField.js';
+import NewJSONConfigField from './NewJSONConfigField.js';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import {render} from 'react-dom';
+import React from 'react';
+import swal from 'sweetalert';
 
 const validationAlertProps = validationMsg => ({
-  title: "Submit failed: validation errors",
+  title: 'Submit failed: validation errors',
   text: validationMsg,
-  type: "error"
+  type: 'error',
 });
 
 export default class NewJSONConfigObject extends React.Component {
@@ -32,19 +35,19 @@ export default class NewJSONConfigObject extends React.Component {
     super(props);
   }
 
-  changeField = field => {
-    const { editPath, fieldId, value } = this.props;
+  changeField(field) {
+    const {editPath, fieldId, value} = this.props;
     editNewField({
       editPath,
       id: fieldId,
       field,
-      value
+      value,
     });
-  };
+  }
 
   // X on the left
   onSubmitNewField = event => {
-    const { editPath, fieldId, field, value } = this.props;
+    const {editPath, fieldId, field, value} = this.props;
     const configToSubmit = convertAndValidateNewConfigObject(value);
 
     // config, validationMsg
@@ -59,17 +62,17 @@ export default class NewJSONConfigObject extends React.Component {
   };
 
   onDeleteNewField = () => {
-    const { editPath, fieldId } = this.props;
+    const {editPath, fieldId} = this.props;
     this.props.onDelete(editPath, fieldId);
   };
 
-  renderChildren = children => {
-    const { editPath, fieldId } = this.props;
+  renderChildren(children) {
+    const {editPath, fieldId} = this.props;
 
     // we know that value is an object
     return Object.keys(children).map(childId => {
-      const { id, type, field, value } = children[childId];
-      const newEditPath = [...editPath, fieldId, "value"];
+      const {id, type, field, value} = children[childId];
+      const newEditPath = [...editPath, fieldId, 'value'];
 
       const newFieldProps = {
         canSubmit: false,
@@ -78,7 +81,7 @@ export default class NewJSONConfigObject extends React.Component {
         field: field,
         value: value,
         editPath: newEditPath,
-        onDelete: (ep, fi) => deleteNewField({ editPath: ep, id: fi })
+        onDelete: (ep, fi) => deleteNewField({editPath: ep, id: fi}),
       };
 
       let childItem = <span>Invalid type!</span>;
@@ -96,23 +99,22 @@ export default class NewJSONConfigObject extends React.Component {
 
       return <li className="rc-json-config-input">{childItem}</li>;
     });
-  };
+  }
 
   render() {
-    const { canSubmit, editPath, fieldId, type, field, value } = this.props;
-    const fieldClass = "";
+    const {canSubmit, editPath, fieldId, type, field, value} = this.props;
+    const fieldClass = '';
     const nestedNewFields = this.renderChildren(value);
 
     const addFieldButton = (
-      <AddJSONConfigField editPath={[...editPath, fieldId, "value"]} />
+      <AddJSONConfigField editPath={[...editPath, fieldId, 'value']} />
     );
 
     return (
       <div className="rc-new-json-config-object">
         <form
           className="nc-object-field-label"
-          onSubmit={this.onSubmitNewField}
-        >
+          onSubmit={this.onSubmitNewField}>
           <input
             className={fieldClass}
             type="text"
@@ -126,7 +128,7 @@ export default class NewJSONConfigObject extends React.Component {
             <div className="nc-form-action">
               <img
                 src="/static/images/check.png"
-                style={{ marginLeft: "5px" }}
+                style={{marginLeft: '5px'}}
                 onClick={this.onSubmitNewField}
               />
               <span className="nc-form-action-tooltip">
@@ -138,7 +140,7 @@ export default class NewJSONConfigObject extends React.Component {
           <div className="nc-form-action">
             <img
               src="/static/images/delete.png"
-              style={{ marginLeft: "5px", height: "19px" }}
+              style={{marginLeft: '5px', height: '19px'}}
               onClick={this.onDeleteNewField}
             />
             <span className="nc-form-action-tooltip">Delete new field</span>
@@ -161,9 +163,9 @@ NewJSONConfigObject.propTypes = {
 
   editPath: PropTypes.array.isRequired,
   onSubmit: PropTypes.func,
-  onDelete: PropTypes.func.isRequired
+  onDelete: PropTypes.func.isRequired,
 };
 
 NewJSONConfigObject.defaultProps = {
-  onSubmit: () => {}
+  onSubmit: () => {},
 };

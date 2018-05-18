@@ -1,0 +1,13 @@
+!.eslintrc.js
+**/*.min.js
+
+**/node_modules/**/*.js
+
+dist/**/*.js
+static/apidoc/locales/**/*.js
+static/apidoc/utils/**/*.js
+static/apidoc/vendor/**/*.js
+thrift/**/*.js
+webpack.*.js
+xterm/addons/**/*.js
+xterm/xterm.js

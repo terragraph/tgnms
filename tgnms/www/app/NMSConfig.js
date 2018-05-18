@@ -1,15 +1,23 @@
-import PropTypes from 'prop-types';
-import React from "react";
-import { render } from "react-dom";
-import equals from "equals";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+'use strict';
+
+import 'sweetalert/dist/sweetalert.css';
+
+import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
-import { Actions } from "./constants/NetworkConstants.js";
-import Dispatcher from "./NetworkDispatcher.js";
-import NetworkStore from "./stores/NetworkStore.js";
-import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
-import swal from "sweetalert";
-import "sweetalert/dist/sweetalert.css";
-var FileSaver = require("file-saver");
+import {Actions} from './constants/NetworkConstants.js';
+import NetworkStore from './stores/NetworkStore.js';
+import equals from 'equals';
+import FileSaver from 'file-saver';
+import PropTypes from 'prop-types';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom';
+import React from 'react';
+import swal from 'sweetalert';
 /**
  * Allow editing instance configuration, such as controller + aggregator IPs.
  *
@@ -24,7 +32,7 @@ var FileSaver = require("file-saver");
 export default class NMSConfig extends React.Component {
   controllerIp: undefined;
   state = {
-    pendingConfigs: {}
+    pendingConfigs: {},
   };
 
   constructor(props) {
@@ -36,55 +44,53 @@ export default class NMSConfig extends React.Component {
     // push config to server
     swal(
       {
-        title: "Are you sure?",
-        text: "This will overwrite the config on disk",
-        showCancelButton: true
+        title: 'Are you sure?',
+        text: 'This will overwrite the config on disk',
+        showCancelButton: true,
       },
       function() {
         // do it!
-        let topologies = Object.values(this.state.pendingConfigs).map(
+        const topologies = Object.values(this.state.pendingConfigs).map(
           config => {
-            let topology_file_name =
-              "topology_file" in config
+            const topology_file_name =
+              'topology_file' in config
                 ? config.topology_file
-                : config.name.replace(/\s+/g, "_") + ".json";
-            let newConfig = {
+                : config.name.replace(/\s+/g, '_') + '.json';
+            const newConfig = {
               ...config,
-              topology_file: topology_file_name
+              topology_file: topology_file_name,
             };
             // don't store the state
-            delete newConfig["name"];
-            delete newConfig["controller_online"];
-            delete newConfig["aggregator_online"];
-            delete newConfig["modified"];
+            delete newConfig.name;
+            delete newConfig.controller_online;
+            delete newConfig.aggregator_online;
+            delete newConfig.modified;
             return newConfig;
-          }
+          },
         );
-        let configSave = new Request("/config/save", {
-          method: "POST",
-          credentials: "same-origin",
+        const configSave = new Request('/config/save', {
+          method: 'POST',
+          credentials: 'same-origin',
           body: JSON.stringify(
             {
               use_tile_proxy: false,
               refresh_interval: 5000,
-              topologies: topologies
+              topologies: topologies,
             },
             null,
-            4
-          )
+            4,
+          ),
         });
-        fetch(configSave).then(
-          function(response) {
-            if (response.status == 200) {
-              response.json().then(function(json) {
-                swal({ title: "Config saved!" });
-              });
-            } else {
-              swal({ title: "Failed updating config" });
-            }
-          }.bind(this)
-        );
-      }.bind(this)
+        fetch(configSave).then(function(response) {
+          if (response.status == 200) {
+            response.json().then(function(json) {
+              swal({title: 'Config saved!'});
+            });
+          } else {
+            swal({title: 'Failed updating config'});
+          }
+        });
+      }.bind(this),
     );
   }
 
@@ -101,16 +107,16 @@ export default class NMSConfig extends React.Component {
     );
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.updateConfigs(nextProps);
   }
 
   updateConfigs(props) {
-    let diskConfigs = {};
+    const diskConfigs = {};
     props.config.forEach(config => {
       if (config.name in this.state.pendingConfigs) {
         // existing, compare non-state attributes
-        let oldConfig = this.state.pendingConfigs[config.name];
+        const oldConfig = this.state.pendingConfigs[config.name];
         if (
           !this.compareConfigs(this.state.pendingConfigs[config.name], config)
         ) {
@@ -125,27 +131,25 @@ export default class NMSConfig extends React.Component {
         if (!config.controller_ip.length) {
           // auto-fail empty address
           config.controller_online = false;
-          delete config["topology"];
+          delete config.topology;
         } else {
-          let controllerTopo = new Request(
-            "/topology/fetch/" + config.controller_ip,
+          const controllerTopo = new Request(
+            '/topology/fetch/' + config.controller_ip,
             {
-              credentials: "same-origin"
+              credentials: 'same-origin',
+            },
+          );
+          fetch(controllerTopo).then(function(response) {
+            if (response.status == 200) {
+              response.json().then(function(json) {
+                config.controller_status = true;
+                config.topology = json;
+              });
+            } else {
+              config.controller_online = false;
+              delete config.topology;
             }
-          );
-          fetch(controllerTopo).then(
-            function(response) {
-              if (response.status == 200) {
-                response.json().then(function(json) {
-                  config.controller_status = true;
-                  config.topology = json;
-                });
-              } else {
-                config.controller_online = false;
-                delete config["topology"];
-              }
-            }.bind(this)
-          );
+          });
         }
       }
       diskConfigs[config.name] = config;
@@ -157,14 +161,14 @@ export default class NMSConfig extends React.Component {
       }
     });
     this.setState({
-      pendingConfigs: diskConfigs
+      pendingConfigs: diskConfigs,
     });
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this)
+      this.handleDispatchEvent.bind(this),
     );
     this.updateConfigs(this.props);
   }
@@ -179,20 +183,20 @@ export default class NMSConfig extends React.Component {
     }
   }
 
-  getTableRows(): Array<> {
+  getTableRows(): Array<any> {
     return Object.values(this.state.pendingConfigs);
   }
 
   renderOnlineIcon(cell, row) {
-    let imgFile = "load.gif";
-    if ("controller_online" in row) {
-      imgFile = row.controller_online ? "ok.png" : "severe.png";
+    let imgFile = 'load.gif';
+    if ('controller_online' in row) {
+      imgFile = row.controller_online ? 'ok.png' : 'severe.png';
     }
     return (
       <span>
         {cell}
         <img
-          src={"/static/images/" + imgFile}
+          src={'/static/images/' + imgFile}
           className="controller-status-icon"
         />
       </span>
@@ -203,29 +207,25 @@ export default class NMSConfig extends React.Component {
   renderStatusColor(cell, row) {
     // color-code based on state of controller IP
     return (
-      <span style={{ color: cell ? "forestgreen" : "firebrick" }}>
-        {"" + cell}
+      <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
+        {'' + cell}
       </span>
     );
   }
 
   downloadTopology(name, filename) {
-    let topoGetFetch = new Request("/topology/get_stateless/" + name, {
-      credentials: "same-origin"
+    const topoGetFetch = new Request('/topology/get_stateless/' + name, {
+      credentials: 'same-origin',
     });
-    fetch(topoGetFetch).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              let str = JSON.stringify(json.topology, null, "\t");
-              var blob = new Blob([str], { type: "text/plain;charset=utf-8" });
-              FileSaver.saveAs(blob, filename);
-            }.bind(this)
-          );
-        }
-      }.bind(this)
-    );
+    fetch(topoGetFetch).then(function(response) {
+      if (response.status == 200) {
+        response.json().then(function(json) {
+          const str = JSON.stringify(json.topology, null, '\t');
+          var blob = new Blob([str], {type: 'text/plain;charset=utf-8'});
+          FileSaver.saveAs(blob, filename);
+        });
+      }
+    });
   }
 
   renderActions(cell, row) {
@@ -235,8 +235,7 @@ export default class NMSConfig extends React.Component {
           className="details-link"
           onClick={() => {
             this.downloadTopology(row.name, row.topology_file);
-          }}
-        >
+          }}>
           Download Topology
         </span>
       </div>
@@ -244,7 +243,7 @@ export default class NMSConfig extends React.Component {
   }
 
   beforeSaveCell(row, cellName, cellValue) {
-    if (cellName == "controller_ip") {
+    if (cellName == 'controller_ip') {
       if (row.controller_ip == cellValue) {
         // unchanged
         return false;
@@ -255,9 +254,9 @@ export default class NMSConfig extends React.Component {
         if (cellValue == config.controller_ip) {
           ipInUse = true;
           swal({
-            title: "IP in use",
-            text: "IP already in use by <b>" + config.name + "</b>",
-            html: true
+            title: 'IP in use',
+            text: 'IP already in use by <b>' + config.name + '</b>',
+            html: true,
           });
         }
       });
@@ -268,42 +267,42 @@ export default class NMSConfig extends React.Component {
       // save the old if we need to roll-back
       row.old_controller_ip = row.controller_ip;
       // unset the address so we can re-check the controller+agg
-      delete row["controller_online"];
-      delete row["topology"];
+      delete row.controller_online;
+      delete row.topology;
       // TODO - handle aggregator checks
       //      delete row['aggregator_online'];
-      let controllerTopo = new Request("/topology/fetch/" + cellValue, {
-        credentials: "same-origin"
+      const controllerTopo = new Request('/topology/fetch/' + cellValue, {
+        credentials: 'same-origin',
       });
       fetch(controllerTopo).then(
         function(response) {
           if (response.status == 200) {
             response.json().then(
               function(json) {
-                let newConfigs = this.state.pendingConfigs;
+                const newConfigs = this.state.pendingConfigs;
                 if (row.name != json.name) {
                   swal({
-                    title: "Topology mis-match",
+                    title: 'Topology mis-match',
                     text:
                       "The new topology name doesn't match the existing." +
-                      "<br />Refusing to update controller IP.<br /><br />" +
-                      "New: <b>" +
+                      '<br />Refusing to update controller IP.<br /><br />' +
+                      'New: <b>' +
                       json.name +
-                      "</b><br />" +
-                      "Existing: <b>" +
+                      '</b><br />' +
+                      'Existing: <b>' +
                       row.name +
-                      "</b>",
-                    html: true
+                      '</b>',
+                    html: true,
                   });
                   // use the old address
                   newConfigs[row.name].controller_ip =
                     newConfigs[row.name].old_controller_ip;
                 } else if (json.name.length == 0) {
                   swal({
-                    title: "Missing topology name",
+                    title: 'Missing topology name',
                     text:
                       "The new topology doesn't have a name set, " +
-                      "please set one and try again."
+                      'please set one and try again.',
                   });
                   // use the old address
                   newConfigs[row.name].controller_ip =
@@ -314,54 +313,54 @@ export default class NMSConfig extends React.Component {
                   newConfigs[row.name].topology = json;
                 }
                 this.setState({
-                  pendingConfigs: newConfigs
+                  pendingConfigs: newConfigs,
                 });
-              }.bind(this)
+              }.bind(this),
             );
           } else {
             // work-around due to bug in sweetalert
             // https://github.com/t4t5/sweetalert/issues/632
-            let _this = this;
+            const _this = this;
             // failed, prompt to update address
             swal(
               {
-                title: "Controller offline",
+                title: 'Controller offline',
                 text:
-                  "The controller <b>" +
+                  'The controller <b>' +
                   cellValue +
-                  "</b> is not responding" +
-                  ", are you sure you want to make this change?",
+                  '</b> is not responding' +
+                  ', are you sure you want to make this change?',
                 html: true,
                 showCancelButton: true,
-                confirmButtonText: "Use New",
-                cancelButtonText: "Use Existing"
+                confirmButtonText: 'Use New',
+                cancelButtonText: 'Use Existing',
               },
               function(isConfirm) {
-                let newConfigs = _this.state.pendingConfigs;
+                const newConfigs = _this.state.pendingConfigs;
                 if (isConfirm) {
                   // user confirmed to update address
                   newConfigs[row.name].controller_online = false;
-                  delete newConfigs[row.name]["topology"];
+                  delete newConfigs[row.name].topology;
                 } else {
                   // user cancelled, restore old address
                   newConfigs[row.name].controller_ip =
                     newConfigs[row.name].old_controller_ip;
-                  delete newConfigs[row.name]["old_controller_ip"];
+                  delete newConfigs[row.name].old_controller_ip;
                 }
                 _this.setState({
-                  pendingConfigs: newConfigs
+                  pendingConfigs: newConfigs,
                 });
-              }
+              },
             );
           }
-        }.bind(this)
+        }.bind(this),
       );
     }
     return true;
   }
 
   addNewRow() {
-    let controllerIp = this.controllerIp.value;
+    const controllerIp = this.controllerIp.value;
     // sanity check input
     if (controllerIp.length == 0) {
       return;
@@ -375,16 +374,16 @@ export default class NMSConfig extends React.Component {
     });
     if (found != null) {
       swal({
-        title: "Existing controller",
-        text: "Topology already exists for '" + found.name + "'!"
+        title: 'Existing controller',
+        text: "Topology already exists for '" + found.name + "'!",
       });
       return;
     }
     // clear current value
-    this.controllerIp.value = "";
+    this.controllerIp.value = '';
     // fetch topology data
-    let controllerTopo = new Request("/topology/fetch/" + controllerIp, {
-      credentials: "same-origin"
+    const controllerTopo = new Request('/topology/fetch/' + controllerIp, {
+      credentials: 'same-origin',
     });
     fetch(controllerTopo).then(
       function(response) {
@@ -394,14 +393,14 @@ export default class NMSConfig extends React.Component {
               // build new config struct
               if (json.name.length == 0) {
                 swal({
-                  title: "Missing topology name",
+                  title: 'Missing topology name',
                   text:
                     "The new topology doesn't have a name set, " +
-                    "please set one and try again."
+                    'please set one and try again.',
                 });
                 return;
               }
-              let newConfig = {
+              const newConfig = {
                 controller_ip: controllerIp,
                 controller_online: true,
                 aggregator_ip: controllerIp,
@@ -411,87 +410,87 @@ export default class NMSConfig extends React.Component {
                 // default data
                 latitude: 37.4848280435154,
                 longitude: -122.1472245455607,
-                zoom_level: 18
+                zoom_level: 18,
               };
-              let newConfigs = this.state.pendingConfigs;
+              const newConfigs = this.state.pendingConfigs;
               if (json.name in this.state.pendingConfigs) {
                 // we matched an existing topology
                 swal(
                   {
-                    title: "Existing topology",
+                    title: 'Existing topology',
                     text:
-                      "A topology exists with the same name <b>" +
+                      'A topology exists with the same name <b>' +
                       json.name +
-                      "</b>, overwrite?",
+                      '</b>, overwrite?',
                     html: true,
-                    confirmButtonText: "Overwrite",
-                    showCancelButton: true
+                    confirmButtonText: 'Overwrite',
+                    showCancelButton: true,
                   },
                   function(isConfirm) {
                     newConfigs[json.name] = newConfig;
                     this.setState({
-                      pendingConfigs: newConfigs
+                      pendingConfigs: newConfigs,
                     });
-                  }.bind(this)
+                  }.bind(this),
                 );
               } else {
                 // looks new, add
                 newConfigs[json.name] = newConfig;
                 this.setState({
-                  pendingConfigs: newConfigs
+                  pendingConfigs: newConfigs,
                 });
               }
-            }.bind(this)
+            }.bind(this),
           );
         } else {
           swal(
             {
-              title: "Failed to connect",
+              title: 'Failed to connect',
               text:
-                "Unable to connect to " + controllerIp + "<br />Add anyways?",
+                'Unable to connect to ' + controllerIp + '<br />Add anyways?',
               html: true,
-              showCancelButton: true
+              showCancelButton: true,
             },
             function() {
-              let newConfig = {
+              const newConfig = {
                 controller_ip: controllerIp,
                 controller_online: false,
                 aggregator_ip: controllerIp,
-                name: "Unknown topology",
-                modified: true
+                name: 'Unknown topology',
+                modified: true,
               };
-              let newConfigs = this.state.pendingConfigs;
+              const newConfigs = this.state.pendingConfigs;
               newConfigs[newConfig.name] = newConfig;
               this.setState({
-                pendingConfigs: newConfigs
+                pendingConfigs: newConfigs,
               });
-            }.bind(this)
+            }.bind(this),
           );
         }
-      }.bind(this)
+      }.bind(this),
     );
   }
 
   render() {
     var linksSelectRowProp = {
-      mode: "radio",
+      mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: true,
-      bgColor: "rgb(183,210,255)",
+      bgColor: 'rgb(183,210,255)',
       onSelect: this.tableOnRowSelect,
-      selected: this.state.selectedLink ? [this.state.selectedLink.name] : []
+      selected: this.state.selectedLink ? [this.state.selectedLink.name] : [],
     };
     const tableOpts = {
       sortName: this.state.sortName,
-      sortOrder: this.state.sortOrder
+      sortOrder: this.state.sortOrder,
     };
     const cellEditProp = {
-      mode: "click",
+      mode: 'click',
       blurToSave: true,
-      beforeSaveCell: this.beforeSaveCell.bind(this)
+      beforeSaveCell: this.beforeSaveCell.bind(this),
     };
 
-    let linksTable = (
+    const linksTable = (
       <BootstrapTable
         key="configTable"
         cellEdit={cellEditProp}
@@ -499,32 +498,28 @@ export default class NMSConfig extends React.Component {
         striped={true}
         hover={true}
         options={tableOpts}
-        selectRow={linksSelectRowProp}
-      >
+        selectRow={linksSelectRowProp}>
         <TableHeaderColumn
           width="200"
           dataSort={true}
           dataField="name"
           isKey={true}
           editable={false}
-          sortFunc={this.linkSortFunc}
-        >
+          sortFunc={this.linkSortFunc}>
           Name
         </TableHeaderColumn>
         <TableHeaderColumn
           width="300"
           dataSort={true}
           dataFormat={this.renderOnlineIcon}
-          dataField="controller_ip"
-        >
+          dataField="controller_ip">
           Controller IP
         </TableHeaderColumn>
         <TableHeaderColumn
           width="300"
           dataSort={true}
           editable={false}
-          dataField="aggregator_ip"
-        >
+          dataField="aggregator_ip">
           Aggregator IP
         </TableHeaderColumn>
         <TableHeaderColumn width="120" dataSort={true} dataField="latitude">
@@ -539,8 +534,7 @@ export default class NMSConfig extends React.Component {
         <TableHeaderColumn
           width="80"
           dataSort={true}
-          dataField="site_coords_override"
-        >
+          dataField="site_coords_override">
           Site Coordinates Override
         </TableHeaderColumn>
         <TableHeaderColumn
@@ -548,15 +542,13 @@ export default class NMSConfig extends React.Component {
           dataSort={true}
           dataFormat={this.renderStatusColor}
           editable={false}
-          dataField="modified"
-        >
+          dataField="modified">
           Modified
         </TableHeaderColumn>
         <TableHeaderColumn
           width="120"
           dataFormat={this.renderActions.bind(this)}
-          editable={false}
-        >
+          editable={false}>
           Actions
         </TableHeaderColumn>
       </BootstrapTable>
@@ -570,8 +562,8 @@ export default class NMSConfig extends React.Component {
           don't save the config without checking with Paul/Tariq for now.
         </h3>
         {linksTable}
-        <div style={{ border: "1px solid #ccc" }}>
-          <span style={{ marginRight: "10px" }}>Controller IP</span>
+        <div style={{border: '1px solid #ccc'}}>
+          <span style={{marginRight: '10px'}}>Controller IP</span>
           <input
             ref={input => {
               this.controllerIp = input;
@@ -589,5 +581,5 @@ export default class NMSConfig extends React.Component {
   }
 }
 NMSConfig.propTypes = {
-  config: PropTypes.array.isRequired
+  config: PropTypes.array.isRequired,
 };
