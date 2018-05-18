@@ -74,7 +74,7 @@ popd
 Commands:
 ```
 pushd ~nms
-curl --silent --location https://rpm.nodesource.com/setup_7.x | bash -
+curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -
 yum -y install nodejs
 popd
 ```
