@@ -9,6 +9,7 @@
 import NetworkDataTable from './NetworkDataTable.js';
 import Dispatcher from './NetworkDispatcher.js';
 import {polarityColor} from './NetworkHelper.js';
+import DetailsLegend from "./components/detailpanels/DetailsLegend.js";
 import DetailsLink from './components/detailpanels/DetailsLink.js';
 import DetailsNode from './components/detailpanels/DetailsNode.js';
 import DetailsPlannedSite from './components/detailpanels/DetailsPlannedSite.js';
@@ -19,7 +20,7 @@ import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssu
 import {
   Actions,
   SiteOverlayKeys,
-  linkOverlayKeys,
+  LinkOverlayKeys,
   MapDimensions,
   MapTiles,
 } from './constants/NetworkConstants.js';
@@ -920,7 +921,7 @@ export default class NetworkMap extends React.Component {
           linkLine = this.getLinkLine(link, linkCoords, linkColor);
         }
       } else {
-        const overlayKey = linkOverlayKeys[this.props.linkOverlay];
+        const overlayKey = LinkOverlayKeys[this.props.linkOverlay];
         switch (this.props.linkOverlay) {
           case 'Health':
             // TODO - move color assignment into separate function for legend
@@ -1276,6 +1277,15 @@ export default class NetworkMap extends React.Component {
       this.addNodeMarkerForSite(topology, this.state.hoveredSite);
     }
 
+    let legendControl = (
+      <Control position="bottomleft">
+        <DetailsLegend
+          siteOverlay={this.props.siteOverlay}
+          linkOverlay={this.props.linkOverlay}
+        />
+      </Control>
+    );
+
     return (
       <div>
         <SplitPane
@@ -1297,6 +1307,7 @@ export default class NetworkMap extends React.Component {
             {siteComponents}
             {siteMarkers}
 
+            {legendControl}
             {layersControl}
             {tablesControl}
             {topologyIssuesControl}

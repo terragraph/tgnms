@@ -22,7 +22,7 @@ import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 import {Actions} from './constants/NetworkConstants.js';
 import {
   SiteOverlayKeys,
-  linkOverlayKeys,
+  LinkOverlayKeys,
 } from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import moment from 'moment';
@@ -328,7 +328,7 @@ export default class NetworkUI extends React.Component {
 
   updateLinkOverlayStat(networkName) {
     if (this.state.selectedLinkOverlay) {
-      const overlaySource = linkOverlayKeys[this.state.selectedLinkOverlay];
+      const overlaySource = LinkOverlayKeys[this.state.selectedLinkOverlay];
       const metric = overlaySource.metric;
 
       if (metric) {
