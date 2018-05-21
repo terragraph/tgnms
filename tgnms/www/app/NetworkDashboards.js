@@ -5,16 +5,20 @@
  */
 'use strict';
 
-import NetworkDashboardStats from './NetworkDashboardStats.js';
 import Dispatcher from './NetworkDispatcher.js';
 import PlotlyGraph from './PlotlyGraph.js';
 import {Actions} from './constants/NetworkConstants.js';
-import axios from 'axios';
+import NetworkStore from './stores/NetworkStore.js';
+import DashboardSelect from './components/dashboard/DashboardSelect.js';
+import NetworkDashboardStats from './NetworkDashboardStats.js';
+import GlobalDataSelect from './components/dashboard/GlobalDataSelect.js';
+import {render} from 'react-dom';
 import ReactGridLayout, {WidthProvider} from 'react-grid-layout';
 import Modal from 'react-modal';
 import Select from 'react-select';
 import React from 'react';
 import swal from 'sweetalert';
+import axios from 'axios';
 
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
@@ -34,58 +38,9 @@ export default class NetworkDashboards extends React.Component {
     this.getDashboards(this.props.networkConfig.topology.name);
   }
 
-  getDashboards(topologyName) {
-    axios.get('/dashboards/get/' + topologyName).then(response =>
-      this.setState({
-        dashboards: response.data,
-        editView: false,
-      }),
-    );
-  }
-
-  onLayoutChange(layout) {
-    const dashboards = this.state.dashboards;
-    if (dashboards && this.props.selectedDashboard) {
-      const dashboard = dashboards[this.props.selectedDashboard];
-      const graphs = dashboard.graphs;
-      let index = 0;
-      layout.forEach(glayout => {
-        const graph = graphs[index];
-        graph.container.x = glayout.x;
-        graph.container.y = glayout.y;
-        graph.container.w = glayout.w;
-        graph.container.h = glayout.h;
-        index++;
-      });
-      this.setState({
-        dashboards,
-      });
-    }
-  }
-
-  UNSAFE_componentWillMount() {
-    // register to receive topology updates
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this),
-    );
-  }
-
-  componentWillUnmount() {
-    // un-register once hidden
-    Dispatcher.unregister(this.dispatchToken);
-  }
-
-  handleDispatchEvent(payload) {
-    switch (payload.actionType) {
-      case Actions.TOPOLOGY_SELECTED:
-        this.getDashboards(payload.networkName);
-        break;
-    }
-  }
-
   selectDashboardChange(val) {
     if (val.value === '#New') {
-      const dashboards = this.state.dashboards;
+      const dashboards = this.props.dashboards;
       swal(
         {
           title: 'Create Dashboard',
@@ -97,7 +52,7 @@ export default class NetworkDashboards extends React.Component {
           inputPlaceholder: 'Dashboard name',
         },
         inputValue => {
-          if (inputValue === false) {
+          if (!inputValue) {
             return false;
           }
 
@@ -126,12 +81,6 @@ export default class NetworkDashboards extends React.Component {
     }
   }
 
-  doneEditing() {
-    this.setState({
-      editView: false,
-    });
-  }
-
   addGraph() {
     const dashboards = this.state.dashboards;
     const dashboard = dashboards[this.props.selectedDashboard];
@@ -144,76 +93,11 @@ export default class NetworkDashboards extends React.Component {
       data: [],
       container: {
         x: 0,
-        y: Infinity,
+        y: 0,
         w: 3,
         h: 3,
       },
     });
-    this.setState({
-      dashboards,
-    });
-  }
-
-  editGraph(index) {
-    const dashboards = this.state.dashboards;
-    const dashboard = dashboards[this.props.selectedDashboard];
-    const graphs = dashboard.graphs;
-    this.setState({
-      graphEditOpen: true,
-      editedGraph: graphs[index],
-      editedGraphIndex: index,
-      modalIsOpen: true,
-    });
-  }
-
-  editGraphName(index) {
-    const dashboards = this.state.dashboards;
-    const dashboard = dashboards[this.props.selectedDashboard];
-    const graph = dashboard.graphs[index];
-    swal(
-      {
-        title: 'New name',
-        type: 'input',
-        inputValue: graph.name,
-        showCancelButton: true,
-        confirmButtonColor: '#DD6B55',
-        confirmButtonText: 'Rename',
-        closeOnConfirm: false,
-      },
-      value => {
-        const newDashboards = this.state.dashboards;
-        // update name
-        newDashboards[this.props.selectedDashboard].graphs[index].name = value;
-        this.setState({
-          dashboards: newDashboards,
-        });
-        swal('Renamed', 'The selected dashboard was renamed.', 'success');
-        this.saveDashboards();
-      },
-    );
-  }
-
-  graphEditClose(graph) {
-    const dashboards = this.state.dashboards;
-    const dashboard = dashboards[this.props.selectedDashboard];
-    const graphs = dashboard.graphs;
-    if (graph) {
-      graphs[this.state.editedGraphIndex] = graph;
-    }
-    this.setState({
-      graphEditOpen: false,
-      dashboards,
-      editedGraph: null,
-      editedGraphIndex: null,
-      modalIsOpen: false,
-    });
-  }
-
-  deleteGraph(index) {
-    const dashboards = this.state.dashboards;
-    const dashboard = dashboards[this.props.selectedDashboard];
-    const graphs = dashboard.graphs;
-    graphs.splice(index, 1);
     this.setState({
       dashboards,
     });
@@ -231,38 +115,20 @@ export default class NetworkDashboards extends React.Component {
         closeOnConfirm: false,
       },
       () => {
-        const dashboards = this.state.dashboards;
+        const dashboards = this.props.dashboards;
         delete dashboards[this.props.selectedDashboard];
         this.props.onHandleSelectedDashboardChange(null);
+        this.props.setDashboards(dashboards);
+        swal('Deleted!', 'The selected dashboard was deleted.', 'success');
         this.setState({
           dashboards,
         });
-        swal('Deleted!', 'The selected dashboard was deleted.', 'success');
-        this.saveDashboards();
       },
     );
   }
 
-  saveDashboards() {
-    this.saveDashboardsRequest = new XMLHttpRequest();
-    this.saveDashboardsRequest.onload = function() {
-      if (!this.saveDashboardsRequest) {
-        return;
-      }
-      swal('Saved!', 'Dashboard get saved to server!', 'success');
-    }.bind(this);
-    try {
-      this.saveDashboardsRequest.open('POST', '/dashboards/save/', true);
-      const data = {
-        dashboards: this.state.dashboards,
-        topologyName: this.props.networkConfig.topology.name,
-      };
-      this.saveDashboardsRequest.send(JSON.stringify(data));
-    } catch (e) {}
-  }
-
   onDashboardNameChange() {
-    const dashboards = this.state.dashboards;
+    const dashboards = this.props.dashboards;
     swal(
       {
         title: 'Dashboard Name',
@@ -304,9 +170,194 @@ export default class NetworkDashboards extends React.Component {
     );
   }
 
-  render() {
-    const layout = [];
-    const layoutDivs = [];
+  getDashboards(topologyName) {
+    axios
+      .get('/dashboards/get/' + topologyName)
+      .then(response =>
+        this.setState({
+          dashboards: response.data,
+          editView: false,
+        }),
+      )
+      .catch(err => {
+        console.log('Error getting dashboards', err);
+        this.setState({
+          dashboards: null,
+          editView: false,
+        });
+      });
+  }
+
+  onLayoutChange(layout) {
+    const dashboards = this.state.dashboards;
+    if (dashboards && this.props.selectedDashboard) {
+      const dashboard = dashboards[this.props.selectedDashboard];
+      const graphs = dashboard.graphs;
+      let index = 0;
+      layout.forEach(glayout => {
+        const graph = graphs[index];
+        graph.container.x = glayout.x;
+        graph.container.y = glayout.y;
+        graph.container.w = glayout.w;
+        graph.container.h = glayout.h;
+        index++;
+      });
+      this.setState({
+        dashboards,
+      });
+    }
+  }
+
+  componentDidMount() {
+    // register to receive topology updates
+    this.dispatchToken = Dispatcher.register(
+      this.handleDispatchEvent.bind(this),
+    );
+  }
+
+  componentWillUnmount() {
+    // un-register once hidden
+    Dispatcher.unregister(this.dispatchToken);
+  }
+
+  handleDispatchEvent(payload) {
+    switch (payload.actionType) {
+      case Actions.TOPOLOGY_SELECTED:
+        this.getDashboards(payload.networkName);
+        break;
+    }
+  }
+
+  onEdit() {
+    this.setState({
+      editView: true, // boolean
+    });
+  }
+
+  onDoneEdit() {
+    this.setState({
+      editView: false, // boolean
+    });
+  }
+
+  // temporarily here, will not be here once graph type forms are created in next task
+  addLinkGraph(name, startTime, endTime, data, keyIds) {
+    this.setState({editView: true});
+    const dashboards = this.state.dashboards;
+    const dashboard = dashboards[this.props.selectedDashboard];
+    const graphs = dashboard.graphs;
+    graphs.unshift({
+      name,
+      startTime,
+      endTime,
+      agg_type: 'top',
+      key_ids: keyIds,
+      data,
+      container: {
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 4,
+      },
+    });
+    this.setState({
+      dashboards,
+    });
+  }
+
+  editGraph(index) {
+    // TODO Make the separate forms for editing graphs (currently button is not working)
+    const dashboards = this.state.dashboards;
+    const dashboard = dashboards[this.props.selectedDashboard];
+    const graphs = dashboard.graphs;
+    this.setState({
+      graphEditOpen: true,
+      editedGraph: graphs[index],
+      editedGraphIndex: index,
+      modalIsOpen: true,
+    });
+  }
+
+  editGraphName(index) {
+    const dashboards = this.state.dashboards;
+    const dashboard = dashboards[this.props.selectedDashboard];
+    const graph = dashboard.graphs[index];
+    swal(
+      {
+        title: 'New name',
+        type: 'input',
+        inputValue: graph.name,
+        showCancelButton: true,
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Rename',
+        closeOnConfirm: false,
+      },
+      () => {
+        const dashboards = this.state.dashboards;
+        // update name
+        dashboards[this.props.selectedDashboard].graphs[index].name = value;
+        this.setState({
+          dashboards,
+        });
+        swal('Renamed', 'The selected dashboard was renamed.', 'success');
+        this.saveDashboards();
+      },
+    );
+  }
+
+  deleteGraph(index) {
+    const dashboards = this.state.dashboards;
+    const dashboard = dashboards[this.props.selectedDashboard];
+    const graphs = dashboard.graphs;
+    graphs.splice(index, 1);
+    this.setState({
+      dashboards,
+    });
+  }
+
+  graphEditClose(graph) {
+    const dashboards = this.state.dashboards;
+    const dashboard = dashboards[this.props.selectedDashboard];
+    const graphs = dashboard.graphs;
+    if (graph) {
+      graphs[this.state.editedGraphIndex] = graph;
+    }
+    this.setState({
+      graphEditOpen: false,
+      dashboards,
+      editedGraph: null,
+      editedGraphIndex: null,
+      modalIsOpen: false,
+    });
+  }
+
+  saveDashboards() {
+    axios
+      .post('/dashboards/save/', {
+        dashboards: this.state.dashboards,
+        topologyName: this.props.networkConfig.topology.name,
+      })
+      .then(response => {
+        swal('Saved!', 'Dashboard get saved to server!', 'success');
+      })
+      .catch(err => {
+        console.log('Error saving dashboards', err);
+      });
+  }
+
+  // nodeA and nodeZ should be objects of nodes from the topology, including name, mac_addr, and other information about the node
+  // units of startTime and endTime should be a date object
+  onChangeDashboardGlobalData(nodeA, nodeZ, startTime, endTime) {
+    const dashboard = this.state.dashboards[this.props.selectedDashboard];
+    dashboard.nodeA = nodeA;
+    dashboard.nodeZ = nodeZ;
+    dashboard.startTime = startTime;
+    dashboard.endTime = endTime;
+  }
+
+  generateGraphGrid() {
+    let layout = [];
+    let layoutDivs = [];
 
     if (
       this.state.dashboards &&
@@ -326,7 +377,7 @@ export default class NetworkDashboards extends React.Component {
           minW: 2,
           maxW: 6,
           minH: 3,
-          static: !this.state.editView,
+          static: this.state.editView ? false : true,
         });
         if (!this.state.editView) {
           layoutDivs.push(
@@ -364,95 +415,14 @@ export default class NetworkDashboards extends React.Component {
         ++index;
       });
     }
+    return {
+      layout,
+      layoutDivs,
+    };
+  }
 
-    const dashboardsOptions = [];
-    if (this.state.dashboards) {
-      Object.keys(this.state.dashboards).forEach(dashboardName => {
-        dashboardsOptions.push({
-          value: dashboardName,
-          label: dashboardName,
-        });
-      });
-      dashboardsOptions.push({
-        value: '#New',
-        label: 'New Dashboard ...',
-      });
-    }
-
-    let topButtons = [];
-    let selector = (
-      <td width={310}>
-        <div style={{width: 300}}>
-          <Select
-            options={dashboardsOptions}
-            name="Select Dashboard"
-            placeholder="Select Dashboard"
-            value={this.props.selectedDashboard}
-            onChange={this.selectDashboardChange.bind(this)}
-            clearable={false}
-          />
-        </div>
-      </td>
-    );
-    if (this.props.selectedDashboard) {
-      if (this.state.editView) {
-        selector = (
-          <td width={330} key="b_name">
-            <button
-              style={{width: '300px', height: '34px'}}
-              className="graph-button"
-              onClick={this.onDashboardNameChange.bind(this)}>
-              {this.props.selectedDashboard}
-            </button>
-          </td>
-        );
-        topButtons = [
-          <td key="b_add">
-            <button
-              style={{width: '100px', height: '34px'}}
-              className="graph-button"
-              onClick={this.addGraph.bind(this)}>
-              Add Graph
-            </button>
-          </td>,
-          <td key="b_done">
-            <button
-              style={{width: '100px', height: '34px'}}
-              className="graph-button"
-              onClick={this.doneEditing.bind(this)}>
-              Done Editing
-            </button>
-          </td>,
-        ];
-      } else {
-        topButtons = [
-          <td key="b_delete">
-            <button
-              style={{width: '80px', height: '34px'}}
-              className="graph-button"
-              onClick={this.deleteDashboard.bind(this)}>
-              Delete
-            </button>
-          </td>,
-          <td key="b_edit">
-            <button
-              style={{width: '80px', height: '34px'}}
-              className="graph-button"
-              onClick={() => this.setState({editView: true})}>
-              Edit
-            </button>
-          </td>,
-          <td key="b_save">
-            <button
-              style={{width: '100px', height: '34px'}}
-              className="graph-button"
-              onClick={this.saveDashboards.bind(this)}>
-              Save Changes
-            </button>
-          </td>,
-        ];
-      }
-    }
+  render() {
+    const grid = this.generateGraphGrid();
 
     return (
       <div>
@@ -470,28 +440,44 @@ export default class NetworkDashboards extends React.Component {
             </div>
           </Modal>
         </div>
-        <table
-          style={{
-            borderCollapse: 'separate',
-            borderSpacing: '5px 5px',
-            display: 'block',
-            width: '100px',
-          }}>
-          <tbody>
-            <tr>
-              {selector}
-              {topButtons}
-            </tr>
-          </tbody>
-        </table>
+        <DashboardSelect
+          dashboards={this.state.dashboards}
+          editView={this.state.editView}
+          onEdit={this.onEdit.bind(this)}
+          onDoneEdit={this.onDoneEdit.bind(this)}
+          selectDashboardChange={this.selectDashboardChange.bind(this)}
+          saveDashboards={this.saveDashboards.bind(this)}
+          addGraph={this.addGraph.bind(this)}
+          deleteDashboard={this.deleteDashboard.bind(this)}
+          onHandleSelectedDashboardChange={this.props.onHandleSelectedDashboardChange.bind(
+            this,
+          )}
+          selectedDashboard={this.props.selectedDashboard}
+          networkConfig={this.props.networkConfig}
+        />
+        {this.state.dashboards &&
+          this.props.selectedDashboard &&
+          this.state.dashboards[this.props.selectedDashboard] && (
+            <GlobalDataSelect
+              allowCustomTime={false}
+              onClose={this.graphEditClose.bind(this)}
+              networkConfig={this.props.networkConfig}
+              // temporarily here, will not be here once graph type forms are created in next task
+              addLinkGraph={this.addLinkGraph.bind(this)}
+              onChangeDashboardGlobalData={this.onChangeDashboardGlobalData.bind(
+                this,
+              )}
+              dashboard={this.state.dashboards[this.props.selectedDashboard]}
+            />
+          )}
         <ReactGridLayoutWidthProvider
           className="layout"
-          layout={layout}
+          layout={grid.layout}
           cols={6}
           rowHeight={150}
           verticalCompact={true}
           onLayoutChange={this.onLayoutChange.bind(this)}>
-          {layoutDivs}
+          {grid.layoutDivs}
         </ReactGridLayoutWidthProvider>
       </div>
     );

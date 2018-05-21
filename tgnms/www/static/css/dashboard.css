@@ -2,3 +2,45 @@
   height: 100%;
   width: 100%;
 }
+
+#dashboard-select {
+  padding: 10px 20px;
+}
+
+#global-data-select {
+  padding: 10px 20px;
+  width: 100%;
+}
+
+#global-data-select .node-box {
+  display: flex;
+  align-items: center;
+  margin: 15px 0px;
+}
+
+#global-data-select .node-box p {
+  margin-right: 105px;
+}
+
+#global-data-select .node-box > div:first-of-type {
+  flex: 1;
+}
+
+#global-data-select .node-box select {
+  flex: 1;
+  background-color: white;
+  height: 34px;
+  border: 1px solid #ccc;
+}
+
+#global-data-select #time-window-box {
+  margin: 10px 0px;
+}
+
+#global-data-select #custom-time-box {
+  margin: 10px 0px;
+}
+
+#global-data-select #custom-time-box #custom-time-checkbox {
+  margin: 0px 10px;
+}
