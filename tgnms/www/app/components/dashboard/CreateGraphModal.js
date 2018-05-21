@@ -10,29 +10,37 @@ import axios from 'axios';
 import Select from 'react-select';
 import Modal from 'react-modal';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
+import {isEqual} from 'lodash-es';
 
 export default class CreateGraphModal extends React.Component {
   state = {
     // overall state
+    formData: [],
+    graphNameInput: '',
     graphTypeSelected: 'link',
+    keyIds: [],
 
     // link form state
-    linkKeySelected: '',
-    linkKeyOptions: [],
-    linkDirectionSelected: '',
     linkDirectionOptions: [],
+    linkDirectionSelected: '',
+    linkKeyOptions: [],
+    linkKeySelected: '',
+
+    // network form state
+    networkMetricOptions: [],
+    networkMetricSelected: '',
 
     // node form state
-    nodeSelected: '',
-    nodeSelectOptions: this.getNodeSelectOptions(),
     nodeKeyIsLoading: false,
     nodeKeyOptions: [],
     nodeKeysSelected: [],
-
-    // network form state
-    networkMetricSelected: '',
-    networkMetricOptions: this.getNetworkMetricOptions(),
+    nodeSelectOptions: [],
+    nodesSelected: '',
   };
+
+  handleGraphNameChange(event) {
+    this.setState({graphNameInput: event.target.value});
+  }
 
   onGraphTypeChange(event) {
     this.setState({graphTypeSelected: event.value});
@@ -41,8 +49,17 @@ export default class CreateGraphModal extends React.Component {
   componentWillMount() {
     Modal.setAppElement('body');
     this.setLinkKeyOptions();
-    // this.setNodeKeyOptions();
+    this.setNodeSelectOptions();
     this.setLinkDirectionOptions();
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // check to see if global dashboard data changed
+    if (!isEqual(prevProps.dashboard, this.props.dashboard)) {
+      this.setLinkKeyOptions();
+      this.setNodeSelectOptions();
+      this.setLinkDirectionOptions();
+    }
   }
 
   // link form functions
@@ -65,7 +82,7 @@ export default class CreateGraphModal extends React.Component {
         const keys = resp.data;
         keys.forEach(keyObj => {
           if (keyObj[0].node === nodeA.mac_addr) {
-            keyOptions.push({value: keyObj[0].key, label: keyObj[0].key});
+            keyOptions.push({label: keyObj[0].key, value: keyObj[0].key});
           }
         });
         this.setState({
@@ -93,37 +110,41 @@ export default class CreateGraphModal extends React.Component {
   setLinkDirectionOptions() {
     const {nodeA, nodeZ} = this.props.dashboard;
     const linkDirectionOptions = [];
+    let initialSelection = '';
     if (nodeA && nodeZ) {
       const azDirection = 'A -> Z: ' + nodeA.name + ' -> ' + nodeZ.name;
       const zaDirection = 'Z -> A: ' + nodeZ.name + ' -> ' + nodeA.name;
-      linkDirectionOptions.push({value: azDirection, label: azDirection});
-      linkDirectionOptions.push({value: zaDirection, label: zaDirection});
+      linkDirectionOptions.push({label: azDirection, value: azDirection});
+      linkDirectionOptions.push({label: zaDirection, value: zaDirection});
+      initialSelection = linkDirectionOptions[0].value;
     }
     this.setState({
       linkDirectionOptions,
-      linkDirectionSelected: linkDirectionOptions[0].value,
+      linkDirectionSelected: initialSelection,
     });
   }
 
   // node form functions
-  getNodeSelectOptions() {
+  setNodeSelectOptions() {
     const {nodeA, nodeZ} = this.props.dashboard;
     const nodeSelectOptions = [];
     if (nodeA) {
       nodeSelectOptions.push({
-        value: nodeA.name,
         label: nodeA.name,
         node: nodeA,
+        value: nodeA.name,
       });
     }
     if (nodeZ) {
       nodeSelectOptions.push({
-        value: nodeZ.name,
         label: nodeZ.name,
         node: nodeZ,
+        value: nodeZ.name,
       });
     }
-    return nodeSelectOptions;
+    this.setState({
+      nodeSelectOptions,
+    });
   }
 
   onNodesSelectChanged(event) {
@@ -131,7 +152,7 @@ export default class CreateGraphModal extends React.Component {
   }
 
   onNodeKeyChanged(event) {
-    this.setState({nodeKeySelected: event.value});
+    this.setState({nodeKeysSelected: event.value});
   }
 
   // Network form functions
@@ -139,7 +160,7 @@ export default class CreateGraphModal extends React.Component {
     this.setState({networkMetricSelected: event.value});
   }
 
-  getNetworkMetricOptions() {
+  setNetworkMetricOptions() {
     // TODO get all the network metric options
     // currently there are no network keys in the backend
     return [];
@@ -158,9 +179,9 @@ export default class CreateGraphModal extends React.Component {
 
   renderTypeaheadKeyMenu(option, props, index) {
     return [
-      <div className="typeahead-option">
-        <strong key="name">{option.name}</strong>,
-        <div key="data">Node: {option.node}</div>,
+      <div key="option" className="typeahead-option">
+        <strong key="name">{option.name}</strong>
+        <div key="data">Node: {option.node}</div>
       </div>,
     ];
   }
@@ -172,8 +193,115 @@ export default class CreateGraphModal extends React.Component {
     });
   }
 
+  submitLinkGraph() {
+    const key = this.state.linkKeySelected;
+    let url = `/stats_ta/${this.props.topologyName}/${key}`;
+    const graphName = this.state.linkDirectionSelected + ' : ' + key.slice(22);
+
+    // TODO backend does not return exact key if searching with [#]
+    // this is temporary
+    if (key.includes('[')) {
+      url = url.slice(0, url.indexOf('['));
+    }
+
+    axios.get(url).then(resp => {
+      const keyIds = [];
+      const dataResp = [];
+      // only doing this because backend doesnt return exact key on search
+      // must parse through response manually to get desired key number [#]
+      if (key.includes('[')) {
+        const keyNum = key.slice(key.indexOf('[') + 1, key.indexOf(']'));
+        resp.data.forEach(point => {
+          if (point[0].key.includes(keyNum)) {
+            point.forEach(val => {
+              keyIds.push(val.keyId);
+              dataResp.push(val);
+            });
+          }
+        });
+      } else {
+        resp.data.forEach(point => {
+          point.forEach((val, index) => {
+            keyIds.push(val.keyId);
+            dataResp.push(val);
+          });
+        });
+      }
+
+      const setupInfo = {
+        graphType: 'link',
+        nodeA: this.props.dashboard.nodeA,
+        nodeZ: this.props.dashboard.nodeZ,
+        direction: this.state.linkDirectionSelected.includes('Z -> A') ? 'Z -> A' : 'A -> Z'
+      }
+
+      // add graph based on the global time range set in the dashboard
+      const {startTime, endTime, minAgo} = this.props.dashboard;
+      if (startTime && endTime) {
+        this.props.addGraphCustomTime(
+          graphName,
+          startTime,
+          endTime,
+          dataResp,
+          keyIds,
+          setupInfo
+        );
+      } else {
+        this.props.addGraphMinAgo(graphName, minAgo, dataResp, keyIds, setupInfo);
+      }
+      this.props.closeModal();
+    })
+    .catch(err => {
+      console.error('Error submitting link graph', err)
+    })
+  }
+
+  submitNodeGraph() {
+    const graphName = 'Node stats';
+
+    const {nodeKeysSelected} = this.state;
+
+    const nodeKeyIds = [];
+    const nodeKeyData = [];
+    nodeKeysSelected.forEach(nodeKey => {
+      nodeKeyIds.push(nodeKey.key.keyId);
+      nodeKeyData.push(nodeKey.key);
+    })
+
+    const {startTime, endTime, minAgo} = this.props.dashboard;
+
+    const setupInfo = {
+      graphType: 'node',
+      nodes: nodeKeysSelected,
+    }
+
+    if (startTime && endTime) {
+      this.props.addGraphCustomTime(
+        graphName,
+        startTime,
+        endTime,
+        nodeKeyData,
+        nodeKeyIds,
+        setupInfo
+      );
+    } else {
+      this.props.addGraphMinAgo(
+        graphName,
+        minAgo,
+        nodeKeyData,
+        nodeKeyIds,
+        setupInfo
+      );
+    }
+    this.props.closeModal();
+  }
+
   render() {
     const {nodeA, nodeZ} = this.props.dashboard;
+    const disableLinkSubmit = this.state.linkKeySelected === '';
+    const disableNodeSubmit =
+      this.state.nodesSelected.length === 0 ||
+      this.state.nodeKeysSelected.length === 0;
     return (
       <div className="create-graph-modal">
         <Modal
@@ -188,9 +316,9 @@ export default class CreateGraphModal extends React.Component {
                 value={this.state.graphTypeSelected}
                 onChange={event => this.onGraphTypeChange(event)}
                 options={[
-                  {value: 'Link', label: 'Link'},
-                  {value: 'Node', label: 'Node'},
-                  {value: 'Network', label: 'Network'},
+                  {label: 'Link', value: 'Link'},
+                  {label: 'Node', value: 'Node'},
+                  {label: 'Network', value: 'Network'},
                 ]}
               />
             </div>
@@ -218,10 +346,13 @@ export default class CreateGraphModal extends React.Component {
                       />
                     </div>
                     <button
-                      className="graph-button submit-button"
-                      onClick={() => {
-                        console.log('wow you made a graph!');
-                      }}>
+                      className={
+                        disableLinkSubmit
+                          ? 'graph-button disabled-button'
+                          : 'graph-button submit-button'
+                      }
+                      onClick={() => this.submitLinkGraph()}
+                      disabled={disableLinkSubmit}>
                       Submit
                     </button>
                   </div>
@@ -274,8 +405,6 @@ export default class CreateGraphModal extends React.Component {
                               const keyOptions = [];
                               keys.forEach(keyArr => {
                                 keyArr.forEach(keyObj => {
-                                  // check to make sure key is a node key by making sure there is no mac address
-                                  // in the key and that the key contains the selected node
                                   selectedNodes.forEach(nodeObj => {
                                     const selectedNode = nodeObj.node;
                                     if (
@@ -319,10 +448,13 @@ export default class CreateGraphModal extends React.Component {
                       />
                     </div>
                     <button
-                      className="graph-button submit-button"
-                      onClick={() => {
-                        console.log('wow you made a graph!');
-                      }}>
+                      className={
+                        disableNodeSubmit
+                          ? 'graph-button disabled-button'
+                          : 'graph-button submit-button'
+                      }
+                      onClick={() => this.submitNodeGraph()}
+                      disabled={disableNodeSubmit}>
                       Submit
                     </button>
                   </div>
@@ -348,13 +480,6 @@ export default class CreateGraphModal extends React.Component {
                     options={this.state.networkMetricOptions}
                   />
                 </div>
-                <button
-                  className="graph-button submit-button"
-                  onClick={() => {
-                    console.log('wow you made a graph!');
-                  }}>
-                  Submit
-                </button>
               </div>
             )}
           </div>

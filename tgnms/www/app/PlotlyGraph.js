@@ -20,9 +20,12 @@ export default class PlotlyGraph extends React.Component {
 
   state = {
     data: null,
-    indicator: 'IDLE',
     dataCounter: 0,
+    indicator: 'IDLE',
     plotlyData: [],
+    relayout: false,
+    xasixEnd: null,
+    xaxisStart: null,
   };
 
   componentDidMount() {
@@ -85,13 +88,12 @@ export default class PlotlyGraph extends React.Component {
         data: null,
         indicator: 'NO_DATA',
       });
-      return null;
     }
     axios
       .post('/multi_chart/', JSON.stringify([this.props.options]))
       .then(resp => {
         if (!resp.data) {
-          console.log('No data available');
+          console.error('No data available');
           this.setState({
             data: null,
             indicator: 'NO_DATA',
@@ -103,14 +105,14 @@ export default class PlotlyGraph extends React.Component {
 
           this.setState({
             data: graphData,
-            plotlyData: traces,
-            indicator: resp.data ? 'LOADED' : 'NO_DATA',
             dataCounter: this.state.dataCounter + 1,
+            indicator: resp.data ? 'LOADED' : 'NO_DATA',
+            plotlyData: traces,
           });
         }
       })
       .catch(err => {
-        console.log(err);
+        console.error('Error refreshing data', err);
         this.setState({
           data: null,
           indicator: 'FAILED',
@@ -121,15 +123,16 @@ export default class PlotlyGraph extends React.Component {
   // Format the response data for Plotly graphs
   plotDataFormatter(graphData) {
     if (graphData && graphData.points && graphData.points[0]) {
+
       const traces = [];
       // Create the correct number of trace (line) objects
       for (let i = 0; i < graphData.points[0].length - 1; i++) {
         traces.push({
-          x: [], // Will contain the timestamp
-          y: [], // Will contain the data
-          type: 'scatter',
           mode: 'line',
           name: graphData.columns[i + 1],
+          type: 'scatter',
+          x: [], // Will contain the timestamp
+          y: [], // Will contain the data
         });
       }
       // Populate the x and y data for each of the traces from the points
@@ -145,9 +148,34 @@ export default class PlotlyGraph extends React.Component {
     }
   }
 
-  render() {
-    const divkey = this.props.divkey;
+  onGraphRelayout(layoutData) {
+    if (layoutData['xaxis.autorange']) {
+      this.setState({
+        relayout: false,
+        xaxisEnd: null,
+        xaxisStart: null,
+      });
+    } else {
+      this.setState({
+        relayout: true,
+        xaxisEnd: layoutData['xaxis.range[1]'],
+        xaxisStart: layoutData['xaxis.range[0]'],
+      });
+    }
+  }
 
+  render() {
+    const {xaxisStart, xaxisEnd} = this.state;
+    const {divkey, title} = this.props;
+
+    // Format time range based on if minAgo is specified or not
+    let {startTime, endTime, minAgo} = this.props.options;
+    if (minAgo) {
+      startTime = moment().toDate();
+      endTime = moment()
+        .subtract(minAgo, 'minutes')
+        .toDate();
+    }
     // Format height and width of graph
     let divHeight = 0;
     let divWidth = 0;
@@ -162,21 +190,22 @@ export default class PlotlyGraph extends React.Component {
           data={this.state.plotlyData}
           layout={{
             height: divHeight,
+            title,
             width: divWidth,
-            title: this.props.title,
             xaxis: {
-              range: [this.props.options.startTime, this.props.options.endTime],
+              range: [xaxisStart || startTime, xaxisEnd || endTime],
             },
           }}
           config={{
+            displaylogo: false,
             modeBarButtonsToRemove: [
               'sendDataToCloud',
               'hoverCompareCartesian',
               'hoverClosestCartesian',
               'toggleSpikelines',
             ],
-            displaylogo: false,
           }}
+          onRelayout={layoutData => this.onGraphRelayout(layoutData)}
         />
       </div>
     );
@@ -185,6 +214,6 @@ export default class PlotlyGraph extends React.Component {
 
 PlotlyGraph.propTypes = {
   divkey: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
   options: PropTypes.object.isRequired,
+  title: PropTypes.string.isRequired,
 };
