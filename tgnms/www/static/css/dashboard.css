@@ -44,3 +44,32 @@
 #global-data-select #custom-time-box #custom-time-checkbox {
   margin: 0px 10px;
 }
+
+.create-graph-modal-content .input-box {
+  display: flex;
+}
+
+.create-graph-modal-content .input-box {
+  padding: 10px 0px;
+}
+
+.create-graph-modal-content .input-box p {
+  width: 150px;
+}
+
+.create-graph-modal-content #node-key-box {
+  margin-top: 70px;
+}
+
+.create-graph-modal-content .input-box > div:first-of-type {
+  flex: 1;
+}
+
+.create-graph-modal-content .graph-form {
+  margin-top: 40px;
+}
+
+.submit-button {
+  margin: 20px 0px;
+  width: 200px;
+}
