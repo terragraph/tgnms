@@ -403,14 +403,12 @@ export default class JSONConfigForm extends React.Component {
             <NewJSONConfigField {...newFieldProps} />
           </li>
         );
-        break;
       case ADD_FIELD_TYPES.OBJECT:
         return (
           <li className="rc-json-config-input">
             <NewJSONConfigObject {...newFieldProps} />
           </li>
         );
-        break;
     }
 
     return <li className="rc-json-config-input">Invalid type!</li>;

@@ -190,7 +190,7 @@ export default class NMSConfig extends React.Component {
     axios.get('/topology/get_stateless/' + name).then(response => {
       const str = JSON.stringify(response.data.topology, null, '\t');
       var blob = new Blob([str], {type: 'text/plain;charset=utf-8'});
-      FileSaver.saveAs(blob, filename);
+      window.FileSaver.saveAs(blob, filename);
     });
   }
 

@@ -374,12 +374,12 @@ export default class NetworkMap extends React.Component {
         }
         return;
         // TODO - A/Z
-        let modLinkName = link.name.replace(/\./g, ' ') + ' (A)';
-        let overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
-        link.overlay_a = overlayValue;
-        modLinkName = link.name.replace(/\./g, ' ') + ' (Z)';
-        overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
-        link.overlay_z = overlayValue;
+        // let modLinkName = link.name.replace(/\./g, ' ') + ' (A)';
+        // let overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
+        // link.overlay_a = overlayValue;
+        // modLinkName = link.name.replace(/\./g, ' ') + ' (Z)';
+        // overlayValue = this.state.linkOverlayData.at(0).get(modLinkName);
+        // link.overlay_z = overlayValue;
       } else if (
         this.props.linkOverlay == 'RxGolayIdx' ||
         this.props.linkOverlay == 'TxGolayIdx'
