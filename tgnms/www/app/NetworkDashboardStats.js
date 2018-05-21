@@ -9,16 +9,12 @@ import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-datetime/css/react-datetime.css';
 
 import Dispatcher from './NetworkDispatcher.js';
-// dispatcher
 import {Actions} from './constants/NetworkConstants.js';
-import equals from 'equals';
+import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-// layout components
-import {Menu, MenuItem, Token, AsyncTypeahead} from 'react-bootstrap-typeahead';
-// time picker
+import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import Datetime from 'react-datetime';
-import {render} from 'react-dom';
 import React from 'react';
 
 const TIME_PICKER_OPTS = [
@@ -83,9 +79,6 @@ const GRAPH_AGG_OPTS = [
   },*/
   // group by link
 ];
-
-const MenuDivider = props => <li className="divider" role="separator" />;
-const MenuHeader = props => <li {...props} className="dropdown-header" />;
 
 export default class NetworkDashboardStats extends React.Component {
   state = {
@@ -210,22 +203,12 @@ export default class NetworkDashboardStats extends React.Component {
           isLoading={this.state.keyIsLoading}
           onSearch={query => {
             this.setState({keyIsLoading: true, keyOptions: []});
-            const taRequest = {
-              topologyName: this.props.topology.name,
-              input: query,
-            };
-            const statsTaRequest = new Request(
-              '/stats_ta/' + this.props.topology.name + '/' + query,
-              {
-                credentials: 'same-origin',
-              },
-            );
-            fetch(statsTaRequest)
-              .then(resp => resp.json())
-              .then(json =>
+            axios
+              .get('/stats_ta/' + this.props.topology.name + '/' + query)
+              .then(response =>
                 this.setState({
                   keyIsLoading: false,
-                  keyOptions: this.formatKeyOptions(json),
+                  keyOptions: this.formatKeyOptions(response.data),
                 }),
               );
           }}
@@ -245,7 +228,7 @@ export default class NetworkDashboardStats extends React.Component {
             label={opts.label}
             key={opts.label}
             className={
-              !this.state.useCustomTime && opts.minAgo == this.state.minAgo
+              !this.state.useCustomTime && opts.minAgo === this.state.minAgo
                 ? 'graph-button graph-button-selected'
                 : 'graph-button'
             }
@@ -313,7 +296,7 @@ export default class NetworkDashboardStats extends React.Component {
             label={opts.name}
             key={opts.name}
             className={
-              opts.name == this.state.graphAggType
+              opts.name === this.state.graphAggType
                 ? 'graph-button graph-button-selected'
                 : 'graph-button'
             }

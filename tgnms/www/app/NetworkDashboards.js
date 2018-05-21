@@ -9,8 +9,7 @@ import NetworkDashboardStats from './NetworkDashboardStats.js';
 import Dispatcher from './NetworkDispatcher.js';
 import ReactDyGraph from './ReactDyGraph.js';
 import {Actions} from './constants/NetworkConstants.js';
-import NetworkStore from './stores/NetworkStore.js';
-import {render} from 'react-dom';
+import axios from 'axios';
 import ReactGridLayout, {WidthProvider} from 'react-grid-layout';
 import Modal from 'react-modal';
 import Select from 'react-select';
@@ -36,22 +35,11 @@ export default class NetworkDashboards extends React.Component {
   }
 
   getDashboards(topologyName) {
-    const getDashboards = new Request('/dashboards/get/' + topologyName, {
-      credentials: 'same-origin',
-    });
-    fetch(getDashboards).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              this.setState({
-                dashboards: json,
-                editView: false,
-              });
-            }.bind(this),
-          );
-        }
-      }.bind(this),
+    axios.get('/dashboards/get/' + topologyName).then(response =>
+      this.setState({
+        dashboards: response.data,
+        editView: false,
+      }),
     );
   }
 
@@ -96,7 +84,7 @@ export default class NetworkDashboards extends React.Component {
   }
 
   selectDashboardChange(val) {
-    if (val.value == '#New') {
+    if (val.value === '#New') {
       const dashboards = this.state.dashboards;
       swal(
         {
@@ -193,11 +181,11 @@ export default class NetworkDashboards extends React.Component {
         closeOnConfirm: false,
       },
       function(value) {
-        const dashboards = this.state.dashboards;
+        const newDashboards = this.state.dashboards;
         // update name
-        dashboards[this.props.selectedDashboard].graphs[index].name = value;
+        newDashboards[this.props.selectedDashboard].graphs[index].name = value;
         this.setState({
-          dashboards: dashboards,
+          dashboards: newDashboards,
         });
         swal('Renamed', 'The selected dashboard was renamed.', 'success');
         this.saveDashboards();
@@ -295,7 +283,7 @@ export default class NetworkDashboards extends React.Component {
           return false;
         }
         if (
-          inputValue != this.props.selectedDashboard &&
+          inputValue !== this.props.selectedDashboard &&
           dashboards[inputValue]
         ) {
           swal.showInputError('Name Already exists');

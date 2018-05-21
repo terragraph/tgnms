@@ -9,21 +9,12 @@ import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-datetime/css/react-datetime.css';
 
 import Dispatcher from './NetworkDispatcher.js';
-// graphs
 import ReactMultiGraph from './ReactMultiGraph.js';
-// dispatcher
 import {Actions} from './constants/NetworkConstants.js';
-import NetworkStore from './stores/NetworkStore.js';
-import equals from 'equals';
+import axios from 'axios';
 import moment from 'moment';
-// layout components
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
-import {Menu, MenuItem, Token, AsyncTypeahead} from 'react-bootstrap-typeahead';
-// time picker
+import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import Datetime from 'react-datetime';
-// leaflet maps
-import {render} from 'react-dom';
-import {SpringGrid} from 'react-stonecutter';
 import React from 'react';
 
 const TIME_PICKER_OPTS = [
@@ -89,9 +80,6 @@ const GRAPH_AGG_OPTS = [
   // group by link
 ];
 
-const MenuDivider = props => <li className="divider" role="separator" />;
-const MenuHeader = props => <li {...props} className="dropdown-header" />;
-
 export default class NetworkStats extends React.Component {
   state = {
     // type-ahead data
@@ -108,7 +96,6 @@ export default class NetworkStats extends React.Component {
 
     graphAggType: 'top',
     keyIsLoading: false,
-    keyOptions: [],
   };
 
   constructor(props) {
@@ -184,8 +171,6 @@ export default class NetworkStats extends React.Component {
   }
 
   render() {
-    const gridComponents = [];
-    const graphOptions = [];
     // index nodes by name
     const nodeMacList = [];
     const nodeNameList = [];
@@ -194,7 +179,6 @@ export default class NetworkStats extends React.Component {
       nodeMacList.push(node.mac_addr);
       nodeNameList.push(node.name);
     });
-    const nodeMacListStr = nodeMacList.join(',');
     // nodes list
     const nodes = {};
     this.props.networkConfig.topology.nodes.forEach(node => {
@@ -217,7 +201,7 @@ export default class NetworkStats extends React.Component {
     const linkRows = [];
     this.props.networkConfig.topology.links.forEach(link => {
       // skipped wired links
-      if (link.link_type == 2) {
+      if (link.link_type === 2) {
         return;
       }
       linkRows.push({
@@ -268,28 +252,14 @@ export default class NetworkStats extends React.Component {
           ref={ref => (this._typeaheadKey = ref)}
           isLoading={this.state.keyIsLoading}
           onSearch={query => {
+            const topoName = this.props.networkConfig.topology.name;
             this.setState({keyIsLoading: true, keyOptions: []});
-            const taRequest = {
-              topologyName: this.props.networkConfig.topology.name,
-              input: query,
-            };
-            const statsTaRequest = new Request(
-              '/stats_ta/' +
-                this.props.networkConfig.topology.name +
-                '/' +
-                query,
-              {
-                credentials: 'same-origin',
-              },
+            axios.get('/stats_ta/' + topoName + '/' + query).then(response =>
+              this.setState({
+                keyIsLoading: false,
+                keyOptions: this.formatKeyOptions(response.data),
+              }),
             );
-            fetch(statsTaRequest)
-              .then(resp => resp.json())
-              .then(json =>
-                this.setState({
-                  keyIsLoading: false,
-                  keyOptions: this.formatKeyOptions(json),
-                }),
-              );
           }}
           selected={this.state.keysSelected}
           onChange={this.metricSelectionChanged.bind(this)}
@@ -307,7 +277,7 @@ export default class NetworkStats extends React.Component {
             label={opts.label}
             key={opts.label}
             className={
-              !this.state.useCustomTime && opts.minAgo == this.state.minAgo
+              !this.state.useCustomTime && opts.minAgo === this.state.minAgo
                 ? 'graph-button graph-button-selected'
                 : 'graph-button'
             }
@@ -369,7 +339,7 @@ export default class NetworkStats extends React.Component {
             label={opts.name}
             key={opts.name}
             className={
-              opts.name == this.state.graphAggType
+              opts.name === this.state.graphAggType
                 ? 'graph-button graph-button-selected'
                 : 'graph-button'
             }
