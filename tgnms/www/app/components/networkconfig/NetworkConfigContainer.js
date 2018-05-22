@@ -365,6 +365,9 @@ export default class NetworkConfigContainer extends React.Component {
       case NetworkConfigActions.GET_BASE_CONFIG_SUCCESS:
         this.setState({baseConfig: payload.config});
         break;
+      case NetworkConfigActions.GET_CONFIG_METADATA_SUCCESS:
+        this.setState({configMetadata: payload.metadata});
+        break;
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
         this.setState({
           networkOverrideConfig: payload.config,

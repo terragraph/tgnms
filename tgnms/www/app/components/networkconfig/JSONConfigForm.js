@@ -270,7 +270,14 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
-  renderChildItem({values, draftValue, newField, fieldName, editPath}) {
+  renderChildItem({
+    values,
+    draftValue,
+    metadata,
+    newField,
+    fieldName,
+    editPath,
+  }) {
     // disregard the highest level of override if we have decided to revert the value (to display)
     const displayIdx = this.getDisplayIdx(
       this.isReverted(draftValue) ? values.slice(0, values.length - 1) : values,
@@ -404,7 +411,13 @@ export default class JSONConfigForm extends React.Component {
   }
 
   render() {
-    const {configs, draftConfig, newConfigFields, editPath} = this.props;
+    const {
+      configs,
+      draftConfig,
+      newConfigFields,
+      editPath,
+      metadata,
+    } = this.props;
 
     // retrieve the union of fields for all json objects in the array
     const configFields = getStackedFields([...configs, draftConfig]);
@@ -412,6 +425,22 @@ export default class JSONConfigForm extends React.Component {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
       const newField = newConfigFields[field];
+      const newEditPath = editPath.concat(field);
+      let fieldMetadata = {};
+
+      if (metadata) {
+        if (metadata.type === 'MAP') {
+          fieldMetadata = metadata.mapVal;
+        } else if (metadata.type === 'OBJECT') {
+          fieldMetadata = metadata.objVal.properties[field];
+        } else {
+          fieldMetadata = newEditPath ? metadata[field] : metadata;
+        }
+      }
+
+      if (metadata.deprecated) {
+        fieldMetadata.deprecated = metadata.deprecated;
+      }
 
       return this.renderChildItem({
         values: configValues,

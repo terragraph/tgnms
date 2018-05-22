@@ -226,9 +226,7 @@ export default class DetailsTopology extends React.Component {
                 rowSpan={Object.keys(polarityCountBySite).length}>
                 Polarities (Site)
               </td>
-            ) : (
-              null
-            )}
+            ) : null}
             <td>
               <span style={{color: polarityColor(parseInt(polarity))}}>
                 {polarityName}
@@ -259,9 +257,7 @@ export default class DetailsTopology extends React.Component {
             <td width="150px" rowSpan={Object.keys(polarities).length}>
               Polarities (Sector)
             </td>
-          ) : (
-            null
-          )}
+          ) : null}
           <td>
             <span style={{color: polarityColor(polarity)}}>{polarityName}</span>
           </td>
@@ -287,15 +283,10 @@ export default class DetailsTopology extends React.Component {
       return (
         <tr key={i}>
           {i == 0 ? (
-            <td
-              key="versionPieChart"
-              rowSpan={versionData.length}
-            >
+            <td key="versionPieChart" rowSpan={versionData.length}>
               {versionPieChart}
             </td>
-          ) : (
-            null
-          )}
+          ) : null}
           <td key={i} style={{color: element.color}}>
             <span
               style={{

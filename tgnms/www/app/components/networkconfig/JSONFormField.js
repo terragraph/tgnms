@@ -106,6 +106,7 @@ export default class JSONFormField extends React.Component {
   }
 
   renderInputItem(displayVal, displayIdx, isDraft, isReverted) {
+    const {metadata} = this.props;
     const {focus, hover} = this.state;
 
     let inputItem = (

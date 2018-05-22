@@ -219,6 +219,7 @@ const command2MsgType = {
     controllerTTypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
   setNodeOverrideConfig:
     controllerTTypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
+  getConfigMetadata: controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ,
 };
 
 var msgType2Params = {};
@@ -864,6 +865,11 @@ class ControllerProxy extends EventEmitter {
               networkOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: networkOverrideConfig});
               break;
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
+              const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
+              configMetadata.read(tProtocol);
+              resolve({type: 'msg', msg: configMetadata});
+              break;
             default:
               console.error(
                 '[controller] No receive handler defined for',
@@ -967,6 +973,11 @@ class ControllerProxy extends EventEmitter {
               const networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
               networkOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: networkOverrideConfig});
+              break;
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
+              const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
+              configMetadata.read(tProtocol);
+              resolve({type: 'msg', msg: configMetadata});
               break;
             case controllerTTypes.MessageType.UPGRADE_COMMIT_PLAN_REQ:
               const upgradeCommitPlan = new controllerTTypes.UpgradeCommitPlan();
