@@ -459,9 +459,9 @@ export default class NetworkMap extends React.Component {
 
   handleExpandTablesClick(ev) {
     setTimeout(
-      function() {
+      () => {
         this.refs.map.leafletElement.invalidateSize();
-      }.bind(this),
+      },
       1,
     );
     this.setState({
