@@ -11,9 +11,9 @@ import ModalIgnitionState from '../../ModalIgnitionState.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import {availabilityColor} from '../../NetworkHelper.js';
 import {Actions} from '../../constants/NetworkConstants.js';
+import axios from 'axios';
 import classnames from 'classnames';
 import {Panel} from 'react-bootstrap';
-import {render} from 'react-dom';
 import React from 'react';
 import swal from 'sweetalert';
 
@@ -83,52 +83,39 @@ export default class DetailsLink extends React.Component {
         confirmButtonText: 'Yes, do it!',
         closeOnConfirm: false,
       },
-      function() {
-        const promis = new Promise((resolve, reject) => {
-          const exec = new Request(
-            '/controller/setlinkStatus/' +
-              this.props.topologyName +
-              '/' +
-              iNode +
-              '/' +
-              rNode +
-              '/' +
-              status,
-            {credentials: 'same-origin'},
+      () => {
+        const url =
+          '/controller/setlinkStatus/' +
+          this.props.topologyName +
+          '/' +
+          iNode +
+          '/' +
+          rNode +
+          '/' +
+          status;
+        axios
+          .get(url)
+          .then(response =>
+            swal({
+              title: 'Request successful!',
+              text: 'Response: ' + response.statusText,
+              type: 'success',
+            }),
+          )
+          .catch(error =>
+            swal({
+              title: 'Request failed!',
+              text:
+                'Link status change failed\nReason: ' +
+                error.response.statusText,
+              type: 'error',
+            }),
           );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
-              swal(
-                {
-                  title: 'Request successful!',
-                  text: 'Response: ' + response.statusText,
-                  type: 'success',
-                },
-                function() {
-                  resolve();
-                },
-              );
-            } else {
-              swal(
-                {
-                  title: 'Request failed!',
-                  text:
-                    'Link status change failed\nReason: ' + response.statusText,
-                  type: 'error',
-                },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
-        });
-      }.bind(this),
+      },
     );
   }
 
   deleteLink(force) {
-    const forceDelete = force ? 'force' : 'no_force';
     swal(
       {
         title: 'Are you sure?',
@@ -139,50 +126,39 @@ export default class DetailsLink extends React.Component {
         confirmButtonText: 'Yes, delete it!',
         closeOnConfirm: false,
       },
-      function() {
-        const promis = new Promise((resolve, reject) => {
-          const exec = new Request(
-            '/controller/delLink/' +
-              this.props.topologyName +
-              '/' +
-              this.props.link.a_node_name +
-              '/' +
-              this.props.link.z_node_name +
-              '/' +
-              forceDelete,
-            {credentials: 'same-origin'},
-          );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
-              swal(
-                {
-                  title: 'Link Deleted!',
-                  text: 'Response: ' + response.statusText,
-                  type: 'success',
-                },
-                function() {
-                  Dispatcher.dispatch({
-                    actionType: Actions.CLEAR_NODE_LINK_SELECTED,
-                  });
-                  resolve();
-                },
-              );
-            } else {
-              swal(
-                {
-                  title: 'Failed!',
-                  text: 'Link deletion failed\nReason: ' + response.statusText,
-                  type: 'error',
-                },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
-        });
-      }.bind(this),
+      this.deleteLinkConfirm.bind(this, force),
     );
+  }
+
+  async deleteLinkConfirm(force) {
+    const forceDelete = force ? 'force' : 'no_force';
+    const url =
+      '/controller/delLink/' +
+      this.props.topologyName +
+      '/' +
+      this.props.link.a_node_name +
+      '/' +
+      this.props.link.z_node_name +
+      '/' +
+      forceDelete;
+
+    try {
+      const response = await axios.get(url);
+      swal({
+        title: 'Link Deleted!',
+        text: 'Response: ' + response.statusText,
+        type: 'success',
+      });
+      Dispatcher.dispatch({
+        actionType: Actions.CLEAR_NODE_LINK_SELECTED,
+      });
+    } catch (error) {
+      swal({
+        title: 'Failed!',
+        text: 'Link deletion failed\nReason: ' + error.response.statusText,
+        type: 'error',
+      });
+    }
   }
 
   startIPerfTraffic(src, dest) {
@@ -220,7 +196,7 @@ export default class DetailsLink extends React.Component {
           });
           return;
         }
-        const exec = new Request(
+        const url =
           '/controller/startTraffic/' +
           this.props.topologyName +
           '/' +
@@ -233,31 +209,31 @@ export default class DetailsLink extends React.Component {
           destIP +
           '/' +
           bitrate + // bitrate
-            '/' +
-            100, // time in seconds
-          {credentials: 'same-origin'},
-        );
-        fetch(exec).then(response => {
-          if (response.status == 200) {
+          '/' +
+          100; // time in seconds
+        axios
+          .get(url)
+          .then(response =>
             swal({
               title: 'Request successful!',
               text: 'Response: ' + response.statusText,
               type: 'success',
-            });
-          } else {
+            }),
+          )
+          .catch(error =>
             swal({
               title: 'Request failed!',
-              text: 'Starting IPerf failed \nReason: ' + response.statusText,
+              text:
+                'Starting IPerf failed \nReason: ' + error.response.statusText,
               type: 'error',
-            });
-          }
-        });
+            }),
+          );
       },
     );
   }
 
   stopIPerfTraffic(node) {
-    var nodeIP = node.status_dump && node.status_dump.ipv6Address;
+    const nodeIP = node.status_dump && node.status_dump.ipv6Address;
 
     if (!nodeIP) {
       return;
@@ -274,28 +250,28 @@ export default class DetailsLink extends React.Component {
         closeOnConfirm: false,
       },
       () => {
-        const exec = new Request(
+        const url =
           '/controller/stopTraffic/' +
-            this.props.topologyName +
-            '/' +
-            node.name,
-          {credentials: 'same-origin'},
-        );
-        fetch(exec).then(response => {
-          if (response.status == 200) {
+          this.props.topologyName +
+          '/' +
+          node.name;
+        axios
+          .get(url)
+          .then(response =>
             swal({
               title: 'Request successful!',
               text: 'Response: ' + response.statusText,
               type: 'success',
-            });
-          } else {
+            }),
+          )
+          .catch(error =>
             swal({
               title: 'Request failed!',
-              text: 'Stopping IPerf failed \nReason: ' + response.statusText,
+              text:
+                'Stopping IPerf failed \nReason: ' + error.response.statusText,
               type: 'error',
-            });
-          }
-        });
+            }),
+          );
       },
     );
   }
@@ -324,7 +300,7 @@ export default class DetailsLink extends React.Component {
       this.props.link.linkup_attempts.buffer
     ) {
       const buf = Buffer.from(this.props.link.linkup_attempts.buffer.data);
-      linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
+      linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString(), 10);
     }
 
     let ignitionStateModal = null;
@@ -340,7 +316,7 @@ export default class DetailsLink extends React.Component {
     }
     let alivePerc = 0;
     if (this.props.link.hasOwnProperty('alive_perc')) {
-      alivePerc = parseInt(this.props.link.alive_perc * 1000) / 1000.0;
+      alivePerc = parseInt(this.props.link.alive_perc * 1000, 10) / 1000.0;
     }
 
     const IPerfEnabled =
@@ -382,7 +358,7 @@ export default class DetailsLink extends React.Component {
                       this.selectNode(this.props.link.a_node_name);
                     }}>
                     {this.statusColor(
-                      nodeA.status == 2 || nodeA.status == 3,
+                      nodeA.status === 2 || nodeA.status === 3,
                       this.props.link.a_node_name,
                       this.props.link.a_node_name,
                     )}
@@ -407,7 +383,7 @@ export default class DetailsLink extends React.Component {
                       this.selectNode(this.props.link.z_node_name);
                     }}>
                     {this.statusColor(
-                      nodeZ.status == 2 || nodeZ.status == 3,
+                      nodeZ.status === 2 || nodeZ.status === 3,
                       this.props.link.z_node_name,
                       this.props.link.z_node_name,
                     )}
@@ -436,13 +412,13 @@ export default class DetailsLink extends React.Component {
               <tr>
                 <td width="100px">Azimuth</td>
                 <td colSpan="2">
-                  {parseInt(this.props.link.angle * 100) / 100}&deg;
+                  {parseInt(this.props.link.angle * 100, 10) / 100}&deg;
                 </td>
               </tr>
               <tr>
                 <td width="100px">Length</td>
                 <td colSpan="2">
-                  {parseInt(this.props.link.distance * 100) / 100} m
+                  {parseInt(this.props.link.distance * 100, 10) / 100} m
                 </td>
               </tr>
               <tr>

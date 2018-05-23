@@ -10,13 +10,11 @@ import 'react-datepicker/dist/react-datepicker.css';
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
-import NetworkStore from './stores/NetworkStore.js';
+import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import AsyncButton from 'react-async-button';
 import DatePicker from 'react-datepicker';
-// leaflet maps
-import {render} from 'react-dom';
 import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
 import React from 'react';
@@ -76,69 +74,43 @@ export default class SystemLogs extends React.Component {
   }
 
   getConfigs() {
-    const getLogSources = new Request('/getSystemLogsSources/', {
-      credentials: 'same-origin',
-    });
-    fetch(getLogSources).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              this.setState({
-                logSources: json.sources,
-              });
-            }.bind(this),
-          );
-        }
-      }.bind(this),
+    axios.get('/getSystemLogsSources/').then(response =>
+      this.setState({
+        logSources: response.data.sources,
+      }),
     );
   }
 
-  loadClick(e) {
-    if (this.state.selectedNodeMac && this.state.selectedSourceName) {
-      return new Promise((resolve, reject) => {
-        const exec = new Request(
-          '/getSystemLogs/' +
-            this.state.selectedSourceName +
-            '/' +
-            this.state.offset +
-            '/' +
-            this.state.size +
-            '/' +
-            this.state.selectedNodeMac +
-            '/' +
-            this.state.startDate.format('MM-DD-YYYY'),
-          {credentials: 'same-origin'},
-        );
-        fetch(exec).then(
-          function(response) {
-            if (response.status == 200) {
-              response.json().then(
-                function(json) {
-                  var text = '';
-                  json.forEach(line => {
-                    text += line + '\n';
-                  });
-                  this.setState({
-                    logText: text,
-                  });
-                  resolve();
-                }.bind(this),
-              );
-            } else {
-              reject();
-            }
-          }.bind(this),
-        );
-      });
-    } else {
+  async loadClick(e) {
+    if (!this.state.selectedNodeMac || !this.state.selectedSourceName) {
+      // eslint-disable-next-line no-alert
       alert('Please select a Log source and a Node name!');
+      return;
     }
+    const url =
+      '/getSystemLogs/' +
+      this.state.selectedSourceName +
+      '/' +
+      this.state.offset +
+      '/' +
+      this.state.size +
+      '/' +
+      this.state.selectedNodeMac +
+      '/' +
+      this.state.startDate.format('MM-DD-YYYY');
+    const response = await axios.get(url);
+    let text = '';
+    response.data.forEach(line => {
+      text += line + '\n';
+    });
+    this.setState({
+      logText: text,
+    });
   }
 
   selectChange(val) {
     Object(this.state.logSources).forEach(source => {
-      if (source.name == val.value) {
+      if (source.name === val.value) {
         this.setState({
           selectedSource: source,
           selectedSourceName: val.label,
@@ -150,7 +122,7 @@ export default class SystemLogs extends React.Component {
 
   selectNodeChange(val) {
     Object(this.props.networkConfig.topology.nodes).forEach(node => {
-      if (node.name == val.value) {
+      if (node.name === val.value) {
         this.setState({
           selectedNodeMac: node.mac_addr,
           selectedNodeName: val.label,

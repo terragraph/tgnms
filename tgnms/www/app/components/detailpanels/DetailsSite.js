@@ -14,21 +14,22 @@ import {
   uptimeSec,
 } from '../../NetworkHelper.js';
 import {Actions} from '../../constants/NetworkConstants.js';
+import axios from 'axios';
 import {Panel} from 'react-bootstrap';
-import {render} from 'react-dom';
 import React from 'react';
 import swal from 'sweetalert';
 
 export default class DetailsSite extends React.Component {
+  state = {
+    showNodes: true,
+    showLinks: true,
+    showRuckus: true,
+    showActions: true,
+  };
+
   constructor(props) {
     super(props);
     this.selectLink = this.selectLink.bind(this);
-    this.state = {
-      showNodes: true,
-      showLinks: true,
-      showRuckus: true,
-      showActions: true,
-    };
   }
 
   statusColor(onlineStatus, trueText = 'True', falseText = 'False') {
@@ -89,30 +90,24 @@ export default class DetailsSite extends React.Component {
         confirmButtonText: 'Yes, add it!',
         closeOnConfirm: false,
       },
-      function() {
-        var request = new XMLHttpRequest();
-        request.onload = function() {
-          if (!request) {
-            return;
-          }
-          if (request.status == 200) {
+      () => {
+        axios
+          .post('/controller/addSite', postData)
+          .then(response =>
             swal({
               title: 'Site Added!',
-              text: 'Response: ' + request.statusText,
+              text: 'Response: ' + response.statusText,
               type: 'success',
-            });
-          } else {
+            }),
+          )
+          .catch(error =>
             swal({
               title: 'Failed!',
-              text: 'Adding a site failed\nReason: ' + request.statusText,
+              text:
+                'Adding a site failed\nReason: ' + error.response.statusText,
               type: 'error',
-            });
-          }
-        };
-        try {
-          request.open('POST', '/controller/addSite', true);
-          request.send(JSON.stringify(postData));
-        } catch (e) {}
+            }),
+          );
       },
     );
   }
@@ -128,7 +123,7 @@ export default class DetailsSite extends React.Component {
         animation: 'slide-from-top',
         inputPlaceholder: 'Site Name',
       },
-      function(inputValue) {
+      inputValue => {
         if (inputValue === false) {
           return false;
         }
@@ -138,43 +133,40 @@ export default class DetailsSite extends React.Component {
           return false;
         }
 
-        const promise = new Promise((resolve, reject) => {
-          const exec = new Request(
+        return new Promise((resolve, reject) => {
+          const url =
             '/controller/renameSite/' +
-              this.props.topologyName +
-              '/' +
-              this.props.site.name +
-              '/' +
-              inputValue,
-            {credentials: 'same-origin'},
-          );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
+            this.props.topologyName +
+            '/' +
+            this.props.site.name +
+            '/' +
+            inputValue;
+          axios
+            .get(url)
+            .then(response =>
               swal(
                 {
                   title: 'Site renamed',
                   text: 'Response: ' + response.statusText,
                   type: 'success',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            } else {
+                () => resolve(),
+              ),
+            )
+            .catch(error =>
               swal(
                 {
                   title: 'Failed!',
-                  text: 'Renaming site failed.\nReason: ' + response.statusText,
+                  text:
+                    'Renaming site failed.\nReason: ' +
+                    error.response.statusText,
                   type: 'error',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
+                () => resolve(),
+              ),
+            );
         });
-      }.bind(this),
+      },
     );
   }
 
@@ -189,45 +181,44 @@ export default class DetailsSite extends React.Component {
         confirmButtonText: 'Yes, delete it!',
         closeOnConfirm: false,
       },
-      function() {
-        const promis = new Promise((resolve, reject) => {
-          const exec = new Request(
+      () => {
+        return new Promise((resolve, reject) => {
+          const url =
             '/controller/delSite/' +
-              this.props.topologyName +
-              '/' +
-              this.props.site.name,
-            {credentials: 'same-origin'},
-          );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
+            this.props.topologyName +
+            '/' +
+            this.props.site.name;
+          axios
+            .get(url)
+            .then(response =>
               swal(
                 {
                   title: 'Site Deleted!',
                   text: 'Response: ' + response.statusText,
                   type: 'success',
                 },
-                function() {
+                () => {
                   Dispatcher.dispatch({
                     actionType: Actions.CLEAR_NODE_LINK_SELECTED,
                   });
                   resolve();
                 },
-              );
-            } else {
+              ),
+            )
+            .catch(error =>
               swal(
                 {
                   title: 'Failed!',
-                  text: 'Site deletion failed\nReason: ' + response.statusText,
+                  text:
+                    'Site deletion failed\nReason: ' +
+                    error.response.statusText,
                   type: 'error',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
+                () => resolve(),
+              ),
+            );
         });
-      }.bind(this),
+      },
     );
   }
 
@@ -240,7 +231,7 @@ export default class DetailsSite extends React.Component {
   }
 
   genNodeType(nodeType, isPrimary) {
-    let type = nodeType == 1 ? 'CN ' : 'DN ';
+    let type = nodeType === 1 ? 'CN ' : 'DN ';
     type += isPrimary ? '(Primary)' : '(Secondary)';
     return type;
   }
@@ -260,14 +251,14 @@ export default class DetailsSite extends React.Component {
     // TODO: - wow this is inefficient
     Object.keys(this.props.nodes).map(nodeName => {
       const node = this.props.nodes[nodeName];
-      if (node.site_name == this.props.site.name) {
+      if (node.site_name === this.props.site.name) {
         nodesList.push(node);
 
         Object.keys(this.props.links).map(linkName => {
           const link = this.props.links[linkName];
           if (
-            link.link_type == 1 &&
-            (nodeName == link.a_node_name || nodeName == link.z_node_name)
+            link.link_type === 1 &&
+            (nodeName === link.a_node_name || nodeName === link.z_node_name)
           ) {
             // one of our links, calculate the angle of the location
             // we should know which one is local and remote for the angle
@@ -279,11 +270,6 @@ export default class DetailsSite extends React.Component {
 
     const nodesRows = [];
     nodesList.forEach(node => {
-      const headerColumn = (
-        <td rowSpan={nodesList.length} colSpan="1" width="100px">
-          Nodes
-        </td>
-      );
       let txGolayIdx = null;
       let rxGolayIdx = null;
       if (node.golay_idx) {
@@ -299,7 +285,7 @@ export default class DetailsSite extends React.Component {
                 this.selectNode(node.name);
               }}>
               {this.statusColor(
-                node.status == 2 || node.status == 3,
+                node.status === 2 || node.status === 3,
                 node.name,
                 node.name,
               )}
@@ -308,9 +294,9 @@ export default class DetailsSite extends React.Component {
           <td>{this.genNodeType(node.node_type, node.is_primary)}</td>
           <td>
             <span style={{color: polarityColor(node.polarity)}}>
-              {node.polarity == 1
+              {node.polarity === 1
                 ? 'Odd'
-                : node.polarity == 2
+                : node.polarity === 2
                   ? 'Even'
                   : 'Not Set'}
             </span>
@@ -328,7 +314,7 @@ export default class DetailsSite extends React.Component {
     linksList.forEach(link => {
       let alivePerc = 0;
       if (link.hasOwnProperty('alive_perc')) {
-        alivePerc = parseInt(link.alive_perc * 1000) / 1000.0;
+        alivePerc = parseInt(link.alive_perc * 1000, 10) / 1000.0;
       }
       alivePercAvg += alivePerc;
       linksRows.push(
@@ -348,10 +334,10 @@ export default class DetailsSite extends React.Component {
             </span>
           </td>
           <td>
-            <span>{parseInt(link.angle * 100) / 100}&deg;</span>
+            <span>{parseInt(link.angle * 100, 10) / 100}&deg;</span>
           </td>
           <td>
-            <span>{parseInt(link.distance * 100) / 100} m</span>
+            <span>{parseInt(link.distance * 100, 10) / 100} m</span>
           </td>
         </tr>,
       );
@@ -369,7 +355,7 @@ export default class DetailsSite extends React.Component {
       );
     }
     alivePercAvg /= linksList.length;
-    alivePercAvg = parseInt(alivePercAvg * 1000) / 1000.0;
+    alivePercAvg = parseInt(alivePercAvg * 1000, 10) / 1000.0;
     const actionsList = [];
     if (this.props.site.hasOwnProperty('pending') && this.props.site.pending) {
       actionsList.push(
