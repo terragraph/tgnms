@@ -16,10 +16,27 @@ import JSONFieldTooltip from './JSONFieldTooltip.js';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import isEqual from 'lodash-es/isEqual';
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
 export default class JSONFormField extends React.Component {
+  static propTypes = {
+    editPath: PropTypes.array.isRequired,
+    metadata: PropTypes.object,
+
+    formLabel: PropTypes.string.isRequired, // the field name for the value we are displaying
+    displayIdx: PropTypes.number.isRequired, // the index within values to display if not a draft
+    configLayerValues: PropTypes.array.isRequired,
+    isReverted: PropTypes.bool.isRequired,
+    isDraft: PropTypes.bool.isRequired,
+    displayVal: PropTypes.any.isRequired,
+  };
+
+  static defaultProps = {
+    metadata: {},
+  };
+
   state = {
     focus: false,
     hover: false,
@@ -28,6 +45,15 @@ export default class JSONFormField extends React.Component {
 
   componentDidMount() {
     this.validateField(this.props.displayVal);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.displayVal !== prevProps.displayVal ||
+      !isEqual(this.props.metadata, prevProps.metadata)
+    ) {
+      this.validateField(this.props.displayVal);
+    }
   }
 
   validateNumber(number, constraints) {
@@ -109,27 +135,27 @@ export default class JSONFormField extends React.Component {
   }
 
   validateField(value) {
-    const {metadata, displayVal} = this.props;
+    const {metadata} = this.props;
     let error = false;
 
     switch (metadata.type) {
       case 'INTEGER':
         error =
-          typeof displayVal !== 'number' ||
+          typeof value !== 'number' ||
           !this.validateNumber(parseInt(value), metadata.intVal || {});
         break;
       case 'FLOAT':
         error =
-          typeof displayVal !== 'number' ||
+          typeof value !== 'number' ||
           !this.validateNumber(parseFloat(value), metadata.floatVal || {});
         break;
       case 'STRING':
         error =
-          typeof displayVal !== 'string' ||
+          typeof value !== 'string' ||
           !this.validateString(value, metadata.strVal || {});
         break;
       case 'BOOLEAN':
-        error = typeof displayVal !== 'boolean';
+        error = typeof value !== 'boolean';
         break;
     }
 
@@ -210,7 +236,7 @@ export default class JSONFormField extends React.Component {
         checkboxId={checkboxId}
         value={displayVal}
         tooltip={tooltip}
-        disabled={metadata.deprecated}
+        disabled={metadata && metadata.deprecated}
         onChange={value => this.editField(value)}
         onFocus={() => this.setState({focus: true})}
         onBlur={() => this.setState({focus: false})}
@@ -257,7 +283,7 @@ export default class JSONFormField extends React.Component {
               className={inputClass}
               type="number"
               value={displayVal}
-              disabled={metadata.deprecated}
+              disabled={metadata && metadata.deprecated}
               onChange={event => this.editField(Number(event.target.value))}
               onFocus={() => this.setState({focus: true})}
               onBlur={() => this.setState({focus: false})}
@@ -278,7 +304,7 @@ export default class JSONFormField extends React.Component {
               className={inputClass}
               type="text"
               value={displayVal}
-              disabled={metadata.deprecated}
+              disabled={metadata && metadata.deprecated}
               onChange={event => this.editField(event.target.value)}
               onFocus={() => this.setState({focus: true})}
               onBlur={() => this.setState({focus: false})}
@@ -360,21 +386,3 @@ export default class JSONFormField extends React.Component {
     );
   }
 }
-
-JSONFormField.propTypes = {
-  editPath: PropTypes.array.isRequired,
-  metadata: PropTypes.object,
-
-  formLabel: PropTypes.string.isRequired, // the field name for the value we are displaying
-  displayIdx: PropTypes.number.isRequired, // the index within values to display if not a draft
-  configLayerValues: PropTypes.array.isRequired,
-  draftValue: PropTypes.any.isRequired,
-
-  isReverted: PropTypes.bool.isRequired,
-  isDraft: PropTypes.bool.isRequired,
-  displayVal: PropTypes.any.isRequired,
-
-  viewContext: PropTypes.shape({
-    viewOverridesOnly: PropTypes.bool.isRequired,
-  }).isRequired,
-};

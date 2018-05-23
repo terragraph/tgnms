@@ -17,6 +17,7 @@ import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
+import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
@@ -39,6 +40,7 @@ const VIEWS = {
   upgrade: {name: 'Upgrade', icon: 'upload'},
   'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
   config: {name: 'Network Config', icon: 'cog'},
+  'e2e-config': {name: 'E2E Controller Config', icon: 'hdd'},
 };
 
 const TOPOLOGY_OPS = {
@@ -560,6 +562,9 @@ export default class NetworkUI extends React.Component {
         break;
       case 'config':
         paneComponent = <NetworkConfigContainer {...viewProps} />;
+        break;
+      case 'e2e-config':
+        paneComponent = <E2EConfigContainer {...viewProps} />;
         break;
       default:
         paneComponent = (

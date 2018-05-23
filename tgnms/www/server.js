@@ -1979,6 +1979,20 @@ app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
   );
 });
 
+app.get(/\/controller\/getControllerConfig$/, (req, res, next) => {
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'getControllerConfig',
+      topology,
+    },
+    '',
+    res
+  );
+});
+
 app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
   let httpPostData = '';
   req.on('data', function (chunk) {
@@ -2023,7 +2037,7 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
   });
 });
 
-app.get(/\/controller\/getConfigMetadata/, (req, res, next) => {
+app.get(/\/controller\/getConfigMetadata$/, (req, res, next) => {
   const { topologyName } = req.query;
   const topology = getTopologyByName(topologyName);
 
@@ -2037,8 +2051,43 @@ app.get(/\/controller\/getConfigMetadata/, (req, res, next) => {
   );
 });
 
-// aggregator endpoints
+app.get(/\/controller\/getControllerConfigMetadata$/, (req, res, next) => {
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'getControllerConfigMetadata',
+      topology,
+    },
+    '',
+    res
+  );
+});
 
+app.post(/\/controller\/setControllerConfig$/, (req, res, next) => {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const {config, topologyName} = postData;
+    const topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'setControllerConfig',
+        topology,
+        config,
+      },
+      '',
+      res,
+    );
+  });
+});
+
+// aggregator endpoints
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
   if (!configByName[topologyName]) {

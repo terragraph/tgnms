@@ -10,8 +10,11 @@
 import {
   getBaseConfigSuccess,
   getConfigMetadataSuccess,
+  getControllerConfigSuccess,
+  getControllerConfigMetadataSuccess,
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
+  setControllerConfigSuccess,
   setNetworkConfigSuccess,
   setNodeConfigSuccess,
   showConfigError,
@@ -136,6 +139,46 @@ export const getNodeOverrideConfig = topologyName => {
     });
 };
 
+export const getControllerConfig = topologyName => {
+  const uri = '/controller/getControllerConfig';
+
+  axios
+    .get(uri, {
+      params: {
+        topologyName,
+      },
+    })
+    .then(response => {
+      const {config} = response.data;
+      const parsedConfig = JSON.parse(config);
+
+      getControllerConfigSuccess({
+        config: sortConfig(parsedConfig),
+        topologyName,
+      });
+    });
+};
+
+export const getControllerConfigMetadata = topologyName => {
+  const uri = '/controller/getControllerConfigMetadata';
+
+  axios
+    .get(uri, {
+      params: {
+        topologyName,
+      },
+    })
+    .then(response => {
+      const {metadata} = response.data;
+      const parsedMetadata = JSON.parse(metadata);
+
+      getControllerConfigMetadataSuccess({
+        metadata: parsedMetadata,
+        topologyName,
+      });
+    });
+};
+
 export const setNetworkOverrideConfig = (topologyName, config) => {
   const uri = '/controller/setNetworkOverrideConfig';
 
@@ -186,6 +229,23 @@ export const setNodeOverrideConfig = (
     })
     .then(response => {
       setNodeConfigSuccess({config, saveSelected});
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+      showConfigError(errorText);
+    });
+};
+
+export const setControllerConfig = (topologyName, config) => {
+  const uri = '/controller/setControllerConfig';
+
+  axios
+    .post(uri, {
+      config,
+      topologyName,
+    })
+    .then(response => {
+      setControllerConfigSuccess({config});
     })
     .catch(error => {
       const errorText = getErrorText(error);

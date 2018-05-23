@@ -133,6 +133,7 @@ NetworkConfig.propTypes = {
   editMode: PropTypes.string.isRequired,
   baseConfigByVersion: PropTypes.object.isRequired,
   newConfigFields: PropTypes.object.isRequired,
+  configMetadata: PropTypes.object,
 
   networkOverrideConfig: PropTypes.object.isRequired,
   networkDraftConfig: PropTypes.object.isRequired,
