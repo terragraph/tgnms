@@ -331,11 +331,7 @@ export default class NetworkDashboards extends React.Component {
         if (!this.state.editView) {
           layoutDivs.push(
             <div key={id}>
-              <PlotlyGraph
-                divkey={id}
-                title={graph.name}
-                options={graph}
-              />
+              <PlotlyGraph divkey={id} title={graph.name} options={graph} />
             </div>,
           );
         } else {

@@ -5,11 +5,11 @@
  */
 'use strict';
 
+import axios from 'axios';
 import equals from 'equals';
 import PropTypes from 'prop-types';
-import React from 'react';
 import Plot from 'react-plotly.js';
-import axios from 'axios';
+import React from 'react';
 
 export default class PlotlyGraph extends React.Component {
   constructor(props, context) {
@@ -120,7 +120,7 @@ export default class PlotlyGraph extends React.Component {
   // Format the response data for Plotly graphs
   plotDataFormatter(graphData) {
     if (graphData && graphData.points && graphData.points[0]) {
-      let traces = [];
+      const traces = [];
       // Create the correct number of trace (line) objects
       for (var i = 0; i < graphData.points[0].length - 1; i++) {
         traces.push({
