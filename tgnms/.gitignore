@@ -1,3 +1,4 @@
+.DS_Store
 www/node_modules/
 www/data/
 npm-debug.log

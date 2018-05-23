@@ -17,7 +17,7 @@
   -o-transform: translateY(-50%);
   transform: translateY(-50%);
 
-  display: inline-table;
+  width: 35rem;
 }
 
 .rc-json-field-tooltip::after {
@@ -43,6 +43,18 @@
 .nc-tooltip-label {
   font-weight: 600;
   margin-right: 5px;
+}
+
+.nc-tooltip-value {
+  word-break: break-all;
+}
+
+.nc-tooltip-deprecated {
+  color: #d63031;
+}
+
+.nc-tooltip-constraint-container {
+  margin-top: 1rem;
 }
 
 /* config action div + tooltip */

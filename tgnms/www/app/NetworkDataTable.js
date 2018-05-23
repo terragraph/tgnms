@@ -17,13 +17,13 @@ import NetworkStatusTable from './NetworkStatusTable.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
+import {isEqual} from 'lodash';
 import PropTypes from 'prop-types';
 // leaflet maps
 import {render} from 'react-dom';
 // tabs
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 import React from 'react';
-import {isEqual} from 'lodash';
 
 const TAB_NAMES = [
   'status',
@@ -61,8 +61,7 @@ export default class NetworkDataTable extends React.Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.height != this.props.height) {
       this.shouldUpdate = true;
-    }
-    else if (!isEqual(nextProps.networkConfig, this.props.networkConfig)) {
+    } else if (!isEqual(nextProps.networkConfig, this.props.networkConfig)) {
       this.shouldUpdate = true;
     }
   }

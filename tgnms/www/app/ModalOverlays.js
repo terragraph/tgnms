@@ -65,9 +65,7 @@ export default class ModalOverlays extends React.Component {
       <tr key={siteState}>
         <td />
         <td>
-          <font color={siteOverlaySource[siteState].color}>
-            {siteState}
-          </font>
+          <font color={siteOverlaySource[siteState].color}>{siteState}</font>
         </td>
       </tr>
     ));
@@ -85,8 +83,10 @@ export default class ModalOverlays extends React.Component {
         </tr>
       ));
 
-      if (this.state.selectedLinkOverlay !== 'RxGolayIdx' &&
-          this.state.selectedLinkOverlay !== 'TxGolayIdx') {
+      if (
+        this.state.selectedLinkOverlay !== 'RxGolayIdx' &&
+        this.state.selectedLinkOverlay !== 'TxGolayIdx'
+      ) {
         linkOverlayKeyRows.push(
           <tr key="last">
             <td />
@@ -99,11 +99,7 @@ export default class ModalOverlays extends React.Component {
                     ],
                 }}>
                 More than&nbsp;
-                {
-                  linkOverlaySource.values[
-                    linkOverlaySource.values.length - 1
-                  ]
-                }
+                {linkOverlaySource.values[linkOverlaySource.values.length - 1]}
               </font>
             </td>
           </tr>,

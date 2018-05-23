@@ -9,7 +9,7 @@
 import NetworkDataTable from './NetworkDataTable.js';
 import Dispatcher from './NetworkDispatcher.js';
 import {polarityColor} from './NetworkHelper.js';
-import DetailsLegend from "./components/detailpanels/DetailsLegend.js";
+import DetailsLegend from './components/detailpanels/DetailsLegend.js';
 import DetailsLink from './components/detailpanels/DetailsLink.js';
 import DetailsNode from './components/detailpanels/DetailsNode.js';
 import DetailsPlannedSite from './components/detailpanels/DetailsPlannedSite.js';
@@ -458,12 +458,9 @@ export default class NetworkMap extends React.Component {
   }
 
   handleExpandTablesClick(ev) {
-    setTimeout(
-      () => {
-        this.refs.map.leafletElement.invalidateSize();
-      },
-      1,
-    );
+    setTimeout(() => {
+      this.refs.map.leafletElement.invalidateSize();
+    }, 1);
     this.setState({
       upperPaneHeight: this.state.tablesExpanded
         ? window.innerHeight
@@ -1277,7 +1274,7 @@ export default class NetworkMap extends React.Component {
       this.addNodeMarkerForSite(topology, this.state.hoveredSite);
     }
 
-    let legendControl = (
+    const legendControl = (
       <Control position="bottomleft">
         <DetailsLegend
           siteOverlay={this.props.siteOverlay}

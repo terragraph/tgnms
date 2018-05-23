@@ -81,6 +81,7 @@ class ExpandableConfigForm extends React.Component {
       configs,
       draftConfig,
       newConfigFields,
+      metadata,
       formLabel,
       editPath,
       viewContext,
@@ -94,6 +95,7 @@ class ExpandableConfigForm extends React.Component {
       <JSONConfigForm
         configs={configs}
         draftConfig={draftConfig}
+        metadata={metadata}
         editPath={editPath}
         newConfigFields={newConfigFields}
         initExpanded={this.state.expandChildren}
@@ -163,6 +165,7 @@ ExpandableConfigForm.propTypes = {
   configs: PropTypes.arrayOf(PropTypes.object).isRequired,
   draftConfig: PropTypes.object.isRequired,
   newConfigFields: PropTypes.object.isRequired,
+  metadata: PropTypes.object,
   formLabel: PropTypes.string.isRequired,
   editPath: PropTypes.array.isRequired,
   initExpanded: PropTypes.bool.isRequired,
@@ -186,10 +189,6 @@ const duplicateFieldAlertProps = duplicateField => ({
 });
 
 export default class JSONConfigForm extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   isReverted(draftValue) {
     return draftValue === REVERT_VALUE;
   }
@@ -201,7 +200,7 @@ export default class JSONConfigForm extends React.Component {
   getDisplayIdx(configVals) {
     // traverse the array backwards and stop at the first value that is not undefined
     // this lets us get the "highest" override for a value, aka what to display
-    for (var idx = configVals.length - 1; idx >= 0; idx--) {
+    for (let idx = configVals.length - 1; idx >= 0; idx--) {
       if (configVals[idx] !== undefined && configVals[idx] !== null) {
         return idx; // field exists
       }
@@ -213,6 +212,7 @@ export default class JSONConfigForm extends React.Component {
     configs,
     draftConfig,
     newConfigFields,
+    metadata,
     fieldName,
     editPath,
     viewContext,
@@ -229,6 +229,7 @@ export default class JSONConfigForm extends React.Component {
         configs={processedConfigs}
         draftConfig={processedDraftConfig}
         newConfigFields={processedNewConfigFields}
+        metadata={metadata}
         formLabel={fieldName}
         editPath={editPath}
         initExpanded={this.props.initExpanded}
@@ -240,6 +241,7 @@ export default class JSONConfigForm extends React.Component {
   renderFormField({
     values,
     draftValue,
+    metadata,
     displayIdx,
     fieldName,
     editPath,
@@ -258,10 +260,11 @@ export default class JSONConfigForm extends React.Component {
 
     return (
       <JSONFormField
+        metadata={metadata}
         editPath={editPath}
         formLabel={fieldName}
         displayIdx={displayIdx}
-        values={values}
+        configLayerValues={values}
         draftValue={draftValue}
         isReverted={this.isReverted(draftValue)}
         isDraft={this.isDraft(draftValue)}
@@ -270,7 +273,14 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 
-  renderChildItem({values, draftValue, newField, fieldName, editPath}) {
+  renderChildItem({
+    values,
+    draftValue,
+    metadata,
+    newField,
+    fieldName,
+    editPath,
+  }) {
     // disregard the highest level of override if we have decided to revert the value (to display)
     const displayIdx = this.getDisplayIdx(
       this.isReverted(draftValue) ? values.slice(0, values.length - 1) : values,
@@ -287,6 +297,7 @@ export default class JSONConfigForm extends React.Component {
     const formFieldArgs = {
       values,
       draftValue,
+      metadata,
       displayIdx,
       fieldName,
       editPath,
@@ -306,6 +317,7 @@ export default class JSONConfigForm extends React.Component {
             configs: values,
             draftConfig: draftValue,
             newConfigFields: newField,
+            metadata: metadata,
             fieldName: fieldName,
             editPath: editPath,
             viewContext: this.props.viewContext,
@@ -325,6 +337,7 @@ export default class JSONConfigForm extends React.Component {
           configs: values,
           draftConfig: draftValue,
           newConfigFields: newField,
+          metadata,
           fieldName: fieldName,
           editPath: editPath,
           viewContext: this.props.viewContext,
@@ -404,7 +417,13 @@ export default class JSONConfigForm extends React.Component {
   }
 
   render() {
-    const {configs, draftConfig, newConfigFields, editPath} = this.props;
+    const {
+      configs,
+      draftConfig,
+      newConfigFields,
+      editPath,
+      metadata,
+    } = this.props;
 
     // retrieve the union of fields for all json objects in the array
     const configFields = getStackedFields([...configs, draftConfig]);
@@ -412,13 +431,30 @@ export default class JSONConfigForm extends React.Component {
       const draftValue = draftConfig[field];
       const configValues = configs.map(config => config[field]);
       const newField = newConfigFields[field];
+      const newEditPath = editPath.concat(field);
+      let fieldMetadata = {};
+
+      if (metadata) {
+        if (metadata.type === 'MAP') {
+          fieldMetadata = metadata.mapVal;
+        } else if (metadata.type === 'OBJECT') {
+          fieldMetadata = metadata.objVal.properties[field];
+        } else {
+          fieldMetadata = newEditPath ? metadata[field] : metadata;
+        }
+      }
+
+      if (metadata.deprecated) {
+        fieldMetadata.deprecated = metadata.deprecated;
+      }
 
       return this.renderChildItem({
         values: configValues,
         draftValue: draftValue,
+        metadata: fieldMetadata,
         newField: newField,
         fieldName: field,
-        editPath: editPath.concat(field),
+        editPath: newEditPath,
       });
     });
 
@@ -452,6 +488,7 @@ JSONConfigForm.propTypes = {
   configs: PropTypes.arrayOf(PropTypes.object).isRequired,
   draftConfig: PropTypes.object.isRequired,
   newConfigFields: PropTypes.object.isRequired,
+  metadata: PropTypes.object,
 
   // the "path" of keys that identifies the root of the component's config
   // vs the entire config object

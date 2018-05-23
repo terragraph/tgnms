@@ -24,14 +24,10 @@ import React from 'react';
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
 export default class JSONFormField extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      focus: false,
-      hover: false,
-    };
-  }
+  state = {
+    focus: false,
+    hover: false,
+  };
 
   editField(value) {
     editConfigForm({
@@ -88,7 +84,10 @@ export default class JSONFormField extends React.Component {
       : {};
 
     const tooltip = hover ? (
-      <JSONFieldTooltip values={this.props.values} />
+      <JSONFieldTooltip
+        metadata={this.props.metadata}
+        configLayerValues={this.props.configLayerValues}
+      />
     ) : null;
 
     return (
@@ -106,6 +105,7 @@ export default class JSONFormField extends React.Component {
   }
 
   renderInputItem(displayVal, displayIdx, isDraft, isReverted) {
+    const {metadata} = this.props;
     const {focus, hover} = this.state;
 
     let inputItem = (
@@ -124,6 +124,7 @@ export default class JSONFormField extends React.Component {
       isDraft,
       isReverted,
     );
+
     switch (typeof displayVal) {
       case 'boolean':
         inputItem = this.renderToggle(
@@ -145,7 +146,10 @@ export default class JSONFormField extends React.Component {
               onBlur={() => this.setState({focus: false})}
             />
             {(focus || hover) && (
-              <JSONFieldTooltip values={this.props.values} />
+              <JSONFieldTooltip
+                metadata={metadata}
+                configLayerValues={this.props.configLayerValues}
+              />
             )}
           </div>
         );
@@ -162,24 +166,28 @@ export default class JSONFormField extends React.Component {
               onBlur={() => this.setState({focus: false})}
             />
             {(focus || hover) && (
-              <JSONFieldTooltip values={this.props.values} />
+              <JSONFieldTooltip
+                metadata={metadata}
+                configLayerValues={this.props.configLayerValues}
+              />
             )}
           </div>
         );
         break;
     }
+
     return inputItem;
   }
 
-  isRevertable(displayIdx, values) {
-    return displayIdx === values.length - 1;
+  isRevertable(displayIdx, configLayerValues) {
+    return displayIdx === configLayerValues.length - 1;
   }
 
   render() {
     const {
       formLabel,
       displayIdx,
-      values,
+      configLayerValues,
       draftValue,
       isReverted,
       isDraft,
@@ -205,7 +213,7 @@ export default class JSONFormField extends React.Component {
 
         <div className="nc-form-body">
           {formInputElement}
-          {this.isRevertable(displayIdx, values) &&
+          {this.isRevertable(displayIdx, configLayerValues) &&
             !isDraft && (
               <div className="nc-form-action">
                 <img
@@ -238,10 +246,11 @@ export default class JSONFormField extends React.Component {
 
 JSONFormField.propTypes = {
   editPath: PropTypes.array.isRequired,
+  metadata: PropTypes.object,
 
   formLabel: PropTypes.string.isRequired, // the field name for the value we are displaying
   displayIdx: PropTypes.number.isRequired, // the index within values to display if not a draft
-  values: PropTypes.array.isRequired,
+  configLayerValues: PropTypes.array.isRequired,
   draftValue: PropTypes.any.isRequired,
 
   isReverted: PropTypes.bool.isRequired,

@@ -19,10 +19,6 @@ import {render} from 'react-dom';
 import React from 'react';
 
 export default class NetworkConfig extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   getBaseConfig(baseConfigByVersion, editMode, selectedImage, selectedNodes) {
     let baseKey = DEFAULT_BASE_KEY;
     if (editMode === CONFIG_VIEW_MODE.NODE && selectedNodes[0].imageVersion) {
@@ -59,6 +55,7 @@ export default class NetworkConfig extends React.Component {
       editMode,
       baseConfigByVersion,
       newConfigFields,
+      configMetadata,
 
       networkOverrideConfig,
       networkDraftConfig,
@@ -113,6 +110,7 @@ export default class NetworkConfig extends React.Component {
         />
         <NetworkConfigBody
           configs={stackedConfigs}
+          configMetadata={configMetadata}
           draftConfig={selectedDraftConfig}
           newConfigFields={newConfigFields}
           nodesWithDrafts={nodesWithDrafts}

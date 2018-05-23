@@ -219,6 +219,7 @@ const command2MsgType = {
     controllerTTypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
   setNodeOverrideConfig:
     controllerTTypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
+  getConfigMetadata: controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ,
 };
 
 var msgType2Params = {};
@@ -350,6 +351,10 @@ msgType2Params[
 msgType2Params[
   controllerTTypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ
 ] = {
+  recvApp: 'ctrl-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_CONFIG',
+};
+msgType2Params[controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ] = {
   recvApp: 'ctrl-app-CONFIG_APP',
   nmsAppId: 'NMS_WEB_CONFIG',
 };
@@ -672,6 +677,11 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(setNodeOverrideParams);
 
       break;
+    case 'getConfigMetadata':
+      var getConfigMetadataParams = new controllerTTypes.GetCtrlConfigMetadata();
+      send(getConfigMetadataParams);
+
+      break;
     default:
       console.error('sendCtrlMsgSync: No handler for msg type', msg.type);
       res.status(500).send('FAIL');
@@ -864,6 +874,16 @@ class ControllerProxy extends EventEmitter {
               networkOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: networkOverrideConfig});
               break;
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
+              const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
+              configMetadata.read(tProtocol);
+              resolve({type: 'msg', msg: configMetadata});
+              break;
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
+              const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
+              configMetadata.read(tProtocol);
+              resolve({type: 'msg', msg: configMetadata});
+              break;
             default:
               console.error(
                 '[controller] No receive handler defined for',
@@ -962,11 +982,10 @@ class ControllerProxy extends EventEmitter {
               nodeOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: nodeOverrideConfig});
               break;
-            case controllerTTypes.MessageType
-              .GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
-              const networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
-              networkOverrideConfig.read(tProtocol);
-              resolve({type: 'msg', msg: networkOverrideConfig});
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
+              const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
+              configMetadata.read(tProtocol);
+              resolve({type: 'msg', msg: configMetadata});
               break;
             case controllerTTypes.MessageType.UPGRADE_COMMIT_PLAN_REQ:
               const upgradeCommitPlan = new controllerTTypes.UpgradeCommitPlan();

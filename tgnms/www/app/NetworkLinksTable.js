@@ -550,8 +550,7 @@ export default class NetworkLinksTable extends React.Component {
           if (cell === 254) {
             cellText = 'N/A';
             cellColor = 'black';
-          }
-          else {
+          } else {
             cellText = cell.toFixed(1);
             // if value>thresh1 green, elseif >thresh2 orange, else red
             cellColor = variableColorUp(cell, 9, 5);
@@ -573,8 +572,7 @@ export default class NetworkLinksTable extends React.Component {
           if (cell === 254) {
             cellText = 'N/A';
             cellColor = 'black';
-          }
-          else {
+          } else {
             cellText = cell.toExponential(2);
             // if value<thresh1 green, elseif <thresh2 orange, else red
             cellColor = variableColorDown(cell, 0.005, 0.01);
@@ -591,7 +589,7 @@ export default class NetworkLinksTable extends React.Component {
       }
     }
 
-    return <span style={{ color: cellColor }}>{'' + cellText}</span>;
+    return <span style={{color: cellColor}}>{'' + cellText}</span>;
   }
 
   renderLinkAvailability(cell, row) {
