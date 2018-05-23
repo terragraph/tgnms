@@ -7,7 +7,7 @@
 
 import NetworkDashboardStats from './NetworkDashboardStats.js';
 import Dispatcher from './NetworkDispatcher.js';
-import ReactDyGraph from './ReactDyGraph.js';
+import PlotlyGraph from './PlotlyGraph.js';
 import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import {render} from 'react-dom';
@@ -328,20 +328,23 @@ export default class NetworkDashboards extends React.Component {
       const graphs = dashboard.graphs;
       var index = 0;
       graphs.forEach(graph => {
-        const id = 'graph' + index.toString();
+        const id = index.toString();
         layout.push({
           i: id,
           x: graph.container.x,
           y: graph.container.y,
           w: graph.container.w,
           h: graph.container.h,
+          minW: 2,
+          maxW: 6,
+          minH: 3,
           static: this.state.editView ? false : true,
         });
         if (!this.state.editView) {
           layoutDivs.push(
             <div key={id}>
-              <ReactDyGraph
-                divkey={id + 'dy'}
+              <PlotlyGraph
+                divkey={id}
                 title={graph.name}
                 options={graph}
               />
@@ -500,8 +503,8 @@ export default class NetworkDashboards extends React.Component {
         <ReactGridLayoutWidthProvider
           className="layout"
           layout={layout}
-          cols={12}
-          rowHeight={100}
+          cols={6}
+          rowHeight={150}
           verticalCompact={true}
           onLayoutChange={this.onLayoutChange.bind(this)}>
           {layoutDivs}
