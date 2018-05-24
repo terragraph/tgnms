@@ -74,6 +74,7 @@ void TableQueryHandler::onEOM() noexcept {
   std::vector<int64_t> keyIdList;
   std::vector<query::KeyData> keyDataListRenamed;
   std::string lastType;
+  int32_t lastInterval;
   int minAgo;
   {
     auto locked = typeaheadCache_.rlock();
@@ -103,6 +104,7 @@ void TableQueryHandler::onEOM() noexcept {
         keyData.displayName = keyData.nodeName;
         keyDataListRenamed.push_back(keyData);
       }
+      lastInterval = nodeQuery.interval;
       lastType = nodeQuery.type;
       if (nodeQuery.__isset.min_ago) {
         // use min_ago if set
@@ -117,6 +119,7 @@ void TableQueryHandler::onEOM() noexcept {
     nodeQuery.data = keyDataListRenamed;
     nodeQuery.min_ago = minAgo;
     nodeQuery.__isset.min_ago = true;
+    nodeQuery.interval = lastInterval;
     queryRequest.queries.push_back(nodeQuery);
     // build node queries
     keyIdList.clear();
@@ -125,15 +128,23 @@ void TableQueryHandler::onEOM() noexcept {
       VLOG(1) << "\tFetching link query metric: " << linkQuery.metric;
       // fetch KeyData
       auto keyDataList = taCache->getKeyData(linkQuery.metric);
+      // restrict by link if specified
       for (auto& keyData : keyDataList) {
         VLOG(1) << "\t\tLink: " << keyData.linkName
                 << ", titleAppend: " << keyData.linkTitleAppend
                 << ", displayName: " << keyData.displayName
                 << ", keyId: " << keyData.keyId;
+        if (!linkQuery.linkNameRestrictor.empty() &&
+            keyData.linkName != linkQuery.linkNameRestrictor) {
+          // restrict query by linkName if specified
+          VLOG(1) << "Skipping link due to linkNameRestrictor: " << keyData.linkName;
+          continue;
+        }
         keyIdList.push_back(keyData.keyId);
         keyData.displayName = keyData.linkName + keyData.linkTitleAppend + " - " + keyData.displayName;
         keyDataListRenamed.push_back(keyData);
       }
+      lastInterval = linkQuery.interval;
       lastType = linkQuery.type;
       if (linkQuery.__isset.min_ago) {
         // use min_ago if set
@@ -149,6 +160,7 @@ void TableQueryHandler::onEOM() noexcept {
   linkQuery.min_ago = minAgo;
   linkQuery.agg_type = "none";
   linkQuery.__isset.min_ago = true;
+  linkQuery.interval = lastInterval;
   queryRequest.queries.push_back(linkQuery);
   // build link queries
   BeringeiData dataFetcher(queryRequest);

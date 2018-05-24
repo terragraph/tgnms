@@ -93,6 +93,19 @@ CREATE TABLE IF NOT EXISTS `sys_logs` (
   KEY `source_id` (`source_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `topologies` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `initial_latitude` double NOT NULL,
+  `initial_longitude` double NOT NULL,
+  `initial_zoom_level` double NOT NULL,
+  `e2e_ip` varchar(100) NOT NULL,
+  `e2e_port` int(11) NOT NULL,
+  `api_ip` varchar(100) NOT NULL,
+  `api_port` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS `ts_key` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `node_id` int(11) NOT NULL,
