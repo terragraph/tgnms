@@ -126,6 +126,10 @@
   min-width: 250px;
 }
 
+.config-form-input.error {
+  border: 2px solid salmon;
+}
+
 .config-form-checkbox {
   display: inline;
   position: relative;
