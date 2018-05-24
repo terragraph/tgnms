@@ -47,6 +47,8 @@ struct Query {
   // period to search (unixtime)
   10: i64 start_ts,
   11: i64 end_ts,
+  // beringei time series interval in seconds
+  20: i32 interval = 30,
 }
 
 struct TypeAheadRequest {
@@ -61,11 +63,15 @@ struct TableQuery {
   2: string type,
   // e.g. fw_uptime
   3: string metric,
+  // restrict by link name
+  4: optional string linkNameRestrictor,
 
   10: i64 start_ts,
   11: i64 end_ts,
   // use over start/end if set
   12: optional i32 min_ago,
+  // beringei time series interval in seconds
+  20: i32 interval = 30,
 }
 
 struct TableQueryRequest {
@@ -190,4 +196,3 @@ struct MySqlAlertData {
   8: string trigger_key,
   9: double trigger_value,
 }
-
