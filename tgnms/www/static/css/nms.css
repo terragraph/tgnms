@@ -272,3 +272,64 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-legend-table td {
   text-align: center;
 }
+
+.GridColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  margin: 5px;
+}
+
+.GridColumn, .GridColumn .ReactVirtualized__Grid:focus {
+  outline: none !important;
+}
+
+.GridRow {
+  border-right: 0px;
+  border-bottom: 0px;
+  border-top: 1px;
+  border-left: 1px;
+  border-color: #d3d3d3;
+  border-style: solid;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.GridRow.HeaderRow {
+  border-top: none;
+  border-bottom: 1px solid #d3d3d3;
+}
+
+.GridRow.GridRowLeft {
+  border-left: none;
+}
+
+.GridRowEven {
+  background-color: #f9f9f9;
+}
+
+.GridRow.GridRowHovered {
+  background-color: #f5f5f5;
+}
+
+.GridRow.GridRowSelected {
+  background-color: rgb(183,210,255);
+}
+
+.HeaderGrid {
+  width: 100%;
+  overflow: hidden !important;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.HeaderGrid .ReactVirtualized__Grid__innerScrollContainer {
+  border-radius: 5px 5px 0px 0px;
+  border: 1px solid #d3d3d3;
+}
+
+.BodyGrid .ReactVirtualized__Grid__innerScrollContainer {
+  border-radius: 0px 0px 5px 5px;
+  border: 1px solid #d3d3d3;
+}

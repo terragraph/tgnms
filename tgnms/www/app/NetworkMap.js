@@ -78,6 +78,7 @@ export default class NetworkMap extends React.Component {
   linksByName = {};
   linksByNode = {};
   sitesByName = {};
+  nodesBySite = {};
 
   state = {
     hoveredSite: null,
@@ -303,11 +304,17 @@ export default class NetworkMap extends React.Component {
       const site = topologyJson.sites[siteIndex];
       sitesByName[site.name] = site;
     });
-    // index nodes by name
+
+    // index nodes by name and site
     const nodesByName = {};
+    const nodesBySite = {};
     Object.keys(topologyJson.nodes).map(nodeIndex => {
       const node = topologyJson.nodes[nodeIndex];
       nodesByName[node.name] = node;
+      if (!(node.site in nodesBySite)) {
+        nodesBySite[node.site] = []
+      }
+      nodesBySite[node.site].push(node);
     });
     const linksByName = {};
     const linksByNode = {};
@@ -316,8 +323,8 @@ export default class NetworkMap extends React.Component {
       linksByName[link.name] = link;
       // calculate distance and angle for each link
       if (
-        !nodesByName.hasOwnProperty(link.a_node_name) ||
-        !nodesByName.hasOwnProperty(link.z_node_name)
+        !(link.a_node_name in nodesByName) ||
+        !(link.z_node_name in nodesByName)
       ) {
         console.error('Skipping invalid link', link);
         return;
@@ -325,8 +332,8 @@ export default class NetworkMap extends React.Component {
       const aNode = nodesByName[link.a_node_name];
       const zNode = nodesByName[link.z_node_name];
       if (
-        !sitesByName.hasOwnProperty(aNode.site_name) ||
-        !sitesByName.hasOwnProperty(zNode.site_name)
+        !(aNode.site_name in sitesByName) ||
+        !(zNode.site_name in sitesByName)
       ) {
         console.error('Skipping invalid link', link);
         return;
@@ -368,7 +375,7 @@ export default class NetworkMap extends React.Component {
         typeof this.state.linkOverlayData === 'object' &&
         Object.keys(this.state.linkOverlayData).length > 0
       ) {
-        if (this.state.linkOverlayData.hasOwnProperty(link.name)) {
+        if (link.name in this.state.linkOverlayData) {
           link.overlay_a = this.state.linkOverlayData[link.name];
           link.overlay_z = this.state.linkOverlayData[link.name];
         }
@@ -412,6 +419,7 @@ export default class NetworkMap extends React.Component {
     // update helper maps
     this.resetZoomOnNextRefresh = false;
     this.nodesByName = nodesByName;
+    this.nodesBySite = nodesBySite;
     this.linksByName = linksByName;
     this.linksByNode = linksByNode;
     this.sitesByName = sitesByName;
