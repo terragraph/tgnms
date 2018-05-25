@@ -35,7 +35,7 @@ export default class ModalCSVUpload extends React.Component {
 
   uploadCSV() {
     const fileInput = document.getElementById('fileInput');
-    const reader = new FileReader();
+    const reader = new window.FileReader();
     let rows = [];
 
     reader.onload = function(e) {

@@ -5,18 +5,18 @@
  */
 'use strict';
 
-import classnames from 'classnames';
 import {
   LinkOverlayKeys,
   SiteOverlayKeys,
-} from "../../constants/NetworkConstants.js";
-import React from "react";
-import {Panel} from "react-bootstrap";
+} from '../../constants/NetworkConstants.js';
+import classnames from 'classnames';
+import {Panel} from 'react-bootstrap';
+import React from 'react';
 
 export default class DetailsLegend extends React.Component {
   state = {
     open: false,
-  }
+  };
 
   // Values for node type legend entry icons.
   // All values chosen to try and match the leaflet markers
@@ -29,8 +29,8 @@ export default class DetailsLegend extends React.Component {
       r: '5',
       strokeWidth: '1',
       stroke: 'none',
-    }
-  }
+    },
+  };
   nodeTypesOverlaySource = {
     DN: {
       color: 'blue',
@@ -51,37 +51,41 @@ export default class DetailsLegend extends React.Component {
         strokeWidth: '3',
         stroke: 'purple',
       },
-    }
-  }
+    },
+  };
 
   constructor(props) {
     super(props);
   }
 
   render() {
-    const nodeTypeOverlayKeyRows = Object.keys(this.nodeTypesOverlaySource)
-      .map(nodeType => {
+    const nodeTypeOverlayKeyRows = Object.keys(this.nodeTypesOverlaySource).map(
+      nodeType => {
         // Shallow copy defaults
-        let svg = Object.assign({}, this.nodeTypesOverlayDefaults.svg);
+        const svg = Object.assign({}, this.nodeTypesOverlayDefaults.svg);
         // Merge any overrides with defaults
         Object.assign(svg, this.nodeTypesOverlaySource[nodeType].svg);
 
-        return (<tr key={nodeType}>
-          <td>
-            <svg width={svg.width} height={svg.height}>
-              <circle
-                cx={svg.cx}
-                cy={svg.cy}
-                r={svg.r}
-                strokeWidth={svg.strokeWidth}
-                stroke={svg.stroke}
-                fill={this.nodeTypesOverlaySource[nodeType].color}>
-              </circle>
-            </svg>
-          </td>
-          <td>{nodeType}</td>
-        </tr>);
-      }, this);
+        return (
+          <tr key={nodeType}>
+            <td>
+              <svg width={svg.width} height={svg.height}>
+                <circle
+                  cx={svg.cx}
+                  cy={svg.cy}
+                  r={svg.r}
+                  strokeWidth={svg.strokeWidth}
+                  stroke={svg.stroke}
+                  fill={this.nodeTypesOverlaySource[nodeType].color}
+                />
+              </svg>
+            </td>
+            <td>{nodeType}</td>
+          </tr>
+        );
+      },
+      this,
+    );
 
     const siteOverlaySource = SiteOverlayKeys[this.props.siteOverlay];
     const siteOverlayKeyRows = Object.keys(siteOverlaySource).map(siteState => (
@@ -92,45 +96,37 @@ export default class DetailsLegend extends React.Component {
               cx="20"
               cy="20"
               r="10"
-              fill={siteOverlaySource[siteState].color}>
-            </circle>
+              fill={siteOverlaySource[siteState].color}
+            />
           </svg>
         </td>
         <td>
-          <font color={siteOverlaySource[siteState].color}>
+          <span style={{color: siteOverlaySource[siteState].color}}>
             {siteState}
-          </font>
+          </span>
         </td>
       </tr>
     ));
 
     // Values chosen to match leaflet markers and also look somewhat decent
-    const linkMarkerWidth = "40";
-    const linkMarkerHeight = "30";
-    const linkMarkerX1 = "0";
-    const linkMarkerY1 = "15";
-    const linkMarkerX2 = "30";
-    const linkMarkerY2 = "15";
+    const linkMarkerWidth = '40';
+    const linkMarkerHeight = '30';
+    const linkMarkerX1 = '0';
+    const linkMarkerY1 = '15';
+    const linkMarkerX2 = '30';
+    const linkMarkerY2 = '15';
     const linkMarkerStrokeWidth = 4;
 
     let linkOverlayKeyRows = [];
     let linkOverlaySource = LinkOverlayKeys[this.props.linkOverlay];
     const health = {
-      values: [
-        "Alive",
-        "Ignition Candidate",
-        "Dead",
-      ],
-      colors: [
-        "green",
-        "purple",
-        "red",
-      ],
+      values: ['Alive', 'Ignition Candidate', 'Dead'],
+      colors: ['green', 'purple', 'red'],
       prefix: '',
-    }
+    };
 
     // Health is dealt set up differently in NetworkConstants, so override here
-    if (this.props.linkOverlay === "Health") {
+    if (this.props.linkOverlay === 'Health') {
       linkOverlaySource = health;
     }
 
@@ -146,22 +142,24 @@ export default class DetailsLegend extends React.Component {
                 y2={linkMarkerY2}
                 style={{
                   stroke: linkOverlaySource.colors[index],
-                  strokeWidth: linkMarkerStrokeWidth
-                }}>
-              </line>
+                  strokeWidth: linkMarkerStrokeWidth,
+                }}
+              />
             </svg>
           </td>
           <td>
-            <font style={{ color: linkOverlaySource.colors[index] }}>
-              {linkOverlaySource.prefix + " " + value}
-            </font>
+            <span style={{color: linkOverlaySource.colors[index]}}>
+              {linkOverlaySource.prefix + ' ' + value}
+            </span>
           </td>
         </tr>
       ));
 
-      if (this.props.linkOverlay !== "RxGolayIdx" &&
-          this.props.linkOverlay !== "TxGolayIdx" &&
-          this.props.linkOverlay !== "Health") {
+      if (
+        this.props.linkOverlay !== 'RxGolayIdx' &&
+        this.props.linkOverlay !== 'TxGolayIdx' &&
+        this.props.linkOverlay !== 'Health'
+      ) {
         linkOverlayKeyRows.push(
           <tr key="last">
             <td>
@@ -172,49 +170,48 @@ export default class DetailsLegend extends React.Component {
                   x2={linkMarkerX2}
                   y2={linkMarkerY2}
                   style={{
-                    stroke: linkOverlaySource.colors[
-                      linkOverlaySource.colors.length - 1
-                    ],
-                    strokeWidth: linkMarkerStrokeWidth
-                  }}>
-                </line>
+                    stroke:
+                      linkOverlaySource.colors[
+                        linkOverlaySource.colors.length - 1
+                      ],
+                    strokeWidth: linkMarkerStrokeWidth,
+                  }}
+                />
               </svg>
             </td>
             <td>
-              <font
+              <span
                 style={{
-                  color: linkOverlaySource.colors[
-                    linkOverlaySource.colors.length - 1
-                  ]
-                }}
-              >
+                  color:
+                    linkOverlaySource.colors[
+                      linkOverlaySource.colors.length - 1
+                    ],
+                }}>
                 More than&nbsp;
-                {
-                  linkOverlaySource.values[linkOverlaySource.values.length - 1]
-                }
-              </font>
+                {linkOverlaySource.values[linkOverlaySource.values.length - 1]}
+              </span>
             </td>
-          </tr>
+          </tr>,
         );
       }
     }
 
-    const triangleClass = this.state.open ? 'glyphicon-triangle-bottom'
-                                          : 'glyphicon-triangle-top';
+    const triangleClass = this.state.open
+      ? 'glyphicon-triangle-bottom'
+      : 'glyphicon-triangle-top';
 
     return (
       <Panel
         bsStyle="info"
         id="legendControl"
-        onToggle={() => this.setState({ open: !this.state.open })}
-      >
+        onToggle={() => this.setState({open: !this.state.open})}>
         <Panel.Heading>
           <Panel.Title componentClass="h3" toggle>
             Legend&nbsp;
             <span
               className={classnames('glyphicon', triangleClass)}
               aria-hidden="true"
-              style={{float: "right"}}
+              style={{float: 'right'}}
             />
           </Panel.Title>
         </Panel.Heading>
@@ -223,9 +220,7 @@ export default class DetailsLegend extends React.Component {
             <Panel>
               <Panel.Body>
                 <table className="details-legend-table">
-                  <tbody>
-                    {nodeTypeOverlayKeyRows}
-                  </tbody>
+                  <tbody>{nodeTypeOverlayKeyRows}</tbody>
                 </table>
               </Panel.Body>
             </Panel>
@@ -238,9 +233,7 @@ export default class DetailsLegend extends React.Component {
               <Panel.Collapse>
                 <Panel.Body>
                   <table className="details-legend-table">
-                    <tbody>
-                      {siteOverlayKeyRows}
-                    </tbody>
+                    <tbody>{siteOverlayKeyRows}</tbody>
                   </table>
                 </Panel.Body>
               </Panel.Collapse>
@@ -255,9 +248,7 @@ export default class DetailsLegend extends React.Component {
               <Panel.Collapse>
                 <Panel.Body>
                   <table className="details-legend-table">
-                    <tbody>
-                      {linkOverlayKeyRows}
-                    </tbody>
+                    <tbody>{linkOverlayKeyRows}</tbody>
                   </table>
                 </Panel.Body>
               </Panel.Collapse>

@@ -18,43 +18,121 @@ const UNDEFINED_PLACEHOLDER = [
 ];
 
 export default class JSONFieldTooltip extends React.Component {
-  constructor(props) {
-    super(props);
+  static propTypes = {
+    metadata: PropTypes.object,
+    configLayerValues: PropTypes.array.isRequired,
+  };
+
+  static defaultProps = {
+    metadata: {},
+  };
+
+  constraint2English = {
+    allowedRanges: 'Allowed Ranges: ',
+    allowedValues: 'Allowed Values: ',
+    regexMatches: 'Regex Matches: ',
+    intRanges: 'Integer Ranges: ',
+    floatRanges: 'Float Ranges',
+  };
+
+  renderValueConstraints() {
+    const {metadata} = this.props;
+
+    let constraintKeys = [];
+    let constraints;
+
+    switch (metadata.type) {
+      case 'FLOAT':
+        constraintKeys = ['allowedRanges', 'allowedValues'];
+        constraints = metadata.floatVal;
+        break;
+      case 'INTEGER':
+        constraintKeys = ['allowedRanges', 'allowedValues'];
+        constraints = metadata.intVal;
+        break;
+      case 'STRING':
+        constraintKeys = [
+          'regexMatches',
+          'intRanges',
+          'floatRanges',
+          'allowedValues',
+        ];
+        constraints = metadata.strVal;
+        break;
+    }
+
+    if (!constraints) {
+      return null;
+    }
+
+    const constraintElems = constraintKeys
+      .filter(key => constraints.hasOwnProperty(key))
+      .map(key => {
+        let valueConstraints = constraints[key];
+
+        if (Array.isArray(valueConstraints) && valueConstraints.length === 1) {
+          valueConstraints = valueConstraints[0];
+        }
+
+        return (
+          <div>
+            <span className="nc-tooltip-label">
+              {this.constraint2English[key]}
+            </span>
+            <span>{JSON.stringify(valueConstraints)}</span>
+          </div>
+        );
+      });
+
+    return (
+      <div className="nc-tooltip-constraint-container">{constraintElems}</div>
+    );
   }
 
   render() {
-    const {values} = this.props;
+    const {metadata, configLayerValues} = this.props;
 
-    const tooltipContents = values.map((value, idx) => {
-      let displayVal =
-        value === undefined || value === null
-          ? UNDEFINED_PLACEHOLDER[idx]
-          : value;
-      // boolean to strings...
-      if (displayVal === true) {
-        displayVal = 'true';
-      } else if (displayVal === false) {
-        displayVal = 'false';
-      }
+    const typePascalCase =
+      metadata.type[0] + metadata.type.slice(1).toLowerCase();
+
+    const configLayerContents = configLayerValues.map((value, idx) => {
+      const displayVal = !value ? UNDEFINED_PLACEHOLDER[idx] : value;
 
       return (
-        <tr>
-          <td>
-            <span className="nc-tooltip-label">{CONFIG_LAYER_DESC[idx]}:</span>
-          </td>
-          <td>{displayVal}</td>
-        </tr>
+        <div key={`${CONFIG_LAYER_DESC[idx]}-${value}`}>
+          <span className="nc-tooltip-label">{CONFIG_LAYER_DESC[idx]}:</span>
+          <span className="nc-tooltip-value">{displayVal}</span>
+        </div>
       );
     });
 
     return (
       <div className="rc-json-field-tooltip">
-        <table>{tooltipContents}</table>
+        {metadata.required && <p className="nc-tooltip-label">REQUIRED</p>}
+        {metadata.deprecated && (
+          <p className="nc-tooltip-label nc-tooltip-deprecated">DEPRECATED</p>
+        )}
+        <div>
+          <span className="nc-tooltip-label">Description:</span>
+          {metadata.desc || 'N/A'}
+        </div>
+        <br />
+        <div>
+          <span className="nc-tooltip-label">Type:</span>
+          {typePascalCase || 'N/A'}
+        </div>
+        <div>
+          <span className="nc-tooltip-label">Action:</span>
+          {metadata.action || 'N/A'}
+        </div>
+        {configLayerContents}
+        {this.renderValueConstraints()}
       </div>
     );
   }
 }
 
 JSONFieldTooltip.propTypes = {
-  values: PropTypes.array.isRequired,
+  metadata: PropTypes.object,
+  configLayerValues: PropTypes.array.isRequired,
 };

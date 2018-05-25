@@ -18,20 +18,14 @@ import NetworkStats from './NetworkStats.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
-// dispatcher
-import {Actions} from './constants/NetworkConstants.js';
-import {
-  SiteOverlayKeys,
-  LinkOverlayKeys,
-} from './constants/NetworkConstants.js';
+import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
+import axios from 'axios';
 import moment from 'moment';
-// menu bar
 import Menu, {SubMenu, Item as MenuItem, Divider} from 'rc-menu';
 import {Glyphicon} from 'react-bootstrap';
-// leaflet maps
-import {render} from 'react-dom';
 import React from 'react';
+import swal from 'sweetalert';
 
 // icon: Glyphicon from Bootstrap 3.3.7
 const VIEWS = {
@@ -103,77 +97,56 @@ export default class NetworkUI extends React.Component {
   }
 
   getNetworkStatusPeriodic() {
-    if (this.state.networkName != null) {
+    if (this.state.networkName !== null) {
       this.getNetworkStatus(this.state.networkName);
       // initial load
-      if (this.state.commitPlan == null) {
+      if (this.state.commitPlan === null) {
         this.fetchCommitPlan(this.state.networkName);
       }
     }
   }
 
   getNetworkStatus(networkName) {
-    const topoGetFetch = new Request('/topology/get/' + networkName, {
-      credentials: 'same-origin',
-    });
-    fetch(topoGetFetch).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              // TODO: normalize the topology with health data if it exists
-              this.setState({
-                networkConfig: json,
-              });
-              // dispatch the updated topology json
-              Dispatcher.dispatch({
-                actionType: Actions.TOPOLOGY_REFRESHED,
-                networkConfig: json,
-              });
-            }.bind(this),
-          );
-        } else if (response.status == 404) {
-          // topology is invalid, switch to the first topology in the list
-          if (this.state.topologies.length) {
-            Dispatcher.dispatch({
-              actionType: Actions.TOPOLOGY_SELECTED,
-              networkName: this.state.topologies[0].name,
-            });
-          }
+    axios
+      .get('/topology/get/' + networkName)
+      .then(response => {
+        // TODO: normalize the topology with health data if it exists
+        this.setState({
+          networkConfig: response.data,
+        });
+        // dispatch the updated topology json
+        Dispatcher.dispatch({
+          actionType: Actions.TOPOLOGY_REFRESHED,
+          networkConfig: response.data,
+        });
+      })
+      .catch(_error => {
+        // topology is invalid, switch to the first topology in the list
+        if (this.state.topologies.length) {
+          Dispatcher.dispatch({
+            actionType: Actions.TOPOLOGY_SELECTED,
+            networkName: this.state.topologies[0].name,
+          });
         }
-      }.bind(this),
-    );
+      });
   }
 
   fetchCommitPlan(networkName) {
     // handle commit plan overlay
-    const commitPlanReq = {
+    const payload = {
       topologyName: networkName,
       limit: 100,
       excludeNodes: [],
     };
-    const commitPlanFetch = new Request('/controller/commitUpgradePlan', {
-      method: 'POST',
-      body: JSON.stringify(commitPlanReq),
-      credentials: 'same-origin',
+    axios.post('/controller/commitUpgradePlan', payload).then(response => {
+      const commitPlan = response.data;
+      commitPlan.commitBatches = commitPlan.commitBatches.map(batch => {
+        return new Set(batch);
+      });
+      this.setState({
+        commitPlan: commitPlan,
+      });
     });
-    fetch(commitPlanFetch).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              const commitPlan = json;
-              commitPlan.commitBatches = commitPlan.commitBatches.map(batch => {
-                return new Set(batch);
-              });
-              this.setState({
-                commitPlan: commitPlan,
-              });
-            }.bind(this),
-          );
-        }
-      }.bind(this),
-    );
   }
 
   handleDispatchEvent(payload) {
@@ -181,7 +154,7 @@ export default class NetworkUI extends React.Component {
       case Actions.VIEW_SELECTED:
         const viewName = payload.viewName;
         // ignore the menu
-        if (viewName == '#') {
+        if (viewName === '#') {
           break;
         }
         this.setState({
@@ -236,28 +209,18 @@ export default class NetworkUI extends React.Component {
     if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
       return;
     }
-    const linkHealthFetch = new Request('/health/' + networkName, {
-      credentials: 'same-origin',
-    });
     // update last request time
     this.lastHealthRequestTime = new Date() / 1000;
-    fetch(linkHealthFetch).then(function(response) {
-      if (response.status == 200) {
-        response
-          .json()
-          .then(function(json) {
-            // merge data
-            if (json.length != 2) {
-              return;
-            }
-            Dispatcher.dispatch({
-              actionType: Actions.HEALTH_REFRESHED,
-              nodeHealth: json[0],
-              linkHealth: json[1],
-            });
-          })
-          .catch(error => {});
+    axios.get('/health/' + networkName).then(response => {
+      const data = response.data;
+      if (data.length !== 2) {
+        return;
       }
+      Dispatcher.dispatch({
+        actionType: Actions.HEALTH_REFRESHED,
+        nodeHealth: data[0],
+        linkHealth: data[1],
+      });
     });
   }
 
@@ -267,63 +230,47 @@ export default class NetworkUI extends React.Component {
     if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
       return;
     }
-    const linkAnalyzerFetch = new Request('/link_analyzer/' + networkName, {
-      credentials: 'same-origin',
-    });
     // update last request time
     this.lastAnalyzerRequestTime = new Date() / 1000;
-    fetch(linkAnalyzerFetch).then(function(response) {
-      if (response.status == 200) {
-        response
-          .json()
-          .then(json => {
-            // merge data
-            if (json.length != 1) {
-              return;
-            }
-            // ensure we can decode the response
-            Dispatcher.dispatch({
-              actionType: Actions.ANALYZER_REFRESHED,
-              analyzerTable: json[0],
-            });
-          })
-          .catch(error => {});
+    axios.get('/link_analyzer/' + networkName).then(response => {
+      const json = response.data;
+      // merge data
+      if (json.length !== 1) {
+        return;
       }
+      // ensure we can decode the response
+      Dispatcher.dispatch({
+        actionType: Actions.ANALYZER_REFRESHED,
+        analyzerTable: json[0],
+      });
     });
   }
 
   // see scan_results in server.js
   updateScanResults(networkName, filter) {
     const lastAttemptAgo = new Date() / 1000 - this.lastAnalyzerRequestTime;
-    let scanResultsFetch = [];
-    // if a nodeName is given, use it, otherwise use the topology name
-    scanResultsFetch = new Request(
-      '/scan_results?topology=' +
-        networkName +
-        '&filter[row_count]=' +
-        filter.row_count +
-        '&filter[offset]=' +
-        filter.offset +
-        '&filter[nodeFilter0]=' +
-        filter.nodeFilter[0] +
-        '&filter[nodeFilter1]=' +
-        filter.nodeFilter[1],
-      {
-        credentials: 'same-origin',
-      },
-    );
-
+    if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
+      return;
+    }
     // update last request time
     this.lastScanRequestTime = new Date() / 1000;
-    fetch(scanResultsFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          Dispatcher.dispatch({
-            actionType: Actions.SCAN_REFRESHED,
-            scanResults: json,
-          });
-        });
-      }
+    const url =
+      '/scan_results?topology=' +
+      networkName +
+      '&filter[row_count]=' +
+      filter.row_count +
+      '&filter[offset]=' +
+      filter.offset +
+      '&filter[nodeFilter0]=' +
+      filter.nodeFilter[0] +
+      '&filter[nodeFilter1]=' +
+      filter.nodeFilter[1];
+
+    axios.get(url).then(response => {
+      Dispatcher.dispatch({
+        actionType: Actions.SCAN_REFRESHED,
+        scanResults: response.data,
+      });
     });
   }
 
@@ -334,54 +281,37 @@ export default class NetworkUI extends React.Component {
 
       if (metric) {
         // refresh link overlay stat
-        const linkHealthFetch = new Request(
-          '/overlay/linkStat/' + networkName + '/' + metric,
-          {credentials: 'same-origin'},
-        );
-        fetch(linkHealthFetch).then(function(response) {
-          if (response.status == 200) {
-            response.json().then(function(json) {
-              Dispatcher.dispatch({
-                actionType: Actions.LINK_OVERLAY_REFRESHED,
-                overlay: json[0],
-              });
+        axios
+          .get('/overlay/linkStat/' + networkName + '/' + metric)
+          .then(response => {
+            Dispatcher.dispatch({
+              actionType: Actions.LINK_OVERLAY_REFRESHED,
+              overlay: response.data[0],
             });
-          }
-        });
+          });
       }
     }
   }
 
   refreshTopologyList() {
     // topology list
-    const topoListFetch = new Request('/topology/list', {
-      credentials: 'same-origin',
+    axios.get('/topology/list').then(response => {
+      this.setState({
+        topologies: response.data,
+      });
+      // dispatch the whole network topology struct
+      Dispatcher.dispatch({
+        actionType: Actions.TOPOLOGY_LIST_REFRESHED,
+        topologies: response.data,
+      });
+      // select the first topology by default
+      if (!this.state.networkName && this.state.topologies.length) {
+        Dispatcher.dispatch({
+          actionType: Actions.TOPOLOGY_SELECTED,
+          networkName: this.state.topologies[0].name,
+        });
+      }
     });
-    fetch(topoListFetch).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              this.setState({
-                topologies: json,
-              });
-              // dispatch the whole network topology struct
-              Dispatcher.dispatch({
-                actionType: Actions.TOPOLOGY_LIST_REFRESHED,
-                topologies: json,
-              });
-              // select the first topology by default
-              if (!this.state.networkName && this.state.topologies.length) {
-                Dispatcher.dispatch({
-                  actionType: Actions.TOPOLOGY_SELECTED,
-                  networkName: this.state.topologies[0].name,
-                });
-              }
-            }.bind(this),
-          );
-        }
-      }.bind(this),
-    );
   }
 
   UNSAFE_componentWillMount() {
@@ -490,13 +420,13 @@ export default class NetworkUI extends React.Component {
     if (this.state.networkConfig && this.state.networkConfig.topology) {
       const topology = this.state.networkConfig.topology;
       const linksOnline = topology.links.filter(
-        link => link.link_type == 1 && link.is_alive,
+        link => link.link_type === 1 && link.is_alive,
       ).length;
-      const linksWireless = topology.links.filter(link => link.link_type == 1)
+      const linksWireless = topology.links.filter(link => link.link_type === 1)
         .length;
       // online + online initiator
       const sectorsOnline = topology.nodes.filter(
-        node => node.status == 2 || node.status == 3,
+        node => node.status === 2 || node.status === 3,
       ).length;
       const e2eStatusList = [];
       if (this.state.networkConfig.hasOwnProperty('controller_events')) {
@@ -504,7 +434,7 @@ export default class NetworkUI extends React.Component {
           .slice()
           .reverse()
           .forEach((eventArr, index) => {
-            if (eventArr.length != 2) {
+            if (eventArr.length !== 2) {
               return;
             }
             const timeStr = moment(new Date(eventArr[0])).format(
@@ -722,7 +652,6 @@ export default class NetworkUI extends React.Component {
               key="view"
               mode="vertical">
               {Object.keys(VIEWS).map(viewKey => {
-                const viewName = VIEWS[viewKey].name;
                 return (
                   <MenuItem key={'view#' + viewKey}>
                     <Glyphicon glyph={VIEWS[viewKey].icon} />

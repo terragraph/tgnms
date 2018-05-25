@@ -7,9 +7,8 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import {render} from 'react-dom';
+import axios from 'axios';
 import Modal from 'react-modal';
-import Select from 'react-select';
 import React from 'react';
 import swal from 'sweetalert';
 
@@ -60,136 +59,101 @@ export default class ModalIgnitionState extends React.Component {
   }
 
   getIgnitionState() {
-    this.getRequest = new Request(
-      '/controller/getIgnitionState/' + this.props.topologyName,
-      {credentials: 'same-origin'},
-    );
-    fetch(this.getRequest).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              let linkIgState = null;
-              let networkIgState = null;
-              const otherIgState = [];
-              if (json.igParams) {
-                networkIgState = json.igParams.enable;
-                if (json.igParams.linkAutoIgnite) {
-                  // explicitly check because coercing a null into a boolean will return a false
-                  if (networkIgState === false) {
-                    linkIgState = false;
-                  } else {
-                    linkIgState = true;
-                    Object.keys(json.igParams.linkAutoIgnite).map(linkName => {
-                      if (linkName == this.props.link.name) {
-                        linkIgState = false;
-                      } else {
-                        otherIgState.push(linkName);
-                      }
-                    });
-                  }
+    axios
+      .get('/controller/getIgnitionState/' + this.props.topologyName)
+      .then(response => {
+        const json = response.data;
+        let linkIgState = null;
+        let networkIgState = null;
+        const otherIgState = [];
+        if (json.igParams) {
+          networkIgState = json.igParams.enable;
+          if (json.igParams.linkAutoIgnite) {
+            // explicitly check because coercing a null into a boolean will return a false
+            if (networkIgState === false) {
+              linkIgState = false;
+            } else {
+              linkIgState = true;
+              Object.keys(json.igParams.linkAutoIgnite).map(linkName => {
+                if (linkName === this.props.link.name) {
+                  linkIgState = false;
+                } else {
+                  otherIgState.push(linkName);
                 }
-              }
-              this.setState({
-                networkIgnitionState: networkIgState,
-                linkIgnitionState: linkIgState,
-                otherIgnitionState: otherIgState,
               });
-            }.bind(this),
-          );
+            }
+          }
         }
-      }.bind(this),
-    );
+        this.setState({
+          networkIgnitionState: networkIgState,
+          linkIgnitionState: linkIgState,
+          otherIgnitionState: otherIgState,
+        });
+      });
   }
 
   setNetworkIgnition(state) {
     const stateText = state ? 'enable' : 'disable';
-    const promis = new Promise((resolve, reject) => {
-      this.setRequest = new Request(
-        '/controller/setNetworkIgnitionState/' +
-          this.props.topologyName +
-          '/' +
-          stateText,
-        {credentials: 'same-origin'},
+    const url =
+      '/controller/setNetworkIgnitionState/' +
+      this.props.topologyName +
+      '/' +
+      stateText;
+
+    axios
+      .get(url)
+      .then(response =>
+        swal(
+          {
+            title:
+              'Network Auto Ignition ' + (state ? 'Enabled!' : 'Disabled!'),
+            text: 'Response: ' + response.statusText,
+            type: 'success',
+          },
+          () => this.getIgnitionState(),
+        ),
+      )
+      .catch(error =>
+        swal({
+          title: 'Failed!',
+          text:
+            'Setting Network Auto Ignition failed\nReason: ' +
+            error.response.statusText,
+          type: 'error',
+        }),
       );
-      fetch(this.setRequest).then(
-        function(response) {
-          if (response.status == 200) {
-            const rspTxt = state ? 'Enabled!' : 'Disabled!';
-            swal(
-              {
-                title: 'Network Auto Ignition ' + rspTxt,
-                text: 'Response: ' + response.statusText,
-                type: 'success',
-              },
-              function() {
-                this.getIgnitionState();
-                resolve();
-              }.bind(this),
-            );
-          } else {
-            swal(
-              {
-                title: 'Failed!',
-                text:
-                  'Setting Network Auto Ignition failed\nReason: ' +
-                  response.statusText,
-                type: 'error',
-              },
-              function() {
-                resolve();
-              },
-            );
-          }
-        }.bind(this),
-      );
-    });
   }
 
   setLinkIgnition(state) {
     const stateText = state ? 'enable' : 'disable';
-    const promis = new Promise((resolve, reject) => {
-      this.setRequest = new Request(
-        '/controller/setLinkIgnitionState/' +
-          this.props.topologyName +
-          '/' +
-          this.props.link.name +
-          '/' +
-          stateText,
-        {credentials: 'same-origin'},
+    const url =
+      '/controller/setLinkIgnitionState/' +
+      this.props.topologyName +
+      '/' +
+      this.props.link.name +
+      '/' +
+      stateText;
+    axios
+      .get(url)
+      .then(response =>
+        swal(
+          {
+            title: 'Link Auto Ignition ' + (state ? 'Enabled!' : 'Disabled!'),
+            text: 'Response: ' + response.statusText,
+            type: 'success',
+          },
+          () => this.getIgnitionState(),
+        ),
+      )
+      .catch(error =>
+        swal({
+          title: 'Failed!',
+          text:
+            'Setting Link Auto Ignition failed\nReason: ' +
+            error.response.statusText,
+          type: 'error',
+        }),
       );
-      fetch(this.setRequest).then(
-        function(response) {
-          if (response.status == 200) {
-            const rspTxt = state ? 'Enabled!' : 'Disabled!';
-            swal(
-              {
-                title: 'Link Auto Ignition ' + rspTxt,
-                text: 'Response: ' + response.statusText,
-                type: 'success',
-              },
-              function() {
-                this.getIgnitionState();
-                resolve();
-              }.bind(this),
-            );
-          } else {
-            swal(
-              {
-                title: 'Failed!',
-                text:
-                  'Setting Link Auto Ignition failed\nReason: ' +
-                  response.statusText,
-                type: 'error',
-              },
-              function() {
-                resolve();
-              },
-            );
-          }
-        }.bind(this),
-      );
-    });
   }
 
   render() {

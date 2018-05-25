@@ -2023,6 +2023,20 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
   });
 });
 
+app.get(/\/controller\/getConfigMetadata/, (req, res, next) => {
+  const { topologyName } = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'getConfigMetadata',
+      topology: topology,
+    },
+    '',
+    res
+  );
+});
+
 // aggregator endpoints
 
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {

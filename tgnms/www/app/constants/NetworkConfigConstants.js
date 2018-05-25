@@ -10,7 +10,11 @@ export const CONFIG_VIEW_MODE = {
   NODE: 'NODE',
 };
 
-export const CONFIG_LAYER_DESC = ['Base', 'Network Override', 'Node Override'];
+export const CONFIG_LAYER_DESC = [
+  'Base Value',
+  'Network Override',
+  'Node Override',
+];
 
 // privileged value to mark a field in an override to revert
 export const REVERT_VALUE = null;

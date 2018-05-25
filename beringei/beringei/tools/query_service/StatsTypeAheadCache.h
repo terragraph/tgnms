@@ -56,7 +56,7 @@ public:
 
   // type-ahead search
   std::vector<std::vector<query::KeyData>>
-    searchMetrics(const std::string &metricName, const int limit = 100); 
+    searchMetrics(const std::string &metricName, const int limit = 100);
 
 private:
   std::vector<std::string> linkMetricKeyNames_;

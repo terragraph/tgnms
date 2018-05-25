@@ -359,7 +359,7 @@ folly::dynamic BeringeiData::transform() {
   // store the latest value for each key
   for (const auto &keyTimeSeries : beringeiTimeSeries_) {
     const std::string &keyName = keyTimeSeries.first.key;
-//    VLOG(1) << "Key: " << keyName << ", index: " << keyIndex;
+    // VLOG(1) << "Key: " << keyName << ", index: " << keyIndex;
     // fetch the last value, assume 0 for not-found
     for (const auto &timePair : keyTimeSeries.second) {
       int timeBucketId = (timePair.unixTime - startTime_) / timeInterval_;
@@ -370,17 +370,15 @@ folly::dynamic BeringeiData::transform() {
 //        LOG(INFO) << "Rolling back condensedBucketId -> " << condensedBucketId
 //                  << ", keyIndex: " << keyIndex;
       }
-//      VLOG(1) << "\t(" << timePair.unixTime << ") = " << std::to_string(timePair.value);
-      // drop obviously-bad data?
-/*      if (timePair.value > 100000000000) {
-        LOG(INFO) << "Obviously bad data...dropping to test. keyName: "
-                  << keyName << ", index: " << keyIndex
-                  << ", time: " << timePair.unixTime
-                  << ", value: " << timePair.value;
-        continue;
-      }*/
+      // VLOG(1) << "\t(" << timePair.unixTime << ") = " << std::to_string(timePair.value);
       int oldIndex = (keyIndex * timeBucketCount + timeBucketId);
       int newIndex = (keyIndex * timeBucketCount + (condensedBucketId * dataPointAggCount) + countPerBucket[keyIndex][condensedBucketId]);
+      if (timePair.unixTime < startTime_ ||
+          timePair.unixTime > endTime_) {
+            LOG(ERROR) << "Time outside of start/end window. timePair.unixTime: " << timePair.unixTime
+                       << ", start: " << startTime_ << ", end: " << endTime_;
+      }
+
       if (isnan(timePair.value)) {
         continue;
       }
@@ -467,7 +465,7 @@ folly::dynamic BeringeiData::transform() {
   folly::dynamic datapoints = folly::dynamic::array();
   for (int i = 0; i < condensedBucketCount; i++) {
     datapoints.push_back(folly::dynamic::array(
-        (startTime_ + (i * dataPointAggCount * 30)) * 1000));
+        (startTime_ + (i * dataPointAggCount * timeInterval_)) * 1000));
   }
   folly::dynamic columns = folly::dynamic::array();
   columns.push_back("time");
@@ -893,18 +891,14 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
 }
 
 void
-BeringeiData::selectBeringeiDb() {
+BeringeiData::selectBeringeiDb(int32_t interval) {
   // determine which data-source to query from based on total time
   int64_t timeBucketSec = (endTime_ - startTime_);
   // TODO: we need to define a generic way of stating retention per time
   // interval (1s, 30s) for querying from the right data source
 
-  // if request is for <= 1 hour use the 1-second stats, otherwise 30 for now
-//  if (timeBucketSec <= (60 * 60)) {
-//    timeInterval_ = 1;
-//  } else {
-    timeInterval_ = 1;
-//  }
+  // use provided interval from query (defaults to 30s in thrift)
+  timeInterval_ = interval;
   LOG(INFO) << "Selected time interval = " << timeInterval_;
 }
 
@@ -912,7 +906,7 @@ folly::dynamic BeringeiData::handleQuery() {
   auto startTime = (int64_t)duration_cast<milliseconds>(
       system_clock::now().time_since_epoch()).count();
   // select the data source based on time interval
-  selectBeringeiDb();
+  selectBeringeiDb(query_.interval);
   // validate first, prefer to throw here (no futures)
   validateQuery(query_);
   // fetch async data
@@ -986,7 +980,8 @@ void BeringeiData::validateQuery(const query::Query &request) {
     startTime_ = std::time(nullptr) - (24 * 60 * 60);
     endTime_ = std::time(nullptr);
   }
-  LOG(INFO) << "Request for start: " << startTime_ << " <-> " << endTime_;
+  LOG(INFO) << "Request for start: " << startTime_ << " <-> " << endTime_
+            << ", interval: " << timeInterval_;
 }
 
 GetDataRequest BeringeiData::createBeringeiRequest(const query::Query &request,

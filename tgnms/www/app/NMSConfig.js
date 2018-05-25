@@ -8,14 +8,9 @@
 import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from './NetworkDispatcher.js';
-// dispatcher
-import {Actions} from './constants/NetworkConstants.js';
-import NetworkStore from './stores/NetworkStore.js';
-import equals from 'equals';
-import FileSaver from 'file-saver';
+import axios from 'axios';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
-import {render} from 'react-dom';
 import React from 'react';
 import swal from 'sweetalert';
 /**
@@ -48,7 +43,7 @@ export default class NMSConfig extends React.Component {
         text: 'This will overwrite the config on disk',
         showCancelButton: true,
       },
-      function() {
+      () => {
         // do it!
         const topologies = Object.values(this.state.pendingConfigs).map(
           config => {
@@ -68,42 +63,28 @@ export default class NMSConfig extends React.Component {
             return newConfig;
           },
         );
-        const configSave = new Request('/config/save', {
-          method: 'POST',
-          credentials: 'same-origin',
-          body: JSON.stringify(
-            {
-              use_tile_proxy: false,
-              refresh_interval: 5000,
-              topologies: topologies,
-            },
-            null,
-            4,
-          ),
-        });
-        fetch(configSave).then(function(response) {
-          if (response.status == 200) {
-            response.json().then(function(json) {
-              swal({title: 'Config saved!'});
-            });
-          } else {
-            swal({title: 'Failed updating config'});
-          }
-        });
-      }.bind(this),
+        axios
+          .post('/config/save', {
+            use_tile_proxy: false,
+            refresh_interval: 5000,
+            topologies: topologies,
+          })
+          .then(_ => swal({title: 'Config saved!'}))
+          .catch(_ => swal({title: 'Failed updating config'}));
+      },
     );
   }
 
   compareConfigs(oldConfig, newConfig) {
     // compare all non-state attributes
     return (
-      oldConfig.controller_ip == newConfig.controller_ip &&
-      oldConfig.aggregator_ip == newConfig.aggregator_ip &&
-      oldConfig.latitude == newConfig.latitude &&
-      oldConfig.longitude == newConfig.longitude &&
-      oldConfig.name == newConfig.name &&
-      oldConfig.site_coords_override == newConfig.site_coords_override &&
-      oldConfig.zoom_level == newConfig.zoom_level
+      oldConfig.controller_ip === newConfig.controller_ip &&
+      oldConfig.aggregator_ip === newConfig.aggregator_ip &&
+      oldConfig.latitude === newConfig.latitude &&
+      oldConfig.longitude === newConfig.longitude &&
+      oldConfig.name === newConfig.name &&
+      oldConfig.site_coords_override === newConfig.site_coords_override &&
+      oldConfig.zoom_level === newConfig.zoom_level
     );
   }
 
@@ -117,11 +98,9 @@ export default class NMSConfig extends React.Component {
       if (config.name in this.state.pendingConfigs) {
         // existing, compare non-state attributes
         const oldConfig = this.state.pendingConfigs[config.name];
-        if (
-          !this.compareConfigs(this.state.pendingConfigs[config.name], config)
-        ) {
+        if (!this.compareConfigs(oldConfig, config)) {
           // use existing config
-          config = this.state.pendingConfigs[config.name];
+          config = oldConfig;
           // should already be set as modified
           config.modified = true;
         }
@@ -133,23 +112,16 @@ export default class NMSConfig extends React.Component {
           config.controller_online = false;
           delete config.topology;
         } else {
-          const controllerTopo = new Request(
-            '/topology/fetch/' + config.controller_ip,
-            {
-              credentials: 'same-origin',
-            },
-          );
-          fetch(controllerTopo).then(function(response) {
-            if (response.status == 200) {
-              response.json().then(function(json) {
-                config.controller_status = true;
-                config.topology = json;
-              });
-            } else {
+          axios
+            .get('/topology/fetch/' + config.controller_ip)
+            .then(response => {
+              config.controller_status = true;
+              config.topology = response.data;
+            })
+            .catch(error => {
               config.controller_online = false;
               delete config.topology;
-            }
-          });
+            });
         }
       }
       diskConfigs[config.name] = config;
@@ -183,6 +155,7 @@ export default class NMSConfig extends React.Component {
     }
   }
 
+  // eslint-disable-next-line lint/no-unclear-flowtypes
   getTableRows(): Array<any> {
     return Object.values(this.state.pendingConfigs);
   }
@@ -214,17 +187,10 @@ export default class NMSConfig extends React.Component {
   }
 
   downloadTopology(name, filename) {
-    const topoGetFetch = new Request('/topology/get_stateless/' + name, {
-      credentials: 'same-origin',
-    });
-    fetch(topoGetFetch).then(function(response) {
-      if (response.status == 200) {
-        response.json().then(function(json) {
-          const str = JSON.stringify(json.topology, null, '\t');
-          var blob = new Blob([str], {type: 'text/plain;charset=utf-8'});
-          FileSaver.saveAs(blob, filename);
-        });
-      }
+    axios.get('/topology/get_stateless/' + name).then(response => {
+      const str = JSON.stringify(response.data.topology, null, '\t');
+      var blob = new Blob([str], {type: 'text/plain;charset=utf-8'});
+      window.FileSaver.saveAs(blob, filename);
     });
   }
 
@@ -243,136 +209,128 @@ export default class NMSConfig extends React.Component {
   }
 
   beforeSaveCell(row, cellName, cellValue) {
-    if (cellName == 'controller_ip') {
-      if (row.controller_ip == cellValue) {
-        // unchanged
-        return false;
+    if (cellName !== 'controller_ip') {
+      return true;
+    }
+    if (row.controller_ip === cellValue) {
+      // unchanged
+      return false;
+    }
+
+    // ensure IP address not in use
+    let ipInUse = false;
+    Object.values(this.state.pendingConfigs).forEach(config => {
+      if (cellValue === config.controller_ip) {
+        ipInUse = true;
+        swal({
+          title: 'IP in use',
+          text: 'IP already in use by <b>' + config.name + '</b>',
+          html: true,
+        });
       }
-      // ensure IP address not in use
-      let ipInUse = false;
-      Object.values(this.state.pendingConfigs).forEach(config => {
-        if (cellValue == config.controller_ip) {
-          ipInUse = true;
+    });
+    if (ipInUse) {
+      return false;
+    }
+    row.modified = true;
+    // save the old if we need to roll-back
+    row.old_controller_ip = row.controller_ip;
+    // unset the address so we can re-check the controller+agg
+    delete row.controller_online;
+    delete row.topology;
+    // TODO - handle aggregator checks
+    //      delete row['aggregator_online'];
+    axios
+      .get('/topology/fetch/' + cellValue)
+      .then(response => {
+        const json = response.data;
+        const newConfigs = this.state.pendingConfigs;
+        if (row.name !== json.name) {
           swal({
-            title: 'IP in use',
-            text: 'IP already in use by <b>' + config.name + '</b>',
+            title: 'Topology mis-match',
+            text:
+              "The new topology name doesn't match the existing." +
+              '<br />Refusing to update controller IP.<br /><br />' +
+              'New: <b>' +
+              json.name +
+              '</b><br />' +
+              'Existing: <b>' +
+              row.name +
+              '</b>',
             html: true,
           });
+          // use the old address
+          newConfigs[row.name].controller_ip =
+            newConfigs[row.name].old_controller_ip;
+        } else if (json.name.length === 0) {
+          swal({
+            title: 'Missing topology name',
+            text:
+              "The new topology doesn't have a name set, " +
+              'please set one and try again.',
+          });
+          // use the old address
+          newConfigs[row.name].controller_ip =
+            newConfigs[row.name].old_controller_ip;
+        } else {
+          newConfigs[row.name].controller_online = true;
+          newConfigs[row.name].controller_ip = cellValue;
+          newConfigs[row.name].topology = json;
         }
+        this.setState({
+          pendingConfigs: newConfigs,
+        });
+      })
+      .catch(error => {
+        // failed, prompt to update address
+        swal(
+          {
+            title: 'Controller offline',
+            text:
+              'The controller <b>' +
+              cellValue +
+              '</b> is not responding' +
+              ', are you sure you want to make this change?',
+            html: true,
+            showCancelButton: true,
+            confirmButtonText: 'Use New',
+            cancelButtonText: 'Use Existing',
+          },
+          isConfirm => {
+            const newConfigs = this.state.pendingConfigs;
+            if (isConfirm) {
+              // user confirmed to update address
+              newConfigs[row.name].controller_online = false;
+              delete newConfigs[row.name].topology;
+            } else {
+              // user cancelled, restore old address
+              newConfigs[row.name].controller_ip =
+                newConfigs[row.name].old_controller_ip;
+              delete newConfigs[row.name].old_controller_ip;
+            }
+            this.setState({
+              pendingConfigs: newConfigs,
+            });
+          },
+        );
       });
-      if (ipInUse) {
-        return false;
-      }
-      row.modified = true;
-      // save the old if we need to roll-back
-      row.old_controller_ip = row.controller_ip;
-      // unset the address so we can re-check the controller+agg
-      delete row.controller_online;
-      delete row.topology;
-      // TODO - handle aggregator checks
-      //      delete row['aggregator_online'];
-      const controllerTopo = new Request('/topology/fetch/' + cellValue, {
-        credentials: 'same-origin',
-      });
-      fetch(controllerTopo).then(
-        function(response) {
-          if (response.status == 200) {
-            response.json().then(
-              function(json) {
-                const newConfigs = this.state.pendingConfigs;
-                if (row.name != json.name) {
-                  swal({
-                    title: 'Topology mis-match',
-                    text:
-                      "The new topology name doesn't match the existing." +
-                      '<br />Refusing to update controller IP.<br /><br />' +
-                      'New: <b>' +
-                      json.name +
-                      '</b><br />' +
-                      'Existing: <b>' +
-                      row.name +
-                      '</b>',
-                    html: true,
-                  });
-                  // use the old address
-                  newConfigs[row.name].controller_ip =
-                    newConfigs[row.name].old_controller_ip;
-                } else if (json.name.length == 0) {
-                  swal({
-                    title: 'Missing topology name',
-                    text:
-                      "The new topology doesn't have a name set, " +
-                      'please set one and try again.',
-                  });
-                  // use the old address
-                  newConfigs[row.name].controller_ip =
-                    newConfigs[row.name].old_controller_ip;
-                } else {
-                  newConfigs[row.name].controller_online = true;
-                  newConfigs[row.name].controller_ip = cellValue;
-                  newConfigs[row.name].topology = json;
-                }
-                this.setState({
-                  pendingConfigs: newConfigs,
-                });
-              }.bind(this),
-            );
-          } else {
-            // work-around due to bug in sweetalert
-            // https://github.com/t4t5/sweetalert/issues/632
-            const _this = this;
-            // failed, prompt to update address
-            swal(
-              {
-                title: 'Controller offline',
-                text:
-                  'The controller <b>' +
-                  cellValue +
-                  '</b> is not responding' +
-                  ', are you sure you want to make this change?',
-                html: true,
-                showCancelButton: true,
-                confirmButtonText: 'Use New',
-                cancelButtonText: 'Use Existing',
-              },
-              function(isConfirm) {
-                const newConfigs = _this.state.pendingConfigs;
-                if (isConfirm) {
-                  // user confirmed to update address
-                  newConfigs[row.name].controller_online = false;
-                  delete newConfigs[row.name].topology;
-                } else {
-                  // user cancelled, restore old address
-                  newConfigs[row.name].controller_ip =
-                    newConfigs[row.name].old_controller_ip;
-                  delete newConfigs[row.name].old_controller_ip;
-                }
-                _this.setState({
-                  pendingConfigs: newConfigs,
-                });
-              },
-            );
-          }
-        }.bind(this),
-      );
-    }
     return true;
   }
 
   addNewRow() {
     const controllerIp = this.controllerIp.value;
     // sanity check input
-    if (controllerIp.length == 0) {
+    if (controllerIp.length === 0) {
       return;
     }
     // verify ip isn't a duplicate
     let found = null;
     Object.values(this.state.pendingConfigs).forEach(config => {
-      if (config.controller_ip == controllerIp) {
+      if (config.controller_ip === controllerIp) {
         found = config;
       }
     });
-    if (found != null) {
+    if (found !== null) {
       swal({
         title: 'Existing controller',
         text: "Topology already exists for '" + found.name + "'!",
@@ -382,93 +340,85 @@ export default class NMSConfig extends React.Component {
     // clear current value
     this.controllerIp.value = '';
     // fetch topology data
-    const controllerTopo = new Request('/topology/fetch/' + controllerIp, {
-      credentials: 'same-origin',
-    });
-    fetch(controllerTopo).then(
-      function(response) {
-        if (response.status == 200) {
-          response.json().then(
-            function(json) {
-              // build new config struct
-              if (json.name.length == 0) {
-                swal({
-                  title: 'Missing topology name',
-                  text:
-                    "The new topology doesn't have a name set, " +
-                    'please set one and try again.',
-                });
-                return;
-              }
-              const newConfig = {
-                controller_ip: controllerIp,
-                controller_online: true,
-                aggregator_ip: controllerIp,
-                name: json.name,
-                modified: true,
-                topology: json,
-                // default data
-                latitude: 37.4848280435154,
-                longitude: -122.1472245455607,
-                zoom_level: 18,
-              };
-              const newConfigs = this.state.pendingConfigs;
-              if (json.name in this.state.pendingConfigs) {
-                // we matched an existing topology
-                swal(
-                  {
-                    title: 'Existing topology',
-                    text:
-                      'A topology exists with the same name <b>' +
-                      json.name +
-                      '</b>, overwrite?',
-                    html: true,
-                    confirmButtonText: 'Overwrite',
-                    showCancelButton: true,
-                  },
-                  function(isConfirm) {
-                    newConfigs[json.name] = newConfig;
-                    this.setState({
-                      pendingConfigs: newConfigs,
-                    });
-                  }.bind(this),
-                );
-              } else {
-                // looks new, add
-                newConfigs[json.name] = newConfig;
-                this.setState({
-                  pendingConfigs: newConfigs,
-                });
-              }
-            }.bind(this),
-          );
-        } else {
+    axios
+      .get('/topology/fetch/' + controllerIp)
+      .then(response => {
+        const json = response.data;
+        // build new config struct
+        if (json.name.length === 0) {
+          swal({
+            title: 'Missing topology name',
+            text:
+              "The new topology doesn't have a name set, " +
+              'please set one and try again.',
+          });
+          return;
+        }
+        const newConfig = {
+          controller_ip: controllerIp,
+          controller_online: true,
+          aggregator_ip: controllerIp,
+          name: json.name,
+          modified: true,
+          topology: json,
+          // default data
+          latitude: 37.4848280435154,
+          longitude: -122.1472245455607,
+          zoom_level: 18,
+        };
+        const newConfigs = this.state.pendingConfigs;
+        if (json.name in this.state.pendingConfigs) {
+          // we matched an existing topology
           swal(
             {
-              title: 'Failed to connect',
+              title: 'Existing topology',
               text:
-                'Unable to connect to ' + controllerIp + '<br />Add anyways?',
+                'A topology exists with the same name <b>' +
+                json.name +
+                '</b>, overwrite?',
               html: true,
+              confirmButtonText: 'Overwrite',
               showCancelButton: true,
             },
-            function() {
-              const newConfig = {
-                controller_ip: controllerIp,
-                controller_online: false,
-                aggregator_ip: controllerIp,
-                name: 'Unknown topology',
-                modified: true,
-              };
-              const newConfigs = this.state.pendingConfigs;
-              newConfigs[newConfig.name] = newConfig;
+            isConfirm => {
+              newConfigs[json.name] = newConfig;
               this.setState({
                 pendingConfigs: newConfigs,
               });
-            }.bind(this),
+            },
           );
+        } else {
+          // looks new, add
+          newConfigs[json.name] = newConfig;
+          this.setState({
+            pendingConfigs: newConfigs,
+          });
         }
-      }.bind(this),
-    );
+      })
+      .catch(error => {
+        swal(
+          {
+            title: 'Failed to connect',
+            text: 'Unable to connect to ' + controllerIp + '<br />Add anyways?',
+            html: true,
+            showCancelButton: true,
+          },
+          () => {
+            const newConfig = {
+              controller_ip: controllerIp,
+              controller_online: false,
+              aggregator_ip: controllerIp,
+              name: 'Unknown topology',
+              modified: true,
+            };
+            const newConfigs = this.state.pendingConfigs;
+            newConfigs[newConfig.name] = newConfig;
+            this.setState({
+              pendingConfigs: newConfigs,
+            });
+          },
+        );
+      });
   }
 
   render() {

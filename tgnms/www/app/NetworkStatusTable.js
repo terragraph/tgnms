@@ -11,10 +11,6 @@ import {render} from 'react-dom';
 import React from 'react';
 
 export default class NetworkStatusTable extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   statusColor(onlineStatus, trueText = 'Online', falseText = 'Offline') {
     return (
       <span style={{color: onlineStatus ? 'forestgreen' : 'firebrick'}}>

@@ -99,9 +99,8 @@ module.exports.rules = {
   'lint/sort-keys-fixable': 'off',
 
   // General
-  'comma-dangle': [1, 'always-multiline'], // allow or disallow trailing commas
   'no-cond-assign': 1,             // disallow assignment in conditional expressions
-  'no-console': 0,                 // disallow use of console (off by default in the node environment)                                                                   "no-const-assign": 2,            // disallow assignment to const-declared variables
+  'no-const-assign': 2,            // disallow assignment to const-declared variables
   'no-constant-condition': 0,      // disallow use of constant expressions in conditions
   'no-control-regex': 1,           // disallow control characters in regular expressions
   'no-debugger': 1,                // disallow use of debugger
@@ -130,7 +129,6 @@ module.exports.rules = {
   'dot-notation': 1,               // encourages use of dot notation whenever possible
   'eqeqeq': [1, 'allow-null'],     // require the use of === and !==
   'guard-for-in': 0,               // make sure for-in loops have an if statement (off by default)
-  'no-alert': 1,                   // disallow the use of alert, confirm, and prompt
   'no-caller': 1,                  // disallow use of arguments.caller or arguments.callee
   'no-div-regex': 1,               // disallow division operators explicitly at beginning of regular expression (off by default)
   'no-else-return': 0,             // disallow else after a return in an if (off by default)

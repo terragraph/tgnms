@@ -55,13 +55,13 @@ export default class ReactMultiGraph extends React.Component {
   formatSpeed(bps) {
     // TODO - this is used for all metrics, we need more context
     return Math.ceil(bps * 100) / 100;
-    if (bps > 1000000) {
-      return Math.round(bps / 1000000) + ' mbps';
-    }
-    if (bps > 1000) {
-      return Math.round(bps / 1000) + ' kbps';
-    }
-    return bps + ' bps';
+    // if (bps > 1000000) {
+    //   return Math.round(bps / 1000000) + ' mbps';
+    // }
+    // if (bps > 1000) {
+    //   return Math.round(bps / 1000) + ' kbps';
+    // }
+    // return bps + ' bps';
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -169,23 +169,24 @@ export default class ReactMultiGraph extends React.Component {
     if (!this.state.tracker) {
       return <g />;
     }
-    return;
-    <EventMarker
-      type="flag"
-      axis="axis"
-      event={this.state.tracker}
-      column=""
-      info={[
-        {
-          label: 'Test',
-          value: 2,
-        },
-      ]}
-      infoTimeFormat="%Y"
-      infoWidth={120}
-      markerRadius={2}
-      markerStyle={{fill: 'black'}}
-    />;
+    return (
+      <EventMarker
+        type="flag"
+        axis="axis"
+        event={this.state.tracker}
+        column=""
+        info={[
+          {
+            label: 'Test',
+            value: 2,
+          },
+        ]}
+        infoTimeFormat="%Y"
+        infoWidth={120}
+        markerRadius={2}
+        markerStyle={{fill: 'black'}}
+      />
+    );
   }
 
   render() {
@@ -352,7 +353,6 @@ export default class ReactMultiGraph extends React.Component {
         </div>
         <div id="legend" width="700" style={{clear: 'both', height: '40px'}}>
           <Legend
-            type="line"
             align="left"
             type="dot"
             style={styler(legendStyle)}

@@ -33,7 +33,7 @@ export default class ModalTopologyDiffer extends React.Component {
 
   uploadTopology() {
     const fileInput = document.getElementById('fileInput');
-    const reader = new FileReader();
+    const reader = new window.FileReader();
     let topology;
 
     reader.onload = function(e) {

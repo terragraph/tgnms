@@ -40,46 +40,48 @@ export default class ReactPlotlyHeatmap extends React.Component {
   }
 
   render() {
-    if (!this.props.zmap || !this.props.heatmaptitle) {
-      return <div> click on a row to render the heatmap</div>;
-    }
-    const xy = this.createXYarray();
-    const snrtxt = this.createSnr();
-    return (
-      <Plot
-        data={[
-          {
-            type: 'heatmap',
-            x: xy,
-            y: xy,
-            z: this.props.zmap,
-            zmin: -10,
-            colorscale: 'YIGnBu',
-            text: snrtxt,
-            hoverinfo: 'x+y+z+text',
-            zmax: 22,
-          },
-        ]}
-        config={{
-          // displayModeBar: false,
-          displaylogo: false,
-          modeBarButtonsToRemove: [
-            'sendDataToCloud',
-            'hoverClosestCartesian',
-            'hoverCompareCartesian',
-            'toggleSpikelines',
-            'autoScale2d',
-          ],
-        }}
-        layout={{
-          width: this.props.height_width,
-          height: this.props.height_width,
-          title: this.props.heatmaptitle.title,
-          xaxis: {title: this.props.heatmaptitle.xaxis},
-          yaxis: {title: this.props.heatmaptitle.yaxis},
-        }}
-      />
-    );
+    return <div>Unsupported</div>;
+
+    // if (!this.props.zmap || !this.props.heatmaptitle) {
+    //   return <div> click on a row to render the heatmap</div>;
+    // }
+    // const xy = this.createXYarray();
+    // const snrtxt = this.createSnr();
+    // return (
+    //   <Plot
+    //     data={[
+    //       {
+    //         type: 'heatmap',
+    //         x: xy,
+    //         y: xy,
+    //         z: this.props.zmap,
+    //         zmin: -10,
+    //         colorscale: 'YIGnBu',
+    //         text: snrtxt,
+    //         hoverinfo: 'x+y+z+text',
+    //         zmax: 22,
+    //       },
+    //     ]}
+    //     config={{
+    //       // displayModeBar: false,
+    //       displaylogo: false,
+    //       modeBarButtonsToRemove: [
+    //         'sendDataToCloud',
+    //         'hoverClosestCartesian',
+    //         'hoverCompareCartesian',
+    //         'toggleSpikelines',
+    //         'autoScale2d',
+    //       ],
+    //     }}
+    //     layout={{
+    //       width: this.props.height_width,
+    //       height: this.props.height_width,
+    //       title: this.props.heatmaptitle.title,
+    //       xaxis: {title: this.props.heatmaptitle.xaxis},
+    //       yaxis: {title: this.props.heatmaptitle.yaxis},
+    //     }}
+    //   />
+    // );
   }
 }
 

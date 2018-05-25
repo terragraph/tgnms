@@ -9,20 +9,21 @@ import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
 import {Actions} from '../../constants/NetworkConstants.js';
+import axios from 'axios';
 import moment from 'moment';
 import {Panel} from 'react-bootstrap';
-import {render} from 'react-dom';
 import React from 'react';
 import swal from 'sweetalert';
 
 export default class DetailsNode extends React.Component {
+  state = {
+    showActions: true,
+  };
+
   constructor(props) {
     super(props);
     this.selectSite = this.selectSite.bind(this);
     this.selectLink = this.selectLink.bind(this);
-    this.state = {
-      showActions: true,
-    };
   }
 
   statusColor(onlineStatus, trueText = 'True', falseText = 'False') {
@@ -73,11 +74,8 @@ export default class DetailsNode extends React.Component {
   }
 
   connectToTerminal(ipv6) {
-    if (ipv6 != 'Not Available') {
-      const myRequest = new Request('/xterm/' + ipv6, {
-        credentials: 'same-origin',
-      });
-      window.open(myRequest.url, '_blank');
+    if (ipv6 !== 'Not Available') {
+      window.open('/xterm/' + ipv6, '_blank');
       window.focus();
     }
   }
@@ -94,44 +92,40 @@ export default class DetailsNode extends React.Component {
         confirmButtonText: 'Yes, reboot it!',
         closeOnConfirm: false,
       },
-      function() {
-        const promis = new Promise((resolve, reject) => {
-          const exec = new Request(
+      () => {
+        return new Promise((resolve, reject) => {
+          const url =
             '/controller/rebootNode/' +
-              this.props.topologyName +
-              '/' +
-              this.props.node.name +
-              '/' +
-              forceReboot,
-            {credentials: 'same-origin'},
-          );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
+            this.props.topologyName +
+            '/' +
+            this.props.node.name +
+            '/' +
+            forceReboot;
+          axios
+            .get(url)
+            .then(response =>
               swal(
                 {
                   title: 'Reboot Request Successful!',
                   text: 'Response: ' + response.statusText,
                   type: 'success',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            } else {
+                () => resolve(),
+              ),
+            )
+            .catch(error =>
               swal(
                 {
                   title: 'Failed!',
-                  text: 'Node reboot failed\nReason: ' + response.statusText,
+                  text:
+                    'Node reboot failed\nReason: ' + error.response.statusText,
                   type: 'error',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
+                () => resolve(),
+              ),
+            );
         });
-      }.bind(this),
+      },
     );
   }
 
@@ -147,47 +141,46 @@ export default class DetailsNode extends React.Component {
         confirmButtonText: 'Yes, delete it!',
         closeOnConfirm: false,
       },
-      function() {
-        const promis = new Promise((resolve, reject) => {
-          const exec = new Request(
+      () => {
+        return new Promise((resolve, reject) => {
+          const url =
             '/controller/delNode/' +
-              this.props.topologyName +
-              '/' +
-              this.props.node.name +
-              '/' +
-              forceDelete,
-            {credentials: 'same-origin'},
-          );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
+            this.props.topologyName +
+            '/' +
+            this.props.node.name +
+            '/' +
+            forceDelete;
+          axios
+            .get(url)
+            .then(response =>
               swal(
                 {
                   title: 'Node Deleted!',
                   text: 'Response: ' + response.statusText,
                   type: 'success',
                 },
-                function() {
+                () => {
                   Dispatcher.dispatch({
                     actionType: Actions.CLEAR_NODE_LINK_SELECTED,
                   });
                   resolve();
                 },
-              );
-            } else {
+              ),
+            )
+            .catch(error =>
               swal(
                 {
                   title: 'Failed!',
-                  text: 'Node deletion failed\nReason: ' + response.statusText,
+                  text:
+                    'Node deletion failed\nReason: ' +
+                    error.response.statusText,
                   type: 'error',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
+                () => resolve(),
+              ),
+            );
         });
-      }.bind(this),
+      },
     );
   }
 
@@ -212,43 +205,40 @@ export default class DetailsNode extends React.Component {
           return false;
         }
 
-        const promise = new Promise((resolve, reject) => {
-          const exec = new Request(
+        return new Promise((resolve, reject) => {
+          const url =
             '/controller/renameNode/' +
-              this.props.topologyName +
-              '/' +
-              this.props.node.name +
-              '/' +
-              inputValue,
-            {credentials: 'same-origin'},
-          );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
+            this.props.topologyName +
+            '/' +
+            this.props.node.name +
+            '/' +
+            inputValue;
+          axios
+            .get(url)
+            .then(response =>
               swal(
                 {
                   title: 'Node renamed',
                   text: 'Response: ' + response.statusText,
                   type: 'success',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            } else {
+                () => resolve(),
+              ),
+            )
+            .catch(error =>
               swal(
                 {
                   title: 'Failed!',
-                  text: 'Renaming node failed.\nReason: ' + response.statusText,
+                  text:
+                    'Renaming node failed.\nReason: ' +
+                    error.response.statusText,
                   type: 'error',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
+                () => resolve(),
+              ),
+            );
         });
-      }.bind(this),
+      },
     );
   }
 
@@ -274,45 +264,41 @@ export default class DetailsNode extends React.Component {
           return false;
         }
 
-        const promis = new Promise((resolve, reject) => {
-          const exec = new Request(
+        return new Promise((resolve, reject) => {
+          const url =
             '/controller/setMac/' +
-              this.props.topologyName +
-              '/' +
-              this.props.node.name +
-              '/' +
-              inputValue +
-              '/' +
-              forceSet,
-            {credentials: 'same-origin'},
-          );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
+            this.props.topologyName +
+            '/' +
+            this.props.node.name +
+            '/' +
+            inputValue +
+            '/' +
+            forceSet;
+          axios
+            .get(url)
+            .then(response =>
               swal(
                 {
                   title: 'Mac address set successfully!',
                   text: 'Response: ' + response.statusText,
                   type: 'success',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            } else {
+                () => resolve(),
+              ),
+            )
+            .catch(error =>
               swal(
                 {
                   title: 'Failed!',
-                  text: 'Setting MAC failed\nReason: ' + response.statusText,
+                  text:
+                    'Setting MAC failed\nReason: ' + error.response.statusText,
                   type: 'error',
                 },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
+                () => resolve(),
+              ),
+            );
         });
-      }.bind(this),
+      },
     );
   }
 
@@ -330,9 +316,9 @@ export default class DetailsNode extends React.Component {
     Object.keys(this.props.links).map(linkName => {
       const link = this.props.links[linkName];
       if (
-        link.link_type == 1 &&
-        (this.props.node.name == link.a_node_name ||
-          this.props.node.name == link.z_node_name)
+        link.link_type === 1 &&
+        (this.props.node.name === link.a_node_name ||
+          this.props.node.name === link.z_node_name)
       ) {
         linksList.push(link);
       }
@@ -341,7 +327,7 @@ export default class DetailsNode extends React.Component {
     const linksRows = [];
     let index = 0;
     linksList.forEach(link => {
-      if (index == 0) {
+      if (index === 0) {
         linksRows.push(
           <tr key={link.name}>
             <td rowSpan={linksList.length} width="100px">
@@ -379,7 +365,7 @@ export default class DetailsNode extends React.Component {
     var ipv6 = this.props.node.status_dump
       ? this.props.node.status_dump.ipv6Address
       : 'Not Available';
-    let type = this.props.node.node_type == 2 ? 'DN' : 'CN';
+    let type = this.props.node.node_type === 2 ? 'DN' : 'CN';
     type += this.props.node.pop_node ? '-POP' : '';
 
     let elapsedTime = 'N/A';

@@ -158,7 +158,6 @@ export const convertAndValidateNewConfigObject = newConfig => {
         config: undefined,
         validationMsg: `Duplicate field ${field} detected, Please rename the field`,
       };
-      break;
     } else if (field === '') {
       return {
         config: undefined,

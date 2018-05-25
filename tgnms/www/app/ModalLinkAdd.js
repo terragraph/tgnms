@@ -7,7 +7,7 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import {render} from 'react-dom';
+import axios from 'axios';
 import Modal from 'react-modal';
 import Select from 'react-select';
 import React from 'react';
@@ -54,6 +54,7 @@ export default class ModalLinkAdd extends React.Component {
         nodeZ = this.state.linkNode1;
       }
     } else {
+      // eslint-disable-next-line no-alert
       alert('Some Params are missing');
       return;
     }
@@ -69,48 +70,36 @@ export default class ModalLinkAdd extends React.Component {
         confirmButtonText: 'Yes, add it!',
         closeOnConfirm: false,
       },
-      function() {
-        const promis = new Promise((resolve, reject) => {
-          const exec = new Request(
-            '/controller/addLink/' +
-              this.props.topology.name +
-              '/' +
-              linkName +
-              '/' +
-              nodeA +
-              '/' +
-              nodeZ +
-              '/' +
-              this.state.linkType,
-            {credentials: 'same-origin'},
+      () => {
+        const url =
+          '/controller/addLink/' +
+          this.props.topology.name +
+          '/' +
+          linkName +
+          '/' +
+          nodeA +
+          '/' +
+          nodeZ +
+          '/' +
+          this.state.linkType;
+        axios
+          .get(url)
+          .then(response =>
+            swal({
+              title: 'Link Added!',
+              text: 'Response: ' + response.statusText,
+              type: 'success',
+            }),
+          )
+          .catch(error =>
+            swal({
+              title: 'Failed!',
+              text:
+                'Adding a link failed\nReason: ' + error.response.statusText,
+              type: 'error',
+            }),
           );
-          fetch(exec).then(function(response) {
-            if (response.status == 200) {
-              swal(
-                {
-                  title: 'Link Added!',
-                  text: 'Response: ' + response.statusText,
-                  type: 'success',
-                },
-                function() {
-                  resolve();
-                },
-              );
-            } else {
-              swal(
-                {
-                  title: 'Failed!',
-                  text: 'Adding a link failed\nReason: ' + response.statusText,
-                  type: 'error',
-                },
-                function() {
-                  resolve();
-                },
-              );
-            }
-          });
-        });
-      }.bind(this),
+      },
     );
   }
 
