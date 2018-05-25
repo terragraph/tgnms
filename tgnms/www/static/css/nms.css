@@ -272,3 +272,8 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-legend-table td {
   text-align: center;
 }
+
+.details-legend-row {
+  display: flex;
+  align-items: center;
+}
