@@ -62,9 +62,9 @@ export default class DetailsTopologyIssues extends React.Component {
     };
     const postData = {
       topology: this.props.topology.name,
-      newSite: newSite,
+      newSite,
     };
-    var request = new XMLHttpRequest();
+    const request = new XMLHttpRequest();
     request.onload = function() {
       if (!request) {
         return;
@@ -100,10 +100,10 @@ export default class DetailsTopologyIssues extends React.Component {
         confirmButtonText: 'Go!',
         closeOnConfirm: true,
       },
-      function() {
+      () => {
         this.setState({processing: true});
         this.addSitesAsync(this.remainingSites);
-      }.bind(this),
+      },
     );
   }
 
@@ -136,8 +136,8 @@ export default class DetailsTopologyIssues extends React.Component {
       });
       const pendingTopology = {
         sites: [site.site],
-        nodes: nodes,
-        links: links,
+        nodes,
+        links,
       };
       Dispatcher.dispatch({
         actionType: Actions.PENDING_TOPOLOGY,
@@ -213,12 +213,12 @@ export default class DetailsTopologyIssues extends React.Component {
       this.nodesByName[node.name] = node;
     });
     this.props.newTopology.sites.forEach(site => {
-      this.newSitesByName[site.name] = {site: site, nodes: {}};
+      this.newSitesByName[site.name] = {site, nodes: {}};
     });
     this.props.newTopology.nodes.forEach(node => {
       this.newNodesByName[node.name] = node;
       this.newSitesByName[node.site_name].nodes[node.name] = {
-        node: node,
+        node,
         links: [],
       };
     });

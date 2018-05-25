@@ -40,7 +40,7 @@ export default class NetworkNodesTable extends React.Component {
     );
     // fetch selected site from store
     if (NetworkStore.selectedName) {
-      var selectedRows = [];
+      const selectedRows = [];
       Object.keys(this.props.topology.nodes).map(nodeIndex => {
         const node = this.props.topology.nodes[nodeIndex];
         if (node.site_name == NetworkStore.selectedName) {
@@ -117,13 +117,13 @@ export default class NetworkNodesTable extends React.Component {
   }> {
     const rows = [];
     nodes.forEach(node => {
-      var ipv6 = node.status_dump
+      const ipv6 = node.status_dump
         ? node.status_dump.ipv6Address
         : 'Not Available';
-      var version = node.status_dump
+      const version = node.status_dump
         ? node.status_dump.version.slice(28)
         : 'Not Available';
-      var ubootVersion =
+      const ubootVersion =
         node.status_dump && node.status_dump.uboot_version
           ? node.status_dump.uboot_version
           : 'Not Available';
@@ -144,12 +144,12 @@ export default class NetworkNodesTable extends React.Component {
         ignited: node.status == 2 || node.status == 3,
         site_name: node.site_name,
         pop_node: node.pop_node,
-        ipv6: ipv6,
-        version: version,
+        ipv6,
+        version,
         uboot_version: ubootVersion,
         key: node.name,
-        availability: availability,
-        events: events,
+        availability,
+        events,
         minion_restarts: events.length,
       });
     });
@@ -241,7 +241,7 @@ export default class NetworkNodesTable extends React.Component {
   }
 
   render() {
-    var selectRowProp = {
+    const selectRowProp = {
       mode: 'checkbox',
       clickToSelect: true,
       hideSelectColumn: true,

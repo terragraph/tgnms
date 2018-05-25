@@ -34,7 +34,7 @@ class AddJSONConfigField extends React.Component {
   selectAddOption(type) {
     addNewField({
       editPath: this.props.editPath,
-      type: type,
+      type,
     });
     this.setState({expanded: false});
   }

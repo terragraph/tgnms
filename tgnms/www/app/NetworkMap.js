@@ -250,7 +250,7 @@ export default class NetworkMap extends React.Component {
           alt: 0,
         };
         this.setState({
-          plannedSite: plannedSite,
+          plannedSite,
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
@@ -420,7 +420,7 @@ export default class NetworkMap extends React.Component {
       ? networkConfig.zoom_level
       : this.state.zoomLevel;
     this.setState({
-      zoomLevel: zoomLevel,
+      zoomLevel,
     });
   }
 
@@ -465,7 +465,7 @@ export default class NetworkMap extends React.Component {
       upperPaneHeight: this.state.tablesExpanded
         ? window.innerHeight
         : window.innerHeight - this.state.lowerPaneHeight,
-      tablesExpanded: this.state.tablesExpanded ? false : true,
+      tablesExpanded: !this.state.tablesExpanded,
     });
   }
 
@@ -522,7 +522,7 @@ export default class NetworkMap extends React.Component {
           });
           Dispatcher.dispatch({
             actionType: Actions.LINK_SELECTED,
-            link: link,
+            link,
             source: 'map',
           });
         }}
@@ -551,7 +551,7 @@ export default class NetworkMap extends React.Component {
           });
           Dispatcher.dispatch({
             actionType: Actions.LINK_SELECTED,
-            link: link,
+            link,
             source: 'map',
           });
         }}
@@ -569,7 +569,7 @@ export default class NetworkMap extends React.Component {
           });
           Dispatcher.dispatch({
             actionType: Actions.LINK_SELECTED,
-            link: link,
+            link,
             source: 'map',
           });
         }}
@@ -585,13 +585,13 @@ export default class NetworkMap extends React.Component {
     plannedSite.lat = lat;
     plannedSite.long = lng;
     this.setState({
-      plannedSite: plannedSite,
+      plannedSite,
     });
   }
 
   updatePlannedSite(plannedSite) {
     this.setState({
-      plannedSite: plannedSite,
+      plannedSite,
     });
   }
 
@@ -864,7 +864,7 @@ export default class NetworkMap extends React.Component {
         linkEventCounts.push(linkHealthEvents);
       }
     });
-    linkEventCounts.sort(function(a, b) {
+    linkEventCounts.sort((a, b) => {
       return a > b ? 1 : a == b ? 0 : -1;
     });
     // use min/max/std dev or something else here (TODO)
@@ -911,10 +911,12 @@ export default class NetworkMap extends React.Component {
       let linkLine = null;
       if (this.state.routingOverlayEnabled) {
         if (this.state.routeWeights && this.state.routeWeights[link.name]) {
-          var bwUsageColor = scaleLinear()
+          const bwUsageColor = scaleLinear()
             .domain([0, 100])
             .range(['white', '#4169e1']);
-          var linkColor = rgb(bwUsageColor(this.state.routeWeights[link.name]));
+          const linkColor = rgb(
+            bwUsageColor(this.state.routeWeights[link.name]),
+          );
           linkLine = this.getLinkLine(link, linkCoords, linkColor);
         }
       } else {

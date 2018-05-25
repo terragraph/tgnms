@@ -150,8 +150,8 @@ export default class SystemLogs extends React.Component {
   }
 
   render() {
-    var logsOptions = [];
-    var nodesOptions = [];
+    const logsOptions = [];
+    const nodesOptions = [];
     if (this.state.logSources) {
       Object(this.state.logSources).forEach(source => {
         logsOptions.push({

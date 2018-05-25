@@ -78,10 +78,10 @@ export default class EventLogs extends React.Component {
   }
 
   findprop(obj, path) {
-    var args = path.split('.');
-    var l = args.length;
+    const args = path.split('.');
+    const l = args.length;
 
-    for (var i = 0; i < l; i++) {
+    for (let i = 0; i < l; i++) {
       if (!obj.hasOwnProperty(args[i])) {
         return;
       }
@@ -98,14 +98,14 @@ export default class EventLogs extends React.Component {
 
     const table = this.state.selectedTable;
     const columns = table.display.columns;
-    var id = 0;
+    let id = 0;
     Object(this.state.searchResult).forEach(result => {
-      var row = {};
-      var tzoffset = new Date().getTimezoneOffset() * 60000;
+      const row = {};
+      const tzoffset = new Date().getTimezoneOffset() * 60000;
 
       row._id = id++;
       Object(columns).forEach(column => {
-        var val = this.findprop(result, column.field);
+        let val = this.findprop(result, column.field);
         if (column.format) {
           switch (column.format) {
             case 'TIME_MS':
@@ -193,7 +193,7 @@ export default class EventLogs extends React.Component {
   }
 
   render() {
-    var options = [];
+    const options = [];
     if (this.state.tables) {
       Object(this.state.tables).forEach(table => {
         options.push({

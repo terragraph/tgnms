@@ -150,7 +150,7 @@ export default class NetworkAlerts extends React.Component {
     );
     const json = response.data;
     const rows = [];
-    var index = 0;
+    let index = 0;
     json.alerts.forEach(alertConf => {
       rows.push({
         id: alertConf.id,
@@ -261,7 +261,7 @@ export default class NetworkAlerts extends React.Component {
 
   addAlertsConfigRow() {
     const rows = this.state.alertsConfigRows;
-    var row = {
+    const row = {
       _id: rows.length,
       id: '-',
       key: '-',
@@ -278,10 +278,10 @@ export default class NetworkAlerts extends React.Component {
 
   deleteAlertsConfigRows() {
     const rows = this.state.alertsConfigRows;
-    var newRows = [];
-    var newId = 0;
+    const newRows = [];
+    let newId = 0;
     rows.forEach(row => {
-      var selected = false;
+      let selected = false;
       this.state.alertsConfigSelected.forEach(id => {
         if (id === row._id) {
           selected = true;
@@ -301,7 +301,7 @@ export default class NetworkAlerts extends React.Component {
   }
 
   deleteSelectedAlerts() {
-    var alertIds = [];
+    const alertIds = [];
     if (this.state.alertsSelected && this.state.alertsSelected.length > 0) {
       this.state.alertsSelected.forEach(id => {
         alertIds.push(id);
@@ -454,7 +454,7 @@ export default class NetworkAlerts extends React.Component {
       blurToSave: true,
     };
 
-    var alertsConfigSelectRowProp = {
+    const alertsConfigSelectRowProp = {
       mode: 'checkbox',
       clickToSelect: true,
       bgColor: 'rgb(150, 150, 250)',
@@ -462,7 +462,7 @@ export default class NetworkAlerts extends React.Component {
       selected: this.state.alertsConfigSelected,
     };
 
-    var alertsSelectRowProp = {
+    const alertsSelectRowProp = {
       mode: 'checkbox',
       clickToSelect: true,
       bgColor: 'rgb(150, 150, 250)',

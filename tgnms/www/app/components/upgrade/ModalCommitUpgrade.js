@@ -56,9 +56,9 @@ export default class ModalCommitUpgrade extends React.Component {
 
     const ugType = this.state.requestType === 'nodes' ? 10 : 20;
 
-    var limit = 0;
+    let limit = 0;
     if (this.state.batchingAlgorithm === 'auto_limited') {
-      var n = parseInt(this.state.limit, 10);
+      const n = parseInt(this.state.limit, 10);
       if (n == NaN || String(n) !== this.state.limit || n < 1) {
         swal({
           title: 'Invalid input!',
@@ -80,7 +80,7 @@ export default class ModalCommitUpgrade extends React.Component {
       skipFailure: this.state.skipFailure,
       skipLinks: [],
 
-      limit: limit,
+      limit,
 
       scheduleToCommit: this.state.scheduleToCommit,
 

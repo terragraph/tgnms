@@ -141,8 +141,8 @@ export const setNetworkOverrideConfig = (topologyName, config) => {
 
   axios
     .post(uri, {
-      config: config,
-      topologyName: topologyName,
+      config,
+      topologyName,
     })
     .then(response => {
       setNetworkConfigSuccess({config});
@@ -163,15 +163,15 @@ export const setNodeOverrideConfig = (
   mac2NameMap,
 ) => {
   // filter nodes by changes
-  var configToSubmit = pick(config, nodesWithChanges);
+  let configToSubmit = pick(config, nodesWithChanges);
   const uri = '/controller/setNodeOverrideConfig';
 
   // TODO a quick hack to support nameBased config for M19 onwards
   // remove after cleaning code to use node name
   if (useNameAsKey) {
-    var nameBased = {};
-    Object.keys(configToSubmit).forEach(function(key) {
-      var nodeName = mac2NameMap[key];
+    const nameBased = {};
+    Object.keys(configToSubmit).forEach(key => {
+      const nodeName = mac2NameMap[key];
       if (nodeName) {
         nameBased[nodeName] = configToSubmit[key];
       }
@@ -182,7 +182,7 @@ export const setNodeOverrideConfig = (
   axios
     .post(uri, {
       config: configToSubmit,
-      topologyName: topologyName,
+      topologyName,
     })
     .then(response => {
       setNodeConfigSuccess({config, saveSelected});

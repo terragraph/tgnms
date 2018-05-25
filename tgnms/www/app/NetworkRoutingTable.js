@@ -46,15 +46,12 @@ export default class NetworkRoutingTable extends React.Component {
       this.globalPrefixToNode[this.state.destinationPrefix]
     ) {
       // Because we can not dispatch withing a dispatch, delay by 1 ms
-      setTimeout(
-        function() {
-          this.calcRoutingPath(
-            this.nodeMacToNode[this.state.selectedSourceNode.mac],
-            this.globalPrefixToNode[this.state.destinationPrefix],
-          );
-        }.bind(this),
-        1,
-      );
+      setTimeout(() => {
+        this.calcRoutingPath(
+          this.nodeMacToNode[this.state.selectedSourceNode.mac],
+          this.globalPrefixToNode[this.state.destinationPrefix],
+        );
+      }, 1);
     }
   }
 
@@ -89,10 +86,10 @@ export default class NetworkRoutingTable extends React.Component {
   }
 
   bin2hex(s) {
-    var i;
-    var l;
-    var o = '';
-    var n;
+    let i;
+    let l;
+    let o = '';
+    let n;
 
     s += '';
 
@@ -164,7 +161,7 @@ export default class NetworkRoutingTable extends React.Component {
         const nextHopAddr = ipaddr
           .fromByteArray(Buffer.from(nextHop.addr, 'ASCII'))
           .toString();
-        var nextHopHost = '';
+        let nextHopHost = '';
         if (nodeAdj) {
           const nextHopMac = nodeAdj[nextHopAddr];
           if (nextHopMac) {
@@ -207,8 +204,8 @@ export default class NetworkRoutingTable extends React.Component {
   }
 
   calcRoutingPath(src, finalDest) {
-    var myStack = [];
-    var validRoute = false;
+    const myStack = [];
+    let validRoute = false;
 
     if (!src || !finalDest || this.globalPrefixToNode.length < 1) {
       Dispatcher.dispatch({actionType: Actions.CLEAR_ROUTE});
@@ -276,11 +273,11 @@ export default class NetworkRoutingTable extends React.Component {
                 console.log(myStack);
                 return;
               }
-              var visitedSoFar = currentNode.visitedSoFar.slice();
+              const visitedSoFar = currentNode.visitedSoFar.slice();
               myStack.push({
                 node: nextHopNode,
                 weight: addedWeight,
-                visitedSoFar: visitedSoFar,
+                visitedSoFar,
               });
               const linkname =
                 currentNode.node.name < nextHopNode.name
@@ -313,7 +310,7 @@ export default class NetworkRoutingTable extends React.Component {
 
   routingTableOnRowSelect(selectedRow, isSelected) {
     if (isSelected) {
-      var selected = [];
+      const selected = [];
       Object(this.routingTableRows).forEach(row => {
         if (row.dst_ip_hidden == selectedRow.dst_ip_hidden) {
           selected.push(row.key);
@@ -337,7 +334,7 @@ export default class NetworkRoutingTable extends React.Component {
   }
 
   render() {
-    var selectRowProp = {
+    const selectRowProp = {
       mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: true,
@@ -345,7 +342,7 @@ export default class NetworkRoutingTable extends React.Component {
       onSelect: this.tableOnRowSelect.bind(this),
     };
 
-    var routingSelectRowProp = {
+    const routingSelectRowProp = {
       mode: 'checkbox',
       clickToSelect: true,
       hideSelectColumn: true,
@@ -358,7 +355,7 @@ export default class NetworkRoutingTable extends React.Component {
       return <div>Nothing to show</div>;
     }
 
-    var layout = [
+    const layout = [
       {i: 'a', x: 0, y: 0, w: 2, h: 1, static: true},
       {i: 'b', x: 2, y: 0, w: 10, h: 1, static: true},
     ];

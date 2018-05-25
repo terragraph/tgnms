@@ -18,9 +18,9 @@ import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';
 import React from 'react';
 
-var SECONDS_HOUR = 60 * 60;
-var SECONDS_DAY = SECONDS_HOUR * 24;
-var INVALID_VALUE = 255;
+const SECONDS_HOUR = 60 * 60;
+const SECONDS_DAY = SECONDS_HOUR * 24;
+const INVALID_VALUE = 255;
 
 export default class NetworkLinksTable extends React.Component {
   nodesByName = {};
@@ -372,7 +372,7 @@ export default class NetworkLinksTable extends React.Component {
     let hour = tmm.getHours();
     let ampm = '';
     if (hour > 12) {
-      hour = hour - 12;
+      hour -= 12;
       ampm = 'PM';
     } else {
       ampm = 'AM';
@@ -420,7 +420,7 @@ export default class NetworkLinksTable extends React.Component {
         queries.entity = 'CXL-Node-Test-' + zNode.mac_addr;
       }
       url = url + '&queries[' + i + ']=' + JSON.stringify(queries);
-      i = i + 1;
+      i += 1;
     });
 
     return url;
@@ -622,7 +622,7 @@ export default class NetworkLinksTable extends React.Component {
     //let adjustedHeight = this.props.height - (this.state.selectedLink ? 100 : 0);
     let adjustedHeight = this.props.height - 40;
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
-    var linksSelectRowProp = {
+    const linksSelectRowProp = {
       mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: true,

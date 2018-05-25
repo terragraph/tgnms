@@ -47,7 +47,7 @@ export default class ModalTopologyDiffer extends React.Component {
       }
       Dispatcher.dispatch({
         actionType: Actions.TOPOLOGY_ISSUES_PANE,
-        topology: topology,
+        topology,
         visible: true,
       });
       this.modalClose();

@@ -104,13 +104,13 @@ export default class NetworkConfigContainer extends React.Component {
 
       // edit mode to determine whether the user edits the network override or node override
       // changed by selecting node(s) or the network in the left pane in the UI
-      editMode: editMode,
+      editMode,
 
       // currently selected image version
       selectedImage: DEFAULT_BASE_KEY,
 
       // currently selected set of nodes which the config is being viewed as
-      selectedNodes: selectedNodes,
+      selectedNodes,
 
       errorMsg: null,
     };
@@ -195,7 +195,7 @@ export default class NetworkConfigContainer extends React.Component {
   getNodesName2MacMap() {
     const {networkConfig} = this.props;
     return networkConfig.topology && networkConfig.topology.nodes
-      ? networkConfig.topology.nodes.reduce(function(map, node) {
+      ? networkConfig.topology.nodes.reduce((map, node) => {
           map[node.name] = node.mac_addr;
           return map;
         }, {})
@@ -205,7 +205,7 @@ export default class NetworkConfigContainer extends React.Component {
   getNodesMac2NameMap() {
     const {networkConfig} = this.props;
     return networkConfig.topology && networkConfig.topology.nodes
-      ? networkConfig.topology.nodes.reduce(function(map, node) {
+      ? networkConfig.topology.nodes.reduce((map, node) => {
           map[node.mac_addr] = node.name;
           return map;
         }, {})
@@ -383,10 +383,10 @@ export default class NetworkConfigContainer extends React.Component {
         // remove after cleaning code to use node name
         if (!this.isOldControllerVersion()) {
           // Change name key to mac key
-          var name2MacMap = this.getNodesName2MacMap();
-          var config = {};
-          Object.keys(payload.config).forEach(function(key) {
-            var newkey = name2MacMap[key];
+          const name2MacMap = this.getNodesName2MacMap();
+          const config = {};
+          Object.keys(payload.config).forEach(key => {
+            const newkey = name2MacMap[key];
             if (newkey) {
               config[newkey] = payload.config[key];
             }
@@ -457,7 +457,7 @@ export default class NetworkConfigContainer extends React.Component {
     const newId = uuidv4();
     const newField = {
       id: newId,
-      type: type,
+      type,
       field: '',
       value: getDefaultValueForType(type),
     };

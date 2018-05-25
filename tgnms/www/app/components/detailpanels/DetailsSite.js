@@ -46,10 +46,10 @@ export default class DetailsSite extends React.Component {
       actionType: Actions.TAB_SELECTED,
       tabName: 'links',
     });
-    setTimeout(function() {
+    setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.LINK_SELECTED,
-        link: link,
+        link,
         source: 'map',
       });
     }, 1);
@@ -60,7 +60,7 @@ export default class DetailsSite extends React.Component {
       actionType: Actions.TAB_SELECTED,
       tabName: 'nodes',
     });
-    setTimeout(function() {
+    setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.NODE_SELECTED,
         nodeSelected: nodeName,
@@ -78,7 +78,7 @@ export default class DetailsSite extends React.Component {
     };
     const postData = {
       topology: this.props.topologyName,
-      newSite: newSite,
+      newSite,
     };
     swal(
       {

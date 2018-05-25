@@ -150,7 +150,7 @@ export const convertAndValidateNewConfigObject = newConfig => {
   const validationMsg = '';
 
   // for all keys in the new config object that we wish to convert
-  for (var id in newConfig) {
+  for (const id in newConfig) {
     const {type, field, value} = newConfig[id];
     // check for empty and duplicate fields, and terminate if we encounter them
     if (config.hasOwnProperty(field)) {

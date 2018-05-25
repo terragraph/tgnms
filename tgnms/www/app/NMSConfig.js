@@ -67,7 +67,7 @@ export default class NMSConfig extends React.Component {
           .post('/config/save', {
             use_tile_proxy: false,
             refresh_interval: 5000,
-            topologies: topologies,
+            topologies,
           })
           .then(_ => swal({title: 'Config saved!'}))
           .catch(_ => swal({title: 'Failed updating config'}));
@@ -189,7 +189,7 @@ export default class NMSConfig extends React.Component {
   downloadTopology(name, filename) {
     axios.get('/topology/get_stateless/' + name).then(response => {
       const str = JSON.stringify(response.data.topology, null, '\t');
-      var blob = new Blob([str], {type: 'text/plain;charset=utf-8'});
+      const blob = new Blob([str], {type: 'text/plain;charset=utf-8'});
       window.FileSaver.saveAs(blob, filename);
     });
   }
@@ -422,7 +422,7 @@ export default class NMSConfig extends React.Component {
   }
 
   render() {
-    var linksSelectRowProp = {
+    const linksSelectRowProp = {
       mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: true,

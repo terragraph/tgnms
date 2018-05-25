@@ -122,7 +122,7 @@ export default class PlotlyGraph extends React.Component {
     if (graphData && graphData.points && graphData.points[0]) {
       const traces = [];
       // Create the correct number of trace (line) objects
-      for (var i = 0; i < graphData.points[0].length - 1; i++) {
+      for (let i = 0; i < graphData.points[0].length - 1; i++) {
         traces.push({
           x: [], // Will contain the timestamp
           y: [], // Will contain the data
@@ -134,7 +134,7 @@ export default class PlotlyGraph extends React.Component {
       // Populate the x and y data for each of the traces from the points
       graphData.points.forEach(point => {
         point[0] = new Date(point[0]);
-        for (var i = 1; i < point.length; i++) {
+        for (let i = 1; i < point.length; i++) {
           const trace = traces[i - 1];
           trace.x.push(point[0]); // Push the timestamp contained at point[0]
           trace.y.push(point[i]); // Push the data

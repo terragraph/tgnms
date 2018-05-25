@@ -58,7 +58,7 @@ export default class NetworkDashboards extends React.Component {
         index++;
       });
       this.setState({
-        dashboards: dashboards,
+        dashboards,
       });
     }
   }
@@ -96,7 +96,7 @@ export default class NetworkDashboards extends React.Component {
           animation: 'slide-from-top',
           inputPlaceholder: 'Dashboard name',
         },
-        function(inputValue) {
+        inputValue => {
           if (inputValue === false) {
             return false;
           }
@@ -112,11 +112,11 @@ export default class NetworkDashboards extends React.Component {
           dashboards[inputValue] = {graphs: []};
           this.props.onHandleSelectedDashboardChange(inputValue);
           this.setState({
-            dashboards: dashboards,
+            dashboards,
             editView: false,
           });
           swal('Added!', 'dashboard: ' + inputValue, 'success');
-        }.bind(this),
+        },
       );
     } else {
       this.props.onHandleSelectedDashboardChange(val.label);
@@ -150,7 +150,7 @@ export default class NetworkDashboards extends React.Component {
       },
     });
     this.setState({
-      dashboards: dashboards,
+      dashboards,
     });
   }
 
@@ -180,7 +180,7 @@ export default class NetworkDashboards extends React.Component {
         confirmButtonText: 'Rename',
         closeOnConfirm: false,
       },
-      function(value) {
+      value => {
         const newDashboards = this.state.dashboards;
         // update name
         newDashboards[this.props.selectedDashboard].graphs[index].name = value;
@@ -189,7 +189,7 @@ export default class NetworkDashboards extends React.Component {
         });
         swal('Renamed', 'The selected dashboard was renamed.', 'success');
         this.saveDashboards();
-      }.bind(this),
+      },
     );
   }
 
@@ -202,7 +202,7 @@ export default class NetworkDashboards extends React.Component {
     }
     this.setState({
       graphEditOpen: false,
-      dashboards: dashboards,
+      dashboards,
       editedGraph: null,
       editedGraphIndex: null,
       modalIsOpen: false,
@@ -215,7 +215,7 @@ export default class NetworkDashboards extends React.Component {
     const graphs = dashboard.graphs;
     graphs.splice(index, 1);
     this.setState({
-      dashboards: dashboards,
+      dashboards,
     });
   }
 
@@ -230,16 +230,16 @@ export default class NetworkDashboards extends React.Component {
         confirmButtonText: 'Yes, do it!',
         closeOnConfirm: false,
       },
-      function() {
+      () => {
         const dashboards = this.state.dashboards;
         delete dashboards[this.props.selectedDashboard];
         this.props.onHandleSelectedDashboardChange(null);
         this.setState({
-          dashboards: dashboards,
+          dashboards,
         });
         swal('Deleted!', 'The selected dashboard was deleted.', 'success');
         this.saveDashboards();
-      }.bind(this),
+      },
     );
   }
 
@@ -274,7 +274,7 @@ export default class NetworkDashboards extends React.Component {
         animation: 'slide-from-top',
         inputPlaceholder: 'Write something',
       },
-      function(inputValue) {
+      inputValue => {
         if (inputValue === false) {
           return false;
         }
@@ -293,20 +293,20 @@ export default class NetworkDashboards extends React.Component {
         delete dashboards[this.props.selectedDashboard];
         this.props.onHandleSelectedDashboardChange(inputValue);
         this.setState({
-          dashboards: dashboards,
+          dashboards,
         });
         swal(
           'Dashboard Name Chnaged!',
           'New dashboard name is: ' + inputValue,
           'success',
         );
-      }.bind(this),
+      },
     );
   }
 
   render() {
-    var layout = [];
-    var layoutDivs = [];
+    const layout = [];
+    const layoutDivs = [];
 
     if (
       this.state.dashboards &&
@@ -314,7 +314,7 @@ export default class NetworkDashboards extends React.Component {
     ) {
       const dashboard = this.state.dashboards[this.props.selectedDashboard];
       const graphs = dashboard.graphs;
-      var index = 0;
+      let index = 0;
       graphs.forEach(graph => {
         const id = index.toString();
         layout.push({
@@ -326,7 +326,7 @@ export default class NetworkDashboards extends React.Component {
           minW: 2,
           maxW: 6,
           minH: 3,
-          static: this.state.editView ? false : true,
+          static: !this.state.editView,
         });
         if (!this.state.editView) {
           layoutDivs.push(
@@ -365,7 +365,7 @@ export default class NetworkDashboards extends React.Component {
       });
     }
 
-    var dashboardsOptions = [];
+    const dashboardsOptions = [];
     if (this.state.dashboards) {
       Object.keys(this.state.dashboards).forEach(dashboardName => {
         dashboardsOptions.push({

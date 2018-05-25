@@ -29,7 +29,7 @@ export default class DetailsPlannedSite extends React.Component {
     };
     const postData = {
       topology: this.props.topologyName,
-      newSite: newSite,
+      newSite,
     };
     swal(
       {
@@ -41,8 +41,8 @@ export default class DetailsPlannedSite extends React.Component {
         confirmButtonText: 'Yes, add it!',
         closeOnConfirm: false,
       },
-      function() {
-        var request = new XMLHttpRequest();
+      () => {
+        const request = new XMLHttpRequest();
         request.onload = function() {
           if (!request) {
             return;
@@ -66,7 +66,7 @@ export default class DetailsPlannedSite extends React.Component {
           request.send(JSON.stringify(postData));
         } catch (e) {}
         this.props.onClose();
-      }.bind(this),
+      },
     );
   }
 

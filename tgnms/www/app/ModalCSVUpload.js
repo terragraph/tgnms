@@ -43,10 +43,10 @@ export default class ModalCSVUpload extends React.Component {
       rows = reader.result.split(/\n/).slice(2);
       const topology = this.generateTopology(rows);
 
-      var jsonTopology =
+      const jsonTopology =
         'data:text/json;charset=utf-8,' +
         encodeURIComponent(JSON.stringify(topology, 0, 4));
-      var downloadElement = document.getElementById('downloadElement');
+      const downloadElement = document.getElementById('downloadElement');
       downloadElement.setAttribute('href', jsonTopology);
       downloadElement.setAttribute('download', 'topology.json');
 
@@ -232,7 +232,7 @@ export default class ModalCSVUpload extends React.Component {
   }
 
   render() {
-    var nodesVector = [];
+    const nodesVector = [];
 
     if (this.props.topology.nodes) {
       Object(this.props.topology.nodes).forEach(node => {
