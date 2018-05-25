@@ -296,7 +296,7 @@ export default class NetworkLinksTable extends React.Component {
       let linkupAttempts = 0;
       if (link.linkup_attempts && link.linkup_attempts.buffer) {
         const buf = Buffer.from(link.linkup_attempts.buffer.data);
-        linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString());
+        linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString(), 10);
       }
       if (link.link_type === 2 && state.hideWired) {
         return;

@@ -5,8 +5,6 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
-import {render} from 'react-dom';
 import React from 'react';
 import scrollbarSize from 'dom-helpers/util/scrollbarSize';
 
@@ -32,7 +30,6 @@ export default class CustomTable extends React.Component {
 
   render() {
     const {
-      bodyCellRenderer,
       columns,
       data,
       headerHeight,
@@ -182,7 +179,6 @@ export default class CustomTable extends React.Component {
   _headerClicked({columnIndex, dataKey, rowIndex}) {
     const {
       columns,
-      data,
       sortBy,
       sortDirection,
       sortFunction,
@@ -199,7 +195,7 @@ export default class CustomTable extends React.Component {
     // Call sort function if sort is enabled
     columns[columnIndex].sort && sortFunction({
       sortBy: dataKey,
-      sortDirection: newSortDirection
+      sortDirection: newSortDirection,
     });
   }
 
