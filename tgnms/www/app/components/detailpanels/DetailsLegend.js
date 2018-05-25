@@ -16,42 +16,42 @@ import React from 'react';
 export default class DetailsLegend extends React.Component {
   state = {
     legendOpen: false,
-    siteOpen: true,
     linkOpen: true,
+    siteOpen: true,
   };
 
   // Values for node type legend entry icons.
   // All values chosen to try and match the leaflet markers
   nodeTypesOverlayDefaults = {
     svg: {
-      width: '20',
-      height: '20',
       cx: '10',
       cy: '10',
+      height: '20',
       r: '5',
-      strokeWidth: '1',
       stroke: 'none',
+      strokeWidth: '1',
+      width: '20',
     },
   };
   nodeTypesOverlaySource = {
-    DN: {
-      color: 'blue',
-      svg: {},
-    },
     CN: {
       color: 'pink',
+      svg: {},
+    },
+    DN: {
+      color: 'blue',
       svg: {},
     },
     'Ruckus AP': {
       color: 'white',
       svg: {
-        width: '48',
-        height: '48',
         cx: '24',
         cy: '24',
+        height: '48',
         r: '12',
-        strokeWidth: '3',
         stroke: 'purple',
+        strokeWidth: '3',
+        width: '48',
       },
     },
   };
@@ -122,9 +122,9 @@ export default class DetailsLegend extends React.Component {
     let linkOverlayKeyRows = [];
     let linkOverlaySource = LinkOverlayKeys[this.props.linkOverlay];
     const health = {
-      values: ['Alive', 'Ignition Candidate', 'Dead'],
       colors: ['green', 'purple', 'red'],
       prefix: '',
+      values: ['Alive', 'Ignition Candidate', 'Dead'],
     };
 
     // Health is dealt set up differently in NetworkConstants, so override here
