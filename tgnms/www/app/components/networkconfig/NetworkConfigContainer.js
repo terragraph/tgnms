@@ -28,6 +28,7 @@ import {
   getImageVersionsForNetwork,
   unsetAndCleanup,
   getDefaultValueForType,
+  sortConfig,
 } from '../../helpers/NetworkConfigHelpers.js';
 import NetworkConfig from './NetworkConfig.js';
 import cloneDeep from 'lodash-es/cloneDeep';
@@ -370,7 +371,25 @@ export default class NetworkConfigContainer extends React.Component {
         this.setState({baseConfig: payload.config});
         break;
       case NetworkConfigActions.GET_CONFIG_METADATA_SUCCESS:
-        this.setState({configMetadata: payload.metadata});
+        const {
+          baseConfig,
+          networkOverrideConfig,
+          networkConfigWithChanges,
+          nodeOverrideConfig,
+          nodeConfigWithChanges,
+        } = this.state;
+        const {metadata} = payload;
+        this.setState({
+          baseConfig: sortConfig(baseConfig, metadata),
+          networkOverrideConfig: sortConfig(networkOverrideConfig, metadata),
+          networkConfigWithChanges: sortConfig(
+            networkConfigWithChanges,
+            metadata,
+          ),
+          nodeOverrideConfig: sortConfig(nodeOverrideConfig, metadata),
+          nodeConfigWithChanges: sortConfig(nodeConfigWithChanges, metadata),
+          configMetadata: metadata,
+        });
         break;
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
         this.setState({
