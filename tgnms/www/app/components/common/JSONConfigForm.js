@@ -21,7 +21,10 @@ import {
   REVERT_VALUE,
   ADD_FIELD_TYPES,
 } from '../../constants/NetworkConfigConstants.js';
-import {getStackedFields} from '../../helpers/NetworkConfigHelpers.js';
+import {
+  getMetadata,
+  getStackedFields,
+} from '../../helpers/NetworkConfigHelpers.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
 import JSONFormField from './JSONFormField.js';
 import NewJSONConfigField from './NewJSONConfigField.js';
@@ -38,6 +41,20 @@ const PLACEHOLDER_VALUE = 'base value for field not set';
 // internal config form class that wraps a JSONConfigForm with a label
 // mostly used to toggle a form's expandability
 class ExpandableConfigForm extends React.Component {
+  static propTypes = {
+    configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+    draftConfig: PropTypes.object.isRequired,
+    newConfigFields: PropTypes.object.isRequired,
+    metadata: PropTypes.object,
+    formLabel: PropTypes.string.isRequired,
+    editPath: PropTypes.array.isRequired,
+    initExpanded: PropTypes.bool.isRequired,
+
+    viewContext: PropTypes.shape({
+      viewOverridesOnly: PropTypes.bool.isRequired,
+    }).isRequired,
+  };
+
   constructor(props) {
     super(props);
 
@@ -161,20 +178,6 @@ class ExpandableConfigForm extends React.Component {
   }
 }
 
-ExpandableConfigForm.propTypes = {
-  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
-  draftConfig: PropTypes.object.isRequired,
-  newConfigFields: PropTypes.object.isRequired,
-  metadata: PropTypes.object,
-  formLabel: PropTypes.string.isRequired,
-  editPath: PropTypes.array.isRequired,
-  initExpanded: PropTypes.bool.isRequired,
-
-  viewContext: PropTypes.shape({
-    viewOverridesOnly: PropTypes.bool.isRequired,
-  }).isRequired,
-};
-
 const emptyFieldAlertProps = {
   title: 'Field Name Cannot be Empty',
   text:
@@ -189,6 +192,32 @@ const duplicateFieldAlertProps = duplicateField => ({
 });
 
 export default class JSONConfigForm extends React.Component {
+  static propTypes = {
+    configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+    draftConfig: PropTypes.object.isRequired,
+    newConfigFields: PropTypes.object.isRequired,
+    metadata: PropTypes.object,
+
+    // the "path" of keys that identifies the root of the component's config
+    // vs the entire config object
+    // useful for nested config components
+    editPath: PropTypes.array.isRequired,
+
+    // is the component initially expanded? only using this to pass to children
+    initExpanded: PropTypes.bool.isRequired,
+
+    viewContext: PropTypes.shape({
+      viewOverridesOnly: PropTypes.bool,
+    }),
+  };
+
+  static defaultProps = {
+    initExpanded: false,
+    viewContext: {
+      viewOverridesOnly: false,
+    },
+  };
+
   isReverted(draftValue) {
     return draftValue === REVERT_VALUE;
   }
@@ -433,17 +462,7 @@ export default class JSONConfigForm extends React.Component {
       let fieldMetadata = {};
 
       if (metadata) {
-        if (metadata.type === 'MAP') {
-          fieldMetadata = metadata.mapVal;
-        } else if (metadata.type === 'OBJECT') {
-          fieldMetadata = metadata.objVal.properties[field];
-        } else {
-          fieldMetadata = newEditPath ? metadata[field] : metadata;
-        }
-      }
-
-      if (metadata.deprecated) {
-        fieldMetadata.deprecated = metadata.deprecated;
+        fieldMetadata = getMetadata(metadata, field);
       }
 
       return this.renderChildItem({
@@ -481,26 +500,3 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 }
-
-JSONConfigForm.propTypes = {
-  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
-  draftConfig: PropTypes.object.isRequired,
-  newConfigFields: PropTypes.object.isRequired,
-  metadata: PropTypes.object,
-
-  // the "path" of keys that identifies the root of the component's config
-  // vs the entire config object
-  // useful for nested config components
-  editPath: PropTypes.array.isRequired,
-
-  // is the component initially expanded? only using this to pass to children
-  initExpanded: PropTypes.bool.isRequired,
-
-  viewContext: PropTypes.shape({
-    viewOverridesOnly: PropTypes.bool.isRequired,
-  }).isRequired,
-};
-
-JSONConfigForm.defaultProps = {
-  initExpanded: true,
-};

@@ -80,9 +80,10 @@ div.top-menu-bar {
 }
 .rc-menu-item,
 .rc-menu-submenu-title {
+  display: flex;
+  align-items: center;
   margin: 0;
   position: relative;
-  display: block;
   padding: 7px 7px 7px 16px;
   white-space: nowrap;
   background: #303336;
@@ -93,6 +94,9 @@ div.top-menu-bar {
 .rc-menu-item.rc-menu-submenu-disabled,
 .rc-menu-submenu-title.rc-menu-submenu-disabled {
   color: #777 !important;
+}
+.rc-menu-item .glyphicon {
+  margin-right: 7px;
 }
 .rc-menu > .rc-menu-item-divider {
   height: 24px;

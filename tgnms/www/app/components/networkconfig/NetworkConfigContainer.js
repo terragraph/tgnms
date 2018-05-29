@@ -773,7 +773,7 @@ export default class NetworkConfigContainer extends React.Component {
         />
         <SweetAlert
           type="error"
-          show={this.state.errorMsg}
+          show={Boolean(this.state.errorMsg)}
           title="Error"
           text={this.state.errorMsg}
           onConfirm={() => this.setState({errorMsg: null})}

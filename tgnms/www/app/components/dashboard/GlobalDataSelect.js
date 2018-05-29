@@ -213,7 +213,7 @@ export default class GlobalDataSelect extends React.Component {
   render() {
     // custom time selector enabled if checkbox is checked
     const customInputProps = {
-       disabled: !this.state.useCustomTime,
+      disabled: !this.state.useCustomTime,
     };
 
     return (

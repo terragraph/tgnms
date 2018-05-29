@@ -41,12 +41,23 @@ export const NetworkConfigActions = {
   GET_NODE_CONFIG_SUCCESS: 'GET_NODE_CONFIG_SUCCESS',
   GET_NODE_CONFIG_FAILED: 'GET_NODE_CONFIG_FAILED',
 
+  GET_CONTROLLER_CONFIG_SUCCESS: 'GET_CONTROLLER_CONFIG_SUCCESS',
+  GET_CONTROLLER_CONFIG_FAILED: 'GET_CONTROLLER_CONFIG_FAILED',
+
+  GET_CONTROLLER_CONFIG_METADATA_SUCCESS:
+    'GET_CONTROLLER_CONFIG_METADATA_SUCCESS',
+  GET_CONTROLLER_CONFIG_METADATA_FAILED:
+    'GET_CONTROLLER_CONFIG_METADATA_FAILED',
+
   // API call resolution actions for set
   SET_NETWORK_CONFIG_SUCCESS: 'SET_NETWORK_CONFIG_SUCCESS',
   SET_NETWORK_CONFIG_FAILED: 'SET_NETWORK_CONFIG_FAILED',
 
   SET_NODE_CONFIG_SUCCESS: 'SET_NODE_CONFIG_SUCCESS',
   SET_NODE_CONFIG_FAILED: 'SET_NODE_CONFIG_FAILED',
+
+  SET_CONTROLLER_CONFIG_SUCCESS: 'SET_CONTROLLER_CONFIG_SUCCESS',
+  SET_CONTROLLER_CONFIG_FAILED: 'SET_CONTROLLER_CONFIG_FAILED',
 
   TOGGLE_EXPAND_ALL: 'TOGGLE_EXPAND_ALL',
 
@@ -196,6 +207,25 @@ export const getNodeConfigSuccess = ({config, topologyName}) => {
   });
 };
 
+export const getControllerConfigSuccess = ({config, topologyName}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_CONTROLLER_CONFIG_SUCCESS,
+    topologyName,
+    config,
+  });
+};
+
+export const getControllerConfigMetadataSuccess = ({
+  metadata,
+  topologyName,
+}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_CONTROLLER_CONFIG_METADATA_SUCCESS,
+    topologyName,
+    metadata,
+  });
+};
+
 // API returns when setting an override is successful
 export const setNetworkConfigSuccess = ({config}) => {
   Dispatcher.dispatch({
@@ -209,6 +239,13 @@ export const setNodeConfigSuccess = ({config, saveSelected}) => {
     actionType: NetworkConfigActions.SET_NODE_CONFIG_SUCCESS,
     config,
     saveSelected,
+  });
+};
+
+export const setControllerConfigSuccess = ({config}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SET_CONTROLLER_CONFIG_SUCCESS,
+    config,
   });
 };
 
