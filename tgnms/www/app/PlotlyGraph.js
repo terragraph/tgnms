@@ -5,11 +5,12 @@
  */
 'use strict';
 
-import axios from 'axios';
 import equals from 'equals';
 import PropTypes from 'prop-types';
-import Plot from 'react-plotly.js';
 import React from 'react';
+import Plot from 'react-plotly.js';
+import axios from 'axios';
+import moment from 'moment';
 
 export default class PlotlyGraph extends React.Component {
   constructor(props, context) {
@@ -45,7 +46,7 @@ export default class PlotlyGraph extends React.Component {
   componentDidUpdate(nextProps, nextState) {
     // check to see if props were updated
     let changed =
-      this.props.options.length != nextProps.options.length &&
+      this.props.options.length !== nextProps.options.length &&
       nextProps.options.length;
     if (!changed) {
       for (let i = 0; i < this.props.options.length; i++) {
@@ -69,9 +70,9 @@ export default class PlotlyGraph extends React.Component {
 
     // check to see if state was updated
     if (
-      (this.state.data == null && nextState.data != null) ||
-      (this.state.data != null && nextState.data == null) ||
-      this.state.dataCounter != nextState.dataCounter
+      (this.state.data === null && nextState.data !== null) ||
+      (this.state.data !== null && nextState.data === null) ||
+      this.state.dataCounter !== nextState.dataCounter
     ) {
       return true;
     }
@@ -146,17 +147,31 @@ export default class PlotlyGraph extends React.Component {
 
   render() {
     const divkey = this.props.divkey;
+
+    // Format height and width of graph
     let divHeight = 0;
     let divWidth = 0;
     if (document.getElementById('plot-' + divkey) !== null) {
       divHeight = document.getElementById('plot-' + divkey).offsetHeight;
       divWidth = document.getElementById('plot-' + divkey).offsetWidth;
     }
+
     return (
       <div className="dashboard-plotly-wrapper" id={'plot-' + divkey}>
         <Plot
           data={this.state.plotlyData}
-          layout={{height: divHeight, width: divWidth, title: this.props.title}}
+          layout={{
+            height: divHeight,
+            width: divWidth,
+            title: this.props.title,
+            xaxis: {
+              range:  [this.props.options.startTime, this.props.options.endTime]
+            },
+          }}
+          config={{
+            modeBarButtonsToRemove: ['sendDataToCloud','hoverCompareCartesian', 'hoverClosestCartesian', 'toggleSpikelines'],
+            displaylogo: false,
+          }}
         />
       </div>
     );
