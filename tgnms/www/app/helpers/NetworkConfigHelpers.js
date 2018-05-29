@@ -88,14 +88,26 @@ const alphabeticalSort = (a, b) => {
   return 0;
 };
 
-export const sortConfig = config => {
+export const sortConfig = (config, metadata = {}) => {
   const newConfig = {};
 
   Object.keys(config)
+    .map(key => {
+      const fieldMetadata = metadata[key];
+
+      return fieldMetadata && fieldMetadata.hasOwnProperty('tag')
+        ? `${fieldMetadata.tag}.${key}`
+        : key;
+    })
     .sort(alphabeticalSort)
-    .forEach(key => {
+    .forEach(tagfield => {
+      // Remove tag if tag was appended for sorting
+      const tokens = tagfield.split('.');
+      const key = tokens.length > 1 ? tokens[1] : tokens[0];
       const value = config[key];
-      const newValue = isPlainObject(value) ? sortConfig(value) : value;
+      const newValue = isPlainObject(value)
+        ? sortConfig(value, metadata[key] || {})
+        : value;
       newConfig[key] = newValue;
     });
 
@@ -150,7 +162,7 @@ export const convertAndValidateNewConfigObject = newConfig => {
   const validationMsg = '';
 
   // for all keys in the new config object that we wish to convert
-  for (var id in newConfig) {
+  for (const id in newConfig) {
     const {type, field, value} = newConfig[id];
     // check for empty and duplicate fields, and terminate if we encounter them
     if (config.hasOwnProperty(field)) {

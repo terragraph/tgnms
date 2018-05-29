@@ -5,11 +5,12 @@
  */
 'use strict';
 
-import axios from 'axios';
 import equals from 'equals';
 import PropTypes from 'prop-types';
-import Plot from 'react-plotly.js';
 import React from 'react';
+import Plot from 'react-plotly.js';
+import axios from 'axios';
+import moment from 'moment';
 
 export default class PlotlyGraph extends React.Component {
   constructor(props, context) {
@@ -45,7 +46,7 @@ export default class PlotlyGraph extends React.Component {
   componentDidUpdate(nextProps, nextState) {
     // check to see if props were updated
     let changed =
-      this.props.options.length != nextProps.options.length &&
+      this.props.options.length !== nextProps.options.length &&
       nextProps.options.length;
     if (!changed) {
       for (let i = 0; i < this.props.options.length; i++) {
@@ -69,9 +70,9 @@ export default class PlotlyGraph extends React.Component {
 
     // check to see if state was updated
     if (
-      (this.state.data == null && nextState.data != null) ||
-      (this.state.data != null && nextState.data == null) ||
-      this.state.dataCounter != nextState.dataCounter
+      (this.state.data === null && nextState.data !== null) ||
+      (this.state.data !== null && nextState.data === null) ||
+      this.state.dataCounter !== nextState.dataCounter
     ) {
       return true;
     }
@@ -122,7 +123,7 @@ export default class PlotlyGraph extends React.Component {
     if (graphData && graphData.points && graphData.points[0]) {
       const traces = [];
       // Create the correct number of trace (line) objects
-      for (var i = 0; i < graphData.points[0].length - 1; i++) {
+      for (let i = 0; i < graphData.points[0].length - 1; i++) {
         traces.push({
           x: [], // Will contain the timestamp
           y: [], // Will contain the data
@@ -134,7 +135,7 @@ export default class PlotlyGraph extends React.Component {
       // Populate the x and y data for each of the traces from the points
       graphData.points.forEach(point => {
         point[0] = new Date(point[0]);
-        for (var i = 1; i < point.length; i++) {
+        for (let i = 1; i < point.length; i++) {
           const trace = traces[i - 1];
           trace.x.push(point[0]); // Push the timestamp contained at point[0]
           trace.y.push(point[i]); // Push the data
@@ -146,17 +147,31 @@ export default class PlotlyGraph extends React.Component {
 
   render() {
     const divkey = this.props.divkey;
+
+    // Format height and width of graph
     let divHeight = 0;
     let divWidth = 0;
     if (document.getElementById('plot-' + divkey) !== null) {
       divHeight = document.getElementById('plot-' + divkey).offsetHeight;
       divWidth = document.getElementById('plot-' + divkey).offsetWidth;
     }
+
     return (
       <div className="dashboard-plotly-wrapper" id={'plot-' + divkey}>
         <Plot
           data={this.state.plotlyData}
-          layout={{height: divHeight, width: divWidth, title: this.props.title}}
+          layout={{
+            height: divHeight,
+            width: divWidth,
+            title: this.props.title,
+            xaxis: {
+              range:  [this.props.options.startTime, this.props.options.endTime]
+            },
+          }}
+          config={{
+            modeBarButtonsToRemove: ['sendDataToCloud','hoverCompareCartesian', 'hoverClosestCartesian', 'toggleSpikelines'],
+            displaylogo: false,
+          }}
         />
       </div>
     );

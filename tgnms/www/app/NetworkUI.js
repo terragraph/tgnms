@@ -93,7 +93,7 @@ export default class NetworkUI extends React.Component {
   }
 
   handleSelectedDashboardChange(selectedDashboard) {
-    this.setState({selectedDashboard: selectedDashboard});
+    this.setState({selectedDashboard});
   }
 
   getNetworkStatusPeriodic() {
@@ -144,7 +144,7 @@ export default class NetworkUI extends React.Component {
         return new Set(batch);
       });
       this.setState({
-        commitPlan: commitPlan,
+        commitPlan,
       });
     });
   }
@@ -184,7 +184,7 @@ export default class NetworkUI extends React.Component {
         });
         // update node name mapping
         this.setState({
-          nodesByName: nodesByName,
+          nodesByName,
           topology: payload.networkConfig.topology,
         });
         // update link health
@@ -337,9 +337,9 @@ export default class NetworkUI extends React.Component {
         type: 'info',
         closeOnConfirm: true,
       },
-      function() {
+      () => {
         this.setState({topologyModalOpen: false});
-      }.bind(this),
+      },
     );
   }
 
@@ -535,7 +535,7 @@ export default class NetworkUI extends React.Component {
             selectedDashboard={this.state.selectedDashboard}
             onHandleSelectedDashboardChange={selectedDashboard => {
               this.setState({
-                selectedDashboard: selectedDashboard,
+                selectedDashboard,
               });
             }}
           />

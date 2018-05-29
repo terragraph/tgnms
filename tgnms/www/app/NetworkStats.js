@@ -102,7 +102,7 @@ export default class NetworkStats extends React.Component {
     super(props);
   }
 
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     // register to receive topology updates
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this),

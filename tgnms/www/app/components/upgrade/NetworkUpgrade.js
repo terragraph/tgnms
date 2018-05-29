@@ -62,7 +62,7 @@ export default class NetworkUpgrade extends React.Component {
       upgradeModalOpen: false,
       upgradeModalMode: UPGRADE_OPERATIONS.PREPARE,
 
-      intervalId: intervalId,
+      intervalId,
     };
   }
 

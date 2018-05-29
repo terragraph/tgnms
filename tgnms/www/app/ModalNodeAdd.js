@@ -77,7 +77,7 @@ export default class ModalNodeAdd extends React.Component {
     };
     const postData = {
       topology: this.props.topology.name,
-      newNode: newNode,
+      newNode,
     };
     swal(
       {
@@ -89,8 +89,8 @@ export default class ModalNodeAdd extends React.Component {
         confirmButtonText: 'Yes, add it!',
         closeOnConfirm: false,
       },
-      function() {
-        var request = new XMLHttpRequest();
+      () => {
+        const request = new XMLHttpRequest();
         request.onload = function() {
           if (!request) {
             return;
@@ -118,7 +118,7 @@ export default class ModalNodeAdd extends React.Component {
   }
 
   render() {
-    var sitesVector = [];
+    const sitesVector = [];
 
     if (this.props.topology.sites) {
       Object(this.props.topology.sites).forEach(site => {

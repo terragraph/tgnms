@@ -104,7 +104,7 @@ export default class ModalLinkAdd extends React.Component {
   }
 
   render() {
-    var nodesVector = [];
+    const nodesVector = [];
 
     if (this.props.topology.nodes) {
       Object(this.props.topology.nodes).forEach(node => {

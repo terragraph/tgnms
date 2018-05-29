@@ -43,7 +43,7 @@ export default class DetailsLink extends React.Component {
       actionType: Actions.TAB_SELECTED,
       tabName: 'nodes',
     });
-    setTimeout(function() {
+    setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.SITE_SELECTED,
         siteSelected: siteName,
@@ -56,7 +56,7 @@ export default class DetailsLink extends React.Component {
       actionType: Actions.TAB_SELECTED,
       tabName: 'nodes',
     });
-    setTimeout(function() {
+    setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.NODE_SELECTED,
         nodeSelected: nodeName,
@@ -162,8 +162,8 @@ export default class DetailsLink extends React.Component {
   }
 
   startIPerfTraffic(src, dest) {
-    var srcIP = src.status_dump && src.status_dump.ipv6Address;
-    var destIP = src.status_dump && src.status_dump.ipv6Address;
+    const srcIP = src.status_dump && src.status_dump.ipv6Address;
+    const destIP = src.status_dump && src.status_dump.ipv6Address;
 
     if (!srcIP || !destIP) {
       return;

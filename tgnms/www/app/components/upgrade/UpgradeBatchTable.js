@@ -47,7 +47,7 @@ export default class UpgradeBatchTable extends React.Component {
       // turns into "RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
 
       // current version
-      var version = node.status_dump
+      const version = node.status_dump
         ? node.status_dump.version.slice(28)
         : 'Not Available';
 
@@ -70,10 +70,10 @@ export default class UpgradeBatchTable extends React.Component {
 
       rows.push({
         name: node.name,
-        version: version,
-        nextVersion: nextVersion,
-        upgradeStatus: upgradeStatus,
-        upgradeReqId: upgradeReqId,
+        version,
+        nextVersion,
+        upgradeStatus,
+        upgradeReqId,
 
         key: node.name,
       });

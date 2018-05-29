@@ -317,9 +317,9 @@ export default class JSONConfigForm extends React.Component {
             configs: values,
             draftConfig: draftValue,
             newConfigFields: newField,
-            metadata: metadata,
-            fieldName: fieldName,
-            editPath: editPath,
+            metadata,
+            fieldName,
+            editPath,
             viewContext: this.props.viewContext,
           });
           break;
@@ -338,8 +338,8 @@ export default class JSONConfigForm extends React.Component {
           draftConfig: draftValue,
           newConfigFields: newField,
           metadata,
-          fieldName: fieldName,
-          editPath: editPath,
+          fieldName,
+          editPath,
           viewContext: this.props.viewContext,
         });
       } else {
@@ -385,9 +385,9 @@ export default class JSONConfigForm extends React.Component {
     const newFieldProps = {
       canSubmit: true,
       fieldId: id,
-      type: type,
-      field: field,
-      value: value,
+      type,
+      field,
+      value,
       editPath: this.props.editPath,
       onSubmit: this.onSubmitNewField,
       onDelete: this.onDeleteNewField,
@@ -448,9 +448,9 @@ export default class JSONConfigForm extends React.Component {
 
       return this.renderChildItem({
         values: configValues,
-        draftValue: draftValue,
+        draftValue,
         metadata: fieldMetadata,
-        newField: newField,
+        newField,
         fieldName: field,
         editPath: newEditPath,
       });

@@ -26,7 +26,7 @@ export default class UpgradeRequestsTable extends React.Component {
       const reqId = pendingReq.urReq.upgradeReqId;
 
       return {
-        reqId: reqId,
+        reqId,
         key: reqId,
       };
     });
@@ -59,7 +59,7 @@ export default class UpgradeRequestsTable extends React.Component {
       trClassName: 'break-word',
     };
 
-    var selectRowProp = isSelectable
+    const selectRowProp = isSelectable
       ? {
           mode: 'checkbox',
           clickToSelect: true,

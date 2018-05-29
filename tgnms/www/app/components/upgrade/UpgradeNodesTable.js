@@ -88,9 +88,9 @@ export default class UpgradeNodesTable extends React.Component {
         ignited: node.status == 2 || node.status == 3,
         site_name: node.site_name,
         pop_node: node.pop_node,
-        version: version,
-        nextVersion: nextVersion,
-        upgradeStatus: upgradeStatus,
+        version,
+        nextVersion,
+        upgradeStatus,
 
         key: node.name,
       });
@@ -148,7 +148,7 @@ export default class UpgradeNodesTable extends React.Component {
     });
 
     this.setState({
-      rowFilters: rowFilters,
+      rowFilters,
     });
   };
 
@@ -161,10 +161,10 @@ export default class UpgradeNodesTable extends React.Component {
   }
 
   render() {
-    var tableData = this.getTableRows(this.props.nodes);
+    const tableData = this.getTableRows(this.props.nodes);
     // tableData = [];
 
-    var selectRowProp = {
+    const selectRowProp = {
       mode: 'checkbox',
       clickToSelect: true,
       hideSelectColumn: tableData.length === 0,

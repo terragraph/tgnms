@@ -196,14 +196,14 @@ export const getNodeMarker = (
       node && (node.status === 2 || node.status === 3) ? '#44ff44' : '#ff2222';
 
     chartOptions[nodeName] = {
-      fillColor: fillColor,
+      fillColor,
       fillOpacity: 1,
     };
   });
 
   const options = Object.assign({}, DEFAULT_SEGMENT_OPTIONS, {
     data: nodeValues,
-    chartOptions: chartOptions,
+    chartOptions,
     rotation: offset,
   });
 

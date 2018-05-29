@@ -39,7 +39,7 @@ export default class DetailsNode extends React.Component {
       actionType: Actions.TAB_SELECTED,
       tabName: 'nodes',
     });
-    setTimeout(function() {
+    setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.SITE_SELECTED,
         siteSelected: siteName,
@@ -53,10 +53,10 @@ export default class DetailsNode extends React.Component {
       actionType: Actions.TAB_SELECTED,
       tabName: 'links',
     });
-    setTimeout(function() {
+    setTimeout(() => {
       Dispatcher.dispatch({
         actionType: Actions.LINK_SELECTED,
-        link: link,
+        link,
         source: 'map',
       });
     }, 1);
@@ -362,7 +362,7 @@ export default class DetailsNode extends React.Component {
       index++;
     });
 
-    var ipv6 = this.props.node.status_dump
+    const ipv6 = this.props.node.status_dump
       ? this.props.node.status_dump.ipv6Address
       : 'Not Available';
     let type = this.props.node.node_type === 2 ? 'DN' : 'CN';

@@ -41,8 +41,8 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
   data.append('topologyName', topologyName);
 
   const config = {
-    onUploadProgress: function(progressEvent) {
-      var percentCompleted = Math.round(
+    onUploadProgress(progressEvent) {
+      const percentCompleted = Math.round(
         progressEvent.loaded * 100 / progressEvent.total,
       );
 

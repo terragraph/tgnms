@@ -16,7 +16,7 @@ export default class NetworkAdjacencyTable extends React.Component {
   }
 
   getNodeName(mac): string {
-    var name = '';
+    let name = '';
     mac = mac.replace(/\./g, ':').toUpperCase();
     Object.keys(this.props.topology.nodes).forEach(nodeName => {
       const node = this.props.topology.nodes[nodeName];
@@ -62,7 +62,7 @@ export default class NetworkAdjacencyTable extends React.Component {
   }
 
   render() {
-    var selectRowProp = {
+    const selectRowProp = {
       mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: true,

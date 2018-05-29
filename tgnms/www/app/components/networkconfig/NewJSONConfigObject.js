@@ -77,9 +77,9 @@ export default class NewJSONConfigObject extends React.Component {
       const newFieldProps = {
         canSubmit: false,
         fieldId: id,
-        type: type,
-        field: field,
-        value: value,
+        type,
+        field,
+        value,
         editPath: newEditPath,
         onDelete: (ep, fi) => deleteNewField({editPath: ep, id: fi}),
       };

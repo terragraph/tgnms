@@ -143,7 +143,7 @@ for (let layer = 0; layer < urlParts.length; layer++) {
   }
 }
 
-Dispatcher.register(function(payload) {
+Dispatcher.register(payload => {
   // console.log('dispatched', payload);
   switch (payload.actionType) {
     case Actions.URL_CHANGED:

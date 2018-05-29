@@ -68,7 +68,7 @@ export default class NetworkScans extends React.Component {
       this.handleDispatchEvent.bind(this),
     );
     const nodeToLinkName = this.updateNodeToLinkMapping(this.props.topology);
-    this.setState({nodeToLinkName: nodeToLinkName});
+    this.setState({nodeToLinkName});
   }
 
   componentWillUnmount() {
@@ -101,7 +101,7 @@ export default class NetworkScans extends React.Component {
           this.props.topology,
         );
         this.setState({
-          nodeToLinkName: nodeToLinkName, // TODO: why is nodeToLinkName stored as state but others are stored as globals?
+          nodeToLinkName, // TODO: why is nodeToLinkName stored as state but others are stored as globals?
           heatmaprender: false,
         });
         break;
@@ -166,9 +166,9 @@ export default class NetworkScans extends React.Component {
   }
 
   create2DArray(rows) {
-    var arr = new Array(rows);
+    const arr = new Array(rows);
 
-    for (var i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i++) {
       arr[i] = new Array(rows);
     }
     return arr;
@@ -219,7 +219,7 @@ export default class NetworkScans extends React.Component {
     }
 
     try {
-      for (var i = 0; i < this.state.scanResults.results.length; i++) {
+      for (let i = 0; i < this.state.scanResults.results.length; i++) {
         const scanResults = this.state.scanResults.results[i];
 
         if (scanResults) {
@@ -249,7 +249,7 @@ export default class NetworkScans extends React.Component {
               token: scanResults.token,
               a_node_name: scanResults.tx_node_name,
               z_node_name: scanResults.rx_node_name,
-              scan_type: scan_type,
+              scan_type,
               time: timestamp,
               tx_power: scanResults.tx_power,
               index: i,
@@ -343,7 +343,7 @@ export default class NetworkScans extends React.Component {
           e,
         );
       }
-      this.setState({nodeFilter: nodeFilter});
+      this.setState({nodeFilter});
     } else if (filterObj.a_node_name) {
       try {
         if (this.filterSource !== 'map') {
@@ -361,7 +361,7 @@ export default class NetworkScans extends React.Component {
           e,
         );
       }
-      this.setState({nodeFilter: nodeFilter});
+      this.setState({nodeFilter});
     } else {
       this.setState({nodeFilter: NODE_FILTER_INIT});
     }
@@ -385,9 +385,9 @@ export default class NetworkScans extends React.Component {
     heatmaptitle.yaxis =
       'beam index rx: ' + row.z_node_name + ' (each index = 1.4\u00B0)';
     this.setState({
-      zmap: zmap,
+      zmap,
       heatmaprender: true,
-      heatmaptitle: heatmaptitle,
+      heatmaptitle,
     });
   }
 
@@ -404,7 +404,7 @@ export default class NetworkScans extends React.Component {
   renderScanTable() {
     let adjustedHeight = this.props.height - 40;
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
-    var linksSelectRowProp = {
+    const linksSelectRowProp = {
       mode: 'radio',
       clickToSelect: true,
       hideSelectColumn: true,
