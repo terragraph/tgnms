@@ -26,6 +26,10 @@ export default class JSONFormField extends React.Component {
     error: false,
   };
 
+  componentDidMount() {
+    this.validateField(this.props.displayVal);
+  }
+
   validateNumber(number, constraints) {
     if (number !== undefined && (typeof number !== 'number' || isNaN(number))) {
       return false;
@@ -104,28 +108,38 @@ export default class JSONFormField extends React.Component {
     );
   }
 
-  editField(value) {
-    const {metadata} = this.props;
+  validateField(value) {
+    const {metadata, displayVal} = this.props;
     let error = false;
 
     switch (metadata.type) {
       case 'INTEGER':
-        error = !this.validateNumber(parseInt(value), metadata.intVal || {});
+        error =
+          typeof displayVal !== 'number' ||
+          !this.validateNumber(parseInt(value), metadata.intVal || {});
         break;
       case 'FLOAT':
-        error = !this.validateNumber(
-          parseFloat(value),
-          metadata.floatVal || {},
-        );
+        error =
+          typeof displayVal !== 'number' ||
+          !this.validateNumber(parseFloat(value), metadata.floatVal || {});
         break;
       case 'STRING':
-        error = !this.validateString(value, metadata.strVal || {});
+        error =
+          typeof displayVal !== 'string' ||
+          !this.validateString(value, metadata.strVal || {});
+        break;
+      case 'BOOLEAN':
+        error = typeof displayVal !== 'boolean';
         break;
     }
 
     this.setState({
       error,
     });
+  }
+
+  editField(value) {
+    this.validateField(value);
 
     editConfigForm({
       editPath: this.props.editPath,
