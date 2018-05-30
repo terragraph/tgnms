@@ -14,13 +14,12 @@ namespace gorilla {
 
 static folly::Singleton<TopologyStore> storeInstance_;
 
-std::shared_ptr<TopologyStore>
-TopologyStore::getInstance() {
+std::shared_ptr<TopologyStore> TopologyStore::getInstance() {
   return storeInstance_.try_get();
 }
 
-std::shared_ptr<query::TopologyConfig>
-TopologyStore::getTopology(const std::string& name) {
+std::shared_ptr<query::TopologyConfig> TopologyStore::getTopology(
+    const std::string& name) {
   auto it = topologyConfigs_.find(name);
   if (it != topologyConfigs_.end()) {
     return it->second;
@@ -33,15 +32,14 @@ TopologyStore::getTopologyList() {
   return topologyConfigs_;
 }
 
-void
-TopologyStore::addTopology(std::shared_ptr<query::TopologyConfig> topologyConfig) {
+void TopologyStore::addTopology(
+    std::shared_ptr<query::TopologyConfig> topologyConfig) {
   topologyConfigs_[topologyConfig->name] = topologyConfig;
 }
 
-void
-TopologyStore::delTopology(const std::string& name) {
+void TopologyStore::delTopology(const std::string& name) {
   topologyConfigs_.erase(name);
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

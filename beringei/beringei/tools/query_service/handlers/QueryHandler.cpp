@@ -32,12 +32,10 @@ const int MAX_COLUMNS = 7;
 const int MAX_DATA_POINTS = 60;
 const int NUM_HBS_PER_SEC = 39; // approximately
 
-QueryHandler::QueryHandler()
-    : RequestHandler(),
-      receivedBody_(false) {}
+QueryHandler::QueryHandler() : RequestHandler(), receivedBody_(false) {}
 
-void
-QueryHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
+void QueryHandler::onRequest(
+    std::unique_ptr<HTTPMessage> /* unused */) noexcept {
   // nothing to do
 }
 
@@ -64,8 +62,7 @@ void QueryHandler::onEOM() noexcept {
   query::QueryRequest request;
   try {
     request = SimpleJSONSerializer::deserialize<query::QueryRequest>(body);
-  }
-  catch (const std::exception &) {
+  } catch (const std::exception&) {
     LOG(INFO) << "Error deserializing QueryRequest";
     ResponseBuilder(downstream_)
         .status(500, "OK")
@@ -78,8 +75,7 @@ void QueryHandler::onEOM() noexcept {
   std::string responseJson;
   try {
     responseJson = folly::toJson(dataFetcher.process());
-  }
-  catch (const std::runtime_error &ex) {
+  } catch (const std::runtime_error& ex) {
     LOG(ERROR) << "Failed executing beringei query: " << ex.what();
   }
   ResponseBuilder(downstream_)
@@ -91,7 +87,9 @@ void QueryHandler::onEOM() noexcept {
 
 void QueryHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {}
 
-void QueryHandler::requestComplete() noexcept { delete this; }
+void QueryHandler::requestComplete() noexcept {
+  delete this;
+}
 
 void QueryHandler::onError(ProxygenError /* unused */) noexcept {
   LOG(ERROR) << "Proxygen reported error";
@@ -100,5 +98,5 @@ void QueryHandler::onError(ProxygenError /* unused */) noexcept {
   delete this;
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook
