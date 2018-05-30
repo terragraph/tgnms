@@ -12,26 +12,28 @@
 #include "MySqlClient.h"
 #include "StatsTypeAheadCache.h"
 
-#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
+#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
-#include <folly/io/async/EventBaseManager.h>
 #include <folly/Synchronized.h>
+#include <folly/io/async/EventBaseManager.h>
 
 namespace facebook {
 namespace gorilla {
 
 class TopologyFetcher {
  public:
-  explicit TopologyFetcher(std::shared_ptr<MySqlClient> mySqlClient,
-                           TACacheMap& typeaheadCache);
+  explicit TopologyFetcher(
+      std::shared_ptr<MySqlClient> mySqlClient,
+      TACacheMap& typeaheadCache);
 
   // run eventbase
   void start();
   void timerCb();
   // requests topology from an api_service endpoint
   void updateTypeaheadCache(query::Topology& topology);
-  query::Topology fetchTopology(std::shared_ptr<query::TopologyConfig> topologyConfig);
+  query::Topology fetchTopology(
+      std::shared_ptr<query::TopologyConfig> topologyConfig);
 
  private:
   folly::EventBase eb_;
@@ -40,5 +42,5 @@ class TopologyFetcher {
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
 };
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

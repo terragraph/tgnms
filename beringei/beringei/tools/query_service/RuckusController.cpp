@@ -11,23 +11,27 @@
 
 #include <curl/curl.h>
 #include <folly/Conv.h>
+#include <folly/String.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
-#include <folly/String.h>
 
 #include "beringei/client/BeringeiClient.h"
 
 // ruckus ap controller
-DEFINE_string(ruckus_controller_host, "172.17.0.1",
-              "Ruckus controller host");
-DEFINE_int32(ruckus_controller_port, 7443,
-             "Ruckus controller port");
-DEFINE_string(ruckus_controller_uri, "/api/public/v5_0/",
-              "Ruckus controller base uri");
-DEFINE_string(ruckus_controller_username, "admin",
-              "Ruckus controller username");
-DEFINE_string(ruckus_controller_password, "Terra@171",
-              "Ruckus controller password");
+DEFINE_string(ruckus_controller_host, "172.17.0.1", "Ruckus controller host");
+DEFINE_int32(ruckus_controller_port, 7443, "Ruckus controller port");
+DEFINE_string(
+    ruckus_controller_uri,
+    "/api/public/v5_0/",
+    "Ruckus controller base uri");
+DEFINE_string(
+    ruckus_controller_username,
+    "admin",
+    "Ruckus controller username");
+DEFINE_string(
+    ruckus_controller_password,
+    "Terra@171",
+    "Ruckus controller password");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -55,14 +59,13 @@ curlWriteCb(void* content, size_t size, size_t nmemb, void* userp) {
 namespace facebook {
 namespace gorilla {
 
-folly::dynamic
-RuckusController::ruckusControllerStats() {
+folly::dynamic RuckusController::ruckusControllerStats() {
   // return
   folly::dynamic apStats = folly::dynamic::object;
   // login and get a new session id
-  folly::dynamic loginObj = folly::dynamic::object
-      ("username", FLAGS_ruckus_controller_username)
-      ("password", FLAGS_ruckus_controller_password);
+  folly::dynamic loginObj =
+      folly::dynamic::object("username", FLAGS_ruckus_controller_username)(
+          "password", FLAGS_ruckus_controller_password);
   struct CurlResponse loginResp = RuckusController::ruckusControllerRequest(
       "session", "", folly::toJson(loginObj));
   VLOG(1) << "Header: " << loginResp.header << ", body: " << loginResp.body;
@@ -82,8 +85,8 @@ RuckusController::ruckusControllerStats() {
     return apStats;
   }
   // fetch ap list
-  struct CurlResponse apListResp = RuckusController::ruckusControllerRequest
-    ("aps?listSize=500", cookieStr, "");
+  struct CurlResponse apListResp = RuckusController::ruckusControllerRequest(
+      "aps?listSize=500", cookieStr, "");
   if (apListResp.responseCode != 200) {
     LOG(ERROR) << "Unable to fetch AP list, response code: "
                << apListResp.responseCode;
@@ -104,17 +107,20 @@ RuckusController::ruckusControllerStats() {
       std::transform(apName.begin(), apName.end(), apName.begin(), ::tolower);
       std::string macAddr = apItem["mac"].asString();
       // fetch details for each ap
-      struct CurlResponse apDetailsResp = RuckusController::ruckusControllerRequest(
-          folly::sformat("aps/{}/operational/summary", macAddr),
-          cookieStr,
-          "");
+      struct CurlResponse apDetailsResp =
+          RuckusController::ruckusControllerRequest(
+              folly::sformat("aps/{}/operational/summary", macAddr),
+              cookieStr,
+              "");
       try {
         folly::dynamic apDetailsObj = folly::parseJson(apDetailsResp.body);
         long apUptime = apDetailsObj["uptime"].asInt();
         long clientCount = apDetailsObj["clientCount"].asInt();
         totalClientCount += clientCount;
-        std::string registrationState(apDetailsObj["registrationState"].asString());
-        std::string administrativeState(apDetailsObj["administrativeState"].asString());
+        std::string registrationState(
+            apDetailsObj["registrationState"].asString());
+        std::string administrativeState(
+            apDetailsObj["administrativeState"].asString());
         std::string ipAddr(apDetailsObj["externalIp"].asString());
         /*LOG(INFO) << "AP: " << apName
                   << ", MAC: " << macAddr
@@ -135,14 +141,13 @@ RuckusController::ruckusControllerStats() {
   return apStats;
 }
 
-struct CurlResponse
-RuckusController::ruckusControllerRequest(
+struct CurlResponse RuckusController::ruckusControllerRequest(
     const std::string& uri,
     const std::string& sessionCookie,
     const std::string& postData) {
   struct CurlResponse curlResponse;
   // construct login request
-  struct curl_slist *headerList = NULL;
+  struct curl_slist* headerList = NULL;
   // we need to specify the content type to get a valid response
   headerList = curl_slist_append(headerList, "Content-Type: application/json");
   try {
@@ -192,7 +197,8 @@ RuckusController::ruckusControllerRequest(
     // make curl request
     res = curl_easy_perform(curl);
     if (res == CURLE_OK) {
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &curlResponse.responseCode);
+      curl_easy_getinfo(
+          curl, CURLINFO_RESPONSE_CODE, &curlResponse.responseCode);
     }
     // fill the response
     curlResponse.header = headerChunk.data;
@@ -213,5 +219,5 @@ RuckusController::ruckusControllerRequest(
   return curlResponse;
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

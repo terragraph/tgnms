@@ -32,13 +32,11 @@ const int MAX_COLUMNS = 7;
 const int MAX_DATA_POINTS = 60;
 const int NUM_HBS_PER_SEC = 39; // approximately
 
-TableQueryHandler::TableQueryHandler(
-    TACacheMap& typeaheadCache)
-    : RequestHandler(),
-      typeaheadCache_(typeaheadCache) {}
+TableQueryHandler::TableQueryHandler(TACacheMap& typeaheadCache)
+    : RequestHandler(), typeaheadCache_(typeaheadCache) {}
 
-void
-TableQueryHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
+void TableQueryHandler::onRequest(
+    std::unique_ptr<HTTPMessage> /* unused */) noexcept {
   // nothing to do
 }
 
@@ -58,8 +56,7 @@ void TableQueryHandler::onEOM() noexcept {
     LOG(INFO) << "Topo: " << request.topologyName
               << ", queries: " << request.nodeQueries.size()
               << ", link queries: " << request.linkQueries.size();
-  }
-  catch (const std::exception &) {
+  } catch (const std::exception&) {
     LOG(INFO) << "Error deserializing TableQueryRequest";
     ResponseBuilder(downstream_)
         .status(500, "OK")
@@ -137,11 +134,13 @@ void TableQueryHandler::onEOM() noexcept {
         if (!linkQuery.linkNameRestrictor.empty() &&
             keyData.linkName != linkQuery.linkNameRestrictor) {
           // restrict query by linkName if specified
-          VLOG(1) << "Skipping link due to linkNameRestrictor: " << keyData.linkName;
+          VLOG(1) << "Skipping link due to linkNameRestrictor: "
+                  << keyData.linkName;
           continue;
         }
         keyIdList.push_back(keyData.keyId);
-        keyData.displayName = keyData.linkName + keyData.linkTitleAppend + " - " + keyData.displayName;
+        keyData.displayName = keyData.linkName + keyData.linkTitleAppend +
+            " - " + keyData.displayName;
         keyDataListRenamed.push_back(keyData);
       }
       lastInterval = linkQuery.interval;
@@ -168,8 +167,7 @@ void TableQueryHandler::onEOM() noexcept {
   std::string responseJson;
   try {
     responseJson = folly::toJson(dataFetcher.process());
-  }
-  catch (const std::runtime_error &ex) {
+  } catch (const std::runtime_error& ex) {
     LOG(ERROR) << "Failed executing beringei query: " << ex.what();
   }
   ResponseBuilder(downstream_)
@@ -181,7 +179,9 @@ void TableQueryHandler::onEOM() noexcept {
 
 void TableQueryHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {}
 
-void TableQueryHandler::requestComplete() noexcept { delete this; }
+void TableQueryHandler::requestComplete() noexcept {
+  delete this;
+}
 
 void TableQueryHandler::onError(ProxygenError /* unused */) noexcept {
   LOG(ERROR) << "Proxygen reported error";
@@ -190,5 +190,5 @@ void TableQueryHandler::onError(ProxygenError /* unused */) noexcept {
   delete this;
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

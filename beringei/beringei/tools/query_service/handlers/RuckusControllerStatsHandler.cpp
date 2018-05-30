@@ -7,8 +7,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "../RuckusController.h"
 #include "RuckusControllerStatsHandler.h"
+#include "../RuckusController.h"
 
 #include <utility>
 
@@ -27,12 +27,13 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
-void
-RuckusControllerStatsHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
+void RuckusControllerStatsHandler::onRequest(
+    std::unique_ptr<HTTPMessage> /* unused */) noexcept {
   // nothing to do
 }
 
-void RuckusControllerStatsHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
+void RuckusControllerStatsHandler::onBody(
+    std::unique_ptr<folly::IOBuf> body) noexcept {
   if (body_) {
     body_->prependChain(move(body));
   } else {
@@ -46,7 +47,7 @@ void RuckusControllerStatsHandler::onEOM() noexcept {
   folly::dynamic ruckusStats = RuckusController::ruckusControllerStats();
   try {
     responseJson = folly::toJson(ruckusStats);
-  } catch (const std::runtime_error &ex) {
+  } catch (const std::runtime_error& ex) {
     LOG(ERROR) << "Failed executing beringei query: " << ex.what();
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Failed pushing json";
@@ -58,16 +59,20 @@ void RuckusControllerStatsHandler::onEOM() noexcept {
       .sendWithEOM();
 }
 
-void RuckusControllerStatsHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {}
+void RuckusControllerStatsHandler::onUpgrade(
+    UpgradeProtocol /* unused */) noexcept {}
 
-void RuckusControllerStatsHandler::requestComplete() noexcept { delete this; }
+void RuckusControllerStatsHandler::requestComplete() noexcept {
+  delete this;
+}
 
-void RuckusControllerStatsHandler::onError(ProxygenError /* unused */) noexcept {
+void RuckusControllerStatsHandler::onError(
+    ProxygenError /* unused */) noexcept {
   LOG(ERROR) << "Proxygen reported error";
   // In QueryServiceFactory, we created this handler using new.
   // Proxygen does not delete the handler.
   delete this;
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

@@ -27,19 +27,19 @@ namespace facebook {
 namespace gorilla {
 
 QueryServiceFactory::QueryServiceFactory(
-  std::shared_ptr<MySqlClient> mySqlClient,
-  TACacheMap& typeaheadCache)
-  : RequestHandlerFactory(),
-    mySqlClient_(mySqlClient),
-    typeaheadCache_(typeaheadCache) { }
+    std::shared_ptr<MySqlClient> mySqlClient,
+    TACacheMap& typeaheadCache)
+    : RequestHandlerFactory(),
+      mySqlClient_(mySqlClient),
+      typeaheadCache_(typeaheadCache) {}
 
-void QueryServiceFactory::onServerStart(folly::EventBase *evb) noexcept {}
+void QueryServiceFactory::onServerStart(folly::EventBase* evb) noexcept {}
 
 void QueryServiceFactory::onServerStop() noexcept {}
 
-proxygen::RequestHandler *
-QueryServiceFactory::onRequest(proxygen::RequestHandler * /* unused */,
-                               proxygen::HTTPMessage *httpMessage) noexcept {
+proxygen::RequestHandler* QueryServiceFactory::onRequest(
+    proxygen::RequestHandler* /* unused */,
+    proxygen::HTTPMessage* httpMessage) noexcept {
   auto path = httpMessage->getPath();
   LOG(INFO) << "Received a request for path " << path;
 
@@ -61,5 +61,5 @@ QueryServiceFactory::onRequest(proxygen::RequestHandler * /* unused */,
   // return not found for all other uris
   return new NotFoundHandler();
 }
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

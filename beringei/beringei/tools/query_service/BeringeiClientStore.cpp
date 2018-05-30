@@ -17,58 +17,60 @@ namespace gorilla {
 BeringeiClientStore::BeringeiClientStore() {
   // initialize clients
   std::unordered_map<int32_t, std::string> intervalConfigList = {
-    {1, "/usr/local/beringei/build/beringei_1s.json"},
-    {30, "/usr/local/beringei/build/beringei_30s.json"},
+      {1, "/usr/local/beringei/build/beringei_1s.json"},
+      {30, "/usr/local/beringei/build/beringei_30s.json"},
   };
   for (const auto& client : intervalConfigList) {
     // ensure we can read file
-    if (FILE *file = fopen(client.second.c_str(), "r")) {
+    if (FILE* file = fopen(client.second.c_str(), "r")) {
       fclose(file);
     } else {
-      LOG(FATAL) << "Unable to read beringei configuration file: " << client.second;
+      LOG(FATAL) << "Unable to read beringei configuration file: "
+                 << client.second;
     }
-    auto configurationAdapter = std::make_shared<BeringeiConfigurationAdapter>(
-      false, client.second);
+    auto configurationAdapter =
+        std::make_shared<BeringeiConfigurationAdapter>(false, client.second);
     // insert read + write clients for the interval
     readClients_.insert({
-      client.first,
-      std::make_shared<BeringeiClient>(
-        configurationAdapter, 1, BeringeiClient::kNoWriterThreads),
-      });
+        client.first,
+        std::make_shared<BeringeiClient>(
+            configurationAdapter, 1, BeringeiClient::kNoWriterThreads),
+    });
     writeClients_.insert({
-      client.first,
-      std::make_shared<BeringeiClient>(
-        configurationAdapter, FLAGS_writer_queue_size, 5),
-      });
+        client.first,
+        std::make_shared<BeringeiClient>(
+            configurationAdapter, FLAGS_writer_queue_size, 5),
+    });
   }
 }
 
 static folly::Singleton<BeringeiClientStore> storeInstance_;
 
-std::shared_ptr<BeringeiClientStore>
-BeringeiClientStore::getInstance() {
+std::shared_ptr<BeringeiClientStore> BeringeiClientStore::getInstance() {
   return storeInstance_.try_get();
 }
 
-std::shared_ptr<BeringeiClient>
-BeringeiClientStore::getReadClient(int32_t intervalSec) {
+std::shared_ptr<BeringeiClient> BeringeiClientStore::getReadClient(
+    int32_t intervalSec) {
   LOG(INFO) << "Request for read client " << intervalSec << " interval";
   auto clientIt = readClients_.find(intervalSec);
   if (clientIt != readClients_.end()) {
     return clientIt->second;
   }
-  throw std::invalid_argument("No read client defined for " + std::to_string(intervalSec));
+  throw std::invalid_argument(
+      "No read client defined for " + std::to_string(intervalSec));
 }
 
-std::shared_ptr<BeringeiClient>
-BeringeiClientStore::getWriteClient(int32_t intervalSec) {
+std::shared_ptr<BeringeiClient> BeringeiClientStore::getWriteClient(
+    int32_t intervalSec) {
   LOG(INFO) << "Request for write client " << intervalSec << " interval";
   auto clientIt = writeClients_.find(intervalSec);
   if (clientIt != writeClients_.end()) {
     return clientIt->second;
   }
-  throw std::invalid_argument("No read client defined for " + std::to_string(intervalSec));
+  throw std::invalid_argument(
+      "No read client defined for " + std::to_string(intervalSec));
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

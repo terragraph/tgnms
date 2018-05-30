@@ -28,11 +28,11 @@ class BeringeiClientStore {
   std::shared_ptr<BeringeiClient> getWriteClient(int32_t intervalSec);
 
  private:
-  std::unordered_map<int32_t /* interval */,
-                     std::shared_ptr<BeringeiClient>> readClients_;
-  std::unordered_map<int32_t /* interval */,
-                     std::shared_ptr<BeringeiClient>> writeClients_;
+  std::unordered_map<int32_t /* interval */, std::shared_ptr<BeringeiClient>>
+      readClients_;
+  std::unordered_map<int32_t /* interval */, std::shared_ptr<BeringeiClient>>
+      writeClients_;
 };
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

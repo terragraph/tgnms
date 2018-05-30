@@ -33,8 +33,7 @@ const int NUM_HBS_PER_SEC = 39; // approximately
 BeringeiData::BeringeiData(const query::QueryRequest& request)
     : request_(request) {}
 
-folly::dynamic
-BeringeiData::process() {
+folly::dynamic BeringeiData::process() {
   columnNames_.clear();
   timeSeries_.clear();
   aggSeries_.clear();
@@ -42,7 +41,7 @@ BeringeiData::process() {
   timeSeries_.clear();
   // one json response
   folly::dynamic response = folly::dynamic::array();
-  for (const auto &query : request_.queries) {
+  for (const auto& query : request_.queries) {
     query_ = query;
     if (query_.key_ids.empty()) {
       continue;
@@ -66,7 +65,7 @@ void BeringeiData::columnNames() {
     std::unordered_set<std::string> linkNames;
     std::unordered_set<std::string> nodeNames;
     std::unordered_set<std::string> displayNames;
-    for (const auto &keyData : query_.data) {
+    for (const auto& keyData : query_.data) {
       keyNames.insert(keyData.key);
       // add title append
       if (keyData.__isset.linkTitleAppend) {
@@ -77,7 +76,7 @@ void BeringeiData::columnNames() {
       nodeNames.insert(keyData.nodeName);
       displayNames.insert(keyData.displayName);
     }
-    for (const auto &keyData : query_.data) {
+    for (const auto& keyData : query_.data) {
       std::string columnName = keyData.node;
       if (keyData.linkName.length() &&
           linkNames.size() == query_.key_ids.size()) {
@@ -86,13 +85,15 @@ void BeringeiData::columnNames() {
         } else {
           columnName = keyData.linkName;
         }
-      } else if (keyData.displayName.length() &&
-                 displayNames.size() == query_.key_ids.size()) {
+      } else if (
+          keyData.displayName.length() &&
+          displayNames.size() == query_.key_ids.size()) {
         columnName = keyData.displayName;
       } else if (keyNames.size() == query_.key_ids.size()) {
         columnName = keyData.key;
-      } else if (keyData.nodeName.length() &&
-                 nodeNames.size() == query_.key_ids.size()) {
+      } else if (
+          keyData.nodeName.length() &&
+          nodeNames.size() == query_.key_ids.size()) {
         columnName = keyData.nodeName;
       } else {
         columnName = folly::sformat("{} / {}", keyData.nodeName, keyData.key);
@@ -109,25 +110,26 @@ void BeringeiData::columnNames() {
  * Uptime/availability
  * Iterate over all data points
  */
-folly::dynamic BeringeiData::eventHandler(int dataPointIncrementMs,
-                                          const std::string &metricName) {
+folly::dynamic BeringeiData::eventHandler(
+    int dataPointIncrementMs,
+    const std::string& metricName) {
   int64_t timeBucketCount = (endTime_ - startTime_) / 30;
   int keyCount = beringeiTimeSeries_.size();
   // count is a special aggregation that will be missed due to default values
   int timeSeriesCounts[timeBucketCount]{};
   // pre-allocate the array size
-  double *timeSeries = new double[query_.key_ids.size() * timeBucketCount]();
+  double* timeSeries = new double[query_.key_ids.size() * timeBucketCount]();
   int keyIndex = 0;
   // map returned key -> index
   std::unordered_map<std::string, int64_t> keyMapIndex;
-  for (const auto &keyId : query_.key_ids) {
+  for (const auto& keyId : query_.key_ids) {
     keyMapIndex[std::to_string(keyId)] = keyIndex;
     keyIndex++;
   }
-  for (const auto &keyTimeSeries : beringeiTimeSeries_) {
-    const std::string &keyName = keyTimeSeries.first.key;
+  for (const auto& keyTimeSeries : beringeiTimeSeries_) {
+    const std::string& keyName = keyTimeSeries.first.key;
     keyIndex = keyMapIndex[keyName];
-    for (const auto &timePair : keyTimeSeries.second) {
+    for (const auto& timePair : keyTimeSeries.second) {
       int timeBucketId = (timePair.unixTime - startTime_) / 30;
       timeSeries[keyIndex * timeBucketCount + timeBucketId] = timePair.value;
     }
@@ -143,9 +145,9 @@ folly::dynamic BeringeiData::eventHandler(int dataPointIncrementMs,
     folly::dynamic onlineEvents = folly::dynamic::array;
     for (int timeIndex = 0; timeIndex < timeBucketCount; timeIndex++) {
       double timeVal = timeSeries[keyIndex * timeBucketCount + timeIndex];
-      double prevVal =
-          timeIndex > 0 ? timeSeries[keyIndex * timeBucketCount + timeIndex - 1]
-                        : 0;
+      double prevVal = timeIndex > 0
+          ? timeSeries[keyIndex * timeBucketCount + timeIndex - 1]
+          : 0;
       if (timeIndex > 0 && prevVal >= 0 && timeVal >= 0) {
         VLOG(2) << "VERBOSE: timeSeries[" << keyIndex << "][" << timeIndex
                 << "] = " << timeVal << " | Diff: " << (timeVal - prevVal)
@@ -213,8 +215,9 @@ folly::dynamic BeringeiData::eventHandler(int dataPointIncrementMs,
         // events
         if (startOnlineIndex >= 0) {
           // partial interval, mark this interval as down
-          VLOG(2) << "[" << timeIndex << "] Partially online interval, marking "
-                                         "offline. We were online for: "
+          VLOG(2) << "[" << timeIndex
+                  << "] Partially online interval, marking "
+                     "offline. We were online for: "
                   << (timeIndex - missingCounter - startOnlineIndex)
                   << " intervals, missing counter: " << missingCounter
                   << ", event start: " << startOnlineIndex
@@ -248,9 +251,8 @@ folly::dynamic BeringeiData::eventHandler(int dataPointIncrementMs,
       uptimePerc =
           (upPoints * 30 + partialSeconds) / (timeBucketCount * 30) * 100.0;
     }
-    auto &name = query_.data[keyIndex].displayName;
-    VLOG(2) << "Key ID: " << query_.data[keyIndex].key
-            << ", Name: " << name
+    auto& name = query_.data[keyIndex].displayName;
+    VLOG(2) << "Key ID: " << query_.data[keyIndex].key << ", Name: " << name
             << ", Expected count: " << timeBucketCount
             << ", up count: " << upPoints
             << ", partial seconds: " << partialSeconds
@@ -288,10 +290,11 @@ std::string BeringeiData::getTimeStr(time_t timeSec) {
 folly::dynamic BeringeiData::makeEvent(int64_t startIndex, int64_t endIndex) {
   int uptimeDurationSec = (endIndex - startIndex) * 30;
   // Online for [duration text] from [start time] to [end time]
-  std::string title =
-      folly::sformat("{} minutes from {} to {}", (uptimeDurationSec / 60),
-                     getTimeStr(startTime_ + (startIndex * 30)),
-                     getTimeStr(startTime_ + (endIndex * 30)));
+  std::string title = folly::sformat(
+      "{} minutes from {} to {}",
+      (uptimeDurationSec / 60),
+      getTimeStr(startTime_ + (startIndex * 30)),
+      getTimeStr(startTime_ + (endIndex * 30)));
   return folly::dynamic::object("startTime", (startTime_ + (startIndex * 30)))(
       "endTime", (startTime_ + (endIndex * 30)))("title", title);
 }
@@ -302,25 +305,22 @@ folly::dynamic BeringeiData::latest() {
   // store the latest value for each key
   double latestValue[keyCount]{};
   folly::dynamic response = folly::dynamic::object;
-  for (const auto &keyTimeSeries : beringeiTimeSeries_) {
-    const std::string &keyName = keyTimeSeries.first.key;
+  for (const auto& keyTimeSeries : beringeiTimeSeries_) {
+    const std::string& keyName = keyTimeSeries.first.key;
     if (keyTimeSeries.second.size()) {
       const std::string& displayName = query_.data[keyIndex].displayName;
       if (response.count(displayName)) {
         LOG(WARNING) << "Over-writing response for " << displayName;
       }
-      response[displayName] =
-        keyTimeSeries.second.back().value;
+      response[displayName] = keyTimeSeries.second.back().value;
     }
     keyIndex++;
   }
   return response;
 }
 
-void
-BeringeiData::valueOrNull(folly::dynamic& obj, double value, int count) {
-  if (value == std::numeric_limits<double>::max() ||
-      std::isnan(value) ||
+void BeringeiData::valueOrNull(folly::dynamic& obj, double value, int count) {
+  if (value == std::numeric_limits<double>::max() || std::isnan(value) ||
       std::isinf(value)) {
     obj.push_back(nullptr);
   } else if (count > 1) {
@@ -339,12 +339,13 @@ folly::dynamic BeringeiData::transform() {
   // 1-minute = 60 DPs
   int keyCount = beringeiTimeSeries_.size();
   // pre-allocate the array size
-  double *timeSeries = new double[keyCount * timeBucketCount]{};
+  double* timeSeries = new double[keyCount * timeBucketCount]{};
   int dataPointAggCount = 1;
   if (timeBucketCount > MAX_DATA_POINTS) {
     dataPointAggCount = std::ceil((double)timeBucketCount / MAX_DATA_POINTS);
   }
-  int condensedBucketCount = std::ceil((double)timeBucketCount / dataPointAggCount);
+  int condensedBucketCount =
+      std::ceil((double)timeBucketCount / dataPointAggCount);
   int countPerBucket[keyCount][condensedBucketCount]{};
   // allocate condensed time series, sum series (by key) for later
   // sorting, and sum of time bucket
@@ -357,26 +358,32 @@ folly::dynamic BeringeiData::transform() {
   int countTimeBucket[condensedBucketCount]{};
   int keyIndex = 0;
   // store the latest value for each key
-  for (const auto &keyTimeSeries : beringeiTimeSeries_) {
-    const std::string &keyName = keyTimeSeries.first.key;
+  for (const auto& keyTimeSeries : beringeiTimeSeries_) {
+    const std::string& keyName = keyTimeSeries.first.key;
     // VLOG(1) << "Key: " << keyName << ", index: " << keyIndex;
     // fetch the last value, assume 0 for not-found
-    for (const auto &timePair : keyTimeSeries.second) {
+    for (const auto& timePair : keyTimeSeries.second) {
       int timeBucketId = (timePair.unixTime - startTime_) / timeInterval_;
       // log # of dps per bucket for DP smoothing
-      int condensedBucketId = timeBucketId > 0 ? (timeBucketId / dataPointAggCount) : 0;
+      int condensedBucketId =
+          timeBucketId > 0 ? (timeBucketId / dataPointAggCount) : 0;
       if (condensedBucketId == condensedBucketCount) {
         condensedBucketId = condensedBucketCount - 1;
-//        LOG(INFO) << "Rolling back condensedBucketId -> " << condensedBucketId
-//                  << ", keyIndex: " << keyIndex;
+        //        LOG(INFO) << "Rolling back condensedBucketId -> " <<
+        //        condensedBucketId
+        //                  << ", keyIndex: " << keyIndex;
       }
-      // VLOG(1) << "\t(" << timePair.unixTime << ") = " << std::to_string(timePair.value);
+      // VLOG(1) << "\t(" << timePair.unixTime << ") = " <<
+      // std::to_string(timePair.value);
       int oldIndex = (keyIndex * timeBucketCount + timeBucketId);
-      int newIndex = (keyIndex * timeBucketCount + (condensedBucketId * dataPointAggCount) + countPerBucket[keyIndex][condensedBucketId]);
-      if (timePair.unixTime < startTime_ ||
-          timePair.unixTime > endTime_) {
-            LOG(ERROR) << "Time outside of start/end window. timePair.unixTime: " << timePair.unixTime
-                       << ", start: " << startTime_ << ", end: " << endTime_;
+      int newIndex =
+          (keyIndex * timeBucketCount +
+           (condensedBucketId * dataPointAggCount) +
+           countPerBucket[keyIndex][condensedBucketId]);
+      if (timePair.unixTime < startTime_ || timePair.unixTime > endTime_) {
+        LOG(ERROR) << "Time outside of start/end window. timePair.unixTime: "
+                   << timePair.unixTime << ", start: " << startTime_
+                   << ", end: " << endTime_;
       }
 
       if (isnan(timePair.value)) {
@@ -403,8 +410,8 @@ folly::dynamic BeringeiData::transform() {
       // number of data-points in condensed bucket (ignoring missing)
       if (timeBucketId == condensedBucketCount) {
         timeBucketId = condensedBucketCount - 1;
-//        LOG(INFO) << "Rolling back timeBucketId -> " << timeBucketId
-//                  << ", key (i): " << i;
+        //        LOG(INFO) << "Rolling back timeBucketId -> " << timeBucketId
+        //                  << ", key (i): " << i;
       }
       int bucketDpCount = countPerBucket[i][timeBucketId];
       double sum = std::numeric_limits<double>::max();
@@ -416,7 +423,10 @@ folly::dynamic BeringeiData::transform() {
         // sum all non-missing data points
         sum = std::accumulate(
             &timeSeries[i * timeBucketCount + startBucketId],
-            &timeSeries[i * timeBucketCount + startBucketId + bucketDpCount/* do we need +1 for .end()? */], 0.0);
+            &timeSeries
+                [i * timeBucketCount + startBucketId +
+                 bucketDpCount /* do we need +1 for .end()? */],
+            0.0);
         if (!isnan(sum)) {
           // divide by the # of DPs in the bucket, ignoring missing data
           avg = sum / (double)(bucketDpCount);
@@ -425,7 +435,9 @@ folly::dynamic BeringeiData::transform() {
         // min + max over the real data
         auto minMax = std::minmax_element(
             &timeSeries[i * timeBucketCount + startBucketId],
-            &timeSeries[i * timeBucketCount + startBucketId + bucketDpCount/* todo - same question */]);
+            &timeSeries
+                [i * timeBucketCount + startBucketId +
+                 bucketDpCount /* todo - same question */]);
         min = *minMax.first;
         max = *minMax.second;
       }
@@ -439,7 +451,8 @@ folly::dynamic BeringeiData::transform() {
               std::min(aggSeries_["min"][timeBucketId], min);
           // max only added if count is set
           if (bucketDpCount > 0) {
-            if (aggSeries_["max"][timeBucketId] == std::numeric_limits<double>::max()) {
+            if (aggSeries_["max"][timeBucketId] ==
+                std::numeric_limits<double>::max()) {
               aggSeries_["max"][timeBucketId] = max;
             } else {
               aggSeries_["max"][timeBucketId] =
@@ -449,7 +462,8 @@ folly::dynamic BeringeiData::transform() {
         }
       } else if (query_.agg_type == "count") {
         double countSum = countTimeBucket[timeBucketId];
-        double countAvg = countSum == 0 ? 0 : (countSum / (double)(bucketDpCount));
+        double countAvg =
+            countSum == 0 ? 0 : (countSum / (double)(bucketDpCount));
         aggSeries_[query_.agg_type].push_back(countAvg);
       } else {
         // no aggregation
@@ -472,13 +486,12 @@ folly::dynamic BeringeiData::transform() {
   if (query_.agg_type == "bottom" || query_.agg_type == "top") {
     if (keyCount > MAX_COLUMNS) {
       // sort data
-      std::vector<std::pair<int, double> > keySums;
+      std::vector<std::pair<int, double>> keySums;
       for (int i = 0; i < keyCount; i++) {
         keySums.push_back(std::make_pair(i, sumSeries[i]));
       }
       // sort for 'bottom' aggregation, ignoring nan/inf data
-      auto sortLess = [](auto &lhs,
-                         auto &rhs) {
+      auto sortLess = [](auto& lhs, auto& rhs) {
         if (std::isnan(rhs.second) || std::isinf(rhs.second)) {
           return true;
         }
@@ -488,8 +501,7 @@ folly::dynamic BeringeiData::transform() {
         return lhs.second < rhs.second;
       };
       // sort for 'top' aggregation, ignoring nan/inf data
-      auto sortGreater = [](auto &lhs,
-                            auto &rhs) {
+      auto sortGreater = [](auto& lhs, auto& rhs) {
         if (std::isnan(lhs.second) || std::isinf(lhs.second)) {
           return false;
         }
@@ -504,7 +516,7 @@ folly::dynamic BeringeiData::transform() {
         std::sort(keySums.begin(), keySums.end(), sortGreater);
       }
       keySums.resize(MAX_COLUMNS);
-      for (const auto &kv : keySums) {
+      for (const auto& kv : keySums) {
         columns.push_back(columnNames_[kv.first]);
         // loop over time series
         for (int i = 0; i < condensedBucketCount; i++) {
@@ -528,7 +540,7 @@ folly::dynamic BeringeiData::transform() {
       valueOrNull(datapoints[i], sumOfAvgTimeBucket[i]);
     }
   } else if (query_.agg_type == "count") {
-    for (const auto &aggSerie : aggSeries_) {
+    for (const auto& aggSerie : aggSeries_) {
       columns.push_back(aggSerie.first);
       for (int i = 0; i < condensedBucketCount; i++) {
         valueOrNull(datapoints[i], aggSerie.second[i]);
@@ -536,7 +548,7 @@ folly::dynamic BeringeiData::transform() {
     }
   } else if (query_.agg_type == "avg") {
     // adds min + max from above
-    for (const auto &aggSerie : aggSeries_) {
+    for (const auto& aggSerie : aggSeries_) {
       columns.push_back(aggSerie.first);
       for (int i = 0; i < condensedBucketCount; i++) {
         valueOrNull(datapoints[i], aggSerie.second[i]);
@@ -572,7 +584,7 @@ folly::dynamic BeringeiData::transform() {
       }
       LOG(ERROR) << "toJson failed: " << ex.what();
     }
-    
+
     dpC++;
   }
   delete[] timeSeries;
@@ -590,9 +602,13 @@ folly::dynamic BeringeiData::transform() {
 #define LINK_A 0
 #define LINK_Z 1
 
-double BeringeiData::calculateAverage(double *timeSeries, bool *valid,
-                                      int timeSeriesStartIndex, int minIdx,
-                                      int maxIdx, bool mcsflag) {
+double BeringeiData::calculateAverage(
+    double* timeSeries,
+    bool* valid,
+    int timeSeriesStartIndex,
+    int minIdx,
+    int maxIdx,
+    bool mcsflag) {
   double numValidSamples = 0;
   double accsum = 0;
   double avg = INVALID_VALUE;
@@ -632,7 +648,7 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
   std::unordered_map<std::string, int64_t> keyMapIndex;
   // there is one keyIndex for every parameter and every link
   // for example, MCS from A->Z is one keyIndex
-  for (const auto &keyId : query_.key_ids) {
+  for (const auto& keyId : query_.key_ids) {
     keyMapIndex[std::to_string(keyId)] = keyIndex;
     keyIndex++;
   }
@@ -656,9 +672,9 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
   VLOG(3) << "AT: numKeysReturned:" << numKeysReturned
           << " numKeysQueried:" << numKeysQueried;
   for (int keyIndex = 0; keyIndex < numKeysQueried; keyIndex++) {
-    auto &key = query_.data[keyIndex].key;
-    auto &displayName = query_.data[keyIndex].displayName;
-    auto &a_or_z = query_.data[keyIndex].linkTitleAppend;
+    auto& key = query_.data[keyIndex].key;
+    auto& displayName = query_.data[keyIndex].displayName;
+    auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     // if this link hasn't been seen yet
     if (linkindex.find(displayName) == linkindex.items().end()) {
       linkindex[displayName] = numlinks;
@@ -671,9 +687,9 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
   }
 
   // all values are initialized to zero
-  double *timeSeries = new double[query_.key_ids.size() * timeBucketCount]();
+  double* timeSeries = new double[query_.key_ids.size() * timeBucketCount]();
   // valid is a boolean array of true/false to indicate if value is valid
-  bool *valid = new bool[query_.key_ids.size() * timeBucketCount]();
+  bool* valid = new bool[query_.key_ids.size() * timeBucketCount]();
   // minValidTimeBucketId and maxValidTimeBucketId are the smallest and largest
   // valid time bucket index
   int minValidTimeBucketId[numlinks][2] = {};
@@ -689,23 +705,23 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
   // tgf.38:3a:21:b0:11:e2.phystatus.ssnrEst)
   // the loop also finds the number of link flaps and the beginning and end
   // of the most recent time the link was up
-  for (const auto &keyTimeSeries : beringeiTimeSeries_) {
+  for (const auto& keyTimeSeries : beringeiTimeSeries_) {
     // the keyName is the unique number stored in mysql
     // e.g. 38910993
-    const std::string &keyName = keyTimeSeries.first.key;
+    const std::string& keyName = keyTimeSeries.first.key;
     keyIndex = keyMapIndex[keyName];
-    auto &displayName = query_.data[keyIndex].displayName;
+    auto& displayName = query_.data[keyIndex].displayName;
     int linknum = folly::convertTo<int>(linkindex[displayName]);
-    auto &a_or_z = query_.data[keyIndex].linkTitleAppend;
+    auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     int link = (a_or_z.find("A") != std::string::npos) ? LINK_A : LINK_Z;
-    auto &key = query_.data[keyIndex].key;
+    auto& key = query_.data[keyIndex].key;
     // convert the key names to lower case
     // e.g. tgf.38:3a:21:b0:11:e2.phystatus.ssnrEst
     std::transform(key.begin(), key.end(), key.begin(), ::tolower);
     bool first = true;
     int firstValue = 0;
     unsigned int prevValue = 0;
-    for (const auto &timePair : keyTimeSeries.second) {
+    for (const auto& timePair : keyTimeSeries.second) {
       int timeBucketId = (timePair.unixTime - startTime_) / beringeiTimeWindowS;
       timeSeries[keyIndex * timeBucketCount + timeBucketId] = timePair.value;
       valid[keyIndex * timeBucketCount + timeBucketId] = true;
@@ -724,9 +740,9 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
           firstValue = timePair.value;
           first = false;
         }
-        int expectedHBcount =
-            firstValue + (timeBucketId - minValidTimeBucketId[linknum][link]) *
-                             NUM_HBS_PER_SEC * beringeiTimeWindowS;
+        int expectedHBcount = firstValue +
+            (timeBucketId - minValidTimeBucketId[linknum][link]) *
+                NUM_HBS_PER_SEC * beringeiTimeWindowS;
         found[linknum][link] = true;
         // if the current HB counter is less than the last one or if it is
         // much less than the expectedHBcount, assume the link went down and
@@ -757,9 +773,9 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
 
   // initialize the variables
   for (int keyIndex = 0; keyIndex < numKeysQueried; keyIndex++) {
-    auto &displayName = query_.data[keyIndex].displayName;
+    auto& displayName = query_.data[keyIndex].displayName;
     int linknum = folly::convertTo<int>(linkindex[displayName]);
-    auto &a_or_z = query_.data[keyIndex].linkTitleAppend;
+    auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     int link = (a_or_z.find("A") != std::string::npos) ? LINK_A : LINK_Z;
 
     diffTxOk[linknum][link] = INVALID_VALUE;
@@ -769,15 +785,15 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
     avgTxPower[linknum][link] = INVALID_VALUE;
   }
 
-  for (const auto &keyTimeSeries : beringeiTimeSeries_) {
-    const std::string &keyName = keyTimeSeries.first.key;
+  for (const auto& keyTimeSeries : beringeiTimeSeries_) {
+    const std::string& keyName = keyTimeSeries.first.key;
     keyIndex = keyMapIndex[keyName];
-    auto &key = query_.data[keyIndex].key;
+    auto& key = query_.data[keyIndex].key;
     // convert the key names to lower case
     // e.g. tgf.38:3a:21:b0:11:e2.phystatus.ssnrEst
     std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-    auto &displayName = query_.data[keyIndex].displayName;
-    auto &a_or_z = query_.data[keyIndex].linkTitleAppend;
+    auto& displayName = query_.data[keyIndex].displayName;
+    auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     int link = (a_or_z.find("A") != std::string::npos) ? LINK_A : LINK_Z;
     int linknum = folly::convertTo<int>(linkindex[displayName]);
     if (!found[linknum][link]) {
@@ -787,16 +803,17 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
     }
 
     if (upTimeSec[linknum][link] > MIN_UPTIME_FOR_CALC) {
-      bool minMaxTimesValid = valid[keyIndex * timeBucketCount +
-                                    minValidTimeBucketId[linknum][link]] &&
-                              valid[keyIndex * timeBucketCount +
-                                    maxValidTimeBucketId[linknum][link]];
+      bool minMaxTimesValid = valid
+                                  [keyIndex * timeBucketCount +
+                                   minValidTimeBucketId[linknum][link]] &&
+          valid[keyIndex * timeBucketCount +
+                maxValidTimeBucketId[linknum][link]];
 
       if (key.find("txok") != std::string::npos) {
         if (minMaxTimesValid) {
-          diffTxOk[linknum][link] =
-              timeSeries[keyIndex * timeBucketCount +
-                         maxValidTimeBucketId[linknum][link]] -
+          diffTxOk[linknum][link] = timeSeries
+                                        [keyIndex * timeBucketCount +
+                                         maxValidTimeBucketId[linknum][link]] -
               timeSeries[keyIndex * timeBucketCount +
                          minValidTimeBucketId[linknum][link]];
         } else {
@@ -810,9 +827,10 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
       }
       if (key.find("txfail") != std::string::npos) {
         if (minMaxTimesValid) {
-          diffTxFail[linknum][link] =
-              timeSeries[keyIndex * timeBucketCount +
-                         maxValidTimeBucketId[linknum][link]] -
+          diffTxFail[linknum]
+                    [link] = timeSeries
+                                 [keyIndex * timeBucketCount +
+                                  maxValidTimeBucketId[linknum][link]] -
               timeSeries[keyIndex * timeBucketCount +
                          minValidTimeBucketId[linknum][link]];
         } else {
@@ -825,29 +843,38 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
         }
       }
       if (key.find("ssnrest") != std::string::npos) {
-        avgSnr[linknum][link] =
-            calculateAverage(timeSeries, valid, keyIndex * timeBucketCount,
-                             minValidTimeBucketId[linknum][link],
-                             maxValidTimeBucketId[linknum][link], false);
+        avgSnr[linknum][link] = calculateAverage(
+            timeSeries,
+            valid,
+            keyIndex * timeBucketCount,
+            minValidTimeBucketId[linknum][link],
+            maxValidTimeBucketId[linknum][link],
+            false);
       }
       if (key.find("mcs") != std::string::npos) {
-        avgMcs[linknum][link] =
-            calculateAverage(timeSeries, valid, keyIndex * timeBucketCount,
-                             minValidTimeBucketId[linknum][link],
-                             maxValidTimeBucketId[linknum][link], true);
+        avgMcs[linknum][link] = calculateAverage(
+            timeSeries,
+            valid,
+            keyIndex * timeBucketCount,
+            minValidTimeBucketId[linknum][link],
+            maxValidTimeBucketId[linknum][link],
+            true);
       }
       if (key.find("txpowerindex") != std::string::npos) {
-        avgTxPower[linknum][link] =
-            calculateAverage(timeSeries, valid, keyIndex * timeBucketCount,
-                             minValidTimeBucketId[linknum][link],
-                             maxValidTimeBucketId[linknum][link], false);
+        avgTxPower[linknum][link] = calculateAverage(
+            timeSeries,
+            valid,
+            keyIndex * timeBucketCount,
+            minValidTimeBucketId[linknum][link],
+            maxValidTimeBucketId[linknum][link],
+            false);
       }
     }
   }
 
   folly::dynamic linkparams = folly::dynamic::object;
   folly::dynamic metrics = folly::dynamic::object;
-  std::vector<std::string> linkdir = { "A", "Z" };
+  std::vector<std::string> linkdir = {"A", "Z"};
   // return processed statistics
   for (int linknum = 0; linknum < numlinks; linknum++) {
     for (int link = LINK_A; link <= LINK_Z; link++) {
@@ -856,8 +883,8 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
       double dfail = diffTxFail[linknum][link];
       if (dfail == BUG_FOUND || dok == BUG_FOUND) {
         avgPer = BUG_FOUND;
-      } else if (dfail != INVALID_VALUE && dok != INVALID_VALUE &&
-                 (dfail + dok > 0)) {
+      } else if (
+          dfail != INVALID_VALUE && dok != INVALID_VALUE && (dfail + dok > 0)) {
         avgPer = dfail / (dfail + dok);
       }
 
@@ -890,8 +917,7 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
   return response;
 }
 
-void
-BeringeiData::selectBeringeiDb(int32_t interval) {
+void BeringeiData::selectBeringeiDb(int32_t interval) {
   // determine which data-source to query from based on total time
   int64_t timeBucketSec = (endTime_ - startTime_);
   // TODO: we need to define a generic way of stating retention per time
@@ -904,7 +930,8 @@ BeringeiData::selectBeringeiDb(int32_t interval) {
 
 folly::dynamic BeringeiData::handleQuery() {
   auto startTime = (int64_t)duration_cast<milliseconds>(
-      system_clock::now().time_since_epoch()).count();
+                       system_clock::now().time_since_epoch())
+                       .count();
   // select the data source based on time interval
   selectBeringeiDb(query_.interval);
   // validate first, prefer to throw here (no futures)
@@ -921,10 +948,12 @@ folly::dynamic BeringeiData::handleQuery() {
   std::thread tEb([&eb]() { eb.loop(); });
   tEb.join();
   auto fetchTime = (int64_t)duration_cast<milliseconds>(
-      system_clock::now().time_since_epoch()).count();
+                       system_clock::now().time_since_epoch())
+                       .count();
   columnNames();
   auto columnNamesTime = (int64_t)duration_cast<milliseconds>(
-      system_clock::now().time_since_epoch()).count();
+                             system_clock::now().time_since_epoch())
+                             .count();
   folly::dynamic results{};
   if (query_.type == "event") {
     // uplink bw request
@@ -939,7 +968,8 @@ folly::dynamic BeringeiData::handleQuery() {
     results = transform();
   }
   auto endTime = (int64_t)duration_cast<milliseconds>(
-      system_clock::now().time_since_epoch()).count();
+                     system_clock::now().time_since_epoch())
+                     .count();
   LOG(INFO) << "Query completed. "
             << "Query type \"" << query_.type
             << "\" Fetch: " << (fetchTime - startTime) << "ms, "
@@ -949,7 +979,7 @@ folly::dynamic BeringeiData::handleQuery() {
   return results;
 }
 
-int BeringeiData::getShardId(const std::string &key, const int numShards) {
+int BeringeiData::getShardId(const std::string& key, const int numShards) {
   std::hash<std::string> hash;
   size_t hashValue = hash(key);
 
@@ -960,15 +990,17 @@ int BeringeiData::getShardId(const std::string &key, const int numShards) {
   }
 }
 
-void BeringeiData::validateQuery(const query::Query &request) {
+void BeringeiData::validateQuery(const query::Query& request) {
   if (request.__isset.min_ago) {
     endTime_ = std::time(nullptr);
     startTime_ = endTime_ - (60 * request.min_ago) + timeInterval_;
     LOG(INFO) << "Start: " << startTime_ << ", End: " << endTime_;
   } else if (request.start_ts != 0 && request.end_ts != 0) {
     // TODO - sanity check time
-    startTime_ = std::ceil(request.start_ts / (double)timeInterval_) * timeInterval_;
-    endTime_ = std::ceil(request.end_ts / (double)timeInterval_) * timeInterval_;
+    startTime_ =
+        std::ceil(request.start_ts / (double)timeInterval_) * timeInterval_;
+    endTime_ =
+        std::ceil(request.end_ts / (double)timeInterval_) * timeInterval_;
     LOG(INFO) << "Start: " << startTime_ << ", End: " << endTime_;
     if (endTime_ <= startTime_) {
       LOG(ERROR) << "Request for invalid time window: " << startTime_ << " <-> "
@@ -984,14 +1016,15 @@ void BeringeiData::validateQuery(const query::Query &request) {
             << ", interval: " << timeInterval_;
 }
 
-GetDataRequest BeringeiData::createBeringeiRequest(const query::Query &request,
-                                                   const int numShards) {
+GetDataRequest BeringeiData::createBeringeiRequest(
+    const query::Query& request,
+    const int numShards) {
   GetDataRequest beringeiRequest;
 
   beringeiRequest.begin = startTime_;
   beringeiRequest.end = endTime_;
 
-  for (const auto &keyId : request.key_ids) {
+  for (const auto& keyId : request.key_ids) {
     Key beringeiKey;
     beringeiKey.key = std::to_string(keyId);
     // everything is shard 0 on the writer side
@@ -1001,5 +1034,5 @@ GetDataRequest BeringeiData::createBeringeiRequest(const query::Query &request,
 
   return beringeiRequest;
 }
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook
