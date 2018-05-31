@@ -17,7 +17,7 @@ import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 // leaflet maps
 import React from 'react';
 import CustomTable from './components/common/CustomTable.js';
-import {SortDirection} from 'react-virtualized'
+import {SortDirection} from 'react-virtualized';
 
 export default class NetworkNodesTable extends React.Component {
   state = {
@@ -31,15 +31,51 @@ export default class NetworkNodesTable extends React.Component {
   };
 
   headers = [
-    {label: 'Name', key: 'name', isKey: true, width: 170, sort: true, filter: true},
+    {
+      label: 'Name',
+      key: 'name',
+      isKey: true,
+      width: 170,
+      sort: true,
+      filter: true,
+    },
     {label: 'MAC', key: 'mac_addr', width: 160, sort: true, filter: true},
     {label: 'IPv6', key: 'ipv6', width: 180, sort: true, filter: true},
     {label: 'Type', key: 'node_type', width: 80, sort: true},
-    {label: 'Ignited', key: 'ignited', width: 90, sort: true, render: this.renderStatusColor},
-    {label: 'Site', key: 'site_name', width: 80, sort: true, sortFunc: this.siteSortFunc.bind(this)},
-    {label: 'Pop?', key: 'pop_node', width: 80, sort: true, render: this.renderStatusColor},
-    {label: 'Availability (24 hours)', key: 'availability', width: 100, sort: true, render: this.renderNodeAvailability},
-    {label: 'Minion Restarts (24 hours)', key: 'minion_restarts', width: 120, sort: true},
+    {
+      label: 'Ignited',
+      key: 'ignited',
+      width: 90,
+      sort: true,
+      render: this.renderStatusColor,
+    },
+    {
+      label: 'Site',
+      key: 'site_name',
+      width: 80,
+      sort: true,
+      sortFunc: this.siteSortFunc.bind(this),
+    },
+    {
+      label: 'Pop?',
+      key: 'pop_node',
+      width: 80,
+      sort: true,
+      render: this.renderStatusColor,
+    },
+    {
+      label: 'Availability (24 hours)',
+      key: 'availability',
+      width: 100,
+      sort: true,
+      render: this.renderNodeAvailability,
+    },
+    {
+      label: 'Minion Restarts (24 hours)',
+      key: 'minion_restarts',
+      width: 120,
+      sort: true,
+    },
     {label: 'Image Version', key: 'version', width: 700, sort: true},
     {label: 'Uboot Version', key: 'uboot_version', width: 700, sort: true},
   ];
@@ -86,7 +122,7 @@ export default class NetworkNodesTable extends React.Component {
         });
         break;
       case Actions.SITE_SELECTED:
-        let selectedRows = [];
+        const selectedRows = [];
         Object.keys(this.props.topology.nodes).map(nodeIndex => {
           const node = this.props.topology.nodes[nodeIndex];
           if (node.site_name === payload.siteSelected) {
@@ -119,7 +155,7 @@ export default class NetworkNodesTable extends React.Component {
 
   static getTableRows(
     nodes,
-    nodeHealth
+    nodeHealth,
   ): Array<{
     name: string,
     mac_addr: string,
@@ -256,7 +292,7 @@ export default class NetworkNodesTable extends React.Component {
 
   static applyFiltersToNodes(nodes, filters) {
     let filteredNodes = nodes;
-    for (let key in filters) {
+    for (const key in filters) {
       if (key in filters && filters[key]) {
         filteredNodes = NetworkNodesTable.filterNodesHelper(
           filteredNodes,
@@ -270,14 +306,13 @@ export default class NetworkNodesTable extends React.Component {
 
   static filterNodesHelper(nodes, key, filter) {
     return nodes.filter(node => {
-      return node[key].toLowerCase().search(
-        filter.toLowerCase()) !== -1;
+      return node[key].toLowerCase().search(filter.toLowerCase()) !== -1;
     });
   }
 
   render() {
     let nodesTable;
-    var selectRowProp = {
+    const selectRowProp = {
       bgColor: 'rgb(183,210,255)',
       clickToSelect: true,
       hideSelectColumn: true,
@@ -306,9 +341,10 @@ export default class NetworkNodesTable extends React.Component {
           height={this.props.height + 'px'}
           key="nodesTable"
           options={tableOptions}
-          data={
-            NetworkNodesTable.getTableRows(nodesData, this.state.nodeHealth)
-          }
+          data={NetworkNodesTable.getTableRows(
+            nodesData,
+            this.state.nodeHealth,
+          )}
           striped={true}
           hover={true}
           selectRow={selectRowProp}
@@ -347,9 +383,10 @@ export default class NetworkNodesTable extends React.Component {
           height={height}
           overscanRowCount={overscanRowCount}
           columns={this.headers}
-          data={
-            NetworkNodesTable.getTableRows(nodesData, this.state.nodeHealth)
-          }
+          data={NetworkNodesTable.getTableRows(
+            nodesData,
+            this.state.nodeHealth,
+          )}
           sortBy={this.state.sortBy}
           sortDirection={this.state.sortDirection}
           onRowSelect={row => this.tableOnRowSelect(row)}

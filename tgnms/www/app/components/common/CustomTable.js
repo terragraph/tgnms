@@ -15,7 +15,7 @@ import {
   Grid,
   ScrollSync,
   SortDirection,
-} from 'react-virtualized'
+} from 'react-virtualized';
 import classnames from 'classnames';
 
 export default class CustomTable extends React.Component {
@@ -24,17 +24,14 @@ export default class CustomTable extends React.Component {
     hoveredRowIndex: -1,
     sortBy: null,
     sortDirection: SortDirection.ASC,
-  }
+  };
 
   constructor(props) {
     super(props);
     this.headerGridRef = React.createRef();
     this.bodyGridRef = React.createRef();
 
-    const {
-      data,
-      columns,
-    } = props;
+    const {data, columns} = props;
 
     let key = null;
     for (let i = 0; i < columns.length; i++) {
@@ -48,25 +45,16 @@ export default class CustomTable extends React.Component {
   }
 
   static getDerivedStateFromProps(nextProps, prevState) {
-    const {
-      columns,
-      data,
-    } = nextProps;
-    const {
-      filters,
-    } = prevState;
+    const {columns, data} = nextProps;
+    const {filters} = prevState;
 
     const sortBy = nextProps.sortBy || prevState.sortBy;
     const sortDirection = nextProps.sortDirection || prevState.sortDirection;
 
-
     let displayedData = data.slice();
     // Filter data
     if (filters) {
-      displayedData = CustomTable._applyFiltersToData(
-        displayedData,
-        filters,
-      );
+      displayedData = CustomTable._applyFiltersToData(displayedData, filters);
     }
 
     // Sort data
@@ -96,18 +84,16 @@ export default class CustomTable extends React.Component {
     }
 
     return {
-      displayedData: displayedData,
+      displayedData,
       initialData: data.slice(),
-      key: key,
-      sortBy: sortBy,
-      sortDirection: sortDirection,
-    }
+      key,
+      sortBy,
+      sortDirection,
+    };
   }
 
   render() {
-    const {
-      displayedData
-    } = this.state;
+    const {displayedData} = this.state;
     const {
       columns,
       headerHeight,
@@ -115,49 +101,41 @@ export default class CustomTable extends React.Component {
       overscanRowCount,
       rowHeight,
     } = this.props;
-    const totalW = columns.reduce(
-      ((total, currVal) => total + currVal.width),
-      0,
-    );
+    const totalW = columns.reduce((total, currVal) => total + currVal.width, 0);
     const columnCount = columns.length;
     const table = (
       <ScrollSync>
-        {({
-          onScroll,
-          scrollLeft,
-          scrollTop,
-        }) => {
+        {({onScroll, scrollLeft, scrollTop}) => {
           return (
-            <div className='GridColumn'>
+            <div className="GridColumn">
               <AutoSizer
                 disableHeight
                 onResize={() => {
                   this.headerGridRef.current.recomputeGridSize();
                   this.bodyGridRef.current.recomputeGridSize();
-                }}
-              >
+                }}>
                 {({width}) => {
-                  let w = width - 2; // subtract border thickness
-                  let columnWidth = (
-                    ({index}) => Math.max(
-                      columns[index].width,  // original width
+                  const w = width - 2; // subtract border thickness
+                  const columnWidth = ({index}) =>
+                    Math.max(
+                      columns[index].width, // original width
                       // width to fill larger screen
                       w * columns[index].width / totalW,
-                    )
-                  );
+                    );
                   return (
                     <div>
                       <div
-                        className='HeaderGridContainer'
+                        className="HeaderGridContainer"
                         style={{
                           height: headerHeight,
                           width: w - scrollbarSize(),
-                        }}
-                      >
+                        }}>
                         <Grid
                           ref={this.headerGridRef}
-                          cellRenderer={stuff => this._headerCellRenderer(stuff)}
-                          className='HeaderGrid'
+                          cellRenderer={stuff =>
+                            this._headerCellRenderer(stuff)
+                          }
+                          className="HeaderGrid"
                           columnCount={columnCount}
                           columnWidth={columnWidth}
                           height={headerHeight}
@@ -169,21 +147,22 @@ export default class CustomTable extends React.Component {
                         />
                       </div>
                       <div
-                        className='BodyGridContainer'
+                        className="BodyGridContainer"
                         style={{
                           height: height - headerHeight,
                           width: w,
-                        }}
-                      >
+                        }}>
                         <Grid
                           ref={this.bodyGridRef}
                           cellRenderer={stuff => this._bodyCellRenderer(stuff)}
-                          className='BodyGrid'
+                          className="BodyGrid"
                           columnCount={columnCount}
                           columnWidth={columnWidth}
                           height={height - headerHeight}
                           onScroll={onScroll}
-                          overscanIndicesGetter={accessibilityOverscanIndicesGetter}
+                          overscanIndicesGetter={
+                            accessibilityOverscanIndicesGetter
+                          }
                           overscanRowCount={overscanRowCount}
                           rowCount={displayedData.length}
                           rowHeight={rowHeight}
@@ -203,17 +182,9 @@ export default class CustomTable extends React.Component {
   }
 
   _bodyCellRenderer({columnIndex, key, rowIndex, style}) {
-    const {
-      displayedData,
-      hoveredRowIndex,
-      key: selectedKey,
-    } = this.state;
-    const {
-      columns,
-      onRowSelect,
-      selected,
-    } = this.props;
-    let dataKey = columns[columnIndex].key;
+    const {displayedData, hoveredRowIndex, key: selectedKey} = this.state;
+    const {columns, onRowSelect, selected} = this.props;
+    const dataKey = columns[columnIndex].key;
 
     let content = null;
     if (columns[columnIndex].render) {
@@ -228,17 +199,15 @@ export default class CustomTable extends React.Component {
 
     let isSelected = false;
     if (selected && Array.isArray(selected)) {
-      isSelected = selected.includes(
-        displayedData[rowIndex][selectedKey]
-      );
+      isSelected = selected.includes(displayedData[rowIndex][selectedKey]);
     }
 
-    let classNames = classnames(
+    const classNames = classnames(
       'GridRow',
-      {'GridRowLeft': columnIndex === 0},
-      {'GridRowHovered': rowIndex === hoveredRowIndex},
-      {'GridRowEven': rowIndex % 2 === 0},
-      {'GridRowSelected': isSelected},
+      {GridRowLeft: columnIndex === 0},
+      {GridRowHovered: rowIndex === hoveredRowIndex},
+      {GridRowEven: rowIndex % 2 === 0},
+      {GridRowSelected: isSelected},
     );
 
     return (
@@ -254,21 +223,18 @@ export default class CustomTable extends React.Component {
         }}
         onMouseOut={() => {
           this.setState({hoveredRowIndex: -1});
-        }}
-      >
-        <div>
-          {content}
-        </div>
+        }}>
+        <div>{content}</div>
       </div>
     );
   }
 
   _headerCellRenderer({columnIndex, key, rowIndex, style}) {
     const {sortBy, sortDirection} = this.state;
-    const {columns} = this.props
-    let dataKey = columns[columnIndex].key;
+    const {columns} = this.props;
+    const dataKey = columns[columnIndex].key;
 
-    let unselectedColor = '#ccc';
+    const unselectedColor = '#ccc';
     let carets = null;
     let filter = null;
 
@@ -277,22 +243,20 @@ export default class CustomTable extends React.Component {
       if (sortBy === dataKey) {
         if (sortDirection === SortDirection.ASC) {
           carets = (
-            <span className='dropup'>
-              <span className='caret' />
+            <span className="dropup">
+              <span className="caret" />
             </span>
           );
         } else {
-          carets = (
-            <span className='caret' />
-          );
+          carets = <span className="caret" />;
         }
       } else {
         carets = (
           <div style={{display: 'inline-block'}}>
-            <span className='dropup' style={{color: unselectedColor}}>
-              <span className='caret' />
+            <span className="dropup" style={{color: unselectedColor}}>
+              <span className="caret" />
             </span>
-            <span className='caret' style={{color: unselectedColor}} />
+            <span className="caret" style={{color: unselectedColor}} />
           </div>
         );
       }
@@ -311,14 +275,12 @@ export default class CustomTable extends React.Component {
             style={{width: '100%'}}
           />
         </div>
-      )
+      );
     }
 
-    let classNames = classnames(
-      'GridRow',
-      'HeaderRow',
-      {'GridRowLeft': columnIndex === 0},
-    );
+    const classNames = classnames('GridRow', 'HeaderRow', {
+      GridRowLeft: columnIndex === 0,
+    });
     return (
       <div
         key={key}
@@ -326,11 +288,8 @@ export default class CustomTable extends React.Component {
         className={classNames}
         onClick={event =>
           this._headerClicked(event, {columnIndex, dataKey, rowIndex})
-        }
-      >
-        <div
-          className='HeaderTitle'
-        >
+        }>
+        <div className="HeaderTitle">
           {columns[columnIndex].label}
           {carets}
         </div>
@@ -344,15 +303,9 @@ export default class CustomTable extends React.Component {
       return;
     }
 
-    const {
-      sortBy,
-      sortDirection,
-    } = this.state;
+    const {sortBy, sortDirection} = this.state;
 
-    const {
-      columns,
-      onSortChange,
-    } = this.props;
+    const {columns, onSortChange} = this.props;
 
     // Figure out sort direction
     const isFirstTimeSort = sortBy !== dataKey;
@@ -363,28 +316,31 @@ export default class CustomTable extends React.Component {
         : SortDirection.DESC;
 
     // Call sort function if sort is enabled
-    let column = columns[columnIndex];
+    const column = columns[columnIndex];
     if (column.sort) {
-      let data = CustomTable._sortHelper(
+      const data = CustomTable._sortHelper(
         this.state.displayedData.slice(),
         dataKey,
         newSortDirection,
         columns[columnIndex],
       );
-      this.setState({
-        displayedData: data,
-        sortBy: dataKey,
-        sortDirection: newSortDirection,
-      }, () => {
-        if (onSortChange) {
-          onSortChange(dataKey, newSortDirection);
-        }
-      });
+      this.setState(
+        {
+          displayedData: data,
+          sortBy: dataKey,
+          sortDirection: newSortDirection,
+        },
+        () => {
+          if (onSortChange) {
+            onSortChange(dataKey, newSortDirection);
+          }
+        },
+      );
     }
   }
 
   static _sortHelper(data, sortBy, sortDirection, column) {
-    let sortFunc = column.sortFunc || CustomTable._sortFunction;
+    const sortFunc = column.sortFunc || CustomTable._sortFunction;
     return data.sort((a, b) => {
       return sortFunc(a, b, sortDirection, sortBy);
     });
@@ -404,15 +360,8 @@ export default class CustomTable extends React.Component {
   }
 
   _filterFunction(event, key) {
-    const {
-      initialData,
-      filters,
-      sortBy,
-      sortDirection,
-    } = this.state;
-    const {
-      columns,
-    } = this.props;
+    const {initialData, filters, sortBy, sortDirection} = this.state;
+    const {columns} = this.props;
 
     filters[key] = event.target.value.toLowerCase();
 
@@ -440,14 +389,14 @@ export default class CustomTable extends React.Component {
     }
 
     this.setState({
-      displayedData: displayedData,
-      filters: filters,
+      displayedData,
+      filters,
     });
   }
 
   static _applyFiltersToData(data, filters) {
     let filteredData = data;
-    for (let key in filters) {
+    for (const key in filters) {
       if (key in filters && filters[key]) {
         filteredData = CustomTable._applyFilterHelper(
           filteredData,
