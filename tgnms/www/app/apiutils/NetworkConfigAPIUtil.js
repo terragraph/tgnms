@@ -22,7 +22,7 @@ import {
   showConfigError,
 } from '../actions/NetworkConfigActions.js';
 import {DEFAULT_BASE_KEY} from '../constants/NetworkConfigConstants.js';
-import {sortConfig} from '../helpers/NetworkConfigHelpers.js';
+import {sortConfig, sortConfigByTag} from '../helpers/NetworkConfigHelpers.js';
 import axios from 'axios';
 import isPlainObject from 'lodash-es/isPlainObject';
 import pick from 'lodash-es/pick';
@@ -37,11 +37,11 @@ const getErrorText = error => {
 export const getConfigsForTopology = (
   topologyName,
   imageVersions,
-  getNetworkConfig,
+  getNetworkAndNodeConfig,
 ) => {
   const uri = '/controller/getBaseConfig';
 
-  return axios
+  axios
     .get(uri, {
       params: {
         topologyName,
@@ -64,16 +64,12 @@ export const getConfigsForTopology = (
         config: sortConfig(cleanedConfig),
         topologyName,
       });
-
-      if (getNetworkConfig) {
-        getNetworkOverrideConfig(topologyName);
-      }
-    })
-    .catch(error => {
-      if (getNetworkConfig) {
-        getNetworkOverrideConfig(topologyName);
-      }
     });
+
+  if (getNetworkAndNodeConfig) {
+    getNetworkOverrideConfig(topologyName);
+    getNodeOverrideConfig(topologyName);
+  }
 };
 
 export const getConfigMetadata = topologyName => {
@@ -114,11 +110,6 @@ export const getNetworkOverrideConfig = topologyName => {
         config: sortConfig(cleanedOverride),
         topologyName,
       });
-
-      getNodeOverrideConfig(topologyName);
-    })
-    .catch(error => {
-      getNodeOverrideConfig(topologyName);
     });
 };
 
@@ -155,7 +146,7 @@ export const getControllerConfig = topologyName => {
       const parsedConfig = JSON.parse(config);
 
       getControllerConfigSuccess({
-        config: sortConfig(parsedConfig),
+        config: sortConfigByTag(parsedConfig),
         topologyName,
       });
     });
