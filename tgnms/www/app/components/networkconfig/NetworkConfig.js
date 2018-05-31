@@ -159,6 +159,7 @@ export default class NetworkConfig extends React.Component {
           removedNodeOverrides={removedNodeOverrides} // removedOverrides for ALL nodes
         />
         <NetworkConfigBody
+          topologyName={topologyName}
           configs={stackedConfigs}
           configMetadata={configMetadata}
           draftConfig={selectedDraftConfig}

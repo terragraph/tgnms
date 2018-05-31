@@ -242,13 +242,7 @@ export default class NetworkConfigContainer extends React.Component {
       // actions that directly change the form on ONE FIELD
       case NetworkConfigActions.EDIT_CONFIG_FORM:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
-          this.setState({
-            nodeDraftConfig: this.editNodeConfig(
-              this.state.nodeDraftConfig,
-              payload.editPath,
-              payload.value,
-            ),
-          });
+          this.editNodeConfig(payload.editPath, payload.value);
         } else {
           this.editNetworkConfig(payload.editPath, payload.value);
         }
@@ -596,16 +590,12 @@ export default class NetworkConfigContainer extends React.Component {
         editPath,
         value,
       ),
-      networkConfigWithChanges: this.editConfig(
-        cloneDeep(this.state.networkConfigWithChanges),
-        editPath,
-        value,
-      ),
     });
   }
 
-  editNodeConfig(config, editPath, value) {
-    let newNodeConfig = cloneDeep(config);
+  editNodeConfig(editPath, value) {
+    let newNodeConfig = cloneDeep(this.state.nodeDraftConfig);
+
     this.state.selectedNodes.forEach(node => {
       newNodeConfig = this.editConfig(
         newNodeConfig,
@@ -613,7 +603,10 @@ export default class NetworkConfigContainer extends React.Component {
         value,
       );
     });
-    return newNodeConfig;
+
+    this.setState({
+      nodeDraftConfig: newNodeConfig,
+    });
   }
 
   revertNetworkConfig(editPath) {

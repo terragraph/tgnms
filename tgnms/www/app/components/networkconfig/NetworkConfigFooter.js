@@ -28,6 +28,7 @@ export default class NetworkConfigFooter extends React.Component {
     editMode: PropTypes.string.isRequired,
     nodesWithDrafts: PropTypes.array.isRequired,
     removedNodeOverrides: PropTypes.object.isRequired,
+    isJSONText: PropTypes.bool.isRequired,
   };
 
   submitAlertProps = {
@@ -75,6 +76,7 @@ export default class NetworkConfigFooter extends React.Component {
       editMode,
       nodesWithDrafts,
       removedNodeOverrides,
+      isJSONText,
     } = this.props;
 
     return (
@@ -83,9 +85,10 @@ export default class NetworkConfigFooter extends React.Component {
           className="nc-footer-btn"
           onClick={this.onResetConfig}
           disabled={
-            isEmpty(draftConfig) &&
+            isJSONText ||
+            (isEmpty(draftConfig) &&
             isEmpty(newConfigFields) &&
-            isEmpty(removedOverrides)
+            isEmpty(removedOverrides))
           }>
           Discard Changes
         </button>
@@ -94,9 +97,10 @@ export default class NetworkConfigFooter extends React.Component {
             className="nc-footer-btn"
             onClick={this.onResetAllConfig}
             disabled={
-              isEmpty(nodesWithDrafts) &&
+              isJSONText ||
+              (isEmpty(nodesWithDrafts) &&
               isEmpty(newConfigFields) &&
-              isEmpty(removedNodeOverrides)
+              isEmpty(removedNodeOverrides))
             }>
             Discard changes for all nodes
           </button>
@@ -104,7 +108,7 @@ export default class NetworkConfigFooter extends React.Component {
         <button
           className="nc-footer-btn"
           onClick={this.onSubmitConfig}
-          disabled={isEmpty(draftConfig) && isEmpty(removedOverrides)}>
+          disabled={isJSONText || (isEmpty(draftConfig) && isEmpty(removedOverrides))}>
           Submit Changes
         </button>
         {editMode === CONFIG_VIEW_MODE.NODE && (
@@ -112,7 +116,7 @@ export default class NetworkConfigFooter extends React.Component {
             className="nc-footer-btn"
             onClick={this.onSubmitConfigForAllNodes}
             disabled={
-              isEmpty(nodesWithDrafts) && isEmpty(removedNodeOverrides)
+              isJSONText || (isEmpty(nodesWithDrafts) && isEmpty(removedNodeOverrides))
             }>
             Submit changes for all nodes
           </button>

@@ -14,6 +14,7 @@ import React from 'react';
 
 export default class E2EConfig extends React.Component {
   static propTypes = {
+    topologyName: PropTypes.string.isRequired,
     activeConfig: PropTypes.string.isRequired,
     config: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
@@ -24,6 +25,7 @@ export default class E2EConfig extends React.Component {
 
   render() {
     const {
+      topologyName,
       activeConfig,
       config,
       configMetadata,
@@ -35,6 +37,7 @@ export default class E2EConfig extends React.Component {
     return (
       <div className="rc-network-config">
         <E2EConfigBody
+          topologyName={topologyName}
           activeConfig={activeConfig}
           config={config}
           configMetadata={configMetadata}

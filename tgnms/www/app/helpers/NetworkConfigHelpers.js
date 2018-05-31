@@ -14,10 +14,12 @@ import {
   forOwn,
   get,
   isEmpty,
+  isEqual,
   isObject,
   isPlainObject,
   merge,
   omit,
+  transform,
   unset,
 } from 'lodash-es';
 
@@ -313,3 +315,21 @@ export const convertAndValidateNewConfigObject = newConfig => {
 
   return {config, validationMsg};
 };
+
+// Taken from https://gist.github.com/Yimiprod/7ee176597fef230d1451#gistcomment-2565071
+/**
+ * Deep diff between two object, using lodash
+ * @param  {Object} object Object compared
+ * @param  {Object} base   Object to compare with
+ * @return {Object}        Return a new object who represent the diff
+ */
+export function objDifference(object, base) {
+  return transform(object, (result, value, key) => {
+    if (!isEqual(value, base[key])) {
+      result[key] =
+        isObject(value) && isObject(base[key])
+          ? objDifference(value, base[key])
+          : value;
+    }
+  });
+}
