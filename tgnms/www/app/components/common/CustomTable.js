@@ -107,7 +107,7 @@ export default class CustomTable extends React.Component {
       <ScrollSync>
         {({onScroll, scrollLeft, scrollTop}) => {
           return (
-            <div className="GridColumn">
+            <div className="CustomTable__Autosizer__Container">
               <AutoSizer
                 disableHeight
                 onResize={() => {
@@ -125,7 +125,6 @@ export default class CustomTable extends React.Component {
                   return (
                     <div>
                       <div
-                        className="HeaderGridContainer"
                         style={{
                           height: headerHeight,
                           width: w - scrollbarSize(),
@@ -135,7 +134,7 @@ export default class CustomTable extends React.Component {
                           cellRenderer={stuff =>
                             this._headerCellRenderer(stuff)
                           }
-                          className="HeaderGrid"
+                          className="CustomTable__HeaderGrid"
                           columnCount={columnCount}
                           columnWidth={columnWidth}
                           height={headerHeight}
@@ -147,7 +146,6 @@ export default class CustomTable extends React.Component {
                         />
                       </div>
                       <div
-                        className="BodyGridContainer"
                         style={{
                           height: height - headerHeight,
                           width: w,
@@ -203,11 +201,11 @@ export default class CustomTable extends React.Component {
     }
 
     const classNames = classnames(
-      'GridRow',
-      {GridRowLeft: columnIndex === 0},
-      {GridRowHovered: rowIndex === hoveredRowIndex},
-      {GridRowEven: rowIndex % 2 === 0},
-      {GridRowSelected: isSelected},
+      'CustomTable__GridRowCell',
+      {'CustomTable__GridRowCellLeft': columnIndex === 0},
+      {'CustomTable__GridRowCellHovered': rowIndex === hoveredRowIndex},
+      {'CustomTable__GridRowCellEven': rowIndex % 2 === 0},
+      {'CustomTable__GridRowCellSelected': isSelected},
     );
 
     return (
@@ -266,7 +264,7 @@ export default class CustomTable extends React.Component {
       filter = (
         <div>
           <DebounceInput
-            className={'CustomTable__header__filter'}
+            className={'CustomTable__Header__Filter'}
             minLength={1}
             debounceTimeout={50}
             onChange={event =>
@@ -278,9 +276,11 @@ export default class CustomTable extends React.Component {
       );
     }
 
-    const classNames = classnames('GridRow', 'HeaderRow', {
-      GridRowLeft: columnIndex === 0,
-    });
+    const classNames = classnames(
+      'CustomTable__GridRowCell',
+      'CustomTable__HeaderRowCell',
+      {'CustomTable__GridRowCellLeft': columnIndex === 0}
+    );
     return (
       <div
         key={key}
@@ -289,7 +289,7 @@ export default class CustomTable extends React.Component {
         onClick={event =>
           this._headerClicked(event, {columnIndex, dataKey, rowIndex})
         }>
-        <div className="HeaderTitle">
+        <div className="CustomTable__HeaderRowCell__Title">
           {columns[columnIndex].label}
           {carets}
         </div>
@@ -299,7 +299,7 @@ export default class CustomTable extends React.Component {
   }
 
   _headerClicked(event, {columnIndex, dataKey, rowIndex}) {
-    if (event.target.className === 'CustomTable__header__filter') {
+    if (event.target.className === 'CustomTable__Header__Filter') {
       return;
     }
 
