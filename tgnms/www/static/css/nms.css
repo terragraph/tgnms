@@ -294,11 +294,21 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   padding: 5px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .GridRow.HeaderRow {
   border-top: none;
   border-bottom: 1px solid #d3d3d3;
+  flex-direction: column;
+}
+
+.GridRow.HeaderRow > div {
+  margin: auto;
+}
+
+.GridRow.HeaderRow .HeaderTitle {
+  font-weight: 700;
 }
 
 .GridRow.GridRowLeft {
@@ -321,7 +331,6 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   width: 100%;
   overflow: hidden !important;
   cursor: pointer;
-  font-weight: 700;
 }
 
 .HeaderGrid .ReactVirtualized__Grid__innerScrollContainer {

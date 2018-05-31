@@ -21,22 +21,22 @@ import {SortDirection} from 'react-virtualized'
 
 export default class NetworkNodesTable extends React.Component {
   state = {
-    selectedNodeSite: null,
-    nodesSelected: [],
+    filters: {},
     nodeHealth: NetworkStore.nodeHealth,
+    nodesSelected: [],
+    selectedNodeSite: null,
     showEventsChart: false,
-    hoveredRowIndex: -1,
     sortBy: null,
     sortDirection: SortDirection.ASC,
   };
 
   headers = [
-    {label: 'Name', key: 'name', width: 170, sort: true},
-    {label: 'MAC', key: 'mac_addr', width: 160, sort: true},
-    {label: 'IPv6', key: 'ipv6', width: 180, sort: true},
+    {label: 'Name', key: 'name', isKey: true, width: 170, sort: true, filter: true},
+    {label: 'MAC', key: 'mac_addr', width: 160, sort: true, filter: true},
+    {label: 'IPv6', key: 'ipv6', width: 180, sort: true, filter: true},
     {label: 'Type', key: 'node_type', width: 80, sort: true},
     {label: 'Ignited', key: 'ignited', width: 90, sort: true, render: this.renderStatusColor},
-    {label: 'Site', key: 'site_name', width: 80, sort: true},
+    {label: 'Site', key: 'site_name', width: 80, sort: true, sortFunc: this.siteSortFunc.bind(this)},
     {label: 'Pop?', key: 'pop_node', width: 80, sort: true, render: this.renderStatusColor},
     {label: 'Availability (24 hours)', key: 'availability', width: 100, sort: true, render: this.renderNodeAvailability},
     {label: 'Minion Restarts (24 hours)', key: 'minion_restarts', width: 120, sort: true},
@@ -48,11 +48,6 @@ export default class NetworkNodesTable extends React.Component {
     super(props);
     this.tableOnSortChange = this.tableOnSortChange.bind(this);
 
-    this.state.sortedNodes = NetworkNodesTable.getTableRows(
-      this.props.topology.nodes,
-      NetworkStore.nodeHealth
-    );
-
     // fetch selected site from store
     if (NetworkStore.selectedName) {
       const selectedRows = [];
@@ -63,17 +58,11 @@ export default class NetworkNodesTable extends React.Component {
         }
       });
 
-      const newState = {
-        selectedSiteName: NetworkStore.selectedName,
-        selectedNodeSite: NetworkStore.selectedName,
-        nodesSelected: selectedRows,
-        sortBy: 'site_name',
-        sortDirection: SortDirection.DESC,
-      };
-      Object.assign(this.state, {
-        ...newState,
-        ...this.getNewSortedNodes(newState),
-      });
+      this.state.sortBy = 'site_name';
+      this.state.sortDirection = SortDirection.DESC;
+      this.state.selectedSiteName = NetworkStore.selectedName;
+      this.state.selectedNodeSite = NetworkStore.selectedName;
+      this.state.nodesSelected = selectedRows;
     }
   }
 
@@ -90,59 +79,39 @@ export default class NetworkNodesTable extends React.Component {
   }
 
   handleDispatchEvent(payload) {
-    let newState, stateUpdate;
-    let sortedNodes = [];
-
     switch (payload.actionType) {
       case Actions.NODE_SELECTED:
-        sortedNodes = this.state.sortedNodes.slice();
-        sortedNodes.forEach(node => {
-          node.isSelected = node.name === payload.nodeSelected;
-        });
         this.setState({
           nodesSelected: [payload.nodeSelected],
-          sortedNodes: sortedNodes,
         });
         break;
       case Actions.SITE_SELECTED:
-        var selectedRows = [];
+        let selectedRows = [];
         Object.keys(this.props.topology.nodes).map(nodeIndex => {
           const node = this.props.topology.nodes[nodeIndex];
           if (node.site_name === payload.siteSelected) {
             selectedRows.push(node.name);
           }
         });
-
-        newState = {
-          selectedSiteName: payload.siteSelected,
-          selectedNodeSite: payload.siteSelected,
+        this.setState({
           nodesSelected: selectedRows,
+          selectedNodeSite: payload.siteSelected,
+          selectedSiteName: payload.siteSelected,
           sortBy: 'site_name',
           sortDirection: SortDirection.DESC,
-        }
-        this.setState({
-          ...newState,
-          ...this.getNewSortedNodes(newState),
-          sortName: 'site_name',
-          sortOrder: 'desc',
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
         // Remove isSelected field from all nodes
-        sortedNodes = this.state.sortedNodes.slice();
-        sortedNodes.forEach(node => {node.isSelected = false});
         this.setState({
           nodesSelected: null,
           selectedLink: null,
-          sortedNodes: sortedNodes,
         });
         break;
       case Actions.HEALTH_REFRESHED:
         // Update nodes with new nodeHealth data
-        newState = {nodeHealth: payload.nodeHealth};
         this.setState({
-          ...stateUpdate,
-          ...this.getNewSortedNodes(newState),
+          nodeHealth: payload.nodeHealth,
         });
         break;
     }
@@ -188,19 +157,19 @@ export default class NetworkNodesTable extends React.Component {
         events = nodeHealth.metrics[node.name].events;
       }
       rows.push({
-        name: node.name,
-        mac_addr: node.mac_addr,
-        node_type: node.node_type === 2 ? 'DN' : 'CN',
-        ignited: node.status === 2 || node.status === 3,
-        site_name: node.site_name,
-        pop_node: node.pop_node,
-        ipv6,
-        version,
-        uboot_version: ubootVersion,
-        key: node.name,
         availability,
         events,
+        ignited: node.status === 2 || node.status === 3,
+        ipv6,
+        key: node.name,
+        mac_addr: node.mac_addr,
         minion_restarts: events.length,
+        name: node.name,
+        node_type: node.node_type === 2 ? 'DN' : 'CN',
+        pop_node: node.pop_node,
+        site_name: node.site_name,
+        uboot_version: ubootVersion,
+        version,
       });
     });
     return rows;
@@ -217,8 +186,8 @@ export default class NetworkNodesTable extends React.Component {
 
   _handleTabSelect(index, last) {
     this.setState({
-      selectedTabIndex: index,
       selectedLink: null,
+      selectedTabIndex: index,
     });
     // TODO - should we null the selected node?
     Dispatcher.dispatch({
@@ -226,12 +195,12 @@ export default class NetworkNodesTable extends React.Component {
     });
   }
 
-  static siteSortFunc(a, b, order, selectedSiteName) {
+  siteSortFunc(a, b, order) {
     // order is desc or asc
-    if (selectedSiteName) {
-      if (a.site_name === selectedSiteName) {
+    if (this.state.selectedSiteName) {
+      if (a.site_name === this.state.selectedSiteName) {
         return -1;
-      } else if (b.site_name === selectedSiteName) {
+      } else if (b.site_name === this.state.selectedSiteName) {
         return 1;
       }
     }
@@ -253,8 +222,8 @@ export default class NetworkNodesTable extends React.Component {
     }
   }
 
-  tableOnSortChange(sortName, sortOrder) {
-    this.setState({sortName, sortOrder, selectedSiteName: undefined});
+  tableOnSortChange(sortBy, sortDirection) {
+    this.setState({selectedSiteName: undefined, sortBy, sortDirection});
   }
 
   renderStatusColor(cell, row) {
@@ -269,13 +238,14 @@ export default class NetworkNodesTable extends React.Component {
     if (row.events.length > 0) {
       return (
         <ReactEventChart
-          events={row.events}
-          startTime={this.state.nodeHealth.start}
           endTime={this.state.nodeHealth.end}
+          events={row.events}
           size="small"
+          startTime={this.state.nodeHealth.start}
         />
       );
     }
+    return null;
   }
 
   renderNodeAvailability(cell, row) {
@@ -284,121 +254,53 @@ export default class NetworkNodesTable extends React.Component {
     return <span style={{color: cellColor}}>{'' + cellText}</span>;
   }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
-    // Recompute sorted nodes
-    if (nextProps.topology && nextProps.topology.nodes) {
-      return NetworkNodesTable.getSortedNodes(nextProps.topology, prevState);
-    }
-    return null;
-  }
-
-  /**
-   * getSortedNodes() returns the new sorted nodes based on the passed-in
-   * `topology` and `state`
-   */
-  static getSortedNodes(topology, state) {
-    const sortedNodes = NetworkNodesTable.sortNodes(
-      NetworkNodesTable.getTableRows(
-        topology.nodes,
-        state.nodeHealth
-      ),
-      state.sortBy,
-      state.sortDirection,
-      state.selectedSiteName,
-    );
-
-    sortedNodes.forEach(node => {
-      node.isSelected = state.nodesSelected.includes(node.name);
-    });
-
-    return {
-      sortedNodes: sortedNodes,
-    }
-  }
-
-  /**
-   * getNewSortedNodes() returns an updated sorted nodes list based on the
-   * passed-in object `newState` that is merged with the current `this.state`.
-   * `newState` should be an object that could be passed into setState. This
-   * uses both `this.state` and `this.props.topology`.
-   */
-  getNewSortedNodes(newState) {
-    const stateCopy = Object.assign({}, this.state);
-    return NetworkNodesTable.getSortedNodes(
-      this.props.topology,
-      Object.assign(stateCopy, newState),
-    );
-  }
-
-  static sortNodesHelper(a, b, sortBy, sortDirection) {
-    let ret = 0;
-    if (a[sortBy] < b[sortBy]) {
-      ret = -1;
-    }
-
-    if (a[sortBy] > b[sortBy]) {
-      ret = 1;
-    }
-
-    return sortDirection === SortDirection.ASC ? ret : 0 - ret;
-  }
-
-  static sortNodes(nodes, sortBy, sortDirection, selectedSiteName) {
-    return nodes.sort((a, b) => {
-      if (sortBy === 'site_name') {
-        return NetworkNodesTable.siteSortFunc(
-          a, b, sortDirection, selectedSiteName);
-      } else {
-        return NetworkNodesTable.sortNodesHelper(a, b, sortBy, sortDirection);
+  static applyFiltersToNodes(nodes, filters) {
+    let filteredNodes = nodes;
+    for (let key in filters) {
+      if (key in filters && filters[key]) {
+        filteredNodes = NetworkNodesTable.filterNodesHelper(
+          filteredNodes,
+          key,
+          filters[key],
+        );
       }
-    });
+    }
+    return filteredNodes;
   }
 
-  sortFunction({sortBy, sortDirection}) {
-    const sortedNodes = NetworkNodesTable.sortNodes(
-      NetworkNodesTable.getTableRows(
-        this.props.topology.nodes,
-        this.state.nodeHealth,
-      ),
-      sortBy,
-      sortDirection,
-      this.state.selectedSiteName,
-    );
-
-    this.setState({
-      selectedSiteName: undefined,
-      sortBy: sortBy,
-      sortDirection: sortDirection,
-      sortedNodes: sortedNodes,
+  static filterNodesHelper(nodes, key, filter) {
+    return nodes.filter(node => {
+      return node[key].toLowerCase().search(
+        filter.toLowerCase()) !== -1;
     });
   }
 
   render() {
     let nodesTable;
+    var selectRowProp = {
+      bgColor: 'rgb(183,210,255)',
+      clickToSelect: true,
+      hideSelectColumn: true,
+      mode: 'checkbox',
+      onSelect: this.tableOnRowSelect,
+      selected: this.state.nodesSelected,
+    };
+
+    const tableOptions = {
+      onRowMouseOver: this.tableOnRowMouseOver,
+      onSortChange: this.tableOnSortChange,
+      sortName: this.state.sortName,
+      sortOrder: this.state.sortOrder,
+      trClassName: 'break-word',
+    };
+
+    let nodesData = [];
+    if (this.props.topology && this.props.topology.nodes) {
+      nodesData = this.props.topology.nodes;
+    }
+
     // disabled since perf is too slow in sjc
     if (this.state.showEventsChart && false) {
-      var selectRowProp = {
-        mode: 'checkbox',
-        clickToSelect: true,
-        hideSelectColumn: true,
-        bgColor: 'rgb(183,210,255)',
-        onSelect: this.tableOnRowSelect,
-        selected: this.state.nodesSelected,
-      };
-
-      const tableOptions = {
-        sortName: this.state.sortName,
-        sortOrder: this.state.sortOrder,
-        onSortChange: this.tableOnSortChange,
-        onRowMouseOver: this.tableOnRowMouseOver,
-        trClassName: 'break-word',
-      };
-
-      let nodesData = [];
-      if (this.props.topology && this.props.topology.nodes) {
-        nodesData = this.props.topology.nodes;
-      }
-
       nodesTable = (
         <BootstrapTable
           height={this.props.height + 'px'}
@@ -445,11 +347,16 @@ export default class NetworkNodesTable extends React.Component {
           height={height}
           overscanRowCount={overscanRowCount}
           columns={this.headers}
-          data={this.state.sortedNodes}
-          sortFunction={(stuff) => this.sortFunction(stuff)}
+          data={
+            NetworkNodesTable.getTableRows(nodesData, this.state.nodeHealth)
+          }
           sortBy={this.state.sortBy}
           sortDirection={this.state.sortDirection}
           onRowSelect={row => this.tableOnRowSelect(row)}
+          onSortChange={(sortBy, sortDirection) =>
+            this.tableOnSortChange(sortBy, sortDirection)
+          }
+          selected={this.state.nodesSelected}
         />
       );
     }
