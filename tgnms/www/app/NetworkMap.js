@@ -78,7 +78,6 @@ export default class NetworkMap extends React.Component {
   linksByName = {};
   linksByNode = {};
   sitesByName = {};
-  nodesBySite = {};
 
   state = {
     hoveredSite: null,
@@ -304,17 +303,11 @@ export default class NetworkMap extends React.Component {
       const site = topologyJson.sites[siteIndex];
       sitesByName[site.name] = site;
     });
-
-    // index nodes by name and site
+    // index nodes by name
     const nodesByName = {};
-    const nodesBySite = {};
     Object.keys(topologyJson.nodes).map(nodeIndex => {
       const node = topologyJson.nodes[nodeIndex];
       nodesByName[node.name] = node;
-      if (!(node.site in nodesBySite)) {
-        nodesBySite[node.site] = []
-      }
-      nodesBySite[node.site].push(node);
     });
     const linksByName = {};
     const linksByNode = {};
@@ -419,7 +412,6 @@ export default class NetworkMap extends React.Component {
     // update helper maps
     this.resetZoomOnNextRefresh = false;
     this.nodesByName = nodesByName;
-    this.nodesBySite = nodesBySite;
     this.linksByName = linksByName;
     this.linksByNode = linksByNode;
     this.sitesByName = sitesByName;
