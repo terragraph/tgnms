@@ -23,7 +23,7 @@ import {Actions, E2EConstants} from '../../constants/NetworkConstants.js';
 import {
   unsetAndCleanup,
   getDefaultValueForType,
-  sortConfig,
+  sortConfigByTag,
 } from '../../helpers/NetworkConfigHelpers.js';
 import E2EConfig from './E2EConfig.js';
 import get from 'lodash-es/get';
@@ -123,13 +123,16 @@ export default class E2EConfigContainer extends React.Component {
         config.flags = cleanedConfigFlags;
 
         this.setState({
-          controllerConfig: sortConfig(config),
+          controllerConfig: sortConfigByTag(config),
         });
         break;
       case NetworkConfigActions.GET_CONTROLLER_CONFIG_METADATA_SUCCESS:
         this.setState({
-          controllerConfig: sortConfig(this.state.controllerConfig, metadata),
-          draftControllerConfig: sortConfig(
+          controllerConfig: sortConfigByTag(
+            this.state.controllerConfig,
+            metadata,
+          ),
+          draftControllerConfig: sortConfigByTag(
             this.state.draftControllerConfig,
             metadata,
           ),
@@ -138,7 +141,7 @@ export default class E2EConfigContainer extends React.Component {
         break;
       case NetworkConfigActions.SET_CONTROLLER_CONFIG_SUCCESS:
         this.setState({
-          controllerConfig: sortConfig(
+          controllerConfig: sortConfigByTag(
             {...config},
             this.state.controllerConfigMetadata,
           ),
@@ -148,13 +151,13 @@ export default class E2EConfigContainer extends React.Component {
         break;
       case NetworkConfigActions.GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS:
         this.setState({
-          aggregatorConfig: sortConfig(config, metadata),
+          aggregatorConfig: sortConfigByTag(config, metadata),
           aggregatorConfigMetadata: metadata,
         });
         break;
       case NetworkConfigActions.SET_AGGREGATOR_CONFIG_SUCCESS:
         this.setState({
-          aggregatorConfig: sortConfig(
+          aggregatorConfig: sortConfigByTag(
             {...config},
             this.state.aggregatorConfigMetadata,
           ),
@@ -288,7 +291,9 @@ export default class E2EConfigContainer extends React.Component {
   }
 
   editConfigHelper(config, editPath, value) {
-    return set(config, editPath, value);
+    return editPath !== undefined && editPath !== null
+      ? set(config, editPath, value)
+      : value;
   }
 
   editConfig(editPath, value) {

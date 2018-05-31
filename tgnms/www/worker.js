@@ -1080,6 +1080,12 @@ class ControllerProxy extends EventEmitter {
               resolve({type: 'msg', msg: baseConfig});
               break;
             case controllerTTypes.MessageType
+              .GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
+              const networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
+              networkOverrideConfig.read(tProtocol);
+              resolve({type: 'msg', msg: networkOverrideConfig});
+              break;
+            case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
               const nodeOverrideConfig = new controllerTTypes.GetCtrlConfigNodeOverridesResp();
               nodeOverrideConfig.read(tProtocol);

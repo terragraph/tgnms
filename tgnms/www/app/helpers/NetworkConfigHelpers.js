@@ -110,7 +110,21 @@ const alphabeticalSort = (a, b) => {
   return 0;
 };
 
-export const sortConfig = (config, metadata = {}) => {
+export const sortConfig = config => {
+  const newConfig = {};
+
+  Object.keys(config)
+    .sort(alphabeticalSort)
+    .forEach(key => {
+      const value = config[key];
+      const newValue = isPlainObject(value) ? sortConfig(value) : value;
+      newConfig[key] = newValue;
+    });
+
+  return newConfig;
+};
+
+export const sortConfigByTag = (config, metadata = {}) => {
   const newConfig = {};
 
   Object.keys(config)
@@ -128,7 +142,7 @@ export const sortConfig = (config, metadata = {}) => {
       const key = tokens.length > 1 ? tokens[1] : tokens[0];
       const value = config[key];
       const newValue = isPlainObject(value)
-        ? sortConfig(value, getMetadata(metadata, key) || {})
+        ? sortConfigByTag(value, getMetadata(metadata, key) || {})
         : value;
       newConfig[key] = newValue;
     });
