@@ -28,6 +28,8 @@ export const NetworkConfigActions = {
   DELETE_NEW_FIELD: 'DELETE_NEW_FIELD',
   SUBMIT_NEW_FIELD: 'SUBMIT_NEW_FIELD',
 
+  EDIT_E2E_CONFIG_TYPE: 'EDIT_E2E_CONFIG_TYPE',
+
   // API call resolution actions for get
   GET_BASE_CONFIG_SUCCESS: 'GET_BASE_CONFIG_SUCCESS',
   GET_BASE_CONFIG_FAILED: 'GET_BASE_CONFIG_FAILED',
@@ -59,6 +61,14 @@ export const NetworkConfigActions = {
   SET_CONTROLLER_CONFIG_SUCCESS: 'SET_CONTROLLER_CONFIG_SUCCESS',
   SET_CONTROLLER_CONFIG_FAILED: 'SET_CONTROLLER_CONFIG_FAILED',
 
+  GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS:
+    'GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS',
+  GET_AGGREGATOR_CONFIG_AND_METADATA_FAILED:
+    'GET_AGGREGATOR_CONFIG_AND_METADATA_FAILED',
+
+  SET_AGGREGATOR_CONFIG_SUCCESS: 'SET_AGGREGATOR_CONFIG_SUCCESS',
+  SET_AGGREGATOR_CONFIG_FAILED: 'SET_AGGREGATOR_CONFIG_FAILED',
+
   TOGGLE_EXPAND_ALL: 'TOGGLE_EXPAND_ALL',
 
   SHOW_CONFIG_ERROR: 'SHOW_CONFIG_ERROR',
@@ -83,6 +93,13 @@ export const selectNodes = ({nodes}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SELECT_NODES,
     nodes,
+  });
+};
+
+export const changeConfigType = configType => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.EDIT_E2E_CONFIG_TYPE,
+    configType,
   });
 };
 
@@ -245,6 +262,26 @@ export const setNodeConfigSuccess = ({config, saveSelected}) => {
 export const setControllerConfigSuccess = ({config}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SET_CONTROLLER_CONFIG_SUCCESS,
+    config,
+  });
+};
+
+export const getAggregatorConfigAndMetadataSuccess = ({
+  config,
+  metadata,
+  topologyName,
+}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS,
+    topologyName,
+    config,
+    metadata,
+  });
+};
+
+export const setAggregatorConfigSuccess = ({config}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SET_AGGREGATOR_CONFIG_SUCCESS,
     config,
   });
 };

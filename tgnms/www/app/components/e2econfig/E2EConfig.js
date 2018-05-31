@@ -14,6 +14,7 @@ import React from 'react';
 
 export default class E2EConfig extends React.Component {
   static propTypes = {
+    activeConfig: PropTypes.string.isRequired,
     config: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
     draftConfig: PropTypes.object.isRequired,
@@ -21,11 +22,18 @@ export default class E2EConfig extends React.Component {
   };
 
   render() {
-    const {config, configMetadata, draftConfig, newConfigFields} = this.props;
+    const {
+      activeConfig,
+      config,
+      configMetadata,
+      draftConfig,
+      newConfigFields,
+    } = this.props;
 
     return (
       <div className="rc-network-config">
         <E2EConfigBody
+          activeConfig={activeConfig}
           config={config}
           configMetadata={configMetadata}
           draftConfig={draftConfig}

@@ -95,6 +95,8 @@ export const getMetadata = (metadata, fieldName) => {
   if (metadata.deprecated) {
     fieldMetadata.deprecated = metadata.deprecated;
   }
+
+  return fieldMetadata;
 };
 
 const alphabeticalSort = (a, b) => {

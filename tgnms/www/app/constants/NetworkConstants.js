@@ -236,3 +236,8 @@ export const MapTiles = {
   Default: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   Monochrome: '//stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
 };
+
+export const E2EConstants = {
+  Aggregator: 'Aggregator',
+  Controller: 'Controller',
+};

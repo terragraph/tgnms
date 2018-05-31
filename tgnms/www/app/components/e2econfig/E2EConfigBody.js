@@ -13,6 +13,7 @@ import {
   resetConfig,
   toggleExpandAll,
 } from '../../actions/NetworkConfigActions.js';
+import E2EConfigHeader from './E2EConfigHeader.js';
 import JSONConfigForm from '../common/JSONConfigForm.js';
 import isEmpty from 'lodash-es/isEmpty';
 import PropTypes from 'prop-types';
@@ -21,6 +22,7 @@ import swal from 'sweetalert';
 
 export default class E2EConfigBody extends React.Component {
   static propTypes = {
+    activeConfig: PropTypes.string.isRequired,
     config: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
     draftConfig: PropTypes.object.isRequired,
@@ -33,8 +35,8 @@ export default class E2EConfigBody extends React.Component {
 
   submitAlertProps = {
     title: 'Confirm Submit Config Changes',
-    text: `You are about to submit configuration changes for controller.
-    This may cause the controller to reboot.
+    text: `You are about to submit configuration changes for controller/aggregator.
+    This may cause the controller/aggregator to reboot.
 
     Proceed?`,
     type: 'warning',
@@ -60,15 +62,19 @@ export default class E2EConfigBody extends React.Component {
   };
 
   render() {
-    const {config, configMetadata, draftConfig, newConfigFields} = this.props;
+    const {
+      activeConfig,
+      config,
+      configMetadata,
+      draftConfig,
+      newConfigFields,
+    } = this.props;
 
     const {isExpanded} = this.state;
 
     return (
       <div className="rc-network-config-body">
-        <div className="rc-network-config-header">
-          <h3 className="nc-header-title">E2E Controller Config</h3>
-        </div>
+        <E2EConfigHeader activeConfig={activeConfig} />
         <div className="nc-expand-all-wrapper">
           <button
             className="nc-expand-all-btn"
