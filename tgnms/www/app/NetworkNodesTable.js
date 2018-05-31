@@ -186,8 +186,8 @@ export default class NetworkNodesTable extends React.Component {
       let events = [];
       if (
         nodeHealth &&
-        'metrics' in nodeHealth &&
-        node.name in nodeHealth.metrics
+        nodeHealth.hasOwnProperty('metrics') &&
+        nodeHealth.metrics.hasOwnProperty(node.name)
       ) {
         availability = nodeHealth.metrics[node.name].minion_uptime;
         events = nodeHealth.metrics[node.name].events;
@@ -288,26 +288,6 @@ export default class NetworkNodesTable extends React.Component {
     const cellColor = availabilityColor(cell);
     const cellText = Math.round(cell * 100) / 100;
     return <span style={{color: cellColor}}>{'' + cellText}</span>;
-  }
-
-  static applyFiltersToNodes(nodes, filters) {
-    let filteredNodes = nodes;
-    for (const key in filters) {
-      if (key in filters && filters[key]) {
-        filteredNodes = NetworkNodesTable.filterNodesHelper(
-          filteredNodes,
-          key,
-          filters[key],
-        );
-      }
-    }
-    return filteredNodes;
-  }
-
-  static filterNodesHelper(nodes, key, filter) {
-    return nodes.filter(node => {
-      return node[key].toLowerCase().search(filter.toLowerCase()) !== -1;
-    });
   }
 
   render() {

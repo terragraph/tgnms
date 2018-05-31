@@ -208,7 +208,7 @@ export default class NetworkLinksTable extends React.Component {
         if (
           this.state.linkHealth &&
           this.state.linkHealth.metrics &&
-          link.name in this.state.linkHealth.metrics
+          this.state.linkHealth.metrics.hasOwnProperty(link.name)
         ) {
           const nodeHealth = this.state.linkHealth.metrics[link.name];
           link.alive_perc = nodeHealth.alive;
@@ -306,7 +306,7 @@ export default class NetworkLinksTable extends React.Component {
   }
 
   formatAnalyzerValue(obj, propertyName) {
-    return propertyName in obj
+    return obj.hasOwnProperty(propertyName)
       ? obj[propertyName] === INVALID_VALUE
         ? '-'
         : obj[propertyName]
@@ -332,8 +332,8 @@ export default class NetworkLinksTable extends React.Component {
       }
       // check if either side of the node is a CN
       if (
-        !(link.a_node_name in this.nodesByName) ||
-        !(link.z_node_name in this.nodesByName)
+        !this.nodesByName.hasOwnProperty(link.a_node_name) ||
+        !this.nodesByName.hasOwnProperty(link.z_node_name)
       ) {
         return;
       }
@@ -377,18 +377,18 @@ export default class NetworkLinksTable extends React.Component {
         return;
       }
       const analyzerLink =
-        linkName in this.state.analyzerTable.metrics
+        this.state.analyzerTable.metrics.hasOwnProperty(linkName)
           ? this.state.analyzerTable.metrics[linkName]
           : [];
-      const analyzerLinkA = 'A' in analyzerLink ? analyzerLink.A : analyzerLink;
-      const analyzerLinkZ = 'Z' in analyzerLink ? analyzerLink.Z : analyzerLink;
+      const analyzerLinkA = analyzerLink.hasOwnProperty('A') ? analyzerLink.A : analyzerLink;
+      const analyzerLinkZ = analyzerLink.hasOwnProperty('Z') ? analyzerLink.Z : analyzerLink;
       if (link.link_type === 2 && this.state.hideWired) {
         return;
       }
       // check if either side of the node is a CN
       if (
-        !(link.a_node_name in this.nodesByName) ||
-        !(link.z_node_name in this.nodesByName)
+        !this.nodesByName.hasOwnProperty(link.a_node_name) ||
+        !this.nodesByName.hasOwnProperty(link.z_node_name)
       ) {
         return;
       }
@@ -623,8 +623,8 @@ export default class NetworkLinksTable extends React.Component {
 
     // if the field doesn't exist, don't display the link
     if (
-      !(row.a_node_name in this.nodesByName) ||
-      !(row.z_node_name in this.nodesByName)
+      !this.nodesByName.hasOwnProperty(row.a_node_name) ||
+      !this.nodesByName.hasOwnProperty(row.z_node_name)
     ) {
       return null;
     }

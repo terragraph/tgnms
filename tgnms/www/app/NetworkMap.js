@@ -162,7 +162,7 @@ export default class NetworkMap extends React.Component {
     if (
       NetworkStore.tabName == 'links' &&
       NetworkStore.selectedName &&
-      NetworkStore.selectedName in this.linksByName
+      this.linksByName.hasOwnProperty(NetworkStore.selectedName)
     ) {
       this.setState({
         selectedLink: this.linksByName[NetworkStore.selectedName],
@@ -170,7 +170,7 @@ export default class NetworkMap extends React.Component {
     } else if (
       NetworkStore.tabName == 'nodes' &&
       NetworkStore.selectedName &&
-      NetworkStore.selectedName in this.sitesByName
+      this.sitesByName.hasOwnProperty(NetworkStore.selectedName)
     ) {
       this.setState({
         selectedSite: NetworkStore.selectedName,
@@ -316,8 +316,8 @@ export default class NetworkMap extends React.Component {
       linksByName[link.name] = link;
       // calculate distance and angle for each link
       if (
-        !(link.a_node_name in nodesByName) ||
-        !(link.z_node_name in nodesByName)
+        !nodesByName.hasOwnProperty(link.a_node_name) ||
+        !nodesByName.hasOwnProperty(link.z_node_name)
       ) {
         console.error('Skipping invalid link', link);
         return;
@@ -325,8 +325,8 @@ export default class NetworkMap extends React.Component {
       const aNode = nodesByName[link.a_node_name];
       const zNode = nodesByName[link.z_node_name];
       if (
-        !(aNode.site_name in sitesByName) ||
-        !(zNode.site_name in sitesByName)
+        !sitesByName.hasOwnProperty(aNode.site_name) ||
+        !sitesByName.hasOwnProperty(zNode.site_name)
       ) {
         console.error('Skipping invalid link', link);
         return;
@@ -358,7 +358,7 @@ export default class NetworkMap extends React.Component {
       if (
         this.state.linkHealth &&
         this.state.linkHealth.metrics &&
-        link.name in this.state.linkHealth.metrics
+        this.state.linkHealth.metrics.hasOwnProperty(link.name)
       ) {
         const nodeHealth = this.state.linkHealth.metrics[link.name];
         link.alive_perc = nodeHealth.alive;
@@ -368,7 +368,7 @@ export default class NetworkMap extends React.Component {
         typeof this.state.linkOverlayData === 'object' &&
         Object.keys(this.state.linkOverlayData).length > 0
       ) {
-        if (link.name in this.state.linkOverlayData) {
+        if (this.state.linkOverlayData.hasOwnProperty(link.name)) {
           link.overlay_a = this.state.linkOverlayData[link.name];
           link.overlay_z = this.state.linkOverlayData[link.name];
         }

@@ -322,7 +322,7 @@ export default class CustomTable extends React.Component {
         this.state.displayedData.slice(),
         dataKey,
         newSortDirection,
-        columns[columnIndex],
+        column,
       );
       this.setState(
         {
@@ -348,11 +348,9 @@ export default class CustomTable extends React.Component {
 
   static _sortFunction(a, b, sortDirection, sortBy) {
     let ret = 0;
-    if (a[sortBy] < b[sortBy]) {
+    if (!a.hasOwnProperty(sortBy) || a[sortBy] < b[sortBy]) {
       ret = -1;
-    }
-
-    if (a[sortBy] > b[sortBy]) {
+    } else if (!b.hasOwnProperty(sortBy) || a[sortBy] > b[sortBy]) {
       ret = 1;
     }
 
@@ -397,7 +395,7 @@ export default class CustomTable extends React.Component {
   static _applyFiltersToData(data, filters) {
     let filteredData = data;
     for (const key in filters) {
-      if (key in filters && filters[key]) {
+      if (filters.hasOwnProperty(key) && filters[key]) {
         filteredData = CustomTable._applyFilterHelper(
           filteredData,
           key,
