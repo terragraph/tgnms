@@ -227,6 +227,12 @@ const command2MsgType = {
   getConfigMetadata: controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ,
   getControllerConfigMetadata:
     controllerTTypes.MessageType.GET_CTRL_CONFIG_CONTROLLER_METADATA_REQ,
+
+  // aggregator
+  getAggregatorConfig: aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_REQ,
+  getAggregatorConfigMetadata:
+    aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_METADATA_REQ,
+  setAggregatorConfig: aggregatorTTypes.AggrMessageType.SET_AGGR_CONFIG_REQ,
 };
 
 var msgType2Params = {};
@@ -391,6 +397,19 @@ msgType2Params[controllerTTypes.MessageType.SET_CTRL_CONFIG_CONTROLLER_REQ] = {
   recvApp: 'ctrl-app-CONFIG_APP',
   nmsAppId: 'NMS_WEB_CONFIG',
 };
+msgType2Params[aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_REQ] = {
+  recvApp: 'aggr-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_AGGR',
+};
+msgType2Params[aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_METADATA_REQ] = {
+  recvApp: 'aggr-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_AGGR',
+};
+msgType2Params[aggregatorTTypes.AggrMessageType.SET_AGGR_CONFIG_REQ] = {
+  recvApp: 'aggr-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_AGGR',
+};
+
 
 const thriftSerialize = struct => {
   var result;
@@ -724,6 +743,45 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       res.status(500).send('FAIL');
   }
 };
+
+function sendAggrMsgSync(msg, minion, res) {
+  if (!msg.type) {
+    console.error('sendAggrMsgSync: Received unknown message', msg);
+  }
+
+  const send = struct => {
+    var byteArray = thriftSerialize(struct);
+    const aggrProxy = new AggregatorProxy(msg.topology.aggregator_ip);
+    aggrProxy.sendMsgType(
+      command2MsgType[msg.type],
+      byteArray,
+      minion,
+      res,
+    );
+  }
+
+  switch (msg.type) {
+    case 'getAggregatorConfig':
+      var getAggregatorConfigParams = new aggregatorTTypes.AggrGetConfigReq();
+      send(getAggregatorConfigParams);
+
+      break;
+    case 'getAggregatorConfigMetadata':
+      var getAggregatorConfigMetadataParams = new aggregatorTTypes.AggrGetConfigMetadata();
+      send(getAggregatorConfigMetadataParams);
+
+      break;
+    case 'setAggregatorConfig':
+      var setAggregatorConfigParams = new aggregatorTTypes.AggrSetConfigReq();
+      setAggregatorConfigParams.config = JSON.stringify(msg.config);
+      send(setAggregatorConfigParams);
+
+      break;
+    default:
+    console.error('sendAggrMsgSync: No handler for msg type', msg.type);
+    res.status(500).send('FAIL');
+  }
+}
 
 class ControllerProxy extends EventEmitter {
   constructor(controllerIp) {
@@ -1178,6 +1236,7 @@ class AggregatorProxy extends EventEmitter {
               resolve({type: 'msg', msg: receivedStatus});
               break;
             case aggregatorTTypes.AggrMessageType.START_IPERF:
+            case aggregatorTTypes.AggrMessageType.SET_AGGR_CONFIG_REQ:
               var receivedAck = new aggregatorTTypes.AggrAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -1185,6 +1244,18 @@ class AggregatorProxy extends EventEmitter {
               } else {
                 reject(receivedAck.message);
               }
+              break;
+            case aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_REQ:
+              var aggregatorConfig = new aggregatorTTypes.AggrGetConfigResp();
+              aggregatorConfig.read(tProtocol);
+
+              resolve({type: 'msg', msg: aggregatorConfig});
+              break;
+            case aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_METADATA_REQ:
+              var aggregatorConfigMetadata = new aggregatorTTypes.AggrGetConfigMetadataResp();
+              aggregatorConfigMetadata.read(tProtocol);
+
+              resolve({type: 'msg', msg: aggregatorConfigMetadata});
               break;
             default:
               console.error(
@@ -1427,7 +1498,8 @@ class AggregatorProxy extends EventEmitter {
   }
 }
 module.exports = {
-  ControllerProxy: ControllerProxy,
-  AggregatorProxy: AggregatorProxy,
-  sendCtrlMsgSync: sendCtrlMsgSync,
+  AggregatorProxy,
+  ControllerProxy,
+  sendAggrMsgSync,
+  sendCtrlMsgSync,
 };

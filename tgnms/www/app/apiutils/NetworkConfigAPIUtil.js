@@ -14,9 +14,11 @@ import {
   getControllerConfigMetadataSuccess,
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
+  getAggregatorConfigAndMetadataSuccess,
   setControllerConfigSuccess,
   setNetworkConfigSuccess,
   setNodeConfigSuccess,
+  setAggregatorConfigSuccess,
   showConfigError,
 } from '../actions/NetworkConfigActions.js';
 import {DEFAULT_BASE_KEY} from '../constants/NetworkConfigConstants.js';
@@ -246,6 +248,52 @@ export const setControllerConfig = (topologyName, config) => {
     })
     .then(response => {
       setControllerConfigSuccess({config});
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+      showConfigError(errorText);
+    });
+};
+
+export const getAggregatorConfigAndMetadata = topologyName => {
+  const configRequest = axios.get('/aggregator/getConfig', {
+    params: {
+      topologyName,
+    },
+  });
+  const configMetadataRequest = axios.get('/aggregator/getConfigMetadata', {
+    params: {
+      topologyName,
+    },
+  });
+
+  Promise.all([configRequest, configMetadataRequest]).then(
+    ([configResp, metadataResp]) => {
+      const {config} = configResp.data;
+      const parsedConfig = JSON.parse(config);
+
+      const {metadata} = metadataResp.data;
+      const parsedMetadata = JSON.parse(metadata);
+
+      getAggregatorConfigAndMetadataSuccess({
+        config: parsedConfig,
+        metadata: parsedMetadata,
+        topologyName,
+      });
+    },
+  );
+};
+
+export const setAggregatorConfig = (topologyName, config) => {
+  const uri = '/aggregator/setConfig';
+
+  axios
+    .post(uri, {
+      config,
+      topologyName,
+    })
+    .then(response => {
+      setAggregatorConfigSuccess({config});
     })
     .catch(error => {
       const errorText = getErrorText(error);

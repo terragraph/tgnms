@@ -22,7 +22,7 @@
   display: flex;
   flex-direction: column;
 
-  width: calc(100% - 300px);
+  width: 100%;
   overflow-y: auto;
 }
 
@@ -76,6 +76,47 @@
 
 .nc-header-refresh:hover {
   cursor: pointer;
+}
+
+/* Toggle Related */
+.rc-network-config-header .dropdown {
+  margin-left: 10px;
+}
+
+.nc-header-toggle {
+  display: flex;
+  align-items: center;
+  border: none;
+  border-radius: 0;
+  transition: transform 50ms ease-in-out;
+  background-color: transparent;
+}
+
+.nc-header-toggle:hover {
+  background-color: transparent;
+  transform: scale(1.02, 1.02);
+}
+
+.open > .nc-header-toggle.dropdown-toggle.btn-default,
+.btn-group.open .nc-header-toggle,
+.nc-header-toggle:active:focus,
+.nc-header-toggle:focus {
+  /* overwrite all of bootstrap's disgusting styles */
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.nc-header-toggle .caret {
+  /* size of caret is defined by border width */
+  border-width: 5px;
+}
+
+.nc-header-toggle-title {
+  margin: 11px 10px 11px 0;
+}
+
+.nc-header-toggle-item {
+  color: #212121;
 }
 
 /* NETWORK CONFIG FOOTER */

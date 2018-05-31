@@ -39,8 +39,8 @@ const VIEWS = {
   // alerts: {name: 'Alerts', icon: 'alert'},
   upgrade: {name: 'Upgrade', icon: 'upload'},
   'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
-  config: {name: 'Network Config', icon: 'cog'},
-  'e2e-config': {name: 'E2E Controller Config', icon: 'hdd'},
+  config: {name: 'Node Config', icon: 'cog'},
+  'e2e-config': {name: 'E2E Config', icon: 'hdd'},
 };
 
 const TOPOLOGY_OPS = {
