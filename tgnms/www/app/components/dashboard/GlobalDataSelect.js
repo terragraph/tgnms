@@ -132,7 +132,7 @@ export default class GlobalDataSelect extends React.Component {
     const {links, nodes} = this.props.networkConfig.topology;
 
     const linkAZOptions = links.filter(link => {
-      return link.a_node_name === nodeA.name || link.z_node_name === nodeA.name;
+      return link.a_node_name === nodeA.name;
     });
     linkAZOptions.forEach(link => {
       const nodeZ = nodes.find(node => {
@@ -140,7 +140,6 @@ export default class GlobalDataSelect extends React.Component {
       });
       nodeZOptions.push(nodeZ);
     });
-
     return nodeZOptions;
   }
 
@@ -323,7 +322,7 @@ export default class GlobalDataSelect extends React.Component {
           />
         </div>
         <button
-          className="graph-button"
+          className="graph-button submit-button"
           onClick={() => {
             this.createLinkGraph();
           }}>

@@ -8,14 +8,10 @@
 import Dispatcher from './NetworkDispatcher.js';
 import PlotlyGraph from './PlotlyGraph.js';
 import {Actions} from './constants/NetworkConstants.js';
-import NetworkStore from './stores/NetworkStore.js';
 import DashboardSelect from './components/dashboard/DashboardSelect.js';
-import NetworkDashboardStats from './NetworkDashboardStats.js';
 import GlobalDataSelect from './components/dashboard/GlobalDataSelect.js';
-import {render} from 'react-dom';
+import CreateGraphModal from './components/dashboard/CreateGraphModal.js';
 import ReactGridLayout, {WidthProvider} from 'react-grid-layout';
-import Modal from 'react-modal';
-import Select from 'react-select';
 import React from 'react';
 import swal from 'sweetalert';
 import axios from 'axios';
@@ -101,7 +97,20 @@ export default class NetworkDashboards extends React.Component {
     this.setState({
       dashboards,
     });
+
+    // NEW FEATURE
+    // change this function to only contain the next 3 lines to see changes
+
+    // this.setState({
+    //   modalIsOpen: true,
+    // });
   }
+
+  closeModal = () => {
+    this.setState({
+      modalIsOpen: false,
+    });
+  };
 
   deleteDashboard() {
     swal(
@@ -295,7 +304,8 @@ export default class NetworkDashboards extends React.Component {
       () => {
         const dashboards = this.state.dashboards;
         // update name
-        dashboards[this.props.selectedDashboard].graphs[index].name = value;
+        dashboards[this.props.selectedDashboard].graphs[index].name =
+          graph.name;
         this.setState({
           dashboards,
         });
@@ -356,8 +366,8 @@ export default class NetworkDashboards extends React.Component {
   }
 
   generateGraphGrid() {
-    let layout = [];
-    let layoutDivs = [];
+    const layout = [];
+    const layoutDivs = [];
 
     if (
       this.state.dashboards &&
@@ -377,7 +387,7 @@ export default class NetworkDashboards extends React.Component {
           minW: 2,
           maxW: 6,
           minH: 3,
-          static: this.state.editView ? false : true,
+          static: !this.state.editView,
         });
         if (!this.state.editView) {
           layoutDivs.push(
@@ -426,20 +436,16 @@ export default class NetworkDashboards extends React.Component {
 
     return (
       <div>
-        <div style={{width: '1000px'}}>
-          <Modal
-            isOpen={this.state.modalIsOpen}
-            onRequestClose={() => this.setState({modalIsOpen: false})}>
-            <div style={{width: '1000px'}}>
-              <NetworkDashboardStats
-                allowCustomTime={false}
-                onClose={this.graphEditClose.bind(this)}
-                graph={this.state.editedGraph}
-                topology={this.props.networkConfig.topology}
-              />
-            </div>
-          </Modal>
-        </div>
+        {this.state.dashboards &&
+          this.props.selectedDashboard &&
+          this.props.selectedDashboard in this.state.dashboards && (
+            <CreateGraphModal
+              modalIsOpen={this.state.modalIsOpen}
+              dashboard={this.state.dashboards[this.props.selectedDashboard]}
+              topologyName={this.props.networkConfig.topology.name}
+              closeModal={this.closeModal}
+            />
+          )}
         <DashboardSelect
           dashboards={this.state.dashboards}
           editView={this.state.editView}
