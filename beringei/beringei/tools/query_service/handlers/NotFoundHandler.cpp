@@ -16,13 +16,13 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
-void
-NotFoundHandler::onRequest(std::unique_ptr<HTTPMessage> /* unused */) noexcept {
+void NotFoundHandler::onRequest(
+    std::unique_ptr<HTTPMessage> /* unused */) noexcept {
   // nothing to do
 }
 
-void
-NotFoundHandler::onBody(std::unique_ptr<folly::IOBuf> /* unused */) noexcept {
+void NotFoundHandler::onBody(
+    std::unique_ptr<folly::IOBuf> /* unused */) noexcept {
   // nothing to do
 }
 
@@ -46,5 +46,5 @@ void NotFoundHandler::onError(ProxygenError /* unused */) noexcept {
   // Proxygen does not delete the handler.
   delete this;
 }
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

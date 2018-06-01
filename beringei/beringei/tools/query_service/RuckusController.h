@@ -22,7 +22,7 @@ struct CurlResponse {
 
 class RuckusController {
  public:
-  explicit RuckusController() {};
+  explicit RuckusController(){};
 
   // fetch ruckus ap stats
   static folly::dynamic ruckusControllerStats();
@@ -31,7 +31,8 @@ class RuckusController {
       const std::string& uri,
       const std::string& sessionCookie,
       const std::string& postData);
+
  private:
 };
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook
