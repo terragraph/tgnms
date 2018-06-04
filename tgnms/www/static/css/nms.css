@@ -272,3 +272,29 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-legend-table td {
   text-align: center;
 }
+
+.selectButtonClass {
+    color: blue;
+    font-weight: bold;
+    width: 500px;
+    display:inline-block;
+}
+
+.tr-warning {
+  background: #e5bbff;
+}
+.tr-marginal {
+  background: #feffbe;
+}
+.tr-healthy {
+  background: #b9d7ff;
+}
+.tr-excellent {
+  background: #e0ffac;
+}
+.tr-not-tested {
+  background: #c9c9c9;
+}
+.tr-other {
+  background: #fe6767;
+}

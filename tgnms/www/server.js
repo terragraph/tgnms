@@ -497,6 +497,7 @@ function reloadInstanceConfig () {
           console.log('Refreshing cache (stats type-ahead) for',
                       configName);
           refreshStatsTypeaheadCache(configName);
+          refreshSelftestData();
         });
       };
       // initial load
@@ -930,6 +931,20 @@ app.get(/\/scan_results$/i, function(req, res) {
   dataJson.readScanResults(topologyName, res, filter);
 });
 
+// http://<address>/scan_results?topology=<topology name>&
+//    filter[filterType]=<filter type>&
+//    filter[testtime]=<test time>
+//  filter type is "GROUPS" or "TESTRESULTS"
+//  testtime is in ms (unix time)
+// /i means ignore case
+app.get(/\/self_test$/i, function(req, res) {
+  const topologyName = req.query.topology;
+  const filter = {};
+  filter.filterType = req.query.filter.filterType;
+  filter.testtime = req.query.filter.testtime;
+  dataJson.readSelfTestResults(topologyName, res, filter);
+});
+
 
 app.get(/\/health\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
@@ -995,6 +1010,16 @@ function refreshRuckusControllerCache() {
       console.log('Fetched ruckus controller stats.');
     }
   );
+}
+
+function refreshSelftestData (topologyName) {
+  // !!!!self test does not have network name - need to add it !!!!
+  if (!configByName.hasOwnProperty(topologyName)) {
+    console.error('Unknown topology', topologyName);
+    return;
+  }
+  filter.filterType = "GROUPS";
+  dataJson.readSelfTestResults(topologyName, null, filter);
 }
 
 function refreshNetworkHealth (topologyName) {
