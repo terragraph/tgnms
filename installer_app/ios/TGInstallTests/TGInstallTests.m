@@ -16,11 +16,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Welcome to React Native!"
 
-@interface TGMap2Tests : XCTestCase
+@interface TGInstallTests : XCTestCase
 
 @end
 
-@implementation TGMap2Tests
+@implementation TGInstallTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL(^)(UIView *view))test
 {
