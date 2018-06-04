@@ -10,7 +10,7 @@
 
 import {toggleExpandAll} from '../../actions/NetworkConfigActions.js';
 import CustomToggle from '../common/CustomToggle.js';
-import JSONConfigForm from './JSONConfigForm.js';
+import JSONConfigForm from '../common/JSONConfigForm.js';
 import NetworkConfigFooter from './NetworkConfigFooter.js';
 import NetworkConfigHeader from './NetworkConfigHeader.js';
 import PropTypes from 'prop-types';

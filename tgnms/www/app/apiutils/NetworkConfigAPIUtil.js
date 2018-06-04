@@ -10,14 +10,19 @@
 import {
   getBaseConfigSuccess,
   getConfigMetadataSuccess,
+  getControllerConfigSuccess,
+  getControllerConfigMetadataSuccess,
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
+  getAggregatorConfigAndMetadataSuccess,
+  setControllerConfigSuccess,
   setNetworkConfigSuccess,
   setNodeConfigSuccess,
+  setAggregatorConfigSuccess,
   showConfigError,
 } from '../actions/NetworkConfigActions.js';
 import {DEFAULT_BASE_KEY} from '../constants/NetworkConfigConstants.js';
-import {sortConfig} from '../helpers/NetworkConfigHelpers.js';
+import {sortConfig, sortConfigByTag} from '../helpers/NetworkConfigHelpers.js';
 import axios from 'axios';
 import isPlainObject from 'lodash-es/isPlainObject';
 import pick from 'lodash-es/pick';
@@ -32,11 +37,11 @@ const getErrorText = error => {
 export const getConfigsForTopology = (
   topologyName,
   imageVersions,
-  getNetworkConfig,
+  getNetworkAndNodeConfig,
 ) => {
   const uri = '/controller/getBaseConfig';
 
-  return axios
+  axios
     .get(uri, {
       params: {
         topologyName,
@@ -59,16 +64,12 @@ export const getConfigsForTopology = (
         config: sortConfig(cleanedConfig),
         topologyName,
       });
-
-      if (getNetworkConfig) {
-        getNetworkOverrideConfig(topologyName);
-      }
-    })
-    .catch(error => {
-      if (getNetworkConfig) {
-        getNetworkOverrideConfig(topologyName);
-      }
     });
+
+  if (getNetworkAndNodeConfig) {
+    getNetworkOverrideConfig(topologyName);
+    getNodeOverrideConfig(topologyName);
+  }
 };
 
 export const getConfigMetadata = topologyName => {
@@ -109,11 +110,6 @@ export const getNetworkOverrideConfig = topologyName => {
         config: sortConfig(cleanedOverride),
         topologyName,
       });
-
-      getNodeOverrideConfig(topologyName);
-    })
-    .catch(error => {
-      getNodeOverrideConfig(topologyName);
     });
 };
 
@@ -131,6 +127,46 @@ export const getNodeOverrideConfig = topologyName => {
       const {overrides} = response.data;
       getNodeConfigSuccess({
         config: sortConfig(JSON.parse(overrides)),
+        topologyName,
+      });
+    });
+};
+
+export const getControllerConfig = topologyName => {
+  const uri = '/controller/getControllerConfig';
+
+  axios
+    .get(uri, {
+      params: {
+        topologyName,
+      },
+    })
+    .then(response => {
+      const {config} = response.data;
+      const parsedConfig = JSON.parse(config);
+
+      getControllerConfigSuccess({
+        config: sortConfigByTag(parsedConfig),
+        topologyName,
+      });
+    });
+};
+
+export const getControllerConfigMetadata = topologyName => {
+  const uri = '/controller/getControllerConfigMetadata';
+
+  axios
+    .get(uri, {
+      params: {
+        topologyName,
+      },
+    })
+    .then(response => {
+      const {metadata} = response.data;
+      const parsedMetadata = JSON.parse(metadata);
+
+      getControllerConfigMetadataSuccess({
+        metadata: parsedMetadata,
         topologyName,
       });
     });
@@ -186,6 +222,69 @@ export const setNodeOverrideConfig = (
     })
     .then(response => {
       setNodeConfigSuccess({config, saveSelected});
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+      showConfigError(errorText);
+    });
+};
+
+export const setControllerConfig = (topologyName, config) => {
+  const uri = '/controller/setControllerConfig';
+
+  axios
+    .post(uri, {
+      config,
+      topologyName,
+    })
+    .then(response => {
+      setControllerConfigSuccess({config});
+    })
+    .catch(error => {
+      const errorText = getErrorText(error);
+      showConfigError(errorText);
+    });
+};
+
+export const getAggregatorConfigAndMetadata = topologyName => {
+  const configRequest = axios.get('/aggregator/getConfig', {
+    params: {
+      topologyName,
+    },
+  });
+  const configMetadataRequest = axios.get('/aggregator/getConfigMetadata', {
+    params: {
+      topologyName,
+    },
+  });
+
+  Promise.all([configRequest, configMetadataRequest]).then(
+    ([configResp, metadataResp]) => {
+      const {config} = configResp.data;
+      const parsedConfig = JSON.parse(config);
+
+      const {metadata} = metadataResp.data;
+      const parsedMetadata = JSON.parse(metadata);
+
+      getAggregatorConfigAndMetadataSuccess({
+        config: parsedConfig,
+        metadata: parsedMetadata,
+        topologyName,
+      });
+    },
+  );
+};
+
+export const setAggregatorConfig = (topologyName, config) => {
+  const uri = '/aggregator/setConfig';
+
+  axios
+    .post(uri, {
+      config,
+      topologyName,
+    })
+    .then(response => {
+      setAggregatorConfigSuccess({config});
     })
     .catch(error => {
       const errorText = getErrorText(error);

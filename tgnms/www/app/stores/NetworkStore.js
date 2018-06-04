@@ -28,6 +28,9 @@ NetworkStore.linkHealth = {};
 NetworkStore.nodeHealth = {};
 NetworkStore.analyzerTable = {};
 NetworkStore.scanResults = undefined;
+NetworkStore.selfTestIperfUdp = {}; // for overlay
+NetworkStore.selfTestGroups = {}; // list of tests that have run
+NetworkStore.selfTestResults = []; // results for table
 NetworkStore.layers = [];
 
 const BrowserHistory = createHistory();
@@ -206,6 +209,18 @@ Dispatcher.register(payload => {
       break;
     case Actions.SITE_SELECTED:
       NetworkStore.selectedName = payload.siteSelected;
+      PushUrl();
+      break;
+    case Actions.SELF_TEST_REFRESHED:
+      if (payload.selfTestResults.filter.filterType === 'GROUPS') {
+        NetworkStore.selfTestGroups = payload.selfTestResults.results;
+      } else if (
+        payload.selfTestResults.filter.testtime === 'mostrecentiperfudp'
+      ) {
+        NetworkStore.selfTestIperfUdp = payload.selfTestResults.results;
+      } else {
+        NetworkStore.selfTestResults = payload.selfTestResults.results;
+      }
       PushUrl();
       break;
   }

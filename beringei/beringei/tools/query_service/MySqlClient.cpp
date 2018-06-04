@@ -34,24 +34,21 @@ MySqlClient::MySqlClient() {
     connProps["OPT_RECONNECT"] = true;
     connection_ = std::unique_ptr<sql::Connection>(driver_->connect(connProps));
     connection_->setSchema(FLAGS_mysql_database);
-  }
-  catch (sql::SQLException &e) {
+  } catch (sql::SQLException& e) {
     LOG(ERROR) << "connect ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
 }
 
-void
-MySqlClient::refreshAll() noexcept {
+void MySqlClient::refreshAll() noexcept {
   refreshNodes();
   refreshStatKeys();
   refreshTopologies();
 }
 
-std::vector<std::shared_ptr<query::MySqlNodeData>>
-MySqlClient::getNodes() {
-  std::vector<std::shared_ptr<query::MySqlNodeData> > nodes{};
-  for (auto &it : macAddrToNode_) {
+std::vector<std::shared_ptr<query::MySqlNodeData>> MySqlClient::getNodes() {
+  std::vector<std::shared_ptr<query::MySqlNodeData>> nodes{};
+  for (auto& it : macAddrToNode_) {
     nodes.push_back(it.second);
   }
   return nodes;
@@ -62,10 +59,10 @@ MySqlClient::getNodesWithKeys() {
   return nodes_;
 }
 
-std::vector<std::shared_ptr<query::MySqlNodeData>>
-MySqlClient::getNodes(const std::unordered_set<std::string> &nodeMacs) {
-  std::vector<std::shared_ptr<query::MySqlNodeData> > nodes{};
-  for (const auto &mac : nodeMacs) {
+std::vector<std::shared_ptr<query::MySqlNodeData>> MySqlClient::getNodes(
+    const std::unordered_set<std::string>& nodeMacs) {
+  std::vector<std::shared_ptr<query::MySqlNodeData>> nodes{};
+  for (const auto& mac : nodeMacs) {
     auto it = macAddrToNode_.find(mac);
     if (it != macAddrToNode_.end()) {
       nodes.push_back(it->second);
@@ -75,8 +72,8 @@ MySqlClient::getNodes(const std::unordered_set<std::string> &nodeMacs) {
 }
 
 std::vector<std::shared_ptr<query::MySqlNodeData>>
-MySqlClient::getNodesWithKeys(const std::unordered_set<std::string> &nodeMacs) {
-  std::vector<std::shared_ptr<query::MySqlNodeData> > nodes{};
+MySqlClient::getNodesWithKeys(const std::unordered_set<std::string>& nodeMacs) {
+  std::vector<std::shared_ptr<query::MySqlNodeData>> nodes{};
   for (auto node : nodes_) {
     auto it = nodeMacs.find(node->mac);
     if (it != nodeMacs.end()) {
@@ -91,8 +88,7 @@ MySqlClient::getTopologyConfigs() {
   return topologyList_;
 }
 
-void
-MySqlClient::refreshTopologies() noexcept {
+void MySqlClient::refreshTopologies() noexcept {
   // load all topologies
   try {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
@@ -115,14 +111,13 @@ MySqlClient::refreshTopologies() noexcept {
     }
     topologyList_.swap(topologyListTmp);
     LOG(INFO) << "refreshTopologies:  " << topologyList_.size();
-  } catch (sql::SQLException &e) {
+  } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshTopologies ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
 }
 
-void
-MySqlClient::refreshNodes() noexcept {
+void MySqlClient::refreshNodes() noexcept {
   try {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
@@ -134,21 +129,20 @@ MySqlClient::refreshNodes() noexcept {
       node->mac = res->getString("mac");
       node->network = res->getString("network");
       node->site = res->getString("site");
-      std::transform(node->mac.begin(), node->mac.end(), node->mac.begin(),
-                     ::tolower);
+      std::transform(
+          node->mac.begin(), node->mac.end(), node->mac.begin(), ::tolower);
       macAddrToNode_[node->mac] = node;
       nodeIdToNode_[node->id] = node;
       nodes_.push_back(node);
     }
     LOG(INFO) << "refreshNodes: Number of nodes: " << nodeIdToNode_.size();
-  } catch (sql::SQLException &e) {
+  } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshNodes ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
 }
 
-void
-MySqlClient::refreshStatKeys() noexcept {
+void MySqlClient::refreshStatKeys() noexcept {
   try {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
@@ -160,8 +154,8 @@ MySqlClient::refreshStatKeys() noexcept {
       int64_t nodeId = res->getInt("node_id");
       std::string keyName = res->getString("key");
 
-      std::transform(keyName.begin(), keyName.end(), keyName.begin(),
-                     ::tolower);
+      std::transform(
+          keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
       // insert into node id -> key mapping
       if (nodeKeyIds_.find(nodeId) == nodeKeyIds_.end()) {
         nodeKeyIds_[nodeId] = {};
@@ -176,15 +170,13 @@ MySqlClient::refreshStatKeys() noexcept {
                 << ", size: " << itNode->second->keyList.size();
       }
     }
-  }
-  catch (sql::SQLException &e) {
+  } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshStatKeys ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
 }
 
-void
-MySqlClient::addNodes(
+void MySqlClient::addNodes(
     std::unordered_map<std::string, query::MySqlNodeData> newNodes) noexcept {
   if (!newNodes.size()) {
     return;
@@ -195,7 +187,7 @@ MySqlClient::addNodes(
             "INSERT IGNORE INTO `nodes` (`mac`, `node`, "
             "`site`, `network`) VALUES (?, ?, ?, ?)"));
 
-    for (const auto &node : newNodes) {
+    for (const auto& node : newNodes) {
       prep_stmt->setString(1, node.second.mac);
       prep_stmt->setString(2, node.second.node);
       prep_stmt->setString(3, node.second.site);
@@ -204,8 +196,7 @@ MySqlClient::addNodes(
       LOG(INFO) << "addNode => mac: " << node.second.mac
                 << " Network: " << node.second.network;
     }
-  }
-  catch (sql::SQLException &e) {
+  } catch (sql::SQLException& e) {
     LOG(ERROR) << "addNode ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
@@ -213,29 +204,28 @@ MySqlClient::addNodes(
   //  refreshNodes();
 }
 
-void
-MySqlClient::addStatKeys(std::unordered_map<
-    int64_t, std::unordered_set<std::string> > nodeKeys) noexcept {
+void MySqlClient::addStatKeys(
+    std::unordered_map<int64_t, std::unordered_set<std::string>>
+        nodeKeys) noexcept {
   if (!nodeKeys.size()) {
     return;
   }
   LOG(INFO) << "addStatKeys for " << nodeKeys.size() << " nodes";
   try {
-    sql::PreparedStatement *prep_stmt;
+    sql::PreparedStatement* prep_stmt;
     prep_stmt = connection_->prepareStatement(
         "INSERT IGNORE INTO `ts_key` (`node_id`, `key`) VALUES (?, ?)");
 
-    for (const auto &keys : nodeKeys) {
+    for (const auto& keys : nodeKeys) {
       LOG(INFO) << "addStatKeys => node_id: " << keys.first
                 << " Num of keys: " << keys.second.size();
-      for (const auto &keyName : keys.second) {
+      for (const auto& keyName : keys.second) {
         prep_stmt->setInt(1, keys.first);
         prep_stmt->setString(2, keyName);
         prep_stmt->execute();
       }
     }
-  }
-  catch (sql::SQLException &e) {
+  } catch (sql::SQLException& e) {
     LOG(ERROR) << "addStatKey ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
@@ -243,11 +233,14 @@ MySqlClient::addStatKeys(std::unordered_map<
   refreshStatKeys();
 }
 
-folly::Optional<int64_t>
-MySqlClient::getNodeId(const std::string &macAddr) const {
+folly::Optional<int64_t> MySqlClient::getNodeId(
+    const std::string& macAddr) const {
   std::string macAddrLower = macAddr;
-  std::transform(macAddrLower.begin(), macAddrLower.end(), macAddrLower.begin(),
-                 ::tolower);
+  std::transform(
+      macAddrLower.begin(),
+      macAddrLower.end(),
+      macAddrLower.begin(),
+      ::tolower);
   auto it = macAddrToNode_.find(macAddrLower);
   if (it != macAddrToNode_.end()) {
     return (it->second->id);
@@ -255,11 +248,15 @@ MySqlClient::getNodeId(const std::string &macAddr) const {
   return folly::none;
 }
 
-folly::Optional<int64_t>
-MySqlClient::getKeyId(const int64_t nodeId, const std::string &keyName) const {
+folly::Optional<int64_t> MySqlClient::getKeyId(
+    const int64_t nodeId,
+    const std::string& keyName) const {
   std::string keyNameLower = keyName;
-  std::transform(keyNameLower.begin(), keyNameLower.end(), keyNameLower.begin(),
-                 ::tolower);
+  std::transform(
+      keyNameLower.begin(),
+      keyNameLower.end(),
+      keyNameLower.begin(),
+      ::tolower);
 
   auto itNode = nodeKeyIds_.find(nodeId);
   if (itNode != nodeKeyIds_.end()) {
@@ -271,5 +268,5 @@ MySqlClient::getKeyId(const int64_t nodeId, const std::string &keyName) const {
   return folly::none;
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

@@ -5,18 +5,14 @@
  */
 'use strict';
 
-import equals from 'equals';
-import {Dispatcher} from 'flux';
-import {Index, TimeSeries, TimeRange, TimeRangeEvent} from 'pondjs';
+import {TimeSeries, TimeRange, TimeRangeEvent} from 'pondjs';
 import PropTypes from 'prop-types';
 import {
   Charts,
   ChartContainer,
   ChartRow,
-  YAxis,
   EventChart,
   LabelAxis,
-  styler,
 } from 'react-timeseries-charts';
 import React from 'react';
 
@@ -57,6 +53,7 @@ export default class ReactEventChart extends React.Component {
           fill: color,
         };
     }
+    return {};
   }
 
   shortenName(name) {
@@ -76,7 +73,7 @@ export default class ReactEventChart extends React.Component {
           data,
         ),
     );
-    const series = new TimeSeries({name: 'outages', events});
+    const series = new TimeSeries({events, name: 'outages'});
     return (
       <ChartContainer
         timeRange={timeRange}
@@ -86,14 +83,14 @@ export default class ReactEventChart extends React.Component {
       >
         <ChartRow height="35">
           <LabelAxis
+            format=",.1f"
             hideScale={true}
             id="link_status"
             label=""
             min={0}
             max={0}
-            width={0}
             type="linear"
-            format=",.1f"
+            width={0}
           />
           <Charts>
             <EventChart
@@ -111,8 +108,8 @@ export default class ReactEventChart extends React.Component {
 }
 
 ReactEventChart.propTypes = {
-  startTime: PropTypes.number.isRequired,
   endTime: PropTypes.number.isRequired,
-  size: PropTypes.string.isRequired,
   events: PropTypes.array.isRequired,
+  size: PropTypes.string.isRequired,
+  startTime: PropTypes.number.isRequired,
 };

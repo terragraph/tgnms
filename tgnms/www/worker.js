@@ -215,11 +215,24 @@ const command2MsgType = {
     controllerTTypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
   getNodeOverrideConfig:
     controllerTTypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
+  getControllerConfig:
+    controllerTTypes.MessageType.GET_CTRL_CONFIG_CONTROLLER_REQ,
+
   setNetworkOverrideConfig:
     controllerTTypes.MessageType.SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
   setNodeOverrideConfig:
     controllerTTypes.MessageType.SET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
+  setControllerConfig:
+    controllerTTypes.MessageType.SET_CTRL_CONFIG_CONTROLLER_REQ,
   getConfigMetadata: controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ,
+  getControllerConfigMetadata:
+    controllerTTypes.MessageType.GET_CTRL_CONFIG_CONTROLLER_METADATA_REQ,
+
+  // aggregator
+  getAggregatorConfig: aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_REQ,
+  getAggregatorConfigMetadata:
+    aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_METADATA_REQ,
+  setAggregatorConfig: aggregatorTTypes.AggrMessageType.SET_AGGR_CONFIG_REQ,
 };
 
 var msgType2Params = {};
@@ -354,7 +367,17 @@ msgType2Params[
   recvApp: 'ctrl-app-CONFIG_APP',
   nmsAppId: 'NMS_WEB_CONFIG',
 };
+msgType2Params[controllerTTypes.MessageType.GET_CTRL_CONFIG_CONTROLLER_REQ] = {
+  recvApp: 'ctrl-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_CONFIG,',
+};
 msgType2Params[controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ] = {
+  recvApp: 'ctrl-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_CONFIG',
+};
+msgType2Params[
+  controllerTTypes.MessageType.GET_CTRL_CONFIG_CONTROLLER_METADATA_REQ
+] = {
   recvApp: 'ctrl-app-CONFIG_APP',
   nmsAppId: 'NMS_WEB_CONFIG',
 };
@@ -370,6 +393,23 @@ msgType2Params[
   recvApp: 'ctrl-app-CONFIG_APP',
   nmsAppId: 'NMS_WEB_CONFIG',
 };
+msgType2Params[controllerTTypes.MessageType.SET_CTRL_CONFIG_CONTROLLER_REQ] = {
+  recvApp: 'ctrl-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_CONFIG',
+};
+msgType2Params[aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_REQ] = {
+  recvApp: 'aggr-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_AGGR',
+};
+msgType2Params[aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_METADATA_REQ] = {
+  recvApp: 'aggr-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_AGGR',
+};
+msgType2Params[aggregatorTTypes.AggrMessageType.SET_AGGR_CONFIG_REQ] = {
+  recvApp: 'aggr-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_AGGR',
+};
+
 
 const thriftSerialize = struct => {
   var result;
@@ -665,6 +705,11 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(getNodeOverrideParams);
 
       break;
+    case 'getControllerConfig':
+      var getControllerConfigParams = new controllerTTypes.GetCtrlControllerConfigReq();
+      send(getControllerConfigParams);
+
+      break;
     case 'setNetworkOverrideConfig':
       var setNetworkOverrideParams = new controllerTTypes.SetCtrlConfigNetworkOverridesReq();
       setNetworkOverrideParams.overrides = JSON.stringify(msg.config);
@@ -677,9 +722,20 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       send(setNodeOverrideParams);
 
       break;
+    case 'setControllerConfig':
+      var setControllerConfigParams = new controllerTTypes.SetCtrlControllerConfigReq();
+      setControllerConfigParams.config = JSON.stringify(msg.config);
+      send(setControllerConfigParams);
+
+      break;
     case 'getConfigMetadata':
       var getConfigMetadataParams = new controllerTTypes.GetCtrlConfigMetadata();
       send(getConfigMetadataParams);
+
+      break;
+    case 'getControllerConfigMetadata':
+      var getControllerConfigMetadataParams = new controllerTTypes.GetCtrlControllerConfigMetadata();
+      send(getControllerConfigMetadataParams);
 
       break;
     default:
@@ -687,6 +743,45 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       res.status(500).send('FAIL');
   }
 };
+
+function sendAggrMsgSync(msg, minion, res) {
+  if (!msg.type) {
+    console.error('sendAggrMsgSync: Received unknown message', msg);
+  }
+
+  const send = struct => {
+    var byteArray = thriftSerialize(struct);
+    const aggrProxy = new AggregatorProxy(msg.topology.aggregator_ip);
+    aggrProxy.sendMsgType(
+      command2MsgType[msg.type],
+      byteArray,
+      minion,
+      res,
+    );
+  }
+
+  switch (msg.type) {
+    case 'getAggregatorConfig':
+      var getAggregatorConfigParams = new aggregatorTTypes.AggrGetConfigReq();
+      send(getAggregatorConfigParams);
+
+      break;
+    case 'getAggregatorConfigMetadata':
+      var getAggregatorConfigMetadataParams = new aggregatorTTypes.AggrGetConfigMetadata();
+      send(getAggregatorConfigMetadataParams);
+
+      break;
+    case 'setAggregatorConfig':
+      var setAggregatorConfigParams = new aggregatorTTypes.AggrSetConfigReq();
+      setAggregatorConfigParams.config = JSON.stringify(msg.config);
+      send(setAggregatorConfigParams);
+
+      break;
+    default:
+    console.error('sendAggrMsgSync: No handler for msg type', msg.type);
+    res.status(500).send('FAIL');
+  }
+}
 
 class ControllerProxy extends EventEmitter {
   constructor(controllerIp) {
@@ -839,6 +934,7 @@ class ControllerProxy extends EventEmitter {
               .SET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
             case controllerTTypes.MessageType
               .SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
+            case controllerTTypes.MessageType.SET_CTRL_CONFIG_CONTROLLER_REQ:
               var receivedAck = new controllerTTypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -874,15 +970,21 @@ class ControllerProxy extends EventEmitter {
               networkOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: networkOverrideConfig});
               break;
-            case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
-              const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
-              configMetadata.read(tProtocol);
-              resolve({type: 'msg', msg: configMetadata});
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_CONTROLLER_REQ:
+              const controllerConfig = new controllerTTypes.GetCtrlControllerConfigResp();
+              controllerConfig.read(tProtocol);
+              resolve({type: 'msg', msg: controllerConfig});
               break;
             case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
               const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
               configMetadata.read(tProtocol);
               resolve({type: 'msg', msg: configMetadata});
+              break;
+            case controllerTTypes.MessageType
+              .GET_CTRL_CONFIG_CONTROLLER_METADATA_REQ:
+              const controllerConfigMetadata = new controllerTTypes.GetCtrlControllerConfigMetadataResp();
+              controllerConfigMetadata.read(tProtocol);
+              resolve({type: 'msg', msg: controllerConfigMetadata});
               break;
             default:
               console.error(
@@ -953,6 +1055,7 @@ class ControllerProxy extends EventEmitter {
               .SET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
             case controllerTTypes.MessageType
               .SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
+            case controllerTTypes.MessageType.SET_CTRL_CONFIG_CONTROLLER_REQ:
               var receivedAck = new controllerTTypes.E2EAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -977,15 +1080,32 @@ class ControllerProxy extends EventEmitter {
               resolve({type: 'msg', msg: baseConfig});
               break;
             case controllerTTypes.MessageType
+              .GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ:
+              const networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
+              networkOverrideConfig.read(tProtocol);
+              resolve({type: 'msg', msg: networkOverrideConfig});
+              break;
+            case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
               const nodeOverrideConfig = new controllerTTypes.GetCtrlConfigNodeOverridesResp();
               nodeOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: nodeOverrideConfig});
               break;
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_CONTROLLER_REQ:
+              const controllerConfig = new controllerTTypes.GetCtrlControllerConfigResp();
+              controllerConfig.read(tProtocol);
+              resolve({type: 'msg', msg: controllerConfig});
+              break;
             case controllerTTypes.MessageType.GET_CTRL_CONFIG_METADATA_REQ:
               const configMetadata = new controllerTTypes.GetCtrlConfigMetadataResp();
               configMetadata.read(tProtocol);
               resolve({type: 'msg', msg: configMetadata});
+              break;
+            case controllerTTypes.MessageType
+              .GET_CTRL_CONFIG_CONTROLLER_METADATA_REQ:
+              const controllerConfigMetadata = new controllerTTypes.GetCtrlControllerConfigMetadataResp();
+              controllerConfigMetadata.read(tProtocol);
+              resolve({type: 'msg', msg: controllerConfigMetadata});
               break;
             case controllerTTypes.MessageType.UPGRADE_COMMIT_PLAN_REQ:
               const upgradeCommitPlan = new controllerTTypes.UpgradeCommitPlan();
@@ -1122,6 +1242,7 @@ class AggregatorProxy extends EventEmitter {
               resolve({type: 'msg', msg: receivedStatus});
               break;
             case aggregatorTTypes.AggrMessageType.START_IPERF:
+            case aggregatorTTypes.AggrMessageType.SET_AGGR_CONFIG_REQ:
               var receivedAck = new aggregatorTTypes.AggrAck();
               receivedAck.read(tProtocol);
               if (receivedAck.success) {
@@ -1129,6 +1250,18 @@ class AggregatorProxy extends EventEmitter {
               } else {
                 reject(receivedAck.message);
               }
+              break;
+            case aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_REQ:
+              var aggregatorConfig = new aggregatorTTypes.AggrGetConfigResp();
+              aggregatorConfig.read(tProtocol);
+
+              resolve({type: 'msg', msg: aggregatorConfig});
+              break;
+            case aggregatorTTypes.AggrMessageType.GET_AGGR_CONFIG_METADATA_REQ:
+              var aggregatorConfigMetadata = new aggregatorTTypes.AggrGetConfigMetadataResp();
+              aggregatorConfigMetadata.read(tProtocol);
+
+              resolve({type: 'msg', msg: aggregatorConfigMetadata});
               break;
             default:
               console.error(
@@ -1371,7 +1504,8 @@ class AggregatorProxy extends EventEmitter {
   }
 }
 module.exports = {
-  ControllerProxy: ControllerProxy,
-  AggregatorProxy: AggregatorProxy,
-  sendCtrlMsgSync: sendCtrlMsgSync,
+  AggregatorProxy,
+  ControllerProxy,
+  sendAggrMsgSync,
+  sendCtrlMsgSync,
 };

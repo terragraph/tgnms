@@ -9,9 +9,9 @@
 
 #pragma once
 
+#include <folly/Memory.h>
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
-#include <folly/Memory.h>
 #include <proxygen/httpserver/RequestHandler.h>
 
 namespace facebook {
@@ -19,9 +19,9 @@ namespace gorilla {
 
 class RuckusControllerStatsHandler : public proxygen::RequestHandler {
  public:
-  explicit RuckusControllerStatsHandler() {};
-  void
-  onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
+  explicit RuckusControllerStatsHandler(){};
+  void onRequest(
+      std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
 
   void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
 
@@ -36,5 +36,5 @@ class RuckusControllerStatsHandler : public proxygen::RequestHandler {
  private:
   std::unique_ptr<folly::IOBuf> body_;
 };
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

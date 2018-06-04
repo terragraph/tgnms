@@ -77,6 +77,28 @@ export const getStackedFields = (configs, viewOverridesOnly) => {
   return [...dedupedFields];
 };
 
+export const getMetadata = (metadata, fieldName) => {
+  if (!metadata) {
+    return null;
+  }
+
+  let fieldMetadata = {};
+
+  if (metadata.type === 'MAP') {
+    fieldMetadata = metadata.mapVal;
+  } else if (metadata.type === 'OBJECT') {
+    fieldMetadata = metadata.objVal.properties[fieldName];
+  } else {
+    fieldMetadata = metadata[fieldName];
+  }
+
+  if (metadata.deprecated) {
+    fieldMetadata.deprecated = metadata.deprecated;
+  }
+
+  return fieldMetadata;
+};
+
 const alphabeticalSort = (a, b) => {
   const lowerA = a.toLowerCase();
   const lowerB = b.toLowerCase();
@@ -88,12 +110,26 @@ const alphabeticalSort = (a, b) => {
   return 0;
 };
 
-export const sortConfig = (config, metadata = {}) => {
+export const sortConfig = config => {
+  const newConfig = {};
+
+  Object.keys(config)
+    .sort(alphabeticalSort)
+    .forEach(key => {
+      const value = config[key];
+      const newValue = isPlainObject(value) ? sortConfig(value) : value;
+      newConfig[key] = newValue;
+    });
+
+  return newConfig;
+};
+
+export const sortConfigByTag = (config, metadata = {}) => {
   const newConfig = {};
 
   Object.keys(config)
     .map(key => {
-      const fieldMetadata = metadata[key];
+      const fieldMetadata = getMetadata(metadata, key);
 
       return fieldMetadata && fieldMetadata.hasOwnProperty('tag')
         ? `${fieldMetadata.tag}.${key}`
@@ -106,7 +142,7 @@ export const sortConfig = (config, metadata = {}) => {
       const key = tokens.length > 1 ? tokens[1] : tokens[0];
       const value = config[key];
       const newValue = isPlainObject(value)
-        ? sortConfig(value, metadata[key] || {})
+        ? sortConfigByTag(value, getMetadata(metadata, key) || {})
         : value;
       newConfig[key] = newValue;
     });

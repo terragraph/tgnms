@@ -11,6 +11,7 @@ ttypes.MonitorCommand = {
 'DUMP_ALL_COUNTER_NAMES' : 3,
 'DUMP_ALL_COUNTER_DATA' : 4,
 'BUMP_COUNTER' : 5,
+'GET_EVENT_LOGS' : 6,
 'LOG_EVENT' : 11
 };
 ttypes.CounterValueType = {
@@ -621,6 +622,82 @@ CounterValuesResponse.prototype.write = function(output) {
   return;
 };
 
+EventLogsResponse = module.exports.EventLogsResponse = function(args) {
+  this.eventLogs = null;
+  if (args) {
+    if (args.eventLogs !== undefined) {
+      this.eventLogs = args.eventLogs;
+    }
+  }
+};
+EventLogsResponse.prototype = {};
+EventLogsResponse.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.LIST) {
+        var _size44 = 0;
+        var _rtmp348;
+        this.eventLogs = [];
+        var _etype47 = 0;
+        _rtmp348 = input.readListBegin();
+        _etype47 = _rtmp348.etype;
+        _size44 = _rtmp348.size;
+        for (var _i49 = 0; _i49 < _size44; ++_i49)
+        {
+          var elem50 = null;
+          elem50 = new ttypes.EventLog();
+          elem50.read(input);
+          this.eventLogs.push(elem50);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+EventLogsResponse.prototype.write = function(output) {
+  output.writeStructBegin('EventLogsResponse');
+  if (this.eventLogs !== null && this.eventLogs !== undefined) {
+    output.writeFieldBegin('eventLogs', Thrift.Type.LIST, 1);
+    output.writeListBegin(Thrift.Type.STRUCT, this.eventLogs.length);
+    for (var iter51 in this.eventLogs)
+    {
+      if (this.eventLogs.hasOwnProperty(iter51))
+      {
+        iter51 = this.eventLogs[iter51];
+        iter51.write(output);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
 CounterNamesResponse = module.exports.CounterNamesResponse = function(args) {
   this.counterNames = null;
   if (args) {
@@ -645,18 +722,18 @@ CounterNamesResponse.prototype.read = function(input) {
     {
       case 1:
       if (ftype == Thrift.Type.LIST) {
-        var _size44 = 0;
-        var _rtmp348;
+        var _size52 = 0;
+        var _rtmp356;
         this.counterNames = [];
-        var _etype47 = 0;
-        _rtmp348 = input.readListBegin();
-        _etype47 = _rtmp348.etype;
-        _size44 = _rtmp348.size;
-        for (var _i49 = 0; _i49 < _size44; ++_i49)
+        var _etype55 = 0;
+        _rtmp356 = input.readListBegin();
+        _etype55 = _rtmp356.etype;
+        _size52 = _rtmp356.size;
+        for (var _i57 = 0; _i57 < _size52; ++_i57)
         {
-          var elem50 = null;
-          elem50 = input.readString();
-          this.counterNames.push(elem50);
+          var elem58 = null;
+          elem58 = input.readString();
+          this.counterNames.push(elem58);
         }
         input.readListEnd();
       } else {
@@ -680,12 +757,12 @@ CounterNamesResponse.prototype.write = function(output) {
   if (this.counterNames !== null && this.counterNames !== undefined) {
     output.writeFieldBegin('counterNames', Thrift.Type.LIST, 1);
     output.writeListBegin(Thrift.Type.STRING, this.counterNames.length);
-    for (var iter51 in this.counterNames)
+    for (var iter59 in this.counterNames)
     {
-      if (this.counterNames.hasOwnProperty(iter51))
+      if (this.counterNames.hasOwnProperty(iter59))
       {
-        iter51 = this.counterNames[iter51];
-        output.writeString(iter51);
+        iter59 = this.counterNames[iter59];
+        output.writeString(iter59);
       }
     }
     output.writeListEnd();
@@ -779,4 +856,3 @@ MonitorPub.prototype.write = function(output) {
   output.writeStructEnd();
   return;
 };
-

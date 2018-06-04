@@ -165,11 +165,16 @@ export default class PlotlyGraph extends React.Component {
             width: divWidth,
             title: this.props.title,
             xaxis: {
-              range:  [this.props.options.startTime, this.props.options.endTime]
+              range: [this.props.options.startTime, this.props.options.endTime],
             },
           }}
           config={{
-            modeBarButtonsToRemove: ['sendDataToCloud','hoverCompareCartesian', 'hoverClosestCartesian', 'toggleSpikelines'],
+            modeBarButtonsToRemove: [
+              'sendDataToCloud',
+              'hoverCompareCartesian',
+              'hoverClosestCartesian',
+              'toggleSpikelines',
+            ],
             displaylogo: false,
           }}
         />

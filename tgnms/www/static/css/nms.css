@@ -338,7 +338,33 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   border: 1px solid #d3d3d3;
 }
 
-.BodyGrid .ReactVirtualized__Grid__innerScrollContainer {
+.CustomTable__BodyGrid .ReactVirtualized__Grid__innerScrollContainer {
   border-radius: 0px 0px 5px 5px;
   border: 1px solid #d3d3d3;
+}
+
+.selectButtonClass {
+    color: blue;
+    font-weight: bold;
+    width: 500px;
+    display:inline-block;
+}
+
+.tr-warning {
+  background: #e5bbff;
+}
+.tr-marginal {
+  background: #feffbe;
+}
+.tr-healthy {
+  background: #b9d7ff;
+}
+.tr-excellent {
+  background: #e0ffac;
+}
+.tr-not-tested {
+  background: #c9c9c9;
+}
+.tr-other {
+  background: #fe6767;
 }

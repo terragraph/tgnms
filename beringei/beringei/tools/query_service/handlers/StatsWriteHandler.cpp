@@ -32,16 +32,13 @@ using std::chrono::milliseconds;
 using std::chrono::system_clock;
 using namespace proxygen;
 
-//DEFINE_int32(agg_bucket_seconds, 30, "time aggregation bucket size");
+// DEFINE_int32(agg_bucket_seconds, 30, "time aggregation bucket size");
 
 namespace facebook {
 namespace gorilla {
 
-StatsWriteHandler::StatsWriteHandler(
-    std::shared_ptr<MySqlClient> mySqlClient)
-    : RequestHandler(),
-      mySqlCacheClient_(mySqlClient) {
-
+StatsWriteHandler::StatsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient)
+    : RequestHandler(), mySqlCacheClient_(mySqlClient) {
   mySqlClient_ = std::make_shared<MySqlClient>();
 }
 
@@ -92,22 +89,22 @@ int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
     return folly::to<int64_t>(ceil (timeInSeconds / FLAGS_agg_bucket_seconds))
       * FLAGS_agg_bucket_seconds;
   */
-  return folly::to<int64_t>(
-             ceil(std::time(nullptr) / intervalSec)) *
-         intervalSec;
+  return folly::to<int64_t>(ceil(std::time(nullptr) / intervalSec)) *
+      intervalSec;
 }
 
 void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
   std::unordered_map<std::string, query::MySqlNodeData> unknownNodes;
-  std::unordered_map<int64_t, std::unordered_set<std::string> > missingNodeKey;
+  std::unordered_map<int64_t, std::unordered_set<std::string>> missingNodeKey;
   std::vector<DataPoint> bRows;
 
   auto startTime = (int64_t)duration_cast<milliseconds>(
-      system_clock::now().time_since_epoch()).count();
+                       system_clock::now().time_since_epoch())
+                       .count();
 
   int interval = request.interval;
 
-  for (const auto &agent : request.agents) {
+  for (const auto& agent : request.agents) {
     auto nodeId = mySqlCacheClient_->getNodeId(agent.mac);
     if (!nodeId) {
       query::MySqlNodeData newNode;
@@ -120,7 +117,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
       continue;
     }
 
-    for (const auto &stat : agent.stats) {
+    for (const auto& stat : agent.stats) {
       // check timestamp
       int64_t tsParsed = timeCalc(stat.ts, interval);
       auto keyId = mySqlCacheClient_->getKeyId(*nodeId, stat.key);
@@ -166,7 +163,8 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
     tEb.join();
 
     auto endTime = (int64_t)duration_cast<milliseconds>(
-        system_clock::now().time_since_epoch()).count();
+                       system_clock::now().time_since_epoch())
+                       .count();
     LOG(INFO) << "Writing stats complete. "
               << "Total: " << (endTime - startTime) << "ms.";
   } else {
@@ -179,8 +177,7 @@ void StatsWriteHandler::onEOM() noexcept {
   query::StatsWriteRequest request;
   try {
     request = SimpleJSONSerializer::deserialize<query::StatsWriteRequest>(body);
-  }
-  catch (const std::exception &) {
+  } catch (const std::exception&) {
     LOG(INFO) << "Error deserializing stats_writer request";
     ResponseBuilder(downstream_)
         .status(500, "OK")
@@ -196,7 +193,7 @@ void StatsWriteHandler::onEOM() noexcept {
 
   try {
     writeData(request);
-  } catch (const std::exception &ex) {
+  } catch (const std::exception& ex) {
     LOG(ERROR) << "Unable to handle stats_writer request: " << ex.what();
     ResponseBuilder(downstream_)
         .status(500, "OK")
@@ -214,7 +211,9 @@ void StatsWriteHandler::onEOM() noexcept {
 
 void StatsWriteHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {}
 
-void StatsWriteHandler::requestComplete() noexcept { delete this; }
+void StatsWriteHandler::requestComplete() noexcept {
+  delete this;
+}
 
 void StatsWriteHandler::onError(ProxygenError /* unused */) noexcept {
   LOG(ERROR) << "Proxygen reported error";
@@ -224,5 +223,5 @@ void StatsWriteHandler::onError(ProxygenError /* unused */) noexcept {
 }
 
 void StatsWriteHandler::logRequest(query::StatsWriteRequest request) {}
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

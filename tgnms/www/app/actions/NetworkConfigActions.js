@@ -28,6 +28,10 @@ export const NetworkConfigActions = {
   DELETE_NEW_FIELD: 'DELETE_NEW_FIELD',
   SUBMIT_NEW_FIELD: 'SUBMIT_NEW_FIELD',
 
+  DELETE_FIELD: 'DELETE_FIELD',
+
+  EDIT_E2E_CONFIG_TYPE: 'EDIT_E2E_CONFIG_TYPE',
+
   // API call resolution actions for get
   GET_BASE_CONFIG_SUCCESS: 'GET_BASE_CONFIG_SUCCESS',
   GET_BASE_CONFIG_FAILED: 'GET_BASE_CONFIG_FAILED',
@@ -41,12 +45,31 @@ export const NetworkConfigActions = {
   GET_NODE_CONFIG_SUCCESS: 'GET_NODE_CONFIG_SUCCESS',
   GET_NODE_CONFIG_FAILED: 'GET_NODE_CONFIG_FAILED',
 
+  GET_CONTROLLER_CONFIG_SUCCESS: 'GET_CONTROLLER_CONFIG_SUCCESS',
+  GET_CONTROLLER_CONFIG_FAILED: 'GET_CONTROLLER_CONFIG_FAILED',
+
+  GET_CONTROLLER_CONFIG_METADATA_SUCCESS:
+    'GET_CONTROLLER_CONFIG_METADATA_SUCCESS',
+  GET_CONTROLLER_CONFIG_METADATA_FAILED:
+    'GET_CONTROLLER_CONFIG_METADATA_FAILED',
+
   // API call resolution actions for set
   SET_NETWORK_CONFIG_SUCCESS: 'SET_NETWORK_CONFIG_SUCCESS',
   SET_NETWORK_CONFIG_FAILED: 'SET_NETWORK_CONFIG_FAILED',
 
   SET_NODE_CONFIG_SUCCESS: 'SET_NODE_CONFIG_SUCCESS',
   SET_NODE_CONFIG_FAILED: 'SET_NODE_CONFIG_FAILED',
+
+  SET_CONTROLLER_CONFIG_SUCCESS: 'SET_CONTROLLER_CONFIG_SUCCESS',
+  SET_CONTROLLER_CONFIG_FAILED: 'SET_CONTROLLER_CONFIG_FAILED',
+
+  GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS:
+    'GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS',
+  GET_AGGREGATOR_CONFIG_AND_METADATA_FAILED:
+    'GET_AGGREGATOR_CONFIG_AND_METADATA_FAILED',
+
+  SET_AGGREGATOR_CONFIG_SUCCESS: 'SET_AGGREGATOR_CONFIG_SUCCESS',
+  SET_AGGREGATOR_CONFIG_FAILED: 'SET_AGGREGATOR_CONFIG_FAILED',
 
   TOGGLE_EXPAND_ALL: 'TOGGLE_EXPAND_ALL',
 
@@ -72,6 +95,13 @@ export const selectNodes = ({nodes}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SELECT_NODES,
     nodes,
+  });
+};
+
+export const changeConfigType = configType => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.EDIT_E2E_CONFIG_TYPE,
+    configType,
   });
 };
 
@@ -129,6 +159,13 @@ export const deleteNewField = ({editPath, id}) => {
     actionType: NetworkConfigActions.DELETE_NEW_FIELD,
     editPath,
     id,
+  });
+};
+
+export const deleteField = ({editPath}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.DELETE_FIELD,
+    editPath,
   });
 };
 
@@ -196,6 +233,25 @@ export const getNodeConfigSuccess = ({config, topologyName}) => {
   });
 };
 
+export const getControllerConfigSuccess = ({config, topologyName}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_CONTROLLER_CONFIG_SUCCESS,
+    topologyName,
+    config,
+  });
+};
+
+export const getControllerConfigMetadataSuccess = ({
+  metadata,
+  topologyName,
+}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_CONTROLLER_CONFIG_METADATA_SUCCESS,
+    topologyName,
+    metadata,
+  });
+};
+
 // API returns when setting an override is successful
 export const setNetworkConfigSuccess = ({config}) => {
   Dispatcher.dispatch({
@@ -209,6 +265,33 @@ export const setNodeConfigSuccess = ({config, saveSelected}) => {
     actionType: NetworkConfigActions.SET_NODE_CONFIG_SUCCESS,
     config,
     saveSelected,
+  });
+};
+
+export const setControllerConfigSuccess = ({config}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SET_CONTROLLER_CONFIG_SUCCESS,
+    config,
+  });
+};
+
+export const getAggregatorConfigAndMetadataSuccess = ({
+  config,
+  metadata,
+  topologyName,
+}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS,
+    topologyName,
+    config,
+    metadata,
+  });
+};
+
+export const setAggregatorConfigSuccess = ({config}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SET_AGGREGATOR_CONFIG_SUCCESS,
+    config,
   });
 };
 

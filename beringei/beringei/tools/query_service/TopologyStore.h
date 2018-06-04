@@ -18,22 +18,24 @@ namespace gorilla {
 
 class TopologyStore {
  public:
-  explicit TopologyStore() {};
+  explicit TopologyStore(){};
 
   static std::shared_ptr<TopologyStore> getInstance();
 
   std::shared_ptr<query::TopologyConfig> getTopology(const std::string& name);
 
-  std::unordered_map<std::string, std::shared_ptr<query::TopologyConfig>> getTopologyList();
+  std::unordered_map<std::string, std::shared_ptr<query::TopologyConfig>>
+  getTopologyList();
 
   void addTopology(std::shared_ptr<query::TopologyConfig> topologyConfig);
   void delTopology(const std::string& name);
 
-
  private:
-  std::unordered_map<std::string /* topology name */,
-                     std::shared_ptr<query::TopologyConfig>> topologyConfigs_{};
+  std::unordered_map<
+      std::string /* topology name */,
+      std::shared_ptr<query::TopologyConfig>>
+      topologyConfigs_{};
 };
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook
