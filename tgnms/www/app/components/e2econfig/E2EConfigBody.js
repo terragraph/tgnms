@@ -25,6 +25,7 @@ export default class E2EConfigBody extends React.Component {
     activeConfig: PropTypes.string.isRequired,
     config: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
+    configDirty: PropTypes.bool.isRequired,
     draftConfig: PropTypes.object.isRequired,
     newConfigFields: PropTypes.object.isRequired,
   };
@@ -66,6 +67,7 @@ export default class E2EConfigBody extends React.Component {
       activeConfig,
       config,
       configMetadata,
+      configDirty,
       draftConfig,
       newConfigFields,
     } = this.props;
@@ -94,20 +96,23 @@ export default class E2EConfigBody extends React.Component {
             newConfigFields={newConfigFields}
             metadata={configMetadata}
             editPath={[]}
-            initExpanded={true}
+            initExpanded
+            hasDeletableFields
           />
         </div>
         <div className="rc-network-config-footer">
           <button
             className="nc-footer-btn"
             onClick={resetConfig}
-            disabled={isEmpty(draftConfig) && isEmpty(newConfigFields)}>
+            disabled={
+              !configDirty && isEmpty(draftConfig) && isEmpty(newConfigFields)
+            }>
             Discard Changes
           </button>
           <button
             className="nc-footer-btn"
             onClick={this.onSubmitConfig}
-            disabled={isEmpty(draftConfig)}>
+            disabled={!configDirty && isEmpty(draftConfig)}>
             Submit Changes
           </button>
         </div>

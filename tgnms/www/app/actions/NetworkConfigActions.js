@@ -28,6 +28,8 @@ export const NetworkConfigActions = {
   DELETE_NEW_FIELD: 'DELETE_NEW_FIELD',
   SUBMIT_NEW_FIELD: 'SUBMIT_NEW_FIELD',
 
+  DELETE_FIELD: 'DELETE_FIELD',
+
   EDIT_E2E_CONFIG_TYPE: 'EDIT_E2E_CONFIG_TYPE',
 
   // API call resolution actions for get
@@ -157,6 +159,13 @@ export const deleteNewField = ({editPath, id}) => {
     actionType: NetworkConfigActions.DELETE_NEW_FIELD,
     editPath,
     id,
+  });
+};
+
+export const deleteField = ({editPath}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.DELETE_FIELD,
+    editPath,
   });
 };
 
