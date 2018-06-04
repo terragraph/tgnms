@@ -56,6 +56,14 @@ module.exports = {
         x = Math.cos(lat1) * Math.sin(lat2) -
             Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
     var bearing = ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
-    return bearing >= 180 ? bearing - 360 : bearing;
+    bearing = bearing >= 180 ? bearing - 360 : bearing;
+    return Math.round(bearing * 100) / 100.0;
+  },
+
+  circleCoordinates(width, radius, degrees) {
+    let degToRadian = (degrees - 90) * Math.PI / 180;
+    let x = width / 2 * Math.cos(degToRadian) + (radius / 2);
+    let y = width / 2 * Math.sin(degToRadian) + (radius / 2);
+    return [x, y];
   },
 };
