@@ -17,6 +17,7 @@ export default class E2EConfig extends React.Component {
     activeConfig: PropTypes.string.isRequired,
     config: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
+    configDirty: PropTypes.bool.isRequired,
     draftConfig: PropTypes.object.isRequired,
     newConfigFields: PropTypes.object.isRequired,
   };
@@ -26,6 +27,7 @@ export default class E2EConfig extends React.Component {
       activeConfig,
       config,
       configMetadata,
+      configDirty,
       draftConfig,
       newConfigFields,
     } = this.props;
@@ -36,6 +38,7 @@ export default class E2EConfig extends React.Component {
           activeConfig={activeConfig}
           config={config}
           configMetadata={configMetadata}
+          configDirty={configDirty}
           draftConfig={draftConfig}
           newConfigFields={newConfigFields}
         />

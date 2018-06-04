@@ -6,6 +6,7 @@
 'use strict';
 
 import {
+  deleteField,
   editConfigForm,
   revertConfigOverride,
   discardUnsavedConfig,
@@ -15,6 +16,7 @@ import CustomToggle from '../common/CustomToggle.js';
 import JSONFieldTooltip from './JSONFieldTooltip.js';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import {Glyphicon} from 'react-bootstrap';
 import React from 'react';
 import isEqual from 'lodash-es/isEqual';
 
@@ -30,11 +32,13 @@ export default class JSONFormField extends React.Component {
     configLayerValues: PropTypes.array.isRequired,
     isReverted: PropTypes.bool.isRequired,
     isDraft: PropTypes.bool.isRequired,
+    isDeletable: PropTypes.bool.isRequired,
     displayVal: PropTypes.any.isRequired,
   };
 
   static defaultProps = {
     metadata: {},
+    isDeletable: false,
   };
 
   state = {
@@ -175,6 +179,12 @@ export default class JSONFormField extends React.Component {
 
   revertField = () => {
     revertConfigOverride({
+      editPath: this.props.editPath,
+    });
+  };
+
+  deleteField = () => {
+    deleteField({
       editPath: this.props.editPath,
     });
   };
@@ -334,6 +344,7 @@ export default class JSONFormField extends React.Component {
       configLayerValues,
       isReverted,
       isDraft,
+      isDeletable,
       displayVal,
     } = this.props;
     const {focus, hover} = this.state;
@@ -344,6 +355,36 @@ export default class JSONFormField extends React.Component {
       isDraft,
       isReverted,
     );
+
+    let removeIcon;
+
+    if (!this.isRevertable(displayIdx, configLayerValues) || isDraft) {
+      removeIcon = null;
+    } else if (isDeletable) {
+      removeIcon = (
+        <div className="nc-form-action">
+          <Glyphicon
+            glyph="remove"
+            style={{marginLeft: '5px'}}
+            onClick={this.deleteField}
+          />
+          <span className="nc-form-action-tooltip">Remove field</span>
+        </div>
+      );
+    } else {
+      removeIcon = (
+        <div className="nc-form-action">
+          {
+            <img
+              src="/static/images/undo.png"
+              style={{marginLeft: '5px'}}
+              onClick={this.revertField}
+            />
+          }
+          <span className="nc-form-action-tooltip">Remove override value</span>
+        </div>
+      );
+    }
 
     return (
       <div
@@ -356,19 +397,7 @@ export default class JSONFormField extends React.Component {
 
         <div className="nc-form-body">
           {formInputElement}
-          {this.isRevertable(displayIdx, configLayerValues) &&
-            !isDraft && (
-              <div className="nc-form-action">
-                <img
-                  src="/static/images/undo.png"
-                  style={{marginLeft: '5px'}}
-                  onClick={this.revertField}
-                />
-                <span className="nc-form-action-tooltip">
-                  Remove override value
-                </span>
-              </div>
-            )}
+          {removeIcon}
           {(isReverted || isDraft) && (
             <div className="nc-form-action">
               <img

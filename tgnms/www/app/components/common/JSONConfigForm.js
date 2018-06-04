@@ -49,6 +49,7 @@ class ExpandableConfigForm extends React.Component {
     formLabel: PropTypes.string.isRequired,
     editPath: PropTypes.array.isRequired,
     initExpanded: PropTypes.bool.isRequired,
+    hasDeletableFields: PropTypes.bool,
 
     viewContext: PropTypes.shape({
       viewOverridesOnly: PropTypes.bool.isRequired,
@@ -102,6 +103,7 @@ class ExpandableConfigForm extends React.Component {
       formLabel,
       editPath,
       viewContext,
+      hasDeletableFields,
     } = this.props;
     const {expanded} = this.state;
     const expandMarker = expanded
@@ -116,6 +118,7 @@ class ExpandableConfigForm extends React.Component {
         editPath={editPath}
         newConfigFields={newConfigFields}
         initExpanded={this.state.expandChildren}
+        hasDeletableFields={hasDeletableFields}
         viewContext={viewContext}
       />
     );
@@ -205,6 +208,7 @@ export default class JSONConfigForm extends React.Component {
 
     // is the component initially expanded? only using this to pass to children
     initExpanded: PropTypes.bool.isRequired,
+    hasDeletableFields: PropTypes.bool,
 
     viewContext: PropTypes.shape({
       viewOverridesOnly: PropTypes.bool,
@@ -213,6 +217,7 @@ export default class JSONConfigForm extends React.Component {
 
   static defaultProps = {
     initExpanded: false,
+    hasDeletableFields: false,
     viewContext: {
       viewOverridesOnly: false,
     },
@@ -262,6 +267,7 @@ export default class JSONConfigForm extends React.Component {
         formLabel={fieldName}
         editPath={editPath}
         initExpanded={this.props.initExpanded}
+        hasDeletableFields={this.props.hasDeletableFields}
         viewContext={viewContext}
       />
     );
@@ -275,18 +281,16 @@ export default class JSONConfigForm extends React.Component {
     fieldName,
     editPath,
     displayVal,
-    viewContext,
   }) {
     // if there are no drafts and no overrides and we only show overrides, hide field
     if (
-      viewContext.viewOverridesOnly &&
+      this.props.viewContext.viewOverridesOnly &&
       displayIdx <= 0 &&
       !this.isDraft(draftValue) &&
       !this.isReverted(draftValue)
     ) {
       return <div />;
     }
-
     return (
       <JSONFormField
         metadata={metadata}
@@ -297,6 +301,7 @@ export default class JSONConfigForm extends React.Component {
         draftValue={draftValue}
         isReverted={this.isReverted(draftValue)}
         isDraft={this.isDraft(draftValue)}
+        isDeletable={this.props.hasDeletableFields}
         displayVal={displayVal}
       />
     );
@@ -330,7 +335,6 @@ export default class JSONConfigForm extends React.Component {
       displayIdx,
       fieldName,
       editPath,
-      viewContext: this.props.viewContext,
     };
     if (displayIdx >= 0) {
       // value is found in a config

@@ -26,10 +26,7 @@ import {
   sortConfigByTag,
 } from '../../helpers/NetworkConfigHelpers.js';
 import E2EConfig from './E2EConfig.js';
-import get from 'lodash-es/get';
-import set from 'lodash-es/set';
-import merge from 'lodash-es/merge';
-import hasIn from 'lodash-es/hasIn';
+import {get, set, merge, hasIn, omit} from 'lodash-es';
 import PropTypes from 'prop-types';
 import React from 'react';
 import SweetAlert from 'sweetalert-react';
@@ -47,10 +44,14 @@ export default class E2EConfigContainer extends React.Component {
   }
 
   state = {
-    controllerConfig: {},
+    controllerConfig: {}, // Backup on revert (for deleted fields)
+    controllerConfigDirty: false, // Tells us whether controllerConfig === changedControllerConfig
+    changedControllerConfig: {},
     controllerConfigMetadata: {},
 
-    aggregatorConfig: {},
+    aggregatorConfig: {}, // Backup on revert (for deleted fields)
+    aggregatorConfigDirty: false, // Tells us whether aggregatorConfig === changedAggregatorConfig
+    changedAggregatorConfig: {},
     aggregatorConfigMetadata: {},
 
     activeConfig: E2EConstants.Controller, // or E2EConstants.Aggregator
@@ -82,8 +83,10 @@ export default class E2EConfigContainer extends React.Component {
       this.fetchConfigsForCurrentTopology(newTopologyName);
 
       this.setState({
+        changedControllerConfig: {},
         newControllerConfigFields: {},
         draftControllerConfig: {},
+        changedAggregatorConfig: {},
         newAggregatorConfigFields: {},
         draftAggregatorConfig: {},
       });
@@ -101,11 +104,10 @@ export default class E2EConfigContainer extends React.Component {
   }
 
   handleDispatchEvent = payload => {
-    const {config, metadata} = payload;
-
     switch (payload.actionType) {
       // actions returned by API requests
-      case NetworkConfigActions.GET_CONTROLLER_CONFIG_SUCCESS:
+      case NetworkConfigActions.GET_CONTROLLER_CONFIG_SUCCESS: {
+        const {config} = payload;
         const cleanedConfigFlags = {};
 
         // Strip the token before the dot for backwards compatibility
@@ -122,14 +124,24 @@ export default class E2EConfigContainer extends React.Component {
 
         config.flags = cleanedConfigFlags;
 
+        const sortedConfig = sortConfigByTag(config);
+
         this.setState({
-          controllerConfig: sortConfigByTag(config),
+          controllerConfig: sortedConfig,
+          changedControllerConfig: sortedConfig,
         });
         break;
-      case NetworkConfigActions.GET_CONTROLLER_CONFIG_METADATA_SUCCESS:
+      }
+      case NetworkConfigActions.GET_CONTROLLER_CONFIG_METADATA_SUCCESS: {
+        const {metadata} = payload;
+
         this.setState({
           controllerConfig: sortConfigByTag(
             this.state.controllerConfig,
+            metadata,
+          ),
+          changedControllerConfig: sortConfigByTag(
+            this.state.changedControllerConfig,
             metadata,
           ),
           draftControllerConfig: sortConfigByTag(
@@ -139,54 +151,77 @@ export default class E2EConfigContainer extends React.Component {
           controllerConfigMetadata: metadata,
         });
         break;
-      case NetworkConfigActions.SET_CONTROLLER_CONFIG_SUCCESS:
+      }
+      case NetworkConfigActions.SET_CONTROLLER_CONFIG_SUCCESS: {
+        const {config} = payload;
+        const sortedConfig = sortConfigByTag(
+          {...config},
+          this.state.controllerConfigMetadata,
+        );
+
         this.setState({
-          controllerConfig: sortConfigByTag(
-            {...config},
-            this.state.controllerConfigMetadata,
-          ),
+          controllerConfig: sortedConfig,
+          changedControllerConfig: sortedConfig,
+          controllerConfigDirty: false,
           draftControllerConfig: {},
           newControllerConfigFields: {},
         });
         break;
-      case NetworkConfigActions.GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS:
+      }
+      case NetworkConfigActions.GET_AGGREGATOR_CONFIG_AND_METADATA_SUCCESS: {
+        const {config, metadata} = payload;
+        const sortedConfig = sortConfigByTag(config, metadata);
+
         this.setState({
-          aggregatorConfig: sortConfigByTag(config, metadata),
+          aggregatorConfig: sortedConfig,
+          changedAggregatorConfig: sortedConfig,
           aggregatorConfigMetadata: metadata,
         });
         break;
-      case NetworkConfigActions.SET_AGGREGATOR_CONFIG_SUCCESS:
+      }
+      case NetworkConfigActions.SET_AGGREGATOR_CONFIG_SUCCESS: {
+        const {config} = payload;
+        const sortedConfig = sortConfigByTag(
+          {...config},
+          this.state.aggregatorConfigMetadata,
+        );
+
         this.setState({
-          aggregatorConfig: sortConfigByTag(
-            {...config},
-            this.state.aggregatorConfigMetadata,
-          ),
+          aggregatorConfig: sortedConfig,
+          changedAggregatorConfig: sortedConfig,
+          aggregatorConfigDirty: false,
           draftAggregatorConfig: {},
           newAggregatorConfigFields: {},
         });
         break;
-      case NetworkConfigActions.SHOW_CONFIG_ERROR:
+      }
+      case NetworkConfigActions.SHOW_CONFIG_ERROR: {
         this.setState({
           errorMsg: payload.errorText,
         });
         break;
+      }
 
       // actions that change individual fields
-      case NetworkConfigActions.EDIT_E2E_CONFIG_TYPE:
+      case NetworkConfigActions.EDIT_E2E_CONFIG_TYPE: {
         this.setState({
           activeConfig: payload.configType,
         });
         break;
-      case NetworkConfigActions.EDIT_CONFIG_FORM:
+      }
+      case NetworkConfigActions.EDIT_CONFIG_FORM: {
         this.editConfig(payload.editPath, payload.value);
         break;
-      case NetworkConfigActions.DISCARD_UNSAVED_CONFIG:
+      }
+      case NetworkConfigActions.DISCARD_UNSAVED_CONFIG: {
         this.undoRevertConfig(payload.editPath);
         break;
-      case NetworkConfigActions.ADD_NEW_FIELD:
+      }
+      case NetworkConfigActions.ADD_NEW_FIELD: {
         this.addNewField(payload.editPath, payload.type);
         break;
-      case NetworkConfigActions.EDIT_NEW_FIELD:
+      }
+      case NetworkConfigActions.EDIT_NEW_FIELD: {
         this.editNewField(
           payload.editPath,
           payload.id,
@@ -194,17 +229,23 @@ export default class E2EConfigContainer extends React.Component {
           payload.value,
         );
         break;
-      case NetworkConfigActions.DELETE_NEW_FIELD:
+      }
+      case NetworkConfigActions.DELETE_NEW_FIELD: {
         this.deleteNewField(payload.editPath, payload.id);
         break;
+      }
+      case NetworkConfigActions.DELETE_FIELD: {
+        this.deleteField(payload.editPath);
+        break;
+      }
 
       // actions that change the ENTIRE FORM
-      case NetworkConfigActions.SUBMIT_CONFIG:
+      case NetworkConfigActions.SUBMIT_CONFIG: {
         if (this.state.activeConfig === E2EConstants.Controller) {
           setControllerConfig(
             this.props.networkConfig.topology.name,
             merge(
-              this.state.controllerConfig,
+              this.state.changedControllerConfig,
               this.state.draftControllerConfig,
             ),
           );
@@ -212,18 +253,32 @@ export default class E2EConfigContainer extends React.Component {
           setAggregatorConfig(
             this.props.networkConfig.topology.name,
             merge(
-              this.state.aggregatorConfig,
+              this.state.changedAggregatorConfig,
               this.state.draftAggregatorConfig,
             ),
           );
         }
         break;
-      case NetworkConfigActions.RESET_CONFIG:
+      }
+      case NetworkConfigActions.RESET_CONFIG: {
         this.resetConfig();
         break;
+      }
       default:
         break;
     }
+  };
+
+  getChangedConfigKey = () => {
+    return this.state.activeConfig === E2EConstants.Controller
+      ? 'changedControllerConfig'
+      : 'changedAggregatorConfig';
+  };
+
+  getConfigDirtyKey = () => {
+    return this.state.activeConfig === E2EConstants.Controller
+      ? 'controllerConfigDirty'
+      : 'aggregatorConfigDirty';
   };
 
   getNewConfigFieldsKey = () => {
@@ -286,6 +341,15 @@ export default class E2EConfigContainer extends React.Component {
     });
   }
 
+  deleteField(editPath) {
+    const changedConfigKey = this.getChangedConfigKey();
+    const configToChange = this.state[changedConfigKey];
+    this.setState({
+      [changedConfigKey]: omit(configToChange, editPath.join('.')),
+      [this.getConfigDirtyKey()]: true,
+    });
+  }
+
   getConfig(config, editPath) {
     return get(config, editPath);
   }
@@ -321,7 +385,17 @@ export default class E2EConfigContainer extends React.Component {
   }
 
   resetConfig() {
+    let configToReset;
+
+    if (this.state.activeConfig === E2EConstants.Controller) {
+      configToReset = this.state.controllerConfig;
+    } else {
+      configToReset = this.state.aggregatorConfig;
+    }
+
     this.setState({
+      [this.getChangedConfigKey()]: configToReset,
+      [this.getConfigDirtyKey()]: false,
       [this.getDraftConfigKey()]: {},
       [this.getNewConfigFieldsKey()]: {},
     });
@@ -329,11 +403,13 @@ export default class E2EConfigContainer extends React.Component {
 
   render() {
     const {
-      controllerConfig,
-      controllerConfigMetadata,
-      aggregatorConfig,
-      aggregatorConfigMetadata,
       activeConfig,
+      changedControllerConfig,
+      controllerConfigDirty,
+      controllerConfigMetadata,
+      changedAggregatorConfig,
+      aggregatorConfigDirty,
+      aggregatorConfigMetadata,
       draftControllerConfig,
       newControllerConfigFields,
       draftAggregatorConfig,
@@ -344,21 +420,27 @@ export default class E2EConfigContainer extends React.Component {
     const e2eConfigProps =
       activeConfig === E2EConstants.Controller
         ? {
-            config: controllerConfig,
+            config: changedControllerConfig,
             configMetadata: controllerConfigMetadata,
+            configDirty: controllerConfigDirty,
             draftConfig: draftControllerConfig,
             newConfigFields: newControllerConfigFields,
           }
         : {
-            config: aggregatorConfig,
+            config: changedAggregatorConfig,
             configMetadata: aggregatorConfigMetadata,
+            configDirty: aggregatorConfigDirty,
             draftConfig: draftAggregatorConfig,
             newConfigFields: newAggregatorConfigFields,
           };
 
     return (
       <div>
-        <E2EConfig activeConfig={activeConfig} {...e2eConfigProps} />
+        <E2EConfig
+          topologyName={this.props.networkConfig.topology.name}
+          activeConfig={activeConfig}
+          {...e2eConfigProps}
+        />
         <SweetAlert
           type="error"
           show={Boolean(errorMsg)}
