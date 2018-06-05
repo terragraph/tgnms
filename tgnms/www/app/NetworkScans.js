@@ -205,13 +205,7 @@ export default class NetworkScans extends React.Component {
   }
 
   // scanResults is the routeInfoList
-  getTableRows() // : Array<{ //TODO(csm) what does this Array do?
-  //   name: string,
-  //   a_node_name: string,
-  //   z_node_name: string,
-  //   alive: boolean
-  // }>
-  {
+  getTableRows() {
     const rows = [];
     if (!this.state.scanResults || !this.state.scanResults.results) {
       console.log('no scanResults');

@@ -1,0 +1,15 @@
+{
+  "name": "terragraph-nms",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Terragraph nms repo",
+  "workspaces": [
+    "tgnms/www/package.json"
+  ],
+  "devDependencies": {
+    "husky": "^0.14.3"
+  },
+  "scripts": {
+    "precommit": "cd tgnms/www && npm run-script precommit"
+  }
+}

@@ -70,7 +70,7 @@ export default class NetworkNodesTable extends React.Component {
         });
         break;
       case Actions.SITE_SELECTED:
-        var selectedRows = [];
+        const selectedRows = [];
         Object.keys(this.props.topology.nodes).map(nodeIndex => {
           const node = this.props.topology.nodes[nodeIndex];
           if (node.site_name == payload.siteSelected) {

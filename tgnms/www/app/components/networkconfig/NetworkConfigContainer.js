@@ -304,8 +304,8 @@ export default class NetworkConfigContainer extends React.Component {
       case NetworkConfigActions.SUBMIT_CONFIG:
         // TODO a quick hack to support nameBased config for M19 onwards
         // remove after cleaning code to use node name
-        var useNameAsKey = false;
-        var mac2NameMap = {};
+        let useNameAsKey = false;
+        let mac2NameMap = {};
         if (!this.isOldControllerVersion()) {
           useNameAsKey = true;
           mac2NameMap = this.getNodesMac2NameMap();
@@ -338,8 +338,8 @@ export default class NetworkConfigContainer extends React.Component {
       case NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES:
         // TODO a quick hack to support nameBased config for M19 onwards
         // remove after cleaning code to use node name
-        var useNameAsKey = false;
-        var mac2NameMap = {};
+        let useNameAsKey = false;
+        let mac2NameMap = {};
         if (!this.isOldControllerVersion()) {
           useNameAsKey = true;
           mac2NameMap = this.getNodesMac2NameMap();
