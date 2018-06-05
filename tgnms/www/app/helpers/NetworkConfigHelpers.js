@@ -247,6 +247,7 @@ export const getDefaultValueForType = type => {
       defaultValue = 0;
       break;
     case ADD_FIELD_TYPES.STRING:
+    case ADD_FIELD_TYPES.RAW_JSON:
       defaultValue = '';
       break;
     default:
@@ -270,11 +271,11 @@ export const convertAndValidateNewConfigObject = newConfig => {
   if (
     newConfig === undefined ||
     newConfig === null ||
-    Object.keys(newConfig).length === 0
+    isEmpty(newConfig)
   ) {
     return {
       config: undefined,
-      validationMsg: 'New config is empty',
+      validationMsg: 'New nested object is empty',
     };
   }
 

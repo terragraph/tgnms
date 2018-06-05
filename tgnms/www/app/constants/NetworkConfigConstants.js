@@ -36,4 +36,5 @@ export const ADD_FIELD_TYPES = {
   BOOLEAN: 'boolean',
   STRING: 'string',
   NUMBER: 'number',
+  RAW_JSON: 'raw_json',
 };

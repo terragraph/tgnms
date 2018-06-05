@@ -66,6 +66,9 @@ class AddJSONConfigField extends React.Component {
           <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.OBJECT)}>
             Nested Field (Object)
           </span>
+          <span onClick={() => this.selectAddOption(ADD_FIELD_TYPES.RAW_JSON)}>
+            Raw JSON
+          </span>
         </div>
       </div>
     );

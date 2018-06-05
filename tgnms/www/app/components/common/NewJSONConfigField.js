@@ -15,11 +15,26 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 
 export default class NewJSONConfigField extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+  // add is handled by the parent
+  static propTypes = {
+    canSubmit: PropTypes.bool.isRequired,
+
+    fieldId: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    field: PropTypes.string.isRequired,
+    value: PropTypes.any.isRequired,
+
+    editPath: PropTypes.array.isRequired,
+    onSubmit: PropTypes.func,
+    onDelete: PropTypes.func.isRequired,
+  };
+
+  static defaultProps = {
+    onSubmit: () => {},
+  };
 
   changeField(field) {
     const {editPath, fieldId, value} = this.props;
@@ -42,9 +57,10 @@ export default class NewJSONConfigField extends React.Component {
   }
 
   onSubmitNewField = event => {
+    event.preventDefault();
+
     const {editPath, fieldId, field, value} = this.props;
     this.props.onSubmit(editPath, fieldId, field, value);
-    event.preventDefault();
   };
 
   onDeleteNewField = () => {
@@ -101,6 +117,19 @@ export default class NewJSONConfigField extends React.Component {
           </form>
         );
         break;
+      case ADD_FIELD_TYPES.RAW_JSON:
+        inputItem = (
+          <form
+            className="nc-form-input-wrapper"
+            onSubmit={this.onSubmitNewField}>
+            <TextareaAutosize
+              className="nc-new-json-textarea"
+              value={value}
+              onChange={event => this.changeValue(event.target.value)}
+            />
+          </form>
+        );
+        break;
     }
 
     return inputItem;
@@ -110,13 +139,15 @@ export default class NewJSONConfigField extends React.Component {
     const {canSubmit, fieldId, type, field, value} = this.props;
     const newFieldInput = this.renderInputItem(type, value);
 
-    const fieldClass = '';
+    const containerClass =
+      type === ADD_FIELD_TYPES.RAW_JSON
+        ? 'rc-new-json-config-textarea'
+        : 'rc-new-json-config-field';
 
     return (
-      <div className="rc-new-json-config-field">
+      <div className={containerClass}>
         <form className="nc-new-field-label" onSubmit={this.onSubmitNewField}>
           <input
-            className={fieldClass}
             type="text"
             placeholder="Field Name"
             value={field}
@@ -152,21 +183,3 @@ export default class NewJSONConfigField extends React.Component {
     );
   }
 }
-
-// add is handled by the parent
-NewJSONConfigField.propTypes = {
-  canSubmit: PropTypes.bool.isRequired,
-
-  fieldId: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
-  field: PropTypes.string.isRequired,
-  value: PropTypes.any.isRequired,
-
-  editPath: PropTypes.array.isRequired,
-  onSubmit: PropTypes.func,
-  onDelete: PropTypes.func.isRequired,
-};
-
-NewJSONConfigField.defaultProps = {
-  onSubmit: () => {},
-};

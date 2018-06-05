@@ -25,15 +25,27 @@ import React from 'react';
 import swal from 'sweetalert';
 
 const validationAlertProps = validationMsg => ({
-  title: 'Submit failed: validation errors',
+  title: 'Validation Error: Unable to create new nested object',
   text: validationMsg,
   type: 'error',
 });
 
 export default class NewJSONConfigObject extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+  static propTypes = {
+    canSubmit: PropTypes.bool.isRequired,
+
+    fieldId: PropTypes.string.isRequired,
+    field: PropTypes.string.isRequired,
+    value: PropTypes.any.isRequired,
+
+    editPath: PropTypes.array.isRequired,
+    onSubmit: PropTypes.func,
+    onDelete: PropTypes.func.isRequired,
+  };
+
+  static defaultProps = {
+    onSubmit: () => {},
+  };
 
   changeField(field) {
     const {editPath, fieldId, value} = this.props;
@@ -81,7 +93,7 @@ export default class NewJSONConfigObject extends React.Component {
         field,
         value,
         editPath: newEditPath,
-        onDelete: (ep, fi) => deleteNewField({editPath: ep, id: fi}),
+        onDelete: (editPath, id) => deleteNewField({editPath, id}),
       };
 
       let childItem = <span>Invalid type!</span>;
@@ -152,20 +164,3 @@ export default class NewJSONConfigObject extends React.Component {
     );
   }
 }
-
-// add is handled by the parent
-NewJSONConfigObject.propTypes = {
-  canSubmit: PropTypes.bool.isRequired,
-
-  fieldId: PropTypes.string.isRequired,
-  field: PropTypes.string.isRequired,
-  value: PropTypes.any.isRequired,
-
-  editPath: PropTypes.array.isRequired,
-  onSubmit: PropTypes.func,
-  onDelete: PropTypes.func.isRequired,
-};
-
-NewJSONConfigObject.defaultProps = {
-  onSubmit: () => {},
-};
