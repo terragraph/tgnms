@@ -195,33 +195,28 @@ export default class E2EConfigContainer extends React.Component {
         });
         break;
       }
-      case NetworkConfigActions.SHOW_CONFIG_ERROR: {
+      case NetworkConfigActions.SHOW_CONFIG_ERROR:
         this.setState({
           errorMsg: payload.errorText,
         });
         break;
-      }
 
       // actions that change individual fields
-      case NetworkConfigActions.EDIT_E2E_CONFIG_TYPE: {
+      case NetworkConfigActions.EDIT_E2E_CONFIG_TYPE:
         this.setState({
           activeConfig: payload.configType,
         });
         break;
-      }
-      case NetworkConfigActions.EDIT_CONFIG_FORM: {
+      case NetworkConfigActions.EDIT_CONFIG_FORM:
         this.editConfig(payload.editPath, payload.value);
         break;
-      }
-      case NetworkConfigActions.DISCARD_UNSAVED_CONFIG: {
+      case NetworkConfigActions.DISCARD_UNSAVED_CONFIG:
         this.undoRevertConfig(payload.editPath);
         break;
-      }
-      case NetworkConfigActions.ADD_NEW_FIELD: {
+      case NetworkConfigActions.ADD_NEW_FIELD:
         this.addNewField(payload.editPath, payload.type);
         break;
-      }
-      case NetworkConfigActions.EDIT_NEW_FIELD: {
+      case NetworkConfigActions.EDIT_NEW_FIELD:
         this.editNewField(
           payload.editPath,
           payload.id,
@@ -229,18 +224,19 @@ export default class E2EConfigContainer extends React.Component {
           payload.value,
         );
         break;
-      }
-      case NetworkConfigActions.DELETE_NEW_FIELD: {
+      case NetworkConfigActions.DELETE_NEW_FIELD:
         this.deleteNewField(payload.editPath, payload.id);
         break;
-      }
-      case NetworkConfigActions.DELETE_FIELD: {
-        this.deleteField(payload.editPath);
+      case NetworkConfigActions.DELETE_FIELDS:
+        this.deleteFields(payload.editPaths);
         break;
-      }
+      case NetworkConfigActions.EDIT_AND_DELETE_FIELDS:
+        this.editConfig(payload.editPath, payload.value);
+        this.deleteFields(payload.pathsToRemove);
+        break;
 
       // actions that change the ENTIRE FORM
-      case NetworkConfigActions.SUBMIT_CONFIG: {
+      case NetworkConfigActions.SUBMIT_CONFIG:
         if (this.state.activeConfig === E2EConstants.Controller) {
           setControllerConfig(
             this.props.networkConfig.topology.name,
@@ -259,11 +255,9 @@ export default class E2EConfigContainer extends React.Component {
           );
         }
         break;
-      }
-      case NetworkConfigActions.RESET_CONFIG: {
+      case NetworkConfigActions.RESET_CONFIG:
         this.resetConfig();
         break;
-      }
       default:
         break;
     }
@@ -341,11 +335,12 @@ export default class E2EConfigContainer extends React.Component {
     });
   }
 
-  deleteField(editPath) {
+  deleteFields(editPaths) {
     const changedConfigKey = this.getChangedConfigKey();
     const configToChange = this.state[changedConfigKey];
+
     this.setState({
-      [changedConfigKey]: omit(configToChange, editPath.join('.')),
+      [changedConfigKey]: omit(configToChange, editPaths),
       [this.getConfigDirtyKey()]: true,
     });
   }

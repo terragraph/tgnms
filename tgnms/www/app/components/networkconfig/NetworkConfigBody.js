@@ -29,7 +29,6 @@ export default class NetworkConfigBody extends React.Component {
     removedOverrides: PropTypes.instanceOf(Set).isRequired,
     newConfigFields: PropTypes.object.isRequired,
     nodesWithDrafts: PropTypes.array.isRequired,
-    nodesWithOverrides: PropTypes.instanceOf(Set).isRequired,
     removedNodeOverrides: PropTypes.object.isRequired,
 
     selectedNodes: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -99,13 +98,11 @@ export default class NetworkConfigBody extends React.Component {
       selectedNodes,
       editMode,
       nodesWithDrafts,
-      nodesWithOverrides,
       removedNodeOverrides,
       hasUnsavedChanges,
     } = this.props;
 
     const {isExpanded, isJSONText, viewContext} = this.state;
-
 
     return (
       <div className="rc-network-config-body">
@@ -158,6 +155,7 @@ export default class NetworkConfigBody extends React.Component {
               ref={this.jsonTextRef}
               config={configs[configs.length - 1]}
               draftConfig={draftConfig}
+              removedFields={removedOverrides}
             />
           ) : (
             <JSONConfigForm

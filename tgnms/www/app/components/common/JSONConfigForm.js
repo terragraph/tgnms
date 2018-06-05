@@ -64,7 +64,7 @@ class ExpandableConfigForm extends React.Component {
 
     // quick fix but it's hacky: have all expandable components listen for the action to expand all
     // an alternative solution (keeping this as a single state) will be investigated soon
-    this.dispatchToken = Dispatcher.register(this.handleExpandAll.bind(this));
+    this.dispatchToken = Dispatcher.register(this.handleExpandAll);
 
     this.state = {
       expanded: props.initExpanded,
@@ -76,7 +76,7 @@ class ExpandableConfigForm extends React.Component {
     Dispatcher.unregister(this.dispatchToken);
   }
 
-  handleExpandAll(payload) {
+  handleExpandAll = payload => {
     switch (payload.actionType) {
       case NetworkConfigActions.TOGGLE_EXPAND_ALL:
         this.setState({
@@ -86,7 +86,7 @@ class ExpandableConfigForm extends React.Component {
 
         break;
     }
-  }
+  };
 
   toggleExpandConfig = () => {
     // children not expanded by default

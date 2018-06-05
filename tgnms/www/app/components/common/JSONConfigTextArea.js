@@ -9,26 +9,34 @@
 
 import {
   NetworkConfigActions,
-  editConfigForm,
+  editAndDeleteFields,
   showConfigError,
 } from '../../actions/NetworkConfigActions.js';
-import {objDifference} from '../../helpers/NetworkConfigHelpers.js';
+import {
+  createConfigToSubmit,
+  objDifference,
+  allPathsInObj,
+} from '../../helpers/NetworkConfigHelpers.js';
 import cx from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import isEmpty from 'lodash-es/isEmpty';
-import merge from 'lodash-es/merge';
+import {has, isEmpty, merge} from 'lodash-es';
 
 export default class JSONConfigTextArea extends React.Component {
   static propTypes = {
     config: PropTypes.object,
     draftConfig: PropTypes.object,
+    removedFields: PropTypes.instanceOf(Set), // Used for Network/Node Config
   };
 
   static getDerivedStateFromProps(props) {
     return {
       configString: JSON.stringify(
-        merge(props.config, props.draftConfig),
+        createConfigToSubmit(
+          props.config,
+          props.draftConfig,
+          props.removedFields,
+        ),
         null,
         4,
       ),
@@ -43,7 +51,11 @@ export default class JSONConfigTextArea extends React.Component {
   componentDidMount() {
     this.setState({
       draftConfigString: JSON.stringify(
-        merge(this.props.config, this.props.draftConfig),
+        createConfigToSubmit(
+          this.props.config,
+          this.props.draftConfig,
+          this.props.removedFields,
+        ),
         null,
         4,
       ),
@@ -52,11 +64,25 @@ export default class JSONConfigTextArea extends React.Component {
 
   saveChanges() {
     try {
-      const draftConfig = JSON.parse(this.state.draftConfigString);
+      const stringToParse =
+        this.state.draftConfigString === ''
+          ? '{}'
+          : this.state.draftConfigString;
+      const draftConfig = JSON.parse(stringToParse);
 
-      editConfigForm({
+      // Find removed fields (if they don't exist in the draft)
+      const configDifferenceDraft = objDifference(
+        this.props.config,
+        draftConfig,
+      );
+      const removedPaths = allPathsInObj(configDifferenceDraft).filter(
+        path => !has(draftConfig, path),
+      );
+
+      editAndDeleteFields({
         editPath: null,
         value: objDifference(draftConfig, this.props.config),
+        pathsToRemove: removedPaths,
       });
 
       this.setState({

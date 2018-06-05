@@ -98,7 +98,6 @@
 
 .nc-header-toggle:hover {
   background-color: transparent;
-  transform: scale(1.02, 1.02);
 }
 
 .open > .nc-header-toggle.dropdown-toggle.btn-default,

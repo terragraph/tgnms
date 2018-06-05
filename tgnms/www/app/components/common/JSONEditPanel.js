@@ -10,21 +10,17 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-export class JSONEditPanel extends React.PureComponent {
+export default class JSONEditPanel extends React.PureComponent {
   static propTypes = {
     isJSONText: PropTypes.bool.isRequired,
     onEdit: PropTypes.func.isRequired,
     onFinishEdit: PropTypes.func.isRequired,
-  }
+  };
 
   render() {
-    const {
-      isJSONText,
-      onEdit,
-      onFinishEdit
-    } = this.props;
+    const {isJSONText, onEdit, onFinishEdit} = this.props;
 
-    if (isJSONText) {
+    if (!isJSONText) {
       return (
         <button className="nc-expand-all-btn" onClick={onEdit}>
           Edit as JSON

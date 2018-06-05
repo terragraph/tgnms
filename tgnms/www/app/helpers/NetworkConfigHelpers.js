@@ -112,7 +112,7 @@ export const cleanupObject = obj => {
  * @return {Object}
  */
 
-export const createOverrideConfigToSubmit = (config, draftConfig, removedFields) => {
+export const createConfigToSubmit = (config, draftConfig, removedFields) => {
   const paths = [];
 
   if (removedFields) {
@@ -332,4 +332,24 @@ export function objDifference(object, base) {
           : value;
     }
   });
+}
+
+export function allPathsInObj(object) {
+  if (!isObject(object)) {
+    return null;
+  }
+
+  function allPathsInObjHelper(object, currentPath, paths) {
+    forOwn(object, (value, key) => {
+      if (!isObject(value)) {
+        paths.push([...currentPath, key]);
+      } else {
+        allPathsInObjHelper(value, [...currentPath, key], paths);
+      }
+    });
+
+    return paths;
+  }
+
+  return allPathsInObjHelper(object, [], []);
 }
