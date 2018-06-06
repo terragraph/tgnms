@@ -132,10 +132,10 @@ export default class NetworkNodesTable extends React.Component {
       if (
         this.state.nodeHealth &&
         this.state.nodeHealth.hasOwnProperty('metrics') &&
-        this.state.nodeHealth.metrics.hasOwnProperty(node.name)
+        this.state.nodeHealth.metrics.hasOwnProperty(node.mac_addr)
       ) {
-        availability = this.state.nodeHealth.metrics[node.name].minion_uptime;
-        events = this.state.nodeHealth.metrics[node.name].events;
+        availability = this.state.nodeHealth.metrics[node.mac_addr].minion_uptime;
+        events = this.state.nodeHealth.metrics[node.mac_addr].events;
       }
       rows.push({
         name: node.name,
