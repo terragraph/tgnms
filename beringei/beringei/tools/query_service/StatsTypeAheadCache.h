@@ -65,7 +65,7 @@ class StatsTypeAheadCache {
       const int limit = 100);
 
  private:
-  std::vector<std::string> linkMetricKeyNames_;
+  std::vector<std::string> linkMetricKeyNames_{};
   std::unordered_set<std::string> macNodes_{};
   std::map<std::string, query::Node> nodesByName_{};
   // --- Metrics per node --- //
@@ -73,15 +73,15 @@ class StatsTypeAheadCache {
   std::unordered_map<
       std::string,
       std::unordered_map<std::string, std::shared_ptr<query::KeyData>>>
-      nodeMacToKeyList_;
+      nodeMacToKeyList_{};
 
   // --- Metrics for all nodes --- //
   // key names => [metric id]
-  std::unordered_map<std::string, std::vector<int>> keyToMetricIds_;
+  std::unordered_map<std::string, std::vector<int>> keyToMetricIds_{};
   // short names => [metric ids]
-  std::unordered_map<std::string, std::vector<int>> nameToMetricIds_;
+  std::unordered_map<std::string, std::vector<int>> nameToMetricIds_{};
   // metric id => meta data
-  std::unordered_map<int, std::shared_ptr<query::KeyData>> metricIdMetadata_;
+  std::unordered_map<int, std::shared_ptr<query::KeyData>> metricIdMetadata_{};
 
   // TODO - graph struct for quick traversal
 

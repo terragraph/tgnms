@@ -157,10 +157,8 @@ struct EventsWriteRequest {
 
 struct MySqlNodeData {
   1: i64 id,
-  2: string node,
   3: string mac,
   4: string network,
-  5: string site,
   6: map<i64, string> keyList,
 }
 
