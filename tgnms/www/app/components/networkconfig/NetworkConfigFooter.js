@@ -24,8 +24,10 @@ export default class NetworkConfigFooter extends React.Component {
   static propTypes = {
     newConfigFields: PropTypes.object.isRequired,
     draftConfig: PropTypes.object.isRequired,
+    removedOverrides: PropTypes.instanceOf(Set).isRequired,
     editMode: PropTypes.string.isRequired,
     nodesWithDrafts: PropTypes.array.isRequired,
+    removedNodeOverrides: PropTypes.object.isRequired,
   };
 
   submitAlertProps = {
@@ -69,8 +71,10 @@ export default class NetworkConfigFooter extends React.Component {
     const {
       newConfigFields,
       draftConfig,
+      removedOverrides,
       editMode,
       nodesWithDrafts,
+      removedNodeOverrides,
     } = this.props;
 
     return (
@@ -78,28 +82,38 @@ export default class NetworkConfigFooter extends React.Component {
         <button
           className="nc-footer-btn"
           onClick={this.onResetConfig}
-          disabled={isEmpty(draftConfig) && isEmpty(newConfigFields)}>
+          disabled={
+            isEmpty(draftConfig) &&
+            isEmpty(newConfigFields) &&
+            isEmpty(removedOverrides)
+          }>
           Discard Changes
         </button>
         {editMode === CONFIG_VIEW_MODE.NODE && (
           <button
             className="nc-footer-btn"
             onClick={this.onResetAllConfig}
-            disabled={isEmpty(nodesWithDrafts) && isEmpty(newConfigFields)}>
+            disabled={
+              isEmpty(nodesWithDrafts) &&
+              isEmpty(newConfigFields) &&
+              isEmpty(removedNodeOverrides)
+            }>
             Discard changes for all nodes
           </button>
         )}
         <button
           className="nc-footer-btn"
           onClick={this.onSubmitConfig}
-          disabled={isEmpty(draftConfig)}>
+          disabled={isEmpty(draftConfig) && isEmpty(removedOverrides)}>
           Submit Changes
         </button>
         {editMode === CONFIG_VIEW_MODE.NODE && (
           <button
             className="nc-footer-btn"
             onClick={this.onSubmitConfigForAllNodes}
-            disabled={isEmpty(nodesWithDrafts)}>
+            disabled={
+              isEmpty(nodesWithDrafts) && isEmpty(removedNodeOverrides)
+            }>
             Submit changes for all nodes
           </button>
         )}

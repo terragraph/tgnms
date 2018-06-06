@@ -26,23 +26,28 @@ const TABLE_HEADER_OFFSET = 78;
 import classNames from 'classnames';
 
 export default class NetworkConfigNodes extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+  static propTypes = {
+    nodes: PropTypes.array.isRequired,
+    selectedNodes: PropTypes.array.isRequired,
+    nodesWithDrafts: PropTypes.array.isRequired,
+    nodesWithOverrides: PropTypes.instanceOf(Set).isRequired,
+    removedNodeOverrides: PropTypes.object.isRequired,
+  };
 
   formatNodeName = (cell, row, enumObject, index) => {
     const {name, mac_addr} = row;
     const nodesWithDraftsSet = new Set(this.props.nodesWithDrafts);
+    const hasUnsavedChanges =
+      nodesWithDraftsSet.has(mac_addr) ||
+      this.props.removedNodeOverrides.hasOwnProperty(mac_addr);
 
-    const unsavedMarker = nodesWithDraftsSet.has(mac_addr) ? (
+    const unsavedMarker = hasUnsavedChanges ? (
       <img
         height="20"
         style={{float: 'right'}}
         src="/static/images/bullet_red.png"
       />
-    ) : (
-      ''
-    );
+    ) : null;
 
     return (
       <span>
@@ -115,10 +120,3 @@ export default class NetworkConfigNodes extends React.Component {
     );
   }
 }
-
-NetworkConfigNodes.propTypes = {
-  nodes: PropTypes.array.isRequired,
-  selectedNodes: PropTypes.array.isRequired,
-  nodesWithDrafts: PropTypes.array.isRequired,
-  nodesWithOverrides: PropTypes.instanceOf(Set).isRequired,
-};

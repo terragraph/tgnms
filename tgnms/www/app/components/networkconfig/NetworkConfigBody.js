@@ -19,6 +19,21 @@ import React from 'react';
 import uuidv4 from 'uuid/v4';
 
 export default class NetworkConfigBody extends React.Component {
+  static propTypes = {
+    configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+    configMetadata: PropTypes.object.isRequired,
+    draftConfig: PropTypes.object.isRequired,
+    removedOverrides: PropTypes.instanceOf(Set).isRequired,
+    newConfigFields: PropTypes.object.isRequired,
+    nodesWithDrafts: PropTypes.array.isRequired,
+    nodesWithOverrides: PropTypes.instanceOf(Set).isRequired,
+    removedNodeOverrides: PropTypes.object.isRequired,
+    selectedNodes: PropTypes.arrayOf(PropTypes.object).isRequired,
+    editMode: PropTypes.string.isRequired,
+
+    hasUnsavedChanges: PropTypes.bool.isRequired,
+  };
+
   state = {
     isExpanded: true,
     viewContext: {
@@ -39,10 +54,13 @@ export default class NetworkConfigBody extends React.Component {
       configs,
       configMetadata,
       draftConfig,
+      removedOverrides,
       newConfigFields,
       selectedNodes,
       editMode,
       nodesWithDrafts,
+      nodesWithOverrides,
+      removedNodeOverrides,
       hasUnsavedChanges,
     } = this.props;
 
@@ -86,6 +104,7 @@ export default class NetworkConfigBody extends React.Component {
             configs={configs}
             metadata={configMetadata}
             draftConfig={draftConfig}
+            removedFields={removedOverrides}
             newConfigFields={newConfigFields}
             editPath={[]}
             initExpanded={false}
@@ -95,23 +114,12 @@ export default class NetworkConfigBody extends React.Component {
         <NetworkConfigFooter
           newConfigFields={newConfigFields}
           draftConfig={draftConfig}
+          removedOverrides={removedOverrides}
           editMode={editMode}
           nodesWithDrafts={nodesWithDrafts}
+          removedNodeOverrides={removedNodeOverrides}
         />
       </div>
     );
   }
 }
-
-NetworkConfigBody.propTypes = {
-  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
-  configMetadata: PropTypes.object.isRequired,
-  draftConfig: PropTypes.object.isRequired,
-  newConfigFields: PropTypes.object.isRequired,
-  nodesWithDrafts: PropTypes.array.isRequired,
-
-  selectedNodes: PropTypes.arrayOf(PropTypes.object).isRequired,
-  editMode: PropTypes.string.isRequired,
-
-  hasUnsavedChanges: PropTypes.bool.isRequired,
-};
