@@ -380,25 +380,37 @@ export default class NetworkMap extends React.Component {
         const a_node = nodesByName[link.a_node_name];
         const z_node = nodesByName[link.z_node_name];
 
-        if (a_node && a_node.golay_idx) {
+        if (link.golay_idx) {
           const idx =
             this.props.linkOverlay == 'RxGolayIdx'
-              ? a_node.golay_idx.rxGolayIdx
-              : a_node.golay_idx.txGolayIdx;
+              ? link.golay_idx.rxGolayIdx
+              : link.golay_idx.txGolayIdx;
           link.overlay_a = parseInt(
             Buffer.from(idx.buffer.data).readUIntBE(0, 8),
             10,
           );
-        }
-        if (z_node && z_node.golay_idx) {
-          const idx =
-            this.props.linkOverlay == 'RxGolayIdx'
-              ? z_node.golay_idx.rxGolayIdx
-              : z_node.golay_idx.txGolayIdx;
-          link.overlay_z = parseInt(
-            Buffer.from(idx.buffer.data).readUIntBE(0, 8),
-            10,
-          );
+          link.overlay_z = link.overlay_a;
+        } else {
+          if (a_node && a_node.golay_idx) {
+            const idx =
+              this.props.linkOverlay == 'RxGolayIdx'
+                ? a_node.golay_idx.rxGolayIdx
+                : a_node.golay_idx.txGolayIdx;
+            link.overlay_a = parseInt(
+              Buffer.from(idx.buffer.data).readUIntBE(0, 8),
+              10,
+            );
+          }
+          if (z_node && z_node.golay_idx) {
+            const idx =
+              this.props.linkOverlay == 'RxGolayIdx'
+                ? z_node.golay_idx.rxGolayIdx
+                : z_node.golay_idx.txGolayIdx;
+            link.overlay_z = parseInt(
+              Buffer.from(idx.buffer.data).readUIntBE(0, 8),
+              10,
+            );
+          }
         }
       }
     });
