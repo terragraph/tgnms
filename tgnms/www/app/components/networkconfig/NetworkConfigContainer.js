@@ -301,7 +301,7 @@ export default class NetworkConfigContainer extends React.Component {
         break;
 
       // actions that change the ENTIRE FORM
-      case NetworkConfigActions.SUBMIT_CONFIG:
+      case NetworkConfigActions.SUBMIT_CONFIG: {
         // TODO a quick hack to support nameBased config for M19 onwards
         // remove after cleaning code to use node name
         let useNameAsKey = false;
@@ -335,7 +335,8 @@ export default class NetworkConfigContainer extends React.Component {
           );
         }
         break;
-      case NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES:
+      }
+      case NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES: {
         // TODO a quick hack to support nameBased config for M19 onwards
         // remove after cleaning code to use node name
         let useNameAsKey = false;
@@ -354,6 +355,7 @@ export default class NetworkConfigContainer extends React.Component {
           mac2NameMap,
         );
         break;
+      }
       case NetworkConfigActions.RESET_CONFIG:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.resetSelectedNodesConfig();
@@ -372,7 +374,7 @@ export default class NetworkConfigContainer extends React.Component {
       case NetworkConfigActions.GET_BASE_CONFIG_SUCCESS:
         this.setState({baseConfig: payload.config});
         break;
-      case NetworkConfigActions.GET_CONFIG_METADATA_SUCCESS:
+      case NetworkConfigActions.GET_CONFIG_METADATA_SUCCESS: {
         const {
           baseConfig,
           networkOverrideConfig,
@@ -393,6 +395,7 @@ export default class NetworkConfigContainer extends React.Component {
           configMetadata: metadata,
         });
         break;
+      }
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
         this.setState({
           networkOverrideConfig: payload.config,
