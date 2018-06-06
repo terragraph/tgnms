@@ -109,8 +109,6 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
     if (!nodeId) {
       query::MySqlNodeData newNode;
       newNode.mac = agent.mac;
-      newNode.node = agent.name;
-      newNode.site = agent.site;
       newNode.network = request.topology.name;
       unknownNodes[newNode.mac] = newNode;
       LOG(INFO) << "Unknown mac: " << agent.mac;

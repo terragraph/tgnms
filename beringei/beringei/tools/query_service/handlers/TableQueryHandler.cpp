@@ -78,9 +78,6 @@ void TableQueryHandler::onEOM() noexcept {
     auto taCacheIt = locked->find(request.topologyName);
     if (taCacheIt == locked->cend()) {
       LOG(INFO) << "\tTopology cache not found: " << request.topologyName;
-      for (const auto& topo : *locked) {
-        LOG(INFO) << "FOUND TOPO: " << topo.first;
-      }
       ResponseBuilder(downstream_)
           .status(500, "OK")
           .header("Content-Type", "application/json")
@@ -98,7 +95,8 @@ void TableQueryHandler::onEOM() noexcept {
                 << ", displayName: " << keyData.displayName
                 << ", keyId: " << keyData.keyId;
         keyIdList.push_back(keyData.keyId);
-        keyData.displayName = keyData.nodeName;
+        // use the mac address as the unique id for the node
+        keyData.displayName = keyData.node;
         keyDataListRenamed.push_back(keyData);
       }
       lastInterval = nodeQuery.interval;
