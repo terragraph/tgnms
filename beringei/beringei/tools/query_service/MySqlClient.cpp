@@ -122,19 +122,18 @@ void MySqlClient::refreshNodes() noexcept {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT * FROM `nodes`"));
+    std::vector<std::shared_ptr<query::MySqlNodeData>> nodesTmp;
     while (res->next()) {
       auto node = std::make_shared<query::MySqlNodeData>();
       node->id = res->getInt("id");
-      node->node = res->getString("node");
       node->mac = res->getString("mac");
-      node->network = res->getString("network");
-      node->site = res->getString("site");
       std::transform(
           node->mac.begin(), node->mac.end(), node->mac.begin(), ::tolower);
       macAddrToNode_[node->mac] = node;
       nodeIdToNode_[node->id] = node;
-      nodes_.push_back(node);
+      nodesTmp.push_back(node);
     }
+    nodes_.swap(nodesTmp);
     LOG(INFO) << "refreshNodes: Number of nodes: " << nodeIdToNode_.size();
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshNodes ERR: " << e.what();
@@ -184,14 +183,12 @@ void MySqlClient::addNodes(
   try {
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         connection_->prepareStatement(
-            "INSERT IGNORE INTO `nodes` (`mac`, `node`, "
-            "`site`, `network`) VALUES (?, ?, ?, ?)"));
+            "INSERT IGNORE INTO `nodes` (`mac`, `network`)"
+            " VALUES (?, ?)"));
 
     for (const auto& node : newNodes) {
       prep_stmt->setString(1, node.second.mac);
-      prep_stmt->setString(2, node.second.node);
-      prep_stmt->setString(3, node.second.site);
-      prep_stmt->setString(4, node.second.network);
+      prep_stmt->setString(2, node.second.network);
       prep_stmt->execute();
       LOG(INFO) << "addNode => mac: " << node.second.mac
                 << " Network: " << node.second.network;
