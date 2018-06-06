@@ -472,7 +472,8 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
       }
     }
   }
-  LOG(INFO) << "Returning " << retMetrics.size() << " metrics.";
+  VLOG(1) << "Returning " << retMetrics.size()
+          << " metrics for " << metricName << " query.";
   return retMetrics;
 }
 } // namespace gorilla
