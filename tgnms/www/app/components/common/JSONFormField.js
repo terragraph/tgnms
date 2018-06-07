@@ -246,7 +246,7 @@ export default class JSONFormField extends React.Component {
         checkboxId={checkboxId}
         value={displayVal}
         tooltip={tooltip}
-        disabled={metadata && metadata.deprecated}
+        disabled={isReverted || (metadata && metadata.deprecated)}
         onChange={value => this.editField(value)}
         onFocus={() => this.setState({focus: true})}
         onBlur={() => this.setState({focus: false})}
@@ -293,7 +293,7 @@ export default class JSONFormField extends React.Component {
               className={inputClass}
               type="number"
               value={displayVal}
-              disabled={metadata && metadata.deprecated}
+              disabled={isReverted || (metadata && metadata.deprecated)}
               onChange={event => this.editField(Number(event.target.value))}
               onFocus={() => this.setState({focus: true})}
               onBlur={() => this.setState({focus: false})}
@@ -314,7 +314,7 @@ export default class JSONFormField extends React.Component {
               className={inputClass}
               type="text"
               value={displayVal}
-              disabled={metadata && metadata.deprecated}
+              disabled={isReverted || (metadata && metadata.deprecated)}
               onChange={event => this.editField(event.target.value)}
               onFocus={() => this.setState({focus: true})}
               onBlur={() => this.setState({focus: false})}

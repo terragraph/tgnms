@@ -23,21 +23,20 @@ import {
 import {
   CONFIG_VIEW_MODE,
   REVERT_VALUE,
+  PATH_DELIMITER,
   DEFAULT_BASE_KEY,
 } from '../../constants/NetworkConfigConstants.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import {
+  cleanupObject,
+  createOverrideConfigToSubmit,
   getImageVersionsForNetwork,
   unsetAndCleanup,
   getDefaultValueForType,
   sortConfig,
 } from '../../helpers/NetworkConfigHelpers.js';
 import NetworkConfig from './NetworkConfig.js';
-import cloneDeep from 'lodash-es/cloneDeep';
-import get from 'lodash-es/get';
-import hasIn from 'lodash-es/hasIn';
-import pick from 'lodash-es/pick';
-import set from 'lodash-es/set';
+import {cloneDeep, get, hasIn, isEmpty, merge, pick, set} from 'lodash-es';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
@@ -45,12 +44,15 @@ import SweetAlert from 'sweetalert-react';
 import uuidv4 from 'uuid/v4';
 
 export default class NetworkConfigContainer extends React.Component {
+  static propTypes = {
+    networkConfig: PropTypes.object.isRequired,
+    viewContext: PropTypes.object.isRequired,
+  };
+
   constructor(props) {
     super(props);
 
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this),
-    );
+    this.dispatchToken = Dispatcher.register(this.handleDispatchEvent);
 
     const {viewContext} = props;
 
@@ -80,7 +82,6 @@ export default class NetworkConfigContainer extends React.Component {
       // base network config
       // map of software version to config
       baseConfig: {},
-
       configMetadata: {},
 
       // new fields to be added to the specified config
@@ -89,21 +90,20 @@ export default class NetworkConfigContainer extends React.Component {
 
       // network override
       // one object for the entire network
-      networkOverrideConfig: {},
-      networkDraftConfig: {},
+      networkOverrideConfig: {}, // for backup on revert
 
-      // a version of the config that is akin to a merged copy of the 2 configs above
-      // ONLY USED when an API call is submitted due to implementation pain for merging the 2 objects when submitting
-      networkConfigWithChanges: {},
+      // version of the config with the changes by the user
+      // the networkDraftConfig stores additions/edits to the changedNetworkConfig
+      removedNetworkOverrides: new Set(), // Set of Edit Path Strings
+      networkDraftConfig: {},
 
       // node override
       // config objects mapped by node mac_addr
       nodeOverrideConfig: {},
-      nodeDraftConfig: {},
 
-      // a version of the config that is akin to a merged copy of the 2 configs above
-      // ONLY USED when an API call is submitted due to implementation pain for merging the 2 objects when submitting
-      nodeConfigWithChanges: {},
+      // the nodeDraftConfig stores additions/edits to the changedNodeConfig
+      removedNodeOverrides: {}, // Object of <NodeMacAddr, Set>
+      nodeDraftConfig: {},
 
       // edit mode to determine whether the user edits the network override or node override
       // changed by selecting node(s) or the network in the left pane in the UI
@@ -127,6 +127,7 @@ export default class NetworkConfigContainer extends React.Component {
     );
   }
 
+  // TODO: Change to React 16 stuff
   UNSAFE_componentWillReceiveProps(nextProps) {
     const topology = this.props.networkConfig.topology;
     const oldTopologyName = this.props.networkConfig.topology.name;
@@ -215,11 +216,10 @@ export default class NetworkConfigContainer extends React.Component {
       : {};
   }
 
-  handleDispatchEvent(payload) {
+  handleDispatchEvent = payload => {
     const topologyName = this.props.networkConfig.topology.name;
 
     switch (payload.actionType) {
-      // handle network config specific actions
       // actions that change the editing context
       case NetworkConfigActions.CHANGE_EDIT_MODE:
         this.changeEditMode(payload.editMode);
@@ -248,11 +248,6 @@ export default class NetworkConfigContainer extends React.Component {
               payload.editPath,
               payload.value,
             ),
-            nodeConfigWithChanges: this.editNodeConfig(
-              this.state.nodeConfigWithChanges,
-              payload.editPath,
-              payload.value,
-            ),
           });
         } else {
           this.editNetworkConfig(payload.editPath, payload.value);
@@ -260,18 +255,7 @@ export default class NetworkConfigContainer extends React.Component {
         break;
       case NetworkConfigActions.REVERT_CONFIG_OVERRIDE:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
-          this.setState({
-            nodeDraftConfig: this.editNodeConfig(
-              this.state.nodeDraftConfig,
-              payload.editPath,
-              REVERT_VALUE,
-            ),
-            nodeConfigWithChanges: this.unsetAndCleanupNodes(
-              this.state.nodeConfigWithChanges,
-              payload.editPath,
-              false,
-            ),
-          });
+          this.revertNodeConfig(payload.editPath);
         } else {
           this.revertNetworkConfig(payload.editPath);
         }
@@ -302,41 +286,81 @@ export default class NetworkConfigContainer extends React.Component {
 
       // actions that change the ENTIRE FORM
       case NetworkConfigActions.SUBMIT_CONFIG: {
-        // TODO a quick hack to support nameBased config for M19 onwards
-        // remove after cleaning code to use node name
-        let useNameAsKey = false;
-        let mac2NameMap = {};
-        if (!this.isOldControllerVersion()) {
-          useNameAsKey = true;
-          mac2NameMap = this.getNodesMac2NameMap();
-        }
-
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
-          const pathsToPick = this.state.selectedNodes.map(
-            node => node.mac_addr,
-          );
+          const {
+            nodeOverrideConfig,
+            nodeDraftConfig,
+            removedNodeOverrides,
+            selectedNodes,
+          } = this.state;
 
-          const nodeConfigToSubmit = pick(
-            this.state.nodeConfigWithChanges,
-            pathsToPick,
-          );
+          // TODO a quick hack to support nameBased config for M19 onwards
+          // remove after cleaning code to use node name
+          let useNameAsKey = false;
+          let mac2NameMap = {};
+          if (!this.isOldControllerVersion()) {
+            useNameAsKey = true;
+            mac2NameMap = this.getNodesMac2NameMap();
+          }
+
+          let nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
+          selectedNodes.forEach(node => {
+            const nodeMacAddr = node.mac_addr;
+
+            if (
+              !isEmpty(nodeDraftConfig[nodeMacAddr]) ||
+              !isEmpty(removedNodeOverrides[nodeMacAddr])
+            ) {
+              nodeConfigToSubmit[nodeMacAddr] = createOverrideConfigToSubmit(
+                nodeOverrideConfig[nodeMacAddr],
+                nodeDraftConfig[nodeMacAddr],
+                removedNodeOverrides[nodeMacAddr],
+              );
+              nodeDraftConfig[nodeMacAddr], removedNodeOverrides[nodeMacAddr];
+            }
+          });
+
+          // Clean empty node overrides
+          nodeConfigToSubmit = cleanupObject(nodeConfigToSubmit);
+
           setNodeOverrideConfig(
             topologyName,
             nodeConfigToSubmit,
-            Object.keys(this.state.nodeDraftConfig),
+            Object.keys(nodeConfigToSubmit),
             true,
             useNameAsKey,
             mac2NameMap,
           );
         } else {
-          setNetworkOverrideConfig(
-            topologyName,
-            this.state.networkConfigWithChanges,
-          );
+          const {
+            networkOverrideConfig,
+            networkDraftConfig,
+            removedNetworkOverrides,
+          } = this.state;
+
+          if (
+            !isEmpty(networkDraftConfig) ||
+            !isEmpty(removedNetworkOverrides)
+          ) {
+            setNetworkOverrideConfig(
+              topologyName,
+              createOverrideConfigToSubmit(
+                networkOverrideConfig,
+                networkDraftConfig,
+                removedNetworkOverrides,
+              ),
+            );
+          }
         }
         break;
       }
       case NetworkConfigActions.SUBMIT_CONFIG_FOR_ALL_NODES: {
+        const {
+          nodeOverrideConfig,
+          nodeDraftConfig,
+          removedNodeOverrides,
+        } = this.state;
+
         // TODO a quick hack to support nameBased config for M19 onwards
         // remove after cleaning code to use node name
         let useNameAsKey = false;
@@ -346,16 +370,34 @@ export default class NetworkConfigContainer extends React.Component {
           mac2NameMap = this.getNodesMac2NameMap();
         }
 
+        let nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
+        Object.keys(nodeOverrideConfig).forEach(nodeMacAddr => {
+          if (
+            !isEmpty(nodeDraftConfig[nodeMacAddr]) ||
+            !isEmpty(removedNodeOverrides[nodeMacAddr])
+          ) {
+            nodeConfigToSubmit[nodeMacAddr] = createOverrideConfigToSubmit(
+              nodeOverrideConfig[nodeMacAddr],
+              nodeDraftConfig[nodeMacAddr],
+              removedNodeOverrides[nodeMacAddr],
+            );
+          }
+        });
+
+        // Clean empty node overrides
+        nodeConfigToSubmit = cleanupObject(nodeConfigToSubmit);
+
         setNodeOverrideConfig(
           topologyName,
-          this.state.nodeConfigWithChanges,
-          Object.keys(this.state.nodeDraftConfig),
+          nodeConfigToSubmit,
+          Object.keys(nodeConfigToSubmit),
           false,
           useNameAsKey,
           mac2NameMap,
         );
         break;
       }
+
       case NetworkConfigActions.RESET_CONFIG:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
           this.resetSelectedNodesConfig();
@@ -366,6 +408,7 @@ export default class NetworkConfigContainer extends React.Component {
       case NetworkConfigActions.RESET_CONFIG_FOR_ALL_NODES:
         this.resetAllNodesConfig();
         break;
+
       case NetworkConfigActions.REFRESH_CONFIG:
         this.refreshConfig();
         break;
@@ -378,20 +421,15 @@ export default class NetworkConfigContainer extends React.Component {
         const {
           baseConfig,
           networkOverrideConfig,
-          networkConfigWithChanges,
+          changedNetworkConfig,
           nodeOverrideConfig,
-          nodeConfigWithChanges,
+          changedNodeConfig,
         } = this.state;
         const {metadata} = payload;
         this.setState({
           baseConfig: sortConfig(baseConfig, metadata),
           networkOverrideConfig: sortConfig(networkOverrideConfig, metadata),
-          networkConfigWithChanges: sortConfig(
-            networkConfigWithChanges,
-            metadata,
-          ),
           nodeOverrideConfig: sortConfig(nodeOverrideConfig, metadata),
-          nodeConfigWithChanges: sortConfig(nodeConfigWithChanges, metadata),
           configMetadata: metadata,
         });
         break;
@@ -399,7 +437,6 @@ export default class NetworkConfigContainer extends React.Component {
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
         this.setState({
           networkOverrideConfig: payload.config,
-          networkConfigWithChanges: payload.config,
         });
         break;
       case NetworkConfigActions.GET_NODE_CONFIG_SUCCESS:
@@ -417,12 +454,10 @@ export default class NetworkConfigContainer extends React.Component {
           });
           this.setState({
             nodeOverrideConfig: config,
-            nodeConfigWithChanges: config,
           });
         } else {
           this.setState({
             nodeOverrideConfig: payload.config,
-            nodeConfigWithChanges: payload.config,
           });
         }
         break;
@@ -440,7 +475,7 @@ export default class NetworkConfigContainer extends React.Component {
       default:
         break;
     }
-  }
+  };
 
   // return true if controller vervion is older than M19
   isOldControllerVersion() {
@@ -534,6 +569,10 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   unsetAndCleanupNodes(config, editPath, unsetNodeMac) {
+    if (isEmpty(config)) {
+      return config;
+    }
+
     // if a config for a node becomes empty, remove the node mac_addr as a key if unsetNodeMac is set
     const stopIdx = unsetNodeMac ? 0 : 1;
 
@@ -547,18 +586,6 @@ export default class NetworkConfigContainer extends React.Component {
     });
 
     return newConfig;
-  }
-
-  editNodeConfig(config, editPath, value) {
-    let newNodeConfig = cloneDeep(config);
-    this.state.selectedNodes.forEach(node => {
-      newNodeConfig = this.editConfig(
-        newNodeConfig,
-        [node.mac_addr, ...editPath],
-        value,
-      );
-    });
-    return newNodeConfig;
   }
 
   editNetworkConfig(editPath, value) {
@@ -577,55 +604,99 @@ export default class NetworkConfigContainer extends React.Component {
     });
   }
 
+  editNodeConfig(config, editPath, value) {
+    let newNodeConfig = cloneDeep(config);
+    this.state.selectedNodes.forEach(node => {
+      newNodeConfig = this.editConfig(
+        newNodeConfig,
+        [node.mac_addr, ...editPath],
+        value,
+      );
+    });
+    return newNodeConfig;
+  }
+
   revertNetworkConfig(editPath) {
     this.setState({
-      networkDraftConfig: this.editConfig(
-        cloneDeep(this.state.networkDraftConfig),
-        editPath,
-        REVERT_VALUE,
-      ),
-      networkConfigWithChanges: unsetAndCleanup(
-        this.state.networkConfigWithChanges,
-        editPath,
-        0,
-      ),
+      removedNetworkOverrides: cloneDeep(
+        this.state.removedNetworkOverrides,
+      ).add(editPath.join(PATH_DELIMITER)),
+    });
+  }
+
+  revertNodeConfig(editPath) {
+    const newRemovedNodeOverrides = cloneDeep(this.state.removedNodeOverrides);
+    const editPathStr = editPath.join(PATH_DELIMITER);
+
+    this.state.selectedNodes.forEach(node => {
+      const nodeMacAddr = node.mac_addr;
+
+      if (newRemovedNodeOverrides.hasOwnProperty(nodeMacAddr)) {
+        newRemovedNodeOverrides[nodeMacAddr].add(editPathStr);
+      } else {
+        newRemovedNodeOverrides[nodeMacAddr] = new Set([editPathStr]);
+      }
+    });
+
+    this.setState({
+      removedNodeOverrides: newRemovedNodeOverrides,
     });
   }
 
   undoRevertNetworkConfig(editPath) {
-    this.setState({
-      networkDraftConfig: unsetAndCleanup(
-        this.state.networkDraftConfig,
-        editPath,
-        0,
-      ),
-      networkConfigWithChanges: this.editConfig(
-        cloneDeep(this.state.networkOverrideConfig),
-        editPath,
-        get(this.state.networkOverrideConfig, editPath),
-      ),
-    });
+    const newRemovedNetworkOverrides = cloneDeep(
+      this.state.removedNetworkOverrides,
+    );
+    const editPathStr = editPath.join(PATH_DELIMITER);
+
+    if (newRemovedNetworkOverrides.has(editPathStr)) {
+      // Undo-ing a network override removal
+      newRemovedNetworkOverrides.delete(editPathStr);
+      this.setState({
+        removedNetworkOverrides: newRemovedNetworkOverrides,
+      });
+    } else {
+      this.setState({
+        networkDraftConfig: unsetAndCleanup(
+          this.state.networkDraftConfig,
+          editPath,
+          0,
+        ),
+      });
+    }
   }
 
   undoRevertNodeConfig(editPath) {
-    let newNodeConfigWithChanges = cloneDeep(this.state.nodeConfigWithChanges);
-    this.state.selectedNodes.forEach(node => {
-      const nodeMac = node.mac_addr;
+    const newRemovedNodeOverrides = cloneDeep(this.state.removedNodeOverrides);
+    const editPathStr = editPath.join(PATH_DELIMITER);
 
-      newNodeConfigWithChanges = this.editConfig(
-        newNodeConfigWithChanges,
-        [nodeMac, ...editPath],
-        get(this.state.nodeOverrideConfig, [nodeMac, ...editPath]),
-      );
-    });
-    this.setState({
-      nodeDraftConfig: this.unsetAndCleanupNodes(
-        this.state.nodeDraftConfig,
-        editPath,
-        true,
-      ),
-      nodeConfigWithChanges: newNodeConfigWithChanges,
-    });
+    let undoRemovedOverride = false;
+    for (const node of this.state.selectedNodes) {
+      const nodeMacAddr = node.mac_addr;
+      if (
+        newRemovedNodeOverrides.hasOwnProperty(nodeMacAddr) &&
+        newRemovedNodeOverrides[nodeMacAddr].has(editPathStr)
+      ) {
+        // NOTE: This wont work when you can select multiple nodes as it removes the field from all selected nodes
+        newRemovedNodeOverrides[nodeMacAddr].delete(editPathStr);
+        undoRemovedOverride = true;
+      }
+    }
+
+    if (undoRemovedOverride) {
+      // Undo-ing a node override removal
+      this.setState({
+        removedNodeOverrides: newRemovedNodeOverrides,
+      });
+    } else {
+      this.setState({
+        nodeDraftConfig: this.unsetAndCleanupNodes(
+          this.state.nodeDraftConfig,
+          editPath,
+          true,
+        ),
+      });
+    }
   }
 
   // functions called in the component when API calls return
@@ -633,7 +704,7 @@ export default class NetworkConfigContainer extends React.Component {
   saveNetworkConfig(config) {
     this.setState({
       networkOverrideConfig: cloneDeep(config),
-      networkConfigWithChanges: cloneDeep(config),
+      removedNetworkOverrides: new Set(),
       networkDraftConfig: {},
       newConfigFields: {},
     });
@@ -644,24 +715,28 @@ export default class NetworkConfigContainer extends React.Component {
       // changes pushed only for selected nodes
       const newNodeOverrideConfig = cloneDeep(this.state.nodeOverrideConfig);
       const newNodeDraftConfig = cloneDeep(this.state.nodeDraftConfig);
+      const newRemovedNodeOverrides = cloneDeep(
+        this.state.removedNodeOverrides,
+      );
 
       this.state.selectedNodes.forEach(node => {
-        const nodeMac = node.mac_addr;
+        const nodeMacAddr = node.mac_addr;
 
-        newNodeOverrideConfig[nodeMac] = this.state.nodeConfigWithChanges[
-          nodeMac
-        ];
-        delete newNodeDraftConfig[nodeMac];
+        newNodeOverrideConfig[nodeMacAddr] = config[nodeMacAddr];
+        delete newNodeDraftConfig[nodeMacAddr];
+        delete newRemovedNodeOverrides[nodeMacAddr];
       });
 
       this.setState({
         nodeOverrideConfig: newNodeOverrideConfig,
         nodeDraftConfig: newNodeDraftConfig,
+        removedNodeOverrides: newRemovedNodeOverrides,
         newConfigFields: {},
       });
     } else {
       this.setState({
-        nodeOverrideConfig: cloneDeep(this.state.nodeConfigWithChanges),
+        nodeOverrideConfig: cloneDeep(config),
+        removedNodeOverrides: {},
         nodeDraftConfig: {},
         newConfigFields: {},
       });
@@ -671,30 +746,41 @@ export default class NetworkConfigContainer extends React.Component {
   resetNetworkConfig() {
     this.setState({
       networkDraftConfig: {},
-      networkConfigWithChanges: cloneDeep(this.state.networkOverrideConfig),
+      removedNetworkOverrides: new Set(),
       newConfigFields: {},
     });
   }
 
   resetSelectedNodesConfig() {
+    const {nodeOverrideConfig} = this.state;
     const newNodeDraftConfig = cloneDeep(this.state.nodeDraftConfig);
-    const newNodeConfigWithChanges = cloneDeep(
-      this.state.nodeConfigWithChanges,
-    );
+    const newRemovedNodeOverrides = cloneDeep(this.state.removedNodeOverrides);
 
     this.state.selectedNodes.forEach(node => {
-      const nodeMac = node.mac_addr;
+      const nodeMacAddr = node.mac_addr;
 
-      delete newNodeDraftConfig[nodeMac];
-      newNodeConfigWithChanges[nodeMac] =
-        this.state.nodeOverrideConfig[nodeMac] === undefined
-          ? undefined
-          : cloneDeep(this.state.nodeOverrideConfig[nodeMac]);
+      delete newNodeDraftConfig[nodeMacAddr];
+      delete newRemovedNodeOverrides[nodeMacAddr];
+
+      // if (
+      //   nodeOverrideConfig.hasOwnProperty(nodeMacAddr) &&
+      //   Boolean(nodeOverrideConfig[nodeMacAddr])
+      // ) {
+      //   newChangedNodeConfig[nodeMacAddr] = cloneDeep(nodeOverrideConfig[nodeMacAddr]);
+      // } else {
+      //   delete newChangedNodeConfig[nodeMacAddr];
+      // }
+
+      // newChangedNodeConfig[nodeMacAddr] =
+      //
+      //   this.state.nodeOverrideConfig[nodeMacAddr] === undefined
+      //     ? undefined
+      //     : cloneDeep(this.state.nodeOverrideConfig[nodeMacAddr]);
     });
 
     this.setState({
       nodeDraftConfig: newNodeDraftConfig,
-      nodeConfigWithChanges: newNodeConfigWithChanges,
+      removedNodeOverrides: newRemovedNodeOverrides,
       newConfigFields: {},
     });
   }
@@ -702,25 +788,26 @@ export default class NetworkConfigContainer extends React.Component {
   resetAllNodesConfig() {
     this.setState({
       nodeDraftConfig: {},
-      nodeConfigWithChanges: cloneDeep(this.state.nodeOverrideConfig),
+      removedNodeOverrides: {},
       newConfigFields: {},
     });
   }
 
   refreshConfig() {
-    // first we clear the drafts
-    this.setState({
-      networkDraftConfig: {},
-      networkConfigWithChanges: cloneDeep(this.state.networkOverrideConfig),
-      nodeDraftConfig: {},
-      nodeConfigWithChanges: cloneDeep(this.state.nodeOverrideConfig),
-      newConfigFields: {},
-    });
-
-    // then we make the API calls
-    const topology = this.props.networkConfig.topology;
-    const topologyName = topology.name;
-    this.fetchConfigsForCurrentTopology(topologyName, topology);
+    this.setState(
+      {
+        networkDraftConfig: {},
+        removedNetworkOverrides: new Set(),
+        nodeDraftConfig: {},
+        removedNodeOverrides: {},
+        newConfigFields: {},
+      },
+      () => {
+        const topology = this.props.networkConfig.topology;
+        const topologyName = topology.name;
+        this.fetchConfigsForCurrentTopology(topologyName, topology);
+      },
+    );
   }
 
   fetchConfigsForCurrentTopology(topologyName, topology) {
@@ -739,11 +826,11 @@ export default class NetworkConfigContainer extends React.Component {
 
       networkOverrideConfig,
       networkDraftConfig,
-      networkConfigWithChanges,
+      removedNetworkOverrides,
 
       nodeOverrideConfig,
       nodeDraftConfig,
-      nodeConfigWithChanges,
+      removedNodeOverrides,
 
       editMode,
       selectedImage,
@@ -771,10 +858,10 @@ export default class NetworkConfigContainer extends React.Component {
           configMetadata={configMetadata}
           networkOverrideConfig={networkOverrideConfig}
           networkDraftConfig={networkDraftConfig}
-          networkConfigWithChanges={networkConfigWithChanges}
+          removedNetworkOverrides={removedNetworkOverrides}
           nodeOverrideConfig={nodeOverrideConfig}
           nodeDraftConfig={nodeDraftConfig}
-          nodeConfigWithChanges={nodeConfigWithChanges}
+          removedNodeOverrides={removedNodeOverrides}
         />
         <SweetAlert
           type="error"
@@ -787,8 +874,3 @@ export default class NetworkConfigContainer extends React.Component {
     );
   }
 }
-
-NetworkConfigContainer.propTypes = {
-  networkConfig: PropTypes.object.isRequired,
-  viewContext: PropTypes.object.isRequired,
-};
