@@ -137,6 +137,8 @@ struct TopologyConfig {
   111: i32 api_port,
 
   200: optional Topology.Topology topology,
+  // aggregate stat keys for the network
+  300: optional map<string, i64> keys,
 }
 
 struct StatsWriteRequest {

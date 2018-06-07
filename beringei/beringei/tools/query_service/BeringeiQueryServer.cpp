@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
 
   LOG(INFO) << "Starting Aggregator Service";
   // create timer thread
-  auto aggregator = std::make_shared<AggregatorService>(typeaheadCache);
+  auto aggregator = std::make_shared<AggregatorService>(mySqlClient, typeaheadCache);
   std::thread aggThread([&aggregator]() { aggregator->start(); });
 
   aggThread.join();

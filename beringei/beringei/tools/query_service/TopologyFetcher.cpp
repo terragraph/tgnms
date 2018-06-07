@@ -17,7 +17,7 @@
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-DEFINE_int32(topology_refresh_interval, 30, "Beringei time period");
+DEFINE_int32(topology_refresh_interval, 30, "Topology refresh interval");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -60,21 +60,24 @@ TopologyFetcher::TopologyFetcher(
 
 void TopologyFetcher::timerCb() {
   timer_->scheduleTimeout(FLAGS_topology_refresh_interval * 1000);
-  // fetch topologies from mysql
-
+  // refresh topologies from mysql
+  mySqlClient_->refreshTopologies();
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
+  // fetch cached topologies
   for (const auto& topologyConfig : mySqlClient_->getTopologyConfigs()) {
-    auto topology = fetchTopology(topologyConfig);
+    auto topology = fetchTopology(topologyConfig.second);
     if (topology.nodes.empty()) {
-      LOG(INFO) << "Empty topology for: " << topologyConfig->name;
+      LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
-      topologyConfig->topology = topology;
-      topologyInstance->addTopology(topologyConfig);
+      // update TopologyConfig.topology
+      topologyConfig.second->topology = topology;
+      topologyInstance->addTopology(topologyConfig.second);
       LOG(INFO) << "Topology refreshed for: " << topology.name;
       // load stats type-ahead cache?
       updateTypeaheadCache(topology);
     }
+    // TODO: delete old topologies
   }
 }
 
