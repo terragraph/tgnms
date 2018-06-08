@@ -125,7 +125,6 @@ void MySqlClient::refreshAggregateKeys(
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT `id`, `topology_id`, `key` FROM `agg_key`"));
-
     LOG(INFO) << "refreshAggregateKeys: Number of keys: " << res->rowsCount();
     while (res->next()) {
       int64_t keyId = res->getInt("id");
