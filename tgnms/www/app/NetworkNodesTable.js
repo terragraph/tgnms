@@ -7,7 +7,7 @@
 
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
-import {availabilityColor} from './NetworkHelper.js';
+import {availabilityColor} from './helpers/NetworkHelpers.js';
 import ReactEventChart from './ReactEventChart.js';
 import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
@@ -134,7 +134,8 @@ export default class NetworkNodesTable extends React.Component {
         this.state.nodeHealth.hasOwnProperty('metrics') &&
         this.state.nodeHealth.metrics.hasOwnProperty(node.mac_addr)
       ) {
-        availability = this.state.nodeHealth.metrics[node.mac_addr].minion_uptime;
+        availability = this.state.nodeHealth.metrics[node.mac_addr]
+          .minion_uptime;
         events = this.state.nodeHealth.metrics[node.mac_addr].events;
       }
       rows.push({

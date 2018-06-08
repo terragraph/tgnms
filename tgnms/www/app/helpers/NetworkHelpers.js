@@ -9,8 +9,11 @@
  * Shared methods
  */
 
+import {PolarityType} from '../../thrift/gen-nodejs/Topology_types';
+
 import LeafletGeom from 'leaflet-geometryutil';
 import {LatLng} from 'leaflet';
+import invert from 'lodash-es/invert';
 
 export function availabilityColor(alive_perc) {
   if (alive_perc >= 99.99) {
@@ -47,11 +50,12 @@ export function polarityColor(polarity) {
     return 'red';
   }
   switch (polarity) {
-    case 1:
+    case PolarityType.ODD:
       return 'blue';
-    case 2:
+    case PolarityType.EVEN:
       return 'magenta';
-    case 3:
+    case PolarityType.HYBRID_ODD:
+    case PolarityType.HYBRID_EVEN:
       return 'orange';
     default:
       return 'red';
@@ -101,4 +105,35 @@ export function linkLength(aSite, zSite) {
   const linkAngle = LeafletGeom.bearing(aSiteCoords, zSiteCoords);
   const linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
   return linkLength;
+}
+
+/**
+ * Returns the a readable polarity string given a number
+ * @param  {Number/String} polarity
+ */
+export function getPolarityString(polarity) {
+  const polarityToString = invert(PolarityType);
+
+  if (typeof polarity === 'string') {
+    if (!isNaN(polarity)) {
+      polarity = parseInt(polarity);
+    } else {
+      return 'Malformed';
+    }
+  }
+
+  if (polarity === undefined || polarity === null) {
+    return 'Not Set';
+  }
+
+  if (polarityToString.hasOwnProperty(polarity)) {
+    // Take a string in HYBRID_ODD and convert it to Hybrid Odd
+    const polarityString = polarityToString[polarity];
+    return polarityString
+      .split('_')
+      .map(token => token[0] + token.substring(1).toLowerCase())
+      .join(' ');
+  }
+
+  return polarity;
 }

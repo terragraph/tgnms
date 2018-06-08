@@ -9,7 +9,7 @@ import 'sweetalert/dist/sweetalert.css';
 
 import ModalIgnitionState from '../../ModalIgnitionState.js';
 import Dispatcher from '../../NetworkDispatcher.js';
-import {availabilityColor} from '../../NetworkHelper.js';
+import {availabilityColor} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
 import classnames from 'classnames';
