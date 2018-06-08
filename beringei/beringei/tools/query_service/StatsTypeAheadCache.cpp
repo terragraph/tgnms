@@ -86,8 +86,6 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
     macNodes_.insert(node.mac_addr);
     nodesByName_[node.name] = node;
   }
-  // e2e
-  macNodes_.insert("00:00:00:00:00:00");
 
   auto dbNodes = mySqlClient_->getNodesWithKeys(macNodes_);
   for (const auto& node : dbNodes) {
@@ -114,6 +112,19 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
       nodeMacToKeyList_[node->mac][key.second] = keyData;
     }
   }
+  for (const auto& topologyConfig : mySqlClient_->getTopologyConfigs()) {
+    if (topologyConfig.second->topology.name != request.name) {
+      continue;
+    }
+    for (const auto& key : topologyConfig.second->keys) {
+      auto keyData = std::make_shared<query::KeyData>();
+      keyData->keyId = key.second;
+      keyData->key = key.first;
+      keyData->displayName = key.first;
+      metricIdMetadata_[key.second] = keyData;
+      keyToMetricIds_[key.first].push_back(key.second);
+    }
+  }
 
   for (auto& link : request.links) {
     // skip wired links
@@ -137,8 +148,8 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
             keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
         if (!nodeMacToKeyList_.count(mac) ||
             !nodeMacToKeyList_[mac].count(keyName)) {
-          LOG(INFO) << "Unable to find metricName for " << aNode.name << "-"
-                    << zNode.name << ", mac: " << mac << ", key: " << keyName;
+          VLOG(1) << "Unable to find metricName for " << aNode.name << "-"
+                  << zNode.name << ", mac: " << mac << ", key: " << keyName;
           continue;
         }
         auto keyData = nodeMacToKeyList_[mac][keyName];

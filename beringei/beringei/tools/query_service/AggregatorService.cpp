@@ -56,8 +56,11 @@ using apache::thrift::SimpleJSONSerializer;
 namespace facebook {
 namespace gorilla {
 
-AggregatorService::AggregatorService(TACacheMap& typeaheadCache)
-    : typeaheadCache_(typeaheadCache) {
+AggregatorService::AggregatorService(
+  std::shared_ptr<MySqlClient> mySqlClient,
+  TACacheMap& typeaheadCache)
+    : mySqlClient_(mySqlClient),
+      typeaheadCache_(typeaheadCache) {
   // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
@@ -155,6 +158,7 @@ void AggregatorService::ruckusControllerCb() {
   //  });
   ruckusTimer_->scheduleTimeout(FLAGS_ruckus_controller_time_period * 1000);
 }
+
 void AggregatorService::timerCb() {
   LOG(INFO) << "Aggregator running";
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
@@ -215,23 +219,25 @@ void AggregatorService::timerCb() {
         auto locked = typeaheadCache_.rlock();
         auto taCacheIt = locked->find(topology.name);
         if (taCacheIt != locked->cend()) {
-          LOG(INFO) << "Cache found for: " << topology.name;
+          VLOG(1) << "Cache found for: " << topology.name;
           // fetch back the metrics we care about (PER, MCS?)
           // and average the values
           buildQuery(aggValues, popNodes, taCacheIt->second);
           for (const auto& metric : aggValues) {
-            LOG(INFO) << "Agg: " << metric.first << " = "
-                      << std::to_string(metric.second) << ", ts: " << timeStamp;
+            VLOG(1) << "Agg: " << metric.first << " = "
+                    << std::to_string(metric.second) << ", ts: " << timeStamp;
           }
           // find metrics, update beringei
+          std::unordered_set<std::string> aggMetricNamesToAdd;
           for (const auto& metric : aggValues) {
-            std::vector<query::KeyData> keyData =
-                taCacheIt->second->getKeyData(metric.first);
-            if (keyData.size() != 1) {
-              LOG(INFO) << "Metric not found: " << metric.first;
+            auto topologyAggKeyIt = topologyConfig.second->keys.find(metric.first);
+            if (topologyAggKeyIt == topologyConfig.second->keys.end()) {
+              // add key name to db
+              aggMetricNamesToAdd.insert(metric.first);
+              LOG(INFO) << "Missing key name: " << metric.first;
               continue;
             }
-            int keyId = keyData.front().keyId;
+            int keyId = topologyAggKeyIt->second;
             // create beringei data-point
             DataPoint bDataPoint;
             TimeValuePair bTimePair;
@@ -244,6 +250,12 @@ void AggregatorService::timerCb() {
             bDataPoint.value = bTimePair;
             bDataPoints.push_back(bDataPoint);
           }
+          if (!aggMetricNamesToAdd.empty()) {
+            std::vector<std::string> aggMetricNamesToAddVector(
+                aggMetricNamesToAdd.begin(), aggMetricNamesToAdd.end());
+            mySqlClient_->addAggKeys(
+                topologyConfig.second->id, aggMetricNamesToAddVector);
+          }
         } else {
           LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
         }
@@ -253,7 +265,7 @@ void AggregatorService::timerCb() {
         eb.runInLoop([this, &bDataPoints]() mutable {
           auto beringeiClientStore = BeringeiClientStore::getInstance();
           // TODO - change to write..
-          auto beringeiWriteClient = beringeiClientStore->getReadClient(30);
+          auto beringeiWriteClient = beringeiClientStore->getWriteClient(30);
           auto pushedPoints = beringeiWriteClient->putDataPoints(bDataPoints);
           if (!pushedPoints) {
             LOG(ERROR) << "Failed to perform the put!";
@@ -277,8 +289,8 @@ void AggregatorService::buildQuery(
   // build queries
   query::QueryRequest queryRequest;
   std::vector<query::Query> queries;
-  std::vector<std::string> keyNames = {"per", "mcs", "snr"};
-  for (const auto keyName : keyNames) {
+  std::vector<std::string> keyNames = {"per", "mcs", "snr", "rssi"};
+  for (const auto& keyName : keyNames) {
     auto keyData = cache->getKeyData(keyName);
     query::Query query;
     query.type = "latest";
@@ -297,9 +309,9 @@ void AggregatorService::buildQuery(
     queries.push_back(query);
   }
   // pop-specific keys
-  std::vector<std::string> popKeyNames = {"tx_bytes", "rx_bytes"};
+  static const std::vector<std::string> popKeyNames = {"tx_bytes", "rx_bytes"};
   keyNames.insert(keyNames.end(), popKeyNames.begin(), popKeyNames.end());
-  for (const auto keyName : popKeyNames) {
+  for (const auto& keyName : popKeyNames) {
     auto keyData = cache->getKeyData(keyName);
     query::Query query;
     query.type = "latest";
