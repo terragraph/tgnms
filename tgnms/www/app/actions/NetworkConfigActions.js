@@ -28,7 +28,8 @@ export const NetworkConfigActions = {
   DELETE_NEW_FIELD: 'DELETE_NEW_FIELD',
   SUBMIT_NEW_FIELD: 'SUBMIT_NEW_FIELD',
 
-  DELETE_FIELD: 'DELETE_FIELD',
+  EDIT_AND_DELETE_FIELDS: 'EDIT_AND_DELETE_FIELDS',
+  DELETE_FIELDS: 'DELETE_FIELDS',
 
   EDIT_E2E_CONFIG_TYPE: 'EDIT_E2E_CONFIG_TYPE',
 
@@ -162,10 +163,19 @@ export const deleteNewField = ({editPath, id}) => {
   });
 };
 
-export const deleteField = ({editPath}) => {
+export const editAndDeleteFields = ({editPath, value, pathsToRemove}) => {
   Dispatcher.dispatch({
-    actionType: NetworkConfigActions.DELETE_FIELD,
+    actionType: NetworkConfigActions.EDIT_AND_DELETE_FIELDS,
     editPath,
+    value,
+    pathsToRemove,
+  });
+};
+
+export const deleteFields = ({editPaths}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.DELETE_FIELDS,
+    editPaths,
   });
 };
 

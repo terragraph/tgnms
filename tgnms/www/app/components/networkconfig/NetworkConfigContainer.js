@@ -29,14 +29,24 @@ import {
 import {Actions} from '../../constants/NetworkConstants.js';
 import {
   cleanupObject,
-  createOverrideConfigToSubmit,
+  createConfigToSubmit,
   getImageVersionsForNetwork,
   unsetAndCleanup,
   getDefaultValueForType,
   sortConfig,
 } from '../../helpers/NetworkConfigHelpers.js';
 import NetworkConfig from './NetworkConfig.js';
-import {cloneDeep, get, hasIn, isEmpty, merge, pick, set} from 'lodash-es';
+import {
+  cloneDeep,
+  get,
+  has,
+  hasIn,
+  isEmpty,
+  merge,
+  pick,
+  set,
+  unset,
+} from 'lodash-es';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
@@ -242,13 +252,7 @@ export default class NetworkConfigContainer extends React.Component {
       // actions that directly change the form on ONE FIELD
       case NetworkConfigActions.EDIT_CONFIG_FORM:
         if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
-          this.setState({
-            nodeDraftConfig: this.editNodeConfig(
-              this.state.nodeDraftConfig,
-              payload.editPath,
-              payload.value,
-            ),
-          });
+          this.editNodeConfig(payload.editPath, payload.value);
         } else {
           this.editNetworkConfig(payload.editPath, payload.value);
         }
@@ -265,6 +269,23 @@ export default class NetworkConfigContainer extends React.Component {
           this.undoRevertNodeConfig(payload.editPath);
         } else {
           this.undoRevertNetworkConfig(payload.editPath);
+        }
+        break;
+
+      // actions that directly change the form on MULTIPLE fields
+      case NetworkConfigActions.EDIT_AND_DELETE_FIELDS:
+        if (this.state.editMode === CONFIG_VIEW_MODE.NODE) {
+          this.editAndDeleteNodeConfigFields(
+            payload.editPath,
+            payload.value,
+            payload.pathsToRemove,
+          );
+        } else {
+          this.editAndDeleteNetworkConfigFields(
+            payload.editPath,
+            payload.value,
+            payload.pathsToRemove,
+          );
         }
         break;
 
@@ -311,17 +332,15 @@ export default class NetworkConfigContainer extends React.Component {
               !isEmpty(nodeDraftConfig[nodeMacAddr]) ||
               !isEmpty(removedNodeOverrides[nodeMacAddr])
             ) {
-              nodeConfigToSubmit[nodeMacAddr] = createOverrideConfigToSubmit(
+              nodeConfigToSubmit[nodeMacAddr] = createConfigToSubmit(
                 nodeOverrideConfig[nodeMacAddr],
                 nodeDraftConfig[nodeMacAddr],
                 removedNodeOverrides[nodeMacAddr],
               );
-              nodeDraftConfig[nodeMacAddr], removedNodeOverrides[nodeMacAddr];
             }
           });
 
-          // Clean empty node overrides
-          nodeConfigToSubmit = cleanupObject(nodeConfigToSubmit);
+          // NOTE: We don't clean up empty overrides cause we need to send an empty object to the API to clear it
 
           setNodeOverrideConfig(
             topologyName,
@@ -344,7 +363,7 @@ export default class NetworkConfigContainer extends React.Component {
           ) {
             setNetworkOverrideConfig(
               topologyName,
-              createOverrideConfigToSubmit(
+              createConfigToSubmit(
                 networkOverrideConfig,
                 networkDraftConfig,
                 removedNetworkOverrides,
@@ -371,12 +390,12 @@ export default class NetworkConfigContainer extends React.Component {
         }
 
         let nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
-        Object.keys(nodeOverrideConfig).forEach(nodeMacAddr => {
+        this.getNodeMacs().forEach(nodeMacAddr => {
           if (
             !isEmpty(nodeDraftConfig[nodeMacAddr]) ||
             !isEmpty(removedNodeOverrides[nodeMacAddr])
           ) {
-            nodeConfigToSubmit[nodeMacAddr] = createOverrideConfigToSubmit(
+            nodeConfigToSubmit[nodeMacAddr] = createConfigToSubmit(
               nodeOverrideConfig[nodeMacAddr],
               nodeDraftConfig[nodeMacAddr],
               removedNodeOverrides[nodeMacAddr],
@@ -384,8 +403,7 @@ export default class NetworkConfigContainer extends React.Component {
           }
         });
 
-        // Clean empty node overrides
-        nodeConfigToSubmit = cleanupObject(nodeConfigToSubmit);
+        // NOTE: We don't clean up empty overrides cause we need to send an empty object to the API to clear it
 
         setNodeOverrideConfig(
           topologyName,
@@ -522,7 +540,7 @@ export default class NetworkConfigContainer extends React.Component {
     };
 
     this.setState({
-      newConfigFields: this.editConfig(
+      newConfigFields: this.editConfigHelper(
         this.state.newConfigFields,
         [...editPath, newId],
         newField,
@@ -539,7 +557,7 @@ export default class NetworkConfigContainer extends React.Component {
     newField.value = value;
 
     this.setState({
-      newConfigFields: this.editConfig(
+      newConfigFields: this.editConfigHelper(
         this.state.newConfigFields,
         [...editPath, id],
         newField,
@@ -562,10 +580,10 @@ export default class NetworkConfigContainer extends React.Component {
     return get(config, editPath);
   }
 
-  editConfig(config, editPath, value) {
-    // set sets the object property defined in editPath to be the value passed in
-    // it will create the path in the object if one does not exist
-    return set(config, editPath, value);
+  editConfigHelper(config, editPath, value) {
+    return editPath !== undefined && editPath !== null
+      ? set(config, editPath, value)
+      : value;
   }
 
   unsetAndCleanupNodes(config, editPath, unsetNodeMac) {
@@ -573,9 +591,9 @@ export default class NetworkConfigContainer extends React.Component {
       return config;
     }
 
-    // if a config for a node becomes empty, remove the node mac_addr as a key if unsetNodeMac is set
     const stopIdx = unsetNodeMac ? 0 : 1;
 
+    // if a config for a node becomes empty, remove the node mac_addr as a key if unsetNodeMac is set
     let newConfig = cloneDeep(config);
     this.state.selectedNodes.forEach(node => {
       newConfig = unsetAndCleanup(
@@ -589,31 +607,28 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   editNetworkConfig(editPath, value) {
-    // get deep copies of the state so we don't directly mutate this.state
     this.setState({
-      networkDraftConfig: this.editConfig(
+      networkDraftConfig: this.editConfigHelper(
         cloneDeep(this.state.networkDraftConfig),
-        editPath,
-        value,
-      ),
-      networkConfigWithChanges: this.editConfig(
-        cloneDeep(this.state.networkConfigWithChanges),
         editPath,
         value,
       ),
     });
   }
 
-  editNodeConfig(config, editPath, value) {
-    let newNodeConfig = cloneDeep(config);
+  editNodeConfig(editPath, value) {
+    let newNodeConfig = cloneDeep(this.state.nodeDraftConfig);
     this.state.selectedNodes.forEach(node => {
-      newNodeConfig = this.editConfig(
+      newNodeConfig = this.editConfigHelper(
         newNodeConfig,
         [node.mac_addr, ...editPath],
         value,
       );
     });
-    return newNodeConfig;
+
+    this.setState({
+      nodeDraftConfig: newNodeConfig,
+    });
   }
 
   revertNetworkConfig(editPath) {
@@ -639,6 +654,103 @@ export default class NetworkConfigContainer extends React.Component {
     });
 
     this.setState({
+      removedNodeOverrides: newRemovedNodeOverrides,
+    });
+  }
+
+  editAndDeleteNetworkConfigFields(editPath, value, pathsToRemove) {
+    /*
+      NOTE: Deletion differs from undoRevert in that it either removes an editPath from the draft
+      OR adds it to the list of removed overrides whereas undoRevert will remove from the draft
+      or remove it from the list of removed overrides to undo a change
+    */
+    const newNetworkDraftConfig = cloneDeep(this.state.networkDraftConfig);
+    const newRemovedNetworkOverrides = cloneDeep(
+      this.state.removedNetworkOverrides,
+    );
+
+    // Edit Network Config
+    const editedNetworkDraft = this.editConfigHelper(
+      newNetworkDraftConfig,
+      editPath,
+      value,
+    );
+
+    // Remove Fields from Network Config
+    let removedFromDraft = false;
+
+    pathsToRemove.forEach(path => {
+      // Check if the path exists in the *old* draftConfig
+      if (has(this.state.networkDraftConfig, path)) {
+        unset(editedNetworkDraft, path);
+        removedFromDraft = true;
+      } else {
+        // Otherwise add it to the set of removed paths
+        newRemovedNetworkOverrides.add(path.join(PATH_DELIMITER));
+      }
+    });
+
+    const cleanedNetworkDraft = removedFromDraft
+      ? cleanupObject(editedNetworkDraft)
+      : editedNetworkDraft;
+
+    this.setState({
+      networkDraftConfig: cleanedNetworkDraft,
+      removedNetworkOverrides: newRemovedNetworkOverrides,
+    });
+  }
+
+  editAndDeleteNodeConfigFields(editPath, value, pathsToRemove) {
+    /*
+      NOTE: Deletion differs from undoRevert in that it either removes an editPath from the draft
+      OR adds it to the list of removed overrides whereas undoRevert will remove from the draft
+      or remove it from the list of removed overrides to undo a change
+    */
+    let newNodeDraftConfig = cloneDeep(this.state.nodeDraftConfig);
+    const newRemovedNodeOverrides = cloneDeep(this.state.removedNodeOverrides);
+
+    this.state.selectedNodes.forEach(node => {
+      // NOTE: Doesn't work when selecting multiple nodes as it removes it from all selected nodes
+      const nodeMacAddr = node.mac_addr;
+
+      // Edit Node Config for for iterated node
+      newNodeDraftConfig[nodeMacAddr] = this.editConfigHelper(
+        newNodeDraftConfig[nodeMacAddr],
+        editPath,
+        value,
+      );
+
+      // Remove Fields from Node Config for iterated node
+      let removedFromNodeDraft = false;
+
+      pathsToRemove.forEach(path => {
+        // Check if the path exists in the *old* draftConfig
+        const pathWithNodeAddr = [nodeMacAddr, ...path];
+
+        if (has(this.state.nodeDraftConfig, pathWithNodeAddr)) {
+          unset(newNodeDraftConfig, pathWithNodeAddr);
+          removedFromNodeDraft = true;
+        } else {
+          // Otherwise add it to the set of removed paths
+          const editPathStr = path.join(PATH_DELIMITER);
+
+          if (newRemovedNodeOverrides.hasOwnProperty(nodeMacAddr)) {
+            newRemovedNodeOverrides[nodeMacAddr].add(editPathStr);
+          } else {
+            newRemovedNodeOverrides[nodeMacAddr] = new Set([editPathStr]);
+          }
+        }
+      });
+
+      if (removedFromNodeDraft) {
+        newNodeDraftConfig[nodeMacAddr] = cleanupObject(
+          newNodeDraftConfig[nodeMacAddr],
+        );
+      }
+    });
+
+    this.setState({
+      nodeDraftConfig: newNodeDraftConfig,
       removedNodeOverrides: newRemovedNodeOverrides,
     });
   }

@@ -4,11 +4,6 @@
 @import url("nms-nc-custom-toggle.css");
 
 .rc-network-config {
-  margin-top: 40px;
-  top: 0;
-  bottom: 0;
-  position: fixed !important;
-
   display: flex;
   flex-direction: row;
 
@@ -19,16 +14,20 @@
 
 /* NETWORK CONFIG BODY */
 .rc-network-config-body {
+  border-left: 1px solid #aaa;
   display: flex;
   flex-direction: column;
 
+  min-height: 100vh;
   width: 100%;
   overflow-y: auto;
 }
 
 .nc-expand-all-wrapper {
-  padding: 10px;
+  align-items: center;
   border-bottom: 1px solid #aaa;
+  display: flex;
+  padding: 10px;
 }
 
 .nc-expand-all-btn {
@@ -44,6 +43,11 @@
 .nc-expand-all-btn:hover {
   cursor: pointer;
   background-color: rgb(183,210,255);
+}
+
+.nc-btn-spacer {
+  display: block;
+  width: 3rem;
 }
 
 /* NETWORK CONFIG HEADER */
@@ -94,7 +98,6 @@
 
 .nc-header-toggle:hover {
   background-color: transparent;
-  transform: scale(1.02, 1.02);
 }
 
 .open > .nc-header-toggle.dropdown-toggle.btn-default,
@@ -123,6 +126,10 @@
 .rc-network-config-footer {
   border-top: 1px solid #777;
   background-color: #fff;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 10;
 }
 
 .rc-network-config-footer button {
@@ -132,4 +139,22 @@
 
 .rc-network-config-footer button:disabled {
   opacity: 0.5;
+}
+
+/* NETWORK CONFIG JSON TEXT AREA */
+.rc-json-config-textarea {
+  padding: 10px;
+  width: 70%;
+  height: 90%;
+  overflow-y: scroll;
+  transition: all 100ms ease-in-out;
+}
+
+.rc-json-config-textarea:focus {
+  outline: none;
+}
+
+.rc-json-config-textarea.draft {
+  /* border: 1px #f9ca24 solid; */
+  background-color: #fffcf2;
 }

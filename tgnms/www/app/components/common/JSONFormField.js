@@ -6,7 +6,7 @@
 'use strict';
 
 import {
-  deleteField,
+  deleteFields,
   editConfigForm,
   revertConfigOverride,
   discardUnsavedConfig,
@@ -184,8 +184,8 @@ export default class JSONFormField extends React.Component {
   };
 
   deleteField = () => {
-    deleteField({
-      editPath: this.props.editPath,
+    deleteFields({
+      editPaths: [this.props.editPath],
     });
   };
 
