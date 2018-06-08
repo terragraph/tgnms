@@ -113,6 +113,9 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
     }
   }
   for (const auto& topologyConfig : mySqlClient_->getTopologyConfigs()) {
+    if (topologyConfig.second->topology.name != request.name) {
+      continue;
+    }
     for (const auto& key : topologyConfig.second->keys) {
       auto keyData = std::make_shared<query::KeyData>();
       keyData->keyId = key.second;

@@ -251,12 +251,10 @@ void AggregatorService::timerCb() {
             bDataPoints.push_back(bDataPoint);
           }
           if (!aggMetricNamesToAdd.empty()) {
-            std::vector<std::string> aggMetricNamesToAddVector;
-            std::copy(
-                aggMetricNamesToAdd.begin(),
-                aggMetricNamesToAdd.end(),
-                std::back_inserter(aggMetricNamesToAddVector));
-            mySqlClient_->addAggKeys(topologyConfig.second->id, aggMetricNamesToAddVector);
+            std::vector<std::string> aggMetricNamesToAddVector(
+                aggMetricNamesToAdd.begin(), aggMetricNamesToAdd.end());
+            mySqlClient_->addAggKeys(
+                topologyConfig.second->id, aggMetricNamesToAddVector);
           }
         } else {
           LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
@@ -292,7 +290,7 @@ void AggregatorService::buildQuery(
   query::QueryRequest queryRequest;
   std::vector<query::Query> queries;
   std::vector<std::string> keyNames = {"per", "mcs", "snr", "rssi"};
-  for (const auto keyName : keyNames) {
+  for (const auto& keyName : keyNames) {
     auto keyData = cache->getKeyData(keyName);
     query::Query query;
     query.type = "latest";
@@ -311,9 +309,9 @@ void AggregatorService::buildQuery(
     queries.push_back(query);
   }
   // pop-specific keys
-  std::vector<std::string> popKeyNames = {"tx_bytes", "rx_bytes"};
+  static const std::vector<std::string> popKeyNames = {"tx_bytes", "rx_bytes"};
   keyNames.insert(keyNames.end(), popKeyNames.begin(), popKeyNames.end());
-  for (const auto keyName : popKeyNames) {
+  for (const auto& keyName : popKeyNames) {
     auto keyData = cache->getKeyData(keyName);
     query::Query query;
     query.type = "latest";
