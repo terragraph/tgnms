@@ -32,7 +32,7 @@ export default class DetailsLegend extends React.Component {
     },
   };
   nodeTypesOverlaySource = {
-    DN: {
+    POP: {
       color: 'blue',
       svg: {},
     },
