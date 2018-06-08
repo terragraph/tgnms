@@ -69,6 +69,7 @@
     "react-stonecutter": "^0.3.9",
     "react-svg-piechart": "^2.1.0",
     "react-tabs": "^2.2.2",
+    "react-textarea-autosize": "^6.1.0",
     "react-timeseries-charts": "^0.14.0",
     "request": "^2.79.0",
     "style-loader": "^0.16.0",
@@ -132,7 +133,9 @@
     "xterm": "^3.3.0"
   },
   "lint-staged": {
-    "app/*.js": ["./node_modules/.bin/eslint --fix --ignore-path .eslintignore"]
+    "app/*.js": [
+      "./node_modules/.bin/eslint --fix --ignore-path .eslintignore"
+    ]
   },
   "babel": {
     "presets": [

@@ -25,6 +25,7 @@ import {
 import {
   getMetadata,
   getStackedFields,
+  convertAndValidateNewConfigObject,
 } from '../../helpers/NetworkConfigHelpers.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
 import JSONFormField from './JSONFormField.js';
@@ -188,6 +189,12 @@ const emptyFieldAlertProps = {
 const duplicateFieldAlertProps = duplicateField => ({
   title: 'Duplicate Field Name Detected',
   text: `There exists another field ${duplicateField} in the configuration, please rename your field and try again`,
+  type: 'error',
+});
+
+const jsonErrorAlertProps = error => ({
+  title: 'JSON Parse Error',
+  text: error,
   type: 'error',
 });
 
@@ -409,6 +416,32 @@ export default class JSONConfigForm extends React.Component {
     });
   };
 
+  onSubmitRawJSONField = (editPath, id, field, value) => {
+    const {configs, draftConfig} = this.props;
+
+    // retrieve the union of fields for all json objects in the array
+    const configFields = new Set(getStackedFields([...configs, draftConfig]));
+
+    if (value === '') {
+      swal(emptyFieldAlertProps);
+      return;
+    } else if (configFields.has(field)) {
+      swal(duplicateFieldAlertProps(field));
+      return;
+    }
+
+    try {
+      editConfigForm({
+        editPath: [...editPath, field],
+        value: JSON.parse(value),
+      });
+
+      this.onDeleteNewField(editPath, id);
+    } catch (error) {
+      swal(jsonErrorAlertProps(error.toString()));
+    }
+  };
+
   onDeleteNewField(editPath, id) {
     deleteNewField({
       editPath,
@@ -437,6 +470,15 @@ export default class JSONConfigForm extends React.Component {
         return (
           <li className="rc-json-config-input">
             <NewJSONConfigField {...newFieldProps} />
+          </li>
+        );
+      case ADD_FIELD_TYPES.RAW_JSON:
+        return (
+          <li className="rc-json-config-input">
+            <NewJSONConfigField
+              {...newFieldProps}
+              onSubmit={this.onSubmitRawJSONField}
+            />
           </li>
         );
       case ADD_FIELD_TYPES.OBJECT:
