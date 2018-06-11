@@ -35,44 +35,40 @@ const getErrorText = error => {
 };
 
 function apiServiceRequest(
-    topologyName: string, apiMethod: string, data: Object = {}) {
+  topologyName: string,
+  apiMethod: string,
+  data: Object = {},
+) {
   // All apiservice requests are POST, and expect at least an empty dict.
   return axios.post(
     `/apiservice/${topologyName}/api/${apiMethod}`,
-    data=data);
+    (data = data),
+  );
 }
 
 export const getConfigsForTopology = (
   topologyName,
-  imageVersions,
+  swVersions,
   getNetworkAndNodeConfig,
 ) => {
-  const uri = '/controller/getBaseConfig';
+  const data = {swVersions: [DEFAULT_BASE_KEY, ...swVersions]};
+  apiServiceRequest(topologyName, 'getBaseConfig', data).then(response => {
+    const {config} = response.data;
+    const parsedConfig = JSON.parse(config);
+    // assume here that it's a map of base version to config object
+    const cleanedConfig = {};
+    Object.keys(parsedConfig).forEach(baseVersion => {
+      const configValue = isPlainObject(parsedConfig[baseVersion])
+        ? parsedConfig[baseVersion]
+        : {};
+      cleanedConfig[baseVersion] = configValue;
+    }, {});
 
-  axios
-    .get(uri, {
-      params: {
-        topologyName,
-        imageVersions: [DEFAULT_BASE_KEY, ...imageVersions],
-      },
-    })
-    .then(response => {
-      const {config} = response.data;
-      const parsedConfig = JSON.parse(config);
-      // assume here that it's a map of base version to config object
-      const cleanedConfig = {};
-      Object.keys(parsedConfig).forEach(baseVersion => {
-        const configValue = isPlainObject(parsedConfig[baseVersion])
-          ? parsedConfig[baseVersion]
-          : {};
-        cleanedConfig[baseVersion] = configValue;
-      }, {});
-
-      getBaseConfigSuccess({
-        config: sortConfig(cleanedConfig),
-        topologyName,
-      });
+    getBaseConfigSuccess({
+      config: sortConfig(cleanedConfig),
+      topologyName,
     });
+  });
 
   if (getNetworkAndNodeConfig) {
     getNetworkOverrideConfig(topologyName);
@@ -81,15 +77,8 @@ export const getConfigsForTopology = (
 };
 
 export const getConfigMetadata = topologyName => {
-  const uri = '/controller/getConfigMetadata';
-
-  axios
-    .get(uri, {
-      params: {
-        topologyName,
-      },
-    })
-    .then(response => {
+  apiServiceRequest(topologyName, 'getControllerConfigMetadata').then(
+    response => {
       const {metadata} = response.data;
       const parsedMetadata = JSON.parse(metadata);
 
@@ -97,19 +86,13 @@ export const getConfigMetadata = topologyName => {
         metadata: parsedMetadata,
         topologyName,
       });
-    });
+    },
+  );
 };
 
 export const getNetworkOverrideConfig = topologyName => {
-  const uri = '/controller/getNetworkOverrideConfig';
-
-  axios
-    .get(uri, {
-      params: {
-        topologyName,
-      },
-    })
-    .then(response => {
+  apiServiceRequest(topologyName, 'getNetworkOverridesConfig').then(
+    response => {
       const {overrides} = response.data;
       const cleanedOverride = isPlainObject(JSON.parse(overrides))
         ? JSON.parse(overrides)
@@ -118,58 +101,42 @@ export const getNetworkOverrideConfig = topologyName => {
         config: sortConfig(cleanedOverride),
         topologyName,
       });
-    });
+    },
+  );
 };
 
 export const getNodeOverrideConfig = topologyName => {
-  const uri = '/controller/getNodeOverrideConfig';
-
-  axios
-    .get(uri, {
-      params: {
-        topologyName,
-        nodes: [],
-      },
-    })
-    .then(response => {
+  // TODO
+  // topology.topology.nodes.map(node => node.mac_addr);
+  const data = {
+    nodes: [],
+  };
+  apiServiceRequest(topologyName, 'getNodeOverridesConfig', data).then(
+    response => {
       const {overrides} = response.data;
       getNodeConfigSuccess({
         config: sortConfig(JSON.parse(overrides)),
         topologyName,
       });
-    });
+    },
+  );
 };
 
 export const getControllerConfig = topologyName => {
-  const uri = '/controller/getControllerConfig';
+  apiServiceRequest(topologyName, 'getControllerConfig').then(response => {
+    const {config} = response.data;
+    const parsedConfig = JSON.parse(config);
 
-  axios
-    .get(uri, {
-      params: {
-        topologyName,
-      },
-    })
-    .then(response => {
-      const {config} = response.data;
-      const parsedConfig = JSON.parse(config);
-
-      getControllerConfigSuccess({
-        config: sortConfigByTag(parsedConfig),
-        topologyName,
-      });
+    getControllerConfigSuccess({
+      config: sortConfigByTag(parsedConfig),
+      topologyName,
     });
+  });
 };
 
 export const getControllerConfigMetadata = topologyName => {
-  const uri = '/controller/getControllerConfigMetadata';
-
-  axios
-    .get(uri, {
-      params: {
-        topologyName,
-      },
-    })
-    .then(response => {
+  apiServiceRequest(topologyName, 'getControllerConfigMetadata').then(
+    response => {
       const {metadata} = response.data;
       const parsedMetadata = JSON.parse(metadata);
 
@@ -177,17 +144,15 @@ export const getControllerConfigMetadata = topologyName => {
         metadata: parsedMetadata,
         topologyName,
       });
-    });
+    },
+  );
 };
 
 export const setNetworkOverrideConfig = (topologyName, config) => {
-  const uri = '/controller/setNetworkOverrideConfig';
-
-  axios
-    .post(uri, {
-      config,
-      topologyName,
-    })
+  const data = {
+    overrides: JSON.stringify(config),
+  };
+  apiServiceRequest(topologyName, 'setNetworkOverridesConfig', data)
     .then(response => {
       setNetworkConfigSuccess({config});
     })
@@ -208,7 +173,6 @@ export const setNodeOverrideConfig = (
 ) => {
   // filter nodes by changes
   let configToSubmit = pick(config, nodesWithChanges);
-  const uri = '/controller/setNodeOverrideConfig';
 
   // TODO a quick hack to support nameBased config for M19 onwards
   // remove after cleaning code to use node name
@@ -223,11 +187,10 @@ export const setNodeOverrideConfig = (
     configToSubmit = nameBased;
   }
 
-  axios
-    .post(uri, {
-      config: configToSubmit,
-      topologyName,
-    })
+  const data = {
+    overrides: JSON.stringify(configToSubmit),
+  };
+  apiServiceRequest(topologyName, 'setNodeOverridesConfig', data)
     .then(response => {
       setNodeConfigSuccess({config, saveSelected});
     })
@@ -238,13 +201,10 @@ export const setNodeOverrideConfig = (
 };
 
 export const setControllerConfig = (topologyName, config) => {
-  const uri = '/controller/setControllerConfig';
-
-  axios
-    .post(uri, {
-      config,
-      topologyName,
-    })
+  const data = {
+    config: JSON.stringify(config),
+  };
+  apiServiceRequest(topologyName, 'setControllerConfig', data)
     .then(response => {
       setControllerConfigSuccess({config});
     })
@@ -255,10 +215,11 @@ export const setControllerConfig = (topologyName, config) => {
 };
 
 export const getAggregatorConfigAndMetadata = topologyName => {
-  const configRequest =
-    apiServiceRequest(topologyName, 'getAggregatorConfig');
-  const configMetadataRequest =
-    apiServiceRequest(topologyName, 'getAggregatorConfigMetadata');
+  const configRequest = apiServiceRequest(topologyName, 'getAggregatorConfig');
+  const configMetadataRequest = apiServiceRequest(
+    topologyName,
+    'getAggregatorConfigMetadata',
+  );
 
   Promise.all([configRequest, configMetadataRequest]).then(
     ([configResp, metadataResp]) => {
