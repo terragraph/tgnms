@@ -7,21 +7,25 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
+import JSONDiff from '../common/JSONDiff.js';
 import {
   submitConfig,
   submitConfigForAllNodes,
   resetConfig,
   resetConfigForAllNodes,
 } from '../../actions/NetworkConfigActions.js';
+import {createConfigToSubmit} from '../../helpers/NetworkConfigHelpers.js';
 import {CONFIG_VIEW_MODE} from '../../constants/NetworkConfigConstants.js';
 import isEmpty from 'lodash-es/isEmpty';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
+import {renderToStaticMarkup} from 'react-dom/server';
 import React from 'react';
-import swal from 'sweetalert';
+import SweetAlert from 'sweetalert-react';
 
 export default class NetworkConfigFooter extends React.Component {
   static propTypes = {
+    config: PropTypes.object.isRequired,
     newConfigFields: PropTypes.object.isRequired,
     draftConfig: PropTypes.object.isRequired,
     removedOverrides: PropTypes.instanceOf(Set).isRequired,
@@ -31,31 +35,30 @@ export default class NetworkConfigFooter extends React.Component {
     isJSONText: PropTypes.bool.isRequired,
   };
 
-  submitAlertProps = {
-    title: 'Confirm Submit Config Changes',
-    text: `You are about to submit configuration changes for node/network overrides
-    This may cause the nodes or the network to reboot.
+  state = {
+    showSubmitConfig: false,
+    showNodeSubmitConfig: false,
+  };
 
-    Proceed?`,
-    type: 'warning',
+  sweetAlertProps = {
+    customClass: 'nc-submit-config-alert',
+    title: 'Confirm Submit Config Changes',
+    html: true,
+    confirmButtonText: 'Submit Config',
     showCancelButton: true,
-    confirmButtonText: 'Submit Changes',
-    cancelButtonText: 'Cancel',
   };
 
   onSubmitConfig = () => {
-    swal(this.submitAlertProps, isConfirm => {
-      if (isConfirm) {
-        submitConfig();
-      }
+    this.setState({
+      showSubmitConfig: true,
+      showNodeSubmitConfig: false,
     });
   };
 
   onSubmitConfigForAllNodes = () => {
-    swal(this.submitAlertProps, isConfirm => {
-      if (isConfirm) {
-        submitConfigForAllNodes();
-      }
+    this.setState({
+      showNodeSubmitConfig: true,
+      showSubmitConfig: false,
     });
   };
 
@@ -70,6 +73,7 @@ export default class NetworkConfigFooter extends React.Component {
   // TODO: 4 button system for phase 1, custom alert system for phase 2
   render() {
     const {
+      config,
       newConfigFields,
       draftConfig,
       removedOverrides,
@@ -78,6 +82,9 @@ export default class NetworkConfigFooter extends React.Component {
       removedNodeOverrides,
       isJSONText,
     } = this.props;
+
+    const configType =
+      editMode === CONFIG_VIEW_MODE.NODE ? 'node(s)' : 'network';
 
     return (
       <div className="rc-network-config-footer">
@@ -124,6 +131,69 @@ export default class NetworkConfigFooter extends React.Component {
             Submit changes for all nodes
           </button>
         )}
+        <SweetAlert
+          {...this.sweetAlertProps}
+          show={this.state.showSubmitConfig}
+          text={renderToStaticMarkup(
+            <div>
+              <div>
+                You are about to submit configuration changes for {configType}{' '}
+                overrides.
+              </div>
+              <div className="nc-submit-alert-subtitle">
+                This may cause the {configType} to reboot.
+              </div>
+              <JSONDiff
+                oldConfig={config}
+                newConfig={createConfigToSubmit(
+                  config,
+                  draftConfig,
+                  removedOverrides,
+                )}
+              />
+            </div>,
+          )}
+          onConfirm={() => {
+            this.setState({showSubmitConfig: false});
+            submitConfig();
+          }}
+          onCancel={() => this.setState({showSubmitConfig: false})}
+        />
+        <SweetAlert
+          {...this.sweetAlertProps}
+          show={this.state.showNodeSubmitConfig}
+          text={renderToStaticMarkup(
+            <div>
+              <div>
+                You are about to submit configuration changes for {configType}{' '}
+                overrides.
+              </div>
+              <div className="nc-submit-alert-subtitle">
+                This may cause the {configType} to reboot.
+              </div>
+              {editMode === CONFIG_VIEW_MODE.NODE && (
+                <div className="nc-submit-alert-subtitle">
+                  <strong>Note:</strong> You are submitting changes for ALL
+                  nodes but the changes for the current node are only shown
+                  below.
+                </div>
+              )}
+              <JSONDiff
+                oldConfig={config}
+                newConfig={createConfigToSubmit(
+                  config,
+                  draftConfig,
+                  removedOverrides,
+                )}
+              />
+            </div>,
+          )}
+          onConfirm={() => {
+            this.setState({showNodeSubmitConfig: false});
+            submitConfigForAllNodes();
+          }}
+          onCancel={() => this.setState({showNodeSubmitConfig: false})}
+        />
       </div>
     );
   }

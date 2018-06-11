@@ -2,6 +2,7 @@
 @import url("nms-nc-form.css");
 @import url("nms-nc-form-tooltip.css");
 @import url("nms-nc-custom-toggle.css");
+@import url("nms-nc-json-diff.css");
 
 .rc-network-config {
   display: flex;
@@ -48,6 +49,14 @@
 .nc-btn-spacer {
   display: block;
   width: 3rem;
+}
+
+.nc-submit-config-alert {
+  min-width: 60vw;
+}
+
+.nc-submit-alert-subtitle {
+  margin-bottom: 20px;
 }
 
 /* NETWORK CONFIG HEADER */
