@@ -127,7 +127,7 @@ export default class DetailsLegend extends React.Component {
       values: ['Alive', 'Ignition Candidate', 'Dead'],
     };
 
-    // Health is dealt set up differently in NetworkConstants, so override here
+    // Health is set up differently in NetworkConstants, so override here
     if (this.props.linkOverlay === 'Health') {
       linkOverlaySource = health;
     }
