@@ -8,7 +8,7 @@
 import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import {linkLength} from '../../NetworkHelper.js';
+import {linkLength} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import PropTypes from 'prop-types';
 import {Panel} from 'react-bootstrap';

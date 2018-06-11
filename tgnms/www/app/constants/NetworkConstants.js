@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import {polarityColor} from '../NetworkHelper.js';
+import {polarityColor} from '../helpers/NetworkHelpers.js';
 
 export const Actions = {
   // topology actions

@@ -8,7 +8,7 @@
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
 import Dispatcher from './NetworkDispatcher.js';
-import {polarityColor} from './NetworkHelper.js';
+import {polarityColor} from './helpers/NetworkHelpers.js';
 import DetailsLegend from './components/detailpanels/DetailsLegend.js';
 import DetailsLink from './components/detailpanels/DetailsLink.js';
 import DetailsNode from './components/detailpanels/DetailsNode.js';

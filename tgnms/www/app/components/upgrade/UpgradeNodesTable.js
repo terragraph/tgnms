@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import {availabilityColor} from '../../NetworkHelper.js';
+import {availabilityColor} from '../../helpers/NetworkHelpers.js';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';

@@ -13,7 +13,8 @@ import {
   chartColor,
   polarityColor,
   versionSlicer,
-} from '../../NetworkHelper.js';
+  getPolarityString,
+} from '../../helpers/NetworkHelpers.js';
 import {Actions, ChartColors} from '../../constants/NetworkConstants.js';
 import {Panel} from 'react-bootstrap';
 import {render} from 'react-dom';
@@ -25,10 +26,6 @@ export default class DetailsTopology extends React.Component {
   state = {
     expandedVersion: null,
   };
-
-  constructor(props) {
-    super(props);
-  }
 
   handleMouseEnterOnSector(sector) {
     this.setState({expandedVersion: sector});
@@ -205,18 +202,12 @@ export default class DetailsTopology extends React.Component {
     }
     const polarityBySiteRows = Object.keys(polarityCountBySite).map(
       (polarity, index) => {
-        polarity = parseInt(polarity);
-        let polarityName = 'Not Set';
-        if (polarity == 1) {
-          polarityName = 'Odd';
-        } else if (polarity == 2) {
-          polarityName = 'Even';
-        } else if (polarity == 3) {
-          polarityName = 'Hybrid';
-        }
+        polarity = parseInt(polarity, 10);
+        const polarityName = getPolarityString(polarity);
         const polarityCount = polarityCountBySite[polarity];
         const polarityCountPerc = parseInt(
           polarityCount / this.props.topology.sites.length * 100,
+          10,
         );
         return (
           <tr key={'polarityBySite-' + polarity}>
@@ -228,7 +219,7 @@ export default class DetailsTopology extends React.Component {
               </td>
             ) : null}
             <td>
-              <span style={{color: polarityColor(parseInt(polarity))}}>
+              <span style={{color: polarityColor(polarity)}}>
                 {polarityName}
               </span>
             </td>
@@ -240,16 +231,12 @@ export default class DetailsTopology extends React.Component {
       },
     );
     const polarityRows = Object.keys(polarities).map((polarity, index) => {
-      polarity = parseInt(polarity);
-      let polarityName = 'Not Set';
-      if (polarity == 1) {
-        polarityName = 'Odd';
-      } else if (polarity == 2) {
-        polarityName = 'Even';
-      }
+      polarity = parseInt(polarity, 10);
+      const polarityName = getPolarityString(polarity);
       const polarityCount = polarities[polarity];
       const polarityCountPerc = parseInt(
         polarityCount / this.props.topology.nodes.length * 100,
+        10,
       );
       return (
         <tr key={'polarity-' + polarity}>

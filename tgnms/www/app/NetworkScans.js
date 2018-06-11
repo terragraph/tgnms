@@ -7,8 +7,11 @@
 
 import Dispatcher from './NetworkDispatcher.js';
 //import ReactPlotlyHeatmap from "./ReactPlotlyHeatmap.js";
-import {availabilityColor} from './NetworkHelper.js';
-import {variableColorDown, variableColorUp} from './NetworkHelper.js';
+import {
+  availabilityColor,
+  variableColorDown,
+  variableColorUp,
+} from './helpers/NetworkHelpers.js';
 import ReactEventChart from './ReactEventChart.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
