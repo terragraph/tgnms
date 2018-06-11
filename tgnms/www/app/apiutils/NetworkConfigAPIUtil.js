@@ -34,6 +34,14 @@ const getErrorText = error => {
     : error;
 };
 
+function apiServiceRequest(
+    topologyName: string, apiMethod: string, data: Object = {}) {
+  // All apiservice requests are POST, and expect at least an empty dict.
+  return axios.post(
+    `/apiservice/${topologyName}/api/${apiMethod}`,
+    data=data);
+}
+
 export const getConfigsForTopology = (
   topologyName,
   imageVersions,
@@ -247,16 +255,10 @@ export const setControllerConfig = (topologyName, config) => {
 };
 
 export const getAggregatorConfigAndMetadata = topologyName => {
-  const configRequest = axios.get('/aggregator/getConfig', {
-    params: {
-      topologyName,
-    },
-  });
-  const configMetadataRequest = axios.get('/aggregator/getConfigMetadata', {
-    params: {
-      topologyName,
-    },
-  });
+  const configRequest =
+    apiServiceRequest(topologyName, 'getAggregatorConfig');
+  const configMetadataRequest =
+    apiServiceRequest(topologyName, 'getAggregatorConfigMetadata');
 
   Promise.all([configRequest, configMetadataRequest]).then(
     ([configResp, metadataResp]) => {
@@ -276,16 +278,12 @@ export const getAggregatorConfigAndMetadata = topologyName => {
 };
 
 export const setAggregatorConfig = (topologyName, config) => {
-  const uri = '/aggregator/setConfig';
+  const data = {
+    config: JSON.stringify(config),
+  };
 
-  axios
-    .post(uri, {
-      config,
-      topologyName,
-    })
-    .then(response => {
-      setAggregatorConfigSuccess({config});
-    })
+  apiServiceRequest(topologyName, 'setAggregatorConfig', data)
+    .then(response => setAggregatorConfigSuccess({config}))
     .catch(error => {
       const errorText = getErrorText(error);
       showConfigError(errorText);

@@ -2174,57 +2174,6 @@ app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (
   aggregatorProxy.setAlertsConfig(configByName[topologyName], req, res, next);
 });
 
-app.get(/\/aggregator\/getConfig$/, (req, res, next) => {
-  const {topologyName} = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendAggrMsgSync(
-    {
-      type: 'getAggregatorConfig',
-      topology,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/aggregator\/getConfigMetadata$/, (req, res, next) => {
-  const {topologyName} = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendAggrMsgSync(
-    {
-      type: 'getAggregatorConfigMetadata',
-      topology,
-    },
-    '',
-    res
-  );
-});
-
-app.post(/\/aggregator\/setConfig$/, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {config, topologyName} = postData;
-    const topology = getTopologyByName(topologyName);
-
-    syncWorker.sendAggrMsgSync(
-      {
-        type: 'setAggregatorConfig',
-        topology,
-        config,
-      },
-      '',
-      res,
-    );
-  });
-});
-
 if (devMode) {
   // serve developer, non-minified build
   const config = require('./webpack.config.js');
