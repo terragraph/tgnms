@@ -8,7 +8,9 @@ if (!process.env.NODE_ENV) {
 
 const express = require('express');
 const fs = require('fs');
+const isIp = require('is-ip');
 const path = require('path');
+const proxy = require('express-http-proxy');
 const querystring = require('querystring');
 const request = require('request');
 
@@ -2252,6 +2254,21 @@ if (devMode) {
     res.sendFile(path.join(__dirname, '/dist/bootstrap.css'));
   });
 }
+
+function getAPIServiceHost(req, res) {
+  const controller_ip = configByName[req.params.topology].controller_ip_active;
+  return isIp.v6(controller_ip)
+    ? 'http://[' + controller_ip + ']'
+    : 'http://' + controller_ip;
+
+}
+
+app.use('/apiservice/:topology/',
+  proxy(getAPIServiceHost, {
+    memoizeHost: false,
+    parseReqBody: false,
+  }),
+);
 
 app.get(/\/*/, function (req, res) {
   res.render('index', { configJson: JSON.stringify(networkInstanceConfig) });
