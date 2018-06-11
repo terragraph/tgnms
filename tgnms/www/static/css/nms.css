@@ -273,6 +273,11 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   text-align: center;
 }
 
+.details-legend-row {
+  display: flex;
+  align-items: center;
+}
+
 .selectButtonClass {
     color: blue;
     font-weight: bold;
