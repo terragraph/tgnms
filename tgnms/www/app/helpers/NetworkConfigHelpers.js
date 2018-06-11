@@ -268,11 +268,7 @@ export const convertAndValidateNewConfigObject = newConfig => {
   // newConfig is a map of id => {id, type, field, value}
 
   // empty/null check
-  if (
-    newConfig === undefined ||
-    newConfig === null ||
-    isEmpty(newConfig)
-  ) {
+  if (newConfig === undefined || newConfig === null || isEmpty(newConfig)) {
     return {
       config: undefined,
       validationMsg: 'New nested object is empty',

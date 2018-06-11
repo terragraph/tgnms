@@ -8,19 +8,22 @@
 // E2EConfigBody.js
 // contains the component to render a config JSON, and buttons to save or save draft
 
+import E2EConfigHeader from './E2EConfigHeader.js';
+import JSONConfigForm from '../common/JSONConfigForm.js';
+import JSONConfigTextArea from '../common/JSONConfigTextArea.js';
+import JSONDiff from '../common/JSONDiff.js';
+import JSONEditPanel from '../common/JSONEditPanel.js';
 import {
   submitConfig,
   resetConfig,
   toggleExpandAll,
 } from '../../actions/NetworkConfigActions.js';
-import E2EConfigHeader from './E2EConfigHeader.js';
-import JSONConfigForm from '../common/JSONConfigForm.js';
-import JSONConfigTextArea from '../common/JSONConfigTextArea.js';
-import JSONEditPanel from '../common/JSONEditPanel.js';
+import {createConfigToSubmit} from '../../helpers/NetworkConfigHelpers.js';
 import isEmpty from 'lodash-es/isEmpty';
 import PropTypes from 'prop-types';
 import React from 'react';
-import swal from 'sweetalert';
+import {renderToStaticMarkup} from 'react-dom/server';
+import SweetAlert from 'sweetalert-react';
 
 export default class E2EConfigBody extends React.Component {
   static propTypes = {
@@ -36,18 +39,7 @@ export default class E2EConfigBody extends React.Component {
   state = {
     isExpanded: true,
     isJSONText: false,
-  };
-
-  submitAlertProps = {
-    title: 'Confirm Submit Config Changes',
-    text: `You are about to submit configuration changes for controller/aggregator.
-    This may cause the controller/aggregator to reboot.
-
-    Proceed?`,
-    type: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Submit Changes',
-    cancelButtonText: 'Cancel',
+    showSubmitConfig: false,
   };
 
   jsonTextRef = React.createRef();
@@ -93,11 +85,7 @@ export default class E2EConfigBody extends React.Component {
   };
 
   onSubmitConfig = () => {
-    swal(this.submitAlertProps, isConfirm => {
-      if (isConfirm) {
-        submitConfig();
-      }
-    });
+    this.setState({showSubmitConfig: true});
   };
 
   render() {
@@ -169,6 +157,36 @@ export default class E2EConfigBody extends React.Component {
             Submit Changes
           </button>
         </div>
+        <SweetAlert
+          customClass="nc-submit-config-alert"
+          show={this.state.showSubmitConfig}
+          title="Confirm Submit Config Changes"
+          html
+          text={renderToStaticMarkup(
+            <div>
+              <div>
+                You are about to submit configuration changes for{' '}
+                {activeConfig.toLowerCase()}.
+              </div>
+              <div className="config-alert-subtitle">
+                This may cause the {activeConfig.toLowerCase()} to reboot.
+              </div>
+              <JSONDiff
+                oldConfig={this.props.config}
+                newConfig={createConfigToSubmit(
+                  this.props.config,
+                  this.props.draftConfig,
+                )}
+              />
+            </div>,
+          )}
+          showCancelButton
+          onConfirm={() => {
+            this.setState({showSubmitConfig: false});
+            submitConfig();
+          }}
+          onCancel={() => this.setState({showSubmitConfig: false})}
+        />
       </div>
     );
   }

@@ -171,6 +171,7 @@ export default class NetworkConfigBody extends React.Component {
           )}
         </div>
         <NetworkConfigFooter
+          config={configs[configs.length - 1]}
           newConfigFields={newConfigFields}
           draftConfig={draftConfig}
           removedOverrides={removedOverrides}

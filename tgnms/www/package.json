@@ -31,6 +31,7 @@
     "css-loader": "^0.27.3",
     "d3-format": "^1.0.2",
     "d3-time-format": "^2.0.3",
+    "diff": "^3.5.0",
     "encoding": "^0.1.12",
     "equals": "^1.0.5",
     "flux": "^3.1.0",
