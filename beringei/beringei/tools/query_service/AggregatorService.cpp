@@ -22,8 +22,10 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_int32(agg_time_period, 30, "Beringei time period");
-DEFINE_int32(ruckus_controller_time_period, 30,
-             "Ruckus controller stats fetch time period");
+DEFINE_int32(
+    ruckus_controller_time_period,
+    30,
+    "Ruckus controller stats fetch time period");
 DEFINE_bool(write_agg_data, true, "Write aggregator data to beringei");
 
 extern "C" {
@@ -55,30 +57,27 @@ namespace facebook {
 namespace gorilla {
 
 AggregatorService::AggregatorService(
+  std::shared_ptr<MySqlClient> mySqlClient,
   TACacheMap& typeaheadCache)
-  : typeaheadCache_(typeaheadCache) {
-
+    : mySqlClient_(mySqlClient),
+      typeaheadCache_(typeaheadCache) {
   // stats reporting time period
-  timer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
-    timerCb();
-  });
+  timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
 
   // fetch ruckus data less frequently
-/*  ruckusTimer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
-    ruckusControllerCb();
-  });
-  ruckusTimer_->scheduleTimeout(FLAGS_ruckus_controller_time_period * 1000);*/
+  /*  ruckusTimer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
+      ruckusControllerCb();
+    });
+    ruckusTimer_->scheduleTimeout(FLAGS_ruckus_controller_time_period * 1000);*/
 }
 
-void
-AggregatorService::ruckusControllerStats() {
+void AggregatorService::ruckusControllerStats() {
   std::unordered_map<std::string, double> ruckusValues;
   // login and get a new session id
   LOG(INFO) << "Ruckus controller stats fetch running...";
-  folly::dynamic loginObj = folly::dynamic::object
-      ("username", "admin")
-      ("password", "Terra@171");
+  folly::dynamic loginObj =
+      folly::dynamic::object("username", "admin")("password", "Terra@171");
   struct CurlResponse loginResp = ruckusController_.ruckusControllerRequest(
       "session", "", folly::toJson(loginObj));
   VLOG(1) << "Header: " << loginResp.header << ", body: " << loginResp.body;
@@ -98,7 +97,8 @@ AggregatorService::ruckusControllerStats() {
     return;
   }
   // fetch ap list
-  struct CurlResponse apListResp = ruckusController_.ruckusControllerRequest("aps", cookieStr, "");
+  struct CurlResponse apListResp =
+      ruckusController_.ruckusControllerRequest("aps", cookieStr, "");
   if (apListResp.responseCode != 200) {
     LOG(ERROR) << "Unable to fetch AP list, response code: "
                << apListResp.responseCode;
@@ -112,20 +112,22 @@ AggregatorService::ruckusControllerStats() {
       std::string apName = apItem["name"].asString();
       std::string macAddr = apItem["mac"].asString();
       // fetch details for each ap
-      struct CurlResponse apDetailsResp = ruckusController_.ruckusControllerRequest(
-          folly::sformat("aps/{}/operational/summary", macAddr),
-          cookieStr,
-          "");
+      struct CurlResponse apDetailsResp =
+          ruckusController_.ruckusControllerRequest(
+              folly::sformat("aps/{}/operational/summary", macAddr),
+              cookieStr,
+              "");
       folly::dynamic apDetailsObj = folly::parseJson(apDetailsResp.body);
       try {
         long apUptime = apDetailsObj["uptime"].asInt();
         long clientCount = apDetailsObj["clientCount"].asInt();
         totalClientCount += clientCount;
-        std::string registrationState(apDetailsObj["registrationState"].asString());
-        std::string administrativeState(apDetailsObj["administrativeState"].asString());
+        std::string registrationState(
+            apDetailsObj["registrationState"].asString());
+        std::string administrativeState(
+            apDetailsObj["administrativeState"].asString());
         std::string ipAddr(apDetailsObj["externalIp"].asString());
-        LOG(INFO) << "AP: " << apName
-                  << ", MAC: " << macAddr
+        LOG(INFO) << "AP: " << apName << ", MAC: " << macAddr
                   << ", uptime: " << apUptime
                   << ", reg state: " << registrationState
                   << ", client count: " << clientCount
@@ -133,11 +135,13 @@ AggregatorService::ruckusControllerStats() {
                   << ", ip: " << ipAddr;
         // add client count reporting for each AP MAC
         // TODO - should this be site name?
-        ruckusValues[folly::sformat("ruckus.{}.client_count", macAddr)] = clientCount;
+        ruckusValues[folly::sformat("ruckus.{}.client_count", macAddr)] =
+            clientCount;
       } catch (const folly::TypeError& error) {
         LOG(ERROR) << "\tType-error: " << error.what();
         for (const auto& apDetailsItem : apDetailsObj.items()) {
-          LOG(INFO) << "\t\t" << apDetailsItem.first << " = " << apDetailsItem.second;
+          LOG(INFO) << "\t\t" << apDetailsItem.first << " = "
+                    << apDetailsItem.second;
         }
       }
     }
@@ -148,15 +152,14 @@ AggregatorService::ruckusControllerStats() {
   ruckusStats_.wlock()->swap(ruckusValues);
 }
 
-void
-AggregatorService::ruckusControllerCb() {
-//  std::thread ruckusThread([this]() {
-    ruckusControllerStats();
-//  });
+void AggregatorService::ruckusControllerCb() {
+  //  std::thread ruckusThread([this]() {
+  ruckusControllerStats();
+  //  });
   ruckusTimer_->scheduleTimeout(FLAGS_ruckus_controller_time_period * 1000);
 }
-void
-AggregatorService::timerCb() {
+
+void AggregatorService::timerCb() {
   LOG(INFO) << "Aggregator running";
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
   // run some aggregation
@@ -166,11 +169,10 @@ AggregatorService::timerCb() {
   for (const auto& topologyConfig : topologyList) {
     LOG(INFO) << "Topology: " << topologyConfig.first;
     auto topology = topologyConfig.second->topology;
-    if (!topology.name.empty() &&
-        !topology.nodes.empty() &&
+    if (!topology.name.empty() && !topology.nodes.empty() &&
         !topology.links.empty()) {
-      int64_t timeStamp = folly::to<int64_t>(
-         ceil(std::time(nullptr) / 30.0)) * 30;
+      int64_t timeStamp =
+          folly::to<int64_t>(ceil(std::time(nullptr) / 30.0)) * 30;
       // pop traffic
       std::unordered_set<std::string> popNodes;
       // nodes up + down
@@ -184,7 +186,8 @@ AggregatorService::timerCb() {
       }
       aggValues["total_nodes"] = topology.nodes.size();
       aggValues["online_nodes"] = onlineNodes;
-      aggValues["online_nodes_perc"] = (double)onlineNodes / topology.nodes.size() * 100.0;
+      aggValues["online_nodes_perc"] =
+          (double)onlineNodes / topology.nodes.size() * 100.0;
       aggValues["pop_nodes"] = popNodes.size();
 
       // (wireless) links up + down
@@ -199,7 +202,8 @@ AggregatorService::timerCb() {
       }
       aggValues["total_wireless_links"] = wirelessLinks;
       aggValues["online_wireless_links"] = onlineLinks;
-      aggValues["online_wireless_links_perc"] = (double)onlineLinks / wirelessLinks * 100.0;
+      aggValues["online_wireless_links_perc"] =
+          (double)onlineLinks / wirelessLinks * 100.0;
       // ruckus controller stats
       {
         auto ruckusStats = ruckusStats_.rlock();
@@ -215,24 +219,25 @@ AggregatorService::timerCb() {
         auto locked = typeaheadCache_.rlock();
         auto taCacheIt = locked->find(topology.name);
         if (taCacheIt != locked->cend()) {
-          LOG(INFO) << "Cache found for: " << topology.name;
+          VLOG(1) << "Cache found for: " << topology.name;
           // fetch back the metrics we care about (PER, MCS?)
           // and average the values
           buildQuery(aggValues, popNodes, taCacheIt->second);
           for (const auto& metric : aggValues) {
-            LOG(INFO) << "Agg: " << metric.first << " = "
-                      << std::to_string(metric.second)
-                      << ", ts: " << timeStamp;
+            VLOG(1) << "Agg: " << metric.first << " = "
+                    << std::to_string(metric.second) << ", ts: " << timeStamp;
           }
           // find metrics, update beringei
+          std::unordered_set<std::string> aggMetricNamesToAdd;
           for (const auto& metric : aggValues) {
-            std::vector<query::KeyData> keyData =
-              taCacheIt->second->getKeyData(metric.first);
-            if (keyData.size() != 1) {
-              LOG(INFO) << "Metric not found: " << metric.first;
+            auto topologyAggKeyIt = topologyConfig.second->keys.find(metric.first);
+            if (topologyAggKeyIt == topologyConfig.second->keys.end()) {
+              // add key name to db
+              aggMetricNamesToAdd.insert(metric.first);
+              LOG(INFO) << "Missing key name: " << metric.first;
               continue;
             }
-            int keyId = keyData.front().keyId;
+            int keyId = topologyAggKeyIt->second;
             // create beringei data-point
             DataPoint bDataPoint;
             TimeValuePair bTimePair;
@@ -245,6 +250,12 @@ AggregatorService::timerCb() {
             bDataPoint.value = bTimePair;
             bDataPoints.push_back(bDataPoint);
           }
+          if (!aggMetricNamesToAdd.empty()) {
+            std::vector<std::string> aggMetricNamesToAddVector(
+                aggMetricNamesToAdd.begin(), aggMetricNamesToAdd.end());
+            mySqlClient_->addAggKeys(
+                topologyConfig.second->id, aggMetricNamesToAddVector);
+          }
         } else {
           LOG(ERROR) << "Missing type-ahead cache for: " << topology.name;
         }
@@ -254,7 +265,7 @@ AggregatorService::timerCb() {
         eb.runInLoop([this, &bDataPoints]() mutable {
           auto beringeiClientStore = BeringeiClientStore::getInstance();
           // TODO - change to write..
-          auto beringeiWriteClient = beringeiClientStore->getReadClient(30);
+          auto beringeiWriteClient = beringeiClientStore->getWriteClient(30);
           auto pushedPoints = beringeiWriteClient->putDataPoints(bDataPoints);
           if (!pushedPoints) {
             LOG(ERROR) << "Failed to perform the put!";
@@ -271,16 +282,15 @@ AggregatorService::timerCb() {
   }
 }
 
-void
-AggregatorService::buildQuery(
+void AggregatorService::buildQuery(
     std::unordered_map<std::string, double>& values,
     const std::unordered_set<std::string>& popNodeNames,
     const std::shared_ptr<StatsTypeAheadCache> cache) {
   // build queries
   query::QueryRequest queryRequest;
   std::vector<query::Query> queries;
-  std::vector<std::string> keyNames = {"per", "mcs", "snr"};
-  for (const auto keyName : keyNames) {
+  std::vector<std::string> keyNames = {"per", "mcs", "snr", "rssi"};
+  for (const auto& keyName : keyNames) {
     auto keyData = cache->getKeyData(keyName);
     query::Query query;
     query.type = "latest";
@@ -299,9 +309,9 @@ AggregatorService::buildQuery(
     queries.push_back(query);
   }
   // pop-specific keys
-  std::vector<std::string> popKeyNames = {"tx_bytes", "rx_bytes"};
+  static const std::vector<std::string> popKeyNames = {"tx_bytes", "rx_bytes"};
   keyNames.insert(keyNames.end(), popKeyNames.begin(), popKeyNames.end());
-  for (const auto keyName : popKeyNames) {
+  for (const auto& keyName : popKeyNames) {
     auto keyData = cache->getKeyData(keyName);
     query::Query query;
     query.type = "latest";
@@ -349,10 +359,9 @@ AggregatorService::buildQuery(
   }
 }
 
-void
-AggregatorService::start() {
+void AggregatorService::start() {
   eb_.loopForever();
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

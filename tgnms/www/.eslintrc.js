@@ -56,6 +56,7 @@ module.exports.rules = {
   'lint/only-plain-ascii': 'off',
   'lint/react-avoid-set-state-with-potentially-stale-state': 'off',
   'lint/sort-keys-fixable': 'off',
+  'lint/strictly-null': 'off',
 
   // Flow Plugin
   // The following rules are made available via `eslint-plugin-flowtype`

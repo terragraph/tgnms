@@ -19,15 +19,21 @@ import {
 } from '../../actions/NetworkConfigActions.js';
 import {
   REVERT_VALUE,
+  PATH_DELIMITER,
   ADD_FIELD_TYPES,
 } from '../../constants/NetworkConfigConstants.js';
-import {getStackedFields} from '../../helpers/NetworkConfigHelpers.js';
+import {
+  getMetadata,
+  getStackedFields,
+  convertAndValidateNewConfigObject,
+} from '../../helpers/NetworkConfigHelpers.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
 import JSONFormField from './JSONFormField.js';
 import NewJSONConfigField from './NewJSONConfigField.js';
 import NewJSONConfigObject from './NewJSONConfigObject.js';
 import classNames from 'classnames';
 import isPlainObject from 'lodash-es/isPlainObject';
+import isEmpty from 'lodash-es/isEmpty';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
@@ -38,15 +44,30 @@ const PLACEHOLDER_VALUE = 'base value for field not set';
 // internal config form class that wraps a JSONConfigForm with a label
 // mostly used to toggle a form's expandability
 class ExpandableConfigForm extends React.Component {
+  static propTypes = {
+    configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+    draftConfig: PropTypes.object.isRequired,
+    removedFields: PropTypes.instanceOf(Set), // Only used by Network/Node Config
+    newConfigFields: PropTypes.object.isRequired,
+    metadata: PropTypes.object,
+    formLabel: PropTypes.string.isRequired,
+    editPath: PropTypes.array.isRequired,
+    initExpanded: PropTypes.bool.isRequired,
+    hasDeletableFields: PropTypes.bool,
+
+    viewContext: PropTypes.shape({
+      viewOverridesOnly: PropTypes.bool.isRequired,
+    }).isRequired,
+  };
+
   constructor(props) {
     super(props);
 
     // quick fix but it's hacky: have all expandable components listen for the action to expand all
     // an alternative solution (keeping this as a single state) will be investigated soon
-    this.dispatchToken = Dispatcher.register(this.handleExpandAll.bind(this));
+    this.dispatchToken = Dispatcher.register(this.handleExpandAll);
 
     this.state = {
-      // expanded: true
       expanded: props.initExpanded,
       expandChildren: props.initExpanded,
     };
@@ -56,7 +77,7 @@ class ExpandableConfigForm extends React.Component {
     Dispatcher.unregister(this.dispatchToken);
   }
 
-  handleExpandAll(payload) {
+  handleExpandAll = payload => {
     switch (payload.actionType) {
       case NetworkConfigActions.TOGGLE_EXPAND_ALL:
         this.setState({
@@ -66,7 +87,7 @@ class ExpandableConfigForm extends React.Component {
 
         break;
     }
-  }
+  };
 
   toggleExpandConfig = () => {
     // children not expanded by default
@@ -81,10 +102,12 @@ class ExpandableConfigForm extends React.Component {
       configs,
       draftConfig,
       newConfigFields,
+      removedFields,
       metadata,
       formLabel,
       editPath,
       viewContext,
+      hasDeletableFields,
     } = this.props;
     const {expanded} = this.state;
     const expandMarker = expanded
@@ -97,26 +120,22 @@ class ExpandableConfigForm extends React.Component {
         draftConfig={draftConfig}
         metadata={metadata}
         editPath={editPath}
+        removedFields={removedFields}
         newConfigFields={newConfigFields}
         initExpanded={this.state.expandChildren}
+        hasDeletableFields={hasDeletableFields}
         viewContext={viewContext}
       />
     );
 
     const hasNodeOverride =
-      configs[2] &&
-      isPlainObject(configs[2]) &&
-      Object.keys(configs[2]).length > 0;
+      configs[2] && isPlainObject(configs[2]) && !isEmpty(configs[2]);
     const hasNetworkOverride =
-      configs[1] &&
-      isPlainObject(configs[1]) &&
-      Object.keys(configs[1]).length > 0;
+      configs[1] && isPlainObject(configs[1]) && !isEmpty(configs[1]);
     const hasDraft =
-      draftConfig &&
-      isPlainObject(draftConfig) &&
-      Object.keys(draftConfig).length > 0;
+      draftConfig && isPlainObject(draftConfig) && !isEmpty(draftConfig);
 
-    let hasOverrideText = '';
+    let hasOverrideText;
     if (hasNodeOverride && hasNetworkOverride) {
       hasOverrideText = (
         <span className="nc-override-indicator">
@@ -157,23 +176,8 @@ class ExpandableConfigForm extends React.Component {
     ) : (
       expandableConfigForm
     );
-    // return expandableConfigForm;
   }
 }
-
-ExpandableConfigForm.propTypes = {
-  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
-  draftConfig: PropTypes.object.isRequired,
-  newConfigFields: PropTypes.object.isRequired,
-  metadata: PropTypes.object,
-  formLabel: PropTypes.string.isRequired,
-  editPath: PropTypes.array.isRequired,
-  initExpanded: PropTypes.bool.isRequired,
-
-  viewContext: PropTypes.shape({
-    viewOverridesOnly: PropTypes.bool.isRequired,
-  }).isRequired,
-};
 
 const emptyFieldAlertProps = {
   title: 'Field Name Cannot be Empty',
@@ -188,13 +192,52 @@ const duplicateFieldAlertProps = duplicateField => ({
   type: 'error',
 });
 
+const jsonErrorAlertProps = error => ({
+  title: 'JSON Parse Error',
+  text: error,
+  type: 'error',
+});
+
 export default class JSONConfigForm extends React.Component {
-  isReverted(draftValue) {
-    return draftValue === REVERT_VALUE;
+  static propTypes = {
+    configs: PropTypes.arrayOf(PropTypes.object).isRequired,
+    draftConfig: PropTypes.object.isRequired,
+    removedFields: PropTypes.instanceOf(Set), // Only used by Network/Node Config
+    newConfigFields: PropTypes.object.isRequired,
+    metadata: PropTypes.object,
+
+    // the "path" of keys that identifies the root of the component's config
+    // vs the entire config object
+    // useful for nested config components
+    editPath: PropTypes.array.isRequired,
+
+    // is the component initially expanded? only using this to pass to children
+    initExpanded: PropTypes.bool.isRequired,
+    hasDeletableFields: PropTypes.bool,
+
+    viewContext: PropTypes.shape({
+      viewOverridesOnly: PropTypes.bool,
+    }),
+  };
+
+  static defaultProps = {
+    initExpanded: false,
+    removedFields: new Set(),
+    hasDeletableFields: false,
+    viewContext: {
+      viewOverridesOnly: false,
+    },
+  };
+
+  isReverted(editPath) {
+    const {removedFields} = this.props;
+    return (
+      Boolean(removedFields) && removedFields.has(editPath.join(PATH_DELIMITER))
+    );
   }
 
-  isDraft(draftValue) {
-    return draftValue !== undefined && !this.isReverted(draftValue);
+  isDraft(draftValue, editPath) {
+    return draftValue !== undefined && !this.isReverted(editPath);
   }
 
   getDisplayIdx(configVals) {
@@ -229,10 +272,12 @@ export default class JSONConfigForm extends React.Component {
         configs={processedConfigs}
         draftConfig={processedDraftConfig}
         newConfigFields={processedNewConfigFields}
+        removedFields={this.props.removedFields}
         metadata={metadata}
         formLabel={fieldName}
         editPath={editPath}
         initExpanded={this.props.initExpanded}
+        hasDeletableFields={this.props.hasDeletableFields}
         viewContext={viewContext}
       />
     );
@@ -246,18 +291,16 @@ export default class JSONConfigForm extends React.Component {
     fieldName,
     editPath,
     displayVal,
-    viewContext,
   }) {
     // if there are no drafts and no overrides and we only show overrides, hide field
     if (
-      viewContext.viewOverridesOnly &&
+      this.props.viewContext.viewOverridesOnly &&
       displayIdx <= 0 &&
-      !this.isDraft(draftValue) &&
-      !this.isReverted(draftValue)
+      !this.isDraft(draftValue, editPath) &&
+      !this.isReverted(editPath)
     ) {
       return <div />;
     }
-
     return (
       <JSONFormField
         metadata={metadata}
@@ -266,8 +309,9 @@ export default class JSONConfigForm extends React.Component {
         displayIdx={displayIdx}
         configLayerValues={values}
         draftValue={draftValue}
-        isReverted={this.isReverted(draftValue)}
-        isDraft={this.isDraft(draftValue)}
+        isReverted={this.isReverted(editPath)}
+        isDraft={this.isDraft(draftValue, editPath)}
+        isDeletable={this.props.hasDeletableFields}
         displayVal={displayVal}
       />
     );
@@ -283,10 +327,10 @@ export default class JSONConfigForm extends React.Component {
   }) {
     // disregard the highest level of override if we have decided to revert the value (to display)
     const displayIdx = this.getDisplayIdx(
-      this.isReverted(draftValue) ? values.slice(0, values.length - 1) : values,
+      this.isReverted(editPath) ? values.slice(0, values.length - 1) : values,
     );
 
-    const displayVal = this.isDraft(draftValue)
+    const displayVal = this.isDraft(draftValue, editPath)
       ? draftValue
       : values[displayIdx];
 
@@ -301,7 +345,6 @@ export default class JSONConfigForm extends React.Component {
       displayIdx,
       fieldName,
       editPath,
-      viewContext: this.props.viewContext,
     };
     if (displayIdx >= 0) {
       // value is found in a config
@@ -327,7 +370,7 @@ export default class JSONConfigForm extends React.Component {
     } else {
       // here we know that there is only a draft, or something marked to be reverted
       // if it's reverted then we can display a placeholder
-      formFieldArgs.displayVal = this.isDraft(draftValue)
+      formFieldArgs.displayVal = this.isDraft(draftValue, editPath)
         ? draftValue
         : PLACEHOLDER_VALUE;
 
@@ -373,6 +416,32 @@ export default class JSONConfigForm extends React.Component {
     });
   };
 
+  onSubmitRawJSONField = (editPath, id, field, value) => {
+    const {configs, draftConfig} = this.props;
+
+    // retrieve the union of fields for all json objects in the array
+    const configFields = new Set(getStackedFields([...configs, draftConfig]));
+
+    if (value === '') {
+      swal(emptyFieldAlertProps);
+      return;
+    } else if (configFields.has(field)) {
+      swal(duplicateFieldAlertProps(field));
+      return;
+    }
+
+    try {
+      editConfigForm({
+        editPath: [...editPath, field],
+        value: JSON.parse(value),
+      });
+
+      this.onDeleteNewField(editPath, id);
+    } catch (error) {
+      swal(jsonErrorAlertProps(error.toString()));
+    }
+  };
+
   onDeleteNewField(editPath, id) {
     deleteNewField({
       editPath,
@@ -401,6 +470,15 @@ export default class JSONConfigForm extends React.Component {
         return (
           <li className="rc-json-config-input">
             <NewJSONConfigField {...newFieldProps} />
+          </li>
+        );
+      case ADD_FIELD_TYPES.RAW_JSON:
+        return (
+          <li className="rc-json-config-input">
+            <NewJSONConfigField
+              {...newFieldProps}
+              onSubmit={this.onSubmitRawJSONField}
+            />
           </li>
         );
       case ADD_FIELD_TYPES.OBJECT:
@@ -433,17 +511,7 @@ export default class JSONConfigForm extends React.Component {
       let fieldMetadata = {};
 
       if (metadata) {
-        if (metadata.type === 'MAP') {
-          fieldMetadata = metadata.mapVal;
-        } else if (metadata.type === 'OBJECT') {
-          fieldMetadata = metadata.objVal.properties[field];
-        } else {
-          fieldMetadata = newEditPath ? metadata[field] : metadata;
-        }
-      }
-
-      if (metadata.deprecated) {
-        fieldMetadata.deprecated = metadata.deprecated;
+        fieldMetadata = getMetadata(metadata, field);
       }
 
       return this.renderChildItem({
@@ -481,26 +549,3 @@ export default class JSONConfigForm extends React.Component {
     );
   }
 }
-
-JSONConfigForm.propTypes = {
-  configs: PropTypes.arrayOf(PropTypes.object).isRequired,
-  draftConfig: PropTypes.object.isRequired,
-  newConfigFields: PropTypes.object.isRequired,
-  metadata: PropTypes.object,
-
-  // the "path" of keys that identifies the root of the component's config
-  // vs the entire config object
-  // useful for nested config components
-  editPath: PropTypes.array.isRequired,
-
-  // is the component initially expanded? only using this to pass to children
-  initExpanded: PropTypes.bool.isRequired,
-
-  viewContext: PropTypes.shape({
-    viewOverridesOnly: PropTypes.bool.isRequired,
-  }).isRequired,
-};
-
-JSONConfigForm.defaultProps = {
-  initExpanded: true,
-};

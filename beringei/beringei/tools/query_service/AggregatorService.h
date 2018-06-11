@@ -9,11 +9,12 @@
 
 #pragma once
 
+#include "MySqlClient.h"
 #include "RuckusController.h"
 #include "StatsTypeAheadCache.h"
 
-#include <folly/io/async/EventBaseManager.h>
 #include <folly/Synchronized.h>
+#include <folly/io/async/EventBaseManager.h>
 
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
@@ -24,7 +25,8 @@ namespace gorilla {
 class AggregatorService {
  public:
   explicit AggregatorService(
-    TACacheMap& typeaheadCache);
+      std::shared_ptr<MySqlClient> mySqlClient,
+      TACacheMap& typeaheadCache);
 
   // run eventbase
   void start();
@@ -34,20 +36,21 @@ class AggregatorService {
   void fetchRuckusStats();
   void ruckusControllerStats();
   void buildQuery(
-    std::unordered_map<std::string, double>& values,
-    const std::unordered_set<std::string>& popNodeNames,
-    const std::shared_ptr<StatsTypeAheadCache> cache);
+      std::unordered_map<std::string, double>& values,
+      const std::unordered_set<std::string>& popNodeNames,
+      const std::shared_ptr<StatsTypeAheadCache> cache);
 
  private:
   folly::EventBase eb_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
   // from queryservicefactory
+  std::shared_ptr<MySqlClient> mySqlClient_;
   TACacheMap& typeaheadCache_;
   // store the last set of ruckus stats to push
   folly::Synchronized<std::unordered_map<std::string /* key name */, double>>
       ruckusStats_{};
   RuckusController ruckusController_;
 };
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

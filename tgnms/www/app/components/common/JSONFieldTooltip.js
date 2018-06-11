@@ -75,7 +75,7 @@ export default class JSONFieldTooltip extends React.Component {
         }
 
         return (
-          <div>
+          <div key={key}>
             <span className="nc-tooltip-label">
               {this.constraint2English[key]}
             </span>
@@ -92,8 +92,9 @@ export default class JSONFieldTooltip extends React.Component {
   render() {
     const {metadata, configLayerValues} = this.props;
 
-    const typePascalCase =
-      metadata.type[0] + metadata.type.slice(1).toLowerCase();
+    const typePascalCase = metadata.hasOwnProperty('type')
+      ? metadata.type[0] + metadata.type.slice(1).toLowerCase()
+      : 'N/A';
 
     const configLayerContents = configLayerValues.map((value, idx) => {
       const displayVal = !value ? UNDEFINED_PLACEHOLDER[idx] : value;
@@ -119,7 +120,7 @@ export default class JSONFieldTooltip extends React.Component {
         <br />
         <div>
           <span className="nc-tooltip-label">Type:</span>
-          {typePascalCase || 'N/A'}
+          {typePascalCase}
         </div>
         <div>
           <span className="nc-tooltip-label">Action:</span>

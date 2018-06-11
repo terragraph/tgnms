@@ -6,6 +6,7 @@
 'use strict';
 
 import {
+  deleteFields,
   editConfigForm,
   revertConfigOverride,
   discardUnsavedConfig,
@@ -15,16 +16,49 @@ import CustomToggle from '../common/CustomToggle.js';
 import JSONFieldTooltip from './JSONFieldTooltip.js';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import {Glyphicon} from 'react-bootstrap';
 import React from 'react';
+import isEqual from 'lodash-es/isEqual';
 
 // JSONFormField renders the "leaf" nodes of a JSON form, namely: bool/string/number fields
 // a separate component is needed for this to reduce the file size of JSONConfigForm
 export default class JSONFormField extends React.Component {
+  static propTypes = {
+    editPath: PropTypes.array.isRequired,
+    metadata: PropTypes.object,
+
+    formLabel: PropTypes.string.isRequired, // the field name for the value we are displaying
+    displayIdx: PropTypes.number.isRequired, // the index within values to display if not a draft
+    configLayerValues: PropTypes.array.isRequired,
+    isReverted: PropTypes.bool.isRequired,
+    isDraft: PropTypes.bool.isRequired,
+    isDeletable: PropTypes.bool.isRequired,
+    displayVal: PropTypes.any.isRequired,
+  };
+
+  static defaultProps = {
+    metadata: {},
+    isDeletable: false,
+  };
+
   state = {
     focus: false,
     hover: false,
     error: false,
   };
+
+  componentDidMount() {
+    this.validateField(this.props.displayVal);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.displayVal !== prevProps.displayVal ||
+      !isEqual(this.props.metadata, prevProps.metadata)
+    ) {
+      this.validateField(this.props.displayVal);
+    }
+  }
 
   validateNumber(number, constraints) {
     if (number !== undefined && (typeof number !== 'number' || isNaN(number))) {
@@ -104,28 +138,38 @@ export default class JSONFormField extends React.Component {
     );
   }
 
-  editField(value) {
+  validateField(value) {
     const {metadata} = this.props;
     let error = false;
 
     switch (metadata.type) {
       case 'INTEGER':
-        error = !this.validateNumber(parseInt(value), metadata.intVal || {});
+        error =
+          typeof value !== 'number' ||
+          !this.validateNumber(parseInt(value), metadata.intVal || {});
         break;
       case 'FLOAT':
-        error = !this.validateNumber(
-          parseFloat(value),
-          metadata.floatVal || {},
-        );
+        error =
+          typeof value !== 'number' ||
+          !this.validateNumber(parseFloat(value), metadata.floatVal || {});
         break;
       case 'STRING':
-        error = !this.validateString(value, metadata.strVal || {});
+        error =
+          typeof value !== 'string' ||
+          !this.validateString(value, metadata.strVal || {});
+        break;
+      case 'BOOLEAN':
+        error = typeof value !== 'boolean';
         break;
     }
 
     this.setState({
       error,
     });
+  }
+
+  editField(value) {
+    this.validateField(value);
 
     editConfigForm({
       editPath: this.props.editPath,
@@ -136,6 +180,12 @@ export default class JSONFormField extends React.Component {
   revertField = () => {
     revertConfigOverride({
       editPath: this.props.editPath,
+    });
+  };
+
+  deleteField = () => {
+    deleteFields({
+      editPaths: [this.props.editPath],
     });
   };
 
@@ -196,7 +246,7 @@ export default class JSONFormField extends React.Component {
         checkboxId={checkboxId}
         value={displayVal}
         tooltip={tooltip}
-        disabled={metadata.deprecated}
+        disabled={isReverted || (metadata && metadata.deprecated)}
         onChange={value => this.editField(value)}
         onFocus={() => this.setState({focus: true})}
         onBlur={() => this.setState({focus: false})}
@@ -243,7 +293,7 @@ export default class JSONFormField extends React.Component {
               className={inputClass}
               type="number"
               value={displayVal}
-              disabled={metadata.deprecated}
+              disabled={isReverted || (metadata && metadata.deprecated)}
               onChange={event => this.editField(Number(event.target.value))}
               onFocus={() => this.setState({focus: true})}
               onBlur={() => this.setState({focus: false})}
@@ -264,7 +314,7 @@ export default class JSONFormField extends React.Component {
               className={inputClass}
               type="text"
               value={displayVal}
-              disabled={metadata.deprecated}
+              disabled={isReverted || (metadata && metadata.deprecated)}
               onChange={event => this.editField(event.target.value)}
               onFocus={() => this.setState({focus: true})}
               onBlur={() => this.setState({focus: false})}
@@ -294,6 +344,7 @@ export default class JSONFormField extends React.Component {
       configLayerValues,
       isReverted,
       isDraft,
+      isDeletable,
       displayVal,
     } = this.props;
     const {focus, hover} = this.state;
@@ -304,6 +355,36 @@ export default class JSONFormField extends React.Component {
       isDraft,
       isReverted,
     );
+
+    let removeIcon;
+
+    if (!this.isRevertable(displayIdx, configLayerValues) || isDraft) {
+      removeIcon = null;
+    } else if (isDeletable) {
+      removeIcon = (
+        <div className="nc-form-action">
+          <Glyphicon
+            glyph="remove"
+            style={{marginLeft: '5px'}}
+            onClick={this.deleteField}
+          />
+          <span className="nc-form-action-tooltip">Remove field</span>
+        </div>
+      );
+    } else {
+      removeIcon = (
+        <div className="nc-form-action">
+          {
+            <img
+              src="/static/images/undo.png"
+              style={{marginLeft: '5px'}}
+              onClick={this.revertField}
+            />
+          }
+          <span className="nc-form-action-tooltip">Remove override value</span>
+        </div>
+      );
+    }
 
     return (
       <div
@@ -316,19 +397,7 @@ export default class JSONFormField extends React.Component {
 
         <div className="nc-form-body">
           {formInputElement}
-          {this.isRevertable(displayIdx, configLayerValues) &&
-            !isDraft && (
-              <div className="nc-form-action">
-                <img
-                  src="/static/images/undo.png"
-                  style={{marginLeft: '5px'}}
-                  onClick={this.revertField}
-                />
-                <span className="nc-form-action-tooltip">
-                  Remove override value
-                </span>
-              </div>
-            )}
+          {removeIcon}
           {(isReverted || isDraft) && (
             <div className="nc-form-action">
               <img
@@ -346,21 +415,3 @@ export default class JSONFormField extends React.Component {
     );
   }
 }
-
-JSONFormField.propTypes = {
-  editPath: PropTypes.array.isRequired,
-  metadata: PropTypes.object,
-
-  formLabel: PropTypes.string.isRequired, // the field name for the value we are displaying
-  displayIdx: PropTypes.number.isRequired, // the index within values to display if not a draft
-  configLayerValues: PropTypes.array.isRequired,
-  draftValue: PropTypes.any.isRequired,
-
-  isReverted: PropTypes.bool.isRequired,
-  isDraft: PropTypes.bool.isRequired,
-  displayVal: PropTypes.any.isRequired,
-
-  viewContext: PropTypes.shape({
-    viewOverridesOnly: PropTypes.bool.isRequired,
-  }).isRequired,
-};

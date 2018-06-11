@@ -1,119 +1,67 @@
 namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.Aggregator
 
-include "Lsdb.thrift"
-include "IpPrefix.thrift"
+cpp_include "<unordered_map>"
+
 include "Monitor.thrift"
 
 enum AggrMessageType {
 
   // ===  StatusApp  === //
   // Requests handled (by Aggr StatusApp)
-  GET_STATUS_DUMP_DEPRECATED = 101,
-  GET_STATUS_REPORT = 103,
-  GET_ROUTING_REPORT = 104,
+  GET_STATUS_DUMP = 101,
   // Responses given (by Aggr StatusApp)
-  STATUS_DUMP_DEPRECATED = 201,
-  ROUTING_ADJ = 202,
-  // Messages originated (by agent)
-  STATUS_REPORT_DEPRECATED = 401, // Deprecating
-  STATUS_REPORT = 403,
-  ROUTING_REPORT = 404,
+  STATUS_DUMP = 201,
 
-  STATS_REPORT = 402,
-  // Messages originated (by logtail)
-  SYSLOG_REPORT = 451,
-
+  // === StatsApp === //
   GET_ALERTS_CONFIG = 501,
   GET_ALERTS_CONFIG_RESP = 502,
   SET_ALERTS_CONFIG = 503,
   SET_ALERTS_CONFIG_RESP = 504,
 
-  // ===  TrafficApp  === //
-  // Requests handled (by Aggr TrafficApp)
-  START_IPERF = 601,
-  STOP_IPERF = 602,
-  GET_IPERF_STATUS = 603,
-  // Messages originated by Aggr TrafficApp to agent / NmsPublisher
-  START_IPERF_SERVER = 611,
-  START_IPERF_CLIENT = 612,
-  // Messages originated by agent to Aggr TrafficApp
-  START_IPERF_SERVER_RESP = 621,
-  IPERF_STATUS_REPORT = 622,
+  // === NmsPublisher === //
+  // Messages originated (by agent)
+  STATS_REPORT = 402,
+  HIGH_FREQUENCY_STATS_REPORT = 403,
+
+  // === LogTail === //
+  // Messages originated (by logtail)
+  SYSLOG_REPORT = 451,
+
+  // === PerfTest === //
+  // Messages originated (by perf)
+  PING = 301,
+  // Messages received (from StatsApp)
+  PONG = 302,
+
+  // ===  ConfigApp  === //
+  GET_AGGR_CONFIG_REQ = 601,
+  GET_AGGR_CONFIG_RESP = 602,
+  SET_AGGR_CONFIG_REQ = 603,
+  GET_AGGR_CONFIG_METADATA_REQ = 604,
+  GET_AGGR_CONFIG_METADATA_RESP = 605,
 
   // Common
   AGGR_ACK = 1001,
+  GET_TOPOLOGY = 1002,
+  TOPOLOGY = 1003,
 }
 
 #############  StatusApp ##############
 
 /**
  * @apiDefine AggrGetStatusDump
- * @apiDeprecated Data became too large, use
-                  AggrGetStatusReports/AggrGetRoutingReports
  */
 struct AggrGetStatusDump {}
 
 /**
  * @apiDefine AggrStatusDump_SUCCESS
- * @apiDeprecated Data became too large, use
-                  AggrStatusReports/AggrRoutingReports
- * @apiSuccess {Map(String:Object(AdjacencyDatabase))} adjacencyMap
- *             The per-node adjacency map
- * @apiSuccess {Map(String:Object(AggrStatusReport))} statusReports
- *             The per-node status reports
- * @apiSuccess {String} version
- *	       The aggregator version sourced from "/etc/version"
+ * @apiSuccess {String} [version]
+ *             The aggregator version sourced from "/etc/version"
  */
-struct AggrStatusDump_Deprecated {
-  1: map<string /* node id */, Lsdb.AdjacencyDatabase> adjacencyMap;
-  2: map<string /* node id */, AggrStatusReport_Deprecated> statusReports;
+struct AggrStatusDump {
+  // deprecated: 1 (adjacencyMap), 2 (statusReports)
   3: optional string version;
-}
-
-/**
- * Status Reports
- */
-
-struct AggrGetStatusReport {}
-
-struct AggrStatusReport {
-  1: map<string /* node id */, AgentStatusReport> statusReports;
-}
-
-struct AgentStatusReport {
-  1: i64 timeStamp;  // timestamp at which this response was generated
-  2: string ipv6Address;
-}
-
-/**
- * @apiDefine AggrStatusReport_Deprecated_SUCCESS
- * @apiSuccess (:AggrStatusReport) {Int64} timeStamp
- *                                 The time at which this response was generated
- * @apiSuccess (:AggrStatusReport) {String} ipv6Address The globally-reachable
- *                                 IPv6 address of the stats agent
- * @apiSuccess (:AggrStatusReport) {Object(UnicastRoute)[]} routes
- *                                 The routing table
- * @apiSuccess (:AggrStatusReport) {Map(String:String)} linkLocals
- *                                 The link-locals addresses (interface:address)
- */
-struct AggrStatusReport_Deprecated {
-  1: i64 timeStamp;  // timestamp at which this response was generated
-  2: string ipv6Address;
-  3: list<IpPrefix.UnicastRoute> routes;
-  4: map<string /* interface */, string /* address */> linkLocals;
-}
-
-struct AggrGetRoutingReport {}
-
-struct AggrRoutingReport {
-  1: map<string /* node id */, Lsdb.AdjacencyDatabase> adjacencyMap;
-  2: map<string /* node id */, AgentRoutingReport> routingReports;
-}
-
-struct AgentRoutingReport {
-  1: list<IpPrefix.UnicastRoute> routes;
-  2: map<string /* interface */, string /* address */> linkLocals;
 }
 
 #############  StatsApp ##############
@@ -171,92 +119,54 @@ struct AggrSyslogReport {
   2: list<AggrSyslog> syslogs;
 }
 
-############# TrafficApp ##############
+struct AggrGetTopology {}
 
-// Protocol numbers:
-// https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
-enum AggrIperfTransportProtocol {
-  TCP = 6,
-  UDP = 17,
+struct AggrPing {
+  1: i64 clientTs;
+}
+
+struct AggrPong {
+  1: i64 clientTs;
+}
+
+############# Config App #############
+
+struct AggregatorConfig {
+  1: map<string, string> (cpp.template = "std::unordered_map") flags;
 }
 
 /**
- * @apiDefine AggrStartIperf
- * @apiParam {String} srcNodeId The source node MAC address
- * @apiParam {String} srcNodeIpv6 The source node IPv6 address
- * @apiParam {String} dstNodeId The destination node MAC address
- * @apiParam {String} dstNodeIpv6 The destination node IPv6 address
- * @apiParam {Int64} bitrate The target traffic bitrate (bps)
- * @apiParam {Int32} timeSec The measurement duration (in seconds)
- * @apiParam {Int(AggrIperfTransportProtocol)=6,17} protocol
- *           The transport protocol (6=TCP, 17=UDP)
+ * @apiDefine AggrGetConfigReq
  */
+struct AggrGetConfigReq {}
+
 /**
- * @apiDefine AggrStartIperf_SUCCESS
- * @apiSuccess (:AggrStartIperf) {String} srcNodeId
- *                               The source node MAC address
- * @apiSuccess (:AggrStartIperf) {String} srcNodeIpv6
- *                               The source node IPv6 address
- * @apiSuccess (:AggrStartIperf) {String} dstNodeId
- *                               The destination node MAC address
- * @apiSuccess (:AggrStartIperf) {String} dstNodeIpv6
- *                               The destination node IPv6 address
- * @apiSuccess (:AggrStartIperf) {Int64} bitrate
- *                               The target traffic bitrate (bps)
- * @apiSuccess (:AggrStartIperf) {Int32} timeSec
- *                               The measurement duration (in seconds)
- * @apiSuccess (:AggrStartIperf) {Int(AggrIperfTransportProtocol)=6,17} protocol
- *                               The transport protocol (6=TCP, 17=UDP)
+ * @apiDefine AggrGetConfigResp_SUCCESS
+ * @apiSuccess {String} config The aggregator config (JSON)
  */
-struct AggrStartIperf {
-  1: string srcNodeId;
-  2: string srcNodeIpv6;
-  3: string dstNodeId;
-  4: string dstNodeIpv6;
-  5: i64 bitrate;
-  6: i32 timeSec;
-  7: AggrIperfTransportProtocol protocol;
+struct AggrGetConfigResp {
+  1: string config; // Json of aggregator config
 }
 
 /**
- * @apiDefine AggrStartAgentIperf_SUCCESS
- * @apiSuccess (:AggrStartAgentIperf) {Object(AggrStartIperf)} iperfConfig
- *                                    The iperf config
- * @apiSuccess (:AggrStartAgentIperf) {Int32} serverPort The server port
+ * @apiDefine AggrSetConfigReq
+ * @apiParam {String} config The aggregator config (JSON)
  */
-struct AggrStartAgentIperf {
-  1: AggrStartIperf iperfConfig;
-  2: i32 serverPort = 0;
+struct AggrSetConfigReq {
+  1: string config; // Json of aggregator config
 }
 
 /**
- * @apiDefine AggrStopIperf
- * @apiParam {String} nodeId The node MAC address
+ * @apiDefine AggrGetConfigMetadata
  */
-struct AggrStopIperf {
-  1: string nodeId;
-}
-
-struct AggrStopAgentIperf {}
+struct AggrGetConfigMetadata {}
 
 /**
- * @apiDefine AggrGetIperfStatus
- * @apiParam {String} nodeId The node MAC address
+ * @apiDefine AggrGetConfigMetadataResp_SUCCESS
+ * @apiSuccess {String} metadata The aggregator config parameter metadata (JSON)
  */
-struct AggrGetIperfStatus {
-  1: string nodeId;
-}
-
-/**
- * @apiDefine AggrIperfStatusReport_SUCCESS
- * @apiSuccess {Map(Int32:Object(AggrStartAgentIperf))} clients
- *             The client statuses, keyed by iperf port
- * @apiSuccess {Map(Int32:Object(AggrStartAgentIperf))} servers
- *             The server statuses, keyed by iperf port
- */
-struct AggrIperfStatusReport {
-  1: map<i32 /* port */, AggrStartAgentIperf> clients;
-  2: map<i32 /* port */, AggrStartAgentIperf> servers;
+struct AggrGetConfigMetadataResp {
+  1: string metadata;
 }
 
 ############# Common #############
@@ -264,6 +174,12 @@ struct AggrIperfStatusReport {
 struct AggrMessage {
   1: AggrMessageType mType;
   2: binary value;
+  3: optional bool compressed;
+  4: optional AggrCompressionFormat compressionFormat;
+}
+
+enum AggrCompressionFormat {
+  SNAPPY = 1,
 }
 
 /**

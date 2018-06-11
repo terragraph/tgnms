@@ -73,6 +73,7 @@
 .rc-new-json-config-object {
   background-color: rgba(200, 200, 200, 0.2);
   border: 1px solid #aaa;
+  margin-bottom: 5px;
   padding: 5px;
   display: inline-block;
 }
@@ -93,8 +94,13 @@
   margin-bottom: 5px;
 }
 
-.rc-json-form-field:hover, .json-field-focused {
-  background-color: #ddd;
+
+.rc-new-json-config-textarea {
+  background-color: rgba(200, 200, 200, 0.2);
+  border: 1px solid #aaa;
+  margin-bottom: 5px;
+  display: inline-flex;
+  padding: 5px;
 }
 
 .nc-new-field-label {
@@ -102,6 +108,11 @@
   margin-top: 0px;
   margin-bottom: 0px;
   min-width: 250px; /* fixed min width so we can align the input fields */
+}
+
+.nc-form-body {
+  display: flex;
+  align-items: flex-start;
 }
 
 .nc-form-label {
@@ -119,6 +130,14 @@
 .nc-form-input-wrapper {
   display: inline;
   position: relative;
+}
+
+.nc-new-json-textarea {
+  border-color: #d2d2d2;
+  margin-right: 5px;
+  min-height: 100px;
+  padding: 5px;
+  width: 400px;
 }
 
 .config-form-input {

@@ -12,27 +12,27 @@
 #include "../MySqlClient.h"
 #include "../StatsTypeAheadCache.h"
 
+#include <folly/Memory.h>
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
-#include <folly/Memory.h>
 #include <proxygen/httpserver/RequestHandler.h>
 
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/client/BeringeiConfigurationAdapterIf.h"
-#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
+#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 namespace facebook {
 namespace gorilla {
 
 class StatsTypeAheadHandler : public proxygen::RequestHandler {
-public:
+ public:
   explicit StatsTypeAheadHandler(
       std::shared_ptr<MySqlClient> mySqlClient,
       TACacheMap& typeaheadCache);
 
-  void
-  onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
+  void onRequest(
+      std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
 
   void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
 
@@ -44,10 +44,10 @@ public:
 
   void onError(proxygen::ProxygenError err) noexcept override;
 
-private:
+ private:
   std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
   TACacheMap& typeaheadCache_;
 };
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

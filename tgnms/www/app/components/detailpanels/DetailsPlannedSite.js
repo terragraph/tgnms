@@ -97,10 +97,6 @@ export default class DetailsPlannedSite extends React.Component {
   }
 
   render() {
-    if (!this.props.site || !this.props.site.name) {
-      return <div />;
-    }
-
     return (
       <Panel
         bsStyle="primary"

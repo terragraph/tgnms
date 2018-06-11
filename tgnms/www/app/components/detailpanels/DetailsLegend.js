@@ -38,7 +38,7 @@ export default class DetailsLegend extends React.Component {
       color: 'pink',
       svg: {},
     },
-    DN: {
+    POP: {
       color: 'blue',
       svg: {},
     },

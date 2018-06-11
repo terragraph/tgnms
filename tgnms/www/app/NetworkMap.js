@@ -8,7 +8,7 @@
 // ui components
 import NetworkDataTable from './NetworkDataTable.js';
 import Dispatcher from './NetworkDispatcher.js';
-import {polarityColor} from './NetworkHelper.js';
+import {polarityColor} from './helpers/NetworkHelpers.js';
 import DetailsLegend from './components/detailpanels/DetailsLegend.js';
 import DetailsLink from './components/detailpanels/DetailsLink.js';
 import DetailsNode from './components/detailpanels/DetailsNode.js';
@@ -30,15 +30,12 @@ import NetworkStore from './stores/NetworkStore.js';
 import {rgb, scaleLinear} from 'd3';
 import LeafletGeom from 'leaflet-geometryutil';
 // leaflet maps
-import Leaflet, {Point, LatLng} from 'leaflet';
-import {Index, TimeSeries, TimeRange, TimeRangeEvent} from 'pondjs';
+import Leaflet, {LatLng} from 'leaflet';
 import PropTypes from 'prop-types';
-import {render} from 'react-dom';
 import Control from 'react-leaflet-control';
 import {
   Map,
   Polyline,
-  Popup,
   TileLayer,
   Marker,
   CircleMarker,
@@ -48,9 +45,9 @@ import SplitPane from 'react-split-pane';
 import React from 'react';
 
 const SITE_MARKER = Leaflet.icon({
-  iconUrl: '/static/images/site.png',
-  iconSize: [50, 50],
   iconAnchor: [7, 8],
+  iconSize: [50, 50],
+  iconUrl: '/static/images/site.png',
 });
 
 export class CustomMap extends Map {
@@ -80,33 +77,27 @@ export default class NetworkMap extends React.Component {
   sitesByName = {};
 
   state = {
+    analyzerTable: {},
+    commitPlanBatch: 0,
+    detailsExpanded: true,
     hoveredSite: null,
-    selectedSite: null,
-    selectedLink: null,
-    routeWeights: {},
-    routeSourceNode: null,
+    linkHealth: {},
+    linkOverlayData: {},
+    lowerPaneHeight: window.innerHeight / 2,
+    newTopology: {},
+    plannedSite: null,
     routeDestNode: null,
-    // reset zoom level to a topologies default
-    zoomLevel: 18,
-    // sorting
+    routeSourceNode: null,
+    routeWeights: {},
+    routingOverlayEnabled: false,
+    selectedLink: null,
+    selectedSite: null,
+    showTopologyIssuesPane: false,
     sortName: undefined,
     sortOrder: undefined,
-    routingOverlayEnabled: false,
-    detailsExpanded: true,
     tablesExpanded: true,
-    linkHealth: {},
-    analyzerTable: {},
-
-    // UI
-    upperPaneHeight: window.innerHeight / 2, // available height of the upper pane
-    lowerPaneHeight: window.innerHeight / 2, // available height of the lower pane
-
-    plannedSite: null,
-    linkOverlayData: {},
-    showTopologyIssuesPane: false,
-    newTopology: {},
-    // commit batch selected
-    commitPlanBatch: 0,
+    upperPaneHeight: window.innerHeight / 2,
+    zoomLevel: 18,
   };
 
   constructor(props) {
@@ -133,16 +124,18 @@ export default class NetworkMap extends React.Component {
     this.refs.map.leafletElement.invalidateSize();
 
     this.setState({
-      // TODO: hacky, we need the Math.min here because the resize can happen in 2 ways:
-      // both panes resize at the same time, and the upper one shrinks when it has the height of the whole window
-      upperPaneHeight: Math.min(
-        window.innerHeight,
-        this.refs.split_pane.splitPane.childNodes[0].clientHeight,
-      ),
+      // TODO: hacky, we need the Math.min here because the resize can happen
+      // in 2 ways:
+      // 1. both panes resize at the same time
+      // 2. the upper one shrinks when it has the height of the whole window
       lowerPaneHeight: this.state.tablesExpanded
         ? window.innerHeight -
           this.refs.split_pane.splitPane.childNodes[0].clientHeight
         : this.state.lowerPaneHeight,
+      upperPaneHeight: Math.min(
+        window.innerHeight,
+        this.refs.split_pane.splitPane.childNodes[0].clientHeight,
+      ),
     });
   }
 
@@ -153,8 +146,8 @@ export default class NetworkMap extends React.Component {
     );
     window.addEventListener('resize', this.resizeWindow);
     this.setState({
-      linkHealth: NetworkStore.linkHealth,
       analyzerTable: NetworkStore.analyzerTable,
+      linkHealth: NetworkStore.linkHealth,
     });
     // update helper maps
     this.updateTopologyState(this.props.networkConfig);
@@ -192,62 +185,62 @@ export default class NetworkMap extends React.Component {
         // update selected topology name and wipe the zoom level
         this.setState({
           routingOverlayEnabled: false,
-          selectedSite: null,
           selectedLink: null,
           selectedNode: null,
+          selectedSite: null,
         });
         break;
       case Actions.NODE_SELECTED:
         const site = this.nodesByName[payload.nodeSelected].site_name;
         this.setState({
-          selectedSite: site,
-          selectedNode: payload.nodeSelected,
           selectedLink: null,
+          selectedNode: payload.nodeSelected,
+          selectedSite: site,
         });
         break;
       case Actions.LINK_SELECTED:
         this.setState({
           selectedLink: payload.link,
-          selectedSite: null,
           selectedNode: null,
+          selectedSite: null,
         });
         break;
       case Actions.SITE_SELECTED:
         this.setState({
-          selectedSite: payload.siteSelected,
           selectedLink: null,
           selectedNode: null,
+          selectedSite: payload.siteSelected,
         });
         break;
       case Actions.DISPLAY_ROUTE:
         this.setState({
-          routeWeights: payload.routeWeights,
-          routeSourceNode: payload.routeSourceNode,
           routeDestNode: payload.routeDestNode,
+          routeSourceNode: payload.routeSourceNode,
+          routeWeights: payload.routeWeights,
           routingOverlayEnabled: true,
-          selectedSite: null,
           selectedLink: null,
           selectedNode: null,
+          selectedSite: null,
         });
         break;
       case Actions.CLEAR_ROUTE:
         this.setState({
-          routeWeights: null,
-          routeSourceNode: null,
           routeDestNode: null,
+          routeSourceNode: null,
+          routeWeights: null,
           routingOverlayEnabled: false,
         });
         break;
       case Actions.PLANNED_SITE_CREAT:
         const plannedSite = {
-          name: payload.siteName,
+          alt: 0,
           lat: this.props.networkConfig
             ? this.props.networkConfig.latitude
             : 37.484494,
           long: this.props.networkConfig
             ? this.props.networkConfig.longitude
             : -122.1483976,
-          alt: 0,
+          name: payload.siteName,
         };
         this.setState({
           plannedSite,
@@ -255,9 +248,9 @@ export default class NetworkMap extends React.Component {
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
-          selectedSite: null,
           selectedLink: null,
           selectedNode: null,
+          selectedSite: null,
         });
         break;
       case Actions.HEALTH_REFRESHED:
@@ -283,8 +276,8 @@ export default class NetworkMap extends React.Component {
         break;
       case Actions.TOPOLOGY_ISSUES_PANE:
         this.setState({
-          showTopologyIssuesPane: payload.visible,
           newTopology: payload.topology,
+          showTopologyIssuesPane: payload.visible,
         });
         break;
       case Actions.COMMIT_PLAN_BATCH:
@@ -353,7 +346,7 @@ export default class NetworkMap extends React.Component {
       const linkAngle = LeafletGeom.bearing(aSiteCoords, zSiteCoords);
       link.angle = linkAngle;
       const linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
-      link.distance = parseInt(linkLength * 100) / 100; /* meters */
+      link.distance = parseInt(linkLength * 100, 10) / 100; /* meters */
       // apply health data
       if (
         this.state.linkHealth &&
@@ -387,23 +380,37 @@ export default class NetworkMap extends React.Component {
         const a_node = nodesByName[link.a_node_name];
         const z_node = nodesByName[link.z_node_name];
 
-        if (a_node && a_node.golay_idx) {
+        if (link.golay_idx) {
           const idx =
             this.props.linkOverlay == 'RxGolayIdx'
-              ? a_node.golay_idx.rxGolayIdx
-              : a_node.golay_idx.txGolayIdx;
+              ? link.golay_idx.rxGolayIdx
+              : link.golay_idx.txGolayIdx;
           link.overlay_a = parseInt(
             Buffer.from(idx.buffer.data).readUIntBE(0, 8),
+            10,
           );
-        }
-        if (z_node && z_node.golay_idx) {
-          const idx =
-            this.props.linkOverlay == 'RxGolayIdx'
-              ? z_node.golay_idx.rxGolayIdx
-              : z_node.golay_idx.txGolayIdx;
-          link.overlay_z = parseInt(
-            Buffer.from(idx.buffer.data).readUIntBE(0, 8),
-          );
+          link.overlay_z = link.overlay_a;
+        } else {
+          if (a_node && a_node.golay_idx) {
+            const idx =
+              this.props.linkOverlay == 'RxGolayIdx'
+                ? a_node.golay_idx.rxGolayIdx
+                : a_node.golay_idx.txGolayIdx;
+            link.overlay_a = parseInt(
+              Buffer.from(idx.buffer.data).readUIntBE(0, 8),
+              10,
+            );
+          }
+          if (z_node && z_node.golay_idx) {
+            const idx =
+              this.props.linkOverlay == 'RxGolayIdx'
+                ? z_node.golay_idx.rxGolayIdx
+                : z_node.golay_idx.txGolayIdx;
+            link.overlay_z = parseInt(
+              Buffer.from(idx.buffer.data).readUIntBE(0, 8),
+              10,
+            );
+          }
         }
       }
     });
@@ -437,8 +444,8 @@ export default class NetworkMap extends React.Component {
   _paneChange(newSize) {
     this.refs.map.leafletElement.invalidateSize();
     this.setState({
-      upperPaneHeight: newSize,
       lowerPaneHeight: window.innerHeight - newSize,
+      upperPaneHeight: newSize,
     });
   }
 
@@ -462,10 +469,10 @@ export default class NetworkMap extends React.Component {
       this.refs.map.leafletElement.invalidateSize();
     }, 1);
     this.setState({
+      tablesExpanded: !this.state.tablesExpanded,
       upperPaneHeight: this.state.tablesExpanded
         ? window.innerHeight
         : window.innerHeight - this.state.lowerPaneHeight,
-      tablesExpanded: !this.state.tablesExpanded,
     });
   }
 
@@ -490,7 +497,6 @@ export default class NetworkMap extends React.Component {
   }
 
   getSiteMarker(site, pos, color, siteIndex): React.Element<any> {
-    const radiusByZoomLevel = this.state.zoomLevel - 9;
     return (
       <CircleMarker
         center={pos}
@@ -509,7 +515,6 @@ export default class NetworkMap extends React.Component {
   }
 
   getLinkLine(link, coords, color): React.Element<any> {
-    const weightByZoomLevel = this.state.zoomLevel - 8;
     return (
       <Polyline
         key={link.name}
@@ -859,8 +864,6 @@ export default class NetworkMap extends React.Component {
         // we have health data for this link
         const linkHealthEvents = this.state.linkHealth.metrics[link.name].events
           .length;
-        //        min = min == undefined ? linkHealthEvents : (linkHealthEvents < min ? linkHealthEvents : min);
-        //        max = max == undefined ? linkHealthEvents : (linkHealthEvents > max ? linkHealthEvents : max);
         linkEventCounts.push(linkHealthEvents);
       }
     });
@@ -935,7 +938,7 @@ export default class NetworkMap extends React.Component {
           case 'Uptime':
             let color = overlayKey.colors[overlayKey.values.length];
             if (link.hasOwnProperty('alive_perc')) {
-              for (var i = 0; i < overlayKey.values.length; ++i) {
+              for (let i = 0; i < overlayKey.values.length; ++i) {
                 if (link.alive_perc < overlayKey.values[i]) {
                   color = overlayKey.colors[i];
                   break;
@@ -951,7 +954,7 @@ export default class NetworkMap extends React.Component {
             color_a = 'grey';
             color_z = 'grey';
             if (link.hasOwnProperty('overlay_a')) {
-              for (var i = 0; i < overlayKey.values.length; ++i) {
+              for (let i = 0; i < overlayKey.values.length; ++i) {
                 if (link.overlay_a == overlayKey.values[i]) {
                   color_a = overlayKey.colors[i];
                   break;
@@ -959,7 +962,7 @@ export default class NetworkMap extends React.Component {
               }
             }
             if (link.hasOwnProperty('overlay_z')) {
-              for (var i = 0; i < overlayKey.values.length; ++i) {
+              for (let i = 0; i < overlayKey.values.length; ++i) {
                 if (link.overlay_z == overlayKey.values[i]) {
                   color_z = overlayKey.colors[i];
                   break;
@@ -982,7 +985,7 @@ export default class NetworkMap extends React.Component {
               this.state.linkOverlayData &&
               link.hasOwnProperty('overlay_a')
             ) {
-              for (var i = 0; i < overlayKey.values.length; ++i) {
+              for (let i = 0; i < overlayKey.values.length; ++i) {
                 if (link.overlay_a < overlayKey.values[i]) {
                   color_a = overlayKey.colors[i];
                   break;
@@ -995,7 +998,7 @@ export default class NetworkMap extends React.Component {
               this.state.linkOverlayData &&
               link.hasOwnProperty('overlay_z')
             ) {
-              for (var i = 0; i < overlayKey.values.length; ++i) {
+              for (let i = 0; i < overlayKey.values.length; ++i) {
                 if (link.overlay_z < overlayKey.values[i]) {
                   color_z = overlayKey.colors[i];
                   break;
@@ -1238,8 +1241,6 @@ export default class NetworkMap extends React.Component {
     let tileUrl = '/tile/{s}/{z}/{x}/{y}.png';
     if (!window.CONFIG.use_tile_proxy) {
       tileUrl = window.location.protocol + MapTiles[this.props.mapTile];
-      //        tileUrl = window.location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-      //        tileUrl = window.location.protocol + '//stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
     }
 
     let plannedSite = <div />;

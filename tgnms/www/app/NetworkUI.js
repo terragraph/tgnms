@@ -17,6 +17,7 @@ import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
 import SystemLogs from './SystemLogs.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
+import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
@@ -38,7 +39,8 @@ const VIEWS = {
   // alerts: {name: 'Alerts', icon: 'alert'},
   upgrade: {name: 'Upgrade', icon: 'upload'},
   'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
-  config: {name: 'Network Config', icon: 'cog'},
+  config: {name: 'Node Config', icon: 'cog'},
+  'e2e-config': {name: 'E2E Config', icon: 'hdd'},
 };
 
 const TOPOLOGY_OPS = {
@@ -87,6 +89,7 @@ export default class NetworkUI extends React.Component {
     const refresh_interval = window.CONFIG.refresh_interval
       ? window.CONFIG.refresh_interval
       : 5000;
+
     // load data if network name known
     this.getNetworkStatusPeriodic();
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
@@ -129,6 +132,32 @@ export default class NetworkUI extends React.Component {
           });
         }
       });
+  }
+
+  // see scan_results in server.js
+  getSelfTestResults(networkName, filter) {
+    if (
+      filter &&
+      filter.hasOwnProperty('filterType') &&
+      filter.hasOwnProperty('testtime')
+    ) {
+      axios
+        .get(
+          '/self_test?topology=' +
+            networkName +
+            '&filter[filterType]=' +
+            filter.filterType +
+            '&filter[testtime]=' +
+            filter.testtime,
+        )
+        .then(response => {
+          Dispatcher.dispatch({
+            actionType: Actions.SELF_TEST_REFRESHED,
+            selfTestResults: response.data,
+          });
+        })
+        .catch(_error => {});
+    }
   }
 
   fetchCommitPlan(networkName) {
@@ -199,6 +228,9 @@ export default class NetworkUI extends React.Component {
         break;
       case Actions.SCAN_FETCH:
         this.updateScanResults(this.state.networkName, payload.mysqlfilter);
+        break;
+      case Actions.SELF_TEST_FETCH:
+        this.getSelfTestResults(this.state.networkName, payload.filter);
         break;
     }
   }
@@ -561,6 +593,9 @@ export default class NetworkUI extends React.Component {
       case 'config':
         paneComponent = <NetworkConfigContainer {...viewProps} />;
         break;
+      case 'e2e-config':
+        paneComponent = <E2EConfigContainer {...viewProps} />;
+        break;
       default:
         paneComponent = (
           <NetworkMap
@@ -600,7 +635,7 @@ export default class NetworkUI extends React.Component {
     let mapMenuItems = [];
     if (this.state.view === 'map') {
       mapMenuItems = [
-        <Divider />,
+        <Divider key={1} />,
         <SubMenu
           title={
             <span>
@@ -616,7 +651,7 @@ export default class NetworkUI extends React.Component {
             );
           })}
         </SubMenu>,
-        <Divider />,
+        <Divider key={2} />,
         <MenuItem key={'overlays#'}>
           <img src={'/static/images/overlays.png'} />
           Site/Link Overlays

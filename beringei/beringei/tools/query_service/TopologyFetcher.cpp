@@ -17,7 +17,7 @@
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-DEFINE_int32(topology_refresh_interval, 30, "Beringei time period");
+DEFINE_int32(topology_refresh_interval, 30, "Topology refresh interval");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -47,42 +47,41 @@ using apache::thrift::SimpleJSONSerializer;
 namespace facebook {
 namespace gorilla {
 
-TopologyFetcher::TopologyFetcher(std::shared_ptr<MySqlClient> mySqlClient,
-                                 TACacheMap& typeaheadCache)
-  : mySqlClient_(mySqlClient),
-    typeaheadCache_(typeaheadCache) {
+TopologyFetcher::TopologyFetcher(
+    std::shared_ptr<MySqlClient> mySqlClient,
+    TACacheMap& typeaheadCache)
+    : mySqlClient_(mySqlClient), typeaheadCache_(typeaheadCache) {
   // refresh topology time period
-  timer_ = folly::AsyncTimeout::make(eb_, [&] () noexcept {
-    timerCb();
-  });
+  timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
   // first run
   timerCb();
   timer_->scheduleTimeout(FLAGS_topology_refresh_interval * 1000);
 }
 
-void
-TopologyFetcher::timerCb() {
+void TopologyFetcher::timerCb() {
   timer_->scheduleTimeout(FLAGS_topology_refresh_interval * 1000);
-  // fetch topologies from mysql
-
+  // refresh topologies from mysql
+  mySqlClient_->refreshTopologies();
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
+  // fetch cached topologies
   for (const auto& topologyConfig : mySqlClient_->getTopologyConfigs()) {
-    auto topology = fetchTopology(topologyConfig);
+    auto topology = fetchTopology(topologyConfig.second);
     if (topology.nodes.empty()) {
-      LOG(INFO) << "Empty topology for: " << topologyConfig->name;
+      LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
-      topologyConfig->topology = topology;
-      topologyInstance->addTopology(topologyConfig);
+      // update TopologyConfig.topology
+      topologyConfig.second->topology = topology;
+      topologyInstance->addTopology(topologyConfig.second);
       LOG(INFO) << "Topology refreshed for: " << topology.name;
       // load stats type-ahead cache?
       updateTypeaheadCache(topology);
     }
+    // TODO: delete old topologies
   }
 }
 
-void
-TopologyFetcher::updateTypeaheadCache(query::Topology& topology) {
+void TopologyFetcher::updateTypeaheadCache(query::Topology& topology) {
   try {
     // insert cache handler
     auto taCache = std::make_shared<StatsTypeAheadCache>(mySqlClient_);
@@ -98,13 +97,13 @@ TopologyFetcher::updateTypeaheadCache(query::Topology& topology) {
         locked->insert(std::make_pair(topology.name, taCache));
       }
     }
-  } catch (const std::exception &ex) {
-    LOG(ERROR) << "Unable to update stats typeahead cache for: " << topology.name;
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << "Unable to update stats typeahead cache for: "
+               << topology.name;
   }
 }
 
-query::Topology
-TopologyFetcher::fetchTopology(
+query::Topology TopologyFetcher::fetchTopology(
     std::shared_ptr<query::TopologyConfig> topologyConfig) {
   query::Topology topology;
   try {
@@ -116,8 +115,10 @@ TopologyFetcher::fetchTopology(
     }
     std::string postData("{}");
     // TODO: make this handle v4/6
-    std::string endpoint = folly::sformat("http://{}:{}/api/getTopology",
-      topologyConfig->api_ip, topologyConfig->api_port);
+    std::string endpoint = folly::sformat(
+        "http://{}:{}/api/getTopology",
+        topologyConfig->api_ip,
+        topologyConfig->api_port);
     LOG(INFO) << "Fetching topology from api endpoint: " << endpoint;
     // we can't verify the peer with our current image/lack of certs
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
@@ -143,7 +144,8 @@ TopologyFetcher::fetchTopology(
     }
     // cleanup
     curl_easy_cleanup(curl);
-    topology = SimpleJSONSerializer::deserialize<query::Topology>(dataChunk.data);
+    topology =
+        SimpleJSONSerializer::deserialize<query::Topology>(dataChunk.data);
     free(dataChunk.data);
     if (res != CURLE_OK) {
       LOG(WARNING) << "CURL error for endpoint " << endpoint << ": "
@@ -155,10 +157,9 @@ TopologyFetcher::fetchTopology(
   return topology;
 }
 
-void
-TopologyFetcher::start() {
+void TopologyFetcher::start() {
   eb_.loopForever();
 }
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

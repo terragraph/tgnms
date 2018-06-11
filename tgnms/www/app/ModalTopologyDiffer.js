@@ -40,7 +40,7 @@ export default class ModalTopologyDiffer extends React.Component {
       // Split on newlines and ignore the 2 header rows
       try {
         topology = JSON.parse(reader.result);
-      } catch (e) {
+      } catch (_e) {
         console.error('Unable to parse JSON:', reader.result);
         swal({title: 'Error parsing input file'});
         return;

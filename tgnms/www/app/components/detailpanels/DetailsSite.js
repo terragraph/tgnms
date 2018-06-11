@@ -10,27 +10,36 @@ import 'sweetalert/dist/sweetalert.css';
 import Dispatcher from '../../NetworkDispatcher.js';
 import {
   availabilityColor,
+  getPolarityString,
   polarityColor,
   uptimeSec,
-} from '../../NetworkHelper.js';
+} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
 import {Panel} from 'react-bootstrap';
 import React from 'react';
+import PropTypes from 'prop-types';
 import swal from 'sweetalert';
 
 export default class DetailsSite extends React.Component {
+  static propTypes = {
+    topologyName: PropTypes.string.isRequired,
+    site: PropTypes.object.isRequired,
+    sites: PropTypes.object.isRequired,
+    nodes: PropTypes.object.isRequired,
+    links: PropTypes.object.isRequired,
+    maxHeight: PropTypes.number.isRequired,
+    onClose: PropTypes.func.isRequired,
+    onEnter: PropTypes.func.isRequired,
+    onLeave: PropTypes.func.isRequired,
+  };
+
   state = {
     showNodes: true,
     showLinks: true,
     showRuckus: true,
     showActions: true,
   };
-
-  constructor(props) {
-    super(props);
-    this.selectLink = this.selectLink.bind(this);
-  }
 
   statusColor(onlineStatus, trueText = 'True', falseText = 'False') {
     return (
@@ -40,7 +49,7 @@ export default class DetailsSite extends React.Component {
     );
   }
 
-  selectLink(linkName) {
+  selectLink = linkName => {
     const link = this.props.links[linkName];
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
@@ -53,7 +62,7 @@ export default class DetailsSite extends React.Component {
         source: 'map',
       });
     }, 1);
-  }
+  };
 
   selectNode(nodeName) {
     Dispatcher.dispatch({
@@ -281,9 +290,7 @@ export default class DetailsSite extends React.Component {
           <td>
             <span
               className="details-link"
-              onClick={() => {
-                this.selectNode(node.name);
-              }}>
+              onClick={() => this.selectNode(node.name)}>
               {this.statusColor(
                 node.status === 2 || node.status === 3,
                 node.name,
@@ -294,11 +301,7 @@ export default class DetailsSite extends React.Component {
           <td>{this.genNodeType(node.node_type, node.is_primary)}</td>
           <td>
             <span style={{color: polarityColor(node.polarity)}}>
-              {node.polarity === 1
-                ? 'Odd'
-                : node.polarity === 2
-                  ? 'Even'
-                  : 'Not Set'}
+              {getPolarityString(node.polarity)}
             </span>
           </td>
           <td title="txGolayIdx">{this.formatGolay(txGolayIdx)}</td>
@@ -528,5 +531,3 @@ export default class DetailsSite extends React.Component {
     );
   }
 }
-
-// TODO Kelvin: add Proptypes here

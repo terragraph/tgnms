@@ -15,15 +15,26 @@ import NetworkConfigImageSelector from './NetworkConfigImageSelector.js';
 import NetworkConfigLegend from './NetworkConfigLegend.js';
 import NetworkConfigNodes from './NetworkConfigNodes.js';
 import classNames from 'classnames';
-import isPlainObject from 'lodash-es/isPlainObject';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
 
 export default class NetworkConfigLeftPane extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+  static propTypes = {
+    topologyName: PropTypes.string.isRequired,
+    selectedImage: PropTypes.string.isRequired,
+
+    editMode: PropTypes.string.isRequired,
+    networkDraftExists: PropTypes.bool.isRequired,
+
+    imageVersions: PropTypes.array.isRequired,
+
+    nodes: PropTypes.array.isRequired,
+    selectedNodes: PropTypes.array.isRequired,
+    nodesWithDrafts: PropTypes.array.isRequired,
+    nodesWithOverrides: PropTypes.instanceOf(Set).isRequired,
+    removedNodeOverrides: PropTypes.object.isRequired,
+  };
 
   renderViewModeSelector() {
     const {editMode, networkDraftExists, nodesWithDrafts} = this.props;
@@ -58,23 +69,12 @@ export default class NetworkConfigLeftPane extends React.Component {
       selectedNodes,
       editMode,
       nodesWithDrafts,
-      nodeOverrideConfig,
+      nodesWithOverrides,
+      removedNodeOverrides,
       imageVersions,
       selectedImage,
     } = this.props;
     const viewModeSelector = this.renderViewModeSelector();
-
-    // TODO: move this to NetworkConfig.js
-    const nodesWithOverrides = isPlainObject(nodeOverrideConfig)
-      ? new Set(
-          Object.keys(nodeOverrideConfig).filter(node => {
-            return (
-              isPlainObject(nodeOverrideConfig[node]) &&
-              Object.keys(nodeOverrideConfig[node]).length > 0
-            );
-          }),
-        )
-      : new Set();
 
     // styling hack to fill the remaining space
     const spacerDiv = <div style={{flex: 1}} />;
@@ -88,6 +88,7 @@ export default class NetworkConfigLeftPane extends React.Component {
             selectedNodes={selectedNodes}
             nodesWithDrafts={nodesWithDrafts}
             nodesWithOverrides={nodesWithOverrides}
+            removedNodeOverrides={removedNodeOverrides}
           />
         )}
         {editMode === CONFIG_VIEW_MODE.NETWORK && (
@@ -107,18 +108,3 @@ export default class NetworkConfigLeftPane extends React.Component {
     );
   }
 }
-
-NetworkConfigLeftPane.propTypes = {
-  topologyName: PropTypes.string.isRequired,
-  selectedImage: PropTypes.string.isRequired,
-
-  editMode: PropTypes.string.isRequired,
-  networkDraftExists: PropTypes.bool.isRequired,
-
-  imageVersions: PropTypes.array.isRequired,
-
-  nodes: PropTypes.array.isRequired,
-  selectedNodes: PropTypes.array.isRequired,
-  nodesWithDrafts: PropTypes.array.isRequired,
-  nodeOverrideConfig: PropTypes.object.isRequired,
-};

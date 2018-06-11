@@ -11,9 +11,9 @@
 #include "MySqlClient.h"
 #include "StatsTypeAheadCache.h"
 
-#include <folly/io/async/EventBaseManager.h>
 #include <folly/Memory.h>
 #include <folly/Portability.h>
+#include <folly/io/async/EventBaseManager.h>
 #include <gflags/gflags.h>
 #include <proxygen/httpserver/HTTPServer.h>
 #include <proxygen/httpserver/RequestHandlerFactory.h>
@@ -25,23 +25,23 @@ namespace gorilla {
 class QueryServiceFactory : public proxygen::RequestHandlerFactory {
  public:
   explicit QueryServiceFactory(
-    std::shared_ptr<MySqlClient> mySqlClient,
-    TACacheMap& typeaheadCache);
+      std::shared_ptr<MySqlClient> mySqlClient,
+      TACacheMap& typeaheadCache);
 
-  void onServerStart(folly::EventBase *evb) noexcept override;
+  void onServerStart(folly::EventBase* evb) noexcept override;
 
   void onServerStop() noexcept override;
 
-  proxygen::RequestHandler *
-  onRequest(proxygen::RequestHandler *,
-            proxygen::HTTPMessage *) noexcept override;
+  proxygen::RequestHandler* onRequest(
+      proxygen::RequestHandler*,
+      proxygen::HTTPMessage*) noexcept override;
 
  private:
-  folly::EventBase *eb_;
+  folly::EventBase* eb_;
   std::shared_ptr<MySqlClient> mySqlClient_;
   // topology name -> type-ahead cache
   TACacheMap& typeaheadCache_;
 };
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

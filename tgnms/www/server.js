@@ -217,7 +217,26 @@ worker.on('message', msg => {
     case 'upgrade_state':
       upgradeStateByName[msg.name] =
         msg.success && msg.upgradeState ? msg.upgradeState : null;
-
+      break;
+    case 'bstar_state':
+      // check if topology has a backup controller and BSTAR_GET_STATE was
+      // successful
+      if (config.controller_ip_backup && msg.success) {
+        // check if state changed.
+        if ((msg.controller_ip == config.controller_ip_active &&
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
+            (msg.controller_ip == config.controller_ip_passive &&
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_ACTIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PRIMARY))) {
+          const tempIp = config.controller_ip_passive;
+          config.controller_ip_passive = config.controller_ip_active;
+          config.controller_ip_active = tempIp;
+          console.log(config.name + " BSTAR state changed");
+          console.log("Active controller is  : " + config.controller_ip_active);
+          console.log("Passive controller is : " + config.controller_ip_passive);
+        }
+      }
       break;
     default:
       console.error('Unknown message type', msg.type);
@@ -247,7 +266,7 @@ function getTopologyByName (topologyName) {
       'No topology name received from controller for',
       config.name,
       '[',
-      config.controller_ip,
+      config.controller_ip_active,
       ']'
     );
     // force the original name if the controller has no name
@@ -444,6 +463,8 @@ function reloadInstanceConfig () {
           config.aggregator_failures = 0;
           config.name = topology.name;
           config.controller_events = [];
+          config.controller_ip_active = config.controller_ip;
+          config.controller_ip_passive = config.controller_ip_backup ? config.controller_ip_backup : null;
           configByName[topology.name] = config;
           fileTopologyByName[topology.name] = topology;
           const topologyName = topology.name;
@@ -497,6 +518,7 @@ function reloadInstanceConfig () {
           console.log('Refreshing cache (stats type-ahead) for',
                       configName);
           refreshStatsTypeaheadCache(configName);
+          refreshSelftestData();
         });
       };
       // initial load
@@ -930,6 +952,20 @@ app.get(/\/scan_results$/i, function(req, res) {
   dataJson.readScanResults(topologyName, res, filter);
 });
 
+// http://<address>/scan_results?topology=<topology name>&
+//    filter[filterType]=<filter type>&
+//    filter[testtime]=<test time>
+//  filter type is "GROUPS" or "TESTRESULTS"
+//  testtime is in ms (unix time)
+// /i means ignore case
+app.get(/\/self_test$/i, function(req, res) {
+  const topologyName = req.query.topology;
+  const filter = {};
+  filter.filterType = req.query.filter.filterType;
+  filter.testtime = req.query.filter.testtime;
+  dataJson.readSelfTestResults(topologyName, res, filter);
+});
+
 
 app.get(/\/health\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
@@ -997,6 +1033,16 @@ function refreshRuckusControllerCache() {
   );
 }
 
+function refreshSelftestData (topologyName) {
+  // !!!!self test does not have network name - need to add it !!!!
+  if (!configByName.hasOwnProperty(topologyName)) {
+    console.error('Unknown topology', topologyName);
+    return;
+  }
+  filter.filterType = "GROUPS";
+  dataJson.readSelfTestResults(topologyName, null, filter);
+}
+
 function refreshNetworkHealth (topologyName) {
   if (!configByName.hasOwnProperty(topologyName)) {
     console.error('Unknown topology', topologyName);
@@ -1043,6 +1089,22 @@ function refreshNetworkHealth (topologyName) {
       let parsed;
       try {
         parsed = JSON.parse(httpResponse.body);
+        // the backend returns both A/Z sides, re-write to one
+        if (parsed &&
+            parsed.length === 2 &&
+            parsed[1].hasOwnProperty('metrics')) {
+          Object.keys(parsed[1].metrics).forEach(linkName => {
+            const linkNameOnly = linkName.replace(" (A) - fw_uptime", "");
+            if (linkName !== linkNameOnly) {
+              parsed[1].metrics[linkNameOnly] = parsed[1].metrics[linkName];
+              // delete a-side name
+              delete parsed[1].metrics[linkName];
+            } else {
+              // delete z-side name
+              delete parsed[1].metrics[linkName];
+            }
+          });
+        }
       } catch (ex) {
         console.error('Failed to parse health json:', httpResponse.body);
         return;
@@ -1979,6 +2041,20 @@ app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
   );
 });
 
+app.get(/\/controller\/getControllerConfig$/, (req, res, next) => {
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'getControllerConfig',
+      topology,
+    },
+    '',
+    res
+  );
+});
+
 app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
   let httpPostData = '';
   req.on('data', function (chunk) {
@@ -2023,7 +2099,7 @@ app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
   });
 });
 
-app.get(/\/controller\/getConfigMetadata/, (req, res, next) => {
+app.get(/\/controller\/getConfigMetadata$/, (req, res, next) => {
   const { topologyName } = req.query;
   const topology = getTopologyByName(topologyName);
 
@@ -2037,8 +2113,43 @@ app.get(/\/controller\/getConfigMetadata/, (req, res, next) => {
   );
 });
 
-// aggregator endpoints
+app.get(/\/controller\/getControllerConfigMetadata$/, (req, res, next) => {
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'getControllerConfigMetadata',
+      topology,
+    },
+    '',
+    res
+  );
+});
 
+app.post(/\/controller\/setControllerConfig$/, (req, res, next) => {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const {config, topologyName} = postData;
+    const topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'setControllerConfig',
+        topology,
+        config,
+      },
+      '',
+      res,
+    );
+  });
+});
+
+// aggregator endpoints
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
   if (!configByName[topologyName]) {
@@ -2059,6 +2170,57 @@ app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (
     return;
   }
   aggregatorProxy.setAlertsConfig(configByName[topologyName], req, res, next);
+});
+
+app.get(/\/aggregator\/getConfig$/, (req, res, next) => {
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendAggrMsgSync(
+    {
+      type: 'getAggregatorConfig',
+      topology,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/aggregator\/getConfigMetadata$/, (req, res, next) => {
+  const {topologyName} = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendAggrMsgSync(
+    {
+      type: 'getAggregatorConfigMetadata',
+      topology,
+    },
+    '',
+    res
+  );
+});
+
+app.post(/\/aggregator\/setConfig$/, (req, res, next) => {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const {config, topologyName} = postData;
+    const topology = getTopologyByName(topologyName);
+
+    syncWorker.sendAggrMsgSync(
+      {
+        type: 'setAggregatorConfig',
+        topology,
+        config,
+      },
+      '',
+      res,
+    );
+  });
 });
 
 if (devMode) {

@@ -1,6 +1,13 @@
-namespace cpp openr.thrift
-namespace cpp2 openr.thrift
-namespace py openr.Monitor
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+namespace cpp2 fbzmq.thrift
+namespace php Fbzmq
+namespace py fbzmq.Monitor
 
 typedef map<string, Counter>
   (cpp.type = "std::unordered_map<std::string, Counter>") CounterMap
@@ -10,8 +17,9 @@ enum MonitorCommand {
   SET_COUNTER_VALUES = 1,
   GET_COUNTER_VALUES = 2,
   DUMP_ALL_COUNTER_NAMES = 3,
-  DUMP_ALL_COUNTER_DATA = 4
+  DUMP_ALL_COUNTER_DATA = 4,
   BUMP_COUNTER = 5,
+  GET_EVENT_LOGS = 6,
 
   // operations on logs, which are not saved in the monitor
   LOG_EVENT = 11,
@@ -77,6 +85,10 @@ struct MonitorRequest {
 
 struct CounterValuesResponse {
   1: CounterMap counters
+}
+
+struct EventLogsResponse {
+  1: list<EventLog> eventLogs
 }
 
 struct CounterNamesResponse {

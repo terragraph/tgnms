@@ -5,21 +5,18 @@
  */
 'use strict';
 
-import {format} from 'd3-format';
 import {timeFormat} from 'd3-time-format';
 import equals from 'equals';
-import {Dispatcher} from 'flux';
 import {EventMarker} from 'leaflet';
-import {Index, TimeSeries, TimeRange} from 'pondjs';
+import {TimeSeries, TimeRange} from 'pondjs';
 import PropTypes from 'prop-types';
 import {
   Charts,
   ChartContainer,
   ChartRow,
-  YAxis,
-  AreaChart,
-  LineChart,
   Legend,
+  LineChart,
+  YAxis,
   styler,
 } from 'react-timeseries-charts';
 import React from 'react';
@@ -29,8 +26,8 @@ export default class ReactMultiGraph extends React.Component {
     super(props, context);
     this.state = {
       data: [],
-      tracker: null,
       indicator: 'IDLE',
+      tracker: null,
     };
     this.chartRequest = undefined;
   }
@@ -199,16 +196,12 @@ export default class ReactMultiGraph extends React.Component {
     const legendLabels = new Set();
     const legendStyle = [];
     let timeRange = TimeRange.lastDay();
-    const minValue = Number.MAX_VALUE;
-    const maxValue = 0;
     let width = 450;
-    let height = 250;
     // reduce legend selectors
     // {key, {label, [time series?]}}
     switch (this.props.size) {
       case 'large':
         width = 800;
-        height = 500;
         break;
     }
     opts.forEach(rowOpts => {
@@ -248,8 +241,8 @@ export default class ReactMultiGraph extends React.Component {
             legendLabels.add(columnName);
           }
           legendStyle.push({
-            key: columnName,
             color: this.nextColor(i),
+            key: columnName,
             width: 2,
           });
         }
@@ -336,16 +329,12 @@ export default class ReactMultiGraph extends React.Component {
         </div>
       );
     }
-    const f = format('$,.2f');
     const df = timeFormat('%b %d %Y %X');
     const timeStyle = {
-      fontSize: '1.2rem',
       color: '#999',
+      fontSize: '1.2rem',
       height: '30px',
     };
-    // we only have key data, skip showing a title for now
-    //    <div style={{ fontSize: "16px", marginLeft: "20px" }}>{title}</div>
-    //let title = '-';
     return (
       <div width="700" style={{borderBottom: '2px solid #ddd'}}>
         <div className="col-md-6" style={timeStyle}>
@@ -382,6 +371,6 @@ export default class ReactMultiGraph extends React.Component {
 }
 
 ReactMultiGraph.propTypes = {
-  size: PropTypes.string.isRequired,
   options: PropTypes.array.isRequired,
+  size: PropTypes.string.isRequired,
 };
