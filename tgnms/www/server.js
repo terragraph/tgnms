@@ -217,7 +217,26 @@ worker.on('message', msg => {
     case 'upgrade_state':
       upgradeStateByName[msg.name] =
         msg.success && msg.upgradeState ? msg.upgradeState : null;
-
+      break;
+    case 'bstar_state':
+      // check if topology has a backup controller and BSTAR_GET_STATE was
+      // successful
+      if (config.controller_ip_backup && msg.success) {
+        // check if state changed.
+        if ((msg.controller_ip == config.controller_ip_active &&
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
+            (msg.controller_ip == config.controller_ip_passive &&
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_ACTIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PRIMARY))) {
+          const tempIp = config.controller_ip_passive;
+          config.controller_ip_passive = config.controller_ip_active;
+          config.controller_ip_active = tempIp;
+          console.log(config.name + " BSTAR state changed");
+          console.log("Active controller is  : " + config.controller_ip_active);
+          console.log("Passive controller is : " + config.controller_ip_passive);
+        }
+      }
       break;
     default:
       console.error('Unknown message type', msg.type);
@@ -247,7 +266,7 @@ function getTopologyByName (topologyName) {
       'No topology name received from controller for',
       config.name,
       '[',
-      config.controller_ip,
+      config.controller_ip_active,
       ']'
     );
     // force the original name if the controller has no name
@@ -444,6 +463,8 @@ function reloadInstanceConfig () {
           config.aggregator_failures = 0;
           config.name = topology.name;
           config.controller_events = [];
+          config.controller_ip_active = config.controller_ip;
+          config.controller_ip_passive = config.controller_ip_backup ? config.controller_ip_backup : null;
           configByName[topology.name] = config;
           fileTopologyByName[topology.name] = topology;
           const topologyName = topology.name;
