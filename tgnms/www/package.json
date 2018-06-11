@@ -134,8 +134,9 @@
     "xterm": "^3.3.0"
   },
   "lint-staged": {
-    "app/*.js": [
-      "./node_modules/.bin/eslint --fix --ignore-path .eslintignore"
+    "app/**/*.js": [
+      "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
+      "git add"
     ]
   },
   "babel": {
