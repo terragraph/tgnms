@@ -11,6 +11,10 @@ import Select from 'react-select';
 import Modal from 'react-modal';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import {isEqual} from 'lodash-es';
+import {
+  formatKeyHelper,
+  fetchKeyData,
+} from '../../helpers/NetworkDashboardsHelper.js';
 
 export default class CreateGraphModal extends React.Component {
   state = {
@@ -145,156 +149,147 @@ export default class CreateGraphModal extends React.Component {
     this.setState({
       nodeSelectOptions,
     });
-  }
+  };
 
-  onNodesSelectChanged(event) {
+  onNodesSelectChanged = event => {
     this.setState({nodesSelected: event});
-  }
+  };
 
-  onNodeKeyChanged(event) {
+  onNodeKeyChanged = event => {
     this.setState({nodeKeysSelected: event.value});
-  }
+  };
 
   // Network form functions
-  onNetworkMetricChanged(event) {
+  onNetworkMetricChanged = event => {
     this.setState({networkMetricSelected: event.value});
-  }
+  };
 
-  setNetworkMetricOptions() {
+  setNetworkMetricOptions = () => {
     // TODO get all the network metric options
     // currently there are no network keys in the backend
     return [];
-  }
+  };
 
-  formatNodeKeyOptions(keyOptions) {
-    const retKeys = [];
-    keyOptions.forEach((key, index) => {
+  formatNodeKeyOptions = keyOptions => {
+    let retKeys = keyOptions.filter((key, index) => {
+      return index > 0 && key.keyId !== keyOptions[index - 1].keyId;
+    });
+    retKeys = retKeys.map((key, index) => {
       // aggregate data for this key, remove duplicates
-      if (index > 0 && key.keyId !== keyOptions[index - 1].keyId) {
-        retKeys.push({name: key.displayName, node: key.nodeName, key});
-      }
+      return {name: key.displayName, node: key.nodeName, key};
     });
     return retKeys;
-  }
+  };
 
-  renderTypeaheadKeyMenu(option, props, index) {
+  renderTypeaheadKeyMenu = (option, props, index) => {
     return [
       <div key="option" className="typeahead-option">
         <strong key="name">{option.name}</strong>
         <div key="data">Node: {option.node}</div>
       </div>,
     ];
-  }
+  };
 
-  metricSelectionChanged(selectedOpts) {
+  metricSelectionChanged = selectedOpts => {
     // update graph options
     this.setState({
       nodeKeysSelected: selectedOpts,
     });
-  }
+  };
 
-  submitLinkGraph() {
-    const key = this.state.linkKeySelected;
-    let url = `/stats_ta/${this.props.topologyName}/${key}`;
-    const graphName = this.state.linkDirectionSelected + ' : ' + key.slice(22);
+  onNodeKeySearch = query => {
+    this.setState({
+      nodeKeyIsLoading: true,
+      nodeKeyOptions: [],
+    });
 
-    // TODO backend does not return exact key if searching with [#]
-    // this is temporary
-    if (key.includes('[')) {
-      url = url.slice(0, url.indexOf('['));
-    }
+    const nodes = this.state.nodesSelected.map(nodeObj => nodeObj.node);
 
-    axios.get(url).then(resp => {
-      const keyIds = [];
-      const dataResp = [];
-      // only doing this because backend doesnt return exact key on search
-      // must parse through response manually to get desired key number [#]
-      if (key.includes('[')) {
-        const keyNum = key.slice(key.indexOf('[') + 1, key.indexOf(']'));
-        resp.data.forEach(point => {
-          if (point[0].key.includes(keyNum)) {
-            point.forEach(val => {
-              keyIds.push(val.keyId);
-              dataResp.push(val);
-            });
-          }
-        });
-      } else {
-        resp.data.forEach(point => {
-          point.forEach((val, index) => {
-            keyIds.push(val.keyId);
-            dataResp.push(val);
+    fetchKeyData([query], this.props.topologyName)
+      .then(graphData => {
+        let keyData = graphData.keyData;
+        nodes.forEach(node => {
+          keyData = keyData.filter(keyObj => {
+            return (
+              !RegExp('\\d').test(keyObj.key) && keyObj.node === node.mac_addr
+            );
           });
         });
+
+        this.setState({
+          nodeKeyIsLoading: false,
+          nodeKeyOptions: this.formatNodeKeyOptions(keyData),
+        });
+      })
+      .catch(err => {
+        console.error('Error getting node key options', err);
+        this.setState({
+          nodeKeyIsLoading: false,
+          nodeKeyOptions: [],
+        });
+      });
+  };
+
+  onSubmitLinkGraph = () => {
+    const key = this.state.linkKeySelected;
+    const {startTime, endTime, minAgo, nodeA, nodeZ} = this.props.dashboard;
+
+    const direction = this.state.linkDirectionSelected.includes('Z -> A')
+      ? 'Z -> A'
+      : 'A -> Z';
+    const setup = {
+      graphType: 'link',
+      direction,
+    };
+    const name = `${direction} ${nodeA.name} -> ${
+      nodeZ.name
+    } : ${formatKeyHelper(key)}`;
+
+    const inputData = {
+      startTime,
+      endTime,
+      minAgo,
+      nodeA,
+      nodeZ,
+      direction,
+      setup,
+      name,
+      key,
+    };
+
+    this.props.onSubmitNewGraph('link', inputData);
+  };
+
+  onSubmitNodeGraph = () => {
+    let graphName = '';
+    const {nodeA, nodeZ} = this.props.dashboard;
+    const nodes = [];
+    this.state.nodesSelected.forEach(nodeSelected => {
+      graphName += nodeSelected.node.name + ' ';
+      if (nodeA.name === nodeSelected.node.name) {
+        nodes.push('nodeA');
+      } else if (nodeZ.name === nodeSelected.node.name) {
+        nodes.push('nodeZ');
       }
-
-      const setupInfo = {
-        graphType: 'link',
-        nodeA: this.props.dashboard.nodeA,
-        nodeZ: this.props.dashboard.nodeZ,
-        direction: this.state.linkDirectionSelected.includes('Z -> A') ? 'Z -> A' : 'A -> Z'
-      }
-
-      // add graph based on the global time range set in the dashboard
-      const {startTime, endTime, minAgo} = this.props.dashboard;
-      if (startTime && endTime) {
-        this.props.addGraphCustomTime(
-          graphName,
-          startTime,
-          endTime,
-          dataResp,
-          keyIds,
-          setupInfo
-        );
-      } else {
-        this.props.addGraphMinAgo(graphName, minAgo, dataResp, keyIds, setupInfo);
-      }
-      this.props.closeModal();
-    })
-    .catch(err => {
-      console.error('Error submitting link graph', err)
-    })
-  }
-
-  submitNodeGraph() {
-    const graphName = 'Node stats';
-
-    const {nodeKeysSelected} = this.state;
-
-    const nodeKeyIds = [];
-    const nodeKeyData = [];
-    nodeKeysSelected.forEach(nodeKey => {
-      nodeKeyIds.push(nodeKey.key.keyId);
-      nodeKeyData.push(nodeKey.key);
-    })
+    });
+    const keys = this.state.nodeKeysSelected.map(nodeKey => nodeKey.key);
 
     const {startTime, endTime, minAgo} = this.props.dashboard;
 
-    const setupInfo = {
-      graphType: 'node',
-      nodes: nodeKeysSelected,
-    }
+    const inputData = {
+      startTime,
+      endTime,
+      minAgo,
+      setup: {
+        graphType: 'node',
+        nodes,
+      },
+      name: graphName,
+      keys,
+    };
 
-    if (startTime && endTime) {
-      this.props.addGraphCustomTime(
-        graphName,
-        startTime,
-        endTime,
-        nodeKeyData,
-        nodeKeyIds,
-        setupInfo
-      );
-    } else {
-      this.props.addGraphMinAgo(
-        graphName,
-        minAgo,
-        nodeKeyData,
-        nodeKeyIds,
-        setupInfo
-      );
-    }
-    this.props.closeModal();
-  }
+    this.props.onSubmitNewGraph('node', inputData);
+  };
 
   render() {
     const {nodeA, nodeZ} = this.props.dashboard;
@@ -390,60 +385,15 @@ export default class CreateGraphModal extends React.Component {
                         placeholder="Enter node key name..."
                         ref={ref => (this._typeaheadKey = ref)}
                         isLoading={this.state.nodeKeyIsLoading}
-                        onSearch={query => {
-                          this.setState({
-                            nodeKeyIsLoading: true,
-                            nodeKeyOptions: [],
-                          });
-                          const selectedNodes = this.state.nodesSelected;
-                          axios
-                            .get(
-                              `/stats_ta/${this.props.topologyName}/${query}`,
-                            )
-                            .then(resp => {
-                              const keys = resp.data;
-                              const keyOptions = [];
-                              keys.forEach(keyArr => {
-                                keyArr.forEach(keyObj => {
-                                  selectedNodes.forEach(nodeObj => {
-                                    const selectedNode = nodeObj.node;
-                                    if (
-                                      keyObj.node === selectedNode.mac_addr &&
-                                      !/\d/.test(keyObj.key)
-                                    ) {
-                                      keyOptions.push(keyObj);
-                                    }
-                                  });
-                                });
-                              });
-                              this.setState({
-                                nodeKeyIsLoading: false,
-                                nodeKeyOptions: this.formatNodeKeyOptions(
-                                  keyOptions,
-                                ),
-                              });
-                            })
-                            .catch(err => {
-                              console.log(
-                                'Error getting node key options',
-                                err,
-                              );
-                              this.setState({
-                                nodeKeyIsLoading: false,
-                                nodeKeyOptions: [],
-                              });
-                            });
-                        }}
+                        onSearch={this.onNodeKeySearch}
                         selected={this.state.nodeKeysSelected}
-                        onChange={this.metricSelectionChanged.bind(this)}
+                        onChange={this.metricSelectionChanged}
                         useCache={false}
                         emptyLabel={false}
                         filterBy={(opt, txt) => {
                           return true;
                         }}
-                        renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(
-                          this,
-                        )}
+                        renderMenuItemChildren={this.renderTypeaheadKeyMenu}
                         options={this.state.nodeKeyOptions}
                       />
                     </div>

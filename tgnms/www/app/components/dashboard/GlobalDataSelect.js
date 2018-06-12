@@ -265,6 +265,7 @@ export default class GlobalDataSelect extends React.Component {
     const customInputProps = {
       disabled: !this.state.useCustomTime,
     };
+    const disableApplySubmit = this.state.nodeASelected === '' || this.state.nodeZSelected === '';
     return (
       <div id="global-data-select">
         <h3>Global Data</h3>
@@ -348,10 +349,15 @@ export default class GlobalDataSelect extends React.Component {
           />
         </div>
         <button
-          className="graph-button submit-button"
+          className={
+            disableApplySubmit
+              ? 'graph-button disabled-button'
+              : 'graph-button submit-button'
+          }
           onClick={() => {
             this.applyToAllGraphs();
-          }}>
+          }}
+          disabled={disableApplySubmit}>
           Apply To All Graphs
         </button>
       </div>
