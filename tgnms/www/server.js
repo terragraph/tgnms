@@ -1952,20 +1952,6 @@ app.post(
   }
 );
 
-app.get(/\/controller\/listUpgradeImages\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'listUpgradeImages',
-      topology: topology,
-    },
-    '',
-    res
-  );
-});
-
 app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (
   req,
   res,

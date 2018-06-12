@@ -118,10 +118,7 @@ export const uploadUpgradeBinary = async (upgradeBinary, topologyName) => {
 };
 
 export const listUpgradeImages = topologyName => {
-  const uri = `/controller/listUpgradeImages/${topologyName}`;
-
-  axios
-    .get(uri)
+  apiServiceRequest(topologyName, 'listUpgradeImages')
     .then(response => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_IMAGES_LOADED,
