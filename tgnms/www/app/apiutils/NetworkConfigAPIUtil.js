@@ -24,7 +24,7 @@ import {
 } from '../actions/NetworkConfigActions.js';
 import {DEFAULT_BASE_KEY} from '../constants/NetworkConfigConstants.js';
 import {sortConfig, sortConfigByTag} from '../helpers/NetworkConfigHelpers.js';
-import axios from 'axios';
+import {apiServiceRequest} from './ServiceAPIUtil';
 import isPlainObject from 'lodash-es/isPlainObject';
 import pick from 'lodash-es/pick';
 
@@ -34,18 +34,6 @@ const getErrorText = error => {
     ? error.response.statusText
     : error;
 };
-
-function apiServiceRequest(
-  topologyName: string,
-  apiMethod: string,
-  data: Object = {},
-) {
-  // All apiservice requests are POST, and expect at least an empty dict.
-  return axios.post(
-    `/apiservice/${topologyName}/api/${apiMethod}`,
-    (data = data),
-  );
-}
 
 export const getConfigsForTopology = (
   topologyName,

@@ -1941,23 +1941,14 @@ app.post(
   /\/controller\/uploadUpgradeBinary$/i,
   upload.single('binary'),
   function (req, res, next) {
-    // thrift calls and stuff here
-    const { topologyName } = req.body;
-    const topology = getTopologyByName(topologyName);
-
     const urlPrefix = process.env.E2E_DL_URL ? process.env.E2E_DL_URL : (req.protocol + '://' + req.get('host'));
     const uriPath = querystring.escape(req.file.filename);
-    const imagePath = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
+    const imageUrl = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
 
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'addUpgradeImage',
-        topology: topology,
-        imagePath: imagePath,
-      },
-      '',
-      res
-    );
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({
+      imageUrl,
+    }));
   }
 );
 

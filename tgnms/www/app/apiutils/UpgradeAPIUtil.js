@@ -14,6 +14,7 @@ import {
   UploadStatus,
   DeleteStatus,
 } from '../constants/NetworkConstants.js';
+import {apiServiceRequest} from './ServiceAPIUtil';
 import {REVERT_UPGRADE_IMAGE_STATUS} from '../constants/UpgradeConstants.js';
 import axios from 'axios';
 import swal from 'sweetalert';
@@ -40,7 +41,7 @@ const createErrorHandler = (
   };
 };
 
-export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
+export const uploadUpgradeBinary = async (upgradeBinary, topologyName) => {
   if (!upgradeBinary) {
     return;
   }
@@ -53,7 +54,6 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
 
   const data = new FormData();
   data.append('binary', upgradeBinary);
-  data.append('topologyName', topologyName);
 
   const config = {
     onUploadProgress(progressEvent) {
@@ -68,48 +68,53 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     },
   };
 
-  const uri = '/controller/uploadUpgradeBinary';
-  axios
-    .post(uri, data, config)
-    .then(response => {
-      // dispatch an action when upload has succeeded
-      Dispatcher.dispatch({
-        actionType: Actions.UPGRADE_UPLOAD_STATUS,
-        uploadStatus: UploadStatus.SUCCESS,
-      });
+  try {
+    // Upload binary to server, then send apiservice the url of the image
+    const url = '/controller/uploadUpgradeBinary';
+    const uploadResponse = await axios.post(url, data, config);
+    await apiServiceRequest(
+      topologyName,
+      'addUpgradeImage',
+      uploadResponse.data,
+    );
 
-      // revert the upload status after a specified interval
-      setTimeout(() => {
-        Dispatcher.dispatch({
-          actionType: Actions.UPGRADE_UPLOAD_STATUS,
-          uploadStatus: UploadStatus.NONE,
-        });
-      }, REVERT_UPGRADE_IMAGE_STATUS);
-
-      listUpgradeImages(topologyName);
-
-      swal({
-        text:
-          'Your selected image has been uploaded successfully and is ' +
-          'currently being prepared for use and should be ready soon. ' +
-          '\n\n Please refresh the list of images periodically. If your ' +
-          'image does not show up, please try again.',
-        title: 'Upload Image Success',
-        type: 'info',
-      });
-    })
-    .catch(error => {
-      createErrorHandler(
-        'Upload Image Failed. Please try again',
-        'There was an error while uploading your selected image with ' +
-          'the following message',
-      )(error);
-      Dispatcher.dispatch({
-        actionType: Actions.UPGRADE_UPLOAD_STATUS,
-        uploadStatus: UploadStatus.FAILURE,
-      });
-      listUpgradeImages(topologyName);
+    // dispatch an action when upload has succeeded
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_UPLOAD_STATUS,
+      uploadStatus: UploadStatus.SUCCESS,
     });
+
+    // revert the upload status after a specified interval
+    setTimeout(() => {
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_UPLOAD_STATUS,
+        uploadStatus: UploadStatus.NONE,
+      });
+    }, REVERT_UPGRADE_IMAGE_STATUS);
+
+    listUpgradeImages(topologyName);
+
+    swal({
+      text:
+        'Your selected image has been uploaded successfully and is ' +
+        'currently being prepared for use and should be ready soon. ' +
+        '\n\n Please refresh the list of images periodically. If your ' +
+        'image does not show up, please try again.',
+      title: 'Upload Image Success',
+      type: 'info',
+    });
+  } catch (error) {
+    createErrorHandler(
+      'Upload Image Failed. Please try again',
+      'There was an error while uploading your selected image with ' +
+        'the following message',
+    )(error);
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_UPLOAD_STATUS,
+      uploadStatus: UploadStatus.FAILURE,
+    });
+    listUpgradeImages(topologyName);
+  }
 };
 
 export const listUpgradeImages = topologyName => {

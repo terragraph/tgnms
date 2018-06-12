@@ -79,7 +79,10 @@ export default class ModalUpgradeBinary extends React.Component {
   };
 
   onUploadFile = () => {
-    uploadUpgradeBinary(this.state.selectedFile, this.props.topologyName);
+    uploadUpgradeBinary(
+      this.state.selectedFile,
+      this.props.topologyName,
+    ).then();
   };
 
   deleteImage = imageName => {
