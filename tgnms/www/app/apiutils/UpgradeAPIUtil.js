@@ -303,9 +303,14 @@ export const commitUpgrade = upgradeGroupReq => {
 };
 
 export const abortUpgrade = upgradeAbortReq => {
-  const uri = '/controller/abortUpgrade';
-  axios
-    .post(uri, upgradeAbortReq)
+  const {abortAll, reqIds, topologyName} = upgradeAbortReq;
+
+  const data = {
+    abortAll,
+    reqIds,
+  };
+
+  apiServiceRequest(topologyName, 'abortUpgrade', data)
     .then(response => {
       swal({
         text:

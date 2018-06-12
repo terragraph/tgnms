@@ -1797,30 +1797,6 @@ app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
   });
 });
 
-app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const { abortAll, reqIds, topologyName } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'abortUpgrade',
-        abortAll,
-        reqIds,
-        topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.post(
   /\/controller\/uploadUpgradeBinary$/i,
   upload.single('binary'),
