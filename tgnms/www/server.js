@@ -1773,51 +1773,6 @@ app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
   );
 });
 
-app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {
-      topologyName,
-      isHttp,
-      requestId,
-      excludeNodes,
-      imageUrl,
-      md5,
-      timeout,
-      skipFailure,
-      limit,
-      downloadAttempts,
-      torrentParams,
-    } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'prepareUpgrade',
-        upgradeGroupType: 'NETWORK',
-        requestId,
-        excludeNodes,
-        imageUrl,
-        md5,
-        timeout,
-        skipFailure,
-        limit,
-        isHttp,
-        downloadAttempts,
-        torrentParams,
-        topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {

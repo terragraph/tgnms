@@ -203,14 +203,49 @@ export const resetStatus = upgradeGroupReq => {
 };
 
 export const prepareUpgrade = upgradeGroupReq => {
-  const uri = '/controller/prepareUpgrade';
-  axios
-    .post(uri, upgradeGroupReq)
+  const {
+    downloadAttempts,
+    excludeNodes,
+    imageUrl,
+    isHttp,
+    limit,
+    md5,
+    requestId,
+    skipFailure,
+    timeout,
+    topologyName,
+    torrentParams,
+  } = upgradeGroupReq;
+
+  const upgradeReqParams = {};
+  if (isHttp) {
+    upgradeReqParams['downloadAttempts'] = downloadAttempts;
+  } else {
+    upgradeReqParams['torrentParams'] = torrentParams;
+  }
+  const data = {
+    excludeNodes,
+    limit,
+    nodes: [],
+    skipFailure,
+    skipLinks: [],
+    timeout,
+    ugType: UpgradeGroupType.NETWORK,
+    urReq: {
+      imageUrl,
+      md5,
+      upgradeReqId: requestId,
+      urType: UpgradeReqType.PREPARE_UPGRADE,
+      ...upgradeReqParams,
+    },
+    version: '',
+  };
+  apiServiceRequest(topologyName, 'sendUpgradeRequest', data)
     .then(response => {
       swal({
         text:
           'You have initiated the "prepare upgrade" process with ' +
-          `requestId ${upgradeGroupReq.requestId}` +
+          `requestId ${requestId}` +
           '\n\n' +
           'The status of your upgrade should be shown on the "Node ' +
           'Upgrade Status" table.',
