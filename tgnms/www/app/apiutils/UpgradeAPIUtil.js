@@ -257,9 +257,36 @@ export const prepareUpgrade = upgradeGroupReq => {
 };
 
 export const commitUpgrade = upgradeGroupReq => {
-  const uri = '/controller/commitUpgrade';
-  axios
-    .post(uri, upgradeGroupReq)
+  const {
+    excludeNodes,
+    limit,
+    nodes,
+    requestId,
+    scheduleToCommit,
+    skipFailure,
+    skipLinks,
+    timeout,
+    topologyName,
+    ugType,
+  } = upgradeGroupReq;
+
+  const data = {
+    excludeNodes,
+    limit,
+    nodes,
+    skipFailure,
+    skipLinks,
+    timeout,
+    ugType,
+    urReq: {
+      scheduleToCommit,
+      upgradeReqId: requestId,
+      urType: UpgradeReqType.COMMIT_UPGRADE,
+    },
+    version: '',
+  };
+
+  apiServiceRequest(topologyName, 'sendUpgradeRequest', data)
     .then(response => {
       swal({
         text:
