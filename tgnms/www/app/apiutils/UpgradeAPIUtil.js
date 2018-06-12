@@ -134,10 +134,10 @@ export const listUpgradeImages = topologyName => {
 };
 
 export const deleteUpgradeImage = (imageName, topologyName) => {
-  const uri = `controller/deleteUpgradeImage/${topologyName}/${imageName}`;
-
-  axios
-    .get(uri)
+  const data = {
+    name: imageName,
+  };
+  apiServiceRequest(topologyName, 'deleteUpgradeImage', data)
     .then(response => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,

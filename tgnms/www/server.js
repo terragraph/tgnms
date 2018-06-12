@@ -1952,27 +1952,6 @@ app.post(
   }
 );
 
-app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const imageName = req.params[1];
-
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'deleteUpgradeImage',
-      topology: topology,
-      name: imageName,
-    },
-    '',
-    res
-  );
-});
-
 // network config endpoints
 app.get(/\/controller\/getFullNodeConfig/i, (req, res, next) => {
   const { topologyName, node, swVersion } = req.query;
