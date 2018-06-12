@@ -19,10 +19,25 @@ import axios from 'axios';
 import swal from 'sweetalert';
 
 const getErrorText = error => {
-  // try to get the status text from the API response, otherwise, default to the error object
+  // try to get the status text from the API response, otherwise, default to
+  // the error object
   return error.response && error.response.statusText
     ? error.response.statusText
     : error;
+};
+
+const createErrorHandler = (
+  title: string,
+  text: string = 'Your upgrade command failed with the following message',
+) => {
+  return error => {
+    const errorText = getErrorText(error);
+    swal({
+      text: `${text}:\n\n${errorText}`,
+      title,
+      type: 'error',
+    });
+  };
 };
 
 export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
@@ -74,32 +89,26 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
       listUpgradeImages(topologyName);
 
       swal({
+        text:
+          'Your selected image has been uploaded successfully and is ' +
+          'currently being prepared for use and should be ready soon. ' +
+          '\n\n Please refresh the list of images periodically. If your ' +
+          'image does not show up, please try again.',
         title: 'Upload Image Success',
-        text: `Your selected image has been uploaded successfully and is currently being prepared for use
-      and should be ready soon.
-
-      Please refresh the list of images periodically. If your image does not show up, please try again.
-      `,
         type: 'info',
       });
     })
     .catch(error => {
+      createErrorHandler(
+        'Upload Image Failed. Please try again',
+        'There was an error while uploading your selected image with ' +
+          'the following message',
+      )(error);
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_UPLOAD_STATUS,
         uploadStatus: UploadStatus.FAILURE,
       });
-
       listUpgradeImages(topologyName);
-
-      const errorText = getErrorText(error);
-      swal({
-        title: 'Upload Image Failed',
-        text: `There was an error while uploading your selected image with the following message: ${errorText}
-
-      Please try again.
-      `,
-        type: 'error',
-      });
     });
 };
 
@@ -144,16 +153,10 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
       listUpgradeImages(topologyName);
     })
     .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Prepare upgrade failed',
-        text: `There was an error while trying to delete your requested image.
-
-      ${errorText}`,
-        type: 'error',
-      });
-
+      createErrorHandler(
+        'Prepare upgrade failed',
+        'There was an error while trying to delete your requested image',
+      )(error);
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
         deleteStatus: DeleteStatus.FAILURE,
@@ -168,26 +171,16 @@ export const resetStatus = upgradeGroupReq => {
     .post(uri, upgradeGroupReq)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "reset status" process with requestId ' +
+          upgradeGroupReq.requestId +
+          'The status of your upgrade should be shown on the "Node Upgrade ' +
+          'Status" table.',
         title: 'Reset status submitted',
-        text: `You have initiated the "reset status" process with requestId ${
-          upgradeGroupReq.requestId
-        }
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Reset status failed',
-        text: `Your upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(createErrorHandler('Reset status failed'));
 };
 
 export const prepareUpgrade = upgradeGroupReq => {
@@ -196,26 +189,17 @@ export const prepareUpgrade = upgradeGroupReq => {
     .post(uri, upgradeGroupReq)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "prepare upgrade" process with ' +
+          `requestId ${upgradeGroupReq.requestId}` +
+          '\n\n' +
+          'The status of your upgrade should be shown on the "Node ' +
+          'Upgrade Status" table.',
         title: 'Prepare upgrade submitted',
-        text: `You have initiated the "prepare upgrade" process with requestId ${
-          upgradeGroupReq.requestId
-        }
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Prepare upgrade failed',
-        text: `Your upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(createErrorHandler('Prepare upgrade failed'));
 };
 
 export const commitUpgrade = upgradeGroupReq => {
@@ -224,26 +208,17 @@ export const commitUpgrade = upgradeGroupReq => {
     .post(uri, upgradeGroupReq)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "commit upgrade" process with ' +
+          `requestId ${upgradeGroupReq.requestId}` +
+          '\n\n' +
+          'The status of your upgrade should be shown on the "Node Upgrade ' +
+          'Status" table.',
         title: 'Commit upgrade submitted',
-        text: `You have initiated the "commit upgrade" process with requestId ${
-          upgradeGroupReq.requestId
-        }
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Commit upgrade failed',
-        text: `Your upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(createErrorHandler('Commit upgrade failed'));
 };
 
 export const abortUpgrade = upgradeAbortReq => {
@@ -252,22 +227,18 @@ export const abortUpgrade = upgradeAbortReq => {
     .post(uri, upgradeAbortReq)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "abort upgrade" process successfully' +
+          '\n\nThe status of your upgrade should be shown on the ' +
+          '"Node Upgrade Status" table.',
         title: 'Abort upgrade(s) success',
-        text: `You have initiated the "abort upgrade" process successfully
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Abort upgrade failed',
-        text: `Your abort upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(
+      createErrorHandler(
+        'Abort upgrade failed',
+        'Your abort upgrade command failed with the following message',
+      ),
+    );
 };
