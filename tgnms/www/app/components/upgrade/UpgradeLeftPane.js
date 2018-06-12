@@ -129,9 +129,6 @@ export default class UpgradeLeftPane extends React.Component {
         <button className="upgrade-btn" onClick={this.launchUpgradeServer}>
           Manage Upgrade Images
         </button>
-        <button className="upgrade-btn" onClick={this.resetStatusWithAlert}>
-          Reset Status
-        </button>
         <button className="upgrade-btn" onClick={this.prepareUpgradeWithAlert}>
           Prepare
         </button>
@@ -140,6 +137,9 @@ export default class UpgradeLeftPane extends React.Component {
         </button>
         <button className="upgrade-btn" onClick={this.abortUpgrade}>
           Abort
+        </button>
+        <button className="upgrade-btn" onClick={this.resetStatusWithAlert}>
+          Reset Status
         </button>
         <UpgradeLeftPaneStatus
           currentRequest={currentRequest}
