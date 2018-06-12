@@ -9,6 +9,8 @@
 // contains the component to render a config JSON, and buttons to save/save draft
 
 import {toggleExpandAll} from '../../actions/NetworkConfigActions.js';
+import {CONFIG_VIEW_MODE} from '../../constants/NetworkConfigConstants.js';
+import ConfigModal from '../common/ConfigModal.js';
 import CustomToggle from '../common/CustomToggle.js';
 import JSONConfigForm from '../common/JSONConfigForm.js';
 import JSONConfigTextArea from '../common/JSONConfigTextArea.js';
@@ -43,6 +45,7 @@ export default class NetworkConfigBody extends React.Component {
     viewContext: {
       viewOverridesOnly: false,
     },
+    showFullNodeConfig: false,
   };
 
   jsonTextRef = React.createRef();
@@ -90,6 +93,7 @@ export default class NetworkConfigBody extends React.Component {
 
   render() {
     const {
+      topologyName,
       configs,
       configMetadata,
       draftConfig,
@@ -102,7 +106,12 @@ export default class NetworkConfigBody extends React.Component {
       hasUnsavedChanges,
     } = this.props;
 
-    const {isExpanded, isJSONText, viewContext} = this.state;
+    const {
+      isExpanded,
+      isJSONText,
+      showFullNodeConfig,
+      viewContext,
+    } = this.state;
 
     return (
       <div className="rc-network-config-body">
@@ -129,6 +138,13 @@ export default class NetworkConfigBody extends React.Component {
             onFinishEdit={this.onFinishEditJSONText}
           />
           <div className="nc-btn-spacer" />
+          {editMode === CONFIG_VIEW_MODE.NODE && (
+            <button
+              className="nc-expand-all-btn"
+              onClick={() => this.setState({showFullNodeConfig: true})}>
+              View Raw Config
+            </button>
+          )}
           {!isJSONText && (
             <div>
               <span style={{marginRight: '5px', marginLeft: '15px'}}>
@@ -180,6 +196,16 @@ export default class NetworkConfigBody extends React.Component {
           removedNodeOverrides={removedNodeOverrides}
           isJSONText={isJSONText}
         />
+        {/* Assuming that you can only select 1 node */}
+        {editMode === CONFIG_VIEW_MODE.NODE && (
+          <ConfigModal
+            nodeName={selectedNodes[0].name}
+            onConfirm={() => this.setState({showFullNodeConfig: false})}
+            show={showFullNodeConfig}
+            swVersion={selectedNodes[0].imageVersion}
+            topologyName={topologyName}
+          />
+        )}
       </div>
     );
   }
