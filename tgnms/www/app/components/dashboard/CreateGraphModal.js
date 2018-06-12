@@ -35,16 +35,16 @@ export default class CreateGraphModal extends React.Component {
     nodeKeyOptions: [],
     nodeKeysSelected: [],
     nodeSelectOptions: [],
-    nodesSelected: '',
+    nodesSelected: [],
   };
 
-  handleGraphNameChange(event) {
+  handleGraphNameChange = event => {
     this.setState({graphNameInput: event.target.value});
-  }
+  };
 
-  onGraphTypeChange(event) {
+  onGraphTypeChange = event => {
     this.setState({graphTypeSelected: event.value});
-  }
+  };
 
   componentWillMount() {
     Modal.setAppElement('body');
@@ -63,7 +63,7 @@ export default class CreateGraphModal extends React.Component {
   }
 
   // link form functions
-  setLinkKeyOptions() {
+  setLinkKeyOptions = () => {
     let {nodeA, nodeZ} = this.props.dashboard;
 
     if (!(nodeA && nodeZ)) {
@@ -75,39 +75,39 @@ export default class CreateGraphModal extends React.Component {
       nodeA = nodeZ;
       nodeZ = temp;
     }
-    const keyOptions = [];
     return axios
       .get(`/stats_ta/${this.props.topologyName}/tgf.${nodeZ.mac_addr}`)
       .then(resp => {
         const keys = resp.data;
-        keys.forEach(keyObj => {
-          if (keyObj[0].node === nodeA.mac_addr) {
-            keyOptions.push({label: keyObj[0].key, value: keyObj[0].key});
-          }
+        let keyOptions = keys.filter(keyObj => {
+          return keyObj[0].node === nodeA.mac_addr;
+        });
+        keyOptions = keyOptions.map(keyObj => {
+          return {label: keyObj[0].key, value: keyObj[0].key};
         });
         this.setState({
           linkKeyOptions: keyOptions,
         });
       })
       .catch(err => {
-        console.log('Error getting link key options', err);
+        console.error('Error getting link key options', err);
         this.setState({
           linkKeyOptions: [],
         });
       });
-  }
+  };
 
-  onLinkKeyChanged(event) {
+  onLinkKeyChanged = event => {
     this.setState({linkKeySelected: event.value});
-  }
+  };
 
-  onLinkDirectionChanged(event) {
+  onLinkDirectionChanged = event => {
     this.setState({linkDirectionSelected: event.value}, () =>
       this.setLinkKeyOptions(),
     );
-  }
+  };
 
-  setLinkDirectionOptions() {
+  setLinkDirectionOptions = () => {
     const {nodeA, nodeZ} = this.props.dashboard;
     const linkDirectionOptions = [];
     let initialSelection = '';
@@ -122,10 +122,10 @@ export default class CreateGraphModal extends React.Component {
       linkDirectionOptions,
       linkDirectionSelected: initialSelection,
     });
-  }
+  };
 
   // node form functions
-  setNodeSelectOptions() {
+  setNodeSelectOptions = () => {
     const {nodeA, nodeZ} = this.props.dashboard;
     const nodeSelectOptions = [];
     if (nodeA) {
@@ -306,7 +306,7 @@ export default class CreateGraphModal extends React.Component {
       <div className="create-graph-modal">
         <Modal
           isOpen={this.props.modalIsOpen}
-          onRequestClose={() => this.props.closeModal()}>
+          onRequestClose={this.props.closeModal}>
           <div className="create-graph-modal-content">
             <h3>Create New Graph</h3>
             <div className="input-box">
@@ -314,7 +314,7 @@ export default class CreateGraphModal extends React.Component {
               <Select
                 name="graph-type-select"
                 value={this.state.graphTypeSelected}
-                onChange={event => this.onGraphTypeChange(event)}
+                onChange={this.onGraphTypeChange}
                 options={[
                   {label: 'Link', value: 'Link'},
                   {label: 'Node', value: 'Node'},
@@ -332,7 +332,7 @@ export default class CreateGraphModal extends React.Component {
                       <Select
                         name="graph-type-select"
                         value={this.state.linkDirectionSelected}
-                        onChange={event => this.onLinkDirectionChanged(event)}
+                        onChange={this.onLinkDirectionChanged}
                         options={this.state.linkDirectionOptions}
                       />
                     </div>
@@ -341,7 +341,7 @@ export default class CreateGraphModal extends React.Component {
                       <Select
                         name="graph-type-select"
                         value={this.state.linkKeySelected}
-                        onChange={event => this.onLinkKeyChanged(event)}
+                        onChange={this.onLinkKeyChanged}
                         options={this.state.linkKeyOptions}
                       />
                     </div>
@@ -351,7 +351,7 @@ export default class CreateGraphModal extends React.Component {
                           ? 'graph-button disabled-button'
                           : 'graph-button submit-button'
                       }
-                      onClick={() => this.submitLinkGraph()}
+                      onClick={this.onSubmitLinkGraph}
                       disabled={disableLinkSubmit}>
                       Submit
                     </button>
@@ -377,7 +377,7 @@ export default class CreateGraphModal extends React.Component {
                         name="graph-type-select"
                         multi
                         value={this.state.nodesSelected}
-                        onChange={event => this.onNodesSelectChanged(event)}
+                        onChange={this.onNodesSelectChanged}
                         options={this.state.nodeSelectOptions}
                       />
                     </div>
@@ -453,7 +453,7 @@ export default class CreateGraphModal extends React.Component {
                           ? 'graph-button disabled-button'
                           : 'graph-button submit-button'
                       }
-                      onClick={() => this.submitNodeGraph()}
+                      onClick={this.onSubmitNodeGraph}
                       disabled={disableNodeSubmit}>
                       Submit
                     </button>
@@ -476,7 +476,7 @@ export default class CreateGraphModal extends React.Component {
                   <Select
                     name="graph-type-select"
                     value={this.state.networkMetricSelected}
-                    onChange={event => this.onNetworkMetricChanged(event)}
+                    onChange={this.onNetworkMetricChanged}
                     options={this.state.networkMetricOptions}
                   />
                 </div>

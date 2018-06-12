@@ -229,7 +229,7 @@ export default class NetworkDashboards extends React.Component {
         }),
       )
       .catch(err => {
-        console.log('Error getting dashboards', err);
+        console.error('Error getting dashboards', err);
         this.setState({
           dashboards: null,
           editView: false,
@@ -370,7 +370,7 @@ export default class NetworkDashboards extends React.Component {
         swal('Saved!', 'Dashboard get saved to server!', 'success');
       })
       .catch(err => {
-        console.log('Error saving dashboards', err);
+        console.error('Error saving dashboards', err);
       });
   };
 
@@ -558,8 +558,8 @@ export default class NetworkDashboards extends React.Component {
                   dashboard={dashboards[this.props.selectedDashboard]}
                   topologyName={this.props.networkConfig.topology.name}
                   closeModal={this.closeModal}
-                  addGraphCustomTime={this.addGraphCustomTime}
-                  addGraphMinAgo={this.addGraphMinAgo}
+                  onSubmitNewGraph={this.onSubmitNewGraph}
+                  addGraphToDashboard={this.addGraphToDashboard}
                 />
               )}
             <DashboardSelect
