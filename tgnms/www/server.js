@@ -1773,35 +1773,6 @@ app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
   );
 });
 
-// upgrade endpoints $/i
-app.post(/\/controller\/resetStatus$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {
-      nodes,
-      requestId,
-      topologyName,
-    } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'resetStatus',
-	nodes,
-        requestId,
-	topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {

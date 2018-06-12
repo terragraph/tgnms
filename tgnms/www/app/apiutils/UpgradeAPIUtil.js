@@ -19,6 +19,16 @@ import {REVERT_UPGRADE_IMAGE_STATUS} from '../constants/UpgradeConstants.js';
 import axios from 'axios';
 import swal from 'sweetalert';
 
+const UpgradeGroupType = {
+  NETWORK: 20,
+  NODES: 10,
+};
+const UpgradeReqType = {
+  COMMIT_UPGRADE: 20,
+  PREPARE_UPGRADE: 10,
+  RESET_STATUS: 30,
+};
+
 const getErrorText = error => {
   // try to get the status text from the API response, otherwise, default to
   // the error object
@@ -168,14 +178,21 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
 };
 
 export const resetStatus = upgradeGroupReq => {
-  const uri = '/controller/resetStatus';
-  axios
-    .post(uri, upgradeGroupReq)
+  const {nodes, requestId, topologyName} = upgradeGroupReq;
+  const data = {
+    nodes,
+    ugType: UpgradeGroupType.NODES,
+    urReq: {
+      upgradeReqId: requestId,
+      urType: UpgradeReqType.RESET_STATUS,
+    },
+  };
+  apiServiceRequest(topologyName, 'sendUpgradeRequest', data)
     .then(response => {
       swal({
         text:
           'You have initiated the "reset status" process with requestId ' +
-          upgradeGroupReq.requestId +
+          requestId +
           'The status of your upgrade should be shown on the "Node Upgrade ' +
           'Status" table.',
         title: 'Reset status submitted',
