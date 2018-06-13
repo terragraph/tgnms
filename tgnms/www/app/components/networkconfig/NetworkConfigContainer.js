@@ -206,9 +206,9 @@ export default class NetworkConfigContainer extends React.Component {
       : [];
   }
 
-  getNodesName2MacMap() {
+  getNodesNameToMacMap() {
     const {networkConfig} = this.props;
-    return networkConfig.topology && networkConfig.topology.nodes
+    return has(networkConfig, 'topology.nodes')
       ? networkConfig.topology.nodes.reduce((map, node) => {
           map[node.name] = node.mac_addr;
           return map;
@@ -216,9 +216,9 @@ export default class NetworkConfigContainer extends React.Component {
       : {};
   }
 
-  getNodesMac2NameMap() {
+  getNodesMacToNameMap() {
     const {networkConfig} = this.props;
-    return networkConfig.topology && networkConfig.topology.nodes
+    return has(networkConfig, 'topology.nodes')
       ? networkConfig.topology.nodes.reduce((map, node) => {
           map[node.mac_addr] = node.name;
           return map;
@@ -318,10 +318,10 @@ export default class NetworkConfigContainer extends React.Component {
           // TODO a quick hack to support nameBased config for M19 onwards
           // remove after cleaning code to use node name
           let useNameAsKey = false;
-          let mac2NameMap = {};
+          let macToNameMap = {};
           if (!this.isOldControllerVersion()) {
             useNameAsKey = true;
-            mac2NameMap = this.getNodesMac2NameMap();
+            macToNameMap = this.getNodesMacToNameMap();
           }
 
           let nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
@@ -348,7 +348,7 @@ export default class NetworkConfigContainer extends React.Component {
             Object.keys(nodeConfigToSubmit),
             true,
             useNameAsKey,
-            mac2NameMap,
+            macToNameMap,
           );
         } else {
           const {
@@ -383,10 +383,10 @@ export default class NetworkConfigContainer extends React.Component {
         // TODO a quick hack to support nameBased config for M19 onwards
         // remove after cleaning code to use node name
         let useNameAsKey = false;
-        let mac2NameMap = {};
+        let macToNameMap = {};
         if (!this.isOldControllerVersion()) {
           useNameAsKey = true;
-          mac2NameMap = this.getNodesMac2NameMap();
+          macToNameMap = this.getNodesMacToNameMap();
         }
 
         let nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
@@ -411,7 +411,7 @@ export default class NetworkConfigContainer extends React.Component {
           Object.keys(nodeConfigToSubmit),
           false,
           useNameAsKey,
-          mac2NameMap,
+          macToNameMap,
         );
         break;
       }
@@ -462,10 +462,10 @@ export default class NetworkConfigContainer extends React.Component {
         // remove after cleaning code to use node name
         if (!this.isOldControllerVersion()) {
           // Change name key to mac key
-          const name2MacMap = this.getNodesName2MacMap();
+          const nameToMacMap = this.getNodesNameToMacMap();
           const config = {};
           Object.keys(payload.config).forEach(key => {
-            const newkey = name2MacMap[key];
+            const newkey = nameToMacMap[key];
             if (newkey) {
               config[newkey] = payload.config[key];
             }

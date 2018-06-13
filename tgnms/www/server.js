@@ -1996,6 +1996,23 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (
   );
 });
 
+// network config endpoints
+app.get(/\/controller\/getFullNodeConfig/i, (req, res, next) => {
+  const { topologyName, node, swVersion } = req.query;
+  const topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'getFullNodeConfig',
+      topology,
+      node,
+      swVersion,
+    },
+    '',
+    res,
+  );
+});
+
 // aggregator endpoints
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
