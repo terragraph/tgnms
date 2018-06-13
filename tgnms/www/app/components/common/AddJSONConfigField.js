@@ -47,7 +47,7 @@ class AddJSONConfigField extends React.Component {
         <div
           className="nc-add-new-field"
           onClick={() => this.setState({expanded: true})}>
-          Add New Field
+          +
         </div>
         <div
           className={classNames('rc-add-field-dropdown', {
