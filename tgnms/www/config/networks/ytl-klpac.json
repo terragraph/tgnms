@@ -1,0 +1,241 @@
+{
+    "config": {
+        "channel": 2
+    },
+    "links": [
+        {
+            "a_node_name": "WT.p1",
+            "is_alive": true,
+            "link_type": 2,
+            "linkup_attempts": 0,
+            "name": "link-WT.p1-WT.s1",
+            "z_node_name": "WT.s1"
+        },
+        {
+            "a_node_name": "NOC-CP2.p1",
+            "is_alive": true,
+            "link_type": 2,
+            "linkup_attempts": 0,
+            "name": "link-NOC-CP2.p1-NOC-CP2.s1",
+            "z_node_name": "NOC-CP2.s1"
+        },
+        {
+            "a_node_name": "NOC-CP1.p1",
+            "is_alive": true,
+            "link_type": 2,
+            "linkup_attempts": 0,
+            "name": "link-NOC-CP1.p1-NOC-CP1.s1",
+            "z_node_name": "NOC-CP1.s1"
+        },
+        {
+            "a_node_name": "CP-KLPAC.s1",
+            "is_alive": true,
+            "link_type": 1,
+            "linkup_attempts": 1,
+            "name": "link-CP-KLPAC.s1-NOC-CP1.p1",
+            "z_node_name": "NOC-CP1.p1"
+        },
+        {
+            "a_node_name": "NOC-CP1.s1",
+            "is_alive": true,
+            "link_type": 1,
+            "linkup_attempts": 23,
+            "name": "link-NOC-CP1.s1-NOC-CP2.p1",
+            "z_node_name": "NOC-CP2.p1"
+        },
+        {
+            "a_node_name": "CP-KLPAC.p1",
+            "is_alive": true,
+            "link_type": 2,
+            "linkup_attempts": 0,
+            "name": "link-CP-KLPAC.p1-CP-KLPAC.s1",
+            "z_node_name": "CP-KLPAC.s1"
+        },
+        {
+            "a_node_name": "CP-KLPAC.p1",
+            "is_alive": true,
+            "link_type": 1,
+            "linkup_attempts": 16,
+            "name": "link-CP-KLPAC.p1-WT.s1",
+            "z_node_name": "WT.s1"
+        },
+        {
+            "a_node_name": "NOC-CP2.s1",
+            "is_alive": true,
+            "link_type": 1,
+            "linkup_attempts": 14,
+            "name": "link-NOC-CP2.s1-WT.p1",
+            "z_node_name": "WT.p1"
+        }
+    ],
+    "name": "YTL-KLPAC",
+    "nodes": [
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:2f:ea:8a",
+            "name": "WT.p1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": true,
+            "site_name": "WT",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "is_primary": false,
+            "mac_addr": "2c:dc:ad:2f:e6:5c",
+            "name": "WT.s1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "WT",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "has_cpe": false,
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:2f:ea:ae",
+            "name": "CP-KLPAC.p1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "CP-KLPAC",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "is_primary": false,
+            "mac_addr": "2c:dc:ad:2f:e6:ca",
+            "name": "CP-KLPAC.s1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "CP-KLPAC",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:2f:ec:4f",
+            "name": "NOC-CP1.p1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "NOC-CP1",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "is_primary": false,
+            "mac_addr": "2c:dc:ad:2f:e7:4c",
+            "name": "NOC-CP1.s1",
+            "node_type": 2,
+            "polarity": 1,
+            "pop_node": false,
+            "site_name": "NOC-CP1",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 1,
+                "txGolayIdx": 1
+            },
+            "is_primary": true,
+            "mac_addr": "2c:dc:ad:2f:ea:c0",
+            "name": "NOC-CP2.p1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "NOC-CP2",
+            "status": 3
+        },
+        {
+            "ant_azimuth": 0,
+            "ant_elevation": 0,
+            "golay_idx": {
+                "rxGolayIdx": 2,
+                "txGolayIdx": 2
+            },
+            "is_primary": false,
+            "mac_addr": "2c:dc:ad:2f:e8:58",
+            "name": "NOC-CP2.s1",
+            "node_type": 2,
+            "polarity": 2,
+            "pop_node": false,
+            "site_name": "NOC-CP2",
+            "status": 3
+        }
+    ],
+    "sites": [
+        {
+            "location": {
+                "accuracy": 5,
+                "altitude": 0,
+                "latitude": 3.183769,
+                "longitude": 101.685644
+            },
+            "name": "CP-KLPAC"
+        },
+        {
+            "location": {
+                "accuracy": 5,
+                "altitude": 0,
+                "latitude": 3.183276,
+                "longitude": 101.686924
+            },
+            "name": "WT"
+        },
+        {
+            "location": {
+                "accuracy": 5,
+                "altitude": 0,
+                "latitude": 3.184985,
+                "longitude": 101.687429
+            },
+            "name": "NOC-CP1"
+        },
+        {
+            "location": {
+                "accuracy": 5,
+                "altitude": 0,
+                "latitude": 3.184373,
+                "longitude": 101.685831
+            },
+            "name": "NOC-CP2"
+        }
+    ]
+}
