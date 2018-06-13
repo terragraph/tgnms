@@ -77,7 +77,7 @@ export const getConfigsForTopology = (
 };
 
 export const getConfigMetadata = topologyName => {
-  apiServiceRequest(topologyName, 'getControllerConfigMetadata').then(
+  apiServiceRequest(topologyName, 'getConfigMetadata').then(
     response => {
       const {metadata} = response.data;
       const parsedMetadata = JSON.parse(metadata);
