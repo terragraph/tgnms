@@ -5,11 +5,23 @@
  */
 'use strict';
 
-import {ADD_FIELD_TYPES} from '../constants/NetworkConfigConstants.js';
-import cloneDeep from 'lodash-es/cloneDeep';
-import get from 'lodash-es/get';
-import isPlainObject from 'lodash-es/isPlainObject';
-import unset from 'lodash-es/unset';
+import {
+  ADD_FIELD_TYPES,
+  PATH_DELIMITER,
+} from '../constants/NetworkConfigConstants.js';
+import {
+  cloneDeep,
+  forOwn,
+  get,
+  isEmpty,
+  isEqual,
+  isObject,
+  isPlainObject,
+  merge,
+  omit,
+  transform,
+  unset,
+} from 'lodash-es';
 
 export const getImageVersionsForNetwork = topology => {
   if (!topology || !topology.nodes) {
@@ -64,6 +76,55 @@ export const unsetAndCleanup = (obj, editPath, stopIdx) => {
   return cleanedObj;
 };
 
+/**
+ * Return an object without any empty nested objects
+ * @param  {Object} obj
+ * @return {Object}
+ */
+export const cleanupObject = obj => {
+  if (isEmpty(obj)) {
+    return null;
+  }
+
+  const cleanedObj = {};
+
+  forOwn(obj, (value, key) => {
+    if (isObject(value)) {
+      if (!isEmpty(value)) {
+        const cleanedValue = cleanupObject(value);
+        if (cleanedValue !== null && !isEmpty(cleanedValue)) {
+          cleanedObj[key] = cleanedValue;
+        }
+      }
+    } else {
+      cleanedObj[key] = value;
+    }
+  });
+
+  return cleanedObj;
+};
+
+/**
+ * Return a config that omits the removedFields, and adds the draftConfig fields
+ * @param  {Object} config
+ * @param  {Object} draftConfig
+ * @param  {Set}    removedFields
+ * @return {Object}
+ */
+
+export const createConfigToSubmit = (config, draftConfig, removedFields) => {
+  const paths = [];
+
+  if (removedFields) {
+    removedFields.forEach(pathStr => {
+      paths.push(pathStr.split(PATH_DELIMITER));
+    });
+  }
+
+  const cleanedConfig = cleanupObject(omit(config, paths));
+  return merge(cleanedConfig, draftConfig);
+};
+
 export const getStackedFields = (configs, viewOverridesOnly) => {
   // aggregate all config fields
   const stackedFields = configs.reduce((stacked, config) => {
@@ -87,7 +148,7 @@ export const getMetadata = (metadata, fieldName) => {
   if (metadata.type === 'MAP') {
     fieldMetadata = metadata.mapVal;
   } else if (metadata.type === 'OBJECT') {
-    fieldMetadata = metadata.objVal.properties[fieldName];
+    fieldMetadata = get(metadata, `objVal.properties.${fieldName}`);
   } else {
     fieldMetadata = metadata[fieldName];
   }
@@ -105,6 +166,25 @@ const alphabeticalSort = (a, b) => {
   if (lowerA < lowerB) {
     return -1;
   } else if (lowerA > lowerB) {
+    return 1;
+  }
+  return 0;
+};
+
+/*
+  'a' and 'b' have the structure:
+  {
+    field: String,
+    tag: String,
+  }
+*/
+const alphabeticalSortWithTag = (a, b) => {
+  const lowerAWithTag = `${a.tag}.${a.field}`.toLowerCase();
+  const lowerBWithTag = `${b.tag}.${b.field}`.toLowerCase();
+
+  if (lowerAWithTag < lowerBWithTag) {
+    return -1;
+  } else if (lowerAWithTag > lowerBWithTag) {
     return 1;
   }
   return 0;
@@ -131,15 +211,19 @@ export const sortConfigByTag = (config, metadata = {}) => {
     .map(key => {
       const fieldMetadata = getMetadata(metadata, key);
 
-      return fieldMetadata && fieldMetadata.hasOwnProperty('tag')
-        ? `${fieldMetadata.tag}.${key}`
-        : key;
+      const tag =
+        fieldMetadata && fieldMetadata.hasOwnProperty('tag')
+          ? fieldMetadata.tag
+          : '';
+
+      return {
+        field: key,
+        tag,
+      };
     })
-    .sort(alphabeticalSort)
+    .sort(alphabeticalSortWithTag)
     .forEach(tagfield => {
-      // Remove tag if tag was appended for sorting
-      const tokens = tagfield.split('.');
-      const key = tokens.length > 1 ? tokens[1] : tokens[0];
+      const key = tagfield.field;
       const value = config[key];
       const newValue = isPlainObject(value)
         ? sortConfigByTag(value, getMetadata(metadata, key) || {})
@@ -163,6 +247,7 @@ export const getDefaultValueForType = type => {
       defaultValue = 0;
       break;
     case ADD_FIELD_TYPES.STRING:
+    case ADD_FIELD_TYPES.RAW_JSON:
       defaultValue = '';
       break;
     default:
@@ -183,14 +268,10 @@ export const convertAndValidateNewConfigObject = newConfig => {
   // newConfig is a map of id => {id, type, field, value}
 
   // empty/null check
-  if (
-    newConfig === undefined ||
-    newConfig === null ||
-    Object.keys(newConfig).length === 0
-  ) {
+  if (newConfig === undefined || newConfig === null || isEmpty(newConfig)) {
     return {
       config: undefined,
-      validationMsg: 'New config is empty',
+      validationMsg: 'New nested object is empty',
     };
   }
 
@@ -231,3 +312,41 @@ export const convertAndValidateNewConfigObject = newConfig => {
 
   return {config, validationMsg};
 };
+
+// Taken from https://gist.github.com/Yimiprod/7ee176597fef230d1451#gistcomment-2565071
+/**
+ * Deep diff between two object, using lodash
+ * @param  {Object} object Object compared
+ * @param  {Object} base   Object to compare with
+ * @return {Object}        Return a new object who represent the diff
+ */
+export function objDifference(object, base) {
+  return transform(object, (result, value, key) => {
+    if (!isEqual(value, base[key])) {
+      result[key] =
+        isObject(value) && isObject(base[key])
+          ? objDifference(value, base[key])
+          : value;
+    }
+  });
+}
+
+export function allPathsInObj(object) {
+  if (!isObject(object)) {
+    return null;
+  }
+
+  function allPathsInObjHelper(object, currentPath, paths) {
+    forOwn(object, (value, key) => {
+      if (!isObject(value)) {
+        paths.push([...currentPath, key]);
+      } else {
+        allPathsInObjHelper(value, [...currentPath, key], paths);
+      }
+    });
+
+    return paths;
+  }
+
+  return allPathsInObjHelper(object, [], []);
+}

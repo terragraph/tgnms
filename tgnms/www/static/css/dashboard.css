@@ -1,10 +1,84 @@
+.rc-menu-horizontal {
+  border-bottom: 1px solid #d9d9d9;
+}
+
 .dashboard-plotly-wrapper {
   height: 100%;
   width: 100%;
 }
 
+.network-dashboard {
+  position: relative;
+}
+
+.info-bar {
+  align-items: center;
+  display: flex;
+  height: 70px;
+  padding: 0px 25px;
+  width: 100%;
+}
+
+.info-bar-content #dashboard-name {
+  display: inline-block;
+  font-size: 22px;
+  margin-right: 30px;
+}
+
+.info-bar-content p {
+  display: inline-block;
+  margin: 0px 15px;
+}
+
+.info-bar-content {
+  align-items: center;
+  display: flex;
+  width: 100%;
+}
+
+.network-dashboard .dashboard-options .hide-button {
+  background-color: #ddd;
+  border: none;
+  border-radius: 3px;
+  padding: 6px 10px;
+  position: absolute;
+  right: 30px;
+  top: 15px;
+}
+
+.network-dashboard .info-bar .show-button {
+  background-color: #ddd;
+  border: none;
+  border-radius: 3px;
+  padding: 6px 10px;
+  position: absolute;
+  right: 30px;
+  top: 15px;
+}
+
+.network-dashboard .edit-graph-button {
+  height: 34px;
+  width: 100px;
+  float: right;
+}
+
 #dashboard-select {
   padding: 10px 20px;
+}
+
+#dashboard-select .top-button-wide {
+  height: 34px;
+  width: 100px;
+}
+
+#dashboard-select .top-button {
+  height: 34px;
+  width: 80px;
+}
+
+#dashboard-select .name-button {
+  height: 34px;
+  width: 300px;
 }
 
 #global-data-select {
@@ -13,8 +87,8 @@
 }
 
 #global-data-select .node-box {
-  display: flex;
   align-items: center;
+  display: flex;
   margin: 15px 0px;
 }
 
@@ -26,11 +100,20 @@
   flex: 1;
 }
 
+#global-data-select .node-option, .typeahead-option {
+  border-bottom: 1px solid #ddd;
+  padding: 7px 10px;
+}
+
+#global-data-select .node-option:hover {
+  background-color: #F1F5FF;
+}
+
 #global-data-select .node-box select {
-  flex: 1;
   background-color: white;
-  height: 34px;
   border: 1px solid #ccc;
+  flex: 1;
+  height: 34px;
 }
 
 #global-data-select #time-window-box {
@@ -61,6 +144,14 @@
   margin-top: 70px;
 }
 
+.create-graph-modal-content .input-box .form-input {
+  background-color: white;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  flex: 1;
+  padding: 7px 10px;
+}
+
 .create-graph-modal-content .input-box > div:first-of-type {
   flex: 1;
 }
@@ -70,6 +161,12 @@
 }
 
 .submit-button {
+  margin: 20px 0px;
+  width: 200px;
+}
+
+.disabled-button {
+  background-color: #ddd;
   margin: 20px 0px;
   width: 200px;
 }

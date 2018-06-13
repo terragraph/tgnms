@@ -8,6 +8,20 @@ CREATE USER 'nms'@'%' IDENTIFIED BY 'o0Oe8G0UrBrT';
 GRANT ALL PRIVILEGES ON cxl.* TO 'nms'@'%';
 FLUSH PRIVILEGES;
 
+CREATE TABLE IF NOT EXISTS `agg_key` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `topology_id` int(11) NOT NULL COMMENT 'References topologies.id',
+  `key` varchar(100) NOT NULL COMMENT 'Metric/key name',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key_name` (`topology_id`,`key`),
+  KEY `topology_id` (`topology_id`)
+) ENGINE=InnoDB
+/* ts_key uses the same key space, separate by 1B until we have
+ * key prefixes
+ */
+AUTO_INCREMENT=1000000000
+DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS `alerts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `node_id` int(11) NOT NULL,

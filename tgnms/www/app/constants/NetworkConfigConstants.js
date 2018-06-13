@@ -18,6 +18,7 @@ export const CONFIG_LAYER_DESC = [
 
 // privileged value to mark a field in an override to revert
 export const REVERT_VALUE = null;
+export const PATH_DELIMITER = '\0';
 
 export const CONFIG_CLASSNAMES = {
   MISSING: 'nc-missing-field',
@@ -35,4 +36,5 @@ export const ADD_FIELD_TYPES = {
   BOOLEAN: 'boolean',
   STRING: 'string',
   NUMBER: 'number',
+  RAW_JSON: 'raw_json',
 };

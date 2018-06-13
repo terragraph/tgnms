@@ -8,7 +8,9 @@ if (!process.env.NODE_ENV) {
 
 const express = require('express');
 const fs = require('fs');
+const isIp = require('is-ip');
 const path = require('path');
+const proxy = require('express-http-proxy');
 const querystring = require('querystring');
 const request = require('request');
 
@@ -217,7 +219,26 @@ worker.on('message', msg => {
     case 'upgrade_state':
       upgradeStateByName[msg.name] =
         msg.success && msg.upgradeState ? msg.upgradeState : null;
-
+      break;
+    case 'bstar_state':
+      // check if topology has a backup controller and BSTAR_GET_STATE was
+      // successful
+      if (config.controller_ip_backup && msg.success) {
+        // check if state changed.
+        if ((msg.controller_ip == config.controller_ip_active &&
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
+            (msg.controller_ip == config.controller_ip_passive &&
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_ACTIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PRIMARY))) {
+          const tempIp = config.controller_ip_passive;
+          config.controller_ip_passive = config.controller_ip_active;
+          config.controller_ip_active = tempIp;
+          console.log(config.name + " BSTAR state changed");
+          console.log("Active controller is  : " + config.controller_ip_active);
+          console.log("Passive controller is : " + config.controller_ip_passive);
+        }
+      }
       break;
     default:
       console.error('Unknown message type', msg.type);
@@ -247,7 +268,7 @@ function getTopologyByName (topologyName) {
       'No topology name received from controller for',
       config.name,
       '[',
-      config.controller_ip,
+      config.controller_ip_active,
       ']'
     );
     // force the original name if the controller has no name
@@ -444,6 +465,8 @@ function reloadInstanceConfig () {
           config.aggregator_failures = 0;
           config.name = topology.name;
           config.controller_events = [];
+          config.controller_ip_active = config.controller_ip;
+          config.controller_ip_passive = config.controller_ip_backup ? config.controller_ip_backup : null;
           configByName[topology.name] = config;
           fileTopologyByName[topology.name] = topology;
           const topologyName = topology.name;
@@ -1973,161 +1996,6 @@ app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (
   );
 });
 
-// network config endpoints
-app.get(/\/controller\/getBaseConfig$/i, (req, res, next) => {
-  const { topologyName, imageVersions } = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getBaseConfig',
-      topology: topology,
-      imageVersions: imageVersions,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/getNetworkOverrideConfig/i, (req, res, next) => {
-  const { topologyName } = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getNetworkOverrideConfig',
-      topology: topology,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/getNodeOverrideConfig/i, (req, res, next) => {
-  const { topologyName, nodes } = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  const nodeMacs = nodes || topology.topology.nodes.map(node => node.mac_addr);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getNodeOverrideConfig',
-      topology: topology,
-      nodes: nodeMacs,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/getControllerConfig$/, (req, res, next) => {
-  const {topologyName} = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getControllerConfig',
-      topology,
-    },
-    '',
-    res
-  );
-});
-
-app.post(/\/controller\/setNetworkOverrideConfig/i, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const { config, topologyName } = postData;
-    const topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'setNetworkOverrideConfig',
-        topology: topology,
-        config: config,
-      },
-      '',
-      res
-    );
-  });
-});
-
-app.post(/\/controller\/setNodeOverrideConfig/i, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const { config, topologyName } = postData;
-    const topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'setNodeOverrideConfig',
-        topology: topology,
-        config: config,
-      },
-      '',
-      res
-    );
-  });
-});
-
-app.get(/\/controller\/getConfigMetadata$/, (req, res, next) => {
-  const { topologyName } = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getConfigMetadata',
-      topology: topology,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/getControllerConfigMetadata$/, (req, res, next) => {
-  const {topologyName} = req.query;
-  const topology = getTopologyByName(topologyName);
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getControllerConfigMetadata',
-      topology,
-    },
-    '',
-    res
-  );
-});
-
-app.post(/\/controller\/setControllerConfig$/, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {config, topologyName} = postData;
-    const topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'setControllerConfig',
-        topology,
-        config,
-      },
-      '',
-      res,
-    );
-  });
-});
-
 // aggregator endpoints
 app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
@@ -2149,57 +2017,6 @@ app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (
     return;
   }
   aggregatorProxy.setAlertsConfig(configByName[topologyName], req, res, next);
-});
-
-app.get(/\/aggregator\/getConfig$/, (req, res, next) => {
-  const {topologyName} = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendAggrMsgSync(
-    {
-      type: 'getAggregatorConfig',
-      topology,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/aggregator\/getConfigMetadata$/, (req, res, next) => {
-  const {topologyName} = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendAggrMsgSync(
-    {
-      type: 'getAggregatorConfigMetadata',
-      topology,
-    },
-    '',
-    res
-  );
-});
-
-app.post(/\/aggregator\/setConfig$/, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {config, topologyName} = postData;
-    const topology = getTopologyByName(topologyName);
-
-    syncWorker.sendAggrMsgSync(
-      {
-        type: 'setAggregatorConfig',
-        topology,
-        config,
-      },
-      '',
-      res,
-    );
-  });
 });
 
 if (devMode) {
@@ -2231,6 +2048,21 @@ if (devMode) {
     res.sendFile(path.join(__dirname, '/dist/bootstrap.css'));
   });
 }
+
+function getAPIServiceHost(req, res) {
+  const controller_ip = configByName[req.params.topology].controller_ip_active;
+  return isIp.v6(controller_ip)
+    ? 'http://[' + controller_ip + ']'
+    : 'http://' + controller_ip;
+
+}
+
+app.use('/apiservice/:topology/',
+  proxy(getAPIServiceHost, {
+    memoizeHost: false,
+    parseReqBody: false,
+  }),
+);
 
 app.get(/\/*/, function (req, res) {
   res.render('index', { configJson: JSON.stringify(networkInstanceConfig) });

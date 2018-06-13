@@ -10,46 +10,48 @@ import {
   SiteOverlayKeys,
 } from '../../constants/NetworkConstants.js';
 import classnames from 'classnames';
-import {Panel} from 'react-bootstrap';
+import {Col, Grid, Panel, Row} from 'react-bootstrap';
 import React from 'react';
 
 export default class DetailsLegend extends React.Component {
   state = {
-    open: false,
+    legendOpen: false,
+    linkOpen: true,
+    siteOpen: true,
   };
 
   // Values for node type legend entry icons.
   // All values chosen to try and match the leaflet markers
   nodeTypesOverlayDefaults = {
     svg: {
-      width: '20',
-      height: '20',
       cx: '10',
       cy: '10',
+      height: '20',
       r: '5',
-      strokeWidth: '1',
       stroke: 'none',
+      strokeWidth: '1',
+      width: '20',
     },
   };
   nodeTypesOverlaySource = {
-    DN: {
-      color: 'blue',
-      svg: {},
-    },
     CN: {
       color: 'pink',
+      svg: {},
+    },
+    POP: {
+      color: 'blue',
       svg: {},
     },
     'Ruckus AP': {
       color: 'white',
       svg: {
-        width: '48',
-        height: '48',
         cx: '24',
         cy: '24',
+        height: '48',
         r: '12',
-        strokeWidth: '3',
         stroke: 'purple',
+        strokeWidth: '3',
+        width: '48',
       },
     },
   };
@@ -120,12 +122,12 @@ export default class DetailsLegend extends React.Component {
     let linkOverlayKeyRows = [];
     let linkOverlaySource = LinkOverlayKeys[this.props.linkOverlay];
     const health = {
-      values: ['Alive', 'Ignition Candidate', 'Dead'],
       colors: ['green', 'purple', 'red'],
       prefix: '',
+      values: ['Alive', 'Ignition Candidate', 'Dead'],
     };
 
-    // Health is dealt set up differently in NetworkConstants, so override here
+    // Health is set up differently in NetworkConstants, so override here
     if (this.props.linkOverlay === 'Health') {
       linkOverlaySource = health;
     }
@@ -196,7 +198,15 @@ export default class DetailsLegend extends React.Component {
       }
     }
 
-    const triangleClass = this.state.open
+    const legendTriangleClass = this.state.legendOpen
+      ? 'glyphicon-triangle-bottom'
+      : 'glyphicon-triangle-top';
+
+    const siteTriangleClass = this.state.siteOpen
+      ? 'glyphicon-triangle-bottom'
+      : 'glyphicon-triangle-top';
+
+    const linkTriangleClass = this.state.linkOpen
       ? 'glyphicon-triangle-bottom'
       : 'glyphicon-triangle-top';
 
@@ -204,12 +214,12 @@ export default class DetailsLegend extends React.Component {
       <Panel
         bsStyle="info"
         id="legendControl"
-        onToggle={() => this.setState({open: !this.state.open})}>
+        onToggle={() => this.setState({legendOpen: !this.state.legendOpen})}>
         <Panel.Heading>
           <Panel.Title componentClass="h3" toggle>
             Legend&nbsp;
             <span
-              className={classnames('glyphicon', triangleClass)}
+              className={classnames('glyphicon', legendTriangleClass)}
               aria-hidden="true"
               style={{float: 'right'}}
             />
@@ -217,42 +227,73 @@ export default class DetailsLegend extends React.Component {
         </Panel.Heading>
         <Panel.Collapse>
           <Panel.Body>
-            <Panel>
-              <Panel.Body>
-                <table className="details-legend-table">
-                  <tbody>{nodeTypeOverlayKeyRows}</tbody>
-                </table>
-              </Panel.Body>
-            </Panel>
-            <Panel defaultExpanded>
-              <Panel.Heading>
-                <Panel.Title componentClass="h5" toggle>
-                  Site Overlay: {this.props.siteOverlay}
-                </Panel.Title>
-              </Panel.Heading>
-              <Panel.Collapse>
-                <Panel.Body>
-                  <table className="details-legend-table">
-                    <tbody>{siteOverlayKeyRows}</tbody>
-                  </table>
-                </Panel.Body>
-              </Panel.Collapse>
-            </Panel>
+            <Grid style={{width: '750px'}}>
+              <Row className='details-legend-row'>
+                <Col xs={3}>
+                  <Panel>
+                    <Panel.Body>
+                      <table className="details-legend-table">
+                        <tbody>{nodeTypeOverlayKeyRows}</tbody>
+                      </table>
+                    </Panel.Body>
+                  </Panel>
+                </Col>
 
-            <Panel defaultExpanded>
-              <Panel.Heading>
-                <Panel.Title componentClass="h5" toggle>
-                  Link Overlay: {this.props.linkOverlay}
-                </Panel.Title>
-              </Panel.Heading>
-              <Panel.Collapse>
-                <Panel.Body>
-                  <table className="details-legend-table">
-                    <tbody>{linkOverlayKeyRows}</tbody>
-                  </table>
-                </Panel.Body>
-              </Panel.Collapse>
-            </Panel>
+                <Col xs={5}>
+                  <Panel
+                    defaultExpanded
+                    onToggle={() => this.setState({
+                      siteOpen: !this.state.siteOpen
+                    })}
+                  >
+                    <Panel.Heading>
+                      <Panel.Title componentClass="h5" toggle>
+                        Site Overlay: {this.props.siteOverlay}&nbsp;
+                        <span
+                          className={classnames('glyphicon', siteTriangleClass)}
+                          aria-hidden="true"
+                          style={{float: 'right'}}
+                        />
+                      </Panel.Title>
+                    </Panel.Heading>
+                    <Panel.Collapse>
+                      <Panel.Body>
+                        <table className="details-legend-table">
+                          <tbody>{siteOverlayKeyRows}</tbody>
+                        </table>
+                      </Panel.Body>
+                    </Panel.Collapse>
+                  </Panel>
+                </Col>
+
+                <Col xs={5}>
+                  <Panel
+                    defaultExpanded
+                    onToggle={() => this.setState({
+                      linkOpen: !this.state.linkOpen
+                    })}
+                  >
+                    <Panel.Heading>
+                      <Panel.Title componentClass="h5" toggle>
+                        Link Overlay: {this.props.linkOverlay}&nbsp;
+                        <span
+                          className={classnames('glyphicon', linkTriangleClass)}
+                          aria-hidden="true"
+                          style={{float: 'right'}}
+                        />
+                      </Panel.Title>
+                    </Panel.Heading>
+                    <Panel.Collapse>
+                      <Panel.Body>
+                        <table className="details-legend-table">
+                          <tbody>{linkOverlayKeyRows}</tbody>
+                        </table>
+                      </Panel.Body>
+                    </Panel.Collapse>
+                  </Panel>
+                </Col>
+              </Row>
+            </Grid>
           </Panel.Body>
         </Panel.Collapse>
       </Panel>

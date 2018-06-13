@@ -29,11 +29,11 @@ const Spinner = () => (
 export default class SystemLogs extends React.Component {
   state = {
     logSources: [],
+    logText: '',
+    offset: 0,
     selectedSource: null,
     selectedSourceName: null,
-    offset: 0,
     size: 2000,
-    logText: '',
     startDate: moment(),
   };
 

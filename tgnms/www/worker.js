@@ -24,25 +24,29 @@ process.on('message', msg => {
     case 'poll':
       // expect a list of IP addresses
       msg.topologies.forEach(topology => {
-        const ctrlProxy = new ControllerProxy(topology.controller_ip);
-        ctrlProxy.sendCtrlMsgType(
+        const activeCtrlProxy = new ControllerProxy(topology.controller_ip_active);
+        activeCtrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.GET_TOPOLOGY,
           '\0',
         );
-        ctrlProxy.sendCtrlMsgType(
+        activeCtrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.GET_IGNITION_STATE,
           '\0',
         );
-        ctrlProxy.sendCtrlMsgType(
+        activeCtrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.GET_STATUS_DUMP,
           '\0',
         );
-        ctrlProxy.sendCtrlMsgType(
+        activeCtrlProxy.sendCtrlMsgType(
           controllerTTypes.MessageType.UPGRADE_STATE_REQ,
           '\0',
         );
+        activeCtrlProxy.sendCtrlMsgType(
+          controllerTTypes.MessageType.BSTAR_GET_STATE,
+          '\0',
+        );
 
-        ctrlProxy.on('event', (type, success, responseTime, data) => {
+        activeCtrlProxy.on('event', (type, success, responseTime, data) => {
           switch (type) {
             case controllerTTypes.MessageType.GET_TOPOLOGY:
               process.send({
@@ -82,10 +86,46 @@ process.on('message', msg => {
                 upgradeState: success ? data.upgradeState : null,
               });
               break;
+            case controllerTTypes.MessageType.BSTAR_GET_STATE:
+              // recvmsg.mType = BSTAR_FSM
+              process.send({
+                name: topology.name,
+                type: 'bstar_state',
+                success: success,
+                response_time: responseTime,
+                controller_ip: topology.controller_ip_active,
+                bstar_fsm: success ? data.bstar_fsm : null,
+              });
+              break;
             default:
               console.error('Unhandled message type', type);
           }
         });
+
+        if (topology.controller_ip_passive) {
+          const passiveCtrlProxy = new ControllerProxy(topology.controller_ip_passive);
+          passiveCtrlProxy.sendCtrlMsgType(
+            controllerTTypes.MessageType.BSTAR_GET_STATE,
+            '\0',
+          );
+          passiveCtrlProxy.on('event', (type, success, responseTime, data) => {
+            switch (type) {
+              case controllerTTypes.MessageType.BSTAR_GET_STATE:
+                // recvmsg.mType = BSTAR_FSM
+                process.send({
+                  name: topology.name,
+                  type: 'bstar_state',
+                  success: success,
+                  response_time: responseTime,
+                  controller_ip: topology.controller_ip_passive,
+                  bstar_fsm: success ? data.bstar_fsm : null,
+                });
+                break;
+              default:
+                console.error('Unhandled message type', type);
+            }
+          });
+        }
         const aggrProxy = new AggregatorProxy(topology.aggregator_ip);
         // request the old and new structures until everyone is on the latest
         // don't pre-fetch routing
@@ -113,7 +153,7 @@ process.on('message', msg => {
       break;
     case 'scan_poll':
       msg.topologies.forEach(topology => {
-        const ctrlProxy = new ControllerProxy(topology.controller_ip);
+        const ctrlProxy = new ControllerProxy(topology.controller_ip_active);
         var getScanStatus = new controllerTTypes.GetScanStatus();
         getScanStatus.isConcise = false;
         ctrlProxy.sendCtrlMsgType(
@@ -140,7 +180,7 @@ process.on('message', msg => {
                     Object.keys(data.scan_status.scans),
                   );
                   const ctrlProxy2 = new ControllerProxy(
-                    topology.controller_ip,
+                    topology.controller_ip_active,
                   );
                   ctrlProxy2.sendCtrlMsgType(
                     controllerTTypes.MessageType.RESET_SCAN_STATUS,
@@ -324,6 +364,11 @@ msgType2Params[controllerTTypes.MessageType.UPGRADE_STATE_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
   nmsAppId: 'NMS_WEB_UPGRADE_CONFIG',
 };
+msgType2Params[controllerTTypes.MessageType.BSTAR_GET_STATE] = {
+  recvApp: 'ctrl-app-BINARYSTAR_APP',
+  nmsAppId: 'NMS_WEB_BSTAR_STATE',
+};
+
 msgType2Params[controllerTTypes.MessageType.UPGRADE_ADD_IMAGE_REQ] = {
   recvApp: 'ctrl-app-UPGRADE_APP',
   nmsAppId: 'NMS_WEB_UPGRADE',
@@ -434,7 +479,7 @@ const sendCtrlMsgSync = (msg, minion, res) => {
 
   const send = struct => {
     var byteArray = thriftSerialize(struct);
-    const ctrlProxy = new ControllerProxy(msg.topology.controller_ip);
+    const ctrlProxy = new ControllerProxy(msg.topology.controller_ip_active);
     ctrlProxy.sendMsgTypeSync(
       command2MsgType[msg.type],
       byteArray,
@@ -873,6 +918,14 @@ class ControllerProxy extends EventEmitter {
             stateDump.read(tProtocol);
             this.emit('event', msgType, true, endTimer - this.start_timer, {
               upgradeState: stateDump,
+            });
+            break;
+          case controllerTTypes.MessageType.BSTAR_GET_STATE:
+            // recvmsg.mType = BSTAR_FSM
+            var bstarFsm = new controllerTTypes.BinaryStar();
+            bstarFsm.read(tProtocol);
+            this.emit('event', msgType, true, endTimer - this.start_timer, {
+              bstar_fsm: bstarFsm,
             });
             break;
           default:

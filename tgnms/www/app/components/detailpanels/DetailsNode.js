@@ -195,7 +195,7 @@ export default class DetailsNode extends React.Component {
         animation: 'slide-from-top',
         inputPlaceholder: 'Node Name',
       },
-      (inputValue) => {
+      inputValue => {
         if (inputValue === false) {
           return false;
         }
@@ -254,7 +254,7 @@ export default class DetailsNode extends React.Component {
         animation: 'slide-from-top',
         inputPlaceholder: 'MAC Address',
       },
-      (inputValue) => {
+      inputValue => {
         if (inputValue === false) {
           return false;
         }

@@ -83,9 +83,9 @@ MySqlClient::getNodesWithKeys(const std::unordered_set<std::string>& nodeMacs) {
   return nodes;
 }
 
-std::vector<std::shared_ptr<query::TopologyConfig>>
+std::map<int64_t, std::shared_ptr<query::TopologyConfig>>
 MySqlClient::getTopologyConfigs() {
-  return topologyList_;
+  return topologyIdMap_;
 }
 
 void MySqlClient::refreshTopologies() noexcept {
@@ -94,7 +94,7 @@ void MySqlClient::refreshTopologies() noexcept {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT * FROM `topologies`"));
-    std::vector<std::shared_ptr<query::TopologyConfig>> topologyListTmp;
+    std::map<int64_t, std::shared_ptr<query::TopologyConfig>> topologyIdTmp;
     while (res->next()) {
       auto config = std::make_shared<query::TopologyConfig>();
       config->id = res->getInt("id");
@@ -107,12 +107,67 @@ void MySqlClient::refreshTopologies() noexcept {
       config->api_ip = res->getString("api_ip");
       config->api_port = res->getInt("api_port");
       // add to topology list
-      topologyListTmp.push_back(config);
+      topologyIdTmp[config->id] = config;
     }
-    topologyList_.swap(topologyListTmp);
-    LOG(INFO) << "refreshTopologies:  " << topologyList_.size();
+    // refresh key ids for each topology
+    refreshAggregateKeys(topologyIdTmp);
+    topologyIdMap_.swap(topologyIdTmp);
+    LOG(INFO) << "refreshTopologies:  " << topologyIdMap_.size();
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshTopologies ERR: " << e.what();
+    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+  }
+}
+
+void MySqlClient::refreshAggregateKeys(
+    std::map<int64_t, std::shared_ptr<query::TopologyConfig>>& topologyIdMap) noexcept {
+  try {
+    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    std::unique_ptr<sql::ResultSet> res(
+        stmt->executeQuery("SELECT `id`, `topology_id`, `key` FROM `agg_key`"));
+    LOG(INFO) << "refreshAggregateKeys: Number of keys: " << res->rowsCount();
+    while (res->next()) {
+      int64_t keyId = res->getInt("id");
+      int64_t topologyId = res->getInt("topology_id");
+      std::string keyName = res->getString("key");
+
+      std::transform(
+          keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
+      // insert into node id -> key mapping
+      auto topologyIt = topologyIdMap.find(topologyId);
+      if (topologyIt == topologyIdMap.end()) {
+        LOG(WARNING) << "Invalid topology id (" << topologyId << ") for key: "
+                     << keyName;
+        continue;
+      }
+      // insert into keys map for topology
+      topologyIt->second->keys[keyName] = keyId;
+    }
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "refreshAggregateKeys ERR: " << e.what();
+    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+  }
+}
+
+void MySqlClient::addAggKeys(
+    const int64_t topologyId,
+    const std::vector<std::string>& keyNames) noexcept {
+  try {
+    std::unique_ptr<sql::PreparedStatement> prep_stmt(
+        connection_->prepareStatement(
+            "INSERT IGNORE INTO `agg_key` (`topology_id`, `key`)"
+            " VALUES (?, ?)"));
+
+    for (const auto& key : keyNames) {
+      prep_stmt->setInt(1, topologyId);
+      prep_stmt->setString(2, key);
+      prep_stmt->execute();
+      LOG(INFO) << "addAggKey => key: " << key
+                << " topology id: " << topologyId;
+    }
+    refreshTopologies();
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "addAggKeys ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
 }
@@ -122,19 +177,19 @@ void MySqlClient::refreshNodes() noexcept {
     std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT * FROM `nodes`"));
+    std::vector<std::shared_ptr<query::MySqlNodeData>> nodesTmp;
     while (res->next()) {
       auto node = std::make_shared<query::MySqlNodeData>();
       node->id = res->getInt("id");
-      node->node = res->getString("node");
       node->mac = res->getString("mac");
       node->network = res->getString("network");
-      node->site = res->getString("site");
       std::transform(
           node->mac.begin(), node->mac.end(), node->mac.begin(), ::tolower);
       macAddrToNode_[node->mac] = node;
       nodeIdToNode_[node->id] = node;
-      nodes_.push_back(node);
+      nodesTmp.push_back(node);
     }
+    nodes_.swap(nodesTmp);
     LOG(INFO) << "refreshNodes: Number of nodes: " << nodeIdToNode_.size();
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshNodes ERR: " << e.what();
@@ -184,14 +239,12 @@ void MySqlClient::addNodes(
   try {
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         connection_->prepareStatement(
-            "INSERT IGNORE INTO `nodes` (`mac`, `node`, "
-            "`site`, `network`) VALUES (?, ?, ?, ?)"));
+            "INSERT IGNORE INTO `nodes` (`mac`, `network`)"
+            " VALUES (?, ?)"));
 
     for (const auto& node : newNodes) {
       prep_stmt->setString(1, node.second.mac);
-      prep_stmt->setString(2, node.second.node);
-      prep_stmt->setString(3, node.second.site);
-      prep_stmt->setString(4, node.second.network);
+      prep_stmt->setString(2, node.second.network);
       prep_stmt->execute();
       LOG(INFO) << "addNode => mac: " << node.second.mac
                 << " Network: " << node.second.network;

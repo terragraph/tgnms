@@ -14,11 +14,34 @@ import {
 } from '../../constants/NetworkConfigConstants.js';
 import NetworkConfigBody from './NetworkConfigBody.js';
 import NetworkConfigLeftPane from './NetworkConfigLeftPane.js';
+import isEmpty from 'lodash-es/isEmpty';
+import isPlainObject from 'lodash-es/isPlainObject';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
 
 export default class NetworkConfig extends React.Component {
+  static propTypes = {
+    topologyName: PropTypes.string.isRequired,
+    nodes: PropTypes.array.isRequired,
+    imageVersions: PropTypes.array.isRequired,
+    selectedImage: PropTypes.string.isRequired,
+    selectedNodes: PropTypes.array.isRequired,
+
+    editMode: PropTypes.string.isRequired,
+    baseConfigByVersion: PropTypes.object.isRequired,
+    newConfigFields: PropTypes.object.isRequired,
+    configMetadata: PropTypes.object,
+
+    networkOverrideConfig: PropTypes.object.isRequired,
+    networkDraftConfig: PropTypes.object.isRequired,
+    removedNetworkOverrides: PropTypes.instanceOf(Set).isRequired,
+
+    nodeOverrideConfig: PropTypes.object.isRequired,
+    nodeDraftConfig: PropTypes.object.isRequired,
+    removedNodeOverrides: PropTypes.object.isRequired, // <NodeMacAddr, Set>
+  };
+
   getBaseConfig(baseConfigByVersion, editMode, selectedImage, selectedNodes) {
     let baseKey = DEFAULT_BASE_KEY;
     if (editMode === CONFIG_VIEW_MODE.NODE && selectedNodes[0].imageVersion) {
@@ -44,6 +67,12 @@ export default class NetworkConfig extends React.Component {
       : nodeConfig[selectedNodes[0].mac_addr];
   }
 
+  combineRemovedNodeOverrides(selectedNodes, removedNodeOverrides) {
+    return removedNodeOverrides[selectedNodes[0].mac_addr] === undefined
+      ? new Set()
+      : removedNodeOverrides[selectedNodes[0].mac_addr];
+  }
+
   render() {
     const {
       topologyName,
@@ -59,11 +88,11 @@ export default class NetworkConfig extends React.Component {
 
       networkOverrideConfig,
       networkDraftConfig,
-      networkConfigWithChanges,
+      removedNetworkOverrides,
 
       nodeOverrideConfig,
       nodeDraftConfig,
-      nodeConfigWithChanges,
+      removedNodeOverrides,
     } = this.props;
 
     const baseConfig = this.getBaseConfig(
@@ -88,12 +117,32 @@ export default class NetworkConfig extends React.Component {
         ? this.combineNodeConfigs(selectedNodes, nodeDraftConfig)
         : networkDraftConfig;
 
-    const nodesWithDrafts = Object.keys(nodeDraftConfig).filter(node => {
-      return Object.keys(nodeDraftConfig[node]).length > 0;
+    const removedOverrides =
+      editMode === CONFIG_VIEW_MODE.NODE
+        ? this.combineRemovedNodeOverrides(selectedNodes, removedNodeOverrides)
+        : removedNetworkOverrides;
+
+    const nodesWithDrafts = Object.keys(nodeDraftConfig).filter(nodeMacAddr => {
+      return !isEmpty(nodeDraftConfig[nodeMacAddr]);
     });
 
-    const networkDraftExists = Object.keys(networkDraftConfig).length > 0;
-    const hasUnsavedChanges = networkDraftExists || nodesWithDrafts.length > 0;
+    const nodesWithOverrides = isPlainObject(nodeOverrideConfig)
+      ? new Set(
+          Object.keys(nodeOverrideConfig).filter(nodeMacAddr => {
+            return (
+              isPlainObject(nodeOverrideConfig[nodeMacAddr]) &&
+              !isEmpty(nodeOverrideConfig[nodeMacAddr])
+            );
+          }),
+        )
+      : new Set();
+
+    const networkDraftExists = !isEmpty(networkDraftConfig);
+    const hasUnsavedChanges =
+      networkDraftExists ||
+      !isEmpty(nodesWithDrafts) ||
+      isEmpty(removedNetworkOverrides) ||
+      isEmpty(removedNodeOverrides);
 
     return (
       <div className="rc-network-config">
@@ -106,14 +155,18 @@ export default class NetworkConfig extends React.Component {
           nodes={nodes}
           selectedNodes={selectedNodes}
           nodesWithDrafts={nodesWithDrafts}
-          nodeOverrideConfig={nodeOverrideConfig}
+          nodesWithOverrides={nodesWithOverrides}
+          removedNodeOverrides={removedNodeOverrides} // removedOverrides for ALL nodes
         />
         <NetworkConfigBody
+          topologyName={topologyName}
           configs={stackedConfigs}
           configMetadata={configMetadata}
           draftConfig={selectedDraftConfig}
+          removedOverrides={removedOverrides} // removedOverrides for specific node
           newConfigFields={newConfigFields}
           nodesWithDrafts={nodesWithDrafts}
+          removedNodeOverrides={removedNodeOverrides} // removedOverrides for ALL nodes
           selectedNodes={selectedNodes}
           editMode={editMode}
           hasUnsavedChanges={hasUnsavedChanges}
@@ -122,24 +175,3 @@ export default class NetworkConfig extends React.Component {
     );
   }
 }
-
-NetworkConfig.propTypes = {
-  topologyName: PropTypes.string.isRequired,
-  nodes: PropTypes.array.isRequired,
-  imageVersions: PropTypes.array.isRequired,
-  selectedImage: PropTypes.string.isRequired,
-  selectedNodes: PropTypes.array.isRequired,
-
-  editMode: PropTypes.string.isRequired,
-  baseConfigByVersion: PropTypes.object.isRequired,
-  newConfigFields: PropTypes.object.isRequired,
-  configMetadata: PropTypes.object,
-
-  networkOverrideConfig: PropTypes.object.isRequired,
-  networkDraftConfig: PropTypes.object.isRequired,
-  networkConfigWithChanges: PropTypes.object.isRequired,
-
-  nodeOverrideConfig: PropTypes.object.isRequired,
-  nodeDraftConfig: PropTypes.object.isRequired,
-  nodeConfigWithChanges: PropTypes.object.isRequired,
-};

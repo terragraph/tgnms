@@ -33,6 +33,8 @@ NetworkStore.selfTestGroups = {}; // list of tests that have run
 NetworkStore.selfTestResults = []; // results for table
 NetworkStore.layers = [];
 
+const SITE_ROOT = '/';
+
 const BrowserHistory = createHistory();
 const PushUrl = () => {
   // console.log('url stuff', NetworkStore);
@@ -47,7 +49,7 @@ const PushUrl = () => {
             // selected node, link
             if (NetworkStore.selectedName) {
               BrowserHistory.push(
-                '/' +
+                SITE_ROOT +
                   NetworkStore.viewName +
                   '/' +
                   NetworkStore.networkName +
@@ -58,7 +60,7 @@ const PushUrl = () => {
               );
             } else {
               BrowserHistory.push(
-                '/' +
+                SITE_ROOT +
                   NetworkStore.viewName +
                   '/' +
                   NetworkStore.networkName +
@@ -68,14 +70,14 @@ const PushUrl = () => {
             }
           } else {
             BrowserHistory.push(
-              '/' + NetworkStore.viewName + '/' + NetworkStore.networkName,
+              SITE_ROOT + NetworkStore.viewName + '/' + NetworkStore.networkName,
             );
           }
           break;
         case 'stats':
           if (NetworkStore.nodeRestrictor) {
             BrowserHistory.push(
-              '/' +
+              SITE_ROOT +
                 NetworkStore.viewName +
                 '/' +
                 NetworkStore.networkName +
@@ -84,28 +86,28 @@ const PushUrl = () => {
             );
           } else {
             BrowserHistory.push(
-              '/' + NetworkStore.viewName + '/' + NetworkStore.networkName,
+              SITE_ROOT + NetworkStore.viewName + '/' + NetworkStore.networkName,
             );
           }
           break;
         default:
           BrowserHistory.push(
-            '/' + NetworkStore.viewName + '/' + NetworkStore.networkName,
+            SITE_ROOT + NetworkStore.viewName + '/' + NetworkStore.networkName,
           );
       }
     } else {
-      BrowserHistory.push('/' + NetworkStore.viewName);
+      BrowserHistory.push(SITE_ROOT + NetworkStore.viewName);
     }
   } else {
     // nothing selected
-    BrowserHistory.push('/');
+    BrowserHistory.push(SITE_ROOT);
   }
 };
 // initial load, parse URL and set initial values
 // console.log('parsing the url..', BrowserHistory.location);
 const InitialUrl = BrowserHistory.location.pathname;
-const urlParts = InitialUrl.split('/');
-urlParts.shift();
+// replace in js only replaces the FIRST instance
+const urlParts = InitialUrl.replace(SITE_ROOT, '').split('/');
 for (let layer = 0; layer < urlParts.length; layer++) {
   if (!urlParts[layer].length) {
     break;
@@ -236,8 +238,8 @@ const urlHistory = BrowserHistory.listen((location, action) => {
       // re-acting to a user changed URL
       // break up the URL
       const url = location.pathname + location.hash;
-      const urlParts = url.split('/');
-      urlParts.shift();
+      // replace in js only replaces the FIRST instance
+      const urlParts = url.replace(SITE_ROOT, '').split('/');
       // console.log('url popped', urlParts);
       Dispatcher.dispatch({
         actionType: Actions.LAYER_CHANGED,

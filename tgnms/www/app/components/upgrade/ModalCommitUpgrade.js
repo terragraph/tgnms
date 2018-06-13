@@ -59,7 +59,7 @@ export default class ModalCommitUpgrade extends React.Component {
     let limit = 0;
     if (this.state.batchingAlgorithm === 'auto_limited') {
       const n = parseInt(this.state.limit, 10);
-      if (n == NaN || String(n) !== this.state.limit || n < 1) {
+      if (isNaN(n) || String(n) !== this.state.limit || n < 1) {
         swal({
           title: 'Invalid input!',
           text: 'Batch size limit is invalid. Use integers greater than 0.',

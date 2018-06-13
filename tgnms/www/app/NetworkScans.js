@@ -7,8 +7,11 @@
 
 import Dispatcher from './NetworkDispatcher.js';
 //import ReactPlotlyHeatmap from "./ReactPlotlyHeatmap.js";
-import {availabilityColor} from './NetworkHelper.js';
-import {variableColorDown, variableColorUp} from './NetworkHelper.js';
+import {
+  availabilityColor,
+  variableColorDown,
+  variableColorUp,
+} from './helpers/NetworkHelpers.js';
 import ReactEventChart from './ReactEventChart.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
@@ -205,13 +208,7 @@ export default class NetworkScans extends React.Component {
   }
 
   // scanResults is the routeInfoList
-  getTableRows() // : Array<{ //TODO(csm) what does this Array do?
-  //   name: string,
-  //   a_node_name: string,
-  //   z_node_name: string,
-  //   alive: boolean
-  // }>
-  {
+  getTableRows() {
     const rows = [];
     if (!this.state.scanResults || !this.state.scanResults.results) {
       console.log('no scanResults');

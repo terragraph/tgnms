@@ -38,7 +38,7 @@
   margin: auto;
 }
 .leaflet-container {
-	font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
 div.SplitPane {
   margin-top: 40px;
@@ -341,6 +341,11 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .CustomTable__BodyGrid .ReactVirtualized__Grid__innerScrollContainer {
   border-radius: 0px 0px 5px 5px;
   border: 1px solid #d3d3d3;
+}
+
+.details-legend-row {
+  display: flex;
+  align-items: center;
 }
 
 .selectButtonClass {

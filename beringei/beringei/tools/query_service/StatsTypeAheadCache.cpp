@@ -79,11 +79,13 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
   }
 
   for (auto& node : request.nodes) {
+    // no stats if no mac address defined
+    if (node.mac_addr.empty()) {
+      continue;
+    }
     macNodes_.insert(node.mac_addr);
     nodesByName_[node.name] = node;
   }
-  // e2e
-  macNodes_.insert("00:00:00:00:00:00");
 
   auto dbNodes = mySqlClient_->getNodesWithKeys(macNodes_);
   for (const auto& node : dbNodes) {
@@ -100,8 +102,6 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
       keyData->key = key.second;
       keyData->displayName = key.second;
       keyData->node = node->mac;
-      keyData->nodeName = node->node;
-      keyData->siteName = node->site;
       // update units
       if (keyName.endsWith("_bytes")) {
         keyData->unit = query::KeyUnit::BYTES_PER_SEC;
@@ -110,6 +110,19 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
       // index the key name to its db id
       keyToMetricIds_[key.second].push_back(key.first);
       nodeMacToKeyList_[node->mac][key.second] = keyData;
+    }
+  }
+  for (const auto& topologyConfig : mySqlClient_->getTopologyConfigs()) {
+    if (topologyConfig.second->topology.name != request.name) {
+      continue;
+    }
+    for (const auto& key : topologyConfig.second->keys) {
+      auto keyData = std::make_shared<query::KeyData>();
+      keyData->keyId = key.second;
+      keyData->key = key.first;
+      keyData->displayName = key.first;
+      metricIdMetadata_[key.second] = keyData;
+      keyToMetricIds_[key.first].push_back(key.second);
     }
   }
 
@@ -122,6 +135,9 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
     auto zNode = nodesByName_[link.z_node_name];
     for (auto& metricName : linkMetricKeyNames_) {
       folly::dynamic linkMetrics = getLinkMetrics(metricName, aNode, zNode);
+      if (!linkMetrics.count("keys")) {
+        continue;
+      }
       for (auto& key : linkMetrics["keys"]) {
         auto node = SimpleJSONSerializer::deserialize<query::Node>(
             key["node"].asString());
@@ -132,8 +148,8 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
             keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
         if (!nodeMacToKeyList_.count(mac) ||
             !nodeMacToKeyList_[mac].count(keyName)) {
-          LOG(INFO) << "Unable to find metricName for " << aNode.name << "-"
-                    << zNode.name << ", mac: " << mac << ", key: " << keyName;
+          VLOG(1) << "Unable to find metricName for " << aNode.name << "-"
+                  << zNode.name << ", mac: " << mac << ", key: " << keyName;
           continue;
         }
         auto keyData = nodeMacToKeyList_[mac][keyName];
@@ -207,6 +223,12 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
     const std::string& metricName,
     const query::Node& aNode,
     const query::Node& zNode) {
+
+  if (aNode.mac_addr.empty() || zNode.mac_addr.empty()) {
+    VLOG(1) << "Empty MAC for link " << aNode.name
+            << " <-> " << zNode.name;
+    return folly::dynamic::object();
+  }
   if (metricName == "rssi") {
     return createLinkMetric(
         aNode,
@@ -403,7 +425,8 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
 std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
     const std::string& metricName,
     const int limit) {
-  std::vector<std::vector<query::KeyData>> retMetrics;
+  VLOG(1) << "Search for " << metricName << " with limit " << limit;
+  std::vector<std::vector<query::KeyData>> retMetrics{};
   std::regex metricRegex;
   try {
     metricRegex = std::regex(metricName, std::regex::icase);
@@ -414,11 +437,14 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
   std::set<int> usedShortMetricIds;
   int retMetricId = 0;
   // search short-name metrics
+  VLOG(1) << "Found " << nameToMetricIds_.size() << " metric names to search through.";
   for (const auto& metric : nameToMetricIds_) {
     std::smatch metricMatch;
     if (std::regex_search(metric.first, metricMatch, metricRegex)) {
       std::vector<query::KeyData> metricKeyList;
       // insert keydata
+      VLOG(1) << "\tFound metric match " << metric.first
+              << " with " << metric.second.size() << " keys.";
       for (const auto& keyId : metric.second) {
         auto metricIt = metricIdMetadata_.find(keyId);
         if (metricIt != metricIdMetadata_.end()) {
@@ -433,11 +459,14 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
       retMetrics.push_back(metricKeyList);
     }
   }
+  VLOG(1) << "Found " << keyToMetricIds_.size() << " keys to search through.";
   for (const auto& metric : keyToMetricIds_) {
     std::smatch metricMatch;
     if (std::regex_search(metric.first, metricMatch, metricRegex)) {
       std::vector<query::KeyData> metricKeyList;
       // insert keydata
+      VLOG(1) << "\tFound key match " << metric.first << " with "
+              << metric.second.size() << " keys.";
       for (const auto& keyId : metric.second) {
         auto metricIt = metricIdMetadata_.find(keyId);
         // Skip metric name if used by a short/alias key
@@ -454,6 +483,8 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
       }
     }
   }
+  VLOG(1) << "Returning " << retMetrics.size()
+          << " metrics for " << metricName << " query.";
   return retMetrics;
 }
 } // namespace gorilla

@@ -7,7 +7,7 @@
 
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
-import {availabilityColor} from './NetworkHelper.js';
+import {availabilityColor} from './helpers/NetworkHelpers.js';
 import ReactEventChart from './ReactEventChart.js';
 import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
@@ -153,9 +153,8 @@ export default class NetworkNodesTable extends React.Component {
     }
   }
 
-  static getTableRows(
+  getTableRows(
     nodes,
-    nodeHealth,
   ): Array<{
     name: string,
     mac_addr: string,
@@ -185,12 +184,13 @@ export default class NetworkNodesTable extends React.Component {
       let availability = 0;
       let events = [];
       if (
-        nodeHealth &&
-        nodeHealth.hasOwnProperty('metrics') &&
-        nodeHealth.metrics.hasOwnProperty(node.name)
+        this.state.nodeHealth &&
+        this.state.nodeHealth.hasOwnProperty('metrics') &&
+        this.state.nodeHealth.metrics.hasOwnProperty(node.mac_addr)
       ) {
-        availability = nodeHealth.metrics[node.name].minion_uptime;
-        events = nodeHealth.metrics[node.name].events;
+        availability = this.state.nodeHealth.metrics[node.mac_addr]
+          .minion_uptime;
+        events = this.state.nodeHealth.metrics[node.mac_addr].events;
       }
       rows.push({
         availability,

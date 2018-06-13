@@ -1,8 +1,6 @@
 
 /* NETWORK CONFIG LEFT PANE */
 .rc-network-config-left-pane {
-  border-right: 1px solid #aaa;
-
   width: 300px; /* fixed width for now */
   height: 100%;
 
@@ -63,10 +61,11 @@
 .rc-network-config-legend {
   width: inherit;
   background-color: #eee;
-  border-right: 1px solid #aaa;
   border-top: 1px solid #aaa;
   box-sizing: border-box;
   padding: 10px;
+  position: fixed;
+  bottom: 0;
 }
 
 .legend-expand-marker {
