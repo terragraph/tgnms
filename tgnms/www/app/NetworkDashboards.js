@@ -11,12 +11,15 @@ import {Actions} from './constants/NetworkConstants.js';
 import DashboardSelect from './components/dashboard/DashboardSelect.js';
 import GlobalDataSelect from './components/dashboard/GlobalDataSelect.js';
 import CreateGraphModal from './components/dashboard/CreateGraphModal.js';
+import {
+  formatKeyHelper,
+  fetchKeyData,
+} from './helpers/NetworkDashboardsHelper.js';
 import ReactGridLayout, {WidthProvider} from 'react-grid-layout';
 import React from 'react';
 import swal from 'sweetalert';
 import axios from 'axios';
 import moment from 'moment';
-import clone from 'lodash-es/clone';
 
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
@@ -87,62 +90,15 @@ export default class NetworkDashboards extends React.Component {
     });
   };
 
-  // startTime and endTime are date objects
-  // data is an array of objects containing keys
-  // keyIds is an array of key ids
-  // setup is an object containing information on type, direction, nodeA, nodeZ, etc
-  addGraphCustomTime = (name, startTime, endTime, data, keyIds, setup) => {
+  addGraphToDashboard = graph => {
     this.setState({editView: true});
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
-    const newGraphs = clone(dashboard.graphs);
-    newGraphs.unshift({
-      agg_type: 'top',
-      container: {
-        x: 0,
-        y: 0,
-        w: 4,
-        h: 4,
-      },
-      data,
-      endTime,
-      key_ids: keyIds,
-      name,
-      startTime,
-      setup,
-    });
+    const newGraphs = [graph, ...dashboard.graphs];
     dashboard.graphs = newGraphs;
     this.setState({
       dashboards,
-    });
-  };
-
-  // startTime and endTime are date objects
-  // data is an array of objects containing keys
-  // keyIds is an array of key ids
-  // setup is an object containing information on type, direction, nodeA, nodeZ, etc
-  addGraphMinAgo = (name, minAgo, data, keyIds, setup) => {
-    this.setState({editView: true});
-    const {dashboards} = this.state;
-    const dashboard = dashboards[this.props.selectedDashboard];
-    const newGraphs = clone(dashboard.graphs);
-    newGraphs.unshift({
-      agg_type: 'top',
-      container: {
-        x: 0,
-        y: 0,
-        w: 4,
-        h: 4,
-      },
-      data,
-      key_ids: keyIds,
-      minAgo,
-      name,
-      setup,
-    });
-    dashboard.graphs = newGraphs;
-    this.setState({
-      dashboards,
+      modalIsOpen: false,
     });
   };
 
@@ -229,7 +185,7 @@ export default class NetworkDashboards extends React.Component {
         }),
       )
       .catch(err => {
-        console.log('Error getting dashboards', err);
+        console.error('Error getting dashboards', err);
         this.setState({
           dashboards: null,
           editView: false,
@@ -370,7 +326,7 @@ export default class NetworkDashboards extends React.Component {
         swal('Saved!', 'Dashboard get saved to server!', 'success');
       })
       .catch(err => {
-        console.log('Error saving dashboards', err);
+        console.error('Error saving dashboards', err);
       });
   };
 
@@ -380,7 +336,6 @@ export default class NetworkDashboards extends React.Component {
   onChangeDashboardGlobalData = (endTime, minAgo, nodeA, nodeZ, startTime) => {
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
-
     const newDashboard = {
       ...dashboard,
       nodeA,
@@ -391,64 +346,205 @@ export default class NetworkDashboards extends React.Component {
     };
 
     const {graphs} = newDashboard;
-    const newGraphs = graphs.map(graph => {
-      if (graph.setup.graphType === 'link') {
-        console.log(graph.data)
-        this.getLinkKeysData(graph.data[0].key, nodeA, nodeZ, this.props.networkConfig.topology.name, graph.setup.direction)
-      }
-      return {
-        ...graph,
-        startTime,
-        endTime,
-        minAgo
-      }
+
+    // if the user only changed the time, then return the graphs with updated time
+    if (
+      dashboard.nodeA === undefined ||
+      dashboard.nodeZ === undefined ||
+      (nodeA.name === dashboard.nodeA.name &&
+        nodeZ.name === dashboard.nodeZ.name)
+    ) {
+      newDashboard.graphs = graphs.map(graph => {
+        return {
+          ...graph,
+          startTime,
+          endTime,
+          minAgo,
+        };
+      });
+      this.setState({
+        dashboards: {
+          ...dashboards,
+          [this.props.selectedDashboard]: newDashboard,
+        },
+      });
+      return;
+    }
+
+    const globalData = {
+      endTime,
+      minAgo,
+      nodeA,
+      nodeZ,
+      startTime,
+    };
+
+    const graphPromises = graphs.map(async graph => {
+      const inputData = this.getGraphInputData(graph, globalData);
+      return await this.generateGraph(graph.setup.graphType, inputData);
     });
 
-    newDashboard.graphs = newGraphs;
-    dashboards[this.props.selectedDashboard] = newDashboard;
-
-    this.setState({
-      dashboards,
+    Promise.all(graphPromises).then(graphs => {
+      newDashboard.graphs = graphs;
+      this.setState({
+        dashboards: {
+          ...dashboards,
+          [this.props.selectedDashboard]: newDashboard,
+        },
+      });
     });
   };
 
-  getLinkKeysData(key, nodeA, nodeZ, topologyName, direction) {
-    if (direction.includes('Z -> A')) {
-      const temp = nodeA;
-      nodeA = nodeZ;
-      nodeZ = temp;
-    }
-    let formattedKey = 'tgf.' + nodeZ.mac_addr + '.' + key.slice(22);
-    let graphName = direction + ' : ' + key.slice(22);
-
-    let url = `/stats_ta/${topologyName}/${formattedKey}`;
-    console.log("UERL", url)
-
-    axios.get(url).then(resp => {
-      const keyIds = [];
-      const dataResp = [];
-      // only doing this because backend doesnt return exact key on search
-      // must parse through response manually to get desired key number [#]
-      if (key.includes('[')) {
-        const keyNum = key.slice(key.indexOf('[') + 1, key.indexOf(']'));
-        resp.data.forEach(point => {
-          if (point[0].key.includes(keyNum)) {
-            point.forEach(val => {
-              keyIds.push(val.keyId);
-              dataResp.push(val);
-            });
-          }
-        });
-      } else {
-        resp.data.forEach(point => {
-          point.forEach((val, index) => {
-            keyIds.push(val.keyId);
-            dataResp.push(val);
-          });
-        });
+  getGraphInputData = (graph, graphData) => {
+    const {startTime, endTime, minAgo, nodeA, nodeZ} = graphData;
+    let inputData = {};
+    if (graph.setup.graphType === 'link') {
+      const {key} = graph.key_data[0];
+      const graphName = `${graph.setup.direction} ${nodeA.name} -> ${
+        nodeZ.name
+      } : ${formatKeyHelper(key)}`;
+      inputData = {
+        startTime,
+        endTime,
+        minAgo,
+        nodeA,
+        nodeZ,
+        container: graph.container,
+        direction: graph.setup.direction,
+        setup: graph.setup,
+        name: graphName,
+        key,
+      };
+    } else if (graph.setup.graphType === 'node') {
+      const nodes = [];
+      let graphName = '';
+      // check which nodes are used in the graph to replace nodes with the
+      // corresponding new nodeA and nodeZ
+      if (graph.setup.nodes.includes('nodeA')) {
+        nodes.push(nodeA);
+      } else if (graph.setup.nodes.includes('nodeZ')) {
+        nodes.push(nodeZ);
       }
+
+      graphName = nodes.map(node => node.name).join(',');
+
+      // get key names from the graph's data to query backend
+      const keys = graph.key_data.map(keyObj => keyObj.key);
+
+      inputData = {
+        startTime,
+        endTime,
+        minAgo,
+        nodes,
+        keys,
+        container: graph.container,
+        setup: graph.setup,
+        name: graphName,
+      };
+    }
+    return inputData;
+  };
+
+  _filterKeysToNodeKeys = (nodes, keyData) => {
+    const keyIds = [];
+    nodes.forEach(node => {
+      keyData = keyData.filter(keyObj => {
+        if (!RegExp('\\d').test(keyObj.key) && keyObj.node === node.mac_addr) {
+          keyIds.push(keyObj.keyId);
+          return true;
+        } else {
+          return false;
+        }
+      });
     });
-  }
+    return keyIds;
+  };
+
+  generateGraph = async (graphType, inputData) => {
+    let queries = [];
+    if (graphType === 'link') {
+      let {direction, nodeA, nodeZ, key} = inputData;
+      if (direction.includes('Z -> A')) {
+        const temp = nodeA;
+        nodeA = nodeZ;
+        nodeZ = temp;
+      }
+      const formattedKey = 'tgf.' + nodeZ.mac_addr + '.' + formatKeyHelper(key);
+      queries.push(formattedKey);
+    } else if (graphType === 'node') {
+      queries = inputData.keys;
+    }
+    return await fetchKeyData(
+      queries,
+      this.props.networkConfig.topology.name,
+    ).then(graphData => {
+      let {keyIds, keyData} = graphData;
+      const {startTime, endTime, minAgo, name, setup} = inputData;
+
+      // TODO: fix backend so that stats_ta asks for node or link
+      // manually filter through keyIds unrelated to the current node
+      if (graphType === 'node') {
+        const {nodes} = inputData;
+        keyIds = this._filterKeysToNodeKeys(nodes, keyData);
+      }
+
+      const newGraph = {
+        agg_type: 'top',
+        container: inputData.container || {
+          x: 0,
+          y: 0,
+          w: 4,
+          h: 4,
+        },
+        key_data: keyData,
+        key_ids: keyIds,
+        endTime,
+        minAgo,
+        name,
+        startTime,
+        setup,
+      };
+      return newGraph;
+    });
+  };
+
+  onSubmitNewGraph = (graphType, inputData) => {
+    if (graphType === 'node') {
+      const {keys, minAgo, name, startTime, endTime, setup} = inputData;
+      const nodeKeyIds = [];
+      const nodeKeyData = [];
+      keys.forEach(key => {
+        nodeKeyIds.push(key.keyId);
+        nodeKeyData.push(key);
+      });
+      const newGraph = {
+        agg_type: 'top',
+        container: {
+          x: 0,
+          y: 0,
+          w: 4,
+          h: 4,
+        },
+        key_data: nodeKeyData,
+        endTime,
+        key_ids: nodeKeyIds,
+        minAgo,
+        name,
+        startTime,
+        setup,
+      };
+
+      this.addGraphToDashboard(newGraph);
+    } else {
+      this.generateGraph(graphType, inputData)
+        .then(newGraph => {
+          this.addGraphToDashboard(newGraph);
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }
+  };
 
   generateErrorAlert = errMessage => {
     swal('Error', errMessage, 'error');
@@ -558,8 +654,7 @@ export default class NetworkDashboards extends React.Component {
                   dashboard={dashboards[this.props.selectedDashboard]}
                   topologyName={this.props.networkConfig.topology.name}
                   closeModal={this.closeModal}
-                  addGraphCustomTime={this.addGraphCustomTime}
-                  addGraphMinAgo={this.addGraphMinAgo}
+                  onSubmitNewGraph={this.onSubmitNewGraph}
                 />
               )}
             <DashboardSelect
@@ -585,8 +680,6 @@ export default class NetworkDashboards extends React.Component {
                   allowCustomTime={false}
                   onClose={this.graphEditClose}
                   networkConfig={this.props.networkConfig}
-                  // temporarily here, will not be here once graph type forms are created in next task
-                  // addLinkGraph={this.addLinkGraph.bind(this)}
                   onChangeDashboardGlobalData={this.onChangeDashboardGlobalData}
                   dashboard={dashboards[selectedDashboard]}
                 />

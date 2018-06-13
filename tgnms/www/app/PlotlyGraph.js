@@ -89,6 +89,7 @@ export default class PlotlyGraph extends React.Component {
         indicator: 'NO_DATA',
       });
     }
+    this.props.options['data'] = this.props.options.key_data;
     axios
       .post('/multi_chart/', JSON.stringify([this.props.options]))
       .then(resp => {
@@ -171,8 +172,8 @@ export default class PlotlyGraph extends React.Component {
     // Format time range based on if minAgo is specified or not
     let {startTime, endTime, minAgo} = this.props.options;
     if (minAgo) {
-      startTime = moment().toDate();
-      endTime = moment()
+      endTime = moment().toDate();
+      startTime = moment()
         .subtract(minAgo, 'minutes')
         .toDate();
     }
