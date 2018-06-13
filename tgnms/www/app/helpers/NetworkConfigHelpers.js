@@ -148,13 +148,18 @@ export const getMetadata = (metadata, fieldName) => {
   if (metadata.type === 'MAP') {
     fieldMetadata = metadata.mapVal;
   } else if (metadata.type === 'OBJECT') {
-    fieldMetadata = get(metadata, `objVal.properties.${fieldName}`);
+    fieldMetadata = get(metadata, `objVal.properties.${fieldName}`, {});
   } else {
     fieldMetadata = metadata[fieldName];
   }
 
+  // Pass down 'deprecated' and 'action' field from parent fields
   if (metadata.deprecated) {
     fieldMetadata.deprecated = metadata.deprecated;
+  }
+
+  if (metadata.action && !fieldMetadata.action) {
+    fieldMetadata.action = metadata.action;
   }
 
   return fieldMetadata;

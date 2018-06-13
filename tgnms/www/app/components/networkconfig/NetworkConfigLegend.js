@@ -68,14 +68,14 @@ export default class NetworkConfigLegend extends React.Component {
           <tr>
             <td>
               <input
-                className={CONFIG_CLASSNAMES.BASE}
+                className={`config-form-input ${CONFIG_CLASSNAMES.BASE}`}
                 type="text"
                 value="Base Config"
               />
             </td>
             <td>
               <input
-                className={CONFIG_CLASSNAMES.DRAFT}
+                className={`config-form-input ${CONFIG_CLASSNAMES.DRAFT}`}
                 type="text"
                 value="Unsaved Field"
               />
@@ -84,14 +84,14 @@ export default class NetworkConfigLegend extends React.Component {
           <tr>
             <td>
               <input
-                className={CONFIG_CLASSNAMES.NETWORK}
+                className={`config-form-input ${CONFIG_CLASSNAMES.NETWORK}`}
                 type="text"
                 value="Network Override"
               />
             </td>
             <td>
               <input
-                className={CONFIG_CLASSNAMES.REVERT}
+                className={`config-form-input ${CONFIG_CLASSNAMES.REVERT}`}
                 type="text"
                 value="Field to Revert"
               />
@@ -100,7 +100,7 @@ export default class NetworkConfigLegend extends React.Component {
           <tr>
             <td>
               <input
-                className={CONFIG_CLASSNAMES.NODE}
+                className={`config-form-input ${CONFIG_CLASSNAMES.NODE}`}
                 type="text"
                 value="Node Override"
               />

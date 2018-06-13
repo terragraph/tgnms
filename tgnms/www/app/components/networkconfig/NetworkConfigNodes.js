@@ -92,7 +92,7 @@ export default class NetworkConfigNodes extends React.Component {
 
     return (
       <BootstrapTable
-        tableStyle={{margin: 0}}
+        tableStyle={{margin: 0, border: 0, borderRadius: 0}}
         data={this.props.nodes}
         keyField={KEY_FIELD}
         bordered={false}

@@ -33,7 +33,6 @@
 
 .nc-expand-all-btn {
   margin-right: 10px;
-  border: 1px solid black;
   padding: 3px 10px;
   font-size: 14px;
 
@@ -145,7 +144,6 @@
 }
 
 .rc-network-config-footer button {
-  border: 2px solid;
   margin: 10px;
 }
 
