@@ -35,23 +35,21 @@ export default class ConfigModal extends React.Component {
   componentWillMount() {
     // Fetch all SW Versions from the Controller
     const uri = `/apiservice/${this.props.topologyName}/api/getBaseConfig`;
-    axios
-      .post(uri, {swVersions: []})
-      .then(response => {
-        const {config} = response.data;
-        const controllerSwVersions = Object.keys(JSON.parse(config)).sort();
-        this.setState({
-          allControllerSwVersions: controllerSwVersions,
-          allSwVersions: controllerSwVersions,
-        });
+    axios.post(uri, {swVersions: []}).then(response => {
+      const {config} = response.data;
+      const controllerSwVersions = Object.keys(JSON.parse(config)).sort();
+      this.setState({
+        allControllerSwVersions: controllerSwVersions,
+        allSwVersions: controllerSwVersions,
       });
+    });
   }
 
   componentDidUpdate(prevProps, prevState) {
     const {show, swVersion} = this.props;
 
     if (show && prevProps.show !== show) {
-      const allSwVersions = !!swVersion
+      const allSwVersions = swVersion
         ? [...this.state.allControllerSwVersions, swVersion]
         : this.state.allControllerSwVersions;
 

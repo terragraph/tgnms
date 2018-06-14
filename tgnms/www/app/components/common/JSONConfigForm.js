@@ -18,7 +18,6 @@ import {
   deleteNewField,
 } from '../../actions/NetworkConfigActions.js';
 import {
-  REVERT_VALUE,
   PATH_DELIMITER,
   ADD_FIELD_TYPES,
 } from '../../constants/NetworkConfigConstants.js';
@@ -128,29 +127,24 @@ class ExpandableConfigForm extends React.Component {
       />
     );
 
-    const hasNodeOverride =
-      configs[2] && isPlainObject(configs[2]) && !isEmpty(configs[2]);
-    const hasNetworkOverride =
-      configs[1] && isPlainObject(configs[1]) && !isEmpty(configs[1]);
+    const overrideLabels = ['auto', 'network', 'node'];
+    const overrides = overrideLabels.filter((label, index) => {
+      const configIndex = index + 1; // Skip Base config
+      return (
+        configs[configIndex] &&
+        isPlainObject(configs[configIndex]) &&
+        !isEmpty(configs[configIndex])
+      );
+    });
+
     const hasDraft =
       draftConfig && isPlainObject(draftConfig) && !isEmpty(draftConfig);
 
-    let hasOverrideText;
-    if (hasNodeOverride && hasNetworkOverride) {
-      hasOverrideText = (
-        <span className="nc-override-indicator">
-          (has network and node override)
-        </span>
-      );
-    } else if (hasNodeOverride) {
-      hasOverrideText = (
-        <span className="nc-override-indicator">(has node override)</span>
-      );
-    } else if (hasNetworkOverride) {
-      hasOverrideText = (
-        <span className="nc-override-indicator">(has network override)</span>
-      );
-    }
+    const hasOverrideText = !isEmpty(overrides) ? (
+      <span className="nc-override-indicator">{`(has ${overrides.join(
+        ' and ',
+      )} override)`}</span>
+    ) : null;
 
     const expandableConfigForm = (
       <div className="rc-expandable-config-form">
@@ -168,10 +162,7 @@ class ExpandableConfigForm extends React.Component {
     );
 
     // don't show if only viewing overrides, and there are no drafts or overrides
-    return viewContext.viewOverridesOnly &&
-      !hasDraft &&
-      !hasNodeOverride &&
-      !hasNetworkOverride ? (
+    return viewContext.viewOverridesOnly && !hasDraft && isEmpty(overrides) ? (
       <div />
     ) : (
       expandableConfigForm
@@ -261,7 +252,7 @@ export default class JSONConfigForm extends React.Component {
     viewContext,
   }) {
     const processedConfigs = configs.map(config => {
-      return config === undefined ? {} : config;
+      return config === undefined || config === null ? {} : config;
     });
     const processedDraftConfig = draftConfig === undefined ? {} : draftConfig;
     const processedNewConfigFields =
