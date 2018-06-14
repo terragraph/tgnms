@@ -11,6 +11,7 @@ import {Actions} from './constants/NetworkConstants.js';
 import DashboardSelect from './components/dashboard/DashboardSelect.js';
 import GlobalDataSelect from './components/dashboard/GlobalDataSelect.js';
 import CreateGraphModal from './components/dashboard/CreateGraphModal.js';
+import GraphInformationBox from './components/dashboard/GraphInformationBox.js';
 import {
   formatKeyHelper,
   fetchKeyData,
@@ -29,7 +30,7 @@ export default class NetworkDashboards extends React.Component {
     editedGraph: null,
     editedGraphIndex: null,
     editView: false,
-    graphEditOpen: false,
+    editGraphMode: false,
     hideDashboardOptions: false,
     modalIsOpen: false,
   };
@@ -86,6 +87,7 @@ export default class NetworkDashboards extends React.Component {
 
   onAddGraphButtonClicked = () => {
     this.setState({
+      editGraphMode: false,
       modalIsOpen: true,
     });
   };
@@ -108,7 +110,7 @@ export default class NetworkDashboards extends React.Component {
     });
   };
 
-  deleteDashboard = () => {
+  onDeleteDashboard = () => {
     swal(
       {
         title: 'Are you sure?',
@@ -202,14 +204,12 @@ export default class NetworkDashboards extends React.Component {
     ) {
       const dashboard = dashboards[this.props.selectedDashboard];
       const graphs = dashboard.graphs;
-      let index = 0;
-      layout.forEach(glayout => {
+      layout.forEach((glayout, index) => {
         const graph = graphs[index];
         graph.container.x = glayout.x;
         graph.container.y = glayout.y;
         graph.container.w = glayout.w;
         graph.container.h = glayout.h;
-        index++;
       });
       this.setState({
         dashboards,
@@ -249,7 +249,7 @@ export default class NetworkDashboards extends React.Component {
     });
   };
 
-  editGraph = index => {
+  onEditGraphButtonClicked = index => {
     // TODO Make the separate forms for editing graphs (currently button is not working)
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
@@ -257,12 +257,12 @@ export default class NetworkDashboards extends React.Component {
     this.setState({
       editedGraph: graphs[index],
       editedGraphIndex: index,
-      graphEditOpen: true,
+      editGraphMode: true,
       modalIsOpen: true,
     });
   };
 
-  editGraphName = index => {
+  onEditGraphName = index => {
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
     const graph = dashboard.graphs[index];
@@ -290,7 +290,7 @@ export default class NetworkDashboards extends React.Component {
     );
   };
 
-  deleteGraph = index => {
+  onDeleteGraph = index => {
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
     const graphs = dashboard.graphs;
@@ -300,7 +300,7 @@ export default class NetworkDashboards extends React.Component {
     });
   };
 
-  graphEditClose = graph => {
+  onEditGraphSubmit = graph => {
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
     const graphs = dashboard.graphs;
@@ -311,7 +311,7 @@ export default class NetworkDashboards extends React.Component {
       dashboards,
       editedGraph: null,
       editedGraphIndex: null,
-      graphEditOpen: false,
+      editGraphMode: false,
       modalIsOpen: false,
     });
   };
@@ -533,7 +533,6 @@ export default class NetworkDashboards extends React.Component {
         startTime,
         setup,
       };
-
       this.addGraphToDashboard(newGraph);
     } else {
       this.generateGraph(graphType, inputData)
@@ -560,8 +559,7 @@ export default class NetworkDashboards extends React.Component {
     ) {
       const dashboard = this.state.dashboards[this.props.selectedDashboard];
       const graphs = dashboard.graphs;
-      let index = 0;
-      graphs.forEach(graph => {
+      graphs.forEach((graph, index) => {
         const id = index.toString();
         layout.push({
           i: id,
@@ -574,37 +572,32 @@ export default class NetworkDashboards extends React.Component {
           minW: 2,
           static: !this.state.editView,
         });
+
         if (!this.state.editView) {
           layoutDivs.push(
-            <div key={id}>
+            <div key={id} className="graph-wrapper">
+              {graph.setup.graphFormData &&
+                graph.setup.graphFormData.customGraphChecked && (
+                  <div className="custom-graph-indicator">custom</div>
+                )}
               <PlotlyGraph divkey={id} title={graph.name} options={graph} />
             </div>,
           );
         } else {
           layoutDivs.push(
             <div key={id}>
-              <div>
-                {graph.name}
-                {/* <button
-                  className="graph-button edit-graph-button"
-                  onClick={this.editGraph.bind(this, index)}>
-                  Edit Graph
-                </button> */}
-                <button
-                  className="graph-button  edit-graph-button"
-                  onClick={this.editGraphName.bind(this, index)}>
-                  Edit Name
-                </button>
-                <button
-                  className="graph-button  edit-graph-button"
-                  onClick={this.deleteGraph.bind(this, index)}>
-                  Delete Graph
-                </button>
-              </div>
+              <GraphInformationBox
+                key={id}
+                graph={graph}
+                onEditGraphButtonClicked={() =>
+                  this.onEditGraphButtonClicked(index)
+                }
+                onEditGraphName={() => this.onEditGraphName(index)}
+                onDeleteGraph={() => this.onDeleteGraph(index)}
+              />
             </div>,
           );
         }
-        ++index;
       });
     }
     return {
@@ -651,10 +644,15 @@ export default class NetworkDashboards extends React.Component {
               selectedDashboard in dashboards && (
                 <CreateGraphModal
                   modalIsOpen={this.state.modalIsOpen}
-                  dashboard={dashboards[this.props.selectedDashboard]}
-                  topologyName={this.props.networkConfig.topology.name}
+                  dashboard={dashboard}
+                  networkConfig={this.props.networkConfig}
                   closeModal={this.closeModal}
                   onSubmitNewGraph={this.onSubmitNewGraph}
+                  onEditGraphSubmit={this.onEditGraphSubmit}
+                  editGraphMode={this.state.editGraphMode}
+                  graphInEditMode={
+                    dashboard.graphs[this.state.editedGraphIndex]
+                  }
                 />
               )}
             <DashboardSelect
@@ -665,7 +663,8 @@ export default class NetworkDashboards extends React.Component {
               selectDashboardChange={this.selectDashboardChange}
               saveDashboards={this.saveDashboards}
               onAddGraphButtonClicked={this.onAddGraphButtonClicked}
-              deleteDashboard={this.deleteDashboard}
+              onDeleteGraph={this.onDeleteGraph}
+              onDeleteDashboard={this.onDeleteDashboard}
               onDashboardNameChange={this.onDashboardNameChange}
               onHandleSelectedDashboardChange={
                 this.props.onHandleSelectedDashboardChange
@@ -683,7 +682,7 @@ export default class NetworkDashboards extends React.Component {
                       this.onChangeDashboardGlobalData
                     }
                     dashboard={dashboards[selectedDashboard]}
-                    globalUse={true}
+                    globalUse
                   />
                 </div>
               )}
@@ -727,7 +726,7 @@ export default class NetworkDashboards extends React.Component {
           cols={6}
           rowHeight={150}
           verticalCompact={true}
-          onLayoutChange={this.onLayoutChange.bind(this)}>
+          onLayoutChange={this.onLayoutChange}>
           {grid.layoutDivs}
         </ReactGridLayoutWidthProvider>
       </div>

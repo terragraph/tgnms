@@ -14,6 +14,7 @@ import moment from 'moment';
 import Datetime from 'react-datetime';
 import React from 'react';
 import Select from 'react-select';
+import cx from 'classnames';
 
 const TIME_PICKER_OPTS = [
   {
@@ -280,7 +281,10 @@ export default class GlobalDataSelect extends React.Component {
     };
     const disableApplySubmit = this.state.nodeASelected === '' || this.state.nodeZSelected === '';
     return (
-      <div className={this.props.globalUse ? "global-data-select" : "global-data-select custom-data-select"}>
+      <div className={cx({
+          'global-data-select': true,
+          'custom-data-select': !this.props.globalUse,
+        })}>
         {
           this.props.globalUse ? <h3>Global Data</h3> : <h4>Select Custom Data</h4>
         }
@@ -318,15 +322,15 @@ export default class GlobalDataSelect extends React.Component {
                   ? 'graph-button graph-button-selected'
                   : 'graph-button'
               }
-              onClick={clk => {
+              onClick={() => {
                 this.setState({
                   minAgo: opts.minAgo,
                   useCustomTime: false,
                 })
 
                 if (!this.props.globalUse) {
-                  this.props.onHandleCustomDataChange('useCustomTime', false)
-                  this.props.onHandleCustomDataChange('minAgo', opts.minAgo)
+                  this.props.onHandleCustomDataChange('useCustomTime', false);
+                  this.props.onHandleCustomDataChange('minAgo', opts.minAgo);
                 }
               }}>
               {opts.label}
@@ -338,9 +342,9 @@ export default class GlobalDataSelect extends React.Component {
           <input
             id="custom-time-checkbox"
             type="checkbox"
-            onChange={clk => {
+            onChange={(clk) => {
               this.setState({
-                useCustomTime: !this.state.useCustomTime,
+                useCustomTime: clk.target.checked,
               })
               if (!this.props.globalUse) {
                 this.props.onHandleCustomDataChange('useCustomTime', !this.state.useCustomTime)
@@ -355,6 +359,7 @@ export default class GlobalDataSelect extends React.Component {
             inputProps={customInputProps}
             isValidDate={this.isValidStartDate}
             onChange={change => {
+              // check whether date is valid
               if (typeof change === 'object') {
                 this.setState({startTime: change.toDate()});
                 if (!this.props.globalUse) {
@@ -372,6 +377,7 @@ export default class GlobalDataSelect extends React.Component {
             isValidDate={this.isValidEndDate}
             key="endTime"
             onChange={change => {
+              // check whether date is valid
               if (typeof change === 'object') {
                 this.setState({endTime: change.toDate()});
                 if (!this.props.globalUse) {
@@ -384,11 +390,11 @@ export default class GlobalDataSelect extends React.Component {
         {
           this.props.globalUse &&
           <button
-            className={
-              disableApplySubmit
-                ? 'graph-button disabled-button'
-                : 'graph-button submit-button'
-            }
+            className={cx({
+            'graph-button': true,
+            'disabled-button': disableApplySubmit,
+            'submit-button': !disableApplySubmit,
+            })}
             onClick={() => {
               this.applyToAllGraphs();
             }}

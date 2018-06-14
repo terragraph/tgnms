@@ -186,7 +186,7 @@ export default class PlotlyGraph extends React.Component {
     }
 
     return (
-      <div className={this.props.options.setup.custom ? "dashboard-plotly-wrapper" : "dashboard-plotly-wrapper"} id={'plot-' + divkey}>
+      <div className="dashboard-plotly-wrapper" id={'plot-' + divkey}>
         <Plot
           data={this.state.plotlyData}
           layout={{

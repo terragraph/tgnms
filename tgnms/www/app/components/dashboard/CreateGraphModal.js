@@ -5,42 +5,53 @@
  */
 'use strict';
 
+import GlobalDataSelect from './GlobalDataSelect';
+import {
+  formatKeyHelper,
+  fetchKeyData,
+} from '../../helpers/NetworkDashboardsHelper.js';
 import React from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import Modal from 'react-modal';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
-import {isEqual} from 'lodash-es';
-import {
-  formatKeyHelper,
-  fetchKeyData,
-} from '../../helpers/NetworkDashboardsHelper.js';
+import {isEqual, cloneDeep} from 'lodash-es';
+import {Glyphicon} from 'react-bootstrap';
+
+const initialState = {
+  // overall state
+  customGraphChecked: false,
+  customData: {
+    nodeA: '',
+    nodeZ: '',
+    nodes: [],
+    minAgo: 60,
+    useCustomTime: false,
+  },
+  graphNameInput: '',
+  graphTypeSelected: 'link',
+  keyIds: [],
+
+  // link form state
+  linkDirectionOptions: [],
+  linkDirectionSelected: '',
+  linkKeyOptions: [],
+  linkKeySelected: '',
+
+  // network form state
+  networkMetricOptions: [],
+  networkMetricSelected: '',
+
+  // node form state
+  nodeKeyIsLoading: false,
+  nodeKeyOptions: [],
+  nodeKeysSelected: [],
+  nodeSelectOptions: [],
+  nodesSelected: [],
+};
 
 export default class CreateGraphModal extends React.Component {
-  state = {
-    // overall state
-    formData: [],
-    graphNameInput: '',
-    graphTypeSelected: 'link',
-    keyIds: [],
-
-    // link form state
-    linkDirectionOptions: [],
-    linkDirectionSelected: '',
-    linkKeyOptions: [],
-    linkKeySelected: '',
-
-    // network form state
-    networkMetricOptions: [],
-    networkMetricSelected: '',
-
-    // node form state
-    nodeKeyIsLoading: false,
-    nodeKeyOptions: [],
-    nodeKeysSelected: [],
-    nodeSelectOptions: [],
-    nodesSelected: [],
-  };
+  state = cloneDeep(initialState);
 
   handleGraphNameChange = event => {
     this.setState({graphNameInput: event.target.value});
@@ -58,8 +69,24 @@ export default class CreateGraphModal extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    // check to see if global dashboard data changed
-    if (!isEqual(prevProps.dashboard, this.props.dashboard)) {
+    if (!prevProps.modalIsOpen && this.props.modalIsOpen) {
+      // reset the state when the modal is opened again and not in edit graph mode
+      // prepopulate data if editing an already existing graph
+      const {editGraphMode, graphInEditMode} = this.props;
+      const newState = editGraphMode
+        ? graphInEditMode.setup.graphFormData
+        : cloneDeep(initialState);
+
+      this.setState(newState, () => {
+        this.setLinkKeyOptions();
+        this.setNodeSelectOptions();
+        this.setLinkDirectionOptions();
+      });
+    } else if (
+      !isEqual(prevProps.dashboard, this.props.dashboard) ||
+      prevState.customGraphChecked !== this.state.customGraphChecked ||
+      !isEqual(prevState.customData, this.state.customData)
+    ) {
       this.setLinkKeyOptions();
       this.setNodeSelectOptions();
       this.setLinkDirectionOptions();
@@ -67,15 +94,11 @@ export default class CreateGraphModal extends React.Component {
   }
 
   onHandleCustomDataChange = (keyName, data) => {
-    const newCustomData = clone(this.state.customData);
-    newCustomData[keyName] = data;
-    this.setState({customData: newCustomData, nodesSelected: []}, () => {
-      if (this.state.customGraphChecked) {
-        this.setLinkKeyOptions();
-        this.setNodeSelectOptions();
-        this.setLinkDirectionOptions();
-      }
-    });
+    const newCustomData = {
+      ...this.state.customData,
+      [keyName]: data,
+    };
+    this.setState({customData: newCustomData, nodesSelected: []});
   };
 
   // link form functions
@@ -84,7 +107,7 @@ export default class CreateGraphModal extends React.Component {
       ? this.state.customData
       : this.props.dashboard;
 
-    if (!(nodeA && nodeZ)) {
+    if (!nodeA || !nodeZ) {
       return;
     }
     // change direction based on user selection
@@ -308,7 +331,9 @@ export default class CreateGraphModal extends React.Component {
         .join(',');
     }
 
-    const keys = this.state.nodeKeysSelected.map(nodeKey => nodeKey.key);
+    const selectedNodeKeys = this.state.nodeKeysSelected.map(
+      nodeKey => nodeKey.key,
+    );
     const {startTime, endTime, minAgo} = this.state.customGraphChecked
       ? this.state.customData
       : this.props.dashboard;
@@ -320,9 +345,10 @@ export default class CreateGraphModal extends React.Component {
       setup: {
         graphType: 'node',
         nodes,
+        graphFormData: this.state,
       },
       name: graphName,
-      keys,
+      keys: selectedNodeKeys,
     };
 
     this.props.onSubmitNewGraph('node', inputData);
@@ -331,16 +357,31 @@ export default class CreateGraphModal extends React.Component {
   render() {
     const {nodeA, nodeZ} = this.props.dashboard;
     const disableLinkSubmit = this.state.linkKeySelected === '';
-    const disableNodeSubmit =
-      this.state.nodesSelected.length === 0 ||
-      this.state.nodeKeysSelected.length === 0;
+    let disableNodeSubmit = false;
+    if (this.state.customGraphChecked) {
+      disableNodeSubmit =
+        this.state.customData.nodes.length === 0 ||
+        this.state.nodeKeysSelected.length === 0;
+    } else {
+      disableNodeSubmit =
+        this.state.nodesSelected.length === 0 ||
+        this.state.nodeKeysSelected.length === 0;
+    }
+
     return (
       <div className="create-graph-modal">
         <Modal
           isOpen={this.props.modalIsOpen}
           onRequestClose={this.props.closeModal}>
+          <div className="close-modal-button" onClick={this.props.closeModal}>
+            <Glyphicon glyph="remove" />
+          </div>
           <div className="create-graph-modal-content">
-            <h3>Create New Graph</h3>
+            {
+              <h3>
+                {this.props.editGraphMode ? 'Edit Graph' : 'Create New Graph'}
+              </h3>
+            }
             <div className="input-box">
               <p>Graph Type</p>
               <Select
@@ -361,7 +402,7 @@ export default class CreateGraphModal extends React.Component {
                 type="checkbox"
                 onChange={clk => {
                   this.setState({
-                    customGraphChecked: !this.state.customGraphChecked,
+                    customGraphChecked: clk.target.checked,
                   });
                 }}
                 checked={this.state.customGraphChecked}
@@ -373,7 +414,6 @@ export default class CreateGraphModal extends React.Component {
                   dashboard={this.props.dashboard}
                   networkConfig={this.props.networkConfig}
                   globalUse={false}
-                  onChangeDashboardGlobalData={null}
                   onHandleCustomDataChange={this.onHandleCustomDataChange}
                   graphType={this.state.graphTypeSelected}
                 />
@@ -408,7 +448,7 @@ export default class CreateGraphModal extends React.Component {
                           ? 'graph-button disabled-button'
                           : 'graph-button submit-button'
                       }
-                      onClick={() => this.onSubmitLinkGraph()}
+                      onClick={this.onSubmitLinkGraph}
                       disabled={disableLinkSubmit}>
                       Submit
                     </button>
@@ -436,7 +476,7 @@ export default class CreateGraphModal extends React.Component {
                           name="graph-type-select"
                           multi
                           value={this.state.nodesSelected}
-                          onChange={event => this.onNodesSelectChanged(event)}
+                          onChange={this.onNodesSelectChanged}
                           options={this.state.nodeSelectOptions}
                         />
                       </div>
@@ -468,7 +508,7 @@ export default class CreateGraphModal extends React.Component {
                           ? 'graph-button disabled-button'
                           : 'graph-button submit-button'
                       }
-                      onClick={() => this.onSubmitNodeGraph()}
+                      onClick={this.onSubmitNodeGraph}
                       disabled={disableNodeSubmit}>
                       Submit
                     </button>

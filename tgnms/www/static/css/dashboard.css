@@ -57,9 +57,60 @@
 }
 
 .network-dashboard .edit-graph-button {
+  margin: 5px 0;
   height: 34px;
   width: 100px;
-  float: right;
+}
+
+.network-dashboard .react-grid-item {
+  position: relative;
+  padding: 20px;
+  background-color: white;
+}
+
+.network-dashboard .react-grid-item  .button-group {
+  position: absolute;
+  top: 25px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.network-dashboard .graph-info {
+  max-height: 70%;
+  overflow: scroll;
+}
+
+.network-dashboard .graph-info .title {
+  color: cornflowerblue;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+.network-dashboard .graph-info .custom-data {
+  border: 1px solid #ddd;
+  margin-right: 120px;
+  padding: 10px 15px;
+}
+
+.network-dashboard .graph-info .custom-data h5 {
+  font-size: 16px;
+}
+
+.network-dashboard .graph-wrapper {
+  position: relative;
+}
+
+.network-dashboard .custom-graph-indicator {
+  border: 1px solid orange;
+  padding: 5px 10px;
+  font-size: 14px;
+  color: orange;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  transform: uppercase;
+  z-index: 10;
 }
 
 #dashboard-select {
@@ -81,59 +132,80 @@
   width: 300px;
 }
 
-#global-data-select {
+.custom-data-select {
   padding: 10px 20px;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+}
+
+#global-data-select-wrapper  {
+  padding: 10px 20px;
+}
+
+.global-data-select {
   width: 100%;
 }
 
-#global-data-select .node-box {
+.global-data-select .node-box {
   align-items: center;
   display: flex;
-  margin: 15px 0px;
+  margin: 15px 0;
 }
 
-#global-data-select .node-box p {
+.global-data-select .node-box p {
   margin-right: 105px;
 }
 
-#global-data-select .node-box > div:first-of-type {
+.global-data-select .node-box > div:first-of-type {
   flex: 1;
 }
 
-#global-data-select .node-option, .typeahead-option {
+.global-data-select .node-option, .typeahead-option {
   border-bottom: 1px solid #ddd;
   padding: 7px 10px;
 }
 
-#global-data-select .node-option:hover {
+.global-data-select .node-option:hover {
   background-color: #F1F5FF;
 }
 
-#global-data-select .node-box select {
+.global-data-select .node-box select {
   background-color: white;
   border: 1px solid #ccc;
   flex: 1;
   height: 34px;
 }
 
-#global-data-select #time-window-box {
-  margin: 10px 0px;
+.global-data-select #time-window-box {
+  margin: 10px 0;
 }
 
-#global-data-select #custom-time-box {
-  margin: 10px 0px;
+.global-data-select #custom-time-box {
+  margin: 10px 0;
 }
 
-#global-data-select #custom-time-box #custom-time-checkbox {
+.global-data-select #custom-time-box #custom-time-checkbox {
   margin: 0px 10px;
+}
+
+.create-graph-modal {
+  position: relative;
+}
+
+.close-modal-button {
+  color: #ddd;
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .create-graph-modal-content .input-box {
   display: flex;
+
 }
 
 .create-graph-modal-content .input-box {
-  padding: 10px 0px;
+  padding: 10px 0;
 }
 
 .create-graph-modal-content .input-box p {
@@ -165,12 +237,12 @@
 }
 
 .submit-button {
-  margin: 20px 0px;
+  margin: 20px 0;
   width: 200px;
 }
 
 .disabled-button {
   background-color: #ddd;
-  margin: 20px 0px;
+  margin: 20px 0;
   width: 200px;
 }
