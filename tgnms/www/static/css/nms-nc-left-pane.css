@@ -137,7 +137,7 @@
 
 .nc-json-field-legend {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   margin-top: 5px;
 }
 
