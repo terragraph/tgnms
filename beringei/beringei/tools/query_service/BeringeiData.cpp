@@ -657,11 +657,11 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
 
   // find the number of unique links
   // linkindex is a doubly subscripted array
-  // linkindex[displayName][a_or_z] = link number;
+  // linkindex[linkName][a_or_z] = link number;
   // e.g. linkindex["link-15-30.s2-15-49.s1"]["(Z)"] = 4;
   folly::dynamic linkindex = folly::dynamic::object;
-  // linkname[link number] = displayName (e.g. link-15-30.s2-15-49.s1)
-  folly::dynamic linkname = folly::dynamic::object;
+  // linkNameByLinkNum[link number] = linkName (e.g. link-15-30.s2-15-49.s1)
+  folly::dynamic linkNameByLinkNum = folly::dynamic::object;
   // // linkdir[link number] = "(A)" or "(Z)"
   // folly::dynamic linkdir = folly::dynamic::object;
   // keylink maps the keyIndex to the link number
@@ -673,17 +673,17 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
           << " numKeysQueried:" << numKeysQueried;
   for (int keyIndex = 0; keyIndex < numKeysQueried; keyIndex++) {
     auto& key = query_.data[keyIndex].key;
-    auto& displayName = query_.data[keyIndex].displayName;
+    auto& linkName = query_.data[keyIndex].linkName;
     auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     // if this link hasn't been seen yet
-    if (linkindex.find(displayName) == linkindex.items().end()) {
-      linkindex[displayName] = numlinks;
-      linkname[numlinks] =
-          displayName; // example:
+    if (linkindex.find(linkName) == linkindex.items().end()) {
+      linkindex[linkName] = numlinks;
+      linkNameByLinkNum[numlinks] =
+          linkName; // example:
                        // link-terra111.f5.tb.a404-if-terra212.f5.tb.a404-if
       numlinks++;
     }
-    keylink[keyIndex] = folly::convertTo<int>(linkindex[displayName]);
+    keylink[keyIndex] = folly::convertTo<int>(linkindex[linkName]);
   }
 
   // all values are initialized to zero
@@ -710,8 +710,8 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
     // e.g. 38910993
     const std::string& keyName = keyTimeSeries.first.key;
     keyIndex = keyMapIndex[keyName];
-    auto& displayName = query_.data[keyIndex].displayName;
-    int linknum = folly::convertTo<int>(linkindex[displayName]);
+    auto& linkName = query_.data[keyIndex].linkName;
+    int linkNum = folly::convertTo<int>(linkindex[linkName]);
     auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     int link = (a_or_z.find("A") != std::string::npos) ? LINK_A : LINK_Z;
     auto& key = query_.data[keyIndex].key;
@@ -736,27 +736,27 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
           (key.find("keepalive") != std::string::npos) ||
           (key.find("heartbeat") != std::string::npos)) {
         if (first) {
-          minValidTimeBucketId[linknum][link] = timeBucketId;
+          minValidTimeBucketId[linkNum][link] = timeBucketId;
           firstValue = timePair.value;
           first = false;
         }
         int expectedHBcount = firstValue +
-            (timeBucketId - minValidTimeBucketId[linknum][link]) *
+            (timeBucketId - minValidTimeBucketId[linkNum][link]) *
                 NUM_HBS_PER_SEC * beringeiTimeWindowS;
-        found[linknum][link] = true;
+        found[linkNum][link] = true;
         // if the current HB counter is less than the last one or if it is
         // much less than the expectedHBcount, assume the link went down and
         // start over
         if (timePair.value < prevValue ||
             (timePair.value < expectedHBcount * 0.9)) {
           firstValue = timePair.value;
-          numFlaps[linknum][link]++;
-          minValidTimeBucketId[linknum][link] = timeBucketId;
+          numFlaps[linkNum][link]++;
+          minValidTimeBucketId[linkNum][link] = timeBucketId;
         }
-        upTimeSec[linknum][link] =
-            (timeBucketId - minValidTimeBucketId[linknum][link]) *
+        upTimeSec[linkNum][link] =
+            (timeBucketId - minValidTimeBucketId[linkNum][link]) *
             beringeiTimeWindowS;
-        maxValidTimeBucketId[linknum][link] = timeBucketId;
+        maxValidTimeBucketId[linkNum][link] = timeBucketId;
       }
       prevValue = timePair.value;
     }
@@ -773,16 +773,16 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
 
   // initialize the variables
   for (int keyIndex = 0; keyIndex < numKeysQueried; keyIndex++) {
-    auto& displayName = query_.data[keyIndex].displayName;
-    int linknum = folly::convertTo<int>(linkindex[displayName]);
+    auto& linkName = query_.data[keyIndex].linkName;
+    int linkNum = folly::convertTo<int>(linkindex[linkName]);
     auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     int link = (a_or_z.find("A") != std::string::npos) ? LINK_A : LINK_Z;
 
-    diffTxOk[linknum][link] = INVALID_VALUE;
-    diffTxFail[linknum][link] = INVALID_VALUE;
-    avgSnr[linknum][link] = INVALID_VALUE;
-    avgMcs[linknum][link] = INVALID_VALUE;
-    avgTxPower[linknum][link] = INVALID_VALUE;
+    diffTxOk[linkNum][link] = INVALID_VALUE;
+    diffTxFail[linkNum][link] = INVALID_VALUE;
+    avgSnr[linkNum][link] = INVALID_VALUE;
+    avgMcs[linkNum][link] = INVALID_VALUE;
+    avgTxPower[linkNum][link] = INVALID_VALUE;
   }
 
   for (const auto& keyTimeSeries : beringeiTimeSeries_) {
@@ -792,81 +792,81 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
     // convert the key names to lower case
     // e.g. tgf.38:3a:21:b0:11:e2.phystatus.ssnrEst
     std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-    auto& displayName = query_.data[keyIndex].displayName;
+    auto& linkName = query_.data[keyIndex].linkName;
     auto& a_or_z = query_.data[keyIndex].linkTitleAppend;
     int link = (a_or_z.find("A") != std::string::npos) ? LINK_A : LINK_Z;
-    int linknum = folly::convertTo<int>(linkindex[displayName]);
-    if (!found[linknum][link]) {
-      VLOG(1) << "AT: ERROR: link has no HB:" << displayName << a_or_z;
-      avgMcs[linknum][link] = BUG_FOUND;
+    int linkNum = folly::convertTo<int>(linkindex[linkName]);
+    if (!found[linkNum][link]) {
+      VLOG(1) << "AT: ERROR: link has no HB:" << linkName << a_or_z;
+      avgMcs[linkNum][link] = BUG_FOUND;
       continue;
     }
 
-    if (upTimeSec[linknum][link] > MIN_UPTIME_FOR_CALC) {
+    if (upTimeSec[linkNum][link] > MIN_UPTIME_FOR_CALC) {
       bool minMaxTimesValid = valid
                                   [keyIndex * timeBucketCount +
-                                   minValidTimeBucketId[linknum][link]] &&
+                                   minValidTimeBucketId[linkNum][link]] &&
           valid[keyIndex * timeBucketCount +
-                maxValidTimeBucketId[linknum][link]];
+                maxValidTimeBucketId[linkNum][link]];
 
       if (key.find("txok") != std::string::npos) {
         if (minMaxTimesValid) {
-          diffTxOk[linknum][link] = timeSeries
+          diffTxOk[linkNum][link] = timeSeries
                                         [keyIndex * timeBucketCount +
-                                         maxValidTimeBucketId[linknum][link]] -
+                                         maxValidTimeBucketId[linkNum][link]] -
               timeSeries[keyIndex * timeBucketCount +
-                         minValidTimeBucketId[linknum][link]];
+                         minValidTimeBucketId[linkNum][link]];
         } else {
           VLOG(1) << "AT ERROR: min/max times not valid for diffTxOk";
-          diffTxOk[linknum][link] = BUG_FOUND;
+          diffTxOk[linkNum][link] = BUG_FOUND;
         }
-        if (diffTxOk[linknum][link] < 0) {
+        if (diffTxOk[linkNum][link] < 0) {
           VLOG(1) << "AT ERROR: diffTxOk < 0";
-          diffTxOk[linknum][link] = BUG_FOUND;
+          diffTxOk[linkNum][link] = BUG_FOUND;
         }
       }
       if (key.find("txfail") != std::string::npos) {
         if (minMaxTimesValid) {
-          diffTxFail[linknum]
+          diffTxFail[linkNum]
                     [link] = timeSeries
                                  [keyIndex * timeBucketCount +
-                                  maxValidTimeBucketId[linknum][link]] -
+                                  maxValidTimeBucketId[linkNum][link]] -
               timeSeries[keyIndex * timeBucketCount +
-                         minValidTimeBucketId[linknum][link]];
+                         minValidTimeBucketId[linkNum][link]];
         } else {
           VLOG(1) << "AT ERROR: min/max times not valid for diffTxFail";
-          diffTxFail[linknum][link] = BUG_FOUND;
+          diffTxFail[linkNum][link] = BUG_FOUND;
         }
-        if (diffTxFail[linknum][link] < 0) {
+        if (diffTxFail[linkNum][link] < 0) {
           VLOG(1) << "AT ERROR: diffTxFail < 0";
-          diffTxFail[linknum][link] = BUG_FOUND;
+          diffTxFail[linkNum][link] = BUG_FOUND;
         }
       }
       if (key.find("ssnrest") != std::string::npos) {
-        avgSnr[linknum][link] = calculateAverage(
+        avgSnr[linkNum][link] = calculateAverage(
             timeSeries,
             valid,
             keyIndex * timeBucketCount,
-            minValidTimeBucketId[linknum][link],
-            maxValidTimeBucketId[linknum][link],
+            minValidTimeBucketId[linkNum][link],
+            maxValidTimeBucketId[linkNum][link],
             false);
       }
       if (key.find("mcs") != std::string::npos) {
-        avgMcs[linknum][link] = calculateAverage(
+        avgMcs[linkNum][link] = calculateAverage(
             timeSeries,
             valid,
             keyIndex * timeBucketCount,
-            minValidTimeBucketId[linknum][link],
-            maxValidTimeBucketId[linknum][link],
+            minValidTimeBucketId[linkNum][link],
+            maxValidTimeBucketId[linkNum][link],
             true);
       }
       if (key.find("txpowerindex") != std::string::npos) {
-        avgTxPower[linknum][link] = calculateAverage(
+        avgTxPower[linkNum][link] = calculateAverage(
             timeSeries,
             valid,
             keyIndex * timeBucketCount,
-            minValidTimeBucketId[linknum][link],
-            maxValidTimeBucketId[linknum][link],
+            minValidTimeBucketId[linkNum][link],
+            maxValidTimeBucketId[linkNum][link],
             false);
       }
     }
@@ -876,11 +876,11 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
   folly::dynamic metrics = folly::dynamic::object;
   std::vector<std::string> linkdir = {"A", "Z"};
   // return processed statistics
-  for (int linknum = 0; linknum < numlinks; linknum++) {
+  for (int linkNum = 0; linkNum < numlinks; linkNum++) {
     for (int link = LINK_A; link <= LINK_Z; link++) {
       double avgPer = INVALID_VALUE;
-      double dok = diffTxOk[linknum][link];
-      double dfail = diffTxFail[linknum][link];
+      double dok = diffTxOk[linkNum][link];
+      double dfail = diffTxFail[linkNum][link];
       if (dfail == BUG_FOUND || dok == BUG_FOUND) {
         avgPer = BUG_FOUND;
       } else if (
@@ -890,21 +890,21 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
 
       // calculate average throughput in packets per second
       double tputPPS = 0.0;
-      if (upTimeSec[linknum][link] > 0) {
-        tputPPS = (dfail + dok) / (double)(upTimeSec[linknum][link]);
+      if (upTimeSec[linkNum][link] > 0) {
+        tputPPS = (dfail + dok) / (double)(upTimeSec[linkNum][link]);
       }
 
       linkparams["avgper"] = avgPer;
-      linkparams["avgsnr"] = avgSnr[linknum][link];
-      linkparams["avgtxpower"] = avgTxPower[linknum][link];
-      linkparams["avgmcs"] = avgMcs[linknum][link];
+      linkparams["avgsnr"] = avgSnr[linkNum][link];
+      linkparams["avgtxpower"] = avgTxPower[linkNum][link];
+      linkparams["avgmcs"] = avgMcs[linkNum][link];
       linkparams["tput"] = tputPPS;
-      linkparams["flaps"] = numFlaps[linknum][link];
-      linkparams["uptime"] = upTimeSec[linknum][link];
-      if (!metrics[linkname[linknum]].isObject()) {
-        metrics[linkname[linknum]] = folly::dynamic::object;
+      linkparams["flaps"] = numFlaps[linkNum][link];
+      linkparams["uptime"] = upTimeSec[linkNum][link];
+      if (!metrics[linkNameByLinkNum[linkNum]].isObject()) {
+        metrics[linkNameByLinkNum[linkNum]] = folly::dynamic::object;
       }
-      metrics[linkname[linknum]][linkdir[link]] = linkparams;
+      metrics[linkNameByLinkNum[linkNum]][linkdir[link]] = linkparams;
     }
   }
   delete[] timeSeries;
