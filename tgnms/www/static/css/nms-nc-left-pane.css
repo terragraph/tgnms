@@ -11,6 +11,15 @@
   box-sizing: border-box;
 }
 
+.rc-network-config-left-pane .body-padding {
+  padding: 7px;
+}
+
+.rc-network-config-left-pane .selector-title {
+  margin: 5px 3px;
+  font-weight: bold;
+}
+
 .nc-view-select {
   height: 50px;
   flex-shrink: 0;
@@ -24,7 +33,7 @@
   text-align: center;
 
   display: table;
-  border-bottom: 2px solid #aaa;
+  border-bottom: 1px solid #aaa;
 }
 
 .nc-view-option-selected {
@@ -50,6 +59,10 @@
 .rc-network-config-nodes {
   overflow-y: auto;
   flex: 1;
+}
+
+.rc-network-config-nodes  td:focus {
+  outline: none;
 }
 
 .nc-node-with-override {
@@ -124,14 +137,15 @@
 
 .nc-json-field-legend {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   margin-top: 5px;
 }
 
 .nc-json-field-legend input {
-  width: 128px;
   margin-right: 5px;
   margin-bottom: 5px;
+  min-width: 128px;
+  width: 128px;
 }
 
 .nc-online-node {

@@ -65,14 +65,12 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .graph-button-fetch {
   font-size: 12px;
   padding: 4px;
-  border: 2px solid;
   margin-left: 4px;
   width: 220px;
 }
 .graph-button-fetch-disabled {
   font-size: 12px;
   padding: 4px;
-  border: 2px solid;
   margin-left: 4px;
   width: 220px;
   color: lightgray;
@@ -80,12 +78,12 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .graph-button {
   font-size: 12px;
   padding: 4px;
-  border: 2px solid;
   margin-left: 4px;
   width: 110px;
 }
 .graph-button-selected {
-  background-color: cornflowerblue;
+  background-color: #337ab7;
+  color: white;
 }
 .graph-button-disabled {
   background-color: darkgray;

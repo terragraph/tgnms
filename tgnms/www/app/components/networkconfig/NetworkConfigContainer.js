@@ -22,7 +22,6 @@ import {
 } from '../../apiutils/NetworkConfigAPIUtil.js';
 import {
   CONFIG_VIEW_MODE,
-  REVERT_VALUE,
   PATH_DELIMITER,
   DEFAULT_BASE_KEY,
 } from '../../constants/NetworkConfigConstants.js';
@@ -94,6 +93,8 @@ export default class NetworkConfigContainer extends React.Component {
       baseConfig: {},
       configMetadata: {},
 
+      autoOverrideConfig: {}, // Read-Only
+
       // new fields to be added to the specified config
       // is cleared when the user switches a view as this is more "temporary" than even the unsaved config
       newConfigFields: {},
@@ -137,20 +138,18 @@ export default class NetworkConfigContainer extends React.Component {
     );
   }
 
-  // TODO: Change to React 16 stuff
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    const topology = this.props.networkConfig.topology;
-    const oldTopologyName = this.props.networkConfig.topology.name;
-    const newTopologyName = nextProps.networkConfig.topology.name;
+  componentDidUpdate(prevProps) {
+    const oldTopologyName = prevProps.networkConfig.topology.name;
+    const newTopologyName = this.props.networkConfig.topology.name;
 
-    const isNextTopologyValid = hasIn(nextProps.networkConfig, [
+    const isNewTopologyValid = hasIn(this.props.networkConfig, [
       'topology',
       'name',
     ]);
-    if (isNextTopologyValid) {
-      if (newTopologyName !== topology.name) {
+    if (isNewTopologyValid) {
+      const newTopology = this.props.networkConfig.topology;
+      if (newTopologyName !== oldTopologyName) {
         // perform the update if next topology is real/has a name and is a different topology that what we have now
-        const newTopology = nextProps.networkConfig.topology;
         this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
 
         // reset the view mode
@@ -162,11 +161,9 @@ export default class NetworkConfigContainer extends React.Component {
       } else {
         // still on the same topology, now check for nodes
         const oldImageVersionsSet = new Set(
-          getImageVersionsForNetwork(topology),
+          getImageVersionsForNetwork(prevProps.networkConfig.topology),
         );
-        const newImageVersions = getImageVersionsForNetwork(
-          nextProps.networkConfig.topology,
-        );
+        const newImageVersions = getImageVersionsForNetwork(newTopology);
 
         // if the incoming nodes has a base version difference compared to the old ones
         // then we need to re-fetch the base configs
@@ -174,7 +171,12 @@ export default class NetworkConfigContainer extends React.Component {
           newImageVersions.some(newImage => !oldImageVersionsSet.has(newImage))
         ) {
           // only get the base config
-          getConfigsForTopology(newTopologyName, newImageVersions, false);
+          getConfigsForTopology(
+            newTopologyName,
+            newImageVersions,
+            false,
+            false,
+          );
         }
       }
     }
@@ -206,9 +208,9 @@ export default class NetworkConfigContainer extends React.Component {
       : [];
   }
 
-  getNodesName2MacMap() {
+  getNodesNameToMacMap() {
     const {networkConfig} = this.props;
-    return networkConfig.topology && networkConfig.topology.nodes
+    return has(networkConfig, 'topology.nodes')
       ? networkConfig.topology.nodes.reduce((map, node) => {
           map[node.name] = node.mac_addr;
           return map;
@@ -216,9 +218,9 @@ export default class NetworkConfigContainer extends React.Component {
       : {};
   }
 
-  getNodesMac2NameMap() {
+  getNodesMacToNameMap() {
     const {networkConfig} = this.props;
-    return networkConfig.topology && networkConfig.topology.nodes
+    return has(networkConfig, 'topology.nodes')
       ? networkConfig.topology.nodes.reduce((map, node) => {
           map[node.mac_addr] = node.name;
           return map;
@@ -318,13 +320,13 @@ export default class NetworkConfigContainer extends React.Component {
           // TODO a quick hack to support nameBased config for M19 onwards
           // remove after cleaning code to use node name
           let useNameAsKey = false;
-          let mac2NameMap = {};
+          let macToNameMap = {};
           if (!this.isOldControllerVersion()) {
             useNameAsKey = true;
-            mac2NameMap = this.getNodesMac2NameMap();
+            macToNameMap = this.getNodesMacToNameMap();
           }
 
-          let nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
+          const nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
           selectedNodes.forEach(node => {
             const nodeMacAddr = node.mac_addr;
 
@@ -348,7 +350,7 @@ export default class NetworkConfigContainer extends React.Component {
             Object.keys(nodeConfigToSubmit),
             true,
             useNameAsKey,
-            mac2NameMap,
+            macToNameMap,
           );
         } else {
           const {
@@ -383,13 +385,13 @@ export default class NetworkConfigContainer extends React.Component {
         // TODO a quick hack to support nameBased config for M19 onwards
         // remove after cleaning code to use node name
         let useNameAsKey = false;
-        let mac2NameMap = {};
+        let macToNameMap = {};
         if (!this.isOldControllerVersion()) {
           useNameAsKey = true;
-          mac2NameMap = this.getNodesMac2NameMap();
+          macToNameMap = this.getNodesMacToNameMap();
         }
 
-        let nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
+        const nodeConfigToSubmit = cloneDeep(nodeOverrideConfig);
         this.getNodeMacs().forEach(nodeMacAddr => {
           if (
             !isEmpty(nodeDraftConfig[nodeMacAddr]) ||
@@ -411,7 +413,7 @@ export default class NetworkConfigContainer extends React.Component {
           Object.keys(nodeConfigToSubmit),
           false,
           useNameAsKey,
-          mac2NameMap,
+          macToNameMap,
         );
         break;
       }
@@ -452,6 +454,11 @@ export default class NetworkConfigContainer extends React.Component {
         });
         break;
       }
+      case NetworkConfigActions.GET_AUTO_CONFIG_SUCCESS:
+        this.setState({
+          autoOverrideConfig: payload.config,
+        });
+        break;
       case NetworkConfigActions.GET_NETWORK_CONFIG_SUCCESS:
         this.setState({
           networkOverrideConfig: payload.config,
@@ -462,10 +469,10 @@ export default class NetworkConfigContainer extends React.Component {
         // remove after cleaning code to use node name
         if (!this.isOldControllerVersion()) {
           // Change name key to mac key
-          const name2MacMap = this.getNodesName2MacMap();
+          const nameToMacMap = this.getNodesNameToMacMap();
           const config = {};
           Object.keys(payload.config).forEach(key => {
-            const newkey = name2MacMap[key];
+            const newkey = nameToMacMap[key];
             if (newkey) {
               config[newkey] = payload.config[key];
             }
@@ -495,7 +502,7 @@ export default class NetworkConfigContainer extends React.Component {
     }
   };
 
-  // return true if controller vervion is older than M19
+  // return true if controller version is older than M19
   isOldControllerVersion() {
     const {networkConfig} = this.props;
     if (networkConfig.controller_version) {
@@ -706,7 +713,7 @@ export default class NetworkConfigContainer extends React.Component {
       OR adds it to the list of removed overrides whereas undoRevert will remove from the draft
       or remove it from the list of removed overrides to undo a change
     */
-    let newNodeDraftConfig = cloneDeep(this.state.nodeDraftConfig);
+    const newNodeDraftConfig = cloneDeep(this.state.nodeDraftConfig);
     const newRemovedNodeOverrides = cloneDeep(this.state.removedNodeOverrides);
 
     this.state.selectedNodes.forEach(node => {
@@ -924,7 +931,7 @@ export default class NetworkConfigContainer extends React.Component {
 
   fetchConfigsForCurrentTopology(topologyName, topology) {
     const imageVersions = getImageVersionsForNetwork(topology);
-    getConfigsForTopology(topologyName, imageVersions, true);
+    getConfigsForTopology(topologyName, imageVersions, true, true);
     getConfigMetadata(topologyName);
   }
 
@@ -934,8 +941,9 @@ export default class NetworkConfigContainer extends React.Component {
     const {
       baseConfig,
       configMetadata,
-      newConfigFields,
+      autoOverrideConfig,
 
+      newConfigFields,
       networkOverrideConfig,
       networkDraftConfig,
       removedNetworkOverrides,
@@ -966,6 +974,7 @@ export default class NetworkConfigContainer extends React.Component {
           selectedNodes={selectedNodes}
           editMode={editMode}
           baseConfigByVersion={baseConfig}
+          autoOverrideConfig={autoOverrideConfig}
           newConfigFields={newConfigFields}
           configMetadata={configMetadata}
           networkOverrideConfig={networkOverrideConfig}

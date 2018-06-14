@@ -253,6 +253,7 @@ const command2MsgType = {
   getBaseConfig: controllerTTypes.MessageType.GET_CTRL_CONFIG_BASE_REQ,
   getNetworkOverrideConfig:
     controllerTTypes.MessageType.GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ,
+  getFullNodeConfig: controllerTTypes.MessageType.GET_CTRL_CONFIG_REQ,
   getNodeOverrideConfig:
     controllerTTypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ,
   getControllerConfig:
@@ -406,6 +407,10 @@ msgType2Params[
   recvApp: 'ctrl-app-CONFIG_APP',
   nmsAppId: 'NMS_WEB_CONFIG',
 };
+msgType2Params[controllerTTypes.MessageType.GET_CTRL_CONFIG_REQ] = {
+  recvApp: 'ctrl-app-CONFIG_APP',
+  nmsAppId: 'NMS_WEB_CONFIG',
+};
 msgType2Params[
   controllerTTypes.MessageType.GET_CTRL_CONFIG_NODE_OVERRIDES_REQ
 ] = {
@@ -487,7 +492,6 @@ const sendCtrlMsgSync = (msg, minion, res) => {
       res,
     );
   };
-
   // prepare MSG body first, then send msg syncronously
   switch (msg.type) {
     case 'setLinkStatus':
@@ -742,6 +746,13 @@ const sendCtrlMsgSync = (msg, minion, res) => {
     case 'getNetworkOverrideConfig':
       var getNetworkOverrideParams = new controllerTTypes.GetCtrlConfigNetworkOverridesReq();
       send(getNetworkOverrideParams);
+
+      break;
+    case 'getFullNodeConfig':
+      var getFullNodeParams = new controllerTTypes.GetCtrlConfigReq();
+      getFullNodeParams.node = msg.node;
+      getFullNodeParams.swVersion = msg.swVersion;
+      send(getFullNodeParams);
 
       break;
     case 'getNodeOverrideConfig':
@@ -1011,6 +1022,11 @@ class ControllerProxy extends EventEmitter {
               baseConfig.read(tProtocol);
               resolve({type: 'msg', msg: baseConfig});
               break;
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_REQ:
+              const fullNodeConfig = new controllerTTypes.GetCtrlConfigReq();
+              fullNodeConfig.read(tProtocol);
+              resolve({type: 'msg', msg: fullNodeConfig});
+              break;
             case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:
               const nodeOverrideConfig = new controllerTTypes.GetCtrlConfigNodeOverridesResp();
@@ -1137,6 +1153,11 @@ class ControllerProxy extends EventEmitter {
               const networkOverrideConfig = new controllerTTypes.GetCtrlConfigNetworkOverridesResp();
               networkOverrideConfig.read(tProtocol);
               resolve({type: 'msg', msg: networkOverrideConfig});
+              break;
+            case controllerTTypes.MessageType.GET_CTRL_CONFIG_REQ:
+              const fullNodeConfig = new controllerTTypes.GetCtrlConfigResp();
+              fullNodeConfig.read(tProtocol);
+              resolve({type: 'msg', msg: fullNodeConfig});
               break;
             case controllerTTypes.MessageType
               .GET_CTRL_CONFIG_NODE_OVERRIDES_REQ:

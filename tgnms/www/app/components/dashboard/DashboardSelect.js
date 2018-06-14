@@ -49,7 +49,7 @@ export default class DashboardSelect extends React.Component {
           <td width={330} key="b_name">
             <button
               className="graph-button name-button"
-              onClick={() => this.props.onDashboardNameChange()}>
+              onClick={this.props.onDashboardNameChange}>
               {this.props.selectedDashboard}
             </button>
           </td>
@@ -58,14 +58,14 @@ export default class DashboardSelect extends React.Component {
           <td key="b_add">
             <button
               className="graph-button top-button-wide"
-              onClick={() => this.props.onAddGraphButtonClicked()}>
+              onClick={this.props.onAddGraphButtonClicked}>
               Add Graph
             </button>
           </td>,
           <td key="b_done">
             <button
               className="graph-button top-button-wide"
-              onClick={() => this.props.onDoneEdit()}>
+              onClick={this.props.onDoneEdit}>
               Done Editing
             </button>
           </td>,
@@ -75,21 +75,21 @@ export default class DashboardSelect extends React.Component {
           <td key="b_delete">
             <button
               className="graph-button top-button"
-              onClick={() => this.props.deleteDashboard()}>
+              onClick={this.props.onDeleteDashboard}>
               Delete
             </button>
           </td>,
           <td key="b_edit">
             <button
               className="graph-button top-button"
-              onClick={() => this.props.onEdit()}>
+              onClick={this.props.onEdit}>
               Edit
             </button>
           </td>,
           <td key="b_save">
             <button
               className="graph-button top-button-wide"
-              onClick={() => this.props.saveDashboards()}>
+              onClick={this.props.saveDashboards}>
               Save Changes
             </button>
           </td>,
