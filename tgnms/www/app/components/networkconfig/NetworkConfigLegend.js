@@ -64,50 +64,36 @@ export default class NetworkConfigLegend extends React.Component {
   renderFieldLegend() {
     return (
       <div className={classNames('nc-json-field-legend', 'nc-legend-section')}>
-        <table>
-          <tr>
-            <td>
-              <input
-                className={`config-form-input ${CONFIG_CLASSNAMES.BASE}`}
-                type="text"
-                value="Base Config"
-              />
-            </td>
-            <td>
-              <input
-                className={`config-form-input ${CONFIG_CLASSNAMES.DRAFT}`}
-                type="text"
-                value="Unsaved Field"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input
-                className={`config-form-input ${CONFIG_CLASSNAMES.NETWORK}`}
-                type="text"
-                value="Network Override"
-              />
-            </td>
-            <td>
-              <input
-                className={`config-form-input ${CONFIG_CLASSNAMES.REVERT}`}
-                type="text"
-                value="Field to Revert"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input
-                className={`config-form-input ${CONFIG_CLASSNAMES.NODE}`}
-                type="text"
-                value="Node Override"
-              />
-            </td>
-            <td />
-          </tr>
-        </table>
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.BASE}`}
+          type="text"
+          value="Base Config"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.DRAFT}`}
+          type="text"
+          value="Unsaved Field"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.NETWORK}`}
+          type="text"
+          value="Network Override"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.NODE}`}
+          type="text"
+          value="Node Override"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.AUTO}`}
+          type="text"
+          value="Auto Override"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.REVERT}`}
+          type="text"
+          value="Field to Revert"
+        />
       </div>
     );
   }
