@@ -50,22 +50,22 @@ const TIME_PICKER_OPTS = [
 const LINK_TYPE_X = 2;
 
 class NodeOption extends React.Component {
-  handleMouseDown = (event) => {
+  handleMouseDown = event => {
     event.preventDefault();
     event.stopPropagation();
     this.props.onSelect(this.props.option, event);
-  }
+  };
 
-  handleMouseEnter = (event) => {
+  handleMouseEnter = event => {
     this.props.onFocus(this.props.option, event);
-  }
+  };
 
-  handleMouseMove = (event) => {
+  handleMouseMove = event => {
     if (this.props.isFocused) {
       return;
     }
     this.props.onFocus(this.props.option, event);
-  }
+  };
 
   render() {
     const {name, mac_addr} = this.props.option.node;
@@ -149,7 +149,7 @@ export default class GlobalDataSelect extends React.Component {
     }
   }
 
-  getNodeData = (nodeList) => {
+  getNodeData = nodeList => {
     // return a list of node names and macs
     const nodesByName = {};
     this.props.networkConfig.topology.nodes.forEach(node => {
@@ -158,7 +158,7 @@ export default class GlobalDataSelect extends React.Component {
     return nodeList.map(nodeName => {
       return nodesByName[nodeName];
     });
-  }
+  };
 
   setNodeAOptions = () => {
     const nodes = this.props.networkConfig.topology.nodes;
@@ -173,9 +173,9 @@ export default class GlobalDataSelect extends React.Component {
     this.setState({
       nodeAOptions,
     });
-  }
+  };
 
-  onNodeAChanged = (event) => {
+  onNodeAChanged = event => {
     this.setNodeZOptions(event.node);
     this.setState({
       nodeASelected: event,
@@ -183,15 +183,14 @@ export default class GlobalDataSelect extends React.Component {
     });
     if (!this.props.globalUse) {
       if (this.props.graphType === 'Node') {
-        this.props.onHandleCustomDataChange('nodes', [event.node])
-      }
-      else {
-        this.props.onHandleCustomDataChange('nodeA', event.node)
+        this.props.onHandleCustomDataChange('nodes', [event.node]);
+      } else {
+        this.props.onHandleCustomDataChange('nodeA', event.node);
       }
     }
-  }
+  };
 
-  setNodeZOptions = (nodeA) => {
+  setNodeZOptions = nodeA => {
     // Find Node Z options based on the nodes linked to Node A
     const nodeZOptions = [];
     const {links, nodes} = this.props.networkConfig.topology;
@@ -228,32 +227,32 @@ export default class GlobalDataSelect extends React.Component {
     this.setState({
       nodeZOptions,
     });
-  }
+  };
 
-  onNodeZChanged = (event) => {
+  onNodeZChanged = event => {
     this.setState({
       nodeZSelected: event,
     });
     if (!this.props.globalUse) {
-      this.props.onHandleCustomDataChange('nodeZ', event.node)
+      this.props.onHandleCustomDataChange('nodeZ', event.node);
     }
-  }
+  };
 
-  isValidStartDate = (date) => {
+  isValidStartDate = date => {
     // TODO - more dynamic than one fixed week
     const minDate = moment().subtract(7, 'days');
     return date.toDate() >= minDate.toDate() && date.toDate() < new Date();
-  }
+  };
 
-  isValidEndDate = (date) => {
+  isValidEndDate = date => {
     // TODO - more dynamic than one fixed week
     // TODO - this should be more based on the day since that's the main view
     return date.toDate() >= this.state.startTime && date.toDate() <= new Date();
-  }
+  };
 
-  formatKeyOptions = (keyOptions) => {
+  formatKeyOptions = keyOptions => {
     return keyOptions.map(key => ({mac_addr: key.mac_addr, name: key.name}));
-  }
+  };
 
   applyToAllGraphs() {
     const nodeA = this.state.nodeASelected.node;
@@ -279,28 +278,37 @@ export default class GlobalDataSelect extends React.Component {
     const customInputProps = {
       disabled: !this.state.useCustomTime,
     };
-    const disableApplySubmit = this.state.nodeASelected === '' || this.state.nodeZSelected === '';
+    const disableApplySubmit =
+      this.state.nodeASelected === '' || this.state.nodeZSelected === '';
     return (
-      <div className={cx({
+      <div
+        className={cx({
           'global-data-select': true,
           'custom-data-select': !this.props.globalUse,
         })}>
-        {
-          this.props.globalUse ? <h3>Global Data</h3> : <h4>Select Custom Data</h4>
-        }
+        {this.props.globalUse ? (
+          <h3>Global Data</h3>
+        ) : (
+          <h4>Select Custom Data</h4>
+        )}
         <div className="node-box">
-          <p>Node A</p>
-          <Select
-            name="node-a-select"
-            value={this.state.nodeASelected}
-            onChange={this.onNodeAChanged}
-            options={this.state.nodeAOptions}
-            optionComponent={NodeOption}
-          />
+          {(this.props.globalUse ||
+            this.props.graphType === 'Node' ||
+            this.props.graphType === 'Link') && (
+            <div className="node-box">
+              <p>Node A</p>
+              <Select
+                name="node-a-select"
+                value={this.state.nodeASelected}
+                onChange={this.onNodeAChanged}
+                options={this.state.nodeAOptions}
+                optionComponent={NodeOption}
+              />
+            </div>
+          )}
         </div>
-        {
-          (this.props.globalUse || this.props.graphType === 'Link') &&
-          (<div className="node-box">
+        {(this.props.globalUse || this.props.graphType === 'Link') && (
+          <div className="node-box">
             <p>Node Z</p>
             <Select
               name="node-z-select"
@@ -309,8 +317,8 @@ export default class GlobalDataSelect extends React.Component {
               options={this.state.nodeZOptions}
               optionComponent={NodeOption}
             />
-          </div>)
-        }
+          </div>
+        )}
         <div id="time-window-box">
           <span className="graph-opt-title">Time Window</span>
           {TIME_PICKER_OPTS.map(opts => (
@@ -326,7 +334,7 @@ export default class GlobalDataSelect extends React.Component {
                 this.setState({
                   minAgo: opts.minAgo,
                   useCustomTime: false,
-                })
+                });
 
                 if (!this.props.globalUse) {
                   this.props.onHandleCustomDataChange('useCustomTime', false);
@@ -342,12 +350,15 @@ export default class GlobalDataSelect extends React.Component {
           <input
             id="custom-time-checkbox"
             type="checkbox"
-            onChange={(clk) => {
+            onChange={clk => {
               this.setState({
                 useCustomTime: clk.target.checked,
-              })
+              });
               if (!this.props.globalUse) {
-                this.props.onHandleCustomDataChange('useCustomTime', !this.state.useCustomTime)
+                this.props.onHandleCustomDataChange(
+                  'useCustomTime',
+                  !this.state.useCustomTime,
+                );
               }
             }}
             checked={this.state.useCustomTime}
@@ -363,10 +374,12 @@ export default class GlobalDataSelect extends React.Component {
               if (typeof change === 'object') {
                 this.setState({startTime: change.toDate()});
                 if (!this.props.globalUse) {
-                  this.props.onHandleCustomDataChange('startTime', change.toDate())
+                  this.props.onHandleCustomDataChange(
+                    'startTime',
+                    change.toDate(),
+                  );
                 }
               }
-
             }}
           />
           <span className="timeTitle">End</span>
@@ -381,19 +394,21 @@ export default class GlobalDataSelect extends React.Component {
               if (typeof change === 'object') {
                 this.setState({endTime: change.toDate()});
                 if (!this.props.globalUse) {
-                  this.props.onHandleCustomDataChange('endTime', change.toDate())
+                  this.props.onHandleCustomDataChange(
+                    'endTime',
+                    change.toDate(),
+                  );
                 }
               }
             }}
           />
         </div>
-        {
-          this.props.globalUse &&
+        {this.props.globalUse && (
           <button
             className={cx({
-            'graph-button': true,
-            'disabled-button': disableApplySubmit,
-            'submit-button': !disableApplySubmit,
+              'graph-button': true,
+              'disabled-button': disableApplySubmit,
+              'submit-button': !disableApplySubmit,
             })}
             onClick={() => {
               this.applyToAllGraphs();
@@ -401,7 +416,7 @@ export default class GlobalDataSelect extends React.Component {
             disabled={disableApplySubmit}>
             Apply To All Graphs
           </button>
-        }
+        )}
       </div>
     );
   }

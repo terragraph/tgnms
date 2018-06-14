@@ -489,7 +489,7 @@ export default class NetworkDashboards extends React.Component {
       }
 
       const newGraph = {
-        agg_type: 'top',
+        agg_type: graphType === 'network' ? inputData.setup.aggType : 'top',
         container: inputData.container || {
           x: 0,
           y: 0,
@@ -509,14 +509,12 @@ export default class NetworkDashboards extends React.Component {
   };
 
   onSubmitNewGraph = (graphType, inputData) => {
-    if (graphType === 'node') {
+    // keys are already retrieved since both node and network forms use
+    // typeahead data which fetches keys anyways
+    if (graphType === 'node' || graphType === 'network') {
       const {keys, minAgo, name, startTime, endTime, setup} = inputData;
-      const nodeKeyIds = [];
-      const nodeKeyData = [];
-      keys.forEach(key => {
-        nodeKeyIds.push(key.keyId);
-        nodeKeyData.push(key);
-      });
+      const keyData = [...keys];
+      const keyIds = keys.map(key => key.keyId);
       const newGraph = {
         agg_type: 'top',
         container: {
@@ -525,9 +523,9 @@ export default class NetworkDashboards extends React.Component {
           w: 4,
           h: 4,
         },
-        key_data: nodeKeyData,
+        key_data: keyData,
         endTime,
-        key_ids: nodeKeyIds,
+        key_ids: keyIds,
         minAgo,
         name,
         startTime,
@@ -576,10 +574,17 @@ export default class NetworkDashboards extends React.Component {
         if (!this.state.editView) {
           layoutDivs.push(
             <div key={id} className="graph-wrapper">
-              {graph.setup.graphFormData &&
-                graph.setup.graphFormData.customGraphChecked && (
-                  <div className="custom-graph-indicator">custom</div>
-                )}
+              <div className="graph-indicators-box">
+                {graph.setup.graphFormData &&
+                  graph.setup.graphFormData.customGraphChecked && (
+                    <div className="graph-indicator custom-graph-indicator">
+                      custom
+                    </div>
+                  )}
+                <div className="graph-indicator graph-type-indicator">
+                  {graph.setup.graphType}
+                </div>
+              </div>
               <PlotlyGraph divkey={id} title={graph.name} options={graph} />
             </div>,
           );
