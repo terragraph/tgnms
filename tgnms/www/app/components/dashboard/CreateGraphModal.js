@@ -66,9 +66,23 @@ export default class CreateGraphModal extends React.Component {
     }
   }
 
+  onHandleCustomDataChange = (keyName, data) => {
+    const newCustomData = clone(this.state.customData);
+    newCustomData[keyName] = data;
+    this.setState({customData: newCustomData, nodesSelected: []}, () => {
+      if (this.state.customGraphChecked) {
+        this.setLinkKeyOptions();
+        this.setNodeSelectOptions();
+        this.setLinkDirectionOptions();
+      }
+    });
+  };
+
   // link form functions
   setLinkKeyOptions = () => {
-    let {nodeA, nodeZ} = this.props.dashboard;
+    let {nodeA, nodeZ} = this.state.customGraphChecked
+      ? this.state.customData
+      : this.props.dashboard;
 
     if (!(nodeA && nodeZ)) {
       return;
@@ -80,7 +94,11 @@ export default class CreateGraphModal extends React.Component {
       nodeZ = temp;
     }
     return axios
-      .get(`/stats_ta/${this.props.topologyName}/tgf.${nodeZ.mac_addr}`)
+      .get(
+        `/stats_ta/${this.props.networkConfig.topology.name}/tgf.${
+          nodeZ.mac_addr
+        }`,
+      )
       .then(resp => {
         const keys = resp.data;
         let keyOptions = keys.filter(keyObj => {
@@ -112,7 +130,9 @@ export default class CreateGraphModal extends React.Component {
   };
 
   setLinkDirectionOptions = () => {
-    const {nodeA, nodeZ} = this.props.dashboard;
+    const {nodeA, nodeZ} = this.state.customGraphChecked
+      ? this.state.customData
+      : this.props.dashboard;
     const linkDirectionOptions = [];
     let initialSelection = '';
     if (nodeA && nodeZ) {
@@ -130,7 +150,9 @@ export default class CreateGraphModal extends React.Component {
 
   // node form functions
   setNodeSelectOptions = () => {
-    const {nodeA, nodeZ} = this.props.dashboard;
+    const {nodeA, nodeZ} = this.state.customGraphChecked
+      ? this.state.customData
+      : this.props.dashboard;
     const nodeSelectOptions = [];
     if (nodeA) {
       nodeSelectOptions.push({
@@ -202,10 +224,11 @@ export default class CreateGraphModal extends React.Component {
       nodeKeyIsLoading: true,
       nodeKeyOptions: [],
     });
+    const nodes = this.state.customGraphChecked
+      ? this.state.customData.nodes
+      : this.state.nodesSelected.map(nodeObj => nodeObj.node);
 
-    const nodes = this.state.nodesSelected.map(nodeObj => nodeObj.node);
-
-    fetchKeyData([query], this.props.topologyName)
+    fetchKeyData([query], this.props.networkConfig.topology.name)
       .then(graphData => {
         let keyData = graphData.keyData;
         nodes.forEach(node => {
@@ -232,14 +255,17 @@ export default class CreateGraphModal extends React.Component {
 
   onSubmitLinkGraph = () => {
     const key = this.state.linkKeySelected;
-    const {startTime, endTime, minAgo, nodeA, nodeZ} = this.props.dashboard;
-
+    const {startTime, endTime, minAgo, nodeA, nodeZ} = this.state
+      .customGraphChecked
+      ? this.state.customData
+      : this.props.dashboard;
     const direction = this.state.linkDirectionSelected.includes('Z -> A')
       ? 'Z -> A'
       : 'A -> Z';
     const setup = {
       graphType: 'link',
       direction,
+      graphFormData: this.state,
     };
     const name = `${direction} ${nodeA.name} -> ${
       nodeZ.name
@@ -261,20 +287,31 @@ export default class CreateGraphModal extends React.Component {
   };
 
   onSubmitNodeGraph = () => {
-    let graphName = '';
-    const {nodeA, nodeZ} = this.props.dashboard;
     const nodes = [];
-    this.state.nodesSelected.forEach(nodeSelected => {
-      graphName += nodeSelected.node.name + ' ';
-      if (nodeA.name === nodeSelected.node.name) {
-        nodes.push('nodeA');
-      } else if (nodeZ.name === nodeSelected.node.name) {
-        nodes.push('nodeZ');
-      }
-    });
-    const keys = this.state.nodeKeysSelected.map(nodeKey => nodeKey.key);
+    let graphName = '';
+    if (this.state.customGraphChecked) {
+      nodes.push('Custom');
+      graphName = this.state.customData.nodes
+        .map(nodes => nodes.name)
+        .join(',');
+    } else {
+      this.state.nodesSelected.forEach(nodeSelected => {
+        const {nodeA, nodeZ} = this.props.dashboard;
+        if (nodeA.name === nodeSelected.node.name) {
+          nodes.push('nodeA');
+        } else if (nodeZ.name === nodeSelected.node.name) {
+          nodes.push('nodeZ');
+        }
+      });
+      graphName = this.state.nodesSelected
+        .map(nodeSelected => nodeSelected.node.name)
+        .join(',');
+    }
 
-    const {startTime, endTime, minAgo} = this.props.dashboard;
+    const keys = this.state.nodeKeysSelected.map(nodeKey => nodeKey.key);
+    const {startTime, endTime, minAgo} = this.state.customGraphChecked
+      ? this.state.customData
+      : this.props.dashboard;
 
     const inputData = {
       startTime,
@@ -317,6 +354,31 @@ export default class CreateGraphModal extends React.Component {
                 ]}
               />
             </div>
+            <div className="input-box">
+              <span>Create a Custom Graph</span>
+              <input
+                id="custom-graph-checkbox"
+                type="checkbox"
+                onChange={clk => {
+                  this.setState({
+                    customGraphChecked: !this.state.customGraphChecked,
+                  });
+                }}
+                checked={this.state.customGraphChecked}
+              />
+            </div>
+            <div>
+              {this.state.customGraphChecked && (
+                <GlobalDataSelect
+                  dashboard={this.props.dashboard}
+                  networkConfig={this.props.networkConfig}
+                  globalUse={false}
+                  onChangeDashboardGlobalData={null}
+                  onHandleCustomDataChange={this.onHandleCustomDataChange}
+                  graphType={this.state.graphTypeSelected}
+                />
+              )}
+            </div>
             {this.state.graphTypeSelected === 'Link' && (
               <div>
                 {nodeA && nodeZ ? (
@@ -346,13 +408,14 @@ export default class CreateGraphModal extends React.Component {
                           ? 'graph-button disabled-button'
                           : 'graph-button submit-button'
                       }
-                      onClick={this.onSubmitLinkGraph}
+                      onClick={() => this.onSubmitLinkGraph()}
                       disabled={disableLinkSubmit}>
                       Submit
                     </button>
                   </div>
                 ) : (
                   <div className="graph-form">
+                    <h4>{this.state.graphTypeSelected + ' Graph'}</h4>
                     <h5>
                       Please specify both Node A and Node Z in the global data
                       inputs to create a link graph
@@ -366,17 +429,19 @@ export default class CreateGraphModal extends React.Component {
                 {nodeA ? (
                   <div className="graph-form">
                     <h4>{this.state.graphTypeSelected + ' Graph'}</h4>
+                    {!this.state.customGraphChecked && (
+                      <div id="node-key-box" className="input-box">
+                        <p>Node(s)</p>
+                        <Select
+                          name="graph-type-select"
+                          multi
+                          value={this.state.nodesSelected}
+                          onChange={event => this.onNodesSelectChanged(event)}
+                          options={this.state.nodeSelectOptions}
+                        />
+                      </div>
+                    )}
                     <div className="input-box">
-                      <p>Node(s)</p>
-                      <Select
-                        name="graph-type-select"
-                        multi
-                        value={this.state.nodesSelected}
-                        onChange={this.onNodesSelectChanged}
-                        options={this.state.nodeSelectOptions}
-                      />
-                    </div>
-                    <div id="node-key-box" className="input-box">
                       <p>Key</p>
                       <AsyncTypeahead
                         key="keys"
@@ -403,13 +468,14 @@ export default class CreateGraphModal extends React.Component {
                           ? 'graph-button disabled-button'
                           : 'graph-button submit-button'
                       }
-                      onClick={this.onSubmitNodeGraph}
+                      onClick={() => this.onSubmitNodeGraph()}
                       disabled={disableNodeSubmit}>
                       Submit
                     </button>
                   </div>
                 ) : (
                   <div className="graph-form">
+                    <h4>{this.state.graphTypeSelected + ' Graph'}</h4>
                     <h5>
                       Please specify Node A in the global data inputs to create
                       a link graph

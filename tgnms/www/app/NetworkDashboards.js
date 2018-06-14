@@ -123,7 +123,7 @@ export default class NetworkDashboards extends React.Component {
         const {dashboards} = this.state;
         delete dashboards[this.props.selectedDashboard];
         this.props.onHandleSelectedDashboardChange(null);
-        this.props.setDashboards(dashboards);
+        this.saveDashboards();
         swal('Deleted!', 'The selected dashboard was deleted.', 'success');
         this.setState({
           dashboards,
@@ -323,7 +323,7 @@ export default class NetworkDashboards extends React.Component {
         topologyName: this.props.networkConfig.topology.name,
       })
       .then(response => {
-        swal('Saved!', 'Dashboard get saved to server!', 'success');
+        swal('Saved!', 'Dashboards are saved to server!', 'success');
       })
       .catch(err => {
         console.error('Error saving dashboards', err);
@@ -676,13 +676,16 @@ export default class NetworkDashboards extends React.Component {
             {dashboards &&
               selectedDashboard &&
               dashboards[selectedDashboard] && (
-                <GlobalDataSelect
-                  allowCustomTime={false}
-                  onClose={this.graphEditClose}
-                  networkConfig={this.props.networkConfig}
-                  onChangeDashboardGlobalData={this.onChangeDashboardGlobalData}
-                  dashboard={dashboards[selectedDashboard]}
-                />
+                <div id="global-data-select-wrapper">
+                  <GlobalDataSelect
+                    networkConfig={this.props.networkConfig}
+                    onChangeDashboardGlobalData={
+                      this.onChangeDashboardGlobalData
+                    }
+                    dashboard={dashboards[selectedDashboard]}
+                    globalUse={true}
+                  />
+                </div>
               )}
           </div>
         ) : (

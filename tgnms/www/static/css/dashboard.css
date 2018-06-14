@@ -141,7 +141,11 @@
 }
 
 .create-graph-modal-content #node-key-box {
-  margin-top: 70px;
+  margin-bottom: 70px;
+}
+
+.create-graph-modal-content #custom-graph-checkbox {
+  margin-left: 70px;
 }
 
 .create-graph-modal-content .input-box .form-input {
