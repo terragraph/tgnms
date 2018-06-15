@@ -155,7 +155,7 @@ export default class NetworkMap extends React.Component {
     if (
       NetworkStore.tabName == 'links' &&
       NetworkStore.selectedName &&
-      NetworkStore.selectedName in this.linksByName
+      this.linksByName.hasOwnProperty(NetworkStore.selectedName)
     ) {
       this.setState({
         selectedLink: this.linksByName[NetworkStore.selectedName],
@@ -163,7 +163,7 @@ export default class NetworkMap extends React.Component {
     } else if (
       NetworkStore.tabName == 'nodes' &&
       NetworkStore.selectedName &&
-      NetworkStore.selectedName in this.sitesByName
+      this.sitesByName.hasOwnProperty(NetworkStore.selectedName)
     ) {
       this.setState({
         selectedSite: NetworkStore.selectedName,
@@ -351,7 +351,7 @@ export default class NetworkMap extends React.Component {
       if (
         this.state.linkHealth &&
         this.state.linkHealth.metrics &&
-        link.name in this.state.linkHealth.metrics
+        this.state.linkHealth.metrics.hasOwnProperty(link.name)
       ) {
         const nodeHealth = this.state.linkHealth.metrics[link.name];
         link.alive_perc = nodeHealth.alive;

@@ -271,6 +271,76 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   text-align: center;
 }
 
+.CustomTable__Autosizer__Container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  margin: 5px;
+}
+
+.CustomTable__Autosizer__Container, .CustomTable__Autosizer__Container .ReactVirtualized__Grid:focus {
+  outline: none !important;
+}
+
+.CustomTable__GridRowCell {
+  border-right: 0px;
+  border-bottom: 0px;
+  border-top: 1px;
+  border-left: 1px;
+  border-color: #d3d3d3;
+  border-style: solid;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.CustomTable__GridRowCell.CustomTable__HeaderRowCell {
+  border-top: none;
+  border-bottom: 1px solid #d3d3d3;
+  flex-direction: column;
+}
+
+.CustomTable__GridRowCell.CustomTable__HeaderRowCell > div {
+  margin: auto;
+}
+
+.CustomTable__GridRowCell.CustomTable__HeaderRowCell .CustomTable__HeaderRowCell__Title {
+  font-weight: 700;
+}
+
+.CustomTable__GridRowCell.CustomTable__GridRowCellLeft {
+  border-left: none;
+}
+
+.CustomTable__GridRowCellEven {
+  background-color: #f9f9f9;
+}
+
+.CustomTable__GridRowCell.CustomTable__GridRowCellHovered {
+  background-color: #f5f5f5;
+}
+
+.CustomTable__GridRowCell.CustomTable__GridRowCellSelected {
+  background-color: rgb(183,210,255);
+}
+
+.CustomTable__HeaderGrid {
+  width: 100%;
+  overflow: hidden !important;
+  cursor: pointer;
+}
+
+.CustomTable__HeaderGrid .ReactVirtualized__Grid__innerScrollContainer {
+  border-radius: 5px 5px 0px 0px;
+  border: 1px solid #d3d3d3;
+}
+
+.CustomTable__BodyGrid .ReactVirtualized__Grid__innerScrollContainer {
+  border-radius: 0px 0px 5px 5px;
+  border: 1px solid #d3d3d3;
+}
+
 .details-legend-row {
   display: flex;
   align-items: center;
