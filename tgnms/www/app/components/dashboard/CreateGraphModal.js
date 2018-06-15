@@ -6,6 +6,7 @@
 'use strict';
 
 import GlobalDataSelect from './GlobalDataSelect';
+import NetworkAggregationForm from './NetworkAggregationForm';
 import {
   formatKeyHelper,
   fetchKeyData,
@@ -526,16 +527,13 @@ export default class CreateGraphModal extends React.Component {
             )}
             {this.state.graphTypeSelected === 'Network' && (
               <div className="graph-form">
-                <h4>{this.state.graphTypeSelected + ' Graph'}</h4>
-                <div className="input-box">
-                  <p>Network Metric</p>
-                  <Select
-                    name="graph-type-select"
-                    value={this.state.networkMetricSelected}
-                    onChange={this.onNetworkMetricChanged}
-                    options={this.state.networkMetricOptions}
-                  />
-                </div>
+                <NetworkAggregationForm
+                  topologyName={this.props.networkConfig.topology.name}
+                  onSubmitNewGraph={this.props.onSubmitNewGraph}
+                  dashboard={this.props.dashboard}
+                  customData={this.state.customData}
+                  customGraphChecked={this.state.customGraphChecked}
+                />
               </div>
             )}
           </div>

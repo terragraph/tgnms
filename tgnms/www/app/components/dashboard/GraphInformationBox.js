@@ -9,24 +9,22 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const LinkGraphInfo = ({graph}) => {
-  if (graph.setup.graphType === 'link') {
-    return (
-      <div>
-        <p>
-          <strong>Direction: </strong>
-          {graph.setup.graphFormData.linkDirectionSelected}
-        </p>
-        <p>
-          <strong>Keys: </strong>
-        </p>
-        <ul>
-          {graph.key_data.map((keyObj, index) => (
-            <li key={index}>{keyObj.key}</li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <p>
+        <strong>Direction: </strong>
+        {graph.setup.graphFormData.linkDirectionSelected}
+      </p>
+      <p>
+        <strong>Keys: </strong>
+      </p>
+      <ul>
+        {graph.key_data.map((keyObj, index) => (
+          <li key={index}>{keyObj.key}</li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 const NodeGraphInfo = ({graph}) => {
@@ -37,36 +35,62 @@ const NodeGraphInfo = ({graph}) => {
         nodeSelected => nodeSelected.node,
       );
 
-  if (graph.setup.graphType === 'node') {
-    return (
-      <div>
-        <p>
-          <strong>Nodes: </strong>
-        </p>
-        <ul>{nodes.map((node, index) => <li key={index}>{node.name}</li>)}</ul>
-        <p>
-          <strong>Keys: </strong>
-        </p>
-        <ul>
-          {graph.key_data.map((keyObj, index) => (
-            <li key={index}>{keyObj.key}</li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <p>
+        <strong>Nodes: </strong>
+      </p>
+      <ul>{nodes.map((node, index) => <li key={index}>{node.name}</li>)}</ul>
+      <p>
+        <strong>Keys: </strong>
+      </p>
+      <ul>
+        {graph.key_data.map((keyObj, index) => (
+          <li key={index}>{keyObj.key}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const NetworkGraphInfo = ({graph}) => {
+  const {keyName} = graph.setup;
+  return (
+    <div>
+      <p>
+        <strong>Key: </strong>
+        {keyName}
+      </p>
+    </div>
+  );
 };
 
 const GraphInfo = ({graph}) => {
   const {graphFormData, graphType} = graph.setup;
+
+  let graphTypeInfo = null;
+
+  switch(graphType) {
+    case 'link':
+      graphTypeInfo = <LinkGraphInfo graph={graph} />
+      break;
+    case 'node':
+      graphTypeInfo = <NodeGraphInfo graph={graph} />
+      break;
+    case 'network':
+      graphTypeInfo = <NetworkGraphInfo graph={graph} />
+      break;
+    default:
+      break;
+  }
+
   if (graphFormData && graphFormData.customGraphChecked) {
     return (
       <div className="custom-data">
         <h5>
           <strong>Custom Data </strong>
         </h5>
-        {graphType === 'link' && <LinkGraphInfo graph={graph} />}
-        {graphType === 'node' && <NodeGraphInfo graph={graph} />}
+        {graphTypeInfo}
         {graph.startTime && (
           <p>
             <strong>Start Time: </strong>
@@ -90,8 +114,7 @@ const GraphInfo = ({graph}) => {
   } else {
     return (
       <div>
-        {graphType === 'link' && <LinkGraphInfo graph={graph} />}
-        {graphType === 'node' && <NodeGraphInfo graph={graph} />}
+        {graphTypeInfo}
       </div>
     );
   }
@@ -133,9 +156,9 @@ const GraphInformationBox = props => {
 
 GraphInformationBox.propTypes = {
   graph: PropTypes.object.isRequired,
+  onDeleteGraph: PropTypes.func,
   onEditGraphButtonClicked: PropTypes.func.isRequired,
   onEditGraphName: PropTypes.func.isRequired,
-  onDeleteGraph: PropTypes.func,
 };
 
 export default GraphInformationBox;

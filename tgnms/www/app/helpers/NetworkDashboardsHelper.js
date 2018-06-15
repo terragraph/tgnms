@@ -37,3 +37,7 @@ export const fetchKeyData = async (keys, topologyName) => {
     });
     return graphData;
   };
+
+export const fetchAggregatedData = (query, topologyName) => {
+  return axios.get('/stats_ta/' + topologyName + '/' + query);
+}
