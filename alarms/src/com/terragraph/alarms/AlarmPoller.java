@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudbees.syslog.Facility;
+import com.cloudbees.syslog.Severity;
 import com.terragraph.alarms.Alarm.AlarmSeverity;
 import com.terragraph.alarms.Alarm.EventType;
 
@@ -64,11 +66,13 @@ public class AlarmPoller {
 		}
 		this.sender = new SyslogSender(
 			config.syslogConfig.appName,
-			config.syslogConfig.facility,
-			config.syslogConfig.severity,
+			Facility.fromNumericalCode(config.syslogConfig.facility),
+			Severity.fromNumericalCode(config.syslogConfig.severity),
+			config.syslogConfig.messageFormat,
 			config.syslogConfig.serverHost,
 			config.syslogConfig.serverPort,
-			config.syslogConfig.transportProtocol
+			config.syslogConfig.transportProtocol,
+			config.syslogConfig.useSsl
 		);
 		this.alarmData = new AlarmData(config.alarmConfig);
 	}

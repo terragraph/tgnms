@@ -25,27 +25,6 @@ public class SyslogSender {
 	private final AbstractSyslogMessageSender messageSender;
 
 	/**
-	 * Creates a syslog sender with default properties connecting to the given host.
-	 * @param appName The default "appName" for messages
-	 * @param facility The default "facility" for messages (as the facility code)
-	 * @param severity The default "severity" for messages (as the severity level)
-	 * @param host The syslog server hostname
-	 * @param port The syslog server port
-	 * @param protocol The transport protocol to use
-	 */
-	public SyslogSender(String appName, int facility, int severity, String host, int port, TransportProtocol protocol) {
-		this(
-			appName,
-			Facility.fromNumericalCode(facility),
-			Severity.fromNumericalCode(severity),
-			MessageFormat.RFC_5424,
-			host,
-			port,
-			protocol
-		);
-	}
-
-	/**
 	 * Creates a syslog sender connecting to the given host.
 	 * @param appName The default "appName" for messages
 	 * @param facility The default "facility" for messages
@@ -54,6 +33,7 @@ public class SyslogSender {
 	 * @param host The syslog server hostname
 	 * @param port The syslog server port
 	 * @param protocol The transport protocol to use
+	 * @param useSsl Whether to use SSL (if sending over TCP)
 	 */
 	public SyslogSender(
 		String appName,
@@ -62,7 +42,8 @@ public class SyslogSender {
 		MessageFormat format,
 		String host,
 		int port,
-		TransportProtocol protocol
+		TransportProtocol protocol,
+		boolean useSsl
 	) {
 		// Instantiate the appropriate sender class
 		// NOTE: AbstractSyslogMessageSender doesn't have setSyslogServerX() methods, so run those here
@@ -70,6 +51,7 @@ public class SyslogSender {
 			TcpSyslogMessageSender sender = new TcpSyslogMessageSender();
 			sender.setSyslogServerHostname(host);
 			sender.setSyslogServerPort(port);
+			sender.setSsl(useSsl);
 			this.messageSender = sender;
 		} else if (protocol == TransportProtocol.UDP) {
 			UdpSyslogMessageSender sender = new UdpSyslogMessageSender();

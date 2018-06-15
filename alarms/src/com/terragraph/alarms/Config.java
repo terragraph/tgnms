@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.cloudbees.syslog.MessageFormat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.terragraph.alarms.Alarm.AlarmSeverity;
@@ -48,10 +49,16 @@ public class Config {
 		public String serverHost = "localhost";
 
 		/** The syslog server port. */
-		public int serverPort = 9898;
+		public int serverPort = 514;
 
 		/** The syslog transport protocol to use. */
-		public SyslogSender.TransportProtocol transportProtocol = SyslogSender.TransportProtocol.TCP;
+		public SyslogSender.TransportProtocol transportProtocol = SyslogSender.TransportProtocol.UDP;
+
+		/** Whether to use SSL (if sending over TCP). */
+		public boolean useSsl = false;
+
+		/** The syslog message format. */
+		public MessageFormat messageFormat = MessageFormat.RFC_5424;
 
 		/** The "facility" for messages (as the facility code). */
 		public int facility = 23;
