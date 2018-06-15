@@ -23,11 +23,13 @@ public class Launcher {
     private static final File DEFAULT_ALARM_DATA_FILE = new File("data.ser");
 
     /**
-     * Start the alarm poller.
+     * Starts the alarm poller.
      * <p>
      * By default, the configuration file is read from {@link #DEFAULT_CONFIG_FILE}, which is automatically created if
-     * it does not exist. This program accepts a single optional argument which specifies an alternate location for the
-     * configuration file.
+     * it does not exist. The cached alarm data is read from {@link #DEFAULT_ALARM_DATA_FILE}, which is automatically
+     * written on graceful shutdown.
+     * <p>
+     * This program accepts optional arguments which specify alternate locations for these two files (which must exist).
      *
      * @throws Exception
      */
