@@ -12,6 +12,7 @@ import {
   getConfigMetadataSuccess,
   getControllerConfigSuccess,
   getControllerConfigMetadataSuccess,
+  getAutoConfigSuccess,
   getNetworkConfigSuccess,
   getNodeConfigSuccess,
   getAggregatorConfigAndMetadataSuccess,
@@ -50,6 +51,7 @@ export const getConfigsForTopology = (
   topologyName,
   swVersions,
   getNetworkAndNodeConfig,
+  getAutoConfig,
 ) => {
   const data = {swVersions: [DEFAULT_BASE_KEY, ...swVersions]};
   apiServiceRequest(topologyName, 'getBaseConfig', data).then(response => {
@@ -74,16 +76,33 @@ export const getConfigsForTopology = (
     getNetworkOverrideConfig(topologyName);
     getNodeOverrideConfig(topologyName);
   }
+
+  if (getAutoConfig) {
+    getAutoOverrideConfig(topologyName);
+  }
 };
 
 export const getConfigMetadata = topologyName => {
-  apiServiceRequest(topologyName, 'getConfigMetadata').then(
-    response => {
-      const {metadata} = response.data;
-      const parsedMetadata = JSON.parse(metadata);
+  apiServiceRequest(topologyName, 'getConfigMetadata').then(response => {
+    const {metadata} = response.data;
+    const parsedMetadata = JSON.parse(metadata);
 
-      getConfigMetadataSuccess({
-        metadata: parsedMetadata,
+    getConfigMetadataSuccess({
+      metadata: parsedMetadata,
+      topologyName,
+    });
+  });
+};
+
+export const getAutoOverrideConfig = topologyName => {
+  const data = {
+    nodes: [],
+  };
+  apiServiceRequest(topologyName, 'getAutoNodeOverridesConfig', data).then(
+    response => {
+      const {overrides} = response.data;
+      getAutoConfigSuccess({
+        config: sortConfig(JSON.parse(overrides)),
         topologyName,
       });
     },
