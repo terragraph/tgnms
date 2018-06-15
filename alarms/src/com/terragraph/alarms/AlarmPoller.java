@@ -99,7 +99,7 @@ public class AlarmPoller {
 
             // Serialize alarm data
             try {
-                logger.info("Storing serialized alarm data in: {}", f);
+                logger.info("Storing serialized alarm data in: {}", f.getAbsolutePath());
                 alarmData.writeToFile(f);
             } catch (Exception e) {
                 logger.error("Failed to serialize alarm data.", e);
@@ -147,7 +147,7 @@ public class AlarmPoller {
      * @throws IOException
      */
     private void pollEndpoint(String name, URL url) throws IOException {
-        logger.info("Polling topology for \"{}\"...", name);
+        logger.info("Polling topology for \"{}\"", name);
 
         // Fetch the topology
         String topologyJson = null;

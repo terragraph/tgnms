@@ -19,6 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
 import com.terragraph.alarms.Alarm.AlarmSeverity;
 import com.terragraph.alarms.Alarm.AlarmType;
 import com.terragraph.alarms.Alarm.EventType;
@@ -32,6 +36,7 @@ import com.terragraph.alarms.Topology.Node;
  */
 public class AlarmData implements Serializable {
     private static final long serialVersionUID = -2247558422577176639L;
+    private static final Logger logger = LoggerFactory.getLogger(AlarmData.class);
 
     /** Alarm wrapper. */
     private static class AlarmWrapper implements Serializable {
@@ -50,9 +55,6 @@ public class AlarmData implements Serializable {
         /** The event type. */
         private final EventType eventType;
 
-        /** The interval at which the alarm should be repeated if still active. */
-        private final int repeatIntervalSeconds;
-
         /** The alarm text callback. */
         private final AlarmText text;
 
@@ -69,12 +71,10 @@ public class AlarmData implements Serializable {
          * Constructor.
          * @param eventType The event type
          * @param alarmCount The number of configured alarms
-         * @param repeatIntervalSeconds The interval at which the alarm should be repeated if still active
          * @param text The alarm description callback
          */
-        public AlarmWrapper(EventType eventType, int alarmCount, int repeatIntervalSeconds, AlarmText text) {
+        public AlarmWrapper(EventType eventType, int alarmCount, AlarmText text) {
             this.consecutivePolls = new long[alarmCount];
-            this.repeatIntervalSeconds = repeatIntervalSeconds;
             this.eventType = eventType;
             this.text = text;
         }
@@ -82,10 +82,11 @@ public class AlarmData implements Serializable {
         /**
          * Update the alarm with a new trigger.
          * @param allAlarmParams All alarm configurations
+         * @param repeatIntervalSeconds The interval at which the alarm should be repeated if still active
          * @param trigger The trigger determining whether the alarm condition is met
          * @return A new alarm that should be fired, or null
          */
-        public Alarm update(AlarmParams[] allAlarmParams, AlarmTrigger trigger) {
+        public Alarm update(AlarmParams[] allAlarmParams, int repeatIntervalSeconds, AlarmTrigger trigger) {
             // Update consecutive poll counters
             for (int i = 0; i < allAlarmParams.length; i++) {
                 AlarmParams params = allAlarmParams[i];
@@ -139,7 +140,7 @@ public class AlarmData implements Serializable {
     }
 
     /** The alarm config. */
-    private final AlarmConfig config;
+    private AlarmConfig config;
 
     /** Alarm for network-wide DN disruption. */
     private AlarmWrapper networkDnDown;
@@ -180,7 +181,6 @@ public class AlarmData implements Serializable {
             primaryControllerDown = new AlarmWrapper(
                 EventType.CONTROLLER_PRIMARY,
                 config.primaryControllerDown.length,
-                config.repeatIntervalSeconds,
                 (AlarmWrapper.AlarmText & Serializable) params -> String.format(
                     "%s: Primary controller is offline for at least %d polls.",
                     name,
@@ -188,7 +188,9 @@ public class AlarmData implements Serializable {
                 )
             );
         }
-        append(alarms, primaryControllerDown.update(config.primaryControllerDown, params -> true));
+        append(alarms, primaryControllerDown.update(
+            config.primaryControllerDown, config.repeatIntervalSeconds, params -> true)
+        );
 
         return alarms;
     }
@@ -219,7 +221,9 @@ public class AlarmData implements Serializable {
                     // Node is alive - if an alarm exists, update it then delete it, otherwise do nothing
                     AlarmWrapper wrapper = nodeDnDown.remove(node.name);
                     if (wrapper != null) {
-                        append(alarms, wrapper.update(config.nodeDnDown, params -> false));
+                        append(alarms, wrapper.update(
+                            config.nodeDnDown, config.repeatIntervalSeconds, params -> false)
+                        );
                     }
                 } else {
                     // Node is dead - initialize alarm data if needed, then update it
@@ -227,7 +231,6 @@ public class AlarmData implements Serializable {
                         k -> new AlarmWrapper(
                             EventType.NODE_DN,
                             config.nodeDnDown.length,
-                            config.repeatIntervalSeconds,
                             (AlarmWrapper.AlarmText & Serializable) params -> String.format(
                                 "%s: DN '%s' is offline for at least %d polls.",
                                 name,
@@ -236,7 +239,7 @@ public class AlarmData implements Serializable {
                             )
                         )
                     );
-                    append(alarms, wrapper.update(config.nodeDnDown, params -> true));
+                    append(alarms, wrapper.update(config.nodeDnDown, config.repeatIntervalSeconds, params -> true));
                 }
 
                 // POP Primary-DN alarms
@@ -245,7 +248,9 @@ public class AlarmData implements Serializable {
                         // Node is alive - if an alarm exists, update it then delete it, otherwise do nothing
                         AlarmWrapper wrapper = nodePopPrimaryDown.remove(node.name);
                         if (wrapper != null) {
-                            append(alarms, wrapper.update(config.nodePopPrimaryDown, params -> false));
+                            append(alarms, wrapper.update(
+                                config.nodePopPrimaryDown, config.repeatIntervalSeconds, params -> false)
+                            );
                         }
                     } else {
                         // Node is dead - initialize alarm data if needed, then update it
@@ -253,7 +258,6 @@ public class AlarmData implements Serializable {
                             k -> new AlarmWrapper(
                                 EventType.NODE_POP,
                                 config.nodePopPrimaryDown.length,
-                                config.repeatIntervalSeconds,
                                 (AlarmWrapper.AlarmText & Serializable) params -> String.format(
                                     "%s: POP Primary-DN '%s' is offline for at least %d polls.",
                                     name,
@@ -262,7 +266,9 @@ public class AlarmData implements Serializable {
                                 )
                             )
                         );
-                        append(alarms, wrapper.update(config.nodePopPrimaryDown, params -> true));
+                        append(alarms, wrapper.update(
+                            config.nodePopPrimaryDown, config.repeatIntervalSeconds, params -> true)
+                        );
                     }
                 }
             } else if (node.isCN()) {
@@ -281,7 +287,6 @@ public class AlarmData implements Serializable {
             networkDnDown = new AlarmWrapper(
                 EventType.NETWORK_DN,
                 config.networkDnDown.length,
-                config.repeatIntervalSeconds,
                 (AlarmWrapper.AlarmText & Serializable) params -> String.format(
                     "%s: %d%% of DNs are offline.",
                     name,
@@ -289,12 +294,13 @@ public class AlarmData implements Serializable {
                 )
             );
         }
-        append(alarms, networkDnDown.update(config.networkDnDown, params -> (dnDownPct >= params.networkDownPercent)));
+        append(alarms, networkDnDown.update(
+            config.networkDnDown, config.repeatIntervalSeconds, params -> (dnDownPct >= params.networkDownPercent))
+        );
         if (networkCnDown == null) {
             networkCnDown = new AlarmWrapper(
                 EventType.NETWORK_CN,
                 config.networkCnDown.length,
-                config.repeatIntervalSeconds,
                 (AlarmWrapper.AlarmText & Serializable) params -> String.format(
                     "%s: %d%% of CNs are offline.",
                     name,
@@ -302,7 +308,9 @@ public class AlarmData implements Serializable {
                 )
             );
         }
-        append(alarms, networkCnDown.update(config.networkCnDown, params -> (cnDownPct >= params.networkDownPercent)));
+        append(alarms, networkCnDown.update(
+            config.networkCnDown, config.repeatIntervalSeconds, params -> (cnDownPct >= params.networkDownPercent))
+        );
 
         // Link-specific alarms
         for (Link link : topology.links) {
@@ -318,7 +326,7 @@ public class AlarmData implements Serializable {
                 // Link is alive - if an alarm exists, update it then delete it, otherwise do nothing
                 AlarmWrapper wrapper = linkDn2DnDown.remove(link.name);
                 if (wrapper != null) {
-                    append(alarms, wrapper.update(config.linkDn2DnDown, params -> false));
+                    append(alarms, wrapper.update(config.linkDn2DnDown, config.repeatIntervalSeconds, params -> false));
                 }
             } else {
                 // Link is dead - initialize alarm data if needed, then update it
@@ -326,7 +334,6 @@ public class AlarmData implements Serializable {
                     k -> new AlarmWrapper(
                         EventType.LINK_DN2DN,
                         config.linkDn2DnDown.length,
-                        config.repeatIntervalSeconds,
                         (AlarmWrapper.AlarmText & Serializable) params -> String.format(
                             "%s: Link '%s' is offline for at least %d polls.",
                             name,
@@ -335,14 +342,16 @@ public class AlarmData implements Serializable {
                         )
                     )
                 );
-                append(alarms, wrapper.update(config.linkDn2DnDown, params -> true));
+                append(alarms, wrapper.update(config.linkDn2DnDown, config.repeatIntervalSeconds, params -> true));
             }
         }
 
         // Primary controller alarms
         // Assume the controller is online because the topology was received
         if (primaryControllerDown != null) {
-            append(alarms, primaryControllerDown.update(config.primaryControllerDown, params -> false));
+            append(alarms, primaryControllerDown.update(
+                config.primaryControllerDown, config.repeatIntervalSeconds, params -> false)
+            );
         }
 
         return alarms;
@@ -373,13 +382,28 @@ public class AlarmData implements Serializable {
     /**
      * Deserializes the AlarmData object from the given file (in binary format).
      * @param f The file holding the serialized AlarmData object
+     * @param config The new alarm configuration (or null to use the existing one)
      * @return The deserialized AlarmData object
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static AlarmData readFromFile(File f) throws IOException, ClassNotFoundException {
+    public static AlarmData readFromFile(File f, AlarmConfig newConfig) throws IOException, ClassNotFoundException {
+        AlarmData alarmData;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f))) {
-            return (AlarmData) ois.readObject();
+            alarmData = (AlarmData) ois.readObject();
         }
+
+        // If overriding the existing config, warn if the configs mismatch
+        if (newConfig != null) {
+            String oldConfigJson = new Gson().toJson(alarmData.config);
+            String newConfigJson = new Gson().toJson(newConfig);
+            if (!oldConfigJson.equals(newConfigJson)) {
+                logger.warn("Alarm configuration has changed! Cached alarm data may be outdated.");
+            }
+
+            alarmData.config = newConfig;
+        }
+
+        return alarmData;
     }
 }
