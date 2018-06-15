@@ -155,7 +155,6 @@
 .config-form-input {
   border: 1px solid #ccc;
   border-radius: 2px;
-  min-width: 250px;
   padding: 2px;
 }
 
@@ -191,11 +190,6 @@
   background-color: #fff;
 }
 
-.nc-auto-field {
-  background-color: #ddf7ff;
-  border: 2px solid #0984e3;
-}
-
 .nc-network-field {
   background-color: #e0e0ff;
   border: 2px solid #6c5ce7;
@@ -203,15 +197,13 @@
 
 .nc-node-field {
   background-color: #f6ddff;
-  border: 2px solid #d980fa;
+  border: 2px solid #D980FA;
 }
 
 .nc-draft-field {
   background-color: #fff9b9;
 }
 
-.nc-revert-field,
-.nc-revert-field:disabled {
-  color: #000;
+.nc-revert-field {
   border: 2px solid #000077;
 }

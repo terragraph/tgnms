@@ -196,17 +196,18 @@ export default class JSONFormField extends React.Component {
   };
 
   getClassName(providedClass, displayIdx, isDraft, isReverted) {
-    const className = {
-      [providedClass]: true,
-      [CONFIG_CLASSNAMES.MISSING]: displayIdx < 0 && !isDraft,
-      [CONFIG_CLASSNAMES.BASE]: displayIdx === 0 && !isDraft,
-      [CONFIG_CLASSNAMES.AUTO]: displayIdx === 1 && !isDraft,
-      [CONFIG_CLASSNAMES.NETWORK]: displayIdx === 2 && !isDraft,
-      [CONFIG_CLASSNAMES.NODE]: displayIdx >= 3 && !isDraft,
-      [CONFIG_CLASSNAMES.DRAFT]: isDraft,
-      [CONFIG_CLASSNAMES.REVERT]: isReverted,
-      error: !!this.state.error,
-    };
+    const className = {};
+    className[providedClass] = true;
+
+    className[CONFIG_CLASSNAMES.MISSING] = displayIdx < 0 && !isDraft;
+    className[CONFIG_CLASSNAMES.BASE] = displayIdx === 0 && !isDraft;
+    className[CONFIG_CLASSNAMES.NETWORK] = displayIdx === 1 && !isDraft;
+    className[CONFIG_CLASSNAMES.NODE] = displayIdx >= 2 && !isDraft;
+
+    className[CONFIG_CLASSNAMES.DRAFT] = isDraft;
+    className[CONFIG_CLASSNAMES.REVERT] = isReverted;
+
+    className.error = this.state.error;
 
     return classNames(className);
   }
@@ -228,7 +229,7 @@ export default class JSONFormField extends React.Component {
     // style hack because the revert class cannot override the class for the wrapper
     const wrapperStyle = isReverted
       ? {
-          borderColor: '#000077',
+          border: '2px solid #000077',
         }
       : {};
 

@@ -11,6 +11,12 @@ import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
 
+const UNDEFINED_PLACEHOLDER = [
+  <span className="nc-tooltip-undefined">No Base Version found</span>,
+  <span className="nc-tooltip-undefined">Network Override not set</span>,
+  <span className="nc-tooltip-undefined">Node Override not set</span>,
+];
+
 export default class JSONFieldTooltip extends React.Component {
   static propTypes = {
     metadata: PropTypes.object,
@@ -92,8 +98,7 @@ export default class JSONFieldTooltip extends React.Component {
 
     const hasOverrides =
       (configLayerValues[1] !== undefined && configLayerValues[1] !== null) ||
-      (configLayerValues[2] !== undefined && configLayerValues[2] !== null) ||
-      (configLayerValues[3] !== undefined && configLayerValues[3] !== null);
+      (configLayerValues[2] !== undefined && configLayerValues[2] !== null);
 
     const configLayerContents = configLayerValues
       .map((value, idx) => {

@@ -83,9 +83,7 @@ export default class NetworkConfigLeftPane extends React.Component {
       <div className="rc-network-config-left-pane">
         {viewModeSelector}
         <div
-          className={
-            editMode === CONFIG_VIEW_MODE.NETWORK ? 'body-padding' : null
-          }>
+          className={editMode === CONFIG_VIEW_MODE.NETWORK && 'body-padding'}>
           {editMode === CONFIG_VIEW_MODE.NODE && (
             <NetworkConfigNodes
               nodes={nodes}
