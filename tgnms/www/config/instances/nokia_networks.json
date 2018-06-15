@@ -1,0 +1,15 @@
+{
+  "use_tile_proxy": false,
+  "refresh_interval": 5000,
+  "fbinternal": false,
+  "topologies": [
+    {
+      "topology_file": "nokia.json",
+      "latitude": 38.082813,
+      "longitude": 23.783837,
+      "zoom_level": 18,
+      "controller_ip": "172.17.0.1",
+      "aggregator_ip": "172.17.0.1"
+    }
+  ]
+}

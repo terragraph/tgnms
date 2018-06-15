@@ -1,0 +1,88 @@
+{
+  "name": "DT TIC",
+  "nodes": [
+    {
+      "name": "porsche.p1",
+      "mac_addr": "38:3A:21:00:00:00",
+      "site_name": "porsche",
+      "pop_node": true,
+      "is_primary": true,
+      "polarity": 1,
+      "golay_idx": {
+              "txGolayIdx": 1,
+              "rxGolayIdx": 1
+      }
+    },
+    {
+      "name": "bmw.p1",
+      "mac_addr": "38:3A:21:00:00:00",
+      "site_name": "bmw",
+      "pop_node": false,
+      "node_type": 1,
+      "is_primary": true,
+      "polarity": 2,
+      "golay_idx": {
+              "txGolayIdx": 1,
+              "rxGolayIdx": 1
+      }
+    },
+    {
+      "name": "vw.p1",
+      "mac_addr": "38:3A:21:00:00:00",
+      "site_name": "vw",
+      "pop_node": false,
+      "node_type": 1,
+      "is_primary": true,
+      "polarity": 2,
+      "golay_idx": {
+              "txGolayIdx": 1,
+              "rxGolayIdx": 1
+      }
+    }
+  ],
+  "links": [
+    {
+      "name": "link-bmw.p1-porsche.p1",
+      "a_node_name": "bmw.p1",
+      "z_node_name": "porsche.p1",
+      "link_type": 1,
+      "is_alive": false
+    },
+    {
+      "name": "link-porsche.p1-vw.p1",
+      "a_node_name": "porsche.p1",
+      "z_node_name": "vw.p1",
+      "link_type": 1,
+      "is_alive": false
+    }
+  ],
+  "sites": [
+    {
+      "name": "bmw",
+      "location": {
+        "latitude": 52.495968,
+        "longitude": 13.358029,
+        "altitude": 0,
+        "accuracy": 0
+      }
+    },
+    {
+      "name": "porsche",
+      "location": {
+        "latitude": 52.495892,
+        "longitude": 13.358162,
+        "altitude": 0,
+        "accuracy": 0
+      }
+    },
+    {
+      "name": "vw",
+      "location": {
+        "latitude": 52.496030,
+        "longitude": 13.358194,
+        "altitude": 0,
+        "accuracy": 0
+      }
+    }
+  ]
+}
