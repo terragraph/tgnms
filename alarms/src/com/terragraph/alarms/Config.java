@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,154 +23,167 @@ import com.terragraph.alarms.Alarm.AlarmSeverity;
 /**
  * Configuration structure.
  */
-public class Config {
-	/** System configuration. */
-	public static class SystemConfig {
-		/** The polling interval (in seconds). */
-		public int pollIntervalSeconds = 30;
+public class Config implements Serializable {
+    private static final long serialVersionUID = -7811881498240361858L;
 
-		/** The Terragraph API Service endpoint for requesting the topology. */
-		public Map<String, String> topologyEndpoints = new HashMap<>();
+    /** System configuration. */
+    public static class SystemConfig implements Serializable {
+        private static final long serialVersionUID = 122378913235733052L;
 
-		/** The connection timeout (in milliseconds). */
-		public int connectTimeoutMilliseconds = 5000;
+        /** The polling interval (in seconds). */
+        public int pollIntervalSeconds = 30;
 
-		/** The read timeout (in milliseconds). */
-		public int readTimeoutMilliseconds = 10000;
+        /** The Terragraph API Service endpoint for requesting the topology. */
+        public Map<String, String> topologyEndpoints = new HashMap<>();
 
-		/** Default constructor. */
-		public SystemConfig() {
-			topologyEndpoints.put("Terragraph", "http://localhost:80/api/getTopology");
-		}
-	}
+        /** The connection timeout (in milliseconds). */
+        public int connectTimeoutMilliseconds = 5000;
 
-	/** Syslog configuration. */
-	public static class SyslogConfig {
-		/** The syslog server hostname. */
-		public String serverHost = "localhost";
+        /** The read timeout (in milliseconds). */
+        public int readTimeoutMilliseconds = 10000;
 
-		/** The syslog server port. */
-		public int serverPort = 514;
+        /** Default constructor. */
+        public SystemConfig() {
+            topologyEndpoints.put("Terragraph", "http://localhost:80/api/getTopology");
+        }
+    }
 
-		/** The syslog transport protocol to use. */
-		public SyslogSender.TransportProtocol transportProtocol = SyslogSender.TransportProtocol.UDP;
+    /** Syslog configuration. */
+    public static class SyslogConfig implements Serializable {
+        private static final long serialVersionUID = -1128636089115427563L;
 
-		/** Whether to use SSL (if sending over TCP). */
-		public boolean useSsl = false;
+        /** The syslog server hostname. */
+        public String serverHost = "localhost";
 
-		/** The syslog message format. */
-		public MessageFormat messageFormat = MessageFormat.RFC_5424;
+        /** The syslog server port. */
+        public int serverPort = 514;
 
-		/** The "facility" for messages (as the facility code). */
-		public int facility = 23;
+        /** The syslog transport protocol to use. */
+        public SyslogSender.TransportProtocol transportProtocol = SyslogSender.TransportProtocol.UDP;
 
-		/** The "severity" for messages (as the severity level). */
-		public int severity = 6;
+        /** Whether to use SSL (if sending over TCP). */
+        public boolean useSsl = false;
 
-		/** The default "appName" for messages. */
-		public String appName = "Terragraph";
-	}
+        /** The syslog message format. */
+        public MessageFormat messageFormat = MessageFormat.RFC_5424;
 
-	/** Alarm configuration. */
-	public static class AlarmConfig {
-		/** Common alarm parameters. */
-		public static class AlarmParams {
-			/** For network alarms, the minimum percentage of alarm-specific nodes that must be offline. */
-			public Integer networkDownPercent;
+        /** The "facility" for messages (as the facility code). */
+        public int facility = 23;
 
-			/** The number of consecutive polls where the alarm condition is met before the alarm fires. */
-			public Integer consecutivePolls;
+        /** The "severity" for messages (as the severity level). */
+        public int severity = 6;
 
-			/** The severity of the alarm (within the syslog message contents, NOT the syslog severity level). */
-			public AlarmSeverity alarmSeverity;
+        /** The default "appName" for messages. */
+        public String appName = "Terragraph";
 
-			/** Constructor. */
-			public AlarmParams(Integer networkDownPercent, Integer consecutivePolls, AlarmSeverity alarmSeverity) {
-				this.networkDownPercent = networkDownPercent;
-				this.consecutivePolls = consecutivePolls;
-				this.alarmSeverity = alarmSeverity;
-			}
-		}
+        /** Whether to send heartbeats (at every poll interval). */
+        public boolean sendHeartbeats = true;
+    }
 
-		/** The interval at which alarms should be repeated if still active. */
-		public int repeatIntervalSeconds = 900;
+    /** Alarm configuration. */
+    public static class AlarmConfig implements Serializable {
+        private static final long serialVersionUID = 5350978658507411869L;
 
-		/** Alarm for network-wide DN disruption. */
-		public AlarmParams[] networkDnDown;
+        /** Common alarm parameters. */
+        public static class AlarmParams implements Serializable {
+            private static final long serialVersionUID = 7472464069475367445L;
 
-		/** Alarm for network-wide CN disruption. */
-		public AlarmParams[] networkCnDown;
+            /** For network alarms, the minimum percentage of alarm-specific nodes that must be offline. */
+            public Integer networkDownPercent;
 
-		/** Alarms for individual DN disruption. */
-		public AlarmParams[] nodeDnDown;
+            /** The number of consecutive polls where the alarm condition is met before the alarm fires. */
+            public Integer consecutivePolls;
 
-		/** Alarms for individual POP Primary-DN disruption. */
-		public AlarmParams[] nodePopPrimaryDown;
+            /** The severity of the alarm (within the syslog message contents, NOT the syslog severity level). */
+            public AlarmSeverity alarmSeverity;
 
-		/** Alarms for DN-to-DN link disruption. */
-		public AlarmParams[] linkDn2DnDown;
+            /** Constructor. */
+            public AlarmParams(Integer networkDownPercent, Integer consecutivePolls, AlarmSeverity alarmSeverity) {
+                this.networkDownPercent = networkDownPercent;
+                this.consecutivePolls = consecutivePolls;
+                this.alarmSeverity = alarmSeverity;
+            }
+        }
 
-		/** Alarm for primary controller unreachability. */
-		public AlarmParams[] primaryControllerDown;
+        /** The interval at which alarms should be repeated if still active. */
+        public int repeatIntervalSeconds = 900;
 
-		/** Default constructor. */
-		public AlarmConfig() {
-			networkDnDown = new AlarmParams[]{
-				new AlarmParams(10, 20, AlarmSeverity.WARN),
-				new AlarmParams(50, 20, AlarmSeverity.CRIT)
-			};
-			networkCnDown = new AlarmParams[]{
-				new AlarmParams(50, 20, AlarmSeverity.WARN),
-				new AlarmParams(75, 20, AlarmSeverity.CRIT)
-			};
-			nodeDnDown = new AlarmParams[]{
-				new AlarmParams(null, 1440, AlarmSeverity.WARN),
-				new AlarmParams(null, 2880, AlarmSeverity.CRIT)
-			};
-			nodePopPrimaryDown = new AlarmParams[]{
-				new AlarmParams(null, 120, AlarmSeverity.WARN),
-				new AlarmParams(null, 1440, AlarmSeverity.CRIT)
-			};
-			linkDn2DnDown = new AlarmParams[]{
-				new AlarmParams(null, 1440, AlarmSeverity.WARN),
-				new AlarmParams(null, 2880, AlarmSeverity.CRIT)
-			};
-			primaryControllerDown = new AlarmParams[]{
-				new AlarmParams(null, 5, AlarmSeverity.WARN),
-				new AlarmParams(null, 120, AlarmSeverity.CRIT)
-			};
-		}
-	}
+        /** Alarm for network-wide DN disruption. */
+        public AlarmParams[] networkDnDown;
 
-	/** The system configuration. */
-	public SystemConfig systemConfig = new SystemConfig();
+        /** Alarm for network-wide CN disruption. */
+        public AlarmParams[] networkCnDown;
 
-	/** The syslog configuration. */
-	public SyslogConfig syslogConfig = new SyslogConfig();
+        /** Alarms for individual DN disruption. */
+        public AlarmParams[] nodeDnDown;
 
-	/** The alarm configuration. */
-	public AlarmConfig alarmConfig = new AlarmConfig();
+        /** Alarms for individual POP Primary-DN disruption. */
+        public AlarmParams[] nodePopPrimaryDown;
 
-	/**
-	 * Serializes the Config object to the given file.
-	 * @param f The file to write the serialized Config object to
-	 * @throws IOException
-	 */
-	public void writeToFile(File f) throws IOException {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
-			writer.append(new GsonBuilder().setPrettyPrinting().create().toJson(this));
-		}
-	}
+        /** Alarms for DN-to-DN link disruption. */
+        public AlarmParams[] linkDn2DnDown;
 
-	/**
-	 * Deserializes the Config object from the given file.
-	 * @param f The file holding the serialized Config object
-	 * @return The deserialized Config object
-	 * @throws IOException
-	 */
-	public static Config readFromFile(File f) throws IOException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-    		return new Gson().fromJson(reader, Config.class);
-		}
-	}
+        /** Alarm for primary controller unreachability. */
+        public AlarmParams[] primaryControllerDown;
+
+        /** Default constructor. */
+        public AlarmConfig() {
+            networkDnDown = new AlarmParams[]{
+                new AlarmParams(10, 20, AlarmSeverity.WARN),
+                new AlarmParams(50, 20, AlarmSeverity.CRIT)
+            };
+            networkCnDown = new AlarmParams[]{
+                new AlarmParams(50, 20, AlarmSeverity.WARN),
+                new AlarmParams(75, 20, AlarmSeverity.CRIT)
+            };
+            nodeDnDown = new AlarmParams[]{
+                new AlarmParams(null, 1440, AlarmSeverity.WARN),
+                new AlarmParams(null, 2880, AlarmSeverity.CRIT)
+            };
+            nodePopPrimaryDown = new AlarmParams[]{
+                new AlarmParams(null, 120, AlarmSeverity.WARN),
+                new AlarmParams(null, 1440, AlarmSeverity.CRIT)
+            };
+            linkDn2DnDown = new AlarmParams[]{
+                new AlarmParams(null, 1440, AlarmSeverity.WARN),
+                new AlarmParams(null, 2880, AlarmSeverity.CRIT)
+            };
+            primaryControllerDown = new AlarmParams[]{
+                new AlarmParams(null, 5, AlarmSeverity.WARN),
+                new AlarmParams(null, 120, AlarmSeverity.CRIT)
+            };
+        }
+    }
+
+    /** The system configuration. */
+    public SystemConfig systemConfig = new SystemConfig();
+
+    /** The syslog configuration. */
+    public SyslogConfig syslogConfig = new SyslogConfig();
+
+    /** The alarm configuration. */
+    public AlarmConfig alarmConfig = new AlarmConfig();
+
+    /**
+     * Serializes the Config object to the given file (in JSON format).
+     * @param f The file to write the serialized Config object to
+     * @throws IOException
+     */
+    public void writeToFile(File f) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
+            writer.append(new GsonBuilder().setPrettyPrinting().create().toJson(this));
+        }
+    }
+
+    /**
+     * Deserializes the Config object from the given file (in JSON format).
+     * @param f The file holding the serialized Config object
+     * @return The deserialized Config object
+     * @throws IOException
+     */
+    public static Config readFromFile(File f) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+            return new Gson().fromJson(reader, Config.class);
+        }
+    }
 }
