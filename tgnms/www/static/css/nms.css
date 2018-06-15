@@ -85,6 +85,9 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   background-color: #337ab7;
   color: white;
 }
+.graph-button-selected:hover {
+  background-color: #155083;
+}
 .graph-button-disabled {
   background-color: darkgray;
 }
