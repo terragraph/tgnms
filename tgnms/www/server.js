@@ -2067,10 +2067,14 @@ if (devMode) {
 }
 
 function getAPIServiceHost(req, res) {
-  const controller_ip = configByName[req.params.topology].controller_ip_active;
+  const topology = configByName[req.params.topology];
+  if (topology.apiservice_baseurl) {
+    return topology.apiservice_baseurl;
+  }
+  const controller_ip = topology.controller_ip_active;
   return isIp.v6(controller_ip)
-    ? 'http://[' + controller_ip + ']'
-    : 'http://' + controller_ip;
+    ? 'http://[' + controller_ip + ']:8080'
+    : 'http://' + controller_ip + ':8080';
 
 }
 

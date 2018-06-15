@@ -161,6 +161,7 @@
         {
             "controller_ip": "2620:10d:c089:e001:20c:29ff:fe5a:b21f",
             "aggregator_ip": "2620:10d:c089:e001:20c:29ff:fe5a:b21f",
+            "apiservice_baseurl": "http://[2620:10d:c089:e001:20c:29ff:fe5a:b21f]",
             "site_coords_override": true,
             "latitude": 37.4848280435154,
             "longitude": -122.1472245455607,
