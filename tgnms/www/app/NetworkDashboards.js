@@ -9,7 +9,7 @@ import Dispatcher from './NetworkDispatcher.js';
 import PlotlyGraph from './PlotlyGraph.js';
 import {Actions} from './constants/NetworkConstants.js';
 import DashboardSelect from './components/dashboard/DashboardSelect.js';
-import GlobalDataSelect from './components/dashboard/GlobalDataSelect.js';
+import GraphConfigurationSelect from './components/dashboard/GraphConfigurationSelect.js';
 import CreateGraphModal from './components/dashboard/CreateGraphModal.js';
 import GraphInformationBox from './components/dashboard/GraphInformationBox.js';
 import {
@@ -21,6 +21,7 @@ import React from 'react';
 import swal from 'sweetalert';
 import axios from 'axios';
 import moment from 'moment';
+import {Glyphicon} from 'react-bootstrap';
 
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
@@ -32,6 +33,7 @@ export default class NetworkDashboards extends React.Component {
     editView: false,
     editGraphMode: false,
     hideDashboardOptions: false,
+    hideDataSelect: true,
     modalIsOpen: false,
   };
 
@@ -107,6 +109,18 @@ export default class NetworkDashboards extends React.Component {
   closeModal = () => {
     this.setState({
       modalIsOpen: false,
+    });
+  };
+
+  onHideDataSelect = () => {
+    this.setState({
+      hideDataSelect: true,
+    });
+  };
+
+  onShowDataSelect = () => {
+    this.setState({
+      hideDataSelect: false,
     });
   };
 
@@ -354,12 +368,18 @@ export default class NetworkDashboards extends React.Component {
         nodeZ.name === dashboard.nodeZ.name)
     ) {
       newDashboard.graphs = graphs.map(graph => {
-        return {
-          ...graph,
-          startTime,
-          endTime,
-          minAgo,
-        };
+        // If the graph uses custom data (not data from the dashboard's graph
+        // config options, then do not modify the graph
+        if (graph.setup.isCustom) {
+          return {...graph};
+        } else {
+          return {
+            ...graph,
+            startTime,
+            endTime,
+            minAgo,
+          };
+        }
       });
       this.setState({
         dashboards: {
@@ -379,8 +399,14 @@ export default class NetworkDashboards extends React.Component {
     };
 
     const graphPromises = graphs.map(async graph => {
-      const inputData = this.getGraphInputData(graph, globalData);
-      return await this.generateGraph(graph.setup.graphType, inputData);
+      // If the graph is a custom graph (doesnt use data from the dashboard's
+      //  graph config options) then do not modify the graph
+      if (graph.setup.isCustom) {
+        return {...graph};
+      } else {
+        const inputData = this.getGraphInputData(graph, globalData);
+        return await this.generateGraph(graph.setup.graphType, inputData);
+      }
     });
 
     Promise.all(graphPromises).then(graphs => {
@@ -587,12 +613,11 @@ export default class NetworkDashboards extends React.Component {
           layoutDivs.push(
             <div key={id} className="graph-wrapper">
               <div className="graph-indicators-box">
-                {graph.setup.graphFormData &&
-                  graph.setup.graphFormData.customGraphChecked && (
-                    <div className="graph-indicator custom-graph-indicator">
-                      custom
-                    </div>
-                  )}
+                {graph.setup.isCustom && (
+                  <div className="graph-indicator custom-graph-indicator">
+                    custom
+                  </div>
+                )}
                 <div className="graph-indicator graph-type-indicator">
                   {graph.setup.graphType}
                 </div>
@@ -692,15 +717,36 @@ export default class NetworkDashboards extends React.Component {
             {dashboards &&
               selectedDashboard &&
               dashboards[selectedDashboard] && (
-                <div id="global-data-select-wrapper">
-                  <GlobalDataSelect
-                    networkConfig={this.props.networkConfig}
-                    onChangeDashboardGlobalData={
-                      this.onChangeDashboardGlobalData
-                    }
-                    dashboard={dashboards[selectedDashboard]}
-                    globalUse
-                  />
+                <div>
+                  {!this.state.hideDataSelect ? (
+                    <div id="global-data-select-wrapper">
+                      <h4>Graph Configuration Options</h4>
+                      <div
+                        className="hide-show-icon"
+                        onClick={this.onHideDataSelect}
+                        role="button">
+                        <Glyphicon glyph="chevron-up" />
+                      </div>
+                      <GraphConfigurationSelect
+                        networkConfig={this.props.networkConfig}
+                        onChangeDashboardGlobalData={
+                          this.onChangeDashboardGlobalData
+                        }
+                        dashboard={dashboards[selectedDashboard]}
+                        globalUse
+                      />
+                    </div>
+                  ) : (
+                    <div id="global-data-select-wrapper">
+                      <h4>Apply Graph Configuration Options</h4>
+                      <div
+                        className="hide-show-icon"
+                        onClick={this.onShowDataSelect}
+                        role="button">
+                        <Glyphicon glyph="chevron-down" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
           </div>

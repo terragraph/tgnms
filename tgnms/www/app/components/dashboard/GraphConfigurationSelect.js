@@ -82,7 +82,7 @@ class NodeOption extends React.Component {
   }
 }
 
-export default class GlobalDataSelect extends React.Component {
+export default class GraphConfigurationSelect extends React.Component {
   state = {
     endTime: new Date(),
     minAgo: 60,
@@ -104,34 +104,33 @@ export default class GlobalDataSelect extends React.Component {
     super(props);
   }
 
-  componentWillMount() {
-    const {nodeA, nodeZ} = this.props.dashboard;
-    this.setNodeAOptions();
-
-    if (this.state.nodeASelected.node) {
-      this.setNodeZOptions(this.state.nodeASelected.node);
-    }
-    if (nodeA) {
-      this.setState({
-        nodeASelected: {
-          label: nodeA.name,
-          node: nodeA,
-          value: nodeA.mac_addr,
-        },
-        nodeZSelected: {
-          label: nodeZ.name,
-          node: nodeZ,
-          value: nodeZ.mac_addr,
-        },
-      });
-    }
-  }
-
   componentDidMount() {
     // register to receive topology updates
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this),
     );
+    if (this.props.globalUse) {
+      const {nodeA, nodeZ} = this.props.dashboard;
+      if (nodeA) {
+        this.setState({
+          nodeASelected: {
+            label: nodeA.name,
+            node: nodeA,
+            value: nodeA.mac_addr,
+          },
+          nodeZSelected: {
+            label: nodeZ.name,
+            node: nodeZ,
+            value: nodeZ.mac_addr,
+          },
+        });
+      }
+    }
+    this.setNodeAOptions();
+
+    if (this.state.nodeASelected.node) {
+      this.setNodeZOptions(this.state.nodeASelected.node);
+    }
   }
 
   componentWillUnmount() {
@@ -281,16 +280,7 @@ export default class GlobalDataSelect extends React.Component {
     const disableApplySubmit =
       this.state.nodeASelected === '' || this.state.nodeZSelected === '';
     return (
-      <div
-        className={cx({
-          'global-data-select': true,
-          'custom-data-select': !this.props.globalUse,
-        })}>
-        {this.props.globalUse ? (
-          <h3>Global Data</h3>
-        ) : (
-          <h4>Select Custom Data</h4>
-        )}
+      <div className="global-data-select">
         <div className="node-box">
           {(this.props.globalUse ||
             this.props.graphType === 'Node' ||
@@ -405,11 +395,7 @@ export default class GlobalDataSelect extends React.Component {
         </div>
         {this.props.globalUse && (
           <button
-            className={cx({
-              'graph-button': true,
-              'disabled-button': disableApplySubmit,
-              'submit-button': !disableApplySubmit,
-            })}
+            className="graph-button submit-button"
             onClick={() => {
               this.applyToAllGraphs();
             }}
