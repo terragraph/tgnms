@@ -93,18 +93,31 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   height: 30px;
   display: inline-block;
 }
+.status-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: auto 10px;
+}
 .status-table {
   padding: 10px;
   float: left;
 }
+.status-table.main {
+  width: 75%;
+}
+.status-table.site-sector-link {
+  width: 25%;
+}
 .status-table td {
+  border: 1px solid #ddd;
   padding: 5px;
 }
 .status-table tr:nth-child(2n+1) {
-  background: #eee;
+  background: #fff;
 }
 .status-table tr:nth-child(2n) {
-  background: #ddd;
+  background: #f9f9f9;
 }
 
 .details {
@@ -370,4 +383,32 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 }
 .tr-other {
   background: #fe6767;
+}
+
+.data-table-tab-list {
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  list-style-type: none;
+  padding: 0 5px;
+}
+
+.data-table-tab {
+  margin: auto 2px;
+  padding: 10px 5px;
+  transition: font-weight 50ms ease-in-out;
+}
+
+.data-table-tab:hover {
+  border-bottom: 1px solid #dbd8ff;
+  cursor: pointer;
+}
+
+.data-table-tab:focus {
+  outline: none;
+}
+
+.data-table-tab-selected, .data-table-tab-selected:hover {
+  border-bottom: 2px solid #a29bfe;
+  font-weight: bold;
 }
