@@ -17,10 +17,11 @@ This will generate a runnable JAR located at `target/alarms.jar`.
 ## Usage
 Run the JAR:
 ```
-java -jar alarms.jar {<config_file_path>}
+java -jar alarms.jar {<config_file_path> {<cached_alarm_data_path>}}
 ```
 
 The program will generate a configuration file, `config.json`, in the current
-working directory, or will load this file if it exists. The program accepts an
-optional argument which specifies an alternate location for the configuration
-file (which must exist).
+working directory, or will load this file if it exists. On graceful shutdown,
+the current alarm state will be cached to `data.ser`, and this data will be
+loaded on startup. The program accepts optional arguments which specify
+alternate locations for these two files (which must exist).
