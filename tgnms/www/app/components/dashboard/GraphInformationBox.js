@@ -13,7 +13,7 @@ const LinkGraphInfo = ({graph}) => {
     <div>
       <p>
         <strong>Direction: </strong>
-        {graph.setup.graphFormData.linkDirectionSelected}
+        {graph.setup.graphFormData.linkGraphData.linkDirectionSelected}
       </p>
       <p>
         <strong>Keys: </strong>
@@ -28,12 +28,10 @@ const LinkGraphInfo = ({graph}) => {
 };
 
 const NodeGraphInfo = ({graph}) => {
-  const {graphFormData} = graph.setup;
-  const nodes = graphFormData.customGraphChecked
-    ? graphFormData.customData.nodes
-    : graph.setup.graphFormData.nodesSelected.map(
-        nodeSelected => nodeSelected.node,
-      );
+  const {generalFormData, nodeGraphData} = graph.setup.graphFormData;
+  const nodes = generalFormData.customGraphChecked
+    ? generalFormData.customData.nodes
+    : nodeGraphData.nodesSelected.map(nodeSelected => nodeSelected.node);
 
   return (
     <div>
@@ -61,6 +59,10 @@ const NetworkGraphInfo = ({graph}) => {
         <strong>Key: </strong>
         {keyName}
       </p>
+      <p>
+        <strong>Aggregation: </strong>
+        {graph.agg_type}
+      </p>
     </div>
   );
 };
@@ -70,15 +72,15 @@ const GraphInfo = ({graph}) => {
 
   let graphTypeInfo = null;
 
-  switch(graphType) {
+  switch (graphType) {
     case 'link':
-      graphTypeInfo = <LinkGraphInfo graph={graph} />
+      graphTypeInfo = <LinkGraphInfo graph={graph} />;
       break;
     case 'node':
-      graphTypeInfo = <NodeGraphInfo graph={graph} />
+      graphTypeInfo = <NodeGraphInfo graph={graph} />;
       break;
     case 'network':
-      graphTypeInfo = <NetworkGraphInfo graph={graph} />
+      graphTypeInfo = <NetworkGraphInfo graph={graph} />;
       break;
     default:
       break;
@@ -112,11 +114,7 @@ const GraphInfo = ({graph}) => {
       </div>
     );
   } else {
-    return (
-      <div>
-        {graphTypeInfo}
-      </div>
-    );
+    return <div>{graphTypeInfo}</div>;
   }
 };
 
