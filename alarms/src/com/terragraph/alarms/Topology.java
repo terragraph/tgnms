@@ -5,94 +5,102 @@
 
 package com.terragraph.alarms;
 
+import java.io.Serializable;
+
 import com.google.gson.Gson;
 
 /**
  * A thin version of the {@code thrift::Topology} structure.
  */
-public class Topology {
-	/** Node structure. */
-	public static class Node {
-		public String name;
-		public int node_type;
-		public boolean is_primary;
-		public boolean pop_node;
-		public int status;
+public class Topology implements Serializable {
+    private static final long serialVersionUID = -394784436971798136L;
 
-		/** Returns whether this node is alive. */
-		public boolean isAlive() {
-			return (status == NodeStatusType.ONLINE.value() ||
-					status == NodeStatusType.ONLINE_INITIATOR.value());
-		}
+    /** Node structure. */
+    public static class Node implements Serializable {
+        private static final long serialVersionUID = 7810890933974879374L;
 
-		/** Returns whether this node is a DN. */
-		public boolean isDN() { return (node_type == NodeType.DN.value()); }
+        public String name;
+        public int node_type;
+        public boolean is_primary;
+        public boolean pop_node;
+        public int status;
 
-		/** Returns whether this node is a CN. */
-		public boolean isCN() { return (node_type == NodeType.CN.value()); }
-	}
+        /** Returns whether this node is alive. */
+        public boolean isAlive() {
+            return (status == NodeStatusType.ONLINE.value() ||
+                    status == NodeStatusType.ONLINE_INITIATOR.value());
+        }
 
-	/** Link structure. */
-	public static class Link {
-		public String name;
-		public String a_node_name;
-		public String z_node_name;
-		public int link_type;
-		public boolean is_alive;
+        /** Returns whether this node is a DN. */
+        public boolean isDN() { return (node_type == NodeType.DN.value()); }
 
-		/** Returns whether this is a wireless link. */
-		public boolean isWireless() { return (link_type == LinkType.WIRELESS.value()); }
+        /** Returns whether this node is a CN. */
+        public boolean isCN() { return (node_type == NodeType.CN.value()); }
+    }
 
-		/** Returns whether this is a wired link. */
-		public boolean isWired() { return (link_type == LinkType.ETHERNET.value()); }
-	}
+    /** Link structure. */
+    public static class Link implements Serializable {
+        private static final long serialVersionUID = 3372530461036759925L;
 
-	/** Node types. */
-	public enum NodeType {
-		CN(1),
-		DN(2);
+        public String name;
+        public String a_node_name;
+        public String z_node_name;
+        public int link_type;
+        public boolean is_alive;
 
-		private final int id;
-		NodeType(int id) { this.id = id; }
-		public int value() { return id; }
-	}
+        /** Returns whether this is a wireless link. */
+        public boolean isWireless() { return (link_type == LinkType.WIRELESS.value()); }
 
-	/** Node statuses. */
-	enum NodeStatusType {
-	    OFFLINE(1),
-	    ONLINE(2),
-	    ONLINE_INITIATOR(3);
+        /** Returns whether this is a wired link. */
+        public boolean isWired() { return (link_type == LinkType.ETHERNET.value()); }
+    }
 
-		private final int id;
-		NodeStatusType(int id) { this.id = id; }
-		public int value() { return id; }
-	}
+    /** Node types. */
+    public enum NodeType {
+        CN(1),
+        DN(2);
 
-	/** Link types. */
-	public enum LinkType {
-		WIRELESS(1),
-		ETHERNET(2);
+        private final int id;
+        NodeType(int id) { this.id = id; }
+        public int value() { return id; }
+    }
 
-		private final int id;
-		LinkType(int id) { this.id = id; }
-		public int value() { return id; }
-	}
+    /** Node statuses. */
+    enum NodeStatusType {
+        OFFLINE(1),
+        ONLINE(2),
+        ONLINE_INITIATOR(3);
 
-	/** The topology name. */
-	public String name;
+        private final int id;
+        NodeStatusType(int id) { this.id = id; }
+        public int value() { return id; }
+    }
 
-	/** The list of nodes. */
-	public Node[] nodes;
+    /** Link types. */
+    public enum LinkType {
+        WIRELESS(1),
+        ETHERNET(2);
 
-	/** The list of links. */
-	public Link[] links;
+        private final int id;
+        LinkType(int id) { this.id = id; }
+        public int value() { return id; }
+    }
 
-	/**
-	 * Deserializes the Topology object from the given JSON string.
-	 * @param json The JSON string holding the serialized Topology object
-	 * @return The deserialized Topology object
-	 */
-	public static Topology fromJson(String json) {
-		return new Gson().fromJson(json, Topology.class);
-	}
+    /** The topology name. */
+    public String name;
+
+    /** The list of nodes. */
+    public Node[] nodes;
+
+    /** The list of links. */
+    public Link[] links;
+
+    /**
+     * Deserializes the Topology object from the given JSON string.
+     * @param json The JSON string holding the serialized Topology object
+     * @return The deserialized Topology object
+     */
+    public static Topology fromJson(String json) {
+        return new Gson().fromJson(json, Topology.class);
+    }
 }
