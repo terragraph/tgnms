@@ -33,12 +33,7 @@ export default class NetworkStatusTable extends React.Component {
         node => node.status == 2 || node.status == 3,
       ).length;
       topologyTable = (
-        <table
-          className="status-table"
-          style={{
-            width: '25%',
-            borderLeft: '1px solid teal',
-          }}>
+        <table className="status-table site-sector-link">
           <tbody>
             <tr>
               <td>Sites</td>
@@ -105,52 +100,51 @@ export default class NetworkStatusTable extends React.Component {
       i++;
     });
     return (
-      <div style={{marginLeft: '10px', marginRight: '10px'}}>
-        <table className="status-table" style={{width: '75%'}}>
+      <div className="status-table-container">
+        <table className="status-table main">
           <tbody>
             <tr>
               <td>Controller</td>
-              <td>{this.props.instance.controller_ip}</td>
-              <td>{this.statusColor(this.props.instance.controller_online)}</td>
+              <td style={{borderRight: 0}}>
+                {this.props.instance.controller_ip}
+              </td>
+              <td style={{borderLeft: 0}}>
+                {this.statusColor(this.props.instance.controller_online)}
+              </td>
             </tr>
             <tr>
-              <td>&nbsp;</td>
-              <td>{this.props.instance.controller_version}</td>
-              <td>&nbsp;</td>
+              <td>Controller Version</td>
+              <td colspan={2}>{this.props.instance.controller_version}</td>
             </tr>
             {controllerErrorRow}
             <tr>
               <td>Query Service</td>
-              <td>-</td>
-              <td>
+              <td style={{borderRight: 0}}>-</td>
+              <td style={{borderLeft: 0}}>
                 {this.statusColor(this.props.instance.query_service_online)}
               </td>
             </tr>
             <tr>
               <td>Latitude</td>
-              <td>{this.props.instance.latitude}</td>
-              <td>&nbsp;</td>
+              <td colspan={2}>{this.props.instance.latitude}</td>
             </tr>
             <tr>
               <td>Longitude</td>
-              <td>{this.props.instance.longitude}</td>
-              <td>&nbsp;</td>
+              <td colspan={2}>{this.props.instance.longitude}</td>
             </tr>
             <tr>
               <td>Initial Zoom Level</td>
-              <td>{this.props.instance.zoom_level}</td>
-              <td>&nbsp;</td>
+              <td colspan={2}>{this.props.instance.zoom_level}</td>
             </tr>
             <tr>
               <td>Site Coordinates Override</td>
-              <td>
+              <td colspan={2}>
                 {this.statusColor(
                   this.props.instance.site_coords_override,
                   'Enabled',
                   'Disabled',
                 )}
               </td>
-              <td>&nbsp;</td>
             </tr>
             {nodeVersions}
           </tbody>

@@ -142,14 +142,15 @@ export default class NetworkDataTable extends React.Component {
     };
     return (
       <Tabs
+        selectedTabClassName="data-table-tab-selected"
         onSelect={this._handleTabSelect.bind(this)}
         selectedIndex={this.state.selectedTabIndex}>
-        <TabList>
-          <Tab>Status</Tab>
-          <Tab>Nodes</Tab>
-          <Tab>Links</Tab>
-          <Tab>Scans</Tab>
-          <Tab>Adjacencies</Tab>
+        <TabList className="data-table-tab-list">
+          <Tab className="data-table-tab">Status</Tab>
+          <Tab className="data-table-tab">Nodes</Tab>
+          <Tab className="data-table-tab">Links</Tab>
+          <Tab className="data-table-tab">Scans</Tab>
+          <Tab className="data-table-tab">Adjacencies</Tab>
         </TabList>
         <TabPanel>
           <NetworkStatusTable {...tableProps} />
