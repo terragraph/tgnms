@@ -58,13 +58,13 @@ public class Launcher {
             // Try to read the given serialized alarm data
             logger.info("Loading serialized alarm data file: {}", args[1]);
             alarmDataFile = new File(args[1]);
-            alarmData = AlarmData.readFromFile(alarmDataFile);
+            alarmData = AlarmData.readFromFile(alarmDataFile, config.alarmConfig);
         } else {
             // Read the default serialized alarm data file (if it exists)
             alarmDataFile = DEFAULT_ALARM_DATA_FILE;
             if (alarmDataFile.isFile()) {
                 logger.info("Loading serialized alarm data file: {}", alarmDataFile.getAbsolutePath());
-                alarmData = AlarmData.readFromFile(alarmDataFile);
+                alarmData = AlarmData.readFromFile(alarmDataFile, config.alarmConfig);
             }
         }
 
