@@ -321,10 +321,7 @@ export default class NetworkNodesTable extends React.Component {
           height={this.props.height + 'px'}
           key="nodesTable"
           options={tableOptions}
-          data={NetworkNodesTable.getTableRows(
-            nodesData,
-            this.state.nodeHealth,
-          )}
+          data={this.getTableRows(nodesData)}
           striped={true}
           hover={true}
           selectRow={selectRowProp}
@@ -363,10 +360,7 @@ export default class NetworkNodesTable extends React.Component {
           height={height}
           overscanRowCount={overscanRowCount}
           columns={this.headers}
-          data={NetworkNodesTable.getTableRows(
-            nodesData,
-            this.state.nodeHealth,
-          )}
+          data={this.getTableRows(nodesData)}
           sortBy={this.state.sortBy}
           sortDirection={this.state.sortDirection}
           onRowSelect={row => this.tableOnRowSelect(row)}

@@ -16,7 +16,6 @@ import ReactEventChart from './ReactEventChart.js';
 import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import PropTypes from 'prop-types';
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import Select from 'react-select';
 import React from 'react';
 import CustomTable from './components/common/CustomTable.js';
@@ -31,119 +30,119 @@ const selfTestTableDescriptionInit = {
     title: 'From',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'link',
   },
   to_node: {
     title: 'To',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'link',
   },
   scuba_link: {
     title: 'Scuba',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'dashboard',
   },
   wireless_hop_count: {
     title: 'Hop Count',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'wireless_hop_count',
   },
   health_tag: {
     title: 'Health Tag',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'healthiness',
   },
   distance: {
     title: 'Distance',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'distance',
   },
   per: {
     title: 'PER (%)',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'iperf_PER_avg',
   },
   mcs_p90: {
     title: 'MCS P90',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'mcs_p90',
   },
   mcs_avg: {
     title: 'MCS avg',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'mcs_avg',
   },
   mcs_std: {
     title: 'MCS std',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'mcs_std',
   },
   tx_power: {
     title: 'txPower',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'txPowerAvg',
   },
   snr: {
     title: 'SNR',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'snrAvg',
   },
   avg: {
     title: 'Avg (Mbit/s)',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'iperf_avg',
   },
   std: {
     title: 'Std (Mbit/s)',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'iperf_std',
   },
   min: {
     title: 'Min (Mbit/s)',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'iperf_min',
   },
   max: {
     title: 'Max (Mbit/s)',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'iperf_max',
   },
   time: {
     title: 'unix time',
     hidden: true,
     iskey: false,
-    width: '50',
+    width: 125,
     sqlfield: 'time',
   },
   // name field always hidden, used to show link on the map
@@ -151,7 +150,7 @@ const selfTestTableDescriptionInit = {
     title: 'link name',
     hidden: false,
     iskey: true,
-    width: '50',
+    width: 125,
     sqlfield: 'link',
   },
 };
@@ -289,49 +288,49 @@ export default class NetworkLinksTable extends React.Component {
       key: 'mcs',
       width: 100,
       sort: true,
-      render: this.renderFloatPointWrapper.bind(this, 'mcs'),
+      render: this.renderFloatPoint.bind(this, 'mcs'),
     },
     {
       label: 'Avg SNR',
       key: 'snr',
       width: 100,
       sort: true,
-      render: this.renderFloatPointWrapper.bind(this, 'snr'),
+      render: this.renderFloatPoint.bind(this, 'snr'),
     },
     {
       label: 'Avg PER',
       key: 'per',
       width: 100,
       sort: true,
-      render: this.renderFloatPointWrapper.bind(this, 'per'),
+      render: this.renderFloatPoint.bind(this, 'per'),
     },
     {
       label: 'Avg tput(PPS)',
       key: 'tput',
       width: 100,
       sort: true,
-      render: this.renderFloatPointWrapper.bind(this, 'tputPPS'),
+      render: this.renderFloatPoint.bind(this, 'tputPPS'),
     },
     {
       label: 'Avg txPower',
       key: 'txpower',
       width: 100,
       sort: true,
-      render: this.renderFloatPointWrapper.bind(this, 'txpower'),
+      render: this.renderFloatPoint.bind(this, 'txpower'),
     },
     {
       label: '#Restarts',
       key: 'fw_restarts',
       width: 100,
       sort: true,
-      render: this.renderFloatPointWrapper.bind(this, 'fw_restarts'),
+      render: this.renderFloatPoint.bind(this, 'fw_restarts'),
     },
     {
       label: 'Uptime (min)',
       key: 'uptime',
       width: 100,
       sort: true,
-      render: this.renderFloatPointWrapper.bind(this, 'uptime'),
+      render: this.renderFloatPoint.bind(this, 'uptime'),
     },
     {label: 'Distance (m)', key: 'distance', width: 120, sort: true},
   ];
@@ -1095,12 +1094,8 @@ export default class NetworkLinksTable extends React.Component {
     return <span style={{color: cellColor}}>{'' + cellText}</span>;
   }
 
-  renderFloatPointWrapper(tpxx, cell, row) {
-    return this.renderFloatPoint(cell, row, tpxx);
-  }
-
   // round and set color
-  renderFloatPoint(cell, row, tpxx) {
+  renderFloatPoint(tpxx, cell, row) {
     let cellColor = 'red';
     let cellText = '-';
     if (!isNaN(cell)) {
@@ -1212,82 +1207,31 @@ export default class NetworkLinksTable extends React.Component {
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
     const selected = this.state.selectedLink ? [this.state.selectedLink] : [];
 
-    if (this.state.showAnalyzer) {
+    if (this.state.showSelfTest) {
+      let selfTestColumns = Object.keys(this.state.selfTestTableDescription)
+        .map(key => {
+          let column = this.state.selfTestTableDescription[key];
+          return {
+            label: column.title,
+            key: key,
+            isKey: column.iskey,
+            width: column.width,
+            sort: true,
+            filter: true,
+            hidden: column.hidden,
+            render: key === 'scuba_link'
+                        ? this.renderDashboardLinkSelfTest.bind(this)
+                        : ((cell, row) => <span> {cell} </span>),
+          }
+        });
       return (
         <CustomTable
-          rowHeight={50}
+          rowHeight={40}
           headerHeight={this.headerHeight}
-          height={adjustedHeight}
+          height={adjustedHeight - 45}
           overscanRowCount={this.overscanRowCount}
-          columns={this.analyzerChartColumns}
-          data={this.getTableRowsAnalyzer()}
-          sortBy={this.state.sortBy}
-          sortDirection={this.state.sortDirection}
-          onRowSelect={row => this.tableOnRowSelect(row)}
-          onSortChange={(sortBy, sortDirection) =>
-            this.onSortChange(sortBy, sortDirection)
-          }
-          selected={selected}
-        />
-      );
-    } else if (this.state.showEventsChart) {
-      return (
-        <CustomTable
-          rowHeight={80}
-          headerHeight={this.headerHeight}
-          height={adjustedHeight}
-          overscanRowCount={this.overscanRowCount}
-          columns={this.eventChartColumns}
-          data={this.getTableRows()}
-          sortBy={this.state.sortBy}
-          sortDirection={this.state.sortDirection}
-          onRowSelect={row => this.tableOnRowSelect(row)}
-          onSortChange={(sortBy, sortDirection) =>
-            this.onSortChange(sortBy, sortDirection)
-          }
-          selected={selected}
-        />
-      );
-    } else if (this.state.showSelfTest) {
-      return (
-        <BootstrapTable
-          height={adjustedHeight + 'px'}
-          key="linksTable"
+          columns={selfTestColumns}
           data={this.getTableRowsSelfTest()}
-          striped={false}
-          hover={true}
-          options={tableOpts}
-          selectRow={linksSelectRowProp}
-          trClassName={this.trClassFormat}>
-          {Object.keys(this.state.selfTestTableDescription).map(key => (
-            <TableHeaderColumn
-              key={key}
-              dataField={key}
-              hidden={this.state.selfTestTableDescription[key].hidden}
-              isKey={this.state.selfTestTableDescription[key].iskey}
-              width={this.state.selfTestTableDescription[key].width}
-              dataSort={true}
-              dataFormat={
-                key === 'scuba_link'
-                  ? this.renderDashboardLinkSelfTest.bind(this)
-                  : function(cell, row) {
-                      return <span> {cell} </span>;
-                    }
-              }>
-              {this.state.selfTestTableDescription[key].title}
-            </TableHeaderColumn>
-          ))}
-        </BootstrapTable>
-      );
-    } else {
-      return (
-        <CustomTable
-          rowHeight={50}
-          headerHeight={this.headerHeight}
-          height={adjustedHeight}
-          overscanRowCount={this.overscanRowCount}
-          columns={this.defaultChartColumns}
-          data={this.getTableRows()}
           sortBy={this.state.sortBy}
           sortDirection={this.state.sortDirection}
           onRowSelect={row => this.tableOnRowSelect(row)}
@@ -1295,9 +1239,47 @@ export default class NetworkLinksTable extends React.Component {
             this.onSortChange(sortBy, sortDirection)
           }
           selected={selected}
+          striped={false}
+          trClassName={this.trClassFormat}
         />
       );
     }
+
+    let rowHeight = 50;
+    let columns = this.defaultChartColumns;
+    let data;
+
+    if (this.state.showAnalyzer) {
+      rowHeight = 50;
+      columns = this.analyzerChartColumns;
+      data = this.getTableRowsAnalyzer();
+    } else if (this.state.showEventsChart) {
+      rowHeight = 80;
+      columns = this.eventChartColumns;
+      data = this.getTableRows();
+    } else {
+      rowHeight = 50;
+      columns = this.defaultChartColumns;
+      data = this.getTableRows();
+    }
+
+    return (
+      <CustomTable
+        rowHeight={rowHeight}
+        headerHeight={this.headerHeight}
+        height={adjustedHeight}
+        overscanRowCount={this.overscanRowCount}
+        columns={columns}
+        data={data}
+        sortBy={this.state.sortBy}
+        sortDirection={this.state.sortDirection}
+        onRowSelect={row => this.tableOnRowSelect(row)}
+        onSortChange={(sortBy, sortDirection) =>
+          this.onSortChange(sortBy, sortDirection)
+        }
+        selected={selected}
+      />
+    );
   }
 
   render() {
