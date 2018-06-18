@@ -4,9 +4,7 @@
  * @format
  */
 'use strict';
-
 import Dispatcher from './NetworkDispatcher.js';
-//import ReactPlotlyHeatmap from "./ReactPlotlyHeatmap.js";
 import {
   availabilityColor,
   variableColorDown,
@@ -15,21 +13,22 @@ import {
 import ReactEventChart from './ReactEventChart.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
+import axios from 'axios';
 import NetworkStore from './stores/NetworkStore.js';
 import equals from 'equals';
 import PropTypes from 'prop-types';
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import Select from 'react-select';
+import CustomTable from './components/common/CustomTable.js';
 import {render} from 'react-dom';
 import React from 'react';
+import ReactPlotlyHeatmap from './ReactPlotlyHeatmap.js';
 
-const SECONDS_HOUR = 60 * 60;
-const SECONDS_DAY = SECONDS_HOUR * 24;
-const INVALID_VALUE = 255;
 const HEATMAPSIZE = 64;
 const WIRELESS = 1;
 const WIRED = 2;
-const NODE_FILTER_INIT = ['', 'undefined'];
 
+// ScanType, ScanMode, ScanSubType and ScanFwStatus are defined in Controller.thrift
+// (is there a way to use them directly from Controller.thrift?)
 const ScanType = {
   PBF: 1,
   IM: 2,
@@ -38,15 +37,74 @@ const ScanType = {
   CBF_RX: 5,
 };
 
+const ScanMode = {
+  COARSE: 1,
+  FINE: 2,
+  SELECTIVE: 3,
+  RELATIVE: 4, // Relative to the last Azimuth beam selected by FWtx
+};
+
+// SubType for Runtime Calibration and CBF
+const ScanSubType = {
+  NO_CAL: 0, // No calibration, init state
+  TOP_RX_CAL: 1, // Top Panel, responder Rx cal with fixed intiator Tx beam
+  TOP_TX_CAL: 2, // Top Panel, intiator Tx cal with fixed responder Rx beam
+  BOT_RX_CAL: 3, // Bot Panel, responder Rx cal with fixed intiator Tx beam
+  BOT_TX_CAL: 4, // Bot Panel, intiator Tx cal with fixed responder Rx beam
+  VBS_RX_CAL: 5, // Top + Bot, responder Rx cal with fixed intiator Tx beam
+  VBS_TX_CAL: 6, // Top + Bot, intiator Tx cal with fixed responder Rx beam
+  RX_CBF_AGGRESSOR: 7, // RX Coordinated BF Nulling, Aggressor link
+  RX_CBF_VICTIM: 8, // RX Coordinated BF Nulling, Victim link
+  TX_CBF_AGGRESSOR: 9, // TX Coordinated BF Nulling, Aggressor link
+  TX_CBF_VICTIM: 10, // TX Coordinated BF Nulling, Victim link
+};
+
+const ScanFwStatus = {
+  COMPLETE: 0,
+  INVALID_TYPE: 1,
+  INVALID_START_TSF: 2,
+  INVALID_STA: 3,
+  AWV_IN_PROG: 4,
+  STA_NOT_ASSOC: 5,
+  REQ_BUFFER_FULL: 6,
+  LINK_SHUT_DOWN: 7,
+  UNSPECIFIED_ERROR: 8,
+  UNEXPECTED_ERROR: 9,
+  EXPIRED_TSF: 10,
+  INCOMPL_RTCAL_BEAMS_FOR_VBS: 11,
+};
+
+const scanTypeOptions = [
+  {value: ScanType.PBF, label: 'PBF'},
+  {value: ScanType.IM, label: 'IM'},
+  {value: ScanType.RTCAL, label: 'RTCAL'},
+  {value: ScanType.CBF_TX, label: 'CBF Tx'},
+  {value: ScanType.CBF_RX, label: 'CBF Rx'},
+];
+
+const combinedStatusOptions = [
+  {value: 0, label: 'no errors'},
+  {value: 1, label: 'errors found'},
+];
+
+const newBeamApplyOptions = [
+  {value: 0, label: 'no beam change'},
+  {value: 1, label: 'beam changed'},
+];
+
 export default class NetworkScans extends React.Component {
   nodesByName = {};
   linksByName = {};
   linkNameList = {};
   nodeNameList = {};
+  sqlFields = {};
   filterSource = 'dropdown';
   state = {
     scanResults: NetworkStore.scanResults,
-    zmap: undefined,
+    zmap: [],
+    txXY: [],
+    rxXY: undefined,
+    oldNewBeams: undefined,
     nodeToLinkName: undefined,
     selectedLink: NetworkStore.selectedName,
     selectedNode: null,
@@ -54,24 +112,181 @@ export default class NetworkScans extends React.Component {
     sortOrder: 'asc',
     topLink: null,
     heatmaprender: true,
-    heatmaptitle: undefined,
-    nodeFilter: NODE_FILTER_INIT,
+    heatmaptitle: {},
+    nodeSelectOptions: [],
+
+    nodeSelected: [],
+    scanTypeSelected: [],
+    combinedStatusSelected: null,
+    newBeamSelected: null,
   };
+  headerHeight = 80;
+  overscanRowCount = 10;
+  maxRowsScanResults = 200;
+  scanResultsRefreshed = true;
+
+  scanChartDescription = [
+    {
+      label: 'time',
+      key: 'time',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: false,
+      sort: true,
+      sqlfield: 'timestamp',
+    },
+    {
+      label: 'tx node name',
+      key: 'tx_node_name',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'tx_node_name',
+    },
+    {
+      label: 'rx node name',
+      key: 'rx_node_name',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'rx_node_name',
+    },
+    {
+      label: 'scan type',
+      key: 'scan_type',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'scan_type',
+    },
+    {
+      label: 'scan subtype',
+      key: 'scan_sub_type',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'scan_sub_type',
+    },
+    {
+      label: 'mode',
+      key: 'scan_mode',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'scan_mode',
+    },
+    {
+      label: 'apply flag',
+      key: 'apply_flag',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'apply_flag',
+    },
+    {
+      label: 'new beam',
+      key: 'new_beam',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'new_beam_flag',
+    },
+    {
+      label: 'token',
+      key: 'token',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'token',
+    },
+    {
+      label: 'resp id',
+      key: 'resp_id',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'resp_id',
+    },
+    {
+      label: 'tx power',
+      key: 'tx_power',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: false,
+      sort: true,
+      sqlfield: 'tx_power',
+    },
+    {
+      label: 'status (combined)',
+      key: 'combined_status',
+      hidden: false,
+      isKey: false,
+      width: 150,
+      filter: true,
+      sort: true,
+      sqlfield: 'combined_status',
+    },
+    {
+      label: 'network',
+      key: 'network',
+      hidden: true,
+      isKey: false,
+      width: 150,
+      filter: false,
+      sort: false,
+      sqlfield: 'network',
+    },
+    {
+      label: 'rxid',
+      key: 'rxid',
+      hidden: true,
+      isKey: false,
+      width: 150,
+      filter: false,
+      sort: false,
+      sqlfield: 'rx_scan_results.id',
+    },
+  ];
 
   constructor(props) {
     super(props);
-    this.linkSortFunc = this.linkSortFunc.bind(this);
-    this.getTableRows = this.getTableRows.bind(this);
-    this.tableOnRowSelect = this.tableOnRowSelect.bind(this);
   }
 
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     // register for topology changes
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this),
     );
     const nodeToLinkName = this.updateNodeToLinkMapping(this.props.topology);
-    this.setState({nodeToLinkName});
+    const nodeSelectOptions = this.createNodeSelectOptions(
+      this.props.topology.nodes,
+    );
+    this.createSqlFields();
+    this.fetchScanResultsConcise();
+    this.setState({
+      nodeToLinkName,
+      nodeSelectOptions,
+    });
   }
 
   componentWillUnmount() {
@@ -81,31 +296,18 @@ export default class NetworkScans extends React.Component {
 
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
-      case Actions.SCAN_REFRESHED: // when we get mySQL results
-        this.setState({
-          scanResults: payload.scanResults,
-        });
-        // if (payload.scanResults.results.length && payload.scanResults.rx_node_name) {
-        //   if (payload.scanResults.results[0].json_obj.hasOwnProperty(payload.scanResults.results[0].rx_node_name))
-        //   {
-        //       let zmap = this.createHeatmapArray(payload.scanResults.results[0].json_obj[payload.scanResults.rx_node_name]);
-        //       this.setState({
-        //         zmap: zmap,
-        //         heatmaprender : true
-        //       });
-        //     }
-        // }
-        // else {
-        //   console.error('ERROR: unexpected scan results:', payload.scanResults);
-        // }
-        break;
       case Actions.TOPOLOGY_REFRESHED:
         const nodeToLinkName = this.updateNodeToLinkMapping(
           this.props.topology,
         );
+        const nodeSelectOptions = this.createNodeSelectOptions(
+          this.props.topology.nodes,
+        );
+        this.fetchScanResultsConcise();
         this.setState({
           nodeToLinkName, // TODO: why is nodeToLinkName stored as state but others are stored as globals?
           heatmaprender: false,
+          nodeSelectOptions,
         });
         break;
       case Actions.CLEAR_NODE_LINK_SELECTED:
@@ -146,8 +348,216 @@ export default class NetworkScans extends React.Component {
     }
   }
 
+  // for convenience
+  createSqlFields = () => {
+    this.scanChartDescription.forEach(scanChartCol => {
+      this.sqlFields[scanChartCol.key] = scanChartCol.sqlfield;
+    });
+  };
+
+  // function to create the pull-down menu for react-select for the nodes
+  // input is Topology.nodes from Topology.thrift
+  createNodeSelectOptions = nodes => {
+    const reactSelectOptions = [];
+    nodes.forEach(node => {
+      const reactSelectOption = {
+        value: node.name,
+        label: node.name,
+      };
+      reactSelectOptions.push(reactSelectOption);
+    });
+    return reactSelectOptions;
+  };
+
+  // helper function to create a comma separated list needed for mySQL search
+  scanFilterCommaSeparatedList = (selected, isString) => {
+    // selected is an array of objects with {value: <value>} (and other
+    // fields we don't care about here)
+    const valueArray = isString
+      ? selected.map(obj => "'" + obj.value + "'")
+      : selected.map(obj => obj.value);
+    return valueArray.join(',');
+  };
+  // helper function called in createScanFilter - prevents bunch of
+  // copy/paste code in createConciseScanFilterPullDown
+  createScanFilterHelper = (sqlFieldName, commaSeparatedList, filter) => {
+    if (filter.length > 0) {
+      filter += ' AND ';
+    }
+    filter += sqlFieldName + ' IN (' + commaSeparatedList + ')';
+    return filter;
+  };
+
+  createScanFilterHelperGt = (sqlFieldName, val, filter) => {
+    if (filter.length > 0) {
+      filter += ' AND ';
+    }
+    return (filter += val ? sqlFieldName + '>0' : sqlFieldName + '=0');
+  };
+
+  // function creates mySQL filter based on pull-down selection
+  createConciseScanFilterPullDown = () => {
+    // filter is an AND of all pull downs (OR of the rx and tx node names)
+    let filter = '';
+    if (this.state.nodeSelected.length) {
+      filter +=
+        '(' +
+        this.sqlFields.tx_node_name +
+        ' IN (' +
+        this.scanFilterCommaSeparatedList(this.state.nodeSelected, true) +
+        ')' +
+        ' OR ' +
+        this.sqlFields.rx_node_name +
+        ' IN (' +
+        this.scanFilterCommaSeparatedList(this.state.nodeSelected, true) +
+        '))';
+    }
+    if (this.state.scanTypeSelected.length) {
+      filter += this.createScanFilterHelper(
+        this.sqlFields.scan_type,
+        this.scanFilterCommaSeparatedList(this.state.scanTypeSelected, false),
+        filter,
+      );
+    }
+    if (this.state.combinedStatusSelected !== null) {
+      filter += this.createScanFilterHelperGt(
+        this.sqlFields.combined_status,
+        this.state.combinedStatusSelected.value,
+        filter,
+      );
+    }
+    if (this.state.newBeamSelected !== null) {
+      filter += this.createScanFilterHelperGt(
+        this.sqlFields.new_beam,
+        this.state.newBeamSelected.value,
+        filter,
+      );
+    }
+    const sqlfilter = {};
+    sqlfilter.whereClause = filter;
+    sqlfilter.isConcise = true;
+    sqlfilter.rowCount = this.maxRowsScanResults;
+    sqlfilter.offset = 0;
+    return sqlfilter;
+  };
+
+  // function creates mySQL filter based on row selection
+  createScanFilterRowSelect = rxid => {
+    const filter = this.sqlFields.rxid + '=' + rxid;
+
+    const sqlfilter = {};
+    sqlfilter.whereClause = filter;
+    sqlfilter.isConcise = false;
+    sqlfilter.rowCount = 1;
+    sqlfilter.offset = 0;
+    return sqlfilter;
+  };
+
+  // callback functions for when users makes pull-down selection
+  onNodeSelected = event => {
+    this.setState({nodeSelected: event});
+  };
+
+  onScanTypeSelected = event => {
+    this.setState({scanTypeSelected: event});
+  };
+
+  onCombinedStatusSelected = event => {
+    this.setState({combinedStatusSelected: event});
+  };
+
+  onNewBeamSelected = event => {
+    this.setState({newBeamSelected: event});
+  };
+
+  // fetch scan results
+  fetchScanResultsConcise = () => {
+    const sqlfilter = this.createConciseScanFilterPullDown();
+    axios
+      .post(
+        '/metrics/scan_results?topology=' + this.props.topology.name,
+        sqlfilter,
+      )
+      .then(response => {
+        this.scanResultsRefreshed = true;
+        this.setState({
+          scanResults: response.data,
+        });
+      })
+      .catch(err => {
+        console.error('Error getting concise scan results', err);
+        this.setState({
+          scanResults: null,
+        });
+      });
+  };
+
+  // render pull-down buttons to filter mysql request and fetch button
+  // to fetch the filtered results
+  renderSelectButtons = () => {
+    const {nodeSelectOptions} = this.state;
+    return (
+      <div className="scan-select-list">
+        <div className="scan-select">
+          <p>Node</p>
+          <Select
+            name="node-select"
+            value={this.state.nodeSelected} // initial value
+            onChange={this.onNodeSelected} // function to call when changed
+            options={nodeSelectOptions} // pull-down options
+            placeholder="Select node(s)"
+            multi
+            closeOnSelect={false}
+          />
+        </div>
+        <div className="scan-select">
+          <p>Scan Type</p>
+          <Select
+            name="scan-type-select"
+            value={this.state.scanTypeSelected} // initial value
+            onChange={this.onScanTypeSelected} // function to call when changed
+            options={scanTypeOptions} // pull-down options
+            placeholder="Select scan type(s)"
+            multi
+            closeOnSelect={false}
+          />
+        </div>
+        <div className="scan-select">
+          <p>Error Event</p>
+          <Select
+            name="combined-status-select"
+            value={this.state.combinedStatusSelected} // initial value
+            onChange={this.onCombinedStatusSelected} // function to call when changed
+            options={combinedStatusOptions} // pull-down options
+            placeholder="Filter on scans that had errors"
+          />
+        </div>
+        <div className="scan-select">
+          <p>New Beam</p>
+          <Select
+            name="new-beam-status-select"
+            value={this.state.newBeamSelected} // initial value
+            onChange={this.onNewBeamSelected} // function to call when changed
+            options={newBeamApplyOptions} // pull-down options
+            placeholder="Filter on whether beam changed"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  renderFetchButton = () => {
+    return (
+      <button
+        className="graph-button-fetch"
+        onClick={this.fetchScanResultsConcise}>
+        Fetch new scan results
+      </button>
+    );
+  };
+
   // mapping from node to link for wireless links
-  updateNodeToLinkMapping(topology) {
+  updateNodeToLinkMapping = topology => {
     this.linksByName = {};
     const nodeToLinkName = {};
     if (topology.links) {
@@ -166,443 +576,398 @@ export default class NetworkScans extends React.Component {
       });
     }
     return nodeToLinkName;
-  }
+  };
 
-  create2DArray(rows) {
-    const arr = new Array(rows);
+  // 2D results for PBF and IM scans
+  createHeatmapArrayPbfIm = (
+    rx_scan_resp,
+    tx_scan_resp,
+    scan_type,
+    scan_mode,
+  ) => {
+    const routeInfoList = rx_scan_resp.routeInfoList;
 
-    for (let i = 0; i < rows; i++) {
-      arr[i] = new Array(rows);
+    const oldNewBeams = [
+      rx_scan_resp.oldBeam,
+      tx_scan_resp.oldBeam,
+      rx_scan_resp.newBeam,
+      tx_scan_resp.newBeam,
+    ];
+
+    if (scan_type === ScanType.PBF) {
+      // beam indices from left to right: [63, 62, ... 32, 0, 1, ... 31]
+      // corresponding to [-32 ... -1, 0, 1, ... 31]
+      oldNewBeams.forEach((beam, idx, arr) => {
+        arr[idx] = beam >= 32 ? 63 - beam : beam + 32;
+        arr[idx] -= 32;
+      });
     }
-    return arr;
-  }
 
-  createHeatmapArray(json_obj) {
-    const routeInfoList = json_obj.routeInfoList;
-    const zmap = this.create2DArray(HEATMAPSIZE);
+    let minTxIndex = 0;
+    let minRxIndex = 0;
+    let txXY = [];
+    let rxXY = [];
+
+    if (scan_mode === ScanMode.RELATIVE) {
+      const oldTxBeam = oldNewBeams[1];
+      const oldRxBeam = oldNewBeams[0];
+      txXY = Array.from(new Array(3), (val, index) => index + oldTxBeam - 1);
+      rxXY = Array.from(new Array(3), (val, index) => index + oldRxBeam - 1);
+      minTxIndex = oldTxBeam + 32 - 1;
+      minRxIndex = oldRxBeam + 32 - 1;
+    } else {
+      txXY = Array.from(new Array(64), (val, index) => index - 32);
+      rxXY = Array.from(new Array(64), (val, index) => index - 32);
+    }
+
+    const zmap = [[]]; // 2D array
+    const zmapCount = [[]]; // for averaging
+
     for (const i in routeInfoList) {
+      if (!routeInfoList[i].route) {
+        console.error(
+          'routeInfoList error, routeInfoList[',
+          i,
+          ']:',
+          routeInfoList[i],
+        );
+        continue;
+      }
       const txRoute = routeInfoList[i].route.tx;
       const rxRoute = routeInfoList[i].route.rx;
-      if (
-        txRoute >= HEATMAPSIZE ||
-        rxRoute >= HEATMAPSIZE ||
-        txRoute === undefined ||
-        rxRoute === undefined
-      ) {
-        console.error(
-          'createHeatmapArray out of bounds  tx:',
-          txRoute,
-          ' rx:',
-          rxRoute,
-        );
-        break;
-      }
+
       // beam indices from left to right: [63, 62, ... 32, 0, 1, ... 31]
       const txIndex = txRoute >= 32 ? 63 - txRoute : txRoute + 32;
       const rxIndex = rxRoute >= 32 ? 63 - rxRoute : rxRoute + 32;
 
-      // txIndex is along the x-axis
-      zmap[rxIndex][txIndex] = routeInfoList[i].snrEst;
-    }
-    return zmap;
-  }
+      // relative PBF scans are +/- 1 around the old beam
+      const arrRxIndex = rxIndex - minRxIndex;
+      const arrTxIndex = txIndex - minTxIndex;
 
-  // scanResults is the routeInfoList
-  getTableRows() {
+      // txIndex is along the x-axis
+      if (!zmap[arrRxIndex]) {
+        zmap[arrRxIndex] = [];
+        zmapCount[arrRxIndex] = [];
+      }
+      if (!zmap[arrRxIndex][arrTxIndex]) {
+        zmap[arrRxIndex][arrTxIndex] = routeInfoList[i].snrEst;
+        zmapCount[arrRxIndex][arrTxIndex] = 1;
+      } else {
+        zmap[arrRxIndex][arrTxIndex] += routeInfoList[i].snrEst;
+        zmapCount[arrRxIndex][arrTxIndex] += 1;
+      }
+    }
+
+    if (routeInfoList.length) {
+      // do averaging
+      for (let rxIndex = 0; rxIndex < zmap.length; rxIndex++) {
+        if (zmap[rxIndex]) {
+          for (let txIndex = 0; txIndex < zmap[rxIndex].length; txIndex++) {
+            if (zmap[rxIndex][txIndex]) {
+              zmap[rxIndex][txIndex] /= zmapCount[rxIndex][txIndex];
+            }
+          }
+        }
+      }
+
+      const arrLength = scan_mode === ScanMode.RELATIVE ? 3 : 64;
+
+      // plotly is not happy unless every array is defined
+      for (let i = 0; i < arrLength; i++) {
+        if (!zmap[i]) {
+          zmap[i] = [];
+        }
+      }
+      zmap[arrLength - 1].length = arrLength;
+    }
+    return {zmap, txXY, rxXY, oldNewBeams};
+  };
+
+  // RTCAL does a 1D scan of either TX or RX (not both)
+  createHeatmapArrayRtcal = (
+    rx_scan_resp,
+    tx_scan_resp,
+    scan_type,
+    scan_sub_type,
+  ) => {
+    const routeInfoList = rx_scan_resp.routeInfoList;
+
+    const oldNewBeams = [
+      rx_scan_resp.oldBeam,
+      tx_scan_resp.oldBeam,
+      rx_scan_resp.newBeam,
+      tx_scan_resp.newBeam,
+    ];
+
+    const zmap = [];
+    const zmapCount = []; // for averaging
+    let routeFixed = [];
+    const minindex = 64;
+    const arrlength = 64;
+
+    for (const i in routeInfoList) {
+      if (!routeInfoList[i].route) {
+        console.error(
+          'routeInfoList error, routeInfoList[',
+          i,
+          ']:',
+          routeInfoList[i],
+        );
+        continue;
+      }
+
+      let route = 0;
+      if (
+        scan_sub_type == ScanSubType.TOP_TX_CAL ||
+        scan_sub_type == ScanSubType.BOT_TX_CAL
+      ) {
+        route = routeInfoList[i].route.tx;
+        routeFixed = [routeInfoList[i].route.rx]; // should all be the same
+      } else if (
+        scan_sub_type == ScanSubType.TOP_RX_CAL ||
+        scan_sub_type == ScanSubType.BOT_RX_CAL
+      ) {
+        route = routeInfoList[i].route.rx;
+        routeFixed = [routeInfoList[i].route.tx]; // should all be the same
+      } else {
+        // not supported at this time
+        return {
+          zmap: undefined,
+          txXY: undefined,
+          rxXY: undefined,
+          oldNewBeams: undefined,
+        };
+      }
+
+      const adjRoute = route - minindex;
+      if (!zmap[adjRoute]) {
+        zmap[adjRoute] = routeInfoList[i].snrEst;
+        zmapCount[adjRoute] = 1;
+      } else {
+        zmap[adjRoute] += routeInfoList[i].snrEst;
+        zmapCount[adjRoute] += 1;
+      }
+    }
+
+    // do averaging
+    for (let index = 0; index < arrlength; index++) {
+      if (zmap[index]) {
+        zmap[index] /= zmapCount[index];
+      } else {
+        zmap[index] = undefined;
+      }
+    }
+
+    const xy = Array.from(new Array(arrlength), (val, index) => index);
+    return {zmap, txXY: xy, rxXY: undefined, oldNewBeams};
+  };
+
+  getTableRows = () => {
     const rows = [];
     if (!this.state.scanResults || !this.state.scanResults.results) {
-      console.log('no scanResults');
       return rows;
     }
 
     try {
-      for (let i = 0; i < this.state.scanResults.results.length; i++) {
-        const scanResults = this.state.scanResults.results[i];
-
-        if (scanResults) {
-          let numResults = 0;
-          if (scanResults.json_obj) {
-            numResults =
-              scanResults.json_obj[scanResults.rx_node_name].routeInfoList
-                .length;
+      this.state.scanResults.results.forEach(scanResult => {
+        if (scanResult) {
+          // format some of the scan results for the table
+          if (this.scanResultsRefreshed) {
+            try {
+              scanResult.timestamp = scanResult.timestamp
+                .replace('T', ' ')
+                .replace('.000Z', '');
+              scanResult.scan_type = Object.keys(ScanType).find(
+                key => ScanType[key] === scanResult.scan_type,
+              );
+              scanResult.scan_sub_type = Object.keys(ScanSubType).find(
+                key => ScanSubType[key] === scanResult.scan_sub_type,
+              );
+              scanResult.scan_mode = Object.keys(ScanMode).find(
+                key => ScanMode[key] === scanResult.scan_mode,
+              );
+              scanResult.apply_flag = scanResult.apply_flag ? 'true' : 'false';
+              scanResult.new_beam_flag = scanResult.new_beam_flag
+                ? 'true'
+                : 'false';
+              scanResult.combined_status =
+                scanResult.combined_status === 0 ? 'OK' : 'error';
+            } catch (e) {
+              console.error(
+                'Error formatting scan results (likely missing row) ',
+                e,
+              );
+            }
           }
 
-          if (!this.state.nodeToLinkName) {
-            console.error('nodeToLinkName mapping is missing');
-          } else if (!this.state.nodeToLinkName[scanResults.tx_node_name]) {
-            console.error(
-              'no nodeToLinkName mapping for ',
-              scanResults.tx_node_name,
-            );
-          } else {
-            const timestamp = scanResults.timestamp
-              .replace('T', ' ')
-              .replace('.000Z', '');
-            const scan_type = Object.keys(ScanType).find(
-              key => ScanType[key] === scanResults.scan_type,
-            );
-            rows.push({
-              link_name: this.state.nodeToLinkName[scanResults.tx_node_name],
-              token: scanResults.token,
-              a_node_name: scanResults.tx_node_name,
-              z_node_name: scanResults.rx_node_name,
-              scan_type,
-              time: timestamp,
-              tx_power: scanResults.tx_power,
-              index: i,
-              num_results: numResults,
-            });
-          }
+          const tableRow = [];
+          this.scanChartDescription.forEach(scanChartCol => {
+            if (scanResult.hasOwnProperty(scanChartCol.sqlfield)) {
+              tableRow[scanChartCol.key] = scanResult[scanChartCol.sqlfield];
+            } else {
+              console.error(
+                'scan result does not contain ',
+                scanChartCol.sqlfield,
+              );
+            }
+          });
+          rows.push(tableRow);
         }
-      }
+      });
+      this.scanResultsRefreshed = false;
     } catch (e) {
-      console.log('DEBUG: scanResults:', this.state.scanResults);
       console.error('ERROR creating table rows:', e);
       return [];
     }
     return rows;
-  }
+  };
 
-  linkSortFuncHelper(a, b, order) {
-    if (order === 'desc') {
-      if (a.link_name > b.link_name) {
-        return -1;
-      } else if (a.link_name < b.link_name) {
-        return 1;
-      }
-      // both entries have the same name, sort based on a/z node name
-      if (a.a_node_name > a.z_node_name) {
-        return -1;
-      } else {
-        return +1;
-      }
-    } else {
-      if (a.link_name < b.link_name) {
-        return -1;
-      } else if (a.link_name > b.link_name) {
-        return 1;
-      }
-      // both entries have the same name, sort based on a/z node name
-      if (a.a_node_name < a.z_node_name) {
-        return -1;
-      } else {
-        return +1;
-      }
-    }
-  }
-
-  // a and b are the two rows being compared
-  linkSortFunc(a, b, order) {
-    // order is desc or asc
-    if (this.state.topLink) {
-      if (a.link_name == this.state.topLink.link_name) {
-        if (a.link_name == b.link_name) {
-          return this.linkSortFuncHelper(a, b, order);
-        } else {
-          return -1;
-        }
-      } else if (b.link_name == this.state.topLink.link_name) {
-        if (a.link_name == b.link_name) {
-          return this.linkSortFuncHelper(a, b, order);
-        } else {
-          return +1;
-        }
-      }
-    }
-    return this.linkSortFuncHelper(a, b, order);
-  }
-
-  onSortChange(sortName, sortOrder) {
+  onSortChange = (sortBy, sortDirection) => {
     this.setState({
-      sortName,
-      sortOrder,
-      toplink: sortName == 'link_name' ? this.state.toplink : null,
+      sortBy,
+      sortDirection,
+      topLink: sortBy == 'time' ? this.state.topLink : null,
     });
-  }
-
-  onFilterChange(filterObj) {
-    const nodeFilter = NODE_FILTER_INIT.slice();
-    if (filterObj.link_name) {
-      try {
-        if (this.filterSource !== 'map') {
-          Dispatcher.dispatch({
-            actionType: Actions.LINK_SELECTED,
-            link: this.linksByName[filterObj.link_name.value],
-            source: 'table',
-          });
-        }
-        nodeFilter[0] = this.linksByName[filterObj.link_name.value].a_node_name;
-        nodeFilter[1] = this.linksByName[filterObj.link_name.value].z_node_name;
-      } catch (e) {
-        console.error(
-          'ERROR: NetworkScans.js onFilterChange filterObj:',
-          filterObj,
-          e,
-        );
-      }
-      this.setState({nodeFilter});
-    } else if (filterObj.a_node_name) {
-      try {
-        if (this.filterSource !== 'map') {
-          Dispatcher.dispatch({
-            actionType: Actions.NODE_SELECTED,
-            nodeSelected: filterObj.a_node_name.value,
-            source: 'table',
-          });
-        }
-        nodeFilter[0] = filterObj.a_node_name.value;
-      } catch (e) {
-        console.error(
-          'ERROR: node NetworkScans.js onFilterChange filterObj:',
-          filterObj,
-          e,
-        );
-      }
-      this.setState({nodeFilter});
-    } else {
-      this.setState({nodeFilter: NODE_FILTER_INIT});
-    }
-    this.filterSource = 'dropdown';
-  }
+  };
 
   // when a row is selected, show it on the map and render the heatmap
-  tableOnRowSelect(row, isSelected) {
-    Dispatcher.dispatch({
-      actionType: Actions.LINK_SELECTED,
-      link: this.linksByName[row.link_name],
-      source: 'table',
-    });
-    const zmap = this.createHeatmapArray(
-      this.state.scanResults.results[row.index].json_obj[row.z_node_name],
-    );
-    const heatmaptitle = {};
-    heatmaptitle.title = row.a_node_name + ' -> ' + row.z_node_name;
-    heatmaptitle.xaxis =
-      'beam index tx: ' + row.a_node_name + ' (each index = 1.4\u00B0)';
-    heatmaptitle.yaxis =
-      'beam index rx: ' + row.z_node_name + ' (each index = 1.4\u00B0)';
-    this.setState({
-      zmap,
-      heatmaprender: true,
-      heatmaptitle,
-    });
-  }
+  onTableRowSelect = async row => {
+    try {
+      const linkName = this.state.nodeToLinkName[row.tx_node_name];
+      Dispatcher.dispatch({
+        actionType: Actions.LINK_SELECTED,
+        link: this.linksByName[linkName],
+        source: 'table',
+      });
+    } catch (e) {
+      console.error('Error on row selection ', e);
+    }
+    // fetch from mysql
+    const sqlfilter = this.createScanFilterRowSelect(row.rxid);
+    let scanResults = undefined;
+    try {
+      const response = await axios.post(
+        '/metrics/scan_results?topology=' + this.props.topology.name,
+        sqlfilter,
+      );
+      scanResults = response.data;
+    } catch (e) {
+      console.error('ERROR reading scan results: ', e);
+    }
 
-  handlerClickCleanFiltered() {
-    this.refs.txNodeName.cleanFiltered();
-    this.refs.linkName.cleanFiltered();
-    this.setState({nodeFilter: NODE_FILTER_INIT});
-  }
+    if (scanResults) {
+      try {
+        const results = scanResults.results[0];
+        let heatmapResults = undefined;
+        if (
+          results.scan_type === ScanType.PBF ||
+          results.scan_type === ScanType.IM
+        ) {
+          heatmapResults = this.createHeatmapArrayPbfIm(
+            results.scan_resp,
+            results.tx_scan_resp,
+            results.scan_type,
+            results.scan_mode,
+          );
+        } else if (results.scan_type === ScanType.RTCAL) {
+          heatmapResults = this.createHeatmapArrayRtcal(
+            results.scan_resp,
+            results.tx_scan_resp,
+            results.scan_type,
+            results.scan_sub_type,
+          );
+        } else {
+          this.setState({
+            zmap: null,
+            heatmaprender: true,
+            heatmaptitle: {},
+          });
+          return; // TODO support other scan types
+        }
+        const heatmaptitle = {};
+        heatmaptitle.title = row.tx_node_name + ' -> ' + row.rx_node_name;
+        if (results.scan_type === ScanType.PBF) {
+          heatmaptitle.xaxis =
+            'beam index tx: ' +
+            row.tx_node_name +
+            ' (each index = 1.4\u00B0) <br> O (current/new beam) X (previous beam if different)';
+          heatmaptitle.yaxis =
+            'beam index rx: ' + row.rx_node_name + ' (each index = 1.4\u00B0)';
+        } else if (results.scan_type === ScanType.IM) {
+          heatmaptitle.xaxis =
+            'beam index tx: ' + row.tx_node_name + ' (each index = 1.4\u00B0)';
+          heatmaptitle.yaxis =
+            'beam index rx: ' + row.rx_node_name + ' (each index = 1.4\u00B0)';
+        } else if (results.scan_type === ScanType.RTCAL) {
+          heatmaptitle.xaxis = 'RTCAL index';
+          heatmaptitle.yaxis = 'average SNR (dB)';
+        }
 
-  enumFormatter(cell, row, enumObject) {
-    return enumObject[cell];
-  }
+        this.setState({
+          zmap: heatmapResults.zmap,
+          txXY: heatmapResults.txXY,
+          rxXY: heatmapResults.rxXY, // only used for 2D heatmap
+          heatmaprender: true,
+          oldNewBeams: heatmapResults.oldNewBeams,
+          heatmaptitle,
+        });
+      } catch (e) {
+        console.error('ERROR creating the heatmap array ', e);
+        this.setState({
+          zmap: null,
+          heatmaprender: false,
+          heatmaptitle: {},
+        });
+      }
+    } else {
+      // should never happen
+      console.error('ERROR: scanResults query failed');
+    }
+  };
 
-  renderScanTable() {
+  renderScanTable = () => {
     let adjustedHeight = this.props.height - 40;
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
-    const linksSelectRowProp = {
-      mode: 'radio',
-      clickToSelect: true,
-      hideSelectColumn: true,
-      bgColor: 'rgb(183,210,255)',
-      onSelect: this.tableOnRowSelect,
-      selected: this.state.selectedLink ? [this.state.selectedLink] : [],
-    };
-    const tableOpts = {
-      sortName: this.state.sortName,
-      sortOrder: this.state.sortOrder,
-      onSortChange: this.onSortChange.bind(this),
-      onFilterChange: this.onFilterChange.bind(this),
-    };
-    if (true) {
-      return (
-        <BootstrapTable
-          height={adjustedHeight + 'px'}
-          key="scansTable"
-          data={this.getTableRows()}
-          striped={true}
-          hover={true}
-          options={tableOpts}
-          selectRow={linksSelectRowProp}
-          condensed>
-          <TableHeaderColumn dataField="index" hidden={true} isKey={true}>
-            HIDDEN
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="14%"
-            // dataSort={true}
-            ref="linkName"
-            dataField="link_name"
-            filterFormatted
-            dataFormat={this.enumFormatter}
-            formatExtraData={this.linkNameList}
-            filter={{type: 'SelectFilter', options: this.linkNameList}}
-            // sortFunc={this.linkSortFunc}
-          >
-            Name
-            <br />
-            <a
-              onClick={this.handlerClickCleanFiltered.bind(this)}
-              style={{cursor: 'pointer'}}>
-              clear filters
-            </a>
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="14%"
-            dataSort={true}
-            dataField="a_node_name"
-            ref="txNodeName"
-            filterFormatted
-            dataFormat={this.enumFormatter}
-            formatExtraData={this.nodeNameList}
-            filter={{type: 'SelectFilter', options: this.nodeNameList}}>
-            NodeTx
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="14%"
-            dataSort={true}
-            dataField="z_node_name">
-            NodeRx
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="10%"
-            dataSort={true}
-            dataField="token"
-            // sortFunc={this.linkSortFunc}
-          >
-            Token
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="10%"
-            dataSort={true}
-            dataField="tx_power"
-            // sortFunc={this.linkSortFunc}
-          >
-            tx Power
-          </TableHeaderColumn>
-          <TableHeaderColumn width="14%" dataSort={true} dataField="time">
-            Time
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="12%"
-            dataSort={true}
-            // dataFormat={this.renderStatusColor}
-            dataField="scan_type">
-            Scan Type
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="12%"
-            dataSort={true}
-            // dataFormat={this.renderStatusColor}
-            dataField="num_results">
-            #Results
-          </TableHeaderColumn>
-        </BootstrapTable>
-      );
-    }
-  }
+    const selected = this.state.selectedLink ? [this.state.selectedLink] : [];
 
-  // there are three buttons -
-  //  1. refresh/fetch the first page
-  //  2. to fetch the next page
-  //  3. the fetch the previous page
-  filterHelper(nodeFilter) {
-    const fetchCount = 4; //TODO change to 100
-    const result = [];
-    for (let i = 0; i < 3; i++) {
-      result[i] = {};
-      result[i].disabled = true;
-      result[i].filter = {};
-      result[i].filter.row_count = fetchCount;
-      result[i].filter.offset = 0;
-      result[i].filter.nodeFilter = nodeFilter;
-    }
-    result[0].key = 'initialFetch';
-    result[1].key = 'nextPage';
-    result[2].key = 'prevPage';
-    result[0].disabled = false; // always enabled
-    let buttontxt = '';
-    if (nodeFilter[0] !== '') {
-      buttontxt = ' node ' + nodeFilter[0];
-    }
-    if (nodeFilter[1] !== 'undefined') {
-      buttontxt = buttontxt + ' or ' + nodeFilter[1];
-    }
-    result[0].buttontxt = 'Fetch 1st page/refresh' + buttontxt;
-    result[1].buttontxt = 'next page (' + fetchCount + ')' + buttontxt;
-    result[2].buttontxt = 'previous page (' + fetchCount + ')' + buttontxt;
+    return (
+      <CustomTable
+        rowHeight={40}
+        headerHeight={this.headerHeight}
+        height={adjustedHeight - 45}
+        overscanRowCount={this.overscanRowCount}
+        columns={this.scanChartDescription}
+        data={this.getTableRows()}
+        sortBy={this.state.sortBy}
+        sortDirection={this.state.sortDirection}
+        onRowSelect={this.onTableRowSelect}
+        onSortChange={this.onSortChange}
+        selected={selected}
+        striped={false}
+      />
+    );
+  };
 
-    if (!this.state.scanResults) {
-      return result; // no results fetched yet
-    } else if (
-      this.state.scanResults.filter.nodeFilter[0] !== nodeFilter[0] ||
-      this.state.scanResults.filter.nodeFilter[1] !== nodeFilter[1]
-    ) {
-      return result; // filter changed, so only option is refresh
-    } else {
-      try {
-        const currentOffset = this.state.scanResults.filter.offset;
-        if (this.state.scanResults.results.length === fetchCount) {
-          result[1].disabled = false;
-          result[1].filter.offset = currentOffset + fetchCount;
-        }
-        if (currentOffset > 0) {
-          result[2].disabled = false;
-          result[2].filter.offset = Math.max(currentOffset - fetchCount, 0);
-        }
-      } catch (e) {
-        console.error('ERROR in NetworkScans filterHelper:', e);
-        return result;
-      }
-    }
-    return result;
-  }
+  renderHeatmap = heatMapHeightWidth => {
+    return (
+      <ReactPlotlyHeatmap
+        zmap={this.state.zmap}
+        txXY={this.state.txXY}
+        rxXY={this.state.rxXY}
+        oldNewBeams={this.state.oldNewBeams}
+        heatmaprender={this.state.heatmaprender}
+        heatmaptitle={this.state.heatmaptitle}
+        height_width={heatMapHeightWidth}
+      />
+    );
+  };
 
   render() {
     const scanTable = this.renderScanTable();
+    const pullDowns = this.renderSelectButtons();
+    const fetchButton = this.renderFetchButton();
+    const heatmap = this.renderHeatmap(500);
 
-    const buttonResult = this.filterHelper(this.state.nodeFilter);
-    const fetchButton = [];
-    for (let i = 0; i < 3; i++) {
-      fetchButton[i] = (
-        <button
-          key={buttonResult[i].key}
-          disabled={buttonResult[i].disabled}
-          className={
-            buttonResult[i].disabled
-              ? 'graph-button-fetch-disabled'
-              : 'graph-button-fetch'
-          }
-          onClick={btn =>
-            Dispatcher.dispatch({
-              actionType: Actions.SCAN_FETCH,
-              mysqlfilter: buttonResult[i].filter,
-            })
-          }>
-          {buttonResult[i].buttontxt}
-        </button>
-      );
-    }
-    let showResultsMsg = '';
-    try {
-      showResultsMsg =
-        ' Showing Results ' +
-        this.state.scanResults.filter.offset +
-        ' to ' +
-        (this.state.scanResults.filter.offset +
-          this.state.scanResults.results.length -
-          1);
-    } catch (e) {}
-
-    const heatMapHeightWidth = 500;
-    // temp disabled
-    /*            <ReactPlotlyHeatmap
-              zmap={this.state.zmap}
-              heatmaprender={this.state.heatmaprender}
-              heatmaptitle={this.state.heatmaptitle}
-              height_width={heatMapHeightWidth}
-            />*/
     return (
       <div
         style={{
@@ -611,11 +976,9 @@ export default class NetworkScans extends React.Component {
           overflow: 'auto',
           height: this.props.height,
         }}>
-        {fetchButton[0]}
-        {fetchButton[1]}
-        {fetchButton[2]}
+        {pullDowns}
         &nbsp;&nbsp;&nbsp;
-        {showResultsMsg}
+        {fetchButton}
         <div style={{height: this.props.height + 100}}>
           <table style={{float: 'left', width: '60%'}}>
             <tbody>
@@ -627,7 +990,7 @@ export default class NetworkScans extends React.Component {
           <table style={{float: 'right', width: '35%'}}>
             <tbody>
               <tr>
-                <td />
+                <td>{heatmap}</td>
               </tr>
             </tbody>
           </table>

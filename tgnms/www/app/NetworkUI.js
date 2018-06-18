@@ -118,7 +118,7 @@ export default class NetworkUI extends React.Component {
       });
   };
 
-  // see scan_results in server.js
+  // see self_test in server.js
   getSelfTestResults(networkName, filter) {
     if (
       filter &&
@@ -189,9 +189,6 @@ export default class NetworkUI extends React.Component {
           pendingTopology: payload.topology,
         });
         break;
-      case Actions.SCAN_FETCH:
-        this.updateScanResults(this.state.networkName, payload.mysqlfilter);
-        break;
       case Actions.SELF_TEST_FETCH:
         this.getSelfTestResults(this.state.networkName, payload.filter);
         break;
@@ -237,34 +234,6 @@ export default class NetworkUI extends React.Component {
       Dispatcher.dispatch({
         actionType: Actions.ANALYZER_REFRESHED,
         analyzerTable: json[0],
-      });
-    });
-  }
-
-  // see scan_results in server.js
-  updateScanResults(networkName, filter) {
-    const lastAttemptAgo = new Date() / 1000 - this.lastAnalyzerRequestTime;
-    if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
-      return;
-    }
-    // update last request time
-    this.lastScanRequestTime = new Date() / 1000;
-    const url =
-      '/metrics/scan_results?topology=' +
-      networkName +
-      '&filter[row_count]=' +
-      filter.row_count +
-      '&filter[offset]=' +
-      filter.offset +
-      '&filter[nodeFilter0]=' +
-      filter.nodeFilter[0] +
-      '&filter[nodeFilter1]=' +
-      filter.nodeFilter[1];
-
-    axios.get(url).then(response => {
-      Dispatcher.dispatch({
-        actionType: Actions.SCAN_REFRESHED,
-        scanResults: response.data,
       });
     });
   }
