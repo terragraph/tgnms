@@ -1,5 +1,5 @@
 {
-  "use_tile_proxy": true,
+  "use_tile_proxy": false,
   "refresh_interval": 5000,
   "fbinternal": false,
   "topologies": [
