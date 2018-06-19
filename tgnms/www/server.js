@@ -1413,27 +1413,6 @@ app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   );
 });
 
-app.post(/\/controller\/addNode$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const topologyName = postData.topology;
-    var topology = getTopologyByName(topologyName);
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'addNode',
-        topology: topology,
-        node: postData.newNode,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   req,
   res,
@@ -1452,46 +1431,6 @@ app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
       nodeA: nodeA,
       nodeZ: nodeZ,
       forceDelete: forceDelete,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const forceDelete = req.params[2] === 'force';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'delNode',
-      topology: topology,
-      node: nodeName,
-      forceDelete: forceDelete,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/renameNode\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const newNodeName = req.params[2];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'editNode',
-      topology: topology,
-      nodeName: nodeName,
-      newNodeName: newNodeName,
     },
     '',
     res

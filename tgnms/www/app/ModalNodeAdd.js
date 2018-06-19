@@ -7,7 +7,7 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import {render} from 'react-dom';
+import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
 import Modal from 'react-modal';
 import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
@@ -67,10 +67,12 @@ export default class ModalNodeAdd extends React.Component {
       is_primary: this.state.node_is_primary,
       type: this.state.node_type,
       mac_addr: this.state.node_mac_addr,
-      is_pop: this.state.node_is_pop,
+      pop_node: this.state.node_is_pop,
       polarity: this.state.node_polarity,
-      txGolayIdx: this.state.node_txGolayIdx,
-      rxGolayIdx: this.state.node_rxGolayIdx,
+      golay_idx: {
+        txGolayIdx: this.state.node_txGolayIdx,
+        rxGolayIdx: this.state.node_rxGolayIdx,
+      },
       site_name: this.state.node_site_name,
       ant_azimuth: this.state.node_ant_azimuth,
       has_cpe: this.state.node_has_cpe,
@@ -90,29 +92,24 @@ export default class ModalNodeAdd extends React.Component {
         closeOnConfirm: false,
       },
       () => {
-        const request = new XMLHttpRequest();
-        request.onload = function() {
-          if (!request) {
-            return;
-          }
-          if (request.status == 200) {
+        const data = {
+          node: newNode,
+        };
+        apiServiceRequest(this.props.topology.name, 'addNode', data)
+          .then(response => {
             swal({
               title: 'Node Added!',
-              text: 'Response: ' + request.statusText,
+              text: 'Response: ' + response.statusText,
               type: 'success',
             });
-          } else {
+          })
+          .catch(error => {
             swal({
               title: 'Failed!',
-              text: 'Adding a link failed\nReason: ' + request.statusText,
+              text: 'Adding a link failed\nReason: ' + error.response.statusText,
               type: 'error',
-            });
-          }
-        };
-        try {
-          request.open('POST', '/controller/addNode', true);
-          request.send(JSON.stringify(postData));
-        } catch (e) {}
+            })
+          });
       },
     );
   }
