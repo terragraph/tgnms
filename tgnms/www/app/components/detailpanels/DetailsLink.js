@@ -9,6 +9,7 @@ import 'sweetalert/dist/sweetalert.css';
 
 import ModalIgnitionState from '../../ModalIgnitionState.js';
 import Dispatcher from '../../NetworkDispatcher.js';
+import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import {availabilityColor} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
@@ -16,6 +17,9 @@ import classnames from 'classnames';
 import {Panel} from 'react-bootstrap';
 import React from 'react';
 import swal from 'sweetalert';
+
+const LINK_STATUS_UP = 1;
+const LINK_STATUS_DOWN = 2;
 
 export default class DetailsLink extends React.Component {
   state = {
@@ -66,13 +70,13 @@ export default class DetailsLink extends React.Component {
   }
 
   changeLinkStatus(upDown, initiatorIsAnode) {
-    const status = upDown ? 'up' : 'down';
-    const iNode = initiatorIsAnode
-      ? this.props.link.a_node_name
-      : this.props.link.z_node_name;
-    const rNode = initiatorIsAnode
-      ? this.props.link.z_node_name
-      : this.props.link.a_node_name;
+    const {link, topologyName} = this.props;
+    const initiatorNodeName = initiatorIsAnode
+      ? link.a_node_name
+      : link.z_node_name;
+    const responderNodeName = initiatorIsAnode
+      ? link.z_node_name
+      : link.a_node_name;
     swal(
       {
         title: 'Are you sure?',
@@ -84,22 +88,19 @@ export default class DetailsLink extends React.Component {
         closeOnConfirm: false,
       },
       () => {
-        const url =
-          '/controller/setlinkStatus/' +
-          this.props.topologyName +
-          '/' +
-          iNode +
-          '/' +
-          rNode +
-          '/' +
-          status;
-        axios
-          .get(url)
+        const data = {
+          action: upDown ? LINK_STATUS_UP : LINK_STATUS_DOWN,
+          initiatorNodeName,
+          responderNodeName,
+        };
+        apiServiceRequest(topologyName, 'setLinkStatus', data)
           .then(response =>
             swal({
-              title: 'Request successful!',
-              text: 'Response: ' + response.statusText,
-              type: 'success',
+              title: response.data.success
+                ? 'Request successful!'
+                : 'Request failed!',
+              text: 'Response: ' + response.data.message || response.statusText,
+              type: response.data.success ? 'success' : 'error',
             }),
           )
           .catch(error =>
@@ -131,19 +132,14 @@ export default class DetailsLink extends React.Component {
   }
 
   async deleteLinkConfirm(force) {
-    const forceDelete = force ? 'force' : 'no_force';
-    const url =
-      '/controller/delLink/' +
-      this.props.topologyName +
-      '/' +
-      this.props.link.a_node_name +
-      '/' +
-      this.props.link.z_node_name +
-      '/' +
-      forceDelete;
-
+    const {link, topologyName} = this.props;
     try {
-      const response = await axios.get(url);
+      const data = {
+        aNodeName: link.a_node_name,
+        zNodeName: link.z_node_name,
+        force,
+      };
+      const response = await apiServiceRequest(topologyName, 'delLink', data);
       swal({
         title: 'Link Deleted!',
         text: 'Response: ' + response.statusText,
