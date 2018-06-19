@@ -183,10 +183,7 @@ worker.on('message', msg => {
         }
         Object.keys(msg.status_dump.statusReports).forEach(nodeMac => {
           const report = msg.status_dump.statusReports[nodeMac];
-          const ts =
-            parseInt(
-              Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)
-            ) * 1000;
+          const ts = report.timeStamp * 1000;
           if (ts !== 0) {
             const timeDiffMs = currentTime - ts;
             if (timeDiffMs > statusReportExpiry) {
