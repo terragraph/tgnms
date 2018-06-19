@@ -30,6 +30,7 @@ import NetworkStore from './stores/NetworkStore.js';
 import {rgb, scaleLinear} from 'd3';
 import LeafletGeom from 'leaflet-geometryutil';
 // leaflet maps
+import {merge} from 'lodash-es';
 import Leaflet, {LatLng} from 'leaflet';
 import PropTypes from 'prop-types';
 import Control from 'react-leaflet-control';
@@ -233,13 +234,15 @@ export default class NetworkMap extends React.Component {
         break;
       case Actions.PLANNED_SITE_CREAT:
         const plannedSite = {
-          alt: 0,
-          lat: this.props.networkConfig
-            ? this.props.networkConfig.latitude
-            : 37.484494,
-          long: this.props.networkConfig
-            ? this.props.networkConfig.longitude
-            : -122.1483976,
+          location: {
+            altitude: 0,
+            latitude: this.props.networkConfig
+              ? this.props.networkConfig.latitude
+              : 37.484494,
+            longitude: this.props.networkConfig
+              ? this.props.networkConfig.longitude
+              : -122.1483976,
+          },
           name: payload.siteName,
         };
         this.setState({
@@ -586,11 +589,13 @@ export default class NetworkMap extends React.Component {
 
   updatePlannedPosition() {
     const {lat, lng} = this.refs.palnnedSiteMarker.leafletElement.getLatLng();
-    const plannedSite = this.state.plannedSite;
-    plannedSite.lat = lat;
-    plannedSite.long = lng;
     this.setState({
-      plannedSite,
+      plannedSite: merge(this.state.plannedSite, {
+        location: {
+          latitude: lat,
+          longitude: lng,
+        },
+      }),
     });
   }
 
@@ -1250,7 +1255,10 @@ export default class NetworkMap extends React.Component {
           icon={SITE_MARKER}
           draggable={true}
           onDragend={this.updatePlannedPosition.bind(this)}
-          position={[this.state.plannedSite.lat, this.state.plannedSite.long]}
+          position={[
+            this.state.plannedSite.location.latitude,
+            this.state.plannedSite.location.longitude,
+          ]}
           ref="palnnedSiteMarker"
           radius={20}
         />

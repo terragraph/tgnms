@@ -14,8 +14,9 @@ import {
   polarityColor,
   uptimeSec,
 } from '../../helpers/NetworkHelpers.js';
+
 import {Actions} from '../../constants/NetworkConstants.js';
-import axios from 'axios';
+import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import {Panel} from 'react-bootstrap';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -79,15 +80,9 @@ export default class DetailsSite extends React.Component {
   }
 
   addSite() {
-    const newSite = {
-      name: this.props.site.name,
-      lat: this.props.site.location.latitude,
-      long: this.props.site.location.longitude,
-      alt: this.props.site.location.altitude,
-    };
-    const postData = {
-      topology: this.props.topologyName,
-      newSite,
+    const {site, topologyName} = this.props;
+    const data = {
+      site,
     };
     swal(
       {
@@ -100,8 +95,7 @@ export default class DetailsSite extends React.Component {
         closeOnConfirm: false,
       },
       () => {
-        axios
-          .post('/controller/addSite', postData)
+        apiServiceRequest(topologyName, 'addSite', data)
           .then(response =>
             swal({
               title: 'Site Added!',
@@ -122,6 +116,7 @@ export default class DetailsSite extends React.Component {
   }
 
   renameSite() {
+    const {site, topologyName} = this.props;
     swal(
       {
         title: 'Rename site',
@@ -143,15 +138,13 @@ export default class DetailsSite extends React.Component {
         }
 
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/renameSite/' +
-            this.props.topologyName +
-            '/' +
-            this.props.site.name +
-            '/' +
-            inputValue;
-          axios
-            .get(url)
+          const data = {
+            siteName: site.name,
+            newSite: {
+              name: inputValue,
+            }
+          };
+          apiServiceRequest(topologyName, 'editSite', data)
             .then(response =>
               swal(
                 {
@@ -192,13 +185,10 @@ export default class DetailsSite extends React.Component {
       },
       () => {
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/delSite/' +
-            this.props.topologyName +
-            '/' +
-            this.props.site.name;
-          axios
-            .get(url)
+          const data = {
+            siteName: this.props.site.name,
+          };
+          apiServiceRequest(this.props.topologyName, 'delSite', data)
             .then(response =>
               swal(
                 {

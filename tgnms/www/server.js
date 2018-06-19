@@ -1434,27 +1434,6 @@ app.post(/\/controller\/addNode$/i, function (req, res, next) {
   });
 });
 
-app.post(/\/controller\/addSite$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const topologyName = postData.topology;
-    var topology = getTopologyByName(topologyName);
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'addSite',
-        topology: topology,
-        site: postData.newSite,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   req,
   res,
@@ -1491,28 +1470,6 @@ app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
       topology: topology,
       node: nodeName,
       forceDelete: forceDelete,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/renameSite\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const siteName = req.params[1];
-  const newSiteName = req.params[2];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'editSite',
-      topology: topology,
-      siteName: siteName,
-      newSiteName: newSiteName,
     },
     '',
     res
@@ -1748,22 +1705,6 @@ app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
       forceReboot: forceReboot,
       nodes: [nodeName],
       secondsToReboot: SECONDS_TO_REBOOT,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const siteName = req.params[1];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'delSite',
-      topology: topology,
-      site: siteName,
     },
     '',
     res
