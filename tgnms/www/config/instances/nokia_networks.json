@@ -8,8 +8,8 @@
       "latitude": 38.082813,
       "longitude": 23.783837,
       "zoom_level": 18,
-      "controller_ip": "172.17.0.1",
-      "aggregator_ip": "172.17.0.1"
+      "controller_ip": "10.85.120.44",
+      "aggregator_ip": "10.85.120.44"
     }
   ]
 }
