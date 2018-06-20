@@ -288,8 +288,8 @@ export default class DetailsLink extends React.Component {
     if (!nodeA || !nodeZ) {
       return <div />;
     }
-    const siteA = nodeA ? nodeA.site_name : 'Unkown Site';
-    const siteZ = nodeZ ? nodeZ.site_name : 'Unkown Site';
+    const siteA = nodeA ? nodeA.site_name : 'Unknown Site';
+    const siteZ = nodeZ ? nodeZ.site_name : 'Unknown Site';
 
     const linkupAttempts = this.props.link.linkup_attempts || 0;
 

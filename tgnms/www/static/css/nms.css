@@ -220,6 +220,13 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-separator {
   margin: 1px;
 }
+.details-action-list {
+  font-size: 1.3rem;
+  margin-bottom: 5px;
+}
+.details-action-list .details-link {
+  margin: 4px 0;
+}
 .controller-status-icon {
   float: right;
 }

@@ -1127,7 +1127,6 @@ export default class NetworkMap extends React.Component {
             <DetailsSite
               topologyName={this.props.networkConfig.topology.name}
               site={site}
-              sites={this.sitesByName}
               nodes={this.nodesByName}
               links={this.linksByName}
               maxHeight={maxModalHeight}

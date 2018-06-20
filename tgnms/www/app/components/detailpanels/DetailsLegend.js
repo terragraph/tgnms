@@ -228,7 +228,7 @@ export default class DetailsLegend extends React.Component {
         <Panel.Collapse>
           <Panel.Body>
             <Grid style={{width: '750px'}}>
-              <Row className='details-legend-row'>
+              <Row className="details-legend-row">
                 <Col xs={3}>
                   <Panel>
                     <Panel.Body>
@@ -242,10 +242,11 @@ export default class DetailsLegend extends React.Component {
                 <Col xs={5}>
                   <Panel
                     defaultExpanded
-                    onToggle={() => this.setState({
-                      siteOpen: !this.state.siteOpen
-                    })}
-                  >
+                    onToggle={() =>
+                      this.setState({
+                        siteOpen: !this.state.siteOpen,
+                      })
+                    }>
                     <Panel.Heading>
                       <Panel.Title componentClass="h5" toggle>
                         Site Overlay: {this.props.siteOverlay}&nbsp;
@@ -269,10 +270,11 @@ export default class DetailsLegend extends React.Component {
                 <Col xs={5}>
                   <Panel
                     defaultExpanded
-                    onToggle={() => this.setState({
-                      linkOpen: !this.state.linkOpen
-                    })}
-                  >
+                    onToggle={() =>
+                      this.setState({
+                        linkOpen: !this.state.linkOpen,
+                      })
+                    }>
                     <Panel.Heading>
                       <Panel.Title componentClass="h5" toggle>
                         Link Overlay: {this.props.linkOverlay}&nbsp;
