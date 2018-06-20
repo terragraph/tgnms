@@ -109,8 +109,6 @@ class ApiServiceClient {
 
     return returnStruct;
   }
-
- private:
 };
 } // namespace gorilla
 } // namespace facebook

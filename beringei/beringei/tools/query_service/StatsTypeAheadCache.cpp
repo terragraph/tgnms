@@ -9,6 +9,8 @@
 
 #include "StatsTypeAheadCache.h"
 
+#include "MySqlClient.h"
+
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <iostream>
@@ -25,9 +27,7 @@ namespace gorilla {
 /**
  * Hold the type-ahead meta-data for a topology
  */
-StatsTypeAheadCache::StatsTypeAheadCache(
-    std::shared_ptr<MySqlClient> mySqlClient)
-    : mySqlClient_(mySqlClient) {
+StatsTypeAheadCache::StatsTypeAheadCache() {
   // node metrics
   // minion_uptime,
   // link metrics
@@ -86,8 +86,8 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
     macNodes_.insert(node.mac_addr);
     nodesByName_[node.name] = node;
   }
-
-  auto dbNodes = mySqlClient_->getNodesWithKeys(macNodes_);
+  auto mySqlClient = MySqlClient::getInstance();
+  auto dbNodes = mySqlClient->getNodesWithKeys(macNodes_);
   for (const auto& node : dbNodes) {
     for (const auto& key : node->keyList) {
       folly::StringPiece keyName = folly::StringPiece(key.second);
@@ -112,7 +112,7 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
       nodeMacToKeyList_[node->mac][key.second] = keyData;
     }
   }
-  for (const auto& topologyConfig : mySqlClient_->getTopologyConfigs()) {
+  for (const auto& topologyConfig : mySqlClient->getTopologyConfigs()) {
     if (topologyConfig.second->topology.name != request.name) {
       continue;
     }

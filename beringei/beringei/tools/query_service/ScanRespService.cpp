@@ -7,8 +7,10 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "ApiServiceClient.h"
 #include "ScanRespService.h"
+
+#include "ApiServiceClient.h"
+#include "MySqlClient.h"
 #include "TopologyStore.h"
 
 #include <curl/curl.h>
@@ -43,9 +45,8 @@ namespace facebook {
 namespace gorilla {
 
 ScanRespService::ScanRespService(
-    std::shared_ptr<MySqlClient> mySqlClient,
     std::shared_ptr<ApiServiceClient> apiServiceClient)
-    : mySqlClient_(mySqlClient), apiServiceClient_(apiServiceClient) {
+    : apiServiceClient_(apiServiceClient) {
   // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
   timer_->scheduleTimeout(FLAGS_scan_poll_period_short * 1000);
@@ -145,7 +146,7 @@ int ScanRespService::writeData(
     const scans::ScanStatus& scanStatus,
     const std::string& toplogyName) {
   std::vector<scans::MySqlScanResp> mySqlScanResponses;
-
+  auto mySqlClient = MySqlClient::getInstance();
   // loop over scans: {token: ScanData}
   for (const std::pair<int, scans::ScanData>& scan : scanStatus.scans) {
     int respId = scan.second.respId;
@@ -171,7 +172,7 @@ int ScanRespService::writeData(
     // loop over scan responses within a scan {nodeName:: ScanResp}
     for (const std::pair<std::string, scans::ScanResp>& responses :
          scan.second.responses) {
-      auto nodeId = mySqlClient_->getNodeIdFromNodeName(responses.first);
+      auto nodeId = mySqlClient->getNodeIdFromNodeName(responses.first);
       if (!nodeId) {
         LOG(ERROR) << "Error no node ID corresponding to " << responses.first;
         continue;
@@ -223,7 +224,7 @@ int ScanRespService::writeData(
     mySqlScanResponse.rxResponses = mySqlScanRxResponses;
     mySqlScanResponses.push_back(mySqlScanResponse);
   }
-  bool success = mySqlClient_->writeScanResponses(mySqlScanResponses);
+  bool success = mySqlClient->writeScanResponses(mySqlScanResponses);
   return success ? 0 : -1;
 }
 
