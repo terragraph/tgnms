@@ -680,7 +680,7 @@ folly::dynamic BeringeiData::analyzerTable(int beringeiTimeWindowS) {
       linkindex[linkName] = numlinks;
       linkNameByLinkNum[numlinks] =
           linkName; // example:
-                       // link-terra111.f5.tb.a404-if-terra212.f5.tb.a404-if
+                    // link-terra111.f5.tb.a404-if-terra212.f5.tb.a404-if
       numlinks++;
     }
     keylink[keyIndex] = folly::convertTo<int>(linkindex[linkName]);

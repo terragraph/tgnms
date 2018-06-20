@@ -148,7 +148,7 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
             keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
         if (!nodeMacToKeyList_.count(mac) ||
             !nodeMacToKeyList_[mac].count(keyName)) {
-          VLOG(1) << "Unable to find metricName for " << aNode.name << "-"
+          VLOG(3) << "Unable to find metricName for " << aNode.name << "-"
                   << zNode.name << ", mac: " << mac << ", key: " << keyName;
           continue;
         }
@@ -223,10 +223,8 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
     const std::string& metricName,
     const query::Node& aNode,
     const query::Node& zNode) {
-
   if (aNode.mac_addr.empty() || zNode.mac_addr.empty()) {
-    VLOG(1) << "Empty MAC for link " << aNode.name
-            << " <-> " << zNode.name;
+    VLOG(1) << "Empty MAC for link " << aNode.name << " <-> " << zNode.name;
     return folly::dynamic::object();
   }
   if (metricName == "rssi") {
@@ -437,14 +435,15 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
   std::set<int> usedShortMetricIds;
   int retMetricId = 0;
   // search short-name metrics
-  VLOG(1) << "Found " << nameToMetricIds_.size() << " metric names to search through.";
+  VLOG(1) << "Found " << nameToMetricIds_.size()
+          << " metric names to search through.";
   for (const auto& metric : nameToMetricIds_) {
     std::smatch metricMatch;
     if (std::regex_search(metric.first, metricMatch, metricRegex)) {
       std::vector<query::KeyData> metricKeyList;
       // insert keydata
-      VLOG(1) << "\tFound metric match " << metric.first
-              << " with " << metric.second.size() << " keys.";
+      VLOG(1) << "\tFound metric match " << metric.first << " with "
+              << metric.second.size() << " keys.";
       for (const auto& keyId : metric.second) {
         auto metricIt = metricIdMetadata_.find(keyId);
         if (metricIt != metricIdMetadata_.end()) {
@@ -483,8 +482,8 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
       }
     }
   }
-  VLOG(1) << "Returning " << retMetrics.size()
-          << " metrics for " << metricName << " query.";
+  VLOG(1) << "Returning " << retMetrics.size() << " metrics for " << metricName
+          << " query.";
   return retMetrics;
 }
 } // namespace gorilla
