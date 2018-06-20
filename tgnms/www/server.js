@@ -1280,28 +1280,6 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
         }
         node.status = 1;
         // delete node['polarity'];
-        if (
-          node.golay_idx &&
-          node.golay_idx.hasOwnProperty('txGolayIdx') &&
-          node.golay_idx.hasOwnProperty('rxGolayIdx')
-        ) {
-          if (
-            typeof node.golay_idx.txGolayIdx !== 'number' &&
-            typeof node.golay_idx.rxGolayIdx !== 'number' &&
-            node.golay_idx.txGolayIdx != null &&
-            node.golay_idx.rxGolayIdx != null
-          ) {
-            const txGolayIdx = Buffer.from(
-              node.golay_idx.txGolayIdx.buffer.data
-            ).readUIntBE(0, 8);
-            const rxGolayIdx = Buffer.from(
-              node.golay_idx.rxGolayIdx.buffer.data
-            ).readUIntBE(0, 8);
-            // update golay by parsing int buffer
-            node.golay_idx.rxGolayIdx = rxGolayIdx;
-            node.golay_idx.txGolayIdx = txGolayIdx;
-          }
-        }
       });
     }
     res.json(networkConfig);

@@ -222,11 +222,7 @@ export default class DetailsSite extends React.Component {
   }
 
   formatGolay(golayIdx) {
-    if (golayIdx) {
-      return Buffer.from(golayIdx.buffer.data).readUIntBE(0, 8);
-    } else {
-      return 'N/A';
-    }
+    return golayIdx || 'N/A';
   }
 
   genNodeType(nodeType, isPrimary) {

@@ -290,14 +290,7 @@ export default class DetailsLink extends React.Component {
     const siteA = nodeA ? nodeA.site_name : 'Unkown Site';
     const siteZ = nodeZ ? nodeZ.site_name : 'Unkown Site';
 
-    let linkupAttempts = 0;
-    if (
-      this.props.link.linkup_attempts &&
-      this.props.link.linkup_attempts.buffer
-    ) {
-      const buf = Buffer.from(this.props.link.linkup_attempts.buffer.data);
-      linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString(), 10);
-    }
+    const linkupAttempts = this.props.link.linkup_attempts || 0;
 
     let ignitionStateModal = null;
     if (this.state.ignitionStateModalOpen) {

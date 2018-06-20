@@ -388,31 +388,22 @@ export default class NetworkMap extends React.Component {
             this.props.linkOverlay == 'RxGolayIdx'
               ? link.golay_idx.rxGolayIdx
               : link.golay_idx.txGolayIdx;
-          link.overlay_a = parseInt(
-            Buffer.from(idx.buffer.data).readUIntBE(0, 8),
-            10,
-          );
-          link.overlay_z = link.overlay_a;
+          link.overlay_a = idx;
+          link.overlay_z = idx;
         } else {
           if (a_node && a_node.golay_idx) {
             const idx =
               this.props.linkOverlay == 'RxGolayIdx'
                 ? a_node.golay_idx.rxGolayIdx
                 : a_node.golay_idx.txGolayIdx;
-            link.overlay_a = parseInt(
-              Buffer.from(idx.buffer.data).readUIntBE(0, 8),
-              10,
-            );
+            link.overlay_a = idx;
           }
           if (z_node && z_node.golay_idx) {
             const idx =
               this.props.linkOverlay == 'RxGolayIdx'
                 ? z_node.golay_idx.rxGolayIdx
                 : z_node.golay_idx.txGolayIdx;
-            link.overlay_z = parseInt(
-              Buffer.from(idx.buffer.data).readUIntBE(0, 8),
-              10,
-            );
+            link.overlay_z = idx;
           }
         }
       }

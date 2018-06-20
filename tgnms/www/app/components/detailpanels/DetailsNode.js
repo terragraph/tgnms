@@ -366,9 +366,7 @@ export default class DetailsNode extends React.Component {
 
     let elapsedTime = 'N/A';
     if (this.props.node.status_dump) {
-      const timeStampSec = Buffer.from(
-        this.props.node.status_dump.timeStamp.buffer.data,
-      ).readUIntBE(0, 8);
+      const timeStampSec = this.props.node.status_dump.timeStamp;
       const timeStamp = new Date(timeStampSec * 1000);
       elapsedTime = moment().diff(timeStamp, 'seconds') + ' seconds ago';
     }
