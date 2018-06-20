@@ -11,6 +11,7 @@
 
 #include "BeringeiClientStore.h"
 #include "BeringeiData.h"
+#include "MySqlClient.h"
 #include "TopologyStore.h"
 
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
@@ -57,9 +58,8 @@ namespace facebook {
 namespace gorilla {
 
 AggregatorService::AggregatorService(
-    std::shared_ptr<MySqlClient> mySqlClient,
-    TACacheMap& typeaheadCache)
-    : mySqlClient_(mySqlClient), typeaheadCache_(typeaheadCache) {
+  TACacheMap& typeaheadCache)
+    : typeaheadCache_(typeaheadCache) {
   // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
   timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
@@ -253,7 +253,8 @@ void AggregatorService::timerCb() {
           if (!aggMetricNamesToAdd.empty()) {
             std::vector<std::string> aggMetricNamesToAddVector(
                 aggMetricNamesToAdd.begin(), aggMetricNamesToAdd.end());
-            mySqlClient_->addAggKeys(
+            auto mySqlClient = MySqlClient::getInstance();
+            mySqlClient->addAggKeys(
                 topologyConfig.second->id, aggMetricNamesToAddVector);
           }
         } else {

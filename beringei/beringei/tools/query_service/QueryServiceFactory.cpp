@@ -9,8 +9,6 @@
 
 #include "QueryServiceFactory.h"
 
-#include "StatsTypeAheadCache.h"
-
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/QueryHandler.h"
@@ -26,11 +24,8 @@ using folly::SocketAddress;
 namespace facebook {
 namespace gorilla {
 
-QueryServiceFactory::QueryServiceFactory(
-    std::shared_ptr<MySqlClient> mySqlClient,
-    TACacheMap& typeaheadCache)
+QueryServiceFactory::QueryServiceFactory(TACacheMap& typeaheadCache)
     : RequestHandlerFactory(),
-      mySqlClient_(mySqlClient),
       typeaheadCache_(typeaheadCache) {}
 
 void QueryServiceFactory::onServerStart(folly::EventBase* evb) noexcept {}
@@ -44,7 +39,7 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
   LOG(INFO) << "Received a request for path " << path;
 
   if (path == "/stats_writer") {
-    return new StatsWriteHandler(mySqlClient_);
+    return new StatsWriteHandler();
   } else if (path == "/query") {
     return new QueryHandler();
   } else if (path == "/table_query") {
@@ -53,7 +48,7 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     return new LogsWriteHandler();
   } else if (path == "/stats_typeahead") {
     // pass a cache client that stores metric names
-    return new StatsTypeAheadHandler(mySqlClient_, typeaheadCache_);
+    return new StatsTypeAheadHandler(typeaheadCache_);
   } else if (path == "/ruckus_ap_stats") {
     return new RuckusControllerStatsHandler();
   }

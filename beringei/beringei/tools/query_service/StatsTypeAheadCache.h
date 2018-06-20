@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include "MySqlClient.h"
-
 #include <folly/Memory.h>
 #include <folly/Synchronized.h>
 #include <folly/dynamic.h>
@@ -29,7 +27,7 @@ namespace gorilla {
  */
 class StatsTypeAheadCache {
  public:
-  explicit StatsTypeAheadCache(std::shared_ptr<MySqlClient> mySqlClient);
+  StatsTypeAheadCache();
 
   void fetchMetricNames(query::Topology& request);
 
@@ -84,9 +82,6 @@ class StatsTypeAheadCache {
   std::unordered_map<int, std::shared_ptr<query::KeyData>> metricIdMetadata_{};
 
   // TODO - graph struct for quick traversal
-
-  // mysql client
-  std::shared_ptr<MySqlClient> mySqlClient_;
 };
 
 using TACacheMap = folly::Synchronized<

@@ -8,7 +8,6 @@
  */
 #pragma once
 
-#include "MySqlClient.h"
 #include "StatsTypeAheadCache.h"
 
 #include <folly/Memory.h>
@@ -24,9 +23,7 @@ namespace gorilla {
 // Request handler factory that figures out the right handler based on the uri
 class QueryServiceFactory : public proxygen::RequestHandlerFactory {
  public:
-  explicit QueryServiceFactory(
-      std::shared_ptr<MySqlClient> mySqlClient,
-      TACacheMap& typeaheadCache);
+  explicit QueryServiceFactory(TACacheMap& typeaheadCache);
 
   void onServerStart(folly::EventBase* evb) noexcept override;
 
@@ -38,7 +35,6 @@ class QueryServiceFactory : public proxygen::RequestHandlerFactory {
 
  private:
   folly::EventBase* eb_;
-  std::shared_ptr<MySqlClient> mySqlClient_;
   // topology name -> type-ahead cache
   TACacheMap& typeaheadCache_;
 };

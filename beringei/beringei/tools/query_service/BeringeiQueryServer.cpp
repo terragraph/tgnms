@@ -10,9 +10,9 @@
 #include <unistd.h>
 
 #include "AggregatorService.h"
+#include "ApiServiceClient.h"
 #include "QueryServiceFactory.h"
 #include "ScanRespService.h"
-#include "StatsTypeAheadCache.h"
 #include "TopologyFetcher.h"
 
 #include <curl/curl.h>
@@ -59,8 +59,6 @@ int main(int argc, char* argv[]) {
   curl_global_init(CURL_GLOBAL_ALL);
 
   // initialize type-ahead
-  auto mySqlClient = std::make_shared<MySqlClient>();
-  mySqlClient->refreshAll();
   TACacheMap typeaheadCache;
 
   HTTPServerOptions options;
@@ -70,7 +68,7 @@ int main(int argc, char* argv[]) {
   options.enableContentCompression = false;
   options.handlerFactories =
       RequestHandlerChain()
-          .addThen<QueryServiceFactory>(mySqlClient, typeaheadCache)
+          .addThen<QueryServiceFactory>(typeaheadCache)
           .build();
 
   LOG(INFO) << "Starting Beringei Query Service server on port "
@@ -82,23 +80,20 @@ int main(int argc, char* argv[]) {
   LOG(INFO) << "Starting Topology Update Service";
   auto apiServiceClient = std::make_shared<ApiServiceClient>();
   // create timer thread
-  auto topologyFetch = std::make_shared<TopologyFetcher>(
-      mySqlClient, typeaheadCache, apiServiceClient);
+  auto topologyFetch =
+      std::make_shared<TopologyFetcher>(typeaheadCache, apiServiceClient);
   std::thread topologyFetchThread(
       [&topologyFetch]() { topologyFetch->start(); });
 
   LOG(INFO) << "Starting Aggregator Service";
   // create timer thread
-  auto aggregator =
-      std::make_shared<AggregatorService>(mySqlClient, typeaheadCache);
+  auto aggregator = std::make_shared<AggregatorService>(typeaheadCache);
   std::thread aggThread([&aggregator]() { aggregator->start(); });
 
   LOG(INFO) << "Starting Scan Response Service";
-  auto mySqlClientScan = std::make_shared<MySqlClient>();
-  mySqlClientScan->refreshAll();
   // create timer thread
   auto scanRespService =
-      std::make_shared<ScanRespService>(mySqlClientScan, apiServiceClient);
+      std::make_shared<ScanRespService>(apiServiceClient);
   std::thread scanThread([&scanRespService]() { scanRespService->start(); });
 
   aggThread.join();

@@ -10,7 +10,6 @@
 #pragma once
 
 #include "ApiServiceClient.h"
-#include "MySqlClient.h"
 
 #include <folly/Synchronized.h>
 #include <folly/io/async/EventBaseManager.h>
@@ -22,7 +21,6 @@ namespace gorilla {
 class ScanRespService {
  public:
   explicit ScanRespService(
-      std::shared_ptr<MySqlClient> mySqlClient,
       std::shared_ptr<ApiServiceClient> apiServiceClient);
 
   // run eventbase
@@ -39,7 +37,6 @@ class ScanRespService {
 
   int scanPollPeriod_;
   // from queryservicefactory
-  std::shared_ptr<MySqlClient> mySqlClient_;
   std::shared_ptr<ApiServiceClient> apiServiceClient_;
 
   int writeData(
