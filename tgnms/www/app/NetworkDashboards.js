@@ -250,7 +250,6 @@ export default class NetworkDashboards extends React.Component {
   };
 
   onEditGraphButtonClicked = index => {
-    // TODO Make the separate forms for editing graphs (currently button is not working)
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
     const graphs = dashboard.graphs;
@@ -441,6 +440,13 @@ export default class NetworkDashboards extends React.Component {
         setup: graph.setup,
         name: graphName,
       };
+    } else if (graph.setup.graphType === 'network') {
+      inputData = {
+        ...graph,
+        startTime,
+        endTime,
+        minAgo,
+      };
     }
     return inputData;
   };
@@ -462,7 +468,11 @@ export default class NetworkDashboards extends React.Component {
 
   generateGraph = async (graphType, inputData) => {
     let queries = [];
-    if (graphType === 'link') {
+    if (graphType === 'network') {
+      // Network does not need updated keys on new input data, so return
+      // inputData which already contains all necessary graph information
+      return inputData;
+    } else if (graphType === 'link') {
       let {direction, nodeA, nodeZ, key} = inputData;
       if (direction.includes('Z -> A')) {
         const temp = nodeA;
@@ -515,8 +525,9 @@ export default class NetworkDashboards extends React.Component {
       const {keys, minAgo, name, startTime, endTime, setup} = inputData;
       const keyData = [...keys];
       const keyIds = keys.map(key => key.keyId);
+
       const newGraph = {
-        agg_type: 'top',
+        agg_type: graphType === 'network' ? inputData.setup.aggType : 'top',
         container: {
           x: 0,
           y: 0,
@@ -531,6 +542,7 @@ export default class NetworkDashboards extends React.Component {
         startTime,
         setup,
       };
+
       this.addGraphToDashboard(newGraph);
     } else {
       this.generateGraph(graphType, inputData)

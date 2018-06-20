@@ -254,8 +254,6 @@
   width: 200px;
 }
 
-.disabled-button {
+.submit-button:disabled, .submit-button:disabled:hover {
   background-color: #ddd;
-  margin: 20px 0;
-  width: 200px;
 }
