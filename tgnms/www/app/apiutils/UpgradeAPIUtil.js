@@ -14,18 +14,44 @@ import {
   UploadStatus,
   DeleteStatus,
 } from '../constants/NetworkConstants.js';
+import {apiServiceRequest} from './ServiceAPIUtil';
 import {REVERT_UPGRADE_IMAGE_STATUS} from '../constants/UpgradeConstants.js';
 import axios from 'axios';
 import swal from 'sweetalert';
 
+const UpgradeGroupType = {
+  NETWORK: 20,
+  NODES: 10,
+};
+const UpgradeReqType = {
+  COMMIT_UPGRADE: 20,
+  PREPARE_UPGRADE: 10,
+  RESET_STATUS: 30,
+};
+
 const getErrorText = error => {
-  // try to get the status text from the API response, otherwise, default to the error object
+  // try to get the status text from the API response, otherwise, default to
+  // the error object
   return error.response && error.response.statusText
     ? error.response.statusText
     : error;
 };
 
-export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
+const createErrorHandler = (
+  title: string,
+  text: string = 'Your upgrade command failed with the following message',
+) => {
+  return error => {
+    const errorText = getErrorText(error);
+    swal({
+      text: `${text}:\n\n${errorText}`,
+      title,
+      type: 'error',
+    });
+  };
+};
+
+export const uploadUpgradeBinary = async (upgradeBinary, topologyName) => {
   if (!upgradeBinary) {
     return;
   }
@@ -38,7 +64,6 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
 
   const data = new FormData();
   data.append('binary', upgradeBinary);
-  data.append('topologyName', topologyName);
 
   const config = {
     onUploadProgress(progressEvent) {
@@ -53,61 +78,57 @@ export const uploadUpgradeBinary = (upgradeBinary, topologyName) => {
     },
   };
 
-  const uri = '/controller/uploadUpgradeBinary';
-  axios
-    .post(uri, data, config)
-    .then(response => {
-      // dispatch an action when upload has succeeded
-      Dispatcher.dispatch({
-        actionType: Actions.UPGRADE_UPLOAD_STATUS,
-        uploadStatus: UploadStatus.SUCCESS,
-      });
+  try {
+    // Upload binary to server, then send apiservice the url of the image
+    const url = '/controller/uploadUpgradeBinary';
+    const uploadResponse = await axios.post(url, data, config);
+    await apiServiceRequest(
+      topologyName,
+      'addUpgradeImage',
+      uploadResponse.data,
+    );
 
-      // revert the upload status after a specified interval
-      setTimeout(() => {
-        Dispatcher.dispatch({
-          actionType: Actions.UPGRADE_UPLOAD_STATUS,
-          uploadStatus: UploadStatus.NONE,
-        });
-      }, REVERT_UPGRADE_IMAGE_STATUS);
-
-      listUpgradeImages(topologyName);
-
-      swal({
-        title: 'Upload Image Success',
-        text: `Your selected image has been uploaded successfully and is currently being prepared for use
-      and should be ready soon.
-
-      Please refresh the list of images periodically. If your image does not show up, please try again.
-      `,
-        type: 'info',
-      });
-    })
-    .catch(error => {
-      Dispatcher.dispatch({
-        actionType: Actions.UPGRADE_UPLOAD_STATUS,
-        uploadStatus: UploadStatus.FAILURE,
-      });
-
-      listUpgradeImages(topologyName);
-
-      const errorText = getErrorText(error);
-      swal({
-        title: 'Upload Image Failed',
-        text: `There was an error while uploading your selected image with the following message: ${errorText}
-
-      Please try again.
-      `,
-        type: 'error',
-      });
+    // dispatch an action when upload has succeeded
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_UPLOAD_STATUS,
+      uploadStatus: UploadStatus.SUCCESS,
     });
+
+    // revert the upload status after a specified interval
+    setTimeout(() => {
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_UPLOAD_STATUS,
+        uploadStatus: UploadStatus.NONE,
+      });
+    }, REVERT_UPGRADE_IMAGE_STATUS);
+
+    listUpgradeImages(topologyName);
+
+    swal({
+      text:
+        'Your selected image has been uploaded successfully and is ' +
+        'currently being prepared for use and should be ready soon. ' +
+        '\n\n Please refresh the list of images periodically. If your ' +
+        'image does not show up, please try again.',
+      title: 'Upload Image Success',
+      type: 'info',
+    });
+  } catch (error) {
+    createErrorHandler(
+      'Upload Image Failed. Please try again',
+      'There was an error while uploading your selected image with ' +
+        'the following message',
+    )(error);
+    Dispatcher.dispatch({
+      actionType: Actions.UPGRADE_UPLOAD_STATUS,
+      uploadStatus: UploadStatus.FAILURE,
+    });
+    listUpgradeImages(topologyName);
+  }
 };
 
 export const listUpgradeImages = topologyName => {
-  const uri = `/controller/listUpgradeImages/${topologyName}`;
-
-  axios
-    .get(uri)
+  apiServiceRequest(topologyName, 'listUpgradeImages')
     .then(response => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_IMAGES_LOADED,
@@ -123,10 +144,10 @@ export const listUpgradeImages = topologyName => {
 };
 
 export const deleteUpgradeImage = (imageName, topologyName) => {
-  const uri = `controller/deleteUpgradeImage/${topologyName}/${imageName}`;
-
-  axios
-    .get(uri)
+  const data = {
+    name: imageName,
+  };
+  apiServiceRequest(topologyName, 'deleteUpgradeImage', data)
     .then(response => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
@@ -144,16 +165,10 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
       listUpgradeImages(topologyName);
     })
     .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Prepare upgrade failed',
-        text: `There was an error while trying to delete your requested image.
-
-      ${errorText}`,
-        type: 'error',
-      });
-
+      createErrorHandler(
+        'Prepare upgrade failed',
+        'There was an error while trying to delete your requested image',
+      )(error);
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
         deleteStatus: DeleteStatus.FAILURE,
@@ -163,111 +178,153 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
 };
 
 export const resetStatus = upgradeGroupReq => {
-  const uri = '/controller/resetStatus';
-  axios
-    .post(uri, upgradeGroupReq)
+  const {nodes, requestId, topologyName} = upgradeGroupReq;
+  const data = {
+    nodes,
+    ugType: UpgradeGroupType.NODES,
+    urReq: {
+      upgradeReqId: requestId,
+      urType: UpgradeReqType.RESET_STATUS,
+    },
+  };
+  apiServiceRequest(topologyName, 'sendUpgradeRequest', data)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "reset status" process with requestId ' +
+          requestId +
+          'The status of your upgrade should be shown on the "Node Upgrade ' +
+          'Status" table.',
         title: 'Reset status submitted',
-        text: `You have initiated the "reset status" process with requestId ${
-          upgradeGroupReq.requestId
-        }
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Reset status failed',
-        text: `Your upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(createErrorHandler('Reset status failed'));
 };
 
 export const prepareUpgrade = upgradeGroupReq => {
-  const uri = '/controller/prepareUpgrade';
-  axios
-    .post(uri, upgradeGroupReq)
+  const {
+    downloadAttempts,
+    excludeNodes,
+    imageUrl,
+    isHttp,
+    limit,
+    md5,
+    requestId,
+    skipFailure,
+    timeout,
+    topologyName,
+    torrentParams,
+  } = upgradeGroupReq;
+
+  const upgradeReqParams = {};
+  if (isHttp) {
+    upgradeReqParams['downloadAttempts'] = downloadAttempts;
+  } else {
+    upgradeReqParams['torrentParams'] = torrentParams;
+  }
+  const data = {
+    excludeNodes,
+    limit,
+    nodes: [],
+    skipFailure,
+    skipLinks: [],
+    timeout,
+    ugType: UpgradeGroupType.NETWORK,
+    urReq: {
+      imageUrl,
+      md5,
+      upgradeReqId: requestId,
+      urType: UpgradeReqType.PREPARE_UPGRADE,
+      ...upgradeReqParams,
+    },
+    version: '',
+  };
+  apiServiceRequest(topologyName, 'sendUpgradeRequest', data)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "prepare upgrade" process with ' +
+          `requestId ${requestId}` +
+          '\n\n' +
+          'The status of your upgrade should be shown on the "Node ' +
+          'Upgrade Status" table.',
         title: 'Prepare upgrade submitted',
-        text: `You have initiated the "prepare upgrade" process with requestId ${
-          upgradeGroupReq.requestId
-        }
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Prepare upgrade failed',
-        text: `Your upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(createErrorHandler('Prepare upgrade failed'));
 };
 
 export const commitUpgrade = upgradeGroupReq => {
-  const uri = '/controller/commitUpgrade';
-  axios
-    .post(uri, upgradeGroupReq)
+  const {
+    excludeNodes,
+    limit,
+    nodes,
+    requestId,
+    scheduleToCommit,
+    skipFailure,
+    skipLinks,
+    timeout,
+    topologyName,
+    ugType,
+  } = upgradeGroupReq;
+
+  const data = {
+    excludeNodes,
+    limit,
+    nodes,
+    skipFailure,
+    skipLinks,
+    timeout,
+    ugType,
+    urReq: {
+      scheduleToCommit,
+      upgradeReqId: requestId,
+      urType: UpgradeReqType.COMMIT_UPGRADE,
+    },
+    version: '',
+  };
+
+  apiServiceRequest(topologyName, 'sendUpgradeRequest', data)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "commit upgrade" process with ' +
+          `requestId ${upgradeGroupReq.requestId}` +
+          '\n\n' +
+          'The status of your upgrade should be shown on the "Node Upgrade ' +
+          'Status" table.',
         title: 'Commit upgrade submitted',
-        text: `You have initiated the "commit upgrade" process with requestId ${
-          upgradeGroupReq.requestId
-        }
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Commit upgrade failed',
-        text: `Your upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(createErrorHandler('Commit upgrade failed'));
 };
 
 export const abortUpgrade = upgradeAbortReq => {
-  const uri = '/controller/abortUpgrade';
-  axios
-    .post(uri, upgradeAbortReq)
+  const {abortAll, reqIds, topologyName} = upgradeAbortReq;
+
+  const data = {
+    abortAll,
+    reqIds,
+  };
+
+  apiServiceRequest(topologyName, 'abortUpgrade', data)
     .then(response => {
       swal({
+        text:
+          'You have initiated the "abort upgrade" process successfully' +
+          '\n\nThe status of your upgrade should be shown on the ' +
+          '"Node Upgrade Status" table.',
         title: 'Abort upgrade(s) success',
-        text: `You have initiated the "abort upgrade" process successfully
-
-      The status of your upgrade should be shown on the "Node Upgrade Status" table.
-      `,
         type: 'info',
       });
     })
-    .catch(error => {
-      const errorText = getErrorText(error);
-
-      swal({
-        title: 'Abort upgrade failed',
-        text: `Your abort upgrade command failed with the following message:
-      ${errorText}`,
-        type: 'error',
-      });
-    });
+    .catch(
+      createErrorHandler(
+        'Abort upgrade failed',
+        'Your abort upgrade command failed with the following message',
+      ),
+    );
 };

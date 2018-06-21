@@ -7,6 +7,7 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
+import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
@@ -131,6 +132,7 @@ export default class DetailsNode extends React.Component {
 
   deleteNode(force) {
     const forceDelete = force ? 'force' : 'no_force';
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Are you sure?',
@@ -143,15 +145,10 @@ export default class DetailsNode extends React.Component {
       },
       () => {
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/delNode/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            forceDelete;
-          axios
-            .get(url)
+          const data = {
+            nodeName: node.name,
+          };
+          apiServiceRequest(topologyName, 'delNode', data)
             .then(response =>
               swal(
                 {
@@ -185,6 +182,7 @@ export default class DetailsNode extends React.Component {
   }
 
   renameNode() {
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Rename node',
@@ -206,15 +204,13 @@ export default class DetailsNode extends React.Component {
         }
 
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/renameNode/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            inputValue;
-          axios
-            .get(url)
+          const data = {
+            nodeName: node.name,
+            newNode: {
+              name: inputValue,
+            },
+          };
+          apiServiceRequest(topologyName, 'editNode', data)
             .then(response =>
               swal(
                 {
@@ -370,9 +366,7 @@ export default class DetailsNode extends React.Component {
 
     let elapsedTime = 'N/A';
     if (this.props.node.status_dump) {
-      const timeStampSec = Buffer.from(
-        this.props.node.status_dump.timeStamp.buffer.data,
-      ).readUIntBE(0, 8);
+      const timeStampSec = this.props.node.status_dump.timeStamp;
       const timeStamp = new Date(timeStampSec * 1000);
       elapsedTime = moment().diff(timeStamp, 'seconds') + ' seconds ago';
     }

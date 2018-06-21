@@ -7,7 +7,8 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import axios from 'axios';
+import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
+import {find} from 'lodash-es';
 import Modal from 'react-modal';
 import Select from 'react-select';
 import React from 'react';
@@ -28,6 +29,11 @@ const linkTypesVector = [
   {value: 'WIRELESS', label: 'WIRELESS'},
   {value: 'ETHERNET', label: 'ETHERNET'},
 ];
+
+const LINK_TYPE_MAP = {
+  'WIRELESS': 1,
+  'ETHERNET': 2,
+};
 
 export default class ModalLinkAdd extends React.Component {
   state = {
@@ -59,6 +65,9 @@ export default class ModalLinkAdd extends React.Component {
       return;
     }
 
+    const nodeAMac = find(this.props.topology.nodes, { name: nodeA }).mac_addr;
+    const nodeZMac = find(this.props.topology.nodes, { name: nodeZ }).mac_addr;
+
     const linkName = 'link-' + nodeA + '-' + nodeZ;
     swal(
       {
@@ -71,26 +80,35 @@ export default class ModalLinkAdd extends React.Component {
         closeOnConfirm: false,
       },
       () => {
-        const url =
-          '/controller/addLink/' +
-          this.props.topology.name +
-          '/' +
-          linkName +
-          '/' +
-          nodeA +
-          '/' +
-          nodeZ +
-          '/' +
-          this.state.linkType;
-        axios
-          .get(url)
-          .then(response =>
-            swal({
-              title: 'Link Added!',
-              text: 'Response: ' + response.statusText,
-              type: 'success',
-            }),
-          )
+        const data = {
+          link: {
+            name: linkName,
+            a_node_mac: nodeAMac,
+            a_node_name: nodeA,
+            is_alive: false,
+            linkType: LINK_TYPE_MAP[this.state.linkType],
+            linkup_attempts: 0,
+            z_node_mac: nodeZMac,
+            z_node_name: nodeZ,
+          },
+        };
+        apiServiceRequest(this.props.topology.name, 'addLink', data)
+          .then(response => {
+            if (!response.data.success) {
+              swal({
+                title: 'Failed!',
+                text:
+                  'Adding a link failed\nReason: ' + response.data.message,
+                type: 'error',
+              });
+            } else {
+              swal({
+                title: 'Link Added!',
+                text: 'Response: ' + response.statusText,
+                type: 'success',
+              });
+            }
+          })
           .catch(error =>
             swal({
               title: 'Failed!',

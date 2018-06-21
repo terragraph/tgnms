@@ -8,7 +8,9 @@ const EventEmitter = require('events');
 
 // thrift types from aggregator
 const aggregatorTTypes = require('./thrift/gen-nodejs/Aggregator_types');
+const axios = require('axios');
 const controllerTTypes = require('./thrift/gen-nodejs/Controller_types');
+const isIp = require('is-ip');
 const process = require('process');
 const thrift = require('thrift');
 // thrift types from controller
@@ -24,107 +26,51 @@ process.on('message', msg => {
     case 'poll':
       // expect a list of IP addresses
       msg.topologies.forEach(topology => {
-        const activeCtrlProxy = new ControllerProxy(topology.controller_ip_active);
-        activeCtrlProxy.sendCtrlMsgType(
-          controllerTTypes.MessageType.GET_TOPOLOGY,
-          '\0',
-        );
-        activeCtrlProxy.sendCtrlMsgType(
-          controllerTTypes.MessageType.GET_IGNITION_STATE,
-          '\0',
-        );
-        activeCtrlProxy.sendCtrlMsgType(
-          controllerTTypes.MessageType.GET_STATUS_DUMP,
-          '\0',
-        );
-        activeCtrlProxy.sendCtrlMsgType(
-          controllerTTypes.MessageType.UPGRADE_STATE_REQ,
-          '\0',
-        );
-        activeCtrlProxy.sendCtrlMsgType(
-          controllerTTypes.MessageType.BSTAR_GET_STATE,
-          '\0',
-        );
-
-        activeCtrlProxy.on('event', (type, success, responseTime, data) => {
-          switch (type) {
-            case controllerTTypes.MessageType.GET_TOPOLOGY:
-              process.send({
-                name: topology.name,
-                type: 'topology_update',
-                success: success,
-                response_time: responseTime,
-                topology: success ? data.topology : null,
-              });
-              break;
-            case controllerTTypes.MessageType.GET_STATUS_DUMP:
-              process.send({
-                name: topology.name,
-                type: 'status_dump_update',
-                success: success,
-                response_time: responseTime,
-                status_dump: success ? data.status_dump : null,
-              });
-              break;
-            case controllerTTypes.MessageType.GET_IGNITION_STATE:
-              // which links are ignition candidates
-              process.send({
-                name: topology.name,
-                type: 'ignition_state',
-                success: success,
-                response_time: responseTime,
-                ignition_state: success ? data.ignition_state : null,
-              });
-              break;
-            case controllerTTypes.MessageType.UPGRADE_STATE_REQ:
-              // recvmsg.mType = UPGRADE_STATE_DUMP
-              process.send({
-                name: topology.name,
-                type: 'upgrade_state',
-                success: success,
-                response_time: responseTime,
-                upgradeState: success ? data.upgradeState : null,
-              });
-              break;
-            case controllerTTypes.MessageType.BSTAR_GET_STATE:
+        const getSuccessHandler = function(type, fieldName) {
+          return ([success, responseTime, data]) => {
+            process.send({
+              name: topology.name,
+              type: type,
+              success: success,
+              response_time: responseTime,
+              controller_ip: topology.controller_ip_active,
+              [fieldName]: success ? data : null,
+            });
+          };
+        };
+        const getErrorHandler = function(type) {
+          return (error) => {
+              console.error(error);
+          };
+        };
+        apiServiceRequest(topology, 'getTopology')
+          .then(getSuccessHandler('topology_update', 'topology'))
+          .catch(getErrorHandler('topology_update'));
+        apiServiceRequest(topology, 'getCtrlStatusDump')
+          .then(getSuccessHandler('status_dump_update', 'status_dump'))
+          .catch(getErrorHandler('status_dump_update'));
+        apiServiceRequest(topology, 'getIgnitionState')
+          .then(getSuccessHandler('ignition_state', 'ignition_state'))
+          .catch(getErrorHandler('ignition_state'));
+        apiServiceRequest(topology, 'getUpgradeState')
+          .then(getSuccessHandler('upgrade_state', 'upgradeState'))
+          .catch(getErrorHandler('upgrade_state'));
+        apiServiceRequest(topology, 'getHighAvailabilityState')
+          .then(getSuccessHandler('bstar_state', 'bstar_fsm'))
+          .catch(getErrorHandler('bstar_state'));
+        if (topology.controller_ip_passive) {
+          apiServiceRequest(topology, 'BStarGetState')
+            .then(([success, responseTime, data]) => {
               // recvmsg.mType = BSTAR_FSM
               process.send({
                 name: topology.name,
                 type: 'bstar_state',
                 success: success,
                 response_time: responseTime,
-                controller_ip: topology.controller_ip_active,
-                bstar_fsm: success ? data.bstar_fsm : null,
+                controller_ip: topology.controller_ip_passive,
+                bstar_fsm: success ? data : null,
               });
-              break;
-            default:
-              console.error('Unhandled message type', type);
-          }
-        });
-
-        if (topology.controller_ip_passive) {
-          const passiveCtrlProxy = new ControllerProxy(topology.controller_ip_passive);
-          passiveCtrlProxy.sendCtrlMsgType(
-            controllerTTypes.MessageType.BSTAR_GET_STATE,
-            '\0',
-          );
-          passiveCtrlProxy.on('event', (type, success, responseTime, data) => {
-            switch (type) {
-              case controllerTTypes.MessageType.BSTAR_GET_STATE:
-                // recvmsg.mType = BSTAR_FSM
-                process.send({
-                  name: topology.name,
-                  type: 'bstar_state',
-                  success: success,
-                  response_time: responseTime,
-                  controller_ip: topology.controller_ip_passive,
-                  bstar_fsm: success ? data.bstar_fsm : null,
-                });
-                break;
-              default:
-                console.error('Unhandled message type', type);
-            }
-          });
+            });
         }
         const aggrProxy = new AggregatorProxy(topology.aggregator_ip);
         // request the old and new structures until everyone is on the latest
@@ -1577,6 +1523,62 @@ class AggregatorProxy extends EventEmitter {
     transport.flush();
   }
 }
+
+function apiServiceRequest(topology, apiMethod, data, config) {
+  const controller_ip = topology.controller_ip_active;
+  const baseUrl = topology.apiservice_baseurl || (
+    isIp.v6(controller_ip)
+      ? 'http://[' + controller_ip + ']:8080'
+      : 'http://' + controller_ip + ':8080'
+  );
+  const postData = data || {};
+  // All apiservice requests are POST, and expect at least an empty dict.
+  return new Promise((resolve, reject) => {
+    const startTimer = new Date();
+    const url = `${baseUrl}/api/${apiMethod}`;
+    retryAxios([100, 500, 1000], axios.post, url, postData, config).then(response => {
+      const endTimer = new Date();
+      const responseTime = endTimer - startTimer;
+      const success = true;
+      resolve([success, responseTime, response.data]);
+    })
+    .catch(error => {
+      if (error.response) {
+        console.error('Received status ' + error.response.status + 
+                      ' for url ' + url);
+      } else {
+        console.error(error.message);
+      }
+      const endTimer = new Date();
+      const responseTime = endTimer - startTimer;
+      const success = false;
+      const data = error.response ? error.response.data : null;
+      resolve([success, responseTime, data]);
+    });
+  });
+}
+
+const retryAxios = async (delays, axiosFunc, ...axiosArgs) => {
+  // Extract the iterator from the iterable.
+  const timeout = ms => new Promise(res => setTimeout(res, ms))
+  const iterator = delays[Symbol.iterator]();
+  while (true) {
+    try {
+      // Always call the service at least once.
+      return await axiosFunc(...axiosArgs);
+    } catch (error) {
+      const { done, value } = iterator.next();
+      if (!done && error.response && error.response.status === 400) {
+        console.log('retrying ' + value);
+        await timeout(value);
+      } else {
+        // The error is not retriable or the iterable is exhausted.
+        throw error;
+      }
+    }
+  }
+};
+
 module.exports = {
   AggregatorProxy,
   ControllerProxy,

@@ -8,11 +8,11 @@
 import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
+import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import {linkLength} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import PropTypes from 'prop-types';
 import {Panel} from 'react-bootstrap';
-import {render} from 'react-dom';
 import React from 'react';
 import swal from 'sweetalert';
 
@@ -54,40 +54,26 @@ export default class DetailsTopologyIssues extends React.Component {
     }
     // fetch first site
     const siteToAdd = remainingSites.pop();
-    const newSite = {
-      name: siteToAdd.name,
-      lat: siteToAdd.location.latitude,
-      long: siteToAdd.location.longitude,
-      alt: siteToAdd.location.altitude,
+    const data = {
+      site: siteToAdd,
     };
-    const postData = {
-      topology: this.props.topology.name,
-      newSite,
-    };
-    const request = new XMLHttpRequest();
-    request.onload = function() {
-      if (!request) {
-        return;
-      }
-      if (request.status == 200) {
+    apiServiceRequest(this.props.topology.name, 'addSite', data)
+      .then(response => {
         this.addSitesAsync(remainingSites);
-      } else {
+        this.setState({processing: false});
+      })
+      .catch(error => {
         swal({
           title: 'Failed!',
           text:
             "Adding site '" +
             siteToAdd.name +
             "' failed\nReason: " +
-            request.statusText,
+            error.response.statusText,
           type: 'error',
         });
         this.setState({processing: false});
-      }
-    }.bind(this);
-    try {
-      request.open('POST', '/controller/addSite', true);
-      request.send(JSON.stringify(postData));
-    } catch (e) {}
+      });
   }
 
   addAllSites() {

@@ -183,10 +183,7 @@ worker.on('message', msg => {
         }
         Object.keys(msg.status_dump.statusReports).forEach(nodeMac => {
           const report = msg.status_dump.statusReports[nodeMac];
-          const ts =
-            parseInt(
-              Buffer.from(report.timeStamp.buffer.data).readUIntBE(0, 8)
-            ) * 1000;
+          const ts = report.timeStamp * 1000;
           if (ts !== 0) {
             const timeDiffMs = currentTime - ts;
             if (timeDiffMs > statusReportExpiry) {
@@ -1283,28 +1280,6 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
         }
         node.status = 1;
         // delete node['polarity'];
-        if (
-          node.golay_idx &&
-          node.golay_idx.hasOwnProperty('txGolayIdx') &&
-          node.golay_idx.hasOwnProperty('rxGolayIdx')
-        ) {
-          if (
-            typeof node.golay_idx.txGolayIdx !== 'number' &&
-            typeof node.golay_idx.rxGolayIdx !== 'number' &&
-            node.golay_idx.txGolayIdx != null &&
-            node.golay_idx.rxGolayIdx != null
-          ) {
-            const txGolayIdx = Buffer.from(
-              node.golay_idx.txGolayIdx.buffer.data
-            ).readUIntBE(0, 8);
-            const rxGolayIdx = Buffer.from(
-              node.golay_idx.rxGolayIdx.buffer.data
-            ).readUIntBE(0, 8);
-            // update golay by parsing int buffer
-            node.golay_idx.rxGolayIdx = rxGolayIdx;
-            node.golay_idx.txGolayIdx = txGolayIdx;
-          }
-        }
       });
     }
     res.json(networkConfig);
@@ -1365,183 +1340,6 @@ app.post(/\/dashboards\/save\/$/i, function (req, res, next) {
       res.status(500).end('Bad Data');
     }
   });
-});
-app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeA = req.params[1];
-  const nodeZ = req.params[2];
-  const status = req.params[3] === 'up';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'setLinkStatus',
-      topology: topology,
-      nodeA: nodeA,
-      nodeZ: nodeZ,
-      status: status,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const linkName = req.params[1];
-  const nodeA = req.params[2];
-  const nodeZ = req.params[3];
-  const linkType = req.params[4] === 'WIRELESS' ? 1 : 2;
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'addLink',
-      topology: topology,
-      linkName: linkName,
-      nodeA: nodeA,
-      nodeZ: nodeZ,
-      linkType: linkType,
-    },
-    '',
-    res
-  );
-});
-
-app.post(/\/controller\/addNode$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const topologyName = postData.topology;
-    var topology = getTopologyByName(topologyName);
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'addNode',
-        topology: topology,
-        node: postData.newNode,
-      },
-      '',
-      res
-    );
-  });
-});
-
-app.post(/\/controller\/addSite$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const topologyName = postData.topology;
-    var topology = getTopologyByName(topologyName);
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'addSite',
-        topology: topology,
-        site: postData.newSite,
-      },
-      '',
-      res
-    );
-  });
-});
-
-app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeA = req.params[1];
-  const nodeZ = req.params[2];
-  const forceDelete = req.params[3] === 'force';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'delLink',
-      topology: topology,
-      nodeA: nodeA,
-      nodeZ: nodeZ,
-      forceDelete: forceDelete,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const forceDelete = req.params[2] === 'force';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'delNode',
-      topology: topology,
-      node: nodeName,
-      forceDelete: forceDelete,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/renameSite\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const siteName = req.params[1];
-  const newSiteName = req.params[2];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'editSite',
-      topology: topology,
-      siteName: siteName,
-      newSiteName: newSiteName,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/renameNode\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const newNodeName = req.params[2];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'editNode',
-      topology: topology,
-      nodeName: nodeName,
-      newNodeName: newNodeName,
-    },
-    '',
-    res
-  );
 });
 
 app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
@@ -1757,138 +1555,6 @@ app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
   );
 });
 
-app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const siteName = req.params[1];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'delSite',
-      topology: topology,
-      site: siteName,
-    },
-    '',
-    res
-  );
-});
-
-// upgrade endpoints $/i
-app.post(/\/controller\/resetStatus$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {
-      nodes,
-      requestId,
-      topologyName,
-    } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'resetStatus',
-	nodes,
-        requestId,
-	topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
-app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {
-      topologyName,
-      isHttp,
-      requestId,
-      excludeNodes,
-      imageUrl,
-      md5,
-      timeout,
-      skipFailure,
-      limit,
-      downloadAttempts,
-      torrentParams,
-    } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'prepareUpgrade',
-        upgradeGroupType: 'NETWORK',
-        requestId,
-        excludeNodes,
-        imageUrl,
-        md5,
-        timeout,
-        skipFailure,
-        limit,
-        isHttp,
-        downloadAttempts,
-        torrentParams,
-        topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
-app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const {
-      ugType,
-      topologyName,
-      requestId,
-      nodes,
-      excludeNodes,
-      timeout,
-      skipFailure,
-      limit,
-      skipLinks,
-      scheduleToCommit,
-    } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'commitUpgrade',
-        upgradeGroupType: ugType,
-        requestId,
-        nodes,
-        excludeNodes,
-        timeout,
-        skipFailure,
-        limit,
-        skipLinks,
-        scheduleToCommit,
-        topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {
@@ -1913,88 +1579,20 @@ app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
   });
 });
 
-app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const { abortAll, reqIds, topologyName } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'abortUpgrade',
-        abortAll,
-        reqIds,
-        topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.post(
   /\/controller\/uploadUpgradeBinary$/i,
   upload.single('binary'),
   function (req, res, next) {
-    // thrift calls and stuff here
-    const { topologyName } = req.body;
-    const topology = getTopologyByName(topologyName);
-
     const urlPrefix = process.env.E2E_DL_URL ? process.env.E2E_DL_URL : (req.protocol + '://' + req.get('host'));
     const uriPath = querystring.escape(req.file.filename);
-    const imagePath = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
+    const imageUrl = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
 
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'addUpgradeImage',
-        topology: topology,
-        imagePath: imagePath,
-      },
-      '',
-      res
-    );
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({
+      imageUrl,
+    }));
   }
 );
-
-app.get(/\/controller\/listUpgradeImages\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'listUpgradeImages',
-      topology: topology,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/deleteUpgradeImage\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const imageName = req.params[1];
-
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'deleteUpgradeImage',
-      topology: topology,
-      name: imageName,
-    },
-    '',
-    res
-  );
-});
 
 // network config endpoints
 app.get(/\/controller\/getFullNodeConfig/i, (req, res, next) => {

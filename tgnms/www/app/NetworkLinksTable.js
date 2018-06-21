@@ -574,11 +574,7 @@ export default class NetworkLinksTable extends React.Component {
     const rows = [];
     Object.keys(this.linksByName).forEach(linkName => {
       const link = this.linksByName[linkName];
-      let linkupAttempts = 0;
-      if (link.linkup_attempts && link.linkup_attempts.buffer) {
-        const buf = Buffer.from(link.linkup_attempts.buffer.data);
-        linkupAttempts = parseInt(buf.readUIntBE(0, 8).toString(), 10);
-      }
+      const linkupAttempts = link.linkup_attempts || 0;
       if (link.link_type === 2 && this.state.hideWired) {
         return;
       }
