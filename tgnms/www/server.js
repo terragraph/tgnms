@@ -1181,30 +1181,6 @@ app.post(/\/dashboards\/save\/$/i, function (req, res, next) {
   });
 });
 
-app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const nodeMac = req.params[2];
-  const force = req.params[3] === 'force';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'setMac',
-      topology: topology,
-      node: nodeName,
-      mac: nodeMac,
-      force: force,
-    },
-    '',
-    res
-  );
-});
-
 app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {

@@ -236,7 +236,7 @@ export default class DetailsNode extends React.Component {
   }
 
   setMacAddr(force) {
-    const forceSet = force ? 'force' : 'no_force';
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Set MAC Address!',
@@ -258,17 +258,12 @@ export default class DetailsNode extends React.Component {
         }
 
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/setMac/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            inputValue +
-            '/' +
-            forceSet;
-          axios
-            .get(url)
+          const data = {
+            force,
+            nodeMac: inputValue,
+            nodeName: node.name,
+          };
+          apiServiceRequest(topologyName, 'setNodeMacAddress', data)
             .then(response =>
               swal(
                 {
