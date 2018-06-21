@@ -82,7 +82,7 @@ export default class DetailsNode extends React.Component {
   }
 
   rebootNode(force) {
-    const forceReboot = force ? 'force' : 'no_force';
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Are you sure?',
@@ -95,15 +95,12 @@ export default class DetailsNode extends React.Component {
       },
       () => {
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/rebootNode/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            forceReboot;
-          axios
-            .get(url)
+          const data = {
+            force,
+            nodes: [node.name],
+            secondsToReboot: 5,
+          };
+          apiServiceRequest(topologyName, 'rebootNode')
             .then(response =>
               swal(
                 {

@@ -1261,30 +1261,6 @@ app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (
   );
 });
 
-app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const forceReboot = req.params[2] === 'force';
-  var topology = getTopologyByName(topologyName);
-  const SECONDS_TO_REBOOT = 5;
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'rebootNode',
-      topology: topology,
-      forceReboot: forceReboot,
-      nodes: [nodeName],
-      secondsToReboot: SECONDS_TO_REBOOT,
-    },
-    '',
-    res
-  );
-});
-
 app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {
