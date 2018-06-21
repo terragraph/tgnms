@@ -91,7 +91,6 @@ var refreshIntervalTimer;
 var networkHealthTimer;
 var statsTypeaheadTimer;
 var ruckusControllerTimer;
-var eventLogsTables = {};
 var systemLogsSources = {};
 var networkInstanceConfig = {};
 // new topology from worker process
@@ -618,15 +617,6 @@ app.post(/\/config\/save$/i, function (req, res, next) {
     });
   });
 });
-// Read list of event logging Tables
-fs.readFile('./config/event_logging_tables.json', 'utf-8', (err, data) => {
-  // unable to open file, exit
-  if (err) {
-    console.error('Unable to read event logging tables');
-    return;
-  }
-  eventLogsTables = JSON.parse(data);
-});
 
 // Read list of system logging sources
 fs.readFile('./config/system_logging_sources.json', 'utf-8', (err, data) => {
@@ -729,43 +719,6 @@ app.ws('/terminals/:pid', function (ws, req) {
   });
 });
 
-app.get(/\/getEventLogsTables/, function (req, res, next) {
-  res.json(eventLogsTables);
-});
-app.get(/\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const tableName = req.params[0];
-  const from = parseInt(req.params[1]);
-  const size = parseInt(req.params[2]);
-  const topologyName = req.params[3];
-  const dbPartition = req.params[4];
-  const topology = getTopologyByName(topologyName);
-
-  var macAddr = [];
-  if (topology) {
-    const nodes = topology.topology.nodes;
-    for (var j = 0; j < nodes.length; j++) {
-      macAddr.push(nodes[j].mac_addr);
-    }
-
-    for (var i = 0, len = eventLogsTables.tables.length; i < len; i++) {
-      if (tableName === eventLogsTables.tables[i].name) {
-        queryHelper.fetchEventLogs(
-          res,
-          macAddr,
-          eventLogsTables.tables[i].category,
-          from,
-          size,
-          dbPartition
-        );
-        break;
-      }
-    }
-  }
-});
 app.get(/\/getSystemLogsSources/, function (req, res, next) {
   res.json(systemLogsSources);
 });
