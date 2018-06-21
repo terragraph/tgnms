@@ -50,47 +50,47 @@ export default class DashboardSelect extends React.Component {
             <button
               className="graph-button name-button"
               onClick={this.props.onDashboardNameChange}>
-              {this.props.selectedDashboard}
+              Change Dashboard Name: {this.props.selectedDashboard}
             </button>
           </td>
         );
         topButtons = [
           <td key="b_add">
             <button
-              className="graph-button top-button-wide"
+              className="graph-button top-button"
               onClick={this.props.onAddGraphButtonClicked}>
               Add Graph
             </button>
           </td>,
+          <td key="b_save">
+            <button
+              className="graph-button top-button"
+              onClick={this.props.saveDashboards}>
+              Save Changes
+            </button>
+          </td>,
           <td key="b_done">
             <button
-              className="graph-button top-button-wide"
+              className="graph-button top-button"
               onClick={this.props.onDoneEdit}>
               Done Editing
+            </button>
+          </td>,
+          <td key="b_delete">
+            <button
+              className="graph-button top-button"
+              onClick={this.props.onDeleteDashboard}>
+              Delete Dashboard
             </button>
           </td>,
         ];
       } else {
         topButtons = [
-          <td key="b_delete">
-            <button
-              className="graph-button top-button"
-              onClick={this.props.onDeleteDashboard}>
-              Delete
-            </button>
-          </td>,
           <td key="b_edit">
             <button
               className="graph-button top-button"
               onClick={this.props.onEdit}>
-              Edit
-            </button>
-          </td>,
-          <td key="b_save">
-            <button
-              className="graph-button top-button-wide"
-              onClick={this.props.saveDashboards}>
-              Save Changes
+              Edit Dashboard
             </button>
           </td>,
         ];

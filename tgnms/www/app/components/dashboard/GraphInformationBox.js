@@ -68,7 +68,7 @@ const NetworkGraphInfo = ({graph}) => {
 };
 
 const GraphInfo = ({graph}) => {
-  const {graphFormData, graphType} = graph.setup;
+  const {graphFormData, graphType, isCustom} = graph.setup;
 
   let graphTypeInfo = null;
 
@@ -86,7 +86,7 @@ const GraphInfo = ({graph}) => {
       break;
   }
 
-  if (graphFormData && graphFormData.customGraphChecked) {
+  if (isCustom) {
     return (
       <div className="custom-data">
         <h5>

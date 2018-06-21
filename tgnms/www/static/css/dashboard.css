@@ -127,17 +127,12 @@
 }
 
 #dashboard-select {
-  padding: 10px 20px;
-}
-
-#dashboard-select .top-button-wide {
-  height: 34px;
-  width: 100px;
+  padding: 10px 20px 20px 20px;
 }
 
 #dashboard-select .top-button {
   height: 34px;
-  width: 80px;
+  width: 120px;
 }
 
 #dashboard-select .name-button {
@@ -152,7 +147,19 @@
 }
 
 #global-data-select-wrapper  {
+  border-top: 1px solid #ddd;
   padding: 10px 20px;
+  position: relative;
+}
+
+#global-data-select-wrapper h4 {
+  display: inline-block;
+}
+
+#global-data-select-wrapper .hide-show-icon {
+  display: inline-block;
+  color: #ddd;
+  margin-left: 40px;
 }
 
 .global-data-select {
@@ -245,8 +252,25 @@
   flex: 1;
 }
 
+.create-graph-modal-content .modal-input {
+  padding: 4px 10px;
+  width: 100%;
+}
+
 .create-graph-modal-content .graph-form {
   margin-top: 40px;
+}
+
+.create-graph-modal-content .graph-config-wrapper {
+  height: 250px;
+}
+
+.graph-config-wrapper .info-box {
+  display: flex;
+  margin-top: 20px;
+}
+.graph-config-wrapper .info-box p {
+  width: 150px;
 }
 
 .submit-button {

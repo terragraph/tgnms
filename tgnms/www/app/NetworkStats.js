@@ -16,6 +16,7 @@ import moment from 'moment';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import Datetime from 'react-datetime';
 import React from 'react';
+import {Glyphicon} from 'react-bootstrap';
 
 const TIME_PICKER_OPTS = [
   {
