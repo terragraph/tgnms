@@ -1205,62 +1205,6 @@ app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
   );
 });
 
-app.get(/\/controller\/getIgnitionState\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getIgnitionState',
-      topology: topology,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/setNetworkIgnitionState\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const state = req.params[1] === 'enable';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'setNetworkIgnitionState',
-      topology: topology,
-      state: state,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const linkName = req.params[1];
-  const state = req.params[2] === 'enable';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'setLinkIgnitionState',
-      topology: topology,
-      linkName: linkName,
-      state: state,
-    },
-    '',
-    res
-  );
-});
-
 app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {
