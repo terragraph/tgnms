@@ -147,7 +147,7 @@ export const deleteUpgradeImage = (imageName, topologyName) => {
   const data = {
     name: imageName,
   };
-  apiServiceRequest(topologyName, 'deleteUpgradeImage', data)
+  apiServiceRequest(topologyName, 'delUpgradeImage', data)
     .then(response => {
       Dispatcher.dispatch({
         actionType: Actions.UPGRADE_DELETE_IMAGE_STATUS,
