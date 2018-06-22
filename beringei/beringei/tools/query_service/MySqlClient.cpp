@@ -52,7 +52,7 @@ std::shared_ptr<MySqlClient> MySqlClient::getInstance() {
 
 void MySqlClient::refreshAll() noexcept {
   // topology fetcher is responsible for refresh node + key cache before
-  // building it's index
+  // building its index
   refreshNodes();
   refreshStatKeys();
 }
@@ -332,10 +332,19 @@ bool MySqlClient::addOrUpdateNodes(
         // delete the incorrect record
         std::unique_ptr<sql::PreparedStatement> deleteStmt(
             (*connection)->prepareStatement(
-                "DELETE FROM `nodes` WHERE `node` = ? AND `mac` != ? LIMIT 1"));
+                "DELETE FROM `nodes` "
+                "WHERE `node` = ? "
+                "AND `network` = ? "
+                "AND `mac` != ? LIMIT 1"));
                 deleteStmt->setString(1, node.second.node);
-                deleteStmt->setString(2, node.second.mac);
-        LOG(INFO) << "Deleting nodes \"" << node.second.node
+                deleteStmt->setString(2, node.second.network);
+                deleteStmt->setString(3, node.second.mac);
+        // if another topology has the same node name we'll continuously log
+        // this statement, even though we aren't going to delete it
+        // TODO: this is safe, but needs to be corrected to use node name
+        // as a unique index between multiple networks
+        LOG(INFO) << "Attempting to delete node(s) \"" << node.second.node
+                  << "\" on network \"" << node.second.network
                   << "\" not matching MAC: " << node.second.mac;
         deleteStmt->execute();
       }
