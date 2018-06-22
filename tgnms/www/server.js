@@ -746,38 +746,6 @@ app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
     }
   }
 });
-app.get(/\/getAlerts\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const from = parseInt(req.params[1]);
-  const size = parseInt(req.params[2]);
-  const topology = getTopologyByName(topologyName);
-
-  var macAddr = [];
-  if (topology) {
-    const nodes = topology.topology.nodes;
-    for (var j = 0; j < nodes.length; j++) {
-      macAddr.push(nodes[j].mac_addr);
-    }
-    queryHelper.fetchAlerts(res, macAddr, from, size);
-  }
-});
-app.get(/\/clearAlerts\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const topology = getTopologyByName(topologyName);
-
-  var macAddr = [];
-  if (topology) {
-    const nodes = topology.topology.nodes;
-    for (var j = 0; j < nodes.length; j++) {
-      macAddr.push(nodes[j].mac_addr);
-    }
-    queryHelper.deleteAlertsByMac(res, macAddr);
-  }
-});
-app.get(/\/deleteAlerts\/(.+)$/i, function (req, res, next) {
-  const ids = JSON.parse(req.params[0]);
-  queryHelper.deleteAlertsById(req, ids);
-});
 app.post(/\/event\/?$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {

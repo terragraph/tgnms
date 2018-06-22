@@ -10,7 +10,6 @@ import ModalLinkAdd from './ModalLinkAdd.js';
 import ModalNodeAdd from './ModalNodeAdd.js';
 import ModalOverlays from './ModalOverlays.js';
 import NMSConfig from './NMSConfig.js';
-import NetworkAlerts from './NetworkAlerts.js';
 import NetworkDashboards from './NetworkDashboards.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkMap from './NetworkMap.js';
@@ -36,7 +35,6 @@ const VIEWS = {
   // TODO: implement these views and uncomment them
   // eventlogs: {name: 'Event Logs', icon: 'list'},
   // systemlogs: {name: 'System Logs', icon: 'hdd'},
-  // alerts: {name: 'Alerts', icon: 'alert'},
   upgrade: {name: 'Upgrade', icon: 'upload'},
   'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
   config: {name: 'Node Config', icon: 'cog'},
@@ -575,9 +573,6 @@ export default class NetworkUI extends React.Component {
         break;
       case 'stats':
         paneComponent = <NetworkStats {...viewProps} />;
-        break;
-      case 'alerts':
-        paneComponent = <NetworkAlerts {...viewProps} />;
         break;
       case 'upgrade':
         paneComponent = (
