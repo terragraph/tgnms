@@ -746,59 +746,6 @@ app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
     }
   }
 });
-app.post(/\/event\/?$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    // push query
-    const httpData = JSON.parse(httpPostData)[0];
-    const keyIds = queryHelper.fetchLinkKeyIds(
-      'fw_uptime',
-      httpData.a_node,
-      httpData.z_node
-    );
-    if (!keyIds.length) {
-      // key not found
-      res
-        .status(500)
-        .send('Key not found')
-        .end();
-      return;
-    }
-    const now = new Date().getTime() / 1000;
-    const eventQuery = {
-      type: 'event',
-      key_ids: keyIds,
-      data: [{ keyId: keyIds[0], key: 'fw_uptime' }],
-      min_ago: 24 * 60,
-      start_ts: now - 24 * 60,
-      end_ts: now,
-      agg_type: 'event',
-    };
-    const chartUrl = BERINGEI_QUERY_URL + '/query';
-    const queryRequest = { queries: [eventQuery] };
-    request.post(
-      {
-        url: chartUrl,
-        body: JSON.stringify(queryRequest),
-      },
-      (err, httpResponse, body) => {
-        if (err) {
-          console.error('Error fetching from beringei:', err);
-          res
-            .status(500)
-            .send('Error fetching data')
-            .end();
-          return;
-        }
-        res.send(httpResponse.body).end();
-      }
-    );
-  });
-});
-
 // newer charting, for multi-linechart/row
 app.post(/\/multi_chart\/$/i, function (req, res, next) {
   let httpPostData = '';
