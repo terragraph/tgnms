@@ -73,7 +73,6 @@ const dataJson = require('./dataJson');
 // load the initial node ids
 dataJson.refreshNodes();
 
-const aggregatorProxy = require('./aggregatorProxy');
 const ipaddr = require('ipaddr.js');
 const pty = require('pty.js');
 
@@ -91,7 +90,6 @@ var refreshIntervalTimer;
 var networkHealthTimer;
 var statsTypeaheadTimer;
 var ruckusControllerTimer;
-var eventLogsTables = {};
 var systemLogsSources = {};
 var networkInstanceConfig = {};
 // new topology from worker process
@@ -459,7 +457,6 @@ function reloadInstanceConfig () {
           config.controller_online = false;
           config.controller_failures = 0;
           config.query_service_online = false;
-          config.aggregator_failures = 0;
           config.name = topology.name;
           config.controller_events = [];
           config.controller_ip_active = config.controller_ip;
@@ -618,15 +615,6 @@ app.post(/\/config\/save$/i, function (req, res, next) {
     });
   });
 });
-// Read list of event logging Tables
-fs.readFile('./config/event_logging_tables.json', 'utf-8', (err, data) => {
-  // unable to open file, exit
-  if (err) {
-    console.error('Unable to read event logging tables');
-    return;
-  }
-  eventLogsTables = JSON.parse(data);
-});
 
 // Read list of system logging sources
 fs.readFile('./config/system_logging_sources.json', 'utf-8', (err, data) => {
@@ -726,155 +714,6 @@ app.ws('/terminals/:pid', function (ws, req) {
     // Clean things up
     delete terminals[term.pid];
     delete logs[term.pid];
-  });
-});
-
-app.get(/\/getEventLogsTables/, function (req, res, next) {
-  res.json(eventLogsTables);
-});
-app.get(/\/getEventLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const tableName = req.params[0];
-  const from = parseInt(req.params[1]);
-  const size = parseInt(req.params[2]);
-  const topologyName = req.params[3];
-  const dbPartition = req.params[4];
-  const topology = getTopologyByName(topologyName);
-
-  var macAddr = [];
-  if (topology) {
-    const nodes = topology.topology.nodes;
-    for (var j = 0; j < nodes.length; j++) {
-      macAddr.push(nodes[j].mac_addr);
-    }
-
-    for (var i = 0, len = eventLogsTables.tables.length; i < len; i++) {
-      if (tableName === eventLogsTables.tables[i].name) {
-        queryHelper.fetchEventLogs(
-          res,
-          macAddr,
-          eventLogsTables.tables[i].category,
-          from,
-          size,
-          dbPartition
-        );
-        break;
-      }
-    }
-  }
-});
-app.get(/\/getSystemLogsSources/, function (req, res, next) {
-  res.json(systemLogsSources);
-});
-app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const sourceName = req.params[0];
-  const offset = parseInt(req.params[1]);
-  const size = parseInt(req.params[2]);
-  const macAddr = req.params[3];
-  const date = req.params[4];
-  for (var i = 0, len = systemLogsSources.sources.length; i < len; i++) {
-    if (sourceName === systemLogsSources.sources[i].name) {
-      queryHelper.fetchSysLogs(
-        res,
-        macAddr,
-        systemLogsSources.sources[i].index,
-        offset,
-        size,
-        date
-      );
-      break;
-    }
-  }
-});
-app.get(/\/getAlerts\/(.+)\/([0-9]+)\/([0-9]+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const from = parseInt(req.params[1]);
-  const size = parseInt(req.params[2]);
-  const topology = getTopologyByName(topologyName);
-
-  var macAddr = [];
-  if (topology) {
-    const nodes = topology.topology.nodes;
-    for (var j = 0; j < nodes.length; j++) {
-      macAddr.push(nodes[j].mac_addr);
-    }
-    queryHelper.fetchAlerts(res, macAddr, from, size);
-  }
-});
-app.get(/\/clearAlerts\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  const topology = getTopologyByName(topologyName);
-
-  var macAddr = [];
-  if (topology) {
-    const nodes = topology.topology.nodes;
-    for (var j = 0; j < nodes.length; j++) {
-      macAddr.push(nodes[j].mac_addr);
-    }
-    queryHelper.deleteAlertsByMac(res, macAddr);
-  }
-});
-app.get(/\/deleteAlerts\/(.+)$/i, function (req, res, next) {
-  const ids = JSON.parse(req.params[0]);
-  queryHelper.deleteAlertsById(req, ids);
-});
-app.post(/\/event\/?$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    // push query
-    const httpData = JSON.parse(httpPostData)[0];
-    const keyIds = queryHelper.fetchLinkKeyIds(
-      'fw_uptime',
-      httpData.a_node,
-      httpData.z_node
-    );
-    if (!keyIds.length) {
-      // key not found
-      res
-        .status(500)
-        .send('Key not found')
-        .end();
-      return;
-    }
-    const now = new Date().getTime() / 1000;
-    const eventQuery = {
-      type: 'event',
-      key_ids: keyIds,
-      data: [{ keyId: keyIds[0], key: 'fw_uptime' }],
-      min_ago: 24 * 60,
-      start_ts: now - 24 * 60,
-      end_ts: now,
-      agg_type: 'event',
-    };
-    const chartUrl = BERINGEI_QUERY_URL + '/query';
-    const queryRequest = { queries: [eventQuery] };
-    request.post(
-      {
-        url: chartUrl,
-        body: JSON.stringify(queryRequest),
-      },
-      (err, httpResponse, body) => {
-        if (err) {
-          console.error('Error fetching from beringei:', err);
-          res
-            .status(500)
-            .send('Error fetching data')
-            .end();
-          return;
-        }
-        res.send(httpResponse.body).end();
-      }
-    );
   });
 });
 
@@ -1342,219 +1181,6 @@ app.post(/\/dashboards\/save\/$/i, function (req, res, next) {
   });
 });
 
-app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const nodeMac = req.params[2];
-  const force = req.params[3] === 'force';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'setMac',
-      topology: topology,
-      node: nodeName,
-      mac: nodeMac,
-      force: force,
-    },
-    '',
-    res
-  );
-});
-
-app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    // Fulcrum needs to receive a 200 whether we care about this webhook or not
-
-    if (!httpPostData.length) {
-      res.status(200).end();
-      return;
-    }
-
-    let hookData;
-    // Attempt to parse the payload as JSON
-    try {
-      hookData = JSON.parse(httpPostData);
-    } catch (ex) {
-      console.error('JSON parse error on Fulcurm endpoint: ', httpPostData);
-      res.status(200).end();
-      return;
-    }
-
-    let record;
-    let sectors;
-    // Validate JSON content with some basic sanity checks
-    try {
-      // Only care about hooks from the installer app
-      if (
-        hookData.data.form_id !== '299399ce-cd92-4cda-8b76-c57ebb73ab33'
-      ) {
-        console.error(
-          'Fulcurm endpoint received webhook from wrong app: ',
-          hookData
-        );
-        res.status(200).end();
-        return;
-      }
-      // Only care about record updates, they'll have the MACs
-      if (hookData.type !== 'record.update') {
-        console.error(
-          'Fulcurm endpoint received non-update webhook: ',
-          hookData
-        );
-        res.status(200).end();
-        return;
-      }
-
-      record = hookData.data.form_values;
-
-      // Hacky static definition of Fulcrum's UID-based form field representations
-      sectors = record.b15d;
-    } catch (e) {
-      console.error("JSON data doesn't contain required info: ", hookData);
-      res.status(200).end();
-      return;
-    }
-
-    let anyInstalled = false;
-    sectors.forEach(sector => {
-      if (sector.form_values.dfa8 === 'Installed') {
-        anyInstalled = true;
-      }
-    });
-
-    if (!anyInstalled) {
-      console.error(
-        'None of the sectors in this webhook are installed: ',
-        hookData
-      );
-      res.status(200).end();
-      return;
-    }
-
-    let notInstalledCount = 0;
-    const topology = getTopologyByName('SJC');
-    const nodeToMacList = {};
-    sectors.forEach((sector, index) => {
-      // Skip node if it's status isn't 'installed' in Fulcrum
-      if (sector.form_values.dfa8 !== 'Installed') {
-        notInstalledCount += 1;
-        return;
-      }
-      const nodeMac = sector.form_values.f7f1;
-      const nodeName = sector.form_values['3546'];
-      nodeToMacList[nodeName] = nodeMac;
-      console.log('Fulcrum setting MAC ' + nodeMac + ' on ' + nodeName);
-    });
-    try {
-      syncWorker.sendCtrlMsgSync(
-        {
-          type: 'setMacList',
-          topology: topology,
-          nodeToMac: nodeToMacList,
-          force: false,
-        },
-        '',
-        res
-      );
-    } catch (e) {
-      console.log('Error while Fulcrum setting Mac: ' + e);
-    }
-    // In the case that nothing is installed still need to respond
-    if (notInstalledCount === sectors.length) {
-      res.status(200).end();
-    }
-  });
-});
-
-app.get(/\/controller\/getIgnitionState\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getIgnitionState',
-      topology: topology,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/setNetworkIgnitionState\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const state = req.params[1] === 'enable';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'setNetworkIgnitionState',
-      topology: topology,
-      state: state,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const linkName = req.params[1];
-  const state = req.params[2] === 'enable';
-  var topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'setLinkIgnitionState',
-      topology: topology,
-      linkName: linkName,
-      state: state,
-    },
-    '',
-    res
-  );
-});
-
-app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  const nodeName = req.params[1];
-  const forceReboot = req.params[2] === 'force';
-  var topology = getTopologyByName(topologyName);
-  const SECONDS_TO_REBOOT = 5;
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'rebootNode',
-      topology: topology,
-      forceReboot: forceReboot,
-      nodes: [nodeName],
-      secondsToReboot: SECONDS_TO_REBOOT,
-    },
-    '',
-    res
-  );
-});
-
 app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {
@@ -1609,29 +1235,6 @@ app.get(/\/controller\/getFullNodeConfig/i, (req, res, next) => {
     '',
     res,
   );
-});
-
-// aggregator endpoints
-app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  if (!configByName[topologyName]) {
-    res.status(404).end('No such topology\n');
-    return;
-  }
-  aggregatorProxy.getAlertsConfig(configByName[topologyName], req, res, next);
-});
-
-app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  if (!configByName[topologyName]) {
-    res.status(404).end('No such topology\n');
-    return;
-  }
-  aggregatorProxy.setAlertsConfig(configByName[topologyName], req, res, next);
 });
 
 if (devMode) {

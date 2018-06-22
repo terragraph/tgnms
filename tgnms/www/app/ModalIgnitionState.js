@@ -7,6 +7,7 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
+import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
 import axios from 'axios';
 import Modal from 'react-modal';
 import React from 'react';
@@ -59,8 +60,7 @@ export default class ModalIgnitionState extends React.Component {
   }
 
   getIgnitionState() {
-    axios
-      .get('/controller/getIgnitionState/' + this.props.topologyName)
+    apiServiceRequest(this.props.topologyName, 'getIgnitionState')
       .then(response => {
         const json = response.data;
         let linkIgState = null;
@@ -93,15 +93,10 @@ export default class ModalIgnitionState extends React.Component {
   }
 
   setNetworkIgnition(state) {
-    const stateText = state ? 'enable' : 'disable';
-    const url =
-      '/controller/setNetworkIgnitionState/' +
-      this.props.topologyName +
-      '/' +
-      stateText;
-
-    axios
-      .get(url)
+    const data = {
+      enable: state,
+    };
+    apiServiceRequest(this.props.topologyName, 'setIgnitionState', data)
       .then(response =>
         swal(
           {
@@ -125,16 +120,11 @@ export default class ModalIgnitionState extends React.Component {
   }
 
   setLinkIgnition(state) {
-    const stateText = state ? 'enable' : 'disable';
-    const url =
-      '/controller/setLinkIgnitionState/' +
-      this.props.topologyName +
-      '/' +
-      this.props.link.name +
-      '/' +
-      stateText;
-    axios
-      .get(url)
+    const {link, topologyName} = this.props;
+    const data = {
+      linkAutoIgnite: { [link.name]: state },
+    };
+    apiServiceRequest(topologyName, 'setIgnitionState', data)
       .then(response =>
         swal(
           {
