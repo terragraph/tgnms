@@ -14,7 +14,6 @@ import moment from 'moment';
 import Datetime from 'react-datetime';
 import React from 'react';
 import Select from 'react-select';
-import cx from 'classnames';
 
 const TIME_PICKER_OPTS = [
   {

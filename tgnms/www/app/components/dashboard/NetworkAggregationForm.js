@@ -51,22 +51,23 @@ const initialState = {
 export default class NetworkAggregationForm extends React.Component {
   static propTypes = {
     dashboard: PropTypes.object.isRequired,
-    generalFormData: PropTypes.object.isRequired,
-    onSubmitNewGraph: PropTypes.func.isRequired,
-    topologyName: PropTypes.string.isRequired,
     defaultNetworkFormData: PropTypes.shape({
       graphAggType: PropTypes.string,
       networkKeyIsLoading: PropTypes.bool,
       networkKeyOptions: PropTypes.array,
       networkKeySelected: PropTypes.string,
-    })
+    }),
+    editGraphMode: PropTypes.bool,
+    generalFormData: PropTypes.object.isRequired,
+    onSubmitGraph: PropTypes.func.isRequired,
+    topologyName: PropTypes.string.isRequired,
   };
 
-  state = clone(initialState)
+  state = clone(initialState);
 
   static getDerivedStateFromProps(props, state) {
     // If user is editing a graph, prepopulate form with graph's existing data
-    if (props.defaultNetworkFormData && isEqual(initialState, state)) {
+    if (props.editGraphMode && isEqual(initialState, state)) {
       return {...props.defaultNetworkFormData};
     }
     // Otherwise, the user is creating a graph so form should be blank initially
@@ -99,9 +100,13 @@ export default class NetworkAggregationForm extends React.Component {
   // Add new graph from the network form data and add graph to the dashboard
   onSubmitNetworkGraph = () => {
     const {generalFormData} = this.props;
-    const {startTime, endTime, minAgo} = generalFormData.customGraphChecked
-      ? generalFormData.customData
-      : this.props.dashboard;
+    const {
+      startTime,
+      endTime,
+      minAgo,
+    } = generalFormData.useDashboardGraphConfigChecked
+      ? this.props.dashboard
+      : generalFormData.customData;
 
     const graphFormData = {
       generalFormData,
@@ -124,10 +129,11 @@ export default class NetworkAggregationForm extends React.Component {
         aggType: this.state.graphAggType,
         graphFormData,
         graphType: 'network',
+        isCustom: !generalFormData.useDashboardGraphConfigChecked,
         keyName,
       },
     };
-    this.props.onSubmitNewGraph('network', inputData);
+    this.props.onSubmitGraph('network', inputData, this.props.editGraphMode);
   };
 
   // Asynchronously make a query to the stats_ta backend to fetch key data based

@@ -28,24 +28,25 @@ const initialState = {
   nodeSelectOptions: [],
   // Array of nodes selected by the user
   nodesSelected: [],
-}
+};
 
 export default class NodeGraphForm extends React.Component {
   static propTypes = {
     dashboard: PropTypes.object.isRequired,
-    generalFormData: PropTypes.object.isRequired,
-    onSubmitNewGraph: PropTypes.func.isRequired,
-    topologyName: PropTypes.string.isRequired,
     defaultNodeFormData: PropTypes.shape({
       nodeKeyIsLoading: PropTypes.bool,
       nodeKeyOptions: PropTypes.array,
       nodeKeysSelected: PropTypes.array,
       nodeSelectOptions: PropTypes.array,
       nodesSelected: PropTypes.array,
-    })
+    }),
+    editGraphMode: PropTypes.bool,
+    generalFormData: PropTypes.object.isRequired,
+    onSubmitGraph: PropTypes.func.isRequired,
+    topologyName: PropTypes.string.isRequired,
   };
 
-  state = clone(initialState)
+  state = clone(initialState);
 
   componentDidMount() {
     this.setNodeSelectOptions();
@@ -53,7 +54,7 @@ export default class NodeGraphForm extends React.Component {
 
   static getDerivedStateFromProps(props, state) {
     // If user is editing a graph, prepopulate form with graph's existing data
-    if (props.defaultNodeFormData && isEqual(initialState, state)) {
+    if (props.editGraphMode && isEqual(initialState, state)) {
       return {...props.defaultNodeFormData};
     }
     // Otherwise, the user is creating a graph so form should be blank initially
@@ -83,9 +84,9 @@ export default class NodeGraphForm extends React.Component {
   // custom data the user specifies
   setNodeSelectOptions = () => {
     const {generalFormData} = this.props;
-    const {nodeA, nodeZ} = generalFormData.customGraphChecked
-      ? generalFormData.customData
-      : this.props.dashboard;
+    const {nodeA, nodeZ} = generalFormData.useDashboardGraphConfigChecked
+      ? this.props.dashboard
+      : generalFormData.customData;
     const nodeSelectOptions = [];
     if (nodeA) {
       nodeSelectOptions.push({
@@ -133,17 +134,19 @@ export default class NodeGraphForm extends React.Component {
       nodeKeyIsLoading: true,
       nodeKeyOptions: [],
     });
-    const nodes = this.props.generalFormData.customGraphChecked
-      ? this.props.generalFormData.customData.nodes
-      : this.state.nodesSelected.map(nodeObj => nodeObj.node);
+    const nodes = this.props.generalFormData.useDashboardGraphConfigChecked
+      ? this.state.nodesSelected.map(nodeObj => nodeObj.node)
+      : this.props.generalFormData.customData.nodes;
 
     fetchKeyData([query], this.props.topologyName)
       .then(graphData => {
         const nodeMacAddrs = new Set(nodes.map(node => node.mac_addr));
         // temporarily filter keys to find node-specific keys (without mac_addr)
         // TODO: will add change to backend
-        const keyData = graphData.keyData.filter(keyObj =>
-          !RegExp('\\d').test(keyObj.key) && nodeMacAddrs.has(keyObj.node));
+        const keyData = graphData.keyData.filter(
+          keyObj =>
+            !RegExp('\\d').test(keyObj.key) && nodeMacAddrs.has(keyObj.node),
+        );
 
         this.setState({
           nodeKeyIsLoading: false,
@@ -166,7 +169,7 @@ export default class NodeGraphForm extends React.Component {
     let graphName = '';
     const {generalFormData} = this.props;
 
-    if (generalFormData.customGraphChecked) {
+    if (!generalFormData.useDashboardGraphConfigChecked) {
       nodes.push('Custom');
       graphName = generalFormData.customData.nodes
         .map(nodes => nodes.name)
@@ -187,9 +190,13 @@ export default class NodeGraphForm extends React.Component {
     const selectedNodeKeys = this.state.nodeKeysSelected.map(
       nodeKey => nodeKey.key,
     );
-    const {endTime, minAgo, startTime} = generalFormData.customGraphChecked
-      ? generalFormData.customData
-      : this.props.dashboard;
+    const {
+      endTime,
+      minAgo,
+      startTime,
+    } = generalFormData.useDashboardGraphConfigChecked
+      ? this.props.dashboard
+      : generalFormData.customData;
 
     const graphFormData = {
       generalFormData,
@@ -205,18 +212,20 @@ export default class NodeGraphForm extends React.Component {
       setup: {
         graphFormData,
         graphType: 'node',
+        isCustom: !generalFormData.useDashboardGraphConfigChecked,
         nodes,
       },
     };
 
-    this.props.onSubmitNewGraph('node', inputData);
+    this.props.onSubmitGraph('node', inputData, this.props.editGraphMode);
   };
 
   render() {
     const {nodeA} = this.props.dashboard;
-    const nodesSelected = this.props.generalFormData.customGraphChecked
-      ? this.props.generalFormData.customData.nodes
-      : this.state.nodesSelected;
+    const nodesSelected = this.props.generalFormData
+      .useDashboardGraphConfigChecked
+      ? this.state.nodesSelected
+      : this.props.generalFormData.customData.nodes;
     const disableNodeSubmit =
       nodesSelected.length === 0 || this.state.nodeKeysSelected.length === 0;
 
@@ -225,7 +234,7 @@ export default class NodeGraphForm extends React.Component {
         {nodeA ? (
           <div className="graph-form">
             <h4>Node Graph</h4>
-            {!this.props.generalFormData.customGraphChecked && (
+            {this.props.generalFormData.useDashboardGraphConfigChecked && (
               <div id="node-key-box" className="input-box">
                 <p>Node(s)</p>
                 <Select

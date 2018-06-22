@@ -313,7 +313,7 @@ export default class NetworkDashboards extends React.Component {
     });
   };
 
-  onEditGraphSubmit = graph => {
+  editGraphOnDashboard = graph => {
     const {dashboards} = this.state;
     const dashboard = dashboards[this.props.selectedDashboard];
     const graphs = dashboard.graphs;
@@ -544,7 +544,9 @@ export default class NetworkDashboards extends React.Component {
     });
   };
 
-  onSubmitNewGraph = (graphType, inputData) => {
+  // Will generate a new graph object based on graphType and input data and either
+  // adds the graph to the dashboard or edits the currently selected graph
+  onSubmitGraph = (graphType, inputData, isEditing) => {
     // keys are already retrieved since both node and network forms use
     // typeahead data which fetches keys anyways
     if (graphType === 'node' || graphType === 'network') {
@@ -568,12 +570,19 @@ export default class NetworkDashboards extends React.Component {
         startTime,
         setup,
       };
-
-      this.addGraphToDashboard(newGraph);
+      if (isEditing) {
+        this.editGraphOnDashboard(newGraph);
+      } else {
+        this.addGraphToDashboard(newGraph);
+      }
     } else {
       this.generateGraph(graphType, inputData)
         .then(newGraph => {
-          this.addGraphToDashboard(newGraph);
+          if (isEditing) {
+            this.editGraphOnDashboard(newGraph);
+          } else {
+            this.addGraphToDashboard(newGraph);
+          }
         })
         .catch(err => {
           console.error(err);
@@ -689,8 +698,7 @@ export default class NetworkDashboards extends React.Component {
                   dashboard={dashboard}
                   networkConfig={this.props.networkConfig}
                   closeModal={this.closeModal}
-                  onSubmitNewGraph={this.onSubmitNewGraph}
-                  onEditGraphSubmit={this.onEditGraphSubmit}
+                  onSubmitGraph={this.onSubmitGraph}
                   editGraphMode={this.state.editGraphMode}
                   graphInEditMode={
                     dashboard.graphs[this.state.editedGraphIndex]
