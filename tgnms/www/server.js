@@ -73,7 +73,6 @@ const dataJson = require('./dataJson');
 // load the initial node ids
 dataJson.refreshNodes();
 
-const aggregatorProxy = require('./aggregatorProxy');
 const ipaddr = require('ipaddr.js');
 const pty = require('pty.js');
 
@@ -458,7 +457,6 @@ function reloadInstanceConfig () {
           config.controller_online = false;
           config.controller_failures = 0;
           config.query_service_online = false;
-          config.aggregator_failures = 0;
           config.name = topology.name;
           config.controller_events = [];
           config.controller_ip_active = config.controller_ip;
@@ -1368,29 +1366,6 @@ app.get(/\/controller\/getFullNodeConfig/i, (req, res, next) => {
     '',
     res,
   );
-});
-
-// aggregator endpoints
-app.get(/\/aggregator\/getAlertsConfig\/(.+)$/i, function (req, res, next) {
-  const topologyName = req.params[0];
-  if (!configByName[topologyName]) {
-    res.status(404).end('No such topology\n');
-    return;
-  }
-  aggregatorProxy.getAlertsConfig(configByName[topologyName], req, res, next);
-});
-
-app.get(/\/aggregator\/setAlertsConfig\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const topologyName = req.params[0];
-  if (!configByName[topologyName]) {
-    res.status(404).end('No such topology\n');
-    return;
-  }
-  aggregatorProxy.setAlertsConfig(configByName[topologyName], req, res, next);
 });
 
 if (devMode) {
