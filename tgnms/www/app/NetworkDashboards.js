@@ -478,18 +478,22 @@ export default class NetworkDashboards extends React.Component {
   };
 
   _filterKeysToNodeKeys = (nodes, keyData) => {
-    const keyIds = [];
+    const newKeyData = [];
     nodes.forEach(node => {
       keyData = keyData.filter(keyObj => {
-        if (!RegExp('\\d').test(keyObj.key) && keyObj.node === node.mac_addr) {
-          keyIds.push(keyObj.keyId);
+        if (
+          (!RegExp('\\d').test(keyObj.key) ||
+            keyObj.key.includes('00:00:00:00:00:00')) &&
+          keyObj.node === node.mac_addr
+        ) {
+          newKeyData.push(keyObj);
           return true;
         } else {
           return false;
         }
       });
     });
-    return keyIds;
+    return newKeyData;
   };
 
   generateGraph = async (graphType, inputData) => {
@@ -521,7 +525,8 @@ export default class NetworkDashboards extends React.Component {
       // manually filter through keyIds unrelated to the current node
       if (graphType === 'node') {
         const {nodes} = inputData;
-        keyIds = this._filterKeysToNodeKeys(nodes, keyData);
+        keyData = this._filterKeysToNodeKeys(nodes, keyData);
+        keyIds = keyData.map(keyObj => keyObj.keyId);
       }
 
       const newGraph = {

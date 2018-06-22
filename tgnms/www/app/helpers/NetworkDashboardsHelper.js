@@ -16,7 +16,6 @@ export const formatKeyHelper = key => {
 };
 
 export const fetchKeyData = async (keys, topologyName) => {
-
   const asyncRequests = keys.map(key => axios.get(`/stats_ta/${topologyName}/${key}`));
   const responses = await Promise.all(asyncRequests);
   const responseData = responses.map(resp => resp.data);
