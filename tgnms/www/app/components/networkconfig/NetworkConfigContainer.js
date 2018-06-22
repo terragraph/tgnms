@@ -87,7 +87,7 @@ export default class NetworkConfigContainer extends React.Component {
 
     // TODO: @Tariq: the fact that this state is huge makes a compelling case for converting to redux.js
     // and splitting this into multiple data stores somewhere down the line
-    this.state = {
+    this.initialState = {
       // base network config
       // map of software version to config
       baseConfig: {},
@@ -118,15 +118,21 @@ export default class NetworkConfigContainer extends React.Component {
 
       // edit mode to determine whether the user edits the network override or node override
       // changed by selecting node(s) or the network in the left pane in the UI
-      editMode,
+      editMode: CONFIG_VIEW_MODE.NETWORK,
 
       // currently selected image version
       selectedImage: DEFAULT_BASE_KEY,
 
       // currently selected set of nodes which the config is being viewed as
-      selectedNodes,
+      selectedNodes: [],
 
       errorMsg: null,
+    };
+
+    this.state = {
+      ...this.initialState,
+      editMode,
+      selectedNodes,
     };
   }
 
@@ -153,11 +159,7 @@ export default class NetworkConfigContainer extends React.Component {
         this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
 
         // reset the view mode
-        this.setState({
-          editMode: CONFIG_VIEW_MODE.NETWORK,
-          selectedImage: DEFAULT_BASE_KEY,
-          selectedNodes: [],
-        });
+        this.setState({...this.initialState});
       } else {
         // still on the same topology, now check for nodes
         const oldImageVersionsSet = new Set(

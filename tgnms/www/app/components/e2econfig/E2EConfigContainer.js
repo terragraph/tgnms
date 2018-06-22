@@ -41,29 +41,31 @@ export default class E2EConfigContainer extends React.Component {
     super(props);
 
     this.dispatchToken = Dispatcher.register(this.handleDispatchEvent);
+
+    this.initalState = {
+      controllerConfig: {}, // Backup on revert (for deleted fields)
+      controllerConfigDirty: false, // Tells us whether controllerConfig === changedControllerConfig
+      changedControllerConfig: {},
+      controllerConfigMetadata: {},
+
+      aggregatorConfig: {}, // Backup on revert (for deleted fields)
+      aggregatorConfigDirty: false, // Tells us whether aggregatorConfig === changedAggregatorConfig
+      changedAggregatorConfig: {},
+      aggregatorConfigMetadata: {},
+
+      activeConfig: E2EConstants.Controller, // or E2EConstants.Aggregator
+
+      newControllerConfigFields: {},
+      draftControllerConfig: {},
+
+      newAggregatorConfigFields: {},
+      draftAggregatorConfig: {},
+
+      errorMsg: null,
+    };
+
+    this.state = {...this.initalState};
   }
-
-  state = {
-    controllerConfig: {}, // Backup on revert (for deleted fields)
-    controllerConfigDirty: false, // Tells us whether controllerConfig === changedControllerConfig
-    changedControllerConfig: {},
-    controllerConfigMetadata: {},
-
-    aggregatorConfig: {}, // Backup on revert (for deleted fields)
-    aggregatorConfigDirty: false, // Tells us whether aggregatorConfig === changedAggregatorConfig
-    changedAggregatorConfig: {},
-    aggregatorConfigMetadata: {},
-
-    activeConfig: E2EConstants.Controller, // or E2EConstants.Aggregator
-
-    newControllerConfigFields: {},
-    draftControllerConfig: {},
-
-    newAggregatorConfigFields: {},
-    draftAggregatorConfig: {},
-
-    errorMsg: null,
-  };
 
   componentDidMount() {
     const topologyName = this.props.networkConfig.topology.name;
@@ -82,14 +84,7 @@ export default class E2EConfigContainer extends React.Component {
     if (isNextTopologyValid && newTopologyName !== oldTopologyName) {
       this.fetchConfigsForCurrentTopology(newTopologyName);
 
-      this.setState({
-        changedControllerConfig: {},
-        newControllerConfigFields: {},
-        draftControllerConfig: {},
-        changedAggregatorConfig: {},
-        newAggregatorConfigFields: {},
-        draftAggregatorConfig: {},
-      });
+      this.setState({...this.initialState});
     }
   }
 
