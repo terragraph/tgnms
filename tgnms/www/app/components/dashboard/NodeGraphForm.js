@@ -54,7 +54,7 @@ export default class NodeGraphForm extends React.Component {
 
   static getDerivedStateFromProps(props, state) {
     // If user is editing a graph, prepopulate form with graph's existing data
-    if (props.defaultNodeFormData && isEqual(initialState, state)) {
+    if (props.editGraphMode && isEqual(initialState, state)) {
       return {...props.defaultNodeFormData};
     }
     // Otherwise, the user is creating a graph so form should be blank initially

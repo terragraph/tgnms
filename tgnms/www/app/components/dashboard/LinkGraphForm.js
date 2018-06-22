@@ -53,7 +53,7 @@ export default class LinkGraphForm extends React.Component {
 
   static getDerivedStateFromProps(props, state) {
     // If user is editing a graph, prepopulate form with graph's existing data
-    if (props.defaultLinkFormData && isEqual(initialState, state)) {
+    if (props.editGraphMode && isEqual(initialState, state)) {
       return {...props.defaultLinkFormData};
     }
     // Otherwise, the user is creating a graph so form should be blank initially
@@ -186,11 +186,12 @@ export default class LinkGraphForm extends React.Component {
         direction,
         graphFormData,
         graphType: 'link',
+        isCustom: !generalFormData.useDashboardGraphConfigChecked,
       },
       startTime,
     };
 
-    this.props.onSubmitNewGraph('link', inputData);
+    this.props.onSubmitGraph('link', inputData, this.props.editGraphMode);
   };
 
   render() {

@@ -192,7 +192,7 @@ export default class CreateGraphModal extends React.Component {
             {this.state.graphTypeSelected === 'Link' && (
               <LinkGraphForm
                 topologyName={this.props.networkConfig.topology.name}
-                onSubmitNewGraph={this.props.onSubmitNewGraph}
+                onSubmitGraph={this.props.onSubmitGraph}
                 dashboard={this.props.dashboard}
                 generalFormData={this.state}
                 defaultLinkFormData={
@@ -200,12 +200,13 @@ export default class CreateGraphModal extends React.Component {
                     ? graphInEditMode.setup.graphFormData.linkGraphData
                     : null
                 }
+                editGraphMode={this.props.editGraphMode}
               />
             )}
             {this.state.graphTypeSelected === 'Node' && (
               <NodeGraphForm
                 topologyName={this.props.networkConfig.topology.name}
-                onSubmitNewGraph={this.props.onSubmitNewGraph}
+                onSubmitGraph={this.props.onSubmitGraph}
                 dashboard={this.props.dashboard}
                 generalFormData={this.state}
                 defaultNodeFormData={
@@ -213,13 +214,14 @@ export default class CreateGraphModal extends React.Component {
                     ? graphInEditMode.setup.graphFormData.nodeGraphData
                     : null
                 }
+                editGraphMode={this.props.editGraphMode}
               />
             )}
             {this.state.graphTypeSelected === 'Network' && (
               <div className="graph-form">
                 <NetworkAggregationForm
                   topologyName={this.props.networkConfig.topology.name}
-                  onSubmitNewGraph={this.props.onSubmitNewGraph}
+                  onSubmitGraph={this.props.onSubmitGraph}
                   dashboard={this.props.dashboard}
                   generalFormData={this.state}
                   defaultNetworkFormData={
@@ -227,6 +229,7 @@ export default class CreateGraphModal extends React.Component {
                       ? graphInEditMode.setup.graphFormData.networkAggGraphData
                       : null
                   }
+                  editGraphMode={this.props.editGraphMode}
                 />
               </div>
             )}
