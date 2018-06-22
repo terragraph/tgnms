@@ -193,11 +193,11 @@ worker.on('message', msg => {
       }
       break;
     case 'scan_status':
-      if (!msg.success) {
+      if (msg.success) {
+        dataJson.writeScanResults(msg.name, msg.scan_status);
+      } else {
         console.error('Failed to get scan_status from', msg.name);
-        break;
       }
-      dataJson.writeScanResults(msg.name, msg.scan_status);
       break;
     case 'ignition_state':
       if (msg.success && msg.ignition_state) {

@@ -21,6 +21,13 @@ process.on('message', msg => {
   if (!msg.type) {
     console.error('Received unknown message', msg);
   }
+
+  const getErrorHandler = function(type) {
+    return (error) => {
+        console.error(error);
+    };
+  };
+
   // wait for a message to start polling
   switch (msg.type) {
     case 'poll':
@@ -36,11 +43,6 @@ process.on('message', msg => {
               controller_ip: topology.controller_ip_active,
               [fieldName]: success ? data : null,
             });
-          };
-        };
-        const getErrorHandler = function(type) {
-          return (error) => {
-              console.error(error);
           };
         };
         apiServiceRequest(topology, 'getTopology')
@@ -99,66 +101,37 @@ process.on('message', msg => {
       break;
     case 'scan_poll':
       msg.topologies.forEach(topology => {
-        const ctrlProxy = new ControllerProxy(topology.controller_ip_active);
-        var getScanStatus = new controllerTTypes.GetScanStatus();
-        getScanStatus.isConcise = false;
-        ctrlProxy.sendCtrlMsgType(
-          controllerTTypes.MessageType.GET_SCAN_STATUS,
-          thriftSerialize(getScanStatus),
-        );
-        ctrlProxy.on('event', (type, success, responseTime, data) => {
-          switch (type) {
-            case controllerTTypes.MessageType.GET_SCAN_STATUS:
-              // this clears the scan memory from the controller
-              const clearScanEnable = true; // for development
-              if (clearScanEnable) {
-                if (
-                  success &&
-                  Object.keys(data.scan_status.scans).length !== 0
-                ) {
-                  var resetScanStatus = new controllerTTypes.ResetScanStatus();
-                  resetScanStatus.tokenFrom = Math.min.apply(
-                    null,
-                    Object.keys(data.scan_status.scans),
-                  );
-                  resetScanStatus.tokenTo = Math.max.apply(
-                    null,
-                    Object.keys(data.scan_status.scans),
-                  );
-                  const ctrlProxy2 = new ControllerProxy(
-                    topology.controller_ip_active,
-                  );
-                  ctrlProxy2.sendCtrlMsgType(
-                    controllerTTypes.MessageType.RESET_SCAN_STATUS,
-                    thriftSerialize(resetScanStatus),
-                  );
-                  ctrlProxy2.on(
-                    'event',
-                    (type, success, responseTime, data) => {
-                      switch (type) {
-                        case controllerTTypes.MessageType.RESET_SCAN_STATUS:
-                          if (!success) {
-                            console.error('Error resetting scan status', data);
-                          }
-                          break;
-                        default:
-                          console.error('Unhandled message type', type);
-                      }
-                    },
-                  );
-                }
-              }
-              process.send({
-                name: topology.name,
-                type: 'scan_status',
-                success: success,
-                scan_status: success ? data.scan_status : null,
-              });
-              break;
-            default:
-              console.error('Unhandled message type', type);
-          }
-        });
+        const scanStatusPostData = {
+          isConcise: false,
+        };
+        apiServiceRequest(topology, 'getScanStatus', scanStatusPostData)
+          .then(([success, responseTime, data]) => {
+            process.send({
+              name: topology.name,
+              scan_status: success ? data : null,
+              success: success && data,
+              type: 'scan_status',
+            });
+
+            const clearScanEnable = true; // for development
+            if (!success || !data || !clearScanEnable) {
+              return;
+            }
+            if (Object.keys(data.scans).length === 0) {
+              return;
+            }
+
+            // this clears the scan memory from the controller
+            const statusKeys = Object.keys(data.scans);
+            const scanResetPostData = {
+              tokenFrom: Math.min.apply(null, statusKeys),
+              tokenTo: Math.max.apply(null, statusKeys),
+            };
+            apiServiceRequest(topology, 'resetScanStatus', scanResetPostData)
+              .then(_ => console.log('Reset scan status success'))
+              .catch(getErrorHandler('scan_status_reset'));
+          })
+          .catch(getErrorHandler('scan_status'));
       });
       break;
     default:
@@ -1544,7 +1517,7 @@ function apiServiceRequest(topology, apiMethod, data, config) {
     })
     .catch(error => {
       if (error.response) {
-        console.error('Received status ' + error.response.status + 
+        console.error('Received status ' + error.response.status +
                       ' for url ' + url);
       } else {
         console.error(error.message);
