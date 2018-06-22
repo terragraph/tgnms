@@ -79,7 +79,6 @@ export default class NetworkMap extends React.Component {
 
   state = {
     analyzerTable: {},
-    commitPlanBatch: 0,
     detailsExpanded: true,
     hoveredSite: null,
     linkHealth: {},
@@ -281,11 +280,6 @@ export default class NetworkMap extends React.Component {
         this.setState({
           newTopology: payload.topology,
           showTopologyIssuesPane: payload.visible,
-        });
-        break;
-      case Actions.COMMIT_PLAN_BATCH:
-        this.setState({
-          commitPlanBatch: payload.batch,
         });
         break;
     }
@@ -677,10 +671,6 @@ export default class NetworkMap extends React.Component {
       let isCn = false;
       const hasAp = site.hasOwnProperty('ruckus');
       let sitePolarity = null;
-      let sitePlan = 'NoData';
-      if (this.props.commitPlan != null) {
-        sitePlan = 'None';
-      }
 
       const nodeKeysInSite = Object.keys(topology.nodes).filter(nodeIndex => {
         const node = topology.nodes[nodeIndex];
@@ -706,25 +696,7 @@ export default class NetworkMap extends React.Component {
           node.mac_addr.length
             ? true
             : hasMac;
-        if (
-          this.props.commitPlan != null &&
-          this.props.commitPlan.commitBatches.length >=
-            this.state.commitPlanBatch &&
-          this.props.commitPlan.commitBatches[this.state.commitPlanBatch] &&
-          this.props.commitPlan.commitBatches[this.state.commitPlanBatch].has(
-            node.name,
-          )
-        ) {
-          inCommitBatch++;
-        }
       });
-
-      // commit plan
-      if (inCommitBatch == totalCount) {
-        sitePlan = 'Full';
-      } else if (inCommitBatch > 0) {
-        sitePlan = 'Partial';
-      }
 
       let siteColor = SiteOverlayKeys.Health.Unhealthy.color; // default
       let siteIndexForMarker = siteIndex;
@@ -746,11 +718,6 @@ export default class NetworkMap extends React.Component {
             break;
           case 'Polarity':
             siteColor = polarityColor(sitePolarity);
-            break;
-          case 'CommitPlan':
-            // fetch commit plan
-            siteColor = SiteOverlayKeys.CommitPlan[sitePlan].color;
-            siteIndexForMarker = undefined; // hack
             break;
           default:
             siteColor = SiteOverlayKeys.Health.Unhealthy.color;
@@ -1010,17 +977,6 @@ export default class NetworkMap extends React.Component {
               color_z,
             );
             break;
-          case 'CommitPlan':
-            const commitBatch = this.props.commitPlan.commitBatches[
-              this.state.commitPlanBatch
-            ];
-            linkLine = this.getLinkLineTwoSides(
-              link,
-              linkCoords,
-              overlayKey.colors[commitBatch.has(aNode.name) ? 1 : 0],
-              overlayKey.colors[commitBatch.has(zNode.name) ? 1 : 0],
-            );
-            break;
           case 'FLAPS':
             // flaps is a special case, can use health data to count # of events
             if (
@@ -1187,9 +1143,6 @@ export default class NetworkMap extends React.Component {
     }
     if (showOverview) {
       // overview
-      const commitOverlayEnabled =
-        this.props.siteOverlay == 'CommitPlan' ||
-        this.props.linkOverlay == 'CommitPlan';
       layersControl = (
         <Control position="topright">
           <DetailsTopology
@@ -1197,9 +1150,6 @@ export default class NetworkMap extends React.Component {
             topology={this.props.networkConfig.topology}
             nodes={this.nodesByName}
             links={this.linksByName}
-            commitPlan={this.props.commitPlan}
-            commitPlanBatch={this.state.commitPlanBatch}
-            commitOverlayEnabled={commitOverlayEnabled}
             maxHeight={maxModalHeight}
             onClose={this.closeModal}
             onEnter={this.disableMapScrolling}
