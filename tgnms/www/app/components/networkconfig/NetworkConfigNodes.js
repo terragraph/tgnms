@@ -16,6 +16,7 @@ import {
   CONFIG_VIEW_MODE,
   CONFIG_CLASSNAMES,
 } from '../../constants/NetworkConfigConstants.js';
+import CustomToggle from '../common/CustomToggle.js';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';
@@ -32,6 +33,10 @@ export default class NetworkConfigNodes extends React.Component {
     nodesWithDrafts: PropTypes.array.isRequired,
     nodesWithOverrides: PropTypes.instanceOf(Set).isRequired,
     removedNodeOverrides: PropTypes.object.isRequired,
+  };
+
+  state = {
+    overridesOnly: false,
   };
 
   formatNodeName = (cell, row, enumObject, index) => {
@@ -80,6 +85,10 @@ export default class NetworkConfigNodes extends React.Component {
     return classNames(rowClasses);
   };
 
+  changeToOverridesOnly = overridesOnly => {
+    this.setState({overridesOnly});
+  };
+
   renderNodeTable() {
     const selectRowProp = {
       mode: 'radio',
@@ -89,11 +98,15 @@ export default class NetworkConfigNodes extends React.Component {
       onSelect: this.tableOnRowSelect,
       selected: this.getSelectedKeys(this.props.selectedNodes),
     };
+    const {nodes, nodesWithOverrides} = this.props;
+    const nodeRows = this.state.overridesOnly
+      ? nodes.filter(node => nodesWithOverrides.has(node.mac_addr))
+      : nodes;
 
     return (
       <BootstrapTable
         tableStyle={{margin: 0, border: 0, borderRadius: 0}}
-        data={this.props.nodes}
+        data={nodeRows}
         keyField={KEY_FIELD}
         bordered={false}
         selectRow={selectRowProp}
@@ -115,6 +128,12 @@ export default class NetworkConfigNodes extends React.Component {
   render() {
     return (
       <div className="rc-network-config-nodes" ref="nodeTable">
+        <label>Show Only Nodes with Overrides</label>
+        <CustomToggle
+          wrapperStyle={{top: '5px', left: '2px'}}
+          checkboxId={'toggleOverridesOnly'}
+          onChange={this.changeToOverridesOnly}
+        />
         {this.renderNodeTable()}
       </div>
     );

@@ -61,6 +61,10 @@
   flex: 1;
 }
 
+.rc-network-config-nodes > label {
+  margin: 2px;
+}
+
 .rc-network-config-nodes  td:focus {
   outline: none;
 }
