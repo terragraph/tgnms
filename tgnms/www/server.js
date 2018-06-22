@@ -1220,23 +1220,6 @@ app.post(
   }
 );
 
-// network config endpoints
-app.get(/\/controller\/getFullNodeConfig/i, (req, res, next) => {
-  const { topologyName, node, swVersion } = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getFullNodeConfig',
-      topology,
-      node,
-      swVersion,
-    },
-    '',
-    res,
-  );
-});
-
 if (devMode) {
   // serve developer, non-minified build
   const config = require('./webpack.config.js');
