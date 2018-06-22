@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include "../MySqlClient.h"
-
 #include <folly/Memory.h>
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
@@ -26,7 +24,7 @@ namespace gorilla {
 
 class StatsWriteHandler : public proxygen::RequestHandler {
  public:
-  explicit StatsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient);
+  explicit StatsWriteHandler();
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -46,10 +44,6 @@ class StatsWriteHandler : public proxygen::RequestHandler {
 
   void writeData(query::StatsWriteRequest request);
 
-  // keep shared client holding key ids
-  std::shared_ptr<MySqlClient> mySqlCacheClient_;
-  // client per-thread for writing
-  std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
 };
 } // namespace gorilla

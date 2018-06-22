@@ -8,7 +8,9 @@
  */
 
 #include "StatsWriteHandler.h"
+
 #include "../BeringeiClientStore.h"
+#include "../MySqlClient.h"
 #include "mysql_connection.h"
 #include "mysql_driver.h"
 
@@ -37,9 +39,8 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
-StatsWriteHandler::StatsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient)
-    : RequestHandler(), mySqlCacheClient_(mySqlClient) {
-  mySqlClient_ = std::make_shared<MySqlClient>();
+StatsWriteHandler::StatsWriteHandler()
+    : RequestHandler() {
 }
 
 void StatsWriteHandler::onRequest(
@@ -103,9 +104,9 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
                        .count();
 
   int interval = request.interval;
-
+  auto mySqlClient = MySqlClient::getInstance();
   for (const auto& agent : request.agents) {
-    auto nodeId = mySqlCacheClient_->getNodeId(agent.mac);
+    auto nodeId = mySqlClient->getNodeId(agent.mac);
     if (!nodeId) {
       query::MySqlNodeData newNode;
       newNode.mac = agent.mac;
@@ -118,7 +119,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
     for (const auto& stat : agent.stats) {
       // check timestamp
       int64_t tsParsed = timeCalc(stat.ts, interval);
-      auto keyId = mySqlCacheClient_->getKeyId(*nodeId, stat.key);
+      auto keyId = mySqlClient->getKeyId(*nodeId, stat.key);
       // verify node/key combo exists
       if (keyId) {
         // insert row for beringei
@@ -140,10 +141,11 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
   }
   // write newly found macs and node/key combos
   if (!unknownNodes.empty() || !missingNodeKey.empty()) {
-    mySqlClient_->addOrUpdateNodes(unknownNodes);
-    mySqlClient_->addStatKeys(missingNodeKey);
+    auto mySqlClient = MySqlClient::getInstance();
+    mySqlClient->addOrUpdateNodes(unknownNodes);
+    mySqlClient->addStatKeys(missingNodeKey);
     LOG(INFO) << "Ran addOrUpdateNodes/addStatKeys, refreshing";
-    mySqlCacheClient_->refreshAll();
+    mySqlClient->refreshAll();
   }
 
   // insert rows

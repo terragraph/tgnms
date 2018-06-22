@@ -25,48 +25,64 @@ DEFINE_string(mysql_database, "cxl", "mysql database");
 namespace facebook {
 namespace gorilla {
 
-MySqlClient::MySqlClient() {
+static folly::Singleton<MySqlClient> mysqlClientInstance_;
+
+folly::Optional<std::unique_ptr<sql::Connection>>
+MySqlClient::openConnection() noexcept {
   try {
-    driver_ = sql::mysql::get_driver_instance();
+    auto driver = sql::mysql::get_driver_instance();
     sql::ConnectOptionsMap connProps;
     connProps["hostName"] = FLAGS_mysql_url;
     connProps["userName"] = FLAGS_mysql_user;
     connProps["password"] = FLAGS_mysql_pass;
     connProps["OPT_RECONNECT"] = true;
-    connection_ = std::unique_ptr<sql::Connection>(driver_->connect(connProps));
-    connection_->setSchema(FLAGS_mysql_database);
+    auto connection = std::unique_ptr<sql::Connection>(driver->connect(connProps));
+    connection->setSchema(FLAGS_mysql_database);
+    return connection;
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "connect ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
   }
+  return folly::none;
+}
+
+std::shared_ptr<MySqlClient> MySqlClient::getInstance() {
+  return mysqlClientInstance_.try_get();
 }
 
 void MySqlClient::refreshAll() noexcept {
+  // topology fetcher is responsible for refresh node + key cache before
+  // building its index
   refreshNodes();
   refreshStatKeys();
-  refreshTopologies();
 }
 
 std::vector<std::shared_ptr<query::MySqlNodeData>> MySqlClient::getNodes() {
   std::vector<std::shared_ptr<query::MySqlNodeData>> nodes{};
-  for (auto& it : macAddrToNode_) {
-    nodes.push_back(it.second);
+  {
+    auto macAddrToNode = macAddrToNode_.rlock();
+    for (auto& it : *macAddrToNode) {
+      nodes.push_back(it.second);
+    }
   }
   return nodes;
 }
 
 std::vector<std::shared_ptr<query::MySqlNodeData>>
 MySqlClient::getNodesWithKeys() {
-  return nodes_;
+  return nodes_.copy();
 }
 
 std::vector<std::shared_ptr<query::MySqlNodeData>> MySqlClient::getNodes(
     const std::unordered_set<std::string>& nodeMacs) {
   std::vector<std::shared_ptr<query::MySqlNodeData>> nodes{};
-  for (const auto& mac : nodeMacs) {
-    auto it = macAddrToNode_.find(mac);
-    if (it != macAddrToNode_.end()) {
-      nodes.push_back(it->second);
+  {
+    auto macAddrToNode = macAddrToNode_.rlock();
+    for (const auto& mac : nodeMacs) {
+      auto it = macAddrToNode->find(mac);
+      if (it != macAddrToNode->end()) {
+        nodes.push_back(it->second);
+      }
     }
   }
   return nodes;
@@ -74,25 +90,33 @@ std::vector<std::shared_ptr<query::MySqlNodeData>> MySqlClient::getNodes(
 
 std::vector<std::shared_ptr<query::MySqlNodeData>>
 MySqlClient::getNodesWithKeys(const std::unordered_set<std::string>& nodeMacs) {
-  std::vector<std::shared_ptr<query::MySqlNodeData>> nodes{};
-  for (auto node : nodes_) {
-    auto it = nodeMacs.find(node->mac);
-    if (it != nodeMacs.end()) {
-      nodes.push_back(node);
+  std::vector<std::shared_ptr<query::MySqlNodeData>> retNodes{};
+  {
+    auto nodes = nodes_.rlock();
+    for (const auto& node : *nodes) {
+      auto it = nodeMacs.find(node->mac);
+      if (it != nodeMacs.end()) {
+        retNodes.push_back(node);
+      }
     }
   }
-  return nodes;
+  return retNodes;
 }
 
 std::map<int64_t, std::shared_ptr<query::TopologyConfig>>
 MySqlClient::getTopologyConfigs() {
-  return topologyIdMap_;
+  return topologyIdMap_.copy();
 }
 
 void MySqlClient::refreshTopologies() noexcept {
   // load all topologies
   try {
-    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return;
+    }
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT * FROM `topologies`"));
     std::map<int64_t, std::shared_ptr<query::TopologyConfig>> topologyIdTmp;
@@ -113,7 +137,7 @@ void MySqlClient::refreshTopologies() noexcept {
     // refresh key ids for each topology
     refreshAggregateKeys(topologyIdTmp);
     topologyIdMap_.swap(topologyIdTmp);
-    LOG(INFO) << "refreshTopologies:  " << topologyIdMap_.size();
+    LOG(INFO) << "refreshTopologies:  " << topologyIdMap_.rlock()->size();
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshTopologies ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
@@ -124,7 +148,12 @@ void MySqlClient::refreshAggregateKeys(
     std::map<int64_t, std::shared_ptr<query::TopologyConfig>>&
         topologyIdMap) noexcept {
   try {
-    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return;
+    }
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT `id`, `topology_id`, `key` FROM `agg_key`"));
     LOG(INFO) << "refreshAggregateKeys: Number of keys: " << res->rowsCount();
@@ -155,8 +184,13 @@ void MySqlClient::addAggKeys(
     const int64_t topologyId,
     const std::vector<std::string>& keyNames) noexcept {
   try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return;
+    }
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        connection_->prepareStatement(
+        (*connection)->prepareStatement(
             "INSERT IGNORE INTO `agg_key` (`topology_id`, `key`)"
             " VALUES (?, ?)"));
 
@@ -176,26 +210,49 @@ void MySqlClient::addAggKeys(
 
 void MySqlClient::refreshNodes() noexcept {
   try {
-    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return;
+    }
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT * FROM `nodes`"));
     std::vector<std::shared_ptr<query::MySqlNodeData>> nodesTmp;
-    while (res->next()) {
-      auto node = std::make_shared<query::MySqlNodeData>();
-      node->id = res->getInt("id");
-      node->mac = res->getString("mac");
-      node->node = res->getString("node");
-      node->network = res->getString("network");
-      node->site = res->getString("site");
-      std::transform(
-          node->mac.begin(), node->mac.end(), node->mac.begin(), ::tolower);
-      macAddrToNode_[node->mac] = node;
-      nodeNameToNodeId_[node->node] = node;
-      nodeIdToNode_[node->id] = node;
-      nodesTmp.push_back(node);
+    {
+      auto macAddrToNode = macAddrToNode_.wlock();
+      macAddrToNode->clear();
+      auto nodeIdToNode = nodeIdToNode_.wlock();
+      nodeIdToNode->clear();
+      auto nameToNodeId = nodeNameToNodeId_.wlock();
+      nameToNodeId->clear();
+      auto duplicateNodes = duplicateNodes_.wlock();
+      duplicateNodes->clear();
+      while (res->next()) {
+        auto node = std::make_shared<query::MySqlNodeData>();
+        node->id = res->getInt("id");
+        node->mac = res->getString("mac");
+        node->node = res->getString("node");
+        node->site = res->getString("site");
+        node->network = res->getString("network");
+        std::transform(
+            node->mac.begin(), node->mac.end(), node->mac.begin(), ::tolower);
+        macAddrToNode->emplace(node->mac, node);
+        auto nameAdded = nameToNodeId->emplace(node->node, node);
+        nodeIdToNode->emplace(node->id, node);
+        if (!nameAdded.second) {
+          LOG(ERROR) << "Duplicate node name: \"" << node->node
+                     << "\", MAC1: " << nameToNodeId->at(node->node)->mac
+                     << ", MAC2: " << node->mac;
+          (*duplicateNodes)[node->node].insert(nameToNodeId->at(node->node)->mac);
+          // record the duplicate
+          (*duplicateNodes)[node->node].insert(node->mac);
+        }
+        nodesTmp.push_back(std::move(node));
+      }
+      LOG(INFO) << "refreshNodes: Number of nodes: " << nodeIdToNode->size();
     }
     nodes_.swap(nodesTmp);
-    LOG(INFO) << "refreshNodes: Number of nodes: " << nodeIdToNode_.size();
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshNodes ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
@@ -204,7 +261,12 @@ void MySqlClient::refreshNodes() noexcept {
 
 void MySqlClient::refreshStatKeys() noexcept {
   try {
-    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return;
+    }
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
     std::unique_ptr<sql::ResultSet> res(
         stmt->executeQuery("SELECT `id`, `node_id`, `key` FROM `ts_key`"));
 
@@ -217,17 +279,23 @@ void MySqlClient::refreshStatKeys() noexcept {
       std::transform(
           keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
       // insert into node id -> key mapping
-      if (nodeKeyIds_.find(nodeId) == nodeKeyIds_.end()) {
-        nodeKeyIds_[nodeId] = {};
+      {
+        auto nodeKeyIds = nodeKeyIds_.wlock();
+        if (nodeKeyIds->find(nodeId) == nodeKeyIds->end()) {
+          (*nodeKeyIds)[nodeId] = {};
+        }
+        (*nodeKeyIds)[nodeId][keyName] = keyId;
       }
-      nodeKeyIds_[nodeId][keyName] = keyId;
       // insert into MySqlNodeData keyList
-      auto itNode = nodeIdToNode_.find(nodeId);
-      if (itNode != nodeIdToNode_.end()) {
-        itNode->second->keyList[keyId] = keyName;
-        VLOG(3) << "\tID: " << keyId << ", nodeId: " << nodeId
-                << ", keyName: " << keyName
-                << ", size: " << itNode->second->keyList.size();
+      {
+        auto nodeIdToNode = nodeIdToNode_.wlock();
+        auto itNode = nodeIdToNode->find(nodeId);
+        if (itNode != nodeIdToNode->end()) {
+          itNode->second->keyList[keyId] = keyName;
+          VLOG(3) << "\tID: " << keyId << ", nodeId: " << nodeId
+                  << ", keyName: " << keyName
+                  << ", size: " << itNode->second->keyList.size();
+        }
       }
     }
   } catch (sql::SQLException& e) {
@@ -236,40 +304,84 @@ void MySqlClient::refreshStatKeys() noexcept {
   }
 }
 
-void MySqlClient::addOrUpdateNodes(
-    const std::unordered_map<std::string, query::MySqlNodeData>&
-        newNodes) noexcept {
+bool MySqlClient::addOrUpdateNodes(
+    const std::unordered_map<std::string, query::MySqlNodeData>& newNodes) noexcept {
   if (!newNodes.size()) {
-    return;
+    return false;
   }
+  bool changed = false;
   try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return false;
+    }
     // if there is a duplicate MAC address in the table, replace the node,
     // site, and network names; otherwise insert the new row
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        connection_->prepareStatement(
+        (*connection)->prepareStatement(
             "INSERT INTO `nodes` (`mac`, `node`, "
             "`site`, `network`) VALUES (?, ?, ?, ?) "
-            "ON DUPLICATE KEY UPDATE `node`=?, `site`=?, "
-            "`network`=?"));
-
+            "ON DUPLICATE KEY UPDATE `node`=?, `mac`=?, "
+            "`site`=?, `network`=?"));
+    auto nodeNameToNodeId = nodeNameToNodeId_.rlock();
+    auto duplicateNodes = duplicateNodes_.rlock();
     for (const auto& node : newNodes) {
+      auto dupNodeIt = duplicateNodes->find(node.second.node);
+      if (dupNodeIt != duplicateNodes->end()) {
+        // delete the incorrect record
+        std::unique_ptr<sql::PreparedStatement> deleteStmt(
+            (*connection)->prepareStatement(
+                "DELETE FROM `nodes` "
+                "WHERE `node` = ? "
+                "AND `network` = ? "
+                "AND `mac` != ? LIMIT 1"));
+                deleteStmt->setString(1, node.second.node);
+                deleteStmt->setString(2, node.second.network);
+                deleteStmt->setString(3, node.second.mac);
+        // if another topology has the same node name we'll continuously log
+        // this statement, even though we aren't going to delete it
+        // TODO: this is safe, but needs to be corrected to use node name
+        // as a unique index between multiple networks
+        LOG(INFO) << "Attempting to delete node(s) \"" << node.second.node
+                  << "\" on network \"" << node.second.network
+                  << "\" not matching MAC: " << node.second.mac;
+        deleteStmt->execute();
+      }
+      // compare node data
+      auto nodeData = nodeNameToNodeId->find(node.second.node);
+      if (nodeData != nodeNameToNodeId->end() &&
+          nodeData->second->node == node.second.node &&
+          nodeData->second->mac == node.second.mac &&
+          nodeData->second->network == node.second.network &&
+          nodeData->second->site == node.second.site) {
+        // skip if node data is the same
+        continue;
+      }
+      changed = true;
       prep_stmt->setString(1, node.second.mac);
       prep_stmt->setString(2, node.second.node);
       prep_stmt->setString(3, node.second.site);
       prep_stmt->setString(4, node.second.network);
+
       prep_stmt->setString(5, node.second.node);
-      prep_stmt->setString(6, node.second.site);
-      prep_stmt->setString(7, node.second.network);
+      prep_stmt->setString(6, node.second.mac);
+      prep_stmt->setString(7, node.second.site);
+      prep_stmt->setString(8, node.second.network);
       prep_stmt->execute();
-      VLOG(4) << "addNode => mac: " << node.second.mac
-              << " Network: " << node.second.network;
+      LOG(INFO) << "addNode => mac: " << node.second.mac
+                << " node: " << node.second.node
+                << " network: " << node.second.network;
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "addNode ERR: " << e.what();
     LOG(ERROR) << " (MySQL error code: " << e.getErrorCode() << ")";
   }
-
-  refreshNodes();
+  // only update nodes table if changed
+  if (changed) {
+    refreshNodes();
+  }
+  return changed;
 }
 
 void MySqlClient::addStatKeys(
@@ -280,8 +392,13 @@ void MySqlClient::addStatKeys(
   }
   LOG(INFO) << "addStatKeys for " << nodeKeys.size() << " nodes";
   try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return;
+    }
     sql::PreparedStatement* prep_stmt;
-    prep_stmt = connection_->prepareStatement(
+    prep_stmt = (*connection)->prepareStatement(
         "INSERT IGNORE INTO `ts_key` (`node_id`, `key`) VALUES (?, ?)");
 
     for (const auto& keys : nodeKeys) {
@@ -309,18 +426,24 @@ folly::Optional<int64_t> MySqlClient::getNodeId(
       macAddrLower.end(),
       macAddrLower.begin(),
       ::tolower);
-  auto it = macAddrToNode_.find(macAddrLower);
-  if (it != macAddrToNode_.end()) {
-    return (it->second->id);
+  {
+    auto macAddrToNode = macAddrToNode_.rlock();
+    auto it = macAddrToNode->find(macAddrLower);
+    if (it != macAddrToNode->end()) {
+      return (it->second->id);
+    }
   }
   return folly::none;
 }
 
 folly::Optional<int64_t> MySqlClient::getNodeIdFromNodeName(
     const std::string& nodeName) const {
-  auto it = nodeNameToNodeId_.find(nodeName);
-  if (it != nodeNameToNodeId_.end()) {
-    return (it->second->id);
+  {
+    auto nodeNameToNodeId = nodeNameToNodeId_.rlock();
+    auto it = nodeNameToNodeId->find(nodeName);
+    if (it != nodeNameToNodeId->end()) {
+      return (it->second->id);
+    }
   }
   return folly::none;
 }
@@ -334,12 +457,14 @@ folly::Optional<int64_t> MySqlClient::getKeyId(
       keyNameLower.end(),
       keyNameLower.begin(),
       ::tolower);
-
-  auto itNode = nodeKeyIds_.find(nodeId);
-  if (itNode != nodeKeyIds_.end()) {
-    auto itKey = itNode->second.find(keyNameLower);
-    if (itKey != itNode->second.end()) {
-      return (itKey->second);
+  {
+    auto nodeKeyIds = nodeKeyIds_.rlock();
+    auto itNode = nodeKeyIds->find(nodeId);
+    if (itNode != nodeKeyIds->end()) {
+      auto itKey = itNode->second.find(keyNameLower);
+      if (itKey != itNode->second.end()) {
+        return (itKey->second);
+      }
     }
   }
   return folly::none;
@@ -350,18 +475,22 @@ int64_t MySqlClient::getLastId(
     const int64_t startBwgd,
     const std::string& network) noexcept {
   try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return -1;
+    }
     std::string query =
         "SELECT id FROM tx_scan_results WHERE token=" + std::to_string(token) +
         " AND start_bwgd=" + std::to_string(startBwgd) +
         " AND network='" + network + "'";
-    std::unique_ptr<sql::Statement> stmt(connection_->createStatement());
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
     std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
     if (res->next()) {
       return res->getInt64("id");
     } else {
       return -1;
     }
-
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "ERROR reading last inserted ID: " << e.what();
     LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
@@ -374,6 +503,11 @@ int64_t MySqlClient::getLastId(
 int MySqlClient::writeTxScanResponse(
     const scans::MySqlScanTxResp& scanResponse) noexcept {
   try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return -1;
+    }
     std::string query =
         "INSERT INTO `tx_scan_results` "
         "(`token`, `combined_status`, `tx_node_id`, `start_bwgd`, "
@@ -382,7 +516,7 @@ int MySqlClient::writeTxScanResponse(
         "`scan_resp`) VALUES "
         "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COMPRESS(?))";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        connection_->prepareStatement(query));
+        (*connection)->prepareStatement(query));
     LOG(INFO) << "Scan response token:" << scanResponse.token
               << " respId:" << scanResponse.respId;
     prep_stmt->setInt(1, scanResponse.token);
@@ -412,12 +546,17 @@ bool MySqlClient::writeRxScanResponse(
     const scans::MySqlScanRxResp& scanResponse,
     const int64_t txId) noexcept {
   try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return false;
+    }
     std::string query =
         "INSERT INTO `rx_scan_results` "
         "(`status`, `scan_resp`, `rx_node_id`, `tx_id`, `rx_node_name`, "
         "`new_beam_flag`) VALUES (?, COMPRESS(?), ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        connection_->prepareStatement(query));
+        (*connection)->prepareStatement(query));
     prep_stmt->setInt(1, scanResponse.status);
     prep_stmt->setString(2, scanResponse.scanResp);
     prep_stmt->setInt(3, scanResponse.rxNodeId);

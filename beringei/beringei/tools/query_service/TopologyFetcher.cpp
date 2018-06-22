@@ -7,8 +7,10 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "ApiServiceClient.h"
 #include "TopologyFetcher.h"
+
+#include "ApiServiceClient.h"
+#include "MySqlClient.h"
 #include "TopologyStore.h"
 
 #include <curl/curl.h>
@@ -25,16 +27,14 @@ namespace facebook {
 namespace gorilla {
 
 TopologyFetcher::TopologyFetcher(
-    std::shared_ptr<MySqlClient> mySqlClient,
     TACacheMap& typeaheadCache,
     std::shared_ptr<ApiServiceClient> apiServiceClient)
-    : mySqlClient_(mySqlClient),
-      typeaheadCache_(typeaheadCache),
+    : typeaheadCache_(typeaheadCache),
       apiServiceClient_(apiServiceClient) {
   // refresh topology time period
-  timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
+  timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { refreshTopologyCache(); });
   // first run
-  timerCb();
+  refreshTopologyCache();
   timer_->scheduleTimeout(FLAGS_topology_refresh_interval * 1000);
 }
 
@@ -44,8 +44,9 @@ void TopologyFetcher::updateDbNodesTable(query::Topology& topology) {
   std::unordered_map<std::string, query::MySqlNodeData> newOrUpdatedNodes;
 
   // update the nodes table with retrieved information
+  auto mySqlClient = MySqlClient::getInstance();
   for (const auto& node : topology.nodes) {
-    auto nodeId = mySqlClient_->getNodeId(node.mac_addr);
+    auto nodeId = mySqlClient->getNodeId(node.mac_addr);
     query::MySqlNodeData newNode;
     if (!nodeId) {
       LOG(INFO) << "Unknown node: " << node.name;
@@ -57,30 +58,36 @@ void TopologyFetcher::updateDbNodesTable(query::Topology& topology) {
     newOrUpdatedNodes[newNode.mac] = newNode;
   }
   if (!newOrUpdatedNodes.empty()) {
-    mySqlClient_->addOrUpdateNodes(newOrUpdatedNodes);
-    LOG(INFO) << "Ran addOrUpdateNodes/addStatKeys, refreshing";
-    mySqlClient_->refreshAll();
+    bool changed = mySqlClient->addOrUpdateNodes(newOrUpdatedNodes);
+    LOG(INFO) << "Ran addOrUpdateNodes/addStatKeys, "
+              << (changed ? "refreshing cache" : "no changes");
+    if (changed) {
+      mySqlClient->refreshAll();
+    }
   }
 }
 
-void TopologyFetcher::timerCb() {
+void TopologyFetcher::refreshTopologyCache() {
   timer_->scheduleTimeout(FLAGS_topology_refresh_interval * 1000);
   // refresh topologies from mysql
-  mySqlClient_->refreshTopologies();
+  auto mySqlClient = MySqlClient::getInstance();
+  mySqlClient->refreshTopologies();
+  // refresh nodes and keys after every topology refresh
+  mySqlClient->refreshAll();
   auto topologyInstance = TopologyStore::getInstance();
-  for (const auto& topologyMap : mySqlClient_->getTopologyConfigs()) {
-    const std::shared_ptr<query::TopologyConfig> topologyConfig = topologyMap.second;
+  // fetch cached topologies
+  for (auto topologyConfig : mySqlClient->getTopologyConfigs()) {
     const std::string postData = "{}";
     auto topology = apiServiceClient_->fetchApiService<query::Topology>(
-        topologyConfig, postData, "api/getTopology");
+        topologyConfig.second, postData, "api/getTopology");
     if (topology.nodes.empty()) {
-      LOG(INFO) << "Empty topology for: " << topologyConfig->name;
+      LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
-      topologyConfig->topology = topology;
+      topologyConfig.second->topology = topology;
       // TODO: we never remove old topologies - after some amount of time
       //   over which a topology was never "added" we should remove it
       //   like 1 day
-      topologyInstance->addTopology(topologyConfig);
+      topologyInstance->addTopology(topologyConfig.second);
       LOG(INFO) << "Topology refreshed for: " << topology.name;
       // load stats type-ahead cache?
       updateTypeaheadCache(topology);
@@ -95,7 +102,8 @@ void TopologyFetcher::timerCb() {
 void TopologyFetcher::updateTypeaheadCache(query::Topology& topology) {
   try {
     // insert cache handler
-    auto taCache = std::make_shared<StatsTypeAheadCache>(mySqlClient_);
+    auto mySqlClient = MySqlClient::getInstance();
+    auto taCache = std::make_shared<StatsTypeAheadCache>();
     taCache->fetchMetricNames(topology);
     LOG(INFO) << "Type-ahead cache loaded for: " << topology.name;
     // re-insert into the map

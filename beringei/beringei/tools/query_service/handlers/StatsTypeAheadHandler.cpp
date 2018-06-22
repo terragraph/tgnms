@@ -8,8 +8,6 @@
  */
 
 #include "StatsTypeAheadHandler.h"
-#include "mysql_connection.h"
-#include "mysql_driver.h"
 
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
@@ -36,10 +34,8 @@ namespace facebook {
 namespace gorilla {
 
 StatsTypeAheadHandler::StatsTypeAheadHandler(
-    std::shared_ptr<MySqlClient> mySqlClient,
     TACacheMap& typeaheadCache)
     : RequestHandler(),
-      mySqlClient_(mySqlClient),
       typeaheadCache_(typeaheadCache) {}
 
 void StatsTypeAheadHandler::onRequest(
