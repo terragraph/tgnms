@@ -159,14 +159,14 @@ void AggregatorService::ruckusControllerCb() {
 }
 
 void AggregatorService::timerCb() {
-  LOG(INFO) << "Aggregator running";
-  // timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
+  LOG(INFO) << "Aggregator running.";
+  timer_->scheduleTimeout(FLAGS_agg_time_period * 1000);
   // run some aggregation
   std::unordered_map<std::string /* key name */, double> aggValues;
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
   for (const auto& topologyConfig : topologyList) {
-    LOG(INFO) << "Topology: " << topologyConfig.first;
+    LOG(INFO) << "\tTopology: " << topologyConfig.first;
     auto topology = topologyConfig.second->topology;
     if (!topology.name.empty() && !topology.nodes.empty() &&
         !topology.links.empty()) {
@@ -211,7 +211,7 @@ void AggregatorService::timerCb() {
         }
       }
       // report metrics somewhere? TBD
-      LOG(INFO) << "--------------------------------------";
+      VLOG(1) << "--------------------------------------";
       std::vector<DataPoint> bDataPoints;
       // query metric data from beringei
       {
@@ -262,10 +262,14 @@ void AggregatorService::timerCb() {
         }
       }
       if (FLAGS_write_agg_data) {
+        int dpCount = bDataPoints.size();
+        if (!dpCount) {
+          // no data points to write
+          continue;
+        }
         folly::EventBase eb;
         eb.runInLoop([this, &bDataPoints]() mutable {
           auto beringeiClientStore = BeringeiClientStore::getInstance();
-          // TODO - change to write..
           auto beringeiWriteClient = beringeiClientStore->getWriteClient(30);
           auto pushedPoints = beringeiWriteClient->putDataPoints(bDataPoints);
           if (!pushedPoints) {
@@ -274,9 +278,8 @@ void AggregatorService::timerCb() {
         });
         std::thread tEb([&eb]() { eb.loop(); });
         tEb.join();
-        LOG(INFO) << "Data-points written";
+        LOG(INFO) << dpCount << " aggregate data-points written.";
       }
-      // push metrics into beringei
     } else {
       LOG(INFO) << "Invalid topology";
     }
