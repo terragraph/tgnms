@@ -1127,22 +1127,6 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
   res.status(404).end('No such topology\n');
 });
 
-app.use(/\/topology\/fetch\/(.+)$/i, function (req, res, next) {
-  const controllerIp = req.params[0];
-  const ctrlProxy = new syncWorker.ControllerProxy(controllerIp);
-  ctrlProxy.sendCtrlMsgType(controllerTTypes.MessageType.GET_TOPOLOGY, '\0');
-  ctrlProxy.on('event', (type, success, responseTime, data) => {
-    switch (type) {
-      case controllerTTypes.MessageType.GET_TOPOLOGY:
-        if (success) {
-          res.json(data.topology);
-        } else {
-          res.status(500).end();
-        }
-        break;
-    }
-  });
-});
 app.get(/\/dashboards\/get\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
   if (!dashboards[topologyName]) {
