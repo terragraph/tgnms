@@ -36,19 +36,23 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+const BSTAR_STATES = {
+  STATE_PRIMARY: 1,
+  STATE_BACKUP: 2,
+  STATE_ACTIVE: 3,
+  STATE_PASSIVE: 4,
+};
+
 // set up font awesome here
 
 const compression = require('compression');
 // worker process
 const cp = require('child_process');
 const worker = cp.fork('./worker.js');
-const syncWorker = require('./worker.js');
 // packaging
 const webpack = require('webpack');
 const devMode = process.env.NODE_ENV !== 'production';
 const port = devMode && process.env.PORT ? process.env.PORT : 80;
-// thrift types from controller
-const controllerTTypes = require('./thrift/gen-nodejs/Controller_types');
 // network config file
 const NETWORK_CONFIG_NETWORKS_PATH = './config/networks/';
 const NETWORK_CONFIG_INSTANCES_PATH = './config/instances/';
@@ -221,11 +225,11 @@ worker.on('message', msg => {
       if (config.controller_ip_backup && msg.success) {
         // check if state changed.
         if ((msg.controller_ip == config.controller_ip_active &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
+             (msg.bstar_fsm.state == BSTAR_STATES['STATE_PASSIVE'] ||
+              msg.bstar_fsm.state == BSTAR_STATES['STATE_BACKUP'])) ||
             (msg.controller_ip == config.controller_ip_passive &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_ACTIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PRIMARY))) {
+             (msg.bstar_fsm.state == BSTAR_STATES['STATE_ACTIVE'] ||
+              msg.bstar_fsm.state == BSTAR_STATES['STATE_PRIMARY']))) {
           const tempIp = config.controller_ip_passive;
           config.controller_ip_passive = config.controller_ip_active;
           config.controller_ip_active = tempIp;

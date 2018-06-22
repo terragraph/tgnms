@@ -16,12 +16,6 @@ pool.on('error', function () {
   console.log('pool error');
 });
 
-// Convert thrift's Int64 (after conversion to plain json) to a number
-// Precision might be lost if the int is >= 2^53
-const toUint64 = thriftInt64 => {
-  return Buffer.from(thriftInt64.buffer.data).readUIntBE(0, 8);
-};
-
 var self = {
   macAddrToNode: {},
   nodeNameToNode: {},
@@ -263,7 +257,7 @@ var self = {
         );
       }
       const txNodeId = self.nodeNameToNode[network][scanData.txNode].id;
-      const startBwgd = toUint64(scanData.startBwgdIdx);
+      const startBwgd = scanData.startBwgdIdx;
       let txPower = 255;
       try {
         txPower = scanData.responses[scanData.txNode].txPwrIndex;

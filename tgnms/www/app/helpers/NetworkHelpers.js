@@ -9,11 +9,16 @@
  * Shared methods
  */
 
-import {PolarityType} from '../../thrift/gen-nodejs/Topology_types';
-
 import LeafletGeom from 'leaflet-geometryutil';
 import {LatLng} from 'leaflet';
 import invert from 'lodash-es/invert';
+
+const PolarityType = {
+    ODD: 1,
+    EVEN: 2,
+    HYBRID_ODD: 3,
+    HYBRID_EVEN: 4,
+};
 
 export function availabilityColor(alive_perc) {
   if (alive_perc >= 99.99) {
@@ -50,12 +55,12 @@ export function polarityColor(polarity) {
     return 'red';
   }
   switch (polarity) {
-    case PolarityType.ODD:
+    case PolarityType['ODD']:
       return 'blue';
-    case PolarityType.EVEN:
+    case PolarityType['EVEN']:
       return 'magenta';
-    case PolarityType.HYBRID_ODD:
-    case PolarityType.HYBRID_EVEN:
+    case PolarityType['HYBRID_ODD']:
+    case PolarityType['HYBRID_EVEN']:
       return 'orange';
     default:
       return 'red';
