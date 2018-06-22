@@ -43,7 +43,7 @@ export default class CreateGraphModal extends React.Component {
     this.dispatchToken = Dispatcher.register(
       this.handleDispatchEvent.bind(this),
     );
-     Modal.setAppElement('body');
+    Modal.setAppElement('body');
   }
 
   componentWillUnmount() {
@@ -74,8 +74,8 @@ export default class CreateGraphModal extends React.Component {
       // specified a node A yet
       if (this.props.dashboard && this.props.dashboard.nodeA) {
         this.setState({
-          useDashboardGraphConfigChecked: true
-        })
+          useDashboardGraphConfigChecked: true,
+        });
       }
     }
   }
@@ -95,17 +95,20 @@ export default class CreateGraphModal extends React.Component {
     this.setState({customData: newCustomData, nodesSelected: []});
   };
 
-  onHandleGraphConfigChange = (clk) => {
-    const {nodeA, nodeZ, minAgo, startTime, endTime} = this.props.dashboard;
+  onHandleConfigCheckedChange = clk => {
+    const {nodeA, nodeZ} = this.props.dashboard;
     if (!nodeA || !nodeZ) {
-      swal("Error", "You need to fill in the dashboard's graph configuration options before you can apply them.", "error");
-    }
-    else {
+      swal(
+        'Error',
+        "You need to fill in the dashboard's graph configuration options before you can apply them.",
+        'error',
+      );
+    } else {
       this.setState({
         useDashboardGraphConfigChecked: clk.target.checked,
       });
     }
-  }
+  };
 
   render() {
     const {graphInEditMode} = this.props;
@@ -144,7 +147,7 @@ export default class CreateGraphModal extends React.Component {
                   <input
                     id="custom-graph-checkbox"
                     type="checkbox"
-                    onChange={this.onHandleGraphConfigChange}
+                    onChange={this.onHandleConfigCheckedChange}
                     checked={this.state.useDashboardGraphConfigChecked}
                   />
                 </div>

@@ -32,18 +32,19 @@ const initialState = {
 export default class LinkGraphForm extends React.Component {
   static propTypes = {
     dashboard: PropTypes.object.isRequired,
-    generalFormData: PropTypes.object.isRequired,
-    onSubmitNewGraph: PropTypes.func.isRequired,
-    topologyName: PropTypes.string.isRequired,
     defaultLinkFormData: PropTypes.shape({
       linkDirectionOptions: PropTypes.array,
       linkDirectionSelected: PropTypes.string,
       linkKeyOptions: PropTypes.array,
       linkKeySelected: PropTypes.string,
-    })
+    }),
+    editGraphMode: PropTypes.bool,
+    generalFormData: PropTypes.object.isRequired,
+    onSubmitGraph: PropTypes.func.isRequired,
+    topologyName: PropTypes.string.isRequired,
   };
 
-  state = clone(initialState)
+  state = clone(initialState);
 
   componentDidMount() {
     this.setLinkKeyOptions();
@@ -75,9 +76,10 @@ export default class LinkGraphForm extends React.Component {
 
   // Set the selection options for link keys once a node A and node Z are specified
   setLinkKeyOptions = () => {
-    let {nodeA, nodeZ} = this.props.generalFormData.customGraphChecked
-      ? this.props.generalFormData.customData
-      : this.props.dashboard;
+    let {nodeA, nodeZ} = this.props.generalFormData
+      .useDashboardGraphConfigChecked
+      ? this.props.dashboard
+      : this.props.generalFormData.customData;
 
     if (!nodeA || !nodeZ) {
       return;
@@ -128,9 +130,9 @@ export default class LinkGraphForm extends React.Component {
   // Set the direction options based on when a user changes node A and node Z
   setLinkDirectionOptions = () => {
     const {generalFormData} = this.props;
-    const {nodeA, nodeZ} = generalFormData.customGraphChecked
-      ? generalFormData.customData
-      : this.props.dashboard;
+    const {nodeA, nodeZ} = generalFormData.useDashboardGraphConfigChecked
+      ? this.props.dashboard
+      : generalFormData.customData;
     const linkDirectionOptions = [];
     let initialSelection = '';
     if (nodeA && nodeZ) {
@@ -156,9 +158,9 @@ export default class LinkGraphForm extends React.Component {
       minAgo,
       nodeA,
       nodeZ,
-    } = generalFormData.customGraphChecked
-      ? generalFormData.customData
-      : this.props.dashboard;
+    } = generalFormData.useDashboardGraphConfigChecked
+      ? this.props.dashboard
+      : generalFormData.customData;
     const direction = this.state.linkDirectionSelected.includes('Z -> A')
       ? 'Z -> A'
       : 'A -> Z';

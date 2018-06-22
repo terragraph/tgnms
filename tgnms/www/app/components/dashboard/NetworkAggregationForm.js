@@ -99,9 +99,13 @@ export default class NetworkAggregationForm extends React.Component {
   // Add new graph from the network form data and add graph to the dashboard
   onSubmitNetworkGraph = () => {
     const {generalFormData} = this.props;
-    const {startTime, endTime, minAgo} = generalFormData.customGraphChecked
-      ? generalFormData.customData
-      : this.props.dashboard;
+    const {
+      startTime,
+      endTime,
+      minAgo,
+    } = generalFormData.useDashboardGraphConfigChecked
+      ? this.props.dashboard
+      : generalFormData.customData;
 
     const graphFormData = {
       generalFormData,

@@ -29,9 +29,9 @@ const LinkGraphInfo = ({graph}) => {
 
 const NodeGraphInfo = ({graph}) => {
   const {generalFormData, nodeGraphData} = graph.setup.graphFormData;
-  const nodes = generalFormData.customGraphChecked
-    ? generalFormData.customData.nodes
-    : nodeGraphData.nodesSelected.map(nodeSelected => nodeSelected.node);
+  const nodes = generalFormData.useDashboardGraphConfigChecked
+    ? nodeGraphData.nodesSelected.map(nodeSelected => nodeSelected.node)
+    : generalFormData.customData.nodes;
 
   return (
     <div>
