@@ -12,6 +12,7 @@ import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import {
   fetchKeyData,
   formatKeyHelper,
+  isValidNodeKey,
   shouldUpdateGraphFormOptions,
 } from '../../helpers/NetworkDashboardsHelper.js';
 import PropTypes from 'prop-types';
@@ -145,11 +146,8 @@ export default class NodeGraphForm extends React.Component {
         // temporarily filter keys to find node-specific keys (without mac_addr
         // or has mac_addr of 00:00:00:00:00:00
         // TODO: will add change to backend
-        const keyData = graphData.keyData.filter(
-          keyObj =>
-            (!RegExp('\\d').test(keyObj.key) ||
-              keyObj.key.includes('00:00:00:00:00:00')) &&
-            nodeMacAddrs.has(keyObj.node),
+        const keyData = graphData.keyData.filter(keyObj =>
+          isValidNodeKey(keyObj, nodeMacAddrs),
         );
 
         this.setState({

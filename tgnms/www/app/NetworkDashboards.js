@@ -725,7 +725,7 @@ export default class NetworkDashboards extends React.Component {
                 this.props.onHandleSelectedDashboardChange
               }
               selectedDashboard={this.props.selectedDashboard}
-              networkConfig={this.props.networkConfig}
+              topologyName={this.props.networkConfig.topology.name}
             />
             {dashboards &&
               selectedDashboard &&

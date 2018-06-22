@@ -68,7 +68,7 @@ const NetworkGraphInfo = ({graph}) => {
 };
 
 const GraphInfo = ({graph}) => {
-  const {graphFormData, graphType, isCustom} = graph.setup;
+  const {graphType, isCustom} = graph.setup;
 
   let graphTypeInfo = null;
 
