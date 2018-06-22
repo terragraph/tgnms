@@ -1,4 +1,4 @@
-package com.tgmap2;
+package com.tginstall;
 
 import android.app.Application;
 
@@ -11,6 +11,11 @@ import com.facebook.soloader.SoLoader;
 import java.util.Arrays;
 import java.util.List;
 
+//import com.reactlibrary.RNSimpleCompassPackage;
+import com.airbnb.android.react.maps.MapsPackage;
+import org.reactnative.camera.RNCameraPackage;
+import com.horcrux.svg.SvgPackage;
+
 public class MainApplication extends Application implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
@@ -22,7 +27,11 @@ public class MainApplication extends Application implements ReactApplication {
     @Override
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
-          new MainReactPackage()
+          new MainReactPackage(),
+          //new RNSimpleCompassPackage(),
+          new SvgPackage(),
+          new RNCameraPackage(),
+          new MapsPackage()
       );
     }
 

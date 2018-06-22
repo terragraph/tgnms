@@ -1,4 +1,4 @@
-package com.tgmap2;
+package com.tginstall;
 
 import com.facebook.react.ReactActivity;
 
@@ -10,6 +10,6 @@ public class MainActivity extends ReactActivity {
      */
     @Override
     protected String getMainComponentName() {
-        return "TGMap2";
+        return "TGInstall";
     }
 }
