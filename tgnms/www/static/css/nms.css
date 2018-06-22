@@ -227,6 +227,18 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-action-list .details-link {
   margin: 4px 0;
 }
+.details-button-panel {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+.details-table.create-edit-site {
+  width: 100%;
+}
+.details-table.create-edit-site .name-input {
+  width: 100%;
+  height: 34px;
+}
 .controller-status-icon {
   float: right;
 }

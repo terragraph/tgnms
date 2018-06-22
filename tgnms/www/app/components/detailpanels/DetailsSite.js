@@ -29,11 +29,11 @@ import swal from 'sweetalert';
 
 export default class DetailsSite extends React.Component {
   static propTypes = {
-    topologyName: PropTypes.string.isRequired,
-    site: PropTypes.object.isRequired,
-    nodes: PropTypes.object.isRequired,
     links: PropTypes.object.isRequired,
     maxHeight: PropTypes.number.isRequired,
+    nodes: PropTypes.object.isRequired,
+    site: PropTypes.object.isRequired,
+    topologyName: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
     onEnter: PropTypes.func.isRequired,
     onLeave: PropTypes.func.isRequired,
@@ -41,7 +41,7 @@ export default class DetailsSite extends React.Component {
 
   static getDerivedStateFromProps(props) {
     // Find Nodes and Links associated with the site
-    if (props.nodes && props.links) {
+    if (props.site && props.nodes && props.links) {
       const siteNodesByName = {};
 
       Object.entries(props.nodes)
@@ -127,7 +127,7 @@ export default class DetailsSite extends React.Component {
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
-        confirmButtonText: 'Yes, add it!',
+        confirmButtonText: 'Confirm',
         closeOnConfirm: false,
       },
       () => {
@@ -152,72 +152,24 @@ export default class DetailsSite extends React.Component {
     );
   };
 
-  renameSite = () => {
+  editSite = () => {
     const {site, topologyName} = this.props;
-    swal(
-      {
-        title: 'Rename site',
-        text: 'New site name',
-        type: 'input',
-        showCancelButton: true,
-        closeOnConfirm: false,
-        animation: 'slide-from-top',
-        inputPlaceholder: 'Site Name',
-      },
-      inputValue => {
-        if (inputValue === false) {
-          return false;
-        }
 
-        if (inputValue === '') {
-          swal.showInputError("Name can't be empty");
-          return false;
-        }
-
-        return new Promise((resolve, reject) => {
-          const data = {
-            siteName: site.name,
-            newSite: {
-              name: inputValue,
-            },
-          };
-          apiServiceRequest(topologyName, 'editSite', data)
-            .then(response =>
-              swal(
-                {
-                  title: 'Site renamed',
-                  text: 'Response: ' + response.statusText,
-                  type: 'success',
-                },
-                () => resolve(),
-              ),
-            )
-            .catch(error =>
-              swal(
-                {
-                  title: 'Failed!',
-                  text:
-                    'Renaming site failed.\nReason: ' +
-                    error.response.statusText,
-                  type: 'error',
-                },
-                () => resolve(),
-              ),
-            );
-        });
-      },
-    );
+    Dispatcher.dispatch({
+      actionType: Actions.START_SITE_EDIT,
+      siteName: site.name,
+    });
   };
 
   deleteSite = () => {
     swal(
       {
         title: 'Are you sure?',
-        text: 'You will not be able to recover this Site!',
+        text: 'You will not be able to recover this site!',
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
-        confirmButtonText: 'Yes, delete it!',
+        confirmButtonText: 'Confirm',
         closeOnConfirm: false,
       },
       () => {
@@ -310,17 +262,17 @@ export default class DetailsSite extends React.Component {
 
   render() {
     const {
-      topologyName,
-      site,
-      nodes,
       links,
       maxHeight,
+      nodes,
       onClose,
       onEnter,
       onLeave,
+      site,
+      topologyName,
     } = this.props;
 
-    const {siteNodesByName, siteLinks} = this.state;
+    const {siteLinks, siteNodesByName} = this.state;
 
     if (!site || !site.name) {
       return null;
@@ -381,10 +333,13 @@ export default class DetailsSite extends React.Component {
         </div>
       ) : (
         [
-          <div className="details-link" onClick={this.renameSite}>
-            Rename Site
+          <div key="edit-site" className="details-link" onClick={this.editSite}>
+            Edit Site
           </div>,
-          <div className="details-link" onClick={this.deleteSite}>
+          <div
+            key="delete-site"
+            className="details-link"
+            onClick={this.deleteSite}>
             Delete Site
           </div>,
         ]
@@ -423,12 +378,13 @@ export default class DetailsSite extends React.Component {
                   <td width="100px">Altitude</td>
                   <td colSpan="3">{site.location.altitude} m</td>
                 </tr>
-                {site.location.accuracy && (
-                  <tr>
-                    <td width="100px">Accuracy</td>
-                    <td colSpan="3">{site.location.accuracy} m</td>
-                  </tr>
-                )}
+                {site.location.accuracy !== undefined &&
+                  site.location.accuracy !== null && (
+                    <tr>
+                      <td width="100px">Accuracy</td>
+                      <td colSpan="3">{site.location.accuracy} m</td>
+                    </tr>
+                  )}
                 <tr>
                   <td width="100px">Availability</td>
                   <td colSpan="6">
