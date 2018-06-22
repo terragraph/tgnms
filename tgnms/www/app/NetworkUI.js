@@ -14,7 +14,6 @@ import NetworkDashboards from './NetworkDashboards.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
-import SystemLogs from './SystemLogs.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
 import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
@@ -34,7 +33,6 @@ const VIEWS = {
   stats: {name: 'Stats', icon: 'stats'},
   // TODO: implement these views and uncomment them
   // eventlogs: {name: 'Event Logs', icon: 'list'},
-  // systemlogs: {name: 'System Logs', icon: 'hdd'},
   upgrade: {name: 'Upgrade', icon: 'upload'},
   'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
   config: {name: 'Node Config', icon: 'cog'},
@@ -554,9 +552,6 @@ export default class NetworkUI extends React.Component {
     switch (this.state.view) {
       case 'eventlogs':
         paneComponent = <EventLogs {...viewProps} />;
-        break;
-      case 'systemlogs':
-        paneComponent = <SystemLogs {...viewProps} />;
         break;
       case 'dashboards':
         paneComponent = (

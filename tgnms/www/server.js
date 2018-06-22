@@ -717,33 +717,6 @@ app.ws('/terminals/:pid', function (ws, req) {
   });
 });
 
-app.get(/\/getSystemLogsSources/, function (req, res, next) {
-  res.json(systemLogsSources);
-});
-app.get(/\/getSystemLogs\/(.+)\/([0-9]+)\/([0-9]+)\/(.+)\/(.+)$/i, function (
-  req,
-  res,
-  next
-) {
-  const sourceName = req.params[0];
-  const offset = parseInt(req.params[1]);
-  const size = parseInt(req.params[2]);
-  const macAddr = req.params[3];
-  const date = req.params[4];
-  for (var i = 0, len = systemLogsSources.sources.length; i < len; i++) {
-    if (sourceName === systemLogsSources.sources[i].name) {
-      queryHelper.fetchSysLogs(
-        res,
-        macAddr,
-        systemLogsSources.sources[i].index,
-        offset,
-        size,
-        date
-      );
-      break;
-    }
-  }
-});
 // newer charting, for multi-linechart/row
 app.post(/\/multi_chart\/$/i, function (req, res, next) {
   let httpPostData = '';
