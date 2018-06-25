@@ -7,7 +7,10 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from './apiutils/ServiceAPIUtil';
 import {find} from 'lodash-es';
 import Modal from 'react-modal';
 import Select from 'react-select';
@@ -31,8 +34,8 @@ const linkTypesVector = [
 ];
 
 const LINK_TYPE_MAP = {
-  'WIRELESS': 1,
-  'ETHERNET': 2,
+  WIRELESS: 1,
+  ETHERNET: 2,
 };
 
 export default class ModalLinkAdd extends React.Component {
@@ -65,8 +68,8 @@ export default class ModalLinkAdd extends React.Component {
       return;
     }
 
-    const nodeAMac = find(this.props.topology.nodes, { name: nodeA }).mac_addr;
-    const nodeZMac = find(this.props.topology.nodes, { name: nodeZ }).mac_addr;
+    const nodeAMac = find(this.props.topology.nodes, {name: nodeA}).mac_addr;
+    const nodeZMac = find(this.props.topology.nodes, {name: nodeZ}).mac_addr;
 
     const linkName = 'link-' + nodeA + '-' + nodeZ;
     swal(
@@ -94,26 +97,18 @@ export default class ModalLinkAdd extends React.Component {
         };
         apiServiceRequest(this.props.topology.name, 'addLink', data)
           .then(response => {
-            if (!response.data.success) {
-              swal({
-                title: 'Failed!',
-                text:
-                  'Adding a link failed\nReason: ' + response.data.message,
-                type: 'error',
-              });
-            } else {
-              swal({
-                title: 'Link Added!',
-                text: 'Response: ' + response.statusText,
-                type: 'success',
-              });
-            }
+            swal({
+              title: 'Link Added!',
+              text: 'Response: ' + response.data.message,
+              type: 'success',
+            });
           })
           .catch(error =>
             swal({
               title: 'Failed!',
               text:
-                'Adding a link failed\nReason: ' + error.response.statusText,
+                'Adding a link failed\nReason: ' +
+                getErrorTextFromE2EAck(error),
               type: 'error',
             }),
           );

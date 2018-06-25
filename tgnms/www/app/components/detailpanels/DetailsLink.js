@@ -9,7 +9,10 @@ import 'sweetalert/dist/sweetalert.css';
 
 import ModalIgnitionState from '../../ModalIgnitionState.js';
 import Dispatcher from '../../NetworkDispatcher.js';
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
 import {availabilityColor} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
@@ -96,11 +99,9 @@ export default class DetailsLink extends React.Component {
         apiServiceRequest(topologyName, 'setLinkStatus', data)
           .then(response =>
             swal({
-              title: response.data.success
-                ? 'Request successful!'
-                : 'Request failed!',
-              text: 'Response: ' + response.data.message || response.statusText,
-              type: response.data.success ? 'success' : 'error',
+              title: 'Request successful',
+              text: 'Response: ' + response.data.message,
+              type: 'success',
             }),
           )
           .catch(error =>
@@ -108,7 +109,7 @@ export default class DetailsLink extends React.Component {
               title: 'Request failed!',
               text:
                 'Link status change failed\nReason: ' +
-                error.response.statusText,
+                getErrorTextFromE2EAck(error),
               type: 'error',
             }),
           );
@@ -142,7 +143,7 @@ export default class DetailsLink extends React.Component {
       const response = await apiServiceRequest(topologyName, 'delLink', data);
       swal({
         title: 'Link Deleted!',
-        text: 'Response: ' + response.statusText,
+        text: 'Response: ' + response.data.message,
         type: 'success',
       });
       Dispatcher.dispatch({
@@ -151,7 +152,7 @@ export default class DetailsLink extends React.Component {
     } catch (error) {
       swal({
         title: 'Failed!',
-        text: 'Link deletion failed\nReason: ' + error.response.statusText,
+        text: 'Link deletion failed\nReason: ' + getErrorTextFromE2EAck(error),
         type: 'error',
       });
     }

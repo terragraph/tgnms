@@ -8,7 +8,10 @@
 import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
 import {Actions} from '../../constants/NetworkConstants.js';
 import {Panel} from 'react-bootstrap';
 import {render} from 'react-dom';
@@ -38,16 +41,22 @@ export default class DetailsPlannedSite extends React.Component {
           site,
         };
         apiServiceRequest(topologyName, 'addSite', data)
-          .then(response => swal({
-            title: 'Site Added!',
-            text: 'Response: ' + response.statusText,
-            type: 'success',
-          }))
-          .catch(error => swal({
-            title: 'Failed!',
-            text: 'Adding a site failed\nReason: ' + error.response.statusText,
-            type: 'error',
-          }))
+          .then(response =>
+            swal({
+              title: 'Site Added!',
+              text: 'Response: ' + response.data.message,
+              type: 'success',
+            }),
+          )
+          .catch(error =>
+            swal({
+              title: 'Failed!',
+              text:
+                'Adding a site failed\nReason: ' +
+                getErrorTextFromE2EAck(error),
+              type: 'error',
+            }),
+          );
         this.props.onClose();
       },
     );
