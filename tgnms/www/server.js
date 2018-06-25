@@ -6,6 +6,7 @@ if (!process.env.NODE_ENV) {
   process.env.BABEL_ENV = process.env.NODE_ENV;
 }
 
+const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 const express = require('express');
 const fs = require('fs');
 const isIp = require('is-ip');
@@ -35,13 +36,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
-const BSTAR_STATES = {
-  STATE_PRIMARY: 1,
-  STATE_BACKUP: 2,
-  STATE_ACTIVE: 3,
-  STATE_PASSIVE: 4,
-};
 
 // set up font awesome here
 
@@ -225,11 +219,11 @@ worker.on('message', msg => {
       if (config.controller_ip_backup && msg.success) {
         // check if state changed.
         if ((msg.controller_ip == config.controller_ip_active &&
-             (msg.bstar_fsm.state == BSTAR_STATES['STATE_PASSIVE'] ||
-              msg.bstar_fsm.state == BSTAR_STATES['STATE_BACKUP'])) ||
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
             (msg.controller_ip == config.controller_ip_passive &&
-             (msg.bstar_fsm.state == BSTAR_STATES['STATE_ACTIVE'] ||
-              msg.bstar_fsm.state == BSTAR_STATES['STATE_PRIMARY']))) {
+             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmStateSTATE_ACTIVE ||
+              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmStateSTATE_PRIMARY))) {
           const tempIp = config.controller_ip_passive;
           config.controller_ip_passive = config.controller_ip_active;
           config.controller_ip_active = tempIp;
