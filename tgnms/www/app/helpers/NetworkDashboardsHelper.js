@@ -15,9 +15,20 @@ export const formatKeyHelper = key => {
   }
 };
 
-export const fetchKeyData = async (keys, topologyName) => {
+// Checks whether a key is a node key (mac adress of 00:00:00:00:00:00 or no
+// mac address) and that the stat is for the requested nodes
+export const isValidNodeKey = (keyObj, nodeMacAddrs) => {
+  return (
+    (!RegExp('\\d').test(keyObj.key) ||
+      keyObj.key.includes('00:00:00:00:00:00')) &&
+    nodeMacAddrs.has(keyObj.node)
+  );
+};
 
-  const asyncRequests = keys.map(key => axios.get(`/stats_ta/${topologyName}/${key}`));
+export const fetchKeyData = async (keys, topologyName) => {
+  const asyncRequests = keys.map(key =>
+    axios.get(`/stats_ta/${topologyName}/${key}`),
+  );
   const responses = await Promise.all(asyncRequests);
   const responseData = responses.map(resp => resp.data);
   const keyData = flattenDeep(responseData);
@@ -39,6 +50,8 @@ export const shouldUpdateGraphFormOptions = (
 ) => {
   return (
     !isEqual(prevDashboard, nextDashboard) ||
-    prevFormData.customGraphChecked !== nextFormData.customGraphChecked ||
-    !isEqual(prevFormData.customData, nextFormData.customData));
+    prevFormData.useDashboardGraphConfigChecked !==
+      nextFormData.useDashboardGraphConfigChecked ||
+    !isEqual(prevFormData.customData, nextFormData.customData)
+  );
 };

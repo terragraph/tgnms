@@ -99,7 +99,10 @@ export default class DashboardSelect extends React.Component {
 
     return (
       <div id="dashboard-select">
-        <h3>Dashboard</h3>
+        <h3>
+          <strong>Dashboards</strong>
+          {'  | ' + this.props.topologyName}
+        </h3>
         <table
           style={{
             borderCollapse: 'separate',

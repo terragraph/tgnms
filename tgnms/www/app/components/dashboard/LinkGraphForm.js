@@ -136,10 +136,14 @@ export default class LinkGraphForm extends React.Component {
     const linkDirectionOptions = [];
     let initialSelection = '';
     if (nodeA && nodeZ) {
-      const azDirection = 'A -> Z: ' + nodeA.name + ' -> ' + nodeZ.name;
-      const zaDirection = 'Z -> A: ' + nodeZ.name + ' -> ' + nodeA.name;
-      linkDirectionOptions.push({label: azDirection, value: azDirection});
-      linkDirectionOptions.push({label: zaDirection, value: zaDirection});
+      const azDirection = 'A -> Z';
+      const zaDirection = 'Z -> A';
+
+      const azLabel = `Node: ${nodeA.name}, Peer Node: ${nodeZ.name}`;
+      const zaLabel = `Node: ${nodeZ.name}, Peer Node: ${nodeA.name}`;
+
+      linkDirectionOptions.push({label: azLabel, value: azDirection});
+      linkDirectionOptions.push({label: zaLabel, value: zaDirection});
       initialSelection = linkDirectionOptions[0].value;
     }
     this.setState({

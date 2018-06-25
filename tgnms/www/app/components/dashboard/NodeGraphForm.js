@@ -11,6 +11,8 @@ import React from 'react';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import {
   fetchKeyData,
+  formatKeyHelper,
+  isValidNodeKey,
   shouldUpdateGraphFormOptions,
 } from '../../helpers/NetworkDashboardsHelper.js';
 import PropTypes from 'prop-types';
@@ -141,11 +143,11 @@ export default class NodeGraphForm extends React.Component {
     fetchKeyData([query], this.props.topologyName)
       .then(graphData => {
         const nodeMacAddrs = new Set(nodes.map(node => node.mac_addr));
-        // temporarily filter keys to find node-specific keys (without mac_addr)
+        // temporarily filter keys to find node-specific keys (without mac_addr
+        // or has mac_addr of 00:00:00:00:00:00
         // TODO: will add change to backend
-        const keyData = graphData.keyData.filter(
-          keyObj =>
-            !RegExp('\\d').test(keyObj.key) && nodeMacAddrs.has(keyObj.node),
+        const keyData = graphData.keyData.filter(keyObj =>
+          isValidNodeKey(keyObj, nodeMacAddrs),
         );
 
         this.setState({
@@ -185,6 +187,14 @@ export default class NodeGraphForm extends React.Component {
       graphName = this.state.nodesSelected
         .map(nodeSelected => nodeSelected.node.name)
         .join(',');
+
+      // If there is only one key selected, then display key name in title of graph
+      // otherwise, the legend will show all the keys selected, so not needed in title
+      if (this.state.nodeKeysSelected.length === 1) {
+        graphName += ` : ${formatKeyHelper(
+          this.state.nodeKeysSelected[0].name,
+        )}`;
+      }
     }
 
     const selectedNodeKeys = this.state.nodeKeysSelected.map(
