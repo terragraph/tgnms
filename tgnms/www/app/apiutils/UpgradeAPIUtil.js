@@ -14,7 +14,7 @@ import {
   UploadStatus,
   DeleteStatus,
 } from '../constants/NetworkConstants.js';
-import {apiServiceRequest} from './ServiceAPIUtil';
+import {apiServiceRequest, getErrorTextFromE2EAck} from './ServiceAPIUtil';
 import {REVERT_UPGRADE_IMAGE_STATUS} from '../constants/UpgradeConstants.js';
 import axios from 'axios';
 import swal from 'sweetalert';
@@ -29,20 +29,12 @@ const UpgradeReqType = {
   RESET_STATUS: 30,
 };
 
-const getErrorText = error => {
-  // try to get the status text from the API response, otherwise, default to
-  // the error object
-  return error.response && error.response.statusText
-    ? error.response.statusText
-    : error;
-};
-
 const createErrorHandler = (
   title: string,
   text: string = 'Your upgrade command failed with the following message',
 ) => {
   return error => {
-    const errorText = getErrorText(error);
+    const errorText = getErrorTextFromE2EAck(error);
     swal({
       text: `${text}:\n\n${errorText}`,
       title,

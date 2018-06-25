@@ -24,16 +24,9 @@ import {
 } from '../actions/NetworkConfigActions.js';
 import {DEFAULT_BASE_KEY} from '../constants/NetworkConfigConstants.js';
 import {sortConfig, sortConfigByTag} from '../helpers/NetworkConfigHelpers.js';
-import {apiServiceRequest} from './ServiceAPIUtil';
+import {apiServiceRequest, getErrorTextFromE2EAck} from './ServiceAPIUtil';
 import isPlainObject from 'lodash-es/isPlainObject';
 import pick from 'lodash-es/pick';
-
-const getErrorText = error => {
-  // try to get the status text from the API response, otherwise, default to the error object
-  return error.response && error.response.statusText
-    ? error.response.statusText
-    : error;
-};
 
 export const getConfigsForTopology = (
   topologyName,
@@ -164,7 +157,7 @@ export const setNetworkOverrideConfig = (topologyName, config) => {
       setNetworkConfigSuccess({config});
     })
     .catch(error => {
-      const errorText = getErrorText(error);
+      const errorText = getErrorTextFromE2EAck(error);
       showConfigError(errorText);
     });
 };
@@ -202,7 +195,7 @@ export const setNodeOverrideConfig = (
       setNodeConfigSuccess({config, saveSelected});
     })
     .catch(error => {
-      const errorText = getErrorText(error);
+      const errorText = getErrorTextFromE2EAck(error);
       showConfigError(errorText);
     });
 };
@@ -216,7 +209,7 @@ export const setControllerConfig = (topologyName, config) => {
       setControllerConfigSuccess({config});
     })
     .catch(error => {
-      const errorText = getErrorText(error);
+      const errorText = getErrorTextFromE2EAck(error);
       showConfigError(errorText);
     });
 };
@@ -253,7 +246,7 @@ export const setAggregatorConfig = (topologyName, config) => {
   apiServiceRequest(topologyName, 'setAggregatorConfig', data)
     .then(response => setAggregatorConfigSuccess({config}))
     .catch(error => {
-      const errorText = getErrorText(error);
+      const errorText = getErrorTextFromE2EAck(error);
       showConfigError(errorText);
     });
 };

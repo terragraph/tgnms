@@ -16,7 +16,10 @@ import {
 } from '../../helpers/NetworkHelpers.js';
 
 import {Actions} from '../../constants/NetworkConstants.js';
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
 import {Panel} from 'react-bootstrap';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -99,7 +102,7 @@ export default class DetailsSite extends React.Component {
           .then(response =>
             swal({
               title: 'Site Added!',
-              text: 'Response: ' + response.statusText,
+              text: 'Response: ' + response.data.message,
               type: 'success',
             }),
           )
@@ -107,7 +110,8 @@ export default class DetailsSite extends React.Component {
             swal({
               title: 'Failed!',
               text:
-                'Adding a site failed\nReason: ' + error.response.statusText,
+                'Adding a site failed\nReason: ' +
+                getErrorTextFromE2EAck(error),
               type: 'error',
             }),
           );
@@ -142,7 +146,7 @@ export default class DetailsSite extends React.Component {
             siteName: site.name,
             newSite: {
               name: inputValue,
-            }
+            },
           };
           apiServiceRequest(topologyName, 'editSite', data)
             .then(response =>
@@ -193,7 +197,7 @@ export default class DetailsSite extends React.Component {
               swal(
                 {
                   title: 'Site Deleted!',
-                  text: 'Response: ' + response.statusText,
+                  text: 'Response: ' + response.data.message,
                   type: 'success',
                 },
                 () => {
@@ -210,7 +214,7 @@ export default class DetailsSite extends React.Component {
                   title: 'Failed!',
                   text:
                     'Site deletion failed\nReason: ' +
-                    error.response.statusText,
+                    getErrorTextFromE2EAck(error),
                   type: 'error',
                 },
                 () => resolve(),

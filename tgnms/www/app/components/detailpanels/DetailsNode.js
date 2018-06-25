@@ -7,7 +7,10 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil.js';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
@@ -150,7 +153,7 @@ export default class DetailsNode extends React.Component {
               swal(
                 {
                   title: 'Node Deleted!',
-                  text: 'Response: ' + response.statusText,
+                  text: 'Response: ' + response.data.message,
                   type: 'success',
                 },
                 () => {
@@ -167,7 +170,7 @@ export default class DetailsNode extends React.Component {
                   title: 'Failed!',
                   text:
                     'Node deletion failed\nReason: ' +
-                    error.response.statusText,
+                    getErrorTextFromE2EAck(error),
                   type: 'error',
                 },
                 () => resolve(),
@@ -212,7 +215,7 @@ export default class DetailsNode extends React.Component {
               swal(
                 {
                   title: 'Node renamed',
-                  text: 'Response: ' + response.statusText,
+                  text: 'Response: ' + response.data.message,
                   type: 'success',
                 },
                 () => resolve(),
@@ -224,7 +227,7 @@ export default class DetailsNode extends React.Component {
                   title: 'Failed!',
                   text:
                     'Renaming node failed.\nReason: ' +
-                    error.response.statusText,
+                    getErrorTextFromE2EAck(error),
                   type: 'error',
                 },
                 () => resolve(),
@@ -268,7 +271,7 @@ export default class DetailsNode extends React.Component {
               swal(
                 {
                   title: 'Mac address set successfully!',
-                  text: 'Response: ' + response.statusText,
+                  text: 'Response: ' + response.data.message,
                   type: 'success',
                 },
                 () => resolve(),
@@ -279,7 +282,8 @@ export default class DetailsNode extends React.Component {
                 {
                   title: 'Failed!',
                   text:
-                    'Setting MAC failed\nReason: ' + error.response.statusText,
+                    'Setting MAC failed\nReason: ' +
+                    getErrorTextFromE2EAck(error),
                   type: 'error',
                 },
                 () => resolve(),

@@ -7,7 +7,10 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from './apiutils/ServiceAPIUtil';
 import axios from 'axios';
 import Modal from 'react-modal';
 import React from 'react';
@@ -60,8 +63,8 @@ export default class ModalIgnitionState extends React.Component {
   }
 
   getIgnitionState() {
-    apiServiceRequest(this.props.topologyName, 'getIgnitionState')
-      .then(response => {
+    apiServiceRequest(this.props.topologyName, 'getIgnitionState').then(
+      response => {
         const json = response.data;
         let linkIgState = null;
         let networkIgState = null;
@@ -89,7 +92,8 @@ export default class ModalIgnitionState extends React.Component {
           linkIgnitionState: linkIgState,
           otherIgnitionState: otherIgState,
         });
-      });
+      },
+    );
   }
 
   setNetworkIgnition(state) {
@@ -102,7 +106,7 @@ export default class ModalIgnitionState extends React.Component {
           {
             title:
               'Network Auto Ignition ' + (state ? 'Enabled!' : 'Disabled!'),
-            text: 'Response: ' + response.statusText,
+            text: 'Response: ' + response.data.message,
             type: 'success',
           },
           () => this.getIgnitionState(),
@@ -113,7 +117,7 @@ export default class ModalIgnitionState extends React.Component {
           title: 'Failed!',
           text:
             'Setting Network Auto Ignition failed\nReason: ' +
-            error.response.statusText,
+            getErrorTextFromE2EAck(error),
           type: 'error',
         }),
       );
@@ -122,14 +126,14 @@ export default class ModalIgnitionState extends React.Component {
   setLinkIgnition(state) {
     const {link, topologyName} = this.props;
     const data = {
-      linkAutoIgnite: { [link.name]: state },
+      linkAutoIgnite: {[link.name]: state},
     };
     apiServiceRequest(topologyName, 'setIgnitionState', data)
       .then(response =>
         swal(
           {
             title: 'Link Auto Ignition ' + (state ? 'Enabled!' : 'Disabled!'),
-            text: 'Response: ' + response.statusText,
+            text: 'Response: ' + response.data.message,
             type: 'success',
           },
           () => this.getIgnitionState(),
@@ -140,7 +144,7 @@ export default class ModalIgnitionState extends React.Component {
           title: 'Failed!',
           text:
             'Setting Link Auto Ignition failed\nReason: ' +
-            error.response.statusText,
+            getErrorTextFromE2EAck(error),
           type: 'error',
         }),
       );

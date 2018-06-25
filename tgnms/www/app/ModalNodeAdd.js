@@ -7,7 +7,10 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
-import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from './apiutils/ServiceAPIUtil';
 import Modal from 'react-modal';
 import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
@@ -99,16 +102,18 @@ export default class ModalNodeAdd extends React.Component {
           .then(response => {
             swal({
               title: 'Node Added!',
-              text: 'Response: ' + response.statusText,
+              text: 'Response: ' + response.data.message,
               type: 'success',
             });
           })
           .catch(error => {
             swal({
               title: 'Failed!',
-              text: 'Adding a link failed\nReason: ' + error.response.statusText,
+              text:
+                'Adding a link failed\nReason: ' +
+                getErrorTextFromE2EAck(error),
               type: 'error',
-            })
+            });
           });
       },
     );

@@ -8,7 +8,10 @@
 import 'sweetalert/dist/sweetalert.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
 import {linkLength} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import PropTypes from 'prop-types';
@@ -69,7 +72,7 @@ export default class DetailsTopologyIssues extends React.Component {
             "Adding site '" +
             siteToAdd.name +
             "' failed\nReason: " +
-            error.response.statusText,
+            getErrorTextFromE2EAck(error),
           type: 'error',
         });
         this.setState({processing: false});
