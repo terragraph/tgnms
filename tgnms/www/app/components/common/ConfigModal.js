@@ -6,6 +6,7 @@
 'use strict';
 
 import ConfigModalBody from './ConfigModalBody';
+import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import {getNodeConfig} from '../../apiutils/NetworkConfigAPIUtil';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -34,15 +35,18 @@ export default class ConfigModal extends React.Component {
 
   componentWillMount() {
     // Fetch all SW Versions from the Controller
-    const uri = `/apiservice/${this.props.topologyName}/api/getBaseConfig`;
-    axios.post(uri, {swVersions: []}).then(response => {
-      const {config} = response.data;
-      const controllerSwVersions = Object.keys(JSON.parse(config)).sort();
-      this.setState({
-        allControllerSwVersions: controllerSwVersions,
-        allSwVersions: controllerSwVersions,
+    const data = {
+      swVersions: [],
+    };
+    apiServiceRequest(this.props.topologyName, 'getBaseConfig')
+      .then(response => {
+        const {config} = response.data;
+        const controllerSwVersions = Object.keys(JSON.parse(config)).sort();
+        this.setState({
+          allControllerSwVersions: controllerSwVersions,
+          allSwVersions: controllerSwVersions,
+        });
       });
-    });
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -72,15 +76,13 @@ export default class ConfigModal extends React.Component {
   };
 
   fetchFullNodeConfig() {
-    const uri = '/controller/getFullNodeConfig';
-    axios
-      .get(uri, {
-        params: {
-          topologyName: this.props.topologyName,
-          swVersion: this.state.selectedVersion,
-          node: this.props.nodeName,
-        },
-      })
+    const {nodeName, topologyName} = this.props;
+    const {selectedVersion} = this.state;
+    const data = {
+      node: nodeName,
+      swVersion: selectedVersion,
+    };
+    apiServiceRequest(topologyName, 'getNodeConfig', data)
       .then(response => {
         const {config} = response.data;
         this.setState({config: JSON.parse(config)});

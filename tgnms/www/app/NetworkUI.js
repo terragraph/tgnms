@@ -69,7 +69,6 @@ export default class NetworkUI extends React.Component {
     topology: {},
     // additional topology to render on the map
     pendingTopology: {},
-    commitPlan: null,
 
     // Last selected dashboard for NetworkDashboards
     selectedDashboard: null,
@@ -98,10 +97,6 @@ export default class NetworkUI extends React.Component {
   getNetworkStatusPeriodic() {
     if (this.state.networkName !== null) {
       this.getNetworkStatus(this.state.networkName);
-      // initial load
-      if (this.state.commitPlan === null) {
-        this.fetchCommitPlan(this.state.networkName);
-      }
     }
   }
 
@@ -156,24 +151,6 @@ export default class NetworkUI extends React.Component {
     }
   }
 
-  fetchCommitPlan(networkName) {
-    // handle commit plan overlay
-    const payload = {
-      topologyName: networkName,
-      limit: 100,
-      excludeNodes: [],
-    };
-    axios.post('/controller/commitUpgradePlan', payload).then(response => {
-      const commitPlan = response.data;
-      commitPlan.commitBatches = commitPlan.commitBatches.map(batch => {
-        return new Set(batch);
-      });
-      this.setState({
-        commitPlan,
-      });
-    });
-  }
-
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case Actions.VIEW_SELECTED:
@@ -191,9 +168,6 @@ export default class NetworkUI extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology
         this.getNetworkStatus(payload.networkName);
-        // fetch commit plan once per topology
-        // TODO: add refresh ability
-        this.fetchCommitPlan(payload.networkName);
         this.setState({
           networkName: payload.networkName,
         });
@@ -543,7 +517,6 @@ export default class NetworkUI extends React.Component {
     const viewProps = {
       networkName: this.state.networkName,
       networkConfig: this.state.networkConfig,
-      commitPlan: this.state.commitPlan,
       pendingTopology: this.state.pendingTopology,
       config: this.state.topologies,
       viewContext: this.state.viewContext,

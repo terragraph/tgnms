@@ -36,19 +36,23 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+const BSTAR_STATES = {
+  STATE_PRIMARY: 1,
+  STATE_BACKUP: 2,
+  STATE_ACTIVE: 3,
+  STATE_PASSIVE: 4,
+};
+
 // set up font awesome here
 
 const compression = require('compression');
 // worker process
 const cp = require('child_process');
 const worker = cp.fork('./worker.js');
-const syncWorker = require('./worker.js');
 // packaging
 const webpack = require('webpack');
 const devMode = process.env.NODE_ENV !== 'production';
 const port = devMode && process.env.PORT ? process.env.PORT : 80;
-// thrift types from controller
-const controllerTTypes = require('./thrift/gen-nodejs/Controller_types');
 // network config file
 const NETWORK_CONFIG_NETWORKS_PATH = './config/networks/';
 const NETWORK_CONFIG_INSTANCES_PATH = './config/instances/';
@@ -193,11 +197,11 @@ worker.on('message', msg => {
       }
       break;
     case 'scan_status':
-      if (!msg.success) {
+      if (msg.success) {
+        dataJson.writeScanResults(msg.name, msg.scan_status);
+      } else {
         console.error('Failed to get scan_status from', msg.name);
-        break;
       }
-      dataJson.writeScanResults(msg.name, msg.scan_status);
       break;
     case 'ignition_state':
       if (msg.success && msg.ignition_state) {
@@ -221,11 +225,11 @@ worker.on('message', msg => {
       if (config.controller_ip_backup && msg.success) {
         // check if state changed.
         if ((msg.controller_ip == config.controller_ip_active &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
+             (msg.bstar_fsm.state == BSTAR_STATES['STATE_PASSIVE'] ||
+              msg.bstar_fsm.state == BSTAR_STATES['STATE_BACKUP'])) ||
             (msg.controller_ip == config.controller_ip_passive &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_ACTIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PRIMARY))) {
+             (msg.bstar_fsm.state == BSTAR_STATES['STATE_ACTIVE'] ||
+              msg.bstar_fsm.state == BSTAR_STATES['STATE_PRIMARY']))) {
           const tempIp = config.controller_ip_passive;
           config.controller_ip_passive = config.controller_ip_active;
           config.controller_ip_active = tempIp;
@@ -1127,22 +1131,6 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
   res.status(404).end('No such topology\n');
 });
 
-app.use(/\/topology\/fetch\/(.+)$/i, function (req, res, next) {
-  const controllerIp = req.params[0];
-  const ctrlProxy = new syncWorker.ControllerProxy(controllerIp);
-  ctrlProxy.sendCtrlMsgType(controllerTTypes.MessageType.GET_TOPOLOGY, '\0');
-  ctrlProxy.on('event', (type, success, responseTime, data) => {
-    switch (type) {
-      case controllerTTypes.MessageType.GET_TOPOLOGY:
-        if (success) {
-          res.json(data.topology);
-        } else {
-          res.status(500).end();
-        }
-        break;
-    }
-  });
-});
 app.get(/\/dashboards\/get\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
   if (!dashboards[topologyName]) {
@@ -1181,30 +1169,6 @@ app.post(/\/dashboards\/save\/$/i, function (req, res, next) {
   });
 });
 
-app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
-  let httpPostData = '';
-  req.on('data', function (chunk) {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', function () {
-    const postData = JSON.parse(httpPostData);
-    const { topologyName, limit, excludeNodes } = postData;
-
-    var topology = getTopologyByName(topologyName);
-
-    syncWorker.sendCtrlMsgSync(
-      {
-        type: 'commitUpgradePlan',
-        limit,
-        excludeNodes,
-        topology,
-      },
-      '',
-      res
-    );
-  });
-});
-
 app.post(
   /\/controller\/uploadUpgradeBinary$/i,
   upload.single('binary'),
@@ -1219,23 +1183,6 @@ app.post(
     }));
   }
 );
-
-// network config endpoints
-app.get(/\/controller\/getFullNodeConfig/i, (req, res, next) => {
-  const { topologyName, node, swVersion } = req.query;
-  const topology = getTopologyByName(topologyName);
-
-  syncWorker.sendCtrlMsgSync(
-    {
-      type: 'getFullNodeConfig',
-      topology,
-      node,
-      swVersion,
-    },
-    '',
-    res,
-  );
-});
 
 if (devMode) {
   // serve developer, non-minified build

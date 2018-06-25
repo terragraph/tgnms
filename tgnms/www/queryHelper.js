@@ -11,7 +11,6 @@ const pool = mysql.createPool({
   waitForConnections: false,
   multipleStatements: true,
 });
-const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 
 const METRIC_KEY_NAMES = [
   'snr',

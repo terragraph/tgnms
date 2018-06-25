@@ -35,46 +35,6 @@ export default class NMSConfig extends React.Component {
     this.downloadTopology = this.downloadTopology.bind(this);
   }
 
-  saveConfig() {
-    // push config to server
-    swal(
-      {
-        title: 'Are you sure?',
-        text: 'This will overwrite the config on disk',
-        showCancelButton: true,
-      },
-      () => {
-        // do it!
-        const topologies = Object.values(this.state.pendingConfigs).map(
-          config => {
-            const topology_file_name =
-              'topology_file' in config
-                ? config.topology_file
-                : config.name.replace(/\s+/g, '_') + '.json';
-            const newConfig = {
-              ...config,
-              topology_file: topology_file_name,
-            };
-            // don't store the state
-            delete newConfig.name;
-            delete newConfig.controller_online;
-            delete newConfig.aggregator_online;
-            delete newConfig.modified;
-            return newConfig;
-          },
-        );
-        axios
-          .post('/config/save', {
-            use_tile_proxy: false,
-            refresh_interval: 5000,
-            topologies,
-          })
-          .then(_ => swal({title: 'Config saved!'}))
-          .catch(_ => swal({title: 'Failed updating config'}));
-      },
-    );
-  }
-
   compareConfigs(oldConfig, newConfig) {
     // compare all non-state attributes
     return (
@@ -112,16 +72,7 @@ export default class NMSConfig extends React.Component {
           config.controller_online = false;
           delete config.topology;
         } else {
-          axios
-            .get('/topology/fetch/' + config.controller_ip)
-            .then(response => {
-              config.controller_status = true;
-              config.topology = response.data;
-            })
-            .catch(error => {
-              config.controller_online = false;
-              delete config.topology;
-            });
+          config.controller_status = false;
         }
       }
       diskConfigs[config.name] = config;
@@ -208,219 +159,6 @@ export default class NMSConfig extends React.Component {
     );
   }
 
-  beforeSaveCell(row, cellName, cellValue) {
-    if (cellName !== 'controller_ip') {
-      return true;
-    }
-    if (row.controller_ip === cellValue) {
-      // unchanged
-      return false;
-    }
-
-    // ensure IP address not in use
-    let ipInUse = false;
-    Object.values(this.state.pendingConfigs).forEach(config => {
-      if (cellValue === config.controller_ip) {
-        ipInUse = true;
-        swal({
-          title: 'IP in use',
-          text: 'IP already in use by <b>' + config.name + '</b>',
-          html: true,
-        });
-      }
-    });
-    if (ipInUse) {
-      return false;
-    }
-    row.modified = true;
-    // save the old if we need to roll-back
-    row.old_controller_ip = row.controller_ip;
-    // unset the address so we can re-check the controller+agg
-    delete row.controller_online;
-    delete row.topology;
-    // TODO - handle aggregator checks
-    //      delete row['aggregator_online'];
-    axios
-      .get('/topology/fetch/' + cellValue)
-      .then(response => {
-        const json = response.data;
-        const newConfigs = this.state.pendingConfigs;
-        if (row.name !== json.name) {
-          swal({
-            title: 'Topology mis-match',
-            text:
-              "The new topology name doesn't match the existing." +
-              '<br />Refusing to update controller IP.<br /><br />' +
-              'New: <b>' +
-              json.name +
-              '</b><br />' +
-              'Existing: <b>' +
-              row.name +
-              '</b>',
-            html: true,
-          });
-          // use the old address
-          newConfigs[row.name].controller_ip =
-            newConfigs[row.name].old_controller_ip;
-        } else if (json.name.length === 0) {
-          swal({
-            title: 'Missing topology name',
-            text:
-              "The new topology doesn't have a name set, " +
-              'please set one and try again.',
-          });
-          // use the old address
-          newConfigs[row.name].controller_ip =
-            newConfigs[row.name].old_controller_ip;
-        } else {
-          newConfigs[row.name].controller_online = true;
-          newConfigs[row.name].controller_ip = cellValue;
-          newConfigs[row.name].topology = json;
-        }
-        this.setState({
-          pendingConfigs: newConfigs,
-        });
-      })
-      .catch(error => {
-        // failed, prompt to update address
-        swal(
-          {
-            title: 'Controller offline',
-            text:
-              'The controller <b>' +
-              cellValue +
-              '</b> is not responding' +
-              ', are you sure you want to make this change?',
-            html: true,
-            showCancelButton: true,
-            confirmButtonText: 'Use New',
-            cancelButtonText: 'Use Existing',
-          },
-          isConfirm => {
-            const newConfigs = this.state.pendingConfigs;
-            if (isConfirm) {
-              // user confirmed to update address
-              newConfigs[row.name].controller_online = false;
-              delete newConfigs[row.name].topology;
-            } else {
-              // user cancelled, restore old address
-              newConfigs[row.name].controller_ip =
-                newConfigs[row.name].old_controller_ip;
-              delete newConfigs[row.name].old_controller_ip;
-            }
-            this.setState({
-              pendingConfigs: newConfigs,
-            });
-          },
-        );
-      });
-    return true;
-  }
-
-  addNewRow() {
-    const controllerIp = this.controllerIp.value;
-    // sanity check input
-    if (controllerIp.length === 0) {
-      return;
-    }
-    // verify ip isn't a duplicate
-    let found = null;
-    Object.values(this.state.pendingConfigs).forEach(config => {
-      if (config.controller_ip === controllerIp) {
-        found = config;
-      }
-    });
-    if (found !== null) {
-      swal({
-        title: 'Existing controller',
-        text: "Topology already exists for '" + found.name + "'!",
-      });
-      return;
-    }
-    // clear current value
-    this.controllerIp.value = '';
-    // fetch topology data
-    axios
-      .get('/topology/fetch/' + controllerIp)
-      .then(response => {
-        const json = response.data;
-        // build new config struct
-        if (json.name.length === 0) {
-          swal({
-            title: 'Missing topology name',
-            text:
-              "The new topology doesn't have a name set, " +
-              'please set one and try again.',
-          });
-          return;
-        }
-        const newConfig = {
-          controller_ip: controllerIp,
-          controller_online: true,
-          aggregator_ip: controllerIp,
-          name: json.name,
-          modified: true,
-          topology: json,
-          // default data
-          latitude: 37.4848280435154,
-          longitude: -122.1472245455607,
-          zoom_level: 18,
-        };
-        const newConfigs = this.state.pendingConfigs;
-        if (json.name in this.state.pendingConfigs) {
-          // we matched an existing topology
-          swal(
-            {
-              title: 'Existing topology',
-              text:
-                'A topology exists with the same name <b>' +
-                json.name +
-                '</b>, overwrite?',
-              html: true,
-              confirmButtonText: 'Overwrite',
-              showCancelButton: true,
-            },
-            isConfirm => {
-              newConfigs[json.name] = newConfig;
-              this.setState({
-                pendingConfigs: newConfigs,
-              });
-            },
-          );
-        } else {
-          // looks new, add
-          newConfigs[json.name] = newConfig;
-          this.setState({
-            pendingConfigs: newConfigs,
-          });
-        }
-      })
-      .catch(error => {
-        swal(
-          {
-            title: 'Failed to connect',
-            text: 'Unable to connect to ' + controllerIp + '<br />Add anyways?',
-            html: true,
-            showCancelButton: true,
-          },
-          () => {
-            const newConfig = {
-              controller_ip: controllerIp,
-              controller_online: false,
-              aggregator_ip: controllerIp,
-              name: 'Unknown topology',
-              modified: true,
-            };
-            const newConfigs = this.state.pendingConfigs;
-            newConfigs[newConfig.name] = newConfig;
-            this.setState({
-              pendingConfigs: newConfigs,
-            });
-          },
-        );
-      });
-  }
-
   render() {
     const linksSelectRowProp = {
       mode: 'radio',
@@ -437,7 +175,6 @@ export default class NMSConfig extends React.Component {
     const cellEditProp = {
       mode: 'click',
       blurToSave: true,
-      beforeSaveCell: this.beforeSaveCell.bind(this),
     };
 
     const linksTable = (
@@ -505,27 +242,7 @@ export default class NMSConfig extends React.Component {
     );
     return (
       <div className="rc-nms-config">
-        <h3>
-          Config editing is mostly working, but has brought up issues with the
-          way we instantiate props/state in some components. There are still
-          bugs to work out and to make this process much more solid. Please
-          don't save the config without checking with Paul/Tariq for now.
-        </h3>
         {linksTable}
-        <div style={{border: '1px solid #ccc'}}>
-          <span style={{marginRight: '10px'}}>Controller IP</span>
-          <input
-            ref={input => {
-              this.controllerIp = input;
-            }}
-          />
-          <button onClick={this.addNewRow.bind(this)} className="graph-button">
-            Add Topology
-          </button>
-        </div>
-        <button onClick={this.saveConfig.bind(this)} className="graph-button">
-          Save Config
-        </button>
       </div>
     );
   }
