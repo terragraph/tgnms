@@ -12,7 +12,7 @@ import {polarityColor} from './helpers/NetworkHelpers.js';
 import DetailsLegend from './components/detailpanels/DetailsLegend.js';
 import DetailsLink from './components/detailpanels/DetailsLink.js';
 import DetailsNode from './components/detailpanels/DetailsNode.js';
-import DetailsPlannedSite from './components/detailpanels/DetailsPlannedSite.js';
+import DetailsCreateOrEditSite from './components/detailpanels/DetailsCreateOrEditSite.js';
 import DetailsSite from './components/detailpanels/DetailsSite.js';
 import DetailsTopology from './components/detailpanels/DetailsTopology.js';
 import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssues.js';
@@ -24,15 +24,18 @@ import {
   MapDimensions,
   MapTiles,
 } from './constants/NetworkConstants.js';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from './apiutils/ServiceAPIUtil';
 // helper methods
 import {getNodeMarker} from './helpers/NetworkMapHelpers.js';
 import NetworkStore from './stores/NetworkStore.js';
 import {rgb, scaleLinear} from 'd3';
 import LeafletGeom from 'leaflet-geometryutil';
 // leaflet maps
-import {merge} from 'lodash-es';
+import {isEmpty} from 'lodash-es';
 import Leaflet, {LatLng} from 'leaflet';
-import PropTypes from 'prop-types';
 import Control from 'react-leaflet-control';
 import {
   Map,
@@ -44,9 +47,11 @@ import {
 } from 'react-leaflet';
 import SplitPane from 'react-split-pane';
 import React from 'react';
+import PropTypes from 'prop-types';
+import swal from 'sweetalert';
 
 const SITE_MARKER = Leaflet.icon({
-  iconAnchor: [7, 8],
+  iconAnchor: [25, 25],
   iconSize: [50, 50],
   iconUrl: '/static/images/site.png',
 });
@@ -72,10 +77,20 @@ export class CustomMap extends Map {
 }
 
 export default class NetworkMap extends React.Component {
-  nodesByName = {};
-  linksByName = {};
-  linksByNode = {};
-  sitesByName = {};
+  static propTypes = {
+    commitPlan: PropTypes.shape({
+      canaryLinks: PropTypes.arrayOf(PropTypes.string),
+      commitBatches: PropTypes.array,
+    }),
+    linkOverlay: PropTypes.string.isRequired,
+    mapDimType: PropTypes.string.isRequired,
+    mapTile: PropTypes.string.isRequired,
+    networkConfig: PropTypes.object.isRequired,
+    networkName: PropTypes.string.isRequired,
+    pendingTopology: PropTypes.object.isRequired,
+    siteOverlay: PropTypes.string.isRequired,
+    viewContext: PropTypes.object.isRequired,
+  };
 
   state = {
     analyzerTable: {},
@@ -92,6 +107,8 @@ export default class NetworkMap extends React.Component {
     routingOverlayEnabled: false,
     selectedLink: null,
     selectedSite: null,
+    siteToEdit: null,
+    recentlyEditedSite: null, // Show location of new site until topology updates
     showTopologyIssuesPane: false,
     sortName: undefined,
     sortOrder: undefined,
@@ -100,15 +117,20 @@ export default class NetworkMap extends React.Component {
     zoomLevel: 18,
   };
 
-  constructor(props) {
-    super(props);
-    this.getSiteMarker = this.getSiteMarker.bind(this);
-    this.handleMarkerClick = this.handleMarkerClick.bind(this);
-    this.handleExpandTablesClick = this.handleExpandTablesClick.bind(this);
-    this.resizeWindow = this.resizeWindow.bind(this);
-    // reset zoom on next refresh is set once a new topology is selected
-    this.resetZoomOnNextRefresh = true;
-  }
+  nodesByName = {};
+  linksByName = {};
+  linksByNode = {};
+  sitesByName = {};
+
+  // reset zoom on next refresh is set once a new topology is selected
+  resetZoomOnNextRefresh = true;
+
+  markerRef = React.createRef();
+  mapRef = React.createRef();
+  nodesRef = React.createRef();
+  splitPaneRef = React.createRef();
+  plannedSiteMarkerRef = React.createRef();
+  siteToEditRef = React.createRef();
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (
@@ -120,8 +142,8 @@ export default class NetworkMap extends React.Component {
     this.updateTopologyState(nextProps.networkConfig);
   }
 
-  resizeWindow(event) {
-    this.refs.map.leafletElement.invalidateSize();
+  resizeWindow = event => {
+    this.mapRef.current.leafletElement.invalidateSize();
 
     this.setState({
       // TODO: hacky, we need the Math.min here because the resize can happen
@@ -130,14 +152,14 @@ export default class NetworkMap extends React.Component {
       // 2. the upper one shrinks when it has the height of the whole window
       lowerPaneHeight: this.state.tablesExpanded
         ? window.innerHeight -
-          this.refs.split_pane.splitPane.childNodes[0].clientHeight
+          this.splitPaneRef.current.splitPane.childNodes[0].clientHeight
         : this.state.lowerPaneHeight,
       upperPaneHeight: Math.min(
         window.innerHeight,
-        this.refs.split_pane.splitPane.childNodes[0].clientHeight,
+        this.splitPaneRef.current.splitPane.childNodes[0].clientHeight,
       ),
     });
-  }
+  };
 
   UNSAFE_componentWillMount() {
     // register once we're visible
@@ -184,13 +206,16 @@ export default class NetworkMap extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology name and wipe the zoom level
         this.setState({
+          plannedSite: null,
+          recentlyEditedSite: null,
           routingOverlayEnabled: false,
           selectedLink: null,
           selectedNode: null,
           selectedSite: null,
+          siteToEdit: null,
         });
         break;
-      case Actions.NODE_SELECTED:
+      case Actions.NODE_SELECTED: {
         const site = this.nodesByName[payload.nodeSelected].site_name;
         this.setState({
           selectedLink: null,
@@ -198,6 +223,7 @@ export default class NetworkMap extends React.Component {
           selectedSite: site,
         });
         break;
+      }
       case Actions.LINK_SELECTED:
         this.setState({
           selectedLink: payload.link,
@@ -231,7 +257,18 @@ export default class NetworkMap extends React.Component {
           routingOverlayEnabled: false,
         });
         break;
-      case Actions.PLANNED_SITE_CREAT:
+      case Actions.PLANNED_SITE_CREATE: {
+        if (this.state.siteToEdit) {
+          // Don't allow creation of new sites when editing
+          swal({
+            title: 'Unable to Create Site',
+            text: 'Please finish editing your site before creating a new one.',
+            type: 'warning',
+            closeOnConfirm: true,
+          });
+          return;
+        }
+
         const plannedSite = {
           location: {
             altitude: 0,
@@ -244,10 +281,33 @@ export default class NetworkMap extends React.Component {
           },
           name: payload.siteName,
         };
+
         this.setState({
           plannedSite,
         });
+
+        swal({
+          title: 'Planned Site Added',
+          text:
+            'Drag the planned site on the map to desired location. Then, you can commit it from the details menu.',
+          type: 'info',
+          closeOnConfirm: true,
+        });
+
         break;
+      }
+      case Actions.START_SITE_EDIT: {
+        const site = this.sitesByName[payload.siteName];
+        this.setState({
+          hoveredSite: null,
+          siteToEdit: {
+            ...site,
+            oldName: site.name,
+          },
+          selectedSite: null,
+        });
+        break;
+      }
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
           selectedLink: null,
@@ -420,24 +480,29 @@ export default class NetworkMap extends React.Component {
   }
 
   componentDidMount() {
-    this.refs.map.leafletElement.invalidateSize();
+    this.mapRef.current.leafletElement.invalidateSize();
   }
 
-  _onMapZoom(data) {
+  onMapZoom = data => {
     this.setState({
       zoomLevel: data.target._zoom,
     });
-  }
+  };
 
-  _paneChange(newSize) {
-    this.refs.map.leafletElement.invalidateSize();
+  paneChange = newSize => {
+    this.mapRef.current.leafletElement.invalidateSize();
     this.setState({
       lowerPaneHeight: window.innerHeight - newSize,
       upperPaneHeight: newSize,
     });
-  }
+  };
 
-  handleMarkerClick(ev) {
+  handleMarkerClick = ev => {
+    if (this.state.plannedSite || this.state.siteToEdit) {
+      // Don't allow re-selection if a site is being edited
+      return;
+    }
+
     const site = this.props.networkConfig.topology.sites[
       ev.target.options.siteIndex
     ];
@@ -450,11 +515,20 @@ export default class NetworkMap extends React.Component {
       actionType: Actions.SITE_SELECTED,
       siteSelected: site.name,
     });
-  }
+  };
 
-  handleExpandTablesClick(ev) {
+  handleMarkerHover = hoveredSite => {
+    if (this.state.plannedSite || this.state.siteToEdit) {
+      // Don't allow hovering if a site is being edited
+      return;
+    }
+
+    this.setState({hoveredSite});
+  };
+
+  handleExpandTablesClick = ev => {
     setTimeout(() => {
-      this.refs.map.leafletElement.invalidateSize();
+      this.mapRef.current.leafletElement.invalidateSize();
     }, 1);
     this.setState({
       tablesExpanded: !this.state.tablesExpanded,
@@ -462,16 +536,14 @@ export default class NetworkMap extends React.Component {
         ? window.innerHeight
         : window.innerHeight - this.state.lowerPaneHeight,
     });
-  }
+  };
 
   addNodeMarkerForSite(topology, site) {
-    const nodeKeysInSite = Object.keys(topology.nodes).filter(nodeIndex => {
-      const node = topology.nodes[nodeIndex];
+    const nodesInSite = topology.nodes.filter(node => {
       return node.site_name === site.name;
     });
 
-    if (this.refs.nodes) {
-      const nodesInSite = nodeKeysInSite.map(idx => topology.nodes[idx]);
+    if (this.nodesRef.current) {
       const nodeMarkersForSite = getNodeMarker(
         [site.location.latitude, site.location.longitude],
         nodesInSite,
@@ -480,27 +552,81 @@ export default class NetworkMap extends React.Component {
         () => this.setState({hoveredSite: site}),
         () => this.setState({hoveredSite: null}),
       );
-      nodeMarkersForSite.addTo(this.refs.nodes.leafletElement);
+      nodeMarkersForSite.addTo(this.nodesRef.current.leafletElement);
     }
   }
 
-  getSiteMarker(site, pos, color, siteIndex): React.Element<any> {
+  getSiteMarker = (
+    site,
+    pos,
+    color,
+    hasAp,
+    hasPop,
+    isCn,
+    hasMac,
+    siteIndex,
+  ): React.Element<any> => {
+    let apMarker = null;
+    let secondaryMarkerColor = null;
+
+    if (hasAp) {
+      apMarker = (
+        <CircleMarker
+          center={pos}
+          radius={this.state.zoomLevel - 5}
+          weight={4}
+          clickable
+          fill={false}
+          color="purple"
+          key={'ap-site ' + site.name}
+          siteIndex={siteIndex}
+          onClick={this.handleMarkerClick}
+          level={11}
+        />
+      );
+    }
+
+    if (hasPop) {
+      secondaryMarkerColor = 'blue';
+    } else if (isCn) {
+      secondaryMarkerColor = 'pink';
+    } else if (!hasMac) {
+      secondaryMarkerColor = 'white';
+    }
+
     return (
       <CircleMarker
         center={pos}
+        // TODO: Scale Radius to zoomLevel
         radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
         clickable
         fillOpacity={1}
         color={color}
-        key={siteIndex}
+        key={site.name}
         siteIndex={siteIndex}
         onClick={this.handleMarkerClick}
-        onMouseOver={() => this.setState({hoveredSite: site})}
+        onMouseOver={() => this.handleMarkerHover(site)}
+        onMouseOut={() => this.handleMarkerHover(null)}
         fillColor={color}
-        level={10}
-      />
+        level={10}>
+        {apMarker}
+        {secondaryMarkerColor && (
+          <CircleMarker
+            center={pos}
+            radius={this.state.zoomLevel - 12}
+            clickable
+            fillOpacity={1}
+            color={secondaryMarkerColor}
+            key={'pop-node ' + site.name}
+            siteIndex={siteIndex}
+            onClick={this.handleMarkerClick}
+            fillColor={secondaryMarkerColor}
+            level={11}
+          />
+        )}
+      </CircleMarker>
     );
-  }
+  };
 
   getLinkLine(link, coords, color): React.Element<any> {
     return (
@@ -572,43 +698,147 @@ export default class NetworkMap extends React.Component {
     ];
   }
 
-  updatePlannedPosition() {
-    const {lat, lng} = this.refs.palnnedSiteMarker.leafletElement.getLatLng();
+  updatePlannedPosition = () => {
+    const {
+      lat,
+      lng,
+    } = this.plannedSiteMarkerRef.current.leafletElement.getLatLng();
     this.setState({
-      plannedSite: merge(this.state.plannedSite, {
+      plannedSite: {
+        ...this.state.plannedSite,
         location: {
+          ...this.state.plannedSite.location,
           latitude: lat,
           longitude: lng,
         },
-      }),
+      },
     });
-  }
+  };
 
-  updatePlannedSite(plannedSite) {
-    this.setState({
-      plannedSite,
-    });
-  }
+  updatePlannedSite = plannedSite => {
+    this.setState({plannedSite});
+  };
 
-  removePlannedSite() {
+  commitPlannedSite = plannedSite => {
+    const topologyName = this.props.networkConfig.topology.name;
+
+    swal(
+      {
+        title: 'Are you sure?',
+        text: 'You are adding a site to this topology!',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Confirm',
+        closeOnConfirm: false,
+      },
+      () => {
+        const data = {site: plannedSite};
+
+        apiServiceRequest(topologyName, 'addSite', data)
+          .then(response => {
+            swal({
+              title: 'Site Added!',
+              text: 'Response: ' + response.data.message,
+              type: 'success',
+            });
+
+            this.setState({plannedSite: null});
+          })
+          .catch(error =>
+            swal({
+              title: 'Failed!',
+              text:
+                'Adding a site failed!\nReason: ' +
+                getErrorTextFromE2EAck(error),
+              type: 'error',
+            }),
+          )
+          .finally(() => {
+            this.enableMapScrolling();
+          });
+      },
+    );
+  };
+
+  updateSiteToEditPosition = () => {
+    const {lat, lng} = this.siteToEditRef.current.leafletElement.getLatLng();
     this.setState({
-      plannedSite: null,
+      siteToEdit: {
+        ...this.state.siteToEdit,
+        location: {
+          ...this.state.siteToEdit.location,
+          latitude: lat,
+          longitude: lng,
+        },
+      },
     });
-  }
+  };
+
+  updateSiteToEdit = siteToEdit => {
+    this.setState({siteToEdit});
+  };
+
+  editSite = siteToEdit => {
+    const topologyName = this.props.networkConfig.topology.name;
+
+    swal(
+      {
+        title: 'Confirm Changes to Site',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Confirm',
+        closeOnConfirm: false,
+      },
+      () => {
+        const data = {
+          siteName: siteToEdit.oldName,
+          newSite: siteToEdit,
+        };
+
+        apiServiceRequest(topologyName, 'editSite', data)
+          .then(response => {
+            swal({
+              title: 'Site Modified!',
+              text: 'Response: ' + response.data.message,
+              type: 'success',
+            });
+
+            this.setState({
+              recentlyEditedSite: siteToEdit,
+              siteToEdit: null,
+            });
+          })
+          .catch(error =>
+            swal({
+              title: 'Failed!',
+              text:
+                'Updating site failed\nReason: ' +
+                getErrorTextFromE2EAck(error),
+              type: 'error',
+            }),
+          )
+          .finally(() => {
+            this.enableMapScrolling();
+          });
+      },
+    );
+  };
 
   updatePosition() {
-    const {lat, lng} = this.refs.marker.leafletElement.getLatLng();
+    const {lat, lng} = this.markerRef.current.leafletElement.getLatLng();
     this.setState({
       marker: {lat, lng},
     });
   }
 
   enableMapScrolling = () => {
-    this.refs.map.leafletElement.scrollWheelZoom.enable();
+    this.mapRef.current.leafletElement.scrollWheelZoom.enable();
   };
 
   disableMapScrolling = () => {
-    this.refs.map.leafletElement.scrollWheelZoom.disable();
+    this.mapRef.current.leafletElement.scrollWheelZoom.disable();
   };
 
   closeModal = () => {
@@ -617,9 +847,11 @@ export default class NetworkMap extends React.Component {
   };
 
   render() {
-    if (this.refs.nodes) {
+    const {selectedSite, siteToEdit, recentlyEditedSite} = this.state;
+
+    if (this.nodesRef.current) {
       // clear the nodes layer
-      this.refs.nodes.leafletElement.clearLayers();
+      this.nodesRef.current.leafletElement.clearLayers();
     }
 
     // use the center position from the topology if set
@@ -654,23 +886,33 @@ export default class NetworkMap extends React.Component {
       });
     }
 
-    Object.keys(topology.sites).map(siteIndex => {
-      const site = topology.sites[siteIndex];
-      if (!site.location) {
-        site.location = {};
-        site.location.latitude = 0;
-        site.location.longitude = 0;
+    topology.sites.forEach((site, siteIndex) => {
+      if (siteToEdit && site.name === siteToEdit.oldName) {
+        // If the site is being edited, it will be rendered later
+        return;
       }
-      const siteCoords = [site.location.latitude, site.location.longitude];
+
+      if (recentlyEditedSite && site.name === recentlyEditedSite.oldName) {
+        site = recentlyEditedSite;
+      }
+
+      if (!site.location) {
+        site.location = {
+          latitude: 0,
+          longitude: 0,
+        };
+      }
 
       let healthyCount = 0;
       let totalCount = 0;
-      let inCommitBatch = 0;
+      const inCommitBatch = 0;
       let hasPop = false;
       let hasMac = false;
       let isCn = false;
       const hasAp = site.hasOwnProperty('ruckus');
       let sitePolarity = null;
+
+      const siteCoords = [site.location.latitude, site.location.longitude];
 
       const nodeKeysInSite = Object.keys(topology.nodes).filter(nodeIndex => {
         const node = topology.nodes[nodeIndex];
@@ -726,85 +968,17 @@ export default class NetworkMap extends React.Component {
       }
 
       siteComponents.push(
-        this.getSiteMarker(site, siteCoords, siteColor, siteIndexForMarker),
+        this.getSiteMarker(
+          site,
+          siteCoords,
+          siteColor,
+          hasAp,
+          hasPop,
+          isCn,
+          hasMac,
+          siteIndexForMarker,
+        ),
       );
-
-      // add a purple circle around the site if we have an ap
-      if (hasAp) {
-        const apMarker = (
-          <CircleMarker
-            center={siteCoords}
-            radius={this.state.zoomLevel - 5}
-            weight={4}
-            clickable
-            fill={false}
-            color="purple"
-            key={'ap-site' + siteIndex}
-            siteIndex={siteIndex}
-            onClick={this.handleMarkerClick}
-            onMouseOver={() => this.setState({hoveredSite: site})}
-            onMouseOut={() => this.setState({hoveredSite: null})}
-            level={11}
-          />
-        );
-        siteComponents.push(apMarker);
-      }
-      if (hasPop) {
-        const secondaryMarker = (
-          <CircleMarker
-            center={siteCoords}
-            radius={5}
-            clickable
-            fillOpacity={1}
-            color="blue"
-            key={'pop-node' + siteIndex}
-            siteIndex={siteIndex}
-            onClick={this.handleMarkerClick}
-            onMouseOver={() => this.setState({hoveredSite: site})}
-            onMouseOut={() => this.setState({hoveredSite: null})}
-            fillColor="blue"
-            level={11}
-          />
-        );
-        siteComponents.push(secondaryMarker);
-      } else if (isCn) {
-        const secondaryMarker = (
-          <CircleMarker
-            center={siteCoords}
-            radius={5}
-            clickable
-            fillOpacity={1}
-            color="pink"
-            key={'pop-node' + siteIndex}
-            siteIndex={siteIndex}
-            onClick={this.handleMarkerClick}
-            onMouseOver={() => this.setState({hoveredSite: site})}
-            onMouseOut={() => this.setState({hoveredSite: null})}
-            fillColor="pink"
-            level={11}
-          />
-        );
-        siteComponents.push(secondaryMarker);
-      } else if (!hasMac) {
-        // no macs for this site
-        const secondaryMarker = (
-          <CircleMarker
-            center={siteCoords}
-            radius={this.state.zoomLevel - 12}
-            clickable
-            fillOpacity={1}
-            color="white"
-            key={'pop-node' + siteIndex}
-            siteIndex={siteIndex}
-            onClick={this.handleMarkerClick}
-            onMouseOver={() => this.setState({hoveredSite: site})}
-            onMouseOut={() => this.setState({hoveredSite: null})}
-            fillColor="white"
-            level={11}
-          />
-        );
-        siteComponents.push(secondaryMarker);
-      }
     });
 
     const ignitionLinks = new Set(this.props.networkConfig.ignition_state);
@@ -1027,8 +1201,12 @@ export default class NetworkMap extends React.Component {
       );
     }
 
-    if (this.state.selectedSite != null) {
-      const site = this.sitesByName[this.state.selectedSite];
+    if (selectedSite != null) {
+      const site =
+        recentlyEditedSite && selectedSite == recentlyEditedSite.oldName
+          ? recentlyEditedSite
+          : this.sitesByName[selectedSite];
+
       if (site && site.location) {
         this.addNodeMarkerForSite(topology, site);
         siteMarkers = (
@@ -1127,7 +1305,6 @@ export default class NetworkMap extends React.Component {
             <DetailsSite
               topologyName={this.props.networkConfig.topology.name}
               site={site}
-              sites={this.sitesByName}
               nodes={this.nodesByName}
               links={this.linksByName}
               maxHeight={maxModalHeight}
@@ -1189,34 +1366,69 @@ export default class NetworkMap extends React.Component {
       tileUrl = window.location.protocol + MapTiles[this.props.mapTile];
     }
 
-    let plannedSite = <div />;
+    let plannedSite = null;
     if (this.state.plannedSite) {
       plannedSite = (
         <Marker
           icon={SITE_MARKER}
-          draggable={true}
-          onDragend={this.updatePlannedPosition.bind(this)}
+          draggable
+          onDragend={this.updatePlannedPosition}
           position={[
             this.state.plannedSite.location.latitude,
             this.state.plannedSite.location.longitude,
           ]}
-          ref="palnnedSiteMarker"
+          ref={this.plannedSiteMarkerRef}
           radius={20}
         />
       );
       layersControl = (
         <Control position="topright">
-          <DetailsPlannedSite
+          <DetailsCreateOrEditSite
+            editing={false}
             site={this.state.plannedSite}
-            topologyName={this.props.networkConfig.topology.name}
-            onUpdate={this.updatePlannedSite.bind(this)}
             maxHeight={maxModalHeight}
             onClose={() => {
-              this.removePlannedSite();
               this.enableMapScrolling();
+              this.setState({plannedSite: null});
             }}
-            onEnter={this.disableMapScrolling}
-            onLeave={this.enableMapScrolling}
+            onMouseEnter={this.disableMapScrolling}
+            onMouseLeave={this.enableMapScrolling}
+            onSaveSite={this.commitPlannedSite}
+            onSiteUpdate={this.updatePlannedSite}
+          />
+        </Control>
+      );
+    }
+
+    let editSiteMarker = null;
+    if (siteToEdit) {
+      editSiteMarker = (
+        <Marker
+          icon={SITE_MARKER}
+          draggable
+          onDragend={this.updateSiteToEditPosition}
+          position={[
+            siteToEdit.location.latitude,
+            siteToEdit.location.longitude,
+          ]}
+          ref={this.siteToEditRef}
+          radius={20}
+        />
+      );
+      layersControl = (
+        <Control position="topright">
+          <DetailsCreateOrEditSite
+            editing
+            site={this.state.siteToEdit}
+            maxHeight={maxModalHeight}
+            onClose={() => {
+              this.enableMapScrolling();
+              this.setState({siteToEdit: null});
+            }}
+            onMouseEnter={this.disableMapScrolling}
+            onMouseLeave={this.enableMapScrolling}
+            onSaveSite={this.editSite}
+            onSiteUpdate={this.updateSiteToEdit}
           />
         </Control>
       );
@@ -1239,13 +1451,13 @@ export default class NetworkMap extends React.Component {
       <div>
         <SplitPane
           split="horizontal"
-          ref="split_pane"
+          ref={this.splitPaneRef}
           defaultSize="50%"
           className={this.state.tablesExpanded ? 'SplitPane' : 'soloPane1'}
-          onChange={this._paneChange.bind(this)}>
+          onChange={this.paneChange}>
           <CustomMap
-            ref="map"
-            onZoom={this._onMapZoom.bind(this)}
+            ref={this.mapRef}
+            onZoom={this.onMapZoom}
             center={centerPosition}
             zoom={this.state.zoomLevel}>
             <TileLayer
@@ -1261,7 +1473,8 @@ export default class NetworkMap extends React.Component {
             {tablesControl}
             {topologyIssuesControl}
             {plannedSite}
-            <LayerGroup ref="nodes" />
+            {editSiteMarker}
+            <LayerGroup ref={this.nodesRef} />
           </CustomMap>
           <NetworkDataTable
             height={this.state.lowerPaneHeight}
@@ -1272,6 +1485,3 @@ export default class NetworkMap extends React.Component {
     );
   }
 }
-NetworkMap.propTypes = {
-  networkConfig: PropTypes.object.isRequired,
-};

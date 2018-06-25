@@ -114,7 +114,7 @@ export default class NetworkStatusTable extends React.Component {
             </tr>
             <tr>
               <td>Controller Version</td>
-              <td colspan={2}>{this.props.instance.controller_version}</td>
+              <td colSpan={2}>{this.props.instance.controller_version}</td>
             </tr>
             {controllerErrorRow}
             <tr>
@@ -126,19 +126,19 @@ export default class NetworkStatusTable extends React.Component {
             </tr>
             <tr>
               <td>Latitude</td>
-              <td colspan={2}>{this.props.instance.latitude}</td>
+              <td colSpan={2}>{this.props.instance.latitude}</td>
             </tr>
             <tr>
               <td>Longitude</td>
-              <td colspan={2}>{this.props.instance.longitude}</td>
+              <td colSpan={2}>{this.props.instance.longitude}</td>
             </tr>
             <tr>
               <td>Initial Zoom Level</td>
-              <td colspan={2}>{this.props.instance.zoom_level}</td>
+              <td colSpan={2}>{this.props.instance.zoom_level}</td>
             </tr>
             <tr>
               <td>Site Coordinates Override</td>
-              <td colspan={2}>
+              <td colSpan={2}>
                 {this.statusColor(
                   this.props.instance.site_coords_override,
                   'Enabled',

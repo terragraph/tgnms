@@ -24,7 +24,6 @@ import moment from 'moment';
 import Menu, {SubMenu, Item as MenuItem, Divider} from 'rc-menu';
 import {Glyphicon} from 'react-bootstrap';
 import React from 'react';
-import swal from 'sweetalert';
 
 // icon: Glyphicon from Bootstrap 3.3.7
 const VIEWS = {
@@ -100,7 +99,7 @@ export default class NetworkUI extends React.Component {
     }
   }
 
-  getNetworkStatus(networkName) {
+  getNetworkStatus = networkName => {
     axios
       .get('/topology/get/' + networkName)
       .then(response => {
@@ -123,7 +122,7 @@ export default class NetworkUI extends React.Component {
           });
         }
       });
-  }
+  };
 
   // see scan_results in server.js
   getSelfTestResults(networkName, filter) {
@@ -328,21 +327,11 @@ export default class NetworkUI extends React.Component {
 
   onAddSite() {
     Dispatcher.dispatch({
-      actionType: Actions.PLANNED_SITE_CREAT,
-      siteName: 'planned_site',
+      actionType: Actions.PLANNED_SITE_CREATE,
+      siteName: 'New Site',
     });
-    swal(
-      {
-        title: 'Planned Site Added',
-        text:
-          'Drag the planned site on the map to desired location. Then, you can commit it from the details menu.',
-        type: 'info',
-        closeOnConfirm: true,
-      },
-      () => {
-        this.setState({topologyModalOpen: false});
-      },
-    );
+
+    this.setState({topologyModalOpen: false});
   }
 
   handleMenuBarSelect(info) {

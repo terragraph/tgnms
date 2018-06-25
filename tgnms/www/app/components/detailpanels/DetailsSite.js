@@ -20,6 +20,8 @@ import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
 } from '../../apiutils/ServiceAPIUtil';
+import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
+import axios from 'axios';
 import {Panel} from 'react-bootstrap';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -27,18 +29,49 @@ import swal from 'sweetalert';
 
 export default class DetailsSite extends React.Component {
   static propTypes = {
-    topologyName: PropTypes.string.isRequired,
-    site: PropTypes.object.isRequired,
-    sites: PropTypes.object.isRequired,
-    nodes: PropTypes.object.isRequired,
     links: PropTypes.object.isRequired,
     maxHeight: PropTypes.number.isRequired,
+    nodes: PropTypes.object.isRequired,
+    site: PropTypes.object.isRequired,
+    topologyName: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
     onEnter: PropTypes.func.isRequired,
     onLeave: PropTypes.func.isRequired,
   };
 
+  static getDerivedStateFromProps(props) {
+    // Find Nodes and Links associated with the site
+    if (props.site && props.nodes && props.links) {
+      const siteNodesByName = {};
+
+      Object.entries(props.nodes)
+        .filter(([key, value]) => {
+          return value.site_name === props.site.name;
+        })
+        .forEach(([key, value]) => (siteNodesByName[key] = value));
+
+      const siteLinks = Object.entries(props.links)
+        .filter(([key, value]) => {
+          return (
+            value.link_type === LinkType.WIRELESS &&
+            (siteNodesByName[value.a_node_name] ||
+              siteNodesByName[value.z_node_name])
+          );
+        })
+        .map(([key, value]) => value);
+
+      return {
+        siteNodesByName,
+        siteLinks,
+      };
+    }
+
+    return null;
+  }
+
   state = {
+    siteNodesByName: {},
+    siteLinks: [],
     showNodes: true,
     showLinks: true,
     showRuckus: true,
@@ -82,7 +115,7 @@ export default class DetailsSite extends React.Component {
     }, 1);
   }
 
-  addSite() {
+  addSite = () => {
     const {site, topologyName} = this.props;
     const data = {
       site,
@@ -94,7 +127,7 @@ export default class DetailsSite extends React.Component {
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
-        confirmButtonText: 'Yes, add it!',
+        confirmButtonText: 'Confirm',
         closeOnConfirm: false,
       },
       () => {
@@ -117,74 +150,26 @@ export default class DetailsSite extends React.Component {
           );
       },
     );
-  }
+  };
 
-  renameSite() {
+  editSite = () => {
     const {site, topologyName} = this.props;
-    swal(
-      {
-        title: 'Rename site',
-        text: 'New site name',
-        type: 'input',
-        showCancelButton: true,
-        closeOnConfirm: false,
-        animation: 'slide-from-top',
-        inputPlaceholder: 'Site Name',
-      },
-      inputValue => {
-        if (inputValue === false) {
-          return false;
-        }
 
-        if (inputValue === '') {
-          swal.showInputError("Name can't be empty");
-          return false;
-        }
+    Dispatcher.dispatch({
+      actionType: Actions.START_SITE_EDIT,
+      siteName: site.name,
+    });
+  };
 
-        return new Promise((resolve, reject) => {
-          const data = {
-            siteName: site.name,
-            newSite: {
-              name: inputValue,
-            },
-          };
-          apiServiceRequest(topologyName, 'editSite', data)
-            .then(response =>
-              swal(
-                {
-                  title: 'Site renamed',
-                  text: 'Response: ' + response.statusText,
-                  type: 'success',
-                },
-                () => resolve(),
-              ),
-            )
-            .catch(error =>
-              swal(
-                {
-                  title: 'Failed!',
-                  text:
-                    'Renaming site failed.\nReason: ' +
-                    error.response.statusText,
-                  type: 'error',
-                },
-                () => resolve(),
-              ),
-            );
-        });
-      },
-    );
-  }
-
-  deleteSite() {
+  deleteSite = () => {
     swal(
       {
         title: 'Are you sure?',
-        text: 'You will not be able to recover this Site!',
+        text: 'You will not be able to recover this site!',
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
-        confirmButtonText: 'Yes, delete it!',
+        confirmButtonText: 'Confirm',
         closeOnConfirm: false,
       },
       () => {
@@ -223,7 +208,7 @@ export default class DetailsSite extends React.Component {
         });
       },
     );
-  }
+  };
 
   formatGolay(golayIdx) {
     return golayIdx || 'N/A';
@@ -240,42 +225,16 @@ export default class DetailsSite extends React.Component {
     this.setState({[showTable]: !show});
   }
 
-  render() {
-    if (!this.props.site || !this.props.site.name) {
-      return <div />;
-    }
-
-    const nodesList = [];
-    const linksList = [];
-    // TODO: - wow this is inefficient
-    Object.keys(this.props.nodes).map(nodeName => {
-      const node = this.props.nodes[nodeName];
-      if (node.site_name === this.props.site.name) {
-        nodesList.push(node);
-
-        Object.keys(this.props.links).map(linkName => {
-          const link = this.props.links[linkName];
-          if (
-            link.link_type === 1 &&
-            (nodeName === link.a_node_name || nodeName === link.z_node_name)
-          ) {
-            // one of our links, calculate the angle of the location
-            // we should know which one is local and remote for the angle
-            linksList.push(link);
-          }
-        });
-      }
-    });
-
-    const nodesRows = [];
-    nodesList.forEach(node => {
+  renderNodeRows(siteNodes) {
+    return siteNodes.map(node => {
       let txGolayIdx = null;
       let rxGolayIdx = null;
       if (node.golay_idx) {
         txGolayIdx = node.golay_idx.txGolayIdx;
         rxGolayIdx = node.golay_idx.rxGolayIdx;
       }
-      nodesRows.push(
+
+      return (
         <tr key={node.name}>
           <td>
             <span
@@ -296,21 +255,40 @@ export default class DetailsSite extends React.Component {
           </td>
           <td title="txGolayIdx">{this.formatGolay(txGolayIdx)}</td>
           <td title="rxGolayIdx">{this.formatGolay(rxGolayIdx)}</td>
-        </tr>,
+        </tr>
       );
     });
+  }
+
+  render() {
+    const {
+      links,
+      maxHeight,
+      nodes,
+      onClose,
+      onEnter,
+      onLeave,
+      site,
+      topologyName,
+    } = this.props;
+
+    const {siteLinks, siteNodesByName} = this.state;
+
+    if (!site || !site.name) {
+      return null;
+    }
 
     // average availability of all links across site
-    let alivePercAvg = 0;
-    const linksRows = [];
-    // show link availability average
-    linksList.forEach(link => {
-      let alivePerc = 0;
-      if (link.hasOwnProperty('alive_perc')) {
-        alivePerc = parseInt(link.alive_perc * 1000, 10) / 1000.0;
-      }
-      alivePercAvg += alivePerc;
-      linksRows.push(
+    let avgAlivePerc = 0;
+
+    // Create link stats (availability)
+    const linksRows = siteLinks.map(link => {
+      const alivePerc = link.hasOwnProperty('alive_perc')
+        ? link.alive_perc.toFixed(3)
+        : 0;
+
+      avgAlivePerc += alivePerc;
+      return (
         <tr key={link.name}>
           <td>
             <span
@@ -327,98 +305,63 @@ export default class DetailsSite extends React.Component {
             </span>
           </td>
           <td>
-            <span>{parseInt(link.angle * 100, 10) / 100}&deg;</span>
+            <span>{link.angle.toFixed(2)}&deg;</span>
           </td>
           <td>
-            <span>{parseInt(link.distance * 100, 10) / 100} m</span>
+            <span>{link.distance.toFixed(2)} m</span>
           </td>
-        </tr>,
+        </tr>
       );
     });
-    const ruckusRows = [];
-    if (this.props.site.hasOwnProperty('ruckus')) {
-      ruckusRows.push(
-        <tr key="ruckus">
-          <td>Ruckus AP</td>
-          <td>{this.props.site.ruckus.clientCount} clients</td>
-          <td>{uptimeSec(this.props.site.ruckus.uptime)}</td>
-          <td>{this.props.site.ruckus.connectionState}</td>
-          <td>{this.props.site.ruckus.registrationState}</td>
-        </tr>,
+
+    avgAlivePerc = (avgAlivePerc / siteLinks.length).toFixed(3);
+
+    const ruckusRow = site.hasOwnProperty('ruckus') ? (
+      <tr key="ruckus">
+        <td>Ruckus Access Point</td>
+        <td>{site.ruckus.clientCount} clients</td>
+        <td>{uptimeSec(site.ruckus.uptime)}</td>
+        <td>{site.ruckus.connectionState}</td>
+        <td>{site.ruckus.registrationState}</td>
+      </tr>
+    ) : null;
+
+    const actionsList =
+      site.hasOwnProperty('pending') && site.pending ? (
+        <div className="details-link" onClick={this.addSite}>
+          Add Site
+        </div>
+      ) : (
+        [
+          <div key="edit-site" className="details-link" onClick={this.editSite}>
+            Edit Site
+          </div>,
+          <div
+            key="delete-site"
+            className="details-link"
+            onClick={this.deleteSite}>
+            Delete Site
+          </div>,
+        ]
       );
-    }
-    alivePercAvg /= linksList.length;
-    alivePercAvg = parseInt(alivePercAvg * 1000, 10) / 1000.0;
-    const actionsList = [];
-    if (this.props.site.hasOwnProperty('pending') && this.props.site.pending) {
-      actionsList.push(
-        <tr>
-          <td>
-            <span
-              className="details-link"
-              onClick={() => {
-                this.addSite();
-              }}>
-              Add Site
-            </span>
-          </td>
-        </tr>,
-      );
-    } else {
-      actionsList.push(
-        <tr>
-          <td>
-            <div>
-              <span
-                className="details-link"
-                onClick={() => {
-                  this.deleteSite();
-                }}>
-                Delete Site
-              </span>
-            </div>
-          </td>
-        </tr>,
-      );
-      actionsList.push(
-        <tr>
-          <td>
-            <div>
-              <span
-                className="details-link"
-                onClick={() => {
-                  this.renameSite();
-                }}>
-                Rename Site
-              </span>
-            </div>
-          </td>
-        </tr>,
-      );
-    }
+
     return (
       <Panel
         bsStyle="primary"
         id="myModal"
-        onMouseEnter={this.props.onEnter}
-        onMouseLeave={this.props.onLeave}>
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}>
         <Panel.Heading>
-          <span
-            className="details-close"
-            onClick={() => {
-              this.props.onClose();
-            }}>
+          <span className="details-close" onClick={onClose}>
             &times;
           </span>
           <Panel.Title componentClass="h3">
-            {this.props.site.pending ? '(Pending) ' : ''}Site Details
+            {site.pending ? '(Pending) ' : ''}Site Details
           </Panel.Title>
         </Panel.Heading>
-        <Panel.Body
-          className="details"
-          style={{maxHeight: this.props.maxHeight, width: '100%'}}>
+        <Panel.Body className="details" style={{maxHeight, width: '100%'}}>
           <div>
-            <h3 style={{marginTop: '0px'}}>{this.props.site.name}</h3>
+            <h3 style={{marginTop: '0px'}}>{site.name}</h3>
             <table
               className="details-table"
               style={{width: '100%', border: '0px solid black'}}>
@@ -426,22 +369,31 @@ export default class DetailsSite extends React.Component {
                 <tr>
                   <td width="100px">Lat / Lng</td>
                   <td colSpan="2">
-                    {this.props.site.location.latitude} /{' '}
-                    {this.props.site.location.longitude}
+                    {`${site.location.latitude.toFixed(
+                      2,
+                    )} / ${site.location.longitude.toFixed(2)}`}
                   </td>
                 </tr>
                 <tr>
                   <td width="100px">Altitude</td>
-                  <td colSpan="3">{this.props.site.location.altitude} m</td>
+                  <td colSpan="3">{site.location.altitude} m</td>
                 </tr>
+                {site.location.accuracy !== undefined &&
+                  site.location.accuracy !== null && (
+                    <tr>
+                      <td width="100px">Accuracy</td>
+                      <td colSpan="3">{site.location.accuracy} m</td>
+                    </tr>
+                  )}
                 <tr>
                   <td width="100px">Availability</td>
                   <td colSpan="6">
-                    <span style={{color: availabilityColor(alivePercAvg)}}>
-                      {alivePercAvg}%
+                    <span style={{color: availabilityColor(avgAlivePerc)}}>
+                      {isNaN(avgAlivePerc) ? 'N/A' : `${avgAlivePerc}%`}
                     </span>
                   </td>
                 </tr>
+                {}
               </tbody>
             </table>
           </div>
@@ -463,7 +415,9 @@ export default class DetailsSite extends React.Component {
                     <th>Rx Golay</th>
                   </tr>
                 </thead>
-                <tbody>{nodesRows}</tbody>
+                <tbody>
+                  {this.renderNodeRows(Object.values(siteNodesByName))}
+                </tbody>
               </table>
             )}
           </div>
@@ -488,7 +442,7 @@ export default class DetailsSite extends React.Component {
               </table>
             )}
           </div>
-          {ruckusRows.length > 0 && (
+          {site.hasOwnProperty('ruckus') && (
             <div>
               <h4
                 onClick={() => {
@@ -498,7 +452,7 @@ export default class DetailsSite extends React.Component {
               </h4>
               {this.state.showRuckus && (
                 <table className="details-table" style={{width: '100%'}}>
-                  <tbody>{ruckusRows}</tbody>
+                  <tbody>{ruckusRow}</tbody>
                 </table>
               )}
             </div>
@@ -511,9 +465,7 @@ export default class DetailsSite extends React.Component {
               Actions
             </h4>
             {this.state.showActions && (
-              <table className="details-table" style={{width: '100%'}}>
-                <tbody>{actionsList}</tbody>
-              </table>
+              <div className="details-action-list">{actionsList}</div>
             )}
           </div>
         </Panel.Body>
