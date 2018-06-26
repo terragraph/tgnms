@@ -114,7 +114,7 @@ export default class NetworkConfigBody extends React.Component {
     } = this.state;
 
     return (
-      <div className="rc-network-config-body">
+      <div className="rc-config-body node">
         <NetworkConfigHeader
           editMode={editMode}
           selectedNodes={selectedNodes}
@@ -147,7 +147,7 @@ export default class NetworkConfigBody extends React.Component {
           )}
           {!isJSONText && (
             <div>
-              <span style={{marginRight: '5px', marginLeft: '15px'}}>
+              <span style={{marginRight: '10px', marginLeft: '15px'}}>
                 View Overrides Only
               </span>
               <CustomToggle

@@ -16,12 +16,26 @@ import React from 'react';
 
 // legend for the network config
 export default class NetworkConfigLegend extends React.Component {
-  constructor(props) {
-    super(props);
+  static propTypes = {
+    editMode: PropTypes.string.isRequired,
+    onUpdate: PropTypes.func.isRequired,
+  };
 
-    this.state = {
-      isExpanded: true,
-    };
+  state = {
+    isExpanded: true,
+  };
+
+  networkLegendRef = React.createRef();
+
+  componentDidMount() {
+    this.props.onUpdate(this.networkLegendRef.current.clientHeight);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // We send the height to <NetworkConfigNodes> to know what height to set the table to
+    if (prevState.isExpanded !== this.state.isExpanded) {
+      this.props.onUpdate(this.networkLegendRef.current.clientHeight);
+    }
   }
 
   toggleExpandLegend = () => {
@@ -116,7 +130,7 @@ export default class NetworkConfigLegend extends React.Component {
     );
 
     return (
-      <div className="rc-network-config-legend" ref="networkLegend">
+      <div className="rc-config-legend" ref={this.networkLegendRef}>
         <p
           className={classNames('nc-legend-title', {
             'nc-collapsed-title': !isExpanded,
@@ -130,7 +144,3 @@ export default class NetworkConfigLegend extends React.Component {
     );
   }
 }
-
-NetworkConfigLegend.propTypes = {
-  editMode: PropTypes.string.isRequired,
-};

@@ -53,7 +53,7 @@
   position: absolute;
   border: 1px solid #aaa;
   background-color: #fff;
-  z-index: 3;
+  z-index: 100;
   top: 30px;
   width: 150px;
 }
@@ -116,9 +116,10 @@
 }
 
 .nc-new-field-label {
+  border: 1px solid #ccc;
   margin-right: 10px;
-  margin-top: 0px;
-  margin-bottom: 0px;
+  margin-top: 0;
+  margin-bottom: 0;
   min-width: 250px; /* fixed min width so we can align the input fields */
 }
 

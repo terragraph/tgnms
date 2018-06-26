@@ -1,7 +1,7 @@
 /* loading image is 40x40, column width is 450, height = 350 */
 
 @import url("nms-upgrade.css");
-@import url("nms-network-config.css");
+@import url("nms-config.css");
 
 /* open-sans-regular - latin */
 @font-face {
@@ -36,6 +36,10 @@
 #root {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   margin: auto;
+}
+.nms-body {
+  /* Height of Menu Bar defined in rc-menu.css */
+  margin-top: 40px;
 }
 .leaflet-container {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
@@ -98,7 +102,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 }
 .status-table-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100%;
   margin: auto 10px;
 }
@@ -110,6 +114,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   width: 75%;
 }
 .status-table.site-sector-link {
+  margin-left: 10px;
   width: 25%;
 }
 .status-table td {
@@ -409,6 +414,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 
 .data-table-tab-list {
   align-items: center;
+  border-top: 1px solid #e0e0e0;
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   list-style-type: none;

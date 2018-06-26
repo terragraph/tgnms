@@ -155,7 +155,7 @@ export default class NetworkConfig extends React.Component {
       isEmpty(removedNodeOverrides);
 
     return (
-      <div className="rc-network-config">
+      <div className="rc-config">
         <NetworkConfigLeftPane
           topologyName={topologyName}
           imageVersions={imageVersions}

@@ -1453,7 +1453,7 @@ export default class NetworkMap extends React.Component {
           split="horizontal"
           ref={this.splitPaneRef}
           defaultSize="50%"
-          className={this.state.tablesExpanded ? 'SplitPane' : 'soloPane1'}
+          className={this.state.tablesExpanded ? null : 'soloPane1'}
           onChange={this.paneChange}>
           <CustomMap
             ref={this.mapRef}

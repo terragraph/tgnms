@@ -101,7 +101,7 @@ export default class E2EConfigBody extends React.Component {
     const {isExpanded, isJSONText} = this.state;
 
     return (
-      <div className="rc-network-config-body">
+      <div className="rc-config-body">
         <E2EConfigHeader activeConfig={activeConfig} />
         <div className="nc-expand-all-wrapper">
           <button
@@ -140,7 +140,7 @@ export default class E2EConfigBody extends React.Component {
             />
           )}
         </div>
-        <div className="rc-network-config-footer">
+        <div className="rc-config-footer">
           <button
             className="nc-footer-btn"
             onClick={resetConfig}

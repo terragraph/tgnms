@@ -1,21 +1,20 @@
 
 /* NETWORK CONFIG LEFT PANE */
-.rc-network-config-left-pane {
-  width: 300px; /* fixed width for now */
-  height: 100%;
-
+.rc-config-left-pane {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   flex-shrink: 0; /* do not try to shrink this column when resizing */
-
-  box-sizing: border-box;
+  height: 100%;
+  position: fixed;
+  width: 300px; /* fixed width for now */
 }
 
-.rc-network-config-left-pane .body-padding {
+.rc-config-left-pane .body-padding {
   padding: 7px;
 }
 
-.rc-network-config-left-pane .selector-title {
+.rc-config-left-pane .selector-title {
   margin: 5px 3px;
   font-weight: bold;
 }
@@ -52,20 +51,28 @@
   font-weight: 600;
 }
 
-.rc-network-config-image-selector {
+.rc-config-image-selector {
   flex: 1;
 }
 
-.rc-network-config-nodes {
-  overflow-y: auto;
+.rc-config-nodes {
   flex: 1;
 }
 
-.rc-network-config-nodes > label {
-  margin: 2px;
+.rc-config-nodes .header {
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  height: 49px;
+  padding: 10px 7px;
 }
 
-.rc-network-config-nodes  td:focus {
+.rc-config-nodes .show-nodes-overrides-label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.rc-config-nodes  td:focus {
   outline: none;
 }
 
@@ -75,7 +82,7 @@
 }
 
 /* NETWORK CONFIG LEGEND */
-.rc-network-config-legend {
+.rc-config-legend {
   width: inherit;
   background-color: #eee;
   border-top: 1px solid #aaa;

@@ -35,7 +35,7 @@ export default class E2EConfig extends React.Component {
     } = this.props;
 
     return (
-      <div className="rc-network-config">
+      <div className="rc-config">
         <E2EConfigBody
           topologyName={topologyName}
           activeConfig={activeConfig}

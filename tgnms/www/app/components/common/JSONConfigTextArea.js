@@ -111,9 +111,13 @@ export default class JSONConfigTextArea extends React.Component {
   render() {
     return (
       <textarea
+        autocapitalize="off"
+        autocomplete="off"
+        autocorrect="off"
         className={cx('rc-json-config-textarea', {draft: this.isDraft()})}
         value={this.state.draftConfigString}
         onChange={event => this.editConfigJSON(event.target.value)}
+        spellCheck={false}
       />
     );
   }
