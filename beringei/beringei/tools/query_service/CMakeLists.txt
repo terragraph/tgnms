@@ -32,6 +32,8 @@ set(BERINGEI_QUERY_SRCS
     TopologyFetcher.h
     TopologyStore.cpp
     TopologyStore.h
+    RawReadBeringeiData.cpp
+    RawReadBeringeiData.h
 )
 
 set(BERINGEI_QUERY_HANDLER_SRCS
@@ -39,6 +41,10 @@ set(BERINGEI_QUERY_HANDLER_SRCS
     handlers/LogsWriteHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
+    handlers/PyReadHandler.cpp
+    handlers/PyReadHandler.h
+    handlers/PyWriteHandler.cpp
+    handlers/PyWriteHandler.h
     handlers/QueryHandler.cpp
     handlers/QueryHandler.h
     handlers/RuckusControllerStatsHandler.cpp
@@ -79,6 +85,7 @@ target_link_libraries(
     beringei_query_service
     beringei_query_lib
     beringei_query_handlers_lib
+    beringei_query_lib
     ${FBTHRIFT_LIBRARIES}
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}

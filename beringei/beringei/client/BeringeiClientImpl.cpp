@@ -345,6 +345,9 @@ bool BeringeiClientImpl::putDataPoints(std::vector<DataPoint>& values) {
   if (numPoints == 0) {
     LOG(ERROR) << "Empty request";
     return true;
+  } else{
+    LOG(INFO) << "There are " << values.size()
+              << " data points to put to Beringei DB!\n";
   }
 
   bool allPushedToAnyScope = false;

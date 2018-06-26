@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../MySqlClient.h"
-#include "../StatsTypeAheadCache.h"
 
 #include <folly/Memory.h>
 #include <folly/dynamic.h>
@@ -24,13 +23,15 @@
 
 namespace facebook {
 namespace gorilla {
-
-class StatsTypeAheadHandler : public proxygen::RequestHandler {
+// PyReadHandler will handle time series sent from PyAnalytics and
+// write to Beringei DB.
+// The incoming data points are in http body.
+// Current the destination need to be specified by Beringei DB metric Key ID.
+// TODO: shard is not enabled and all data write to shard 0. Can implement via
+//       common hash across languages.
+class PyWriteHandler : public proxygen::RequestHandler {
  public:
-  explicit StatsTypeAheadHandler(
-      std::shared_ptr<MySqlClient> mySqlClient,
-      TACacheMap& typeaheadCache,
-      std::string request_source_type);
+  explicit PyWriteHandler(std::shared_ptr<MySqlClient> mySqlClient);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -46,13 +47,15 @@ class StatsTypeAheadHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
+  void logRequest(query::StatsWriteRequest request);
+
+  void writeData(query::StatsWriteRequest request);
+
+  // keep shared client holding key ids
+  std::shared_ptr<MySqlClient> mySqlCacheClient_;
+  // client per-thread for writing
   std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
-  TACacheMap& typeaheadCache_;
-  // RequestSourceType_ denotes the source of incoming HTTPMessage
-  // If 'python' use BinaryProtocol to Serializer/deserialize
-  // Otherwise, use SimpleJSONSerializer to Serializer/deserialize
-  std::string RequestSourceType_;
 };
 } // namespace gorilla
 } // namespace facebook

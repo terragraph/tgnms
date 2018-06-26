@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "../MySqlClient.h"
 #include "../StatsTypeAheadCache.h"
 
 #include <folly/Memory.h>
@@ -25,12 +24,15 @@
 namespace facebook {
 namespace gorilla {
 
-class StatsTypeAheadHandler : public proxygen::RequestHandler {
+// PyReadHandler will handle raw data read request and
+// return queryed results from Beringei DB.
+// The incoming request is serialzed bytes (RawReadQueryRequest)
+// in the incoming http msg body.
+// The query return is serialzed bytes (RawTimeSeriesList) in the
+// http msg return body.
+class PyReadHandler : public proxygen::RequestHandler {
  public:
-  explicit StatsTypeAheadHandler(
-      std::shared_ptr<MySqlClient> mySqlClient,
-      TACacheMap& typeaheadCache,
-      std::string request_source_type);
+  explicit PyReadHandler(TACacheMap& typeaheadCache);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -46,13 +48,9 @@ class StatsTypeAheadHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  std::shared_ptr<MySqlClient> mySqlClient_;
+  bool receivedBody_;
   std::unique_ptr<folly::IOBuf> body_;
   TACacheMap& typeaheadCache_;
-  // RequestSourceType_ denotes the source of incoming HTTPMessage
-  // If 'python' use BinaryProtocol to Serializer/deserialize
-  // Otherwise, use SimpleJSONSerializer to Serializer/deserialize
-  std::string RequestSourceType_;
 };
 } // namespace gorilla
 } // namespace facebook

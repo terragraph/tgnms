@@ -18,6 +18,8 @@
 #include "handlers/StatsTypeAheadHandler.h"
 #include "handlers/StatsWriteHandler.h"
 #include "handlers/TableQueryHandler.h"
+#include "handlers/PyReadHandler.h"
+#include "handlers/PyWriteHandler.h"
 
 using folly::EventBase;
 using folly::EventBaseManager;
@@ -53,9 +55,20 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     return new LogsWriteHandler();
   } else if (path == "/stats_typeahead") {
     // pass a cache client that stores metric names
-    return new StatsTypeAheadHandler(mySqlClient_, typeaheadCache_);
+    return new StatsTypeAheadHandler(mySqlClient_, typeaheadCache_, "");
+  } else if (path == "/py_stats_typeahead") {
+    // pass a cache client that stores metric names
+    // Add a api to distinguish the typeahead request from py-PyAnalytics,
+    // which needs a different deserialization protol
+    return new StatsTypeAheadHandler(mySqlClient_, typeaheadCache_, "python");
   } else if (path == "/ruckus_ap_stats") {
     return new RuckusControllerStatsHandler();
+  } else if (path == "/py_query_raw"){
+    // Nms PyAnalytics Read Request, will read only raw data points
+    return new PyReadHandler(typeaheadCache_);
+  }  else if (path == "/py_write_raw"){
+    // Nms PyAnalytics Write Request
+    return new PyWriteHandler(mySqlClient_);
   }
 
   // return not found for all other uris
