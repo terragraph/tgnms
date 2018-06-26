@@ -1,7 +1,5 @@
 [ignore]
 .*/node_modules/.*
-<PROJECT_ROOT>/xterm/.*
-<PROJECT_ROOT>/static/apidoc/.*
 
 [options]
 emoji=true

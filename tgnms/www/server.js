@@ -238,7 +238,6 @@ worker.on('message', msg => {
   }
 });
 
-var terminals = {};
 var logs = {};
 
 var tgNodeIp = null;
@@ -629,91 +628,7 @@ app.use('/static', express.static(path.join(__dirname, 'static')));
 app.set('views', './views');
 app.set('view engine', 'pug');
 
-app.use('/xterm', express.static(path.join(__dirname, 'xterm')));
-app.get('/xterm/:ip', function (req, res) {
-  if (req.params.ip && ipaddr.IPv6.isValid(req.params.ip)) {
-    tgNodeIp = req.params.ip;
-    res.sendFile(path.join(__dirname, '/xterm/index.html'));
-  } else {
-    res.sendFile(path.join(__dirname, '/xterm/invalid.html'));
-  }
-});
-app.get('/style.css', function (req, res) {
-  res.sendFile(path.join(__dirname, '/xterm/style.css'));
-});
-app.get('/main.js', function (req, res) {
-  res.sendFile(path.join(__dirname, '/xterm/main.js'));
-});
-
-app.post('/terminals', function (req, res) {
-  var cols = parseInt(req.query.cols);
-  var rows = parseInt(req.query.rows);
-  var term = pty.spawn(
-    process.platform === 'win32' ? 'cmd.exe' : './term.sh',
-    [],
-    {
-      name: 'xterm-color',
-      cols: cols || 80,
-      rows: rows || 24,
-      cwd: process.env.PWD,
-      env: process.env,
-    }
-  );
-
-  term.write(tgNodeIp + '\r');
-  tgNodeIp = null;
-
-  terminals[term.pid] = term;
-  logs[term.pid] = '';
-  term.on('data', function (data) {
-    logs[term.pid] += data;
-  });
-  res.send(term.pid.toString());
-  res.end();
-});
-
-app.post('/terminals/:pid/size', function (req, res) {
-  var pid = parseInt(req.params.pid);
-  var cols = parseInt(req.query.cols);
-  var rows = parseInt(req.query.rows);
-  var term = terminals[pid];
-
-  term.resize(cols, rows);
-  console.log(
-    'Resized terminal ' + pid + ' to ' + cols + ' cols and ' + rows + ' rows.'
-  );
-  res.end();
-});
-
 const expressWs = require('express-ws')(app);
-
-app.ws('/terminals/:pid', function (ws, req) {
-  var term = terminals[parseInt(req.params.pid)];
-  console.log('Connected to terminal ' + term.pid);
-  ws.send(logs[term.pid]);
-
-  term.on('data', function (data) {
-    try {
-      ws.send(data);
-    } catch (ex) {
-      // The WebSocket is not open, ignore
-    }
-  });
-  ws.on('message', function (msg) {
-    term.write(msg);
-  });
-  ws.on('close', function () {
-    try {
-      process.kill(term.pid);
-    } catch (e) {
-      console.log('Terminal already closed');
-    }
-    console.log('Closed terminal ' + term.pid);
-    // Clean things up
-    delete terminals[term.pid];
-    delete logs[term.pid];
-  });
-});
 
 // newer charting, for multi-linechart/row
 app.post(/\/multi_chart\/$/i, function (req, res, next) {
