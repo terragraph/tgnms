@@ -1,0 +1,51 @@
+const express = require('express');
+const fs = require('fs');
+
+const app = express();
+
+var dashboards = {};
+fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
+  if (!err) {
+    dashboards = JSON.parse(data);
+  }
+});
+
+app.get(/\/get\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  if (!dashboards[topologyName]) {
+    dashboards[topologyName] = {};
+  }
+  res.json(dashboards[topologyName]);
+});
+
+app.post(/\/save\/$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    if (!httpPostData.length) {
+      return;
+    }
+    const data = JSON.parse(httpPostData);
+    if (data.topologyName && data.dashboards) {
+      dashboards[data.topologyName] = data.dashboards;
+      fs.writeFile(
+        './config/dashboards.json',
+        JSON.stringify(dashboards, null, 4),
+        function (err) {
+          if (err) {
+            res.status(500).end('Unable to save');
+            console.log('Unable to save', err);
+            return;
+          }
+          res.status(200).end('Saved');
+        }
+      );
+    } else {
+      res.status(500).end('Bad Data');
+    }
+  });
+});
+
+module.exports = app;
