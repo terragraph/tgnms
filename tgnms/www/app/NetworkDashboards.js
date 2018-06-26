@@ -21,11 +21,35 @@ import React from 'react';
 import swal from 'sweetalert';
 import axios from 'axios';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 import {Glyphicon} from 'react-bootstrap';
+import {isEqual, isEmpty} from 'lodash-es';
 
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
+//  TODO: populate link dashboard with pre-made graphs
+const DEFAULT_LINK_DASHBOARD = {
+  endTime: null,
+  graphs: [],
+  minAgo: 120,
+  nodeA: null,
+  nodeZ: null,
+  startTime: null,
+};
+
 export default class NetworkDashboards extends React.Component {
+  static propTypes = {
+    commitPlan: PropTypes.object,
+    config: PropTypes.array,
+    networkConfig: PropTypes.object,
+    networkName: PropTypes.string,
+    onHandleSelectedDashboardChange: PropTypes.func,
+    pendingTopology: PropTypes.object,
+    selectedDashboard: PropTypes.string,
+    viewContext: PropTypes.object,
+    viewLinkDashboard: PropTypes.func,
+  };
+
   state = {
     dashboards: null,
     editedGraph: null,
@@ -37,10 +61,34 @@ export default class NetworkDashboards extends React.Component {
     modalIsOpen: false,
   };
 
-  constructor(props) {
-    super(props);
-    this.getDashboards = this.getDashboards.bind(this);
-    this.getDashboards(this.props.networkConfig.topology.name);
+  async componentDidMount() {
+    const dashboards = await this.getDashboards(
+      this.props.networkConfig.topology.name,
+    );
+    this.setState({dashboards}, () => {
+      // If there is viewContext (which is intended for displaying a link dashboard)
+      // then display the link dashboard with viewContext information
+      if (!isEmpty(this.props.viewContext)) {
+        const {topologyName, nodeAName, nodeZName} = this.props.viewContext;
+        this.updateAndShowLinkDashboard(topologyName, nodeAName, nodeZName);
+      }
+    });
+  }
+
+  async componentDidUpdate(prevProps) {
+    if (!isEqual(prevProps.viewContext, this.props.viewContext)) {
+      const {topologyName, nodeAName, nodeZName} = this.props.viewContext;
+      this.updateAndShowLinkDashboard(topologyName, nodeAName, nodeZName);
+    }
+    if (
+      prevProps.networkConfig.topology.name !==
+      this.props.networkConfig.topology.name
+    ) {
+      const dashboards = await this.getDashboards(
+        this.props.networkConfig.topology.name,
+      );
+      this.setState({dashboards});
+    }
   }
 
   selectDashboardChange = val => {
@@ -191,22 +239,17 @@ export default class NetworkDashboards extends React.Component {
     );
   };
 
-  getDashboards = topologyName => {
-    axios
-      .get('/dashboards/get/' + topologyName)
-      .then(response =>
-        this.setState({
-          dashboards: response.data,
-          editView: false,
-        }),
-      )
-      .catch(err => {
-        console.error('Error getting dashboards', err);
-        this.setState({
-          dashboards: null,
-          editView: false,
-        });
-      });
+  addDefaultDashboards = dashboards => {
+    if (!dashboards.hasOwnProperty('Link Dashboard')) {
+      dashboards['Link Dashboard'] = DEFAULT_LINK_DASHBOARD;
+    }
+    return dashboards;
+  };
+
+  getDashboards = async topologyName => {
+    const response = await axios.get('/dashboards/get/' + topologyName);
+    // add default dashboards if they do not exist in the dashboards already
+    return this.addDefaultDashboards(response.data);
   };
 
   onLayoutChange = layout => {
@@ -231,26 +274,6 @@ export default class NetworkDashboards extends React.Component {
     }
   };
 
-  componentDidMount() {
-    // register to receive topology updates
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this),
-    );
-  }
-
-  componentWillUnmount() {
-    // un-register once hidden
-    Dispatcher.unregister(this.dispatchToken);
-  }
-
-  handleDispatchEvent(payload) {
-    switch (payload.actionType) {
-      case Actions.TOPOLOGY_SELECTED:
-        this.getDashboards(payload.networkName);
-        break;
-    }
-  }
-
   onEdit = () => {
     this.setState({
       editView: true, // boolean
@@ -261,6 +284,21 @@ export default class NetworkDashboards extends React.Component {
     this.setState({
       editView: false, // boolean
     });
+  };
+
+  // Navigate to the link dashboard with global data based on parameters
+  updateAndShowLinkDashboard = (topologyName, nodeAName, nodeZName) => {
+    this.props.onHandleSelectedDashboardChange('Link Dashboard');
+
+    const {nodes} = this.props.networkConfig.topology;
+    const nodeA = nodes.find(node => node.name === nodeAName);
+    const nodeZ = nodes.find(node => node.name === nodeZName);
+
+    if (!nodeA || !nodeZ) {
+      this.generateErrorAlert('Bad parameters for generating link dashboard');
+    } else {
+      this.onChangeDashboardGlobalData(null, 120, nodeA, nodeZ, null);
+    }
   };
 
   onEditGraphButtonClicked = index => {

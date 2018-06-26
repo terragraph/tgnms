@@ -89,9 +89,24 @@ export default class NetworkUI extends React.Component {
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
   }
 
-  handleSelectedDashboardChange(selectedDashboard) {
+  handleSelectedDashboardChange = selectedDashboard => {
     this.setState({selectedDashboard});
-  }
+  };
+
+  // Navigate to Dashboards tab and see the Link Dashboard updated with a
+  // new nodeA and node
+  viewLinkDashboard = (topologyName, nodeAName, nodeZName) => {
+    this.setState({selectedDashboard: 'Link Dashboard'});
+    Dispatcher.dispatch({
+      actionType: Actions.VIEW_SELECTED,
+      context: {
+        topologyName,
+        nodeAName,
+        nodeZName,
+      },
+      viewName: 'dashboards',
+    });
+  };
 
   getNetworkStatusPeriodic() {
     if (this.state.networkName !== null) {
@@ -520,11 +535,8 @@ export default class NetworkUI extends React.Component {
           <NetworkDashboards
             {...viewProps}
             selectedDashboard={this.state.selectedDashboard}
-            onHandleSelectedDashboardChange={selectedDashboard => {
-              this.setState({
-                selectedDashboard,
-              });
-            }}
+            onHandleSelectedDashboardChange={this.handleSelectedDashboardChange}
+            viewLinkDashboard={this.viewLinkDashboard}
           />
         );
         break;
@@ -556,6 +568,7 @@ export default class NetworkUI extends React.Component {
             siteOverlay={this.state.selectedSiteOverlay}
             mapDimType={this.state.selectedMapDimType}
             mapTile={this.state.selectedMapTile}
+            viewLinkDashboard={this.viewLinkDashboard}
           />
         );
     }

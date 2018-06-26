@@ -139,6 +139,7 @@ export default class NetworkDataTable extends React.Component {
       topology: this.props.networkConfig.topology,
       routing: this.state.routing,
       zoomLevel: this.state.zoomLevel,
+      viewLinkDashboard: this.props.viewLinkDashboard,
     };
     return (
       <Tabs

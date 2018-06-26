@@ -34,7 +34,7 @@ export default class CustomTable extends React.Component {
     const {data, columns} = props;
 
     let key = null;
-    let keyFilter = columns.filter(column => column.isKey);
+    const keyFilter = columns.filter(column => column.isKey);
     if (keyFilter.length > 0) {
       key = keyFilter[0].key;
     }
@@ -60,7 +60,7 @@ export default class CustomTable extends React.Component {
     // Sort data
     if (sortBy) {
       let column = null;
-      let colFilter = columns.filter(column => column.key == sortBy);
+      const colFilter = columns.filter(column => column.key == sortBy);
       if (colFilter.length > 0) {
         column = colFilter[0];
       }
@@ -75,7 +75,7 @@ export default class CustomTable extends React.Component {
     }
 
     let key = null;
-    let keyFilter = columns.filter(column => column.isKey);
+    const keyFilter = columns.filter(column => column.isKey);
     if (keyFilter.length > 0) {
       key = keyFilter[0].key;
     }
@@ -92,12 +92,7 @@ export default class CustomTable extends React.Component {
 
   render() {
     const {columns, displayedData} = this.state;
-    const {
-      headerHeight,
-      height,
-      overscanRowCount,
-      rowHeight,
-    } = this.props;
+    const {headerHeight, height, overscanRowCount, rowHeight} = this.props;
     const totalW = columns.reduce((total, currVal) => total + currVal.width, 0);
     const columnCount = columns.length;
     const table = (
@@ -128,10 +123,8 @@ export default class CustomTable extends React.Component {
                         }}>
                         <Grid
                           ref={this.headerGridRef}
-                          cellRenderer={cell =>
-                            this._headerCellRenderer(cell)
-                          }
-                          className='CustomTable__HeaderGrid'
+                          cellRenderer={cell => this._headerCellRenderer(cell)}
+                          className="CustomTable__HeaderGrid"
                           columnCount={columnCount}
                           columnWidth={columnWidth}
                           height={headerHeight}
@@ -150,7 +143,7 @@ export default class CustomTable extends React.Component {
                         <Grid
                           ref={this.bodyGridRef}
                           cellRenderer={cell => this._bodyCellRenderer(cell)}
-                          className='CustomTable__BodyGrid'
+                          className="CustomTable__BodyGrid"
                           columnCount={columnCount}
                           columnWidth={columnWidth}
                           height={height - headerHeight}
@@ -204,13 +197,13 @@ export default class CustomTable extends React.Component {
 
     let classNames = classnames(
       'CustomTable__GridRowCell',
-      {'CustomTable__GridRowCellLeft': columnIndex === 0},
-      {'CustomTable__GridRowCellHovered': rowIndex === hoveredRowIndex},
-      {'CustomTable__GridRowCellEven': striped && rowIndex % 2 === 0},
-      {'CustomTable__GridRowCellSelected': isSelected},
+      {CustomTable__GridRowCellLeft: columnIndex === 0},
+      {CustomTable__GridRowCellHovered: rowIndex === hoveredRowIndex},
+      {CustomTable__GridRowCellEven: striped && rowIndex % 2 === 0},
+      {CustomTable__GridRowCellSelected: isSelected},
     );
 
-    let row = displayedData[rowIndex];
+    const row = displayedData[rowIndex];
     if (trClassName && typeof trClassName === 'function') {
       classNames += ' ' + trClassName(row, rowIndex);
     }
@@ -229,7 +222,7 @@ export default class CustomTable extends React.Component {
         onMouseOut={() => {
           this.setState({hoveredRowIndex: -1});
         }}>
-        <div>{content}</div>
+        <div className="table-cell-content">{content}</div>
       </div>
     );
   }
@@ -285,7 +278,7 @@ export default class CustomTable extends React.Component {
     const classNames = classnames(
       'CustomTable__GridRowCell',
       'CustomTable__HeaderRowCell',
-      {'CustomTable__GridRowCellLeft': columnIndex === 0}
+      {CustomTable__GridRowCellLeft: columnIndex === 0},
     );
     return (
       <div
@@ -420,4 +413,4 @@ export default class CustomTable extends React.Component {
 CustomTable.defaultProps = {
   striped: true,
   hover: true,
-}
+};
