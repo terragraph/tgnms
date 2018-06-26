@@ -19,9 +19,7 @@ const topologyPeriodic = require('./server/topology/periodic');
 const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 const express = require('express');
 const fs = require('fs');
-const isIp = require('is-ip');
 const path = require('path');
-const proxy = require('express-http-proxy');
 const request = require('request');
 
 // set up font awesome here
@@ -201,6 +199,7 @@ app.get(/^\/tile\/(.+)\/(.+)\/(.+)\/(.+)\.png$/, function (req, res, next) {
   request(tileUrl).pipe(res);
 });
 
+app.use('/apiservice', require('./server/apiservice/routes'));
 app.use('/controller', require('./server/controller/routes'));
 app.use('/dashboards', require('./server/dashboard/routes'));
 app.use('/topology', require('./server/topology/routes'));
@@ -239,24 +238,6 @@ if (devMode) {
     res.sendFile(path.join(__dirname, '/dist/bootstrap.css'));
   });
 }
-
-function getAPIServiceHost(req, res) {
-  const topology = getConfigByName(req.params.topology);
-  if (topology.apiservice_baseurl) {
-    return topology.apiservice_baseurl;
-  }
-  const controller_ip = topology.controller_ip_active;
-  return isIp.v6(controller_ip)
-    ? 'http://[' + controller_ip + ']:8080'
-    : 'http://' + controller_ip + ':8080';
-}
-
-app.use('/apiservice/:topology/',
-  proxy(getAPIServiceHost, {
-    memoizeHost: false,
-    parseReqBody: false,
-  }),
-);
 
 app.get(/\/*/, function (req, res) {
   res.render('index', {
