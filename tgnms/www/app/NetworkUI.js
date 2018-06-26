@@ -212,7 +212,7 @@ export default class NetworkUI extends React.Component {
     }
     // update last request time
     this.lastHealthRequestTime = new Date() / 1000;
-    axios.get('/health/' + networkName).then(response => {
+    axios.get('/topology/health/' + networkName).then(response => {
       const data = response.data;
       if (data.length !== 2) {
         return;
