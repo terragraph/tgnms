@@ -859,7 +859,7 @@ export default class NetworkLinksTable extends React.Component {
               viewName: 'stats',
             });
           }}>
-          Node Stats
+          Node Dashboard
         </div>
       </span>
     );

@@ -27,7 +27,6 @@ import {isEqual, isEmpty} from 'lodash-es';
 
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
-//  TODO: populate link dashboard with pre-made graphs
 const DEFAULT_LINK_DASHBOARD = {
   endTime: null,
   graphs: [],
@@ -39,15 +38,13 @@ const DEFAULT_LINK_DASHBOARD = {
 
 export default class NetworkDashboards extends React.Component {
   static propTypes = {
-    commitPlan: PropTypes.object,
-    config: PropTypes.array,
-    networkConfig: PropTypes.object,
-    networkName: PropTypes.string,
-    onHandleSelectedDashboardChange: PropTypes.func,
-    pendingTopology: PropTypes.object,
-    selectedDashboard: PropTypes.string,
-    viewContext: PropTypes.object,
-    viewLinkDashboard: PropTypes.func,
+    commitPlan: PropTypes.object.isRequired,
+    config: PropTypes.array.isRequired,
+    networkConfig: PropTypes.object.isRequired,
+    networkName: PropTypes.string.isRequired,
+    pendingTopology: PropTypes.object.isRequired,
+    viewContext: PropTypes.object.isRequired,
+    viewLinkDashboard: PropTypes.func.isRequired,
   };
 
   state = {
@@ -59,6 +56,7 @@ export default class NetworkDashboards extends React.Component {
     hideDashboardOptions: false,
     hideDataSelect: true,
     modalIsOpen: false,
+    selectedDashboard: '',
   };
 
   async componentDidMount() {
@@ -70,6 +68,7 @@ export default class NetworkDashboards extends React.Component {
       // then display the link dashboard with viewContext information
       if (!isEmpty(this.props.viewContext)) {
         const {topologyName, nodeAName, nodeZName} = this.props.viewContext;
+        this.setState({selectedDashboard: 'Link Dashboard'});
         this.updateAndShowLinkDashboard(topologyName, nodeAName, nodeZName);
       }
     });
@@ -78,6 +77,7 @@ export default class NetworkDashboards extends React.Component {
   async componentDidUpdate(prevProps) {
     if (!isEqual(prevProps.viewContext, this.props.viewContext)) {
       const {topologyName, nodeAName, nodeZName} = this.props.viewContext;
+      this.setState({selectedDashboard: 'Link Dashboard'});
       this.updateAndShowLinkDashboard(topologyName, nodeAName, nodeZName);
     }
     if (
@@ -118,7 +118,8 @@ export default class NetworkDashboards extends React.Component {
             return false;
           }
           dashboards[inputValue] = {graphs: []};
-          this.props.onHandleSelectedDashboardChange(inputValue);
+          this.setState({selectedDashboard: inputValue});
+
           this.setState({
             dashboards,
             editView: false,
@@ -128,7 +129,7 @@ export default class NetworkDashboards extends React.Component {
         },
       );
     } else {
-      this.props.onHandleSelectedDashboardChange(val.label);
+      this.setState({selectedDashboard: val.label});
       this.setState({
         editView: false,
       });
@@ -145,7 +146,7 @@ export default class NetworkDashboards extends React.Component {
   addGraphToDashboard = graph => {
     this.setState({editView: true});
     const {dashboards} = this.state;
-    const dashboard = dashboards[this.props.selectedDashboard];
+    const dashboard = dashboards[this.state.selectedDashboard];
     const newGraphs = [graph, ...dashboard.graphs];
     dashboard.graphs = newGraphs;
     this.setState({
@@ -176,7 +177,7 @@ export default class NetworkDashboards extends React.Component {
     swal(
       {
         title: 'Are you sure?',
-        text: 'This will delete the dashboard: ' + this.props.selectedDashboard,
+        text: 'This will delete the dashboard: ' + this.state.selectedDashboard,
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
@@ -185,8 +186,8 @@ export default class NetworkDashboards extends React.Component {
       },
       () => {
         const {dashboards} = this.state;
-        delete dashboards[this.props.selectedDashboard];
-        this.props.onHandleSelectedDashboardChange(null);
+        delete dashboards[this.state.selectedDashboard];
+        this.setState({selectedDashboard: ''});
         this.saveDashboards();
         swal('Deleted!', 'The selected dashboard was deleted.', 'success');
         this.setState({
@@ -203,7 +204,7 @@ export default class NetworkDashboards extends React.Component {
         title: 'Dashboard Name',
         text: 'Enter dashboard name:',
         type: 'input',
-        inputValue: this.props.selectedDashboard,
+        inputValue: this.state.selectedDashboard,
         showCancelButton: true,
         closeOnConfirm: false,
         animation: 'slide-from-top',
@@ -218,15 +219,15 @@ export default class NetworkDashboards extends React.Component {
           return false;
         }
         if (
-          inputValue !== this.props.selectedDashboard &&
+          inputValue !== this.state.selectedDashboard &&
           dashboards[inputValue]
         ) {
           swal.showInputError('Name Already exists');
           return false;
         }
-        dashboards[inputValue] = dashboards[this.props.selectedDashboard];
-        delete dashboards[this.props.selectedDashboard];
-        this.props.onHandleSelectedDashboardChange(inputValue);
+        dashboards[inputValue] = dashboards[this.state.selectedDashboard];
+        delete dashboards[this.state.selectedDashboard];
+        this.setState({selectedDashboard: inputValue});
         this.setState({
           dashboards,
         });
@@ -256,10 +257,10 @@ export default class NetworkDashboards extends React.Component {
     const {dashboards} = this.state;
     if (
       dashboards &&
-      this.props.selectedDashboard &&
-      this.props.selectedDashboard in dashboards
+      this.state.selectedDashboard &&
+      this.state.selectedDashboard in dashboards
     ) {
-      const dashboard = dashboards[this.props.selectedDashboard];
+      const dashboard = dashboards[this.state.selectedDashboard];
       const graphs = dashboard.graphs;
       layout.forEach((glayout, index) => {
         const graph = graphs[index];
@@ -288,22 +289,22 @@ export default class NetworkDashboards extends React.Component {
 
   // Navigate to the link dashboard with global data based on parameters
   updateAndShowLinkDashboard = (topologyName, nodeAName, nodeZName) => {
-    this.props.onHandleSelectedDashboardChange('Link Dashboard');
+    this.setState({selectedDashboard: 'Link Dashboard'}, () => {
+      const {nodes} = this.props.networkConfig.topology;
+      const nodeA = nodes.find(node => node.name === nodeAName);
+      const nodeZ = nodes.find(node => node.name === nodeZName);
 
-    const {nodes} = this.props.networkConfig.topology;
-    const nodeA = nodes.find(node => node.name === nodeAName);
-    const nodeZ = nodes.find(node => node.name === nodeZName);
-
-    if (!nodeA || !nodeZ) {
-      this.generateErrorAlert('Bad parameters for generating link dashboard');
-    } else {
-      this.onChangeDashboardGlobalData(null, 120, nodeA, nodeZ, null);
-    }
+      if (!nodeA || !nodeZ) {
+        this.generateErrorAlert('Bad parameters for generating link dashboard');
+      } else {
+        this.onChangeDashboardGlobalData(null, 120, nodeA, nodeZ, null);
+      }
+    });
   };
 
   onEditGraphButtonClicked = index => {
     const {dashboards} = this.state;
-    const dashboard = dashboards[this.props.selectedDashboard];
+    const dashboard = dashboards[this.state.selectedDashboard];
     const graphs = dashboard.graphs;
     this.setState({
       editedGraph: graphs[index],
@@ -315,7 +316,7 @@ export default class NetworkDashboards extends React.Component {
 
   onEditGraphName = index => {
     const {dashboards} = this.state;
-    const dashboard = dashboards[this.props.selectedDashboard];
+    const dashboard = dashboards[this.state.selectedDashboard];
     const graph = dashboard.graphs[index];
     swal(
       {
@@ -330,7 +331,7 @@ export default class NetworkDashboards extends React.Component {
       () => {
         const {dashboards} = this.state;
         // update name
-        dashboards[this.props.selectedDashboard].graphs[index].name =
+        dashboards[this.state.selectedDashboard].graphs[index].name =
           graph.name;
         this.setState({
           dashboards,
@@ -343,7 +344,7 @@ export default class NetworkDashboards extends React.Component {
 
   onDeleteGraph = index => {
     const {dashboards} = this.state;
-    const dashboard = dashboards[this.props.selectedDashboard];
+    const dashboard = dashboards[this.state.selectedDashboard];
     const graphs = dashboard.graphs;
     graphs.splice(index, 1);
     this.setState({
@@ -353,7 +354,7 @@ export default class NetworkDashboards extends React.Component {
 
   editGraphOnDashboard = graph => {
     const {dashboards} = this.state;
-    const dashboard = dashboards[this.props.selectedDashboard];
+    const dashboard = dashboards[this.state.selectedDashboard];
     const graphs = dashboard.graphs;
     if (graph) {
       graphs[this.state.editedGraphIndex] = graph;
@@ -386,7 +387,7 @@ export default class NetworkDashboards extends React.Component {
   // units of startTime and endTime should be a date object
   onChangeDashboardGlobalData = (endTime, minAgo, nodeA, nodeZ, startTime) => {
     const {dashboards} = this.state;
-    const dashboard = dashboards[this.props.selectedDashboard];
+    const dashboard = dashboards[this.state.selectedDashboard];
     const newDashboard = {
       ...dashboard,
       nodeA,
@@ -422,7 +423,7 @@ export default class NetworkDashboards extends React.Component {
       this.setState({
         dashboards: {
           ...dashboards,
-          [this.props.selectedDashboard]: newDashboard,
+          [this.state.selectedDashboard]: newDashboard,
         },
       });
       return;
@@ -452,7 +453,7 @@ export default class NetworkDashboards extends React.Component {
       this.setState({
         dashboards: {
           ...dashboards,
-          [this.props.selectedDashboard]: newDashboard,
+          [this.state.selectedDashboard]: newDashboard,
         },
       });
     });
@@ -643,9 +644,9 @@ export default class NetworkDashboards extends React.Component {
 
     if (
       this.state.dashboards &&
-      this.state.dashboards[this.props.selectedDashboard]
+      this.state.dashboards[this.state.selectedDashboard]
     ) {
-      const dashboard = this.state.dashboards[this.props.selectedDashboard];
+      const dashboard = this.state.dashboards[this.state.selectedDashboard];
       const graphs = dashboard.graphs;
       graphs.forEach((graph, index) => {
         const id = index.toString();
@@ -702,7 +703,7 @@ export default class NetworkDashboards extends React.Component {
 
   render() {
     const grid = this.generateGraphGrid();
-    const {selectedDashboard} = this.props;
+    const {selectedDashboard} = this.state;
     const {dashboards} = this.state;
     let dashboard = {};
     if (dashboards && selectedDashboard && selectedDashboard in dashboards) {
@@ -759,10 +760,10 @@ export default class NetworkDashboards extends React.Component {
               onDeleteGraph={this.onDeleteGraph}
               onDeleteDashboard={this.onDeleteDashboard}
               onDashboardNameChange={this.onDashboardNameChange}
-              onHandleSelectedDashboardChange={
-                this.props.onHandleSelectedDashboardChange
+              onHandleSelectedDashboardChange={val =>
+                this.setState({selectedDashboard: val})
               }
-              selectedDashboard={this.props.selectedDashboard}
+              selectedDashboard={this.state.selectedDashboard}
               topologyName={this.props.networkConfig.topology.name}
             />
             {dashboards &&

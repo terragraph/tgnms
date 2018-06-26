@@ -68,9 +68,7 @@ export default class NetworkUI extends React.Component {
     topology: {},
     // additional topology to render on the map
     pendingTopology: {},
-
-    // Last selected dashboard for NetworkDashboards
-    selectedDashboard: null,
+    commitPlan: null,
   };
 
   constructor(props) {
@@ -89,14 +87,9 @@ export default class NetworkUI extends React.Component {
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
   }
 
-  handleSelectedDashboardChange = selectedDashboard => {
-    this.setState({selectedDashboard});
-  };
-
   // Navigate to Dashboards tab and see the Link Dashboard updated with a
-  // new nodeA and node
+  // new nodeA and nodeZ
   viewLinkDashboard = (topologyName, nodeAName, nodeZName) => {
-    this.setState({selectedDashboard: 'Link Dashboard'});
     Dispatcher.dispatch({
       actionType: Actions.VIEW_SELECTED,
       context: {
@@ -534,8 +527,6 @@ export default class NetworkUI extends React.Component {
         paneComponent = (
           <NetworkDashboards
             {...viewProps}
-            selectedDashboard={this.state.selectedDashboard}
-            onHandleSelectedDashboardChange={this.handleSelectedDashboardChange}
             viewLinkDashboard={this.viewLinkDashboard}
           />
         );
