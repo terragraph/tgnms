@@ -70,6 +70,27 @@ export default class UpgradeLeftPane extends React.Component {
     });
   }
 
+  fullUpgradeWithAlert = () => {
+    const {selectedNodes} = this.props;
+    if (selectedNodes.length === 0) {
+      swal(noNodesAlertProps);
+    } else if (this.isUpgradeInProgress()) {
+      swal(warningAlertProps, isConfirm => {
+        if (isConfirm) {
+          this.fullUpgrade();
+        }
+      });
+    } else {
+      this.fullUpgrade();
+    }
+  };
+
+  fullUpgrade = () => {
+    Dispatcher.dispatch({
+      actionType: Actions.OPEN_FULL_UPGRADE_MODAL,
+    });
+  };
+
   prepareUpgradeWithAlert = () => {
     const {selectedNodes} = this.props;
     if (selectedNodes.length === 0) {
@@ -128,6 +149,9 @@ export default class UpgradeLeftPane extends React.Component {
         </label>
         <button className="upgrade-btn" onClick={this.launchUpgradeServer}>
           Manage Upgrade Images
+        </button>
+        <button className="upgrade-btn" onClick={this.fullUpgradeWithAlert}>
+          Full Upgrade
         </button>
         <button className="upgrade-btn" onClick={this.prepareUpgradeWithAlert}>
           Prepare

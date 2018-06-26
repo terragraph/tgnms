@@ -1,4 +1,3 @@
-namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.Controller
 
 cpp_include "<unordered_map>"
@@ -284,6 +283,7 @@ enum UpgradeReqType {
   PREPARE_UPGRADE = 10,
   COMMIT_UPGRADE = 20,
   RESET_STATUS = 30,
+  FULL_UPGRADE = 40,
 }
 
 /**
@@ -838,17 +838,6 @@ struct GetCtrlNeighborsResp {
   2: string reqId;
 }
 
-// Sent from ctrl to API/CLI after GetCtrlNeighborsResp
-struct GetNeighborsResp {
-  // Map from devices to a list of ipv6 neighbors on that device
-  1: map<string /* device */, list<MinionNeighbor>>
-     (cpp.template = "std::unordered_map") deviceNeighborsMap;
-  // The unique identifier that will be attached to all associated node reports
-  2: string reqId;
-  // Minion mac addr that sends this response
-  4: string minion;
-}
-
 // States from ip-neighbour(8) man page
 enum MinionNeighborState {
   PERMANENT = 0,
@@ -868,6 +857,17 @@ struct MinionNeighbor {
   1: string ipv6Address;
   2: string macAddr;
   3: MinionNeighborState state;
+}
+
+// Sent from ctrl to API/CLI after GetCtrlNeighborsResp
+struct GetNeighborsResp {
+  // Map from devices to a list of ipv6 neighbors on that device
+  1: map<string /* device */, list<MinionNeighbor>>
+     (cpp.template = "std::unordered_map") deviceNeighborsMap;
+  // The unique identifier that will be attached to all associated node reports
+  2: string reqId;
+  // Minion mac addr that sends this response
+  4: string minion;
 }
 
 struct GetMinionNeighborsReq {
@@ -1631,15 +1631,15 @@ struct BinaryStarGetState {}
 
 ############# Common #############
 
+enum CompressionFormat {
+  SNAPPY = 1,
+}
+
 struct Message {
   1: MessageType mType;
   2: binary value;
   3: optional bool compressed;
   4: optional CompressionFormat compressionFormat;
-}
-
-enum CompressionFormat {
-  SNAPPY = 1,
 }
 
 // hello message send/reply by both sides for confirmation of established

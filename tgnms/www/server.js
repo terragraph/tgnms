@@ -1077,6 +1077,622 @@ app.post(/\/dashboards\/save\/$/i, function (req, res, next) {
     }
   });
 });
+app.get(/\/controller\/setlinkStatus\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const nodeA = req.params[1];
+  const nodeZ = req.params[2];
+  const status = req.params[3] === 'up';
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'setLinkStatus',
+      topology: topology,
+      nodeA: nodeA,
+      nodeZ: nodeZ,
+      status: status,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/addLink\/(.+)\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const linkName = req.params[1];
+  const nodeA = req.params[2];
+  const nodeZ = req.params[3];
+  const linkType = req.params[4] === 'WIRELESS' ? 1 : 2;
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'addLink',
+      topology: topology,
+      linkName: linkName,
+      nodeA: nodeA,
+      nodeZ: nodeZ,
+      linkType: linkType,
+    },
+    '',
+    res
+  );
+});
+
+app.post(/\/controller\/addNode$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const topologyName = postData.topology;
+    var topology = getTopologyByName(topologyName);
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'addNode',
+        topology: topology,
+        node: postData.newNode,
+      },
+      '',
+      res
+    );
+  });
+});
+
+app.post(/\/controller\/addSite$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const topologyName = postData.topology;
+    var topology = getTopologyByName(topologyName);
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'addSite',
+        topology: topology,
+        site: postData.newSite,
+      },
+      '',
+      res
+    );
+  });
+});
+
+app.get(/\/controller\/delLink\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const nodeA = req.params[1];
+  const nodeZ = req.params[2];
+  const forceDelete = req.params[3] === 'force';
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'delLink',
+      topology: topology,
+      nodeA: nodeA,
+      nodeZ: nodeZ,
+      forceDelete: forceDelete,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/delNode\/(.+)\/(.+)\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const forceDelete = req.params[2] === 'force';
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'delNode',
+      topology: topology,
+      node: nodeName,
+      forceDelete: forceDelete,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/renameSite\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const siteName = req.params[1];
+  const newSiteName = req.params[2];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'editSite',
+      topology: topology,
+      siteName: siteName,
+      newSiteName: newSiteName,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/renameNode\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const newNodeName = req.params[2];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'editNode',
+      topology: topology,
+      nodeName: nodeName,
+      newNodeName: newNodeName,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/setMac\/(.+)\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const nodeMac = req.params[2];
+  const force = req.params[3] === 'force';
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'setMac',
+      topology: topology,
+      node: nodeName,
+      mac: nodeMac,
+      force: force,
+    },
+    '',
+    res
+  );
+});
+
+app.post(/\/controller\/fulcrumSetMac$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    // Fulcrum needs to receive a 200 whether we care about this webhook or not
+
+    if (!httpPostData.length) {
+      res.status(200).end();
+      return;
+    }
+
+    let hookData;
+    // Attempt to parse the payload as JSON
+    try {
+      hookData = JSON.parse(httpPostData);
+    } catch (ex) {
+      console.error('JSON parse error on Fulcurm endpoint: ', httpPostData);
+      res.status(200).end();
+      return;
+    }
+
+    let record;
+    let sectors;
+    // Validate JSON content with some basic sanity checks
+    try {
+      // Only care about hooks from the installer app
+      if (
+        hookData.data.form_id !== '299399ce-cd92-4cda-8b76-c57ebb73ab33'
+      ) {
+        console.error(
+          'Fulcurm endpoint received webhook from wrong app: ',
+          hookData
+        );
+        res.status(200).end();
+        return;
+      }
+      // Only care about record updates, they'll have the MACs
+      if (hookData.type !== 'record.update') {
+        console.error(
+          'Fulcurm endpoint received non-update webhook: ',
+          hookData
+        );
+        res.status(200).end();
+        return;
+      }
+
+      record = hookData.data.form_values;
+
+      // Hacky static definition of Fulcrum's UID-based form field representations
+      sectors = record.b15d;
+    } catch (e) {
+      console.error("JSON data doesn't contain required info: ", hookData);
+      res.status(200).end();
+      return;
+    }
+
+    let anyInstalled = false;
+    sectors.forEach(sector => {
+      if (sector.form_values.dfa8 === 'Installed') {
+        anyInstalled = true;
+      }
+    });
+
+    if (!anyInstalled) {
+      console.error(
+        'None of the sectors in this webhook are installed: ',
+        hookData
+      );
+      res.status(200).end();
+      return;
+    }
+
+    let notInstalledCount = 0;
+    const topology = getTopologyByName('SJC');
+    const nodeToMacList = {};
+    sectors.forEach((sector, index) => {
+      // Skip node if it's status isn't 'installed' in Fulcrum
+      if (sector.form_values.dfa8 !== 'Installed') {
+        notInstalledCount += 1;
+        return;
+      }
+      const nodeMac = sector.form_values.f7f1;
+      const nodeName = sector.form_values['3546'];
+      nodeToMacList[nodeName] = nodeMac;
+      console.log('Fulcrum setting MAC ' + nodeMac + ' on ' + nodeName);
+    });
+    try {
+      syncWorker.sendCtrlMsgSync(
+        {
+          type: 'setMacList',
+          topology: topology,
+          nodeToMac: nodeToMacList,
+          force: false,
+        },
+        '',
+        res
+      );
+    } catch (e) {
+      console.log('Error while Fulcrum setting Mac: ' + e);
+    }
+    // In the case that nothing is installed still need to respond
+    if (notInstalledCount === sectors.length) {
+      res.status(200).end();
+    }
+  });
+});
+
+app.get(/\/controller\/getIgnitionState\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'getIgnitionState',
+      topology: topology,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/setNetworkIgnitionState\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const state = req.params[1] === 'enable';
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'setNetworkIgnitionState',
+      topology: topology,
+      state: state,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/setLinkIgnitionState\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const linkName = req.params[1];
+  const state = req.params[2] === 'enable';
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'setLinkIgnitionState',
+      topology: topology,
+      linkName: linkName,
+      state: state,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/rebootNode\/(.+)\/(.+)\/(.+)$/i, function (
+  req,
+  res,
+  next
+) {
+  const topologyName = req.params[0];
+  const nodeName = req.params[1];
+  const forceReboot = req.params[2] === 'force';
+  var topology = getTopologyByName(topologyName);
+  const SECONDS_TO_REBOOT = 5;
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'rebootNode',
+      topology: topology,
+      forceReboot: forceReboot,
+      nodes: [nodeName],
+      secondsToReboot: SECONDS_TO_REBOOT,
+    },
+    '',
+    res
+  );
+});
+
+app.get(/\/controller\/delSite\/(.+)\/(.+)$/i, function (req, res, next) {
+  const topologyName = req.params[0];
+  const siteName = req.params[1];
+  var topology = getTopologyByName(topologyName);
+
+  syncWorker.sendCtrlMsgSync(
+    {
+      type: 'delSite',
+      topology: topology,
+      site: siteName,
+    },
+    '',
+    res
+  );
+});
+
+// upgrade endpoints $/i
+app.post(/\/controller\/resetStatus$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const {
+      nodes,
+      requestId,
+      topologyName,
+    } = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'resetStatus',
+	nodes,
+        requestId,
+	topology,
+      },
+      '',
+      res
+    );
+  });
+});
+
+app.post(/\/controller\/fullUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    let postData = JSON.parse(httpPostData);
+    const {
+      excludeNodes,
+      nodes,
+      timeout,
+      md5,
+      imageUrl,
+      skipFailure,
+      limit,
+      scheduleToCommit,
+      skipLinks,
+      torrentParams,
+      requestId,
+      topologyName,
+    } = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'fullUpgrade',
+        excludeNodes,
+        nodes,
+        timeout,
+        md5,
+        imageUrl,
+        skipFailure,
+        limit,
+        scheduleToCommit,
+        skipLinks,
+        torrentParams,
+        requestId,
+        topology
+      },
+      '',
+      res
+    );
+  });
+});
+
+app.post(/\/controller\/prepareUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const {
+      topologyName,
+      isHttp,
+      requestId,
+      excludeNodes,
+      imageUrl,
+      md5,
+      timeout,
+      skipFailure,
+      limit,
+      downloadAttempts,
+      torrentParams,
+    } = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'prepareUpgrade',
+        upgradeGroupType: 'NETWORK',
+        requestId,
+        excludeNodes,
+        imageUrl,
+        md5,
+        timeout,
+        skipFailure,
+        limit,
+        isHttp,
+        downloadAttempts,
+        torrentParams,
+        topology,
+      },
+      '',
+      res
+    );
+  });
+});
+
+app.post(/\/controller\/commitUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const {
+      ugType,
+      topologyName,
+      requestId,
+      nodes,
+      excludeNodes,
+      timeout,
+      skipFailure,
+      limit,
+      skipLinks,
+      scheduleToCommit,
+    } = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'commitUpgrade',
+        upgradeGroupType: ugType,
+        requestId,
+        nodes,
+        excludeNodes,
+        timeout,
+        skipFailure,
+        limit,
+        skipLinks,
+        scheduleToCommit,
+        topology,
+      },
+      '',
+      res
+    );
+  });
+});
+
+app.post(/\/controller\/commitUpgradePlan$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const { topologyName, limit, excludeNodes } = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'commitUpgradePlan',
+        limit,
+        excludeNodes,
+        topology,
+      },
+      '',
+      res
+    );
+  });
+});
+
+app.post(/\/controller\/abortUpgrade$/i, function (req, res, next) {
+  let httpPostData = '';
+  req.on('data', function (chunk) {
+    httpPostData += chunk.toString();
+  });
+  req.on('end', function () {
+    const postData = JSON.parse(httpPostData);
+    const { abortAll, reqIds, topologyName } = postData;
+
+    var topology = getTopologyByName(topologyName);
+
+    syncWorker.sendCtrlMsgSync(
+      {
+        type: 'abortUpgrade',
+        abortAll,
+        reqIds,
+        topology,
+      },
+      '',
+      res
+    );
+  });
+});
 
 app.post(
   /\/controller\/uploadUpgradeBinary$/i,

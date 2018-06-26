@@ -1,6 +1,5 @@
 namespace php CXL_Terragraph
 namespace py terragraph_thrift.Topology
-namespace cpp2 facebook.terragraph.thrift
 
 enum NodeType {
     CN = 1,

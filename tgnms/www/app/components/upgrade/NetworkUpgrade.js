@@ -15,6 +15,7 @@ import {
 import {UPGRADE_IMAGE_REFRESH_INTERVAL} from '../../constants/UpgradeConstants.js';
 import ModalAbortUpgrade from './ModalAbortUpgrade.js';
 import ModalCommitUpgrade from './ModalCommitUpgrade.js';
+import ModalFullUpgrade from './ModalFullUpgrade.js';
 import ModalPrepareUpgrade from './ModalPrepareUpgrade.js';
 import ModalResetStatus from './ModalResetStatus.js';
 import ModalUpgradeBinary from './ModalUpgradeBinary.js';
@@ -30,6 +31,7 @@ const UPGRADE_OPERATIONS = {
   COMMIT: 'commit',
   ABORT: 'abort',
   RESET: 'reset',
+  FULL: 'full',
 };
 
 export default class NetworkUpgrade extends React.Component {
@@ -123,6 +125,12 @@ export default class NetworkUpgrade extends React.Component {
         this.setState({
           upgradeModalOpen: true,
           upgradeModalMode: UPGRADE_OPERATIONS.RESET,
+        });
+        break;
+      case Actions.OPEN_FULL_UPGRADE_MODAL:
+        this.setState({
+          upgradeModalOpen: true,
+          upgradeModalMode: UPGRADE_OPERATIONS.FULL,
         });
         break;
       case Actions.OPEN_PREPARE_UPGRADE_MODAL:
@@ -230,6 +238,19 @@ export default class NetworkUpgrade extends React.Component {
             onClose={() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeNodes={this.state.selectedNodesForUpgrade}
+            upgradeState={networkConfig.upgradeState}
+          />
+        );
+        break;
+      case UPGRADE_OPERATIONS.FULL:
+        upgradeNetworkModal = (
+          <ModalFullUpgrade
+            getExcludedNodes={this.getExcludedNodes}
+            isOpen={this.state.upgradeModalOpen}
+            onClose={() => this.setState({upgradeModalOpen: false})}
+            topologyName={networkConfig.topology.name}
+            upgradeNodes={this.state.selectedNodesForUpgrade}
+            upgradeImages={upgradeImages}
             upgradeState={networkConfig.upgradeState}
           />
         );
