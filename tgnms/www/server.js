@@ -25,35 +25,12 @@ const fs = require('fs');
 const isIp = require('is-ip');
 const path = require('path');
 const proxy = require('express-http-proxy');
-const querystring = require('querystring');
 const request = require('request');
 
 const {
   NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
 } = require('./server/config');
-
-// set up the upgrade images path
-const NETWORK_UPGRADE_IMAGES_REL_PATH = '/static/tg-binaries';
-const NETWORK_UPGRADE_IMAGES_FULL_PATH =
-  process.cwd() + NETWORK_UPGRADE_IMAGES_REL_PATH;
-if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_FULL_PATH)) {
-  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_FULL_PATH);
-}
-
-// multer + configuration
-const multer = require('multer');
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, NETWORK_UPGRADE_IMAGES_FULL_PATH);
-  },
-  // where to save the file on disk
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage: storage });
 
 // set up font awesome here
 
@@ -353,21 +330,7 @@ app.get(/\/topology\/get_stateless\/(.+)$/i, function (req, res, next) {
   res.status(404).end('No such topology\n');
 });
 
-app.post(
-  /\/controller\/uploadUpgradeBinary$/i,
-  upload.single('binary'),
-  function (req, res, next) {
-    const urlPrefix = process.env.E2E_DL_URL ? process.env.E2E_DL_URL : (req.protocol + '://' + req.get('host'));
-    const uriPath = querystring.escape(req.file.filename);
-    const imageUrl = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
-
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify({
-      imageUrl,
-    }));
-  }
-);
-
+app.use('/controller', require('./server/controller/routes'));
 app.use('/dashboards', require('./server/dashboard/routes'));
 
 // First-time stuff
