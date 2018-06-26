@@ -178,3 +178,17 @@ struct GetLastUpdateTimesResult {
   // Set to true if there are more results in the shard.
   2: bool moreResults,
 }
+
+// Below are the data strure for passing time series between analytics and BQS
+struct RawTimeSeries {
+  1: Key beringei_db_key
+  3: list<TimeValuePair> time_series,
+}
+
+struct RawTimeSeriesList {
+  1: list<RawTimeSeries> time_series_and_key_list,
+}
+
+struct RawQueryReturn {
+  1: list<RawTimeSeriesList> query_return_list,
+}

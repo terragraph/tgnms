@@ -26,6 +26,7 @@
 #include <map>
 #include <utility>
 
+using apache::thrift::BinarySerializer;
 using apache::thrift::SimpleJSONSerializer;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -37,10 +38,12 @@ namespace gorilla {
 
 StatsTypeAheadHandler::StatsTypeAheadHandler(
     std::shared_ptr<MySqlClient> mySqlClient,
-    TACacheMap& typeaheadCache)
+    TACacheMap& typeaheadCache,
+    std::string request_source_type)
     : RequestHandler(),
       mySqlClient_(mySqlClient),
-      typeaheadCache_(typeaheadCache) {}
+      typeaheadCache_(typeaheadCache),
+      RequestSourceType_(request_source_type) {}
 
 void StatsTypeAheadHandler::onRequest(
     std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -60,11 +63,17 @@ void StatsTypeAheadHandler::onEOM() noexcept {
   auto body = body_->moveToFbString();
   query::TypeAheadRequest request;
   try {
-    request = SimpleJSONSerializer::deserialize<query::TypeAheadRequest>(body);
+    if (RequestSourceType_ == "python"){
+      LOG(INFO) << "Using Binary deserialize for python request";
+        request = BinarySerializer::deserialize<query::TypeAheadRequest>(body);
+    } else {
+      request =
+          SimpleJSONSerializer::deserialize<query::TypeAheadRequest>(body);
+    }
   } catch (const std::exception& ex) {
     LOG(INFO) << "Error deserializing stats type ahead request";
     ResponseBuilder(downstream_)
-        .status(500, "OK")
+        .status(500, "Internal Server Error")
         .header("Content-Type", "application/json")
         .body("Failed de-serializing stats type ahead request")
         .sendWithEOM();
@@ -81,7 +90,7 @@ void StatsTypeAheadHandler::onEOM() noexcept {
       LOG(ERROR) << "No type-ahead cache for \"" << request.topologyName
                  << "\"";
       ResponseBuilder(downstream_)
-          .status(500, "OK")
+          .status(500, "Internal Server Error")
           .header("Content-Type", "application/json")
           .body("No type-ahead cache found")
           .sendWithEOM();
