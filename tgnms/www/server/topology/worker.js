@@ -10,7 +10,6 @@ const axios = require('axios');
 const isIp = require('is-ip');
 const process = require('process');
 
-
 // main message loop from primary process
 process.on('message', msg => {
   if (!msg.type) {

@@ -6,6 +6,19 @@ if (!process.env.NODE_ENV) {
   process.env.BABEL_ENV = process.env.NODE_ENV;
 }
 
+const {
+  BERINGEI_QUERY_URL,
+} = require('./server/config');
+const {
+  getAllTopologyNames,
+  getConfigByName,
+  getNetworkHealth,
+  getNetworkInstanceConfig,
+  getTopologyByName,
+  reloadInstanceConfig,
+} = require('./server/topology/model');
+const {getAnalyzerData} = require('./server/topology/analyzer_data');
+const topologyPeriodic = require('./server/topology/periodic');
 const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 const express = require('express');
 const fs = require('fs');
@@ -14,6 +27,11 @@ const path = require('path');
 const proxy = require('express-http-proxy');
 const querystring = require('querystring');
 const request = require('request');
+
+const {
+  NETWORK_CONFIG_NETWORKS_PATH,
+  NETWORK_CONFIG_PATH,
+} = require('./server/config');
 
 // set up the upgrade images path
 const NETWORK_UPGRADE_IMAGES_REL_PATH = '/static/tg-binaries';
@@ -40,29 +58,12 @@ const upload = multer({ storage: storage });
 // set up font awesome here
 
 const compression = require('compression');
-// worker process
-const cp = require('child_process');
-const worker = cp.fork('./worker.js');
+
 // packaging
 const webpack = require('webpack');
 const devMode = process.env.NODE_ENV !== 'production';
 const port = devMode && process.env.PORT ? process.env.PORT : 80;
-// network config file
-const NETWORK_CONFIG_NETWORKS_PATH = './config/networks/';
-const NETWORK_CONFIG_INSTANCES_PATH = './config/instances/';
-const NETWORK_CONFIG_DEFAULT = 'lab_networks.json';
-const networkConfig = process.env.NETWORK
-  ? process.env.NETWORK + '.json'
-  : NETWORK_CONFIG_DEFAULT;
-if (!fs.existsSync(NETWORK_CONFIG_INSTANCES_PATH + networkConfig)) {
-  console.error(
-    'Unable to locate network config:',
-    networkConfig,
-    'in:',
-    NETWORK_CONFIG_INSTANCES_PATH
-  );
-  process.exit(1);
-}
+
 const app = express();
 app.use(compression());
 const queryHelper = require('./queryHelper');
@@ -74,35 +75,9 @@ dataJson.refreshNodes();
 const ipaddr = require('ipaddr.js');
 const pty = require('pty.js');
 
-const statusReportExpiry = 2 * 60000; // 2 minutes
-const maxThriftRequestFailures = 1;
-const maxThriftReportAge = 30; // seconds
-const maxControllerEvents = 10;
 
-const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086';
-const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
-  ? process.env.IM_SCAN_POLLING_ENABLED === '1'
-  : 0;
-
-var refreshIntervalTimer;
-var networkHealthTimer;
-var statsTypeaheadTimer;
-var ruckusControllerTimer;
-var systemLogsSources = {};
-var networkInstanceConfig = {};
-// new topology from worker process
-var configByName = {};
-var fileTopologyByName = {};
-var baseTopologyByName = {};
-var fileSiteByName = {};
-var topologyByName = {};
-var statusDumpsByName = {};
-var ignitionStateByName = {};
-var upgradeStateByName = {};
-var networkHealth = {};
-var analyzerData = {}; // cached results
 var fbinternal = {};
-var ruckusApsBySite = {};
+
 
 var dashboards = {};
 fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
@@ -111,450 +86,6 @@ fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
   }
 });
 
-worker.on('message', msg => {
-  if (!(msg.name in configByName)) {
-    console.error('Unable to find topology', msg.name);
-    return;
-  }
-  const config = configByName[msg.name];
-  var currentTime;
-  var curOnline;
-  switch (msg.type) {
-    case 'topology_update':
-      // log online/offline changes
-      if (config.controller_online !== msg.success) {
-        console.log(
-          new Date().toString(),
-          msg.name,
-          'controller',
-          msg.success ? 'online' : 'offline',
-          'in',
-          msg.response_time,
-          'ms'
-        );
-        // add event for controller up/down
-        config.controller_events.push([new Date(), msg.success]);
-        if (config.controller_events.length > maxControllerEvents) {
-          // restrict events size
-          config.controller_events.splice(maxControllerEvents);
-        }
-      }
-      // validate the name on disk matches the e2e received topology
-      if (msg.success && msg.name !== msg.topology.name) {
-        console.error(
-          'Invalid name received from controller for:',
-          msg.name,
-          ', Received:',
-          msg.topology.name
-        );
-        config.controller_online = false;
-        config.controller_error =
-          'Name mis-match between topology on disk ' +
-          'and e2e controller topology. ' +
-          msg.name +
-          ' != ' +
-          msg.topology.name;
-        return;
-      } else if (msg.success) {
-        // clear errors that no-longer exist
-        delete config.controller_error;
-      }
-      config.controller_failures = msg.success
-        ? 0
-        : config.controller_failures + 1;
-      if (config.controller_failures >= maxThriftRequestFailures) {
-        config.controller_online = false;
-      } else {
-        config.controller_online = true;
-      }
-      topologyByName[msg.name] = msg.success ? msg.topology : {};
-      break;
-    case 'status_dump_update':
-      statusDumpsByName[msg.name] = msg.success ? msg.status_dump : {};
-      currentTime = new Date().getTime();
-      // remove nodes with old timestamps in status report
-      if (msg.success && msg.status_dump && msg.status_dump.statusReports) {
-        if (msg.status_dump.version) {
-          config.controller_version = msg.status_dump.version.slice(0, -2);
-        }
-        Object.keys(msg.status_dump.statusReports).forEach(nodeMac => {
-          const report = msg.status_dump.statusReports[nodeMac];
-          const ts = report.timeStamp * 1000;
-          if (ts !== 0) {
-            const timeDiffMs = currentTime - ts;
-            if (timeDiffMs > statusReportExpiry) {
-              // status older than 2 minuets
-              delete msg.status_dump.statusReports[nodeMac];
-            }
-          }
-        });
-      }
-      break;
-    case 'scan_status':
-      if (msg.success) {
-        dataJson.writeScanResults(msg.name, msg.scan_status);
-      } else {
-        console.error('Failed to get scan_status from', msg.name);
-      }
-      break;
-    case 'ignition_state':
-      if (msg.success && msg.ignition_state) {
-        const linkNames = Array.from(
-          new Set(
-            msg.ignition_state.igCandidates.map(candidate => candidate.linkName)
-          )
-        );
-        ignitionStateByName[msg.name] = linkNames;
-      } else {
-        ignitionStateByName[msg.name] = [];
-      }
-      break;
-    case 'upgrade_state':
-      upgradeStateByName[msg.name] =
-        msg.success && msg.upgradeState ? msg.upgradeState : null;
-      break;
-    case 'bstar_state':
-      // check if topology has a backup controller and BSTAR_GET_STATE was
-      // successful
-      if (config.controller_ip_backup && msg.success) {
-        // check if state changed.
-        if ((msg.controller_ip == config.controller_ip_active &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
-            (msg.controller_ip == config.controller_ip_passive &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmStateSTATE_ACTIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmStateSTATE_PRIMARY))) {
-          const tempIp = config.controller_ip_passive;
-          config.controller_ip_passive = config.controller_ip_active;
-          config.controller_ip_active = tempIp;
-          console.log(config.name + " BSTAR state changed");
-          console.log("Active controller is  : " + config.controller_ip_active);
-          console.log("Passive controller is : " + config.controller_ip_passive);
-        }
-      }
-      break;
-    default:
-      console.error('Unknown message type', msg.type);
-  }
-});
-
-var logs = {};
-
-var tgNodeIp = null;
-
-function getTopologyByName (topologyName) {
-  if (!fileTopologyByName[topologyName]) {
-    return {};
-  }
-  let topology = {};
-  // ensure received topology looks valid-ish before using
-  if (topologyByName[topologyName] && topologyByName[topologyName].nodes) {
-    topology = topologyByName[topologyName];
-  } else {
-    topology = fileTopologyByName[topologyName];
-  }
-  // over-ride the topology name since many don't use
-  const config = configByName[topologyName];
-  if (!topology.name) {
-    console.error(
-      'No topology name received from controller for',
-      config.name,
-      '[',
-      config.controller_ip_active,
-      ']'
-    );
-    // force the original name if the controller has no name
-    topology.name = fileTopologyByName[topologyName].name;
-  }
-  // if base config set, show all sites/nodes/links in original topology
-  // and hide the rest
-  if (config.hasOwnProperty('base_topology_file')) {
-    // build list of base sites to include
-    const baseTopologyConfig = baseTopologyByName[topologyName];
-    const baseSitesByName = new Set();
-    baseTopologyConfig.sites.forEach(site => {
-      baseSitesByName.add(site.name);
-    });
-    const nodesToRemove = new Set();
-    const onlineSites = new Set();
-    topology.nodes.forEach(node => {
-      if (node.status !== 1) {
-        // node is online, don't remove
-        onlineSites.add(node.site_name);
-      }
-    });
-    topology.nodes = topology.nodes.filter(node => {
-      if (
-        !baseSitesByName.has(node.site_name) &&
-        !onlineSites.has(node.site_name)
-      ) {
-        nodesToRemove.add(node.name);
-        return false;
-      }
-      return true;
-    });
-    topology.sites = topology.sites.filter(site => {
-      if (!baseSitesByName.has(site.name) && !onlineSites.has(site.name)) {
-        return false;
-      }
-      return true;
-    });
-    topology.links = topology.links.filter(link => {
-      if (
-        nodesToRemove.has(link.a_node_name) ||
-        nodesToRemove.has(link.z_node_name)
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }
-  const status = statusDumpsByName[topologyName];
-  const nodes = topology.nodes;
-  for (var j = 0; j < nodes.length; j++) {
-    if (status && status.statusReports) {
-      topology.nodes[j].status_dump =
-        status.statusReports[nodes[j].mac_addr];
-    }
-  }
-  // detect aps without a matching site name
-  const allRuckusApNames = new Set(Object.keys(ruckusApsBySite));
-  if (allRuckusApNames.size > 0) {
-    // add ruckus aps
-    topology.sites = topology.sites.map(site => {
-      const siteName = site.name.toLowerCase();
-      // add ruckus ap information to the site
-      if (ruckusApsBySite.hasOwnProperty(siteName)) {
-        site.ruckus = ruckusApsBySite[siteName];
-      }
-      allRuckusApNames.delete(siteName);
-      return site;
-    });
-    // log missing site associations
-    if (allRuckusApNames.size > 0) {
-      console.log('[Ruckus AP] Missing site associations for', allRuckusApNames);
-    }
-  }
-  const networkConfig = Object.assign({}, config);
-  networkConfig.topology = topology;
-  if (config.site_coords_override) {
-    // swap site data
-    Object.keys(networkConfig.topology.sites).forEach(function (key) {
-      const site = networkConfig.topology.sites[key];
-      if (
-        fileSiteByName[topologyName] &&
-        fileSiteByName[topologyName][site.name]
-      ) {
-        site.location = fileSiteByName[topologyName][site.name].location;
-      }
-    });
-  }
-  let ignitionState = [];
-  if (ignitionStateByName.hasOwnProperty(topologyName)) {
-    ignitionState = ignitionStateByName[topologyName];
-  }
-  networkConfig.ignition_state = ignitionState;
-
-  let upgradeStateDump = null;
-  if (
-    upgradeStateByName.hasOwnProperty(topologyName) &&
-    !!upgradeStateByName[topologyName]
-  ) {
-    const upgradeState = upgradeStateByName[topologyName];
-    upgradeStateDump = getNodesWithUpgradeStatus(topology.nodes, upgradeState);
-  }
-
-  networkConfig.upgradeStateDump = upgradeStateDump;
-  networkConfig.fbinternal = fbinternal;
-
-  return networkConfig;
-}
-
-function getNodesWithUpgradeStatus (nodes, upgradeState) {
-  const upgradeStatusDump = {
-    curUpgradeReq: upgradeState.curReq,
-
-    curBatch: [],
-    pendingBatches: [],
-    pendingReqs: upgradeState.pendingReqs,
-    // pendingReqNodes: [], // a node might appear in multiple pending requests
-  };
-
-  // node mac_addr --> node object
-  const nodeNameToNode = {};
-  nodes.forEach(node => {
-    nodeNameToNode[node.name] = node;
-  });
-
-  // populate current batch
-  const curBatchNodes = [];
-  upgradeState.curBatch.filter(name => !!nodeNameToNode[name]).forEach(name => {
-    curBatchNodes.push(nodeNameToNode[name]);
-  });
-  upgradeStatusDump.curBatch = curBatchNodes;
-
-  // populate pending batches
-  const pendingBatchNodes = [];
-  upgradeState.pendingBatches.forEach((batch, batchIdx) => {
-    const nodesInBatch = [];
-    batch.filter(name => !!nodeNameToNode[name]).forEach(name => {
-      nodesInBatch.push(nodeNameToNode[name]);
-    });
-    pendingBatchNodes.push(nodesInBatch);
-  });
-  upgradeStatusDump.pendingBatches = pendingBatchNodes;
-
-  return upgradeStatusDump;
-}
-
-function reloadInstanceConfig () {
-  if (refreshIntervalTimer) {
-    clearInterval(refreshIntervalTimer);
-    clearInterval(networkHealthTimer);
-  }
-  configByName = {};
-  fileTopologyByName = {};
-  fileSiteByName = {};
-
-  // Read list of networks and start timer to pull network status/topology
-  fs.readFile(
-    NETWORK_CONFIG_INSTANCES_PATH + networkConfig,
-    'utf-8',
-    (err, data) => {
-      // unable to open file, exit
-      if (err) {
-        console.error('Unable to read config, failing.');
-        process.exit(1);
-      }
-      // serialize some example
-      networkInstanceConfig = JSON.parse(data);
-      if ('topologies' in networkInstanceConfig) {
-        const topologies = networkInstanceConfig.topologies;
-        Object.keys(topologies).forEach(function (key) {
-          const topologyConfig = topologies[key];
-          const topology = JSON.parse(
-            fs.readFileSync(
-              NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.topology_file
-            )
-          );
-          // base config
-          if (topologyConfig.hasOwnProperty('base_topology_file')) {
-            baseTopologyByName[topology.name] = JSON.parse(
-              fs.readFileSync(
-                NETWORK_CONFIG_NETWORKS_PATH + topologyConfig.base_topology_file
-              )
-            );
-          }
-          // original sites take priority, only add missing nodes and sites
-          const sitesByName = {};
-          topology.sites.forEach(site => {
-            sitesByName[site.name] = site;
-          });
-          const config = topologyConfig;
-          config.controller_online = false;
-          config.controller_failures = 0;
-          config.query_service_online = false;
-          config.name = topology.name;
-          config.controller_events = [];
-          config.controller_ip_active = config.controller_ip;
-          config.controller_ip_passive = config.controller_ip_backup ? config.controller_ip_backup : null;
-          configByName[topology.name] = config;
-          fileTopologyByName[topology.name] = topology;
-          const topologyName = topology.name;
-          fileSiteByName[topologyName] = {};
-          topology.sites.forEach(site => {
-            fileSiteByName[topologyName][site.name] = site;
-          });
-        });
-      } else {
-        console.error('No topologies found in config, failing!');
-        process.exit(1);
-      }
-
-      fbinternal = false;
-      if ('fbinternal' in networkInstanceConfig) {
-        fbinternal = networkInstanceConfig.fbinternal;
-      }
-
-      // topology/statis refresh
-      let refreshInterval = 5 /* seconds */ * 1000;
-      // health + analyzer cache
-      const healthRefreshInterval = 30 /* seconds */ * 1000;
-      // stats type-ahead node/key list
-      const typeaheadRefreshInterval = 5 /* minutes */ * 60 * 1000;
-      // ruckus controller cache
-      const ruckusControllerRefreshInterval = 1 /* minutes */ * 60 * 1000;
-      if ('refresh_interval' in networkInstanceConfig) {
-        refreshInterval = networkInstanceConfig.refresh_interval;
-      }
-      // ruckus ap controller
-      if ('ruckus_controller' in networkInstanceConfig &&
-          networkInstanceConfig.ruckus_controller === true) {
-        // ruckus data is fetched from BQS
-        // all topologies will use the same ruckus controller for now
-        refreshRuckusControllerCache();
-        ruckusControllerTimer = setInterval(() => {
-          refreshRuckusControllerCache();
-        }, ruckusControllerRefreshInterval);
-      }
-      const refreshHealthData = () => {
-        Object.keys(configByName).forEach(configName => {
-          console.log('Refreshing cache (health, analyzer) for',
-                      configName);
-          refreshNetworkHealth(configName);
-          refreshAnalyzerData(configName);
-        });
-      };
-
-      const refreshTypeaheadData = () => {
-        Object.keys(configByName).forEach(configName => {
-          console.log('Refreshing cache (stats type-ahead) for',
-                      configName);
-          refreshStatsTypeaheadCache(configName);
-          refreshSelftestData();
-        });
-      };
-      // initial load
-      refreshHealthData();
-      refreshTypeaheadData();
-      // start refresh timers
-      networkHealthTimer = setInterval(() => {
-        refreshHealthData();
-      }, healthRefreshInterval);
-      statsTypeaheadTimer = setInterval(() => {
-        refreshTypeaheadData();
-      }, typeaheadRefreshInterval);
-      // start poll request interval for topology/statis
-      refreshIntervalTimer = setInterval(() => {
-        worker.send({
-          type: 'poll',
-          topologies: Object.keys(configByName).map(
-            keyName => configByName[keyName]
-          ),
-        });
-      }, refreshInterval);
-
-      if (IM_SCAN_POLLING_ENABLED) {
-        console.log('IM_SCAN_POLLING_ENABLED is set');
-        let scanPollInterval = 60000;
-        if ('scan_poll_interval' in networkInstanceConfig) {
-          scanPollInterval = networkInstanceConfig.scan_poll_interval;
-        }
-        // start scan poll request interval
-        setInterval(() => {
-          worker.send({
-            type: 'scan_poll',
-            topologies: Object.keys(configByName).map(
-              keyName => configByName[keyName]
-            ),
-          });
-        }, scanPollInterval);
-      }
-    }
-  );
-}
-// initial config load
-reloadInstanceConfig();
 app.post(/\/config\/save$/i, function (req, res, next) {
   let httpPostData = '';
   req.on('data', function (chunk) {
@@ -569,7 +100,10 @@ app.post(/\/config\/save$/i, function (req, res, next) {
       configData.topologies.forEach(config => {
         // if the topology file doesn't exist, write it
         // TODO - sanitize file name (serious)
-        const topologyFile = NETWORK_CONFIG_NETWORKS_PATH + config.topology_file;
+        const topologyFile = path.join(
+          NETWORK_CONFIG_NETWORKS_PATH,
+          config.topology_file,
+        );
         if (config.topology && !fs.existsSync(topologyFile)) {
           console.log(
             'Missing topology file for',
@@ -596,7 +130,7 @@ app.post(/\/config\/save$/i, function (req, res, next) {
     }
 
     // update mysql time series db
-    const liveConfigFile = NETWORK_CONFIG_INSTANCES_PATH + networkConfig;
+    const liveConfigFile = NETWORK_CONFIG_PATH;
     fs.writeFile(liveConfigFile, JSON.stringify(configData, null, 4), function (
       err
     ) {
@@ -606,21 +140,9 @@ app.post(/\/config\/save$/i, function (req, res, next) {
         return;
       }
       res.status(200).end('Saved');
-      console.log('Saved instance config', networkConfig);
-      // reload it all
-      reloadInstanceConfig();
+      console.log('Saved instance config', NETWORK_CONFIG_PATH);
     });
   });
-});
-
-// Read list of system logging sources
-fs.readFile('./config/system_logging_sources.json', 'utf-8', (err, data) => {
-  // unable to open file, exit
-  if (err) {
-    console.error('Unable to read system logging sources');
-    return;
-  }
-  systemLogsSources = JSON.parse(data);
 });
 
 // serve static js + css
@@ -720,229 +242,26 @@ app.get(/\/self_test$/i, function(req, res) {
 
 app.get(/\/health\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
-  if (networkHealth.hasOwnProperty(topologyName)) {
-    res.send(networkHealth[topologyName]).end();
+  const networkHealth = getNetworkHealth(topologyName);
+  if (networkHealth) {
+    res.send(networkHealth).end();
   } else {
     console.log('No cache found for', topologyName);
     res.send('No cache').end();
   }
 });
 
-function refreshStatsTypeaheadCache(topologyName) {
-  console.log('Request to update stats type-ahead cache for topology', topologyName);
-  let topology = getTopologyByName(topologyName);
-  if (!topology) {
-    console.error('No topology found for', topologyName);
-    return;
-  }
-  topology = topology.topology;
-  topology.nodes.map(node => {
-    delete node.status_dump;
-    delete node.golay_idx;
-  });
-  topology.links.map(link => {
-    delete link.linkup_attempts;
-  });
-  const chartUrl = BERINGEI_QUERY_URL + '/stats_typeahead_cache';
-  request.post(
-    {
-      url: chartUrl,
-      body: JSON.stringify(topology),
-    },
-    (err, httpResponse, body) => {
-      if (err) {
-        console.error('Error fetching from query service:', err);
-        return;
-      }
-      console.log('Fetched stats_ta_cache for', topologyName);
-    }
-  );
-}
-function refreshRuckusControllerCache() {
-  console.log('Request to update ruckus controller cache');
-  const ruckusUrl = BERINGEI_QUERY_URL + '/ruckus_ap_stats';
-  request.post(
-    {
-      url: ruckusUrl,
-      body: JSON.stringify({}),
-    },
-    (err, httpResponse, body) => {
-      if (err) {
-        console.error('Error fetching from query service:', err);
-        return;
-      }
-
-      try {
-        const ruckusCache = JSON.parse(body);
-        ruckusApsBySite = ruckusCache;
-      } catch (ex) {
-        console.error('Unable to parse ruckus stats');
-        return;
-      }
-      console.log('Fetched ruckus controller stats.');
-    }
-  );
-}
-
-function refreshSelftestData (topologyName) {
-  // !!!!self test does not have network name - need to add it !!!!
-  if (!configByName.hasOwnProperty(topologyName)) {
-    console.error('Unknown topology', topologyName);
-    return;
-  }
-  filter.filterType = "GROUPS";
-  dataJson.readSelfTestResults(topologyName, null, filter);
-}
-
-function refreshNetworkHealth (topologyName) {
-  if (!configByName.hasOwnProperty(topologyName)) {
-    console.error('Unknown topology', topologyName);
-    return;
-  }
-  const nodeMetrics = [
-    {
-      name: 'minion_uptime',
-      metric: 'e2e_minion.uptime',
-      type: 'uptime_sec',
-      min_ago: 24 * 60, /* 24 hours */
-    },
-  ];
-  const linkMetrics = [
-    {
-      name: 'alive',
-      metric: 'fw_uptime',
-      type: 'event',
-      min_ago: 24 * 60, /* 24 hours */
-    },
-  ];
-  const startTime = new Date();
-  const query = {
-    topologyName: topologyName,
-    nodeQueries: nodeMetrics,
-    linkQueries: linkMetrics,
-  };
-  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
-  request.post(
-    {
-      url: chartUrl,
-      body: JSON.stringify(query),
-    },
-    (err, httpResponse, body) => {
-      if (err) {
-        console.error('Error fetching from beringei:', err);
-        configByName[topologyName].query_service_online = false;
-        return;
-      }
-      // set BQS online
-      configByName[topologyName].query_service_online = true;
-      const totalTime = new Date() - startTime;
-      console.log('Fetched health for', topologyName, 'in', totalTime, 'ms');
-      let parsed;
-      try {
-        parsed = JSON.parse(httpResponse.body);
-        // the backend returns both A/Z sides, re-write to one
-        if (parsed &&
-            parsed.length === 2 &&
-            parsed[1].hasOwnProperty('metrics')) {
-          Object.keys(parsed[1].metrics).forEach(linkName => {
-            const linkNameOnly = linkName.replace(" (A) - fw_uptime", "");
-            if (linkName !== linkNameOnly) {
-              parsed[1].metrics[linkNameOnly] = parsed[1].metrics[linkName];
-              // delete a-side name
-              delete parsed[1].metrics[linkName];
-            } else {
-              // delete z-side name
-              delete parsed[1].metrics[linkName];
-            }
-          });
-        }
-      } catch (ex) {
-        console.error('Failed to parse health json:', httpResponse.body);
-        return;
-      }
-      // join the results
-      networkHealth[topologyName] = parsed;
-    }
-  );
-}
-
 // raw stats data
 app.get(/\/link_analyzer\/(.+)$/i, function (req, res, next) {
   const topologyName = req.params[0];
-  if (analyzerData.hasOwnProperty(topologyName)) {
-    res.send(analyzerData[topologyName]).end();
+  const analyzerData = getAnalyzerData(topologyName);
+  if (analyzerData !== null) {
+    res.send(analyzerData).end();
   } else {
     console.log('No analyzer cache found for', topologyName);
     res.send('No analyzer cache').end();
   }
 });
-
-function refreshAnalyzerData (topologyName) {
-  const linkMetrics = [
-    {
-      name: 'not_used',
-      metric: 'fw_uptime',
-      type: 'analyzer_table',
-      min_ago: 60, /* 1 hour */
-    },
-    {
-      name: 'not_used',
-      metric: 'tx_ok',
-      type: 'analyzer_table',
-      min_ago: 60, /* 1 hour */
-    },
-    {
-      name: 'not_used',
-      metric: 'tx_fail',
-      type: 'analyzer_table',
-      min_ago: 60, /* 1 hour */
-    },
-    {
-      name: 'not_used',
-      metric: 'mcs',
-      type: 'analyzer_table',
-      min_ago: 60, /* 1 hour */
-    },
-    {
-      name: 'not_used',
-      metric: 'tx_power',
-      type: 'analyzer_table',
-      min_ago: 60, /* 1 hour */
-    },
-    {
-      name: 'not_used',
-      metric: 'snr',
-      type: 'analyzer_table',
-      min_ago: 60, /* 1 hour */
-    },
-  ];
-  const startTime = new Date();
-  const query = {
-    topologyName: topologyName,
-    nodeQueries: [],
-    linkQueries: linkMetrics,
-  };
-  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
-  request.post(
-    { url: chartUrl, body: JSON.stringify(query) },
-    (err, httpResponse, body) => {
-      if (err) {
-        console.error('Error fetching from beringei:', err);
-        return;
-      }
-      const totalTime = new Date() - startTime;
-      console.log('Fetched analyzer data for', topologyName, 'in', totalTime, 'ms');
-      let parsed;
-      try {
-        parsed = JSON.parse(httpResponse.body);
-      } catch (ex) {
-        console.error('Failed to parse json for analyzer data:', httpResponse.body);
-        return;
-      }
-      analyzerData[topologyName] = parsed;
-    }
-  );
-}
 
 // raw stats data
 app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
@@ -993,7 +312,9 @@ app.get(/^\/tile\/(.+)\/(.+)\/(.+)\/(.+)\.png$/, function (req, res, next) {
 });
 
 app.get(/\/topology\/list$/, function (req, res, next) {
-  res.json(Object.keys(configByName).map(keyName => configByName[keyName]));
+  res.json(
+    getAllTopologyNames().map(keyName => getTopologyByName(keyName)),
+  );
 });
 
 app.get(/\/topology\/get\/(.+)$/i, function (req, res, next) {
@@ -1093,6 +414,11 @@ app.post(
   }
 );
 
+// First-time stuff
+reloadInstanceConfig();
+topologyPeriodic.startPeriodicTasks();
+
+
 if (devMode) {
   // serve developer, non-minified build
   const config = require('./webpack.config.js');
@@ -1124,7 +450,7 @@ if (devMode) {
 }
 
 function getAPIServiceHost(req, res) {
-  const topology = configByName[req.params.topology];
+  const topology = getConfigByName(req.params.topology);
   if (topology.apiservice_baseurl) {
     return topology.apiservice_baseurl;
   }
@@ -1132,7 +458,6 @@ function getAPIServiceHost(req, res) {
   return isIp.v6(controller_ip)
     ? 'http://[' + controller_ip + ']:8080'
     : 'http://' + controller_ip + ':8080';
-
 }
 
 app.use('/apiservice/:topology/',
@@ -1143,7 +468,9 @@ app.use('/apiservice/:topology/',
 );
 
 app.get(/\/*/, function (req, res) {
-  res.render('index', { configJson: JSON.stringify(networkInstanceConfig) });
+  res.render('index', {
+    configJson: JSON.stringify(getNetworkInstanceConfig())
+  });
 });
 
 app.listen(port, '', function onStart (err) {
