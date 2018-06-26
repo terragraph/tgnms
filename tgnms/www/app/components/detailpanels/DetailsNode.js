@@ -77,13 +77,6 @@ export default class DetailsNode extends React.Component {
     // dispatch an action here, that would be good
   }
 
-  connectToTerminal(ipv6) {
-    if (ipv6 !== 'Not Available') {
-      window.open('/xterm/' + ipv6, '_blank');
-      window.focus();
-    }
-  }
-
   rebootNode(force) {
     const {node, topologyName} = this.props;
     swal(
@@ -448,15 +441,6 @@ export default class DetailsNode extends React.Component {
                           this.setMacAddr(true);
                         }}>
                         (forced)
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.connectToTerminal(ipv6);
-                        }}>
-                        Connect To Terminal
                       </span>
                     </div>
                     <div>
