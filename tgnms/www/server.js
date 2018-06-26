@@ -15,7 +15,6 @@ const topologyTTypes = require('./thrift/gen-nodejs/Topology_types');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const request = require('request');
 
 // set up font awesome here
 
@@ -42,19 +41,9 @@ app.set('view engine', 'pug');
 
 const expressWs = require('express-ws')(app);
 
-// proxy requests for OSM to a v6 endpoint
-app.get(/^\/tile\/(.+)\/(.+)\/(.+)\/(.+)\.png$/, function (req, res, next) {
-  const z = req.params[1];
-  const x = req.params[2];
-  const y = req.params[3];
-  // fetch png
-  const tileUrl =
-    'http://orm.openstreetmap.org/' + z + '/' + x + '/' + y + '.png';
-  request(tileUrl).pipe(res);
-});
-
 app.use('/apiservice', require('./server/apiservice/routes'));
 app.use('/controller', require('./server/controller/routes'));
+app.use('/map', require('./server/map/routes'));
 app.use('/metrics', require('./server/metrics/routes'));
 app.use('/dashboards', require('./server/dashboard/routes'));
 app.use('/topology', require('./server/topology/routes'));
