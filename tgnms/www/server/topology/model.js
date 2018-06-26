@@ -5,7 +5,7 @@ const {
   NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
 } = require('../config');
-const dataJson = require('../../dataJson');
+const dataJson = require('../metrics/dataJson');
 const {getNodesWithUpgradeStatus} = require('./upgrade_status');
 const _ = require('lodash');
 const {join} = require('path');

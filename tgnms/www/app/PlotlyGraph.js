@@ -91,7 +91,7 @@ export default class PlotlyGraph extends React.Component {
     }
     this.props.options['data'] = this.props.options.key_data;
     axios
-      .post('/multi_chart/', JSON.stringify([this.props.options]))
+      .post('/metrics/multi_chart/', JSON.stringify([this.props.options]))
       .then(resp => {
         if (!resp.data) {
           console.error('No data available');

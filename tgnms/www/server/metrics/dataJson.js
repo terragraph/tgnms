@@ -331,4 +331,7 @@ var self = {
   },
 };
 
+// load the initial node ids
+self.refreshNodes();
+
 module.exports = self;

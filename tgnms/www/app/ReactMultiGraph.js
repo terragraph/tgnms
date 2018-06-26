@@ -152,7 +152,7 @@ export default class ReactMultiGraph extends React.Component {
       }
     }.bind(this);
     try {
-      this.chartRequest.open('POST', '/multi_chart/', true);
+      this.chartRequest.open('POST', '/metrics/multi_chart/', true);
       this.chartRequest.send(JSON.stringify(this.props.options));
     } catch (e) {}
   }
