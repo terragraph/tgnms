@@ -6,7 +6,7 @@ const {
   refreshRuckusControllerCache,
   refreshSelfTestData,
   refreshStatsTypeaheadCache,
-  scheduleStatsUpdate,
+  scheduleScansUpdate,
   scheduleTopologyUpdate,
 } = require('./model');
 const {refreshAnalyzerData} = require('./analyzer_data');
@@ -58,7 +58,7 @@ function startPeriodicTasks() {
     HEALTH_REFRESH_INTERVAL,
   );
   runNowAndSchedule(
-    refreshTypeaheadData,
+    refreshSelfTestCache,
     TYPEAHEAD_REFRESH_INTERVAL,
   );
   // start poll request interval for topology/statis
@@ -71,7 +71,7 @@ function startPeriodicTasks() {
     console.log('IM_SCAN_POLLING_ENABLED is set');
 
     runNowAndSchedule(
-      scheduleStatsUpdate,
+      scheduleScansUpdate,
       _.get(config, 'scan_poll_interval', DEFAULT_SCAN_POLL_INTERVAL),
     );
   }
@@ -88,13 +88,12 @@ function refreshHealthData() {
   });
 }
 
-function refreshTypeaheadData() {
-  console.log('periodic: refreshing typeahead cache');
+function refreshSelfTestCache() {
+  console.log('periodic: refreshing self-test cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('periodic: refreshing cache (stats type-ahead) for',
+    console.log('periodic: refreshing self-test for',
                 configName);
-    refreshStatsTypeaheadCache(configName);
     refreshSelfTestData(configName);
   });
 }

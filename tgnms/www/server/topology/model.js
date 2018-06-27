@@ -335,38 +335,6 @@ function refreshSelfTestData(topologyName) {
   dataJson.readSelfTestResults(topologyName, null, filter);
 }
 
-function refreshStatsTypeaheadCache(topologyName) {
-  console.log('model: request to update stats type-ahead cache for topology',
-    topologyName);
-  let topology = getTopologyByName(topologyName);
-  if (!topology) {
-    console.error('No topology found for', topologyName);
-    return;
-  }
-  topology = topology.topology;
-  topology.nodes.map(node => {
-    delete node.status_dump;
-    delete node.golay_idx;
-  });
-  topology.links.map(link => {
-    delete link.linkup_attempts;
-  });
-  const chartUrl = BERINGEI_QUERY_URL + '/stats_typeahead_cache';
-  request.post(
-    {
-      url: chartUrl,
-      body: JSON.stringify(topology),
-    },
-    (err, httpResponse, body) => {
-      if (err) {
-        console.error('Error fetching from query service:', err);
-        return;
-      }
-      console.log('Fetched stats_ta_cache for', topologyName);
-    }
-  );
-}
-
 const worker = cp.fork(join(__dirname, 'worker.js'));
 
 function scheduleTopologyUpdate() {
@@ -379,8 +347,8 @@ function scheduleTopologyUpdate() {
   });
 }
 
-function scheduleStatsUpdate() {
-  console.log('model: scheduling stats update');
+function scheduleScansUpdate() {
+  console.log('model: scheduling scans update');
   worker.send({
     type: 'scan_poll',
     topologies: Object.keys(configByName).map(
@@ -527,8 +495,7 @@ module.exports = {
   refreshNetworkHealth,
   refreshRuckusControllerCache,
   refreshSelfTestData,
-  refreshStatsTypeaheadCache,
   reloadInstanceConfig,
-  scheduleStatsUpdate,
+  scheduleScansUpdate,
   scheduleTopologyUpdate,
 };
