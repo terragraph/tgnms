@@ -70,18 +70,18 @@ const DELETE_ALERTS_BY_MAC =
 
 const DATA_FOLDER_PATH = '/home/nms/data/';
 
-var self = {
-  fetchSysLogs: function (res, macAddr, sourceFile, offset, size, date) {
+const self = {
+  fetchSysLogs(res, macAddr, sourceFile, offset, size, date) {
     const folder = DATA_FOLDER_PATH + macAddr + '/';
     const fileName = folder + date + '_' + sourceFile + '.log';
 
-    fs.readFile(fileName, 'utf-8', function (err, data) {
+    fs.readFile(fileName, 'utf-8', (err, data) => {
       if (err) {
         res.json([]);
         return;
       }
 
-      var lines = data.trim().split('\n');
+      const lines = data.trim().split('\n');
 
       const numLines = lines.length;
       let begin = numLines - size - offset;
@@ -90,14 +90,14 @@ var self = {
       let end = begin + size;
       if (end > numLines) {end = numLines;}
 
-      var respLines = lines.slice(begin, end);
+      const respLines = lines.slice(begin, end);
       res.json(respLines);
     });
   },
 
-  fetchEventLogs: function (res, macAddr, category, from, size, partition) {
+  fetchEventLogs(res, macAddr, category, from, size, partition) {
     // execute query
-    pool.getConnection(function (err, conn) {
+    pool.getConnection((err, conn) => {
       if (!conn || err) {
         console.error('Unable to get mysql connection');
         res.status(500).end();
@@ -108,7 +108,7 @@ var self = {
       const queryString =
         EVENTLOG_BY_MAC_PART1 + '(' + partition + ') ' + EVENTLOG_BY_MAC_PART2;
       const sqlQuery = mysql.format(queryString, fields);
-      conn.query(sqlQuery, function (err, results) {
+      conn.query(sqlQuery, (err, results) => {
         conn.release();
         if (err) {
           console.log('Error', err);

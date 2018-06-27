@@ -18,8 +18,8 @@ process.on('message', msg => {
   }
 
   const getErrorHandler = function(type) {
-    return (error) => {
-        console.error('worker: ' + error.message);
+    return error => {
+      console.error('worker: ' + error.message);
     };
   };
 
@@ -32,8 +32,8 @@ process.on('message', msg => {
           return ([success, responseTime, data]) => {
             process.send({
               name: topology.name,
-              type: type,
-              success: success,
+              type,
+              success,
               response_time: responseTime,
               controller_ip: topology.controller_ip_active,
               [fieldName]: success ? data : null,
@@ -56,18 +56,19 @@ process.on('message', msg => {
           .then(getSuccessHandler('bstar_state', 'bstar_fsm'))
           .catch(getErrorHandler('bstar_state'));
         if (topology.controller_ip_passive) {
-          apiServiceRequest(topology, 'BStarGetState')
-            .then(([success, responseTime, data]) => {
+          apiServiceRequest(topology, 'BStarGetState').then(
+            ([success, responseTime, data]) => {
               // recvmsg.mType = BSTAR_FSM
               process.send({
                 name: topology.name,
                 type: 'bstar_state',
-                success: success,
+                success,
                 response_time: responseTime,
                 controller_ip: topology.controller_ip_passive,
                 bstar_fsm: success ? data : null,
               });
-            });
+            },
+          );
         }
       });
       break;
@@ -111,51 +112,55 @@ process.on('message', msg => {
   }
 });
 
-
 function apiServiceRequest(topology, apiMethod, data, config) {
   const controller_ip = topology.controller_ip_active;
-  const baseUrl = topology.apiservice_baseurl || (
-    isIp.v6(controller_ip)
+  const baseUrl =
+    topology.apiservice_baseurl ||
+    (isIp.v6(controller_ip)
       ? 'http://[' + controller_ip + ']:8080'
-      : 'http://' + controller_ip + ':8080'
-  );
+      : 'http://' + controller_ip + ':8080');
   const postData = data || {};
   // All apiservice requests are POST, and expect at least an empty dict.
   return new Promise((resolve, reject) => {
     const startTimer = new Date();
     const url = `${baseUrl}/api/${apiMethod}`;
-    retryAxios([100, 500, 1000], axios.post, url, postData, config).then(response => {
-      const endTimer = new Date();
-      const responseTime = endTimer - startTimer;
-      const success = true;
-      resolve([success, responseTime, response.data]);
-    })
-    .catch(error => {
-      if (error.response) {
-        console.error('worker: received status ' + error.response.status +
-                      ' for url ' + url);
-      } else {
-        console.error('worker: ' + error.message);
-      }
-      const endTimer = new Date();
-      const responseTime = endTimer - startTimer;
-      const success = false;
-      const data = error.response ? error.response.data : null;
-      resolve([success, responseTime, data]);
-    });
+    retryAxios([100, 500, 1000], axios.post, url, postData, config)
+      .then(response => {
+        const endTimer = new Date();
+        const responseTime = endTimer - startTimer;
+        const success = true;
+        resolve([success, responseTime, response.data]);
+      })
+      .catch(error => {
+        if (error.response) {
+          console.error(
+            'worker: received status ' +
+              error.response.status +
+              ' for url ' +
+              url,
+          );
+        } else {
+          console.error('worker: ' + error.message);
+        }
+        const endTimer = new Date();
+        const responseTime = endTimer - startTimer;
+        const success = false;
+        const data = error.response ? error.response.data : null;
+        resolve([success, responseTime, data]);
+      });
   });
 }
 
 const retryAxios = async (delays, axiosFunc, ...axiosArgs) => {
   // Extract the iterator from the iterable.
-  const timeout = ms => new Promise(res => setTimeout(res, ms))
+  const timeout = ms => new Promise(res => setTimeout(res, ms));
   const iterator = delays[Symbol.iterator]();
   while (true) {
     try {
       // Always call the service at least once.
       return await axiosFunc(...axiosArgs);
     } catch (error) {
-      const { done, value } = iterator.next();
+      const {done, value} = iterator.next();
       if (!done && error.response && error.response.status === 400) {
         console.log('worker: retrying ' + value);
         await timeout(value);
@@ -167,5 +172,4 @@ const retryAxios = async (delays, axiosFunc, ...axiosArgs) => {
   }
 };
 
-module.exports = {
-};
+module.exports = {};

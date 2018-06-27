@@ -9,7 +9,7 @@ const request = require('request');
 const app = express();
 
 // raw stats data
-app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
+app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const metricName = req.params[1];
   const linkMetrics = [
@@ -21,7 +21,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
     },
   ];
   const query = {
-    topologyName: topologyName,
+    topologyName,
     nodeQueries: [],
     linkQueries: linkMetrics,
   };
@@ -46,16 +46,16 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, function(req, res, next) {
 });
 
 // newer charting, for multi-linechart/row
-app.post(/\/multi_chart\/$/i, function (req, res, next) {
+app.post(/\/multi_chart\/$/i, (req, res, next) => {
   let httpPostData = '';
-  req.on('data', function (chunk) {
+  req.on('data', chunk => {
     httpPostData += chunk.toString();
   });
-  req.on('end', function () {
+  req.on('end', () => {
     // proxy query
     const chartUrl = BERINGEI_QUERY_URL + '/query';
     const httpData = JSON.parse(httpPostData);
-    const queryRequest = { queries: httpData };
+    const queryRequest = {queries: httpData};
     request.post(
       {
         url: chartUrl,
@@ -79,7 +79,7 @@ app.post(/\/multi_chart\/$/i, function (req, res, next) {
   });
 });
 
-app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
+app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
   const taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
   const taRequest = {
     topologyName: req.params.topology,
@@ -107,7 +107,7 @@ app.get('/stats_ta/:topology/:pattern', function (req, res, next) {
 //    filter[nodeFilter0]=<nodeFilter0>
 //    filter[nodeFilter1]=<nodeFilter1>
 // /i means ignore case
-app.get(/\/scan_results$/i, function(req, res) {
+app.get(/\/scan_results$/i, (req, res) => {
   const topologyName = req.query.topology;
   const filter = {};
   filter.nodeFilter = [];
@@ -124,7 +124,7 @@ app.get(/\/scan_results$/i, function(req, res) {
 //  filter type is "GROUPS" or "TESTRESULTS"
 //  testtime is in ms (unix time)
 // /i means ignore case
-app.get(/\/self_test$/i, function(req, res) {
+app.get(/\/self_test$/i, (req, res) => {
   const topologyName = req.query.topology;
   const filter = {};
   filter.filterType = req.query.filter.filterType;
@@ -133,7 +133,7 @@ app.get(/\/self_test$/i, function(req, res) {
 });
 
 // raw stats data
-app.get(/\/link_analyzer\/(.+)$/i, function (req, res, next) {
+app.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const analyzerData = getAnalyzerData(topologyName);
   if (analyzerData !== null) {

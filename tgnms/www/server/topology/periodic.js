@@ -35,7 +35,7 @@ function runNowAndSchedule(task, interval) {
 }
 
 function stopPeriodicTasks() {
-  periodicTasks.map(function (timer) {
+  periodicTasks.map(timer => {
     clearInterval(timer);
   });
   periodicTasks = [];
@@ -86,7 +86,7 @@ function refreshHealthData() {
     refreshNetworkHealth(configName);
     refreshAnalyzerData(configName);
   });
-};
+}
 
 function refreshTypeaheadData() {
   console.log('periodic: refreshing typeahead cache');
@@ -97,9 +97,9 @@ function refreshTypeaheadData() {
     refreshStatsTypeaheadCache(configName);
     refreshSelfTestData(configName);
   });
-};
+}
 
 module.exports = {
   stopPeriodicTasks,
   startPeriodicTasks,
-}
+};

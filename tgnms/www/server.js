@@ -62,21 +62,21 @@ if (devMode) {
   app.use(webpackHotMiddleware(compiler));
 } else {
   // serve js from dist/ in prod mode
-  app.get('/map.js', function (req, res) {
+  app.get('/map.js', (req, res) => {
     res.sendFile(path.join(__dirname, '/dist/map.js'));
   });
-  app.get('/bootstrap.css', function (req, res) {
+  app.get('/bootstrap.css', (req, res) => {
     res.sendFile(path.join(__dirname, '/dist/bootstrap.css'));
   });
 }
 
-app.get(/\/*/, function (req, res) {
+app.get(/\/*/, (req, res) => {
   res.render('index', {
-    configJson: JSON.stringify(getNetworkInstanceConfig())
+    configJson: JSON.stringify(getNetworkInstanceConfig()),
   });
 });
 
-app.listen(port, '', function onStart (err) {
+app.listen(port, '', err => {
   if (err) {
     console.log(err);
   }

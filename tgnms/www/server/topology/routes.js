@@ -13,7 +13,7 @@ const querystring = require('querystring');
 
 const app = express();
 
-app.get(/\/health\/(.+)$/i, function (req, res, next) {
+app.get(/\/health\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const networkHealth = getNetworkHealth(topologyName);
   if (networkHealth) {
@@ -24,13 +24,13 @@ app.get(/\/health\/(.+)$/i, function (req, res, next) {
   }
 });
 
-app.get(/\/list$/, function (req, res, next) {
+app.get(/\/list$/, (req, res, next) => {
   res.json(
     getAllTopologyNames().map(keyName => getTopologyByName(keyName)),
   );
 });
 
-app.get(/\/get\/(.+)$/i, function (req, res, next) {
+app.get(/\/get\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const topology = getTopologyByName(topologyName);
 
@@ -41,7 +41,7 @@ app.get(/\/get\/(.+)$/i, function (req, res, next) {
   res.status(404).end('No such topology\n');
 });
 
-app.get(/\/get_stateless\/(.+)$/i, function (req, res, next) {
+app.get(/\/get_stateless\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const networkConfig = Object.assign({}, getTopologyByName(topologyName));
   const topology = networkConfig.topology;
@@ -74,12 +74,12 @@ app.get(/\/get_stateless\/(.+)$/i, function (req, res, next) {
   res.status(404).end('No such topology\n');
 });
 
-app.post(/\/config\/save$/i, function (req, res, next) {
+app.post(/\/config\/save$/i, (req, res, next) => {
   let httpPostData = '';
-  req.on('data', function (chunk) {
+  req.on('data', chunk => {
     httpPostData += chunk.toString();
   });
-  req.on('end', function () {
+  req.on('end', () => {
     if (!httpPostData.length) {
       return;
     }
@@ -102,7 +102,7 @@ app.post(/\/config\/save$/i, function (req, res, next) {
           fs.writeFile(
             topologyFile,
             JSON.stringify(config.topology, null, 4),
-            function (err) {
+            err => {
               console.error(
                 'Unable to write topology file',
                 topologyFile,
@@ -119,9 +119,7 @@ app.post(/\/config\/save$/i, function (req, res, next) {
 
     // update mysql time series db
     const liveConfigFile = NETWORK_CONFIG_PATH;
-    fs.writeFile(liveConfigFile, JSON.stringify(configData, null, 4), function (
-      err
-    ) {
+    fs.writeFile(liveConfigFile, JSON.stringify(configData, null, 4), err => {
       if (err) {
         res.status(500).end('Unable to save');
         console.log('Unable to save', err);

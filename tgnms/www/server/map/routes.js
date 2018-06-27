@@ -4,7 +4,7 @@ const request = require('request');
 const app = express();
 
 // proxy requests for OSM to a v6 endpoint
-app.get(/^\/tile\/(.+)\/(.+)\/(.+)\/(.+)\.png$/, function (req, res, next) {
+app.get(/^\/tile\/(.+)\/(.+)\/(.+)\/(.+)\.png$/, (req, res, next) => {
   const z = req.params[1];
   const x = req.params[2];
   const y = req.params[3];

@@ -38,15 +38,16 @@ export default class ConfigModal extends React.Component {
     const data = {
       swVersions: [],
     };
-    apiServiceRequest(this.props.topologyName, 'getBaseConfig')
-      .then(response => {
+    apiServiceRequest(this.props.topologyName, 'getBaseConfig').then(
+      response => {
         const {config} = response.data;
         const controllerSwVersions = Object.keys(JSON.parse(config)).sort();
         this.setState({
           allControllerSwVersions: controllerSwVersions,
           allSwVersions: controllerSwVersions,
         });
-      });
+      },
+    );
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -82,11 +83,10 @@ export default class ConfigModal extends React.Component {
       node: nodeName,
       swVersion: selectedVersion,
     };
-    apiServiceRequest(topologyName, 'getNodeConfig', data)
-      .then(response => {
-        const {config} = response.data;
-        this.setState({config: JSON.parse(config)});
-      });
+    apiServiceRequest(topologyName, 'getNodeConfig', data).then(response => {
+      const {config} = response.data;
+      this.setState({config: JSON.parse(config)});
+    });
   }
 
   render() {

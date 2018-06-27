@@ -142,6 +142,10 @@
     "app/**/*.js": [
       "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
       "git add"
+    ],
+    "server/**/*.js": [
+      "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
+      "git add"
     ]
   },
   "babel": {

@@ -19,17 +19,17 @@ const maxThriftReportAge = 30; // seconds
 const maxControllerEvents = 10;
 
 // new topology from worker process
-var baseTopologyByName = {};
-var configByName = {};
-var fileSiteByName = {};
-var fileTopologyByName = {};
-var ignitionStateByName = {};
-var networkHealth = {};
-var networkInstanceConfig = {};
-var ruckusApsBySite = {};
-var statusDumpsByName = {};
-var topologyByName = {};
-var upgradeStateByName = {};
+const baseTopologyByName = {};
+let configByName = {};
+let fileSiteByName = {};
+let fileTopologyByName = {};
+const ignitionStateByName = {};
+const networkHealth = {};
+let networkInstanceConfig = {};
+let ruckusApsBySite = {};
+const statusDumpsByName = {};
+const topologyByName = {};
+const upgradeStateByName = {};
 
 function getAllTopologyNames() {
   return Object.keys(configByName);
@@ -112,7 +112,7 @@ function getTopologyByName(topologyName) {
   }
   const status = statusDumpsByName[topologyName];
   const nodes = topology.nodes;
-  for (var j = 0; j < nodes.length; j++) {
+  for (let j = 0; j < nodes.length; j++) {
     if (status && status.statusReports) {
       topology.nodes[j].status_dump =
         status.statusReports[nodes[j].mac_addr];
@@ -140,7 +140,7 @@ function getTopologyByName(topologyName) {
   networkConfig.topology = topology;
   if (config.site_coords_override) {
     // swap site data
-    Object.keys(networkConfig.topology.sites).forEach(function (key) {
+    Object.keys(networkConfig.topology.sites).forEach(key => {
       const site = networkConfig.topology.sites[key];
       if (
         fileSiteByName[topologyName] &&
@@ -166,7 +166,7 @@ function getNetworkInstanceConfig() {
 }
 
 function reloadInstanceConfig() {
-  console.log("Reloading instance config");
+  console.log('Reloading instance config');
   configByName = {};
   fileTopologyByName = {};
   fileSiteByName = {};
@@ -177,7 +177,7 @@ function reloadInstanceConfig() {
   networkInstanceConfig = JSON.parse(data);
   if ('topologies' in networkInstanceConfig) {
     const topologies = networkInstanceConfig.topologies;
-    Object.keys(topologies).forEach(function (key) {
+    Object.keys(topologies).forEach(key => {
       const topologyConfig = topologies[key];
       const topology = JSON.parse(
         fs.readFileSync(
@@ -273,7 +273,7 @@ function refreshNetworkHealth(topologyName) {
   ];
   const startTime = new Date();
   const query = {
-    topologyName: topologyName,
+    topologyName,
     nodeQueries: nodeMetrics,
     linkQueries: linkMetrics,
   };
@@ -301,7 +301,7 @@ function refreshNetworkHealth(topologyName) {
             parsed.length === 2 &&
             parsed[1].hasOwnProperty('metrics')) {
           Object.keys(parsed[1].metrics).forEach(linkName => {
-            const linkNameOnly = linkName.replace(" (A) - fw_uptime", "");
+            const linkNameOnly = linkName.replace(' (A) - fw_uptime', '');
             if (linkName !== linkNameOnly) {
               parsed[1].metrics[linkNameOnly] = parsed[1].metrics[linkName];
               // delete a-side name
@@ -322,7 +322,7 @@ function refreshNetworkHealth(topologyName) {
   );
 }
 
-function refreshSelfTestData (topologyName) {
+function refreshSelfTestData(topologyName) {
   // !!!!self test does not have network name - need to add it !!!!
   if (!configByName.hasOwnProperty(topologyName)) {
     console.error('self_test: Unknown topology', topologyName);
@@ -397,8 +397,8 @@ worker.on('message', msg => {
     return;
   }
   const config = configByName[msg.name];
-  var currentTime;
-  var curOnline;
+  let currentTime;
+  let curOnline;
   switch (msg.type) {
     case 'topology_update':
       // log online/offline changes
@@ -507,9 +507,9 @@ worker.on('message', msg => {
           const tempIp = config.controller_ip_passive;
           config.controller_ip_passive = config.controller_ip_active;
           config.controller_ip_active = tempIp;
-          console.log(config.name + " BSTAR state changed");
-          console.log("Active controller is  : " + config.controller_ip_active);
-          console.log("Passive controller is : " + config.controller_ip_passive);
+          console.log(config.name + ' BSTAR state changed');
+          console.log('Active controller is  : ' + config.controller_ip_active);
+          console.log('Passive controller is : ' + config.controller_ip_passive);
         }
       }
       break;

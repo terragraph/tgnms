@@ -240,11 +240,7 @@ export default class NMSConfig extends React.Component {
         </TableHeaderColumn>
       </BootstrapTable>
     );
-    return (
-      <div className="rc-nms-config">
-        {linksTable}
-      </div>
-    );
+    return <div className="rc-nms-config">{linksTable}</div>;
   }
 }
 NMSConfig.propTypes = {

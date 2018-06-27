@@ -3,13 +3,13 @@ const {BERINGEI_QUERY_URL} = require('../config');
 const _ = require('lodash');
 const request = require('request');
 
-var analyzerData = {}; // cached results
+const analyzerData = {}; // cached results
 
 function getAnalyzerData(topologyName) {
   return _.get(analyzerData, topologyName, null);
 }
 
-function refreshAnalyzerData (topologyName) {
+function refreshAnalyzerData(topologyName) {
   const linkMetrics = [
     {
       name: 'not_used',
@@ -50,13 +50,13 @@ function refreshAnalyzerData (topologyName) {
   ];
   const startTime = new Date();
   const query = {
-    topologyName: topologyName,
+    topologyName,
     nodeQueries: [],
     linkQueries: linkMetrics,
   };
   const chartUrl = BERINGEI_QUERY_URL + '/table_query';
   request.post(
-    { url: chartUrl, body: JSON.stringify(query) },
+    {url: chartUrl, body: JSON.stringify(query)},
     (err, httpResponse, body) => {
       if (err) {
         console.error('Error fetching from beringei:', err);

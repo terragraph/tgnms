@@ -79,8 +79,7 @@ export default class ReactEventChart extends React.Component {
         timeRange={timeRange}
         enablePanZoom={true}
         width={this.props.width}
-        height={this.props.height}
-      >
+        height={this.props.height}>
         <ChartRow height="35">
           <LabelAxis
             format=",.1f"
