@@ -29,7 +29,7 @@ export default class E2EConfigHeader extends React.Component {
 
   render() {
     return (
-      <div className="rc-network-config-header">
+      <div className="rc-config-header">
         <DropdownButton
           className="nc-header-toggle"
           id="e2e-config-dropdown"

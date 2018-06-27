@@ -674,7 +674,7 @@ export default class NetworkUI extends React.Component {
             {networkStatusMenuItems}
           </Menu>
         </div>
-        <div>{paneComponent}</div>
+        <div className="nms-body">{paneComponent}</div>
       </div>
     );
   }

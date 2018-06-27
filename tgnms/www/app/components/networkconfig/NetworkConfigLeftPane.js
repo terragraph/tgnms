@@ -36,6 +36,12 @@ export default class NetworkConfigLeftPane extends React.Component {
     removedNodeOverrides: PropTypes.object.isRequired,
   };
 
+  state = {
+    legendHeight: 0,
+  };
+
+  leftPaneRef = React.createRef();
+
   renderViewModeSelector() {
     const {editMode, networkDraftExists, nodesWithDrafts} = this.props;
 
@@ -80,7 +86,7 @@ export default class NetworkConfigLeftPane extends React.Component {
     const spacerDiv = <div style={{flex: 1}} />;
 
     return (
-      <div className="rc-network-config-left-pane">
+      <div className="rc-config-left-pane">
         {viewModeSelector}
         <div
           className={
@@ -88,11 +94,12 @@ export default class NetworkConfigLeftPane extends React.Component {
           }>
           {editMode === CONFIG_VIEW_MODE.NODE && (
             <NetworkConfigNodes
+              legendHeight={this.state.legendHeight}
               nodes={nodes}
-              selectedNodes={selectedNodes}
               nodesWithDrafts={nodesWithDrafts}
               nodesWithOverrides={nodesWithOverrides}
               removedNodeOverrides={removedNodeOverrides}
+              selectedNodes={selectedNodes}
             />
           )}
           {editMode === CONFIG_VIEW_MODE.NETWORK && (
@@ -106,7 +113,10 @@ export default class NetworkConfigLeftPane extends React.Component {
           )}
         </div>
         {editMode === CONFIG_VIEW_MODE.NETWORK && spacerDiv}
-        <NetworkConfigLegend editMode={editMode} />
+        <NetworkConfigLegend
+          editMode={editMode}
+          onUpdate={height => this.setState({legendHeight: height})}
+        />
       </div>
     );
   }

@@ -35,6 +35,10 @@ const TAB_NAMES = [
 ];
 
 export default class NetworkDataTable extends React.Component {
+  static propTypes = {
+    networkConfig: PropTypes.object.isRequired,
+  };
+
   state = {
     routing: {},
     zoomLevel: NetworkStore.zoomLevel,
@@ -176,6 +180,3 @@ export default class NetworkDataTable extends React.Component {
     */
   }
 }
-NetworkDataTable.propTypes = {
-  networkConfig: PropTypes.object.isRequired,
-};

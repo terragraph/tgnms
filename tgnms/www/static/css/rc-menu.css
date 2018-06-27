@@ -61,15 +61,13 @@
 div.top-menu-bar {
   height: 40px;
   background: #303336;
+  left: 0;
   padding-left: 5px;
   padding-right: 5px;
-  /* TODO: fix top menu dropdowns overflowing when top bar is 'fixed'
   position: fixed;
   top: 0;
-  left: 0;
-  z-index: 9999;
   width: 100%;
-  */
+  z-index: 9999;
 }
 .rc-menu-submenu-vertical > .rc-menu {
   top: 0;

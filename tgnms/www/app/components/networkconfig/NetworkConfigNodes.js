@@ -21,23 +21,36 @@ import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';
 import React from 'react';
+import {findDOMNode} from 'react-dom';
+import classNames from 'classnames';
 
 const KEY_FIELD = 'mac_addr';
 const TABLE_HEADER_OFFSET = 78;
-import classNames from 'classnames';
 
 export default class NetworkConfigNodes extends React.Component {
   static propTypes = {
+    legendHeight: PropTypes.number.isRequired,
     nodes: PropTypes.array.isRequired,
-    selectedNodes: PropTypes.array.isRequired,
     nodesWithDrafts: PropTypes.array.isRequired,
     nodesWithOverrides: PropTypes.instanceOf(Set).isRequired,
+    selectedNodes: PropTypes.array.isRequired,
     removedNodeOverrides: PropTypes.object.isRequired,
   };
 
   state = {
     overridesOnly: false,
   };
+
+  nodesListBoundingRect = null;
+  nodesListRef = React.createRef();
+  nodesListHeaderRef = React.createRef();
+
+  componentDidMount() {
+    // NOTE: This is not preferred to use ReactDOM, but it's needed to get the y-position offset rather than using refs on each component to get their respective heights
+    this.nodesListBoundingRect = findDOMNode(
+      this.nodesListRef.current,
+    ).getBoundingClientRect();
+  }
 
   formatNodeName = (cell, row, enumObject, index) => {
     const {name, mac_addr} = row;
@@ -89,7 +102,7 @@ export default class NetworkConfigNodes extends React.Component {
     this.setState({overridesOnly});
   };
 
-  renderNodeTable() {
+  renderNodeTable = () => {
     const selectRowProp = {
       mode: 'radio',
       clickToSelect: true,
@@ -98,18 +111,28 @@ export default class NetworkConfigNodes extends React.Component {
       onSelect: this.tableOnRowSelect,
       selected: this.getSelectedKeys(this.props.selectedNodes),
     };
-    const {nodes, nodesWithOverrides} = this.props;
+    const {legendHeight, nodes, nodesWithOverrides} = this.props;
     const nodeRows = this.state.overridesOnly
       ? nodes.filter(node => nodesWithOverrides.has(node.mac_addr))
       : nodes;
 
+    const offsetHeight = this.nodesListBoundingRect
+      ? this.nodesListBoundingRect.y
+      : 0;
+    const headerHeight = this.nodesListHeaderRef.current
+      ? this.nodesListHeaderRef.current.clientHeight
+      : 0;
+    const tableBodyHeight =
+      window.innerHeight - legendHeight - offsetHeight - headerHeight;
+
     return (
       <BootstrapTable
-        tableStyle={{margin: 0, border: 0, borderRadius: 0}}
+        bordered={false}
         data={nodeRows}
         keyField={KEY_FIELD}
-        bordered={false}
+        height={tableBodyHeight}
         selectRow={selectRowProp}
+        tableStyle={{margin: 0, border: 0, borderRadius: 0}}
         trClassName={this.getRowClassName}>
         <TableHeaderColumn
           dataField="name"
@@ -119,21 +142,24 @@ export default class NetworkConfigNodes extends React.Component {
             placeholder: 'Filter Nodes',
           }}
           dataFormat={this.formatNodeName}>
-          Node name
+          Node Name
         </TableHeaderColumn>
       </BootstrapTable>
     );
-  }
+  };
 
   render() {
     return (
-      <div className="rc-network-config-nodes" ref="nodeTable">
-        <label>Show Only Nodes with Overrides</label>
-        <CustomToggle
-          wrapperStyle={{top: '5px', left: '2px'}}
-          checkboxId={'toggleOverridesOnly'}
-          onChange={this.changeToOverridesOnly}
-        />
+      <div className="rc-config-nodes" ref={this.nodesListRef}>
+        <div className="header" ref={this.nodesListHeaderRef}>
+          <span className="show-nodes-overrides-label">
+            Only Nodes with Overrides
+          </span>
+          <CustomToggle
+            checkboxId={'toggleOverridesOnly'}
+            onChange={this.changeToOverridesOnly}
+          />
+        </div>
         {this.renderNodeTable()}
       </div>
     );

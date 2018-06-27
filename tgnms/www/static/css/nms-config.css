@@ -4,24 +4,28 @@
 @import url("nms-nc-custom-toggle.css");
 @import url("nms-nc-json-diff.css");
 
-.rc-network-config {
+.rc-config {
   display: flex;
   flex-direction: row;
-
-  overflow-y: auto;
   float: left;
   width: 100%;
 }
 
 /* NETWORK CONFIG BODY */
-.rc-network-config-body {
+.rc-config-body {
   border-left: 1px solid #aaa;
   display: flex;
   flex-direction: column;
-
+  /* 300px is the width of the Left Pane defined in 'nms-nc-left-pane' */
+  left: 300px;
   min-height: 100vh;
-  width: 100%;
   overflow-y: auto;
+  width: 100%;
+}
+
+.rc-config-body.node {
+  position: relative;
+  width: calc(100% - 300px);
 }
 
 .nc-expand-all-wrapper {
@@ -62,7 +66,7 @@
 }
 
 /* NETWORK CONFIG HEADER */
-.rc-network-config-header {
+.rc-config-header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -94,7 +98,7 @@
 }
 
 /* Toggle Related */
-.rc-network-config-header .dropdown {
+.rc-config-header .dropdown {
   margin-left: 10px;
 }
 
@@ -134,7 +138,7 @@
 }
 
 /* NETWORK CONFIG FOOTER */
-.rc-network-config-footer {
+.rc-config-footer {
   border-top: 1px solid #777;
   background-color: #fff;
   position: fixed;
@@ -143,11 +147,11 @@
   z-index: 10;
 }
 
-.rc-network-config-footer button {
+.rc-config-footer button {
   margin: 10px;
 }
 
-.rc-network-config-footer button:disabled {
+.rc-config-footer button:disabled {
   opacity: 0.5;
 }
 
