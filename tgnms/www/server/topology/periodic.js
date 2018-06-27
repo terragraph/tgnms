@@ -42,7 +42,7 @@ function stopPeriodicTasks() {
 }
 
 function startPeriodicTasks() {
-  console.log('Starting periodic tasks...');
+  console.log('periodic: starting periodic tasks...');
   const config = getNetworkInstanceConfig();
   if (config.ruckus_controller) {
     // ruckus data is fetched from BQS
@@ -78,10 +78,10 @@ function startPeriodicTasks() {
 }
 
 function refreshHealthData() {
-  console.log('Refreshing health cache');
+  console.log('periodic: refreshing health cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('Refreshing cache (health, analyzer) for',
+    console.log('periodic: refreshing cache (health, analyzer) for',
                 configName);
     refreshNetworkHealth(configName);
     refreshAnalyzerData(configName);
@@ -89,10 +89,10 @@ function refreshHealthData() {
 };
 
 function refreshTypeaheadData() {
-  console.log('Refreshing typeahead cache');
+  console.log('periodic: refreshing typeahead cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('Refreshing cache (stats type-ahead) for',
+    console.log('periodic: refreshing cache (stats type-ahead) for',
                 configName);
     refreshStatsTypeaheadCache(configName);
     refreshSelfTestData(configName);

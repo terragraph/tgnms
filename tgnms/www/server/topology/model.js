@@ -335,7 +335,8 @@ function refreshSelfTestData (topologyName) {
 }
 
 function refreshStatsTypeaheadCache(topologyName) {
-  console.log('Request to update stats type-ahead cache for topology', topologyName);
+  console.log('model: request to update stats type-ahead cache for topology',
+    topologyName);
   let topology = getTopologyByName(topologyName);
   if (!topology) {
     console.error('No topology found for', topologyName);
@@ -368,6 +369,7 @@ function refreshStatsTypeaheadCache(topologyName) {
 const worker = cp.fork(join(__dirname, 'worker.js'));
 
 function scheduleTopologyUpdate() {
+  console.log('model: scheduling topology update');
   worker.send({
     type: 'poll',
     topologies: Object.keys(configByName).map(
@@ -377,6 +379,7 @@ function scheduleTopologyUpdate() {
 }
 
 function scheduleStatsUpdate() {
+  console.log('model: scheduling stats update');
   worker.send({
     type: 'scan_poll',
     topologies: Object.keys(configByName).map(
@@ -386,6 +389,9 @@ function scheduleStatsUpdate() {
 }
 
 worker.on('message', msg => {
+  console.log('model: received message from worker: ' + msg.type +
+    ', (' + msg.name + ')' +
+    ', success: ' + msg.success);
   if (!(msg.name in configByName)) {
     console.error('Unable to find topology', msg.name);
     return;

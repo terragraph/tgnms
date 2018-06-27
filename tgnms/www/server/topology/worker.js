@@ -12,13 +12,14 @@ const process = require('process');
 
 // main message loop from primary process
 process.on('message', msg => {
+  console.log('worker: received message ' + msg.type);
   if (!msg.type) {
-    console.error('Received unknown message', msg);
+    console.error('worker: received unknown message', msg);
   }
 
   const getErrorHandler = function(type) {
     return (error) => {
-        console.error(error);
+        console.error('worker: ' + error.message);
     };
   };
 
@@ -106,7 +107,7 @@ process.on('message', msg => {
       });
       break;
     default:
-      console.error('No handler for msg type', msg.type);
+      console.error('worker: no handler for msg type', msg.type);
   }
 });
 
@@ -131,10 +132,10 @@ function apiServiceRequest(topology, apiMethod, data, config) {
     })
     .catch(error => {
       if (error.response) {
-        console.error('Received status ' + error.response.status +
+        console.error('worker: received status ' + error.response.status +
                       ' for url ' + url);
       } else {
-        console.error(error.message);
+        console.error('worker: ' + error.message);
       }
       const endTimer = new Date();
       const responseTime = endTimer - startTimer;
@@ -156,7 +157,7 @@ const retryAxios = async (delays, axiosFunc, ...axiosArgs) => {
     } catch (error) {
       const { done, value } = iterator.next();
       if (!done && error.response && error.response.status === 400) {
-        console.log('retrying ' + value);
+        console.log('worker: retrying ' + value);
         await timeout(value);
       } else {
         // The error is not retriable or the iterable is exhausted.
