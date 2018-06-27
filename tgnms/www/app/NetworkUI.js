@@ -212,7 +212,7 @@ export default class NetworkUI extends React.Component {
     }
     // update last request time
     this.lastHealthRequestTime = new Date() / 1000;
-    axios.get('/health/' + networkName).then(response => {
+    axios.get('/topology/health/' + networkName).then(response => {
       const data = response.data;
       if (data.length !== 2) {
         return;
@@ -233,7 +233,7 @@ export default class NetworkUI extends React.Component {
     }
     // update last request time
     this.lastAnalyzerRequestTime = new Date() / 1000;
-    axios.get('/link_analyzer/' + networkName).then(response => {
+    axios.get('/metrics/link_analyzer/' + networkName).then(response => {
       const json = response.data;
       // merge data
       if (json.length !== 1) {
@@ -256,7 +256,7 @@ export default class NetworkUI extends React.Component {
     // update last request time
     this.lastScanRequestTime = new Date() / 1000;
     const url =
-      '/scan_results?topology=' +
+      '/metrics/scan_results?topology=' +
       networkName +
       '&filter[row_count]=' +
       filter.row_count +
@@ -283,7 +283,7 @@ export default class NetworkUI extends React.Component {
       if (metric) {
         // refresh link overlay stat
         axios
-          .get('/overlay/linkStat/' + networkName + '/' + metric)
+          .get('/metrics/overlay/linkStat/' + networkName + '/' + metric)
           .then(response => {
             Dispatcher.dispatch({
               actionType: Actions.LINK_OVERLAY_REFRESHED,

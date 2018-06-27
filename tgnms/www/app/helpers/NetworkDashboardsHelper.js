@@ -27,7 +27,7 @@ export const isValidNodeKey = (keyObj, nodeMacAddrs) => {
 
 export const fetchKeyData = async (keys, topologyName) => {
   const asyncRequests = keys.map(key =>
-    axios.get(`/stats_ta/${topologyName}/${key}`),
+    axios.get(`/metrics/stats_ta/${topologyName}/${key}`),
   );
   const responses = await Promise.all(asyncRequests);
   const responseData = responses.map(resp => resp.data);
@@ -39,7 +39,7 @@ export const fetchKeyData = async (keys, topologyName) => {
 };
 
 export const fetchAggregatedData = (query, topologyName) => {
-  return axios.get('/stats_ta/' + topologyName + '/' + query);
+  return axios.get('/metrics/stats_ta/' + topologyName + '/' + query);
 };
 
 export const shouldUpdateGraphFormOptions = (

@@ -204,7 +204,7 @@ export default class NetworkDashboardStats extends React.Component {
           onSearch={query => {
             this.setState({keyIsLoading: true, keyOptions: []});
             axios
-              .get('/stats_ta/' + this.props.topology.name + '/' + query)
+              .get('/metrics/stats_ta/' + this.props.topology.name + '/' + query)
               .then(response =>
                 this.setState({
                   keyIsLoading: false,

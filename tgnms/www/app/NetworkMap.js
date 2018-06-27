@@ -1361,7 +1361,7 @@ export default class NetworkMap extends React.Component {
       </Control>
     );
 
-    let tileUrl = '/tile/{s}/{z}/{x}/{y}.png';
+    let tileUrl = '/map/tile/{s}/{z}/{x}/{y}.png';
     if (!window.CONFIG.use_tile_proxy) {
       tileUrl = window.location.protocol + MapTiles[this.props.mapTile];
     }

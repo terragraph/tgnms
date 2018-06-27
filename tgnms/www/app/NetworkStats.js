@@ -255,7 +255,7 @@ export default class NetworkStats extends React.Component {
           onSearch={query => {
             const topoName = this.props.networkConfig.topology.name;
             this.setState({keyIsLoading: true, keyOptions: []});
-            axios.get('/stats_ta/' + topoName + '/' + query).then(response =>
+            axios.get('/metrics/stats_ta/' + topoName + '/' + query).then(response =>
               this.setState({
                 keyIsLoading: false,
                 keyOptions: this.formatKeyOptions(response.data),
