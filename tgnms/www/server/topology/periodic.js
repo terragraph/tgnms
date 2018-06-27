@@ -26,7 +26,7 @@ const HEALTH_REFRESH_INTERVAL = 30 * MS_IN_SEC;
 const RUCKUS_CONTROLLER_REFRESH_INTERVAL = 1 * MS_IN_MIN;
 const TYPEAHEAD_REFRESH_INTERVAL = 5 * MS_IN_MIN;
 
-const periodicTasks = [];
+let periodicTasks = [];
 
 function runNowAndSchedule(task, interval) {
   task();
@@ -53,16 +53,16 @@ function startPeriodicTasks() {
     );
   }
 
-  networkHealthTimer = runNowAndSchedule(
+  runNowAndSchedule(
     refreshHealthData,
     HEALTH_REFRESH_INTERVAL,
   );
-  statsTypeaheadTimer = runNowAndSchedule(
+  runNowAndSchedule(
     refreshTypeaheadData,
     TYPEAHEAD_REFRESH_INTERVAL,
   );
   // start poll request interval for topology/statis
-  refreshIntervalTimer = runNowAndSchedule(
+  runNowAndSchedule(
     scheduleTopologyUpdate,
     _.get(config, 'refresh_interval', DEFAULT_TOPOLOGY_REFRESH_INTERVAL),
   );

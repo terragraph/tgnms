@@ -16,7 +16,7 @@ pool.on('error', () => {
   console.log('pool error');
 });
 
-var self = {
+const self = {
   macAddrToNode: {},
   nodeNameToNode: {},
   scanResults : {},

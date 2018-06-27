@@ -2,9 +2,6 @@
  * ZMQ controller/aggregator refresh process
  * @format
  */
-const ZMQ_TIMEOUT_MS = 4000;
-
-const EventEmitter = require('events');
 
 const axios = require('axios');
 const isIp = require('is-ip');

@@ -1,10 +1,10 @@
 
 const {
   BERINGEI_QUERY_URL,
-  NETWORK_CONFIG_INSTANCES_PATH,
   NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
 } = require('../config');
+const controllerTTypes = require('../../thrift/gen-nodejs/Controller_types');
 const dataJson = require('../metrics/dataJson');
 const {getNodesWithUpgradeStatus} = require('./upgrade_status');
 const _ = require('lodash');
@@ -15,7 +15,6 @@ const request = require('request');
 
 const statusReportExpiry = 2 * 60000; // 2 minutes
 const maxThriftRequestFailures = 1;
-const maxThriftReportAge = 30; // seconds
 const maxControllerEvents = 10;
 
 // new topology from worker process
@@ -30,6 +29,8 @@ let ruckusApsBySite = {};
 const statusDumpsByName = {};
 const topologyByName = {};
 const upgradeStateByName = {};
+
+let fbinternal = false;
 
 function getAllTopologyNames() {
   return Object.keys(configByName);
@@ -398,7 +399,6 @@ worker.on('message', msg => {
   }
   const config = configByName[msg.name];
   let currentTime;
-  let curOnline;
   switch (msg.type) {
     case 'topology_update':
       // log online/offline changes
