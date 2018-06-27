@@ -87,20 +87,6 @@ export default class NetworkUI extends React.Component {
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
   }
 
-  // Navigate to Dashboards tab and see the Link Dashboard updated with a
-  // new nodeA and nodeZ
-  viewLinkDashboard = (topologyName, nodeAName, nodeZName) => {
-    Dispatcher.dispatch({
-      actionType: Actions.VIEW_SELECTED,
-      context: {
-        topologyName,
-        nodeAName,
-        nodeZName,
-      },
-      viewName: 'dashboards',
-    });
-  };
-
   getNetworkStatusPeriodic() {
     if (this.state.networkName !== null) {
       this.getNetworkStatus(this.state.networkName);
@@ -524,12 +510,7 @@ export default class NetworkUI extends React.Component {
         paneComponent = <EventLogs {...viewProps} />;
         break;
       case 'dashboards':
-        paneComponent = (
-          <NetworkDashboards
-            {...viewProps}
-            viewLinkDashboard={this.viewLinkDashboard}
-          />
-        );
+        paneComponent = <NetworkDashboards {...viewProps} />;
         break;
       case 'stats':
         paneComponent = <NetworkStats {...viewProps} />;
@@ -559,7 +540,6 @@ export default class NetworkUI extends React.Component {
             siteOverlay={this.state.selectedSiteOverlay}
             mapDimType={this.state.selectedMapDimType}
             mapTile={this.state.selectedMapTile}
-            viewLinkDashboard={this.viewLinkDashboard}
           />
         );
     }
