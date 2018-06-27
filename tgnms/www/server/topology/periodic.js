@@ -30,7 +30,7 @@ let periodicTasks = [];
 
 function runNowAndSchedule(task, interval) {
   task();
-  const timer = setTimeout(task, interval);
+  const timer = setInterval(task, interval);
   periodicTasks.push(timer);
 }
 
