@@ -26,7 +26,7 @@ const HEALTH_REFRESH_INTERVAL = 30 * MS_IN_SEC;
 const RUCKUS_CONTROLLER_REFRESH_INTERVAL = 1 * MS_IN_MIN;
 const TYPEAHEAD_REFRESH_INTERVAL = 5 * MS_IN_MIN;
 
-const periodicTasks = [];
+let periodicTasks = [];
 
 function runNowAndSchedule(task, interval) {
   task();
@@ -35,14 +35,14 @@ function runNowAndSchedule(task, interval) {
 }
 
 function stopPeriodicTasks() {
-  periodicTasks.map(function (timer) {
+  periodicTasks.map(timer => {
     clearInterval(timer);
   });
   periodicTasks = [];
 }
 
 function startPeriodicTasks() {
-  console.log('Starting periodic tasks...');
+  console.log('periodic: starting periodic tasks...');
   const config = getNetworkInstanceConfig();
   if (config.ruckus_controller) {
     // ruckus data is fetched from BQS
@@ -53,16 +53,16 @@ function startPeriodicTasks() {
     );
   }
 
-  networkHealthTimer = runNowAndSchedule(
+  runNowAndSchedule(
     refreshHealthData,
     HEALTH_REFRESH_INTERVAL,
   );
-  statsTypeaheadTimer = runNowAndSchedule(
+  runNowAndSchedule(
     refreshTypeaheadData,
     TYPEAHEAD_REFRESH_INTERVAL,
   );
   // start poll request interval for topology/statis
-  refreshIntervalTimer = runNowAndSchedule(
+  runNowAndSchedule(
     scheduleTopologyUpdate,
     _.get(config, 'refresh_interval', DEFAULT_TOPOLOGY_REFRESH_INTERVAL),
   );
@@ -78,28 +78,28 @@ function startPeriodicTasks() {
 }
 
 function refreshHealthData() {
-  console.log('Refreshing health cache');
+  console.log('periodic: refreshing health cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('Refreshing cache (health, analyzer) for',
+    console.log('periodic: refreshing cache (health, analyzer) for',
                 configName);
     refreshNetworkHealth(configName);
     refreshAnalyzerData(configName);
   });
-};
+}
 
 function refreshTypeaheadData() {
-  console.log('Refreshing typeahead cache');
+  console.log('periodic: refreshing typeahead cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('Refreshing cache (stats type-ahead) for',
+    console.log('periodic: refreshing cache (stats type-ahead) for',
                 configName);
     refreshStatsTypeaheadCache(configName);
     refreshSelfTestData(configName);
   });
-};
+}
 
 module.exports = {
   stopPeriodicTasks,
   startPeriodicTasks,
-}
+};

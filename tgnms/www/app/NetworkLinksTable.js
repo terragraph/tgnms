@@ -1204,22 +1204,24 @@ export default class NetworkLinksTable extends React.Component {
     const selected = this.state.selectedLink ? [this.state.selectedLink] : [];
 
     if (this.state.showSelfTest) {
-      let selfTestColumns = Object.keys(this.state.selfTestTableDescription)
-        .map(key => {
-          let column = this.state.selfTestTableDescription[key];
-          return {
-            label: column.title,
-            key: key,
-            isKey: column.iskey,
-            width: column.width,
-            sort: true,
-            filter: true,
-            hidden: column.hidden,
-            render: key === 'scuba_link'
-                        ? this.renderDashboardLinkSelfTest.bind(this)
-                        : ((cell, row) => <span> {cell} </span>),
-          }
-        });
+      const selfTestColumns = Object.keys(
+        this.state.selfTestTableDescription,
+      ).map(key => {
+        const column = this.state.selfTestTableDescription[key];
+        return {
+          label: column.title,
+          key,
+          isKey: column.iskey,
+          width: column.width,
+          sort: true,
+          filter: true,
+          hidden: column.hidden,
+          render:
+            key === 'scuba_link'
+              ? this.renderDashboardLinkSelfTest.bind(this)
+              : (cell, row) => <span> {cell} </span>,
+        };
+      });
       return (
         <CustomTable
           rowHeight={40}

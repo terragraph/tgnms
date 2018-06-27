@@ -4,8 +4,10 @@ const {join, resolve} = require('path');
 const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086';
 
 // network config file
-const NETWORK_CONFIG_NETWORKS_PATH = resolve(join(__dirname, '../config/networks/'));
-const NETWORK_CONFIG_INSTANCES_PATH = resolve(join(__dirname, '../config/instances/'));
+const NETWORK_CONFIG_NETWORKS_PATH =
+  resolve(join(__dirname, '../config/networks/'));
+const NETWORK_CONFIG_INSTANCES_PATH =
+  resolve(join(__dirname, '../config/instances/'));
 const NETWORK_CONFIG_DEFAULT = 'lab_networks.json';
 const networkConfig = process.env.NETWORK
   ? process.env.NETWORK + '.json'
@@ -21,8 +23,8 @@ if (!fs.existsSync(NETWORK_CONFIG_PATH)) {
 
 module.exports = {
   BERINGEI_QUERY_URL,
-  NETWORK_CONFIG_NETWORKS_PATH,
-  NETWORK_CONFIG_INSTANCES_PATH,
   NETWORK_CONFIG_DEFAULT,
+  NETWORK_CONFIG_INSTANCES_PATH,
+  NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
 };

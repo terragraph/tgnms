@@ -1,4 +1,4 @@
-function getNodesWithUpgradeStatus (nodes, upgradeState) {
+function getNodesWithUpgradeStatus(nodes, upgradeState) {
   const upgradeStatusDump = {
     curUpgradeReq: upgradeState.curReq,
 
@@ -37,4 +37,4 @@ function getNodesWithUpgradeStatus (nodes, upgradeState) {
 
 module.exports = {
   getNodesWithUpgradeStatus,
-}
+};

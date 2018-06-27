@@ -9,14 +9,14 @@ const pool = mysql.createPool({
   queueLimit: 10,
   waitForConnections: false,
 });
-pool.on('enqueue', function () {
+pool.on('enqueue', () => {
   console.log('Waiting for available connection slot');
 });
-pool.on('error', function () {
+pool.on('error', () => {
   console.log('pool error');
 });
 
-var self = {
+const self = {
   macAddrToNode: {},
   nodeNameToNode: {},
   scanResults : {},
@@ -24,13 +24,13 @@ var self = {
   selfTestColumnNames: [],
   selfTestGroups: {},
 
-  refreshNodes: function () {
-    pool.getConnection(function (err, conn) {
+  refreshNodes() {
+    pool.getConnection((err, conn) => {
       if (err) {
         console.error('DB error', err);
         return;
       }
-      conn.query('SELECT * FROM `nodes`', function (err, results) {
+      conn.query('SELECT * FROM `nodes`', (err, results) => {
         if (err) {
           return;
         }
@@ -49,27 +49,27 @@ var self = {
     });
   },
 
-  refreshColumnNames: function(res, tableName, sendResult) {
-   pool.getConnection(function (err, conn) {
+  refreshColumnNames(res, tableName, sendResult) {
+   pool.getConnection((err, conn) => {
      if (err) {
        console.error('DB error', err);
        return;
      }
-     const queryCmd = "SELECT column_name FROM information_schema.columns " +
-                    "WHERE table_name = ?";
+     const queryCmd = 'SELECT column_name FROM information_schema.columns ' +
+                    'WHERE table_name = ?';
      const queryArgs = [tableName];
-     conn.query(queryCmd, queryArgs, function (err, results) {
+     conn.query(queryCmd, queryArgs, (err, results) => {
        if (err) {
          console.error('query error', err);
          return;
        }
 
        let columnObj = [];
-       if (tableName === "tx_scan_results") {
+       if (tableName === 'tx_scan_results') {
          columnObj = self.txColumnNames;
-       } else if (tableName === "rx_scan_results") {
+       } else if (tableName === 'rx_scan_results') {
          columnObj = self.rxColumnNames;
-       } else if (tableName === "terragraph_network_analyzer") {
+       } else if (tableName === 'terragraph_network_analyzer') {
          columnObj = self.selfTestColumnNames;
        } else {
          console.error('ERROR!! unexpected table name');
@@ -88,10 +88,10 @@ var self = {
    });
  },
 
- readSelfTestResults: function (network, res, filter) {
-    let mysqlQueryRes = {};
+ readSelfTestResults(network, res, filter) {
+    const mysqlQueryRes = {};
 
-    pool.getConnection(function (err, conn) {
+    pool.getConnection((err, conn) => {
       if (err) {
         console.error('DB error', err);
         return;
@@ -103,31 +103,31 @@ var self = {
         return;
       }
 
-      if ((filter.filterType === "TESTRESULTS") && !filter.hasOwnProperty('testtime')) {
+      if ((filter.filterType === 'TESTRESULTS') && !filter.hasOwnProperty('testtime')) {
           console.error('testtime missing from filter');
           return;
       }
 
-      let queryCmd = "";
-      let queryArgs = [];
-      if (filter.filterType === "GROUPS") {
-        queryCmd = "SELECT time, test_tag FROM terragraph_network_analyzer GROUP BY time DESC, test_tag limit 50";
-      } else if (filter.filterType === "TESTRESULTS") {
-        if (filter.testtime === "mostrecentiperfudp") {
-          const querySubCmd = "SELECT time FROM terragraph_network_analyzer WHERE test_tag=? ORDER BY time DESC limit 1";
-          queryCmd = "SELECT * FROM terragraph_network_analyzer WHERE time=(" + querySubCmd + ")";
+      let queryCmd = '';
+      const queryArgs = [];
+      if (filter.filterType === 'GROUPS') {
+        queryCmd = 'SELECT time, test_tag FROM terragraph_network_analyzer GROUP BY time DESC, test_tag limit 50';
+      } else if (filter.filterType === 'TESTRESULTS') {
+        if (filter.testtime === 'mostrecentiperfudp') {
+          const querySubCmd = 'SELECT time FROM terragraph_network_analyzer WHERE test_tag=? ORDER BY time DESC limit 1';
+          queryCmd = 'SELECT * FROM terragraph_network_analyzer WHERE time=(' + querySubCmd + ')';
           queryArgs.push('iperf_udp');
 
         } else {
-          queryCmd = "SELECT * FROM terragraph_network_analyzer WHERE time=?" ;
+          queryCmd = 'SELECT * FROM terragraph_network_analyzer WHERE time=?';
           queryArgs.push(filter.testtime);
         }
       } else {
-        console.error ("invalid filterType ", filter.filterType);
+        console.error('invalid filterType ', filter.filterType);
         return;
       }
 
-     const query = conn.query(queryCmd, queryArgs, function (err, results) {
+     const query = conn.query(queryCmd, queryArgs, (err, results) => {
          if (err) {
            console.error('ERROR: mysql query err:', query.sql, err);
            return;
@@ -139,7 +139,7 @@ var self = {
          if (res) {
            res.send(mysqlQueryRes).end();
          }
-         if (filter.filterType === "GROUPS") {
+         if (filter.filterType === 'GROUPS') {
            self.selfTestGroups = results;
          }
          conn.release();
@@ -153,14 +153,14 @@ var self = {
   //  nodeFilter0/nodeFilter1 - to use against tx_node_id (use both)
   // network is the text name of the network topology
   // res is a pointer to the express class to return the result
-  readScanResults: function (network, res, filter) {
+  readScanResults(network, res, filter) {
     let refreshNodesList = false;
     const mysqlQueryRes = {};
     // the json_obj is a compressed blob of the scan results
     // for reasons not entirely understood, we need to CONVERT the UNCOMPRESSED
     // output
     const UNCOMPRESS = [mysql.raw('CONVERT(UNCOMPRESS(rx_scan_results.json_obj) USING "utf8") AS json_obj')];
-    pool.getConnection(function (err, conn) {
+    pool.getConnection((err, conn) => {
       if (err) {
         console.error('DB error', err);
         return;
@@ -179,7 +179,7 @@ var self = {
         }
       } catch (e) {
         console.error('ERROR reading filter', e);
-        console.log('self.nodeNameToNode:', self.nodeNameToNode, ' network:',network);
+        console.log('self.nodeNameToNode:', self.nodeNameToNode, ' network:', network);
         return;
       }
 
@@ -190,16 +190,15 @@ var self = {
                               ' WHERE tx_scan_results.network = ?';
       let queryArgs = [];
       if (txNodeIdFilter.length) {
-        queryCmd = queryCmd + ' AND (tx_scan_results.tx_node_id = ? OR tx_scan_results.tx_node_id= ?) LIMIT ? OFFSET ?';
+        queryCmd += ' AND (tx_scan_results.tx_node_id = ? OR tx_scan_results.tx_node_id= ?) LIMIT ? OFFSET ?';
         queryArgs = [UNCOMPRESS, network, txNodeIdFilter[0],
                     txNodeIdFilter[1], filter.row_count, filter.offset];
-      }
-      else {
-        queryCmd = queryCmd + ' LIMIT ? OFFSET ?';
+      } else {
+        queryCmd += ' LIMIT ? OFFSET ?';
         queryArgs = [UNCOMPRESS, network, filter.row_count,
                       filter.offset];
       }
-      const query = conn.query(queryCmd, queryArgs, function (err, results) {
+      const query = conn.query(queryCmd, queryArgs, (err, results) => {
           if (err) {
             console.error('ERROR: mysql query err:', query.sql, err);
             return;
@@ -216,8 +215,7 @@ var self = {
             if (!self.nodeToNodeName[new_row.tx_node_id] ||
                 !self.nodeToNodeName[new_row.rx_node_id]) {
                   refreshNodesList = true;
-            }
-            else {
+            } else {
               new_row.tx_node_name = self.nodeToNodeName[new_row.tx_node_id];
               new_row.rx_node_name = self.nodeToNodeName[new_row.rx_node_id];
             }
@@ -237,7 +235,7 @@ var self = {
       }
     },
 
-  writeScanResults: function (network, scanResults) {
+  writeScanResults(network, scanResults) {
     const rows = [];
     let refreshNodesList = false;
 
@@ -310,7 +308,7 @@ var self = {
       return;
     }
 
-    pool.getConnection(function (err, conn) {
+    pool.getConnection((err, conn) => {
       if (err) {
         console.error('DB error', err);
         return;
@@ -320,7 +318,7 @@ var self = {
           '(`token`, `json_obj`, `tx_node_id`, `rx_node_id`, `start_bwgd`, ' +
           '`scan_type`, `tx_power`,`network`) VALUES ?',
         [rows],
-        function (err, result) {
+        (err, result) => {
           if (err) {
             console.error('ERROR with mysql query', query.sql, err);
           }

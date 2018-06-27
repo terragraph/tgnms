@@ -70,7 +70,10 @@ const PushUrl = () => {
             }
           } else {
             BrowserHistory.push(
-              SITE_ROOT + NetworkStore.viewName + '/' + NetworkStore.networkName,
+              SITE_ROOT +
+                NetworkStore.viewName +
+                '/' +
+                NetworkStore.networkName,
             );
           }
           break;
@@ -86,7 +89,10 @@ const PushUrl = () => {
             );
           } else {
             BrowserHistory.push(
-              SITE_ROOT + NetworkStore.viewName + '/' + NetworkStore.networkName,
+              SITE_ROOT +
+                NetworkStore.viewName +
+                '/' +
+                NetworkStore.networkName,
             );
           }
           break;

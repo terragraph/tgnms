@@ -15,21 +15,21 @@ if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_FULL_PATH)) {
 // multer + configuration
 const multer = require('multer');
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination(req, file, cb) {
     cb(null, NETWORK_UPGRADE_IMAGES_FULL_PATH);
   },
   // where to save the file on disk
-  filename: function (req, file, cb) {
+  filename(req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({storage});
 
 app.post(
   /\/uploadUpgradeBinary$/i,
   upload.single('binary'),
-  function (req, res, next) {
+  (req, res, next) => {
     const urlPrefix = process.env.E2E_DL_URL ? process.env.E2E_DL_URL : (req.protocol + '://' + req.get('host'));
     const uriPath = querystring.escape(req.file.filename);
     const imageUrl = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
