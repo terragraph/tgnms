@@ -179,16 +179,17 @@ struct GetLastUpdateTimesResult {
   2: bool moreResults,
 }
 
-// Below are the data strure for passing time series between analytics and BQS
+// Data structures for passing time series from BQS to analytics
 struct RawTimeSeries {
-  1: Key beringei_db_key
-  3: list<TimeValuePair> time_series,
+  1: Key beringeiDBKey,
+  2: string fullMetricKeyName,
+  3: list<TimeValuePair> timeSeries,
 }
 
 struct RawTimeSeriesList {
-  1: list<RawTimeSeries> time_series_and_key_list,
+  1: list<RawTimeSeries> timeSeriesAndKeyList,
 }
 
 struct RawQueryReturn {
-  1: list<RawTimeSeriesList> query_return_list,
+  1: list<RawTimeSeriesList> queryReturnList,
 }

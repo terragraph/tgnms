@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "PyReadHandler.h"
+#include "RawReadHandler.h"
 #include "../RawReadBeringeiData.h"
 
 #include <utility>
@@ -28,15 +28,21 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
-PyReadHandler::PyReadHandler(TACacheMap& typeaheadCache)
+// RawReadHandler will handle raw data read request and
+// return queried results from Beringei DB.
+// The incoming request is serialized bytes (RawReadQueryRequest)
+// in the incoming http msg body.
+// The query return is serialized bytes (RawTimeSeriesList) in the
+// http msg return body.
+RawReadHandler::RawReadHandler(TACacheMap& typeaheadCache)
     : RequestHandler(), typeaheadCache_(typeaheadCache), receivedBody_(false) {}
 
-void PyReadHandler::onRequest(
+void RawReadHandler::onRequest(
     std::unique_ptr<HTTPMessage> /* unused */) noexcept {
   // nothing to do
 }
 
-void PyReadHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
+void RawReadHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
   receivedBody_ = true;
   if (body_) {
     body_->prependChain(move(body));
@@ -45,8 +51,7 @@ void PyReadHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
   }
 }
 
-void PyReadHandler::onEOM() noexcept {
-
+void RawReadHandler::onEOM() noexcept {
   if (!receivedBody_) {
     LOG(INFO) << "No data received for POST";
     ResponseBuilder(downstream_)
@@ -59,7 +64,8 @@ void PyReadHandler::onEOM() noexcept {
   auto body = body_->moveToFbString();
   query::RawReadQueryRequest request;
   try {
-    // Now the python analytics use binary for serialization
+    // Use binary for serialization/deserialization.
+    // Binary protocol should be support across all languages.
     request = BinarySerializer::deserialize<query::RawReadQueryRequest>(body);
   } catch (const std::exception&) {
     LOG(INFO) << "Error deserializing QueryRequest";
@@ -70,44 +76,42 @@ void PyReadHandler::onEOM() noexcept {
         .sendWithEOM();
     return;
   }
-  LOG(INFO) << "\n--- The request is ---";
-  for (const auto& query : request.queries){
+  for (const auto& query : request.queries) {
     LOG(INFO) << "Query contains: " << request.queries.size() << " queries"
-              << " with start_ts: " << query.start_ts
-              << " to end_ts: " << query.end_ts
+              << " with startTimestamp: " << query.startTimestamp
+              << " to endTimestamp: " << query.endTimestamp
               << " from Beringei DB with interval: " << query.interval;
   }
 
-  RawReadBeringeiData RawDataFetcher(request, typeaheadCache_);
-  std::string response_str;
+  RawReadBeringeiData RawDataFetcher(typeaheadCache_);
+  std::string responseStr;
   try {
-    RawQueryReturn query_return_list = RawDataFetcher.process();
-    response_str = BinarySerializer::serialize<std::string>(query_return_list);
-    // responseJson = folly::toJson(RawDataFetcher.process());
+    RawQueryReturn queryReturnList = RawDataFetcher.process(request);
+    responseStr = BinarySerializer::serialize<std::string>(queryReturnList);
   } catch (const std::runtime_error& ex) {
-    LOG(ERROR) << "Failed executing beringei query: " << ex.what();
+    LOG(ERROR) << "Failed executing Beringei query: " << ex.what();
     ResponseBuilder(downstream_)
         .status(500, "Internal Server Error")
         .header("PyRead", "PyRead")
-        .body("Failed executing beringei query")
+        .body("Failed executing Beringei query")
         .sendWithEOM();
     return;
   }
   ResponseBuilder(downstream_)
       .status(200, "OK")
       .header("PyRead", "PyRead")
-      .body(response_str)
+      .body(responseStr)
       .sendWithEOM();
 }
 
-void PyReadHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {}
+void RawReadHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {}
 
-void PyReadHandler::requestComplete() noexcept {
+void RawReadHandler::requestComplete() noexcept {
   LOG(INFO) << "The Read request is complete!";
   delete this;
 }
 
-void PyReadHandler::onError(ProxygenError /* unused */) noexcept {
+void RawReadHandler::onError(ProxygenError /* unused */) noexcept {
   LOG(ERROR) << "Proxygen reported error";
   // In QueryServiceFactory, we created this handler using new.
   // Proxygen does not delete the handler.
