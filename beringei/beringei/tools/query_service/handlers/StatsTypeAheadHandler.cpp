@@ -36,14 +36,17 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
+// RequestSourceType_ denotes the source of incoming HTTPMessage
+// If enableBinarySerialization, use Binary protocol to deserialize request
+// Otherwise, use SimpleJSON protocol to deserialize request
 StatsTypeAheadHandler::StatsTypeAheadHandler(
     std::shared_ptr<MySqlClient> mySqlClient,
     TACacheMap& typeaheadCache,
-    std::string request_source_type)
+    bool enableBinarySerialization)
     : RequestHandler(),
       mySqlClient_(mySqlClient),
       typeaheadCache_(typeaheadCache),
-      RequestSourceType_(request_source_type) {}
+      enableBinarySerialization_(enableBinarySerialization) {}
 
 void StatsTypeAheadHandler::onRequest(
     std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -63,10 +66,13 @@ void StatsTypeAheadHandler::onEOM() noexcept {
   auto body = body_->moveToFbString();
   query::TypeAheadRequest request;
   try {
-    if (RequestSourceType_ == "python"){
-      LOG(INFO) << "Using Binary deserialize for python request";
-        request = BinarySerializer::deserialize<query::TypeAheadRequest>(body);
+    if (enableBinarySerialization_) {
+      LOG(INFO) << "Using Binary protocol for TypeAheadRequest"
+                << "deserialization.";
+      request = BinarySerializer::deserialize<query::TypeAheadRequest>(body);
     } else {
+      LOG(INFO) << "Using SimpleJSON protocol for TypeAheadRequest"
+                << "deserialization.";
       request =
           SimpleJSONSerializer::deserialize<query::TypeAheadRequest>(body);
     }

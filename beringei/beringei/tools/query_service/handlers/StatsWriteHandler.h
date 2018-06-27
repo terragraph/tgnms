@@ -26,7 +26,9 @@ namespace gorilla {
 
 class StatsWriteHandler : public proxygen::RequestHandler {
  public:
-  explicit StatsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient);
+  explicit StatsWriteHandler(
+      std::shared_ptr<MySqlClient> mySqlClient,
+      bool enableBinarySerialization);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -51,6 +53,7 @@ class StatsWriteHandler : public proxygen::RequestHandler {
   // client per-thread for writing
   std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
+  bool enableBinarySerialization_;
 };
 } // namespace gorilla
 } // namespace facebook

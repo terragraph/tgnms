@@ -24,15 +24,9 @@
 namespace facebook {
 namespace gorilla {
 
-// PyReadHandler will handle raw data read request and
-// return queryed results from Beringei DB.
-// The incoming request is serialzed bytes (RawReadQueryRequest)
-// in the incoming http msg body.
-// The query return is serialzed bytes (RawTimeSeriesList) in the
-// http msg return body.
-class PyReadHandler : public proxygen::RequestHandler {
+class RawReadHandler : public proxygen::RequestHandler {
  public:
-  explicit PyReadHandler(TACacheMap& typeaheadCache);
+  explicit RawReadHandler(TACacheMap& typeaheadCache);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;

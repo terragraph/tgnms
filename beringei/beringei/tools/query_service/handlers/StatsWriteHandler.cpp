@@ -26,6 +26,7 @@
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+using apache::thrift::BinarySerializer;
 using apache::thrift::SimpleJSONSerializer;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -37,8 +38,12 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
-StatsWriteHandler::StatsWriteHandler(std::shared_ptr<MySqlClient> mySqlClient)
-    : RequestHandler(), mySqlCacheClient_(mySqlClient) {
+StatsWriteHandler::StatsWriteHandler(
+    std::shared_ptr<MySqlClient> mySqlClient,
+    bool enableBinarySerialization)
+    : RequestHandler(),
+      mySqlCacheClient_(mySqlClient),
+      enableBinarySerialization_(enableBinarySerialization) {
   mySqlClient_ = std::make_shared<MySqlClient>();
 }
 
@@ -126,6 +131,10 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
         TimeValuePair timePair;
         Key bKey;
 
+        // Currently, all NMS Beringei DB IO is with shard 0
+        // TODO: when finalized the common hash, change to hash shard id as:
+        // std::hash<std::string>()(brow_tmp.key.key) % shardCount;
+        bKey.shardId = 0;
         bKey.key = std::to_string(*keyId);
         bRow.key = bKey;
         timePair.unixTime = tsParsed;
@@ -139,6 +148,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
     }
   }
   // write newly found macs and node/key combos
+  // TODO: in the future, add a guard of the maximum number of allowed keys
   if (!unknownNodes.empty() || !missingNodeKey.empty()) {
     mySqlClient_->addNodes(unknownNodes);
     mySqlClient_->addStatKeys(missingNodeKey);
@@ -174,11 +184,20 @@ void StatsWriteHandler::onEOM() noexcept {
   auto body = body_->moveToFbString();
   query::StatsWriteRequest request;
   try {
-    request = SimpleJSONSerializer::deserialize<query::StatsWriteRequest>(body);
+    if (enableBinarySerialization_) {
+      LOG(INFO) << "Using Binary protocol for TypeAheadRequest"
+                << "deserialization.";
+      request = BinarySerializer::deserialize<query::StatsWriteRequest>(body);
+    } else {
+      LOG(INFO) << "Using SimpleJSON protocol for TypeAheadRequest"
+                << "deserialization.";
+      request =
+          SimpleJSONSerializer::deserialize<query::StatsWriteRequest>(body);
+    }
   } catch (const std::exception&) {
     LOG(INFO) << "Error deserializing stats_writer request";
     ResponseBuilder(downstream_)
-        .status(500, "OK")
+        .status(500, "Internal Server Error")
         .header("Content-Type", "application/json")
         .body("Failed de-serializing stats_writer request")
         .sendWithEOM();
@@ -194,7 +213,7 @@ void StatsWriteHandler::onEOM() noexcept {
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Unable to handle stats_writer request: " << ex.what();
     ResponseBuilder(downstream_)
-        .status(500, "OK")
+        .status(500, "Internal Server Error")
         .header("Content-Type", "application/json")
         .body("Failed handling stats_writer request")
         .sendWithEOM();

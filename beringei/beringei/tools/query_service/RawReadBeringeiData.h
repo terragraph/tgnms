@@ -20,52 +20,51 @@
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
-
 namespace facebook {
 namespace gorilla {
 
 typedef std::vector<std::pair<Key, std::vector<TimeValuePair>>> TimeSeries;
+struct QueryWindow {
+  time_t startTime;
+  time_t endTime;
+  int checkResult;
+};
 
-// RawReadBeringeiData will read the data and return all;
+// RawReadeadBeringeiData will read the data and return all;
 // Will be Used By PyReadHandler
 // Input: RawReadQueryRequest, which is list of RawReadQuery
 // Output: RawRead output
 // Note, it is possible to create template to share between
-// RawRBeringeiData and BeringeiData. However, given the little amount of
-// shared code and little processing in common, I seperate them for now.
+// RawReadBeringeiData and BeringeiData. However, given the little amount of
+// shared code and little processing in common, I separate them for now.
 class RawReadBeringeiData {
  public:
-  explicit RawReadBeringeiData(const query::RawReadQueryRequest& request,
-                               TACacheMap& typeaheadCache);
+  explicit RawReadBeringeiData(TACacheMap& typeaheadCache);
 
-  RawQueryReturn process();
+  RawQueryReturn process(query::RawReadQueryRequest& rawReadQueryRequest);
 
  private:
   // Pre-process the query
-  void validateQuery(const query::RawReadQuery& request);
+  struct QueryWindow validateQuery(const query::RawReadQuery& request);
   GetDataRequest createBeringeiRequest(
       const query::RawReadQuery& request,
-      const int numShards);
+      const int numShards,
+      QueryWindow queryWindow);
 
-  // This function uses a list of Beringei Query and send to the Beringei Data
-  // Base for data. It returns a list of the obtianed time series, i.e., the
-  // query return for a single RawReadQuery.
-  RawTimeSeriesList handleQuery();
+  RawTimeSeriesList handleQuery(query::RawReadQuery rawReadQuery);
 
-  // Write the obtained time series to output
-  RawTimeSeriesList LogRawOutput();
-  // Used to find the Beringei KeyId by a_mac, <optional> z_mac, metric_name
-  long long int FindBeringeiKeyId(query::RawQueryKey raw_query_key);
+  RawTimeSeriesList generateRawOutput(
+      query::RawReadQuery rawReadQuery,
+      TimeSeries beringeiTimeseries);
 
-  // request data
-  query::RawReadQueryRequest request_;
-  query::RawReadQuery query_;
-  time_t startTime_;
-  time_t endTime_;
-  TimeSeries beringeiTimeSeries_;
+  int64_t findBeringeiKeyId(query::RawQueryKey rawQueryKey);
+
   TACacheMap& typeaheadCache_;
-  // regular key time series
-  std::vector<std::vector<double>> timeSeries_;
+  TimeSeries beringeiTimeSeries_;
+  std::vector<std::string> fullMetricKeyName_;
+  std::vector<bool> successFindKeyId_;
+  static const int kFail = -1;
+  static const int kSuccess = 0;
 };
 
 } // namespace gorilla

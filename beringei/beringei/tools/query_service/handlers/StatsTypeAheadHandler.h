@@ -30,7 +30,7 @@ class StatsTypeAheadHandler : public proxygen::RequestHandler {
   explicit StatsTypeAheadHandler(
       std::shared_ptr<MySqlClient> mySqlClient,
       TACacheMap& typeaheadCache,
-      std::string request_source_type);
+      bool enableBinarySerialization);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -49,10 +49,7 @@ class StatsTypeAheadHandler : public proxygen::RequestHandler {
   std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
   TACacheMap& typeaheadCache_;
-  // RequestSourceType_ denotes the source of incoming HTTPMessage
-  // If 'python' use BinaryProtocol to Serializer/deserialize
-  // Otherwise, use SimpleJSONSerializer to Serializer/deserialize
-  std::string RequestSourceType_;
+  bool enableBinarySerialization_;
 };
 } // namespace gorilla
 } // namespace facebook

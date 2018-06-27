@@ -41,10 +41,8 @@ set(BERINGEI_QUERY_HANDLER_SRCS
     handlers/LogsWriteHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
-    handlers/PyReadHandler.cpp
-    handlers/PyReadHandler.h
-    handlers/PyWriteHandler.cpp
-    handlers/PyWriteHandler.h
+    handlers/RawReadHandler.cpp
+    handlers/RawReadHandler.h
     handlers/QueryHandler.cpp
     handlers/QueryHandler.h
     handlers/RuckusControllerStatsHandler.cpp
