@@ -1,0 +1,17 @@
+/config.json
+/data.ser
+/target
+
+# Eclipse
+/.settings/
+/bin/
+.metadata
+.classpath
+.project
+.externalToolBuilders/
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
