@@ -39,24 +39,7 @@ export default class CreateGraphModal extends React.Component {
   state = cloneDeep(initialState);
 
   componentDidMount() {
-    // register to receive topology updates
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this),
-    );
     Modal.setAppElement('body');
-  }
-
-  componentWillUnmount() {
-    // un-register once hidden
-    Dispatcher.unregister(this.dispatchToken);
-  }
-
-  handleDispatchEvent(payload) {
-    switch (payload.actionType) {
-      case Actions.TOPOLOGY_SELECTED:
-        this.getDashboards(payload.networkName);
-        break;
-    }
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {

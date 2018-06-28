@@ -222,7 +222,7 @@ export default class CustomTable extends React.Component {
         onMouseOut={() => {
           this.setState({hoveredRowIndex: -1});
         }}>
-        <div>{content}</div>
+        <div className="table-cell-content">{content}</div>
       </div>
     );
   }

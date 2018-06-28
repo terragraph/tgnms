@@ -1479,6 +1479,7 @@ export default class NetworkMap extends React.Component {
           <NetworkDataTable
             height={this.state.lowerPaneHeight}
             networkConfig={this.props.networkConfig}
+            viewLinkDashboard={this.props.viewLinkDashboard}
           />
         </SplitPane>
       </div>

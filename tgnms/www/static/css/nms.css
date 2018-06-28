@@ -100,6 +100,29 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   height: 30px;
   display: inline-block;
 }
+
+.table-cell-content {
+  width: 100%;
+}
+
+.table-button-group {
+  display: inline-block;
+  float: right;
+  margin: 2px;
+}
+
+.table-button {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: 0 3px;
+  display: inline-block;
+  background-color: white;
+  color: cadetblue;
+  cursor: pointer;
+  float: right;
+}
+
 .status-table-container {
   display: flex;
   flex-direction: row;

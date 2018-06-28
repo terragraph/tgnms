@@ -839,29 +839,19 @@ export default class NetworkLinksTable extends React.Component {
   }
 
   renderNameWithStatsLinks(cell, row) {
-    const linkStyle = {
-      color: 'blue',
-      cursor: 'pointer',
-      paddingLeft: '5px',
-    };
     return (
       <span>
         {cell}
         <br />
-        Stats:
-        <span
-          style={linkStyle}
-          onClick={click => {
-            Dispatcher.dispatch({
-              actionType: Actions.VIEW_SELECTED,
-              nodeRestrictor: row.name,
-              viewName: 'stats',
-            });
-          }}>
-          Link
-        </span>
-        <span
-          style={linkStyle}
+        <div
+          className="table-button"
+          onClick={() =>
+            this.onViewLinkDashboardClick(row.a_node_name, row.z_node_name)
+          }>
+          Link Dashboard
+        </div>
+        <div
+          className="table-button"
           onClick={click => {
             Dispatcher.dispatch({
               actionType: Actions.VIEW_SELECTED,
@@ -869,8 +859,8 @@ export default class NetworkLinksTable extends React.Component {
               viewName: 'stats',
             });
           }}>
-          Nodes
-        </span>
+          Node Dashboard
+        </div>
       </span>
     );
   }
@@ -937,6 +927,14 @@ export default class NetworkLinksTable extends React.Component {
 
     return url;
   }
+
+  onViewLinkDashboardClick = (a_node_name, z_node_name) => {
+    this.props.viewLinkDashboard(
+      this.props.topology.name,
+      a_node_name,
+      z_node_name,
+    );
+  };
 
   // create a link to the high frequency Scuba dashboard
   renderScubaLink(a_node_name, z_node_name, startTms, endTms) {
@@ -1026,23 +1024,42 @@ export default class NetworkLinksTable extends React.Component {
       startTms,
       endTms,
     );
+
     const odsURL = this.renderODSLink(row.a_node_name, row.z_node_name);
 
     if (fbinternal) {
       return (
         <span>
-          {' '}
-          {cell}{' '}
+          {cell}
+
+          <div
+            className="table-button"
+            onClick={() =>
+              this.onViewLinkDashboardClick(row.a_node_name, row.z_node_name)
+            }>
+            Dashboard
+          </div>
           <a href={scubaURL} target="_new">
-            (Scuba)
+            <div className="table-button">Scuba</div>
           </a>
           <a href={odsURL} target="_new">
-            (ODS)
+            <div className="table-button">ODS</div>
           </a>
         </span>
       );
     } else {
-      return <span> {cell} </span>;
+      return (
+        <span>
+          {cell}
+          <div
+            className="table-button"
+            onClick={() =>
+              this.onViewLinkDashboardClick(row.a_node_name, row.z_node_name)
+            }>
+            Dashboard
+          </div>
+        </span>
+      );
     }
   }
 
