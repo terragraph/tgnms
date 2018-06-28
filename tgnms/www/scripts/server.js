@@ -70,9 +70,6 @@ if (devMode) {
   app.get('/map.js', (req, res) => {
     res.sendFile(path.join(__dirname, '/dist/map.js'));
   });
-  app.get('/bootstrap.css', (req, res) => {
-    res.sendFile(path.join(__dirname, '/dist/bootstrap.css'));
-  });
 }
 
 app.get(/\/*/, (req, res) => {

@@ -12,7 +12,7 @@ const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin;
 
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin');
 
 const eslintFormatter = require('react-dev-utils/eslintFormatter');
 
@@ -38,9 +38,8 @@ module.exports = {
       analyzerMode: 'static',
       reportFilename: 'report.html',
     }),
-    new UglifyJsPlugin({
-      uglifyOptions: {
-        comments: false,
+    new ParallelUglifyPlugin({
+      uglifyES: {
         compress: {
           unused: true,
           dead_code: true,
@@ -50,7 +49,7 @@ module.exports = {
           evaluate: true,
           drop_console: true,
           sequences: true,
-          booleans: true
+          booleans: true,
         },
       },
     }),
@@ -162,5 +161,14 @@ module.exports = {
       // ** STOP ** Are you adding a new loader?
       // Make sure to add the new loader(s) before the "file" loader.
     ],
+  },
+  // Some libraries import Node modules but don't use them in the browser.
+  // Tell Webpack to provide empty mocks for them so importing them works.
+  node: {
+    dgram: 'empty',
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty',
+    child_process: 'empty',
   },
 };
