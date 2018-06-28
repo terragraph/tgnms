@@ -1,3 +1,8 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
 
 if (!process.env.NODE_ENV) {
   process.env.BABEL_ENV = 'development';
@@ -28,7 +33,7 @@ app.use(compression());
 app.set('views', './views');
 app.set('view engine', 'pug');
 
-app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
 app.use('/map', require('../server/map/routes'));

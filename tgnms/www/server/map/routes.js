@@ -1,3 +1,9 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+
 const express = require('express');
 const request = require('request');
 

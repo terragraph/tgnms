@@ -1,5 +1,6 @@
 [ignore]
 .*/node_modules/.*
+.*/flow-typed/npm/axios_v0.16.x.js
 
 [options]
 emoji=true
@@ -57,4 +58,4 @@ untyped-import
 untyped-type-import
 
 [version]
-^0.72.0
+^0.75.0

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
 
 const {
   getAllTopologyNames,
@@ -53,14 +58,8 @@ function startPeriodicTasks() {
     );
   }
 
-  runNowAndSchedule(
-    refreshHealthData,
-    HEALTH_REFRESH_INTERVAL,
-  );
-  runNowAndSchedule(
-    refreshSelfTestCache,
-    TYPEAHEAD_REFRESH_INTERVAL,
-  );
+  runNowAndSchedule(refreshHealthData, HEALTH_REFRESH_INTERVAL);
+  runNowAndSchedule(refreshSelfTestCache, TYPEAHEAD_REFRESH_INTERVAL);
   // start poll request interval for topology/statis
   runNowAndSchedule(
     scheduleTopologyUpdate,
@@ -81,8 +80,10 @@ function refreshHealthData() {
   console.log('periodic: refreshing health cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('periodic: refreshing cache (health, analyzer) for',
-                configName);
+    console.log(
+      'periodic: refreshing cache (health, analyzer) for',
+      configName,
+    );
     refreshNetworkHealth(configName);
     refreshAnalyzerData(configName);
   });
@@ -92,8 +93,7 @@ function refreshSelfTestCache() {
   console.log('periodic: refreshing self-test cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('periodic: refreshing self-test for',
-                configName);
+    console.log('periodic: refreshing self-test for', configName);
     refreshSelfTestData(configName);
   });
 }

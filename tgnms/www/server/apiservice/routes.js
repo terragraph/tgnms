@@ -1,11 +1,14 @@
-const {
-  getConfigByName,
-} = require('../topology/model');
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+
+const {getConfigByName} = require('../topology/model');
 
 const express = require('express');
 const isIp = require('is-ip');
 const proxy = require('express-http-proxy');
-
 
 const app = express();
 
@@ -20,7 +23,8 @@ function getAPIServiceHost(req, res) {
     : 'http://' + controller_ip + ':8080';
 }
 
-app.use('/:topology/',
+app.use(
+  '/:topology/',
   proxy(getAPIServiceHost, {
     memoizeHost: false,
     parseReqBody: false,

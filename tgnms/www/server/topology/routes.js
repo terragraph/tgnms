@@ -1,3 +1,9 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+
 const {
   NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
@@ -26,9 +32,7 @@ app.get(/\/health\/(.+)$/i, (req, res, next) => {
 });
 
 app.get(/\/list$/, (req, res, next) => {
-  res.json(
-    getAllTopologyNames().map(keyName => getTopologyByName(keyName)),
-  );
+  res.json(getAllTopologyNames().map(keyName => getTopologyByName(keyName)));
 });
 
 app.get(/\/get\/(.+)$/i, (req, res, next) => {
@@ -98,7 +102,7 @@ app.post(/\/config\/save$/i, (req, res, next) => {
             'Missing topology file for',
             config.topology.name,
             'writing to',
-            topologyFile
+            topologyFile,
           );
           fs.writeFile(
             topologyFile,
@@ -108,9 +112,9 @@ app.post(/\/config\/save$/i, (req, res, next) => {
                 'Unable to write topology file',
                 topologyFile,
                 'error:',
-                err
+                err,
               );
-            }
+            },
           );
         }
         // ensure we don't write the e2e topology to the instance config

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
 
 const {
   BERINGEI_QUERY_URL,
@@ -63,7 +68,7 @@ function getTopologyByName(topologyName) {
       config.name,
       '[',
       config.controller_ip_active,
-      ']'
+      ']',
     );
     // force the original name if the controller has no name
     topology.name = fileTopologyByName[topologyName].name;
@@ -115,8 +120,7 @@ function getTopologyByName(topologyName) {
   const nodes = topology.nodes;
   for (let j = 0; j < nodes.length; j++) {
     if (status && status.statusReports) {
-      topology.nodes[j].status_dump =
-        status.statusReports[nodes[j].mac_addr];
+      topology.nodes[j].status_dump = status.statusReports[nodes[j].mac_addr];
     }
   }
   // detect aps without a matching site name
@@ -134,7 +138,10 @@ function getTopologyByName(topologyName) {
     });
     // log missing site associations
     if (allRuckusApNames.size > 0) {
-      console.log('[Ruckus AP] Missing site associations for', allRuckusApNames);
+      console.log(
+        '[Ruckus AP] Missing site associations for',
+        allRuckusApNames,
+      );
     }
   }
   const networkConfig = Object.assign({}, config);
@@ -183,7 +190,7 @@ function reloadInstanceConfig() {
       const topology = JSON.parse(
         fs.readFileSync(
           join(NETWORK_CONFIG_NETWORKS_PATH, topologyConfig.topology_file),
-        )
+        ),
       );
       // base config
       if (topologyConfig.hasOwnProperty('base_topology_file')) {
@@ -208,7 +215,9 @@ function reloadInstanceConfig() {
       config.name = topology.name;
       config.controller_events = [];
       config.controller_ip_active = config.controller_ip;
-      config.controller_ip_passive = config.controller_ip_backup ? config.controller_ip_backup : null;
+      config.controller_ip_passive = config.controller_ip_backup
+        ? config.controller_ip_backup
+        : null;
       configByName[topology.name] = config;
       fileTopologyByName[topology.name] = topology;
       const topologyName = topology.name;
@@ -247,7 +256,7 @@ function refreshRuckusControllerCache() {
         return;
       }
       console.log('Fetched ruckus controller stats.');
-    }
+    },
   );
 }
 
@@ -261,7 +270,7 @@ function refreshNetworkHealth(topologyName) {
       name: 'minion_uptime',
       metric: 'e2e_minion.uptime',
       type: 'uptime_sec',
-      min_ago: 24 * 60, /* 24 hours */
+      min_ago: 24 * 60 /* 24 hours */,
     },
   ];
   const linkMetrics = [
@@ -269,7 +278,7 @@ function refreshNetworkHealth(topologyName) {
       name: 'alive',
       metric: 'fw_uptime',
       type: 'event',
-      min_ago: 24 * 60, /* 24 hours */
+      min_ago: 24 * 60 /* 24 hours */,
     },
   ];
   const startTime = new Date();
@@ -298,9 +307,11 @@ function refreshNetworkHealth(topologyName) {
       try {
         parsed = JSON.parse(httpResponse.body);
         // the backend returns both A/Z sides, re-write to one
-        if (parsed &&
-            parsed.length === 2 &&
-            parsed[1].hasOwnProperty('metrics')) {
+        if (
+          parsed &&
+          parsed.length === 2 &&
+          parsed[1].hasOwnProperty('metrics')
+        ) {
           Object.keys(parsed[1].metrics).forEach(linkName => {
             const linkNameOnly = linkName.replace(' (A) - fw_uptime', '');
             if (linkName !== linkNameOnly) {
@@ -319,7 +330,7 @@ function refreshNetworkHealth(topologyName) {
       }
       // join the results
       networkHealth[topologyName] = parsed;
-    }
+    },
   );
 }
 
@@ -341,9 +352,7 @@ function scheduleTopologyUpdate() {
   console.log('model: scheduling topology update');
   worker.send({
     type: 'poll',
-    topologies: Object.keys(configByName).map(
-      keyName => configByName[keyName]
-    ),
+    topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
   });
 }
 
@@ -351,16 +360,20 @@ function scheduleScansUpdate() {
   console.log('model: scheduling scans update');
   worker.send({
     type: 'scan_poll',
-    topologies: Object.keys(configByName).map(
-      keyName => configByName[keyName]
-    ),
+    topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
   });
 }
 
 worker.on('message', msg => {
-  console.log('model: received message from worker: ' + msg.type +
-    ', (' + msg.name + ')' +
-    ', success: ' + msg.success);
+  console.log(
+    'model: received message from worker: ' +
+      msg.type +
+      ', (' +
+      msg.name +
+      ')' +
+      ', success: ' +
+      msg.success,
+  );
   if (!(msg.name in configByName)) {
     console.error('Unable to find topology', msg.name);
     return;
@@ -378,7 +391,7 @@ worker.on('message', msg => {
           msg.success ? 'online' : 'offline',
           'in',
           msg.response_time,
-          'ms'
+          'ms',
         );
         // add event for controller up/down
         config.controller_events.push([new Date(), msg.success]);
@@ -393,7 +406,7 @@ worker.on('message', msg => {
           'Invalid name received from controller for:',
           msg.name,
           ', Received:',
-          msg.topology.name
+          msg.topology.name,
         );
         config.controller_online = false;
         config.controller_error =
@@ -449,8 +462,10 @@ worker.on('message', msg => {
       if (msg.success && msg.ignition_state) {
         const linkNames = Array.from(
           new Set(
-            msg.ignition_state.igCandidates.map(candidate => candidate.linkName)
-          )
+            msg.ignition_state.igCandidates.map(
+              candidate => candidate.linkName,
+            ),
+          ),
         );
         ignitionStateByName[msg.name] = linkNames;
       } else {
@@ -466,18 +481,26 @@ worker.on('message', msg => {
       // successful
       if (config.controller_ip_backup && msg.success) {
         // check if state changed.
-        if ((msg.controller_ip == config.controller_ip_active &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
-            (msg.controller_ip == config.controller_ip_passive &&
-             (msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmStateSTATE_ACTIVE ||
-              msg.bstar_fsm.state == controllerTTypes.BinaryStarFsmStateSTATE_PRIMARY))) {
+        if (
+          (msg.controller_ip == config.controller_ip_active &&
+            (msg.bstar_fsm.state ==
+              controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
+              msg.bstar_fsm.state ==
+                controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
+          (msg.controller_ip == config.controller_ip_passive &&
+            (msg.bstar_fsm.state ==
+              controllerTTypes.BinaryStarFsmStateSTATE_ACTIVE ||
+              msg.bstar_fsm.state ==
+                controllerTTypes.BinaryStarFsmStateSTATE_PRIMARY))
+        ) {
           const tempIp = config.controller_ip_passive;
           config.controller_ip_passive = config.controller_ip_active;
           config.controller_ip_active = tempIp;
           console.log(config.name + ' BSTAR state changed');
           console.log('Active controller is  : ' + config.controller_ip_active);
-          console.log('Passive controller is : ' + config.controller_ip_passive);
+          console.log(
+            'Passive controller is : ' + config.controller_ip_passive,
+          );
         }
       }
       break;

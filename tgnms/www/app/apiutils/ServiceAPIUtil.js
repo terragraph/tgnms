@@ -1,11 +1,17 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 'use strict';
 
 import axios from 'axios';
+
+type E2EAck = {
+  message: string,
+  statusText: string,
+};
 
 export const apiServiceRequest = (
   topologyName: string,
@@ -35,7 +41,7 @@ export const apiServiceRequest = (
   });
 };
 
-export const getErrorTextFromE2EAck = error => {
+export const getErrorTextFromE2EAck = (error: ?E2EAck) => {
   if (!error) {
     return 'Unknown Error!';
   }

@@ -1,3 +1,9 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+
 function getNodesWithUpgradeStatus(nodes, upgradeState) {
   const upgradeStatusDump = {
     curUpgradeReq: upgradeState.curReq,
