@@ -84,7 +84,7 @@ class NodeOption extends React.Component {
 export default class GraphConfigurationSelect extends React.Component {
   state = {
     endTime: new Date(),
-    minAgo: 60,
+    minAgo: 1440,
 
     // Node A type-ahead graphs
     nodeAOptions: [],

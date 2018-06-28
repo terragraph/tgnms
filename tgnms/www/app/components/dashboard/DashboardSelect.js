@@ -7,17 +7,25 @@
 
 import Select from 'react-select';
 import React from 'react';
+import {DEFAULT_DASHBOARD_NAMES} from '../../constants/NetworkDashboardConstants.js';
 
 export default class DashboardSelect extends React.Component {
   render() {
     const dashboardsOptions = [];
     if (this.props.dashboards) {
       Object.keys(this.props.dashboards).forEach(dashboardName => {
-        dashboardsOptions.push({
+        // Keep default dashboards at the top of the drop down list
+        const option = {
           label: dashboardName,
           value: dashboardName,
-        });
+        };
+        if (Object.values(DEFAULT_DASHBOARD_NAMES).includes(dashboardName)) {
+          dashboardsOptions.unshift(option);
+        } else {
+          dashboardsOptions.push(option);
+        }
       });
+      dashboardsOptions;
       dashboardsOptions.push({
         label: 'New Dashboard ...',
         value: '#New',

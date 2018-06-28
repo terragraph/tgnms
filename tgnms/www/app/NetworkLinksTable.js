@@ -14,6 +14,7 @@ import {
 import ReactEventChart from './ReactEventChart.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
+import {DEFAULT_DASHBOARD_NAMES} from './constants/NetworkDashboardsConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
@@ -846,19 +847,23 @@ export default class NetworkLinksTable extends React.Component {
         <div
           className="table-button"
           onClick={() =>
-            this.onViewLinkDashboardClick(row.a_node_name, row.z_node_name)
+            this.onViewDefaultDashboardClick(
+              row.a_node_name,
+              row.z_node_name,
+              DEFAULT_DASHBOARD_NAMES.LINK,
+            )
           }>
           Link Dashboard
         </div>
         <div
           className="table-button"
-          onClick={click => {
-            Dispatcher.dispatch({
-              actionType: Actions.VIEW_SELECTED,
-              nodeRestrictor: [row.a_node_name, row.z_node_name].join(','),
-              viewName: 'stats',
-            });
-          }}>
+          onClick={() =>
+            this.onViewDefaultDashboardClick(
+              row.a_node_name,
+              row.z_node_name,
+              DEFAULT_DASHBOARD_NAMES.NODE,
+            )
+          }>
           Node Dashboard
         </div>
       </span>
@@ -928,12 +933,17 @@ export default class NetworkLinksTable extends React.Component {
     return url;
   }
 
-  onViewLinkDashboardClick = (a_node_name, z_node_name) => {
-    this.props.viewLinkDashboard(
-      this.props.topology.name,
-      a_node_name,
-      z_node_name,
-    );
+  onViewDefaultDashboardClick = (nodeAName, nodeZName, dashboardName) => {
+    Dispatcher.dispatch({
+      actionType: Actions.VIEW_SELECTED,
+      context: {
+        dashboardName,
+        nodeAName,
+        nodeZName,
+        topologyName: this.props.topology.name,
+      },
+      viewName: 'dashboards',
+    });
   };
 
   // create a link to the high frequency Scuba dashboard
@@ -1035,7 +1045,11 @@ export default class NetworkLinksTable extends React.Component {
           <div
             className="table-button"
             onClick={() =>
-              this.onViewLinkDashboardClick(row.a_node_name, row.z_node_name)
+              this.onViewDefaultDashboardClick(
+                row.a_node_name,
+                row.z_node_name,
+                DEFAULT_DASHBOARD_NAMES.LINK,
+              )
             }>
             Dashboard
           </div>
@@ -1054,7 +1068,11 @@ export default class NetworkLinksTable extends React.Component {
           <div
             className="table-button"
             onClick={() =>
-              this.onViewLinkDashboardClick(row.a_node_name, row.z_node_name)
+              this.onViewDefaultDashboardClick(
+                row.a_node_name,
+                row.z_node_name,
+                DEFAULT_DASHBOARD_NAMES.LINK,
+              )
             }>
             Dashboard
           </div>
