@@ -7,7 +7,7 @@
 
 import Select from 'react-select';
 import React from 'react';
-import {DEFAULT_DASHBOARD_NAMES} from '../../constants/NetworkDashboardConstants.js';
+import {DEFAULT_DASHBOARD_NAMES} from '../../constants/NetworkDashboardsConstants.js';
 
 export default class DashboardSelect extends React.Component {
   render() {
