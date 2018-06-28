@@ -16,7 +16,7 @@
   "homepage": "https://github.com/pmccut/tgnms",
   "scripts": {
     "test": "jest",
-    "start": "nodemon scripts/server",
+    "start": "nodemon scripts/server --exec babel-node",
     "build": "rimraf dist && NODE_ENV=production webpack --config ./config/webpack.production.config.js --progress --profile --colors",
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
     "jscs": "jscs .",
@@ -89,8 +89,8 @@
     "babel-eslint": "^8.2.1",
     "babel-jest": "23.0.1",
     "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.20.0",
     "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react-app": "^3.1.1",
     "babel-preset-react-hmre": "^1.1.1",
     "babel-preset-stage-0": "^6.24.1",
     "d3": "^4.3.0",
@@ -150,11 +150,6 @@
     "{config,scripts,server}/**/*.js": [
       "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
       "git add"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "react-app"
     ]
   }
 }

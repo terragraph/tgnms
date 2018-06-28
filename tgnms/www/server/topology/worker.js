@@ -1,11 +1,12 @@
-/*
- * ZMQ controller/aggregator refresh process
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
  * @format
  */
 
-const axios = require('axios');
-const isIp = require('is-ip');
-const process = require('process');
+import axios from 'axios';
+import isIp from 'is-ip';
+import process from 'process';
 
 // main message loop from primary process
 process.on('message', msg => {
