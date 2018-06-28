@@ -1,3 +1,8 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
 
 if (!process.env.NODE_ENV) {
   process.env.BABEL_ENV = 'development';

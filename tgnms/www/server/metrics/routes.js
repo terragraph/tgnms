@@ -1,3 +1,9 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+
 const {BERINGEI_QUERY_URL} = require('../config');
 const {getAnalyzerData} = require('../topology/analyzer_data');
 // new json writer
@@ -17,7 +23,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
       name: 'not_used',
       metric: metricName,
       type: 'latest',
-      min_ago: 60, /* 1 hour */
+      min_ago: 60 /* 1 hour */,
     },
   ];
   const query = {
@@ -41,7 +47,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
         return;
       }
       res.send(httpResponse.body).end();
-    }
+    },
   );
 });
 
@@ -74,7 +80,7 @@ app.post(/\/multi_chart\/$/i, (req, res, next) => {
             .send('No Data')
             .end();
         }
-      }
+      },
     );
   });
 });
@@ -97,7 +103,7 @@ app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
         return;
       }
       res.send(body).end();
-    }
+    },
   );
 });
 
@@ -143,6 +149,5 @@ app.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
     res.send('No analyzer cache').end();
   }
 });
-
 
 module.exports = app;

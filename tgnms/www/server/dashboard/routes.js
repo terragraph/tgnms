@@ -1,3 +1,9 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+
 const express = require('express');
 const fs = require('fs');
 
@@ -40,7 +46,7 @@ app.post(/\/save\/$/i, (req, res, next) => {
             return;
           }
           res.status(200).end('Saved');
-        }
+        },
       );
     } else {
       res.status(500).end('Bad Data');
