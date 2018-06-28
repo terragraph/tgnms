@@ -7,14 +7,14 @@ emoji=true
 
 esproposal.optional_chaining=enable
 
-module.system=haste
-module.system.haste.use_name_reducers=true
-# get basename
-module.system.haste.name_reducers='^.*/\([a-zA-Z0-9$_.-]+\.js\(\.flow\)?\)$' -> '\1'
-# strip .js or .js.flow suffix
-module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
-module.system.haste.paths.blacklist=.*/__tests__/.*
-module.system.haste.paths.blacklist=.*/__mocks__/.*
+#module.system=haste
+#module.system.haste.use_name_reducers=true
+## get basename
+#module.system.haste.name_reducers='^.*/\([a-zA-Z0-9$_.-]+\.js\(\.flow\)?\)$' -> '\1'
+## strip .js or .js.flow suffix
+#module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
+#module.system.haste.paths.blacklist=.*/__tests__/.*
+#module.system.haste.paths.blacklist=.*/__mocks__/.*
 
 # Only for relayUnstableBatchedUpdates.native.js, as .js is blacklisted                                                                                                module.file_ext=.native.js
 module.file_ext=.js

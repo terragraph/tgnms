@@ -4,8 +4,5 @@
 **/node_modules/**/*.js
 
 dist/**/*.js
-static/apidoc/locales/**/*.js
-static/apidoc/utils/**/*.js
-static/apidoc/vendor/**/*.js
 thrift/**/*.js
-webpack.*.js
+config/webpack.*.js
