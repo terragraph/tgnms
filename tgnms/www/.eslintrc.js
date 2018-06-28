@@ -115,15 +115,9 @@ module.exports.overrides = [
   },
   {
     files: [
-      'aggregatorProxy.js',
-      'dataJson.js',
-      'paths.js',
-      'queryHelper.js',
+      'config/webpack.*.js',
       'scripts/**/*.js',
-      'static/apidoc/**/*.js',
-      'server.js',
-      'webpack.*.js',
-      'worker.js',
+      'server/**/*.js',
     ],
     rules: {
       'no-console': 'off',
