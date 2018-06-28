@@ -9,8 +9,8 @@ if (!process.env.NODE_ENV) {
 const {
   getNetworkInstanceConfig,
   reloadInstanceConfig,
-} = require('./server/topology/model');
-const topologyPeriodic = require('./server/topology/periodic');
+} = require('../server/topology/model');
+const topologyPeriodic = require('../server/topology/periodic');
 
 const compression = require('compression');
 const express = require('express');
@@ -29,12 +29,12 @@ app.set('views', './views');
 app.set('view engine', 'pug');
 
 app.use('/static', express.static(path.join(__dirname, 'static')));
-app.use('/apiservice', require('./server/apiservice/routes'));
-app.use('/controller', require('./server/controller/routes'));
-app.use('/map', require('./server/map/routes'));
-app.use('/metrics', require('./server/metrics/routes'));
-app.use('/dashboards', require('./server/dashboard/routes'));
-app.use('/topology', require('./server/topology/routes'));
+app.use('/apiservice', require('../server/apiservice/routes'));
+app.use('/controller', require('../server/controller/routes'));
+app.use('/map', require('../server/map/routes'));
+app.use('/metrics', require('../server/metrics/routes'));
+app.use('/dashboards', require('../server/dashboard/routes'));
+app.use('/topology', require('../server/topology/routes'));
 
 // First-time stuff
 reloadInstanceConfig();
@@ -42,7 +42,7 @@ topologyPeriodic.startPeriodicTasks();
 
 if (devMode) {
   // serve developer, non-minified build
-  const config = require('./webpack.config.js');
+  const config = require('../config/webpack.config.js');
   const compiler = webpack(config);
   const webpackMiddleware = require('webpack-dev-middleware');
   const webpackHotMiddleware = require('webpack-hot-middleware');

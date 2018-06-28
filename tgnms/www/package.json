@@ -2,7 +2,7 @@
   "name": "tg-nms",
   "version": "0.1.0",
   "description": "Terragraph NMS",
-  "main": "server.js",
+  "main": "scripts/server.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/pmccut/tgnms.git"
@@ -16,8 +16,8 @@
   "homepage": "https://github.com/pmccut/tgnms",
   "scripts": {
     "test": "jest",
-    "start": "nodemon server",
-    "build": "rimraf dist && cross-env NODE_ENV=production webpack --config ./webpack.production.config.js --progress --profile --colors",
+    "start": "nodemon scripts/server",
+    "build": "rimraf dist && NODE_ENV=production webpack --config ./config/webpack.production.config.js --progress --profile --colors",
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
     "jscs": "jscs .",
     "precommit": "./node_modules/.bin/lint-staged"
@@ -147,7 +147,7 @@
       "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
       "git add"
     ],
-    "server/**/*.js": [
+    "{config,scripts,server}/**/*.js": [
       "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
       "git add"
     ]
