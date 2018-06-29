@@ -60,7 +60,7 @@ export const uploadUpgradeBinary = async (upgradeBinary, topologyName) => {
   const config = {
     onUploadProgress(progressEvent) {
       const percentCompleted = Math.round(
-        progressEvent.loaded * 100 / progressEvent.total,
+        (progressEvent.loaded * 100) / progressEvent.total,
       );
 
       Dispatcher.dispatch({

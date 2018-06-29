@@ -139,7 +139,7 @@ export default class DetailsTopology extends React.Component {
       }
       const nodeTypeCount = nodeTypes[nodeType];
       const nodeTypeCountPerc = parseInt(
-        nodeTypeCount / this.props.topology.nodes.length * 100,
+        (nodeTypeCount / this.props.topology.nodes.length) * 100,
       );
       return (
         <tr key={'nodeType-' + nodeType}>
@@ -191,7 +191,7 @@ export default class DetailsTopology extends React.Component {
         const polarityName = getPolarityString(polarity);
         const polarityCount = polarityCountBySite[polarity];
         const polarityCountPerc = parseInt(
-          polarityCount / this.props.topology.sites.length * 100,
+          (polarityCount / this.props.topology.sites.length) * 100,
           10,
         );
         return (
@@ -220,7 +220,7 @@ export default class DetailsTopology extends React.Component {
       const polarityName = getPolarityString(polarity);
       const polarityCount = polarities[polarity];
       const polarityCountPerc = parseInt(
-        polarityCount / this.props.topology.nodes.length * 100,
+        (polarityCount / this.props.topology.nodes.length) * 100,
         10,
       );
       return (
@@ -250,7 +250,7 @@ export default class DetailsTopology extends React.Component {
     const versionRows = versionData.map((element, i) => {
       const versionPerc =
         element.value > 0
-          ? parseInt(parseInt(element.value) / totalReported * 100)
+          ? parseInt((parseInt(element.value) / totalReported) * 100)
           : 0;
       return (
         <tr key={i}>

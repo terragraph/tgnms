@@ -93,7 +93,7 @@ export default class NetworkStatusTable extends React.Component {
           {i == 0 ? versionHeader : null}
           <td>{version}</td>
           <td>
-            {parseInt(count / totalReported * 100)}% ({count})
+            {parseInt((count / totalReported) * 100)}% ({count})
           </td>
         </tr>,
       );

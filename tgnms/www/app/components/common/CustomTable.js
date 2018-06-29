@@ -112,7 +112,7 @@ export default class CustomTable extends React.Component {
                     Math.max(
                       columns[index].width, // original width
                       // width to fill larger screen
-                      adjustedWidth * columns[index].width / totalW,
+                      (adjustedWidth * columns[index].width) / totalW,
                     );
                   return (
                     <div>
