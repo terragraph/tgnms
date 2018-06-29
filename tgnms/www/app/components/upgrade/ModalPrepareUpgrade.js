@@ -15,6 +15,7 @@ import Modal from 'react-modal';
 import Select from 'react-select';
 import React from 'react';
 import swal from 'sweetalert';
+import {versionSlicer} from '../../helpers/NetworkHelpers.js';
 
 const modalStyle = {
   content: {
@@ -139,12 +140,8 @@ export default class ModalPrepareUpgrade extends React.Component {
     const {upgradeImages} = this.props;
     const {selectedImage} = this.state;
 
-    // .slice(28) is used to remove the "Facebook Terragraph Release" prefix from the image name
-    // e.g:
-    // "Facebook Terragraph Release RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
-    // turns into "RELEASE_M15_RC1-michaelcallahan (michaelcallahan@devbig730 Fri Sep 22 20:31:23 PDT 2017)"
     const selectOptions = upgradeImages.map(image => {
-      const imageDisplayName = image.name.slice(28);
+      const imageDisplayName = versionSlicer(image.name);
       return {
         label: imageDisplayName,
         value: image.name,
