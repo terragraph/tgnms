@@ -26,7 +26,7 @@ import {
   sortConfigByTag,
 } from '../../helpers/NetworkConfigHelpers.js';
 import E2EConfig from './E2EConfig.js';
-import {get, set, merge, hasIn, omit} from 'lodash-es';
+import {cloneDeep, get, setWith, merge, hasIn, omit} from 'lodash-es';
 import PropTypes from 'prop-types';
 import React from 'react';
 import SweetAlert from 'sweetalert-react';
@@ -64,7 +64,7 @@ export default class E2EConfigContainer extends React.Component {
       errorMsg: null,
     };
 
-    this.state = {...this.initalState};
+    this.state = cloneDeep(this.initalState);
   }
 
   componentDidMount() {
@@ -84,7 +84,7 @@ export default class E2EConfigContainer extends React.Component {
     if (isNextTopologyValid && newTopologyName !== oldTopologyName) {
       this.fetchConfigsForCurrentTopology(newTopologyName);
 
-      this.setState({...this.initialState});
+      this.setState(cloneDeep(this.initialState));
     }
   }
 
@@ -345,8 +345,10 @@ export default class E2EConfigContainer extends React.Component {
   }
 
   editConfigHelper(config, editPath, value) {
+    // lodash's set will create arrays if the editPath contains numbers
+    // So we need to use setWith to produce new elements as objects
     return editPath !== undefined && editPath !== null
-      ? set(config, editPath, value)
+      ? setWith(config, editPath, value, Object)
       : value;
   }
 

@@ -16,6 +16,7 @@ import {
   createConfigToSubmit,
   objDifference,
   allPathsInObj,
+  objHasArray,
 } from '../../helpers/NetworkConfigHelpers.js';
 import cx from 'classnames';
 import PropTypes from 'prop-types';
@@ -68,7 +69,13 @@ export default class JSONConfigTextArea extends React.Component {
         this.state.draftConfigString === ''
           ? '{}'
           : this.state.draftConfigString;
+
       const draftConfig = JSON.parse(stringToParse);
+
+      // Check for any arrays in the draftConfig
+      if (objHasArray(draftConfig)) {
+        throw new Error('Arrays are not allowed in Config Management!');
+      }
 
       // Find removed fields (if they don't exist in the draft)
       const configDifferenceDraft = objDifference(
