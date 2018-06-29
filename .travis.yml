@@ -9,3 +9,6 @@ services:
 
 script:
   - tgnms/ci/run_tests.sh
+
+notifications:
+  webhooks: https://code.facebook.com/travis/webhook/
