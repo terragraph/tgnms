@@ -11,12 +11,6 @@ import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
 
-const UNDEFINED_PLACEHOLDER = [
-  <span className="nc-tooltip-undefined">No Base Version found</span>,
-  <span className="nc-tooltip-undefined">Network Override not set</span>,
-  <span className="nc-tooltip-undefined">Node Override not set</span>,
-];
-
 export default class JSONFieldTooltip extends React.Component {
   static propTypes = {
     metadata: PropTypes.object,
@@ -96,16 +90,27 @@ export default class JSONFieldTooltip extends React.Component {
       ? metadata.type[0] + metadata.type.slice(1).toLowerCase()
       : 'N/A';
 
-    const configLayerContents = configLayerValues.map((value, idx) => {
-      const displayVal = !value ? UNDEFINED_PLACEHOLDER[idx] : value;
+    const hasOverrides =
+      (configLayerValues[1] !== undefined && configLayerValues[1] !== null) ||
+      (configLayerValues[2] !== undefined && configLayerValues[2] !== null) ||
+      (configLayerValues[3] !== undefined && configLayerValues[3] !== null);
 
-      return (
-        <div key={`${CONFIG_LAYER_DESC[idx]}-${value}`}>
-          <span className="nc-tooltip-label">{CONFIG_LAYER_DESC[idx]}:</span>
-          <span className="nc-tooltip-value">{displayVal}</span>
-        </div>
-      );
-    });
+    const configLayerContents = configLayerValues
+      .map((value, idx) => {
+        if (value === undefined || value === null) {
+          return null;
+        }
+
+        const displayVal = value === '' ? '(Empty String)' : value.toString();
+
+        return (
+          <div key={`${CONFIG_LAYER_DESC[idx]}-${displayVal}`}>
+            <span className="nc-tooltip-label">{CONFIG_LAYER_DESC[idx]}:</span>
+            <span className="nc-tooltip-value">{displayVal}</span>
+          </div>
+        );
+      })
+      .filter(element => element); // Filter needs to be after cause indices are required for the map
 
     return (
       <div className="rc-json-field-tooltip">
@@ -124,9 +129,9 @@ export default class JSONFieldTooltip extends React.Component {
         </div>
         <div>
           <span className="nc-tooltip-label">Action:</span>
-          {metadata.action || 'N/A'}
+          <em>{metadata.action || 'NO_ACTION'}</em>
         </div>
-        {configLayerContents}
+        {hasOverrides && [<br />, ...configLayerContents]}
         {this.renderValueConstraints()}
       </div>
     );

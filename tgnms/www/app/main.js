@@ -5,6 +5,7 @@
  */
 'use strict';
 
+import 'babel-polyfill';
 import NetworkUI from './NetworkUI.js';
 import ReactDOM from 'react-dom';
 import React from 'react';

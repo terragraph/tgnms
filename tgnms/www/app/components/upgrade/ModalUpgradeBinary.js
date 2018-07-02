@@ -14,35 +14,39 @@ import {
 } from '../../apiutils/UpgradeAPIUtil.js';
 import {UploadStatus, DeleteStatus} from '../../constants/NetworkConstants.js';
 import UpgradeImagesTable from './UpgradeImagesTable.js';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import {render} from 'react-dom';
 import Modal from 'react-modal';
 import React from 'react';
 import swal from 'sweetalert';
 
 const modalStyle = {
   content: {
-    width: 'calc(100% - 40px)',
-    maxWidth: '900px',
-    display: 'table',
-    top: '50%',
-    left: '50%',
-    right: 'auto',
     bottom: 'auto',
+    display: 'table',
+    left: '50%',
     marginRight: '-50%',
+    maxWidth: '900px',
+    right: 'auto',
+    top: '50%',
     transform: 'translate(-50%, -50%)',
+    width: 'calc(100% - 40px)',
   },
 };
 
 export default class ModalUpgradeBinary extends React.Component {
-  constructor(props) {
-    super(props);
+  static propTypes = {
+    deleteStatus: PropTypes.string.isRequired,
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    topologyName: PropTypes.string.isRequired,
+    upgradeImages: PropTypes.array.isRequired,
+    uploadProgress: PropTypes.number.isRequired,
+    uploadStatus: PropTypes.string.isRequired,
+  };
 
-    this.state = {
-      selectedFile: null,
-    };
-  }
+  state = {
+    selectedFile: null,
+  };
 
   UNSAFE_componentWillMount() {
     this.refreshImages();
@@ -75,18 +79,21 @@ export default class ModalUpgradeBinary extends React.Component {
   };
 
   onUploadFile = () => {
-    uploadUpgradeBinary(this.state.selectedFile, this.props.topologyName);
+    uploadUpgradeBinary(
+      this.state.selectedFile,
+      this.props.topologyName,
+    ).then();
   };
 
   deleteImage = imageName => {
     swal(
       {
-        title: 'Are you sure?',
-        text: 'You will not be able to recover the image once deleted',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete Image',
         cancelButtonText: 'Cancel',
+        confirmButtonText: 'Delete Image',
+        showCancelButton: true,
+        text: 'You will not be able to recover the image once deleted',
+        title: 'Are you sure?',
+        type: 'warning',
       },
       confirm => {
         if (confirm) {
@@ -161,10 +168,11 @@ export default class ModalUpgradeBinary extends React.Component {
   }
 
   render() {
-    const {upgradeImages, uploadStatus, uploadProgress} = this.props;
+    const {upgradeImages} = this.props;
     const {selectedFile} = this.state;
 
-    // we have to use refs here to initially access the file and to make sure it exists
+    // we have to use refs here to initially access the file and to make sure
+    // it exists
     const isFileSelected = !!selectedFile;
     const fileName = isFileSelected ? selectedFile.name : '';
 
@@ -202,7 +210,7 @@ export default class ModalUpgradeBinary extends React.Component {
               style={{margin: '6px 14px'}}>
               <img
                 src="/static/images/add.png"
-                style={{marginRight: '10px', height: '18px', width: '18px'}}
+                style={{height: '18px', marginRight: '10px', width: '18px'}}
               />Add selected binary to server
             </button>
           </div>
@@ -211,11 +219,12 @@ export default class ModalUpgradeBinary extends React.Component {
           {deleteStatusDisplay}
 
           <div className="upgrade-modal-row">
-            <img
-              src="/static/images/refresh.png"
-              className="refresh-images"
-              onClick={this.refreshImages}
-            />
+            <span onClick={this.refreshImages} role="button" tabIndex="0">
+              <img
+                src="/static/images/refresh.png"
+                className="refresh-images"
+              />
+            </span>
           </div>
           <div className="upgrade-modal-row">
             <UpgradeImagesTable
@@ -235,14 +244,3 @@ export default class ModalUpgradeBinary extends React.Component {
     );
   }
 }
-
-ModalUpgradeBinary.propTypes = {
-  upgradeImages: PropTypes.array.isRequired,
-  uploadStatus: PropTypes.string.isRequired,
-  deleteStatus: PropTypes.string.isRequired,
-  uploadProgress: PropTypes.number.isRequired,
-
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequired,
-};

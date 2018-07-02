@@ -8,6 +8,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
   Alert,
+  Button,
+  Dimensions,
   Platform,
   SectionList,
   StyleSheet,
@@ -24,6 +26,7 @@ import {
   timeStampDeltaStr
 } from '../TopologyHelper';
 import { styles } from '../styles';
+
 
 export default class NodeCard extends Component<Props> {
   decodeQrToMacAddr(qrStr) {
@@ -47,6 +50,34 @@ export default class NodeCard extends Component<Props> {
       return qrStr;
   }
 
+  updateMac(nodeName, macAddr, force) {
+    let setMacReq = {
+      nodeName: nodeName,
+      nodeMac: macAddr,
+      force: force,
+    };
+    fetch(this.props.network.apiUrl + '/setNodeMacAddress', {
+        headers: this.props.network.authHeaders,
+        method: 'post',
+        body: JSON.stringify(setMacReq),
+      })
+    .then((response) => response.json())
+    .then((responseJson) => {
+      if (responseJson.hasOwnProperty("success") &&
+          responseJson.hasOwnProperty("message")) {
+        let success = responseJson["success"];
+        let msg = responseJson["message"];
+        if (success) {
+          Alert.alert('MAC Update Success', msg);
+        } else {
+          Alert.alert('MAC Update Failed', msg);
+        }
+      } else {
+        Alert.alert('MAC Update', "Received message from controller: " + JSON.stringify(responseJson));
+      }
+    });
+  }
+
   render() {
     const node = this.props.node;
     let linkList = this.props.topology.links.filter(link => {
@@ -54,31 +85,48 @@ export default class NodeCard extends Component<Props> {
     });
 
     let callbackFunc = (e) => {
+      let decodedMac = this.decodeQrToMacAddr(e.data);
       Alert.alert(
         'QR Found',
         'Update MAC address for "' + node.name +
         '" from "' + node.mac_addr + '" to "' +
-        this.decodeQrToMacAddr(e.data) + '"',
+        decodedMac + '"',
         [
-          {text: 'Update', onPress: () => console.log('Ask me later pressed')},
-          {text: 'Force Update', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-          {text: 'Cancel', onPress: () => console.log('OK Pressed')},
+          {text: 'Update', onPress: () => {
+            this.updateMac(node.name, decodedMac, false)
+          }},
+          {text: 'Force Update', onPress: () => {
+            this.updateMac(node.name, decodedMac, true)
+          }},
+          {text: 'Cancel', style: 'cancel', onPress: () => {}},
         ],
         { cancelable: true }
       );
     };
+    /*
+    <TouchableHighlight style={{marginLeft: 5}} onPress={() => {
+        // pass callback function to get the decoded scan
+        this.props.showCameraFunction(callbackFunc);
+      }}>
+      <Text style={styles.linkText}>(Scan QR)</Text>
+    </TouchableHighlight>*/
+    // TODO: make sure this button works
     let nodeDetails = [
       ['MAC',
           <View style={{flex: 2, flexDirection: 'row'}}>
             <Text selectable={false}>
-              {node.mac_addr}
+              {node.mac_addr.length == 0 ? '<Not Defined>' : node.mac_addr}
             </Text>
-            <TouchableHighlight style={{marginLeft: 5}} onPress={() => {
-                // pass callback function to get the decoded scan
+          </View>
+        ],
+      ['',
+          <View style={{flex: 2, flexDirection: 'row'}}>
+            <Button
+              onPress={() => {
                 this.props.showCameraFunction(callbackFunc);
-              }}>
-              <Text style={styles.linkText}>(Scan QR)</Text>
-            </TouchableHighlight>
+              }}
+              title="Scan QR"
+            />
           </View>
         ],
       ['Type', nodeTypeStr(node.node_type)],
@@ -107,7 +155,7 @@ export default class NodeCard extends Component<Props> {
       nodeDetails.push(['Last Report', timeStampDeltaStr(timestamp)]);
     }
     return (
-      <View style={styles.bubbleBottom}>
+      <View style={StyleSheet.flatten([styles.bubbleBottom, {width: Dimensions.get('window').width - 20}])}>
         <SectionList
           sections={[
               {title: node.name, data: linkList}

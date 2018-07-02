@@ -3,16 +3,27 @@
 }
 
 button {
+  position: relative;
   padding: 8px 25px;
   font-size: 16px;
   background: none;
-  border: 3px solid;
+  border: 1px solid #999;
   cursor: pointer;
   border-radius: 6px;
+  transition: all 100ms ease-in-out;
+}
+
+button:hover {
+  background-color: #eee;
+  box-shadow: 0 1px 1px 0 rgba(0,0,0,0.05);
 }
 
 button:focus {
   outline: none;
+}
+
+button:disabled, button:disabled:hover {
+  background-color: inherit;
 }
 
 .demo-container {

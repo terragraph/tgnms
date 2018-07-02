@@ -10,7 +10,6 @@
  */
 
 import {PolarityType} from '../../thrift/gen-nodejs/Topology_types';
-
 import LeafletGeom from 'leaflet-geometryutil';
 import {LatLng} from 'leaflet';
 import invert from 'lodash-es/invert';

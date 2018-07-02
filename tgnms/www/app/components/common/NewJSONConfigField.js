@@ -146,8 +146,9 @@ export default class NewJSONConfigField extends React.Component {
 
     return (
       <div className={containerClass}>
-        <form className="nc-new-field-label" onSubmit={this.onSubmitNewField}>
+        <form onSubmit={this.onSubmitNewField}>
           <input
+            className="nc-new-field-label"
             type="text"
             placeholder="Field Name"
             value={field}

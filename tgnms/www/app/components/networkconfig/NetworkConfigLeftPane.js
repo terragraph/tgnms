@@ -36,6 +36,12 @@ export default class NetworkConfigLeftPane extends React.Component {
     removedNodeOverrides: PropTypes.object.isRequired,
   };
 
+  state = {
+    legendHeight: 0,
+  };
+
+  leftPaneRef = React.createRef();
+
   renderViewModeSelector() {
     const {editMode, networkDraftExists, nodesWithDrafts} = this.props;
 
@@ -80,30 +86,37 @@ export default class NetworkConfigLeftPane extends React.Component {
     const spacerDiv = <div style={{flex: 1}} />;
 
     return (
-      <div className="rc-network-config-left-pane">
+      <div className="rc-config-left-pane">
         {viewModeSelector}
-        {editMode === CONFIG_VIEW_MODE.NODE && (
-          <NetworkConfigNodes
-            nodes={nodes}
-            selectedNodes={selectedNodes}
-            nodesWithDrafts={nodesWithDrafts}
-            nodesWithOverrides={nodesWithOverrides}
-            removedNodeOverrides={removedNodeOverrides}
-          />
-        )}
-        {editMode === CONFIG_VIEW_MODE.NETWORK && (
-          <span style={{padding: '5px 10px', fontWeight: 600}}>
-            Select Base Version
-          </span>
-        )}
-        {editMode === CONFIG_VIEW_MODE.NETWORK && (
-          <NetworkConfigImageSelector
-            imageVersions={imageVersions}
-            selectedImage={selectedImage}
-          />
-        )}
+        <div
+          className={
+            editMode === CONFIG_VIEW_MODE.NETWORK ? 'body-padding' : null
+          }>
+          {editMode === CONFIG_VIEW_MODE.NODE && (
+            <NetworkConfigNodes
+              legendHeight={this.state.legendHeight}
+              nodes={nodes}
+              nodesWithDrafts={nodesWithDrafts}
+              nodesWithOverrides={nodesWithOverrides}
+              removedNodeOverrides={removedNodeOverrides}
+              selectedNodes={selectedNodes}
+            />
+          )}
+          {editMode === CONFIG_VIEW_MODE.NETWORK && (
+            <div className="selector-title">Select Base Version</div>
+          )}
+          {editMode === CONFIG_VIEW_MODE.NETWORK && (
+            <NetworkConfigImageSelector
+              imageVersions={imageVersions}
+              selectedImage={selectedImage}
+            />
+          )}
+        </div>
         {editMode === CONFIG_VIEW_MODE.NETWORK && spacerDiv}
-        <NetworkConfigLegend editMode={editMode} />
+        <NetworkConfigLegend
+          editMode={editMode}
+          onUpdate={height => this.setState({legendHeight: height})}
+        />
       </div>
     );
   }

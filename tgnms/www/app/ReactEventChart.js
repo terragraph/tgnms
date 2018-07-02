@@ -75,7 +75,11 @@ export default class ReactEventChart extends React.Component {
     );
     const series = new TimeSeries({events, name: 'outages'});
     return (
-      <ChartContainer timeRange={timeRange} enablePanZoom={true}>
+      <ChartContainer
+        timeRange={timeRange}
+        enablePanZoom={true}
+        width={this.props.width}
+        height={this.props.height}>
         <ChartRow height="35">
           <LabelAxis
             format=",.1f"

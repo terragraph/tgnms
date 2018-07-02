@@ -30,6 +30,7 @@ export default class NetworkConfig extends React.Component {
 
     editMode: PropTypes.string.isRequired,
     baseConfigByVersion: PropTypes.object.isRequired,
+    autoOverrideConfig: PropTypes.object.isRequired,
     newConfigFields: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
 
@@ -67,6 +68,12 @@ export default class NetworkConfig extends React.Component {
       : nodeConfig[selectedNodes[0].mac_addr];
   }
 
+  combineAutoNodeConfigs(selectedNodes, autoConfig) {
+    return autoConfig[selectedNodes[0].name] === undefined
+      ? {}
+      : autoConfig[selectedNodes[0].name];
+  }
+
   combineRemovedNodeOverrides(selectedNodes, removedNodeOverrides) {
     return removedNodeOverrides[selectedNodes[0].mac_addr] === undefined
       ? new Set()
@@ -83,6 +90,7 @@ export default class NetworkConfig extends React.Component {
 
       editMode,
       baseConfigByVersion,
+      autoOverrideConfig,
       newConfigFields,
       configMetadata,
 
@@ -103,14 +111,16 @@ export default class NetworkConfig extends React.Component {
     );
 
     // stack the configs by putting them in an array
+    // Hide Auto Config for Network Overrides
     const stackedConfigs =
       editMode === CONFIG_VIEW_MODE.NODE
         ? [
             baseConfig,
+            this.combineAutoNodeConfigs(selectedNodes, autoOverrideConfig),
             networkOverrideConfig,
             this.combineNodeConfigs(selectedNodes, nodeOverrideConfig),
           ]
-        : [baseConfig, networkOverrideConfig];
+        : [baseConfig, {}, networkOverrideConfig];
 
     const selectedDraftConfig =
       editMode === CONFIG_VIEW_MODE.NODE
@@ -145,7 +155,7 @@ export default class NetworkConfig extends React.Component {
       isEmpty(removedNodeOverrides);
 
     return (
-      <div className="rc-network-config">
+      <div className="rc-config">
         <NetworkConfigLeftPane
           topologyName={topologyName}
           imageVersions={imageVersions}

@@ -87,7 +87,7 @@ export default class NetworkConfigFooter extends React.Component {
       editMode === CONFIG_VIEW_MODE.NODE ? 'node(s)' : 'network';
 
     return (
-      <div className="rc-network-config-footer">
+      <div className="rc-config-footer">
         <button
           className="nc-footer-btn"
           onClick={this.onResetConfig}

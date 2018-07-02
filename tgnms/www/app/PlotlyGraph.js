@@ -89,8 +89,9 @@ export default class PlotlyGraph extends React.Component {
         indicator: 'NO_DATA',
       });
     }
+    this.props.options['data'] = this.props.options.key_data;
     axios
-      .post('/multi_chart/', JSON.stringify([this.props.options]))
+      .post('/metrics/multi_chart/', JSON.stringify([this.props.options]))
       .then(resp => {
         if (!resp.data) {
           console.error('No data available');
@@ -123,18 +124,29 @@ export default class PlotlyGraph extends React.Component {
   // Format the response data for Plotly graphs
   plotDataFormatter(graphData) {
     if (graphData && graphData.points && graphData.points[0]) {
+      let traces = [];
 
-      const traces = [];
-      // Create the correct number of trace (line) objects
-      for (let i = 0; i < graphData.points[0].length - 1; i++) {
-        traces.push({
-          mode: 'line',
-          name: graphData.columns[i + 1],
-          type: 'scatter',
-          x: [], // Will contain the timestamp
-          y: [], // Will contain the data
-        });
+      // If there is already plotly data (lines are already on the graph),
+      // then refresh the trace's x and y data, otherwise make new traces
+      if (this.state.plotlyData.length !== 0) {
+        traces = this.state.plotlyData.map(trace => ({
+          ...trace,
+          x: [],
+          y: [],
+        }));
+      } else {
+        // Create the correct number of trace (line) objects
+        for (let i = 0; i < graphData.points[0].length - 1; i++) {
+          traces.push({
+            mode: 'line',
+            name: graphData.columns[i + 1],
+            type: 'scatter',
+            x: [], // Will contain the timestamp
+            y: [], // Will contain the data
+          });
+        }
       }
+
       // Populate the x and y data for each of the traces from the points
       graphData.points.forEach(point => {
         point[0] = new Date(point[0]);
@@ -171,8 +183,8 @@ export default class PlotlyGraph extends React.Component {
     // Format time range based on if minAgo is specified or not
     let {startTime, endTime, minAgo} = this.props.options;
     if (minAgo) {
-      startTime = moment().toDate();
-      endTime = moment()
+      endTime = moment().toDate();
+      startTime = moment()
         .subtract(minAgo, 'minutes')
         .toDate();
     }

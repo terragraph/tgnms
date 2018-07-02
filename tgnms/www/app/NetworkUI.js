@@ -10,12 +10,10 @@ import ModalLinkAdd from './ModalLinkAdd.js';
 import ModalNodeAdd from './ModalNodeAdd.js';
 import ModalOverlays from './ModalOverlays.js';
 import NMSConfig from './NMSConfig.js';
-import NetworkAlerts from './NetworkAlerts.js';
 import NetworkDashboards from './NetworkDashboards.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
-import SystemLogs from './SystemLogs.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
 import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
@@ -26,7 +24,6 @@ import moment from 'moment';
 import Menu, {SubMenu, Item as MenuItem, Divider} from 'rc-menu';
 import {Glyphicon} from 'react-bootstrap';
 import React from 'react';
-import swal from 'sweetalert';
 
 // icon: Glyphicon from Bootstrap 3.3.7
 const VIEWS = {
@@ -35,8 +32,6 @@ const VIEWS = {
   stats: {name: 'Stats', icon: 'stats'},
   // TODO: implement these views and uncomment them
   // eventlogs: {name: 'Event Logs', icon: 'list'},
-  // systemlogs: {name: 'System Logs', icon: 'hdd'},
-  // alerts: {name: 'Alerts', icon: 'alert'},
   upgrade: {name: 'Upgrade', icon: 'upload'},
   'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
   config: {name: 'Node Config', icon: 'cog'},
@@ -74,9 +69,6 @@ export default class NetworkUI extends React.Component {
     // additional topology to render on the map
     pendingTopology: {},
     commitPlan: null,
-
-    // Last selected dashboard for NetworkDashboards
-    selectedDashboard: null,
   };
 
   constructor(props) {
@@ -95,21 +87,13 @@ export default class NetworkUI extends React.Component {
     setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
   }
 
-  handleSelectedDashboardChange(selectedDashboard) {
-    this.setState({selectedDashboard});
-  }
-
   getNetworkStatusPeriodic() {
     if (this.state.networkName !== null) {
       this.getNetworkStatus(this.state.networkName);
-      // initial load
-      if (this.state.commitPlan === null) {
-        this.fetchCommitPlan(this.state.networkName);
-      }
     }
   }
 
-  getNetworkStatus(networkName) {
+  getNetworkStatus = networkName => {
     axios
       .get('/topology/get/' + networkName)
       .then(response => {
@@ -132,9 +116,9 @@ export default class NetworkUI extends React.Component {
           });
         }
       });
-  }
+  };
 
-  // see scan_results in server.js
+  // see self_test in server.js
   getSelfTestResults(networkName, filter) {
     if (
       filter &&
@@ -160,24 +144,6 @@ export default class NetworkUI extends React.Component {
     }
   }
 
-  fetchCommitPlan(networkName) {
-    // handle commit plan overlay
-    const payload = {
-      topologyName: networkName,
-      limit: 100,
-      excludeNodes: [],
-    };
-    axios.post('/controller/commitUpgradePlan', payload).then(response => {
-      const commitPlan = response.data;
-      commitPlan.commitBatches = commitPlan.commitBatches.map(batch => {
-        return new Set(batch);
-      });
-      this.setState({
-        commitPlan,
-      });
-    });
-  }
-
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case Actions.VIEW_SELECTED:
@@ -195,9 +161,6 @@ export default class NetworkUI extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology
         this.getNetworkStatus(payload.networkName);
-        // fetch commit plan once per topology
-        // TODO: add refresh ability
-        this.fetchCommitPlan(payload.networkName);
         this.setState({
           networkName: payload.networkName,
         });
@@ -226,9 +189,6 @@ export default class NetworkUI extends React.Component {
           pendingTopology: payload.topology,
         });
         break;
-      case Actions.SCAN_FETCH:
-        this.updateScanResults(this.state.networkName, payload.mysqlfilter);
-        break;
       case Actions.SELF_TEST_FETCH:
         this.getSelfTestResults(this.state.networkName, payload.filter);
         break;
@@ -243,7 +203,7 @@ export default class NetworkUI extends React.Component {
     }
     // update last request time
     this.lastHealthRequestTime = new Date() / 1000;
-    axios.get('/health/' + networkName).then(response => {
+    axios.get('/topology/health/' + networkName).then(response => {
       const data = response.data;
       if (data.length !== 2) {
         return;
@@ -264,7 +224,7 @@ export default class NetworkUI extends React.Component {
     }
     // update last request time
     this.lastAnalyzerRequestTime = new Date() / 1000;
-    axios.get('/link_analyzer/' + networkName).then(response => {
+    axios.get('/metrics/link_analyzer/' + networkName).then(response => {
       const json = response.data;
       // merge data
       if (json.length !== 1) {
@@ -278,34 +238,6 @@ export default class NetworkUI extends React.Component {
     });
   }
 
-  // see scan_results in server.js
-  updateScanResults(networkName, filter) {
-    const lastAttemptAgo = new Date() / 1000 - this.lastAnalyzerRequestTime;
-    if (lastAttemptAgo <= NETWORK_HEALTH_INTERVAL_MIN) {
-      return;
-    }
-    // update last request time
-    this.lastScanRequestTime = new Date() / 1000;
-    const url =
-      '/scan_results?topology=' +
-      networkName +
-      '&filter[row_count]=' +
-      filter.row_count +
-      '&filter[offset]=' +
-      filter.offset +
-      '&filter[nodeFilter0]=' +
-      filter.nodeFilter[0] +
-      '&filter[nodeFilter1]=' +
-      filter.nodeFilter[1];
-
-    axios.get(url).then(response => {
-      Dispatcher.dispatch({
-        actionType: Actions.SCAN_REFRESHED,
-        scanResults: response.data,
-      });
-    });
-  }
-
   updateLinkOverlayStat(networkName) {
     if (this.state.selectedLinkOverlay) {
       const overlaySource = LinkOverlayKeys[this.state.selectedLinkOverlay];
@@ -314,7 +246,7 @@ export default class NetworkUI extends React.Component {
       if (metric) {
         // refresh link overlay stat
         axios
-          .get('/overlay/linkStat/' + networkName + '/' + metric)
+          .get('/metrics/overlay/linkStat/' + networkName + '/' + metric)
           .then(response => {
             Dispatcher.dispatch({
               actionType: Actions.LINK_OVERLAY_REFRESHED,
@@ -358,21 +290,11 @@ export default class NetworkUI extends React.Component {
 
   onAddSite() {
     Dispatcher.dispatch({
-      actionType: Actions.PLANNED_SITE_CREAT,
-      siteName: 'planned_site',
+      actionType: Actions.PLANNED_SITE_CREATE,
+      siteName: 'New Site',
     });
-    swal(
-      {
-        title: 'Planned Site Added',
-        text:
-          'Drag the planned site on the map to desired location. Then, you can commit it from the details menu.',
-        type: 'info',
-        closeOnConfirm: true,
-      },
-      () => {
-        this.setState({topologyModalOpen: false});
-      },
-    );
+
+    this.setState({topologyModalOpen: false});
   }
 
   handleMenuBarSelect(info) {
@@ -547,7 +469,6 @@ export default class NetworkUI extends React.Component {
     const viewProps = {
       networkName: this.state.networkName,
       networkConfig: this.state.networkConfig,
-      commitPlan: this.state.commitPlan,
       pendingTopology: this.state.pendingTopology,
       config: this.state.topologies,
       viewContext: this.state.viewContext,
@@ -557,27 +478,11 @@ export default class NetworkUI extends React.Component {
       case 'eventlogs':
         paneComponent = <EventLogs {...viewProps} />;
         break;
-      case 'systemlogs':
-        paneComponent = <SystemLogs {...viewProps} />;
-        break;
       case 'dashboards':
-        paneComponent = (
-          <NetworkDashboards
-            {...viewProps}
-            selectedDashboard={this.state.selectedDashboard}
-            onHandleSelectedDashboardChange={selectedDashboard => {
-              this.setState({
-                selectedDashboard,
-              });
-            }}
-          />
-        );
+        paneComponent = <NetworkDashboards {...viewProps} />;
         break;
       case 'stats':
         paneComponent = <NetworkStats {...viewProps} />;
-        break;
-      case 'alerts':
-        paneComponent = <NetworkAlerts {...viewProps} />;
         break;
       case 'upgrade':
         paneComponent = (
@@ -722,7 +627,7 @@ export default class NetworkUI extends React.Component {
             {networkStatusMenuItems}
           </Menu>
         </div>
-        <div>{paneComponent}</div>
+        <div className="nms-body">{paneComponent}</div>
       </div>
     );
   }

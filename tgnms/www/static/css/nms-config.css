@@ -1,0 +1,222 @@
+@import url("nms-nc-left-pane.css");
+@import url("nms-nc-form.css");
+@import url("nms-nc-form-tooltip.css");
+@import url("nms-nc-custom-toggle.css");
+@import url("nms-nc-json-diff.css");
+
+.rc-config {
+  display: flex;
+  flex-direction: row;
+  float: left;
+  width: 100%;
+}
+
+/* NETWORK CONFIG BODY */
+.rc-config-body {
+  border-left: 1px solid #aaa;
+  display: flex;
+  flex-direction: column;
+  /* 300px is the width of the Left Pane defined in 'nms-nc-left-pane' */
+  left: 300px;
+  min-height: 100vh;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.rc-config-body.node {
+  position: relative;
+  width: calc(100% - 300px);
+}
+
+.nc-expand-all-wrapper {
+  align-items: center;
+  border-bottom: 1px solid #aaa;
+  display: flex;
+  padding: 10px;
+}
+
+.nc-expand-all-btn {
+  margin-right: 10px;
+  padding: 3px 10px;
+  font-size: 14px;
+
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+}
+
+.nc-expand-all-btn:hover {
+  cursor: pointer;
+  background-color: rgb(183,210,255);
+}
+
+.nc-btn-spacer {
+  display: block;
+  width: 3rem;
+}
+
+.sweet-alert.nc-submit-config-alert {
+  margin-left: 0;
+  /* HACK since fixed position percentages dont apply after width */
+  left: calc(50% - 30vw);
+  width: 60vw;
+}
+
+.nc-submit-alert-subtitle {
+  margin-bottom: 20px;
+}
+
+/* NETWORK CONFIG HEADER */
+.rc-config-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  flex-shrink: 0;
+  height: 50px;
+  border-bottom: 1px solid #777;
+  background-color: #fff;
+  z-index: 5;
+}
+
+.nc-header-title {
+  /* top right bottom left */
+  margin: 11px 40px 11px 20px;
+  flex-shrink: 0;
+}
+
+.nc-header-refresh-wrapper {
+  flex: 1;
+}
+
+.nc-header-refresh {
+  float: right;
+  margin-right: 20px;
+}
+
+.nc-header-refresh:hover {
+  cursor: pointer;
+}
+
+/* Toggle Related */
+.rc-config-header .dropdown {
+  margin-left: 10px;
+}
+
+.nc-header-toggle {
+  display: flex;
+  align-items: center;
+  border: none;
+  border-radius: 0;
+  transition: transform 50ms ease-in-out;
+  background-color: transparent;
+}
+
+.nc-header-toggle:hover {
+  background-color: transparent;
+}
+
+.open > .nc-header-toggle.dropdown-toggle.btn-default,
+.btn-group.open .nc-header-toggle,
+.nc-header-toggle:active:focus,
+.nc-header-toggle:focus {
+  /* overwrite all of bootstrap's disgusting styles */
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.nc-header-toggle .caret {
+  /* size of caret is defined by border width */
+  border-width: 5px;
+}
+
+.nc-header-toggle-title {
+  margin: 11px 10px 11px 0;
+}
+
+.nc-header-toggle-item {
+  color: #212121;
+}
+
+/* NETWORK CONFIG FOOTER */
+.rc-config-footer {
+  border-top: 1px solid #777;
+  background-color: #fff;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+.rc-config-footer button {
+  margin: 10px;
+}
+
+.rc-config-footer button:disabled {
+  opacity: 0.5;
+}
+
+/* NETWORK CONFIG JSON TEXT AREA */
+.rc-json-config-textarea {
+  padding: 10px;
+  width: 70%;
+  height: 90%;
+  overflow-y: scroll;
+  transition: all 100ms ease-in-out;
+}
+
+.rc-json-config-textarea:focus {
+  outline: none;
+}
+
+.rc-json-config-textarea.draft {
+  /* border: 1px #f9ca24 solid; */
+  background-color: #fffcf2;
+}
+
+/* NODE CONFIG COPY VIEW */
+.ReactModal__Overlay--after-open {
+  position: relative;
+  z-index: 9999;
+}
+
+.nc-node-config-modal {
+  background-color: #ffffff;
+  border-radius: 5px;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  left: 0;
+  margin: 10rem auto auto;
+  min-height: 70vh;
+  outline: none;
+  padding: 20px;
+  position: absolute;
+  right: 0;
+  width: 80%;
+}
+
+.nc-node-config-modal h3 {
+  margin: 5px auto 20px;
+}
+
+.nc-node-config-modal button {
+  border: 1px solid #aaa;
+}
+
+.nc-node-config-modal .alert {
+  color: #d63031;
+  margin: 7px;
+}
+
+.nc-node-config-modal .config-block {
+  overflow: scroll;
+  height: 60vh;
+  margin: 20px auto;
+}
+
+.nc-node-config-modal .button-container {
+  display: flex;
+}
+
+.nc-node-config-modal .copy-button {
+  margin-right: 20px;
+  width: 142px;
+}

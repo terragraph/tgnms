@@ -7,6 +7,10 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
@@ -73,15 +77,8 @@ export default class DetailsNode extends React.Component {
     // dispatch an action here, that would be good
   }
 
-  connectToTerminal(ipv6) {
-    if (ipv6 !== 'Not Available') {
-      window.open('/xterm/' + ipv6, '_blank');
-      window.focus();
-    }
-  }
-
   rebootNode(force) {
-    const forceReboot = force ? 'force' : 'no_force';
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Are you sure?',
@@ -94,15 +91,12 @@ export default class DetailsNode extends React.Component {
       },
       () => {
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/rebootNode/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            forceReboot;
-          axios
-            .get(url)
+          const data = {
+            force,
+            nodes: [node.name],
+            secondsToReboot: 5,
+          };
+          apiServiceRequest(topologyName, 'rebootNode')
             .then(response =>
               swal(
                 {
@@ -131,6 +125,7 @@ export default class DetailsNode extends React.Component {
 
   deleteNode(force) {
     const forceDelete = force ? 'force' : 'no_force';
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Are you sure?',
@@ -143,20 +138,15 @@ export default class DetailsNode extends React.Component {
       },
       () => {
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/delNode/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            forceDelete;
-          axios
-            .get(url)
+          const data = {
+            nodeName: node.name,
+          };
+          apiServiceRequest(topologyName, 'delNode', data)
             .then(response =>
               swal(
                 {
                   title: 'Node Deleted!',
-                  text: 'Response: ' + response.statusText,
+                  text: 'Response: ' + response.data.message,
                   type: 'success',
                 },
                 () => {
@@ -173,7 +163,7 @@ export default class DetailsNode extends React.Component {
                   title: 'Failed!',
                   text:
                     'Node deletion failed\nReason: ' +
-                    error.response.statusText,
+                    getErrorTextFromE2EAck(error),
                   type: 'error',
                 },
                 () => resolve(),
@@ -185,6 +175,7 @@ export default class DetailsNode extends React.Component {
   }
 
   renameNode() {
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Rename node',
@@ -206,20 +197,18 @@ export default class DetailsNode extends React.Component {
         }
 
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/renameNode/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            inputValue;
-          axios
-            .get(url)
+          const data = {
+            nodeName: node.name,
+            newNode: {
+              name: inputValue,
+            },
+          };
+          apiServiceRequest(topologyName, 'editNode', data)
             .then(response =>
               swal(
                 {
                   title: 'Node renamed',
-                  text: 'Response: ' + response.statusText,
+                  text: 'Response: ' + response.data.message,
                   type: 'success',
                 },
                 () => resolve(),
@@ -231,7 +220,7 @@ export default class DetailsNode extends React.Component {
                   title: 'Failed!',
                   text:
                     'Renaming node failed.\nReason: ' +
-                    error.response.statusText,
+                    getErrorTextFromE2EAck(error),
                   type: 'error',
                 },
                 () => resolve(),
@@ -243,7 +232,7 @@ export default class DetailsNode extends React.Component {
   }
 
   setMacAddr(force) {
-    const forceSet = force ? 'force' : 'no_force';
+    const {node, topologyName} = this.props;
     swal(
       {
         title: 'Set MAC Address!',
@@ -265,22 +254,17 @@ export default class DetailsNode extends React.Component {
         }
 
         return new Promise((resolve, reject) => {
-          const url =
-            '/controller/setMac/' +
-            this.props.topologyName +
-            '/' +
-            this.props.node.name +
-            '/' +
-            inputValue +
-            '/' +
-            forceSet;
-          axios
-            .get(url)
+          const data = {
+            force,
+            nodeMac: inputValue,
+            nodeName: node.name,
+          };
+          apiServiceRequest(topologyName, 'setNodeMacAddress', data)
             .then(response =>
               swal(
                 {
                   title: 'Mac address set successfully!',
-                  text: 'Response: ' + response.statusText,
+                  text: 'Response: ' + response.data.message,
                   type: 'success',
                 },
                 () => resolve(),
@@ -291,7 +275,8 @@ export default class DetailsNode extends React.Component {
                 {
                   title: 'Failed!',
                   text:
-                    'Setting MAC failed\nReason: ' + error.response.statusText,
+                    'Setting MAC failed\nReason: ' +
+                    getErrorTextFromE2EAck(error),
                   type: 'error',
                 },
                 () => resolve(),
@@ -370,9 +355,7 @@ export default class DetailsNode extends React.Component {
 
     let elapsedTime = 'N/A';
     if (this.props.node.status_dump) {
-      const timeStampSec = Buffer.from(
-        this.props.node.status_dump.timeStamp.buffer.data,
-      ).readUIntBE(0, 8);
+      const timeStampSec = this.props.node.status_dump.timeStamp;
       const timeStamp = new Date(timeStampSec * 1000);
       elapsedTime = moment().diff(timeStamp, 'seconds') + ' seconds ago';
     }
@@ -458,15 +441,6 @@ export default class DetailsNode extends React.Component {
                           this.setMacAddr(true);
                         }}>
                         (forced)
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.connectToTerminal(ipv6);
-                        }}>
-                        Connect To Terminal
                       </span>
                     </div>
                     <div>

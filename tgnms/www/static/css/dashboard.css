@@ -57,23 +57,82 @@
 }
 
 .network-dashboard .edit-graph-button {
+  margin: 5px 0;
   height: 34px;
   width: 100px;
-  float: right;
+}
+
+.network-dashboard .react-grid-item {
+  position: relative;
+  padding: 20px;
+  background-color: white;
+}
+
+.network-dashboard .react-grid-item  .button-group {
+  position: absolute;
+  top: 25px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.network-dashboard .graph-info {
+  max-height: 70%;
+  overflow: scroll;
+}
+
+.network-dashboard .graph-info .title {
+  color: cornflowerblue;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+.network-dashboard .graph-info .custom-data {
+  border: 1px solid #ddd;
+  margin-right: 120px;
+  padding: 10px 15px;
+}
+
+.network-dashboard .graph-info .custom-data h5 {
+  font-size: 16px;
+}
+
+.network-dashboard .graph-wrapper {
+  position: relative;
+}
+
+.network-dashboard .graph-indicators-box {
+  bottom: 15px;
+  position: absolute;
+  text-transform: uppercase;
+  z-index: 10;
+  font-size: 12px;
+  display: flex;
+}
+
+.network-dashboard .graph-indicator {
+  padding: 5px 10px;
+  margin: 0 5px;
+  border-radius: 2px;
+}
+
+.network-dashboard .custom-graph-indicator {
+  border: 1px solid orange;
+  color: orange;
+}
+
+.network-dashboard .graph-type-indicator {
+  border: 1px solid green;
+  color: green;
 }
 
 #dashboard-select {
-  padding: 10px 20px;
-}
-
-#dashboard-select .top-button-wide {
-  height: 34px;
-  width: 100px;
+  padding: 10px 20px 20px 20px;
 }
 
 #dashboard-select .top-button {
   height: 34px;
-  width: 80px;
+  width: 120px;
 }
 
 #dashboard-select .name-button {
@@ -81,59 +140,92 @@
   width: 300px;
 }
 
-#global-data-select {
+.custom-data-select {
   padding: 10px 20px;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+}
+
+#global-data-select-wrapper  {
+  border-top: 1px solid #ddd;
+  padding: 10px 20px;
+  position: relative;
+}
+
+#global-data-select-wrapper h4 {
+  display: inline-block;
+}
+
+#global-data-select-wrapper .hide-show-icon {
+  display: inline-block;
+  color: #ddd;
+  margin-left: 40px;
+}
+
+.global-data-select {
   width: 100%;
 }
 
-#global-data-select .node-box {
+.global-data-select .node-box {
   align-items: center;
   display: flex;
-  margin: 15px 0px;
+  margin: 15px 0;
 }
 
-#global-data-select .node-box p {
+.global-data-select .node-box p {
   margin-right: 105px;
 }
 
-#global-data-select .node-box > div:first-of-type {
+.global-data-select .node-box > div:first-of-type {
   flex: 1;
 }
 
-#global-data-select .node-option, .typeahead-option {
+.global-data-select .node-option, .typeahead-option {
   border-bottom: 1px solid #ddd;
   padding: 7px 10px;
 }
 
-#global-data-select .node-option:hover {
+.global-data-select .node-option:hover {
   background-color: #F1F5FF;
 }
 
-#global-data-select .node-box select {
+.global-data-select .node-box select {
   background-color: white;
   border: 1px solid #ccc;
   flex: 1;
   height: 34px;
 }
 
-#global-data-select #time-window-box {
-  margin: 10px 0px;
+.global-data-select #time-window-box {
+  margin: 10px 0;
 }
 
-#global-data-select #custom-time-box {
-  margin: 10px 0px;
+.global-data-select #custom-time-box {
+  margin: 10px 0;
 }
 
-#global-data-select #custom-time-box #custom-time-checkbox {
+.global-data-select #custom-time-box #custom-time-checkbox {
   margin: 0px 10px;
+}
+
+.create-graph-modal {
+  position: relative;
+}
+
+.close-modal-button {
+  color: #ddd;
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .create-graph-modal-content .input-box {
   display: flex;
+
 }
 
 .create-graph-modal-content .input-box {
-  padding: 10px 0px;
+  padding: 10px 0;
 }
 
 .create-graph-modal-content .input-box p {
@@ -141,7 +233,11 @@
 }
 
 .create-graph-modal-content #node-key-box {
-  margin-top: 70px;
+  margin-bottom: 70px;
+}
+
+.create-graph-modal-content #custom-graph-checkbox {
+  margin-left: 70px;
 }
 
 .create-graph-modal-content .input-box .form-input {
@@ -156,17 +252,32 @@
   flex: 1;
 }
 
+.create-graph-modal-content .modal-input {
+  padding: 4px 10px;
+  width: 100%;
+}
+
 .create-graph-modal-content .graph-form {
   margin-top: 40px;
 }
 
+.create-graph-modal-content .graph-config-wrapper {
+  height: 250px;
+}
+
+.graph-config-wrapper .info-box {
+  display: flex;
+  margin-top: 20px;
+}
+.graph-config-wrapper .info-box p {
+  width: 150px;
+}
+
 .submit-button {
-  margin: 20px 0px;
+  margin: 20px 0;
   width: 200px;
 }
 
-.disabled-button {
+.submit-button:disabled, .submit-button:disabled:hover {
   background-color: #ddd;
-  margin: 20px 0px;
-  width: 200px;
 }

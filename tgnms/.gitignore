@@ -1,6 +1,7 @@
 .DS_Store
 www/node_modules/
 www/data/
+www/dist/
 npm-debug.log
 service/*/supervise
 service/*/log/supervise

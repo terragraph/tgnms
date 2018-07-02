@@ -7,6 +7,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
+  Dimensions,
   Platform,
   SectionList,
   StyleSheet,
@@ -24,10 +25,10 @@ export default class OverviewCard extends Component<Props> {
        'Links', (this.props.linksOnline + "/" + (this.props.linksOnline + this.props.linksOffline))]
     ];
     return (
-      <View style={styles.bubbleTopLeft}>
+      <View style={StyleSheet.flatten([styles.bubbleTopLeft, {width: Dimensions.get('window').width - 20}])}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionHeaderTitle}>
-            {this.props.topology.name} Overview
+            {this.props.topology.name}
           </Text>
         </View>
         <View style={styles.rows}>

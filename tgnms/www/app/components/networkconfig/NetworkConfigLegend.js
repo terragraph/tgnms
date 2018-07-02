@@ -16,12 +16,26 @@ import React from 'react';
 
 // legend for the network config
 export default class NetworkConfigLegend extends React.Component {
-  constructor(props) {
-    super(props);
+  static propTypes = {
+    editMode: PropTypes.string.isRequired,
+    onUpdate: PropTypes.func.isRequired,
+  };
 
-    this.state = {
-      isExpanded: true,
-    };
+  state = {
+    isExpanded: true,
+  };
+
+  networkLegendRef = React.createRef();
+
+  componentDidMount() {
+    this.props.onUpdate(this.networkLegendRef.current.clientHeight);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // We send the height to <NetworkConfigNodes> to know what height to set the table to
+    if (prevState.isExpanded !== this.state.isExpanded) {
+      this.props.onUpdate(this.networkLegendRef.current.clientHeight);
+    }
   }
 
   toggleExpandLegend = () => {
@@ -64,50 +78,36 @@ export default class NetworkConfigLegend extends React.Component {
   renderFieldLegend() {
     return (
       <div className={classNames('nc-json-field-legend', 'nc-legend-section')}>
-        <table>
-          <tr>
-            <td>
-              <input
-                className={CONFIG_CLASSNAMES.BASE}
-                type="text"
-                value="Base Config"
-              />
-            </td>
-            <td>
-              <input
-                className={CONFIG_CLASSNAMES.DRAFT}
-                type="text"
-                value="Unsaved Field"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input
-                className={CONFIG_CLASSNAMES.NETWORK}
-                type="text"
-                value="Network Override"
-              />
-            </td>
-            <td>
-              <input
-                className={CONFIG_CLASSNAMES.REVERT}
-                type="text"
-                value="Field to Revert"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input
-                className={CONFIG_CLASSNAMES.NODE}
-                type="text"
-                value="Node Override"
-              />
-            </td>
-            <td />
-          </tr>
-        </table>
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.BASE}`}
+          type="text"
+          value="Base Config"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.DRAFT}`}
+          type="text"
+          value="Unsaved Field"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.NETWORK}`}
+          type="text"
+          value="Network Override"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.NODE}`}
+          type="text"
+          value="Node Override"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.AUTO}`}
+          type="text"
+          value="Auto Override"
+        />
+        <input
+          className={`config-form-input ${CONFIG_CLASSNAMES.REVERT}`}
+          type="text"
+          value="Field to Revert"
+        />
       </div>
     );
   }
@@ -130,7 +130,7 @@ export default class NetworkConfigLegend extends React.Component {
     );
 
     return (
-      <div className="rc-network-config-legend" ref="networkLegend">
+      <div className="rc-config-legend" ref={this.networkLegendRef}>
         <p
           className={classNames('nc-legend-title', {
             'nc-collapsed-title': !isExpanded,
@@ -144,7 +144,3 @@ export default class NetworkConfigLegend extends React.Component {
     );
   }
 }
-
-NetworkConfigLegend.propTypes = {
-  editMode: PropTypes.string.isRequired,
-};

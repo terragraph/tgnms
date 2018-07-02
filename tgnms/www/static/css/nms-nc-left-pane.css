@@ -1,14 +1,22 @@
 
 /* NETWORK CONFIG LEFT PANE */
-.rc-network-config-left-pane {
-  width: 300px; /* fixed width for now */
-  height: 100%;
-
+.rc-config-left-pane {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   flex-shrink: 0; /* do not try to shrink this column when resizing */
+  height: 100%;
+  position: fixed;
+  width: 300px; /* fixed width for now */
+}
 
-  box-sizing: border-box;
+.rc-config-left-pane .body-padding {
+  padding: 7px;
+}
+
+.rc-config-left-pane .selector-title {
+  margin: 5px 3px;
+  font-weight: bold;
 }
 
 .nc-view-select {
@@ -24,7 +32,7 @@
   text-align: center;
 
   display: table;
-  border-bottom: 2px solid #aaa;
+  border-bottom: 1px solid #aaa;
 }
 
 .nc-view-option-selected {
@@ -43,13 +51,29 @@
   font-weight: 600;
 }
 
-.rc-network-config-image-selector {
+.rc-config-image-selector {
   flex: 1;
 }
 
-.rc-network-config-nodes {
-  overflow-y: auto;
+.rc-config-nodes {
   flex: 1;
+}
+
+.rc-config-nodes .header {
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  height: 49px;
+  padding: 10px 7px;
+}
+
+.rc-config-nodes .show-nodes-overrides-label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.rc-config-nodes  td:focus {
+  outline: none;
 }
 
 .nc-node-with-override {
@@ -58,7 +82,7 @@
 }
 
 /* NETWORK CONFIG LEGEND */
-.rc-network-config-legend {
+.rc-config-legend {
   width: inherit;
   background-color: #eee;
   border-top: 1px solid #aaa;
@@ -124,14 +148,15 @@
 
 .nc-json-field-legend {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   margin-top: 5px;
 }
 
 .nc-json-field-legend input {
-  width: 128px;
   margin-right: 5px;
   margin-bottom: 5px;
+  min-width: 128px;
+  width: 128px;
 }
 
 .nc-online-node {

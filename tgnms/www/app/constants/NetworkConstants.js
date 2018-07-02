@@ -26,7 +26,8 @@ export const Actions = {
   VIEW_SELECTED: 'VIEW_SELECTED',
   TAB_SELECTED: 'TAB_SELECTED',
 
-  PLANNED_SITE_CREAT: 'PLANNED_SITE_CREAT',
+  PLANNED_SITE_CREATE: 'PLANNED_SITE_CREATE',
+  START_SITE_EDIT: 'START_SITE_EDIT',
   // url location
   URL_CHANGED: 'URL_CHANGED',
   CHANGE_URL: 'CHANGE_URL',
@@ -67,9 +68,6 @@ export const Actions = {
 
   // pending topology
   PENDING_TOPOLOGY: 'PENDING_TOPOLOGY',
-
-  // network config actions can be found in NetworkConfigActions.js
-  COMMIT_PLAN_BATCH: 'COMMIT_PLAN_BATCH',
 };
 
 export const SiteOverlayKeys = {
@@ -87,12 +85,6 @@ export const SiteOverlayKeys = {
   Pending: {
     Site: {color: 'pink'},
     Node: {color: 'pink'},
-  },
-  CommitPlan: {
-    Full: {color: 'red'},
-    Partial: {color: 'orange'},
-    None: {color: 'green'},
-    NoData: {color: 'black'},
   },
 };
 
@@ -201,12 +193,6 @@ export const LinkOverlayKeys = {
       'hsl(0, 100%, 30%)',
       'hsl(0, 100%, 20%)',
     ],
-    prefix: 'Less than',
-  },
-  CommitPlan: {
-    name: 'Commit Plan',
-    metric: 'commit_plan',
-    colors: ['green', 'red'],
     prefix: 'Less than',
   },
 };

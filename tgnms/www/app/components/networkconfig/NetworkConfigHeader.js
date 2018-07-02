@@ -66,7 +66,7 @@ export default class NetworkConfigHeader extends React.Component {
     }
 
     return (
-      <div className="rc-network-config-header">
+      <div className="rc-config-header">
         <h3 className="nc-header-title">{titleText}</h3>
         {nodeStatusText}
         <div className="nc-header-refresh-wrapper">

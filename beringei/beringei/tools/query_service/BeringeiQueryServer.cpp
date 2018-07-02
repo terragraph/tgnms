@@ -10,8 +10,9 @@
 #include <unistd.h>
 
 #include "AggregatorService.h"
+#include "ApiServiceClient.h"
 #include "QueryServiceFactory.h"
-#include "StatsTypeAheadCache.h"
+#include "ScanRespService.h"
 #include "TopologyFetcher.h"
 
 #include <curl/curl.h>
@@ -58,8 +59,6 @@ int main(int argc, char* argv[]) {
   curl_global_init(CURL_GLOBAL_ALL);
 
   // initialize type-ahead
-  auto mySqlClient = std::make_shared<MySqlClient>();
-  mySqlClient->refreshAll();
   TACacheMap typeaheadCache;
 
   HTTPServerOptions options;
@@ -69,7 +68,7 @@ int main(int argc, char* argv[]) {
   options.enableContentCompression = false;
   options.handlerFactories =
       RequestHandlerChain()
-          .addThen<QueryServiceFactory>(mySqlClient, typeaheadCache)
+          .addThen<QueryServiceFactory>(typeaheadCache)
           .build();
 
   LOG(INFO) << "Starting Beringei Query Service server on port "
@@ -79,20 +78,28 @@ int main(int argc, char* argv[]) {
   std::thread httpThread([server]() { server->start(); });
 
   LOG(INFO) << "Starting Topology Update Service";
+  auto apiServiceClient = std::make_shared<ApiServiceClient>();
   // create timer thread
   auto topologyFetch =
-      std::make_shared<TopologyFetcher>(mySqlClient, typeaheadCache);
+      std::make_shared<TopologyFetcher>(typeaheadCache, apiServiceClient);
   std::thread topologyFetchThread(
       [&topologyFetch]() { topologyFetch->start(); });
 
   LOG(INFO) << "Starting Aggregator Service";
   // create timer thread
-  auto aggregator = std::make_shared<AggregatorService>(mySqlClient, typeaheadCache);
+  auto aggregator = std::make_shared<AggregatorService>(typeaheadCache);
   std::thread aggThread([&aggregator]() { aggregator->start(); });
+
+  LOG(INFO) << "Starting Scan Response Service";
+  // create timer thread
+  auto scanRespService =
+      std::make_shared<ScanRespService>(apiServiceClient);
+  std::thread scanThread([&scanRespService]() { scanRespService->start(); });
 
   aggThread.join();
   topologyFetchThread.join();
   httpThread.join();
+  scanThread.join();
   // clean-up curl memory
   curl_global_cleanup();
   return 0;

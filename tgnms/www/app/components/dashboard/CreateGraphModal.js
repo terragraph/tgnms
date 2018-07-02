@@ -5,316 +5,117 @@
  */
 'use strict';
 
+import Dispatcher from '../../NetworkDispatcher.js';
+import {Actions} from '../../constants/NetworkConstants.js';
+import GraphConfigurationSelect from './GraphConfigurationSelect';
+import NetworkAggregationForm from './NetworkAggregationForm';
+import LinkGraphForm from './LinkGraphForm';
+import NodeGraphForm from './NodeGraphForm';
 import React from 'react';
-import axios from 'axios';
 import Select from 'react-select';
 import Modal from 'react-modal';
-import {AsyncTypeahead} from 'react-bootstrap-typeahead';
-import {isEqual} from 'lodash-es';
+import swal from 'sweetalert';
+import {cloneDeep} from 'lodash-es';
+import {Glyphicon} from 'react-bootstrap';
+
+const initialState = {
+  // Checkbox that indicates whether user wants to use dashboard's graph
+  // configuration options or use their own custom graph configurations
+  useDashboardGraphConfigChecked: false,
+  // Custom data from GraphConfigurationSelect that contains custom graph config
+  // options
+  customData: {
+    nodeA: '',
+    nodeZ: '',
+    nodes: [],
+    minAgo: 60,
+    useCustomTime: false,
+  },
+  // Value of the drop-down React Select (options: 'link','graph','network')
+  graphTypeSelected: '',
+};
 
 export default class CreateGraphModal extends React.Component {
-  state = {
-    // overall state
-    formData: [],
-    graphNameInput: '',
-    graphTypeSelected: 'link',
-    keyIds: [],
+  state = cloneDeep(initialState);
 
-    // link form state
-    linkDirectionOptions: [],
-    linkDirectionSelected: '',
-    linkKeyOptions: [],
-    linkKeySelected: '',
-
-    // network form state
-    networkMetricOptions: [],
-    networkMetricSelected: '',
-
-    // node form state
-    nodeKeyIsLoading: false,
-    nodeKeyOptions: [],
-    nodeKeysSelected: [],
-    nodeSelectOptions: [],
-    nodesSelected: '',
-  };
-
-  handleGraphNameChange(event) {
-    this.setState({graphNameInput: event.target.value});
-  }
-
-  onGraphTypeChange(event) {
-    this.setState({graphTypeSelected: event.value});
-  }
-
-  componentWillMount() {
+  componentDidMount() {
     Modal.setAppElement('body');
-    this.setLinkKeyOptions();
-    this.setNodeSelectOptions();
-    this.setLinkDirectionOptions();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    // check to see if global dashboard data changed
-    if (!isEqual(prevProps.dashboard, this.props.dashboard)) {
-      this.setLinkKeyOptions();
-      this.setNodeSelectOptions();
-      this.setLinkDirectionOptions();
-    }
-  }
+    if (!prevProps.modalIsOpen && this.props.modalIsOpen) {
+      // reset the state when the modal is opened again and not in edit graph mode
+      // prepopulate data if editing an already existing graph
+      const {editGraphMode, graphInEditMode} = this.props;
 
-  // link form functions
-  setLinkKeyOptions() {
-    let {nodeA, nodeZ} = this.props.dashboard;
+      const newState = editGraphMode
+        ? graphInEditMode.setup.graphFormData.generalFormData
+        : cloneDeep(initialState);
+      this.setState(newState);
 
-    if (!(nodeA && nodeZ)) {
-      return;
-    }
-    // change direction based on user selection
-    if (this.state.linkDirectionSelected.includes('Z -> A')) {
-      const temp = nodeA;
-      nodeA = nodeZ;
-      nodeZ = temp;
-    }
-    const keyOptions = [];
-    return axios
-      .get(`/stats_ta/${this.props.topologyName}/tgf.${nodeZ.mac_addr}`)
-      .then(resp => {
-        const keys = resp.data;
-        keys.forEach(keyObj => {
-          if (keyObj[0].node === nodeA.mac_addr) {
-            keyOptions.push({label: keyObj[0].key, value: keyObj[0].key});
-          }
-        });
+      // initially use dashboard's graph config options unless the user hasn't
+      // specified a node A yet
+      if (this.props.dashboard && this.props.dashboard.nodeA) {
         this.setState({
-          linkKeyOptions: keyOptions,
+          useDashboardGraphConfigChecked: true,
         });
-      })
-      .catch(err => {
-        console.log('Error getting link key options', err);
-        this.setState({
-          linkKeyOptions: [],
-        });
-      });
+      }
+    }
   }
 
-  onLinkKeyChanged(event) {
-    this.setState({linkKeySelected: event.value});
-  }
+  // When user selects new graph type in React Select, update value in state
+  onGraphTypeChange = event => {
+    this.setState({graphTypeSelected: event.value});
+  };
 
-  onLinkDirectionChanged(event) {
-    this.setState({linkDirectionSelected: event.value}, () =>
-      this.setLinkKeyOptions(),
-    );
-  }
+  // If a user chooses to use a custom graph configuration, save their
+  // selections into the state under customData
+  onHandleCustomDataChange = (keyName, data) => {
+    const newCustomData = {
+      ...this.state.customData,
+      [keyName]: data,
+    };
+    this.setState({customData: newCustomData, nodesSelected: []});
+  };
 
-  setLinkDirectionOptions() {
+  onHandleConfigCheckedChange = clk => {
     const {nodeA, nodeZ} = this.props.dashboard;
-    const linkDirectionOptions = [];
-    let initialSelection = '';
-    if (nodeA && nodeZ) {
-      const azDirection = 'A -> Z: ' + nodeA.name + ' -> ' + nodeZ.name;
-      const zaDirection = 'Z -> A: ' + nodeZ.name + ' -> ' + nodeA.name;
-      linkDirectionOptions.push({label: azDirection, value: azDirection});
-      linkDirectionOptions.push({label: zaDirection, value: zaDirection});
-      initialSelection = linkDirectionOptions[0].value;
-    }
-    this.setState({
-      linkDirectionOptions,
-      linkDirectionSelected: initialSelection,
-    });
-  }
-
-  // node form functions
-  setNodeSelectOptions() {
-    const {nodeA, nodeZ} = this.props.dashboard;
-    const nodeSelectOptions = [];
-    if (nodeA) {
-      nodeSelectOptions.push({
-        label: nodeA.name,
-        node: nodeA,
-        value: nodeA.name,
-      });
-    }
-    if (nodeZ) {
-      nodeSelectOptions.push({
-        label: nodeZ.name,
-        node: nodeZ,
-        value: nodeZ.name,
-      });
-    }
-    this.setState({
-      nodeSelectOptions,
-    });
-  }
-
-  onNodesSelectChanged(event) {
-    this.setState({nodesSelected: event});
-  }
-
-  onNodeKeyChanged(event) {
-    this.setState({nodeKeysSelected: event.value});
-  }
-
-  // Network form functions
-  onNetworkMetricChanged(event) {
-    this.setState({networkMetricSelected: event.value});
-  }
-
-  setNetworkMetricOptions() {
-    // TODO get all the network metric options
-    // currently there are no network keys in the backend
-    return [];
-  }
-
-  formatNodeKeyOptions(keyOptions) {
-    const retKeys = [];
-    keyOptions.forEach((key, index) => {
-      // aggregate data for this key, remove duplicates
-      if (index > 0 && key.keyId !== keyOptions[index - 1].keyId) {
-        retKeys.push({name: key.displayName, node: key.nodeName, key});
-      }
-    });
-    return retKeys;
-  }
-
-  renderTypeaheadKeyMenu(option, props, index) {
-    return [
-      <div key="option" className="typeahead-option">
-        <strong key="name">{option.name}</strong>
-        <div key="data">Node: {option.node}</div>
-      </div>,
-    ];
-  }
-
-  metricSelectionChanged(selectedOpts) {
-    // update graph options
-    this.setState({
-      nodeKeysSelected: selectedOpts,
-    });
-  }
-
-  submitLinkGraph() {
-    const key = this.state.linkKeySelected;
-    let url = `/stats_ta/${this.props.topologyName}/${key}`;
-    const graphName = this.state.linkDirectionSelected + ' : ' + key.slice(22);
-
-    // TODO backend does not return exact key if searching with [#]
-    // this is temporary
-    if (key.includes('[')) {
-      url = url.slice(0, url.indexOf('['));
-    }
-
-    axios.get(url).then(resp => {
-      const keyIds = [];
-      const dataResp = [];
-      // only doing this because backend doesnt return exact key on search
-      // must parse through response manually to get desired key number [#]
-      if (key.includes('[')) {
-        const keyNum = key.slice(key.indexOf('[') + 1, key.indexOf(']'));
-        resp.data.forEach(point => {
-          if (point[0].key.includes(keyNum)) {
-            point.forEach(val => {
-              keyIds.push(val.keyId);
-              dataResp.push(val);
-            });
-          }
-        });
-      } else {
-        resp.data.forEach(point => {
-          point.forEach((val, index) => {
-            keyIds.push(val.keyId);
-            dataResp.push(val);
-          });
-        });
-      }
-
-      const setupInfo = {
-        graphType: 'link',
-        nodeA: this.props.dashboard.nodeA,
-        nodeZ: this.props.dashboard.nodeZ,
-        direction: this.state.linkDirectionSelected.includes('Z -> A') ? 'Z -> A' : 'A -> Z'
-      }
-
-      // add graph based on the global time range set in the dashboard
-      const {startTime, endTime, minAgo} = this.props.dashboard;
-      if (startTime && endTime) {
-        this.props.addGraphCustomTime(
-          graphName,
-          startTime,
-          endTime,
-          dataResp,
-          keyIds,
-          setupInfo
-        );
-      } else {
-        this.props.addGraphMinAgo(graphName, minAgo, dataResp, keyIds, setupInfo);
-      }
-      this.props.closeModal();
-    })
-    .catch(err => {
-      console.error('Error submitting link graph', err)
-    })
-  }
-
-  submitNodeGraph() {
-    const graphName = 'Node stats';
-
-    const {nodeKeysSelected} = this.state;
-
-    const nodeKeyIds = [];
-    const nodeKeyData = [];
-    nodeKeysSelected.forEach(nodeKey => {
-      nodeKeyIds.push(nodeKey.key.keyId);
-      nodeKeyData.push(nodeKey.key);
-    })
-
-    const {startTime, endTime, minAgo} = this.props.dashboard;
-
-    const setupInfo = {
-      graphType: 'node',
-      nodes: nodeKeysSelected,
-    }
-
-    if (startTime && endTime) {
-      this.props.addGraphCustomTime(
-        graphName,
-        startTime,
-        endTime,
-        nodeKeyData,
-        nodeKeyIds,
-        setupInfo
+    if (!nodeA || !nodeZ) {
+      swal(
+        'Error',
+        "You need to fill in the dashboard's graph configuration options before you can apply them.",
+        'error',
       );
     } else {
-      this.props.addGraphMinAgo(
-        graphName,
-        minAgo,
-        nodeKeyData,
-        nodeKeyIds,
-        setupInfo
-      );
+      this.setState({
+        useDashboardGraphConfigChecked: clk.target.checked,
+      });
     }
-    this.props.closeModal();
-  }
+  };
 
   render() {
-    const {nodeA, nodeZ} = this.props.dashboard;
-    const disableLinkSubmit = this.state.linkKeySelected === '';
-    const disableNodeSubmit =
-      this.state.nodesSelected.length === 0 ||
-      this.state.nodeKeysSelected.length === 0;
+    const {graphInEditMode} = this.props;
+    const {nodeA, nodeZ, minAgo, startTime, endTime} = this.props.dashboard;
     return (
       <div className="create-graph-modal">
         <Modal
           isOpen={this.props.modalIsOpen}
-          onRequestClose={() => this.props.closeModal()}>
+          onRequestClose={this.props.closeModal}>
+          <div className="close-modal-button" onClick={this.props.closeModal}>
+            <Glyphicon glyph="remove" />
+          </div>
           <div className="create-graph-modal-content">
-            <h3>Create New Graph</h3>
+            {
+              <h3>
+                {this.props.editGraphMode ? 'Edit Graph' : 'Create New Graph'}
+              </h3>
+            }
             <div className="input-box">
               <p>Graph Type</p>
               <Select
                 name="graph-type-select"
                 value={this.state.graphTypeSelected}
-                onChange={event => this.onGraphTypeChange(event)}
+                onChange={this.onGraphTypeChange}
                 options={[
                   {label: 'Link', value: 'Link'},
                   {label: 'Node', value: 'Node'},
@@ -322,164 +123,97 @@ export default class CreateGraphModal extends React.Component {
                 ]}
               />
             </div>
-            {this.state.graphTypeSelected === 'Link' && (
-              <div>
-                {nodeA && nodeZ ? (
-                  <div className="graph-form">
-                    <h4>{this.state.graphTypeSelected + ' Graph'}</h4>
-                    <div className="input-box">
-                      <p>Direction</p>
-                      <Select
-                        name="graph-type-select"
-                        value={this.state.linkDirectionSelected}
-                        onChange={event => this.onLinkDirectionChanged(event)}
-                        options={this.state.linkDirectionOptions}
-                      />
+            {this.state.graphTypeSelected !== '' && (
+              <div className="graph-form">
+                <div className="input-box">
+                  <span>Apply Dashboard's Graph Configuration Options</span>
+                  <input
+                    id="custom-graph-checkbox"
+                    type="checkbox"
+                    onChange={this.onHandleConfigCheckedChange}
+                    checked={this.state.useDashboardGraphConfigChecked}
+                  />
+                </div>
+                {this.state.useDashboardGraphConfigChecked ? (
+                  <div className="graph-config-wrapper">
+                    <h4>Applied Graph Configuration</h4>
+                    <div className="info-box">
+                      <p>Node A</p>
+                      <p>{nodeA.name}</p>
                     </div>
-                    <div className="input-box">
-                      <p>Key</p>
-                      <Select
-                        name="graph-type-select"
-                        value={this.state.linkKeySelected}
-                        onChange={event => this.onLinkKeyChanged(event)}
-                        options={this.state.linkKeyOptions}
-                      />
+                    <div className="info-box">
+                      <p>Node Z</p>
+                      <p>{nodeZ.name}</p>
                     </div>
-                    <button
-                      className={
-                        disableLinkSubmit
-                          ? 'graph-button disabled-button'
-                          : 'graph-button submit-button'
-                      }
-                      onClick={() => this.submitLinkGraph()}
-                      disabled={disableLinkSubmit}>
-                      Submit
-                    </button>
+                    {minAgo ? (
+                      <div className="info-box">
+                        <p>Time Window</p>
+                        <p>{minAgo} minutes</p>
+                      </div>
+                    ) : (
+                      <div className="info-box">
+                        <p>Time Window</p>
+                        <p>{startTime + ' - ' + endTime}</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="graph-form">
-                    <h5>
-                      Please specify both Node A and Node Z in the global data
-                      inputs to create a link graph
-                    </h5>
+                  <div className="graph-config-wrapper">
+                    <h4>Custom Graph Configuration</h4>
+                    <GraphConfigurationSelect
+                      dashboard={this.props.dashboard}
+                      networkConfig={this.props.networkConfig}
+                      globalUse={false}
+                      onHandleCustomDataChange={this.onHandleCustomDataChange}
+                      graphType={this.state.graphTypeSelected}
+                    />
                   </div>
                 )}
               </div>
             )}
+            <div />
+            {this.state.graphTypeSelected === 'Link' && (
+              <LinkGraphForm
+                topologyName={this.props.networkConfig.topology.name}
+                onSubmitGraph={this.props.onSubmitGraph}
+                dashboard={this.props.dashboard}
+                generalFormData={this.state}
+                defaultLinkFormData={
+                  graphInEditMode
+                    ? graphInEditMode.setup.graphFormData.linkGraphData
+                    : null
+                }
+                editGraphMode={this.props.editGraphMode}
+              />
+            )}
             {this.state.graphTypeSelected === 'Node' && (
-              <div>
-                {nodeA ? (
-                  <div className="graph-form">
-                    <h4>{this.state.graphTypeSelected + ' Graph'}</h4>
-                    <div className="input-box">
-                      <p>Node(s)</p>
-                      <Select
-                        name="graph-type-select"
-                        multi
-                        value={this.state.nodesSelected}
-                        onChange={event => this.onNodesSelectChanged(event)}
-                        options={this.state.nodeSelectOptions}
-                      />
-                    </div>
-                    <div id="node-key-box" className="input-box">
-                      <p>Key</p>
-                      <AsyncTypeahead
-                        key="keys"
-                        labelKey="name"
-                        multiple
-                        placeholder="Enter node key name..."
-                        ref={ref => (this._typeaheadKey = ref)}
-                        isLoading={this.state.nodeKeyIsLoading}
-                        onSearch={query => {
-                          this.setState({
-                            nodeKeyIsLoading: true,
-                            nodeKeyOptions: [],
-                          });
-                          const selectedNodes = this.state.nodesSelected;
-                          axios
-                            .get(
-                              `/stats_ta/${this.props.topologyName}/${query}`,
-                            )
-                            .then(resp => {
-                              const keys = resp.data;
-                              const keyOptions = [];
-                              keys.forEach(keyArr => {
-                                keyArr.forEach(keyObj => {
-                                  selectedNodes.forEach(nodeObj => {
-                                    const selectedNode = nodeObj.node;
-                                    if (
-                                      keyObj.node === selectedNode.mac_addr &&
-                                      !/\d/.test(keyObj.key)
-                                    ) {
-                                      keyOptions.push(keyObj);
-                                    }
-                                  });
-                                });
-                              });
-                              this.setState({
-                                nodeKeyIsLoading: false,
-                                nodeKeyOptions: this.formatNodeKeyOptions(
-                                  keyOptions,
-                                ),
-                              });
-                            })
-                            .catch(err => {
-                              console.log(
-                                'Error getting node key options',
-                                err,
-                              );
-                              this.setState({
-                                nodeKeyIsLoading: false,
-                                nodeKeyOptions: [],
-                              });
-                            });
-                        }}
-                        selected={this.state.nodeKeysSelected}
-                        onChange={this.metricSelectionChanged.bind(this)}
-                        useCache={false}
-                        emptyLabel={false}
-                        filterBy={(opt, txt) => {
-                          return true;
-                        }}
-                        renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(
-                          this,
-                        )}
-                        options={this.state.nodeKeyOptions}
-                      />
-                    </div>
-                    <button
-                      className={
-                        disableNodeSubmit
-                          ? 'graph-button disabled-button'
-                          : 'graph-button submit-button'
-                      }
-                      onClick={() => this.submitNodeGraph()}
-                      disabled={disableNodeSubmit}>
-                      Submit
-                    </button>
-                  </div>
-                ) : (
-                  <div className="graph-form">
-                    <h5>
-                      Please specify Node A in the global data inputs to create
-                      a link graph
-                    </h5>
-                  </div>
-                )}
-              </div>
+              <NodeGraphForm
+                topologyName={this.props.networkConfig.topology.name}
+                onSubmitGraph={this.props.onSubmitGraph}
+                dashboard={this.props.dashboard}
+                generalFormData={this.state}
+                defaultNodeFormData={
+                  graphInEditMode
+                    ? graphInEditMode.setup.graphFormData.nodeGraphData
+                    : null
+                }
+                editGraphMode={this.props.editGraphMode}
+              />
             )}
             {this.state.graphTypeSelected === 'Network' && (
               <div className="graph-form">
-                <h4>{this.state.graphTypeSelected + ' Graph'}</h4>
-                <div className="input-box">
-                  <p>Network Metric</p>
-                  <Select
-                    name="graph-type-select"
-                    value={this.state.networkMetricSelected}
-                    onChange={event => this.onNetworkMetricChanged(event)}
-                    options={this.state.networkMetricOptions}
-                  />
-                </div>
+                <NetworkAggregationForm
+                  topologyName={this.props.networkConfig.topology.name}
+                  onSubmitGraph={this.props.onSubmitGraph}
+                  dashboard={this.props.dashboard}
+                  generalFormData={this.state}
+                  defaultNetworkFormData={
+                    graphInEditMode
+                      ? graphInEditMode.setup.graphFormData.networkAggGraphData
+                      : null
+                  }
+                  editGraphMode={this.props.editGraphMode}
+                />
               </div>
             )}
           </div>

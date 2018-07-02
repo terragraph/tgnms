@@ -7,17 +7,25 @@
 
 import Select from 'react-select';
 import React from 'react';
+import {DEFAULT_DASHBOARD_NAMES} from '../../constants/NetworkDashboardsConstants.js';
 
 export default class DashboardSelect extends React.Component {
   render() {
     const dashboardsOptions = [];
     if (this.props.dashboards) {
       Object.keys(this.props.dashboards).forEach(dashboardName => {
-        dashboardsOptions.push({
+        // Keep default dashboards at the top of the drop down list
+        const option = {
           label: dashboardName,
           value: dashboardName,
-        });
+        };
+        if (Object.values(DEFAULT_DASHBOARD_NAMES).includes(dashboardName)) {
+          dashboardsOptions.unshift(option);
+        } else {
+          dashboardsOptions.push(option);
+        }
       });
+      dashboardsOptions;
       dashboardsOptions.push({
         label: 'New Dashboard ...',
         value: '#New',
@@ -49,48 +57,48 @@ export default class DashboardSelect extends React.Component {
           <td width={330} key="b_name">
             <button
               className="graph-button name-button"
-              onClick={() => this.props.onDashboardNameChange()}>
-              {this.props.selectedDashboard}
+              onClick={this.props.onDashboardNameChange}>
+              Change Dashboard Name: {this.props.selectedDashboard}
             </button>
           </td>
         );
         topButtons = [
           <td key="b_add">
             <button
-              className="graph-button top-button-wide"
-              onClick={() => this.props.onAddGraphButtonClicked()}>
+              className="graph-button top-button"
+              onClick={this.props.onAddGraphButtonClicked}>
               Add Graph
+            </button>
+          </td>,
+          <td key="b_save">
+            <button
+              className="graph-button top-button"
+              onClick={this.props.saveDashboards}>
+              Save Changes
             </button>
           </td>,
           <td key="b_done">
             <button
-              className="graph-button top-button-wide"
-              onClick={() => this.props.onDoneEdit()}>
+              className="graph-button top-button"
+              onClick={this.props.onDoneEdit}>
               Done Editing
+            </button>
+          </td>,
+          <td key="b_delete">
+            <button
+              className="graph-button top-button"
+              onClick={this.props.onDeleteDashboard}>
+              Delete Dashboard
             </button>
           </td>,
         ];
       } else {
         topButtons = [
-          <td key="b_delete">
-            <button
-              className="graph-button top-button"
-              onClick={() => this.props.deleteDashboard()}>
-              Delete
-            </button>
-          </td>,
           <td key="b_edit">
             <button
               className="graph-button top-button"
-              onClick={() => this.props.onEdit()}>
-              Edit
-            </button>
-          </td>,
-          <td key="b_save">
-            <button
-              className="graph-button top-button-wide"
-              onClick={() => this.props.saveDashboards()}>
-              Save Changes
+              onClick={this.props.onEdit}>
+              Edit Dashboard
             </button>
           </td>,
         ];
@@ -99,7 +107,10 @@ export default class DashboardSelect extends React.Component {
 
     return (
       <div id="dashboard-select">
-        <h3>Dashboard</h3>
+        <h3>
+          <strong>Dashboards</strong>
+          {'  | ' + this.props.topologyName}
+        </h3>
         <table
           style={{
             borderCollapse: 'separate',

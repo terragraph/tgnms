@@ -28,20 +28,32 @@
 }
 
 .nc-add-new-field {
-  font-size: 16px;
-  color: #aaaaff;
+  align-items: center;
+  background-color: #eee;
+  border: 1px solid #999;
+  border-radius: 50%;
+  color: #666;
+  display: flex;
+  font-size: 18px;
+  font-weight: bold;
+  height: 25px;
+  justify-content: center;
+  margin: 7px;
+  padding: 5px;
+  transition: transform 50ms ease-in-out;
+  width: 25px;
 }
 
 .nc-add-new-field:hover {
-  font-weight: 500;
   cursor: pointer;
+  transform: scale(1.1);
 }
 
 .rc-add-field-dropdown {
   position: absolute;
   border: 1px solid #aaa;
   background-color: #fff;
-  z-index: 3;
+  z-index: 100;
   top: 30px;
   width: 150px;
 }
@@ -104,9 +116,10 @@
 }
 
 .nc-new-field-label {
+  border: 1px solid #ccc;
   margin-right: 10px;
-  margin-top: 0px;
-  margin-bottom: 0px;
+  margin-top: 0;
+  margin-bottom: 0;
   min-width: 250px; /* fixed min width so we can align the input fields */
 }
 
@@ -141,9 +154,17 @@
 }
 
 .config-form-input {
-  /*background-color: #fff;*/
+  border: 1px solid #ccc;
+  border-radius: 2px;
   min-width: 250px;
+  padding: 2px;
 }
+
+.config-form-input:disabled {
+  border-color: #e0e0e0;
+  color: #999;
+}
+
 
 .config-form-input.error {
   border: 2px solid salmon;
@@ -171,18 +192,27 @@
   background-color: #fff;
 }
 
+.nc-auto-field {
+  background-color: #ddf7ff;
+  border: 2px solid #0984e3;
+}
+
 .nc-network-field {
-  background-color: #3bd6c6;
+  background-color: #e0e0ff;
+  border: 2px solid #6c5ce7;
 }
 
 .nc-node-field {
-  background-color: #f1cbff;
+  background-color: #f6ddff;
+  border: 2px solid #d980fa;
 }
 
 .nc-draft-field {
-  background-color: #fdf498;
+  background-color: #fff9b9;
 }
 
-.nc-revert-field {
+.nc-revert-field,
+.nc-revert-field:disabled {
+  color: #000;
   border: 2px solid #000077;
 }

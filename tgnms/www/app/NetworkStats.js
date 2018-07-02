@@ -16,6 +16,7 @@ import moment from 'moment';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import Datetime from 'react-datetime';
 import React from 'react';
+import {Glyphicon} from 'react-bootstrap';
 
 const TIME_PICKER_OPTS = [
   {
@@ -254,12 +255,14 @@ export default class NetworkStats extends React.Component {
           onSearch={query => {
             const topoName = this.props.networkConfig.topology.name;
             this.setState({keyIsLoading: true, keyOptions: []});
-            axios.get('/stats_ta/' + topoName + '/' + query).then(response =>
-              this.setState({
-                keyIsLoading: false,
-                keyOptions: this.formatKeyOptions(response.data),
-              }),
-            );
+            axios
+              .get('/metrics/stats_ta/' + topoName + '/' + query)
+              .then(response =>
+                this.setState({
+                  keyIsLoading: false,
+                  keyOptions: this.formatKeyOptions(response.data),
+                }),
+              );
           }}
           selected={this.state.keysSelected}
           onChange={this.metricSelectionChanged.bind(this)}

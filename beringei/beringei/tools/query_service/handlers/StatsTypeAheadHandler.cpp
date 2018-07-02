@@ -8,8 +8,6 @@
  */
 
 #include "StatsTypeAheadHandler.h"
-#include "mysql_connection.h"
-#include "mysql_driver.h"
 
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
@@ -40,11 +38,9 @@ namespace gorilla {
 // If enableBinarySerialization, use Binary protocol to deserialize request
 // Otherwise, use SimpleJSON protocol to deserialize request
 StatsTypeAheadHandler::StatsTypeAheadHandler(
-    std::shared_ptr<MySqlClient> mySqlClient,
     TACacheMap& typeaheadCache,
     bool enableBinarySerialization)
     : RequestHandler(),
-      mySqlClient_(mySqlClient),
       typeaheadCache_(typeaheadCache),
       enableBinarySerialization_(enableBinarySerialization) {}
 
