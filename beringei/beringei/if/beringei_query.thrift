@@ -198,3 +198,38 @@ struct MySqlAlertData {
   8: string trigger_key,
   9: double trigger_value,
 }
+
+// Data structure to request raw time series data from BQS
+// RawQueryKey carries the unique combination to identify a time series
+// There are two ways to identify the needed metric key string:
+// a. using sourceMac, peerMac and keyName
+// b. or debugging <optional> using the Beringei keyId of the time series
+// BQS finds the right series by:
+// if keyId is filled, use option b
+// else use option a
+struct RawQueryKey {
+  // sourceMac address, needs to be filled
+  1: optional string sourceMac,
+  // peerMac address, can be filled for link stats like ssnrEst
+  // for node type stats, like iftemperature, not filled
+  2: optional string peerMac,
+  // name of the key, like "staPkt.txPowerIndex" or "phystatus.snrEst"
+  3: optional string metricName,
+  // topologyName is used to find the right keyId holding client
+  4: optional string topologyName,
+  // The keyId of the time series in Beringei database
+  5: optional i64 keyId,
+}
+
+struct RawReadQuery {
+  1: list<RawQueryKey> queryKeyList,
+  // period to search (unixtime in second)
+  2: i64 startTimestamp,
+  3: i64 endTimestamp,
+  // Beringei time series interval in seconds
+  4: i32 interval = 30,
+}
+
+struct RawReadQueryRequest {
+  1: list<RawReadQuery> queries,
+}

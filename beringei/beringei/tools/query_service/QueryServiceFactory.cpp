@@ -12,6 +12,7 @@
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/QueryHandler.h"
+#include "handlers/RawReadHandler.h"
 #include "handlers/RuckusControllerStatsHandler.h"
 #include "handlers/StatsTypeAheadHandler.h"
 #include "handlers/StatsWriteHandler.h"
@@ -25,8 +26,7 @@ namespace facebook {
 namespace gorilla {
 
 QueryServiceFactory::QueryServiceFactory(TACacheMap& typeaheadCache)
-    : RequestHandlerFactory(),
-      typeaheadCache_(typeaheadCache) {}
+    : RequestHandlerFactory(), typeaheadCache_(typeaheadCache) {}
 
 void QueryServiceFactory::onServerStart(folly::EventBase* evb) noexcept {}
 
@@ -39,7 +39,9 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
   LOG(INFO) << "Received a request for path " << path;
 
   if (path == "/stats_writer") {
-    return new StatsWriteHandler();
+    // The false input indicates that the incoming StatsWriteRequest is
+    // serialized by SimpleJSON protocol
+    return new StatsWriteHandler(false);
   } else if (path == "/query") {
     return new QueryHandler();
   } else if (path == "/table_query") {
@@ -48,9 +50,24 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     return new LogsWriteHandler();
   } else if (path == "/stats_typeahead") {
     // pass a cache client that stores metric names
-    return new StatsTypeAheadHandler(typeaheadCache_);
+    // The false input indicates that the incoming TypeAheadRequest is
+    // serialized by SimpleJSON protocol
+    return new StatsTypeAheadHandler(typeaheadCache_, false);
+  } else if (path == "/binary_stats_typeahead") {
+    // The cache client that stores metric names along keyId of Beringei DB.
+    // The true input indicates that the incoming TypeAheadRequest is
+    // serialized by Binary protocol
+    return new StatsTypeAheadHandler(typeaheadCache_, true);
   } else if (path == "/ruckus_ap_stats") {
     return new RuckusControllerStatsHandler();
+  } else if (path == "/raw_query") {
+    // NMS Raw Read Request, will read only raw data points
+    return new RawReadHandler(typeaheadCache_);
+  } else if (path == "/binary_stats_writer") {
+    // NMS Write Request
+    // The true input indicates that the incoming StatsWriteRequest is
+    // serialized by Binary protocol
+    return new StatsWriteHandler(true);
   }
 
   // return not found for all other uris

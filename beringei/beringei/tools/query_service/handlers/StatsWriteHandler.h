@@ -24,7 +24,7 @@ namespace gorilla {
 
 class StatsWriteHandler : public proxygen::RequestHandler {
  public:
-  explicit StatsWriteHandler();
+  explicit StatsWriteHandler(bool enableBinarySerialization);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -45,6 +45,7 @@ class StatsWriteHandler : public proxygen::RequestHandler {
   void writeData(query::StatsWriteRequest request);
 
   std::unique_ptr<folly::IOBuf> body_;
+  bool enableBinarySerialization_;
 };
 } // namespace gorilla
 } // namespace facebook

@@ -24,11 +24,9 @@
 namespace facebook {
 namespace gorilla {
 
-class StatsTypeAheadHandler : public proxygen::RequestHandler {
+class RawReadHandler : public proxygen::RequestHandler {
  public:
-  explicit StatsTypeAheadHandler(
-      TACacheMap& typeaheadCache,
-      bool enableBinarySerialization);
+  explicit RawReadHandler(TACacheMap& typeaheadCache);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -44,9 +42,9 @@ class StatsTypeAheadHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
+  bool receivedBody_;
   std::unique_ptr<folly::IOBuf> body_;
   TACacheMap& typeaheadCache_;
-  bool enableBinarySerialization_;
 };
 } // namespace gorilla
 } // namespace facebook
