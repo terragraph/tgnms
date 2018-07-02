@@ -138,8 +138,8 @@ GetDataRequest RawReadBeringeiData::createBeringeiRequest(
     QueryWindow queryWindow) {
   GetDataRequest beringeiRequest;
 
-  beringeiRequest.begin = queryWindow.startTime;
-  beringeiRequest.end = queryWindow.endTime;
+  beringeiRequest.beginTimestamp = queryWindow.startTime;
+  beringeiRequest.endTimestamp = queryWindow.endTime;
 
   successFindKeyId_.clear();
   fullMetricKeyName_.clear();

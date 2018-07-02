@@ -390,8 +390,8 @@ void BeringeiServiceHandler::getData(
       if (row.get()) {
         keysFound++;
         row->second.get(
-            map->bucket(req->begin),
-            map->bucket(req->end),
+            map->bucket(req->beginTimestamp),
+            map->bucket(req->endTimestamp),
             ret.results[i].data,
             map->getStorage());
         row->second.setQueried();
@@ -400,7 +400,7 @@ void BeringeiServiceHandler::getData(
           // decide what to do with the results, i.e., ask the other
           // coast if possible.
           ret.results[i].status = StatusCode::SHARD_IN_PROGRESS;
-        } else if (req->begin < map->getReliableDataStartTime()) {
+        } else if (req->beginTimestamp < map->getReliableDataStartTime()) {
           ret.results[i].status = StatusCode::MISSING_TOO_MUCH_DATA;
           GorillaStatsManager::addStatValue(kMissingTooMuchData, 1);
         } else {
@@ -485,13 +485,13 @@ void BeringeiServiceHandler::getShardDataBucket(
 void BeringeiServiceHandler::scanShard(
     ScanShardResult& ret,
     std::unique_ptr<ScanShardRequest> req) {
-  req->begin =
-      BucketUtils::floorTimestamp(req->begin, FLAGS_bucket_size, req->shardId);
-  req->end =
-      BucketUtils::floorTimestamp(req->end, FLAGS_bucket_size, req->shardId);
+  req->beginTimestamp = BucketUtils::floorTimestamp(
+      req->beginTimestamp, FLAGS_bucket_size, req->shardId);
+  req->endTimestamp = BucketUtils::floorTimestamp(
+      req->endTimestamp, FLAGS_bucket_size, req->shardId);
 
   LOG(INFO) << "Fetching data for shard " << req->shardId << " between time "
-            << req->begin << " and " << req->end;
+            << req->beginTimestamp << " and " << req->endTimestamp;
 
   Timer timer(true);
 
@@ -508,7 +508,7 @@ void BeringeiServiceHandler::scanShard(
   }
 
   // Don't allow data fetches until the bucket has been finalized.
-  if (map->bucket(req->end) > map->getLastFinalizedBucket()) {
+  if (map->bucket(req->endTimestamp) > map->getLastFinalizedBucket()) {
     ret.status = StatusCode::BUCKET_NOT_FINALIZED;
     return;
   }
@@ -524,8 +524,8 @@ void BeringeiServiceHandler::scanShard(
   ret.data.reserve(sizeEstimate);
   ret.queriedRecently.reserve(sizeEstimate);
 
-  uint32_t begin = map->bucket(req->begin);
-  uint32_t end = map->bucket(req->end);
+  uint32_t begin = map->bucket(req->beginTimestamp);
+  uint32_t end = map->bucket(req->endTimestamp);
 
   for (auto& row : rows) {
     if (row.get()) {
@@ -731,5 +731,5 @@ void BeringeiServiceHandler::finalizeBucket(const uint64_t timestamp) {
     t.join();
   }
 }
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

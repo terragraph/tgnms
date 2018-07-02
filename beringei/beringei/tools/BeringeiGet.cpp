@@ -1,10 +1,10 @@
 /**
-* Copyright (c) 2016-present, Facebook, Inc.
-* All rights reserved.
-* This source code is licensed under the BSD-style license found in the
-* LICENSE file in the root directory of this source tree. An additional grant
-* of patent rights can be found in the PATENTS file in the same directory.
-*/
+ * Copyright (c) 2016-present, Facebook, Inc.
+ * All rights reserved.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
 
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/plugins/BeringeiConfigurationAdapter.h"
@@ -89,8 +89,8 @@ int main(int argc, char** argv) {
   gorilla::ScanShardRequest shardRequest;
 
   shardRequest.shardId = FLAGS_shard_id;
-  shardRequest.begin = FLAGS_start_time - 1201;
-  shardRequest.end = FLAGS_end_time - 599;
+  shardRequest.beginTimestamp = FLAGS_start_time - 1201;
+  shardRequest.endTimestamp = FLAGS_end_time - 599;
   shardRequest.subshard = 0;
   shardRequest.numSubshards = 1;
 
@@ -105,8 +105,8 @@ int main(int argc, char** argv) {
   request.keys.emplace_back();
   request.keys.back().key = keyName;
   request.keys.back().shardId = FLAGS_shard_id;
-  request.begin = FLAGS_start_time;
-  request.end = FLAGS_end_time;
+  request.beginTimestamp = FLAGS_start_time;
+  request.endTimestamp = FLAGS_end_time;
 
   gorilla::GorillaResultVector result;
   beringeiClient->get(request, result);

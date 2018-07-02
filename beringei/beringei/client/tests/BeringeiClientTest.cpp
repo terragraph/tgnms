@@ -27,7 +27,7 @@ namespace facebook {
 namespace gorilla {
 DECLARE_int32(gorilla_retry_delay_secs);
 }
-}
+} // namespace facebook
 
 class BeringeiClientMock : public BeringeiNetworkClient {
  public:
@@ -367,17 +367,16 @@ TEST_F(BeringeiClientTest, GetPoints) {
 
   auto fullReq = getReq;
   // range below must match that used in BeringeiClientTest::SetUp
-  fullReq.begin = 19 * minTimestampDelta;
-  fullReq.end = 29 * minTimestampDelta;
+  fullReq.beginTimestamp = 19 * minTimestampDelta;
+  fullReq.endTimestamp = 29 * minTimestampDelta;
   result.clear();
   beringeiClient->get(fullReq, result);
   ASSERT_EQ(resultVec.size(), result.size());
 
-  auto sortFn = [](
-      const std::pair<facebook::gorilla::Key, std::vector<TimeValuePair>>& a,
-      const std::pair<facebook::gorilla::Key, std::vector<TimeValuePair>>& b) {
-    return a.first.key < b.first.key;
-  };
+  auto sortFn =
+      [](const std::pair<facebook::gorilla::Key, std::vector<TimeValuePair>>& a,
+         const std::pair<facebook::gorilla::Key, std::vector<TimeValuePair>>&
+             b) { return a.first.key < b.first.key; };
 
   sort(resultVec.begin(), resultVec.end(), sortFn);
   sort(result.begin(), result.end(), sortFn);

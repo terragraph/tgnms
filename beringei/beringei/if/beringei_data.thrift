@@ -41,13 +41,13 @@ enum StatusCode {
 
 struct TimeSeriesData {
   1: list<TimeSeriesBlock> data,
-  2: StatusCode status = OK,
+  2: StatusCode status = StatusCode.OK,
 }
 
 struct GetDataRequest {
   1: list<Key> keys,
-  2: i64 begin,
-  3: i64 end,
+  2: i64 beginTimestamp,
+  3: i64 endTimestamp,
 }
 
 struct GetDataResult {
@@ -55,7 +55,6 @@ struct GetDataResult {
 }
 
 // putData structs
-
 struct TimeValuePair {
   1: i64 unixTime,
   2: double value,
@@ -93,8 +92,8 @@ struct GetShardDataBucketResult {
 // over [0, n) will return each key once.
 struct ScanShardRequest {
   1: i64 shardId,
-  2: i64 begin,
-  3: i64 end,
+  2: i64 beginTimestamp,
+  3: i64 endTimestamp,
   4: i64 subshard = 0,
   5: i64 numSubshards = 1,
 }

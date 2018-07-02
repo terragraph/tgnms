@@ -109,8 +109,8 @@ class BeringeiServiceHandlerTest : public testing::Test {
       key.shardId = shardId;
       request->keys.push_back(key);
     }
-    request->begin = begin;
-    request->end = end;
+    request->beginTimestamp = begin;
+    request->endTimestamp = end;
 
     return request;
   }
