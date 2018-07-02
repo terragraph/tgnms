@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "MySqlClient.h"
 #include "RuckusController.h"
 #include "StatsTypeAheadCache.h"
 
@@ -24,9 +23,7 @@ namespace gorilla {
 
 class AggregatorService {
  public:
-  explicit AggregatorService(
-      std::shared_ptr<MySqlClient> mySqlClient,
-      TACacheMap& typeaheadCache);
+  explicit AggregatorService(TACacheMap& typeaheadCache);
 
   // run eventbase
   void start();
@@ -45,7 +42,6 @@ class AggregatorService {
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
   // from queryservicefactory
-  std::shared_ptr<MySqlClient> mySqlClient_;
   TACacheMap& typeaheadCache_;
   // store the last set of ruckus stats to push
   folly::Synchronized<std::unordered_map<std::string /* key name */, double>>

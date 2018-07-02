@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "MySqlClient.h"
+#include "ApiServiceClient.h"
 #include "StatsTypeAheadCache.h"
 
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
@@ -24,23 +24,22 @@ namespace gorilla {
 class TopologyFetcher {
  public:
   explicit TopologyFetcher(
-      std::shared_ptr<MySqlClient> mySqlClient,
-      TACacheMap& typeaheadCache);
+      TACacheMap& typeaheadCache,
+      std::shared_ptr<ApiServiceClient> apiServiceClient);
 
   // run eventbase
   void start();
-  void timerCb();
+  void refreshTopologyCache();
   // requests topology from an api_service endpoint
   void updateTypeaheadCache(query::Topology& topology);
-  query::Topology fetchTopology(
-      std::shared_ptr<query::TopologyConfig> topologyConfig);
 
  private:
   folly::EventBase eb_;
-  std::shared_ptr<MySqlClient> mySqlClient_;
+  std::shared_ptr<ApiServiceClient> apiServiceClient_;
   TACacheMap& typeaheadCache_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
+  void updateDbNodesTable(query::Topology& topology);
 };
 } // namespace gorilla
 } // namespace facebook

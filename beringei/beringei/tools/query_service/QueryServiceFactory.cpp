@@ -9,8 +9,6 @@
 
 #include "QueryServiceFactory.h"
 
-#include "StatsTypeAheadCache.h"
-
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/QueryHandler.h"
@@ -27,12 +25,8 @@ using folly::SocketAddress;
 namespace facebook {
 namespace gorilla {
 
-QueryServiceFactory::QueryServiceFactory(
-    std::shared_ptr<MySqlClient> mySqlClient,
-    TACacheMap& typeaheadCache)
-    : RequestHandlerFactory(),
-      mySqlClient_(mySqlClient),
-      typeaheadCache_(typeaheadCache) {}
+QueryServiceFactory::QueryServiceFactory(TACacheMap& typeaheadCache)
+    : RequestHandlerFactory(), typeaheadCache_(typeaheadCache) {}
 
 void QueryServiceFactory::onServerStart(folly::EventBase* evb) noexcept {}
 
@@ -47,7 +41,7 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
   if (path == "/stats_writer") {
     // The false input indicates that the incoming StatsWriteRequest is
     // serialized by SimpleJSON protocol
-    return new StatsWriteHandler(mySqlClient_, false);
+    return new StatsWriteHandler(false);
   } else if (path == "/query") {
     return new QueryHandler();
   } else if (path == "/table_query") {
@@ -58,12 +52,12 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     // pass a cache client that stores metric names
     // The false input indicates that the incoming TypeAheadRequest is
     // serialized by SimpleJSON protocol
-    return new StatsTypeAheadHandler(mySqlClient_, typeaheadCache_, false);
+    return new StatsTypeAheadHandler(typeaheadCache_, false);
   } else if (path == "/binary_stats_typeahead") {
     // The cache client that stores metric names along keyId of Beringei DB.
     // The true input indicates that the incoming TypeAheadRequest is
     // serialized by Binary protocol
-    return new StatsTypeAheadHandler(mySqlClient_, typeaheadCache_, true);
+    return new StatsTypeAheadHandler(typeaheadCache_, true);
   } else if (path == "/ruckus_ap_stats") {
     return new RuckusControllerStatsHandler();
   } else if (path == "/raw_query") {
@@ -73,7 +67,7 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     // NMS Write Request
     // The true input indicates that the incoming StatsWriteRequest is
     // serialized by Binary protocol
-    return new StatsWriteHandler(mySqlClient_, true);
+    return new StatsWriteHandler(true);
   }
 
   // return not found for all other uris

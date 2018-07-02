@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "../MySqlClient.h"
 #include "../StatsTypeAheadCache.h"
 
 #include <folly/Memory.h>
@@ -28,7 +27,6 @@ namespace gorilla {
 class StatsTypeAheadHandler : public proxygen::RequestHandler {
  public:
   explicit StatsTypeAheadHandler(
-      std::shared_ptr<MySqlClient> mySqlClient,
       TACacheMap& typeaheadCache,
       bool enableBinarySerialization);
 
@@ -46,7 +44,6 @@ class StatsTypeAheadHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  std::shared_ptr<MySqlClient> mySqlClient_;
   std::unique_ptr<folly::IOBuf> body_;
   TACacheMap& typeaheadCache_;
   bool enableBinarySerialization_;

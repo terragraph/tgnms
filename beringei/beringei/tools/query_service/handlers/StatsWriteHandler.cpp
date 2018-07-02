@@ -8,7 +8,9 @@
  */
 
 #include "StatsWriteHandler.h"
+
 #include "../BeringeiClientStore.h"
+#include "../MySqlClient.h"
 #include "mysql_connection.h"
 #include "mysql_driver.h"
 
@@ -38,14 +40,8 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
-StatsWriteHandler::StatsWriteHandler(
-    std::shared_ptr<MySqlClient> mySqlClient,
-    bool enableBinarySerialization)
-    : RequestHandler(),
-      mySqlCacheClient_(mySqlClient),
-      enableBinarySerialization_(enableBinarySerialization) {
-  mySqlClient_ = std::make_shared<MySqlClient>();
-}
+StatsWriteHandler::StatsWriteHandler(bool enableBinarySerialization)
+    : RequestHandler(), enableBinarySerialization_(enableBinarySerialization) {}
 
 void StatsWriteHandler::onRequest(
     std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -108,9 +104,9 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
                        .count();
 
   int interval = request.interval;
-
+  auto mySqlClient = MySqlClient::getInstance();
   for (const auto& agent : request.agents) {
-    auto nodeId = mySqlCacheClient_->getNodeId(agent.mac);
+    auto nodeId = mySqlClient->getNodeId(agent.mac);
     if (!nodeId) {
       query::MySqlNodeData newNode;
       newNode.mac = agent.mac;
@@ -123,7 +119,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
     for (const auto& stat : agent.stats) {
       // check timestamp
       int64_t tsParsed = timeCalc(stat.ts, interval);
-      auto keyId = mySqlCacheClient_->getKeyId(*nodeId, stat.key);
+      auto keyId = mySqlClient->getKeyId(*nodeId, stat.key);
       // verify node/key combo exists
       if (keyId) {
         // insert row for beringei
@@ -150,10 +146,11 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
   // write newly found macs and node/key combos
   // TODO: in the future, add a guard of the maximum number of allowed keys
   if (!unknownNodes.empty() || !missingNodeKey.empty()) {
-    mySqlClient_->addNodes(unknownNodes);
-    mySqlClient_->addStatKeys(missingNodeKey);
-    LOG(INFO) << "Ran addNodes/addStatKeys, refreshing";
-    mySqlCacheClient_->refreshAll();
+    auto mySqlClient = MySqlClient::getInstance();
+    mySqlClient->addOrUpdateNodes(unknownNodes);
+    mySqlClient->addStatKeys(missingNodeKey);
+    LOG(INFO) << "Ran addOrUpdateNodes/addStatKeys, refreshing";
+    mySqlClient->refreshAll();
   }
 
   // insert rows
