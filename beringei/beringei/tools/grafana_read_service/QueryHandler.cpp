@@ -205,8 +205,8 @@ GetDataRequest QueryHandler::createBeringeiRequest(
   DateUtils::stringParseGrafanaTimestamp(request.range.to, &toTime);
 
   GetDataRequest beringeiRequest;
-  beringeiRequest.begin = fromTime;
-  beringeiRequest.end = toTime;
+  beringeiRequest.beginTimestamp = fromTime;
+  beringeiRequest.endTimestamp = toTime;
 
   for (auto& target : request.targets) {
     Key beringeiKey;
@@ -218,5 +218,5 @@ GetDataRequest QueryHandler::createBeringeiRequest(
 
   return beringeiRequest;
 }
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

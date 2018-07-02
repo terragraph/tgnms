@@ -1021,8 +1021,8 @@ GetDataRequest BeringeiData::createBeringeiRequest(
     const int numShards) {
   GetDataRequest beringeiRequest;
 
-  beringeiRequest.begin = startTime_;
-  beringeiRequest.end = endTime_;
+  beringeiRequest.beginTimestamp = startTime_;
+  beringeiRequest.endTimestamp = endTime_;
 
   for (const auto& keyId : request.key_ids) {
     Key beringeiKey;

@@ -47,7 +47,7 @@ struct BeringeiFutureGetContext {
   std::vector<folly::Future<folly::Unit>> getFutures;
   std::vector<folly::Future<folly::Unit>> either;
 };
-}
+} // namespace
 
 DEFINE_int32(
     gorilla_writer_threads,
@@ -394,8 +394,8 @@ void BeringeiClientImpl::getWithClient(
   }
 
   for (auto& iter : requests) {
-    iter.second.first.begin = request.begin;
-    iter.second.first.end = request.end;
+    iter.second.first.beginTimestamp = request.beginTimestamp;
+    iter.second.first.endTimestamp = request.endTimestamp;
   }
 
   // Perform the fetch in parallel.
@@ -559,7 +559,10 @@ void BeringeiClientImpl::get(
     result[i].first = request.keys[i];
     for (auto& block : gorillaResult.results[i].data) {
       TimeSeries::getValues(
-          block, result[i].second, request.begin, request.end);
+          block,
+          result[i].second,
+          request.beginTimestamp,
+          request.endTimestamp);
     }
   }
 }
@@ -580,7 +583,10 @@ folly::Future<BeringeiGetResult> BeringeiClientImpl::futureGet(
   getContext->clientNames = from(readClients) | dereference |
       member(&BeringeiNetworkClient::getServiceName) | as<std::vector>();
   getContext->resultCollector = std::make_unique<BeringeiGetResultCollector>(
-      request.keys.size(), readClients.size(), request.begin, request.end);
+      request.keys.size(),
+      readClients.size(),
+      request.beginTimestamp,
+      request.endTimestamp);
   auto& getFutures = getContext->getFutures;
   for (int clientId = 0; clientId < readClients.size(); clientId++) {
     for (const auto& key : folly::enumerate(request.keys)) {
@@ -589,8 +595,8 @@ folly::Future<BeringeiGetResult> BeringeiClientImpl::futureGet(
     }
 
     for (auto& r : getRequests[clientId]) {
-      r.second.first.begin = request.begin;
-      r.second.first.end = request.end;
+      r.second.first.beginTimestamp = request.beginTimestamp;
+      r.second.first.endTimestamp = request.endTimestamp;
       // TODO: BeringeiGetResult::addResults() blocks on a lock, which we
       //       shouldn't do in the CPU thread pool. Though this approach still
       //       reduces latency compared to everything in one thread.
@@ -599,16 +605,14 @@ folly::Future<BeringeiGetResult> BeringeiClientImpl::futureGet(
           readClients[clientId]
               ->performGet(r.first, std::move(r.second.first), eb)
               .via(workExecutor)
-              .then([
-                getContext,
-                clientId,
-                indices = std::move(r.second.second)
-              ](GetDataResult && result) {
-                if (getContext->resultCollector->addResults(
-                        result, indices, clientId)) {
-                  getContext->oneComplete.setValue();
-                }
-              })
+              .then(
+                  [getContext, clientId, indices = std::move(r.second.second)](
+                      GetDataResult&& result) {
+                    if (getContext->resultCollector->addResults(
+                            result, indices, clientId)) {
+                      getContext->oneComplete.setValue();
+                    }
+                  })
               .onError(
                   [](const std::exception& e) { LOG(ERROR) << e.what(); }));
     }
@@ -625,8 +629,8 @@ folly::Future<BeringeiGetResult> BeringeiClientImpl::futureGet(
       collectAll(getFutures)
           .then([](const std::vector<folly::Try<folly::Unit>>&) {}));
   return folly::collectAny(either).then(
-      [ getContext, shouldThrow = throwExceptionOnTransientFailure_ ](
-          std::pair<unsigned long, folly::Try<folly::Unit>> &&) {
+      [getContext, shouldThrow = throwExceptionOnTransientFailure_](
+          std::pair<unsigned long, folly::Try<folly::Unit>>&&) {
         return getContext->resultCollector->finalize(
             shouldThrow, getContext->clientNames);
       });
@@ -911,5 +915,5 @@ void BeringeiClientImpl::setNumWriterThreads(int& writerThreads) {
     writerThreads = 0;
   }
 }
-}
-} // facebook:gorilla
+} // namespace gorilla
+} // namespace facebook
