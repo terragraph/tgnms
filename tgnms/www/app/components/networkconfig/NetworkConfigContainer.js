@@ -43,7 +43,7 @@ import {
   isEmpty,
   merge,
   pick,
-  set,
+  setWith,
   unset,
 } from 'lodash-es';
 import PropTypes from 'prop-types';
@@ -130,7 +130,7 @@ export default class NetworkConfigContainer extends React.Component {
     };
 
     this.state = {
-      ...this.initialState,
+      ...cloneDeep(this.initialState),
       editMode,
       selectedNodes,
     };
@@ -159,7 +159,7 @@ export default class NetworkConfigContainer extends React.Component {
         this.fetchConfigsForCurrentTopology(newTopology.name, newTopology);
 
         // reset the view mode
-        this.setState({...this.initialState});
+        this.setState(cloneDeep(this.initialState));
       } else {
         // still on the same topology, now check for nodes
         const oldImageVersionsSet = new Set(
@@ -590,8 +590,10 @@ export default class NetworkConfigContainer extends React.Component {
   }
 
   editConfigHelper(config, editPath, value) {
+    // lodash's set will create arrays if the editPath contains numbers
+    // So we need to use setWith to produce new elements as objects
     return editPath !== undefined && editPath !== null
-      ? set(config, editPath, value)
+      ? setWith(config, editPath, value, Object)
       : value;
   }
 

@@ -82,9 +82,6 @@ export default class NetworkConfigLeftPane extends React.Component {
     } = this.props;
     const viewModeSelector = this.renderViewModeSelector();
 
-    // styling hack to fill the remaining space
-    const spacerDiv = <div style={{flex: 1}} />;
-
     return (
       <div className="rc-config-left-pane">
         {viewModeSelector}
@@ -112,7 +109,6 @@ export default class NetworkConfigLeftPane extends React.Component {
             />
           )}
         </div>
-        {editMode === CONFIG_VIEW_MODE.NETWORK && spacerDiv}
         <NetworkConfigLegend
           editMode={editMode}
           onUpdate={height => this.setState({legendHeight: height})}

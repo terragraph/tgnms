@@ -355,3 +355,25 @@ export function allPathsInObj(object) {
 
   return allPathsInObjHelper(object, [], []);
 }
+
+/**
+ * Recursively looks into the object to see if it contains an array
+ * Useful since arrays are not allowed in config management
+ * @param  {Object} object Object to check
+ * @return {Boolean}       Return true or false
+ */
+
+export function objHasArray(object) {
+  if (Array.isArray(object)) {
+    return true;
+  } else if (isObject(object)) {
+    // @param object is an Object that isn't an array
+    for (const value of Object.values(object)) {
+      if (objHasArray(value)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}

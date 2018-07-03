@@ -25,6 +25,7 @@ import {
   getMetadata,
   getStackedFields,
   convertAndValidateNewConfigObject,
+  objHasArray,
 } from '../../helpers/NetworkConfigHelpers.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
 import JSONFormField from './JSONFormField.js';
@@ -422,9 +423,15 @@ export default class JSONConfigForm extends React.Component {
     }
 
     try {
+      const valueObj = JSON.parse(value);
+
+      if (objHasArray(valueObj)) {
+        throw new Error('Arrays are not allowed in Config Management!');
+      }
+
       editConfigForm({
         editPath: [...editPath, field],
-        value: JSON.parse(value),
+        value: valueObj,
       });
 
       this.onDeleteNewField(editPath, id);
