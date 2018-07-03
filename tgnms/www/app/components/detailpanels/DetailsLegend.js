@@ -36,11 +36,23 @@ export default class DetailsLegend extends React.Component {
   nodeTypesOverlaySource = {
     CN: {
       color: 'pink',
-      svg: {},
+      svg: {
+        r: '7',
+      },
     },
     POP: {
       color: 'blue',
-      svg: {},
+      svg: {
+        r: '7',
+      },
+    },
+    'POP Down': {
+      color: 'blue',
+      svg: {
+        r: '7',
+        stroke: 'red',
+        strokeWidth: '2',
+      },
     },
     'Ruckus AP': {
       color: 'white',
@@ -56,17 +68,13 @@ export default class DetailsLegend extends React.Component {
     },
   };
 
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     const nodeTypeOverlayKeyRows = Object.keys(this.nodeTypesOverlaySource).map(
       nodeType => {
-        // Shallow copy defaults
-        const svg = Object.assign({}, this.nodeTypesOverlayDefaults.svg);
-        // Merge any overrides with defaults
-        Object.assign(svg, this.nodeTypesOverlaySource[nodeType].svg);
+        const svg = {
+          ...this.nodeTypesOverlayDefaults.svg,
+          ...this.nodeTypesOverlaySource[nodeType].svg,
+        };
 
         return (
           <tr key={nodeType}>
@@ -86,7 +94,6 @@ export default class DetailsLegend extends React.Component {
           </tr>
         );
       },
-      this,
     );
 
     const siteOverlaySource = SiteOverlayKeys[this.props.siteOverlay];
@@ -235,9 +242,9 @@ export default class DetailsLegend extends React.Component {
                 <Col xs={3}>
                   <Panel>
                     <Panel.Body>
-                      <table className="details-legend-table">
+                      <div className="details-legend-table">
                         <tbody>{nodeTypeOverlayKeyRows}</tbody>
-                      </table>
+                      </div>
                     </Panel.Body>
                   </Panel>
                 </Col>

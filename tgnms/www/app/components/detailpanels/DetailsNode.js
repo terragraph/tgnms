@@ -7,6 +7,7 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
+import BGPStatusInfo from './BGPStatusInfo.js';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
@@ -15,20 +16,28 @@ import Dispatcher from '../../NetworkDispatcher.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import axios from 'axios';
 import moment from 'moment';
+import {has} from 'lodash-es';
+import PropTypes from 'prop-types';
+import swal from 'sweetalert';
 import {Panel} from 'react-bootstrap';
 import React from 'react';
-import swal from 'sweetalert';
 
 export default class DetailsNode extends React.Component {
-  state = {
-    showActions: true,
+  static propTypes = {
+    topologyName: PropTypes.string.isRequired,
+    node: PropTypes.object.isRequired,
+    links: PropTypes.object.isRequired,
+    maxHeight: PropTypes.number.isRequired,
+    onClose: PropTypes.func.isRequired,
+    onEnter: PropTypes.func.isRequired,
+    onLeave: PropTypes.func.isRequired,
   };
 
-  constructor(props) {
-    super(props);
-    this.selectSite = this.selectSite.bind(this);
-    this.selectLink = this.selectLink.bind(this);
-  }
+  state = {
+    showBGP: true,
+    hiddenBgpNeighbors: new Set(),
+    showActions: true,
+  };
 
   statusColor(onlineStatus, trueText = 'True', falseText = 'False') {
     return (
@@ -51,7 +60,7 @@ export default class DetailsNode extends React.Component {
     }, 1);
   }
 
-  selectLink(linkName) {
+  selectLink = linkName => {
     const link = this.props.links[linkName];
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
@@ -64,7 +73,7 @@ export default class DetailsNode extends React.Component {
         source: 'map',
       });
     }, 1);
-  }
+  };
 
   changeToConfigView(node) {
     Dispatcher.dispatch({
@@ -82,11 +91,11 @@ export default class DetailsNode extends React.Component {
     swal(
       {
         title: 'Are you sure?',
-        text: 'This action will REBOOT the node!',
+        text: 'This action will reboot the node!',
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
-        confirmButtonText: 'Yes, reboot it!',
+        confirmButtonText: 'Confirm',
         closeOnConfirm: false,
       },
       () => {
@@ -133,7 +142,7 @@ export default class DetailsNode extends React.Component {
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
-        confirmButtonText: 'Yes, delete it!',
+        confirmButtonText: 'Confirm',
         closeOnConfirm: false,
       },
       () => {
@@ -174,7 +183,7 @@ export default class DetailsNode extends React.Component {
     );
   }
 
-  renameNode() {
+  renameNode = () => {
     const {node, topologyName} = this.props;
     swal(
       {
@@ -229,7 +238,7 @@ export default class DetailsNode extends React.Component {
         });
       },
     );
-  }
+  };
 
   setMacAddr(force) {
     const {node, topologyName} = this.props;
@@ -292,18 +301,31 @@ export default class DetailsNode extends React.Component {
     this.setState({[showTable]: !show});
   }
 
+  onBgpNeighborHeaderClick = neighborIp => {
+    const newHiddenBgpNeighbors = new Set(this.state.hiddenBgpNeighbors);
+    if (newHiddenBgpNeighbors.has(neighborIp)) {
+      newHiddenBgpNeighbors.delete(neighborIp);
+    } else {
+      newHiddenBgpNeighbors.add(neighborIp);
+    }
+
+    this.setState({
+      hiddenBgpNeighbors: newHiddenBgpNeighbors,
+    });
+  };
+
   render() {
-    if (!this.props.node || !this.props.node.name) {
-      return <div />;
+    const {links, node} = this.props;
+    if (!node || !node.name) {
+      return null;
     }
 
     const linksList = [];
-    Object.keys(this.props.links).map(linkName => {
-      const link = this.props.links[linkName];
+    Object.keys(links).map(linkName => {
+      const link = links[linkName];
       if (
         link.link_type === 1 &&
-        (this.props.node.name === link.a_node_name ||
-          this.props.node.name === link.z_node_name)
+        (node.name === link.a_node_name || node.name === link.z_node_name)
       ) {
         linksList.push(link);
       }
@@ -347,15 +369,15 @@ export default class DetailsNode extends React.Component {
       index++;
     });
 
-    const ipv6 = this.props.node.status_dump
-      ? this.props.node.status_dump.ipv6Address
+    const ipv6 = node.status_dump
+      ? node.status_dump.ipv6Address
       : 'Not Available';
-    let type = this.props.node.node_type === 2 ? 'DN' : 'CN';
-    type += this.props.node.pop_node ? '-POP' : '';
+    let type = node.node_type === 2 ? 'DN' : 'CN';
+    type += node.pop_node ? '-POP' : '';
 
     let elapsedTime = 'N/A';
-    if (this.props.node.status_dump) {
-      const timeStampSec = this.props.node.status_dump.timeStamp;
+    if (node.status_dump) {
+      const timeStampSec = node.status_dump.timeStamp;
       const timeStamp = new Date(timeStampSec * 1000);
       elapsedTime = moment().diff(timeStamp, 'seconds') + ' seconds ago';
     }
@@ -367,26 +389,22 @@ export default class DetailsNode extends React.Component {
         onMouseEnter={this.props.onEnter}
         onMouseLeave={this.props.onLeave}>
         <Panel.Heading>
-          <span
-            className="details-close"
-            onClick={() => {
-              this.props.onClose();
-            }}>
+          <span className="details-close" onClick={this.props.onClose}>
             &times;
           </span>
           <Panel.Title componentClass="h3">
-            {this.props.node.pending ? '(Pending) ' : ''}Node Details
+            {node.pending ? '(Pending) ' : ''}Node Details
           </Panel.Title>
         </Panel.Heading>
         <Panel.Body
           className="details"
           style={{maxHeight: this.props.maxHeight, width: '100%'}}>
-          <h3 style={{marginTop: '0px'}}>{this.props.node.name}</h3>
-          <table className="details-table" style={{width: '100%'}}>
+          <h3 style={{marginTop: '0px'}}>{node.name}</h3>
+          <table className="details-table">
             <tbody>
               <tr>
                 <td width="100px">MAC</td>
-                <td>{this.props.node.mac_addr}</td>
+                <td>{node.mac_addr}</td>
               </tr>
               <tr>
                 <td width="100px">IPv6</td>
@@ -402,9 +420,9 @@ export default class DetailsNode extends React.Component {
                   <span
                     className="details-link"
                     onClick={() => {
-                      this.selectSite(this.props.node.site_name);
+                      this.selectSite(node.site_name);
                     }}>
-                    {this.props.node.site_name}
+                    {node.site_name}
                   </span>
                 </td>
               </tr>
@@ -415,88 +433,80 @@ export default class DetailsNode extends React.Component {
               </tr>
             </tbody>
           </table>
+          {has(node, 'status_dump.bgpStatus') && (
+            <div>
+              <h4
+                className="details-heading"
+                onClick={() => this.onHeadingClick('showBGP')}>
+                BGP Status
+              </h4>
+              {this.state.showBGP && (
+                <BGPStatusInfo
+                  bgpStatus={node.status_dump.bgpStatus}
+                  onBgpNeighborHeaderClick={this.onBgpNeighborHeaderClick}
+                  hiddenBgpNeighbors={this.state.hiddenBgpNeighbors}
+                />
+              )}
+            </div>
+          )}
           <h4
-            onClick={() => {
-              this.onHeadingClick('showActions');
-            }}>
+            className="details-heading"
+            onClick={() => this.onHeadingClick('showActions')}>
             Actions
           </h4>
           {this.state.showActions && (
-            <table className="details-table" style={{width: '100%'}}>
-              <tbody>
-                <tr>
-                  <td colSpan="2">
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.setMacAddr(false);
-                        }}>
-                        Set Mac Address
-                      </span>
-                      <span
-                        className="details-link"
-                        style={{float: 'right'}}
-                        onClick={() => {
-                          this.setMacAddr(true);
-                        }}>
-                        (forced)
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.rebootNode(false);
-                        }}>
-                        Reboot Node
-                      </span>
-                      <span
-                        className="details-link"
-                        style={{float: 'right'}}
-                        onClick={() => {
-                          this.rebootNode(true);
-                        }}>
-                        (forced)
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() => {
-                          this.deleteNode(false);
-                        }}>
-                        Delete Node
-                      </span>
-                      <span
-                        className="details-link"
-                        style={{float: 'right'}}
-                        onClick={() => {
-                          this.deleteNode(true);
-                        }}>
-                        (forced)
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={this.renameNode.bind(this)}>
-                        Rename Node
-                      </span>
-                    </div>
-                    <div>
-                      <span
-                        className="details-link"
-                        onClick={() =>
-                          this.changeToConfigView(this.props.node)
-                        }>
-                        Node Configuration
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="details-action-list">
+              <div>
+                <span
+                  className="details-link"
+                  onClick={() => {
+                    this.setMacAddr(false);
+                  }}>
+                  Set Mac Address
+                </span>
+                <span
+                  className="details-link forced"
+                  onClick={() => this.setMacAddr(true)}>
+                  (forced)
+                </span>
+              </div>
+              <div>
+                <span
+                  className="details-link"
+                  onClick={() => this.rebootNode(false)}>
+                  Reboot Node
+                </span>
+                <span
+                  className="details-link forced"
+                  onClick={() => this.rebootNode(true)}>
+                  (forced)
+                </span>
+              </div>
+              <div>
+                <span
+                  className="details-link"
+                  onClick={() => this.deleteNode(false)}>
+                  Delete Node
+                </span>
+                <span
+                  className="details-link forced"
+                  onClick={() => this.deleteNode(true)}>
+                  (forced)
+                </span>
+              </div>
+              <div>
+                <span className="details-link" onClick={this.renameNode}>
+                  Rename Node
+                </span>
+              </div>
+              <div>
+                <span
+                  className="details-link"
+                  onClick={() => this.changeToConfigView(node)}>
+                  Node Configuration
+                </span>
+              </div>
+            </div>
           )}
         </Panel.Body>
       </Panel>
