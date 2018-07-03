@@ -1,0 +1,17 @@
+{
+  "current_used": true,
+  "BQS":
+    {
+      "mac": "172.17.0.2",
+			"port": 8086,
+      "protocol": "http",
+      "proxy": false
+    },
+    "controller":
+      {
+        "mac": "172.17.0.1",
+  			"port": 8081,
+        "protocol": "http",
+        "proxy": false
+      }
+}
