@@ -35,8 +35,8 @@ class HelperFunction(object):
         else:
             # compute and extract the sample mean
             mean1, mean2 = np.mean(v1), np.mean(v2)
-            norm1 = np.sqrt(np.sum([(i - mean1) ** 2 for i in v1]))
-            norm2 = np.sqrt(np.sum([(i - mean2) ** 2 for i in v2]))
+            norm1 = np.sqrt(np.var(v1) * len(v1))
+            norm2 = np.sqrt(np.var(v2) * len(v2))
             cross_term = np.sum(
                 [(v1[i] - mean1) * (v2[i] - mean2) for i in range(len(v1))]
             )

@@ -18,7 +18,7 @@ class JobScheduler(object):
         self,
         job_to_send,
         period_in_s=60 * 5,
-        stop_time_unixtime_in_s=None,
+        num_of_jobs_to_submit=10,
         offset_time_in_s=0,
         priority=2,
         job_input=None,
@@ -29,8 +29,7 @@ class JobScheduler(object):
         job_to_send: job function to be submit.
         period_in_s: the period of when to submit the job, default to be
                      5 minutes.
-        stop_time_unixtime_in_s: The last time point to submit the job.
-                                 If not provided, submit 10 jobs.
+        num_of_jobs_to_submit: The number of jobs to submit. Default to 10 jobs.
         offset_time_in_s: The offset to submit the first job, default to be 0s,
                           i.e., no wait.
         priority: level of priority, smaller number means higher priority.
@@ -43,16 +42,14 @@ class JobScheduler(object):
         priority = priority
 
         current_time = int(time.time())
-        if stop_time_unixtime_in_s is None:
-            max_job_delay_in_s = offset_time_in_s + period_in_s * 9.1
-        else:
-            # No stop time given, submit 10 jobs by default
-            max_job_delay_in_s = stop_time_unixtime_in_s - current_time
 
         print("Job Clock Start time", current_time + offset_time_in_s)
-        print(offset_time_in_s, max_job_delay_in_s, period_in_s)
 
-        job_delays = np.arange(offset_time_in_s, max_job_delay_in_s, period_in_s)
+        job_delays = np.arange(
+            offset_time_in_s,
+            offset_time_in_s + (num_of_jobs_to_submit - 0.1) * period_in_s,
+            period_in_s,
+        )
         for delay in job_delays:
             if job_input is None:
                 s.enter(delay, priority, job_to_send)
