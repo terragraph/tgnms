@@ -104,12 +104,21 @@ class BeringeiDbAccess(object):
             return
 
         # response.content should be of str of folly::JSON
-        return_json_str = response.content.decode("utf-8")
-        query_returns = json.JSONDecoder().decode(return_json_str)
+        try:
+            return_json_str = response.content.decode("utf-8")
+            query_returns = json.JSONDecoder().decode(return_json_str)
+        except Exception as ex:
+            print(
+                "During decoding JSON return, an exception of type {0} occurred.".format(
+                    type(ex).__name__
+                )
+            )
+            return ERROR_RETURN
+
         if not len(query_returns):
             return ERROR_RETURN
 
-        # Search the query return to find the Beringei KeyId match is found
+        # Search the query return to find the Beringei key_id match is found
         # TODO: Currently, BQS TypeAheadRequest search may leads to duplicate
         # keys, once the duplication is fixed in the BQS, update here.
         for query in query_returns:
@@ -171,11 +180,19 @@ class BeringeiDbAccess(object):
 
         # response.content should be of binary bytes stream of RawQueryReturn
         output = RawQueryReturn()
-        query_returns = deserialize(
-            output,
-            response.content,
-            protocol_factory=TBinaryProtocol.TBinaryProtocolFactory(),
-        )
+        try:
+            query_returns = deserialize(
+                output,
+                response.content,
+                protocol_factory=TBinaryProtocol.TBinaryProtocolFactory(),
+            )
+        except Exception as ex:
+            print(
+                "During return deserialization, an exception of type {0} occurred.".format(
+                    type(ex).__name__
+                )
+            )
+            return None
 
         return query_returns
 

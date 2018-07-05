@@ -8,17 +8,13 @@ Analytics Currently can:
 * Link Metrics Computation: read time series from the Beringei Query Server and compute simple stats (mean and variance), and log to JSON and plot.
 
 ## Requirements
-
+<span style="color:LightGray">*TODO: the following requirements will be moved to the docker file once everything*</span>
 Beringei is tested and working on:
 
 * Ubuntu 17.10
 
 We also depend on these open source projects:
-
-<span style="color:LightGray">*TODO: Thrift is only used for data structures generation, consider switch to fbthrift later*</span>
-* [Apache::Thrift](https://github.com/apache/thrift.git)
 * [requests](https://github.com/requests/requests.git)
-* [h5py](https://github.com/h5py/h5py.git)
 * [numpy](https://github.com/numpy/numpy.git)
 * [mathplotlib](https://github.com/matplotlib/matplotlib.git)
 * [python3-tk](https://github.com/python/cpython/tree/master/Lib/tkinter)
