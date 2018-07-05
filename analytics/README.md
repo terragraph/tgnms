@@ -1,5 +1,5 @@
 # NMS Analytics
-The Analytics aims at providing basic tools and framework for network stats IO and analysis. Potential usage includes network health monitoring, issue pin-pointing, automative diagnostic, and data-driver controller designs.
+The Analytics aims at providing basic tools and framework for network stats IO and analysis. Potential usage includes network health monitoring, issue pin-pointing, automative diagnostic, and data-driven controller designs.
 
 ## Features
 

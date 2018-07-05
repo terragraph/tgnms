@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 
-""" Provide function which can read the topology from the controller and
+""" Provide function which can read the topology from the api_service and
     process for topology related configurations.
 """
 
 import os
 import requests
 import json
+import sys
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
+)
+from facebook.gorilla.Topology.ttypes import LinkType
 
 
 class TopologyHelper(object):
@@ -15,7 +21,7 @@ class TopologyHelper(object):
     """
 
     def __new__(cls, py_config_file="../AnalyticsConfig.json"):
-        """Get the network topology from the controller.
+        """Get the network topology from the api_service.
 
         Args:
         py_config_file: Path to the PyAnalytics.
@@ -31,40 +37,40 @@ class TopologyHelper(object):
             print("Cannot find the configuration file!")
             return None
 
-        if "controller" not in py_config:
-            print("Cannot find controller config in the configurations!")
+        if "api_service" not in py_config:
+            print("Cannot find api_service config in the configurations!")
             return None
         else:
             instance = super().__new__(cls)
             print("TopologyHelper objective created")
-            instance.controller_config = py_config["controller"]
+            instance.api_service_config = py_config["api_service"]
             return instance
 
-    def get_topology_from_controller(self):
-        """Get the network topology from the controller.
+    def get_topology_from_api_service(self):
+        """Get the network topology from the api_service.
 
         Return:
-        On success, topology_reply. The returned topology from the controller,
+        On success, topology_reply. The returned topology from the api_service,
         of type dict, with keys of "name", "config", "names", "nodes", "sites";
         On fail, return None.
         """
 
-        if self.controller_config["protocol"] != "http":
+        if self.api_service_config["protocol"] != "http":
             # Currently only support http msg
-            print("Unknown BQS protocol!")
+            print("Unknown protocol for topology_api_service!")
             return None
 
-        if self.controller_config["proxy"]:
+        if self.api_service_config["proxy"]:
             # Current support non-proxy
             print("Proxy supposed off!")
             return None
         else:
             os.environ["NO_PROXY"] = "{}:{}".format(
-                self.controller_config["mac"], self.controller_config["port"]
+                self.api_service_config["mac"], self.api_service_config["port"]
             )
 
         url_to_post = "http://{}:{}/".format(
-            self.controller_config["mac"], self.controller_config["port"]
+            self.api_service_config["mac"], self.api_service_config["port"]
         )
         url_to_post += "api/getTopology"
 
@@ -118,7 +124,11 @@ class TopologyHelper(object):
         link_name_to_macs, link_macs_to_name = {}, {}
         for single_link in topology_reply["links"]:
             # 1 stands for wireless
-            if not (enforce_wireless and single_link["link_type"] != 1):
+            link_type = LinkType()
+            if not (
+                enforce_wireless
+                and link_type._VALUES_TO_NAMES[single_link["link_type"]] != "WIRELESS"
+            ):
                 link_name = single_link["name"]
                 link_macs = (
                     node_name_to_mac[single_link["a_node_name"]],

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" Provide example to read topology from the controller's API service.
+""" Provide example to read topology from the API service.
 """
 
 import os
@@ -10,11 +10,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.topology_handler import TopologyHelper
 
 
-print("This is an example to read topology from the controller.")
+print("This is an example to read topology from the api_service.")
 topology_helper = TopologyHelper()
 if not topology_helper:
     sys.exit("Cannot create TopologyHelper object!")
-topology_reply = topology_helper.get_topology_from_controller()
+topology_reply = topology_helper.get_topology_from_api_service()
 
 if topology_reply:
     print(topology_reply.keys())
