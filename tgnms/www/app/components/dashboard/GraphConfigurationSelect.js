@@ -104,47 +104,27 @@ export default class GraphConfigurationSelect extends React.Component {
   }
 
   componentDidMount() {
-    // register to receive topology updates
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this),
-    );
     if (this.props.globalUse) {
       const {nodeA, nodeZ} = this.props.dashboard;
       if (nodeA) {
-        this.setState({
-          nodeASelected: {
-            label: nodeA.name,
-            node: nodeA,
-            value: nodeA.mac_addr,
+        this.setState(
+          {
+            nodeASelected: {
+              label: nodeA.name,
+              node: nodeA,
+              value: nodeA.mac_addr,
+            },
+            nodeZSelected: {
+              label: nodeZ.name,
+              node: nodeZ,
+              value: nodeZ.mac_addr,
+            },
           },
-          nodeZSelected: {
-            label: nodeZ.name,
-            node: nodeZ,
-            value: nodeZ.mac_addr,
-          },
-        });
+          () => this.setNodeZOptions(this.state.nodeASelected.node),
+        );
       }
     }
     this.setNodeAOptions();
-
-    if (this.state.nodeASelected.node) {
-      this.setNodeZOptions(this.state.nodeASelected.node);
-    }
-  }
-
-  componentWillUnmount() {
-    // un-register once hidden
-    Dispatcher.unregister(this.dispatchToken);
-  }
-
-  handleDispatchEvent(payload) {
-    switch (payload.actionType) {
-      case Actions.TOPOLOGY_SELECTED:
-        // TODO - this needs to be a comparison of topology names in props
-        // clear selected data
-        this._typeaheadKey.getInstance().clear();
-        break;
-    }
   }
 
   getNodeData = nodeList => {
