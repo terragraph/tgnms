@@ -95,3 +95,5 @@ target_link_libraries(
     ${PROXYGEN_LIBRARIES}
     Threads::Threads
 )
+
+add_subdirectory(tests)
