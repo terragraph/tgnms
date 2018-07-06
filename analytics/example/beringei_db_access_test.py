@@ -26,12 +26,10 @@ from facebook.gorilla.beringei_query.ttypes import (
 )
 from facebook.gorilla.Topology.ttypes import Topology
 
-FAIL_TO_FIND = -1
-
 # BeringeiDbAccess can read, write, and get key_id from Beringei DB
 beringei_db_access = BeringeiDbAccess()
 if not beringei_db_access:
-    sys.exit("Cannot create BeringeiDbAccess object!")
+    sys.exit("Cannot create BeringeiDbAccess object")
 
 print("This is an example to get the query key_id from Beringei database")
 # Change the topology_name and metric_key to see other metrics
@@ -41,9 +39,15 @@ metric_key = "tgf.38:3a:21:b0:08:75.phystatus.ssnrest"
 type_ahead_request = TypeAheadRequest(topologyName=topology_name, input=metric_key)
 
 source_mac = "00:50:43:8e:bc:b7"
-return_key_id = beringei_db_access.get_beringei_key_id(source_mac, type_ahead_request)
+return_key_id = None
+try:
+    return_key_id = beringei_db_access.get_beringei_key_id(
+        source_mac, type_ahead_request
+    )
+except ValueError as err:
+    print(err.args)
 
-if return_key_id == FAIL_TO_FIND:
+if return_key_id is None:
     print("Cannot find metrics")
 else:
     print(
@@ -74,8 +78,10 @@ stats_to_write = StatsWriteRequest(
     topology=topology, agents=[node_state1, node_state2, node_state3], interval=30
 )
 
-beringei_db_access.write_beringei_db(stats_to_write)
-
+try:
+    beringei_db_access.write_beringei_db(stats_to_write)
+except ValueError as err:
+    print(err.args)
 
 print("-" * 100)
 print("This is an example to read from Beringei DB via Beringei query server")
@@ -135,10 +141,14 @@ empty_query_to_send = RawReadQuery(
 query_request_to_send = RawReadQueryRequest(
     [empty_query_to_send, query_to_send, empty_query_to_send]
 )
-query_returns = beringei_db_access.read_beringei_db(query_request_to_send)
-if not query_returns:
-    print("There is not return!")
-else:
+
+query_returns = None
+try:
+    query_returns = beringei_db_access.read_beringei_db(query_request_to_send)
+except ValueError as err:
+    print("Failed to read Beringei database", err.args)
+
+if query_returns is not None:
     query_returns = query_returns.queryReturnList
 
     print("There are {} query returned".format(len(query_returns)))

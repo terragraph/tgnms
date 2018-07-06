@@ -13,7 +13,7 @@ from module.topology_handler import TopologyHelper
 print("This is an example to read topology from the api_service.")
 topology_helper = TopologyHelper()
 if not topology_helper:
-    sys.exit("Cannot create TopologyHelper object!")
+    sys.exit("Cannot create TopologyHelper object")
 topology_reply = topology_helper.get_topology_from_api_service()
 
 if topology_reply:

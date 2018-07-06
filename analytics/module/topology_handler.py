@@ -20,30 +20,30 @@ class TopologyHelper(object):
     Helper functions on the network topology.
     """
 
-    def __new__(cls, py_config_file="../AnalyticsConfig.json"):
+    def __new__(cls, analytics_config_file="../AnalyticsConfig.json"):
         """Get the network topology from the api_service.
 
         Args:
-        py_config_file: Path to the PyAnalytics.
+        analytics_config_file: Path to the PyAnalytics.
 
         Return: TopologyHelper object on success.
                 None on failure.
         """
 
         try:
-            with open(py_config_file) as local_file:
-                py_config = json.load(local_file)
+            with open(analytics_config_file) as local_file:
+                analytics_config = json.load(local_file)
         except Exception:
-            print("Cannot find the configuration file!")
+            print("Cannot find the configuration file")
             return None
 
-        if "api_service" not in py_config:
-            print("Cannot find api_service config in the configurations!")
+        if "api_service" not in analytics_config:
+            print("Cannot find api_service config in the configurations")
             return None
         else:
             instance = super().__new__(cls)
-            print("TopologyHelper objective created")
-            instance.api_service_config = py_config["api_service"]
+            print("TopologyHelper object created")
+            instance._api_service_config = analytics_config["api_service"]
             return instance
 
     def get_topology_from_api_service(self):
@@ -55,24 +55,25 @@ class TopologyHelper(object):
         On fail, return None.
         """
 
-        if self.api_service_config["protocol"] != "http":
-            # Currently only support http msg
-            print("Unknown protocol for topology_api_service!")
-            return None
-
-        if self.api_service_config["proxy"]:
-            # Current support non-proxy
-            print("Proxy supposed off!")
-            return None
-        else:
-            os.environ["NO_PROXY"] = "{}:{}".format(
-                self.api_service_config["mac"], self.api_service_config["port"]
+        target_domain = "{}:{}".format(
+            self._api_service_config["ip"], self._api_service_config["port"]
+        )
+        if self._api_service_config["proxy"]:
+            # Enable proxy
+            non_proxy_domain_set = set(os.environ["NO_PROXY"].split(","))
+            if target_domain in non_proxy_domain_set:
+                non_proxy_domain_set.remove(target_domain)
+            os.environ["NO_PROXY"] = ",".join(
+                [domain for domain in non_proxy_domain_set]
             )
+        else:
+            os.environ["NO_PROXY"] = target_domain
 
         url_to_post = "http://{}:{}/".format(
-            self.api_service_config["mac"], self.api_service_config["port"]
+            self._api_service_config["ip"], self._api_service_config["port"]
         )
         url_to_post += "api/getTopology"
+        print("sending :", url_to_post)
 
         # For topology read requests, nothing in the post body
         request_body = "{}"
@@ -101,8 +102,6 @@ class TopologyHelper(object):
           network_config: dict, have 4 keys:
           node_name_to_mac: dict, from node_name to mac address;
           node_mac_to_name: dict, from node mac address to name;
-          link_name_to_macs: dict, from link name to
-                             (source_mac, peer_mac) tuple;
           link_macs_to_name: dict, from link (source_mac, peer_mac) tuple
                              to link name.
         """
@@ -121,7 +120,7 @@ class TopologyHelper(object):
         }
         # the dict that map name to macs
         # the macs are tuple of [source_node_mac, peer_node_mac]
-        link_name_to_macs, link_macs_to_name = {}, {}
+        link_macs_to_name = {}
         for single_link in topology_reply["links"]:
             # 1 stands for wireless
             link_type = LinkType()
@@ -134,13 +133,10 @@ class TopologyHelper(object):
                     node_name_to_mac[single_link["a_node_name"]],
                     node_name_to_mac[single_link["z_node_name"]],
                 )
-                link_name_to_macs[link_name] = link_macs
                 link_macs_to_name[link_macs] = link_name
 
         network_config = {
-            "node_name_to_mac": node_name_to_mac,
             "node_mac_to_name": node_mac_to_name,
-            "link_name_to_macs": link_name_to_macs,
             "link_macs_to_name": link_macs_to_name,
             "node_mac_to_site": node_mac_to_site,
         }
