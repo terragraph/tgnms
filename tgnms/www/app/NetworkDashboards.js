@@ -106,7 +106,7 @@ export default class NetworkDashboards extends React.Component {
       const dashboards = await this.getDashboards(
         this.props.networkConfig.topology.name,
       );
-      this.setState({dashboards});
+      this.setState({dashboards, hideDataSelect: true});
     }
   }
 
