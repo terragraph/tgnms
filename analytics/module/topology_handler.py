@@ -9,6 +9,9 @@ import requests
 import json
 import sys
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from module.mysql_db_access import MySqlDbAccess
+
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
@@ -30,20 +33,29 @@ class TopologyHelper(object):
                 None on failure.
         """
 
+        api_service_config = {}
         try:
-            with open(analytics_config_file) as local_file:
-                analytics_config = json.load(local_file)
-        except Exception:
-            print("Cannot find the configuration file")
-            return None
+            mysql_db_access = MySqlDbAccess(mysql_host_ip="172.17.0.1")
+            if mysql_db_access is None:
+                raise ValueError("Cannot create MySqlDbAccess object")
 
-        if "api_service" not in analytics_config:
-            print("Cannot find api_service config in the configurations")
+            api_service_config = mysql_db_access.read_api_service_setting(
+                topology_name="tower G"
+            )
+        except BaseException as err:
+            print("Failed to get the api_service setting", err.args)
+            print("The found api service setting is ", api_service_config)
+
+        if "api_ip" not in api_service_config or "api_port" not in api_service_config:
+            print("Cannot find api_service config in the MySQL")
             return None
         else:
             instance = super().__new__(cls)
             print("TopologyHelper object created")
-            instance._api_service_config = analytics_config["api_service"]
+            instance._api_service_config = {}
+            instance._api_service_config["ip"] = api_service_config["api_ip"]
+            instance._api_service_config["port"] = api_service_config["api_port"]
+            instance._api_service_config["proxy"] = False
             return instance
 
     def get_topology_from_api_service(self):
