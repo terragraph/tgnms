@@ -5,10 +5,8 @@
  */
 'use strict';
 
-import {
-  availabilityColor,
-  versionSlicer,
-} from '../../helpers/NetworkHelpers.js';
+import {availabilityColor} from '../../helpers/NetworkHelpers.js';
+import {get, has} from 'lodash-es';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';
@@ -25,17 +23,11 @@ const upgradeStatusToString = {
 };
 
 export default class UpgradeNodesTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.tableOnSortChange = this.tableOnSortChange.bind(this);
-    this.getTableRows = this.getTableRows.bind(this);
-
-    // sort name, sort order
-    // rowFilters maps a field name to the value that the user selected for that field name
-    this.state = {
-      rowFilters: {},
-    };
-  }
+  // sort name, sort order
+  // rowFilters maps a field name to the value that the user selected for that field name
+  state = {
+    rowFilters: {},
+  };
 
   componentWillUnmount() {
     // clear the list of selected nodes when the table unmounts
@@ -52,7 +44,7 @@ export default class UpgradeNodesTable extends React.Component {
     return filterOptions;
   }
 
-  getTableRows(
+  getTableRows = (
     nodes,
   ): Array<{
     name: string,
@@ -60,25 +52,20 @@ export default class UpgradeNodesTable extends React.Component {
     pop_node: boolean,
     upgradeStatus: string,
     version: string,
-  }> {
+  }> => {
     const rows = [];
+    const emptyTableEntryString = 'Not Available';
+
     nodes.forEach(node => {
-      const version = node.status_dump
-        ? versionSlicer(node.status_dump.version)
-        : 'Not Available';
-
-      // next version
-      const nextVersion =
-        node.status_dump &&
-        node.status_dump.upgradeStatus &&
-        node.status_dump.upgradeStatus.nextImage.version !== ''
-          ? versionSlicer(node.status_dump.upgradeStatus.nextImage.version)
-          : 'Not Available';
-
-      const upgradeStatus =
-        node.status_dump && node.status_dump.upgradeStatus
-          ? upgradeStatusToString[node.status_dump.upgradeStatus.usType]
-          : 'Not Available';
+      const version = get(node, 'status_dump.version', emptyTableEntryString);
+      const nextVersion = get(
+        node,
+        'status_dump.upgradeStatus.nextImage.version',
+        emptyTableEntryString,
+      );
+      const upgradeStatus = has(node, 'status_dump.upgradeStatus.usType')
+        ? upgradeStatusToString[node.status_dump.upgradeStatus.usType]
+        : emptyTableEntryString;
 
       rows.push({
         name: node.name,
@@ -94,7 +81,7 @@ export default class UpgradeNodesTable extends React.Component {
     });
 
     return rows;
-  }
+  };
 
   onSelectAll = isSelected => {
     // filter the nodes first
@@ -130,12 +117,12 @@ export default class UpgradeNodesTable extends React.Component {
     this.props.onNodesSelected(selectedNodes);
   };
 
-  tableOnSortChange(sortName, sortOrder) {
+  tableOnSortChange = (sortName, sortOrder) => {
     this.setState({
       sortName,
       sortOrder,
     });
-  }
+  };
 
   // set the active filters as a state (needed for select all)
   onFilterChange = filter => {

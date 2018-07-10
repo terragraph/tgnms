@@ -20,6 +20,7 @@ import ModalResetStatus from './ModalResetStatus.js';
 import ModalUpgradeBinary from './ModalUpgradeBinary.js';
 import UpgradeLeftPane from './UpgradeLeftPane.js';
 import UpgradeMonitor from './UpgradeMonitor.js';
+import {orderBy} from 'lodash-es';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
@@ -33,12 +34,15 @@ const UPGRADE_OPERATIONS = {
 };
 
 export default class NetworkUpgrade extends React.Component {
+  static propTypes = {
+    networkConfig: PropTypes.object.isRequired,
+    upgradeStateDump: PropTypes.object.isRequired,
+  };
+
   constructor(props) {
     super(props);
 
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this),
-    );
+    this.dispatchToken = Dispatcher.register(this.handleDispatchEvent);
 
     this.fetchUpgradeImages();
 
@@ -70,7 +74,7 @@ export default class NetworkUpgrade extends React.Component {
     clearInterval(this.state.intervalId);
   }
 
-  handleDispatchEvent(payload) {
+  handleDispatchEvent = payload => {
     switch (payload.actionType) {
       case Actions.TOPOLOGY_SELECTED:
         listUpgradeImages(payload.networkName);
@@ -83,7 +87,7 @@ export default class NetworkUpgrade extends React.Component {
       case Actions.UPGRADE_IMAGES_LOADED:
         if (Array.isArray(payload.upgradeImages)) {
           this.setState({
-            upgradeImages: payload.upgradeImages,
+            upgradeImages: orderBy(payload.upgradeImages, ['name'], ['desc']),
           });
         }
         break;
@@ -146,18 +150,16 @@ export default class NetworkUpgrade extends React.Component {
       default:
         break;
     }
-  }
+  };
 
   fetchUpgradeImages = () => {
     const {topology} = this.props.networkConfig;
     listUpgradeImages(topology.name);
   };
 
-  getExcludedNodes = () => {
+  getExcludedNodes = selectedNodes => {
     const nodes = this.props.networkConfig.topology.nodes;
-    const {selectedNodesForUpgrade} = this.state;
-
-    const selectedNames = new Set(selectedNodesForUpgrade);
+    const selectedNames = new Set(selectedNodes);
 
     return nodes.map(node => node.name).filter(nodeName => {
       return !selectedNames.has(nodeName);
@@ -184,7 +186,7 @@ export default class NetworkUpgrade extends React.Component {
       deleteStatus,
     } = this.state;
 
-    let upgradeNetworkModal = <div />;
+    let upgradeNetworkModal = null;
     switch (upgradeModalMode) {
       case UPGRADE_OPERATIONS.BINARY:
         upgradeNetworkModal = (
@@ -227,6 +229,7 @@ export default class NetworkUpgrade extends React.Component {
           <ModalCommitUpgrade
             getExcludedNodes={this.getExcludedNodes}
             isOpen={this.state.upgradeModalOpen}
+            nodeCount={networkConfig.topology.nodes.length}
             onClose={() => this.setState({upgradeModalOpen: false})}
             topologyName={networkConfig.topology.name}
             upgradeNodes={this.state.selectedNodesForUpgrade}
@@ -305,8 +308,3 @@ export default class NetworkUpgrade extends React.Component {
     );
   }
 }
-
-NetworkUpgrade.propTypes = {
-  networkConfig: PropTypes.object.isRequired,
-  upgradeStateDump: PropTypes.object.isRequired,
-};

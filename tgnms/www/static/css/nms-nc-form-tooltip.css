@@ -69,14 +69,15 @@
   white-space: nowrap;
   background-color: #333;
   color: #fff;
+  font-size: 1.3rem;
   text-align: center;
-  padding: 5px;
+  padding: 7px;
   margin-left: 10px;
   border-radius: 6px;
 
   /* Position the tooltip text - see examples below! */
   position: absolute;
-  z-index: 1;
+  z-index: 1000;
 
   top: -5px;
   left: 105%

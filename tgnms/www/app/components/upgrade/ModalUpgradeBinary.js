@@ -12,26 +12,14 @@ import {
   listUpgradeImages,
   deleteUpgradeImage,
 } from '../../apiutils/UpgradeAPIUtil.js';
+import {MODAL_STYLE} from '../../constants/UpgradeConstants.js';
 import {UploadStatus, DeleteStatus} from '../../constants/NetworkConstants.js';
 import UpgradeImagesTable from './UpgradeImagesTable.js';
 import PropTypes from 'prop-types';
-import Modal from 'react-modal';
 import React from 'react';
+import {Glyphicon} from 'react-bootstrap';
+import Modal from 'react-modal';
 import swal from 'sweetalert';
-
-const modalStyle = {
-  content: {
-    bottom: 'auto',
-    display: 'table',
-    left: '50%',
-    marginRight: '-50%',
-    maxWidth: '900px',
-    right: 'auto',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 'calc(100% - 40px)',
-  },
-};
 
 export default class ModalUpgradeBinary extends React.Component {
   static propTypes = {
@@ -48,24 +36,31 @@ export default class ModalUpgradeBinary extends React.Component {
     selectedFile: null,
   };
 
-  UNSAFE_componentWillMount() {
-    this.refreshImages();
-  }
+  fileInputRef = React.createRef();
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    if (!this.props.isOpen && nextProps.isOpen) {
+  componentDidUpdate(prevProps) {
+    if (!prevProps.isOpen && this.props.isOpen) {
       // when the modal is opened
       this.refreshImages();
     }
+
+    if (
+      prevProps.uploadStatus !== this.props.uploadStatus &&
+      this.props.uploadStatus !== UploadStatus.UPLOADING
+    ) {
+      this.setState({
+        selectedFile: null,
+      });
+    }
   }
 
-  modalClose() {
+  modalClose = () => {
     this.setState({
       selectedFile: null,
     });
 
     this.props.onClose();
-  }
+  };
 
   refreshImages = () => {
     listUpgradeImages(this.props.topologyName);
@@ -73,9 +68,12 @@ export default class ModalUpgradeBinary extends React.Component {
 
   onSubmitFile = () => {
     // use state to ensure instantaneous update
-    this.setState({
-      selectedFile: this.refs.upgradeImageFile.files[0],
-    });
+    this.setState(
+      {
+        selectedFile: this.fileInputRef.current.files[0],
+      },
+      this.onUploadFile,
+    );
   };
 
   onUploadFile = () => {
@@ -104,13 +102,13 @@ export default class ModalUpgradeBinary extends React.Component {
   };
 
   renderUploadStatus() {
-    let uploadStatusDisplay = <div />;
+    let uploadStatusDisplay = null;
 
     switch (this.props.uploadStatus) {
       case UploadStatus.UPLOADING:
         uploadStatusDisplay = (
-          <div>
-            <span>Uploading:</span>
+          <div className="upgrade-modal-row">
+            <strong className="subtitle">Uploading</strong>
             <div className="progress">
               <div
                 className="progress-bar"
@@ -126,15 +124,19 @@ export default class ModalUpgradeBinary extends React.Component {
         break;
       case UploadStatus.SUCCESS:
         uploadStatusDisplay = (
-          <div>
-            <span style={{color: '#009900'}}>Upload Succeeded</span>
+          <div
+            role="alert"
+            className="alert alert-success upgrade-modal-row success">
+            Upload Succeeded
           </div>
         );
         break;
       case UploadStatus.FAILURE:
         uploadStatusDisplay = (
-          <div>
-            <span style={{color: '#990000'}}>Upload Failed</span>
+          <div
+            role="alert"
+            className="alert alert-danger upgrade-modal-row failure">
+            Upload Failed
           </div>
         );
         break;
@@ -143,22 +145,24 @@ export default class ModalUpgradeBinary extends React.Component {
   }
 
   renderDeleteStatus() {
-    let deleteStatusDisplay = <div />;
+    let deleteStatusDisplay = null;
 
     switch (this.props.deleteStatus) {
       case DeleteStatus.SUCCESS:
         deleteStatusDisplay = (
-          <div>
-            <span style={{color: '#009900'}}>Image Successfully Deleted</span>
+          <div
+            role="alert"
+            className="alert alert-success upgrade-modal-row success">
+            Image Successfully Deleted
           </div>
         );
         break;
       case DeleteStatus.FAILURE:
         deleteStatusDisplay = (
-          <div>
-            <span style={{color: '#990000'}}>
-              There was a problem with deleting the image, please try again
-            </span>
+          <div
+            role="alert"
+            className="alert alert-danger upgrade-modal-row failure">
+            There was a problem with deleting the image, please try again
           </div>
         );
         break;
@@ -174,71 +178,50 @@ export default class ModalUpgradeBinary extends React.Component {
     // we have to use refs here to initially access the file and to make sure
     // it exists
     const isFileSelected = !!selectedFile;
-    const fileName = isFileSelected ? selectedFile.name : '';
-
-    const uploadStatusDisplay = this.renderUploadStatus();
-    const deleteStatusDisplay = this.renderDeleteStatus();
 
     return (
       <Modal
-        style={modalStyle}
+        style={MODAL_STYLE}
         isOpen={this.props.isOpen}
-        onRequestClose={this.modalClose.bind(this)}>
+        onRequestClose={this.modalClose}>
         <div className="upgrade-modal-content">
-          <div className="upgrade-modal-upload-row">
-            <div className="upgrade-modal-upload-wrapper">
-              <button className="upgrade-modal-btn">
-                Select binary for upload
+          {!isFileSelected && (
+            <div className="upgrade-modal-row file-upload">
+              <button
+                className="upgrade-modal-btn"
+                onClick={() => {
+                  if (this.fileInputRef.current) {
+                    this.fileInputRef.current.click();
+                  }
+                }}>
+                <Glyphicon glyph="plus" />
+                Select Binary for Upload
+                <input
+                  accept=".bin"
+                  onChange={this.onSubmitFile}
+                  ref={this.fileInputRef}
+                  type="file"
+                />
               </button>
-              <input
-                type="file"
-                ref="upgradeImageFile"
-                onChange={this.onSubmitFile}
-              />
+              <div
+                className="nc-form-action upgrade-modal-repeat-btn"
+                onClick={this.refreshImages}
+                role="button"
+                tabIndex="0">
+                <Glyphicon glyph="repeat" />
+                <span className="nc-form-action-tooltip">Refresh Images</span>
+              </div>
             </div>
-            <div>
-              <label style={{margin: '0px 10px'}}>File selected:</label>
-              {fileName}
-            </div>
+          )}
+          {this.renderUploadStatus()}
+          {this.renderDeleteStatus()}
+          <UpgradeImagesTable
+            images={upgradeImages}
+            onDeleteImage={this.deleteImage}
+          />
+          <div className="upgrade-modal-footer">
+            <button onClick={this.modalClose}>Close</button>
           </div>
-
-          <div className="upgrade-modal-row">
-            <button
-              className="upgrade-add-img-btn"
-              disabled={!isFileSelected}
-              onClick={this.onUploadFile}
-              style={{margin: '6px 14px'}}>
-              <img
-                src="/static/images/add.png"
-                style={{height: '18px', marginRight: '10px', width: '18px'}}
-              />Add selected binary to server
-            </button>
-          </div>
-
-          {uploadStatusDisplay}
-          {deleteStatusDisplay}
-
-          <div className="upgrade-modal-row">
-            <span onClick={this.refreshImages} role="button" tabIndex="0">
-              <img
-                src="/static/images/refresh.png"
-                className="refresh-images"
-              />
-            </span>
-          </div>
-          <div className="upgrade-modal-row">
-            <UpgradeImagesTable
-              images={upgradeImages}
-              onDeleteImage={this.deleteImage}
-            />
-          </div>
-        </div>
-        <div className="upgrade-modal-footer">
-          <button
-            className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}>
-            Close
-          </button>
         </div>
       </Modal>
     );

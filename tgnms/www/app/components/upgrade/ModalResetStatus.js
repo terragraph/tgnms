@@ -6,33 +6,23 @@
 'use strict';
 
 import {resetStatus} from '../../apiutils/UpgradeAPIUtil.js';
+import {MODAL_STYLE} from '../../constants/UpgradeConstants.js';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import Modal from 'react-modal';
+import Select from 'react-select';
 import React from 'react';
 
-const modalStyle = {
-  content: {
-    width: 'calc(100% - 40px)',
-    maxWidth: '800px',
-    display: 'table',
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
-  },
-};
-
 export default class ModalResetStatus extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+  static propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    topologyName: PropTypes.string.isRequred,
+    upgradeNodes: PropTypes.array.isRequired,
+  };
 
-  submitReset() {
+  submitReset = () => {
     const nodes = this.props.upgradeNodes;
-
     const requestBody = {
       nodes,
       requestId: 'NMS' + new Date().getTime(),
@@ -41,59 +31,41 @@ export default class ModalResetStatus extends React.Component {
 
     resetStatus(requestBody);
     this.props.onClose();
-  }
+  };
 
-  modalClose() {
+  modalClose = () => {
     this.props.onClose();
-  }
+  };
 
   render() {
-    const {upgradeNodes, upgradeState, isOpen} = this.props;
-
-    const nodesList = (
-      <div className="upgrade-modal-nodes-list">
-        {this.props.upgradeNodes.map((node, idx) => {
-          return idx % 2 == 0 ? (
-            <p>{node}</p>
-          ) : (
-            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
-          );
-        })}
-      </div>
-    );
+    const {isOpen, upgradeNodes, upgradeState} = this.props;
 
     return (
       <Modal
-        style={modalStyle}
+        style={MODAL_STYLE}
         isOpen={isOpen}
-        onRequestClose={this.modalClose.bind(this)}>
+        onRequestClose={this.modalClose}>
         <div className="upgrade-modal-content">
-          <label>
-            Nodes to reset status ({this.props.upgradeNodes.length})
-          </label>
-          <div className="upgrade-modal-row">{nodesList}</div>
+          <div className="upgrade-modal-row">
+            <strong className="subtitle">
+              Nodes to reset status ({this.props.upgradeNodes.length})
+            </strong>
+            <Select
+              className="upgrade-modal-node-list"
+              clearable={false}
+              disabled
+              multi
+              options={upgradeNodes.map(node => ({value: node, label: node}))}
+              placeholder=""
+              value={upgradeNodes.join(',')}
+            />
+          </div>
         </div>
         <div className="upgrade-modal-footer">
-          <button
-            className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}>
-            Close
-          </button>
-          <button
-            className="upgrade-modal-btn"
-            onClick={this.submitReset.bind(this)}
-            style={{backgroundColor: '#8b9dc3'}}>
-            Submit
-          </button>
+          <button onClick={this.submitReset}>Submit</button>
+          <button onClick={this.modalClose}>Close</button>
         </div>
       </Modal>
     );
   }
 }
-
-ModalResetStatus.propTypes = {
-  upgradeNodes: PropTypes.array.isRequired,
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequred,
-};
