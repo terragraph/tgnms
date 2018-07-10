@@ -26,18 +26,29 @@ import {
   timeStampDeltaStr
 } from '../TopologyHelper';
 import { styles } from '../styles';
+import * as ttypes from '../TopologyTypes';
 
+type Props = {
+  network: Object,
+  node: ttypes.Node,
+  topology: ttypes.Topology,
+  statusDump: Object,
+  backFunction: () => void,
+  closeFunction: () => void,
+  selectLinkFunction: (link: ttypes.Link) => void,
+  showCameraFunction: (func: any) => void,
+};
 
 export default class NodeCard extends Component<Props> {
-  decodeQrToMacAddr(qrStr) {
+  decodeQrToMacAddr(qrCode: string) {
       //SN:TG100P05431700009:M60:2CD-CAD1DDD2B
       //SN:TG100P05431700009:M60:2CD-CAD1DDD2B
-      let indexMac = qrStr.indexOf(':M60:');
+      let indexMac = qrCode.indexOf(':M60:');
       if (indexMac != -1) {
         // looks somewhat valid?
-        let remainStr = qrStr.substring(indexMac + 5).toLowerCase();
+        let remainStr = qrCode.substring(indexMac + 5).toLowerCase();
         if (remainStr.length != 12) {
-          return qrStr;
+          return qrCode;
         }
         let macAddr = '';
         for (let i = 0; i < remainStr.length; i += 2) {
@@ -47,10 +58,10 @@ export default class NodeCard extends Component<Props> {
         }
         return macAddr;
       }
-      return qrStr;
+      return qrCode;
   }
 
-  updateMac(nodeName, macAddr, force) {
+  updateMac(nodeName: string, macAddr: string, force: bool) {
     let setMacReq = {
       nodeName: nodeName,
       nodeMac: macAddr,
@@ -223,8 +234,3 @@ export default class NodeCard extends Component<Props> {
     );
   }
 }
-NodeCard.propTypes = {
-  node: PropTypes.object.isRequired,
-  topology: PropTypes.object.isRequired,
-  statusDump: PropTypes.object.isRequired,
-};

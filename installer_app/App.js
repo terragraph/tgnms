@@ -4,7 +4,7 @@
  * @flow
  */
 
-import React, { Component } from 'react';
+import React from 'react';
 import {
   Alert,
   Dimensions,
@@ -25,11 +25,19 @@ import SiteCard from './components/SiteCard';
 //import SvgLocationIcon from './components/SvgLocationIcon';
 // qr/barcode scanner
 import QRCodeScanner from 'react-native-qrcode-scanner';
-import { nodeTypeStr } from './TopologyHelper';
+import {
+  nodeTypeStr,
+  Topology,
+  Site,
+  Location,
+  Node,
+  Link,
+} from './TopologyHelper';
 import { offlineTopology } from './OfflineNetworks';
 // yellow boxes complaining about dependencies that use 'deprecated' features
 import { YellowBox } from 'react-native';
 import { styles } from './styles';
+import * as ttypes from './TopologyTypes';
 
 YellowBox.ignoreWarnings([
   'Warning: componentWillMount is deprecated',
@@ -40,7 +48,6 @@ YellowBox.ignoreWarnings([
   'RCTBridge required dispatch_sync'
 ]);
 
-type Props = {};
 // fake topology
 const OFFLINE_MODE = false;
 const Green = '#3c763d';
@@ -66,13 +73,45 @@ const NetworkList = [
 ];
 const Network = NetworkList[2];
 
-export default class App extends Component<Props> {
-  state = {
-    topology: {},
+type Props = {};
+type State = {
+  topology: ttypes.Topology,
+  errorMsg: string,
+  nodeToSite: { [string]: string },
+  nodesBySite: { [string]: Array<ttypes.Node> },
+  linksByNode: { [string]: Array<ttypes.Link> },
+  siteLocations: { [string]: ttypes.Location },
+  siteOnline: { [string]: number },
+  siteOffline: { [string]: number },
+  nodesOnline: number,
+  nodesOffline: number,
+  linksOnline: number,
+  linksOffline: number,
+  linksOffline: number,
+  statusDump: Object,
+  showCamera: boolean,
+  cameraCallbackFunc: any,
+  currPos: ttypes.Location,
+  useCurrentPos: boolean,
+  latitude: number,
+  longitude: number,
+  latitudeDelta: number,
+  longitudeDelta: number,
+  selectedSite: ttypes.Site,
+  selectedNode: ttypes.Node,
+  selectedLink: ttypes.Link,
+  showCard: ?string,
+};
 
-    errorMsg: undefined,
+export default class App extends React.Component<Props, State> {
+  _map: any;
+  watchId: any;
+
+  state = {
+    topology: Topology(),
+    errorMsg: "",
     // topology mappings
-    nodesToSite: {},
+    nodeToSite: {},
     nodesBySite: {},
     linksByNode: {},
     siteLocations: {},
@@ -82,31 +121,26 @@ export default class App extends Component<Props> {
     nodesOffline: 0,
     linksOnline: 0,
     linksOffline: 0,
-
     statusDump: {},
     showCamera: false,
     cameraCallbackFunc: undefined,
-    // current gps location
-    currPos: undefined,
-    useCurrentPos: false,
-    // sjc initial coords
-    latitude: undefined,
-    longitude: undefined,
+    currPos: Location(),
+    useCurrentPos: true,
+    latitude: 0,
+    longitude: 0,
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
-    // show details of a site/node/link
-    selectedSite: null,
-    selectedNode: null,
-    selectedLink: null,
-    // selectedNodes: [],
+    selectedSite: Site(),
+    selectedNode: Node(),
+    selectedLink: Link(),
     showCard: null,
   };
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
   }
 
-  dimensionsHandler(dim) {
+  dimensionsHandler() {
     this.forceUpdate();
   }
 
@@ -116,8 +150,7 @@ export default class App extends Component<Props> {
       setTimeout(() => {
         this.refreshTopology();
         this.refreshStatusDump();
-        }, 2000,
-      );
+      }, 2000,);
     } else {
       this.refreshTopology();
       this.refreshStatusDump();
@@ -129,27 +162,23 @@ export default class App extends Component<Props> {
     }, 10000);
 
     Dimensions.addEventListener("change", this.dimensionsHandler.bind(this));
-    this.watchId = navigator.geolocation.watchPosition(
-       (position) => {
-         //if (this.state.useCurrentPos) {}
-           this.setState({
-             currPos: position.coords,
-             //latitude: position.coords.latitude,
-             //longitude: position.coords.longitude,
-           });
-           //Alert.alert('got location', JSON.stringify(position.coords));
-         //}
-       },
-       (error) => this.setState({
-         currPos: undefined,
-       }),
-       { enableHighAccuracy: true,
-         timeout: 20000,
-         maximumAge: 1000,
-         distanceFilter: 10 },
-
-     );
-  }
+    this.watchId = navigator.geolocation.watchPosition((position) => {
+      if (this.state.useCurrentPos) {
+        const coords = position.coords;
+        this.setState({
+          currPos: {
+            latitude: coords.latitude,
+            longitude: coords.longitude
+          }
+        });
+      }
+    }, (error) => this.setState({currPos: Location()}), {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 1000,
+      distanceFilter: 10
+    },);
+}
 
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
@@ -162,25 +191,22 @@ export default class App extends Component<Props> {
     }
     // fetch topology for SJC w/ basic auth from api service
     fetch(Network.apiUrl + '/getTopology', {
-        headers: Network.authHeaders,
-        method: 'post',
-        body: '{}',
-      })
-    .then((response) => response.json())
-    .then((responseJson) => {
+      headers: Network.authHeaders,
+      method: 'post',
+      body: '{}'
+    }).then((response) => response.json()).then((responseJson) => {
       if (responseJson) {
         this.parseTopology(responseJson);
       }
-    })
-    .catch((error) => {
+    }).catch((error) => {
       // unable to load topology
       this.setState({
-        errorMsg: "Unable to load topology: " + error,
+        errorMsg: "Unable to load topology: " + error
       });
     });
   }
 
-  parseTopology(topology) {
+  parseTopology(topology: ttypes.Topology) {
     // overall status metrics
     let nodesOnline = 0;
     let nodesOffline = 0;
@@ -192,25 +218,7 @@ export default class App extends Component<Props> {
     let linksByNode = {};
     let siteOnline = {};
     let siteOffline = {};
-    topology.sites = topology.sites.map(site => {
-      let siteLat = site.location.latitude;
-      let siteLng = site.location.longitude;
-      /*if (site.name == 'RF1') {
-        siteLat = 37.484946;
-        siteLng = -122.1475237;
-      } else if (site.name == 'RF2') {
-        siteLat = 37.484746;
-        siteLng = -122.1469237;
-      }*/
-      return {
-        name: site.name,
-        location: {
-          latitude: siteLat,
-          longitude: siteLng,
-          altitude: site.location.altitude
-        }
-      };
-    });
+
     topology.nodes.forEach(node => {
       nodeToSite[node.name] = node.site_name;
       if (!siteOnline.hasOwnProperty(node.site_name)) {
@@ -320,7 +328,7 @@ export default class App extends Component<Props> {
     .catch((error) => {});
   }
 
-  getNodeShape(siteLocation, hasCn, latUnit, lngUnit) {
+  getNodeShape(siteLocation: ttypes.Location, hasCn: boolean, latUnit: number, lngUnit: number) {
     // north-south
     let lat = siteLocation.latitude;
     // east-west
@@ -345,7 +353,7 @@ export default class App extends Component<Props> {
     }
   }
 
-  mapPressed(event) {
+  mapPressed(event: Object) {
     //Alert.alert('Pressed', 'Lat: ' + event.nativeEvent.coordinate.latitude + ' - Lng: ' + event.nativeEvent.coordinate.longitude);
 /*    this.setState({
       bottomMsg: 'We were pressed at ' + event.nativeEvent.coordinate.latitude + ' / ' +
@@ -405,7 +413,8 @@ export default class App extends Component<Props> {
     }
   }
 
-  getSiteMarkers(markers, site, nodes, nodesOnline, nodesOffline) {
+  getSiteMarkers(markers: Array<Polygon>, site: ttypes.Site,
+      nodes: Array<ttypes.Node>, nodesOnline: number, nodesOffline: number) {
     // draw site marker based on status of site/nodes
     // add icons for POP node, DN/CN, WAP, and selected
     let hasCn = false;
@@ -472,8 +481,12 @@ export default class App extends Component<Props> {
     let currentLocationCard;
     if (this.state.topology.sites) {
       this.state.topology.sites.forEach(site => {
-        let nodesOnline = this.state.siteOnline.hasOwnProperty(site.name) ? this.state.siteOnline[site.name] : 0;
-        let nodesOffline = this.state.siteOffline.hasOwnProperty(site.name) ? this.state.siteOffline[site.name] : 0;
+        const nodesOnline = this.state.siteOnline.hasOwnProperty(site.name)
+          ? this.state.siteOnline[site.name]
+          : 0;
+        const nodesOffline = this.state.siteOffline.hasOwnProperty(site.name)
+          ? this.state.siteOffline[site.name]
+          : 0;
         this.getSiteMarkers(markers, site, this.state.nodesBySite[site.name], nodesOnline, nodesOffline);
       });
       this.state.topology.links.forEach(link => {
@@ -484,10 +497,7 @@ export default class App extends Component<Props> {
         let siteZ = this.state.siteLocations[this.state.nodeToSite[link.z_node_name]];
         links.push(
           <Polyline
-            coordinates={[
-              {latitude: siteA.latitude, longitude: siteA.longitude},
-              {latitude: siteZ.latitude, longitude: siteZ.longitude}
-            ]}
+            coordinates = {[siteA, siteZ]}
             strokeWidth={3}
             strokeColor={link.is_alive ? Green : Red}
             key={link.name}

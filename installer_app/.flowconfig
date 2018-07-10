@@ -19,6 +19,10 @@
 ; Ignore metro
 .*/node_modules/metro/.*
 
+[untyped]
+; Ignore react native modules
+.*/node_modules/react-native.*
+
 [include]
 
 [libs]

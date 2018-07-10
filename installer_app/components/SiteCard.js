@@ -21,9 +21,26 @@ import {
 import Svg, { Circle, Polygon, Text as SvgText, TextPath } from 'react-native-svg';
 import { styles } from '../styles';
 import { circleCoordinates, linkAngle, nodeTypeStr } from '../TopologyHelper';
+import * as ttypes from '../TopologyTypes';
 
+type Props = {
+  network: Object,
+  closeFunction: () => void,
+  selectNodeFunction: (node: Object) => void,
+  site: Object,
+  node: Object,
+  highlightNodeFunction: (node: Object) => void,
+  nodes: Array<ttypes.Node>,
+  linksByNode: { [string]: Array<ttypes.Link> },
+  siteLocations: { [string]: ttypes.Location},
+  nodeToSite: { [string]: string },
+  topology: ttypes.Topology,
+};
+type State = {
+  showOrientation: boolean,
+};
 
-export default class SiteCard extends Component<Props> {
+export default class SiteCard extends Component<Props, State> {
   state = {
     showOrientation: true,
   };
@@ -202,9 +219,3 @@ export default class SiteCard extends Component<Props> {
     );
   }
 }
-SiteCard.propTypes = {
-  site: PropTypes.object.isRequired,
-  topology: PropTypes.object.isRequired,
-  //selectNodeFunction: PropTypes.function.isRequired,
-  //closeFunction: PropTypes.function.isRequired,
-};
