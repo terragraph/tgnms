@@ -27,8 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
-import com.terragraph.alarms.Alarm.AlarmSeverity;
-import com.terragraph.alarms.Alarm.EventType;
 
 /**
  * Poller and alarm generator.
@@ -127,7 +125,7 @@ public class AlarmPoller {
 
         // Send a heartbeat
         if (config.syslogConfig.sendHeartbeats) {
-            sendAlarm(new Alarm(null, AlarmSeverity.INFO, EventType.HEARTBEAT, "", null));
+            sendAlarm(Alarm.createHeartbeat());
         }
 
         // Poll each topology endpoint

@@ -18,22 +18,13 @@ public class Alarm implements Serializable {
 
     /** Alarm event type. */
     public enum EventType {
-        HEARTBEAT(0),
-        NETWORK_DN(1),
-        NETWORK_CN(2),
-        NODE_DN(3),
-        NODE_POP(4),
-        LINK_DN2DN(5),
-        CONTROLLER_PRIMARY(6);
-
-        /** A unique identifier for this event type. */
-        private final int id;
-
-        /** Constructor. */
-        EventType(int id) { this.id = id; }
-
-        /** Returns the unique event identifier. */
-        public int getId() { return id; }
+        HEARTBEAT,
+        NETWORK_DN,
+        NETWORK_CN,
+        NODE_DN,
+        NODE_POP,
+        LINK_DN2DN,
+        CONTROLLER_PRIMARY
     }
 
     /** Alarm type. */
@@ -68,27 +59,36 @@ public class Alarm implements Serializable {
      * @param severity The alarm severity
      * @param eventType The event triggering this alarm
      * @param description The description of the event
+     * @param k An integer inserted into the alarm ID (e.g. to guarantee uniqueness)
      */
-    public Alarm(AlarmSeverity severity, EventType eventType, String description) {
-        this(null, severity, eventType, description, AlarmType.RAISE);
+    public Alarm(AlarmSeverity severity, EventType eventType, String description, int k) {
+        this(null, severity, eventType, description, AlarmType.RAISE, k);
     }
 
     /**
      * Creates an alarm with the given parameters.
-     * @param id If non-null, the alarm ID; otherwise ID is auto-assigned based on the system time and event type
+     * @param id If non-null, the alarm ID; otherwise ID is auto-assigned
      * @param severity The alarm severity
      * @param eventType The event triggering this alarm
      * @param description The description of the event
      * @param alarmType The alarm type
+     * @param k An integer inserted into the alarm ID (e.g. to guarantee uniqueness)
      */
-    public Alarm(String id, AlarmSeverity severity, EventType eventType, String description, AlarmType alarmType) {
+    private Alarm(
+        String id,
+        AlarmSeverity severity,
+        EventType eventType,
+        String description,
+        AlarmType alarmType,
+        int k
+    ) {
         this.ts = System.currentTimeMillis() / 1000L;
         if (id != null) {
             this.id = id;
         } else {
             this.id = (eventType == EventType.HEARTBEAT)
                 ? String.format("%s%s", ID_PREFIX, HEARTBEAT_ID)
-                : String.format("%s%d-%d", ID_PREFIX, eventType.getId(), ts);
+                : String.format("%s%d_%d", ID_PREFIX, ts, k);
         }
         this.severity = severity;
         this.eventType = eventType;
@@ -110,7 +110,8 @@ public class Alarm implements Serializable {
             (newSeverity == null) ? severity : newSeverity,
             eventType,
             (newDescription == null) ? description : newDescription,
-            (newAlarmType == null) ? alarmType : newAlarmType
+            (newAlarmType == null) ? alarmType : newAlarmType,
+            0 /* unused */
         );
     }
 
@@ -140,5 +141,12 @@ public class Alarm implements Serializable {
         sb.append(delimiter);
         sb.append(description);
         return sb.toString();
+    }
+
+    /**
+     * Creates a new heartbeat "alarm".
+     */
+    public static Alarm createHeartbeat() {
+        return new Alarm(null, AlarmSeverity.INFO, EventType.HEARTBEAT, "", null, 0 /* unused */);
     }
 }
