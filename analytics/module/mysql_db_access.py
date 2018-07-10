@@ -6,6 +6,8 @@
 """
 
 import pymysql
+import os
+import json
 
 
 class MySqlDbAccess(object):
@@ -18,25 +20,43 @@ class MySqlDbAccess(object):
 
     def __new__(
         cls,
-        env_config_file="../../tgnms/docker/env/mysql.env",
-        mysql_host_ip="::1",
+        mysql_host_ip=None,
         database_name="cxl",
+        analytics_config_file="../AnalyticsConfig.json",
     ):
         """Create new MySqlDbAccess object if MySQL database username and password
-           is uniquely found in the docker env file.
+           are uniquely found in the docker env file.
         Args:
-        env_config_file: config file that stores the MySQL database setting.
-        mysql_host_ip: ip address of the MySQL host.
+        mysql_host_ip: ip address of the MySQL host. If specified, will be used
+                       as MySQL ip address. If not, will try to find in the
+                       analytics setup file in analytics_config_file.
         database_name: name of the MySQL database.
+        analytics_config_file: path to the analytics setting file, will be used to
+                               find MySQL ip if not specified.
 
         Return: MySqlDbAccess object on success.
                 None on failure.
         """
 
-        # TODO: Currently, use the mysql.env file under tgnms to find the
-        # password and username of the MySQL. Putting password/username in
-        # a .env and create them as environment variable is not the safest way.
-        # Need to figure right encryption flow before large-scale deployment.
+        # TODO: Currently, The MySQL password/username is in a .env file and
+        # create them as environment variable during docker-compose,
+        # which is not the safest way. Need to figure right encryption flow
+        # before large-scale deployment.
+
+        if mysql_host_ip is None:
+            try:
+                with open(analytics_config_file) as config_file:
+                    analytics_config = json.load(config_file)
+            except Exception:
+                print(
+                    "Did not provide mysql_host_ip and cannot find the configuration file"
+                )
+                return None
+
+            if "MYSQL" not in analytics_config or "ip" not in analytics_config["MYSQL"]:
+                print("Cannot find MySQL config in the configurations")
+                return None
+            mysql_host_ip = analytics_config["MYSQL"]["ip"]
 
         instance = super().__new__(cls)
         # Private username and password
@@ -44,25 +64,12 @@ class MySqlDbAccess(object):
         instance.__mysql_password = None
 
         try:
-            with open(env_config_file, "r") as env_file:
-                lines = env_file.readlines()
-                for line in lines:
-                    line = line.strip()
-                    if line.startswith("MYSQL_USER"):
-                        if instance.__mysql_username is None:
-                            instance.__mysql_username = line.split("=")[-1]
-                        else:
-                            raise ValueError("Multiple definition of MySQL username")
-                    elif line.startswith("MYSQL_PASS"):
-                        if instance.__mysql_password is None:
-                            instance.__mysql_password = line.split("=")[-1]
-                        else:
-                            raise ValueError("Multiple definition of MySQL password")
-
-            if (instance.__mysql_username is None) or (
-                instance.__mysql_password is None
-            ):
-                raise ValueError("Missing information of MySQL")
+            if "MYSQL_USER" not in os.environ:
+                raise ValueError("Missing environment variable of 'MYSQL_USER'")
+            instance.__mysql_username = os.environ["MYSQL_USER"]
+            if "MYSQL_PASS" not in os.environ:
+                raise ValueError("Missing environment variable of 'MYSQL_PASS'")
+            instance.__mysql_password = os.environ["MYSQL_PASS"]
 
         except BaseException as err:
             print("Error during loading MySQL environment info:", err.args)
@@ -91,35 +98,37 @@ class MySqlDbAccess(object):
         self.__mysql_password = None
         self.__connection.close()
 
-    def read_api_service_setting(self, topology_name="tower G"):
+    def read_api_service_setting(self):
         """Read the API service setting from MySQL.
         Args:
-        topology_name: name of the topologies, like "tower G".
+        void
 
         Return: dictionary which contains keys of "api_ip" and "api_port".
                 Raise exception on error.
         """
-        api_service_config = {"api_ip": None, "api_port": None}
+        api_service_config = {}
 
         with self.__connection.cursor() as cursor:
             sql_string = (
-                "SELECT DISTINCT api_ip, api_port FROM topologies "
-                + "WHERE name=%s GROUP BY api_ip, api_port;"
+                "SELECT DISTINCT name, api_ip, api_port FROM topologies "
+                + "GROUP BY name, api_ip, api_port;"
             )
             try:
-                cursor.execute(sql_string, (topology_name,))
+                cursor.execute(sql_string)
             except BaseException as err:
                 print(err.args)
                 raise ValueError("MySQL execution error")
 
             results = cursor.fetchall()
-            if not results:
-                raise ValueError("Cannot find matched api_service setting")
-            elif len(results) > 1:
-                raise ValueError(
-                    "Conflicting api_service environment setting, ", results
-                )
-            api_service_config["api_ip"] = results[0]["api_ip"]
-            api_service_config["api_port"] = results[0]["api_port"]
+            for api_result in results:
+                if api_result["name"] in api_service_config:
+                    raise ValueError(
+                        "Find multiple api set up for network", api_result["name"]
+                    )
+                api_service_config[api_result["name"]] = {}
+                api_service_config[api_result["name"]]["api_ip"] = api_result["api_ip"]
+                api_service_config[api_result["name"]]["api_port"] = api_result[
+                    "api_port"
+                ]
 
         return api_service_config

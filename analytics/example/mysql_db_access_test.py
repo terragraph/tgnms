@@ -13,25 +13,31 @@ from module.mysql_db_access import MySqlDbAccess
 
 class TestMySQLAccess(unittest.TestCase):
     def test_api_service_setting(self):
-        """ Test to make sure correct API service ip/port is obtained.
+        """ Test to make sure correct API service ip/port can be obtained.
         """
         print("Querying API service setting")
-        mysql_db_access = MySqlDbAccess(mysql_host_ip="172.17.0.1")
+        mysql_db_access = MySqlDbAccess()
         if mysql_db_access is None:
             raise ValueError("Cannot create MySqlDbAccess object")
 
         try:
-            api_service = mysql_db_access.read_api_service_setting(
-                topology_name="tower G"
-            )
+            api_service = mysql_db_access.read_api_service_setting()
         except BaseException as err:
             raise ValueError("Failed to get the api_service setting", err.args)
         print("The found api service setting is ", api_service)
         mysql_db_access.close_connection()
 
-        # Currently, the api_service ip/port is "172.17.0.1" and 8081
-        self.assertEqual(api_service["api_ip"], "172.17.0.1")
-        self.assertEqual(api_service["api_port"], 8081)
+        # Check to make sure there are valid api_service setting
+        self.assertTrue(api_service)
+        print("The api_service ip and ports are")
+        for topology_name in api_service:
+            print(
+                "Topology name: {}, api_ip: {}, api_port: {}".format(
+                    topology_name,
+                    api_service[topology_name]["api_ip"],
+                    api_service[topology_name]["api_port"],
+                )
+            )
 
 
 if __name__ == "__main__":
