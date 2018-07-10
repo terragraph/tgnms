@@ -7,6 +7,7 @@
  */
 
 #include "beringei/client/BeringeiClient.h"
+#include "beringei/if/gen-cpp2/beringei_data_data.h"
 #include "beringei/plugins/BeringeiConfigurationAdapter.h"
 
 #include <chrono>
@@ -39,6 +40,29 @@ DEFINE_int64(
     end_time,
     0,
     "Unix timestamp of the end time to query. Must be > --start_time.");
+DEFINE_bool(
+    beringei_list,
+    false,
+    "If enable, will print the distribution of the timeseries length by keyId."
+    "If not, will do query.");
+
+/*
+*  This source file can be used to either read data from Beringei database or
+   read the number of keyIds with data entries. Details of the two uses:
+   a). beringei get data: same as original BeringeiGet
+   How to use, in tty put:
+   beringei_get someAwesomeKeyId
+  -beringei_configuration_path="/usr/local/beringei/build/beringei_30s.json"
+  -shard_id=0 -start_time=1530030000 -end_time=1530040000  -logtostderr
+   b). beringei list distribution:
+   Mainly used for
+      debugging to i. make sure that there is data in the Beringei database.
+                   ii. learn the number of keyIds used in the Beringei database.
+   How to use, in tty put:
+   beringei_get -beringei_list
+  -beringei_configuration_path="/usr/local/beringei/build/beringei_30s.json"
+  -shard_id=0 -start_time=1530030000 -end_time=1530040000  -logtostderr
+*/
 
 int main(int argc, char** argv) {
   gflags::SetUsageMessage("[<options>] <key>");
@@ -60,11 +84,6 @@ int main(int argc, char** argv) {
   LOG(INFO) << "Start time: " << FLAGS_start_time
             << "; End time: " << FLAGS_end_time;
 
-  if (argc < 2) {
-    gflags::ShowUsageWithFlagsRestrict(argv[0], "beringei");
-    return 1;
-  }
-
   int shardCount = beringeiClient->getNumShards();
   LOG(INFO) << "Config knows about these read services: ";
   for (const auto& rservice : beringeiConfig->getReadServices()) {
@@ -78,13 +97,30 @@ int main(int argc, char** argv) {
 
   LOG(INFO) << "Now: " << to_epoch(std::chrono::system_clock::now()).count();
 
-  std::string keyName = std::string(argv[1]);
-
-  if (FLAGS_shard_id == -1) {
-    FLAGS_shard_id = std::hash<std::string>()(keyName) % shardCount;
+  if (FLAGS_beringei_list && FLAGS_shard_id == -1) {
+    LOG(ERROR) << "Beringei shardId is a must for shardScan";
+    return 1;
   }
 
-  LOG(INFO) << "Key is in shard_id: " << FLAGS_shard_id;
+  std::string keyName;
+  if (!FLAGS_beringei_list) {
+    // Check the conditions for the case of read beringei data base
+    if (argc < 2) {
+      // Not enough input to read beringei
+      gflags::ShowUsageWithFlagsRestrict(argv[0], "beringei");
+      return 1;
+    }
+
+    keyName = std::string(argv[1]);
+
+    if (FLAGS_shard_id == -1) {
+      // If used to read beringei database and no shardId is provided, use
+      // the hashed key as shardId
+      FLAGS_shard_id = std::hash<std::string>()(keyName) % shardCount;
+    }
+
+    LOG(INFO) << "Key is in shardId: " << FLAGS_shard_id;
+  }
 
   gorilla::ScanShardRequest shardRequest;
 
@@ -98,25 +134,63 @@ int main(int argc, char** argv) {
   beringeiClient->scanShard(shardRequest, shardResult);
 
   LOG(INFO) << "Get whole shard stats:";
-  LOG(INFO) << "Request status: " << (int)shardResult.status;
+  gorilla::_StatusCodeEnumDataStorage statsCodeEnumData;
+
+  int requestStatus = (int)shardResult.status;
+  if (requestStatus > statsCodeEnumData.names.size()) {
+    LOG(ERROR) << "Unexpected request status";
+  } else {
+    LOG(INFO) << "Request status: " << statsCodeEnumData.names[requestStatus];
+  }
+
   LOG(INFO) << "Keys: " << folly::join(", ", shardResult.keys);
+  LOG(INFO) << "There are in total " << shardResult.keys.size()
+            << " keys on shard " << FLAGS_shard_id;
 
-  gorilla::GetDataRequest request;
-  request.keys.emplace_back();
-  request.keys.back().key = keyName;
-  request.keys.back().shardId = FLAGS_shard_id;
-  request.beginTimestamp = FLAGS_start_time;
-  request.endTimestamp = FLAGS_end_time;
+  if (!FLAGS_beringei_list) {
+    // Use BeringeiGet to query data by keyId from Beringei database
+    gorilla::GetDataRequest request;
+    request.keys.emplace_back();
+    request.keys.back().key = keyName;
+    request.keys.back().shardId = FLAGS_shard_id;
+    request.beginTimestamp = FLAGS_start_time;
+    request.endTimestamp = FLAGS_end_time;
 
-  gorilla::GorillaResultVector result;
-  beringeiClient->get(request, result);
+    gorilla::GorillaResultVector result;
+    beringeiClient->get(request, result);
 
-  for (const auto& keyData : result) {
-    const auto& keyName = keyData.first.key;
-    for (const auto& timeValue : keyData.second) {
-      std::cout << keyName << "\t" << std::to_string(timeValue.value) << "\t"
-                << timeValue.unixTime << std::endl;
+    for (const auto& keyData : result) {
+      const auto& keyName = keyData.first.key;
+      for (const auto& timeValue : keyData.second) {
+        std::cout << keyName << "\t" << std::to_string(timeValue.value) << "\t"
+                  << timeValue.unixTime << std::endl;
+      }
+    }
+  } else {
+    // List timeseries distribution.
+    // Currently don't apply binning to the timeseries by number of data points.
+    // For each length, just count  how many time series have that length.
+    // TODO: add binning (FLAGS_num_of_bins) if the timeseries length is very
+    // spread.
+    std::vector<int> timeSeriesLengths;
+    for (const auto& timeSeries : shardResult.data) {
+      timeSeriesLengths.push_back(timeSeries.size());
+    }
+
+    std::unordered_map<int, int64_t> lengthToCount;
+    for (const auto& length : timeSeriesLengths) {
+      if (lengthToCount.find(length) == lengthToCount.end()) {
+        lengthToCount[length] = 1;
+      } else {
+        lengthToCount[length]++;
+      }
+    }
+
+    for (const auto& element : lengthToCount) {
+      LOG(INFO) << "There are " << element.second << " keyIds with "
+                << element.first << " data points";
     }
   }
+
   return 0;
 }
