@@ -202,7 +202,7 @@ class BeringeiDbAccess(object):
         """
 
         try:
-            response = self._post_http_request_to_beringei_query_server(
+            self._post_http_request_to_beringei_query_server(
                 stats_to_write, "binary_stats_writer"
             )
         except ValueError as err:

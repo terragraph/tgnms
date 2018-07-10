@@ -15,15 +15,7 @@ from module.beringei_db_access import BeringeiDbAccess
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
-from facebook.gorilla.beringei_query.ttypes import (
-    NodeStates,
-    StatsWriteRequest,
-    Stat,
-    TypeAheadRequest,
-    RawReadQuery,
-    RawReadQueryRequest,
-    RawQueryKey,
-)
+from facebook.gorilla.beringei_query import ttypes as bq
 from facebook.gorilla.Topology.ttypes import Topology
 
 # BeringeiDbAccess can read, write, and get key_id from Beringei DB
@@ -36,7 +28,7 @@ print("This is an example to get the query key_id from Beringei database")
 topology_name = "tower G"
 metric_key = "tgf.38:3a:21:b0:08:75.phystatus.ssnrest"
 
-type_ahead_request = TypeAheadRequest(topologyName=topology_name, input=metric_key)
+type_ahead_request = bq.TypeAheadRequest(topologyName=topology_name, input=metric_key)
 
 source_mac = "00:50:43:8e:bc:b7"
 return_key_id = None
@@ -59,22 +51,22 @@ print("-" * 100)
 print("This is an example to write to Beringei DB via BQS")
 # Construct the request to send to server
 topology = Topology(name="tower G")
-stat1 = Stat(key="testkey1", ts=int(time.time()), value=7899999)
-stat2 = Stat(key="testkey2", ts=int(time.time()), value=7699999)
-stat3 = Stat(key="unknown_key3", ts=int(time.time()), value=0.77777)
-node_state1 = NodeStates(
+stat1 = bq.Stat(key="tgf.crazy_mac.testkey1", ts=int(time.time()), value=7899999)
+stat2 = bq.Stat(key="testkey2", ts=int(time.time()), value=7699999)
+stat3 = bq.Stat(key="unknown_key3", ts=int(time.time()), value=0.77777)
+node_state1 = bq.NodeStates(
     mac="38:3a:21:b0:03:e1", site="11L22", name="terra421.f7.tg.a404-if", stats=[stat1]
 )
-node_state2 = NodeStates(
+node_state2 = bq.NodeStates(
     mac="38:3a:21:b0:07:2d",
     site="TECH-NE",
     name="terra211.f3.tg.a404-if",
     stats=[stat2],
 )
-node_state3 = NodeStates(
+node_state3 = bq.NodeStates(
     mac="38:3a:21:b0:09:1b", site="CC-SE", name="terra112.f5.tg.a404-if", stats=[stat3]
 )
-stats_to_write = StatsWriteRequest(
+stats_to_write = bq.StatsWriteRequest(
     topology=topology, agents=[node_state1, node_state2, node_state3], interval=30
 )
 
@@ -87,19 +79,21 @@ print("-" * 100)
 print("This is an example to read from Beringei DB via Beringei query server")
 
 current_time_in_s = time.time()
-# Query 1 is by the Beringei key_id
-query_key_1 = RawQueryKey(keyId=683696, topologyName="tower G")
+# query_1 is by the Beringei key_id
+query_key_1 = bq.RawQueryKey(keyId=683696, topologyName="tower G")
 
-# Query 2, 3 is by the combination of source_mac, peer_mac, metric_name and
-# topology_name
-query_key_2 = RawQueryKey(
-    sourceMac="00:50:43:8e:bc:b7",
-    peerMac="38:3a:21:b0:08:75",
-    metricName="phystatus.ssnrest",
+# query_ key2 is by the combination of source_mac, peer_mac, metric_name and
+# topology_name, and the data is just ended by us
+query_key_2 = bq.RawQueryKey(
+    sourceMac="38:3a:21:b0:03:e1",
+    peerMac="crazy_mac",
+    metricName="testkey1",
     topologyName="tower G",
 )
 
-query_key_with_unknown_mac = RawQueryKey(
+query_key_3 = bq.RawQueryKey(keyId=234126, topologyName="tower G")
+
+query_key_with_unknown_mac = bq.RawQueryKey(
     sourceMac="some_non_exisitng_mac",
     peerMac="another_non_exisitng_mac",
     metricName="tphystatus.ssnrest",
@@ -107,18 +101,16 @@ query_key_with_unknown_mac = RawQueryKey(
 )
 
 
-query_key_with_unknown_metric = RawQueryKey(
+query_key_with_unknown_metric = bq.RawQueryKey(
     sourceMac="00:50:43:8e:bc:b7",
     peerMac="38:3a:21:b0:08:75",
     metricName="crazy_stats",
     topologyName="tower G",
 )
 
-query_key_3 = RawQueryKey(keyId=234126, topologyName="tower G")
+empty_query_key = bq.RawQueryKey()
 
-empty_query_key = RawQueryKey()
-
-query_to_send = RawReadQuery(
+query_to_send = bq.RawReadQuery(
     queryKeyList=[
         query_key_1,
         query_key_with_unknown_metric,
@@ -132,13 +124,13 @@ query_to_send = RawReadQuery(
     interval=30,
 )
 
-empty_query_to_send = RawReadQuery(
+empty_query_to_send = bq.RawReadQuery(
     queryKeyList=[],
     startTimestamp=int(current_time_in_s - 60 * 60),
     endTimestamp=int(current_time_in_s),
     interval=30,
 )
-query_request_to_send = RawReadQueryRequest(
+query_request_to_send = bq.RawReadQueryRequest(
     [empty_query_to_send, query_to_send, empty_query_to_send]
 )
 

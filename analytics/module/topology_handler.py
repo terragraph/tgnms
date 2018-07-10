@@ -122,11 +122,9 @@ class TopologyHelper(object):
         # the macs are tuple of [source_node_mac, peer_node_mac]
         link_macs_to_name = {}
         for single_link in topology_reply["links"]:
-            # 1 stands for wireless
             link_type = LinkType()
             if not (
-                enforce_wireless
-                and link_type._VALUES_TO_NAMES[single_link["link_type"]] != "WIRELESS"
+                enforce_wireless and single_link["link_type"] != link_type.WIRELESS
             ):
                 link_name = single_link["name"]
                 link_macs = (
