@@ -84,9 +84,10 @@ public class AlarmData implements Serializable {
          * @param allAlarmParams All alarm configurations
          * @param repeatIntervalSeconds The interval at which the alarm should be repeated if still active
          * @param trigger The trigger determining whether the alarm condition is met
+         * @param k An integer inserted into the alarm ID (e.g. to guarantee uniqueness)
          * @return A new alarm that should be fired, or null
          */
-        public Alarm update(AlarmParams[] allAlarmParams, int repeatIntervalSeconds, AlarmTrigger trigger) {
+        public Alarm update(AlarmParams[] allAlarmParams, int repeatIntervalSeconds, AlarmTrigger trigger, int k) {
             // Update consecutive poll counters
             for (int i = 0; i < allAlarmParams.length; i++) {
                 AlarmParams params = allAlarmParams[i];
@@ -114,7 +115,7 @@ public class AlarmData implements Serializable {
                 AlarmParams params = allAlarmParams[alarmIndex];
                 if (lastAlarmIndex == -1) {
                     // No alarm is currently active - create a new alarm
-                    lastAlarm = newAlarm = new Alarm(params.alarmSeverity, eventType, text.getDescription(params));
+                    lastAlarm = newAlarm = new Alarm(params.alarmSeverity, eventType, text.getDescription(params), k);
                 } else if (lastAlarmIndex == alarmIndex) {
                     // This is the same as the active alarm - repeat at regular intervals
                     if (lastAlarm.getElapsedSeconds() >= repeatIntervalSeconds) {
@@ -175,6 +176,7 @@ public class AlarmData implements Serializable {
      */
     public List<Alarm> update(String name) {
         List<Alarm> alarms = new ArrayList<>();
+        int k = 0;
 
         // Primary controller alarms
         if (primaryControllerDown == null) {
@@ -189,7 +191,7 @@ public class AlarmData implements Serializable {
             );
         }
         append(alarms, primaryControllerDown.update(
-            config.primaryControllerDown, config.repeatIntervalSeconds, params -> true)
+            config.primaryControllerDown, config.repeatIntervalSeconds, params -> true, k++)
         );
 
         return alarms;
@@ -203,6 +205,7 @@ public class AlarmData implements Serializable {
      */
     public List<Alarm> update(String name, Topology topology) {
         List<Alarm> alarms = new ArrayList<>();
+        int k = 0;
         int dnCount = 0, cnCount = 0, dnsDown = 0, cnsDown = 0;
         Set<String> dnSet = new HashSet<>();
 
@@ -222,13 +225,13 @@ public class AlarmData implements Serializable {
                     AlarmWrapper wrapper = nodeDnDown.remove(node.name);
                     if (wrapper != null) {
                         append(alarms, wrapper.update(
-                            config.nodeDnDown, config.repeatIntervalSeconds, params -> false)
+                            config.nodeDnDown, config.repeatIntervalSeconds, params -> false, k++)
                         );
                     }
                 } else {
                     // Node is dead - initialize alarm data if needed, then update it
                     AlarmWrapper wrapper = nodeDnDown.computeIfAbsent(node.name,
-                        k -> new AlarmWrapper(
+                        key -> new AlarmWrapper(
                             EventType.NODE_DN,
                             config.nodeDnDown.length,
                             (AlarmWrapper.AlarmText & Serializable) params -> String.format(
@@ -239,7 +242,9 @@ public class AlarmData implements Serializable {
                             )
                         )
                     );
-                    append(alarms, wrapper.update(config.nodeDnDown, config.repeatIntervalSeconds, params -> true));
+                    append(alarms, wrapper.update(
+                        config.nodeDnDown, config.repeatIntervalSeconds, params -> true, k++)
+                    );
                 }
 
                 // POP Primary-DN alarms
@@ -249,13 +254,13 @@ public class AlarmData implements Serializable {
                         AlarmWrapper wrapper = nodePopPrimaryDown.remove(node.name);
                         if (wrapper != null) {
                             append(alarms, wrapper.update(
-                                config.nodePopPrimaryDown, config.repeatIntervalSeconds, params -> false)
+                                config.nodePopPrimaryDown, config.repeatIntervalSeconds, params -> false, k++)
                             );
                         }
                     } else {
                         // Node is dead - initialize alarm data if needed, then update it
                         AlarmWrapper wrapper = nodePopPrimaryDown.computeIfAbsent(node.name,
-                            k -> new AlarmWrapper(
+                            key -> new AlarmWrapper(
                                 EventType.NODE_POP,
                                 config.nodePopPrimaryDown.length,
                                 (AlarmWrapper.AlarmText & Serializable) params -> String.format(
@@ -267,7 +272,7 @@ public class AlarmData implements Serializable {
                             )
                         );
                         append(alarms, wrapper.update(
-                            config.nodePopPrimaryDown, config.repeatIntervalSeconds, params -> true)
+                            config.nodePopPrimaryDown, config.repeatIntervalSeconds, params -> true, k++)
                         );
                     }
                 }
@@ -295,7 +300,7 @@ public class AlarmData implements Serializable {
             );
         }
         append(alarms, networkDnDown.update(
-            config.networkDnDown, config.repeatIntervalSeconds, params -> (dnDownPct >= params.networkDownPercent))
+            config.networkDnDown, config.repeatIntervalSeconds, params -> (dnDownPct >= params.networkDownPercent), k++)
         );
         if (networkCnDown == null) {
             networkCnDown = new AlarmWrapper(
@@ -309,7 +314,7 @@ public class AlarmData implements Serializable {
             );
         }
         append(alarms, networkCnDown.update(
-            config.networkCnDown, config.repeatIntervalSeconds, params -> (cnDownPct >= params.networkDownPercent))
+            config.networkCnDown, config.repeatIntervalSeconds, params -> (cnDownPct >= params.networkDownPercent), k++)
         );
 
         // Link-specific alarms
@@ -326,12 +331,14 @@ public class AlarmData implements Serializable {
                 // Link is alive - if an alarm exists, update it then delete it, otherwise do nothing
                 AlarmWrapper wrapper = linkDn2DnDown.remove(link.name);
                 if (wrapper != null) {
-                    append(alarms, wrapper.update(config.linkDn2DnDown, config.repeatIntervalSeconds, params -> false));
+                    append(alarms, wrapper.update(
+                        config.linkDn2DnDown, config.repeatIntervalSeconds, params -> false, k++)
+                    );
                 }
             } else {
                 // Link is dead - initialize alarm data if needed, then update it
                 AlarmWrapper wrapper = linkDn2DnDown.computeIfAbsent(link.name,
-                    k -> new AlarmWrapper(
+                    key -> new AlarmWrapper(
                         EventType.LINK_DN2DN,
                         config.linkDn2DnDown.length,
                         (AlarmWrapper.AlarmText & Serializable) params -> String.format(
@@ -342,7 +349,7 @@ public class AlarmData implements Serializable {
                         )
                     )
                 );
-                append(alarms, wrapper.update(config.linkDn2DnDown, config.repeatIntervalSeconds, params -> true));
+                append(alarms, wrapper.update(config.linkDn2DnDown, config.repeatIntervalSeconds, params -> true, k++));
             }
         }
 
@@ -350,7 +357,7 @@ public class AlarmData implements Serializable {
         // Assume the controller is online because the topology was received
         if (primaryControllerDown != null) {
             append(alarms, primaryControllerDown.update(
-                config.primaryControllerDown, config.repeatIntervalSeconds, params -> false)
+                config.primaryControllerDown, config.repeatIntervalSeconds, params -> false, k++)
             );
         }
 

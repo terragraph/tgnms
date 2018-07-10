@@ -55,31 +55,40 @@ public class Alarm implements Serializable {
     private final AlarmType alarmType;
 
     /**
-     * Creates an alarm.
+     * Creates a new alarm.
      * @param severity The alarm severity
      * @param eventType The event triggering this alarm
      * @param description The description of the event
+     * @param k An integer inserted into the alarm ID (e.g. to guarantee uniqueness)
      */
-    public Alarm(AlarmSeverity severity, EventType eventType, String description) {
-        this(null, severity, eventType, description, AlarmType.RAISE);
+    public Alarm(AlarmSeverity severity, EventType eventType, String description, int k) {
+        this(null, severity, eventType, description, AlarmType.RAISE, k);
     }
 
     /**
-     * Creates an alarm.
+     * Creates an alarm with the given parameters.
      * @param id If non-null, the alarm ID; otherwise ID is auto-assigned
      * @param severity The alarm severity
      * @param eventType The event triggering this alarm
      * @param description The description of the event
      * @param alarmType The alarm type
+     * @param k An integer inserted into the alarm ID (e.g. to guarantee uniqueness)
      */
-    public Alarm(String id, AlarmSeverity severity, EventType eventType, String description, AlarmType alarmType) {
+    private Alarm(
+        String id,
+        AlarmSeverity severity,
+        EventType eventType,
+        String description,
+        AlarmType alarmType,
+        int k
+    ) {
         this.ts = System.currentTimeMillis() / 1000L;
         if (id != null) {
             this.id = id;
         } else {
             this.id = (eventType == EventType.HEARTBEAT)
                 ? String.format("%s%s", ID_PREFIX, HEARTBEAT_ID)
-                : String.format("%s%d", ID_PREFIX, ts);
+                : String.format("%s%d_%d", ID_PREFIX, ts, k);
         }
         this.severity = severity;
         this.eventType = eventType;
@@ -101,7 +110,8 @@ public class Alarm implements Serializable {
             (newSeverity == null) ? severity : newSeverity,
             eventType,
             (newDescription == null) ? description : newDescription,
-            (newAlarmType == null) ? alarmType : newAlarmType
+            (newAlarmType == null) ? alarmType : newAlarmType,
+            0 /* unused */
         );
     }
 
@@ -131,5 +141,12 @@ public class Alarm implements Serializable {
         sb.append(delimiter);
         sb.append(description);
         return sb.toString();
+    }
+
+    /**
+     * Creates a new heartbeat "alarm".
+     */
+    public static Alarm createHeartbeat() {
+        return new Alarm(null, AlarmSeverity.INFO, EventType.HEARTBEAT, "", null, 0 /* unused */);
     }
 }
