@@ -23,11 +23,11 @@ class TopologyHelper(object):
     Helper functions on the network topology.
     """
 
-    def __new__(cls, analytics_config_file="../AnalyticsConfig.json"):
+    def __new__(cls, topology_name="tower G"):
         """Get the network topology from the api_service.
 
         Args:
-        analytics_config_file: Path to the PyAnalytics.
+        topology_name: name of the topology of interest, like "tower G".
 
         Return: TopologyHelper object on success.
                 None on failure.
@@ -35,28 +35,27 @@ class TopologyHelper(object):
 
         api_service_config = {}
         try:
-            mysql_db_access = MySqlDbAccess(mysql_host_ip="172.17.0.1")
+            mysql_db_access = MySqlDbAccess()
             if mysql_db_access is None:
                 raise ValueError("Cannot create MySqlDbAccess object")
 
-            api_service_config = mysql_db_access.read_api_service_setting(
-                topology_name="tower G"
-            )
+            api_service_config = mysql_db_access.read_api_service_setting()
+            if topology_name not in api_service_config:
+                raise ValueError(
+                    "Cannot find the API service config for ", topology_name
+                )
         except BaseException as err:
             print("Failed to get the api_service setting", err.args)
             print("The found api service setting is ", api_service_config)
 
-        if "api_ip" not in api_service_config or "api_port" not in api_service_config:
-            print("Cannot find api_service config in the MySQL")
-            return None
-        else:
-            instance = super().__new__(cls)
-            print("TopologyHelper object created")
-            instance._api_service_config = {}
-            instance._api_service_config["ip"] = api_service_config["api_ip"]
-            instance._api_service_config["port"] = api_service_config["api_port"]
-            instance._api_service_config["proxy"] = False
-            return instance
+        instance = super().__new__(cls)
+        print("TopologyHelper object created")
+        instance._api_service_config = {}
+        instance._api_service_config["ip"] = api_service_config[topology_name]["api_ip"]
+        instance._api_service_config["port"] = api_service_config[topology_name][
+            "api_port"
+        ]
+        return instance
 
     def get_topology_from_api_service(self):
         """Get the network topology from the api_service.
@@ -70,16 +69,9 @@ class TopologyHelper(object):
         target_domain = "{}:{}".format(
             self._api_service_config["ip"], self._api_service_config["port"]
         )
-        if self._api_service_config["proxy"]:
-            # Enable proxy
-            non_proxy_domain_set = set(os.environ["NO_PROXY"].split(","))
-            if target_domain in non_proxy_domain_set:
-                non_proxy_domain_set.remove(target_domain)
-            os.environ["NO_PROXY"] = ",".join(
-                [domain for domain in non_proxy_domain_set]
-            )
-        else:
-            os.environ["NO_PROXY"] = target_domain
+
+        # Proxy should not be used in current design
+        os.environ["NO_PROXY"] = target_domain
 
         url_to_post = "http://{}:{}/".format(
             self._api_service_config["ip"], self._api_service_config["port"]
