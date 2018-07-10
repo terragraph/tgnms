@@ -16,6 +16,15 @@ import {
   View
 } from 'react-native';
 import { styles } from '../styles';
+import * as ttypes from '../TopologyTypes';
+
+type Props = {
+  topology: ttypes.Topology,
+  nodesOnline: number,
+  nodesOffline: number,
+  linksOnline: number,
+  linksOffline: number,
+};
 
 export default class OverviewCard extends Component<Props> {
   // icon to center/keep focus on current position
@@ -44,10 +53,3 @@ export default class OverviewCard extends Component<Props> {
     );
   }
 }
-OverviewCard.propTypes = {
-  topology: PropTypes.object.isRequired,
-  nodesOnline: PropTypes.number.isRequired,
-  nodesOffline: PropTypes.number.isRequired,
-  linksOnline: PropTypes.number.isRequired,
-  linksOffline: PropTypes.number.isRequired,
-};

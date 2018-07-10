@@ -20,16 +20,32 @@ import {
 } from 'react-native';
 import { styles } from '../styles';
 import { LineChart, Grid } from 'react-native-svg-charts'
+import * as ttypes from '../TopologyTypes';
 
 const DISPLAY_CHART_SECONDS = 20;
 
-export default class LinkCard extends Component<Props> {
+type Props = {
+  network: Object,
+  link: ttypes.Link,
+  sites: Array<ttypes.Site>,
+  nodes: Array<ttypes.Node>,
+  topology: ttypes.Topology,
+  backFunction: () => void,
+  closeFunction: () => void,
+  statsFunction?: () => void,
+};
+type State = {
+  showStats: boolean,
+  stats: Array<Object>,
+};
+
+export default class LinkCard extends Component<Props, State> {
   state = {
     showStats: false,
     stats: [],
   };
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
 
     this.refreshLinkStats();
@@ -106,7 +122,7 @@ export default class LinkCard extends Component<Props> {
     );
   }
 
-  gridScale(name) {
+  gridScale(name: string) {
     if (name == 'snr') {
       return {min: 12, max: 20};
     } else if (name == 'rssi') {
@@ -208,8 +224,3 @@ export default class LinkCard extends Component<Props> {
     );
   }
 }
-LinkCard.propTypes = {
-  link: PropTypes.object.isRequired,
-  sites: PropTypes.array.isRequired,
-  nodes: PropTypes.array.isRequired,
-};
