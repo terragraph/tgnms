@@ -19,20 +19,14 @@ class MySqlDbAccess(object):
     # in MySQL is refactored and contains BQS setting.
 
     def __new__(
-        cls,
-        mysql_host_ip=None,
-        database_name="cxl",
-        analytics_config_file="../AnalyticsConfig.json",
+        cls, database_name="cxl", analytics_config_file="../AnalyticsConfig.json"
     ):
         """Create new MySqlDbAccess object if MySQL database username and password
            are uniquely found in the docker env file.
         Args:
-        mysql_host_ip: ip address of the MySQL host. If specified, will be used
-                       as MySQL ip address. If not, will try to find in the
-                       analytics setup file in analytics_config_file.
         database_name: name of the MySQL database.
-        analytics_config_file: path to the analytics setting file, will be used to
-                               find MySQL ip if not specified.
+        analytics_config_file: path to the analytics setting file, is used to
+                               find MySQL host ip.
 
         Return: MySqlDbAccess object on success.
                 None on failure.
@@ -43,25 +37,19 @@ class MySqlDbAccess(object):
         # which is not the safest way. Need to figure right encryption flow
         # before large-scale deployment.
 
-        if mysql_host_ip is None:
-            try:
-                with open(analytics_config_file) as config_file:
-                    analytics_config = json.load(config_file)
-            except Exception:
-                print(
-                    "Did not provide mysql_host_ip and cannot find the configuration file"
-                )
-                return None
+        try:
+            with open(analytics_config_file) as config_file:
+                analytics_config = json.load(config_file)
+        except Exception:
+            print("Cannot find the configuration file")
+            return None
 
-            if "MYSQL" not in analytics_config or "ip" not in analytics_config["MYSQL"]:
-                print("Cannot find MySQL config in the configurations")
-                return None
-            mysql_host_ip = analytics_config["MYSQL"]["ip"]
+        if "MYSQL" not in analytics_config or "ip" not in analytics_config["MYSQL"]:
+            print("Cannot find MySQL config in the configurations")
+            return None
+        mysql_host_ip = analytics_config["MYSQL"]["ip"]
 
         instance = super().__new__(cls)
-        # Private username and password
-        instance.__mysql_username = None
-        instance.__mysql_password = None
 
         try:
             if "MYSQL_USER" not in os.environ:
@@ -103,16 +91,14 @@ class MySqlDbAccess(object):
         Args:
         void
 
-        Return: dictionary which contains keys of "api_ip" and "api_port".
-                Raise exception on error.
+        Return: dict which maps the topology names to the corresponding
+                api_service ip/port. Each mapped topology name is a dict with
+                key of "api_ip" and "api_port". Raise exception on error.
         """
         api_service_config = {}
 
         with self.__connection.cursor() as cursor:
-            sql_string = (
-                "SELECT DISTINCT name, api_ip, api_port FROM topologies "
-                + "GROUP BY name, api_ip, api_port;"
-            )
+            sql_string = "SELECT DISTINCT name, api_ip, api_port FROM topologies;"
             try:
                 cursor.execute(sql_string)
             except BaseException as err:
