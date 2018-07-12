@@ -97,12 +97,9 @@ export const uploadUpgradeBinary = async (upgradeBinary, topologyName) => {
     listUpgradeImages(topologyName);
 
     swal({
-      text:
-        'Your selected image has been uploaded successfully and is ' +
-        'currently being prepared for use and should be ready soon. ' +
-        '\n\n Please refresh the list of images periodically. If your ' +
-        'image does not show up, please try again.',
-      title: 'Upload Image Success',
+      text: `Your image has been uploaded and is being processed.
+         It will be available shortly.`,
+      title: 'Upload Success',
       type: 'info',
     });
   } catch (error) {
@@ -197,7 +194,7 @@ export const resetStatus = upgradeGroupReq => {
 export const prepareUpgrade = upgradeGroupReq => {
   const {
     downloadAttempts,
-    excludeNodes,
+    nodes,
     imageUrl,
     isHttp,
     limit,
@@ -216,13 +213,12 @@ export const prepareUpgrade = upgradeGroupReq => {
     upgradeReqParams['torrentParams'] = torrentParams;
   }
   const data = {
-    excludeNodes,
     limit,
-    nodes: [],
+    nodes,
     skipFailure,
     skipLinks: [],
     timeout,
-    ugType: UpgradeGroupType.NETWORK,
+    ugType: UpgradeGroupType.NODE,
     urReq: {
       imageUrl,
       md5,
@@ -241,7 +237,7 @@ export const prepareUpgrade = upgradeGroupReq => {
           '\n\n' +
           'The status of your upgrade should be shown on the "Node ' +
           'Upgrade Status" table.',
-        title: 'Prepare upgrade submitted',
+        title: 'Prepare Upgrade Initiated',
         type: 'info',
       });
     })

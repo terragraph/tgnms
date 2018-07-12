@@ -7,104 +7,50 @@
 
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import Clipboard from 'clipboard';
+import {Glyphicon, ListGroup, ListGroupItem} from 'react-bootstrap';
 import {render} from 'react-dom';
 import React from 'react';
-
-class DeleteImageColumn extends React.Component {
-  onClick = () => {
-    const {imageName, onDelete} = this.props;
-    onDelete(imageName);
-  };
-
-  render() {
-    const iconClass = classNames('fa', 'fa-times', 'fa-lg');
-    return <img src="/static/images/delete.png" onClick={this.onClick} />;
-  }
-}
+import Tooltip from 'react-tooltip';
 
 export default class UpgradeImagesTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.getTableRows = this.getTableRows.bind(this);
-  }
-
-  activeFormatter = (cell, row, enumObject, index) => {
-    return (
-      <DeleteImageColumn
-        imageName={row.name}
-        onDelete={this.props.onDeleteImage}
-      />
-    );
+  static propTypes = {
+    images: PropTypes.array.isRequired,
+    onDeleteImage: PropTypes.func.isRequired,
   };
 
-  getTableRows(): Array<{
-    name: string,
-    magnetUri: string,
-  }> {
-    const rows = [];
-    this.props.images.forEach(image => {
-      rows.push({
-        name: image.name,
-        magnetUri: image.magnetUri,
-        key: image.name,
-      });
-    });
-    return rows;
+  componentDidMount() {
+    this.clipboard = new Clipboard('.magnet-button');
+  }
+
+  componentWillUnmount() {
+    this.clipboard.destroy();
   }
 
   render() {
-    const tableOptions = {
-      trClassName: 'break-word',
-    };
-
     return (
-      <div className="rc-upgrade-images-table">
-        <BootstrapTable
-          tableStyle={{width: 'calc(100% - 20px)'}}
-          bodyStyle={{
-            maxHeight: '400px',
-            overflowY: 'auto',
-          }}
-          key="imagesTable"
-          options={tableOptions}
-          data={this.getTableRows()}
-          striped={true}
-          hover={true}
-          trClassName="break-word">
-          <TableHeaderColumn
-            tdStyle={{wordWrap: 'break-word'}}
-            width="400"
-            dataSort={false}
-            dataField="name"
-            isKey={true}>
-            Name
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            tdStyle={{wordWrap: 'break-word'}}
-            width="400"
-            dataSort={false}
-            dataField="magnetUri">
-            Magnet URI
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            width="45"
-            tdStyle={{
-              textAlign: 'center',
-              verticalAlign: 'middle',
-              padding: 0,
-            }}
-            dataSort={false}
-            dataField="deleteImage"
-            dataFormat={this.activeFormatter}
-          />
-        </BootstrapTable>
-      </div>
+      <ListGroup className="image-table">
+        {this.props.images.map((image, index) => (
+          <ListGroupItem className="image-table-item" key={image.name}>
+            <Glyphicon
+              data-clipboard-text={image.magnetUri}
+              data-tip="Copy Magnet URI"
+              className="magnet-button"
+              glyph="magnet"
+            />
+            <div>
+              <div className="image-table-title">{image.name}</div>
+              <div className="image-table-subtitle">{`MD5: ${image.md5}`}</div>
+            </div>
+            <Glyphicon
+              className="remove-button"
+              glyph="remove"
+              onClick={() => this.props.onDeleteImage(image.name)}
+            />
+          </ListGroupItem>
+        ))}
+        <Tooltip place="top" effect="solid" />
+      </ListGroup>
     );
   }
 }
-
-UpgradeImagesTable.propTypes = {
-  images: PropTypes.array.isRequired,
-  onDeleteImage: PropTypes.func.isRequired,
-};
