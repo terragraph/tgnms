@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" Using LinkInsight and JobScheduler class to compute the link stats
+""" Using LinkInsight and JobScheduler classes to compute the link stats
     periodically. Currently only compute link metric mean and variance.
 """
 
@@ -23,6 +23,7 @@ def compute_link_insight(
     sample_duration_in_s=3600,
     source_db_interval=30,
     dump_to_json=False,
+    json_log_name_prefix="sample_log_",
     stats_query_timestamp=None,
 ):
     """
@@ -30,22 +31,23 @@ def compute_link_insight(
     and variance.
 
     Args:
-    metric_names: metric of interest list, each element is like "phystatus.ssnrest".
+    metric_names: metrics list, each metric is like "phystatus.ssnrest".
     topology_name: the setup network of interest, like "tower G".
     sample_duration_in_s: duration of the samples, for example 3600 means use
                           1 hour data points for each link.
-    source_db_interval: the resolution of the data base read from, 30 means
+    source_db_interval: the resolution of the database read from, 30 means
                         beringei_30s database.
     dump_to_json: If True, save a copy of the link stats to JSON;
                   If False, don't save to JSON.
+    json_log_name_prefix: prefix of the output JSON log file, only used if dump_to_json.
     stats_query_timestamp: The time of the link stats computation. The sampling
-      window is [stats_query_timestamp - sample_duration_in_s, stats_query_timestamp].
+    window is [stats_query_timestamp - sample_duration_in_s, stats_query_timestamp].
 
     Return:
     No return.
     """
 
-    print("Computing link insight for metrics of : ", metric_names)
+    print("Computing link insight for metrics: ", metric_names)
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone("US/Pacific"))
     print("Current CA time is  :", date.strftime("%m/%d/%Y %H:%M:%S %Z"))
@@ -56,13 +58,14 @@ def compute_link_insight(
     link_insight = LinkInsight()
     topology_helper = TopologyHelper()
     if not topology_helper:
-        print("Cannot create TopologyHelper object!")
+        print("Cannot create TopologyHelper object")
         return
     beringei_db_access = BeringeiDbAccess()
     if not beringei_db_access:
-        print("Cannot create BeringeiDbAccess object!")
+        print("Cannot create BeringeiDbAccess object")
         return
 
+    # Obtain the network config
     topology_reply = topology_helper.get_topology_from_api_service()
     network_config = topology_helper.obtain_network_dict(topology_reply)
     if stats_query_timestamp is None:
@@ -73,8 +76,8 @@ def compute_link_insight(
 
         link_macs_list = list(network_config["link_macs_to_name"].keys())
 
-        # Construct the query with metric information
-        # BQS will find out the link_metric during read_beringei_db
+        # Construct the query with metric information. BQS finds out the
+        # right Beringei key_id by link_metric during read_beringei_db
         query_request_to_send = link_insight.construct_query_request(
             key_option="link_metric",
             link_macs_list=link_macs_list,
@@ -85,42 +88,42 @@ def compute_link_insight(
             source_db_interval=source_db_interval,
         )
 
-        # Read the list of query from the database, return type is
-        # RawQueryReturn
+        # Read the from the Beringei database, return type is RawQueryReturn
         try:
             query_returns = beringei_db_access.read_beringei_db(query_request_to_send)
         except ValueError as err:
             print("Read Beringei database error:", err.args)
             return
 
-        # Compute the link stats, the query_requests_to_send is used to
-        # find the link source_mac and peer_mac
-        link_stats = link_insight.compute_link_avg_and_var(
-            query_returns,
-            query_request_to_send,
-            network_config,
-            dump_to_json=dump_to_json,
-            json_log_name="link-{}-stats.json".format(metric),
-        )
+        computed_stats = link_insight.compute_timeseries_avg_and_var(query_returns)
 
-        # Construct the message to write to the Beringei database
+        if dump_to_json:
+            link_insight.dump_link_stats_to_json(
+                computed_stats,
+                query_request_to_send,
+                network_config,
+                metric,
+                sample_duration_in_s,
+                source_db_interval,
+                stats_query_timestamp,
+                json_log_name=json_log_name_prefix + metric + ".json",
+            )
+
+        # Construct the message with computed insights and write to Beringei database
+        # via BQS
         try:
             stats_to_write = link_insight.construct_write_request(
-                link_stats,
+                computed_stats,
+                query_request_to_send,
+                network_config,
                 metric,
                 sample_duration_in_s,
                 source_db_interval,
                 stats_query_timestamp,
             )
-        except ValueError as err:
-            print("Failed to construct Beringei write request", err.args)
-            return
-
-        # Write back to Beringei database via Beringei Query Server
-        try:
             beringei_db_access.write_beringei_db(stats_to_write)
         except ValueError as err:
-            print("Write Beringei database failure", err.args)
+            print("Failed to write back to Beringei database", err.args)
             return
 
 
@@ -145,6 +148,6 @@ if __name__ == "__main__":
     job_scheduler.schedule_periodic_jobs(
         compute_link_insight,
         period_in_s=period_in_s,
-        num_of_jobs_to_submit=3600,
+        num_of_jobs_to_submit=num_of_jobs_to_submit,
         job_input=[metric_names],
     )
