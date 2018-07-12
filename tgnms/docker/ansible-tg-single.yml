@@ -197,10 +197,10 @@
         registry_url: https://secure.cxl-terragraph.com:443/v2
         reauthorize: yes
 
-    - name: rm -f docker network
+    - name: docker network prune -f
       command: docker network prune -f
 
-    - name: docker network
+    - name: docker network create
       command: docker network create --ipv6 --subnet=fd00:420:69::/48 terragraph_net
 
     - name: run compose
