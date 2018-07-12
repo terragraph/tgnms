@@ -297,7 +297,7 @@ export default class DetailsTopology extends React.Component {
         <Panel.Body
           className="details"
           style={{maxHeight: this.props.maxHeight, width: '100%'}}>
-          <table className="details-table" style={{width: '100%'}}>
+          <table className="details-table">
             <tbody>
               <tr>
                 <td width="150px">Availability (24 Hours)</td>
