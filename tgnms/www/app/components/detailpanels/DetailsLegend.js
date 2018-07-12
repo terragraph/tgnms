@@ -216,7 +216,10 @@ export default class DetailsLegend extends React.Component {
         id="legendControl"
         onToggle={() => this.setState({legendOpen: !this.state.legendOpen})}>
         <Panel.Heading>
-          <Panel.Title componentClass="h3" style={{textDecoration: 'none'}} toggle>
+          <Panel.Title
+            componentClass="h3"
+            style={{textDecoration: 'none'}}
+            toggle>
             Legend&nbsp;
             <span
               className={classnames('glyphicon', legendTriangleClass)}
