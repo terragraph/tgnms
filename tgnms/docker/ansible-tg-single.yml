@@ -15,6 +15,46 @@
   roles:
     - role: zaxos.docker-ce-ansible-role
   tasks:
+    - name: set advertisement handling int
+      sysctl:
+        name: net.ipv6.conf.{{ ansible_default_ipv6.interface }}.accept_ra
+        value: 2
+        sysctl_set: yes
+        reload: yes
+
+    - name: set advertisement handling all
+      sysctl:
+        name: net.ipv6.conf.all.accept_ra
+        value: 2
+        sysctl_set: yes
+        reload: yes
+
+    - name: set all forwarding
+      sysctl:
+        name: net.ipv6.conf.all.forwarding
+        value: 1
+        sysctl_set: yes
+        reload: yes
+
+    - name: set default forwarding
+      sysctl:
+        name: net.ipv6.conf.default.forwarding
+        value: 1
+        sysctl_set: yes
+        reload: yes
+
+    - name: flush ip6tables filter
+      iptables:
+        table: filter
+        ip_version: ipv6
+        flush: true
+
+    - name: flush ip6tables nat
+      iptables:
+        table: nat
+        ip_version: ipv6
+        flush: true
+
     - name: Adding existing user to docker group
       user: 
         name: "{{ docker_user }}"
@@ -156,7 +196,13 @@
         password: 4l5C46xVJ0h74OmRWPK5
         registry_url: https://secure.cxl-terragraph.com:443/v2
         reauthorize: yes
-    
+
+    - name: docker network prune -f
+      command: docker network prune -f
+
+    - name: docker network create
+      command: docker network create --ipv6 --subnet=fd00:420:69::/48 terragraph_net
+
     - name: run compose
       docker_service:
         project_src: terragraph/.
