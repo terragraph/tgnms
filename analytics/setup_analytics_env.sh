@@ -23,7 +23,7 @@ tar xzvf apache-thrift-${APACHE_THRIFT_VERSION}.tar.gz
 pushd thrift-${APACHE_THRIFT_VERSION}
 ./bootstrap.sh
 ./configure
-make
+make -j $(nproc --all)
 make install
 # Install Apache Thrift python3 lib
 pushd lib/py
