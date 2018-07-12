@@ -54,10 +54,10 @@ class MySqlDbAccess(object):
         try:
             if "MYSQL_USER" not in os.environ:
                 raise ValueError("Missing environment variable of 'MYSQL_USER'")
-            instance.__mysql_username = os.environ["MYSQL_USER"]
+            mysql_username = os.environ["MYSQL_USER"]
             if "MYSQL_PASS" not in os.environ:
                 raise ValueError("Missing environment variable of 'MYSQL_PASS'")
-            instance.__mysql_password = os.environ["MYSQL_PASS"]
+            mysql_password = os.environ["MYSQL_PASS"]
 
         except BaseException as err:
             print("Error during loading MySQL environment info:", err.args)
@@ -67,8 +67,8 @@ class MySqlDbAccess(object):
             # Connect to the MySQL database
             instance.__connection = pymysql.connect(
                 host=mysql_host_ip,
-                user=instance.__mysql_username,
-                password=instance.__mysql_password,
+                user=mysql_username,
+                password=mysql_password,
                 db=database_name,
                 charset="utf8mb4",
                 cursorclass=pymysql.cursors.DictCursor,
@@ -82,8 +82,6 @@ class MySqlDbAccess(object):
     def close_connection(self):
         """Close the MySQL connection and remove all MySQL settings.
         """
-        self.__mysql_username = None
-        self.__mysql_password = None
         self.__connection.close()
 
     def read_api_service_setting(self):
