@@ -52,7 +52,7 @@ export default class NetworkNodesTable extends React.Component {
     {
       label: 'Site',
       key: 'site_name',
-      width: 80,
+      width: 160,
       sort: true,
       sortFunc: this.siteSortFunc.bind(this),
     },
