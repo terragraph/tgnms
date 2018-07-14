@@ -105,7 +105,7 @@ export default class DetailsNode extends React.Component {
             nodes: [node.name],
             secondsToReboot: 5,
           };
-          apiServiceRequest(topologyName, 'rebootNode')
+          apiServiceRequest(topologyName, 'rebootNode', data)
             .then(response =>
               swal(
                 {
@@ -121,7 +121,8 @@ export default class DetailsNode extends React.Component {
                 {
                   title: 'Failed!',
                   text:
-                    'Node reboot failed\nReason: ' + error.response.statusText,
+                    'Node reboot failed\nReason: ' +
+                    error.response.data.message,
                   type: 'error',
                 },
                 () => resolve(),
@@ -239,6 +240,74 @@ export default class DetailsNode extends React.Component {
       },
     );
   };
+
+  editAzimuth() {
+    const {node, topologyName} = this.props;
+    swal(
+      {
+        title: 'Edit Azimuth',
+        text:
+          'An azimuth of 0 (North) is default and will not be shown. ' +
+          'A value of [1, 360] will be shown if no link exists.\n\n' +
+          'This is automatically set for nodes with links. Do not use when a link exist.',
+        type: 'input',
+        showCancelButton: true,
+        closeOnConfirm: false,
+        animation: 'slide-from-top',
+        inputPlaceholder: node.ant_azimuth,
+      },
+      inputValue => {
+        inputValue = Number.parseInt(inputValue);
+        if (inputValue === false) {
+          return false;
+        }
+
+        if (inputValue === '') {
+          swal.showInputError("Azimuth can't be empty");
+          return false;
+        }
+
+        if (!Number.isInteger(inputValue)) {
+          swal.showInputError('Azimuth must be an integer');
+          return false;
+        }
+
+        if (inputValue < 0 || inputValue > 360) {
+          swal.showInputError('Azimuth must be between 0<->360°');
+          return false;
+        }
+        return new Promise((resolve, reject) => {
+          const newNode = Object.assign({}, node, {ant_azimuth: inputValue});
+          if (newNode.hasOwnProperty('status_dump')) {
+            delete newNode.status_dump;
+          }
+          const data = {
+            nodeName: node.name,
+            newNode,
+          };
+          apiServiceRequest(topologyName, 'editNode', data)
+            .then(response =>
+              swal(
+                {
+                  title: 'Node azimuth updated',
+                  text: 'Response: ' + response.data.message,
+                  type: 'success',
+                },
+                () => resolve(),
+              ),
+            )
+            .catch(error =>
+              swal({
+                title: 'Failed!',
+                text:
+                  'Edit node azimuth failed.\nReason: ' +
+                  getErrorTextFromE2EAck(error),
+              }),
+            );
+        });
+      },
+    );
+  }
 
   setMacAddr(force) {
     const {node, topologyName} = this.props;
@@ -413,6 +482,17 @@ export default class DetailsNode extends React.Component {
               <tr>
                 <td width="100px">Type</td>
                 <td>{type}</td>
+              </tr>
+              <tr>
+                <td width="100px">Azimuth</td>
+                <td>
+                  {this.props.node.ant_azimuth}&deg;
+                  <span
+                    className="details-link"
+                    onClick={this.editAzimuth.bind(this)}>
+                    &nbsp;(Edit)
+                  </span>
+                </td>
               </tr>
               <tr>
                 <td width="100px">Site</td>
