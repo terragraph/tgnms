@@ -62,9 +62,9 @@ class LinkInsight(object):
 
     def construct_query_request(
         self,
+        topology_name,
         link_macs_list=None,
-        topology_name="tower G",
-        metric_name="phystatus.ssnrest",
+        metric_name=None,
         key_option="link_metric",
         key_ids=None,
         start_ts=None,
@@ -76,9 +76,9 @@ class LinkInsight(object):
            reading by BeringeiDbAccess.read_beringei_db.
 
         Args:
+        topology_name: name of the setup, like "tower G".
         link_macs_list: list of Beringei link mac pairs,
                         each element is (source_mac, peer_mac).
-        topology_name: name of the setup, like "tower G".
         metric_string: metric of interest, like "phystatus.ssnrest".
         key_option: Can be either "link_metric" or "key_id".
                     On "link_metric", use the key metric, link_macs, and
@@ -95,11 +95,9 @@ class LinkInsight(object):
         query_request_to_send: query request to send, of type RawReadQueryRequest.
         """
 
-        if end_ts is None:
-            end_ts = int(time.time())
-        if start_ts is None:
-            # default window is 1 hour
-            start_ts = end_ts - 60 * 60
+        if end_ts is None or start_ts is None:
+            print("Start/End time stamp not provided!")
+            bq.RawReadQueryRequest([])
 
         # Construct the queries to send
         query_requests_to_send = []
@@ -145,7 +143,7 @@ class LinkInsight(object):
         sample_duration_in_s,
         source_db_interval,
         stats_query_timestamp,
-        topology_name="tower G",
+        topology_name,
         dest_db_interval=30,
     ):
         """Prepare computed link stats request to be send to Beringei Query Server
@@ -180,12 +178,12 @@ class LinkInsight(object):
 
         query_agents = []
         for query_idx, query in enumerate(query_requests_to_send.queries):
-            for query_key_idx, query_key in enumerate(query.queryKeyList):
+            for key_idx, query_key in enumerate(query.queryKeyList):
                 source_mac = query_key.sourceMac
                 peer_mac = query_key.peerMac
                 source_site = network_config["node_mac_to_site"][source_mac]
                 source_name = network_config["node_mac_to_name"][source_mac]
-                per_link_stats = computed_stats[query_idx][query_key_idx]
+                per_link_stats = computed_stats[query_idx][key_idx]
 
                 if per_link_stats is None:
                     print(
@@ -239,7 +237,8 @@ class LinkInsight(object):
         """
 
         computed_stats = []
-        num_no_report_time_series, num_of_query_keys = 0, 0
+        num_no_report_time_series = 0
+        num_of_query_keys = 0
         for query_return in query_returns.queryReturnList:
             per_query_stats = []
             for time_series_and_key in query_return.timeSeriesAndKeyList:
@@ -309,38 +308,31 @@ class LinkInsight(object):
 
         output_dict = {}
         for query_idx, query in enumerate(query_requests_to_send.queries):
-            per_query_output_dict = {}
-            for query_key_idx, query_key in enumerate(query.queryKeyList):
-                per_query_output_dict[query_key_idx] = {}
-                per_link_stats = computed_stats[query_idx][query_key_idx]
+            per_query_dict = {}
+            for key_idx, query_key in enumerate(query.queryKeyList):
+                per_query_dict[key_idx] = {}
+                per_link_stats = computed_stats[query_idx][key_idx]
 
-                per_query_output_dict[query_key_idx]["source_mac"] = query_key.sourceMac
-                per_query_output_dict[query_key_idx]["peer_mac"] = query_key.peerMac
-                per_query_output_dict[query_key_idx]["metric_name"] = metric_name
-                per_query_output_dict[query_key_idx]["link_name"] = network_config[
-                    "link_macs_to_name"
-                ][query_key.sourceMac, query_key.peerMac]
-                per_query_output_dict[query_key_idx]["source_site"] = network_config[
-                    "node_mac_to_site"
-                ][query_key.sourceMac]
-                per_query_output_dict[query_key_idx]["source_name"] = network_config[
-                    "node_mac_to_name"
-                ][query_key.sourceMac]
-                per_query_output_dict[query_key_idx][
-                    "source_db_interval"
-                ] = source_db_interval
-                per_query_output_dict[query_key_idx][
-                    "stats_query_timestamp"
-                ] = stats_query_timestamp
-                per_query_output_dict[query_key_idx][
-                    "sample_duration_in_s"
-                ] = sample_duration_in_s
+                per_query_dict[key_idx]["source_mac"] = query_key.sourceMac
+                per_query_dict[key_idx]["peer_mac"] = query_key.peerMac
+                per_query_dict[key_idx]["metric_name"] = metric_name
+                link_name = network_config["link_macs_to_name"][
+                    query_key.sourceMac, query_key.peerMac
+                ]
+                per_query_dict[key_idx]["link_name"] = link_name
+                source_site = network_config["node_mac_to_site"][query_key.sourceMac]
+                per_query_dict[key_idx]["source_site"] = source_site
+                source_name = network_config["node_mac_to_name"][query_key.sourceMac]
+                per_query_dict[key_idx]["source_name"] = source_name
+                per_query_dict[key_idx]["source_db_interval"] = source_db_interval
+                per_query_dict[key_idx]["stats_query_timestamp"] = stats_query_timestamp
+                per_query_dict[key_idx]["sample_duration_in_s"] = sample_duration_in_s
 
                 for computed_metric in per_link_stats:
-                    per_query_output_dict[query_key_idx][
+                    per_query_dict[key_idx][computed_metric] = per_link_stats[
                         computed_metric
-                    ] = per_link_stats[computed_metric]
-            output_dict[query_idx] = per_query_output_dict
+                    ]
+            output_dict[query_idx] = per_query_dict
 
         print("Logging to " + json_log_name)
 
@@ -357,7 +349,7 @@ class LinkInsight(object):
             print("Cannot open JSON file to write")
 
     def get_network_wide_link_key_id_by_metric(
-        self, metric, network_config, key_prefix="tgf", topology_name="tower G"
+        self, topology_name, metric, network_config, key_prefix="tgf"
     ):
         """Send query to Beringei Query Server for metrics Beringei key_ids.
            This function is used for debugging. For formal link insight computation,
@@ -366,11 +358,11 @@ class LinkInsight(object):
            to Beringei Query Server, which is also much faster.
 
         Args:
+        topology_name: name of the setup, like "tower G".
         metric: metric to query, like 'phystatus.ssnrest'.
         network_config: network config dictionary, have keys of
                "link_macs_to_name", "node_mac_to_name", and "node_mac_to_site".
         key_prefix: prefix of the metric, like "tgf", "tgd", "link".
-        topology_name: name of the setup, like "tower G".
 
         Return:
         key_id_to_macs: dict from link metric key_id to link_macs, which is the

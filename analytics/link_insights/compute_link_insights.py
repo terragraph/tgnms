@@ -7,8 +7,6 @@
 import sys
 import os
 import time
-from datetime import datetime
-import pytz
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.topology_handler import TopologyHelper
@@ -19,7 +17,7 @@ from module.job_scheduler import JobScheduler
 
 def compute_link_insight(
     metric_names,
-    topology_name="tower G",
+    topology_name,
     sample_duration_in_s=3600,
     source_db_interval=30,
     dump_to_json=False,
@@ -48,9 +46,7 @@ def compute_link_insight(
     """
 
     print("Computing link insight for metrics: ", metric_names)
-    date = datetime.now(tz=pytz.utc)
-    date = date.astimezone(pytz.timezone("US/Pacific"))
-    print("Current CA time is  :", date.strftime("%m/%d/%Y %H:%M:%S %Z"))
+    print("Current unix_time is  :", time.time())
 
     if dump_to_json:
         print("Will dump a copy to JSON for debugging")
@@ -79,10 +75,10 @@ def compute_link_insight(
         # Construct the query with metric information. BQS finds out the
         # right Beringei key_id by link_metric during read_beringei_db
         query_request_to_send = link_insight.construct_query_request(
+            topology_name,
             key_option="link_metric",
-            link_macs_list=link_macs_list,
-            topology_name=topology_name,
             metric_name=metric,
+            link_macs_list=link_macs_list,
             start_ts=stats_query_timestamp - sample_duration_in_s,
             end_ts=stats_query_timestamp,
             source_db_interval=source_db_interval,
@@ -120,6 +116,7 @@ def compute_link_insight(
                 sample_duration_in_s,
                 source_db_interval,
                 stats_query_timestamp,
+                topology_name,
             )
             beringei_db_access.write_beringei_db(stats_to_write)
         except ValueError as err:
@@ -129,10 +126,12 @@ def compute_link_insight(
 
 if __name__ == "__main__":
     metric_names = ["phystatus.ssnrest", "stapkt.txpowerindex", "stapkt.mcs"]
+    # TODO: automatic tower G
+    topology_name = "tower G"
 
     job_scheduler = JobScheduler()
 
-    # Schedule link_insight jobs to run in the next 12 hours
+    # Schedule link_insight jobs to run in the next 24 hours
     max_run_time_in_s = 24 * 60 * 60
     # Run once every 2 mins
     period_in_s = 2 * 60
@@ -149,5 +148,5 @@ if __name__ == "__main__":
         compute_link_insight,
         period_in_s=period_in_s,
         num_of_jobs_to_submit=num_of_jobs_to_submit,
-        job_input=[metric_names],
+        job_input=[metric_names, topology_name],
     )

@@ -37,7 +37,10 @@ class TestLinkInsights(unittest.TestCase):
         # Compute the insights and generate JSON file which contains the
         # interested link metric insights
         compute_link_insight(
-            metric_names, dump_to_json=True, json_log_name_prefix=json_log_name_prefix
+            metric_names,
+            "tower G",
+            dump_to_json=True,
+            json_log_name_prefix=json_log_name_prefix,
         )
 
         for metric in metric_names:
@@ -49,7 +52,8 @@ class TestLinkInsights(unittest.TestCase):
             except Exception:
                 print("Cannot found the JSON file of ", json_file_name)
 
-        means, variances = [], []
+        means = []
+        variances = []
         for query_idx in link_stats.keys():
             per_query_stat = link_stats[query_idx]
             for query_key_idx in per_query_stat:
@@ -100,16 +104,16 @@ class TestLinkInsights(unittest.TestCase):
 
         metric = "phystatus.ssnrest"
         key_id_to_link_macs = link_insight.get_network_wide_link_key_id_by_metric(
-            metric, network_config
+            "tower G", metric, network_config
         )
 
         # Raise exception if no key_id is found
         self.assertTrue(key_id_to_link_macs)
 
         # The maximum number of link key_ids to macs and metric_name to print
-        REMIAN_PRINT_COUNT = 5
+        remain_print_count = 5
         for key_id in key_id_to_link_macs:
-            if REMIAN_PRINT_COUNT <= 0:
+            if remain_print_count <= 0:
                 break
             print(
                 "key_id {} is for source_mac {}, peer_mac {}, metric_name {}".format(
@@ -119,10 +123,11 @@ class TestLinkInsights(unittest.TestCase):
                     metric,
                 )
             )
-            REMIAN_PRINT_COUNT -= 1
+            remain_print_count -= 1
 
+        # TODO: change this tower to something from the mysql part
         query_request_to_send = link_insight.construct_query_request(
-            key_option="key_id", key_ids=list(key_id_to_link_macs.keys())
+            "tower G", key_option="key_id", key_ids=list(key_id_to_link_macs.keys())
         )
 
         try:
