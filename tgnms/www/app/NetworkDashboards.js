@@ -45,7 +45,6 @@ export default class NetworkDashboards extends React.Component {
     networkName: PropTypes.string.isRequired,
     pendingTopology: PropTypes.object.isRequired,
     viewContext: PropTypes.object.isRequired,
-    viewLinkDashboard: PropTypes.func.isRequired,
   };
 
   state = {
@@ -601,6 +600,10 @@ export default class NetworkDashboards extends React.Component {
     return newKeyData;
   };
 
+  _filterKeysToLinkKeys = (peerNode, keyData) => {
+    return keyData.filter(keyObj => keyObj.node === peerNode.mac_addr);
+  };
+
   generateGraph = async (graphType, inputData) => {
     let queries = [];
     if (graphType === 'network') {
@@ -624,13 +627,20 @@ export default class NetworkDashboards extends React.Component {
       this.props.networkConfig.topology.name,
     ).then(graphData => {
       let {keyIds, keyData} = graphData;
-      const {startTime, endTime, minAgo, name, setup} = inputData;
+      const {startTime, endTime, minAgo, name, setup, nodeA} = inputData;
 
       // TODO: fix backend so that stats_ta asks for node or link
       // manually filter through keyIds unrelated to the current node
       if (graphType === 'node') {
         const {nodes} = inputData;
         keyData = this._filterKeysToNodeKeys(nodes, keyData);
+        keyIds = keyData.map(keyObj => keyObj.keyId);
+      }
+
+      // TODO: fix backend again to filter for link stats instead of manually
+      // filtering links to link between nodeA and nodeZ
+      if (keyData && graphType === 'link') {
+        keyData = this._filterKeysToLinkKeys(nodeA, keyData);
         keyIds = keyData.map(keyObj => keyObj.keyId);
       }
 
