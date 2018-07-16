@@ -8,6 +8,7 @@
 import pymysql
 import os
 import json
+import logging
 
 
 class MySqlDbAccess(object):
@@ -41,11 +42,11 @@ class MySqlDbAccess(object):
             with open(analytics_config_file) as config_file:
                 analytics_config = json.load(config_file)
         except Exception:
-            print("Cannot find the configuration file")
+            logging.error("Cannot find the configuration file")
             return None
 
         if "MYSQL" not in analytics_config or "ip" not in analytics_config["MYSQL"]:
-            print("Cannot find MySQL config in the configurations")
+            logging.error("Cannot find MySQL config in the configurations")
             return None
         mysql_host_ip = analytics_config["MYSQL"]["ip"]
 
@@ -60,7 +61,7 @@ class MySqlDbAccess(object):
             mysql_password = os.environ["MYSQL_PASS"]
 
         except BaseException as err:
-            print("Error during loading MySQL environment info:", err.args)
+            logging.error("Error during loading MySQL environment info:", err.args)
             return None
 
         try:
@@ -74,7 +75,7 @@ class MySqlDbAccess(object):
                 cursorclass=pymysql.cursors.DictCursor,
             )
         except BaseException as err:
-            print("Error during MySQL connection setup:", err.args)
+            logging.error("Error during MySQL connection setup:", err.args)
             return None
 
         return instance
@@ -100,7 +101,7 @@ class MySqlDbAccess(object):
             try:
                 cursor.execute(sql_string)
             except BaseException as err:
-                print(err.args)
+                logging.error(err.args)
                 raise ValueError("MySQL execution error")
 
             results = cursor.fetchall()
