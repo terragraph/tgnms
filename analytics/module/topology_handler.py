@@ -8,6 +8,10 @@ import os
 import requests
 import json
 import sys
+import logging
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from module.mysql_db_access import MySqlDbAccess
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
@@ -20,31 +24,39 @@ class TopologyHelper(object):
     Helper functions on the network topology.
     """
 
-    def __new__(cls, analytics_config_file="../AnalyticsConfig.json"):
+    def __new__(cls, topology_name="tower G"):
         """Get the network topology from the api_service.
 
         Args:
-        analytics_config_file: Path to the PyAnalytics.
+        topology_name: name of the topology of interest, like "tower G".
 
         Return: TopologyHelper object on success.
                 None on failure.
         """
 
+        api_service_config = {}
         try:
-            with open(analytics_config_file) as local_file:
-                analytics_config = json.load(local_file)
-        except Exception:
-            print("Cannot find the configuration file")
-            return None
+            mysql_db_access = MySqlDbAccess()
+            if mysql_db_access is None:
+                raise ValueError("Cannot create MySqlDbAccess object")
 
-        if "api_service" not in analytics_config:
-            print("Cannot find api_service config in the configurations")
-            return None
-        else:
-            instance = super().__new__(cls)
-            print("TopologyHelper object created")
-            instance._api_service_config = analytics_config["api_service"]
-            return instance
+            api_service_config = mysql_db_access.read_api_service_setting()
+            if topology_name not in api_service_config:
+                raise ValueError(
+                    "Cannot find the API service config for ", topology_name
+                )
+        except BaseException as err:
+            logging.error("Failed to get the api_service setting", err.args)
+            logging.error("The found api service setting is ", api_service_config)
+
+        instance = super().__new__(cls)
+        logging.info("TopologyHelper object created")
+        instance._api_service_config = {}
+        instance._api_service_config["ip"] = api_service_config[topology_name]["api_ip"]
+        instance._api_service_config["port"] = api_service_config[topology_name][
+            "api_port"
+        ]
+        return instance
 
     def get_topology_from_api_service(self):
         """Get the network topology from the api_service.
@@ -58,22 +70,15 @@ class TopologyHelper(object):
         target_domain = "{}:{}".format(
             self._api_service_config["ip"], self._api_service_config["port"]
         )
-        if self._api_service_config["proxy"]:
-            # Enable proxy
-            non_proxy_domain_set = set(os.environ["NO_PROXY"].split(","))
-            if target_domain in non_proxy_domain_set:
-                non_proxy_domain_set.remove(target_domain)
-            os.environ["NO_PROXY"] = ",".join(
-                [domain for domain in non_proxy_domain_set]
-            )
-        else:
-            os.environ["NO_PROXY"] = target_domain
+
+        # Proxy should not be used in current design
+        os.environ["NO_PROXY"] = target_domain
 
         url_to_post = "http://{}:{}/".format(
             self._api_service_config["ip"], self._api_service_config["port"]
         )
         url_to_post += "api/getTopology"
-        print("sending :", url_to_post)
+        logging.debug("sending :", url_to_post)
 
         # For topology read requests, nothing in the post body
         request_body = "{}"
@@ -82,11 +87,11 @@ class TopologyHelper(object):
         try:
             response = requests.post(url_to_post, data=request_body)
         except OSError:
-            print("Cannot send to the server")
+            logging.error("Cannot send to the server")
             return None
 
         if not response.ok:
-            print("Response status error with code: ", response.status_code)
+            logging.error("Response status error with code: ", response.status_code)
 
         topology_string = response.content.decode("utf-8")
         topology_reply = json.JSONDecoder().decode(topology_string)
