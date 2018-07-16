@@ -33,14 +33,14 @@ class BeringeiData {
   enum UptimeState {
     UP = 1,
     DOWN = 2,
-    MISSING = 3, // State is implied to be UP from nearby data points with state "UP"
-                 // though the data is missing
+    MISSING = 3, // State is implied to be UP from nearby data points with state
+                 // "UP" though the data is missing
     UNKNOWN = 4, // State cannot be inferred, data is missing, state is unknown
   };
 
   std::unordered_map<std::string, std::deque<UptimeState>> uptimeHandler(
-    const double dataPointIncrementMs,
-    const int timeBucketLength);
+      const double dataPointIncrementMs,
+      const int timeBucketIntervalSec);
 
   int getShardId(const std::string& key, const int numShards);
 

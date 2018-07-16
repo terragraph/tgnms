@@ -30,7 +30,6 @@ const int MAX_COLUMNS = 7;
 const int MAX_DATA_POINTS = 60;
 const int NUM_HBS_PER_SEC = 39; // approximately
 
-
 BeringeiData::BeringeiData(const query::QueryRequest& request)
     : request_(request) {}
 
@@ -108,26 +107,31 @@ void BeringeiData::columnNames() {
 /**
  * Uptime Handler
  *
- * Returns a map that maps from stat names to an array of uptime states where each element
- * indicates the state at that time bucket
+ * Returns a map that maps from stat names to an array of uptime states where
+ * each element indicates the state at that time bucket
  */
 
 #define COUNTER_MARGIN_MS 500
 
-std::unordered_map<std::string /* key ID */, std::deque<BeringeiData::UptimeState>> BeringeiData::uptimeHandler(
-  // time interval at which uptime counter is incremented e.g. 25.6 for firmware uptime
-   const double dataPointIncrementMs,
-  // Beringei DB storage interval e.g. 30s
-   const int timeBucketIntervalSec
-) {
+std::unordered_map<
+    std::string /* key ID */,
+    std::deque<BeringeiData::UptimeState>>
+BeringeiData::uptimeHandler(
+    // time interval at which uptime counter is incremented e.g. 25.6 for
+    // firmware uptime
+    const double dataPointIncrementMs,
+    // Beringei DB storage interval e.g. 30s
+    const int timeBucketIntervalSec) {
   // number of time buckets within the start time and end time
-  const int64_t timeBucketCount = (endTime_ - startTime_) / timeBucketIntervalSec;
+  const int64_t timeBucketCount =
+      (endTime_ - startTime_) / timeBucketIntervalSec;
 
   // number of keys within the beringeiTimeSeries
   const int keyCount = beringeiTimeSeries_.size();
 
   // expected rate of increase of uptimeCounter over every time bucket increment
-  const double expectedStatCounterSlope = (timeBucketIntervalSec * 1000) / dataPointIncrementMs;
+  const double expectedStatCounterSlope =
+      (timeBucketIntervalSec * 1000) / dataPointIncrementMs;
 
   // object containing the list of uptime states for each stat
   std::unordered_map<std::string, std::deque<UptimeState>> statToUptimeStates;
@@ -137,17 +141,22 @@ std::unordered_map<std::string /* key ID */, std::deque<BeringeiData::UptimeStat
 
   // loop through all the time series plots for each key
   for (int keyIndex = 0; keyIndex < keyCount; keyIndex++) {
-    // set all values to -1 to distinguish between missing data and reported 0 as counter
+    // set all values to -1 to distinguish between missing data and reported 0
+    // as counter
     std::fill_n(timeSeries, timeBucketCount, -1);
     for (const auto& timePair : beringeiTimeSeries_[keyIndex].second) {
-      int timeBucketId = (timePair.unixTime - startTime_) / timeBucketIntervalSec;
+      int timeBucketId =
+          (timePair.unixTime - startTime_) / timeBucketIntervalSec;
       // get the timePair value and store it within the timeSeries array within
       // the key at the correct time bucket
       timeSeries[timeBucketId] = timePair.value;
     }
 
-    // last timeIndex when the state is UP
-    double lastUpStateStartIndex = -1;
+    // last timeIndex when the state is UP, initialize to where loop starts
+    double lastUpStateStartIndex = timeBucketCount;
+    // if the value is missing/unknown, keep track of the expected stat counter
+    // based off of the last known statCounter value
+    double statCountFromLastKnownValue = 0;
 
     std::deque<UptimeState> uptimeStates;
 
@@ -160,21 +169,28 @@ std::unordered_map<std::string /* key ID */, std::deque<BeringeiData::UptimeStat
       // if statCounter is reported, stat is either up or down
       if (statCounter >= 0) {
         // calculate when the stat started going up from 0
-        lastUpStateStartIndex = timeIndex - (statCounter / expectedStatCounterSlope);
-        // if stat counter is less than the expected count increase (with margin of error),
-        // stat must have been down in the past time bucket
-        if (statCounter < expectedStatCounterSlope - (COUNTER_MARGIN_MS / dataPointIncrementMs)) {
+        lastUpStateStartIndex =
+            timeIndex - (statCounter / expectedStatCounterSlope);
+        statCountFromLastKnownValue = statCounter;
+        // if stat counter is less than the expected count increase (with margin
+        // of error), stat must have been down in the past time bucket
+        if (statCounter < expectedStatCounterSlope -
+                (COUNTER_MARGIN_MS / dataPointIncrementMs)) {
           uptimeStates.push_front(UptimeState::DOWN);
-        }
-        else {
+        } else {
           uptimeStates.push_front(UptimeState::UP);
         }
       }
       // if statCounter is not set, then state is either MISSING or UNKNOWN
       else {
         // if the last calculated time when the stat went up was before the
-        // current time, then stat must have been up, so report missing state
-        if (lastUpStateStartIndex < timeIndex) {
+        // current time and the predicted counter value at this time is more
+        // than the expected counter slope, then stat must have been up, so
+        // report missing state
+        statCountFromLastKnownValue -= expectedStatCounterSlope;
+        if (lastUpStateStartIndex < timeIndex &&
+            statCountFromLastKnownValue > expectedStatCounterSlope -
+                    (COUNTER_MARGIN_MS / dataPointIncrementMs)) {
           uptimeStates.push_front(UptimeState::MISSING);
         }
         // else, the stat went down so we dont know what happened
@@ -186,7 +202,6 @@ std::unordered_map<std::string /* key ID */, std::deque<BeringeiData::UptimeStat
     std::string keyIdStr = folly::to<std::string>(query_.data[keyIndex].keyId);
     // add array of uptimeStates to the map with keyId as the key
     statToUptimeStates[keyIdStr] = std::move(uptimeStates);
-
   }
   delete[] timeSeries;
   return statToUptimeStates;
