@@ -17,6 +17,7 @@ import os
 import json
 import numpy as np
 import unittest
+import logging
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.beringei_db_access import BeringeiDbAccess
@@ -26,6 +27,10 @@ from link_insights.compute_link_insights import compute_link_insight
 
 
 class TestLinkInsights(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestLinkInsights, self).__init__(*args, **kwargs)
+        self.topology_name = "tower G"
+
     def test_link_insight_visualization(self):
         """ This is a simple offline visualization to plot the mean/variance CDF
             of a selected metric across the network.
@@ -38,7 +43,7 @@ class TestLinkInsights(unittest.TestCase):
         # interested link metric insights
         compute_link_insight(
             metric_names,
-            "tower G",
+            self.topology_name,
             dump_to_json=True,
             json_log_name_prefix=json_log_name_prefix,
         )
@@ -50,7 +55,7 @@ class TestLinkInsights(unittest.TestCase):
                 with open(json_file_name) as json_file:
                     link_stats = json.load(json_file)
             except Exception:
-                print("Cannot found the JSON file of ", json_file_name)
+                logging.error("Cannot found the JSON file of ", json_file_name)
 
         means = []
         variances = []
@@ -90,9 +95,11 @@ class TestLinkInsights(unittest.TestCase):
             Beringei key_id, the query_request_to_send is then used by
             BeringeiDbAccess.read_beringei_db to read raw link stats.
         """
-        print("-" * 10, "test_query_stats_by_beringei_key_id starts", "-" * 10)
+        logging.info("-" * 10 + "test_query_stats_by_beringei_key_id starts" + "-" * 10)
+        logging.info("running for topology of: " + self.topology_name)
+
         link_insight = LinkInsight()
-        topology_helper = TopologyHelper()
+        topology_helper = TopologyHelper(topology_name=self.topology_name)
         if not topology_helper:
             raise ValueError("Cannot create TopologyHelper object")
         beringei_db_access = BeringeiDbAccess()
@@ -104,7 +111,7 @@ class TestLinkInsights(unittest.TestCase):
 
         metric = "phystatus.ssnrest"
         key_id_to_link_macs = link_insight.get_network_wide_link_key_id_by_metric(
-            "tower G", metric, network_config
+            self.topology_name, metric, network_config
         )
 
         # Raise exception if no key_id is found
@@ -115,7 +122,7 @@ class TestLinkInsights(unittest.TestCase):
         for key_id in key_id_to_link_macs:
             if remain_print_count <= 0:
                 break
-            print(
+            logging.info(
                 "key_id {} is for source_mac {}, peer_mac {}, metric_name {}".format(
                     key_id,
                     key_id_to_link_macs[key_id][0],
@@ -125,9 +132,10 @@ class TestLinkInsights(unittest.TestCase):
             )
             remain_print_count -= 1
 
-        # TODO: change this tower to something from the mysql part
         query_request_to_send = link_insight.construct_query_request(
-            "tower G", key_option="key_id", key_ids=list(key_id_to_link_macs.keys())
+            self.topology_name,
+            key_option="key_id",
+            key_ids=list(key_id_to_link_macs.keys()),
         )
 
         try:
@@ -137,7 +145,7 @@ class TestLinkInsights(unittest.TestCase):
 
         # Check that the read query return is non-empty
         self.assertTrue(query_returns.queryReturnList)
-        print(
+        logging.info(
             "Send queries for {} links, get {} query returns".format(
                 len(query_request_to_send.queries), len(query_returns.queryReturnList)
             )
@@ -145,4 +153,9 @@ class TestLinkInsights(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     unittest.main()

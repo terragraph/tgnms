@@ -9,6 +9,7 @@ import sys
 import os
 import json
 import time
+import logging
 
 # Include the API between BQS and Analytics
 sys.path.append(
@@ -41,7 +42,7 @@ class LinkInsight(object):
             If dimensions are matched, return True; else, return False.
         """
         if len(query_requests_to_send.queries) != len(computed_stats):
-            print(
+            logging.error(
                 "Send {} queries, ".format(len(query_requests_to_send.queries)),
                 "have {} processed lists".format(len(computed_stats)),
             )
@@ -49,7 +50,7 @@ class LinkInsight(object):
 
         for query_idx, query in enumerate(query_requests_to_send.queries):
             if len(query.queryKeyList) != len(computed_stats[query_idx]):
-                print(
+                logging.error(
                     "For query # {}, send {} keys, have {} processed elements".format(
                         query_idx,
                         len(query.queryKeyList),
@@ -96,7 +97,7 @@ class LinkInsight(object):
         """
 
         if end_ts is None or start_ts is None:
-            print("Start/End time stamp not provided!")
+            logging.warning("Start/End time stamp not provided!")
             bq.RawReadQueryRequest([])
 
         # Construct the queries to send
@@ -127,7 +128,7 @@ class LinkInsight(object):
                 )
                 query_requests_to_send.append(query_to_send)
         else:
-            print("Nothing to query")
+            logging.warning("Nothing to query")
 
         # Generate the query list to send
         query_request_to_send = bq.RawReadQueryRequest(query_requests_to_send)
@@ -186,7 +187,7 @@ class LinkInsight(object):
                 per_link_stats = computed_stats[query_idx][key_idx]
 
                 if per_link_stats is None:
-                    print(
+                    logging.warning(
                         "Skipping link between {} and {} due to no stats".format(
                             source_mac, peer_mac
                         )
@@ -262,7 +263,7 @@ class LinkInsight(object):
                 per_query_stats.append(per_link_stats)
             computed_stats.append(per_query_stats)
 
-        print(
+        logging.info(
             "{} out of {} query keys do not have any report".format(
                 num_no_report_time_series, num_of_query_keys
             )
@@ -334,7 +335,7 @@ class LinkInsight(object):
                     ]
             output_dict[query_idx] = per_query_dict
 
-        print("Logging to " + json_log_name)
+        logging.info("Logging to " + json_log_name)
 
         try:
             with open(json_log_name, "w", encoding="utf-8") as jsonfile:
@@ -346,7 +347,7 @@ class LinkInsight(object):
                     separators=(",", ": "),
                 )
         except Exception:
-            print("Cannot open JSON file to write")
+            logging.error("Cannot open JSON file to write")
 
     def get_network_wide_link_key_id_by_metric(
         self, topology_name, metric, network_config, key_prefix="tgf"
@@ -374,12 +375,12 @@ class LinkInsight(object):
         # the link macs is the tuple of (source_mac, peer_mac)
         beringei_db_access = BeringeiDbAccess()
         if beringei_db_access is None:
-            print("Fail to create BeringeiDbAccess object")
+            logging.error("Fail to create BeringeiDbAccess object")
             return {}
 
         key_id_to_macs = {}
         num_links = len(network_config["link_macs_to_name"].keys())
-        print("In total, {} links to find key_ids".format(num_links))
+        logging.info("In total, {} links to find key_ids".format(num_links))
         for source_mac, peer_mac in network_config["link_macs_to_name"].keys():
 
             full_key = key_prefix + "." + peer_mac + "." + metric
@@ -395,7 +396,7 @@ class LinkInsight(object):
                     source_mac, type_ahead_request
                 )
             except ValueError as err:
-                print("Get Beringei key_id error:", err.args)
+                logging.exception("Get Beringei key_id error")
                 return {}
 
             key_id_to_macs[return_key_id] = (source_mac, peer_mac)
