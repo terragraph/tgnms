@@ -218,7 +218,7 @@ export const prepareUpgrade = upgradeGroupReq => {
     skipFailure,
     skipLinks: [],
     timeout,
-    ugType: UpgradeGroupType.NODE,
+    ugType: UpgradeGroupType.NODES,
     urReq: {
       imageUrl,
       md5,

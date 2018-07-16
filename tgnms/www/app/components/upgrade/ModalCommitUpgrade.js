@@ -21,7 +21,7 @@ const BATCHING = {
 };
 
 export const REQUEST_TYPE = {
-  NODE: 'nodes',
+  NODES: 'nodes',
   NETWORK: 'network',
   AUTO: 'auto',
 };
@@ -48,7 +48,7 @@ export default class ModalCommitUpgrade extends React.Component {
   submitCommit = () => {
     let nodes = [];
     let excludeNodes = [];
-    let ugType = this.state.requestType === REQUEST_TYPE.NODE ? 10 : 20;
+    let ugType = this.state.requestType === REQUEST_TYPE.NODES ? 10 : 20;
 
     if (this.state.requestType === REQUEST_TYPE.AUTO) {
       // Automatically choose Node or Network Level to create the smallest payload
@@ -61,7 +61,7 @@ export default class ModalCommitUpgrade extends React.Component {
         excludeNodes = this.props.getExcludedNodes(this.props.upgradeNodes);
         ugType = 20;
       }
-    } else if (this.state.requestType === REQUEST_TYPE.NODE) {
+    } else if (this.state.requestType === REQUEST_TYPE.NODES) {
       // Node Level Request
       nodes = this.props.upgradeNodes;
     } else {
@@ -263,14 +263,14 @@ export default class ModalCommitUpgrade extends React.Component {
                 />
                 <div className="choice-label">Network</div>
               </label>
-              <label className="choice" htmlFor={REQUEST_TYPE.NODE}>
+              <label className="choice" htmlFor={REQUEST_TYPE.NODES}>
                 <input
                   type="radio"
                   name="request_type"
-                  value={REQUEST_TYPE.NODE}
-                  checked={this.state.requestType === REQUEST_TYPE.NODE}
+                  value={REQUEST_TYPE.NODES}
+                  checked={this.state.requestType === REQUEST_TYPE.NODES}
                   onChange={event =>
-                    this.setState({requestType: REQUEST_TYPE.NODE})
+                    this.setState({requestType: REQUEST_TYPE.NODES})
                   }
                 />
                 <div className="choice-label">Node</div>
