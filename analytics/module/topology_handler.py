@@ -8,6 +8,7 @@ import os
 import requests
 import json
 import sys
+import logging
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.mysql_db_access import MySqlDbAccess
@@ -45,11 +46,11 @@ class TopologyHelper(object):
                     "Cannot find the API service config for ", topology_name
                 )
         except BaseException as err:
-            print("Failed to get the api_service setting", err.args)
-            print("The found api service setting is ", api_service_config)
+            logging.error("Failed to get the api_service setting", err.args)
+            logging.error("The found api service setting is ", api_service_config)
 
         instance = super().__new__(cls)
-        print("TopologyHelper object created")
+        logging.info("TopologyHelper object created")
         instance._api_service_config = {}
         instance._api_service_config["ip"] = api_service_config[topology_name]["api_ip"]
         instance._api_service_config["port"] = api_service_config[topology_name][
@@ -77,7 +78,7 @@ class TopologyHelper(object):
             self._api_service_config["ip"], self._api_service_config["port"]
         )
         url_to_post += "api/getTopology"
-        print("sending :", url_to_post)
+        logging.debug("sending :", url_to_post)
 
         # For topology read requests, nothing in the post body
         request_body = "{}"
@@ -86,11 +87,11 @@ class TopologyHelper(object):
         try:
             response = requests.post(url_to_post, data=request_body)
         except OSError:
-            print("Cannot send to the server")
+            logging.error("Cannot send to the server")
             return None
 
         if not response.ok:
-            print("Response status error with code: ", response.status_code)
+            logging.error("Response status error with code: ", response.status_code)
 
         topology_string = response.content.decode("utf-8")
         topology_reply = json.JSONDecoder().decode(topology_string)
