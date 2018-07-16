@@ -13,6 +13,7 @@ from module.topology_handler import TopologyHelper
 from module.beringei_db_access import BeringeiDbAccess
 from link_insights.link_insight import LinkInsight
 from module.job_scheduler import JobScheduler
+import logging
 
 
 def compute_link_insight(
@@ -45,20 +46,20 @@ def compute_link_insight(
     No return.
     """
 
-    print("Computing link insight for metrics: ", metric_names)
-    print("Current unix_time is  :", time.time())
+    logging.info("Computing link insight for metrics: " + ", ".join(metric_names))
+    logging.info("Current unix_time is  :{}".format(time.time()))
 
     if dump_to_json:
-        print("Will dump a copy to JSON for debugging")
+        logging.warning("Will dump a copy to JSON for debugging")
 
     link_insight = LinkInsight()
     topology_helper = TopologyHelper()
     if not topology_helper:
-        print("Cannot create TopologyHelper object")
+        logging.error("Cannot create TopologyHelper object")
         return
     beringei_db_access = BeringeiDbAccess()
     if not beringei_db_access:
-        print("Cannot create BeringeiDbAccess object")
+        logging.error("Cannot create BeringeiDbAccess object")
         return
 
     # Obtain the network config
@@ -68,7 +69,7 @@ def compute_link_insight(
         stats_query_timestamp = int(time.time())
 
     for metric in metric_names:
-        print("Examining the link metrics of " + metric)
+        logging.info("Examining the link metrics of " + metric)
 
         link_macs_list = list(network_config["link_macs_to_name"].keys())
 
@@ -88,7 +89,7 @@ def compute_link_insight(
         try:
             query_returns = beringei_db_access.read_beringei_db(query_request_to_send)
         except ValueError as err:
-            print("Read Beringei database error:", err.args)
+            logging.error("Read Beringei database error:", err.args)
             return
 
         computed_stats = link_insight.compute_timeseries_avg_and_var(query_returns)
@@ -120,14 +121,24 @@ def compute_link_insight(
             )
             beringei_db_access.write_beringei_db(stats_to_write)
         except ValueError as err:
-            print("Failed to write back to Beringei database", err.args)
+            logging.error("Failed to write back to Beringei database", err.args)
             return
 
 
 if __name__ == "__main__":
-    metric_names = ["phystatus.ssnrest", "stapkt.txpowerindex", "stapkt.mcs"]
-    # TODO: automatic tower G
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     topology_name = "tower G"
+    metric_names = ["phystatus.ssnrest", "stapkt.txpowerindex", "stapkt.mcs"]
+    logging.info(
+        "Computing naive link insights for {} over metrics of {}".format(
+            topology_name, ", ".join(metric_names)
+        )
+    )
 
     job_scheduler = JobScheduler()
 
@@ -137,7 +148,7 @@ if __name__ == "__main__":
     period_in_s = 2 * 60
 
     num_of_jobs_to_submit = max_run_time_in_s / period_in_s
-    print(
+    logging.info(
         "Schedule link_insights jobs with periodicity"
         + "of {} mins for the next {} hours".format(
             period_in_s / 60, max_run_time_in_s / 3600
