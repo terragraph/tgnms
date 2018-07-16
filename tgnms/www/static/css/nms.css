@@ -34,7 +34,7 @@
        url('/static/fonts/open-sans-v15-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
-#root {
+body {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   margin: auto;
 }
@@ -220,6 +220,10 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
     margin: 0px;
 }
 
+.details-heading {
+  margin-top: 20px;
+}
+
 .details-body {
   padding: 2px 8px;
 }
@@ -233,8 +237,9 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 }
 
 .details-table {
-  padding: 2px;
   margin-bottom: 5px;
+  padding: 2px;
+  width: 100%;
 }
 .details-table th {
   padding-right: 10px;
@@ -246,15 +251,24 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .details-table tr {
   background: #fff;
 }
+.details-table.bgp-route-info {
+  margin-top: 10px;
+}
 .details-separator {
   margin: 1px;
 }
 .details-action-list {
+  border: 1px solid #d3d3d3;
   font-size: 1.3rem;
   margin-bottom: 5px;
+  padding: 5px;
 }
 .details-action-list .details-link {
   margin: 4px 0;
+}
+.details-action-list .details-link.forced {
+  float: right;
+  margin: auto;
 }
 .details-button-panel {
   display: flex;
@@ -333,6 +347,35 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 
 .details-legend-table td {
   text-align: center;
+}
+
+.bgp-neighbor-info {
+  margin-top: 10px;
+}
+
+.bgp-neighbor-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.bgp-neighbor-header strong {
+  font-size: 1.3rem;
+}
+
+.bgp-neighbor-header .status {
+  border-radius: 50%;
+  margin-right: 5px;
+  height: 1.3rem;
+  width: 1.3rem;
+}
+
+.bgp-neighbor-header .status.online {
+  background-color: #2ecc71;
+}
+
+.bgp-neighbor-header .status.offline {
+  background-color: #e74c3c;
 }
 
 .CustomTable__Autosizer__Container {

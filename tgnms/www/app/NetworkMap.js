@@ -31,10 +31,15 @@ import {
 // helper methods
 import {getNodeMarker} from './helpers/NetworkMapHelpers.js';
 import NetworkStore from './stores/NetworkStore.js';
+import {
+  NodeType,
+  PolarityType,
+  NodeStatusType,
+} from '../thrift/gen-nodejs/Topology_types';
 import {rgb, scaleLinear} from 'd3';
 import LeafletGeom from 'leaflet-geometryutil';
 // leaflet maps
-import {isEmpty} from 'lodash-es';
+import {get, isEmpty, some} from 'lodash-es';
 import Leaflet, {LatLng} from 'leaflet';
 import Control from 'react-leaflet-control';
 import {
@@ -562,12 +567,13 @@ export default class NetworkMap extends React.Component {
     color,
     hasAp,
     hasPop,
+    bgpDisabled,
     isCn,
     hasMac,
     siteIndex,
   ): React.Element<any> => {
     let apMarker = null;
-    let secondaryMarkerColor = null;
+    let secondaryMarkerProps = null;
 
     if (hasAp) {
       apMarker = (
@@ -581,17 +587,32 @@ export default class NetworkMap extends React.Component {
           key={'ap-site ' + site.name}
           siteIndex={siteIndex}
           onClick={this.handleMarkerClick}
-          level={11}
+          level={12}
         />
       );
     }
 
     if (hasPop) {
-      secondaryMarkerColor = 'blue';
+      secondaryMarkerProps = {
+        fillColor: 'blue',
+      };
+
+      if (bgpDisabled) {
+        secondaryMarkerProps = {
+          ...secondaryMarkerProps,
+          color: 'red',
+          stroke: true,
+          weight: 2,
+        };
+      }
     } else if (isCn) {
-      secondaryMarkerColor = 'pink';
+      secondaryMarkerProps = {
+        fillColor: 'pink',
+      };
     } else if (!hasMac) {
-      secondaryMarkerColor = 'white';
+      secondaryMarkerProps = {
+        fillColor: 'white',
+      };
     }
 
     return (
@@ -610,18 +631,18 @@ export default class NetworkMap extends React.Component {
         fillColor={color}
         level={10}>
         {apMarker}
-        {secondaryMarkerColor && (
+        {secondaryMarkerProps && (
           <CircleMarker
             center={pos}
             radius={this.state.zoomLevel - 12}
             clickable
             fillOpacity={1}
-            color={secondaryMarkerColor}
             key={'pop-node ' + site.name}
             siteIndex={siteIndex}
+            stroke={false}
             onClick={this.handleMarkerClick}
-            fillColor={secondaryMarkerColor}
-            level={11}
+            level={12}
+            {...secondaryMarkerProps}
           />
         )}
       </CircleMarker>
@@ -903,15 +924,6 @@ export default class NetworkMap extends React.Component {
         };
       }
 
-      let healthyCount = 0;
-      let totalCount = 0;
-      const inCommitBatch = 0;
-      let hasPop = false;
-      let hasMac = false;
-      let isCn = false;
-      const hasAp = site.hasOwnProperty('ruckus');
-      let sitePolarity = null;
-
       const siteCoords = [site.location.latitude, site.location.longitude];
 
       const nodeKeysInSite = Object.keys(topology.nodes).filter(nodeIndex => {
@@ -919,25 +931,55 @@ export default class NetworkMap extends React.Component {
         return node.site_name === site.name;
       });
 
+      const totalCount = nodeKeysInSite.length;
+      let healthyCount = 0;
+      const inCommitBatch = 0;
+      let hasPop = false;
+      let bgpDisabled = false;
+      let hasMac = false;
+      let isCn = false;
+      const hasAp = site.hasOwnProperty('ruckus');
+      let sitePolarity = null;
+
       nodeKeysInSite.forEach(nodeIndex => {
         const node = topology.nodes[nodeIndex];
 
-        totalCount++;
-        healthyCount += node.status == 2 || node.status == 3 ? 1 : 0;
-        if (sitePolarity == null) {
-          sitePolarity = node.polarity;
+        if (
+          node.status === NodeStatusType.ONLINE ||
+          node.status === NodeStatusType.ONLINE_INITIATOR
+        ) {
+          ++healthyCount;
         }
-        // mark as hybrid if anything in the site differs
-        sitePolarity = node.polarity != sitePolarity ? 3 : sitePolarity;
-        hasPop = node.pop_node ? true : hasPop;
+
+        if (sitePolarity === null) {
+          sitePolarity = node.polarity;
+        } else if (sitePolarity !== node.polarity) {
+          // Site Polarity has been set and doesn't match another node's polarity
+          site.polarity = PolarityType.HYBRID_ODD;
+        }
+
+        if (node.pop_node) {
+          hasPop = true;
+
+          // Check through all of node's bgp neighbors
+          // If all neighbors are disconnected, then set bgpDisabled to true
+          const bgpStatus = get(node, 'status_dump.bgpStatus');
+          if (bgpStatus) {
+            const hasOnlineNeighbor = some(bgpStatus, {online: true});
+            if (!hasOnlineNeighbor) {
+              bgpDisabled = true;
+            }
+          }
+        }
+
         // TODO: check for mixed sites (error)
-        isCn = node.node_type == 1 ? true : isCn;
-        hasMac =
-          node.hasOwnProperty('mac_addr') &&
-          node.mac_addr &&
-          node.mac_addr.length
-            ? true
-            : hasMac;
+        if (node.node_type === NodeType.CN) {
+          isCn = true;
+        }
+
+        if (node.hasOwnProperty('mac_addr') && node.mac_addr) {
+          hasMac = true;
+        }
       });
 
       let siteColor = SiteOverlayKeys.Health.Unhealthy.color; // default
@@ -974,6 +1016,7 @@ export default class NetworkMap extends React.Component {
           siteColor,
           hasAp,
           hasPop,
+          bgpDisabled,
           isCn,
           hasMac,
           siteIndexForMarker,

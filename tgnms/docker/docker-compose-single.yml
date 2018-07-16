@@ -1,6 +1,15 @@
-version: '3.4'
+version: '3.6'
 
 services:
+  ipv6:
+    image: secure.cxl-terragraph.com:443/migo:latest
+    restart: always
+    network_mode: "host"
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /lib/modules:/lib/modules:ro
+
   db:
     image: mysql:5
     env_file:
@@ -13,6 +22,10 @@ services:
       - ./docker_volumes/mysql_db:/var/lib/mysql
     ports:
       - "3306:3306"
+    networks:
+      - terragraph_net
+    depends_on:
+      - ipv6
 
   db_log_cleanup:
     build:
@@ -26,8 +39,11 @@ services:
     restart: always
     volumes:
       - ./docker_volumes/logs:/logs
+    networks:
+      - terragraph_net
     command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z $${MYSQL_HOST} 3306; do sleep 1; done && /usr/src/service/mysql_partitioner/run"]
     depends_on:
+      - ipv6
       - db
 
   nms:
@@ -42,8 +58,11 @@ services:
     restart: always
     ports:
       - "80:80"
+    networks:
+      - terragraph_net
     command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z bqs 8086; do sleep 1; done && npm start"]
     depends_on:
+      - ipv6
       - db
       - bqs
 
@@ -72,7 +91,11 @@ services:
       - ./docker_volumes/beringei:/data
     ports:
       - "9991:9991"
+    networks:
+      - terragraph_net
     command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names $${HOSTNAME} --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
+    depends_on:
+      - ipv6
 
   beringei_30s:
     build:
@@ -97,7 +120,11 @@ services:
       - ./docker_volumes/beringei:/data
     ports:
       - "9992:9992"
+    networks:
+      - terragraph_net
     command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names $${HOSTNAME} --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
+    depends_on:
+      - ipv6
 
   bqs:
     build:
@@ -115,8 +142,15 @@ services:
       - ./docker_volumes/logs:/home/nms/data
     ports:
       - "8086:8086"
+    networks:
+      - terragraph_net
     command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z db 3306; do sleep 1; done && until nc -z beringei_30s 9992; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei_1s.json --host_names beringei_1s --port 9991 && beringei/tools/beringei_configuration_generator --file_path beringei_30s.json --host_names beringei_30s --port 9992 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads $${BQS_THREADS} -writer_queue_size 500000 -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -logtostderr"]
     depends_on:
+      - ipv6
       - db
       - beringei_1s
       - beringei_30s
+
+networks:
+  terragraph_net:
+    external: true

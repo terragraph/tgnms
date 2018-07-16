@@ -76,6 +76,7 @@
     "react-tabs": "^2.2.2",
     "react-textarea-autosize": "^6.1.0",
     "react-timeseries-charts": "^0.14.0",
+    "react-tooltip": "^3.6.1",
     "react-virtualized": "^9.19.1",
     "request": "^2.79.0",
     "style-loader": "^0.16.0",

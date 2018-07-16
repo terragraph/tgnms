@@ -393,19 +393,19 @@ export default class DetailsSite extends React.Component {
                     </span>
                   </td>
                 </tr>
-                {}
               </tbody>
             </table>
           </div>
           <div>
             <h4
+              className="details-heading"
               onClick={() => {
                 this.onHeadingClick('showNodes');
               }}>
               Nodes
             </h4>
             {this.state.showNodes && (
-              <table className="details-table" style={{width: '100%'}}>
+              <table className="details-table">
                 <thead>
                   <tr>
                     <th>Name</th>
@@ -423,13 +423,14 @@ export default class DetailsSite extends React.Component {
           </div>
           <div>
             <h4
+              className="details-heading"
               onClick={() => {
                 this.onHeadingClick('showLinks');
               }}>
               Links
             </h4>
             {this.state.showLinks && (
-              <table className="details-table" style={{width: '100%'}}>
+              <table className="details-table">
                 <thead>
                   <tr>
                     <th>Name</th>
@@ -445,13 +446,14 @@ export default class DetailsSite extends React.Component {
           {site.hasOwnProperty('ruckus') && (
             <div>
               <h4
+                className="details-heading"
                 onClick={() => {
                   this.onHeadingClick('showRuckus');
                 }}>
                 Ruckus
               </h4>
               {this.state.showRuckus && (
-                <table className="details-table" style={{width: '100%'}}>
+                <table className="details-table">
                   <tbody>{ruckusRow}</tbody>
                 </table>
               )}
@@ -459,6 +461,7 @@ export default class DetailsSite extends React.Component {
           )}
           <div>
             <h4
+              className="details-heading"
               onClick={() => {
                 this.onHeadingClick('showActions');
               }}>

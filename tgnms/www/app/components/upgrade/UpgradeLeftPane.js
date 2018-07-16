@@ -34,10 +34,6 @@ const warningAlertProps = {
 };
 
 export default class UpgradeLeftPane extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   isUpgradeInProgress() {
     const {currentRequest, pendingRequests} = this.props;
     return currentRequest || pendingRequests.length > 0;

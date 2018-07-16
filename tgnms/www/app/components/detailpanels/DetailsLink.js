@@ -280,13 +280,13 @@ export default class DetailsLink extends React.Component {
 
   render() {
     if (!this.props.link || !this.props.link.name) {
-      return <div />;
+      return null;
     }
 
     const nodeA = this.props.nodes[this.props.link.a_node_name];
     const nodeZ = this.props.nodes[this.props.link.z_node_name];
     if (!nodeA || !nodeZ) {
-      return <div />;
+      return null;
     }
     const siteA = nodeA ? nodeA.site_name : 'Unknown Site';
     const siteZ = nodeZ ? nodeZ.site_name : 'Unknown Site';
@@ -337,7 +337,7 @@ export default class DetailsLink extends React.Component {
           className="details"
           style={{maxHeight: this.props.maxHeight, width: '100%'}}>
           <h3 style={{marginTop: '0px'}}>{this.props.link.name}</h3>
-          <table className="details-table" style={{width: '100%'}}>
+          <table className="details-table">
             <tbody>
               <tr>
                 <td width="100px">A-Node</td>
@@ -422,13 +422,14 @@ export default class DetailsLink extends React.Component {
             </tbody>
           </table>
           <h4
+            className="details-heading"
             onClick={() => {
               this.onHeadingClick('showActions');
             }}>
             Actions
           </h4>
           {this.state.showActions && (
-            <table className="details-table" style={{width: '100%'}}>
+            <table className="details-table">
               <tbody>
                 <tr>
                   <td colSpan="3">

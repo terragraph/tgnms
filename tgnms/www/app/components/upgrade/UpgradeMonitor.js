@@ -15,10 +15,6 @@ import {render} from 'react-dom';
 import React from 'react';
 
 export default class UpgradeMonitor extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   flattenPendingBatches(pendingBatches) {
     // flatten the list of node batches into a single list of nodes
     // then associate each node with the batch it belongs to (batchIdx)
@@ -51,7 +47,7 @@ export default class UpgradeMonitor extends React.Component {
     return (
       <div className="rc-upgrade-monitor">
         <div className="upgrade-monitor-row">
-          <label>Node upgrade status (select nodes for upgrade)</label>
+          <label>Node Upgrade Status (Select nodes for upgrade)</label>
           <UpgradeNodesTable
             nodes={nodes}
             selectedNodes={selectedNodes}

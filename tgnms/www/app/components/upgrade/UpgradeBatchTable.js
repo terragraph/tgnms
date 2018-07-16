@@ -25,13 +25,12 @@ const upgradeStatusToString = {
 };
 
 export default class UpgradeBatchTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.getTableRows = this.getTableRows.bind(this);
-    this.state = {};
-  }
+  static propTypes = {
+    height: PropTypes.number.isRequired,
+    nodes: PropTypes.array.isRequired,
+  };
 
-  getTableRows(
+  getTableRows = (
     nodes,
   ): Array<{
     name: string,
@@ -39,7 +38,7 @@ export default class UpgradeBatchTable extends React.Component {
     nextVersion: string,
     upgradeStatus: string,
     upgradeReqId: string,
-  }> {
+  }> => {
     const rows = [];
     nodes.forEach(node => {
       // current version
@@ -75,7 +74,7 @@ export default class UpgradeBatchTable extends React.Component {
       });
     });
     return rows;
-  }
+  };
 
   render() {
     const {nodes, height} = this.props;
@@ -130,8 +129,3 @@ export default class UpgradeBatchTable extends React.Component {
     );
   }
 }
-
-UpgradeBatchTable.propTypes = {
-  height: PropTypes.number.isRequired,
-  nodes: PropTypes.array.isRequired,
-};

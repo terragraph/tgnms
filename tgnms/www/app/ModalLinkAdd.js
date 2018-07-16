@@ -89,7 +89,7 @@ export default class ModalLinkAdd extends React.Component {
             a_node_mac: nodeAMac,
             a_node_name: nodeA,
             is_alive: false,
-            linkType: LINK_TYPE_MAP[this.state.linkType],
+            link_type: LINK_TYPE_MAP[this.state.linkType],
             linkup_attempts: 0,
             z_node_mac: nodeZMac,
             z_node_name: nodeZ,

@@ -7,6 +7,7 @@
 
 import Dispatcher from '../NetworkDispatcher.js';
 import {Actions} from '../constants/NetworkConstants.js';
+import {LinkType} from '../../thrift/gen-nodejs/Topology_types';
 import Leaflet, {Point, LatLng} from 'leaflet';
 
 export const MAX_SECTOR_SIZE = 45; // max size allocated for a node sector, in degrees
@@ -35,26 +36,30 @@ const sortkeysByValue = toSort => {
   return kvPairs.map(pair => pair[0]); // retrieve keys only
 };
 
-const getLinkAnglesForNodes = (nodeNames, linksByNode) => {
+const getLinkAnglesForNodes = (nodeList, linksByNode) => {
   const anglesByNode = {};
 
-  nodeNames.forEach(node => {
-    if (!linksByNode[node]) {
-      return;
-    }
+  nodeList.forEach(node => {
+    const nodeName = node.name;
+    let linkAngle = node.ant_azimuth;
     // assume 1 DN link per node, and we retrieve it here
-    const DNLinks = linksByNode[node].filter(link => link.link_type === 1);
-    if (DNLinks.length === 0) {
-      return; // skip node with no DN links
+    let dnLinks = [];
+    if (linksByNode.hasOwnProperty(node.name)) {
+      dnLinks = linksByNode[node.name].filter(
+        link => link.link_type === LinkType.WIRELESS,
+      );
     }
-
-    const link = DNLinks[0];
-    const linkAngle = link.angle;
-    if (node === link.a_node_name) {
-      anglesByNode[node] = linkAngle < 0 ? linkAngle + 360 : linkAngle;
-    } else if (node === link.z_node_name) {
-      const angleOfANode = linkAngle < 0 ? linkAngle + 360 : linkAngle;
-      anglesByNode[node] = (angleOfANode + 180) % 360;
+    if (dnLinks.length > 0) {
+      const link = dnLinks[0];
+      linkAngle = link.angle;
+      if (node.name === link.a_node_name) {
+        anglesByNode[node.name] = linkAngle < 0 ? linkAngle + 360 : linkAngle;
+      } else if (node.name === link.z_node_name) {
+        const angleOfANode = linkAngle < 0 ? linkAngle + 360 : linkAngle;
+        anglesByNode[node.name] = (angleOfANode + 180) % 360;
+      }
+    } else if (linkAngle !== 0) {
+      anglesByNode[node.name] = linkAngle;
     }
   });
 
@@ -71,7 +76,6 @@ const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
     rightAngle - ownAngle < 0
       ? rightAngle - ownAngle + 360
       : rightAngle - ownAngle;
-
   // desired offset from the midpoint to one side. we want to make the sector symmetrical about the link line
   const desiredOffset = Math.min(leftOffset, rightOffset, MAX_SECTOR_SIZE / 2);
 
@@ -104,11 +108,10 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
   // special case when we have one node
   if (sortedNodesByAngle.length === 1) {
     const node = sortedNodesByAngle[0];
-    const nodeMac = nodesByName[node].mac_addr;
 
-    nodeValues[nodeMac + '_left'] = (360 - MAX_SECTOR_SIZE) / 2;
+    nodeValues[node + '_left'] = (360 - MAX_SECTOR_SIZE) / 2;
     nodeValues[node] = MAX_SECTOR_SIZE;
-    nodeValues[nodeMac + '_right'] = (360 - MAX_SECTOR_SIZE) / 2;
+    nodeValues[node + '_right'] = (360 - MAX_SECTOR_SIZE) / 2;
 
     return {
       nodeValues,
@@ -152,7 +155,7 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
         linkAnglesForNodes[node],
         adjLeftAngle,
         rightAngle,
-        nodesByName[node].mac_addr,
+        node,
       ),
     );
   });
@@ -172,17 +175,14 @@ export const getNodeMarker = (
   mouseEnterFunc,
   mouseLeaveFunc,
 ) => {
-  let nodeNames = [];
   const nodesByName = {};
   const linkAnglesForSiteNodes = {};
   nodesInSite.forEach(node => {
-    nodeNames = nodeNames.concat(node.name);
     nodesByName[node.name] = node;
   });
 
   // filter the link angles for only the nodes in the site (the ones that we care about)
-  const linkAnglesForNodes = getLinkAnglesForNodes(nodeNames, linksByNode);
-
+  const linkAnglesForNodes = getLinkAnglesForNodes(nodesInSite, linksByNode);
   const {nodeValues, offset} = getNodeValues(
     linkAnglesForNodes,
     sortkeysByValue(linkAnglesForNodes),

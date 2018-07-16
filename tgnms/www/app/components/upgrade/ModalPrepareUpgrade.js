@@ -8,55 +8,46 @@
 import 'sweetalert/dist/sweetalert.css';
 
 import {prepareUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
+import {MODAL_STYLE} from '../../constants/UpgradeConstants.js';
 import classNames from 'classnames';
+import {isEmpty} from 'lodash-es';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import Modal from 'react-modal';
 import Select from 'react-select';
 import React from 'react';
 import swal from 'sweetalert';
-import {versionSlicer} from '../../helpers/NetworkHelpers.js';
-
-const modalStyle = {
-  content: {
-    width: 'calc(100% - 40px)',
-    maxWidth: '800px',
-    display: 'table',
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
-  },
-};
 
 export default class ModalPrepareUpgrade extends React.Component {
-  constructor(props) {
-    super(props);
+  static propTypes = {
+    getExcludedNodes: PropTypes.func.isRequired,
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    topologyName: PropTypes.string.isRequred,
+    upgradeNodes: PropTypes.array.isRequired,
+    upgradeImages: PropTypes.array.isRequired,
+  };
 
-    this.state = {
-      timeout: 180, // timeout for the entire prepare operation
-      skipFailure: true, // skip failed nodes (will not stop operation)
-      isParallel: true, // parallelize teh operation? (put all nodes in one batch)
-      limit: 1, // limit per batch. max batch size is infinite if this is set to 0
-      selectedImage: {}, // image to upgrade, with a name and a link
+  state = {
+    timeout: 180, // timeout for the entire prepare operation
+    skipFailure: true, // skip failed nodes (will not stop operation)
+    isParallel: true, // parallelize the operation? (put all nodes in one batch)
+    limit: 1, // limit per batch. max batch size is infinite if this is set to 0
+    selectedImage: {}, // image to upgrade, with a name and a link
 
-      // HTTP
-      downloadAttempts: 1, // number of attempts for downloading the image
+    // HTTP
+    downloadAttempts: 1, // number of attempts for downloading the image
 
-      // TORRENT
-      downloadTimeout: 180, // timeout for torrent download
-      downloadLimit: -1, // limit for torrent download speed (-1 for unlimited)
-      uploadLimit: -1, // limit for torrent upload speed (-1 for unlimited)
-      maxConnections: -1, // max concurrent connections for torrent (-1 for unlimited)
+    // TORRENT
+    downloadTimeout: 180, // timeout for torrent download
+    downloadLimit: -1, // limit for torrent download speed (-1 for unlimited)
+    uploadLimit: -1, // limit for torrent upload speed (-1 for unlimited)
+    maxConnections: -1, // max concurrent connections for torrent (-1 for unlimited)
+    isHttp: false, // internal component state to let the user specify http or torrent properties
+  };
 
-      isHttp: false, // internal component state to let the user specify http or torrent properties
-    };
-  }
-
-  submitPrepare() {
-    if (Object.keys(this.state.selectedImage).length === 0) {
+  submitPrepare = () => {
+    if (isEmpty(this.state.selectedImage)) {
       swal({
         title: 'No Image Selected',
         text: `No image was selected for upgrade.
@@ -66,8 +57,6 @@ export default class ModalPrepareUpgrade extends React.Component {
       });
       return;
     }
-
-    const excludeNodes = this.props.getExcludedNodes();
 
     if (!this.state.isParallel) {
       const n = parseInt(this.state.limit, 10);
@@ -82,7 +71,7 @@ export default class ModalPrepareUpgrade extends React.Component {
     }
 
     const requestBody = {
-      excludeNodes,
+      nodes: this.props.upgradeNodes,
       imageUrl: this.state.selectedImage.magnetUri,
       md5: this.state.selectedImage.md5,
 
@@ -111,14 +100,14 @@ export default class ModalPrepareUpgrade extends React.Component {
 
     prepareUpgrade(requestBody);
     this.props.onClose();
-  }
+  };
 
-  modalClose() {
+  modalClose = () => {
     this.setState({
       selectedImage: {},
     });
     this.props.onClose();
-  }
+  };
 
   onChangeDownloadMode = e => {
     this.setState({isHttp: e.currentTarget.value === 'http'});
@@ -136,34 +125,32 @@ export default class ModalPrepareUpgrade extends React.Component {
     });
   };
 
-  renderUpgradeImages() {
+  renderUpgradeImagesSelect() {
     const {upgradeImages} = this.props;
     const {selectedImage} = this.state;
 
-    const selectOptions = upgradeImages.map(image => {
-      const imageDisplayName = versionSlicer(image.name);
-      return {
-        label: imageDisplayName,
-        value: image.name,
-      };
-    });
+    const selectOptions = upgradeImages.map(image => ({
+      label: image.name,
+      value: image.name,
+    }));
 
     return (
       <div className="upgrade-modal-row">
-        <label>Select an upgrade image</label>
+        <strong className="subtitle">Select an upgrade image</strong>
         <Select
+          clearable={false}
           name="Select Image"
-          value={selectedImage.name}
           options={selectOptions}
           onChange={this.selectUpgradeImage}
-          clearable={false}
+          placeholder="Select an Image"
+          value={selectedImage.name}
         />
       </div>
     );
   }
 
   render() {
-    const {upgradeNodes, upgradeState, isOpen} = this.props;
+    const {isOpen, upgradeNodes, upgradeState} = this.props;
     /*
     Prepare modal:
       List nodes
@@ -182,33 +169,29 @@ export default class ModalPrepareUpgrade extends React.Component {
         maxConnections
     */
 
-    const nodesList = (
-      <div className="upgrade-modal-nodes-list">
-        {this.props.upgradeNodes.map((node, idx) => {
-          return idx % 2 == 0 ? (
-            <p>{node}</p>
-          ) : (
-            <p style={{backgroundColor: '#f9f9f9'}}>{node}</p>
-          );
-        })}
-      </div>
-    );
-
-    const imagesList = this.renderUpgradeImages();
-
     return (
       <Modal
-        style={modalStyle}
+        style={MODAL_STYLE}
         isOpen={isOpen}
-        onRequestClose={this.modalClose.bind(this)}>
+        onRequestClose={this.modalClose}>
         <div className="upgrade-modal-content">
-          <label>Nodes to prepare for upgrade ({upgradeNodes.length})</label>
-          <div className="upgrade-modal-row">{nodesList}</div>
-
-          {imagesList}
-
+          {this.renderUpgradeImagesSelect()}
           <div className="upgrade-modal-row">
-            <label>Upgrade timeout (s):</label>
+            <strong className="subtitle">
+              Nodes to prepare for upgrade ({upgradeNodes.length})
+            </strong>
+            <Select
+              className="upgrade-modal-node-list"
+              clearable={false}
+              disabled
+              multi
+              options={upgradeNodes.map(node => ({value: node, label: node}))}
+              placeholder=""
+              value={upgradeNodes.join(',')}
+            />
+          </div>
+          <div className="upgrade-modal-row">
+            <label>Upgrade Timeout (s):</label>
             <input
               type="number"
               value={this.state.timeout}
@@ -217,7 +200,7 @@ export default class ModalPrepareUpgrade extends React.Component {
           </div>
 
           <div className="upgrade-modal-row">
-            <label>Skip failures?</label>
+            <label>Skip Failures?</label>
             <input
               type="checkbox"
               checked={this.state.skipFailure}
@@ -228,7 +211,7 @@ export default class ModalPrepareUpgrade extends React.Component {
           </div>
 
           <div className="upgrade-modal-row">
-            <label>Fully Parallelize upgrade?</label>
+            <label>Fully Parallelize Upgrade?</label>
             <input
               type="checkbox"
               checked={this.state.isParallel}
@@ -240,7 +223,7 @@ export default class ModalPrepareUpgrade extends React.Component {
 
           {!this.state.isParallel && (
             <div className="upgrade-modal-row">
-              <label>Batch size limit (nodes):</label>
+              <label>Batch Size Limit (nodes):</label>
               <input
                 type="number"
                 value={this.state.limit}
@@ -249,43 +232,36 @@ export default class ModalPrepareUpgrade extends React.Component {
             </div>
           )}
 
-          <form style={{marginBottom: '10px'}}>
-            <label style={{float: 'left', width: '55%'}}>
-              Specify the mode to retrieve the image:
-            </label>
-            <div className="download-type-selector">
-              <input
-                type="radio"
-                id="http"
-                value="http"
-                onChange={this.onChangeDownloadMode}
-                checked={this.state.isHttp}
-                disabled={true}
-              />
-              <label
-                for="http"
-                style={{marginRight: '20px', opacity: 0.5, marginLeft: '5px'}}>
-                Http
+          <div className="upgrade-modal-row">
+            <label>Download Method:</label>
+            <div className="type-selector">
+              <label className="choice" htmlFor="http">
+                <input
+                  type="radio"
+                  id="http"
+                  value="http"
+                  onChange={this.onChangeDownloadMode}
+                  checked={this.state.isHttp}
+                  disabled
+                />
+                <div className="choice-label">HTTP</div>
               </label>
-
-              <input
-                type="radio"
-                name="torrent"
-                value="torrent"
-                onChange={this.onChangeDownloadMode}
-                checked={!this.state.isHttp}
-              />
-              <label
-                for="torrent"
-                style={{marginRight: '20px', marginLeft: '5px'}}>
-                Torrent
+              <label className="choice" htmlFor="torrent">
+                <input
+                  type="radio"
+                  name="torrent"
+                  value="torrent"
+                  onChange={this.onChangeDownloadMode}
+                  checked={!this.state.isHttp}
+                />
+                <div className="choice-label">Torrent</div>
               </label>
             </div>
-          </form>
+          </div>
 
           {this.state.isHttp && (
             <div className="upgrade-modal-row">
-              <label>Download attempts for image:</label>
+              <label>Download Attempts for Image:</label>
               <input
                 type="number"
                 value={this.state.downloadAttempts}
@@ -299,7 +275,7 @@ export default class ModalPrepareUpgrade extends React.Component {
           {!this.state.isHttp && (
             <div>
               <div className="upgrade-modal-row">
-                <label>Download timeout (torrent):</label>
+                <label>Download Timeout (torrent):</label>
                 <input
                   type="number"
                   value={this.state.downloadTimeout}
@@ -310,7 +286,7 @@ export default class ModalPrepareUpgrade extends React.Component {
               </div>
 
               <div className="upgrade-modal-row">
-                <label>Max download speed (Bps) (-1 for unlimited):</label>
+                <label>Max Download Speed (Bps) (-1 for Unlimited):</label>
                 <input
                   type="number"
                   value={this.state.downloadLimit}
@@ -321,7 +297,7 @@ export default class ModalPrepareUpgrade extends React.Component {
               </div>
 
               <div className="upgrade-modal-row">
-                <label>Max upload speed (Bps) (-1 for unlimited):</label>
+                <label>Max Upload Speed (Bps) (-1 for Unlimited):</label>
                 <input
                   type="number"
                   value={this.state.uploadLimit}
@@ -332,7 +308,7 @@ export default class ModalPrepareUpgrade extends React.Component {
               </div>
 
               <div className="upgrade-modal-row">
-                <label>Max peer connections (-1 for unlimited):</label>
+                <label>Max Peer Connections (-1 for Unlimited):</label>
                 <input
                   type="number"
                   value={this.state.maxConnections}
@@ -345,29 +321,10 @@ export default class ModalPrepareUpgrade extends React.Component {
           )}
         </div>
         <div className="upgrade-modal-footer">
-          <button
-            className="upgrade-modal-btn"
-            onClick={this.modalClose.bind(this)}>
-            Close
-          </button>
-          <button
-            className="upgrade-modal-btn"
-            onClick={this.submitPrepare.bind(this)}
-            style={{backgroundColor: '#8b9dc3'}}>
-            Submit
-          </button>
+          <button onClick={this.submitPrepare}>Submit</button>
+          <button onClick={this.modalClose}>Close</button>
         </div>
       </Modal>
     );
   }
 }
-
-ModalPrepareUpgrade.propTypes = {
-  getExcludedNodes: PropTypes.func.isRequired,
-
-  upgradeNodes: PropTypes.array.isRequired,
-  upgradeImages: PropTypes.array.isRequired,
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  topologyName: PropTypes.string.isRequred,
-};
