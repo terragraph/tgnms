@@ -7,6 +7,7 @@
 
 import 'sweetalert/dist/sweetalert.css';
 
+import ShowMorePanel from '../common/ShowMorePanel.js';
 import {prepareUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
 import {MODAL_STYLE} from '../../constants/UpgradeConstants.js';
 import classNames from 'classnames';
@@ -23,7 +24,7 @@ export default class ModalPrepareUpgrade extends React.Component {
     getExcludedNodes: PropTypes.func.isRequired,
     isOpen: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
-    topologyName: PropTypes.string.isRequred,
+    topologyName: PropTypes.string.isRequired,
     upgradeNodes: PropTypes.array.isRequired,
     upgradeImages: PropTypes.array.isRequired,
   };
@@ -199,126 +200,130 @@ export default class ModalPrepareUpgrade extends React.Component {
             />
           </div>
 
-          <div className="upgrade-modal-row">
-            <label>Skip Failures?</label>
-            <input
-              type="checkbox"
-              checked={this.state.skipFailure}
-              onChange={event =>
-                this.setState({skipFailure: event.target.checked})
-              }
-            />
-          </div>
-
-          <div className="upgrade-modal-row">
-            <label>Fully Parallelize Upgrade?</label>
-            <input
-              type="checkbox"
-              checked={this.state.isParallel}
-              onChange={event =>
-                this.setState({isParallel: event.target.checked})
-              }
-            />
-          </div>
-
-          {!this.state.isParallel && (
+          <ShowMorePanel
+            buttonClass="upgrade-more-options-button"
+            moreButtonName="Show Additional Options">
             <div className="upgrade-modal-row">
-              <label>Batch Size Limit (nodes):</label>
+              <label>Skip Failures?</label>
               <input
-                type="number"
-                value={this.state.limit}
-                onChange={event => this.setState({limit: event.target.value})}
-              />
-            </div>
-          )}
-
-          <div className="upgrade-modal-row">
-            <label>Download Method:</label>
-            <div className="type-selector">
-              <label className="choice" htmlFor="http">
-                <input
-                  type="radio"
-                  id="http"
-                  value="http"
-                  onChange={this.onChangeDownloadMode}
-                  checked={this.state.isHttp}
-                  disabled
-                />
-                <div className="choice-label">HTTP</div>
-              </label>
-              <label className="choice" htmlFor="torrent">
-                <input
-                  type="radio"
-                  name="torrent"
-                  value="torrent"
-                  onChange={this.onChangeDownloadMode}
-                  checked={!this.state.isHttp}
-                />
-                <div className="choice-label">Torrent</div>
-              </label>
-            </div>
-          </div>
-
-          {this.state.isHttp && (
-            <div className="upgrade-modal-row">
-              <label>Download Attempts for Image:</label>
-              <input
-                type="number"
-                value={this.state.downloadAttempts}
+                type="checkbox"
+                checked={this.state.skipFailure}
                 onChange={event =>
-                  this.setState({downloadAttempts: event.target.value})
+                  this.setState({skipFailure: event.target.checked})
                 }
               />
             </div>
-          )}
 
-          {!this.state.isHttp && (
-            <div>
-              <div className="upgrade-modal-row">
-                <label>Download Timeout (torrent):</label>
-                <input
-                  type="number"
-                  value={this.state.downloadTimeout}
-                  onChange={event =>
-                    this.setState({downloadTimeout: event.target.value})
-                  }
-                />
-              </div>
-
-              <div className="upgrade-modal-row">
-                <label>Max Download Speed (Bps) (-1 for Unlimited):</label>
-                <input
-                  type="number"
-                  value={this.state.downloadLimit}
-                  onChange={event =>
-                    this.setState({downloadLimit: event.target.value})
-                  }
-                />
-              </div>
-
-              <div className="upgrade-modal-row">
-                <label>Max Upload Speed (Bps) (-1 for Unlimited):</label>
-                <input
-                  type="number"
-                  value={this.state.uploadLimit}
-                  onChange={event =>
-                    this.setState({uploadLimit: event.target.value})
-                  }
-                />
-              </div>
-
-              <div className="upgrade-modal-row">
-                <label>Max Peer Connections (-1 for Unlimited):</label>
-                <input
-                  type="number"
-                  value={this.state.maxConnections}
-                  onChange={event =>
-                    this.setState({maxConnections: event.target.value})
-                  }
-                />
-              </div>
+            <div className="upgrade-modal-row">
+              <label>Fully Parallelize Upgrade?</label>
+              <input
+                type="checkbox"
+                checked={this.state.isParallel}
+                onChange={event =>
+                  this.setState({isParallel: event.target.checked})
+                }
+              />
             </div>
-          )}
+
+            {!this.state.isParallel && (
+              <div className="upgrade-modal-row">
+                <label>Batch Size Limit (nodes):</label>
+                <input
+                  type="number"
+                  value={this.state.limit}
+                  onChange={event => this.setState({limit: event.target.value})}
+                />
+              </div>
+            )}
+            {/* Http or Torrent option removed until implemented */}
+            {/* <div className="upgrade-modal-row">
+              <label>Download Method:</label>
+              <div className="type-selector">
+                <label className="choice" htmlFor="http">
+                  <input
+                    type="radio"
+                    id="http"
+                    value="http"
+                    onChange={this.onChangeDownloadMode}
+                    checked={this.state.isHttp}
+                    disabled
+                  />
+                  <div className="choice-label">HTTP</div>
+                </label>
+                <label className="choice" htmlFor="torrent">
+                  <input
+                    type="radio"
+                    name="torrent"
+                    value="torrent"
+                    onChange={this.onChangeDownloadMode}
+                    checked={!this.state.isHttp}
+                  />
+                  <div className="choice-label">Torrent</div>
+                </label>
+              </div>
+            </div> */}
+
+            {this.state.isHttp && (
+              <div className="upgrade-modal-row">
+                <label>Download Attempts for Image:</label>
+                <input
+                  type="number"
+                  value={this.state.downloadAttempts}
+                  onChange={event =>
+                    this.setState({downloadAttempts: event.target.value})
+                  }
+                />
+              </div>
+            )}
+
+            {!this.state.isHttp && (
+              <div>
+                <div className="upgrade-modal-row">
+                  <label>Download Timeout (torrent):</label>
+                  <input
+                    type="number"
+                    value={this.state.downloadTimeout}
+                    onChange={event =>
+                      this.setState({downloadTimeout: event.target.value})
+                    }
+                  />
+                </div>
+
+                <div className="upgrade-modal-row">
+                  <label>Max Download Speed (Bps) (-1 for Unlimited):</label>
+                  <input
+                    type="number"
+                    value={this.state.downloadLimit}
+                    onChange={event =>
+                      this.setState({downloadLimit: event.target.value})
+                    }
+                  />
+                </div>
+
+                <div className="upgrade-modal-row">
+                  <label>Max Upload Speed (Bps) (-1 for Unlimited):</label>
+                  <input
+                    type="number"
+                    value={this.state.uploadLimit}
+                    onChange={event =>
+                      this.setState({uploadLimit: event.target.value})
+                    }
+                  />
+                </div>
+
+                <div className="upgrade-modal-row">
+                  <label>Max Peer Connections (-1 for Unlimited):</label>
+                  <input
+                    type="number"
+                    value={this.state.maxConnections}
+                    onChange={event =>
+                      this.setState({maxConnections: event.target.value})
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </ShowMorePanel>
         </div>
         <div className="upgrade-modal-footer">
           <button onClick={this.submitPrepare}>Submit</button>
