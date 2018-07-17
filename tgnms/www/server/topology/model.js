@@ -159,7 +159,7 @@ function getTopologyByName(topologyName) {
     });
   }
   networkConfig.ignition_state = _.get(ignitionStateByName, topologyName, []);
-  networkConfig.upgradeStateDump = _.has(upgradeStateByName, 'topologyName')
+  networkConfig.upgradeStateDump = upgradeStateByName[topologyName]
     ? getNodesWithUpgradeStatus(
         topology.nodes,
         upgradeStateByName[topologyName],
