@@ -16,6 +16,7 @@ const {
   reloadInstanceConfig,
 } = require('../server/topology/model');
 const topologyPeriodic = require('../server/topology/periodic');
+const {runMigrations} = require('./run-migrations');
 
 const compression = require('compression');
 const express = require('express');
@@ -78,16 +79,21 @@ app.get(/\/*/, (req, res) => {
   });
 });
 
-app.listen(port, '', err => {
-  if (err) {
-    console.log(err);
-  }
-  if (devMode) {
-    console.log('<=========== DEVELOPER MODE ===========>');
-  } else {
-    console.log('<=========== PRODUCTION MODE ==========>');
-    console.log('<== JS BUNDLE SERVED FROM /static/js ==>');
-    console.log('<==== LOCAL CHANGES NOT POSSIBLE ======>');
-  }
-  console.log('\n=========> LISTENING ON PORT %s', port);
-});
+(async function main() {
+  // Run DB migrations
+  await runMigrations();
+
+  app.listen(port, '', err => {
+    if (err) {
+      console.log(err);
+    }
+    if (devMode) {
+      console.log('<=========== DEVELOPER MODE ===========>');
+    } else {
+      console.log('<=========== PRODUCTION MODE ==========>');
+      console.log('<== JS BUNDLE SERVED FROM /static/js ==>');
+      console.log('<==== LOCAL CHANGES NOT POSSIBLE ======>');
+    }
+    console.log('\n=========> LISTENING ON PORT %s', port);
+  });
+})();

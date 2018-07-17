@@ -6,12 +6,13 @@
 
 // aggregate data points in buckets for easier grouping
 const mysql = require('mysql');
+const {MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB} = require('../config');
 const pool = mysql.createPool({
   connectionLimit: 50,
-  host: process.env.MYSQL_HOST || '127.0.0.1',
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASS || '',
-  database: 'cxl',
+  host: MYSQL_HOST,
+  user: MYSQL_USER,
+  password: MYSQL_PASS,
+  database: MYSQL_DB,
   queueLimit: 10,
   waitForConnections: false,
 });
