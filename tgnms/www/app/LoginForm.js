@@ -5,19 +5,18 @@
  */
 'use strict';
 
-import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class LoginForm extends React.Component {
   render() {
     return (
       <div className="login-form">
-        <div className="login-form-title">FBC NMS</div>
+        <div className="login-form-title">Terragraph NMS</div>
         <div className="login-form-inner">
-          <form method="post">
-            <input placeholder="email" />
-            <input placeholder="password" type="password" />
-            <button>Login</button>
+          <form action="/user/login" method="post">
+            <input placeholder="email" name="email" />
+            <input placeholder="password" type="password" name="password" />
+            <input type="submit" value="Login" />
           </form>
         </div>
       </div>

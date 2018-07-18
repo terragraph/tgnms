@@ -4,6 +4,9 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  */
 'use strict';
+
+const {USER} = require('../user/accessRoles');
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Users', {
@@ -21,9 +24,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      superuser: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
+      role: {
+        type: Sequelize.INTEGER,
+        defaultValue: USER,
       },
       createdAt: {
         allowNull: false,
