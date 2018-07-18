@@ -11,7 +11,9 @@ import {
   variableColorDown,
   variableColorUp,
 } from './helpers/NetworkHelpers.js';
-import PlotlyEventChart from './PlotlyEventChart.js';
+import ReactEventChart from './ReactEventChart.js';
+// using ReactEventChart until performance for Plotly is improved
+// import PlotlyEventChart from './PlotlyEventChart.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
 import {DEFAULT_DASHBOARD_NAMES} from './constants/NetworkDashboardsConstants.js';
@@ -1184,7 +1186,7 @@ export default class NetworkLinksTable extends React.Component {
         const startTime = this.state.linkHealth.start;
         const endTime = this.state.linkHealth.end;
         return (
-          <PlotlyEventChart
+          <ReactEventChart
             events={link.events}
             startTime={startTime}
             endTime={endTime}
