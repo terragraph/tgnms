@@ -187,11 +187,9 @@ services:
     image: secure.cxl-terragraph.com:443/analytics:latest
     env_file:
       - ./env/mysql.env
-    cap_add:
-      - SYS_NICE
     restart: always
     volumes:
-      - ./docker_volumes/logs:/analytics
+      - ./docker_volumes/logs:/analytics/logs
     ports:
       - "8087:8087"
     networks:
