@@ -16,6 +16,7 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
 from facebook.gorilla.beringei_query import ttypes as bq
+from facebook.gorilla.beringei_data import ttypes as bd
 from facebook.gorilla.Topology.ttypes import Topology
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -29,34 +30,82 @@ class LinkInsight(object):
        Beringei database.
     """
 
-    def _check_dimension_matched(self, computed_stats, query_requests_to_send):
-        """ Check to make sure that the computed_stats and query_requests_to_send
-            are two dimension-matched 2-d lists.
+    def _extract_dimension(self, stats):
+        """Extract the dimension of computed_stats/queries/beringei_read_returns.
+
+           Args:
+           stats: 2-D list or RawQueryReturn or RawReadQueryRequest.
+
+           Return:
+           If type is one of the allowed types, return a list with each element being
+           the length of sub-list/query/return.
+           If type is not among allowed, return None.
+        """
+        if isinstance(stats, bd.RawQueryReturn):
+            dimensions = [0] * len(stats.queryReturnList)
+            for return_idx, returned in enumerate(stats.queryReturnList):
+                dimensions[return_idx] = len(returned.timeSeriesAndKeyList)
+            return dimensions
+        elif isinstance(stats, bq.RawReadQueryRequest):
+            dimensions = [0] * len(stats.queries)
+            for query_idx, query in enumerate(stats.queries):
+                dimensions[query_idx] = len(query.queryKeyList)
+            return dimensions
+        elif isinstance(stats, list):
+            try:
+                dimensions = [len(sub_list) for sub_list in stats]
+            except BaseException as err:
+                logging.error("The input is not a 2-D list", err.args)
+            return dimensions
+        else:
+            return None
+
+    def _check_dimension_matched(self, stats_list):
+        """ Check if the dimensions of a list of stats are matched.
 
             Args:
-            computed_stats: a 2-d list, is index matched with the query_returns,
-                            and is computed by method of compute_timeseries_avg_and_var.
-            query_requests_to_send: the query requests sent to the BQS.
+            stats_list: A list of stats, each stats type should be 2-D list
+            or RawReadQueryRequest or RawQueryReturn.
 
             Return:
             If dimensions are matched, return True; else, return False.
         """
-        if len(query_requests_to_send.queries) != len(computed_stats):
-            logging.error(
-                "Send {} queries, ".format(len(query_requests_to_send.queries)),
-                "have {} processed lists".format(len(computed_stats)),
-            )
+
+        if not isinstance(stats_list, list):
             return False
 
-        for query_idx, query in enumerate(query_requests_to_send.queries):
-            if len(query.queryKeyList) != len(computed_stats[query_idx]):
-                logging.error(
-                    "For query # {}, send {} keys, have {} processed elements".format(
-                        query_idx,
-                        len(query.queryKeyList),
-                        len(computed_stats[query_idx]),
-                    )
+        if len(stats_list) < 2:
+            # Need at least 2 stats to be potential dimension matched
+            logging.warning("Need at least 1 input item")
+            return False
+
+        logging.info(
+            "Begin to compare the dimension of {} 2-D stats".format(len(stats_list))
+        )
+
+        # Extract the dimensions of each stats as list. Each item dimension is measured
+        # as a 1-D list of ints. The int value of the 1-D list represents the
+        # sub-list lengths of the stats. For example, [[3,4,2], [1,2]] means that
+        # there are 2 stats (each being 2-D). In the example, the dimensions of
+        # the first stats is length 3, and the first/second/third sub-list is of
+        # lengths 3/4/2.
+        dimensions_list = []
+        for stats in stats_list:
+            dimensions = self._extract_dimension(stats)
+            if dimensions is None:
+                logging.warning(
+                    "Input stats type is '{}', ".format(type(stats))
+                    + "which is not one of the following: "
+                    + "list/RawReadQueryRequest/RawQueryReturn"
                 )
+                return False
+            dimensions_list.append(dimensions)
+
+        dimensions0 = dimensions_list[0]
+        for dimensions in dimensions_list[1:]:
+            # Use python list compare, which is True only if two lists are
+            # of same length and each entry equals
+            if dimensions != dimensions0:
                 return False
 
         return True
@@ -65,7 +114,7 @@ class LinkInsight(object):
         self,
         topology_name,
         link_macs_list=None,
-        metric_name=None,
+        metric_names=None,
         key_option="link_metric",
         key_ids=None,
         start_ts=None,
@@ -80,7 +129,8 @@ class LinkInsight(object):
         topology_name: name of the setup, like "tower G".
         link_macs_list: list of Beringei link mac pairs,
                         each element is (source_mac, peer_mac).
-        metric_string: metric of interest, like "phystatus.ssnrest".
+        metric_names: a list of metric of interest, each element is
+                      like "phystatus.ssnrest".
         key_option: Can be either "link_metric" or "key_id".
                     On "link_metric", use the key metric, link_macs, and
                     topology_name to identify the right time series.
@@ -93,25 +143,33 @@ class LinkInsight(object):
                             raw data.
 
         Return:
-        query_request_to_send: query request to send, of type RawReadQueryRequest.
+        query_request_to_send: query request to send, of type RawReadQueryRequest,
+        can be viewed as a list of queries. When using "key_id" (as key_option) during
+        debugging, each query has 1 query_key entry and corresponds to a Beringei
+        key_id. When using "link_metric" option, each query corresponds to a link
+        and each query can contain multiple query_keys. The query_keys are generated
+        by each metric_name in metric_names and are index matched.
         """
 
         if end_ts is None or start_ts is None:
             logging.warning("Start/End time stamp not provided!")
             bq.RawReadQueryRequest([])
 
-        # Construct the queries to send
+        # Construct the queries to send, of type RawReadQueryRequest
         query_requests_to_send = []
         if key_option == "link_metric" and link_macs_list:
             for source_mac, peer_mac in link_macs_list:
-                raw_query_key = bq.RawQueryKey(
-                    sourceMac=source_mac,
-                    peerMac=peer_mac,
-                    metricName=metric_name,
-                    topologyName=topology_name,
-                )
+                raw_query_keys = []
+                for metric_name in metric_names:
+                    raw_query_key = bq.RawQueryKey(
+                        sourceMac=source_mac,
+                        peerMac=peer_mac,
+                        metricName=metric_name,
+                        topologyName=topology_name,
+                    )
+                    raw_query_keys.append(raw_query_key)
                 query_to_send = bq.RawReadQuery(
-                    queryKeyList=[raw_query_key],
+                    queryKeyList=raw_query_keys,
                     startTimestamp=start_ts,
                     endTimestamp=end_ts,
                     interval=source_db_interval,
@@ -140,12 +198,12 @@ class LinkInsight(object):
         computed_stats,
         query_requests_to_send,
         network_config,
-        metric_name,
         sample_duration_in_s,
         source_db_interval,
         stats_query_timestamp,
         topology_name,
         dest_db_interval=30,
+        metric_name=None,
     ):
         """Prepare computed link stats request to be send to Beringei Query Server
            for Beringei database writing.
@@ -154,17 +212,18 @@ class LinkInsight(object):
         computed_stats: computed link stats, 2-d list of computed stats. Need
                         to be index matched with the query_requests_to_send.
         query_requests_to_send: the query sent to the BQS, used for the macs
-                                and metric name creation during write requests
-                                generation.
+        and metric name creation during write requests generation.
         network_config: network config dictionary, have keys of
                "link_macs_to_name", "node_mac_to_name", and "node_mac_to_site".
-        metric_name: name of the metric to query, like "phystatus.ssnrest".
         sample_duration_in_s: the duration of the stats read, for example 3600
             means link data of past 1 hour are used to computed the link stats.
         source_db_interval: interval of the Beringei database reading from.
         stats_query_timestamp: the time on which the link stats is computed.
         topology_name: name of the setup, like "tower G".
         dest_db_interval: indicates which Beringei database to write to.
+        metric_name: if provided, will use it as the name prefix of the computed stats.
+        If None, will use the metric_name from query_keys as name prefix of
+        the computed stats.
 
         Return:
         stats_to_write: On success, stats to write to the Beringei database,
@@ -174,14 +233,19 @@ class LinkInsight(object):
         if topology is None:
             raise ValueError("Cannot create topology object")
 
-        if not self._check_dimension_matched(computed_stats, query_requests_to_send):
-            raise ValueError("Computed stats index do not match that of query_requests")
+        if len(computed_stats) != len(query_requests_to_send.queries):
+            raise ValueError(
+                "Computed stats length do not match that of query_requests"
+            )
 
         query_agents = []
         for query_idx, query in enumerate(query_requests_to_send.queries):
-            for key_idx, query_key in enumerate(query.queryKeyList):
+            for key_idx in range(len(computed_stats[query_idx])):
+                query_key = query.queryKeyList[key_idx]
                 source_mac = query_key.sourceMac
                 peer_mac = query_key.peerMac
+                if metric_name is None:
+                    metric_name = query_key.metricName
                 source_site = network_config["node_mac_to_site"][source_mac]
                 source_name = network_config["node_mac_to_name"][source_mac]
                 per_link_stats = computed_stats[query_idx][key_idx]
@@ -276,7 +340,6 @@ class LinkInsight(object):
         computed_stats,
         query_requests_to_send,
         network_config,
-        metric_name,
         sample_duration_in_s,
         source_db_interval,
         stats_query_timestamp,
@@ -292,7 +355,6 @@ class LinkInsight(object):
                                 and metric name of each query_key.
         network_config: network config dictionary, have keys of
                "link_macs_to_name", "node_mac_to_name", and "node_mac_to_site".
-        metric_name: name of the metric of the query, like "phystatus.ssnrest".
         sample_duration_in_s: the duration of the stats read, for example 3600
             means link data of past 1 hour are used to computed the link stats.
         source_db_interval: interval of the Beringei database reading from.
@@ -304,19 +366,22 @@ class LinkInsight(object):
               Raise exception on error.
         """
 
-        if not self._check_dimension_matched(computed_stats, query_requests_to_send):
-            raise ValueError("Computed stats index do not match that of query_requests")
+        if len(computed_stats) != len(query_requests_to_send.queries):
+            raise ValueError(
+                "Computed stats length do not match that of query_requests"
+            )
 
         output_dict = {}
         for query_idx, query in enumerate(query_requests_to_send.queries):
             per_query_dict = {}
-            for key_idx, query_key in enumerate(query.queryKeyList):
+            for key_idx in range(len(computed_stats[query_idx])):
+                query_key = query.queryKeyList[key_idx]
                 per_query_dict[key_idx] = {}
                 per_link_stats = computed_stats[query_idx][key_idx]
 
                 per_query_dict[key_idx]["source_mac"] = query_key.sourceMac
                 per_query_dict[key_idx]["peer_mac"] = query_key.peerMac
-                per_query_dict[key_idx]["metric_name"] = metric_name
+                per_query_dict[key_idx]["metric_name"] = query_key.metricName
                 link_name = network_config["link_macs_to_name"][
                     query_key.sourceMac, query_key.peerMac
                 ]
@@ -401,3 +466,230 @@ class LinkInsight(object):
 
             key_id_to_macs[return_key_id] = (source_mac, peer_mac)
         return key_id_to_macs
+
+    def match_ts_tuples_by_timestamp(self, time_series_list, source_db_interval=30):
+        """Match a list of timeseries. Each element is of type timeSeries and the
+        length can be different.
+
+        Args:
+        time_series_list: list of time_series.
+        source_db_interval: the interval of the Beringei database being queried from.
+
+        Return:
+        matched_value_tuples: list of value tuples, each tuple is a sub-list of values
+                              that are of the same time_stamp.
+        matched_time_stamps: time_stamps, index (length) matched with the
+                             matched_value_tuples.
+        """
+
+        logging.debug(
+            "There are {} time series to match timestamp with".format(
+                len(time_series_list)
+            )
+        )
+
+        # Check that the input is a list of time series
+        if not isinstance(time_series_list, list):
+            raise ValueError("The input is not a list")
+        for ts in time_series_list:
+            if not all(isinstance(dp, bd.TimeValuePair) for dp in ts):
+                raise ValueError("Element is not a time series")
+
+        # List that maps the ts_idx to the index of the data points in
+        # each of timeseries
+        ts_idx_to_dp_idx = [0] * len(time_series_list)
+
+        # Beringie will return time series in sequence of timestamps
+        # Thus, the first data point is of the smallest timestamp
+        # And the last data point is of the biggest timestamp
+        start_time = max([ts[0].unixTime for ts in time_series_list])
+        end_time = min([ts[-1].unixTime for ts in time_series_list])
+
+        matched_value_tuples = []
+        matched_time_stamps = []
+        for time_stamp in range(
+            start_time, end_time + source_db_interval, source_db_interval
+        ):
+            value_tuple = []
+            for ts_idx in range(len(time_series_list)):
+                dp_idx = ts_idx_to_dp_idx[ts_idx]
+                while dp_idx < len(time_series_list[ts_idx]):
+                    if time_series_list[ts_idx][dp_idx].unixTime == time_stamp:
+                        value_tuple.append(time_series_list[ts_idx][dp_idx].value)
+                        ts_idx_to_dp_idx[ts_idx] += 1
+                        break
+                    elif time_series_list[ts_idx][dp_idx].unixTime < time_stamp:
+                        ts_idx_to_dp_idx[ts_idx] += 1
+                        dp_idx = ts_idx_to_dp_idx[ts_idx]
+                        break
+                    else:
+                        # The pointed to value is large than the time_stamp skip
+                        break
+
+            if len(value_tuple) == len(time_series_list):
+                matched_value_tuples.append(value_tuple)
+                matched_time_stamps.append(time_stamp)
+
+        return matched_value_tuples, matched_time_stamps
+
+    def get_valid_windows(self, counter_tuples, time_stamps, allowed_time_off_in_s=2):
+        """ Calculate the valid time windows by using the increment speed of
+            heartbeat/keepalive/uplink_bwreq counters. Ideally, the sum of the
+            three counter should increase at the speed of 25.6 ms per count.
+
+            Args:
+            counter_tuples: A list of counter tuples, each tuple corresponds
+            to the counter values of heartbeat/keepalive/uplink_bwreq.
+            time_stamps: time_stamps, need to be index matched with counter_tuples.
+            allowed_time_off_in_s: the maximum allowed sampling offset allowed.
+            Currently, the firmware/stats agents can report stats that is not sampled
+            at the time_stamps shown in the Beringei database. This value times the
+            counter increase speed is the maximum counter delta miss that is allowed.
+
+            Return:
+            valid_windows: list of valid windows, each element is of format
+                           [start_time, end_time].
+        """
+
+        if len(counter_tuples) != len(time_stamps) or len(counter_tuples) == 1:
+            # Note that it means if there is only 1 point in time_stamps/counter_sums,
+            # return will be empty list due to unable to check uptime by counter delta
+            return []
+
+        counter_sums = [sum(counters) for counters in counter_tuples]
+
+        current_start_idx = 0
+        valid_windows = []
+        allowed_counter_off = allowed_time_off_in_s * 1000 / 26
+        # Do a sweep from left to right, the sum of the three counter is expected
+        # to increase over time at speed of 25.6 ms per count.
+        while current_start_idx < len(time_stamps) - 1:
+            current_idx = current_start_idx + 1
+            while current_idx < len(time_stamps):
+                # The algorithm will make sure than the delta counter to its right neighbor
+                # matches with the expected one, we start from left to right
+                expected_delta = time_stamps[current_idx] - time_stamps[current_idx - 1]
+                expected_delta = expected_delta * 1000 / 25.6
+                counter_delta = (
+                    counter_sums[current_idx] - counter_sums[current_idx - 1]
+                )
+                if abs(expected_delta - counter_delta) <= allowed_counter_off:
+                    # The fw stats stored in Beringei can have sample advance/delay
+                    # To handle this, we allowed a maximum sample time off of allowed_time_off_in_s
+                    current_idx += 1
+                else:
+                    break
+
+            current_idx -= 1
+            if current_idx > current_start_idx:
+                valid_windows.append(
+                    [time_stamps[current_start_idx], time_stamps[current_idx]]
+                )
+            current_start_idx = current_idx + 1
+
+        return valid_windows
+
+    def compute_single_traffic_stats(
+        self,
+        packet_counter_tuples,
+        time_stamps,
+        valid_windows,
+        minimum_packet_number=50,
+    ):
+        """Compute the traffic stats from the packet ok/fail counters. Only traffic
+           during the valid windows will be considered.
+
+        Args:
+        packet_counter_tuples: list of packet counter tuples, each element is
+                               [tx_ok_counter, tx_fail_counter].
+        time_stamps: the timestamps of the packet_counter_tuples, need to be index
+                     matched.
+        valid_windows: The valid windows computed by link uptime via get_valid_windows().
+        minimum_packet_number: the minimum number of packets needed to compute link
+        traffic stats. If not enough packets counts are reported, do not compute.
+
+        Return:
+        output_stats: 2-D list, each sub-list is a length with single element. The
+        element is a dict with computed traffic stats as keys.
+        """
+
+        # TODO: if the stats agents and fw sampling are very stable and the length
+        # of valid_windows is small, can use binary search to find start and
+        # end idxs of each window.
+        # This should reduce complexity from O(n) to O(log(n)).
+        time_stamp_to_packer_counters = {}
+        for time_stamp_idx, time_stamp in enumerate(time_stamps):
+            packet_counter = {}
+            packet_counter["ok"] = packet_counter_tuples[time_stamp_idx][0]
+            packet_counter["fail"] = packet_counter_tuples[time_stamp_idx][1]
+            time_stamp_to_packer_counters[time_stamp] = packet_counter
+
+        output_stats = {"ok_counter": 0, "fail_counter": 0, "valid_duration_in_s": 0}
+        for start_timestamp, end_timestamp in valid_windows:
+            output_stats["ok_counter"] += (
+                time_stamp_to_packer_counters[end_timestamp]["ok"]
+                - time_stamp_to_packer_counters[start_timestamp]["ok"]
+            )
+            output_stats["fail_counter"] += (
+                time_stamp_to_packer_counters[end_timestamp]["fail"]
+                - time_stamp_to_packer_counters[start_timestamp]["fail"]
+            )
+            output_stats["valid_duration_in_s"] += end_timestamp - start_timestamp
+
+        total_packets_num = output_stats["ok_counter"] + output_stats["fail_counter"]
+        if total_packets_num > minimum_packet_number:
+            # Only compute the traffic stats if enough samples are obtained
+            output_stats["PER"] = output_stats["fail_counter"] / total_packets_num
+            output_stats["PPS"] = (
+                output_stats["ok_counter"] / output_stats["valid_duration_in_s"]
+            )
+
+        return output_stats
+
+    def compute_traffic_stats(self, metric_names, read_returns):
+        """ Using a series of time series to find the rages that is valid for time
+            matching.
+
+            Args:
+            uplink_bwreq_returns:
+            keepalive_returns:
+            heartbeat_returns
+
+            Return:
+            On success, return a list, each element is a sub-list of
+                        [time_start, time_end].
+            On error, raise exception.
+        """
+
+        per_stats_returns = []
+        for query_return in read_returns.queryReturnList:
+            query_return = query_return.timeSeriesAndKeyList
+            # check the length should be equal
+            uplink_bwreq_return = query_return[0]
+            keepalive_return = query_return[1]
+            heartbeat_return = query_return[2]
+            tx_ok_return = query_return[3]
+            tx_fail_return = query_return[4]
+
+            ts_tuples, time_stamps = self.match_ts_tuples_by_timestamp(
+                [
+                    uplink_bwreq_return.timeSeries,
+                    keepalive_return.timeSeries,
+                    heartbeat_return.timeSeries,
+                    tx_ok_return.timeSeries,
+                    tx_fail_return.timeSeries,
+                ],
+                source_db_interval=30,
+            )
+
+            counter_tuples = [ts_tuple[:3] for ts_tuple in ts_tuples]
+            valid_windows = self.get_valid_windows(counter_tuples, time_stamps)
+
+            packet_counter_tuples = [ts_tuple[3:] for ts_tuple in ts_tuples]
+            per_values = self.compute_single_traffic_stats(
+                packet_counter_tuples, time_stamps, valid_windows
+            )
+
+            per_stats_returns.append([per_values])
+
+        return per_stats_returns
