@@ -582,9 +582,9 @@ class LinkInsight(object):
 
         name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
         if (
-            "mgmtrx.uplinkbwreq" not in name_to_idx
-            or "mgmtrx.keepalive" not in name_to_idx
-            or "mgmtrx.heartbeat" not in name_to_idx
+            "mgmttx.uplinkbwreq" not in name_to_idx
+            or "mgmttx.keepalive" not in name_to_idx
+            or "mgmttx.heartbeat" not in name_to_idx
             or "stapkt.txok" not in name_to_idx
             or "stapkt.txfail" not in name_to_idx
         ):
@@ -594,9 +594,9 @@ class LinkInsight(object):
         for query_return in read_returns.queryReturnList:
             query_return = query_return.timeSeriesAndKeyList
             # check the length should be equal
-            uplink_bwreq_return = query_return[name_to_idx["mgmtrx.uplinkbwreq"]]
-            keepalive_return = query_return[name_to_idx["mgmtrx.keepalive"]]
-            heartbeat_return = query_return[name_to_idx["mgmtrx.heartbeat"]]
+            uplink_bwreq_return = query_return[name_to_idx["mgmttx.uplinkbwreq"]]
+            keepalive_return = query_return[name_to_idx["mgmttx.keepalive"]]
+            heartbeat_return = query_return[name_to_idx["mgmttx.heartbeat"]]
             tx_ok_return = query_return[name_to_idx["stapkt.txok"]]
             tx_fail_return = query_return[name_to_idx["stapkt.txfail"]]
 
