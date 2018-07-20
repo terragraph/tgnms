@@ -223,9 +223,9 @@ class LinkPipeline(object):
         logging.info("Running the link traffic pipeline")
         stats_query_timestamp = int(time.time())
         metric_names = [
-            "mgmtrx.uplinkbwreq",
-            "mgmtrx.keepalive",
-            "mgmtrx.heartbeat",
+            "mgmttx.uplinkbwreq",
+            "mgmttx.keepalive",
+            "mgmttx.heartbeat",
             "stapkt.txok",
             "stapkt.txfail",
         ]
