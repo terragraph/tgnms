@@ -569,18 +569,19 @@ class LinkInsight(object):
         return output_stats
 
     def compute_traffic_stats(self, metric_names, read_returns):
-        """ Using a series of time series to find the rages that is valid for time
-            matching.
+        """ Compute the traffic stats of links based on the read returns of
+            link stats on "mgmttx.uplinkbwreq", "mgmttx.keepalive", "mgmttx.heartbeat" ,
+            "stapkt.txok", "stapkt.txfail".
 
             Args:
             metric_names: name of the stats queried of each link. The sequence
-            need to be index matched to that used in read query construction.
+            needs to be index matched to that of read query sent to BQS.
             read_returns: the read return from BQS, of type RawQueryReturn.
 
             Return:
             per_stats_returns: a 2-D list of stats. Each sub-list is of length 1
             and contain a dict which maps traffic insight key_names to computed values.
-            Raise except on error.
+            Raise exception on error.
         """
 
         name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
