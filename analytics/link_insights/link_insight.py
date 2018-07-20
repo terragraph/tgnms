@@ -460,7 +460,8 @@ class LinkInsight(object):
             Args:
             counter_tuples: A list of counters elements. Each element can be
             a). a list of the counter values of heartbeat/keepalive/uplink_bwreq.
-            b). a list of length 1 with value being "staPkt.linkAvailable" counter.
+            b). a list of sub-lists each having a single element whose value being
+            "staPkt.linkAvailable" counter.
             time_stamps: time_stamps, need to be index matched with counter_tuples.
             allowed_time_off_in_s: the maximum allowed sampling offset allowed.
             Currently, the firmware/stats agents can report stats that is not sampled
@@ -569,18 +570,19 @@ class LinkInsight(object):
         return output_stats
 
     def compute_traffic_stats(self, metric_names, read_returns):
-        """ Using a series of time series to find the rages that is valid for time
-            matching.
+        """ Compute the traffic stats of links based on the read returns of
+            link stats on "mgmttx.uplinkbwreq", "mgmttx.keepalive", "mgmttx.heartbeat" ,
+            "stapkt.txok", "stapkt.txfail".
 
             Args:
             metric_names: name of the stats queried of each link. The sequence
-            need to be index matched to that used in read query construction.
+            needs to be index matched to that of read query sent to BQS.
             read_returns: the read return from BQS, of type RawQueryReturn.
 
             Return:
             per_stats_returns: a 2-D list of stats. Each sub-list is of length 1
             and contain a dict which maps traffic insight key_names to computed values.
-            Raise except on error.
+            Raise exception on error.
         """
 
         name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
