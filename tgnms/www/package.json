@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "start": "nodemon scripts/server --exec babel-node",
+    "start": "nodemon -w scripts/ -w server/ scripts/server --exec babel-node",
     "build": "rimraf dist && NODE_ENV=production webpack --config ./config/webpack.production.config.js --progress --profile --colors",
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
     "jscs": "jscs .",
