@@ -33,6 +33,9 @@ app.use(compression());
 app.set('views', './views');
 app.set('view engine', 'pug');
 
+// TODO: move this once PR #196 is merged
+app.get('/login', (req, res) => res.render('login'));
+
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
