@@ -258,3 +258,57 @@ class LinkPipeline(object):
             return
 
         logging.info("Link traffic pipeline execution finished")
+
+    def link_uptime_pipeline(
+        self,
+        sample_duration_in_s=3600,
+        source_db_interval=30,
+        dump_to_json=False,
+        json_log_name_prefix="sample_uptime_",
+    ):
+        """
+        Compute the link uptime using the link
+
+        Args:
+        sample_duration_in_s: duration of the samples, for example 3600 means use
+        1 hour data points for each link.
+        source_db_interval: the resolution of the database read from, 30 means
+        beringei_30s database.
+        dump_to_json: if True, save a copy of the link stats to json;
+        If False, don't save to json.
+        json_log_name_prefix: prefix of the output json log file, only used
+        if dump_to_json.
+
+        Return:
+        Void.
+        """
+
+        logging.info("Running the link uptime pipeline")
+        stats_query_timestamp = int(time.time())
+        try:
+            # Read the from the Beringei database, return type is RawQueryReturn
+            read_returns, query_request_to_send = self._read_beringei(
+                ["stapkt.linkavailable"],
+                stats_query_timestamp,
+                sample_duration_in_s,
+                source_db_interval,
+            )
+
+            computed_stats = self.link_insight.compute_link_uptime(read_returns)
+            print(computed_stats)
+
+            self._write_beringei(
+                dump_to_json,
+                computed_stats,
+                query_request_to_send,
+                sample_duration_in_s,
+                source_db_interval,
+                stats_query_timestamp,
+                json_log_name_prefix + "uptime.json",
+                None,
+            )
+        except ValueError as err:
+            logging.error("Error during pipeline execution:", err.args)
+            return
+
+        logging.info("Link uptime pipeline execution finished")
