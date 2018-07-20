@@ -39,29 +39,18 @@ const umzug = new Umzug({
 });
 
 export async function runMigrations() {
-  try {
-    const pendingMigrations = await umzug.pending();
-    if (pendingMigrations) {
-      await umzug.up();
-    }
-  } catch (error) {
-    console.error('Unable to run migrations!');
-    throw error;
+  const pendingMigrations = await umzug.pending();
+  if (pendingMigrations) {
+    await umzug.up();
   }
-
   // Sync defined models to the DB
   await sequelize.sync();
 }
 
 export async function rollbackMigrations() {
-  try {
-    const executedMigrations = await umzug.executed();
-    if (executedMigrations) {
-      await umzug.down();
-    }
-  } catch (error) {
-    console.error('Unable to run migrations!');
-    throw error;
+  const executedMigrations = await umzug.executed();
+  if (executedMigrations) {
+    await umzug.down();
   }
 
   // Sync defined models to the DB
