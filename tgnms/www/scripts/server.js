@@ -16,7 +16,7 @@ const {
   reloadInstanceConfig,
 } = require('../server/topology/model');
 const topologyPeriodic = require('../server/topology/periodic');
-const {runMigrations} = require('./run-migrations');
+const {runMigrations} = require('./runMigrations');
 
 const compression = require('compression');
 const express = require('express');
@@ -81,7 +81,11 @@ app.get(/\/*/, (req, res) => {
 
 (async function main() {
   // Run DB migrations
-  await runMigrations();
+  try {
+    await runMigrations();
+  } catch (error) {
+    console.error('Unable to run migrations:', error);
+  }
 
   app.listen(port, '', err => {
     if (err) {
