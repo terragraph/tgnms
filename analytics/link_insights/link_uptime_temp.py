@@ -13,9 +13,8 @@ def compute_link_uptime(read_returns, line_insight):
         matching.
 
         Args:
-        metric_names: name of the stats queried of each link. The sequence
-        need to be index matched to that used in read query construction.
-        read_returns: the read return from BQS, of type RawQueryReturn.
+        read_returns: the read return from BQS, of type RawQueryReturn. The first
+        key of each read query/return should be of metric "stapkt.linkavailable".
 
         Return:
         per_stats_returns: a 2-D list of stats. Each sub-list is of length 1
@@ -27,13 +26,12 @@ def compute_link_uptime(read_returns, line_insight):
     for per_link_return in read_returns.queryReturnList:
         per_link_return = per_link_return.timeSeriesAndKeyList
         # check the length should be equal
-        # the first one is the link_alive_counter
+        # the First one is the link_alive_counter
         link_available_ts = per_link_return[0].timeSeries
 
-        # TODO: (xud) refactor the get_valid_windows to take single value list
-        counter_tuples = [[dp.value] for dp in link_available_ts]
+        counters = [[dp.value] for dp in link_available_ts]
         time_stamps = [dp.unixTime for dp in link_available_ts]
-        valid_windows = line_insight.get_valid_windows(counter_tuples, time_stamps)
+        valid_windows = line_insight.get_valid_windows(counters, time_stamps)
         link_uptime = sum(
             window_end - window_start for window_start, window_end in valid_windows
         )
@@ -43,25 +41,24 @@ def compute_link_uptime(read_returns, line_insight):
     return per_stats_returns
 
 
-def link_alive_counter(
+def link_uptime_pipeline(
     sample_duration_in_s=3600,
     source_db_interval=30,
     dump_to_json=False,
     json_log_name_prefix="sample_uptime_",
 ):
     """
-    Read link stats from BQS and compute link insights on traffic.
-    Currently compute packet error rate (PER) and packet per second (PPS).
+    Compute the link uptime using the link
 
     Args:
     sample_duration_in_s: duration of the samples, for example 3600 means use
-                          1 hour data points for each link.
+    1 hour data points for each link.
     source_db_interval: the resolution of the database read from, 30 means
-                        beringei_30s database.
+    beringei_30s database.
     dump_to_json: if True, save a copy of the link stats to json;
-                  If False, don't save to json.
+    If False, don't save to json.
     json_log_name_prefix: prefix of the output json log file, only used
-                          if dump_to_json.
+    if dump_to_json.
 
     Return:
     Void.
@@ -93,15 +90,15 @@ def link_alive_counter(
             sample_duration_in_s,
             source_db_interval,
             stats_query_timestamp,
-            json_log_name_prefix + ".json",
+            json_log_name_prefix + "uptime.json",
             None,
         )
     except ValueError as err:
         logging.error("Error during pipeline execution:", err.args)
         return
 
-    logging.info("Link traffic pipeline execution finished")
+    logging.info("Link uptime pipeline execution finished")
 
 
 if __name__ == "__main__":
-    link_alive_counter(dump_to_json=True)
+    link_uptime_pipeline(dump_to_json=True)

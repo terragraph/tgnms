@@ -452,12 +452,15 @@ class LinkInsight(object):
 
     def get_valid_windows(self, counter_tuples, time_stamps, allowed_time_off_in_s=2):
         """ Calculate the valid time windows by using the increment speed of
-            heartbeat/keepalive/uplink_bwreq counters. Ideally, the sum of the
-            three counter should increase at the speed of 25.6 ms per count.
+            heartbeat/keepalive/uplink_bwreq counters or "staPkt.linkAvailable"
+            counters. Ideally, the sum of the heartbeat/keepalive/uplink_bwreq
+            counters or "staPkt.linkAvailable" counters should increase at the
+            speed of 25.6 ms per count.
 
             Args:
-            counter_tuples: A list of counter tuples, each tuple corresponds
-            to the counter values of heartbeat/keepalive/uplink_bwreq.
+            counter_tuples: A list of counters elements. Each element can be
+            a). a list of the counter values of heartbeat/keepalive/uplink_bwreq.
+            b). a list of length 1 with value being "staPkt.linkAvailable" counter.
             time_stamps: time_stamps, need to be index matched with counter_tuples.
             allowed_time_off_in_s: the maximum allowed sampling offset allowed.
             Currently, the firmware/stats agents can report stats that is not sampled
@@ -479,7 +482,7 @@ class LinkInsight(object):
         current_start_idx = 0
         valid_windows = []
         allowed_counter_off = allowed_time_off_in_s * 1000 / 26
-        # Do a sweep from left to right, the sum of the three counter is expected
+        # Do a sweep from left to right, the counter_sum value is expected
         # to increase over time at speed of 25.6 ms per count.
         while current_start_idx < len(time_stamps) - 1:
             current_idx = current_start_idx + 1
