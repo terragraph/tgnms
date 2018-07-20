@@ -569,18 +569,19 @@ class LinkInsight(object):
         return output_stats
 
     def compute_traffic_stats(self, metric_names, read_returns):
-        """ Using a series of time series to find the rages that is valid for time
-            matching.
+        """ Compute the traffic stats of links based on the read returns of
+            link stats on "mgmttx.uplinkbwreq", "mgmttx.keepalive", "mgmttx.heartbeat" ,
+            "stapkt.txok", "stapkt.txfail".
 
             Args:
             metric_names: name of the stats queried of each link. The sequence
-            need to be index matched to that used in read query construction.
+            needs to be index matched to that of read query sent to BQS.
             read_returns: the read return from BQS, of type RawQueryReturn.
 
             Return:
             per_stats_returns: a 2-D list of stats. Each sub-list is of length 1
             and contain a dict which maps traffic insight key_names to computed values.
-            Raise except on error.
+            Raise exception on error.
         """
 
         name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
@@ -622,6 +623,40 @@ class LinkInsight(object):
                 packet_counter_tuples, time_stamps, valid_windows
             )
 
+            per_stats_returns.append([per_values])
+
+        return per_stats_returns
+
+    def compute_link_uptime(self, read_returns):
+        """ Compute the link uptimes by using the "stapkt.linkavailable" counters.
+
+            Args:
+            read_returns: the read return from BQS, of type RawQueryReturn. The first
+            key of each read query/return should be of metric "stapkt.linkavailable".
+
+            Return:
+            per_stats_returns: a 2-D list of stats. Each sub-list is of length 1
+            and contain a dict which maps traffic insight key_names to computed values.
+            Raise except on error.
+        """
+
+        per_stats_returns = []
+        for per_link_return in read_returns.queryReturnList:
+            per_link_return = per_link_return.timeSeriesAndKeyList
+            if len(per_link_return) != 1:
+                # the first key and only key of each query is for the
+                # linkavailable counter
+                raise ValueError("There should be a single query key in each Query")
+
+            link_available_ts = per_link_return[0].timeSeries
+            counters = [[dp.value] for dp in link_available_ts]
+            time_stamps = [dp.unixTime for dp in link_available_ts]
+            valid_windows = self.get_valid_windows(counters, time_stamps)
+
+            link_uptime = sum(
+                window_end - window_start for window_start, window_end in valid_windows
+            )
+            per_values = {"link_uptime": link_uptime}
             per_stats_returns.append([per_values])
 
         return per_stats_returns

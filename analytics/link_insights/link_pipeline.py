@@ -267,7 +267,7 @@ class LinkPipeline(object):
         json_log_name_prefix="sample_uptime_",
     ):
         """
-        Compute the link uptime using the link
+        Compute the link uptime using the link "stapkt.linkavailable" counters.
 
         Args:
         sample_duration_in_s: duration of the samples, for example 3600 means use
@@ -295,7 +295,6 @@ class LinkPipeline(object):
             )
 
             computed_stats = self.link_insight.compute_link_uptime(read_returns)
-            print(computed_stats)
 
             self._write_beringei(
                 dump_to_json,
