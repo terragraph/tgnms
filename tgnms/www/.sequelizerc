@@ -1,0 +1,14 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ */
+
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('server', 'sequelize-config.js'),
+  'models-path': path.resolve('server', 'models'),
+  'seeders-path': path.resolve('server', 'seeders'),
+  'migrations-path': path.resolve('server', 'migrations')
+}
