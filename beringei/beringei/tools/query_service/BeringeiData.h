@@ -38,9 +38,19 @@ class BeringeiData {
     UNKNOWN = 4, // State cannot be inferred, data is missing, state is unknown
   };
 
-  std::unordered_map<std::string, std::deque<UptimeState>> uptimeHandler(
+  enum MetricType {
+    LINK = 1,
+    NODE = 2,
+  };
+
+  typedef std::unordered_map<std::string /* key ID */, std::deque<UptimeState>>
+      KeyUptimeStateMap;
+
+  KeyUptimeStateMap uptimeHandler(
       const double dataPointIncrementMs,
-      const int timeBucketIntervalSec);
+      const int timeBucketLength);
+
+  void resolveLinkUptimeDifference(KeyUptimeStateMap& keysToUptimeStates);
 
   int getShardId(const std::string& key, const int numShards);
 
@@ -65,8 +75,9 @@ class BeringeiData {
   void selectBeringeiDb(int32_t interval /* seconds */);
 
   folly::dynamic eventHandler(
-      int dataPointIncrementMs,
-      const std::string& metricName);
+      const double dataPointIncrementMs,
+      const std::string& metricName,
+      const MetricType metricType);
   folly::dynamic analyzerTable(int beringeiTimeWindowS);
   folly::dynamic makeEvent(int64_t startIndex, int64_t endIndex);
   std::string getTimeStr(time_t timeSec);
