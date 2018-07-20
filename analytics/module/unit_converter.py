@@ -9,18 +9,21 @@ class UnitConverter(object):
     Collections of commonly used unit/metric conversion functions.
     """
 
-    def tx_power_idx_to_power_dbm(self, power_idx):
+    def tx_power_idx_to_power_dbm(self, power_idx, enable_second_array):
         """
         This function converts tx power index to tx power in dBm.
 
         Args:
         power_idx: tx power index from firmware.
+        enable_second_array: if True, the two antenna arrays are both used, which leads
+        to a tx_power increase of 4~5 dBm (compared to single array). Now use 4.5 dBm
+        to reflect the power gain from 2nd array.
 
         Return:
         power_in_dbm: power in dBm.
         """
 
-        max_power_dbm = 46  # 46 dBm
+        max_power_dbm = 43.5  # 43.5 dBm
         max_power_index = 28
         power_cut_off = 21
 
@@ -28,28 +31,38 @@ class UnitConverter(object):
             power_in_dbm = max_power_dbm - 0.5 * (max_power_index - power_idx)
         else:
             power_in_dbm = max_power_dbm - 0.5 * (max_power_index - power_cut_off)
-            power_in_dbm = power_in_dbm - (power_cut_off - power_idx)
+            power_in_dbm -= power_cut_off - power_idx
+
+        if enable_second_array:
+            power_in_dbm += 4.5  # power benefit from using the second array
+
         return power_in_dbm
 
-    def tx_power_dbm_to_power_idx(self, power_in_dbm):
+    def tx_power_dbm_to_power_idx(self, power_in_dbm, enable_second_array):
         """
         This function translates tx_power in dBm to tx_power_idx, i.e., is the
         inverse of tx_power_idx_to_power_dbm().
 
         Args:
         power_in_dbm: tx_power measured in dbm.
+        enable_second_array: if True, the two antenna arrays are both used, which leads
+        to a tx_power increase of 4~5 dBm (compared to single array). Now use 4.5 dBm
+        to reflect the power gain from 2nd array.
 
         Return:
         power_idx: tx power index (currently between 1-28).
         """
 
-        power_cut_off = 42.5
+        if enable_second_array:
+            power_in_dbm -= 4.5
+
+        power_cut_off = 40  # 40 dBm for idx 21
 
         if power_in_dbm > power_cut_off:
-            # For power smaller than the cut_off, 1 idx equals 0.5 dBm
+            # For power larger than the cut_off, 1 idx is around 0.5 dBm
             power_idx = 21 + (power_in_dbm - power_cut_off) / 0.5
         else:
-            # For power smaller than the cut_off, 1 idx equals 1 dBm
+            # For power smaller than the cut_off, 1 idx is around 1 dBm
             power_idx = 21 - (power_cut_off - power_in_dbm)
         return power_idx
 

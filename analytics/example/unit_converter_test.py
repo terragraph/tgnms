@@ -19,34 +19,65 @@ class TestUnitConverter(unittest.TestCase):
 
     def test_tx_power_idx_converter(self):
         logging.info("Testing tx_power, idx and dBm converting")
+        enable_second_array = False
         power_idx0, power_idx1, power_idx2 = 21, 10, 25
         self.assertEqual(
-            self.unit_converter.tx_power_idx_to_power_dbm(power_idx0), 42.5
+            self.unit_converter.tx_power_idx_to_power_dbm(
+                power_idx0, enable_second_array
+            ),
+            40,
         )
         self.assertEqual(
-            self.unit_converter.tx_power_idx_to_power_dbm(power_idx1), 31.5
+            self.unit_converter.tx_power_idx_to_power_dbm(
+                power_idx1, enable_second_array
+            ),
+            29,
         )
         self.assertEqual(
-            self.unit_converter.tx_power_idx_to_power_dbm(power_idx2), 44.5
+            self.unit_converter.tx_power_idx_to_power_dbm(
+                power_idx2, enable_second_array
+            ),
+            42,
+        )
+        self.assertEqual(
+            self.unit_converter.tx_power_idx_to_power_dbm(power_idx2, True), 42 + 4.5
         )
 
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
-                self.unit_converter.tx_power_idx_to_power_dbm(power_idx0)
+                self.unit_converter.tx_power_idx_to_power_dbm(
+                    power_idx0, enable_second_array
+                ),
+                enable_second_array,
             ),
             power_idx0,
         )
 
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
-                self.unit_converter.tx_power_idx_to_power_dbm(power_idx1)
+                self.unit_converter.tx_power_idx_to_power_dbm(
+                    power_idx1, enable_second_array
+                ),
+                enable_second_array,
             ),
             power_idx1,
         )
 
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
-                self.unit_converter.tx_power_idx_to_power_dbm(power_idx2)
+                self.unit_converter.tx_power_idx_to_power_dbm(
+                    power_idx2, enable_second_array
+                ),
+                enable_second_array,
+            ),
+            power_idx2,
+        )
+        self.assertEqual(
+            self.unit_converter.tx_power_dbm_to_power_idx(
+                self.unit_converter.tx_power_idx_to_power_dbm(
+                    power_idx2, True
+                ),
+                True,
             ),
             power_idx2,
         )
