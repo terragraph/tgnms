@@ -95,7 +95,7 @@ class LinkPipeline(object):
         json_log_name,
         metric_name,
     ):
-        """Write the computed metrics to the Beringei database via BQS.
+        """Write the computed insights to the Beringei database via BQS.
 
         Args:
         dump_to_json: if True, save a copy of computed_stats to local json for
@@ -150,12 +150,13 @@ class LinkPipeline(object):
         Args:
         metric_names: metrics list, each metric is like "phystatus.ssnrest".
         sample_duration_in_s: duration of the samples, for example 3600 means use
-                              1 hour data points for each link.
+        1 hour data points for each link.
         source_db_interval: the resolution of the database read from, 30 means
-                            beringei_30s database.
-        dump_to_json: If True, save a copy of the link stats to JSON;
-                      If False, don't save to JSON.
-        json_log_name_prefix: prefix of the output JSON log file, only used if dump_to_json.
+        beringei_30s database.
+        dump_to_json: If True, save a copy of the link stats to json;
+        If False, don't save to json.
+        json_log_name_prefix: prefix of the output json log file, only used
+        if dump_to_json.
 
         Return:
         Void.
@@ -210,9 +211,9 @@ class LinkPipeline(object):
                               1 hour data points for each link.
         source_db_interval: the resolution of the database read from, 30 means
                             beringei_30s database.
-        dump_to_json: if True, save a copy of the link stats to JSON;
-                      If False, don't save to JSON.
-        json_log_name_prefix: prefix of the output JSON log file, only used
+        dump_to_json: if True, save a copy of the link stats to json;
+                      If False, don't save to json.
+        json_log_name_prefix: prefix of the output json log file, only used
                               if dump_to_json.
 
         Return:
