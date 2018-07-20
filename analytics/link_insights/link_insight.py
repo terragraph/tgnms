@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 """ LinkInsight class provides methods to query stats, compute link
-    mean/variance, and write back the computed stats back to Beringei database.
+    insights, and write back the computed insights back to Beringei database.
 """
 
 import numpy as np
 import sys
 import os
 import json
-import time
 import logging
 
 # Include the API between BQS and Analytics
@@ -20,7 +19,6 @@ from facebook.gorilla.beringei_data import ttypes as bd
 from facebook.gorilla.Topology.ttypes import Topology
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from module.topology_handler import TopologyHelper
 from module.beringei_db_access import BeringeiDbAccess
 
 
@@ -29,86 +27,6 @@ class LinkInsight(object):
        from Beringei database and the computed stats can be written back to
        Beringei database.
     """
-
-    def _extract_dimension(self, stats):
-        """Extract the dimension of computed_stats/queries/beringei_read_returns.
-
-           Args:
-           stats: 2-D list or RawQueryReturn or RawReadQueryRequest.
-
-           Return:
-           If type is one of the allowed types, return a list with each element being
-           the length of sub-list/query/return.
-           If type is not among allowed, return None.
-        """
-        if isinstance(stats, bd.RawQueryReturn):
-            dimensions = [0] * len(stats.queryReturnList)
-            for return_idx, returned in enumerate(stats.queryReturnList):
-                dimensions[return_idx] = len(returned.timeSeriesAndKeyList)
-            return dimensions
-        elif isinstance(stats, bq.RawReadQueryRequest):
-            dimensions = [0] * len(stats.queries)
-            for query_idx, query in enumerate(stats.queries):
-                dimensions[query_idx] = len(query.queryKeyList)
-            return dimensions
-        elif isinstance(stats, list):
-            try:
-                dimensions = [len(sub_list) for sub_list in stats]
-            except BaseException as err:
-                logging.error("The input is not a 2-D list", err.args)
-            return dimensions
-        else:
-            return None
-
-    def _check_dimension_matched(self, stats_list):
-        """ Check if the dimensions of a list of stats are matched.
-
-            Args:
-            stats_list: A list of stats, each stats type should be 2-D list
-            or RawReadQueryRequest or RawQueryReturn.
-
-            Return:
-            If dimensions are matched, return True; else, return False.
-        """
-
-        if not isinstance(stats_list, list):
-            return False
-
-        if len(stats_list) < 2:
-            # Need at least 2 stats to be potential dimension matched
-            logging.warning("Need at least 1 input item")
-            return False
-
-        logging.info(
-            "Begin to compare the dimension of {} 2-D stats".format(len(stats_list))
-        )
-
-        # Extract the dimensions of each stats as list. Each item dimension is measured
-        # as a 1-D list of ints. The int value of the 1-D list represents the
-        # sub-list lengths of the stats. For example, [[3,4,2], [1,2]] means that
-        # there are 2 stats (each being 2-D). In the example, the dimensions of
-        # the first stats is length 3, and the first/second/third sub-list is of
-        # lengths 3/4/2.
-        dimensions_list = []
-        for stats in stats_list:
-            dimensions = self._extract_dimension(stats)
-            if dimensions is None:
-                logging.warning(
-                    "Input stats type is '{}', ".format(type(stats))
-                    + "which is not one of the following: "
-                    + "list/RawReadQueryRequest/RawQueryReturn"
-                )
-                return False
-            dimensions_list.append(dimensions)
-
-        dimensions0 = dimensions_list[0]
-        for dimensions in dimensions_list[1:]:
-            # Use python list compare, which is True only if two lists are
-            # of same length and each entry equals
-            if dimensions != dimensions0:
-                return False
-
-        return True
 
     def construct_query_request(
         self,
@@ -469,7 +387,7 @@ class LinkInsight(object):
 
     def match_ts_tuples_by_timestamp(self, time_series_list, source_db_interval=30):
         """Match a list of timeseries. Each element is of type timeSeries and the
-        length can be different.
+        each time series length can be different.
 
         Args:
         time_series_list: list of time_series.
@@ -495,15 +413,15 @@ class LinkInsight(object):
             if not all(isinstance(dp, bd.TimeValuePair) for dp in ts):
                 raise ValueError("Element is not a time series")
 
-        # List that maps the ts_idx to the index of the data points in
+        # List that maps the ts_idx to the sweep pointer index of the data points in
         # each of timeseries
         ts_idx_to_dp_idx = [0] * len(time_series_list)
 
         # Beringie will return time series in sequence of timestamps
-        # Thus, the first data point is of the smallest timestamp
-        # And the last data point is of the biggest timestamp
-        start_time = max([ts[0].unixTime for ts in time_series_list])
-        end_time = min([ts[-1].unixTime for ts in time_series_list])
+        # Thus, the first data point is the smallest timestamp
+        # And the last data point is the biggest timestamp
+        start_time = max(ts[0].unixTime for ts in time_series_list)
+        end_time = min(ts[-1].unixTime for ts in time_series_list)
 
         matched_value_tuples = []
         matched_time_stamps = []
@@ -553,7 +471,7 @@ class LinkInsight(object):
 
         if len(counter_tuples) != len(time_stamps) or len(counter_tuples) == 1:
             # Note that it means if there is only 1 point in time_stamps/counter_sums,
-            # return will be empty list due to unable to check uptime by counter delta
+            # return will be empty list due to unable to check uptime from counter delta
             return []
 
         counter_sums = [sum(counters) for counters in counter_tuples]
@@ -566,8 +484,8 @@ class LinkInsight(object):
         while current_start_idx < len(time_stamps) - 1:
             current_idx = current_start_idx + 1
             while current_idx < len(time_stamps):
-                # The algorithm will make sure than the delta counter to its right neighbor
-                # matches with the expected one, we start from left to right
+                # The algorithm will make sure than the delta counter to its right
+                # neighbor matches with the expected one, we start from left to right
                 expected_delta = time_stamps[current_idx] - time_stamps[current_idx - 1]
                 expected_delta = expected_delta * 1000 / 25.6
                 counter_delta = (
@@ -575,7 +493,8 @@ class LinkInsight(object):
                 )
                 if abs(expected_delta - counter_delta) <= allowed_counter_off:
                     # The fw stats stored in Beringei can have sample advance/delay
-                    # To handle this, we allowed a maximum sample time off of allowed_time_off_in_s
+                    # To handle this, we allowed a maximum sample time off
+                    # of allowed_time_off_in_s
                     current_idx += 1
                 else:
                     break
@@ -606,11 +525,11 @@ class LinkInsight(object):
                      matched.
         valid_windows: The valid windows computed by link uptime via get_valid_windows().
         minimum_packet_number: the minimum number of packets needed to compute link
-        traffic stats. If not enough packets counts are reported, do not compute.
+        traffic stats. If not enough packets counts are reported, do not compute
+        traffic insights.
 
         Return:
-        output_stats: 2-D list, each sub-list is a length with single element. The
-        element is a dict with computed traffic stats as keys.
+        output_stats: a dict with computed traffic insights name as keys.
         """
 
         # TODO: if the stats agents and fw sampling are very stable and the length
@@ -651,25 +570,35 @@ class LinkInsight(object):
             matching.
 
             Args:
-            uplink_bwreq_returns:
-            keepalive_returns:
-            heartbeat_returns
+            metric_names: name of the stats queried of each link. The sequence
+            need to be index matched to that used in read query construction.
+            read_returns: the read return from BQS, of type RawQueryReturn.
 
             Return:
-            On success, return a list, each element is a sub-list of
-                        [time_start, time_end].
-            On error, raise exception.
+            per_stats_returns: a 2-D list of stats. Each sub-list is of length 1
+            and contain a dict which maps traffic insight key_names to computed values.
+            Raise except on error.
         """
+
+        name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
+        if (
+            "mgmtrx.uplinkbwreq" not in name_to_idx
+            or "mgmtrx.keepalive" not in name_to_idx
+            or "mgmtrx.heartbeat" not in name_to_idx
+            or "stapkt.txok" not in name_to_idx
+            or "stapkt.txfail" not in name_to_idx
+        ):
+            raise ValueError("Not all needed metrics are queried")
 
         per_stats_returns = []
         for query_return in read_returns.queryReturnList:
             query_return = query_return.timeSeriesAndKeyList
             # check the length should be equal
-            uplink_bwreq_return = query_return[0]
-            keepalive_return = query_return[1]
-            heartbeat_return = query_return[2]
-            tx_ok_return = query_return[3]
-            tx_fail_return = query_return[4]
+            uplink_bwreq_return = query_return[name_to_idx["mgmtrx.uplinkbwreq"]]
+            keepalive_return = query_return[name_to_idx["mgmtrx.keepalive"]]
+            heartbeat_return = query_return[name_to_idx["mgmtrx.heartbeat"]]
+            tx_ok_return = query_return[name_to_idx["stapkt.txok"]]
+            tx_fail_return = query_return[name_to_idx["stapkt.txfail"]]
 
             ts_tuples, time_stamps = self.match_ts_tuples_by_timestamp(
                 [
