@@ -194,7 +194,7 @@ services:
       - "8087:8087"
     networks:
       - terragraph_net
-    command: ["/bin/sh"]
+    command: tail -f /usr/local/analytics/README.md
     depends_on:
       - ipv6
       - db
