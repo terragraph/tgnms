@@ -258,3 +258,44 @@ class LinkPipeline(object):
             return
 
         logging.info("Link traffic pipeline execution finished")
+
+    def link_asymetrc_correlation(self):
+        """ TODO: add here
+        """
+        logging.info("Running the link traffic pipeline")
+        stats_query_timestamp = int(time.time())
+        # txPower(A) - RSSI(Z) + G_tx(A) + G_Rx(Z)
+        metric_names = [
+            "stapkt.txpowerIndex",
+            "mgmttx.keepalive",
+            "mgmttx.heartbeat",
+            "stapkt.txok",
+            "stapkt.txfail",
+        ]
+
+        try:
+            # Read the from the Beringei database, return type is RawQueryReturn
+            read_returns, query_request_to_send = self._read_beringei(
+                metric_names,
+                stats_query_timestamp,
+                sample_duration_in_s,
+                source_db_interval,
+            )
+
+            computed_stats = self.link_insight.compute_traffic_stats(
+                metric_names, read_returns
+            )
+
+            self._write_beringei(
+                dump_to_json,
+                computed_stats,
+                query_request_to_send,
+                sample_duration_in_s,
+                source_db_interval,
+                stats_query_timestamp,
+                json_log_name_prefix + "traffic.json",
+                "traffic",
+            )
+        except ValueError as err:
+            logging.error("Error during pipeline execution:", err.args)
+            return
