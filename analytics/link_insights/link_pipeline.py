@@ -259,12 +259,18 @@ class LinkPipeline(object):
 
         logging.info("Link traffic pipeline execution finished")
 
-    def link_asymetrc_correlation(self):
+    def link_asymetrc_correlation(self,
+                                  sample_duration_in_s=3600,
+                                  source_db_interval=30,
+                                  dump_to_json=False,
+                                  json_log_name_prefix="sample_asymetric_"):
         """ TODO: add here
         """
-        logging.info("Running the link traffic pipeline")
+        logging.info("Running the link pathloss offset pipeline")
         stats_query_timestamp = int(time.time())
         # txPower(A) - RSSI(Z) + G_tx(A) + G_Rx(Z)
+        # G_tx(A) + G_Rx(Z): same across all links, thus not need to compute
+        # the code
         metric_names = [
             "stapkt.txpowerIndex",
             "mgmttx.keepalive",

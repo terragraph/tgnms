@@ -460,7 +460,8 @@ class LinkInsight(object):
             Args:
             counter_tuples: A list of counters elements. Each element can be
             a). a list of the counter values of heartbeat/keepalive/uplink_bwreq.
-            b). a list of length 1 with value being "staPkt.linkAvailable" counter.
+            b). a list of sub-lists each having a single element whose value being
+            "staPkt.linkAvailable" counter.
             time_stamps: time_stamps, need to be index matched with counter_tuples.
             allowed_time_off_in_s: the maximum allowed sampling offset allowed.
             Currently, the firmware/stats agents can report stats that is not sampled
