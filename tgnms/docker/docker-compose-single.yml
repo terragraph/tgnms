@@ -126,7 +126,7 @@ services:
     depends_on:
       - ipv6
 
-  beringei_300s:
+  beringei_900s:
     build:
       context: .
       dockerfile: Dockerfile.beringei
@@ -136,9 +136,9 @@ services:
     environment:
       - BERINGEI_HOST=beringei
       - PORT=9993
-      - NAME=beringei_300s
-      - INTERVAL=300 # 5 mins
-      - BUCKETS=30 # one month
+      - NAME=beringei_900s
+      - INTERVAL=900 # 15 mins
+      - BUCKETS=90 # 90 days
       - BUCKET_SIZE=86400 # one day
       - BUCKET_FINALIZE_SEC=1200
       - ALLOWED_TIMESTAMP_BEHIND=1200
@@ -179,7 +179,7 @@ services:
       - db
       - beringei_1s
       - beringei_30s
-      - beringei_300s
+      - beringei_900s
 
   analytics:
     build:
