@@ -283,16 +283,35 @@ class LinkPipeline(object):
         Void.
         """
 
+        # TODO: remove later
+        sample_duration_in_s = 3600 * 6
         logging.info("Running the link uptime pipeline")
         stats_query_timestamp = int(time.time())
         try:
             # Read the from the Beringei database, return type is RawQueryReturn
             read_returns, query_request_to_send = self._read_beringei(
-                ["stapkt.linkavailable"],
+                # ["stapkt.linkavailable"],
+                ["mgmttx.keepalive"],
                 stats_query_timestamp,
                 sample_duration_in_s,
                 source_db_interval,
             )
+
+            # TODO: remove later
+            values, time_stamps = [], []
+            for dp in (read_returns.queryReturnList[0].timeSeriesAndKeyList[0].timeSeries):
+                values.append(dp.value)
+                time_stamps.append(dp.unixTime)
+            logging.warning("values0: {}".format(values))
+            logging.warning("time_stamps0: {}".format(time_stamps))
+
+            values, time_stamps = [], []
+            for dp in (read_returns.queryReturnList[1].timeSeriesAndKeyList[0].timeSeries):
+                values.append(dp.value)
+                time_stamps.append(dp.unixTime)
+            logging.warning("values1: {}".format(values))
+            logging.warning("time_stamps1: {}".format(time_stamps))
+            # END of remove
 
             computed_stats = self.link_insight.compute_link_uptime(read_returns)
 
