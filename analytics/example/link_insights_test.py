@@ -343,9 +343,11 @@ class TestLinkInsights(unittest.TestCase):
         self.assertTrue(os.path.isfile(save_fig_name))
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)-8s %(message)s",
-        level=logging.INFO,
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    # TODO: remove later
+    # logging.basicConfig(
+    #     format="%(asctime)s %(levelname)-8s %(message)s",
+    #     level=logging.INFO,
+    #     datefmt="%Y-%m-%d %H:%M:%S",
+    # )
+    logging.basicConfig(filename='run_log.log',level=logging.DEBUG)
     unittest.main()
