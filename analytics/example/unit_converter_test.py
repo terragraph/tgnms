@@ -20,98 +20,98 @@ class TestUnitConverter(unittest.TestCase):
     def test_tx_power_idx_converter(self):
         logging.info("Testing tx_power, idx and dBm converting")
         enable_second_array = False
-        power_idx0, power_idx1, power_idx2 = 21, 10, 25
+        power_idxs = [21, 10, 25]
         self.assertEqual(
             self.unit_converter.tx_power_idx_to_power_dbm(
-                power_idx0, enable_second_array
+                power_idxs[0], enable_second_array
             ),
             40,
         )
         self.assertEqual(
             self.unit_converter.tx_power_idx_to_power_dbm(
-                power_idx1, enable_second_array
+                power_idxs[1], enable_second_array
             ),
             29,
         )
         self.assertEqual(
             self.unit_converter.tx_power_idx_to_power_dbm(
-                power_idx2, enable_second_array
+                power_idxs[2], enable_second_array
             ),
             42,
         )
         self.assertEqual(
-            self.unit_converter.tx_power_idx_to_power_dbm(power_idx2, True), 42 + 4.5
+            self.unit_converter.tx_power_idx_to_power_dbm(power_idxs[2], True), 42 + 4.5
         )
 
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
                 self.unit_converter.tx_power_idx_to_power_dbm(
-                    power_idx0, enable_second_array
+                    power_idxs[0], enable_second_array
                 ),
                 enable_second_array,
             ),
-            power_idx0,
+            power_idxs[0],
         )
 
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
                 self.unit_converter.tx_power_idx_to_power_dbm(
-                    power_idx1, enable_second_array
+                    power_idxs[1], enable_second_array
                 ),
                 enable_second_array,
             ),
-            power_idx1,
+            power_idxs[1],
         )
 
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
                 self.unit_converter.tx_power_idx_to_power_dbm(
-                    power_idx2, enable_second_array
+                    power_idxs[2], enable_second_array
                 ),
                 enable_second_array,
             ),
-            power_idx2,
+            power_idxs[2],
         )
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
                 self.unit_converter.tx_power_idx_to_power_dbm(
-                    power_idx2, True
+                    power_idxs[2], True
                 ),
                 True,
             ),
-            power_idx2,
+            power_idxs[2],
         )
 
     def test_bwgd_unix_time_converter(self):
         logging.info("Testing bwgd, unit_time conversions")
-        bwgd0, bwgd1, bwgd2 = 47481906752, 47479768640, 47479764640
+        bwgds = [47481906752, 47479768640, 47479764640]
         self.assertAlmostEqual(
-            self.unit_converter.bwgd_to_unix_time(bwgd0), 1531501594.8512, places=4
+            self.unit_converter.bwgd_to_unix_time(bwgds[0]), 1531501594.8512, places=4
         )
         self.assertAlmostEqual(
-            self.unit_converter.bwgd_to_unix_time(bwgd1), 1531446859.1840, places=4
+            self.unit_converter.bwgd_to_unix_time(bwgds[1]), 1531446859.1840, places=4
         )
         self.assertAlmostEqual(
-            self.unit_converter.bwgd_to_unix_time(bwgd2), 1531446756.7840, places=4
+            self.unit_converter.bwgd_to_unix_time(bwgds[2]), 1531446756.7840, places=4
         )
 
         self.assertEqual(
             self.unit_converter.unix_time_to_bwgd(
-                self.unit_converter.bwgd_to_unix_time(bwgd0)
+                self.unit_converter.bwgd_to_unix_time(bwgds[0])
             ),
-            bwgd0,
+            bwgds[0],
         )
         self.assertEqual(
             self.unit_converter.unix_time_to_bwgd(
-                self.unit_converter.bwgd_to_unix_time(bwgd1)
+                self.unit_converter.bwgd_to_unix_time(bwgds[1])
             ),
-            bwgd1,
+            bwgds[1],
         )
         self.assertEqual(
             self.unit_converter.unix_time_to_bwgd(
-                self.unit_converter.bwgd_to_unix_time(bwgd2)
+                self.unit_converter.bwgd_to_unix_time(bwgds[2])
             ),
-            bwgd2,
+            bwgds[2],
         )
 
 
