@@ -11,7 +11,9 @@ class UnitConverter(object):
 
     def tx_power_idx_to_power_dbm(self, power_idx, enable_second_array):
         """
-        This function converts tx power index to tx power in dBm.
+        This function converts tx power index to tx power in dBm. The single array
+        version of this function is translate_tx_power() in
+        "terragraph/network_analyzer/modules/analyzer_health_check.py".
 
         Args:
         power_idx: tx power index from firmware.
@@ -69,7 +71,9 @@ class UnitConverter(object):
     def bwgd_to_unix_time(self, bwgd):
         """
         Convert time from bwgd to time since epoch, i.e., is the inverse of
-        unix_time_to_bwgd().
+        unix_time_to_bwgd(). This function is modified from
+        ScanScheduler::bwgdToUnixTime() in
+        "meta-terragraph/recipes-facebook/e2e/files/src/controller/ScanAppUtil.cpp".
 
         Args:
         bwgd: reported bwgd from scan reports.
@@ -86,7 +90,9 @@ class UnitConverter(object):
     def unix_time_to_bwgd(self, unix_time_in_s):
         """
         Convert time from time since epoch to bwgd, i.e., is the inverse of
-        unix_time_to_bwgd(). See comments for detailed conversion.
+        unix_time_to_bwgd(). See comments for detailed conversion. This function
+        is from ScanScheduler::unixTimeToBwgd() in
+        "meta-terragraph/recipes-facebook/e2e/files/src/controller/ScanAppUtil.cpp".
 
         Args:
         unix_time_in_s: unix time since epoch, in unit of second.
