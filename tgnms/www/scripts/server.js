@@ -118,7 +118,7 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.get(/\/*/, (req, res) => {
+app.get('/', (req, res) => {
   // TODO: Move into middleware
   if (enableLogin && req.isUnauthenticated()) {
     res.redirect('/login');
@@ -128,6 +128,11 @@ app.get(/\/*/, (req, res) => {
   res.render('index', {
     configJson: JSON.stringify(getNetworkInstanceConfig()),
   });
+});
+
+// Catch All
+app.get('*', (req, res) => {
+  res.redirect('/');
 });
 
 (async function main() {
