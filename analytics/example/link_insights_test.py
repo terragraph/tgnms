@@ -194,7 +194,7 @@ class TestLinkInsights(unittest.TestCase):
         counters_list[off_dp_idx0][1] += 1 * 1000 / counter_increase_interval
         counters_list[off_dp_idx1][1] -= 5 * 1000 / counter_increase_interval
 
-        # In this case, both sampled points of with off_dp_idx0 and off_dp_idx1 are both
+        # In this case, both sampled points of off_dp_idx0 and off_dp_idx1 are
         # considered valid. This is because all intervals still have positive counter
         # increases.
         valid_windows = self.link_pipeline.link_insight.get_valid_windows(
