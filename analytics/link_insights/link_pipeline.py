@@ -3,9 +3,9 @@
 """ Provide LinkPipeline class, which holds the stats pipelines on link insights.
 """
 
-import sys
-import os
 import logging
+import os
+import sys
 import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -35,9 +35,13 @@ class LinkPipeline(object):
         # initialize topology related variables
         topology_reply = topology_helper.get_topology_from_api_service()
         instance.network_config = topology_helper.obtain_network_dict(topology_reply)
-        instance.link_macs_list = list(
+        # Include both forward and reverse links of (source_mac, peer_mac) and
+        # (peer_mac, source_mac)
+        instance.link_macs_list = []
+        for source_mac, peer_mac in list(
             instance.network_config["link_macs_to_name"].keys()
-        )
+        ):
+            instance.link_macs_list += [[source_mac, peer_mac], [peer_mac, source_mac]]
 
         # initialize Beringie access class
         instance.beringei_db_access = BeringeiDbAccess()
@@ -80,7 +84,6 @@ class LinkPipeline(object):
             end_ts=stats_query_timestamp,
             source_db_interval=source_db_interval,
         )
-        # Read the from the Beringei database, return type is RawQueryReturn
         query_returns = self.beringei_db_access.read_beringei_db(query_request_to_send)
         return query_returns, query_request_to_send
 
@@ -166,7 +169,7 @@ class LinkPipeline(object):
         stats_query_timestamp = int(time.time())
 
         try:
-            # Read the from the Beringei database, return type is RawQueryReturn
+            # Read from the Beringei database, return type is RawQueryReturn
             read_returns, query_request_to_send = self._read_beringei(
                 metric_names,
                 stats_query_timestamp,
@@ -231,7 +234,7 @@ class LinkPipeline(object):
         ]
 
         try:
-            # Read the from the Beringei database, return type is RawQueryReturn
+            # Read from the Beringei database, return type is RawQueryReturn
             read_returns, query_request_to_send = self._read_beringei(
                 metric_names,
                 stats_query_timestamp,
