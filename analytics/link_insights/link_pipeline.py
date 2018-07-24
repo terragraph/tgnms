@@ -263,15 +263,15 @@ class LinkPipeline(object):
 
         logging.info("Link traffic pipeline execution finished")
 
-    def link_uptime_pipeline(
+    def link_available_pipeline(
         self,
         sample_duration_in_s=3600,
         source_db_interval=30,
         dump_to_json=False,
-        json_log_name_prefix="sample_uptime_",
+        json_log_name_prefix="sample_available_",
     ):
         """
-        Compute the link uptime using the link "stapkt.linkavailable" counters.
+        Compute the link available time using the link "stapkt.linkavailable" counters.
 
         Args:
         sample_duration_in_s: duration of the samples, for example 3600 means use
@@ -287,18 +287,26 @@ class LinkPipeline(object):
         Void.
         """
 
-        logging.info("Running the link uptime pipeline")
+        logging.info("Running the link available pipeline")
         stats_query_timestamp = int(time.time())
+        metric_names = [
+            "stapkt.linkavailable",
+            "mgmttx.uplinkbwreq",
+            "mgmttx.keepalive",
+            "mgmttx.heartbeat",
+        ]
         try:
-            # Read the from the Beringei database, return type is RawQueryReturn
+            # Read from the Beringei database, return type is RawQueryReturn
             read_returns, query_request_to_send = self._read_beringei(
-                ["stapkt.linkavailable"],
+                metric_names,
                 stats_query_timestamp,
                 sample_duration_in_s,
                 source_db_interval,
             )
 
-            computed_stats = self.link_insight.compute_link_uptime(read_returns)
+            computed_stats = self.link_insight.compute_link_available(
+                metric_names, read_returns
+            )
 
             self._write_beringei(
                 dump_to_json,
@@ -307,11 +315,11 @@ class LinkPipeline(object):
                 sample_duration_in_s,
                 source_db_interval,
                 stats_query_timestamp,
-                json_log_name_prefix + "uptime.json",
-                None,
+                json_log_name_prefix + "available.json",
+                "health",
             )
         except ValueError as err:
             logging.error("Error during pipeline execution:", err.args)
             return
 
-        logging.info("Link uptime pipeline execution finished")
+        logging.info("Link available pipeline execution finished")

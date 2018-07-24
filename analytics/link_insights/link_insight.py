@@ -27,6 +27,12 @@ class LinkInsight(object):
        Beringei database.
     """
 
+    def __init__(self):
+        # The increase speed of counter. The counter should increase by one
+        # every bwgd (25.6 ms). The counter could be heartbeat, keepalive, bwreq,
+        # or linkavailable.
+        self.counter_speed_per_s = 1000 / 25.6
+
     def construct_query_request(
         self,
         topology_name,
@@ -618,36 +624,125 @@ class LinkInsight(object):
 
         return traffic_stats_returns
 
-    def compute_link_uptime(self, read_returns):
-        """ Compute the link uptimes by using the "stapkt.linkavailable" counters.
+    def compute_link_available(self, metric_names, read_returns):
+        """ Compute the link available times by using the "stapkt.linkavailable" counters.
+            Currently, to workaround stats pipeline glitches, we use the
+            link mgmttx counters and the computed link uptime valid windows. Please see
+            compute_single_link_available_stats() for detailed algorithm.
 
             Args:
-            read_returns: the read return from BQS, of type RawQueryReturn. The first
-            key of each read query/return should be of metric "stapkt.linkavailable".
+            metric_names: name of the stats queried of each link. The sequence
+            needs to be index matched to that of read query sent to BQS.
+            read_returns: the read return from BQS, of type RawQueryReturn.
 
             Return:
-            uptime_stats_returns: a 2-D list of stats. Each sub-list is of length 1
-            and contain a dict which maps traffic insight key_names to computed values.
-            Raise except on error.
+            available_stats_returns: a 2-D list of stats. Each sub-list is of length 1
+            and contain a dict which maps link available insight key_names to
+            computed values. Raise except on error.
         """
 
-        uptime_stats_returns = []
+        available_stats_returns = []
+        name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
+        if (
+            "stapkt.linkavailable" not in name_to_idx
+            or "mgmttx.uplinkbwreq" not in name_to_idx
+            or "mgmttx.keepalive" not in name_to_idx
+            or "mgmttx.heartbeat" not in name_to_idx
+        ):
+            raise ValueError("Not all needed metrics are queried")
+
         for per_link_return in read_returns.queryReturnList:
             per_link_return = per_link_return.timeSeriesAndKeyList
-            if len(per_link_return) != 1:
-                # the first key and only key of each query is for the
-                # linkavailable counter
-                raise ValueError("There should be a single query key in each Query")
 
-            link_available_ts = per_link_return[0].timeSeries
-            counters = [[dp.value] for dp in link_available_ts]
-            time_stamps = [dp.unixTime for dp in link_available_ts]
-            valid_windows = self.get_valid_windows(counters, time_stamps)
+            uplink_bwreq_return = per_link_return[name_to_idx["mgmttx.uplinkbwreq"]]
+            keepalive_return = per_link_return[name_to_idx["mgmttx.keepalive"]]
+            heartbeat_return = per_link_return[name_to_idx["mgmttx.heartbeat"]]
+            link_alive_return = per_link_return[name_to_idx["stapkt.linkavailable"]]
 
-            link_uptime = sum(
-                window_end - window_start for window_start, window_end in valid_windows
+            try:
+                values_list, time_stamps = self.match_values_list_by_timestamp(
+                    [
+                        link_alive_return.timeSeries,
+                        uplink_bwreq_return.timeSeries,
+                        keepalive_return.timeSeries,
+                        heartbeat_return.timeSeries,
+                    ],
+                    source_db_interval=30,
+                )
+            except BaseException as err:
+                raise ValueError(
+                    "Error during match_values_list_by_timestamp():", err.args
+                )
+
+            mgmt_counters_list = [counters[1:4] for counters in values_list]
+            link_alive_counters = [counters[0] for counters in values_list]
+
+            available_stats = self.compute_single_link_available_stats(
+                link_alive_counters, mgmt_counters_list, time_stamps
             )
-            uptime_stats = {"link_uptime": link_uptime}
-            uptime_stats_returns.append([uptime_stats])
 
-        return uptime_stats_returns
+            available_stats_returns.append([available_stats])
+
+        return available_stats_returns
+
+    def compute_single_link_available_stats(
+        self, link_alive_counters, mgmt_counters_list, time_stamps
+    ):
+        """
+        Compute the link available time based on the "stapkt.linkavailable" time series.
+        Currently, due to stats pipeline glitches, there can be drift in
+        the report time series values. To compensate, we use the following
+        algorithm: Using mgmttx counters (heartbeat/keepalive/bwreq) to compute the
+        link uptime windows [[t_start_0, t_end_0], ... , [t_start_n, t_end_n]].
+        For each link_uptime window, we compute the link available duration by
+        calculating the link unavailable duration. The link unavailable time in
+        Window i is obtained by using the delta of the following two delta stats:
+        a). mgmttx counters delta, delta_mgmtx_i b). linkavailable counters delta
+        (delta_link_alive_i).
+        In summary, the total link available time now is computed as
+        \sum_{i}[(t_end_i - t_start_i) -
+                 max(0, delta_mgmtx_i - delta_link_alive_i)/speed], where speed
+        is the counter increasing speed.
+
+        Args:
+        link_alive_counters: list of linkAvailable counter values, index matched with
+        mgmt_counters_list, time_stamps.
+        mgmt_counters_list: list of mgmttx counter list, each counter list is of length
+        3 with each element being heartbeat/bwreq/keepalive counter value. Need to be
+        index matched with link_alive_counters, time_stamps.
+        time_stamps: the timestamps of the counter values, index matched with
+        link_alive_counters, mgmt_counters_list.
+
+        Return:
+        output_stats: a dict with computed link available insights name as keys.
+        """
+
+        link_uptime_windows = self.get_valid_windows(mgmt_counters_list, time_stamps)
+
+        output_stats = {"link_aviable_time": 0, "link_uptime": 0}
+
+        time_stamp_to_available_counters = {}
+        time_stamp_to_mgmt_counters = {}
+        for time_stamp_idx, time_stamp in enumerate(time_stamps):
+            time_stamp_to_available_counters[time_stamp] = link_alive_counters[
+                time_stamp_idx
+            ]
+            time_stamp_to_mgmt_counters[time_stamp] = sum(
+                mgmt_counters_list[time_stamp_idx]
+            )
+
+        for start_timestamp, end_timestamp in link_uptime_windows:
+            delta_mgmt = (
+                time_stamp_to_mgmt_counters[end_timestamp]
+                - time_stamp_to_mgmt_counters[start_timestamp]
+            )
+            delta_link_alive = (
+                time_stamp_to_available_counters[end_timestamp]
+                - time_stamp_to_available_counters[start_timestamp]
+            )
+            output_stats["link_uptime"] += end_timestamp - start_timestamp
+            output_stats["link_aviable_time"] += (
+                end_timestamp - start_timestamp
+            ) - max(delta_mgmt - delta_link_alive, 0) / self.counter_speed_per_s
+
+        return output_stats
