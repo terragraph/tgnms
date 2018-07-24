@@ -80,9 +80,14 @@ RawTimeSeriesList RawReadBeringeiData::handleQuery(
       int numShards = beringeiClient->getNumShards();
       auto beringeiRequest =
           createBeringeiRequest(rawReadQuery, numShards, queryWindow);
-      VLOG(2) << "number of keyId to query: " << beringeiRequest.keys.size();
+      VLOG(1) << "number of keyId to query: " << beringeiRequest.keys.size();
       beringeiClient->get(beringeiRequest, beringeiTimeSeries_);
-      VLOG(2) << "number of retuned result: " << beringeiTimeSeries_.size();
+      VLOG(1) << "number of retuned result: " << beringeiTimeSeries_.size();
+      // TODO: TODO: why there can be no return???? even when the keyid is found
+      // TODO: can clear the found keyId passes all to kFail????
+      LOG(ERROR) << "number of keyId to query: (" << beringeiRequest.keys.size()
+                 << ") != number of retuned result: ("<<   beringeiTimeSeries_.size()
+                 <<")";
     });
     std::thread tEb([&eb]() { eb.loop(); });
     tEb.join();
@@ -164,7 +169,7 @@ GetDataRequest RawReadBeringeiData::createBeringeiRequest(
               << " peerMac " << rawQueryKey.peerMac << " metricName "
               << rawQueryKey.metricName;
       auto keyId = findBeringeiKeyId(rawQueryKey);
-      VLOG(2) << "Found KeyId of " << keyId << " from MySQL";
+      VLOG(1) << "Found KeyId of " << keyId << " from MySQL";
       if (keyId == kFail) {
         // If not found, return empty return for this query. Now just label
         // keyId as kFail
@@ -184,7 +189,7 @@ GetDataRequest RawReadBeringeiData::createBeringeiRequest(
               << " keyIds to query from Beringei DB";
 
     for (int i = 0; i < beringeiRequest.keys.size(); i++) {
-      VLOG(2) << "The " << i << "-th "
+      VLOG(1) << "The " << i << "-th "
               << " keyId is:" << beringeiRequest.keys[i].key;
     }
   }
@@ -206,7 +211,14 @@ RawTimeSeriesList RawReadBeringeiData::generateRawOutput(
   int timeSeriesAndKeyListIdx = 0;
   int queryReturnIdx = 0;
   RawTimeSeries perQueryResponse;
+  LOG(INFO) << "Before itea";
   for (const auto& successFindKey : successFindKeyId_) {
+    LOG(INFO) << "elements:" << successFindKey;}
+  for (const auto& metricName : fullMetricKeyName_) {
+    LOG(INFO) << "metricName:" << metricName;}
+  for (const auto& successFindKey : successFindKeyId_) {
+    LOG(INFO) << "iteaing" << successFindKey;
+    LOG(INFO) << "index:" << timeSeriesAndKeyListIdx;
     perQueryResponse.timeSeries.clear();
     // Add the founded fullMetricKeyName. For queries using sourceMac, peerMac,
     // and metricName, will have fullMetricKeyName;
@@ -215,8 +227,11 @@ RawTimeSeriesList RawReadBeringeiData::generateRawOutput(
         fullMetricKeyName_[timeSeriesAndKeyListIdx];
     if (successFindKey) {
       // Load the data if request is valid
+      LOG(INFO) << "before doing this";
       std::pair<Key, std::vector<TimeValuePair>> keyTimeSeries =
           beringeiTimeseries[queryReturnIdx];
+      LOG(INFO) << "keyTimeSeries.first.key" << keyTimeSeries.first.key;
+      LOG(INFO) << "keyTimeSeries.first.shardId" << keyTimeSeries.first.shardId;
       perQueryResponse.beringeiDBKey.key = keyTimeSeries.first.key;
       perQueryResponse.beringeiDBKey.shardId = keyTimeSeries.first.shardId;
       for (const auto& time_value_pair_ : keyTimeSeries.second) {
@@ -323,6 +338,7 @@ int64_t RawReadBeringeiData::findBeringeiKeyId(query::RawQueryKey rawQueryKey) {
       if (single_key_["node"] == wantedSourceMac) {
         LOG(INFO) << "Found KeyId " << single_key_["keyId"].getInt()
                   << ", will use it for Beringei Query";
+        LOG(INFO) << "targetKeyId" << targetKeyId;
         if (targetKeyId == kFail) {
           targetKeyId = single_key_["keyId"].getInt();
           fullMetricKeyName_.back() = single_key_["key"].getString();
