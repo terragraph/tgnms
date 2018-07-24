@@ -69,6 +69,10 @@ div.top-menu-bar {
   width: 100%;
   z-index: 9999;
 }
+.network-status-menu,
+.rc-menu-horizontal.network-status-menu > .rc-menu-submenu {
+  border: 0;
+}
 .rc-menu-submenu-vertical > .rc-menu {
   top: 0;
   left: 100%;

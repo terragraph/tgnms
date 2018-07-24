@@ -45,6 +45,24 @@ body {
 .leaflet-container {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
+.status-indicator {
+  border-radius: 50%;
+  display: inline-block;
+  height: 17px;
+  margin: 3px 8px 3px 3px;
+  vertical-align: middle;
+  width: 17px;
+}
+.status-indicator.online {
+  background: radial-gradient(circle, #2ecc71 40%, transparent 70%);
+}
+.status-indicator.offline {
+  background: radial-gradient(circle, #d63031 40%, transparent 70%);
+}
+.overlay-image {
+  margin-right: 5px;
+}
+
 div.SplitPane {
   margin-top: 40px;
   position: fixed !important;
@@ -289,6 +307,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .many .dygraph-legend > span { display: none; }
 .many .dygraph-legend > span.highlight { display: inline; }
 .dygraph-title {text-align: center;}
+
 .svcOnline div {
   background-image: url(/static/images/online.png);
   background-repeat: no-repeat;
