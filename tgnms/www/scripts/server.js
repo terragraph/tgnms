@@ -60,7 +60,7 @@ app.use(
 store.sync();
 
 // Initialize Passport
-require('../server/users/passportSetup');
+require('../server/user/passportSetup');
 app.use(passport.initialize());
 app.use(passport.session());
 
