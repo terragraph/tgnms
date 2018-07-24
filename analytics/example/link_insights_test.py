@@ -18,6 +18,7 @@ import json
 import numpy as np
 import unittest
 import logging
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.beringei_db_access import BeringeiDbAccess
@@ -117,10 +118,13 @@ class TestLinkInsights(unittest.TestCase):
             )
             remain_print_count -= 1
 
+        current_time = int(time.time())
         query_request_to_send = link_insight.construct_query_request(
             self.topology_name,
             key_option="key_id",
             key_ids=list(key_id_to_link_macs.keys()),
+            start_ts=current_time - 3600,
+            end_ts=current_time,
         )
 
         try:
@@ -175,11 +179,11 @@ class TestLinkInsights(unittest.TestCase):
         counter_delta = int(interval * 1000 / counter_increase_interval)
 
         # Case 0: ideal case, the counters are increasing at expected speed
-        counter_tuples = [[0, counter_delta * i, 0] for i in range(test_len)]
+        counters_list = [[0, counter_delta * i, 0] for i in range(test_len)]
         time_stamps = [interval * i for i in range(test_len)]
 
         valid_windows = self.link_pipeline.link_insight.get_valid_windows(
-            counter_tuples, time_stamps, allowed_time_off_in_s=0.1
+            counters_list, time_stamps
         )
         self.assertEqual(valid_windows, [[0, (test_len - 1) * interval]])
 
@@ -187,53 +191,30 @@ class TestLinkInsights(unittest.TestCase):
         # from Beringei is un-changed
         off_dp_idx0 = int(test_len / 3)
         off_dp_idx1 = int(test_len / 3) * 2
-        counter_tuples[off_dp_idx0][1] += 1 * 1000 / counter_increase_interval
-        counter_tuples[off_dp_idx1][1] -= 5 * 1000 / counter_increase_interval
+        counters_list[off_dp_idx0][1] += 1 * 1000 / counter_increase_interval
+        counters_list[off_dp_idx1][1] -= 5 * 1000 / counter_increase_interval
 
-        # Case1.1: In this case, both sampled points of off_dp_idx0 and off_dp_idx1 are
-        # considered invalid. This is because that their time_off both exceed the
-        # allowed offset of 0.5 seconds.
+        # In this case, both sampled points of with off_dp_idx0 and off_dp_idx1 are both
+        # considered valid. This is because all intervals still have positive counter
+        # increases.
         valid_windows = self.link_pipeline.link_insight.get_valid_windows(
-            counter_tuples, time_stamps, allowed_time_off_in_s=0.5
+            counters_list, time_stamps
         )
-        self.assertEqual(
-            valid_windows,
-            [
-                [0, (off_dp_idx0 - 1) * interval],
-                [(off_dp_idx0 + 1) * interval, (off_dp_idx1 - 1) * interval],
-                [(off_dp_idx1 + 1) * interval, (test_len - 1) * interval],
-            ],
-        )
+        self.assertEqual(valid_windows, [[0, (test_len - 1) * interval]])
 
-        # Case1.2: In this case, the sampled point with off_dp_idx0 is considered valid.
-        # But off_dp_idx1 is considered invalid because its time_off exceed the
-        # allowed time of 2 seconds.
-        valid_windows = self.link_pipeline.link_insight.get_valid_windows(
-            counter_tuples, time_stamps, allowed_time_off_in_s=2
-        )
-        self.assertEqual(
-            valid_windows,
-            [
-                [0, (off_dp_idx1 - 1) * interval],
-                [(off_dp_idx1 + 1) * interval, (test_len - 1) * interval],
-            ],
-        )
-
-        # Case 3: there is indeed a reset in middle
-        # In this case, the sampled point with off_dp_idx1 is still considered invalid
-        # and its left and right neighbors are removed. The interval during the
-        # reset is removed.
+        # Case 2: there is indeed a reset in middle.
+        # In this case, only interval due to the link reset will have negative
+        # counter delta.
         len_to_pad = 10
-        counter_tuples += [[0, counter_delta * i, 0] for i in range(len_to_pad)]
+        counters_list += [[0, counter_delta * i, 0] for i in range(len_to_pad)]
         time_stamps = [interval * i for i in range(test_len + len_to_pad)]
         valid_windows = self.link_pipeline.link_insight.get_valid_windows(
-            counter_tuples, time_stamps, allowed_time_off_in_s=2
+            counters_list, time_stamps
         )
         self.assertEqual(
             valid_windows,
             [
-                [0, (off_dp_idx1 - 1) * interval],
-                [(off_dp_idx1 + 1) * interval, (test_len - 1) * interval],
+                [0, (test_len - 1) * interval],
                 [test_len * interval, (test_len + len_to_pad - 1) * interval],
             ],
         )
@@ -341,6 +322,7 @@ class TestLinkInsights(unittest.TestCase):
 
         # Check that the figure is output
         self.assertTrue(os.path.isfile(save_fig_name))
+
 
 if __name__ == "__main__":
     logging.basicConfig(
