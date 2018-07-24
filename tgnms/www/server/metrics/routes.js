@@ -11,6 +11,7 @@ const dataJson = require('./dataJson');
 
 const express = require('express');
 const request = require('request');
+const logger = require('../log')(module);
 
 const app = express();
 
@@ -39,7 +40,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
     },
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from beringei:', err);
+        logger.error('Error fetching from beringei: %s', err);
         res
           .status(500)
           .send('Error fetching data')
@@ -69,7 +70,7 @@ app.post(/\/multi_chart\/$/i, (req, res, next) => {
       },
       (err, httpResponse, body) => {
         if (err) {
-          console.error('Failed on /multi_chart', err);
+          logger.error('Failed on /multi_chart: %s', err);
           return;
         }
         if (httpResponse) {
@@ -98,7 +99,7 @@ app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
     },
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from beringei:', err);
+        logger.error('Error fetching from beringei: %s', err);
         res.status(500).end();
         return;
       }
@@ -134,7 +135,7 @@ app.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
   if (analyzerData !== null) {
     res.send(analyzerData).end();
   } else {
-    console.log('No analyzer cache found for', topologyName);
+    logger.debug('No analyzer cache found for: %s', topologyName);
     res.send('No analyzer cache').end();
   }
 });

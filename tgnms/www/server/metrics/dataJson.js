@@ -7,6 +7,8 @@
 // aggregate data points in buckets for easier grouping
 const mysql = require('mysql');
 const {MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB} = require('../config');
+const logger = require('../log')(module);
+
 const pool = mysql.createPool({
   connectionLimit: 50,
   host: MYSQL_HOST,
@@ -17,10 +19,10 @@ const pool = mysql.createPool({
   waitForConnections: false,
 });
 pool.on('enqueue', () => {
-  console.log('Waiting for available connection slot');
+  logger.debug('Waiting for available connection slot');
 });
 pool.on('error', () => {
-  console.log('pool error');
+  logger.error('pool error');
 });
 
 // fields not to include in response
@@ -40,7 +42,7 @@ const self = {
   refreshNodes() {
     pool.getConnection((err, conn) => {
       if (err) {
-        console.error('DB error', err);
+        logger.error('DB error: %s', err);
         return;
       }
       conn.query('SELECT * FROM `nodes`', (err, results) => {
@@ -65,7 +67,7 @@ const self = {
   refreshColumnNames(res, tableName, sendResult) {
     pool.getConnection((err, conn) => {
       if (err) {
-        console.error('DB error', err);
+        logger.error('DB error %s', err);
         return;
       }
       const queryCmd =
@@ -74,7 +76,7 @@ const self = {
       const queryArgs = [tableName];
       conn.query(queryCmd, queryArgs, (err, results) => {
         if (err) {
-          console.error('query error', err);
+          logger.error('query error: %s', err);
           return;
         }
 
@@ -86,7 +88,7 @@ const self = {
         } else if (tableName === 'terragraph_network_analyzer') {
           columnObj = self.selfTestColumnNames;
         } else {
-          console.error('ERROR!! unexpected table name');
+          logger.error('ERROR!! unexpected table name');
           return;
         }
 
@@ -107,13 +109,13 @@ const self = {
 
     pool.getConnection((err, conn) => {
       if (err) {
-        console.error('DB error', err);
+        logger.error('DB error: %s', err);
         return;
       }
 
       // filterType is either TESTRESULTS or GROUPS
       if (!filter.hasOwnProperty('filterType')) {
-        console.error('filterType missing from filter');
+        logger.error('filterType missing from filter');
         return;
       }
 
@@ -121,7 +123,7 @@ const self = {
         filter.filterType === 'TESTRESULTS' &&
         !filter.hasOwnProperty('testtime')
       ) {
-        console.error('testtime missing from filter');
+        logger.error('testtime missing from filter');
         return;
       }
 
@@ -144,13 +146,13 @@ const self = {
           queryArgs.push(filter.testtime);
         }
       } else {
-        console.error('invalid filterType ', filter.filterType);
+        logger.error('invalid filterType %s', filter.filterType);
         return;
       }
 
       const query = conn.query(queryCmd, queryArgs, (err, results) => {
         if (err) {
-          console.error('ERROR: mysql query err:', query.sql, err);
+          logger.error('ERROR: mysql query err: %s %s', query.sql, err);
           return;
         }
         // put the filter used into the results so we'll know what the
@@ -173,19 +175,19 @@ const self = {
   //  filter.isConcise - boolean whether to include the json blob or not
   readScanResults(network, res, filter) {
     if (!filter.hasOwnProperty('isConcise')) {
-      console.error('isConcise missing from filter');
+      logger.error('isConcise missing from filter');
       return;
     }
     if (!filter.hasOwnProperty('whereClause')) {
-      console.error('whereClause missing from filter');
+      logger.error('whereClause missing from filter');
       return;
     }
     if (!filter.hasOwnProperty('rowCount')) {
-      console.error('rowCount missing from filter');
+      logger.error('rowCount missing from filter');
       return;
     }
     if (!filter.hasOwnProperty('offset')) {
-      console.error('offset missing from filter');
+      logger.error('offset missing from filter');
       return;
     }
     // query is "SELECT field1, field2, ... fieldn FROM tx_scan_results JOIN
@@ -245,13 +247,13 @@ const self = {
 
     pool.getConnection((err, conn) => {
       if (err) {
-        console.error('DB error', err);
+        logger.error('DB error: %s', err);
         return;
       }
 
       const query = conn.query(queryCmd, queryArgs, (err, results) => {
         if (err) {
-          console.error('ERROR: mysql query err:', query.sql, err);
+          logger.error('ERROR: mysql query err: %s %s', query.sql, err);
           return;
         }
         // parse the json blob if not isConcise
@@ -265,7 +267,7 @@ const self = {
               scan_resp = JSON.parse(row.tx_scan_resp);
               row.tx_scan_resp = scan_resp;
             } catch (ex) {
-              console.error('ERROR: JSON parse scan response failed ', ex);
+              logger.error('ERROR: JSON parse scan response failed %s', ex);
             }
           }
           newResults.push(row);

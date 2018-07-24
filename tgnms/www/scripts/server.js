@@ -29,6 +29,7 @@ const {
 const topologyPeriodic = require('../server/topology/periodic');
 const {sequelize} = require('../server/models');
 const {runMigrations} = require('./runMigrations');
+const logger = require('../server/log')(module);
 
 const devMode = process.env.NODE_ENV !== 'production';
 const port = devMode && process.env.PORT ? process.env.PORT : 80;
@@ -91,6 +92,7 @@ if (devMode) {
   const middleware = webpackMiddleware(compiler, {
     publicPath: config.output.publicPath,
     contentBase: 'src',
+    logger,
     stats: {
       colors: true,
       hash: false,
@@ -140,20 +142,20 @@ app.get('*', (req, res) => {
   try {
     await runMigrations();
   } catch (error) {
-    console.error('Unable to run migrations:', error);
+    logger.error('Unable to run migrations:', error);
   }
 
   app.listen(port, '', err => {
     if (err) {
-      console.log(err);
+      logger.error(err);
     }
     if (devMode) {
-      console.log('<=========== DEVELOPER MODE ===========>');
+      logger.info('<=========== DEVELOPER MODE ===========>');
     } else {
-      console.log('<=========== PRODUCTION MODE ==========>');
-      console.log('<== JS BUNDLE SERVED FROM /static/js ==>');
-      console.log('<==== LOCAL CHANGES NOT POSSIBLE ======>');
+      logger.info('<=========== PRODUCTION MODE ==========>');
+      logger.info('<== JS BUNDLE SERVED FROM /static/js ==>');
+      logger.info('<==== LOCAL CHANGES NOT POSSIBLE ======>');
     }
-    console.log('\n=========> LISTENING ON PORT %s', port);
+    logger.info('=========> LISTENING ON PORT %s', port);
   });
 })();

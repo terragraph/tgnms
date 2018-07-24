@@ -17,6 +17,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const querystring = require('querystring');
+const logger = require('../log')(module);
 
 const app = express();
 
@@ -26,7 +27,7 @@ app.get(/\/health\/(.+)$/i, (req, res, next) => {
   if (networkHealth) {
     res.send(networkHealth).end();
   } else {
-    console.log('No cache found for', topologyName);
+    logger.debug('No cache found for %s', topologyName);
     res.send('No cache').end();
   }
 });
@@ -98,20 +99,18 @@ app.post(/\/config\/save$/i, (req, res, next) => {
           config.topology_file,
         );
         if (config.topology && !fs.existsSync(topologyFile)) {
-          console.log(
-            'Missing topology file for',
+          logger.debug(
+            'Missing topology file for %s writing to %s',
             config.topology.name,
-            'writing to',
             topologyFile,
           );
           fs.writeFile(
             topologyFile,
             JSON.stringify(config.topology, null, 4),
             err => {
-              console.error(
-                'Unable to write topology file',
+              logger.error(
+                'Unable to write topology file %s, error: %s',
                 topologyFile,
-                'error:',
                 err,
               );
             },
@@ -127,11 +126,11 @@ app.post(/\/config\/save$/i, (req, res, next) => {
     fs.writeFile(liveConfigFile, JSON.stringify(configData, null, 4), err => {
       if (err) {
         res.status(500).end('Unable to save');
-        console.log('Unable to save', err);
+        logger.error('Unable to save: %s', err);
         return;
       }
       res.status(200).end('Saved');
-      console.log('Saved instance config', NETWORK_CONFIG_PATH);
+      logger.debug('Saved instance config %s', NETWORK_CONFIG_PATH);
     });
   });
 });

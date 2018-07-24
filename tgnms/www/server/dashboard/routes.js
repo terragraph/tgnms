@@ -6,6 +6,7 @@
 
 const express = require('express');
 const fs = require('fs');
+const logger = require('../log')(module);
 
 const app = express();
 
@@ -42,7 +43,7 @@ app.post(/\/save\/$/i, (req, res, next) => {
         err => {
           if (err) {
             res.status(500).end('Unable to save');
-            console.log('Unable to save', err);
+            logger.error('Unable to save: %s', err);
             return;
           }
           res.status(200).end('Saved');

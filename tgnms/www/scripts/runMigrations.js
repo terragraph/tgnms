@@ -4,6 +4,7 @@
  * @format
  */
 
+const logger = require('../server/log')(module);
 const {sequelize} = require('../server/models');
 
 const path = require('path');
@@ -17,7 +18,7 @@ const umzug = new Umzug({
   },
   // The logging function.
   // A function that gets executed everytime migrations start and have ended.
-  logging: console.log,
+  logging: msg => logger.info(msg),
   // The name of the positive method in migrations.
   upName: 'up',
   // The name of the negative method in migrations.

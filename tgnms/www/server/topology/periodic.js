@@ -17,6 +17,7 @@ const {
 const {refreshAnalyzerData} = require('./analyzer_data');
 
 const _ = require('lodash');
+const logger = require('../log')(module);
 
 const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
   ? process.env.IM_SCAN_POLLING_ENABLED === '1'
@@ -47,7 +48,7 @@ function stopPeriodicTasks() {
 }
 
 function startPeriodicTasks() {
-  console.log('periodic: starting periodic tasks...');
+  logger.debug('periodic: starting periodic tasks...');
   const config = getNetworkInstanceConfig();
   if (config.ruckus_controller) {
     // ruckus data is fetched from BQS
@@ -67,7 +68,7 @@ function startPeriodicTasks() {
   );
 
   if (IM_SCAN_POLLING_ENABLED) {
-    console.log('IM_SCAN_POLLING_ENABLED is set');
+    logger.debug('IM_SCAN_POLLING_ENABLED is set');
 
     runNowAndSchedule(
       scheduleScansUpdate,
@@ -77,11 +78,11 @@ function startPeriodicTasks() {
 }
 
 function refreshHealthData() {
-  console.log('periodic: refreshing health cache');
+  logger.debug('periodic: refreshing health cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log(
-      'periodic: refreshing cache (health, analyzer) for',
+    logger.debug(
+      'periodic: refreshing cache (health, analyzer) for %s',
       configName,
     );
     refreshNetworkHealth(configName);
@@ -90,10 +91,10 @@ function refreshHealthData() {
 }
 
 function refreshSelfTestCache() {
-  console.log('periodic: refreshing self-test cache');
+  logger.debug('periodic: refreshing self-test cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('periodic: refreshing self-test for', configName);
+    logger.debug('periodic: refreshing self-test for %s', configName);
     refreshSelfTestData(configName);
   });
 }

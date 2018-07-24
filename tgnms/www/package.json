@@ -81,7 +81,8 @@
     "umzug": "^2.1.0",
     "utf8": "^2.1.2",
     "uuid": "^3.2.1",
-    "webpack-parallel-uglify-plugin": "^1.1.0"
+    "webpack-parallel-uglify-plugin": "^1.1.0",
+    "winston": "^3.0.0"
   },
   "devDependencies": {
     "autoprefixer": "7.1.6",

@@ -5,6 +5,7 @@
  */
 
 const {MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB} = require('./config');
+const logger = require('./log')(module);
 
 module.exports = {
   development: {
@@ -13,6 +14,7 @@ module.exports = {
     database: MYSQL_DB,
     host: MYSQL_HOST,
     dialect: 'mysql',
+    logging: msg => logger.info(msg),
   },
   production: {
     username: MYSQL_USER,
@@ -20,5 +22,6 @@ module.exports = {
     database: MYSQL_DB,
     host: MYSQL_HOST,
     dialect: 'mysql',
+    logging: msg => logger.info(msg),
   },
 };

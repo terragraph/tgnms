@@ -7,6 +7,7 @@
 const fs = require('fs');
 const {join, resolve} = require('path');
 
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
@@ -32,6 +33,7 @@ if (!fs.existsSync(NETWORK_CONFIG_PATH)) {
 }
 
 module.exports = {
+  LOG_LEVEL,
   MYSQL_HOST,
   MYSQL_USER,
   MYSQL_PASS,

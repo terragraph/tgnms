@@ -8,16 +8,18 @@ import axios from 'axios';
 import isIp from 'is-ip';
 import process from 'process';
 
+const logger = require('../log')(module);
+
 // main message loop from primary process
 process.on('message', msg => {
-  console.log('worker: received message ' + msg.type);
+  logger.debug('received message %s', msg.type);
   if (!msg.type) {
-    console.error('worker: received unknown message', msg);
+    logger.error('received unknown message: %s', msg);
   }
 
   const getErrorHandler = function(type) {
     return error => {
-      console.error('worker: ' + error.message);
+      logger.error(error.message);
     };
   };
 
@@ -99,14 +101,14 @@ process.on('message', msg => {
               tokenTo: Math.max.apply(null, statusKeys),
             };
             apiServiceRequest(topology, 'resetScanStatus', scanResetPostData)
-              .then(_ => console.log('Reset scan status success'))
+              .then(_ => logger.debug('Reset scan status success'))
               .catch(getErrorHandler('scan_status_reset'));
           })
           .catch(getErrorHandler('scan_status'));
       });
       break;
     default:
-      console.error('worker: no handler for msg type', msg.type);
+      logger.error('no handler for msg type %s', msg.type);
   }
 });
 
@@ -131,14 +133,13 @@ function apiServiceRequest(topology, apiMethod, data, config) {
       })
       .catch(error => {
         if (error.response) {
-          console.error(
-            'worker: received status ' +
-              error.response.status +
-              ' for url ' +
-              url,
+          logger.error(
+            'received status %s for url %s',
+            error.response.status,
+            url,
           );
         } else {
-          console.error('worker: ' + error.message);
+          logger.error(error.message);
         }
         const endTimer = new Date();
         const responseTime = endTimer - startTimer;
@@ -160,7 +161,7 @@ const retryAxios = async (delays, axiosFunc, ...axiosArgs) => {
     } catch (error) {
       const {done, value} = iterator.next();
       if (!done && error.response && error.response.status === 400) {
-        console.log('worker: retrying ' + value);
+        logger.debug('retrying ' + value);
         await timeout(value);
       } else {
         // The error is not retriable or the iterable is exhausted.
