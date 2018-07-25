@@ -7,7 +7,6 @@
 
 import ConfigModalBody from './ConfigModalBody';
 import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
-import {getNodeConfig} from '../../apiutils/NetworkConfigAPIUtil';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Modal from 'react-modal';
