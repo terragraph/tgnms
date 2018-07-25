@@ -298,34 +298,6 @@ class TestLinkInsights(unittest.TestCase):
         logging.info("Saving fig to " + save_fig_name)
         plt.close()
 
-    def test_link_asymetric_visualization(self):
-        """ This is a simple offline visualization to plot the CDF
-            of link traffic related metrics across the network.
-        """
-
-        json_log_name_prefix = "temp_traffic_"
-
-        # Compute the insights and generate json file which contains the
-        # traffic insights, including "PPS" and "PER"
-        self.link_pipeline.link_asymmetric_pipeline(
-            dump_to_json=True, json_log_name_prefix=json_log_name_prefix
-        )
-        #
-        # stats_key_to_stats = self._extract_network_wide_stats(
-        #     ["PPS", "PER"], json_log_name_prefix + "traffic.json"
-        # )
-        #
-        # # For each stats, check that there is at least 1 link with its stats computed
-        # for key in stats_key_to_stats:
-        #     self.assertTrue(stats_key_to_stats[key])
-        #
-        # # Plot the CDF of the computed stats across links
-        # save_fig_name = json_log_name_prefix + "plot.pdf"
-        # self._plot_network_wide_cdf(stats_key_to_stats, save_fig_name=save_fig_name)
-        #
-        # # Check that the figure is output
-        # self.assertTrue(os.path.isfile(save_fig_name))
-
 
 if __name__ == "__main__":
     logging.basicConfig(
