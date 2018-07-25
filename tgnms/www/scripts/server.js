@@ -27,6 +27,7 @@ const {
   reloadInstanceConfig,
 } = require('../server/topology/model');
 const topologyPeriodic = require('../server/topology/periodic');
+const highAvailabilityPeriodic = require('../server/highAvailability/periodic');
 const {sequelize} = require('../server/models');
 const {runMigrations} = require('./runMigrations');
 const logger = require('../server/log')(module);
@@ -74,6 +75,7 @@ app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
 app.use('/dashboards', require('../server/dashboard/routes'));
+app.use('/highavailability', require('../server/highAvailability/routes'));
 app.use('/map', require('../server/map/routes'));
 app.use('/metrics', require('../server/metrics/routes'));
 app.use('/topology', require('../server/topology/routes'));
@@ -82,6 +84,7 @@ app.use('/user', require('../server/user/routes'));
 // First-time stuff
 reloadInstanceConfig();
 topologyPeriodic.startPeriodicTasks();
+highAvailabilityPeriodic.startPeriodicTasks();
 
 if (devMode) {
   // serve developer, non-minified build

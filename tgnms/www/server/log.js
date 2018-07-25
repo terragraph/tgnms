@@ -6,7 +6,7 @@
 
 const {LOG_LEVEL} = require('./config');
 const winston = require('winston');
-const {combine, label, printf, splat, timestamp} = winston.format;
+const {colorize, combine, label, printf, splat, timestamp} = winston.format;
 
 function getLabel(callingModule) {
   const parts = callingModule.filename.split('/');
@@ -21,6 +21,7 @@ module.exports = callingModule => {
   return winston.createLogger({
     level: LOG_LEVEL,
     format: combine(
+      colorize(),
       label({label: getLabel(callingModule)}),
       timestamp(),
       splat(),

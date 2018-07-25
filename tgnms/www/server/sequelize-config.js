@@ -14,7 +14,7 @@ module.exports = {
     database: MYSQL_DB,
     host: MYSQL_HOST,
     dialect: 'mysql',
-    logging: msg => logger.info(msg),
+    logging: msg => logger.debug(msg),
   },
   production: {
     username: MYSQL_USER,
@@ -22,6 +22,6 @@ module.exports = {
     database: MYSQL_DB,
     host: MYSQL_HOST,
     dialect: 'mysql',
-    logging: msg => logger.info(msg),
+    logging: msg => logger.debug(msg),
   },
 };

@@ -8,6 +8,10 @@ import axios from 'axios';
 import isIp from 'is-ip';
 import process from 'process';
 
+const {
+  HAPeerType,
+  getPeerAPIServiceHost,
+} = require('../highAvailability/model');
 const logger = require('../log')(module);
 
 // main message loop from primary process
@@ -52,24 +56,6 @@ process.on('message', msg => {
         apiServiceRequest(topology, 'getUpgradeState')
           .then(getSuccessHandler('upgrade_state', 'upgradeState'))
           .catch(getErrorHandler('upgrade_state'));
-        apiServiceRequest(topology, 'getHighAvailabilityState')
-          .then(getSuccessHandler('bstar_state', 'bstar_fsm'))
-          .catch(getErrorHandler('bstar_state'));
-        if (topology.controller_ip_passive) {
-          apiServiceRequest(topology, 'BStarGetState').then(
-            ([success, responseTime, data]) => {
-              // recvmsg.mType = BSTAR_FSM
-              process.send({
-                name: topology.name,
-                type: 'bstar_state',
-                success,
-                response_time: responseTime,
-                controller_ip: topology.controller_ip_passive,
-                bstar_fsm: success ? data : null,
-              });
-            },
-          );
-        }
       });
       break;
     case 'scan_poll':
@@ -113,12 +99,13 @@ process.on('message', msg => {
 });
 
 function apiServiceRequest(topology, apiMethod, data, config) {
-  const controller_ip = topology.controller_ip_active;
+  const activeControllerIp =
+    topology.controller_ip_active || topology.controller_ip;
   const baseUrl =
-    topology.apiservice_baseurl ||
-    (isIp.v6(controller_ip)
-      ? 'http://[' + controller_ip + ']:8080'
-      : 'http://' + controller_ip + ':8080');
+    activeControllerIp === topology.controller_ip
+      ? getPeerAPIServiceHost(topology, HAPeerType.PRIMARY)
+      : getPeerAPIServiceHost(topology, HAPeerType.BACKUP);
+
   const postData = data || {};
   // All apiservice requests are POST, and expect at least an empty dict.
   return new Promise((resolve, reject) => {

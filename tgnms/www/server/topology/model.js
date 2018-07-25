@@ -12,6 +12,8 @@ const {
 const controllerTTypes = require('../../thrift/gen-nodejs/Controller_types');
 const dataJson = require('../metrics/dataJson');
 const {getNodesWithUpgradeStatus} = require('./upgrade_status');
+const {resetTopologyHAState} = require('../highAvailability/model');
+
 const _ = require('lodash');
 const {join} = require('path');
 const cp = require('child_process');
@@ -184,13 +186,14 @@ function reloadInstanceConfig() {
   networkInstanceConfig = JSON.parse(data);
   if ('topologies' in networkInstanceConfig) {
     const topologies = networkInstanceConfig.topologies;
-    Object.keys(topologies).forEach(key => {
-      const topologyConfig = topologies[key];
+    Object.keys(topologies).forEach(name => {
+      const topologyConfig = topologies[name];
       const topology = JSON.parse(
         fs.readFileSync(
           join(NETWORK_CONFIG_NETWORKS_PATH, topologyConfig.topology_file),
         ),
       );
+
       // base config
       if (topologyConfig.hasOwnProperty('base_topology_file')) {
         baseTopologyByName[topology.name] = JSON.parse(
@@ -202,28 +205,32 @@ function reloadInstanceConfig() {
           ),
         );
       }
+
       // original sites take priority, only add missing nodes and sites
       const sitesByName = {};
       topology.sites.forEach(site => {
         sitesByName[site.name] = site;
       });
+
       const config = topologyConfig;
       config.controller_online = false;
       config.controller_failures = 0;
       config.query_service_online = false;
       config.name = topology.name;
       config.controller_events = [];
+      // By default, set the active controller to the primary
       config.controller_ip_active = config.controller_ip;
-      config.controller_ip_passive = config.controller_ip_backup
-        ? config.controller_ip_backup
-        : null;
       configByName[topology.name] = config;
+
       fileTopologyByName[topology.name] = topology;
-      const topologyName = topology.name;
-      fileSiteByName[topologyName] = {};
+
+      fileSiteByName[topology.name] = {};
       topology.sites.forEach(site => {
-        fileSiteByName[topologyName][site.name] = site;
+        fileSiteByName[topology.name][site.name] = site;
       });
+
+      // Initialize BStar State
+      resetTopologyHAState(topology.name);
     });
   } else {
     logger.error('No topologies found in config, failing!');
@@ -397,10 +404,11 @@ worker.on('message', msg => {
       config.controller_failures = msg.success
         ? 0
         : config.controller_failures + 1;
-      if (config.controller_failures >= maxThriftRequestFailures) {
-        config.controller_online = false;
-      } else {
+
+      if (config.controller_failures < maxThriftRequestFailures) {
         config.controller_online = true;
+      } else {
+        config.controller_online = false;
       }
       topologyByName[msg.name] = msg.success ? msg.topology : {};
       break;
@@ -451,34 +459,6 @@ worker.on('message', msg => {
         msg.success && msg.upgradeState ? msg.upgradeState : null;
       break;
     case 'bstar_state':
-      // check if topology has a backup controller and BSTAR_GET_STATE was
-      // successful
-      if (config.controller_ip_backup && msg.success) {
-        // check if state changed.
-        if (
-          (msg.controller_ip == config.controller_ip_active &&
-            (msg.bstar_fsm.state ==
-              controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
-              msg.bstar_fsm.state ==
-                controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
-          (msg.controller_ip == config.controller_ip_passive &&
-            (msg.bstar_fsm.state ==
-              controllerTTypes.BinaryStarFsmStateSTATE_ACTIVE ||
-              msg.bstar_fsm.state ==
-                controllerTTypes.BinaryStarFsmStateSTATE_PRIMARY))
-        ) {
-          const tempIp = config.controller_ip_passive;
-          config.controller_ip_passive = config.controller_ip_active;
-          config.controller_ip_active = tempIp;
-          logger.debug(config.name + ' BSTAR state changed');
-          logger.debug(
-            'Active controller is  : ' + config.controller_ip_active,
-          );
-          logger.debug(
-            'Passive controller is : ' + config.controller_ip_passive,
-          );
-        }
-      }
       break;
     default:
       logger.error('Unknown message type %s', msg.type);

@@ -10,6 +10,8 @@
             "longitude": -122.1472245455607,
             "zoom_level": 18,
             "controller_ip": "2620:10d:c089:e001:3a49:2280:9221:6e5a",
+            "controller_ip_backup": "2620:10d:c089:e001:3a49:2280:9221:6e5a",
+            "apiservice_baseurl_backup": "http://[2620:10d:c089:e001:3a49:2280:9221:6e5a]:8000",
             "aggregator_ip": "2620:10d:c089:e001:3a49:2280:9221:6e5a"
         },
         {
