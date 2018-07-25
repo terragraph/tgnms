@@ -23,7 +23,7 @@ import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import axios from 'axios';
 import cx from 'classnames';
-import {has} from 'lodash-es';
+import {has, isEmpty} from 'lodash-es';
 import React from 'react';
 
 // update network health at a lower interval (seconds)
@@ -87,9 +87,13 @@ export default class NetworkUI extends React.Component {
           networkConfig: response.data,
         });
       })
-      .catch(_error => {
-        // topology is invalid, switch to the first topology in the list
-        if (this.state.topologies.length) {
+      .catch(error => {
+        // If the topologies already have been loaded, and this topology is
+        // invalid, select the first topology
+        if (
+          error.message !== 'Network Error' &&
+          !isEmpty(this.state.topologies)
+        ) {
           Dispatcher.dispatch({
             actionType: Actions.TOPOLOGY_SELECTED,
             networkName: this.state.topologies[0].name,
