@@ -311,11 +311,11 @@ class TestLinkInsights(unittest.TestCase):
         )
 
         stats_key_to_stats = self._extract_network_wide_stats(
-            ["link_aviable_time", "link_uptime"],
+            ["link_available_time", "link_uptime"],
             json_log_name_prefix + "available.json"
         )
 
-        self.assertTrue(stats_key_to_stats["link_aviable_time"])
+        self.assertTrue(stats_key_to_stats["link_available_time"])
 
         # Plot the CDF of the computed stats across links
         save_fig_name = json_log_name_prefix + "plot.pdf"

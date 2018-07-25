@@ -209,6 +209,71 @@ class LinkInsight(object):
         )
         return stats_to_write
 
+    def construct_network_stats_write_request(
+        self,
+        network_stats,
+        sample_duration_in_s,
+        source_db_interval,
+        stats_query_timestamp,
+        topology_name,
+        dest_db_interval=30,
+    ):
+        # TODO: change descriptions
+        """Prepare computed link stats request to be send to Beringei Query Server
+           for Beringei database writing.
+
+        Args:
+        computed_stats: computed link stats, 2-d list of computed stats. Need
+                        to be index matched with the query_requests_to_send.
+        query_requests_to_send: the query sent to the BQS, used for the macs
+        and metric name creation during write requests generation.
+        network_config: network config dictionary, have keys of
+               "link_macs_to_name", "node_mac_to_name", and "node_mac_to_site".
+        sample_duration_in_s: the duration of the stats read, for example 3600
+            means link data of past 1 hour are used to computed the link stats.
+        source_db_interval: interval of the Beringei database reading from.
+        stats_query_timestamp: the time on which the link stats is computed.
+        topology_name: name of the setup, like "tower G".
+        dest_db_interval: indicates which Beringei database to write to.
+        metric_name: if provided, will use it as the name prefix of the computed stats.
+        If None, will use the metric_name from query_keys as name prefix of
+        the computed stats.
+
+        Return:
+        stats_to_write: On success, stats to write to the Beringei database,
+                        type StatsWriteRequest. Raise exception on error.
+        """
+        topology = Topology(name=topology_name)
+        if topology is None:
+            raise ValueError("Cannot create topology object")
+
+        query_agents = []
+        for network_stats_name in network_stats:
+            # For each computed link insight, like "mean", "average"
+            stats_with_key = bq.Stat(
+                key=(
+                    "{}.{}.{}".format(
+                        network_stats_name,
+                        sample_duration_in_s,
+                        source_db_interval,
+                    )
+                ),
+                ts=stats_query_timestamp,
+                value=network_stats[network_stats_name],
+            )
+            node_state_to_write = bq.NodeStates(
+                mac="00:00:00:00:00:00", # TODO: confirm all zero mac
+                site="TBD", #TODO
+                name="TBD", #TODO
+                stats=[stats_with_key],
+            )
+            query_agents.append(node_state_to_write)
+        stats_to_write = bq.StatsWriteRequest(
+            topology=topology, agents=query_agents, interval=dest_db_interval
+        )
+
+        return stats_to_write
+
     def compute_timeseries_avg_and_var(self, query_returns):
         """Compute the link metric average and variance.
 
@@ -719,7 +784,7 @@ class LinkInsight(object):
 
         link_uptime_windows = self.get_valid_windows(mgmt_counters_list, time_stamps)
 
-        output_stats = {"link_aviable_time": 0, "link_uptime": 0}
+        output_stats = {"link_available_time": 0, "link_uptime": 0}
 
         time_stamp_to_available_counters = {}
         time_stamp_to_mgmt_counters = {}
@@ -741,8 +806,41 @@ class LinkInsight(object):
                 - time_stamp_to_available_counters[start_timestamp]
             )
             output_stats["link_uptime"] += end_timestamp - start_timestamp
-            output_stats["link_aviable_time"] += (
+            output_stats["link_available_time"] += (
                 end_timestamp - start_timestamp
             ) - max(delta_mgmt - delta_link_alive, 0) / self.counter_speed_per_s
 
         return output_stats
+
+    def write_network_wide_stats_to_beringei(self):
+        return None
+
+    def get_link_health_num(self, extracted_stats, sample_duration_in_s):
+        """ TODO
+        """
+        # TODO: better names???
+        network_health_stats = {"green_link": 0, "amber_link": 0, "red_link": 0}
+        if "link_available_time" not in extracted_stats:
+            logging.warning("There is no link available time reported for any link")
+            return network_health_stats
+
+        green_amber_cutoff = sample_duration_in_s * 0.95
+        amber_lower_cutoff = sample_duration_in_s * 0.75
+        red_upper_cutoff = sample_duration_in_s * 0.45
+
+        unclassified_link = 0
+        for link_available_time in extracted_stats["link_available_time"]:
+            if link_available_time >= green_amber_cutoff:
+                network_health_stats["green_link"] += 1
+            elif link_available_time >= amber_lower_cutoff:
+                network_health_stats["amber_link"] += 1
+            elif link_available_time < red_upper_cutoff:
+                network_health_stats["red_link"] += 1
+            else:
+                unclassified_link += 1
+
+        if unclassified_link:
+            logging.warning("There are {} links with ".format(unclassified_link)
+                            + "available time are unclassified")
+
+        return network_health_stats
