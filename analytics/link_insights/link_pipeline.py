@@ -136,6 +136,7 @@ class LinkPipeline(object):
             self.topology_name,
             metric_name=metric_name,
         )
+        print(stats_to_write)
         self.beringei_db_access.write_beringei_db(stats_to_write)
         logging.info("Successfully write back to Beringei")
 
@@ -144,7 +145,7 @@ class LinkPipeline(object):
         computed_stats,
         sample_duration_in_s,
         source_db_interval,
-        stats_query_timestamp
+        stats_query_timestamp,
     ):
         """TODO: add description
 
@@ -153,19 +154,25 @@ class LinkPipeline(object):
         """
         extracted_stats = self._extract_all_links_stats(computed_stats)
         print("extracted_stats", extracted_stats)
-        network_health_stats = self.link_insight.get_link_health_num(extracted_stats,
-                                                                     sample_duration_in_s)
+        network_health_stats = self.link_insight.get_link_health_num(
+            extracted_stats, sample_duration_in_s
+        )
         print("network_health_stats", network_health_stats)
 
-        # stats_to_write = self.link_insight.construct_network_stats_write_request(
-        #     network_health_stats,
-        #     sample_duration_in_s,
-        #     source_db_interval,
-        #     stats_query_timestamp,
-        #     self.topology_name
-        # )
-        # self.beringei_db_access.write_beringei_db(stats_to_write)
-        # logging.info("Successfully write back to Beringei")
+        network_write_request = self.link_insight.construct_network_stats_write_request(
+            network_health_stats,
+            sample_duration_in_s,
+            source_db_interval,
+            stats_query_timestamp,
+            self.topology_name,
+            # TODO: add check that it exists
+            self.link_macs_list[0][0],
+            # "00:00:00:00:00:00", # cannot work
+        )
+        print("network_write_request", network_write_request)
+
+        self.beringei_db_access.write_beringei_db(network_write_request)
+        logging.info("Successfully write network stats to Beringei")
 
     def _extract_all_links_stats(self, computed_stats):
         # TODO: add comment here
@@ -369,7 +376,8 @@ class LinkPipeline(object):
                 computed_stats,
                 sample_duration_in_s,
                 source_db_interval,
-                stats_query_timestamp)
+                stats_query_timestamp,
+            )
 
             self._write_beringei(
                 dump_to_json,
