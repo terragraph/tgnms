@@ -216,6 +216,7 @@ class LinkInsight(object):
         source_db_interval,
         stats_query_timestamp,
         topology_name,
+        fake_mac,
         dest_db_interval=30,
     ):
         # TODO: change descriptions
@@ -247,12 +248,14 @@ class LinkInsight(object):
         if topology is None:
             raise ValueError("Cannot create topology object")
 
-        query_agents = []
+        stats_with_keys = []
         for network_stats_name in network_stats:
             # For each computed link insight, like "mean", "average"
             stats_with_key = bq.Stat(
                 key=(
-                    "{}.{}.{}".format(
+                    "{}.{}.{}.{}.{}".format(
+                        "network",
+                        topology_name.replace(" ", "_"),
                         network_stats_name,
                         sample_duration_in_s,
                         source_db_interval,
@@ -261,15 +264,18 @@ class LinkInsight(object):
                 ts=stats_query_timestamp,
                 value=network_stats[network_stats_name],
             )
-            node_state_to_write = bq.NodeStates(
-                mac="00:00:00:00:00:00", # TODO: confirm all zero mac
-                site="TBD", #TODO
-                name="TBD", #TODO
-                stats=[stats_with_key],
-            )
-            query_agents.append(node_state_to_write)
+            stats_with_keys.append(stats_with_key)
+
+        network_stats_agent = bq.NodeStates(
+            # TODO: confirm all zero mac, we will use a fake mac now
+            # once ... is ready. update here.
+            # mac="00:00:00:00:00:00",
+            mac=fake_mac,
+            stats=stats_with_keys,
+        )
+
         stats_to_write = bq.StatsWriteRequest(
-            topology=topology, agents=query_agents, interval=dest_db_interval
+            topology=topology, agents=[network_stats_agent], interval=dest_db_interval
         )
 
         return stats_to_write
