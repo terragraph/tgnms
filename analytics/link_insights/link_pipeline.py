@@ -84,7 +84,6 @@ class LinkPipeline(object):
             end_ts=stats_query_timestamp,
             source_db_interval=source_db_interval,
         )
-        # Read the from the Beringei database, return type is RawQueryReturn
         query_returns = self.beringei_db_access.read_beringei_db(query_request_to_send)
         return query_returns, query_request_to_send
 
@@ -234,7 +233,7 @@ class LinkPipeline(object):
         stats_query_timestamp = int(time.time())
 
         try:
-            # Read the from the Beringei database, return type is RawQueryReturn
+            # Read from the Beringei database, return type is RawQueryReturn
             read_returns, query_request_to_send = self._read_beringei(
                 metric_names,
                 stats_query_timestamp,
@@ -299,7 +298,7 @@ class LinkPipeline(object):
         ]
 
         try:
-            # Read the from the Beringei database, return type is RawQueryReturn
+            # Read from the Beringei database, return type is RawQueryReturn
             read_returns, query_request_to_send = self._read_beringei(
                 metric_names,
                 stats_query_timestamp,

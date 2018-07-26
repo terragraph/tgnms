@@ -818,9 +818,6 @@ class LinkInsight(object):
 
         return output_stats
 
-    def write_network_wide_stats_to_beringei(self):
-        return None
-
     def get_link_health_num(self, extracted_stats, sample_duration_in_s):
         """ TODO
         """
