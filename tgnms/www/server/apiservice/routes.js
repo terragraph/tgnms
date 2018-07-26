@@ -27,7 +27,6 @@ app.use(
   '/:topology/',
   proxy(getAPIServiceHost, {
     memoizeHost: false,
-    parseReqBody: false,
   }),
 );
 
