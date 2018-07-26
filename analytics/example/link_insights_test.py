@@ -298,7 +298,7 @@ class TestLinkInsights(unittest.TestCase):
         logging.info("Saving fig to " + save_fig_name)
         plt.close()
 
-    def test_link_available_pipeline(self):
+    def test_link_health_pipeline(self):
         """ This is a simple offline visualization to plot the CDF
             of link available time distribution of all links across the network.
         """
@@ -307,7 +307,7 @@ class TestLinkInsights(unittest.TestCase):
 
         # Compute the insights and generate a json file which contains the link
         # available time
-        self.link_pipeline.link_available_pipeline(
+        self.link_pipeline.link_health_pipeline(
             dump_to_json=True, json_log_name_prefix=json_log_name_prefix
         )
 

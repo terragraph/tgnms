@@ -166,7 +166,7 @@ class LinkPipeline(object):
         if self.link_macs_list:
             fake_mac = self.link_macs_list[0][0]
         else:
-            raise ValueError("There is not link in the network")
+            raise ValueError("There is no link in the network")
 
         network_write_request = self.link_insight.construct_network_stats_write_request(
             network_stats,
@@ -304,7 +304,7 @@ class LinkPipeline(object):
 
         logging.info("Link traffic pipeline execution finished")
 
-    def link_available_pipeline(
+    def link_health_pipeline(
         self,
         sample_duration_in_s=3600,
         source_db_interval=30,
@@ -377,4 +377,4 @@ class LinkPipeline(object):
             logging.error("Error during pipeline execution:", err.args)
             return
 
-        logging.info("Link available pipeline execution finished")
+        logging.info("Link health pipeline execution finished")
