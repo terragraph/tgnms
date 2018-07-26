@@ -305,7 +305,8 @@ class TestLinkInsights(unittest.TestCase):
 
         json_log_name_prefix = "temp_available_"
 
-        # Compute the insights and generate a json file which contains the link_uptime
+        # Compute the insights and generate a json file which contains the link
+        # available time
         self.link_pipeline.link_available_pipeline(
             dump_to_json=True, json_log_name_prefix=json_log_name_prefix
         )
