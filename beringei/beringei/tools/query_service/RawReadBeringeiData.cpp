@@ -208,7 +208,7 @@ RawTimeSeriesList RawReadBeringeiData::generateRawOutput(
 
   // Currently, despite being rare, there can be Beringei database read error
   // during beringeiClient->get(beringeiRequest, beringeiTimeSeries_);
-  // This makes beringeiTimeSeries_ a empty vector without any time series.
+  // This makes beringeiTimeSeries_ an empty vector without any time series.
   // If such error happens, return empty for that query. Note that for a single
   // input read request with multiple queries, only queries that meet read error
   // will have empty return.
