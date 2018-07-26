@@ -219,38 +219,34 @@ class LinkInsight(object):
         fake_mac,
         dest_db_interval=30,
     ):
-        # TODO: change descriptions
-        """Prepare computed link stats request to be send to Beringei Query Server
-           for Beringei database writing.
+        """Prepare the network stats (aggregative stats) for writing to Beringei database.
 
         Args:
-        computed_stats: computed link stats, 2-d list of computed stats. Need
-                        to be index matched with the query_requests_to_send.
-        query_requests_to_send: the query sent to the BQS, used for the macs
-        and metric name creation during write requests generation.
-        network_config: network config dictionary, have keys of
-               "link_macs_to_name", "node_mac_to_name", and "node_mac_to_site".
+        network_stats: computed network stats, a dict.
         sample_duration_in_s: the duration of the stats read, for example 3600
-            means link data of past 1 hour are used to computed the link stats.
+            means link data of past 1 hour are used to computed the stats.
         source_db_interval: interval of the Beringei database reading from.
-        stats_query_timestamp: the time on which the link stats is computed.
+        stats_query_timestamp: the time at which the link stats is computed.
         topology_name: name of the setup, like "tower G".
         dest_db_interval: indicates which Beringei database to write to.
-        metric_name: if provided, will use it as the name prefix of the computed stats.
-        If None, will use the metric_name from query_keys as name prefix of
-        the computed stats.
+        fake_mac: a mac in the network, is used to populate the node agent field.
 
         Return:
         stats_to_write: On success, stats to write to the Beringei database,
                         type StatsWriteRequest. Raise exception on error.
         """
+
+        # TODO:
+        # Currently, construct in type of StatsWriteRequest. Once the new aggregative
+        # stats write endpoint at BQS is ready. Will move to the new API.
+
         topology = Topology(name=topology_name)
         if topology is None:
             raise ValueError("Cannot create topology object")
 
         stats_with_keys = []
         for network_stats_name in network_stats:
-            # For each computed link insight, like "mean", "average"
+            # For each computed network insight, like "green_link"
             stats_with_key = bq.Stat(
                 key=(
                     "{}.{}.{}.{}.{}".format(
@@ -266,13 +262,7 @@ class LinkInsight(object):
             )
             stats_with_keys.append(stats_with_key)
 
-        network_stats_agent = bq.NodeStates(
-            # TODO: confirm all zero mac, we will use a fake mac now
-            # once ... is ready. update here.
-            # mac="00:00:00:00:00:00",
-            mac=fake_mac,
-            stats=stats_with_keys,
-        )
+        network_stats_agent = bq.NodeStates(mac=fake_mac, stats=stats_with_keys)
 
         stats_to_write = bq.StatsWriteRequest(
             topology=topology, agents=[network_stats_agent], interval=dest_db_interval
@@ -699,7 +689,7 @@ class LinkInsight(object):
         """ Compute the link available times by using the "stapkt.linkavailable" counters.
             Currently, to workaround stats pipeline glitches, we use the
             link mgmttx counters and the computed link uptime valid windows. Please see
-            compute_single_link_available_stats() for detailed algorithm.
+            compute_single_link_available_stats() for the detailed algorithm.
 
             Args:
             metric_names: name of the stats queried of each link. The sequence
@@ -708,7 +698,7 @@ class LinkInsight(object):
 
             Return:
             available_stats_returns: a 2-D list of stats. Each sub-list is of length 1
-            and contain a dict which maps link available insight key_names to
+            and contains a dict which maps link available insight key_names to
             computed values. Raise except on error.
         """
 
@@ -772,7 +762,7 @@ class LinkInsight(object):
         (delta_link_alive_i).
         In summary, the total link available time now is computed as
         \sum_{i}[(t_end_i - t_start_i) -
-                 max(0, delta_mgmtx_i - delta_link_alive_i)/speed], where speed
+                 (delta_mgmtx_i - delta_link_alive_i)/speed], where speed
         is the counter increasing speed.
 
         Args:
@@ -814,18 +804,31 @@ class LinkInsight(object):
             output_stats["link_uptime"] += end_timestamp - start_timestamp
             output_stats["link_available_time"] += (
                 end_timestamp - start_timestamp
-            ) - max(delta_mgmt - delta_link_alive, 0) / self.counter_speed_per_s
+            ) - (delta_mgmt - delta_link_alive) / self.counter_speed_per_s
 
         return output_stats
 
     def get_link_health_num(self, extracted_stats, sample_duration_in_s):
-        """ TODO
+        """ Compute the number of green, amber, and red links in a network.
+            Currently, the definitions of green, amber, and red links are:
+            green: link_available_time / observed_window >= 95%
+            amber: link_available_time / observed_window >= 75%
+            red: link_available_time / observed_window < 45%
+
+        Args:
+        extracted_stats: a dict, which contains a key of "link_available_time" and
+        corresponding dict value is a list of computed link available time of all
+        links in the network.
+        sample_duration_in_s: duration of the sampling window.
+
+        Return:
+        links_health_stats: a dict, with keys of "green_link", "amber_link", and
+        "red_link".
         """
-        # TODO: better names???
-        network_health_stats = {"green_link": 0, "amber_link": 0, "red_link": 0}
+        links_health_stats = {"green_link": 0, "amber_link": 0, "red_link": 0}
         if "link_available_time" not in extracted_stats:
             logging.warning("There is no link available time reported for any link")
-            return network_health_stats
+            return links_health_stats
 
         green_amber_cutoff = sample_duration_in_s * 0.95
         amber_lower_cutoff = sample_duration_in_s * 0.75
@@ -834,16 +837,44 @@ class LinkInsight(object):
         unclassified_link = 0
         for link_available_time in extracted_stats["link_available_time"]:
             if link_available_time >= green_amber_cutoff:
-                network_health_stats["green_link"] += 1
+                links_health_stats["green_link"] += 1
             elif link_available_time >= amber_lower_cutoff:
-                network_health_stats["amber_link"] += 1
+                links_health_stats["amber_link"] += 1
             elif link_available_time < red_upper_cutoff:
-                network_health_stats["red_link"] += 1
+                links_health_stats["red_link"] += 1
             else:
                 unclassified_link += 1
 
         if unclassified_link:
-            logging.warning("There are {} links with ".format(unclassified_link)
-                            + "available time are unclassified")
+            logging.warning(
+                "There are {} links with ".format(unclassified_link)
+                + "available time are unclassified"
+            )
 
-        return network_health_stats
+        logging.info("The network link health stats is {}".format(links_health_stats))
+
+        return links_health_stats
+
+    def get_all_link_stats(self, computed_stats):
+        """ Extract links stats of all links from computed link stats.
+
+        Args:
+        computed_stats: a 2-D list of interested computed stats, each element is a
+        dict which maps the link stats name to its value.
+
+        Return:
+        stats_key_to_stats: dict, with keys being the link stats names (like
+        "link_available_time") and the dict values are a lists. Each value in a list
+        is the computed stats value of a link.
+        """
+        stats_key_to_stats = {}
+
+        for query_stats in computed_stats:
+            for query_key_stats in query_stats:
+                for stats_key in query_key_stats:
+                    if stats_key in stats_key_to_stats:
+                        stats_key_to_stats[stats_key].append(query_key_stats[stats_key])
+                    else:
+                        stats_key_to_stats[stats_key] = [query_key_stats[stats_key]]
+
+        return stats_key_to_stats
