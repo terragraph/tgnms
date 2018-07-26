@@ -235,26 +235,17 @@ struct RawReadQueryRequest {
 }
 
 // UnifiedWriteRequest is used to carry the write requests for both node (link)
-// stats and aggregative stats. The aggregative stats can be
+// stats and aggregate stats. The aggregate stats can be
 // used for network wide insight writing to Beringei database.
 struct UnifiedWriteRequest {
   1: i32 interval = 30, /* Target Beringei database interval in seconds */
-  2: optional list<NodeStats> nodeAgents,
-  3: optional list<AggStats> aggAgents,
+  2: optional list<NodeStats> nodeStats,
+  3: optional list<AggStats> aggStats,
 }
 
-// The fields of topologyName, nodeName, nodeSite are used during inserting new
-// nodes to MySQL. The insertion only happens when the provided mac is not
-// currently in the MySQL.
 struct NodeStats {
   1: string mac,
   2: list<Stat> stats,
-  // Used during inserting new node to MySQL
-  3: optional string topologyName,
-  // Used during inserting new node to MySQL
-  4: optional string nodeName,
-  // Used during inserting new node to MySQL
-  5: optional string nodeSite,
 }
 
 struct AggStats {
