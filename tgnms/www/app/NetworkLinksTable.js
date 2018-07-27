@@ -291,49 +291,49 @@ export default class NetworkLinksTable extends React.Component {
       key: 'mcs',
       width: 100,
       sort: true,
-      render: (cell) => this.renderFloatPoint('mcs', cell),
+      render: cell => this.renderFloatPoint('mcs', cell),
     },
     {
       label: 'Avg SNR',
       key: 'snr',
       width: 100,
       sort: true,
-      render: (cell) => this.renderFloatPoint('snr', cell),
+      render: cell => this.renderFloatPoint('snr', cell),
     },
     {
       label: 'Avg PER',
       key: 'per',
       width: 100,
       sort: true,
-      render: (cell) => this.renderFloatPoint('per', cell),
+      render: cell => this.renderFloatPoint('per', cell),
     },
     {
       label: 'Avg tput(PPS)',
       key: 'tput',
       width: 100,
       sort: true,
-      render: (cell) => this.renderFloatPoint('tput', cell),
+      render: cell => this.renderFloatPoint('tput', cell),
     },
     {
       label: 'Avg txPower',
       key: 'txpower',
       width: 100,
       sort: true,
-      render: (cell) => this.renderFloatPoint('txpower', cell),
+      render: cell => this.renderFloatPoint('txpower', cell),
     },
     {
       label: '#Restarts',
       key: 'fw_restarts',
       width: 100,
       sort: true,
-      render: (cell) => this.renderFloatPoint('fw_restarts', cell),
+      render: cell => this.renderFloatPoint('fw_restarts', cell),
     },
     {
       label: 'Uptime (min)',
       key: 'uptime',
       width: 100,
       sort: true,
-      render: (cell) => this.renderFloatPoint('uptime', cell),
+      render: cell => this.renderFloatPoint('uptime', cell),
     },
     {label: 'Distance (m)', key: 'distance', width: 120, sort: true},
   ];
@@ -1177,7 +1177,7 @@ export default class NetworkLinksTable extends React.Component {
     }
 
     return <span style={{color: cellColor}}>{'' + cellText}</span>;
-  }
+  };
 
   renderLinkAvailability(cell, row, style) {
     if (row && row.name) {
