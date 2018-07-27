@@ -15,7 +15,9 @@ add_dependencies(beringei_query_service_test_util gtest_tp)
 add_executable(
     beringei_query_service_core_test_bin
 
-    BeringeiDataTest.cpp
+    BeringeiDataUptimeTest.cpp
+    BeringeiDataEventHandlerNodeTest.cpp
+    BeringeiDataEventHandlerLinkTest.cpp
 )
 target_link_libraries(
     beringei_query_service_core_test_bin
