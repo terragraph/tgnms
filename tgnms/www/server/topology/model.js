@@ -305,24 +305,6 @@ function refreshNetworkHealth(topologyName) {
       let parsed;
       try {
         parsed = JSON.parse(httpResponse.body);
-        // the backend returns both A/Z sides, re-write to one
-        if (
-          parsed &&
-          parsed.length === 2 &&
-          parsed[1].hasOwnProperty('metrics')
-        ) {
-          Object.keys(parsed[1].metrics).forEach(linkName => {
-            const linkNameOnly = linkName.replace(' (A) - fw_uptime', '');
-            if (linkName !== linkNameOnly) {
-              parsed[1].metrics[linkNameOnly] = parsed[1].metrics[linkName];
-              // delete a-side name
-              delete parsed[1].metrics[linkName];
-            } else {
-              // delete z-side name
-              delete parsed[1].metrics[linkName];
-            }
-          });
-        }
       } catch (ex) {
         logger.error('Failed to parse health json: %s', httpResponse.body);
         return;
