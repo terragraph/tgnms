@@ -144,6 +144,9 @@
     "webpack-dev-middleware": "^2.0.6",
     "webpack-hot-middleware": "^2.22.1"
   },
+  "jest": {
+    "testEnvironment": "node"
+  },
   "lint-staged": {
     "app/**/*.js": [
       "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
