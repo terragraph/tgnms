@@ -6,6 +6,7 @@
 import sys
 import os
 import logging
+import json
 
 from link_pipeline import LinkPipeline
 
@@ -61,10 +62,15 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    topology_name = "tower G"
-    # Schedule link pipeline jobs to run in the next 24 hours
-    max_run_time_in_s = 24 * 60 * 60
-    # Run once every 2 mins
-    period_in_s = 2 * 60
+    analytics_config_file = "../AnalyticsConfig.json"
+    try:
+        with open(analytics_config_file) as config_file:
+            analytics_config = json.load(config_file)
 
-    run_link_pipeline(topology_name, max_run_time_in_s, period_in_s)
+        topology_name = analytics_config["periodic_jobs"]["topology_name"]
+        max_run_time_in_s = analytics_config["periodic_jobs"]["max_run_time_in_s"]
+        period_in_s = analytics_config["periodic_jobs"]["period_in_s"]
+
+        run_link_pipeline(topology_name, max_run_time_in_s, period_in_s)
+    except BaseException as err:
+        logging.error("Fail to schedule periodic jobs with error: ", err.args)
