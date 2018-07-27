@@ -291,49 +291,49 @@ export default class NetworkLinksTable extends React.Component {
       key: 'mcs',
       width: 100,
       sort: true,
-      render: this.renderFloatPoint.bind(this, 'mcs'),
+      render: (cell) => this.renderFloatPoint('mcs', cell),
     },
     {
       label: 'Avg SNR',
       key: 'snr',
       width: 100,
       sort: true,
-      render: this.renderFloatPoint.bind(this, 'snr'),
+      render: (cell) => this.renderFloatPoint('snr', cell),
     },
     {
       label: 'Avg PER',
       key: 'per',
       width: 100,
       sort: true,
-      render: this.renderFloatPoint.bind(this, 'per'),
+      render: (cell) => this.renderFloatPoint('per', cell),
     },
     {
       label: 'Avg tput(PPS)',
       key: 'tput',
       width: 100,
       sort: true,
-      render: this.renderFloatPoint.bind(this, 'tputPPS'),
+      render: (cell) => this.renderFloatPoint('tput', cell),
     },
     {
       label: 'Avg txPower',
       key: 'txpower',
       width: 100,
       sort: true,
-      render: this.renderFloatPoint.bind(this, 'txpower'),
+      render: (cell) => this.renderFloatPoint('txpower', cell),
     },
     {
       label: '#Restarts',
       key: 'fw_restarts',
       width: 100,
       sort: true,
-      render: this.renderFloatPoint.bind(this, 'fw_restarts'),
+      render: (cell) => this.renderFloatPoint('fw_restarts', cell),
     },
     {
       label: 'Uptime (min)',
       key: 'uptime',
       width: 100,
       sort: true,
-      render: this.renderFloatPoint.bind(this, 'uptime'),
+      render: (cell) => this.renderFloatPoint('uptime', cell),
     },
     {label: 'Distance (m)', key: 'distance', width: 120, sort: true},
   ];
@@ -677,7 +677,7 @@ export default class NetworkLinksTable extends React.Component {
         mcs: this.formatAnalyzerValue(analyzerLinkA, 'avgmcs'),
         snr: this.formatAnalyzerValue(analyzerLinkZ, 'avgsnr'),
         per: this.formatAnalyzerValue(analyzerLinkA, 'avgper'),
-        tputPPS: this.formatAnalyzerValue(analyzerLinkA, 'tput'),
+        tput: this.formatAnalyzerValue(analyzerLinkA, 'tput'),
         txpower: this.formatAnalyzerValue(analyzerLinkA, 'avgtxpower'),
         distance: link.distance,
       });
@@ -694,7 +694,7 @@ export default class NetworkLinksTable extends React.Component {
         mcs: this.formatAnalyzerValue(analyzerLinkZ, 'avgmcs'),
         snr: this.formatAnalyzerValue(analyzerLinkA, 'avgsnr'),
         per: this.formatAnalyzerValue(analyzerLinkZ, 'avgper'),
-        tputPPS: this.formatAnalyzerValue(analyzerLinkZ, 'tput'),
+        tput: this.formatAnalyzerValue(analyzerLinkZ, 'tput'),
         txpower: this.formatAnalyzerValue(analyzerLinkZ, 'avgtxpower'),
         distance: link.distance,
       });
@@ -1128,7 +1128,7 @@ export default class NetworkLinksTable extends React.Component {
   }
 
   // round and set color
-  renderFloatPoint(tpxx, cell, row) {
+  renderFloatPoint = (tpxx, cell, row) => {
     let cellColor = 'red';
     let cellText = '-';
     if (!isNaN(cell)) {
