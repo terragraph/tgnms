@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-""" Provide LinkPipeline class, which holds the stats pipelines on link insights.
+""" Provide LinkPipeline class, which contains the pipelines that each will read
+    data from Beringei database (via BQS), process the data, and write the processed
+    stats back to Beringei database (via BQS).
 """
 
 import logging
@@ -138,7 +140,7 @@ class LinkPipeline(object):
         self.beringei_db_access.write_beringei_db(stats_to_write)
         logging.info("Successfully write back to Beringei")
 
-    def naive_link_pipeline(
+    def link_mean_variance_pipeline(
         self,
         metric_names,
         sample_duration_in_s=3600,
@@ -189,14 +191,14 @@ class LinkPipeline(object):
                 sample_duration_in_s,
                 source_db_interval,
                 stats_query_timestamp,
-                json_log_name_prefix + "naive.json",
+                json_log_name_prefix + "link_mean_variance.json",
                 None,
             )
         except ValueError as err:
             logging.error("Error during pipeline execution:", err.args)
             return
 
-        logging.info("Naive link pipeline execution finished")
+        logging.info("Link metric mean and variance pipeline execution finished")
 
     def traffic_stats_pipeline(
         self,
@@ -242,8 +244,8 @@ class LinkPipeline(object):
                 source_db_interval,
             )
 
-            computed_stats = self.link_insight.compute_traffic_stats(
-                metric_names, read_returns
+            computed_stats = self.link_insight.compute_per_pps(
+                metric_names, read_returns, stats_query_timestamp - sample_duration_in_s
             )
 
             self._write_beringei(
