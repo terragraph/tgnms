@@ -22,7 +22,11 @@ export const apiServiceRequest = (
   // All apiservice requests are POST, and expect at least an empty dict.
   return new Promise((resolve, reject) => {
     axios
-      .post(`/apiservice/${topologyName}/api/${apiMethod}`, data, config)
+      .post(
+        `/apiservice/${topologyName}/default/api/${apiMethod}`,
+        data,
+        config,
+      )
       .then(response => {
         // NOTE: Until the API Service doesn't send 200s on failure, we need to check for a success flag
         if (response.data.hasOwnProperty('success')) {

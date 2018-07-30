@@ -15,6 +15,7 @@ const {
   scheduleTopologyUpdate,
 } = require('./model');
 const {refreshAnalyzerData} = require('./analyzer_data');
+const {runNowAndSchedule} = require('../scheduler');
 
 const _ = require('lodash');
 const logger = require('../log')(module);
@@ -31,21 +32,6 @@ const DEFAULT_TOPOLOGY_REFRESH_INTERVAL = 5 * MS_IN_SEC;
 const HEALTH_REFRESH_INTERVAL = 30 * MS_IN_SEC;
 const RUCKUS_CONTROLLER_REFRESH_INTERVAL = 1 * MS_IN_MIN;
 const TYPEAHEAD_REFRESH_INTERVAL = 5 * MS_IN_MIN;
-
-let periodicTasks = [];
-
-function runNowAndSchedule(task, interval) {
-  task();
-  const timer = setInterval(task, interval);
-  periodicTasks.push(timer);
-}
-
-function stopPeriodicTasks() {
-  periodicTasks.map(timer => {
-    clearInterval(timer);
-  });
-  periodicTasks = [];
-}
 
 function startPeriodicTasks() {
   logger.debug('periodic: starting periodic tasks...');
@@ -100,6 +86,5 @@ function refreshSelfTestCache() {
 }
 
 module.exports = {
-  stopPeriodicTasks,
   startPeriodicTasks,
 };
