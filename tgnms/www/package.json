@@ -156,5 +156,8 @@
       "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
       "git add"
     ]
+  },
+  "browser": {
+    "ws": "./app/shim.js"
   }
 }
