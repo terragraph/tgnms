@@ -5,6 +5,7 @@
 
 import sched
 import time
+import logging
 
 
 class JobScheduler(object):
@@ -12,6 +13,9 @@ class JobScheduler(object):
     Scheduler class which is used to schedule jobs, including periodically
     jobs.
     """
+
+    def __init__(self):
+        self.s = sched.scheduler(time.time, time.sleep)
 
     def schedule_periodic_jobs(
         self,
@@ -38,13 +42,11 @@ class JobScheduler(object):
         Return:
         void
         """
-        s = sched.scheduler(time.time, time.sleep)
-        priority = priority
 
         current_time = int(time.time())
 
         offset_time_in_s = int(offset_time_in_s)
-        print("Job Clock Start time", current_time + offset_time_in_s)
+        logging.info("Job clock start time {}".format(current_time + offset_time_in_s))
 
         period_in_s = int(period_in_s)
         num_of_jobs_to_submit = int(num_of_jobs_to_submit)
@@ -58,13 +60,16 @@ class JobScheduler(object):
         )
         for delay in job_delays:
             if job_input is None:
-                s.enter(delay, priority, job_to_send)
+                self.s.enter(delay, priority, job_to_send)
             else:
-                s.enter(delay, priority, job_to_send, tuple(job_input))
-        print(
+                self.s.enter(delay, priority, job_to_send, tuple(job_input))
+        logging.info(
             "{} jobs entered queue with scheduled delay of : {}".format(
                 len(job_delays), job_delays
             )
         )
 
-        s.run()
+    def run(self):
+        """Begin executing the scheduled jobs in the queue.
+        """
+        self.s.run()
