@@ -18,77 +18,63 @@ import json
 import numpy as np
 import unittest
 import logging
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.beringei_db_access import BeringeiDbAccess
 from module.topology_handler import TopologyHelper
+from module.mysql_db_access import MySqlDbAccess
 from link_insights.link_insight import LinkInsight
-from link_insights.compute_link_insights import compute_link_insight
+from link_insights.link_pipeline import LinkPipeline
 
 
 class TestLinkInsights(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestLinkInsights, self).__init__(*args, **kwargs)
-        self.topology_name = "tower G"
+        try:
+            mysql_db_access = MySqlDbAccess()
+            if mysql_db_access is None:
+                raise ValueError("Cannot create MySqlDbAccess object")
+            api_service_config = mysql_db_access.read_api_service_setting()
+            # Just use the first topology in the MySQL table for testing
+            self.topology_name = list(api_service_config.keys())[0]
+        except BaseException as err:
+            self.fail("Cannot load topology from the api_service", err.args)
+
+        logging.info("Using topology of {} for tests".format(self.topology_name))
+        self.link_pipeline = LinkPipeline(self.topology_name)
 
     def test_link_insight_visualization(self):
         """ This is a simple offline visualization to plot the mean/variance CDF
-            of a selected metric across the network.
+            of selected metrics across the network.
         """
-        metric_names = ["phystatus.ssnrest"]
+        metric_names = ["phystatus.ssnrest", "stapkt.mcs"]
 
         json_log_name_prefix = "link_stats_"
 
-        # Compute the insights and generate JSON file which contains the
-        # interested link metric insights
-        compute_link_insight(
-            metric_names,
-            self.topology_name,
-            dump_to_json=True,
-            json_log_name_prefix=json_log_name_prefix,
+        # Compute the insights and generate json file that contains the
+        # interested link metric mean/variance
+        self.link_pipeline.link_mean_variance_pipeline(
+            metric_names, dump_to_json=True, json_log_name_prefix=json_log_name_prefix
         )
 
         for metric in metric_names:
-            # Read from the logged JSON file
-            json_file_name = json_log_name_prefix + metric + ".json"
-            try:
-                with open(json_file_name) as json_file:
-                    link_stats = json.load(json_file)
-            except Exception:
-                logging.error("Cannot found the JSON file of ", json_file_name)
+            stats_key_to_stats = self._extract_network_wide_stats(
+                ["mean", "variance"],
+                json_log_name_prefix + "link_mean_variance.json",
+                source_metric_name_filter=metric,
+            )
 
-        means = []
-        variances = []
-        for query_idx in link_stats.keys():
-            per_query_stat = link_stats[query_idx]
-            for query_key_idx in per_query_stat:
-                per_link_stat = per_query_stat[query_key_idx]
-                if "mean" not in per_link_stat or "variance" not in per_link_stat:
-                    # If do not have link mean/variance computed, skip
-                    continue
-                means.append(per_link_stat["mean"])
-                variances.append(per_link_stat["variance"])
+            # Check that there is at least 1 link with its stats computed
+            for key in stats_key_to_stats:
+                self.assertTrue(stats_key_to_stats[key])
 
-        # Check that there is at least 1 link with its stats mean computed
-        self.assertTrue(means)
+            # Plot the CDF of the computed stats across links
+            save_fig_name = json_log_name_prefix + metric + "_plot.pdf"
+            self._plot_network_wide_cdf(stats_key_to_stats, save_fig_name=save_fig_name)
 
-        # Plot the CDF of the computed stats across links
-        percentages = np.arange(1, 100, 1)
-
-        mean_percentiles = [np.percentile(means, p) for p in percentages]
-        var_percentiles = [np.percentile(variances, p) for p in percentages]
-
-        plt.subplot(1, 2, 1)
-        plt.plot(mean_percentiles, percentages, "b-")
-        plt.xlabel(metric + " mean")
-        plt.ylabel("Percentages (%)")
-
-        plt.subplot(1, 2, 2)
-        plt.plot(var_percentiles, percentages, "r-")
-        plt.xlabel(metric + " variance")
-
-        plt.savefig(json_log_name_prefix + "plot.pdf".format(metric))
-        plt.close()
+            # Check that the figure is output
+            self.assertTrue(os.path.isfile(save_fig_name))
 
     def test_query_stats_by_beringei_key_id(self):
         """ This is an example to directly construct query_request_to_send from
@@ -132,10 +118,13 @@ class TestLinkInsights(unittest.TestCase):
             )
             remain_print_count -= 1
 
+        current_time = int(time.time())
         query_request_to_send = link_insight.construct_query_request(
             self.topology_name,
             key_option="key_id",
             key_ids=list(key_id_to_link_macs.keys()),
+            start_ts=current_time - 3600,
+            end_ts=current_time,
         )
 
         try:
@@ -150,6 +139,186 @@ class TestLinkInsights(unittest.TestCase):
                 len(query_request_to_send.queries), len(query_returns.queryReturnList)
             )
         )
+
+    def test_link_traffic_visualization(self):
+        """ This is a simple offline visualization to plot the CDF
+            of link traffic related metrics across the network.
+        """
+
+        json_log_name_prefix = "temp_traffic_"
+
+        # Compute the insights and generate json file which contains the
+        # traffic insights, including "PPS" and "PER"
+        self.link_pipeline.traffic_stats_pipeline(
+            dump_to_json=True, json_log_name_prefix=json_log_name_prefix
+        )
+
+        stats_key_to_stats = self._extract_network_wide_stats(
+            ["PPS", "PER"], json_log_name_prefix + "traffic.json"
+        )
+
+        # For each stats, check that there is at least 1 link with its stats computed
+        for key in stats_key_to_stats:
+            self.assertTrue(stats_key_to_stats[key])
+
+        # Plot the CDF of the computed stats across links
+        save_fig_name = json_log_name_prefix + "plot.pdf"
+        self._plot_network_wide_cdf(stats_key_to_stats, save_fig_name=save_fig_name)
+
+        # Check that the figure is output
+        self.assertTrue(os.path.isfile(save_fig_name))
+
+    def test_get_uptime_windows(self):
+        """ This test includes test cases for get_uptime_windows() method in
+            LinkInsight class.
+        """
+
+        test_len = 120
+        interval = 30
+        counter_increase_interval = 25.6  # 25.6 ms
+        counter_delta = int(interval * 1000 / counter_increase_interval)
+
+        # Case 0: ideal case, the counters are increasing at expected speed
+        counters_list = [[0, counter_delta * i, 0] for i in range(test_len)]
+        time_stamps = [interval * i for i in range(test_len)]
+
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
+            counters_list, time_stamps
+        )
+        self.assertEqual(valid_windows, [[interval / 2, (test_len - 1) * interval]])
+
+        # Case 1: two of the reported samples is off by 1s, 5s in fw, but timestamp
+        # from Beringei is un-changed
+        off_dp_idx0 = int(test_len / 3)
+        off_dp_idx1 = int(test_len / 3) * 2
+        counters_list[off_dp_idx0][1] += 1 * 1000 / counter_increase_interval
+        counters_list[off_dp_idx1][1] -= 5 * 1000 / counter_increase_interval
+
+        # In this case, both sampled points of off_dp_idx0 and off_dp_idx1 are
+        # considered valid. This is because all intervals still have positive counter
+        # increases.
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
+            counters_list, time_stamps
+        )
+        self.assertEqual(valid_windows, [[interval / 2, (test_len - 1) * interval]])
+
+        # Case 2: there is indeed a reset in middle.
+        # In this case, only interval due to the link reset will have negative
+        # counter delta.
+        len_to_pad = 10
+        counters_list += [[0, counter_delta * i, 0] for i in range(len_to_pad)]
+        time_stamps = [interval * i for i in range(test_len + len_to_pad)]
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
+            counters_list, time_stamps
+        )
+        self.assertEqual(
+            valid_windows,
+            [
+                [interval / 2, (test_len - 1) * interval],
+                [
+                    test_len * interval + interval / 2,
+                    (test_len + len_to_pad - 1) * interval,
+                ],
+            ],
+        )
+
+        # Case 3: the sampling time is not perfectly aligned with link coming back.
+        # Current algorithm can lead to two valid windows for a single real valid
+        # window.
+        # Link comes back at time 0. Sampling starts from time 15. No re-transmission.
+        offset = 15
+        time_stamps = [interval * i + offset for i in range(test_len)]
+        counter_delta_per_s = 1000 / counter_increase_interval
+        counters_list = [[0, counter_delta_per_s * ts, 0] for ts in time_stamps]
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
+            counters_list, time_stamps
+        )
+        self.assertEqual(
+            valid_windows,
+            [
+                [np.floor(offset / 2), offset],
+                [np.floor((offset + interval) / 2), (test_len - 1) * interval + offset],
+            ],
+        )
+
+    def _extract_network_wide_stats(
+        self, keys_of_interest, json_file_name, source_metric_name_filter=None
+    ):
+        """ Extract stats from a json file that is generated by a link pipeline.
+
+        Args:
+        keys_of_interest: a list of interested computed stats, each element is like
+        "mean" or "PPS".
+        json_file_name: name of the json file that is generated by the link pipelines.
+        source_metric_name_filter: If not None, will extract keys_of_interest that
+        is computed from the source_metric_name_filter. If None, will extract
+        keys_of_interest that is computed using any metrics.
+
+        Return:
+        stats_key_to_stats: dict, with keys being the computed stats, like "mean"
+        "PPS", and the dict values are a lists. Each value in a list is the computed
+        stats of a link.
+        """
+
+        # Do not need try catch here since it is directly used for tests
+        with open(json_file_name) as json_file:
+            link_stats = json.load(json_file)
+
+        stats_key_to_stats = {}
+        for key in keys_of_interest:
+            stats_key_to_stats[key] = []
+        for query_idx in link_stats.keys():
+            per_query_stat = link_stats[query_idx]
+            for query_key_idx in per_query_stat:
+                per_link_stat = per_query_stat[query_key_idx]
+                if (
+                    source_metric_name_filter is not None
+                    and source_metric_name_filter != per_link_stat["metric_name"]
+                ):
+                    continue
+                for key in stats_key_to_stats.keys():
+                    if key not in per_link_stat:
+                        # If do not have needed stats computed, skip
+                        continue
+                    else:
+                        stats_key_to_stats[key].append(per_link_stat[key])
+
+        return stats_key_to_stats
+
+    def _plot_network_wide_cdf(
+        self, stats_key_to_stats, save_fig_name="save_to_fig.pdf"
+    ):
+        """Visualize network wide CDF of the computed link stats.
+
+           Args:
+           stats_key_to_stats: dict, which maps computed stats keys to a value list.
+           Each value in the value list denotes the computed stats of a link in
+           the network.
+           save_fig_name: name of the CDF plot output.
+
+           Return:
+           void.
+        """
+        percentages = np.arange(1, 100, 1)
+        key_to_percentile = {}
+        for key in stats_key_to_stats:
+            key_to_percentile[key] = [
+                np.percentile(stats_key_to_stats[key], p) for p in percentages
+            ]
+
+        num_sub_plot = len(key_to_percentile)
+        sub_plot_idx = 1
+        for key in key_to_percentile:
+            plt.subplot(1, num_sub_plot, sub_plot_idx)
+            plt.plot(key_to_percentile[key], percentages, "b-")
+            plt.xlabel(key)
+            if sub_plot_idx == 1:
+                plt.ylabel("Percentages (%)")
+            sub_plot_idx += 1
+
+        plt.savefig(save_fig_name)
+        logging.info("Saving fig to " + save_fig_name)
+        plt.close()
 
 
 if __name__ == "__main__":
