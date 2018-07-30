@@ -40,7 +40,7 @@ def run_link_pipeline(topology_name, max_run_time_in_s, period_in_s):
 
     # Schedule the jobs for naive link insights
     job_scheduler.schedule_periodic_jobs(
-        link_pipeline.naive_link_pipeline,
+        link_pipeline.link_mean_variance_pipeline,
         period_in_s=period_in_s,
         num_of_jobs_to_submit=num_of_jobs_to_submit,
         job_input=[["phystatus.ssnrest", "stapkt.txpowerindex", "stapkt.mcs"]],
