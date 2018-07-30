@@ -53,11 +53,16 @@ body {
   vertical-align: middle;
   width: 17px;
 }
-.status-indicator.online {
+.status-indicator.online,
+.status-indicator.green {
   background: radial-gradient(circle, #2ecc71 40%, transparent 70%);
 }
-.status-indicator.offline {
+.status-indicator.offline,
+.status-indicator.red {
   background: radial-gradient(circle, #d63031 40%, transparent 70%);
+}
+.status-indicator.yellow {
+  background: radial-gradient(circle, #f1c40f 40%, transparent 70%);
 }
 .overlay-image {
   margin-right: 5px;

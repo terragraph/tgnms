@@ -10,6 +10,8 @@ import {Glyphicon} from 'react-bootstrap';
 import Menu, {SubMenu, Item as MenuItem, Divider} from 'rc-menu';
 import NetworkStatusMenu from './NetworkStatusMenu';
 import StatusIndicator from '../common/StatusIndicator';
+import {HighAvailability} from '../../constants/NetworkConstants';
+import {getStatusIndicatorColor} from '../../helpers/HighAvailabilityHelpers';
 
 const propTypes = {
   handleMenuBarSelect: PropTypes.func.isRequired,
@@ -59,13 +61,23 @@ function TopBar(props) {
   function createTopologySubMenuItems() {
     return props.topologies.map(topologyConfig => {
       const keyName = 'topo#' + topologyConfig.name;
-      const online =
-        topologyConfig.controller_online &&
-        !topologyConfig.hasOwnProperty('controller_error');
+      const highAvailabilityEnabled =
+        topologyConfig.haState &&
+        topologyConfig.haState.primary !== HighAvailability.UNINITIALIZED;
+
+      const statusIndicatorProps = {};
+      if (highAvailabilityEnabled) {
+        statusIndicatorProps.color = getStatusIndicatorColor(
+          topologyConfig.haState.primary,
+          topologyConfig.haState.backup,
+        );
+      } else {
+        statusIndicatorProps.online = topologyConfig.controller_online;
+      }
 
       return (
         <MenuItem key={keyName}>
-          <StatusIndicator online={online} />
+          <StatusIndicator {...statusIndicatorProps} />
           {topologyConfig.name}
         </MenuItem>
       );

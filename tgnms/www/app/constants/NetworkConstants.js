@@ -229,3 +229,8 @@ export const E2EConstants = {
   Aggregator: 'Aggregator',
   Controller: 'Controller',
 };
+
+export const HighAvailability = {
+  OFFLINE: null,
+  UNINITIALIZED: 0,
+};
