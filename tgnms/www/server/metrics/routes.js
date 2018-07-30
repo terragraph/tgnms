@@ -54,36 +54,29 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
 
 // newer charting, for multi-linechart/row
 app.post(/\/multi_chart\/$/i, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', chunk => {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', () => {
-    // proxy query
-    const chartUrl = BERINGEI_QUERY_URL + '/query';
-    const httpData = JSON.parse(httpPostData);
-    const queryRequest = {queries: httpData};
-    request.post(
-      {
-        url: chartUrl,
-        body: JSON.stringify(queryRequest),
-      },
-      (err, httpResponse, body) => {
-        if (err) {
-          logger.error('Failed on /multi_chart: %s', err);
-          return;
-        }
-        if (httpResponse) {
-          res.send(httpResponse.body).end();
-        } else {
-          res
-            .status(500)
-            .send('No Data')
-            .end();
-        }
-      },
-    );
-  });
+  // proxy query
+  const chartUrl = BERINGEI_QUERY_URL + '/query';
+  const queryRequest = {queries: req.body};
+  request.post(
+    {
+      url: chartUrl,
+      body: JSON.stringify(queryRequest),
+    },
+    (err, httpResponse, body) => {
+      if (err) {
+        logger.error('Failed on /multi_chart: %s', err);
+        return;
+      }
+      if (httpResponse) {
+        res.send(httpResponse.body).end();
+      } else {
+        res
+          .status(500)
+          .send('No Data')
+          .end();
+      }
+    },
+  );
 });
 
 app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
@@ -110,14 +103,7 @@ app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
 
 app.post(/\/scan_results$/i, (req, res) => {
   const topologyName = req.query.topology;
-  let httpPostData = '';
-  req.on('data', chunk => {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', () => {
-    const postData = JSON.parse(httpPostData);
-    dataJson.readScanResults(topologyName, res, postData);
-  });
+  dataJson.readScanResults(topologyName, res, req.body);
 });
 
 app.get(/\/self_test$/i, (req, res) => {
