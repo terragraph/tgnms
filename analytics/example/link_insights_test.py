@@ -168,8 +168,8 @@ class TestLinkInsights(unittest.TestCase):
         # Check that the figure is output
         self.assertTrue(os.path.isfile(save_fig_name))
 
-    def test_get_valid_windows(self):
-        """ This test includes test cases for get_valid_windows() method in
+    def test_get_uptime_windows(self):
+        """ This test includes test cases for get_uptime_windows() method in
             LinkInsight class.
         """
 
@@ -182,12 +182,12 @@ class TestLinkInsights(unittest.TestCase):
         counters_list = [[0, counter_delta * i, 0] for i in range(test_len)]
         time_stamps = [interval * i for i in range(test_len)]
 
-        valid_windows = self.link_pipeline.link_insight.get_valid_windows(
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
             counters_list, time_stamps
         )
         self.assertEqual(valid_windows, [[interval / 2, (test_len - 1) * interval]])
 
-        # Case1: two of the reported samples is off-ed by 1s, 5s in fw, but timestamp
+        # Case 1: two of the reported samples is off by 1s, 5s in fw, but timestamp
         # from Beringei is un-changed
         off_dp_idx0 = int(test_len / 3)
         off_dp_idx1 = int(test_len / 3) * 2
@@ -197,7 +197,7 @@ class TestLinkInsights(unittest.TestCase):
         # In this case, both sampled points of off_dp_idx0 and off_dp_idx1 are
         # considered valid. This is because all intervals still have positive counter
         # increases.
-        valid_windows = self.link_pipeline.link_insight.get_valid_windows(
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
             counters_list, time_stamps
         )
         self.assertEqual(valid_windows, [[interval / 2, (test_len - 1) * interval]])
@@ -208,7 +208,7 @@ class TestLinkInsights(unittest.TestCase):
         len_to_pad = 10
         counters_list += [[0, counter_delta * i, 0] for i in range(len_to_pad)]
         time_stamps = [interval * i for i in range(test_len + len_to_pad)]
-        valid_windows = self.link_pipeline.link_insight.get_valid_windows(
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
             counters_list, time_stamps
         )
         self.assertEqual(
@@ -230,7 +230,7 @@ class TestLinkInsights(unittest.TestCase):
         time_stamps = [interval * i + offset for i in range(test_len)]
         counter_delta_per_s = 1000 / counter_increase_interval
         counters_list = [[0, counter_delta_per_s * ts, 0] for ts in time_stamps]
-        valid_windows = self.link_pipeline.link_insight.get_valid_windows(
+        valid_windows = self.link_pipeline.link_insight.get_uptime_windows(
             counters_list, time_stamps
         )
         self.assertEqual(
