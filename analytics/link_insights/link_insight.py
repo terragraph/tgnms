@@ -52,8 +52,7 @@ class LinkInsight(object):
         topology_name: name of the setup, like "tower G".
         link_macs_list: list of Beringei link mac pairs,
                         each element is (source_mac, peer_mac).
-        metric_names: a list of metric of interest, each element is a lower case string,
-                      like "phystatus.ssnrest".
+        metric_names: a list of metric of interest, like "phyStatus.ssnrEst".
         key_option: Can be either "link_metric" or "key_id".
                     If key_option equals "link_metric", use the metric_names, link_macs,
                     and topology_name to identify the right time series.
@@ -84,6 +83,7 @@ class LinkInsight(object):
             for source_mac, peer_mac in link_macs_list:
                 raw_query_keys = []
                 for metric_name in metric_names:
+                    metric_name = metric_name.lower()
                     raw_query_key = bq.RawQueryKey(
                         sourceMac=source_mac,
                         peerMac=peer_mac,
@@ -409,7 +409,10 @@ class LinkInsight(object):
 
         Return:
         matched_values_list: 2-D list of values. Each element of matched_values_list
-                             is a list of values.
+                             is a list of values. matched_values_list only contains list
+                             of values if all of the time_series_list entries have
+                             values at a given timestamp - otherwise the values
+                             are dropped.
         matched_time_stamps: time_stamps, index (length) matched with the
                              matched_values_list.
         Raise Exception if the input time_series_list is not a list of timeSeries.
@@ -458,10 +461,11 @@ class LinkInsight(object):
 
         return matched_values_list, matched_time_stamps
 
-    def get_valid_windows(self, counters_list, time_stamps, sampling_start_time=0):
-        """ Calculate the valid time windows by using the increment speed of mgmttx counters.
-            Ideally, the sum of the heartbeat/keepalive/uplink_bwreq counters increases
-            by one per bwgd (25.6 ms).
+    def get_uptime_windows(self, counters_list, time_stamps, sampling_start_time=0):
+        """ Calculate a list of event pairs where each event pair is identified by the
+            start and end times over which the link is up. Ideally, the sum of the
+            heartbeat/keepalive/uplink_bwreq counters increases by one per
+            bwgd (25.6 ms).
 
             Args:
             counters_list: A list of mgmttx counters. Each counters is a list of
@@ -546,7 +550,7 @@ class LinkInsight(object):
         time_stamps: the timestamps of the packet_counters_list, need to be index
                      matched.
         valid_windows: The valid windows are computed by link uptime via
-                       get_valid_windows().
+                       get_uptime_windows().
         minimum_packet_number: the minimum number of packets needed to compute link
         traffic stats. If not enough packets counts are reported, do not compute
         traffic insights.
@@ -562,10 +566,12 @@ class LinkInsight(object):
 
         output_stats = {"ok_counter": 0, "fail_counter": 0, "link_up_duration_in_s": 0}
         tx_counter_duration = 0
+        min_ts_idx = 0
         for start_time, end_time in valid_windows:
             output_stats["link_up_duration_in_s"] += end_time - start_time
-            for ts_idx in range(len(time_stamps) - 1):
+            for ts_idx in range(min_ts_idx, len(time_stamps) - 1):
                 if time_stamps[ts_idx] > end_time:
+                    min_ts_idx = ts_idx
                     break
                 elif (
                     start_time <= time_stamps[ts_idx] < end_time
@@ -644,7 +650,7 @@ class LinkInsight(object):
                     "Error during match_values_list_by_timestamp():", err.args
                 )
 
-            valid_windows = self.get_valid_windows(
+            valid_windows = self.get_uptime_windows(
                 counters_list, counter_ts, sampling_start_time=sampling_start_time
             )
             traffic_stats = self.compute_single_traffic_stats(
