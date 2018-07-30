@@ -81,6 +81,12 @@ RawTimeSeriesList RawReadBeringeiData::handleQuery(
       auto beringeiRequest =
           createBeringeiRequest(rawReadQuery, numShards, queryWindow);
       VLOG(2) << "number of keyId to query: " << beringeiRequest.keys.size();
+      // For a vector of valid Beringei keyId, the expected output is a vector
+      // of time series (i.e., beringeiTimeSeries_ is a vector of time series).
+      // However, beringeiClient->get() can return no time series
+      // (beringeiTimeSeries_ is a vector of size 0) even when a vector of
+      // Beringei keyId is provided. We workaround this by adding a check in
+      // createBeringeiRequest().
       beringeiClient->get(beringeiRequest, beringeiTimeSeries_);
       VLOG(2) << "number of retuned result: " << beringeiTimeSeries_.size();
     });
@@ -198,10 +204,26 @@ GetDataRequest RawReadBeringeiData::createBeringeiRequest(
 RawTimeSeriesList RawReadBeringeiData::generateRawOutput(
     query::RawReadQuery rawReadQuery,
     TimeSeries beringeiTimeseries) {
-  LOG(INFO) << "Begin generateRawOutput of " << beringeiTimeseries.size()
-            << " series";
-
   RawTimeSeriesList response;
+
+  // Currently, despite being rare, there can be Beringei database read error
+  // during beringeiClient->get(beringeiRequest, beringeiTimeSeries_);
+  // This makes beringeiTimeSeries_ an empty vector without any time series.
+  // If such error happens, return empty for that query. Note that for a single
+  // input read request with multiple queries, only queries that meet read error
+  // will have empty return.
+  int expectedNumReturns =
+      count(successFindKeyId_.begin(), successFindKeyId_.end(), true);
+  if (expectedNumReturns != beringeiTimeseries.size()) {
+    LOG(ERROR) << "There are " << beringeiTimeseries.size()
+               << " time series returned, does not match with "
+               << expectedNumReturns << " valid Beringei keysIds. "
+               << "Returns empty returns for this query.";
+    fill(successFindKeyId_.begin(), successFindKeyId_.end(), false);
+  } else {
+    LOG(INFO) << "Begin generateRawOutput of " << beringeiTimeseries.size()
+              << " series";
+  }
 
   int timeSeriesAndKeyListIdx = 0;
   int queryReturnIdx = 0;
