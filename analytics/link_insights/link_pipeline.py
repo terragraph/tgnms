@@ -348,7 +348,7 @@ class LinkPipeline(object):
             )
 
             computed_stats = self.link_insight.compute_link_available(
-                metric_names, read_returns
+                metric_names, read_returns, stats_query_timestamp - sample_duration_in_s
             )
 
             self._write_beringei(

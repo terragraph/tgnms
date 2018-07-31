@@ -723,7 +723,7 @@ class LinkInsight(object):
 
         return traffic_stats_returns
 
-    def compute_link_available(self, metric_names, read_returns):
+    def compute_link_available(self, metric_names, read_returns, sampling_start_time):
         """ Compute the link available times by using the "stapkt.linkavailable" counters.
             Currently, to workaround stats pipeline glitches, we use the
             link mgmttx counters and the computed link uptime valid windows. Please see
@@ -759,9 +759,8 @@ class LinkInsight(object):
             link_alive_return = per_link_return[name_to_idx["stapkt.linkavailable"]]
 
             try:
-                values_list, time_stamps = self.match_values_list_by_timestamp(
+                counters_list, counter_ts = self.match_values_list_by_timestamp(
                     [
-                        link_alive_return.timeSeries,
                         uplink_bwreq_return.timeSeries,
                         keepalive_return.timeSeries,
                         heartbeat_return.timeSeries,
@@ -773,11 +772,12 @@ class LinkInsight(object):
                     "Error during match_values_list_by_timestamp():", err.args
                 )
 
-            mgmt_counters_list = [counters[1:4] for counters in values_list]
-            link_alive_counters = [counters[0] for counters in values_list]
+            uptime_windows = self.get_uptime_windows(
+                counters_list, counter_ts, sampling_start_time=sampling_start_time
+            )
 
             available_stats = self.compute_single_link_available_stats(
-                link_alive_counters, mgmt_counters_list, time_stamps
+                link_alive_return.timeSeries, uptime_windows, sampling_start_time
             )
 
             available_stats_returns.append([available_stats])
@@ -785,23 +785,25 @@ class LinkInsight(object):
         return available_stats_returns
 
     def compute_single_link_available_stats(
-        self, link_alive_counters, mgmt_counters_list, time_stamps
+        self, available_time_series, link_uptime_windows, sampling_start_time
     ):
         """
         Compute the link available time based on the "stapkt.linkavailable" time series.
-        Currently, due to stats pipeline glitches, there can be drift in
-        the report time series values. To compensate, we use the following
-        algorithm: Using mgmttx counters (heartbeat/keepalive/bwreq) to compute the
-        link uptime windows [[t_start_0, t_end_0], ... , [t_start_n, t_end_n]].
-        For each link_uptime window, we compute the link available duration by
-        calculating the link unavailable duration. The link unavailable time in
-        Window i is obtained by using the delta of the following two delta stats:
-        a). mgmttx counters delta, delta_mgmtx_i b). linkavailable counters delta
-        (delta_link_alive_i).
-        In summary, the total link available time now is computed as
-        \sum_{i}[(t_end_i - t_start_i) -
-                 (delta_mgmtx_i - delta_link_alive_i)/speed], where speed
-        is the counter increasing speed.
+        The algorithm works as follows: a). Using the mgmttx (keepalive/heartbeat/bwreq)
+        counters to calculate the link uptime windows. b). For each window, used the
+        largest link available counter and counter increase speed to get the link
+        available time during that link uptime window. c). Sum over all link uptime
+        windows. The algorithm is effective to take care of the cases when there is
+        only a single link available counter data point during the window or the first
+        link available counters are not reported during a link uptime window. Note that
+        this algorithm can lead to over accounting issue under the current link uptime
+        windows calculation (get_uptime_windows()). For example, if the link reset at
+        time 0. And we observe at time [15, 45, 75, 105] with mgmttx/linkAvailable
+        counter values of [15 * s, 45 * s, 75 * s, 105 *s]. The link uptime windows are
+        [[floor(7.5) ,15], [floor(22.5) ,105]]. With the above algorithm, the total link
+        available time will be 105 + 15 = 120, which is larger than 105. This issue will
+        be automatically resolved once the mgmttx counter is fixed on firmware and the
+        get_uptime_windows() is updated.
 
         Args:
         link_alive_counters: list of linkAvailable counter values, index matched with
@@ -816,35 +818,68 @@ class LinkInsight(object):
         output_stats: a dict with computed link available insights name as keys.
         """
 
-        link_uptime_windows = self.get_valid_windows(mgmt_counters_list, time_stamps)
+        link_available_counters = [dp.value for dp in available_time_series]
+        link_available_ts = [dp.unixTime for dp in available_time_series]
+        if not link_available_ts:
+            logging.error("No link available counter report")
+            return {}
 
         output_stats = {"link_available_time": 0, "link_uptime": 0}
 
-        time_stamp_to_available_counters = {}
-        time_stamp_to_mgmt_counters = {}
-        for time_stamp_idx, time_stamp in enumerate(time_stamps):
-            time_stamp_to_available_counters[time_stamp] = link_alive_counters[
-                time_stamp_idx
-            ]
-            time_stamp_to_mgmt_counters[time_stamp] = sum(
-                mgmt_counters_list[time_stamp_idx]
-            )
-
         for start_timestamp, end_timestamp in link_uptime_windows:
-            delta_mgmt = (
-                time_stamp_to_mgmt_counters[end_timestamp]
-                - time_stamp_to_mgmt_counters[start_timestamp]
-            )
-            delta_link_alive = (
-                time_stamp_to_available_counters[end_timestamp]
-                - time_stamp_to_available_counters[start_timestamp]
-            )
             output_stats["link_uptime"] += end_timestamp - start_timestamp
-            output_stats["link_available_time"] += (
-                end_timestamp - start_timestamp
-            ) - (delta_mgmt - delta_link_alive) / self.counter_speed_per_s
+            if start_timestamp == sampling_start_time:
+                if link_available_ts[0] <= end_timestamp:
+                    # There are link available counter report in the first window
+                    counter_start = link_available_counters[0]
+                else:
+                    # There is no available counter report in the first window
+                    continue
+            else:
+                counter_start = 0
+
+            right_counter_idx = self.find_right_most_ts_idx(
+                link_available_ts, end_timestamp
+            )
+            if link_available_ts[right_counter_idx] < start_timestamp:
+                continue
+            else:
+                output_stats["link_available_time"] += (
+                    link_available_counters[right_counter_idx] - counter_start
+                ) / self.counter_speed_per_s
 
         return output_stats
+
+    def find_right_most_ts_idx(self, link_available_ts, end_timestamp):
+        """
+        Find the index of the largest time stamp that is smaller than the end_timestamp.
+
+        Args:
+        link_available_ts: a list of time stamps, should be in ascending order.
+        end_timestamp: the end_timestamp of a link uptime window.
+
+        Return:
+        start_idx: the index of the largest time stamp whose value is smaller or equal
+        to end_timestamp.
+        """
+        if link_available_ts[-1] <= end_timestamp:
+            return len(link_available_ts) - 1
+
+        start_idx = 0
+        end_idx = len(link_available_ts) - 1
+
+        # Find the smallest idx that is larger than the end_timestamp
+        while start_idx != end_idx:
+            mid_idx = int((start_idx + end_idx) / 2)
+            if link_available_ts[mid_idx] <= end_timestamp:
+                start_idx = mid_idx + 1
+            else:
+                end_idx = mid_idx
+
+        if end_idx > 0:
+            end_idx -= 1
+
+        return end_idx
 
     def get_link_health_num(self, extracted_stats, sample_duration_in_s):
         """ Compute the number of green, amber, and red links in a network.
