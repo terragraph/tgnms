@@ -194,7 +194,7 @@ services:
       - "8087:8087"
     networks:
       - terragraph_net
-    command: tail -f /usr/local/analytics/README.md
+    command: ["/bin/sh", "-c", "cd /usr/local/analytics/link_insights; python3 run_link_pipeline.py"]
     depends_on:
       - ipv6
       - db
