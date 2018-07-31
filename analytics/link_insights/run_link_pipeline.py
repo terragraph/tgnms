@@ -21,10 +21,12 @@ def print_current_unix_time():
 
 def run_link_pipeline(topology_name, max_run_time_in_s, period_in_s):
     """ Run the link insights pipelines.
+
         Args:
         topology_name: topology's name, like "tower G".
         max_run_time_in_s: total time of running, in unit of seconds.
         period_in_s: periodicity of pipeline jobs.
+
         Return:
         void.
     """
