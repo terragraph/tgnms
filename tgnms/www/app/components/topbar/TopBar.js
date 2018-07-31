@@ -32,6 +32,7 @@ const VIEWS = {
   'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
   config: {name: 'Node Config', icon: 'cog'},
   'e2e-config': {name: 'E2E Config', icon: 'hdd'},
+  users: {name: 'Users', icon: 'user'},
 };
 
 const TOPOLOGY_OPS = {

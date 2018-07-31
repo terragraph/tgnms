@@ -54,7 +54,7 @@ app.get('/', access(SUPERUSER), async (req, res) => {
 // TODO: Determine what access level this should have
 app.post('/', async (req, res) => {
   try {
-    const {email, password} = req.body;
+    const {email, password, superUser} = req.body;
     if (!email) {
       throw new Error('Email not included!');
     }
@@ -71,6 +71,7 @@ app.post('/', async (req, res) => {
     const user = await User.create({
       email,
       password: passwordHash,
+      role: superUser ? SUPERUSER : USER,
     });
 
     res.status(201).send({user});
