@@ -221,7 +221,7 @@ class LinkInsight(object):
         fake_mac,
         dest_db_interval=30,
     ):
-        """Prepare the network stats (aggregative stats) for writing to Beringei database.
+        """Prepare the network stats (aggregate stats) for writing to Beringei database.
 
         Args:
         network_stats: computed network stats, a dict.
@@ -239,8 +239,9 @@ class LinkInsight(object):
         """
 
         # TODO:
-        # Currently, construct in type of StatsWriteRequest. Once the new aggregative
-        # stats write endpoint at BQS is ready. Will move to the new API.
+        # Currently, use current BQS node stats writing endpoint of StatsWriteRequest.
+        # Once the new aggregate stats write endpoint at BQS is ready. Will move to
+        # the new API.
 
         topology = Topology(name=topology_name)
         if topology is None:

@@ -161,10 +161,10 @@ class LinkPipeline(object):
         """
 
         # TODO: Currently, construct_network_stats_write_request() will re-use the node
-        # stats write endpoint (StatsWriteHandler) before the new aggregative stats
+        # stats write endpoint (StatsWriteHandler) before the new aggregate stats
         # write handler at BQS is ready. To workaround the node mac, we will use the
         # source_mac of the first link. Update construct_network_stats_write_request()
-        # once the aggregative stats write handler is landed.
+        # once the aggregate stats write handler is landed.
         if self.link_macs_list:
             fake_mac = self.link_macs_list[0][0]
         else:
