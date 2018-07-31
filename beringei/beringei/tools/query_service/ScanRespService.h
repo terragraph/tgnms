@@ -20,22 +20,29 @@ namespace gorilla {
 
 class ScanRespService {
  public:
-  explicit ScanRespService(
-      std::shared_ptr<ApiServiceClient> apiServiceClient);
+  explicit ScanRespService(std::shared_ptr<ApiServiceClient> apiServiceClient);
 
   // run eventbase
   void start();
 
  private:
+  enum StatusEvent {
+    TX_ERROR = 0,
+    RX_ERROR = 1,
+    INCOMPLETE_RESPONSE = 2,
+  };
   folly::EventBase eb_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
 
+  // keep track of the latest scan respId
   std::unordered_map<
       std::string /* topology name */,
       int /* latest scan respId */>
       scanRespId_;
 
-  int scanPollPeriod_;
+  // keep track of the latest BWGD
+  int64_t lastBwgdAtStartup_;
+
   // from queryservicefactory
   std::shared_ptr<ApiServiceClient> apiServiceClient_;
 

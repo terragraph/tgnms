@@ -157,6 +157,7 @@ struct ScanData {
   6: ScanMode mode;
   7: bool apply;
   8: i32 respId;
+  9: optional i16 nResponsesWaiting;
 }
 
 /**

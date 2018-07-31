@@ -54,6 +54,7 @@ ScanRespService::ScanRespService(
 
 std::string ScanRespService::getScanRespIdRange(
     const std::string& topologyName) {
+  auto mySqlClient = MySqlClient::getInstance();
   int respIdFrom = 0;
   int respIdTo = 0;
 
@@ -63,6 +64,7 @@ std::string ScanRespService::getScanRespIdRange(
   auto it = scanRespId_.find(topologyName);
   if (it == scanRespId_.end()) {
     scanRespId_[topologyName] = 0;
+    lastBwgdAtStartup_ = mySqlClient->getLastBwgd(topologyName);
   }
 
   if (scanRespId_[topologyName] > 0) {
@@ -79,7 +81,7 @@ std::string ScanRespService::getScanRespIdRange(
 
 void ScanRespService::timerCb() {
   VLOG(2) << "Timer running; fetching scan response";
-  scanPollPeriod_ = FLAGS_scan_poll_period_long;
+  int scanPollPeriod = FLAGS_scan_poll_period_long;
 
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
@@ -92,12 +94,11 @@ void ScanRespService::timerCb() {
       scans::ScanStatus scanStatus =
           apiServiceClient_->fetchApiService<scans::ScanStatus>(
               topologyConfig.second, idRange, "api/getScanStatus");
-      VLOG(2) << "Received " << scanStatus.scans.size()
-              << " scan responses";
+      VLOG(2) << "Received " << scanStatus.scans.size() << " scan responses";
       // if we read the max number of scans on any topology, use the shorter
       // poll period, otherwise, use the longer poll period
       if (scanStatus.scans.size() == FLAGS_max_num_scans_req) {
-        scanPollPeriod_ = FLAGS_scan_poll_period_short;
+        scanPollPeriod = FLAGS_scan_poll_period_short;
       }
 
       int errCode;
@@ -114,7 +115,7 @@ void ScanRespService::timerCb() {
       }
     }
   }
-  timer_->scheduleTimeout(scanPollPeriod_ * 1000);
+  timer_->scheduleTimeout(scanPollPeriod * 1000);
 }
 
 void ScanRespService::setNewScanRespId(
@@ -154,13 +155,43 @@ int ScanRespService::writeData(
       LOG(ERROR) << "No response ID available for scan token " << scan.first;
       continue;
     }
-    scans::MySqlScanResp mySqlScanResponse;
+    int64_t startBwgdIdx = scan.second.startBwgdIdx;
+
+    // if this BWGD comes before the last one in the table at startup,
+    // then this is a duplicate entry - skip it; prevents startup problems
+    if (startBwgdIdx <= lastBwgdAtStartup_) {
+      continue;
+    }
+
     std::string txNodeName = scan.second.txNode;
+
+    // write the result only if there is a response from the transmitter and
+    // at least one receiver (the normal case)
+    int txResponseCount = 0;
+    int rxResponseCount = 0;
+    for (const auto& responses : scan.second.responses) {
+      if (responses.first.compare(txNodeName) == 0) {
+        txResponseCount++;
+      } else if (!responses.second.routeInfoList.empty()) {
+        // at least one of the receivers should have a non-empty response
+        rxResponseCount++;
+      }
+    }
+    if (!txResponseCount || !rxResponseCount) {
+      continue;
+    }
+
+    scans::MySqlScanResp mySqlScanResponse;
 
     // these fields apply to all scan responses with the same scan ID
     scans::MySqlScanTxResp mySqlScanTxResponse;
+    // combinedStatus indicates a non-zero status (error) - we can get
+    // more information by looking at the detailed scan response stored as a
+    // blob in MySQL
+    mySqlScanTxResponse.combinedStatus =
+        scan.second.__isset.nResponsesWaiting ? (1 << INCOMPLETE_RESPONSE) : 0;
     mySqlScanTxResponse.respId = respId;
-    mySqlScanTxResponse.startBwgd = scan.second.startBwgdIdx;
+    mySqlScanTxResponse.startBwgd = startBwgdIdx;
     mySqlScanTxResponse.applyFlag = scan.second.apply;
     mySqlScanTxResponse.scanType = (int16_t)scan.second.type;
     mySqlScanTxResponse.scanSubType = (int16_t)scan.second.subType;
@@ -168,7 +199,6 @@ int ScanRespService::writeData(
     mySqlScanTxResponse.token = scan.first;
 
     std::vector<scans::MySqlScanRxResp> mySqlScanRxResponses;
-    int combinedStatusBit = 1;
     // loop over scan responses within a scan {nodeName:: ScanResp}
     for (const std::pair<std::string, scans::ScanResp>& responses :
          scan.second.responses) {
@@ -183,25 +213,31 @@ int ScanRespService::writeData(
         mySqlScanTxResponse.txNodeId = *nodeId;
         mySqlScanTxResponse.status = responses.second.status;
         mySqlScanTxResponse.txPower = responses.second.txPwrIndex;
-        mySqlScanTxResponse.combinedStatus = (responses.second.status != 0);
+        mySqlScanTxResponse.combinedStatus |= (responses.second.status != 0)
+            << TX_ERROR;
         mySqlScanTxResponse.network = toplogyName;
         mySqlScanTxResponse.txNodeName = responses.first;
         try {
           mySqlScanTxResponse.scanResp =
               SimpleJSONSerializer::serialize<std::string>(responses.second);
         } catch (const std::exception& ex) {
-          LOG(ERROR) << "Error deserializing responses: "
+          LOG(ERROR) << "Error serializing responses: "
                      << folly::exceptionStr(ex);
           continue;
         }
 
       } else { // rx node
+        // don't write the rx response if the routeInfoList is empty
+        // e.g. in an IM scan, there can be hundreds of nodes with no response
+        if (responses.second.routeInfoList.empty()) {
+          continue;
+        }
         scans::MySqlScanRxResp mySqlScanRxResponse;
         try {
           mySqlScanRxResponse.scanResp =
               SimpleJSONSerializer::serialize<std::string>(responses.second);
         } catch (const std::exception& ex) {
-          LOG(ERROR) << "Error deserializing responses: "
+          LOG(ERROR) << "Error serializing responses: "
                      << folly::exceptionStr(ex);
           continue;
         }
@@ -215,8 +251,8 @@ int ScanRespService::writeData(
             ((scan.second.type == scans::ScanType::RTCAL) &&
              (responses.second.oldBeam != responses.second.newBeam));
         // one bit per individual node response - so we can query it
-        mySqlScanTxResponse.combinedStatus =
-            ((responses.second.status != 0) << combinedStatusBit++);
+        mySqlScanTxResponse.combinedStatus |=
+            ((responses.second.status != 0) << RX_ERROR);
         mySqlScanRxResponses.push_back(mySqlScanRxResponse);
       }
     }
