@@ -45,6 +45,29 @@ body {
 .leaflet-container {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
+.status-indicator {
+  border-radius: 50%;
+  display: inline-block;
+  height: 17px;
+  margin: 3px 8px 3px 3px;
+  vertical-align: middle;
+  width: 17px;
+}
+.status-indicator.online,
+.status-indicator.green {
+  background: radial-gradient(circle, #2ecc71 40%, transparent 70%);
+}
+.status-indicator.offline,
+.status-indicator.red {
+  background: radial-gradient(circle, #d63031 40%, transparent 70%);
+}
+.status-indicator.yellow {
+  background: radial-gradient(circle, #f1c40f 40%, transparent 70%);
+}
+.overlay-image {
+  margin-right: 5px;
+}
+
 div.SplitPane {
   margin-top: 40px;
   position: fixed !important;
@@ -289,6 +312,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .many .dygraph-legend > span { display: none; }
 .many .dygraph-legend > span.highlight { display: inline; }
 .dygraph-title {text-align: center;}
+
 .svcOnline div {
   background-image: url(/static/images/online.png);
   background-repeat: no-repeat;
@@ -506,4 +530,35 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 .data-table-tab-selected, .data-table-tab-selected:hover {
   border-bottom: 2px solid #a29bfe;
   font-weight: bold;
+}
+
+.login-form {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: auto;
+  margin-top: 150px;
+  width: 300px;
+}
+
+.login-form-title {
+  background-color: #eee;
+  height: 75px;
+  line-height: 75px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.login-form-inner {
+  padding: 0 25px;
+}
+
+.login-form input {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.login-form button {
+  margin-bottom: 15px;
+  padding: 3px;
+  width: 100%;
 }

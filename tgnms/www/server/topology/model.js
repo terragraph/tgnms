@@ -12,11 +12,14 @@ const {
 const controllerTTypes = require('../../thrift/gen-nodejs/Controller_types');
 const dataJson = require('../metrics/dataJson');
 const {getNodesWithUpgradeStatus} = require('./upgrade_status');
+const {resetTopologyHAState} = require('../highAvailability/model');
+
 const _ = require('lodash');
 const {join} = require('path');
 const cp = require('child_process');
 const fs = require('fs');
 const request = require('request');
+const logger = require('../log')(module);
 
 const statusReportExpiry = 2 * 60000; // 2 minutes
 const maxThriftRequestFailures = 1;
@@ -63,12 +66,10 @@ function getTopologyByName(topologyName) {
   // over-ride the topology name since many don't use
   const config = configByName[topologyName];
   if (!topology.name) {
-    console.error(
-      'No topology name received from controller for',
+    logger.error(
+      'No topology name received from controller for %s [%s]',
       config.name,
-      '[',
       config.controller_ip_active,
-      ']',
     );
     // force the original name if the controller has no name
     topology.name = fileTopologyByName[topologyName].name;
@@ -138,8 +139,8 @@ function getTopologyByName(topologyName) {
     });
     // log missing site associations
     if (allRuckusApNames.size > 0) {
-      console.log(
-        '[Ruckus AP] Missing site associations for',
+      logger.debug(
+        '[Ruckus AP] Missing site associations for %s',
         allRuckusApNames,
       );
     }
@@ -159,7 +160,7 @@ function getTopologyByName(topologyName) {
     });
   }
   networkConfig.ignition_state = _.get(ignitionStateByName, topologyName, []);
-  networkConfig.upgradeStateDump = _.has(upgradeStateByName, 'topologyName')
+  networkConfig.upgradeStateDump = upgradeStateByName[topologyName]
     ? getNodesWithUpgradeStatus(
         topology.nodes,
         upgradeStateByName[topologyName],
@@ -174,7 +175,7 @@ function getNetworkInstanceConfig() {
 }
 
 function reloadInstanceConfig() {
-  console.log('Reloading instance config');
+  logger.debug('Reloading instance config');
   configByName = {};
   fileTopologyByName = {};
   fileSiteByName = {};
@@ -185,13 +186,14 @@ function reloadInstanceConfig() {
   networkInstanceConfig = JSON.parse(data);
   if ('topologies' in networkInstanceConfig) {
     const topologies = networkInstanceConfig.topologies;
-    Object.keys(topologies).forEach(key => {
-      const topologyConfig = topologies[key];
+    Object.keys(topologies).forEach(name => {
+      const topologyConfig = topologies[name];
       const topology = JSON.parse(
         fs.readFileSync(
           join(NETWORK_CONFIG_NETWORKS_PATH, topologyConfig.topology_file),
         ),
       );
+
       // base config
       if (topologyConfig.hasOwnProperty('base_topology_file')) {
         baseTopologyByName[topology.name] = JSON.parse(
@@ -203,31 +205,35 @@ function reloadInstanceConfig() {
           ),
         );
       }
+
       // original sites take priority, only add missing nodes and sites
       const sitesByName = {};
       topology.sites.forEach(site => {
         sitesByName[site.name] = site;
       });
+
       const config = topologyConfig;
       config.controller_online = false;
       config.controller_failures = 0;
       config.query_service_online = false;
       config.name = topology.name;
       config.controller_events = [];
+      // By default, set the active controller to the primary
       config.controller_ip_active = config.controller_ip;
-      config.controller_ip_passive = config.controller_ip_backup
-        ? config.controller_ip_backup
-        : null;
       configByName[topology.name] = config;
+
       fileTopologyByName[topology.name] = topology;
-      const topologyName = topology.name;
-      fileSiteByName[topologyName] = {};
+
+      fileSiteByName[topology.name] = {};
       topology.sites.forEach(site => {
-        fileSiteByName[topologyName][site.name] = site;
+        fileSiteByName[topology.name][site.name] = site;
       });
+
+      // Initialize BStar State
+      resetTopologyHAState(topology.name);
     });
   } else {
-    console.error('No topologies found in config, failing!');
+    logger.error('No topologies found in config, failing!');
     process.exit(1);
   }
 
@@ -235,7 +241,7 @@ function reloadInstanceConfig() {
 }
 
 function refreshRuckusControllerCache() {
-  console.log('Request to update ruckus controller cache');
+  logger.debug('Request to update ruckus controller cache');
   const ruckusUrl = BERINGEI_QUERY_URL + '/ruckus_ap_stats';
   request.post(
     {
@@ -244,7 +250,7 @@ function refreshRuckusControllerCache() {
     },
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from query service:', err);
+        logger.error('Error fetching from query service: %s', err);
         return;
       }
 
@@ -252,17 +258,17 @@ function refreshRuckusControllerCache() {
         const ruckusCache = JSON.parse(body);
         ruckusApsBySite = ruckusCache;
       } catch (ex) {
-        console.error('Unable to parse ruckus stats');
+        logger.error('Unable to parse ruckus stats');
         return;
       }
-      console.log('Fetched ruckus controller stats.');
+      logger.debug('Fetched ruckus controller stats.');
     },
   );
 }
 
 function refreshNetworkHealth(topologyName) {
   if (!configByName.hasOwnProperty(topologyName)) {
-    console.error('network_health: Unknown topology', topologyName);
+    logger.error('network_health: Unknown topology %s', topologyName);
     return;
   }
   const nodeMetrics = [
@@ -295,37 +301,19 @@ function refreshNetworkHealth(topologyName) {
     },
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from beringei:', err);
+        logger.error('Error fetching from beringei: %s', err);
         configByName[topologyName].query_service_online = false;
         return;
       }
       // set BQS online
       configByName[topologyName].query_service_online = true;
       const totalTime = new Date() - startTime;
-      console.log('Fetched health for', topologyName, 'in', totalTime, 'ms');
+      logger.debug('Fetched health for %s in %s ms', topologyName, totalTime);
       let parsed;
       try {
         parsed = JSON.parse(httpResponse.body);
-        // the backend returns both A/Z sides, re-write to one
-        if (
-          parsed &&
-          parsed.length === 2 &&
-          parsed[1].hasOwnProperty('metrics')
-        ) {
-          Object.keys(parsed[1].metrics).forEach(linkName => {
-            const linkNameOnly = linkName.replace(' (A) - fw_uptime', '');
-            if (linkName !== linkNameOnly) {
-              parsed[1].metrics[linkNameOnly] = parsed[1].metrics[linkName];
-              // delete a-side name
-              delete parsed[1].metrics[linkName];
-            } else {
-              // delete z-side name
-              delete parsed[1].metrics[linkName];
-            }
-          });
-        }
       } catch (ex) {
-        console.error('Failed to parse health json:', httpResponse.body);
+        logger.error('Failed to parse health json: %s', httpResponse.body);
         return;
       }
       // join the results
@@ -337,7 +325,7 @@ function refreshNetworkHealth(topologyName) {
 function refreshSelfTestData(topologyName) {
   // !!!!self test does not have network name - need to add it !!!!
   if (!configByName.hasOwnProperty(topologyName)) {
-    console.error('self_test: Unknown topology', topologyName);
+    logger.error('self_test: Unknown topology %s', topologyName);
     return;
   }
   const filter = {
@@ -349,7 +337,7 @@ function refreshSelfTestData(topologyName) {
 const worker = cp.fork(join(__dirname, 'worker.js'));
 
 function scheduleTopologyUpdate() {
-  console.log('model: scheduling topology update');
+  logger.debug('scheduling topology update');
   worker.send({
     type: 'poll',
     topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
@@ -357,7 +345,7 @@ function scheduleTopologyUpdate() {
 }
 
 function scheduleScansUpdate() {
-  console.log('model: scheduling scans update');
+  logger.debug('scheduling scans update');
   worker.send({
     type: 'scan_poll',
     topologies: Object.keys(configByName).map(keyName => configByName[keyName]),
@@ -365,17 +353,14 @@ function scheduleScansUpdate() {
 }
 
 worker.on('message', msg => {
-  console.log(
-    'model: received message from worker: ' +
-      msg.type +
-      ', (' +
-      msg.name +
-      ')' +
-      ', success: ' +
-      msg.success,
+  logger.debug(
+    'received message from worker: %s, (%s), success: %s',
+    msg.type,
+    msg.name,
+    msg.success,
   );
   if (!(msg.name in configByName)) {
-    console.error('Unable to find topology', msg.name);
+    logger.error('Unable to find topology %s', msg.name);
     return;
   }
   const config = configByName[msg.name];
@@ -384,14 +369,11 @@ worker.on('message', msg => {
     case 'topology_update':
       // log online/offline changes
       if (config.controller_online !== msg.success) {
-        console.log(
-          new Date().toString(),
+        logger.debug(
+          '%s controller %s in %s ms',
           msg.name,
-          'controller',
           msg.success ? 'online' : 'offline',
-          'in',
           msg.response_time,
-          'ms',
         );
         // add event for controller up/down
         config.controller_events.push([new Date(), msg.success]);
@@ -402,10 +384,9 @@ worker.on('message', msg => {
       }
       // validate the name on disk matches the e2e received topology
       if (msg.success && msg.name !== msg.topology.name) {
-        console.error(
-          'Invalid name received from controller for:',
+        logger.error(
+          'Invalid name received from controller for: %s, Received %s',
           msg.name,
-          ', Received:',
           msg.topology.name,
         );
         config.controller_online = false;
@@ -423,10 +404,11 @@ worker.on('message', msg => {
       config.controller_failures = msg.success
         ? 0
         : config.controller_failures + 1;
-      if (config.controller_failures >= maxThriftRequestFailures) {
-        config.controller_online = false;
-      } else {
+
+      if (config.controller_failures < maxThriftRequestFailures) {
         config.controller_online = true;
+      } else {
+        config.controller_online = false;
       }
       topologyByName[msg.name] = msg.success ? msg.topology : {};
       break;
@@ -455,7 +437,7 @@ worker.on('message', msg => {
       if (msg.success) {
         dataJson.writeScanResults(msg.name, msg.scan_status);
       } else {
-        console.error('Failed to get scan_status from', msg.name);
+        logger.error('Failed to get scan_status from %s', msg.name);
       }
       break;
     case 'ignition_state':
@@ -477,35 +459,9 @@ worker.on('message', msg => {
         msg.success && msg.upgradeState ? msg.upgradeState : null;
       break;
     case 'bstar_state':
-      // check if topology has a backup controller and BSTAR_GET_STATE was
-      // successful
-      if (config.controller_ip_backup && msg.success) {
-        // check if state changed.
-        if (
-          (msg.controller_ip == config.controller_ip_active &&
-            (msg.bstar_fsm.state ==
-              controllerTTypes.BinaryStarFsmState.STATE_PASSIVE ||
-              msg.bstar_fsm.state ==
-                controllerTTypes.BinaryStarFsmState.STATE_BACKUP)) ||
-          (msg.controller_ip == config.controller_ip_passive &&
-            (msg.bstar_fsm.state ==
-              controllerTTypes.BinaryStarFsmStateSTATE_ACTIVE ||
-              msg.bstar_fsm.state ==
-                controllerTTypes.BinaryStarFsmStateSTATE_PRIMARY))
-        ) {
-          const tempIp = config.controller_ip_passive;
-          config.controller_ip_passive = config.controller_ip_active;
-          config.controller_ip_active = tempIp;
-          console.log(config.name + ' BSTAR state changed');
-          console.log('Active controller is  : ' + config.controller_ip_active);
-          console.log(
-            'Passive controller is : ' + config.controller_ip_passive,
-          );
-        }
-      }
       break;
     default:
-      console.error('Unknown message type', msg.type);
+      logger.error('Unknown message type %s', msg.type);
   }
 });
 

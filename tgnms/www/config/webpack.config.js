@@ -20,6 +20,11 @@ module.exports = {
       'webpack-hot-middleware/client?reload=true',
       paths.appIndexJs,
     ],
+    login: [
+      'webpack/hot/dev-server',
+      'webpack-hot-middleware/client?reload=true',
+      paths.loginJs,
+    ],
   },
   externals: [
     {

@@ -113,10 +113,7 @@ void BeringeiData::columnNames() {
 
 #define COUNTER_MARGIN_MS 500
 
-std::unordered_map<
-    std::string /* key ID */,
-    std::deque<BeringeiData::UptimeState>>
-BeringeiData::uptimeHandler(
+BeringeiData::KeyUptimeStateMap BeringeiData::uptimeHandler(
     // time interval at which uptime counter is incremented e.g. 25.6 for
     // firmware uptime
     const double dataPointIncrementMs,
@@ -208,176 +205,192 @@ BeringeiData::uptimeHandler(
 }
 
 /**
- * Common metrics
+ * Resolve differences in Uptime States between both directions of the link
  *
- * Uptime/availability
- * Iterate over all data points
+ * This function takes a map from keyIds to an array of UptimeStates and
+ * resolves differences in state between the two directions of the link. It
+ * modifies the input of one direction of the link with the resolved states and
+ * erases the other direction from the map.
+ */
+
+void BeringeiData::resolveLinkUptimeDifference(
+   // modifying the contents of keysToUptimeStates to take out link duplicates
+   BeringeiData::KeyUptimeStateMap& keysToUptimeStates) {
+
+ // loop through all keys and create events based on the key's states
+ // map from displayName to states
+ std::unordered_map<
+     std::string,
+     std::shared_ptr<std::deque<BeringeiData::UptimeState>>>
+     linkNameAndDirToStates;
+ KeyUptimeStateMap filteredMap;
+
+ // keep track of links already in the filteredUptimeStates in order to avoid
+ // duplicate links (since links of both directions are in uptimeStates)
+ std::unordered_set<std::string /* linkNames */> linkNamesInFilter;
+
+ // map from keyId to query with keyId
+ std::unordered_map<std::string /* keyId */, query::KeyData> keyIdToQuery;
+ for (const auto& queryData : query_.data) {
+   const std::string& keyIdStr = std::to_string(queryData.keyId);
+   keyIdToQuery[keyIdStr] = queryData;
+ }
+
+ // map from display names to uptimeStates for the link to find link of other
+ // direction
+ for (const auto& keyToStatesPair : keysToUptimeStates) {
+   const std::string& keyIdStr = keyToStatesPair.first;
+   query::KeyData queryData = keyIdToQuery[keyIdStr];
+   const std::string& linkDir =
+       (queryData.linkTitleAppend.find("A") != std::string::npos) ? "(A)" : "(Z)";
+   const std::string& linkNameAndDir = queryData.linkName + " " + linkDir;
+   linkNameAndDirToStates[linkNameAndDir] =
+       std::make_shared<std::deque<BeringeiData::UptimeState>>(
+           keyToStatesPair.second);
+ }
+ auto keyMapIt = keysToUptimeStates.begin();
+ while (keyMapIt != keysToUptimeStates.end()) {
+   const std::string& keyIdStr = keyMapIt->first;
+   const std::string& linkName = keyIdToQuery[keyIdStr].linkName;
+   const std::string& aOrZ = keyIdToQuery[keyIdStr].linkTitleAppend;
+
+   // if we have already seen this link but in the other direction, skip this
+   // link
+   if (linkNamesInFilter.find(linkName) != linkNamesInFilter.end()) {
+     // remove this direction from the original map
+     keyMapIt = keysToUptimeStates.erase(keysToUptimeStates.find(keyIdStr));
+     continue;
+   } else {
+     linkNamesInFilter.insert(linkName);
+   }
+
+   // Get uptimeStates of link with current direction
+   std::deque<UptimeState>& uptimeStates = keyMapIt->second;
+
+   // Find and get uptimeStates of link going in the opposite direction
+   std::deque<UptimeState> uptimeStatesOtherDir;
+   const std::string& oppLinkDir =
+       (aOrZ.find("A") != std::string::npos) ? "(Z)" : "(A)";
+   // If there exists a link going in the opposite direction, set uptime states
+   // in the other direction to this link's uptimeStates
+   if (linkNameAndDirToStates.find(linkName + " " + oppLinkDir) !=
+       linkNameAndDirToStates.end()) {
+     uptimeStatesOtherDir =
+         *(linkNameAndDirToStates[linkName + " " + oppLinkDir]);
+   }
+
+   if (!uptimeStatesOtherDir.empty()) {
+     for (int stateIndex = 0; stateIndex < uptimeStates.size(); stateIndex++) {
+       // if UptimeState of link going in other direction is DOWN, then that
+       // overrides the state of the link going in the current direction
+       if (uptimeStatesOtherDir[stateIndex] == UptimeState::DOWN) {
+         uptimeStates[stateIndex] = UptimeState::DOWN;
+       }
+       if (uptimeStatesOtherDir[stateIndex] == UptimeState::UP) {
+         uptimeStates[stateIndex] = UptimeState::UP;
+       }
+     }
+   }
+   ++keyMapIt;
+ }
+}
+
+/**
+ * Event Handler
+ *
+ * Creates a json response containing a list of events for the metric given
+ * and the percentage that the metric was up
  */
 folly::dynamic BeringeiData::eventHandler(
-    int dataPointIncrementMs,
-    const std::string& metricName) {
-  int64_t timeBucketCount = (endTime_ - startTime_) / 30;
-  int keyCount = beringeiTimeSeries_.size();
-  // count is a special aggregation that will be missed due to default values
-  int timeSeriesCounts[timeBucketCount]{};
-  // pre-allocate the array size
-  double* timeSeries = new double[query_.key_ids.size() * timeBucketCount]();
-  int keyIndex = 0;
-  // map returned key -> index
-  std::unordered_map<std::string, int64_t> keyMapIndex;
-  for (const auto& keyId : query_.key_ids) {
-    keyMapIndex[std::to_string(keyId)] = keyIndex;
-    keyIndex++;
+    const double dataPointIncrementMs,
+    const std::string& metricName,
+    const MetricType metricType) {
+  // map from keyId to query with keyId
+  std::unordered_map<std::string, query::KeyData> keyIdToQuery;
+  for (const auto& queryData : query_.data) {
+    std::string keyIdStr = std::to_string(queryData.keyId);
+    keyIdToQuery[keyIdStr] = queryData;
   }
-  for (const auto& keyTimeSeries : beringeiTimeSeries_) {
-    const std::string& keyName = keyTimeSeries.first.key;
-    keyIndex = keyMapIndex[keyName];
-    for (const auto& timePair : keyTimeSeries.second) {
-      int timeBucketId = (timePair.unixTime - startTime_) / 30;
-      timeSeries[keyIndex * timeBucketCount + timeBucketId] = timePair.value;
-    }
+
+  // get uptimeStates for every key from uptimeHandler for 30s time buckets
+  std::unordered_map<std::string, std::deque<UptimeState>> keysToUptimeStates =
+      uptimeHandler(dataPointIncrementMs, 30);
+
+  if (metricType == MetricType::LINK) {
+    resolveLinkUptimeDifference(keysToUptimeStates);
   }
-  int expectedDataPoints = 30 * (1000 / (double)dataPointIncrementMs);
-  // iterate over all expected data points
-  folly::dynamic linkMap = folly::dynamic::object;
-  for (int keyIndex = 0; keyIndex < keyCount; keyIndex++) {
-    int missingCounter = 0;
-    int upPoints = 0;
-    double partialSeconds = 0;
-    int startOnlineIndex = -1;
+
+  // create an object to store results about the key to be returned in the
+  // response
+  folly::dynamic keyResults = folly::dynamic::object;
+
+  // loop through all keys and create events based on the key's states
+  for (auto& keyToStatesPair : keysToUptimeStates) {
     folly::dynamic onlineEvents = folly::dynamic::array;
-    for (int timeIndex = 0; timeIndex < timeBucketCount; timeIndex++) {
-      double timeVal = timeSeries[keyIndex * timeBucketCount + timeIndex];
-      double prevVal = timeIndex > 0
-          ? timeSeries[keyIndex * timeBucketCount + timeIndex - 1]
-          : 0;
-      if (timeIndex > 0 && prevVal >= 0 && timeVal >= 0) {
-        VLOG(2) << "VERBOSE: timeSeries[" << keyIndex << "][" << timeIndex
-                << "] = " << timeVal << " | Diff: " << (timeVal - prevVal)
-                << " / " << ((timeVal - prevVal) / 30.0);
-        ;
-      } else {
-        VLOG(2) << "VERBOSE: timeSeries[" << keyIndex << "][" << timeIndex
-                << "] = " << timeVal;
+
+    const std::string& keyIdStr = keyToStatesPair.first;
+    const std::string& name = metricType == MetricType::LINK
+        ? keyIdToQuery[keyIdStr].linkName
+        : keyIdToQuery[keyIdStr].displayName;
+    std::deque<UptimeState> uptimeStates = keyToStatesPair.second;
+
+    // keep track of the most recent moment when state switched to UP
+    int startTimeIndex = 0;
+    // keep track of the amount of time state is DOWN
+    int downTime = 0;
+    // track whether the last known (meaning not UNKNOWN) state is UP
+    bool prevKnownStateIsUp = false;
+
+    VLOG(3) << "=============== CREATING EVENTS FOR KEY " << name << " "
+            << keyIdStr << " ===============";
+    for (int stateIndex = 0; stateIndex < uptimeStates.size(); stateIndex++) {
+      // State is considered down (down meaning either DOWN or UNKNOWN)
+      if (uptimeStates[stateIndex] == UptimeState::DOWN ||
+          uptimeStates[stateIndex] == UptimeState::UNKNOWN) {
+        // if the state crashes (switches from up to down), end the current
+        // event
+        if (prevKnownStateIsUp) {
+          onlineEvents.push_back(makeEvent(startTimeIndex + 1, stateIndex - 1));
+        }
+
+        downTime++;
+        startTimeIndex = stateIndex;
+        prevKnownStateIsUp = false;
       }
-      if (timeVal == 0) {
-        missingCounter++;
-        // missing data
-      } else if (timeVal >= expectedDataPoints) {
-        // whole interval is good
-        if (missingCounter) {
-          // determine how many gaps to fill
-          double partialIntervalSec = timeVal / expectedDataPoints;
-          double completeIntervals = partialIntervalSec / 30;
-          if (completeIntervals >= missingCounter) {
-            // we covered up all missing data points
-            upPoints += missingCounter;
-            VLOG(3) << "[" << timeIndex << "] Filled all " << missingCounter
-                    << " missed data buckets, complete intervals covered: "
-                    << completeIntervals
-                    << ", partial seconds (total): " << partialIntervalSec;
-            // online events
-            if (startOnlineIndex == -1) {
-              startOnlineIndex = timeIndex - missingCounter;
-            }
-            VLOG(3) << "[" << timeIndex << "] Marked starting index of uptime: "
-                    << startOnlineIndex;
-          } else {
-            // fill partial interval
-            int wholeIntervals = (int)completeIntervals;
-            upPoints += wholeIntervals;
-            double remainIntervalSec =
-                partialIntervalSec - (wholeIntervals * 30);
-            VLOG(2)
-                << "[" << timeIndex
-                << "] Filled partial missing data buckets. Missing intervals: "
-                << missingCounter
-                << ", covered intervals: " << completeIntervals << " ("
-                << wholeIntervals << "), partial seconds: " << remainIntervalSec
-                << " start interval: " << startOnlineIndex;
-            partialSeconds += remainIntervalSec;
-            // only part of the interval recovered, we must have an event
-            onlineEvents.push_back(
-                makeEvent(startOnlineIndex, timeIndex - missingCounter));
-            // events, ignore partial intervals
-            startOnlineIndex = timeIndex - wholeIntervals;
-          }
-          missingCounter = 0;
-        }
-        if (startOnlineIndex == -1) {
-          VLOG(2) << "Marking start index: " << timeIndex;
-          startOnlineIndex = timeIndex;
-        }
-        upPoints++;
-      } else {
-        // part of interval is good, calculate how much of it to mark
-        double partialIntervalSec = timeVal / expectedDataPoints;
-        partialSeconds += partialIntervalSec;
-        VLOG(2) << "[" << timeIndex << "] Some part of interval is up, about "
-                << partialIntervalSec;
-        // events
-        if (startOnlineIndex >= 0) {
-          // partial interval, mark this interval as down
-          VLOG(2) << "[" << timeIndex
-                  << "] Partially online interval, marking "
-                     "offline. We were online for: "
-                  << (timeIndex - missingCounter - startOnlineIndex)
-                  << " intervals, missing counter: " << missingCounter
-                  << ", event start: " << startOnlineIndex
-                  << ", end: " << (timeIndex - missingCounter);
-          ;
-          onlineEvents.push_back(
-              makeEvent(startOnlineIndex, timeIndex - missingCounter));
-          // we're online now
-          startOnlineIndex = timeIndex;
-        }
-        // reset missing counter, which only tracks whole intervals offline
-        missingCounter = 0;
-      }
-      // finalize events
-      if ((timeIndex + 1) == timeBucketCount && startOnlineIndex >= 0) {
-        // allow one missing interval to account for delays in incoming data
-        if (missingCounter == 1) {
-          missingCounter = 0;
-          upPoints++;
-        }
-        VLOG(2) << "[END] Start online index set, push event from start: "
-                << startOnlineIndex << " to: " << (timeIndex - missingCounter)
-                << ", missing counter: " << missingCounter;
-        onlineEvents.push_back(
-            makeEvent(startOnlineIndex, timeIndex - missingCounter));
+
+      if (uptimeStates[stateIndex] == UptimeState::UP) {
+        prevKnownStateIsUp = true;
       }
     }
-    // seconds of uptime / seconds in period
-    double uptimePerc = 0;
-    if (upPoints > 0 || partialSeconds > 0) {
-      uptimePerc =
-          (upPoints * 30 + partialSeconds) / (timeBucketCount * 30) * 100.0;
+    // make final event if the last state known state seen is UP
+    if (uptimeStates.size() > 0 && prevKnownStateIsUp) {
+      onlineEvents.push_back(
+          makeEvent(startTimeIndex + 1, uptimeStates.size() - 1));
     }
-    auto& name = query_.data[keyIndex].displayName;
-    VLOG(2) << "Key ID: " << query_.data[keyIndex].key << ", Name: " << name
-            << ", Expected count: " << timeBucketCount
-            << ", up count: " << upPoints
-            << ", partial seconds: " << partialSeconds
-            << ", uptime: " << uptimePerc << "%";
-    auto linkMapIt = linkMap.find(name);
-    if (linkMapIt != linkMap.items().end()) {
-      auto metricMapIt = linkMapIt->second.find(metricName);
-      // replace data if metric is higher on current
-      if (metricMapIt != linkMapIt->second.items().end() &&
-          uptimePerc < metricMapIt->second.asDouble()) {
-        continue;
-      }
+
+    VLOG(3) << "EVENTS CREATED: ";
+    for (const auto& event : onlineEvents) {
+      VLOG(3) << event;
     }
-    linkMap[name] = folly::dynamic::object;
-    linkMap[name][metricName] = uptimePerc;
-    linkMap[name]["events"] = onlineEvents;
+
+    // calculate uptime percentage from downTime counter
+    double metricUptimePerc = 0;
+    if (!uptimeStates.empty()) {
+      metricUptimePerc = 100 * (1 - ((double)downTime / uptimeStates.size()));
+    }
+
+    // store results into keyResults
+    keyResults[name] = folly::dynamic::object;
+    keyResults[name][metricName] = metricUptimePerc;
+    keyResults[name]["events"] = onlineEvents;
   }
-  delete[] timeSeries;
+
+  // store all keyResults into overall response, along with start and end time
   folly::dynamic response = folly::dynamic::object;
-  response["metrics"] = linkMap;
+  response["metrics"] = keyResults;
   response["start"] = startTime_ * 1000;
   response["end"] = endTime_ * 1000;
+
   return response;
 }
 
@@ -1061,9 +1074,10 @@ folly::dynamic BeringeiData::handleQuery() {
 
   if (query_.type == "event") {
     // uplink bw request
-    results = eventHandler(25 /* ms for heartbeats */, "alive");
+    results =
+        eventHandler(25.6 /* ms for heartbeats */, "alive", MetricType::LINK);
   } else if (query_.type == "uptime_sec") {
-    results = eventHandler(1000, "minion_uptime");
+    results = eventHandler(1000, "minion_uptime", MetricType::NODE);
   } else if (query_.type == "analyzer_table") {
     results = analyzerTable(30);
   } else if (query_.type == "latest") {

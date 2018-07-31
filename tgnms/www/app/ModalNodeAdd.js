@@ -16,6 +16,7 @@ import NumericInput from 'react-numeric-input';
 import Select from 'react-select';
 import React from 'react';
 import swal from 'sweetalert';
+import {NodeType, PolarityType} from '../thrift/gen-nodejs/Topology_types';
 
 const customModalStyle = {
   content: {
@@ -27,21 +28,6 @@ const customModalStyle = {
     transform: 'translate(-50%, -50%)',
   },
 };
-
-const nodeTypesVector = [
-  {value: 'DN', label: 'DN'},
-  {value: 'CN', label: 'CN'},
-];
-
-const nodePolaritiesVector = [
-  {value: 'ODD', label: 'ODD'},
-  {value: 'EVEN', label: 'EVEN'},
-];
-
-const polarityTypesVector = [
-  {value: 'ODD', label: 'ODD'},
-  {value: 'EVEN', label: 'EVEN'},
-];
 
 export default class ModalNodeAdd extends React.Component {
   state = {
@@ -68,7 +54,7 @@ export default class ModalNodeAdd extends React.Component {
     const newNode = {
       name: this.state.node_name,
       is_primary: this.state.node_is_primary,
-      type: this.state.node_type,
+      node_type: this.state.node_type,
       mac_addr: this.state.node_mac_addr,
       pop_node: this.state.node_is_pop,
       polarity: this.state.node_polarity,
@@ -193,8 +179,10 @@ export default class ModalNodeAdd extends React.Component {
               </td>
               <td>
                 <Select
-                  options={nodeTypesVector}
-                  name="Select Site"
+                  options={Object.keys(NodeType).map(keyName => {
+                    return {label: keyName, value: NodeType[keyName]};
+                  })}
+                  name="Select Node Type"
                   value={this.state.node_type}
                   onChange={val => this.setState({node_type: val.value})}
                   clearable={false}
@@ -234,7 +222,9 @@ export default class ModalNodeAdd extends React.Component {
               <td width={100}>Polarity</td>
               <td>
                 <Select
-                  options={nodePolaritiesVector}
+                  options={Object.keys(PolarityType).map(keyName => {
+                    return {label: keyName, value: PolarityType[keyName]};
+                  })}
                   name="Select Polarity"
                   value={this.state.node_polarity}
                   onChange={val => this.setState({node_polarity: val.value})}

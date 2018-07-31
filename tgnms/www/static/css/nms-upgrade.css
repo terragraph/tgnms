@@ -128,6 +128,26 @@
   justify-content: space-between;
 }
 
+.upgrade-more-options-button {
+  border: none;
+  display: block;
+  font-size: 1em;
+  font-weight: bold;
+  margin: 10px auto 0;
+  padding: 7px;
+}
+
+.upgrade-more-options-button:hover {
+  background-color: transparent;
+  box-shadow: none;
+  color: #565656;
+}
+
+.upgrade-more-options-button .glyphicon:before {
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
 .upgrade-modal-node-list.Select.is-disabled > .Select-control {
   background-color: #fff;
 }

@@ -18,7 +18,7 @@ const GENERIC_FAILURE_RESPONSE = {
 
 test('passes through data upon success', async () => {
   axios.post.mockImplementation(async (url, data, config) => {
-    expect(url).toEqual('/apiservice/test-topology/api/getTopology');
+    expect(url).toEqual('/apiservice/test-topology/default/api/getTopology');
     return GENERIC_SUCCESS_RESPONSE;
   });
 
