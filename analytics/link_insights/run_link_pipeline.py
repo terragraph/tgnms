@@ -6,12 +6,16 @@
 import sys
 import os
 import logging
+import json
+import time
 
 from link_pipeline import LinkPipeline
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.job_scheduler import JobScheduler
 
+def print_current_unix_time():
+    logging.info("This job is exec-ed at unix_time of {}".format(time.time()))
 
 def run_link_pipeline(topology_name, max_run_time_in_s, period_in_s):
     """ Run the link insights pipelines.
@@ -35,18 +39,10 @@ def run_link_pipeline(topology_name, max_run_time_in_s, period_in_s):
 
     # Submit jobs via job_scheduler
     job_scheduler = JobScheduler()
-    link_pipeline = LinkPipeline(topology_name)
 
-    # Schedule the jobs for naive link insights
+    # Background job which just log the current unix time
     job_scheduler.schedule_periodic_jobs(
-        link_pipeline.naive_link_pipeline,
-        period_in_s=period_in_s,
-        num_of_jobs_to_submit=num_of_jobs_to_submit,
-        job_input=[["phystatus.ssnrest", "stapkt.txpowerindex", "stapkt.mcs"]],
-    )
-    # Schedule the jobs for traffic stats
-    job_scheduler.schedule_periodic_jobs(
-        link_pipeline.traffic_stats_pipeline,
+        print_current_unix_time,
         period_in_s=period_in_s,
         num_of_jobs_to_submit=num_of_jobs_to_submit,
     )
@@ -56,6 +52,24 @@ def run_link_pipeline(topology_name, max_run_time_in_s, period_in_s):
         period_in_s=period_in_s,
         num_of_jobs_to_submit=num_of_jobs_to_submit,
     )
+
+    try:
+        link_pipeline = LinkPipeline(topology_name)
+        # Schedule the jobs for naive link insights
+        job_scheduler.schedule_periodic_jobs(
+            link_pipeline.link_mean_variance_pipeline,
+            period_in_s=period_in_s,
+            num_of_jobs_to_submit=num_of_jobs_to_submit,
+            job_input=[["phystatus.ssnrest", "stapkt.txpowerindex", "stapkt.mcs"]],
+        )
+        # Schedule the jobs for traffic stats
+        job_scheduler.schedule_periodic_jobs(
+            link_pipeline.traffic_stats_pipeline,
+            period_in_s=period_in_s,
+            num_of_jobs_to_submit=num_of_jobs_to_submit,
+        )
+    except BaseException as err:
+        logging.error("Cannot create LinkPipeline with error ", err.args)
 
     job_scheduler.run()
 
@@ -67,10 +81,15 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    topology_name = "tower G"
-    # Schedule link pipeline jobs to run in the next 24 hours
-    max_run_time_in_s = 24 * 60 * 60
-    # Run once every 2 mins
-    period_in_s = 2 * 60
+    analytics_config_file = "../AnalyticsConfig.json"
+    try:
+        with open(analytics_config_file) as config_file:
+            analytics_config = json.load(config_file)
 
-    run_link_pipeline(topology_name, max_run_time_in_s, period_in_s)
+        topology_name = analytics_config["periodic_jobs"]["topology_name"]
+        max_run_time_in_s = analytics_config["periodic_jobs"]["max_run_time_in_s"]
+        period_in_s = analytics_config["periodic_jobs"]["period_in_s"]
+
+        run_link_pipeline(topology_name, max_run_time_in_s, period_in_s)
+    except BaseException as err:
+        logging.error("Fail to schedule periodic jobs with error: ", err.args)
