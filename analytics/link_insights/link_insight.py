@@ -26,12 +26,10 @@ class LinkInsight(object):
        from Beringei database and the computed stats can be written back to
        Beringei database.
     """
-
-    def __init__(self):
-        # The increase speed of counter. The counter should increase by one
-        # every bwgd (25.6 ms). The counter could be heartbeat, keepalive, bwreq,
-        # or linkavailable.
-        self.counter_speed_per_s = 1000 / 25.6
+    # The increase speed of counter. The counter should increase by one
+    # every bwgd (25.6 ms). The counter could be heartbeat, keepalive, bwreq,
+    # or linkavailable.
+    COUNTER_SPEED_PER_S = 1000 / 25.6
 
     def construct_query_request(
         self,
@@ -496,7 +494,7 @@ class LinkInsight(object):
         valid_windows = []
         # Sweep the reported counters from right to left. For each point, determine
         # the start time of the current window by:
-        #   time_stamp - counter_sum / (self.counter_speed_per_s * 2)
+        #   time_stamp - counter_sum / (COUNTER_SPEED_PER_S * 2)
         # Notice that this can lead to two link flap reports for a single link flap.
         # Condition: a). There is no re-transmission before the first two counter
         # reports (i.e., mgmttx counter increases by one per bwgd);
@@ -524,7 +522,7 @@ class LinkInsight(object):
                 sampling_start_time,
                 np.floor(
                     time_stamps[current_idx]
-                    - (counter_sums[current_idx] / (self.counter_speed_per_s * 2))
+                    - (counter_sums[current_idx] / (self.COUNTER_SPEED_PER_S * 2))
                 ),
             )
 
@@ -671,11 +669,12 @@ class LinkInsight(object):
             metric_names: name of the stats queried of each link. The sequence
             needs to be index matched to that of read query sent to BQS.
             read_returns: the read return from BQS, of type RawQueryReturn.
+            sampling_start_time: start time (unix time in seconds) of the queried stats.
 
             Return:
             available_stats_returns: a 2-D list of stats. Each sub-list is of length 1
-            and contains a dict which maps link available insight key_names to
-            computed values. Raise except on error.
+            and the contained element is an dict with keys of "link_available_time" and
+            "link_uptime". Raise exception on error.
         """
 
         available_stats_returns = []
@@ -694,7 +693,7 @@ class LinkInsight(object):
             uplink_bwreq_return = per_link_return[name_to_idx["mgmttx.uplinkbwreq"]]
             keepalive_return = per_link_return[name_to_idx["mgmttx.keepalive"]]
             heartbeat_return = per_link_return[name_to_idx["mgmttx.heartbeat"]]
-            link_alive_return = per_link_return[name_to_idx["stapkt.linkavailable"]]
+            link_available_return = per_link_return[name_to_idx["stapkt.linkavailable"]]
 
             try:
                 counters_list, counter_ts = self.match_values_list_by_timestamp(
@@ -715,7 +714,7 @@ class LinkInsight(object):
             )
 
             available_stats = self.compute_single_link_available_stats(
-                link_alive_return.timeSeries, uptime_windows, sampling_start_time
+                link_available_return.timeSeries, uptime_windows, sampling_start_time
             )
 
             available_stats_returns.append([available_stats])
@@ -731,29 +730,26 @@ class LinkInsight(object):
         counters to calculate the link uptime windows. b). For each window, used the
         largest link available counter and counter increase speed to get the link
         available time during that link uptime window. c). Sum over all link uptime
-        windows. The algorithm is effective to take care of the cases when there is
-        only a single link available counter data point during the window or the first
-        link available counters are not reported during a link uptime window. Note that
-        this algorithm can lead to over accounting issue with the current link uptime
+        windows. The algorithm is effective for the cases when there is only a single
+        link available counter data point during the window or the first link available
+        counters are not reported during a link uptime window. Note that this algorithm
+        can lead to over accounting issue with the current link uptime
         windows calculation (get_uptime_windows()). For example, if the link reset at
         time 0. And we observe at time [15, 45, 75, 105] with mgmttx/linkAvailable
-        counter values of [15 * s, 45 * s, 75 * s, 105 *s]. The link uptime windows are
+        counter values of [15 * s, 45 * s, 75 * s, 105 * s]. The link uptime windows are
         [[floor(7.5) ,15], [floor(22.5) ,105]]. With the above algorithm, the total link
         available time will be 105 + 15 = 120, which is larger than 105. This issue will
         be automatically resolved once the mgmttx counter is fixed on firmware and the
         get_uptime_windows() is updated.
 
         Args:
-        link_alive_counters: list of linkAvailable counter values, index matched with
-        mgmt_counters_list, time_stamps.
-        mgmt_counters_list: list of mgmttx counter list, each counter list is of length
-        3 with each element being heartbeat/bwreq/keepalive counter value. Need to be
-        index matched with link_alive_counters, time_stamps.
-        time_stamps: the timestamps of the counter values, index matched with
-        link_alive_counters, mgmt_counters_list.
+        available_time_series: linkAvailable counters time series, of type timeSeries.
+        link_uptime_windows: list of valid windows, each element is of format
+                             [start_time, end_time].
+        sampling_start_time: start time (unix time in seconds) of the queried stats.
 
         Return:
-        output_stats: a dict with computed link available insights name as keys.
+        output_stats: a dict with keys of "link_available_time" and "link_uptime".
         """
 
         link_available_counters = [dp.value for dp in available_time_series]
@@ -768,7 +764,7 @@ class LinkInsight(object):
             output_stats["link_uptime"] += end_timestamp - start_timestamp
             if start_timestamp == sampling_start_time:
                 if link_available_ts[0] <= end_timestamp:
-                    # There are link available counter report in the first window
+                    # There are link available counter reports in the first window
                     counter_start = link_available_counters[0]
                 else:
                     # There is no available counter report in the first window
@@ -776,7 +772,7 @@ class LinkInsight(object):
             else:
                 counter_start = 0
 
-            right_counter_idx = self.find_right_most_ts_idx(
+            right_counter_idx = self.find_largest_ts_idx(
                 link_available_ts, end_timestamp
             )
             if link_available_ts[right_counter_idx] < start_timestamp:
@@ -784,11 +780,11 @@ class LinkInsight(object):
             else:
                 output_stats["link_available_time"] += (
                     link_available_counters[right_counter_idx] - counter_start
-                ) / self.counter_speed_per_s
+                ) / self.COUNTER_SPEED_PER_S
 
         return output_stats
 
-    def find_right_most_ts_idx(self, link_available_ts, end_timestamp):
+    def find_largest_ts_idx(self, link_available_ts, end_timestamp):
         """
         Find the index of the largest time stamp that is smaller than the end_timestamp.
 
