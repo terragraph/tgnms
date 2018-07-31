@@ -880,7 +880,6 @@ class LinkInsight(object):
             end_idx -= 1
 
         return end_idx
-<<<<<<< HEAD
 
     def get_link_health_num(self, extracted_stats, sample_duration_in_s):
         """ Compute the number of green, amber, and red links in a network.
@@ -933,8 +932,8 @@ class LinkInsight(object):
         """ Extract links stats of all links from computed link stats.
 
         Args:
-        computed_stats: a 2-D list of interested computed stats, each element is a
-        dict which maps the link stats name to its value.
+        computed_stats: a 2-D list of computed stats, each element of computed_stats
+        is a list of dict. Each dict maps the computed link stats name to its value.
 
         Return:
         stats_key_to_stats: dict, with keys being the link stats names (like
