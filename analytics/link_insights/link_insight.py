@@ -796,7 +796,7 @@ class LinkInsight(object):
         windows. The algorithm is effective to take care of the cases when there is
         only a single link available counter data point during the window or the first
         link available counters are not reported during a link uptime window. Note that
-        this algorithm can lead to over accounting issue under the current link uptime
+        this algorithm can lead to over accounting issue with the current link uptime
         windows calculation (get_uptime_windows()). For example, if the link reset at
         time 0. And we observe at time [15, 45, 75, 105] with mgmttx/linkAvailable
         counter values of [15 * s, 45 * s, 75 * s, 105 *s]. The link uptime windows are
@@ -880,6 +880,7 @@ class LinkInsight(object):
             end_idx -= 1
 
         return end_idx
+<<<<<<< HEAD
 
     def get_link_health_num(self, extracted_stats, sample_duration_in_s):
         """ Compute the number of green, amber, and red links in a network.
