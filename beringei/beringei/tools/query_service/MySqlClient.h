@@ -10,11 +10,11 @@
 #pragma once
 
 #include <folly/Memory.h>
-#include <folly/dynamic.h>
-#include <folly/futures/Future.h>
 #include <folly/Optional.h>
 #include <folly/Singleton.h>
 #include <folly/Synchronized.h>
+#include <folly/dynamic.h>
+#include <folly/futures/Future.h>
 
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
@@ -44,6 +44,11 @@ typedef std::unordered_map<int64_t, std::unordered_map<std::string, int64_t>>
 
 class MySqlClient {
  public:
+  enum mySqlErrorCode {
+    MySqlOk = 0,
+    MySqlError = -1,
+    MySqlDuplicateEntry = 1062
+  };
   explicit MySqlClient(){};
 
   folly::Optional<std::unique_ptr<sql::Connection>> openConnection() noexcept;
@@ -98,10 +103,11 @@ class MySqlClient {
   bool writeScanResponses(
       const std::vector<scans::MySqlScanResp>& mySqlScanResponses) noexcept;
   int64_t refreshScanResponse(std::string& network) noexcept;
+  int64_t getLastBwgd(const std::string& network) noexcept;
 
  private:
-  enum mySqlErrorCode { MYSQL_NO_ERROR=0, MYSQL_DUPLICATE_ENTRY=1062 };
-  folly::Synchronized<std::vector<std::shared_ptr<query::MySqlNodeData>>> nodes_{};
+  folly::Synchronized<std::vector<std::shared_ptr<query::MySqlNodeData>>>
+      nodes_{};
   folly::Synchronized<std::map<int64_t, std::shared_ptr<query::TopologyConfig>>>
       topologyIdMap_{};
   folly::Synchronized<MacToNodeMap> macAddrToNode_{};
@@ -110,7 +116,8 @@ class MySqlClient {
   folly::Synchronized<NodeCategoryMap> nodeCategoryIds_{};
   folly::Synchronized<NameToNodeIdMap> nodeNameToNodeId_{};
   // duplicate node -> mac mappings
-  folly::Synchronized<std::map<std::string, std::set<std::string>>> duplicateNodes_;
+  folly::Synchronized<std::map<std::string, std::set<std::string>>>
+      duplicateNodes_;
 
   bool writeRxScanResponse(
       const scans::MySqlScanRxResp& scanResponse,
