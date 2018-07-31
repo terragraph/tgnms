@@ -7,18 +7,12 @@ Analytics Currently can:
 
 * Link Metrics Computation: read time series from the Beringei Query Server and compute simple stats (mean and variance), and log to JSON and plot.
 
-## Requirements
-<span style="color:LightGray">*TODO: the following requirements will be moved to the docker file once everything*</span>
-Beringei is tested and working on:
+## Requirements:
+Please refer to the Dockerfile.
 
-* Ubuntu 17.10
-
-We also depend on these open source projects:
-* [requests](https://github.com/requests/requests.git)
-* [numpy](https://github.com/numpy/numpy.git)
-* [mathplotlib](https://github.com/matplotlib/matplotlib.git)
-* [python3-tk](https://github.com/python/cpython/tree/master/Lib/tkinter)
-
+## Testing:
+* Please see example for test. To run all tests, run auto_test.sh under example/
+* To locally build Analytics docker image, please run build_analytics_docker.sh
 
 ## Naming rules:
 To provide readability, let"s follow the following naming rules:
