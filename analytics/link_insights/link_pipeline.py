@@ -150,11 +150,12 @@ class LinkPipeline(object):
         """Write the computed network insight to the Beringei database via BQS.
 
         Args:
-        network_stats: a dict that maps dict work key names (like green_link) to value.
+        network_stats: a dict that maps dict work key names (like "green_link")
+                       to value.
         source_db_interval: int to indicate which Beringei database is read.
+        sample_duration_in_s: sampling duration of the link stats.
         stats_query_timestamp: The time of the link stats computation. The sampling
         window is [stats_query_timestamp - sample_duration_in_s, stats_query_timestamp].
-        sample_duration_in_s: sampling duration of the link stats.
 
         Return:
         void.
