@@ -11,5 +11,26 @@
   "max_run_time_in_s": 86400,
   "period_in_s": 120,
   "topology_name": "tower G"
+  },
+  "pipelines": {
+    "link_mean_variance_pipeline": {
+      "command": "python3 /root/terragraph-nms/analytics/link_insights/link_pipeline.py link_mean_variance_pipeline",
+      "metric_names": [
+        "phystatus.ssnrest",
+        "stapkt.txpowerindex",
+        "stapkt.mcs"
+      ],
+      "period_in_mins": 2,
+      "sample_duration_in_s": 3600,
+      "source_db_interval": 30,
+      "topology_name": "tower G"
+    },
+    "traffic_stats_pipeline": {
+      "command": "python3 /root/terragraph-nms/analytics/link_insights/link_pipeline.py traffic_stats_pipeline",
+      "period_in_mins": 2,
+      "sample_duration_in_s": 3600,
+      "source_db_interval": 30,
+      "topology_name": "tower G"
+    }
   }
 }
