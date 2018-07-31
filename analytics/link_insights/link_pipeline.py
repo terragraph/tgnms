@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 import time
+import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from link_insights.link_insight import LinkInsight
@@ -45,8 +46,13 @@ class LinkPipeline(object):
         ):
             instance.link_macs_list += [[source_mac, peer_mac], [peer_mac, source_mac]]
 
-        # initialize Beringie access class
-        instance.beringei_db_access = BeringeiDbAccess()
+        # initialize Beringei access class
+        analytics_config_file = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../AnalyticsConfig.json")
+        )
+        instance.beringei_db_access = BeringeiDbAccess(
+            analytics_config_file=analytics_config_file
+        )
         if not instance.beringei_db_access:
             logging.error("Cannot create BeringeiDbAccess object")
             return None
@@ -263,3 +269,34 @@ class LinkPipeline(object):
             return
 
         logging.info("Link traffic pipeline execution finished")
+
+
+if __name__ == "__main__":
+    analytics_config_file = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../AnalyticsConfig.json")
+    )
+
+    try:
+        with open(analytics_config_file) as config_file:
+            analytics_config = json.load(config_file)
+    except BaseException as err:
+        logging.error("Cannot load config with error {}".format(err.args))
+
+    if len(sys.argv) < 2:
+        logging.error("No pipeline specified")
+    elif sys.argv[1] == "link_mean_variance_pipeline":
+        job_config = analytics_config["pipelines"]["link_mean_variance_pipeline"]
+        link_insight = LinkPipeline(job_config["topology_name"])
+        link_insight.link_mean_variance_pipeline(
+            job_config["metric_names"],
+            job_config["sample_duration_in_s"],
+            job_config["source_db_interval"],
+        )
+    elif sys.argv[1] == "traffic_stats_pipeline":
+        job_config = analytics_config["pipelines"]["traffic_stats_pipeline"]
+        link_insight = LinkPipeline(job_config["topology_name"])
+        link_insight.traffic_stats_pipeline(
+            job_config["sample_duration_in_s"], job_config["source_db_interval"]
+        )
+    else:
+        logging.error("Unknown pipeline")

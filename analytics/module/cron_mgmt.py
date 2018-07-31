@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-   Provide CronMgmt class that can submit, view, remove linux Cron jobs via crontab.
+   Provide CronMgmt class that can submit, view, remove cron jobs via crontab.
 """
 
 import datetime
@@ -19,7 +19,7 @@ class CronMgmt(object):
     def __init__(self):
         self.comment = "NMS-Analytics"
         self.cron = CronTab(user="root")
-        self.log = "/root/terragraph-nms/analytics/crontest/append.txt"
+        self.log = "/usr/local/analytics/cron_mgmt_log.txt"
 
     def schedule_jobs_every_minutes(self, command, period_in_min=1):
         """
@@ -52,16 +52,16 @@ class CronMgmt(object):
             with open(self.log, "a") as file:
                 file.writelines(
                     str(datetime.datetime.now())
-                    + "Submit Command '{}' with period_in_min of {}\n".format(
+                    + " Submit Command '{}' with period_in_min of {}\n".format(
                         command, period_in_min
                     )
                 )
-        except EnvironmentError:
-            logging.error("Cannot open log output file ", self.log)
+        except EnvironmentError as err:
+            logging.error("Cannot open log output file {}".format(err.args))
 
     def show_current(self):
         """
-        Return the current submitted Analytics cron jobs.
+        Return the submitted Analytics cron jobs.
 
         Return:
         List of submitted Analytics jobs. Each job is represented by a string.
@@ -75,17 +75,16 @@ class CronMgmt(object):
 
     def remove_all(self):
         """
-        Remove all current submitted Analytics cron jobs.
+        Remove all submitted Analytics cron jobs.
         """
         for job in self.cron:
             if job.comment == self.comment:
                 self.cron.remove(job)
                 self.cron.write()
-                self.cron.write()
         try:
             with open(self.log, "a") as file:
                 file.writelines(
-                    str(datetime.datetime.now()) + "Cleared all Analytics jobs\n"
+                    str(datetime.datetime.now()) + " Cleared all Analytics jobs\n"
                 )
-        except EnvironmentError:
-            logging.error("Cannot open log output file ", self.log)
+        except EnvironmentError as err:
+            logging.error("Cannot open log output file {}".format(err.args))

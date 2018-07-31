@@ -1,10 +1,13 @@
-"""Provide tests for MySqlDbAccess class.
+"""Provide tests for CronMgmt class.
 """
 
 import logging
+import os
+import sys
 import unittest
 
-from cron_mgmt import CronMgmt
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from module.cron_mgmt import CronMgmt
 
 
 class TestCronMgmt(unittest.TestCase):
@@ -13,16 +16,14 @@ class TestCronMgmt(unittest.TestCase):
         self.cron_mgmt = CronMgmt()
 
     def test_show_current(self):
-        logging.info("Submit a simple job and read from cron")
+        logging.info("Submit simple jobs and read from cron")
         self.cron_mgmt.remove_all()
         self.cron_mgmt.schedule_jobs_every_minutes("test_job_0")
         self.assertEqual(
             self.cron_mgmt.show_current(),
             ["<CronItem '* * * * * test_job_0 # NMS-Analytics'>"],
         )
-        print(self.cron_mgmt.show_current())
         self.cron_mgmt.schedule_jobs_every_minutes("test_job_1", period_in_min=5)
-        print(self.cron_mgmt.show_current())
         self.assertEqual(
             self.cron_mgmt.show_current(),
             [

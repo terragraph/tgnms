@@ -36,7 +36,10 @@ class TopologyHelper(object):
 
         api_service_config = {}
         try:
-            mysql_db_access = MySqlDbAccess()
+            analytics_config_file = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../AnalyticsConfig.json")
+            )
+            mysql_db_access = MySqlDbAccess(analytics_config_file=analytics_config_file)
             if mysql_db_access is None:
                 raise ValueError("Cannot create MySqlDbAccess object")
 
@@ -46,8 +49,10 @@ class TopologyHelper(object):
                     "Cannot find the API service config for ", topology_name
                 )
         except BaseException as err:
-            logging.error("Failed to get the api_service setting", err.args)
-            logging.error("The found api service setting is ", api_service_config)
+            logging.error("Failed to get the api_service setting {}".format(err.args))
+            logging.error(
+                "The found api service setting is {}".foramt(api_service_config)
+            )
 
         instance = super().__new__(cls)
         logging.info("TopologyHelper object created")
