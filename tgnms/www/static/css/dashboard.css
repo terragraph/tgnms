@@ -59,7 +59,21 @@
 .network-dashboard .edit-graph-button {
   margin: 5px 0;
   height: 34px;
+  width: 100%;
+}
+
+.network-dashboard .layout-button-group {
+  display: flex;
+  height: 34px;
+  margin: 5px 2px;
   width: 100px;
+}
+
+.network-dashboard .layout-button {
+  flex: 1;
+  height: 34px;
+  margin: 4px 2px;
+  width: 20px;
 }
 
 .network-dashboard .react-grid-item {
@@ -69,11 +83,19 @@
 }
 
 .network-dashboard .react-grid-item  .button-group {
-  position: absolute;
-  top: 25px;
-  right: 20px;
+  background-color: white;
+  border-left: 1px solid #ddd;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  padding: 25px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.network-dashboard .react-grid-item  .button-group p {
+  margin-top: 15px;
 }
 
 .network-dashboard .graph-info {
@@ -88,9 +110,9 @@
 }
 
 .network-dashboard .graph-info .custom-data {
-  border: 1px solid #ddd;
-  margin-right: 120px;
-  padding: 10px 15px;
+  border-top: 1px solid #ddd;
+  padding: 10px 0;
+  margin-top: 20px;
 }
 
 .network-dashboard .graph-info .custom-data h5 {

@@ -25,8 +25,8 @@ import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import {Glyphicon} from 'react-bootstrap';
-import {clone, isEmpty, isEqual} from 'lodash-es';
 import ReactTooltip from 'react-tooltip';
+import {clone, cloneDeep, isEmpty, isEqual} from 'lodash-es';
 
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
@@ -181,6 +181,39 @@ export default class NetworkDashboards extends React.Component {
       };
     }
     return newDashboard;
+  };
+
+  // changes the graph size (number of columns it takes up within the react grid)
+  onChangeGraphSize = (size, index) => {
+    const {dashboards} = this.state;
+    const newDashboards = cloneDeep(dashboards);
+    const dashboard = newDashboards[this.state.selectedDashboard];
+    const graph = dashboard.graphs[index];
+
+    graph.container.w = size;
+
+    this.setState({
+      dashboards: newDashboards,
+    });
+  };
+
+  // changes the graph position within the react grid
+  onChangeGraphPosition = (position, index) => {
+    const {dashboards} = this.state;
+    const newDashboards = cloneDeep(dashboards);
+    const dashboard = newDashboards[this.state.selectedDashboard];
+    const graph = dashboard.graphs[index];
+
+    // make sure the position is within bounds of the container
+    if (position === 'left' && graph.container.x !== 0) {
+      graph.container.x--;
+    } else if (position === 'right' && graph.container.x !== 4) {
+      graph.container.x++;
+    }
+
+    this.setState({
+      dashboards: newDashboards,
+    });
   };
 
   onAddGraphButtonClicked = () => {
@@ -767,13 +800,15 @@ export default class NetworkDashboards extends React.Component {
           layoutDivs.push(
             <div key={id}>
               <GraphInformationBox
-                key={id}
+                graphIndex={index}
                 graph={graph}
                 onEditGraphButtonClicked={() =>
                   this.onEditGraphButtonClicked(index)
                 }
                 onEditGraphName={() => this.onEditGraphName(index)}
                 onDeleteGraph={() => this.onDeleteGraph(index)}
+                onChangeGraphSize={this.onChangeGraphSize}
+                onChangeGraphPosition={this.onChangeGraphPosition}
               />
             </div>,
           );

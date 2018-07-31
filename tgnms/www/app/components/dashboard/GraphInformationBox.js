@@ -7,6 +7,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {GRAPH_WIDTH_SIZES} from '../../constants/NetworkDashboardsConstants.js';
 
 const LinkGraphInfo = ({graph}) => {
   return (
@@ -132,6 +133,9 @@ const GraphInformationBox = props => {
       </div>
 
       <div className="button-group">
+        <h4>
+          <strong>Options</strong>
+        </h4>
         <button
           className="graph-button edit-graph-button"
           onClick={props.onEditGraphButtonClicked}>
@@ -147,6 +151,38 @@ const GraphInformationBox = props => {
           onClick={props.onDeleteGraph}>
           Delete Graph
         </button>
+        <p>Size</p>
+        <div className="layout-button-group">
+          {GRAPH_WIDTH_SIZES.map((graphSize, index) => {
+            return (
+              <button
+                key={index}
+                className="graph-button layout-button"
+                onClick={() =>
+                  props.onChangeGraphSize(graphSize, props.graphIndex)
+                }>
+                {graphSize}
+              </button>
+            );
+          })}
+        </div>
+        <p>Position</p>
+        <div className="layout-button-group">
+          <button
+            className="graph-button  layout-button"
+            onClick={() =>
+              props.onChangeGraphPosition('left', props.graphIndex)
+            }>
+            Left
+          </button>
+          <button
+            className="graph-button  layout-button"
+            onClick={() =>
+              props.onChangeGraphPosition('right', props.graphIndex)
+            }>
+            Right
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -154,9 +190,12 @@ const GraphInformationBox = props => {
 
 GraphInformationBox.propTypes = {
   graph: PropTypes.object.isRequired,
+  graphIndex: PropTypes.number.isRequired,
   onDeleteGraph: PropTypes.func,
   onEditGraphButtonClicked: PropTypes.func.isRequired,
   onEditGraphName: PropTypes.func.isRequired,
+  onChangeGraphPosition: PropTypes.func.isRequired,
+  onChangeGraphSize: PropTypes.func.isRequired,
 };
 
 export default GraphInformationBox;

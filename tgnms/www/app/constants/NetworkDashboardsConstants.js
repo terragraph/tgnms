@@ -21,3 +21,5 @@ export const DASHBOARD_TOOLTIP_LABELS = {
   GRAPH_CONFIG_INFO:
     'Graph configuration refers to settings that specify nodes <br /> within link and node graphs and time windows for all non-custom graphs',
 };
+
+export const GRAPH_WIDTH_SIZES = [2, 3, 4, 6];
