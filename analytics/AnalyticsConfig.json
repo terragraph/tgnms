@@ -6,5 +6,10 @@
   },
   "MYSQL": {
     "ip": "172.17.0.1"
+  },
+  "periodic_jobs": {
+  "max_run_time_in_s": 86400,
+  "period_in_s": 120,
+  "topology_name": "tower G"
   }
 }

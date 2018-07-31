@@ -13,7 +13,15 @@ const rootDir = path.join(__dirname, '..');
 
 module.exports.extends = 'eslint-config-fb-strict';
 
-module.exports.plugins = ['flowtype', 'lint', 'prettier', 'react', 'relay'];
+module.exports.plugins = [
+  'flowtype',
+  'import',
+  'lint',
+  'node',
+  'prettier',
+  'react',
+  'relay',
+];
 
 module.exports.env = {
   browser: true,
@@ -87,6 +95,18 @@ module.exports.rules = {
   'react/react-in-jsx-scope': 1,
   'react/self-closing-comp': 1,
   'react/wrap-multilines': 0,
+
+  // Import Plugin
+  // https://github.com/benmosher/eslint-plugin-import
+  'import/no-unresolved': 2,
+  'import/named': 2,
+  'import/namespace': 2,
+  'import/default': 2,
+  'import/export': 2,
+
+  // Node Plugin
+  // https://github.com/mysticatea/eslint-plugin-node
+  'node/no-missing-require': 2,
 
   // Jest Plugin
   // The following rules are made available via `eslint-plugin-jest`.

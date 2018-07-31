@@ -14,35 +14,17 @@ import NetworkDashboards from './NetworkDashboards.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
+import TopBar from './components/topbar/TopBar.js';
+import StatusIndicator from './components/common/StatusIndicator.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
 import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import axios from 'axios';
-import moment from 'moment';
-import Menu, {SubMenu, Item as MenuItem, Divider} from 'rc-menu';
-import {Glyphicon} from 'react-bootstrap';
+import cx from 'classnames';
+import {has, isEmpty} from 'lodash-es';
 import React from 'react';
-
-// icon: Glyphicon from Bootstrap 3.3.7
-const VIEWS = {
-  map: {name: 'Map', icon: 'map-marker'},
-  dashboards: {name: 'Dashboards', icon: 'dashboard'},
-  stats: {name: 'Stats', icon: 'stats'},
-  // TODO: implement these views and uncomment them
-  // eventlogs: {name: 'Event Logs', icon: 'list'},
-  upgrade: {name: 'Upgrade', icon: 'upload'},
-  'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
-  config: {name: 'Node Config', icon: 'cog'},
-  'e2e-config': {name: 'E2E Config', icon: 'hdd'},
-};
-
-const TOPOLOGY_OPS = {
-  addSite: 'Add Planned Site',
-  addNode: 'Add Node',
-  addLink: 'Add Link',
-};
 
 // update network health at a lower interval (seconds)
 const NETWORK_HEALTH_INTERVAL_MIN = 30;
@@ -74,9 +56,7 @@ export default class NetworkUI extends React.Component {
   constructor(props) {
     super(props);
     // register for menu changes
-    this.dispatchToken = Dispatcher.register(
-      this.handleDispatchEvent.bind(this),
-    );
+    this.dispatchToken = Dispatcher.register(this.handleDispatchEvent);
     // refresh network config
     const refresh_interval = window.CONFIG.refresh_interval
       ? window.CONFIG.refresh_interval
@@ -84,14 +64,14 @@ export default class NetworkUI extends React.Component {
 
     // load data if network name known
     this.getNetworkStatusPeriodic();
-    setInterval(this.getNetworkStatusPeriodic.bind(this), refresh_interval);
+    setInterval(this.getNetworkStatusPeriodic, refresh_interval);
   }
 
-  getNetworkStatusPeriodic() {
+  getNetworkStatusPeriodic = () => {
     if (this.state.networkName !== null) {
       this.getNetworkStatus(this.state.networkName);
     }
-  }
+  };
 
   getNetworkStatus = networkName => {
     axios
@@ -107,9 +87,13 @@ export default class NetworkUI extends React.Component {
           networkConfig: response.data,
         });
       })
-      .catch(_error => {
-        // topology is invalid, switch to the first topology in the list
-        if (this.state.topologies.length) {
+      .catch(error => {
+        // If the topologies already have been loaded, and this topology is
+        // invalid, select the first topology
+        if (
+          error.message !== 'Network Error' &&
+          !isEmpty(this.state.topologies)
+        ) {
           Dispatcher.dispatch({
             actionType: Actions.TOPOLOGY_SELECTED,
             networkName: this.state.topologies[0].name,
@@ -144,7 +128,7 @@ export default class NetworkUI extends React.Component {
     }
   }
 
-  handleDispatchEvent(payload) {
+  handleDispatchEvent = payload => {
     switch (payload.actionType) {
       case Actions.VIEW_SELECTED:
         const viewName = payload.viewName;
@@ -193,7 +177,7 @@ export default class NetworkUI extends React.Component {
         this.getSelfTestResults(this.state.networkName, payload.filter);
         break;
     }
-  }
+  };
 
   updateNetworkLinkHealth(networkName) {
     // refresh link health
@@ -257,7 +241,7 @@ export default class NetworkUI extends React.Component {
     }
   }
 
-  refreshTopologyList() {
+  refreshTopologyList = () => {
     // topology list
     axios.get('/topology/list').then(response => {
       this.setState({
@@ -276,7 +260,7 @@ export default class NetworkUI extends React.Component {
         });
       }
     });
-  }
+  };
 
   UNSAFE_componentWillMount() {
     this.setState({
@@ -285,7 +269,7 @@ export default class NetworkUI extends React.Component {
     // fetch topology config
     this.refreshTopologyList();
     // refresh every 10 seconds
-    setInterval(this.refreshTopologyList.bind(this), 10000);
+    setInterval(this.refreshTopologyList, 10000);
   }
 
   onAddSite() {
@@ -297,7 +281,7 @@ export default class NetworkUI extends React.Component {
     this.setState({topologyModalOpen: false});
   }
 
-  handleMenuBarSelect(info) {
+  handleMenuBarSelect = info => {
     if (info.key.indexOf('#') > -1) {
       const keySplit = info.key.split('#');
       switch (keySplit[0]) {
@@ -331,9 +315,9 @@ export default class NetworkUI extends React.Component {
           break;
       }
     }
-  }
+  };
 
-  overlaysModalClose(siteOverlay, linkOverlay, mapDimType, mapTile) {
+  overlaysModalClose = (siteOverlay, linkOverlay, mapDimType, mapTile) => {
     this.setState({
       overlaysModalOpen: false,
       selectedSiteOverlay: siteOverlay,
@@ -345,127 +329,26 @@ export default class NetworkUI extends React.Component {
       actionType: Actions.LINK_OVERLAY_REFRESHED,
       overlay: null,
     });
-  }
+  };
 
   render() {
-    const topologyMenuItems = [];
-    for (let i = 0; i < this.state.topologies.length; i++) {
-      const topologyConfig = this.state.topologies[i];
-      const keyName = 'topo#' + topologyConfig.name;
-      let online = topologyConfig.controller_online;
-      let controllerErrorMsg;
-      if (topologyConfig.hasOwnProperty('controller_error')) {
-        online = false;
-        controllerErrorMsg = (
-          <span style={{color: 'red', fontWeight: 'bold'}}>(Error)</span>
-        );
-      }
-      topologyMenuItems.push(
-        <MenuItem key={keyName}>
-          <img
-            src={'/static/images/' + (online ? 'online' : 'offline') + '.png'}
-          />
-          {topologyConfig.name}
-          {controllerErrorMsg}
-        </MenuItem>,
-      );
-    }
-    let networkStatusMenuItems = [];
-    if (this.state.networkConfig && this.state.networkConfig.topology) {
-      const topology = this.state.networkConfig.topology;
-      const linksOnline = topology.links.filter(
-        link => link.link_type === 1 && link.is_alive,
-      ).length;
-      const linksWireless = topology.links.filter(link => link.link_type === 1)
-        .length;
-      // online + online initiator
-      const sectorsOnline = topology.nodes.filter(
-        node => node.status === 2 || node.status === 3,
-      ).length;
-      const e2eStatusList = [];
-      if (this.state.networkConfig.hasOwnProperty('controller_events')) {
-        this.state.networkConfig.controller_events
-          .slice()
-          .reverse()
-          .forEach((eventArr, index) => {
-            if (eventArr.length !== 2) {
-              return;
-            }
-            const timeStr = moment(new Date(eventArr[0])).format(
-              'M/D/YY HH:mm:ss',
-            );
-            e2eStatusList.push(
-              <MenuItem key={'e2e-status-events' + index} disabled>
-                <img
-                  src={
-                    '/static/images/' +
-                    (eventArr[1] ? 'online' : 'offline') +
-                    '.png'
-                  }
-                />
-                {timeStr}
-              </MenuItem>,
-            );
-          });
-      }
-      networkStatusMenuItems = [
-        <SubMenu
-          key="e2e-status-menu"
-          mode="vertical"
-          title="E2E"
-          className={
-            this.state.networkConfig.controller_online
-              ? 'svcOnline'
-              : 'svcOffline'
-          }>
-          {e2eStatusList}
-        </SubMenu>,
-        <Divider key="status-divider" />,
-        <SubMenu
-          key="nms-status-menu"
-          mode="vertical"
-          title="STATS"
-          disabled
-          className={
-            this.state.networkConfig.query_service_online
-              ? 'svcOnline'
-              : 'svcOffline'
-          }>
-          NMS
-        </SubMenu>,
-        <Divider key="site-divider" />,
-        <MenuItem key="site-status" disabled>
-          {topology.sites.length} Sites
-        </MenuItem>,
-        <Divider key="sector-divider" />,
-        <MenuItem key="sector-status" disabled>
-          {sectorsOnline}/{topology.nodes.length} Sectors
-        </MenuItem>,
-        <Divider key="link-divider" />,
-        <MenuItem key="link-status" disabled>
-          {linksOnline}/{linksWireless} Links
-        </MenuItem>,
-      ];
-    }
-    // don't load components without topology config
+    // If the topology isn't loaded, render the loader
     if (
       !this.state.networkName ||
-      !this.state.networkConfig ||
-      !this.state.networkConfig.topology ||
-      !this.state.networkConfig.topology.sites ||
-      !this.state.networkConfig.topology.nodes
+      !has(this.state, 'networkConfig.topology.sites') ||
+      !has(this.state, 'networkConfig.topology.nodes')
     ) {
       return (
-        <div>
-          <div className="loading-spinner-wrapper">
-            <div className="loading-spinner">
-              <img src="/static/images/loading-graphs.gif" />
-            </div>
+        <div className="loading-spinner-wrapper">
+          <div className="loading-spinner">
+            <img src="/static/images/loading-graphs.gif" />
           </div>
         </div>
       );
     }
+
     // select between view panes
+    // TODO: Move this to React Router
     const viewProps = {
       networkName: this.state.networkName,
       networkConfig: this.state.networkConfig,
@@ -473,7 +356,7 @@ export default class NetworkUI extends React.Component {
       config: this.state.topologies,
       viewContext: this.state.viewContext,
     };
-    let paneComponent = <div />;
+    let paneComponent = null;
     switch (this.state.view) {
       case 'eventlogs':
         paneComponent = <EventLogs {...viewProps} />;
@@ -512,11 +395,6 @@ export default class NetworkUI extends React.Component {
           />
         );
     }
-    // add all selected keys
-    const selectedKeys = ['view#' + this.state.view];
-    if (this.state.networkName) {
-      selectedKeys.push('topo#' + this.state.networkName);
-    }
 
     let visibleModal = null;
     if (this.state.topOpsAddNodeModalOpen) {
@@ -537,33 +415,6 @@ export default class NetworkUI extends React.Component {
       );
     }
 
-    let mapMenuItems = [];
-    if (this.state.view === 'map') {
-      mapMenuItems = [
-        <Divider key={1} />,
-        <SubMenu
-          title={
-            <span>
-              Topology Operations <span className="caret" />
-            </span>
-          }
-          key="topOps"
-          mode="vertical">
-          {Object.keys(TOPOLOGY_OPS).map(topOpsKey => {
-            const topOpsName = TOPOLOGY_OPS[topOpsKey];
-            return (
-              <MenuItem key={'topOps#' + topOpsKey}>{topOpsName}</MenuItem>
-            );
-          })}
-        </SubMenu>,
-        <Divider key={2} />,
-        <MenuItem key={'overlays#'}>
-          <img src={'/static/images/overlays.png'} />
-          Site/Link Overlays
-        </MenuItem>,
-      ];
-    }
-
     return (
       <div>
         <ModalOverlays
@@ -572,61 +423,16 @@ export default class NetworkUI extends React.Component {
           selectedLinkOverlay={this.state.selectedLinkOverlay}
           selectedMapDimensions={this.state.selectedMapDimType}
           selectedMapTile={this.state.selectedMapTile}
-          onClose={this.overlaysModalClose.bind(this)}
+          onClose={this.overlaysModalClose}
         />
         {visibleModal}
-
-        <div className="top-menu-bar">
-          <Menu
-            onSelect={this.handleMenuBarSelect.bind(this)}
-            mode="horizontal"
-            selectedKeys={selectedKeys}
-            style={{float: 'left'}}
-            openAnimation="slide-up">
-            <SubMenu
-              title={
-                <span>
-                  View <span className="caret" />
-                </span>
-              }
-              key="view"
-              mode="vertical">
-              {Object.keys(VIEWS).map(viewKey => {
-                return (
-                  <MenuItem key={'view#' + viewKey}>
-                    <Glyphicon glyph={VIEWS[viewKey].icon} />
-                    {VIEWS[viewKey].name}
-                  </MenuItem>
-                );
-              })}
-            </SubMenu>
-            <MenuItem key="view-selected" disabled>
-              <Glyphicon glyph={VIEWS[this.state.view].icon} />
-              {VIEWS[this.state.view].name}
-            </MenuItem>
-            <Divider />
-            <SubMenu
-              title={
-                <span>
-                  Topology <span className="caret" />
-                </span>
-              }
-              key="topo"
-              mode="vertical">
-              {topologyMenuItems}
-            </SubMenu>
-            <MenuItem key="topology-selected" disabled>
-              {this.state.networkName ? this.state.networkName : '-'}
-            </MenuItem>
-            {mapMenuItems}
-          </Menu>
-          <Menu
-            mode="horizontal"
-            style={{float: 'right'}}
-            openAnimation="slide-up">
-            {networkStatusMenuItems}
-          </Menu>
-        </div>
+        <TopBar
+          handleMenuBarSelect={this.handleMenuBarSelect}
+          networkName={this.state.networkName}
+          networkConfig={this.state.networkConfig}
+          topologies={this.state.topologies}
+          view={this.state.view}
+        />
         <div className="nms-body">{paneComponent}</div>
       </div>
     );

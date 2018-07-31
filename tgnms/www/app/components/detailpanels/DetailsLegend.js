@@ -242,9 +242,9 @@ export default class DetailsLegend extends React.Component {
                 <Col xs={3}>
                   <Panel>
                     <Panel.Body>
-                      <div className="details-legend-table">
+                      <table className="details-legend-table">
                         <tbody>{nodeTypeOverlayKeyRows}</tbody>
-                      </div>
+                      </table>
                     </Panel.Body>
                   </Panel>
                 </Col>

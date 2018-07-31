@@ -1,4 +1,5 @@
 .DS_Store
+package-lock.json
 www/node_modules/
 www/data/
 www/dist/

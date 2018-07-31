@@ -7,6 +7,7 @@
 const {BERINGEI_QUERY_URL} = require('../config');
 const _ = require('lodash');
 const request = require('request');
+const logger = require('../log')(module);
 
 const analyzerData = {}; // cached results
 
@@ -64,23 +65,21 @@ function refreshAnalyzerData(topologyName) {
     {url: chartUrl, body: JSON.stringify(query)},
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from beringei:', err);
+        logger.error('Error fetching from beringei: %s', err);
         return;
       }
       const totalTime = new Date() - startTime;
-      console.log(
-        'Fetched analyzer data for',
+      logger.debug(
+        'Fetched analyzer data for %s in %f ms',
         topologyName,
-        'in',
         totalTime,
-        'ms',
       );
       let parsed;
       try {
         parsed = JSON.parse(httpResponse.body);
       } catch (ex) {
-        console.error(
-          'Failed to parse json for analyzer data:',
+        logger.error(
+          'Failed to parse json for analyzer data: %s',
           httpResponse.body,
         );
         return;

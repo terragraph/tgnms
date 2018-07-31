@@ -69,6 +69,22 @@ div.top-menu-bar {
   width: 100%;
   z-index: 9999;
 }
+.network-status-menu,
+.rc-menu-horizontal.network-status-menu > .rc-menu-submenu {
+  border: 0;
+}
+.network-status-menu .controller-status {
+  align-items: flex-end;
+  display: inline-flex;
+}
+.network-status-menu .controller-status .peer-type {
+  font-size: 10px;
+  font-style: italic;
+  margin-left: 5px;
+}
+.network-status-menu .ha-state {
+  font-size: 14px;
+}
 .rc-menu-submenu-vertical > .rc-menu {
   top: 0;
   left: 100%;

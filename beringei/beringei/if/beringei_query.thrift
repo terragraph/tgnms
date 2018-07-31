@@ -233,3 +233,22 @@ struct RawReadQuery {
 struct RawReadQueryRequest {
   1: list<RawReadQuery> queries,
 }
+
+// UnifiedWriteRequest is used to carry the write requests for both node (link)
+// stats and aggregate stats. The aggregate stats can be
+// used for network wide insight writing to Beringei database.
+struct UnifiedWriteRequest {
+  1: i32 interval = 30, /* Target Beringei database interval in seconds */
+  2: optional list<NodeStats> nodeStats,
+  3: optional list<AggStats> aggStats,
+}
+
+struct NodeStats {
+  1: string mac,
+  2: list<Stat> stats,
+}
+
+struct AggStats {
+  1: string topologyName,
+  2: list<Stat> stats,
+}

@@ -11,6 +11,7 @@ const dataJson = require('./dataJson');
 
 const express = require('express');
 const request = require('request');
+const logger = require('../log')(module);
 
 const app = express();
 
@@ -39,7 +40,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
     },
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from beringei:', err);
+        logger.error('Error fetching from beringei: %s', err);
         res
           .status(500)
           .send('Error fetching data')
@@ -53,36 +54,29 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
 
 // newer charting, for multi-linechart/row
 app.post(/\/multi_chart\/$/i, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', chunk => {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', () => {
-    // proxy query
-    const chartUrl = BERINGEI_QUERY_URL + '/query';
-    const httpData = JSON.parse(httpPostData);
-    const queryRequest = {queries: httpData};
-    request.post(
-      {
-        url: chartUrl,
-        body: JSON.stringify(queryRequest),
-      },
-      (err, httpResponse, body) => {
-        if (err) {
-          console.error('Failed on /multi_chart', err);
-          return;
-        }
-        if (httpResponse) {
-          res.send(httpResponse.body).end();
-        } else {
-          res
-            .status(500)
-            .send('No Data')
-            .end();
-        }
-      },
-    );
-  });
+  // proxy query
+  const chartUrl = BERINGEI_QUERY_URL + '/query';
+  const queryRequest = {queries: req.body};
+  request.post(
+    {
+      url: chartUrl,
+      body: JSON.stringify(queryRequest),
+    },
+    (err, httpResponse, body) => {
+      if (err) {
+        logger.error('Failed on /multi_chart: %s', err);
+        return;
+      }
+      if (httpResponse) {
+        res.send(httpResponse.body).end();
+      } else {
+        res
+          .status(500)
+          .send('No Data')
+          .end();
+      }
+    },
+  );
 });
 
 app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
@@ -98,7 +92,7 @@ app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
     },
     (err, httpResponse, body) => {
       if (err) {
-        console.error('Error fetching from beringei:', err);
+        logger.error('Error fetching from beringei: %s', err);
         res.status(500).end();
         return;
       }
@@ -109,14 +103,7 @@ app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
 
 app.post(/\/scan_results$/i, (req, res) => {
   const topologyName = req.query.topology;
-  let httpPostData = '';
-  req.on('data', chunk => {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', () => {
-    const postData = JSON.parse(httpPostData);
-    dataJson.readScanResults(topologyName, res, postData);
-  });
+  dataJson.readScanResults(topologyName, res, req.body);
 });
 
 app.get(/\/self_test$/i, (req, res) => {
@@ -134,7 +121,7 @@ app.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
   if (analyzerData !== null) {
     res.send(analyzerData).end();
   } else {
-    console.log('No analyzer cache found for', topologyName);
+    logger.debug('No analyzer cache found for: %s', topologyName);
     res.send('No analyzer cache').end();
   }
 });

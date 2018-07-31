@@ -14,6 +14,7 @@ import {
 } from '../../apiutils/ServiceAPIUtil.js';
 import Dispatcher from '../../NetworkDispatcher.js';
 import {Actions} from '../../constants/NetworkConstants.js';
+import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import axios from 'axios';
 import moment from 'moment';
 import {has} from 'lodash-es';
@@ -133,13 +134,76 @@ export default class DetailsNode extends React.Component {
     );
   }
 
-  deleteNode(force) {
-    const forceDelete = force ? 'force' : 'no_force';
-    const {node, topologyName} = this.props;
+  deleteLink(link) {
+    const {topologyName} = this.props;
     swal(
       {
-        title: 'Are you sure?',
-        text: 'You will not be able to recover this Node!',
+        title: 'Delete ETHERNET link?',
+        text:
+          'You will not be able to recover this link!\n' + 'Link: ' + link.name,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Confirm',
+        closeOnConfirm: false,
+      },
+      () => {
+        return new Promise((resolve, reject) => {
+          const linkData = {
+            aNodeName: link.a_node_name,
+            zNodeName: link.z_node_name,
+            force: true,
+          };
+          apiServiceRequest(topologyName, 'delLink', linkData)
+            .then(response =>
+              swal(
+                {
+                  title: 'Ethernet Link Deleted!',
+                  text: 'Response: ' + response.data.message,
+                  type: 'success',
+                },
+                () => {
+                  resolve();
+                },
+              ),
+            )
+            .catch(error =>
+              swal(
+                {
+                  title: 'Failed!',
+                  text:
+                    'Link deletion failed\nReason: ' +
+                    getErrorTextFromE2EAck(error),
+                  type: 'error',
+                },
+                () => resolve(),
+              ),
+            );
+        });
+      },
+    );
+  }
+
+  deleteNode(force) {
+    const forceDelete = force ? 'force' : 'no_force';
+    const {node, topologyName, links} = this.props;
+    const ethernetLinks = Object.values(links).filter(link => {
+      return (
+        link.a_node_name === node.name ||
+        (link.z_node_name === node.name && link.link_type === LinkType.ETHERNET)
+      );
+    });
+    const deleteEthernetLinksText = ethernetLinks.length
+      ? '\n\nWARNING: There are ' +
+        ethernetLinks.length +
+        ' ETHERNET links defined, you must delete them before deleting the node.'
+      : '';
+    swal(
+      {
+        title: 'Delete node?',
+        text:
+          'You will not be able to undo this operation!' +
+          deleteEthernetLinksText,
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
@@ -389,53 +453,67 @@ export default class DetailsNode extends React.Component {
       return null;
     }
 
-    const linksList = [];
+    const wirelessLinksList = [];
+    const ethernetLinksList = [];
     Object.keys(links).map(linkName => {
       const link = links[linkName];
-      if (
-        link.link_type === 1 &&
-        (node.name === link.a_node_name || node.name === link.z_node_name)
-      ) {
-        linksList.push(link);
+      if (node.name === link.a_node_name || node.name === link.z_node_name) {
+        if (link.link_type === LinkType.WIRELESS) {
+          wirelessLinksList.push(link);
+        } else if (link.link_type === LinkType.ETHERNET) {
+          ethernetLinksList.push(link);
+        }
       }
     });
 
-    const linksRows = [];
-    let index = 0;
-    linksList.forEach(link => {
-      if (index === 0) {
-        linksRows.push(
-          <tr key={link.name}>
-            <td rowSpan={linksList.length} width="100px">
-              Links
+    const linkRows = [];
+    wirelessLinksList.forEach((link, index) => {
+      const linkRow = (
+        <tr key={link.name}>
+          {index === 0 ? (
+            <td rowSpan={wirelessLinksList.length} width="100px">
+              RF Links
             </td>
-            <td>
-              <span
-                className="details-link"
-                onClick={() => {
-                  this.selectLink(link.name);
-                }}>
-                {this.statusColor(link.is_alive, link.name, link.name)}
-              </span>
+          ) : (
+            undefined
+          )}
+          <td>
+            <span
+              className="details-link"
+              onClick={() => {
+                this.selectLink(link.name);
+              }}>
+              {this.statusColor(link.is_alive, link.name, link.name)}
+            </span>
+          </td>
+        </tr>
+      );
+      linkRows.push(linkRow);
+    });
+    ethernetLinksList.forEach((link, index) => {
+      const linkRow = (
+        <tr key={link.name}>
+          {index === 0 ? (
+            <td rowSpan={ethernetLinksList.length} width="100px">
+              Ethernet Links
             </td>
-          </tr>,
-        );
-      } else {
-        linksRows.push(
-          <tr key={link.name}>
-            <td>
-              <span
-                className="details-link"
-                onClick={() => {
-                  this.selectLink(link.name);
-                }}>
-                {this.statusColor(link.is_alive, link.name, link.name)}
-              </span>
-            </td>
-          </tr>,
-        );
-      }
-      index++;
+          ) : (
+            undefined
+          )}
+          <td>
+            {link.name}
+            <span
+              className="details-link"
+              style={{color: 'firebrick'}}
+              onClick={() => {
+                this.deleteLink(link);
+              }}>
+              <img src="/static/images/delete.png" />
+            </span>
+          </td>
+        </tr>
+      );
+      linkRows.push(linkRow);
     });
 
     const ipv6 = node.status_dump
@@ -506,7 +584,7 @@ export default class DetailsNode extends React.Component {
                   </span>
                 </td>
               </tr>
-              {linksRows}
+              {linkRows}
               <tr>
                 <td width="100px">Last seen</td>
                 <td>{elapsedTime}</td>

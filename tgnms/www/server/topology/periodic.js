@@ -15,8 +15,10 @@ const {
   scheduleTopologyUpdate,
 } = require('./model');
 const {refreshAnalyzerData} = require('./analyzer_data');
+const {runNowAndSchedule} = require('../scheduler');
 
 const _ = require('lodash');
+const logger = require('../log')(module);
 
 const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
   ? process.env.IM_SCAN_POLLING_ENABLED === '1'
@@ -31,23 +33,8 @@ const HEALTH_REFRESH_INTERVAL = 30 * MS_IN_SEC;
 const RUCKUS_CONTROLLER_REFRESH_INTERVAL = 1 * MS_IN_MIN;
 const TYPEAHEAD_REFRESH_INTERVAL = 5 * MS_IN_MIN;
 
-let periodicTasks = [];
-
-function runNowAndSchedule(task, interval) {
-  task();
-  const timer = setInterval(task, interval);
-  periodicTasks.push(timer);
-}
-
-function stopPeriodicTasks() {
-  periodicTasks.map(timer => {
-    clearInterval(timer);
-  });
-  periodicTasks = [];
-}
-
 function startPeriodicTasks() {
-  console.log('periodic: starting periodic tasks...');
+  logger.debug('periodic: starting periodic tasks...');
   const config = getNetworkInstanceConfig();
   if (config.ruckus_controller) {
     // ruckus data is fetched from BQS
@@ -67,7 +54,7 @@ function startPeriodicTasks() {
   );
 
   if (IM_SCAN_POLLING_ENABLED) {
-    console.log('IM_SCAN_POLLING_ENABLED is set');
+    logger.debug('IM_SCAN_POLLING_ENABLED is set');
 
     runNowAndSchedule(
       scheduleScansUpdate,
@@ -77,11 +64,11 @@ function startPeriodicTasks() {
 }
 
 function refreshHealthData() {
-  console.log('periodic: refreshing health cache');
+  logger.debug('periodic: refreshing health cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log(
-      'periodic: refreshing cache (health, analyzer) for',
+    logger.debug(
+      'periodic: refreshing cache (health, analyzer) for %s',
       configName,
     );
     refreshNetworkHealth(configName);
@@ -90,15 +77,14 @@ function refreshHealthData() {
 }
 
 function refreshSelfTestCache() {
-  console.log('periodic: refreshing self-test cache');
+  logger.debug('periodic: refreshing self-test cache');
   const allConfigs = getAllTopologyNames();
   allConfigs.forEach(configName => {
-    console.log('periodic: refreshing self-test for', configName);
+    logger.debug('periodic: refreshing self-test for %s', configName);
     refreshSelfTestData(configName);
   });
 }
 
 module.exports = {
-  stopPeriodicTasks,
   startPeriodicTasks,
 };

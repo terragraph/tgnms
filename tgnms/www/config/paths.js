@@ -16,6 +16,7 @@ const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
 // config after eject: we're in ./config/
 module.exports = {
   appIndexJs: resolveApp('app/main.js'),
+  loginJs: resolveApp('app/login.js'),
   appSrc: resolveApp('app'),
   distPath: resolveApp('dist'),
 };

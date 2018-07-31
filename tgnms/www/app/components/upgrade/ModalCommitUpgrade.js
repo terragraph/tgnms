@@ -5,6 +5,7 @@
  */
 'use strict';
 
+import ShowMorePanel from '../common/ShowMorePanel.js';
 import {commitUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
 import {MODAL_STYLE} from '../../constants/UpgradeConstants.js';
 import PropTypes from 'prop-types';
@@ -21,7 +22,7 @@ const BATCHING = {
 };
 
 export const REQUEST_TYPE = {
-  NODE: 'nodes',
+  NODES: 'nodes',
   NETWORK: 'network',
   AUTO: 'auto',
 };
@@ -48,7 +49,7 @@ export default class ModalCommitUpgrade extends React.Component {
   submitCommit = () => {
     let nodes = [];
     let excludeNodes = [];
-    let ugType = this.state.requestType === REQUEST_TYPE.NODE ? 10 : 20;
+    let ugType = this.state.requestType === REQUEST_TYPE.NODES ? 10 : 20;
 
     if (this.state.requestType === REQUEST_TYPE.AUTO) {
       // Automatically choose Node or Network Level to create the smallest payload
@@ -61,7 +62,7 @@ export default class ModalCommitUpgrade extends React.Component {
         excludeNodes = this.props.getExcludedNodes(this.props.upgradeNodes);
         ugType = 20;
       }
-    } else if (this.state.requestType === REQUEST_TYPE.NODE) {
+    } else if (this.state.requestType === REQUEST_TYPE.NODES) {
       // Node Level Request
       nodes = this.props.upgradeNodes;
     } else {
@@ -146,24 +147,15 @@ export default class ModalCommitUpgrade extends React.Component {
               onChange={event => this.setState({timeout: event.target.value})}
             />
           </div>
-
-          <div className="upgrade-modal-row">
-            <label>Skip Failures?</label>
-            <input
-              type="checkbox"
-              checked={this.state.skipFailure}
-              onChange={event =>
-                this.setState({skipFailure: event.target.checked})
-              }
-            />
-          </div>
-
           <div className="upgrade-modal-row">
             <strong className="subtitle">Batching Algorithm:</strong>
             <div className="type-selector">
               <label
                 className="choice auto-unlimited"
-                htmlFor={BATCHING.AUTO_UNLIMITED}>
+                htmlFor={BATCHING.AUTO_UNLIMITED}
+                onClick={() =>
+                  this.setState({batchingAlgorithm: BATCHING.AUTO_UNLIMITED})
+                }>
                 <input
                   type="radio"
                   name="batching_algo"
@@ -171,15 +163,17 @@ export default class ModalCommitUpgrade extends React.Component {
                   checked={
                     this.state.batchingAlgorithm === BATCHING.AUTO_UNLIMITED
                   }
-                  onChange={event =>
-                    this.setState({batchingAlgorithm: BATCHING.AUTO_UNLIMITED})
-                  }
                 />
                 <div className="choice-label">
                   Automatic Unlimited (no size limit)
                 </div>
               </label>
-              <label className="choice" htmlFor={BATCHING.AUTO_LIMITED}>
+              <label
+                className="choice"
+                htmlFor={BATCHING.AUTO_LIMITED}
+                onClick={() =>
+                  this.setState({batchingAlgorithm: BATCHING.AUTO_LIMITED})
+                }>
                 <input
                   type="radio"
                   name="batching_algo"
@@ -187,22 +181,21 @@ export default class ModalCommitUpgrade extends React.Component {
                   checked={
                     this.state.batchingAlgorithm === BATCHING.AUTO_LIMITED
                   }
-                  onChange={event =>
-                    this.setState({batchingAlgorithm: BATCHING.AUTO_LIMITED})
-                  }
                 />
                 <div className="choice-label">Automatic Limited</div>
               </label>
-              <label className="choice" htmlFor={BATCHING.ALL_AT_ONCE}>
+              <label
+                className="choice"
+                htmlFor={BATCHING.ALL_AT_ONCE}
+                onClick={() =>
+                  this.setState({batchingAlgorithm: BATCHING.ALL_AT_ONCE})
+                }>
                 <input
                   type="radio"
                   name="batching_algo"
                   value={BATCHING.ALL_AT_ONCE}
                   checked={
                     this.state.batchingAlgorithm === BATCHING.ALL_AT_ONCE
-                  }
-                  onChange={event =>
-                    this.setState({batchingAlgorithm: BATCHING.ALL_AT_ONCE})
                   }
                 />
                 <div className="choice-label">All at Once</div>
@@ -212,7 +205,7 @@ export default class ModalCommitUpgrade extends React.Component {
 
           {this.state.batchingAlgorithm === BATCHING.AUTO_LIMITED && (
             <div className="upgrade-modal-row">
-              <label>Batch Size Limit:</label>
+              <label>Batch Size Limit (nodes):</label>
               <input
                 type="number"
                 value={this.state.limit}
@@ -221,62 +214,81 @@ export default class ModalCommitUpgrade extends React.Component {
             </div>
           )}
 
-          <div className="upgrade-modal-row">
-            <label>Commit Delay:</label>
-            <input
-              type="number"
-              value={this.state.scheduleToCommit}
-              onChange={event =>
-                this.setState({scheduleToCommit: event.target.value})
-              }
-            />
-          </div>
-
-          <div className="upgrade-modal-row">
-            <strong className="subtitle"> Request Type:</strong>
-            <div className="type-selector">
-              <label
-                className="choice"
-                data-tip="Chooses the request type that creates the smallest payload."
-                htmlFor={REQUEST_TYPE.AUTO}>
-                <input
-                  type="radio"
-                  name="request_type"
-                  value={REQUEST_TYPE.AUTO}
-                  checked={this.state.requestType === REQUEST_TYPE.AUTO}
-                  onChange={event =>
-                    this.setState({requestType: REQUEST_TYPE.AUTO})
-                  }
-                />
-                <div className="choice-label">Auto</div>
-              </label>
-              <Tooltip place="bottom" effect="solid" />
-              <label className="choice" htmlFor={REQUEST_TYPE.NETWORK}>
-                <input
-                  type="radio"
-                  name="request_type"
-                  value={REQUEST_TYPE.NETWORK}
-                  checked={this.state.requestType === REQUEST_TYPE.NETWORK}
-                  onChange={event =>
-                    this.setState({requestType: REQUEST_TYPE.NETWORK})
-                  }
-                />
-                <div className="choice-label">Network</div>
-              </label>
-              <label className="choice" htmlFor={REQUEST_TYPE.NODE}>
-                <input
-                  type="radio"
-                  name="request_type"
-                  value={REQUEST_TYPE.NODE}
-                  checked={this.state.requestType === REQUEST_TYPE.NODE}
-                  onChange={event =>
-                    this.setState({requestType: REQUEST_TYPE.NODE})
-                  }
-                />
-                <div className="choice-label">Node</div>
-              </label>
+          <ShowMorePanel
+            buttonClass="upgrade-more-options-button"
+            moreButtonName="Show Additional Options">
+            <div className="upgrade-modal-row">
+              <label>Skip Failures?</label>
+              <input
+                type="checkbox"
+                checked={this.state.skipFailure}
+                onChange={event =>
+                  this.setState({skipFailure: event.target.checked})
+                }
+              />
             </div>
-          </div>
+
+            <div className="upgrade-modal-row">
+              <label>Commit Delay (s):</label>
+              <input
+                type="number"
+                value={this.state.scheduleToCommit}
+                onChange={event =>
+                  this.setState({scheduleToCommit: event.target.value})
+                }
+              />
+            </div>
+
+            <div className="upgrade-modal-row">
+              <strong className="subtitle"> Request Type:</strong>
+              <div className="type-selector">
+                <label
+                  className="choice"
+                  data-tip="Chooses the request type that creates the smallest payload."
+                  htmlFor={REQUEST_TYPE.AUTO}
+                  onClick={() =>
+                    this.setState({requestType: REQUEST_TYPE.AUTO})
+                  }>
+                  <input
+                    type="radio"
+                    name="request_type"
+                    value={REQUEST_TYPE.AUTO}
+                    checked={this.state.requestType === REQUEST_TYPE.AUTO}
+                  />
+                  <div className="choice-label">Auto</div>
+                </label>
+                <Tooltip place="bottom" effect="solid" />
+                <label
+                  className="choice"
+                  htmlFor={REQUEST_TYPE.NETWORK}
+                  onClick={() =>
+                    this.setState({requestType: REQUEST_TYPE.NETWORK})
+                  }>
+                  <input
+                    type="radio"
+                    name="request_type"
+                    value={REQUEST_TYPE.NETWORK}
+                    checked={this.state.requestType === REQUEST_TYPE.NETWORK}
+                  />
+                  <div className="choice-label">Network</div>
+                </label>
+                <label
+                  className="choice"
+                  htmlFor={REQUEST_TYPE.NODES}
+                  onClick={() =>
+                    this.setState({requestType: REQUEST_TYPE.NODES})
+                  }>
+                  <input
+                    type="radio"
+                    name="request_type"
+                    value={REQUEST_TYPE.NODES}
+                    checked={this.state.requestType === REQUEST_TYPE.NODES}
+                  />
+                  <div className="choice-label">Node</div>
+                </label>
+              </div>
+            </div>
+          </ShowMorePanel>
         </div>
         <div className="upgrade-modal-footer">
           <button onClick={this.submitCommit}>Submit</button>

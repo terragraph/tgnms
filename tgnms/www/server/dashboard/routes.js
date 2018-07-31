@@ -6,6 +6,7 @@
 
 const express = require('express');
 const fs = require('fs');
+const logger = require('../log')(module);
 
 const app = express();
 
@@ -25,33 +26,24 @@ app.get(/\/get\/(.+)$/i, (req, res, next) => {
 });
 
 app.post(/\/save\/$/i, (req, res, next) => {
-  let httpPostData = '';
-  req.on('data', chunk => {
-    httpPostData += chunk.toString();
-  });
-  req.on('end', () => {
-    if (!httpPostData.length) {
-      return;
-    }
-    const data = JSON.parse(httpPostData);
-    if (data.topologyName && data.dashboards) {
-      dashboards[data.topologyName] = data.dashboards;
-      fs.writeFile(
-        './config/dashboards.json',
-        JSON.stringify(dashboards, null, 4),
-        err => {
-          if (err) {
-            res.status(500).end('Unable to save');
-            console.log('Unable to save', err);
-            return;
-          }
-          res.status(200).end('Saved');
-        },
-      );
-    } else {
-      res.status(500).end('Bad Data');
-    }
-  });
+  const data = req.body;
+  if (data.topologyName && data.dashboards) {
+    dashboards[data.topologyName] = data.dashboards;
+    fs.writeFile(
+      './config/dashboards.json',
+      JSON.stringify(dashboards, null, 4),
+      err => {
+        if (err) {
+          res.status(500).end('Unable to save');
+          logger.error('Unable to save: %s', err);
+          return;
+        }
+        res.status(200).end('Saved');
+      },
+    );
+  } else {
+    res.status(500).end('Bad Data');
+  }
 });
 
 module.exports = app;

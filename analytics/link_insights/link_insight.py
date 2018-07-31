@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-""" LinkInsight class provides methods to query stats, compute link
-    insights, and write back the computed insights back to Beringei database.
+""" LinkInsight class provides methods to query stats, compute link mean/variance,
+    PPS, PER, link health and write back the processed stats back to Beringei database.
 """
 
 import numpy as np
@@ -52,12 +52,11 @@ class LinkInsight(object):
         topology_name: name of the setup, like "tower G".
         link_macs_list: list of Beringei link mac pairs,
                         each element is (source_mac, peer_mac).
-        metric_names: a list of metric of interest, each element is
-                      like "phystatus.ssnrest".
+        metric_names: a list of metric of interest, like "phyStatus.ssnrEst".
         key_option: Can be either "link_metric" or "key_id".
-                    On "link_metric", use the key metric, link_macs, and
-                    topology_name to identify the right time series.
-                    On "key_id", use key_ids.
+                    If key_option equals "link_metric", use the metric_names, link_macs,
+                    and topology_name to identify the right time series.
+                    If key_option equals "key_id", use key_ids.
         key_ids: list of Beringei metric key_ids or dict with keys being key_ids,
                  only used if key_option is "key_id".
         start_ts: query window left range.
@@ -84,6 +83,7 @@ class LinkInsight(object):
             for source_mac, peer_mac in link_macs_list:
                 raw_query_keys = []
                 for metric_name in metric_names:
+                    metric_name = metric_name.lower()
                     raw_query_key = bq.RawQueryKey(
                         sourceMac=source_mac,
                         peerMac=peer_mac,
@@ -145,6 +145,8 @@ class LinkInsight(object):
         topology_name: name of the setup, like "tower G".
         dest_db_interval: indicates which Beringei database to write to.
         metric_name: if provided, will use it as the name prefix of the computed stats.
+        (For example, for SNR link mean write request construction, we only want the
+        mean computed from the "phystatus.ssnr" not "stapkt.mcs".)
         If None, will use the metric_name from query_keys as name prefix of
         the computed stats.
 
@@ -158,7 +160,7 @@ class LinkInsight(object):
 
         if len(computed_stats) != len(query_requests_to_send.queries):
             raise ValueError(
-                "Computed stats length do not match that of query_requests"
+                "Computed stats length does not match that of query_requests"
             )
 
         query_agents = []
@@ -352,7 +354,7 @@ class LinkInsight(object):
 
         if len(computed_stats) != len(query_requests_to_send.queries):
             raise ValueError(
-                "Computed stats length do not match that of query_requests"
+                "Computed stats length does not match that of query_requests"
             )
 
         output_dict = {}
@@ -459,16 +461,19 @@ class LinkInsight(object):
         return key_id_to_macs
 
     def match_values_list_by_timestamp(self, time_series_list, source_db_interval=30):
-        """Match a list of timeseries. Each element is of type timeSeries and the
-        each time series length can be different.
+        """Match a list of timeseries so that the values are time aligned. Each element
+        is of type timeSeries and each time series length can be different.
 
         Args:
-        time_series_list: list of time_series.
+        time_series_list: list of time_series, each time series is of type timeSeries.
         source_db_interval: the interval of the Beringei database being queried from.
 
         Return:
-        matched_values_list: list of value lists, each list is a sub-list of values
-                              that are of the same time_stamp.
+        matched_values_list: 2-D list of values. Each element of matched_values_list
+                             is a list of values. matched_values_list only contains list
+                             of values if all of the time_series_list entries have
+                             values at a given timestamp - otherwise the values
+                             are dropped.
         matched_time_stamps: time_stamps, index (length) matched with the
                              matched_values_list.
         Raise Exception if the input time_series_list is not a list of timeSeries.
@@ -517,57 +522,80 @@ class LinkInsight(object):
 
         return matched_values_list, matched_time_stamps
 
-    def get_valid_windows(self, counters_list, time_stamps):
-        """ Calculate the valid time windows by using the increment speed of
-            heartbeat/keepalive/uplink_bwreq counters or "staPkt.linkAvailable"
-            counters. Ideally, the sum of the heartbeat/keepalive/uplink_bwreq
-            counters or "staPkt.linkAvailable" counters should increase at the
-            speed of 25.6 ms per count.
+    def get_uptime_windows(self, counters_list, time_stamps, sampling_start_time=0):
+        """ Calculate a list of event pairs where each event pair is identified by the
+            start and end times over which the link is up. Ideally, the sum of the
+            heartbeat/keepalive/uplink_bwreq counters increases by one per
+            bwgd (25.6 ms).
 
             Args:
-            counters_list: A list of counters elements. Each element can be
-            a). a list of the counter values of heartbeat/keepalive/uplink_bwreq.
-            b). a list of sub-lists each having a single element whose value being
-            "staPkt.linkAvailable" counter.
+            counters_list: A list of mgmttx counters. Each counters is a list of
+            the counter values of [heartbeat, keepalive, uplink_bwreq].
             time_stamps: time_stamps, need to be index matched with counters_list.
+            sampling_start_time: start time (unix time in seconds) of the queried stats.
 
             Return:
             valid_windows: list of valid windows, each element is of format
                            [start_time, end_time].
         """
 
-        if len(counters_list) != len(time_stamps) or len(counters_list) == 1:
-            # Note that it means if there is only 1 point in time_stamps/counter_sums,
-            # return will be empty list due to unable to check uptime from counter delta
+        # This algorithm sweeps from right to left, and computes the start time of
+        # each datapoint by using 2X of the counter speed and reported counter value.
+        # On database side, this assumes: a). The reported counter value is always
+        # correct; (only time can be wrong) b). The time drift is always towards future
+        # bins, not past bins.
+        # On counter increasing speed side, this algorithm takes account of the
+        # following current issue: if there is retransmission, the mgmttx counter can
+        # increases by two per bwgd. (Normally, without re-transmission, should increase
+        # one per bwgd)
+
+        if not counters_list or len(counters_list) != len(time_stamps):
             return []
 
         counter_sums = [sum(counters) for counters in counters_list]
 
-        current_start_idx = 0
         valid_windows = []
-        # Do a sweep from left to right, the counter_sum value is expected
-        # to increase over time at speed of 25.6 ms per count.
-        while current_start_idx < len(time_stamps) - 1:
-            current_idx = current_start_idx + 1
-            while current_idx < len(time_stamps):
-                # The algorithm will make sure than the delta counter to its right
-                # neighbor matches with the expected one, we start from left to right
-                # TODO: Currently, due to stats pipeline glitches, we consider the
-                # interval between two neighbor data points whose delta counter is
-                # positive to be valid. After stats pipeline is updated, we should
-                # compute the counter increase speed between two neighbor points to
-                # determine valid windows.
-                if counter_sums[current_idx] - counter_sums[current_idx - 1] > 0:
-                    current_idx += 1
-                else:
-                    break
+        # Sweep the reported counters from right to left. For each point, determine
+        # the start time of the current window by:
+        #   time_stamp - counter_sum / (self.counter_speed_per_s * 2)
+        # Notice that this can lead to two link flap reports for a single link flap.
+        # Condition: a). There is no re-transmission before the first two counter
+        # reports (i.e., mgmttx counter increases by one per bwgd);
+        # b). The sampling point is not perfectly aligned with the link come back
+        # (i.e., the mgmttx counter stats report sampling point is off , compared
+        # to the moment that link come back, by at least one bwgd).
+        # Result: for each link flap, two valid windows are output by the algorithm
+        # Example: link come back at time 0
+        # Sampling at 15, 45, 75 , ...
+        # The counter samples are [15 * speed, 45 * speed, 75 * speed]
+        # The calculated windows are [floor(7.5), 15] and [floor(22.5), ...]
+        current_idx = len(time_stamps) - 1
+        current_start_time = None
+        current_end_time = None
+        while current_idx >= 0:
+            if (
+                current_end_time is None
+                or time_stamps[current_idx] < current_start_time
+            ):
+                if current_end_time and current_end_time > current_start_time:
+                    valid_windows.append([current_start_time, current_end_time])
+                current_end_time = time_stamps[current_idx]
+
+            current_start_time = max(
+                sampling_start_time,
+                np.floor(
+                    time_stamps[current_idx]
+                    - (counter_sums[current_idx] / (self.counter_speed_per_s * 2))
+                ),
+            )
 
             current_idx -= 1
-            if current_idx > current_start_idx:
-                valid_windows.append(
-                    [time_stamps[current_start_idx], time_stamps[current_idx]]
-                )
-            current_start_idx = current_idx + 1
+
+        if current_end_time and current_end_time > current_start_time:
+            valid_windows.append([current_start_time, current_end_time])
+
+        # Make the valid windows to be in ascending orders.
+        valid_windows = valid_windows[::-1]
 
         return valid_windows
 
@@ -583,7 +611,7 @@ class LinkInsight(object):
         time_stamps: the timestamps of the packet_counters_list, need to be index
                      matched.
         valid_windows: The valid windows are computed by link uptime via
-                       get_valid_windows().
+                       get_uptime_windows().
         minimum_packet_number: the minimum number of packets needed to compute link
         traffic stats. If not enough packets counts are reported, do not compute
         traffic insights.
@@ -592,36 +620,43 @@ class LinkInsight(object):
         output_stats: a dict with computed traffic insights name as keys.
         """
 
-        time_stamp_to_packet_counters = {}
-        for time_stamp_idx, time_stamp in enumerate(time_stamps):
-            packet_counter = {}
-            packet_counter["ok"] = packet_counters_list[time_stamp_idx][0]
-            packet_counter["fail"] = packet_counters_list[time_stamp_idx][1]
-            time_stamp_to_packet_counters[time_stamp] = packet_counter
+        # If there are many valid windows (i.e., frequent link resets), we can
+        # implement an interval tree and sweep packet counters from left to right.
+        # However, since there should only be few valid windows during the sampling
+        # period, the following should be of lower complexity.
 
-        output_stats = {"ok_counter": 0, "fail_counter": 0, "valid_duration_in_s": 0}
-        for start_timestamp, end_timestamp in valid_windows:
-            output_stats["ok_counter"] += (
-                time_stamp_to_packet_counters[end_timestamp]["ok"]
-                - time_stamp_to_packet_counters[start_timestamp]["ok"]
-            )
-            output_stats["fail_counter"] += (
-                time_stamp_to_packet_counters[end_timestamp]["fail"]
-                - time_stamp_to_packet_counters[start_timestamp]["fail"]
-            )
-            output_stats["valid_duration_in_s"] += end_timestamp - start_timestamp
+        output_stats = {"ok_counter": 0, "fail_counter": 0, "link_up_duration_in_s": 0}
+        tx_counter_duration = 0
+        min_ts_idx = 0
+        for start_time, end_time in valid_windows:
+            output_stats["link_up_duration_in_s"] += end_time - start_time
+            for ts_idx in range(min_ts_idx, len(time_stamps) - 1):
+                if time_stamps[ts_idx] > end_time:
+                    min_ts_idx = ts_idx
+                    break
+                elif (
+                    start_time <= time_stamps[ts_idx] < end_time
+                    and start_time < time_stamps[ts_idx + 1] <= end_time
+                ):
+                    output_stats["ok_counter"] += (
+                        packet_counters_list[ts_idx + 1][0]
+                        - packet_counters_list[ts_idx][0]
+                    )
+                    output_stats["fail_counter"] += (
+                        packet_counters_list[ts_idx + 1][1]
+                        - packet_counters_list[ts_idx][1]
+                    )
+                    tx_counter_duration += time_stamps[ts_idx + 1] - time_stamps[ts_idx]
 
-        total_packets_num = output_stats["ok_counter"] + output_stats["fail_counter"]
-        if total_packets_num > minimum_packet_number:
+        total_packet_num = output_stats["ok_counter"] + output_stats["fail_counter"]
+        if total_packet_num > minimum_packet_number and tx_counter_duration:
             # Only compute the traffic stats if enough samples are obtained
-            output_stats["PER"] = output_stats["fail_counter"] / total_packets_num
-            output_stats["PPS"] = (
-                output_stats["ok_counter"] / output_stats["valid_duration_in_s"]
-            )
+            output_stats["PER"] = output_stats["fail_counter"] / total_packet_num
+            output_stats["PPS"] = total_packet_num / tx_counter_duration
 
         return output_stats
 
-    def compute_traffic_stats(self, metric_names, read_returns):
+    def compute_per_pps(self, metric_names, read_returns, sampling_start_time):
         """ Compute the traffic stats of links based on the read returns of
             link stats on "mgmttx.uplinkbwreq", "mgmttx.keepalive", "mgmttx.heartbeat" ,
             "stapkt.txok", "stapkt.txfail".
@@ -630,6 +665,7 @@ class LinkInsight(object):
             metric_names: name of the stats queried of each link. The sequence
             needs to be index matched to that of read query sent to BQS.
             read_returns: the read return from BQS, of type RawQueryReturn.
+            sampling_start_time: start time (unix time in seconds) of the queried stats.
 
             Return:
             traffic_stats_returns: a 2-D list of stats. Each sub-list is of length 1
@@ -658,14 +694,16 @@ class LinkInsight(object):
             tx_fail_return = query_return[name_to_idx["stapkt.txfail"]]
 
             try:
-                values_list, time_stamps = self.match_values_list_by_timestamp(
+                counters_list, counter_ts = self.match_values_list_by_timestamp(
                     [
                         uplink_bwreq_return.timeSeries,
                         keepalive_return.timeSeries,
                         heartbeat_return.timeSeries,
-                        tx_ok_return.timeSeries,
-                        tx_fail_return.timeSeries,
                     ],
+                    source_db_interval=30,
+                )
+                packet_list, packet_ts = self.match_values_list_by_timestamp(
+                    [tx_ok_return.timeSeries, tx_fail_return.timeSeries],
                     source_db_interval=30,
                 )
             except BaseException as err:
@@ -673,12 +711,11 @@ class LinkInsight(object):
                     "Error during match_values_list_by_timestamp():", err.args
                 )
 
-            counters_list = [counters[:3] for counters in values_list]
-            valid_windows = self.get_valid_windows(counters_list, time_stamps)
-
-            packet_counters_list = [counters[3:] for counters in values_list]
+            valid_windows = self.get_uptime_windows(
+                counters_list, counter_ts, sampling_start_time=sampling_start_time
+            )
             traffic_stats = self.compute_single_traffic_stats(
-                packet_counters_list, time_stamps, valid_windows
+                packet_list, packet_ts, valid_windows
             )
 
             traffic_stats_returns.append([traffic_stats])
