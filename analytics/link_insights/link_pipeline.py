@@ -263,3 +263,65 @@ class LinkPipeline(object):
             return
 
         logging.info("Link traffic pipeline execution finished")
+
+    def link_health_pipeline(
+        self,
+        sample_duration_in_s=3600,
+        source_db_interval=30,
+        dump_to_json=False,
+        json_log_name_prefix="sample_available_",
+    ):
+        """
+        Compute the link available time using the link "stapkt.linkavailable" counters.
+
+        Args:
+        sample_duration_in_s: duration of the samples, for example 3600 means use
+        1 hour data points for each link.
+        source_db_interval: the resolution of the database read from, 30 means
+        beringei_30s database.
+        dump_to_json: if True, save a copy of the link stats to json;
+        If False, don't save to json.
+        json_log_name_prefix: prefix of the output json log file, only used
+        if dump_to_json.
+
+        Return:
+        Void.
+        """
+
+        logging.info("Running the link available pipeline")
+        stats_query_timestamp = int(time.time())
+        metric_names = [
+            "stapkt.linkavailable",
+            "mgmttx.uplinkbwreq",
+            "mgmttx.keepalive",
+            "mgmttx.heartbeat",
+        ]
+        try:
+            # Read from the Beringei database, return type is RawQueryReturn
+            read_returns, query_request_to_send = self._read_beringei(
+                metric_names,
+                stats_query_timestamp,
+                sample_duration_in_s,
+                source_db_interval,
+            )
+
+            computed_stats = self.link_insight.compute_link_available(
+                metric_names, read_returns, stats_query_timestamp - sample_duration_in_s
+            )
+
+            self._write_beringei(
+                dump_to_json,
+                computed_stats,
+                query_request_to_send,
+                sample_duration_in_s,
+                source_db_interval,
+                stats_query_timestamp,
+                json_log_name_prefix + "available.json",
+                "health",
+            )
+
+        except ValueError as err:
+            logging.error("Error during pipeline execution:", err.args)
+            return
+
+        logging.info("Link health pipeline execution finished")
