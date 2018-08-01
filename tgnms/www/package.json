@@ -7,6 +7,7 @@
     "start": "nodemon -w scripts/ -w server/ scripts/server --exec babel-node",
     "build": "rimraf dist && NODE_ENV=production webpack --config ./config/webpack.production.config.js --progress --profile --colors",
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
+    "sequelize": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize $*",
     "jscs": "jscs .",
     "precommit": "./node_modules/.bin/lint-staged"
   },
