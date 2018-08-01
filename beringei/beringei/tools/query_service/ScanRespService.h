@@ -41,7 +41,10 @@ class ScanRespService {
       scanRespId_;
 
   // keep track of the latest BWGD
-  int64_t lastBwgdAtStartup_;
+  std::unordered_map<
+      std::string /* topology name */,
+      int64_t /* last BWGD at startup time */>
+      lastBwgdAtStartup_;
 
   // from queryservicefactory
   std::shared_ptr<ApiServiceClient> apiServiceClient_;
@@ -49,7 +52,7 @@ class ScanRespService {
   int writeData(
       const scans::ScanStatus& scanStatus,
       const std::string& toplogyName);
-  std::string getScanRespIdRange(const std::string& topologyName);
+  folly::dynamic getScanRespIdRange(const std::string& topologyName);
   void setNewScanRespId(
       const scans::ScanStatus& scanStatus,
       const std::string& topologyName);
