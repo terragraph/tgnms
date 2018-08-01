@@ -562,7 +562,7 @@ int MySqlClient::writeTxScanResponse(
     prep_stmt->setInt(7, scanResponse.scanSubType);
     prep_stmt->setInt(8, scanResponse.scanMode);
     prep_stmt->setInt(9, scanResponse.applyFlag);
-    prep_stmt->setInt(10, scanResponse.status);
+    prep_stmt->setInt(10, (int32_t)scanResponse.status);
     prep_stmt->setInt(11, scanResponse.txPower);
     prep_stmt->setInt(12, scanResponse.respId);
     prep_stmt->setString(13, scanResponse.txNodeName);
@@ -591,7 +591,7 @@ bool MySqlClient::writeRxScanResponse(
         "`new_beam_flag`) VALUES (?, COMPRESS(?), ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         (*connection)->prepareStatement(query));
-    prep_stmt->setInt(1, scanResponse.status);
+    prep_stmt->setInt(1, (int32_t)scanResponse.status);
     prep_stmt->setString(2, scanResponse.scanResp);
     prep_stmt->setInt(3, scanResponse.rxNodeId);
     prep_stmt->setUInt64(4, txId);
