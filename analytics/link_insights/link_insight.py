@@ -249,7 +249,7 @@ class LinkInsight(object):
 
         stats_with_keys = []
         for network_stats_name in network_stats:
-            # For each computed network insight, like "green_link"
+            # For each computed network insight, like "num_green_links"
             stats_with_key = bq.Stat(
                 key=(
                     "{}.{}.{}.{}.{}".format(
@@ -895,10 +895,14 @@ class LinkInsight(object):
         sample_duration_in_s: duration of the sampling window.
 
         Return:
-        links_health_stats: a dict, with keys of "green_link", "amber_link", and
-        "red_link".
+        links_health_stats: a dict, with keys of "num_green_links", "num_amber_link", and
+        "num_red_link".
         """
-        links_health_stats = {"green_link": 0, "amber_link": 0, "red_link": 0}
+        links_health_stats = {
+            "num_green_link": 0,
+            "num_amber_link": 0,
+            "num_red_link": 0,
+        }
         if "link_available_time" not in extracted_stats:
             logging.warning("There is no link available time reported for any link")
             return links_health_stats
@@ -908,11 +912,11 @@ class LinkInsight(object):
 
         for link_available_time in extracted_stats["link_available_time"]:
             if link_available_time >= green_amber_cutoff:
-                links_health_stats["green_link"] += 1
+                links_health_stats["num_green_link"] += 1
             elif link_available_time >= amber_lower_cutoff:
-                links_health_stats["amber_link"] += 1
+                links_health_stats["num_amber_link"] += 1
             else:
-                links_health_stats["red_link"] += 1
+                links_health_stats["num_red_link"] += 1
 
         logging.info("The network link health stats is {}".format(links_health_stats))
 

@@ -65,6 +65,12 @@ def run_link_pipeline(topology_name, max_run_time_in_s, period_in_s):
             period_in_s=period_in_s,
             num_of_jobs_to_submit=num_of_jobs_to_submit,
         )
+        # Schedule the jobs for link health stats
+        job_scheduler.schedule_periodic_jobs(
+            link_pipeline.link_health_pipeline,
+            period_in_s=period_in_s,
+            num_of_jobs_to_submit=num_of_jobs_to_submit,
+        )
     except BaseException as err:
         logging.error("Cannot create LinkPipeline. Error ", err.args)
 
