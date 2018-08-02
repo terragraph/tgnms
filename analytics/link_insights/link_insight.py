@@ -891,8 +891,8 @@ class LinkInsight(object):
         sample_duration_in_s: duration of the sampling window.
 
         Return:
-        links_health_stats: a dict, with keys of "num_green_links", "num_amber_link", and
-        "num_red_link".
+        links_health_stats: a dict, with keys of "num_green_links", "num_amber_link",
+        and "num_red_link".
         """
         links_health_stats = {
             "num_green_link": 0,

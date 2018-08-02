@@ -46,8 +46,10 @@ class TopologyHelper(object):
                     "Cannot find the API service config for ", topology_name
                 )
         except BaseException as err:
-            logging.error("Failed to get the api_service setting", err.args)
-            logging.error("The found api service setting is ", api_service_config)
+            logging.error("Failed to get the api_service setting {}".format(err.args))
+            logging.error(
+                "The found api service setting is {}".foramt(api_service_config)
+            )
 
         instance = super().__new__(cls)
         logging.info("TopologyHelper object created")

@@ -84,7 +84,7 @@ struct MySqlScanTxResp {
   7: i16 combinedStatus;
   8: i64 startBwgd;
   9: i16 scanMode;
-  10: i32 status;
+  10: ScanFwStatus status;
   11: i16 txPower;
   12: i32 respId;
   13: string txNodeName;
@@ -94,7 +94,7 @@ struct MySqlScanTxResp {
 struct MySqlScanRxResp {
   1: string scanResp;  // json blob containing the entire ScanResp struct
   2: i32 rxNodeId; // numeric id corresponding to the mac_addr
-  3: i32 status;
+  3: ScanFwStatus status;
   4: string rxNodeName;
   5: bool newBeamFlag;
 }
@@ -113,12 +113,13 @@ struct MicroRoute {
 // individual micro-route measurement/report
 struct RouteInfo {
   1: MicroRoute route; // beamforming indices of micro route
-  2: double rssi;      // received signal strength, in dBm
+  2: optional double rssi;      // received signal strength, in dBm
   3: double snrEst;    // measured during the short training field, in dB
-  4: double postSnr;    // not valid during a scan - ignore it
-  5: i32 rxStart;      // relative arrival time of the packet, in us
-  6: byte packetIdx;   // Repeat count of this packet, 0-based
-  7: i16 sweepidx; // in case of multiple sweeps, indicates the index
+  4: optional double postSnr;    // not valid during a scan - ignore it
+  5: optional i32 rxStart;     // relative arrival time of the packet, in us
+  6: optional byte packetIdx;  // Repeat count of this packet, 0-based
+  7: optional i16 sweepidx; // in case of multiple sweeps, indicates the index
+  8: optional i32 n;  // tracking the number of times this route is hit
 }
 
 struct ScanResp {
@@ -132,7 +133,7 @@ struct ScanResp {
    8: i16 numSweeps; //Number of times beams were scanned
    9: i64 startSuperframeNum; // Start of BW Alloc for Scan
    10: i64 endSuperframeNum; // End of BW Alloc for scan
-   11: i16 status; // whether it completed normally or not (and why)
+   11: ScanFwStatus status; // whether it completed normally or not (and why)
    12: i16 sweepStartBeam; // Applicable for selective scan only
    13: i16 sweepEndBeam; // Applicable for selective scan only
 }
@@ -157,6 +158,7 @@ struct ScanData {
   6: ScanMode mode;
   7: bool apply;
   8: i32 respId;
+  9: optional i16 nResponsesWaiting;
 }
 
 /**

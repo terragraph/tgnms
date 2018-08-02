@@ -9,8 +9,8 @@
 
 #include "MySqlClient.h"
 
-#include <utility>
 #include <unistd.h>
+#include <utility>
 
 #include <folly/DynamicConverter.h>
 #include <folly/io/IOBuf.h>
@@ -36,7 +36,8 @@ MySqlClient::openConnection() noexcept {
     connProps["userName"] = FLAGS_mysql_user;
     connProps["password"] = FLAGS_mysql_pass;
     connProps["OPT_RECONNECT"] = true;
-    auto connection = std::unique_ptr<sql::Connection>(driver->connect(connProps));
+    auto connection =
+        std::unique_ptr<sql::Connection>(driver->connect(connProps));
     connection->setSchema(FLAGS_mysql_database);
     return connection;
   } catch (sql::SQLException& e) {
@@ -190,9 +191,10 @@ void MySqlClient::addAggKeys(
       return;
     }
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        (*connection)->prepareStatement(
-            "INSERT IGNORE INTO `agg_key` (`topology_id`, `key`)"
-            " VALUES (?, ?)"));
+        (*connection)
+            ->prepareStatement(
+                "INSERT IGNORE INTO `agg_key` (`topology_id`, `key`)"
+                " VALUES (?, ?)"));
 
     for (const auto& key : keyNames) {
       prep_stmt->setInt(1, topologyId);
@@ -244,7 +246,8 @@ void MySqlClient::refreshNodes() noexcept {
           LOG(ERROR) << "Duplicate node name: \"" << node->node
                      << "\", MAC1: " << nameToNodeId->at(node->node)->mac
                      << ", MAC2: " << node->mac;
-          (*duplicateNodes)[node->node].insert(nameToNodeId->at(node->node)->mac);
+          (*duplicateNodes)[node->node].insert(
+              nameToNodeId->at(node->node)->mac);
           // record the duplicate
           (*duplicateNodes)[node->node].insert(node->mac);
         }
@@ -305,7 +308,8 @@ void MySqlClient::refreshStatKeys() noexcept {
 }
 
 bool MySqlClient::addOrUpdateNodes(
-    const std::unordered_map<std::string, query::MySqlNodeData>& newNodes) noexcept {
+    const std::unordered_map<std::string, query::MySqlNodeData>&
+        newNodes) noexcept {
   if (!newNodes.size()) {
     return false;
   }
@@ -319,11 +323,11 @@ bool MySqlClient::addOrUpdateNodes(
     // if there is a duplicate MAC address in the table, replace the node,
     // site, and network names; otherwise insert the new row
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        (*connection)->prepareStatement(
-            "INSERT INTO `nodes` (`mac`, `node`, "
-            "`site`, `network`) VALUES (?, ?, ?, ?) "
-            "ON DUPLICATE KEY UPDATE `node`=?, `mac`=?, "
-            "`site`=?, `network`=?"));
+        (*connection)
+            ->prepareStatement("INSERT INTO `nodes` (`mac`, `node`, "
+                               "`site`, `network`) VALUES (?, ?, ?, ?) "
+                               "ON DUPLICATE KEY UPDATE `node`=?, `mac`=?, "
+                               "`site`=?, `network`=?"));
     auto nodeNameToNodeId = nodeNameToNodeId_.rlock();
     auto duplicateNodes = duplicateNodes_.rlock();
     for (const auto& node : newNodes) {
@@ -331,14 +335,14 @@ bool MySqlClient::addOrUpdateNodes(
       if (dupNodeIt != duplicateNodes->end()) {
         // delete the incorrect record
         std::unique_ptr<sql::PreparedStatement> deleteStmt(
-            (*connection)->prepareStatement(
-                "DELETE FROM `nodes` "
-                "WHERE `node` = ? "
-                "AND `network` = ? "
-                "AND `mac` != ? LIMIT 1"));
-                deleteStmt->setString(1, node.second.node);
-                deleteStmt->setString(2, node.second.network);
-                deleteStmt->setString(3, node.second.mac);
+            (*connection)
+                ->prepareStatement("DELETE FROM `nodes` "
+                                   "WHERE `node` = ? "
+                                   "AND `network` = ? "
+                                   "AND `mac` != ? LIMIT 1"));
+        deleteStmt->setString(1, node.second.node);
+        deleteStmt->setString(2, node.second.network);
+        deleteStmt->setString(3, node.second.mac);
         // if another topology has the same node name we'll continuously log
         // this statement, even though we aren't going to delete it
         // TODO: this is safe, but needs to be corrected to use node name
@@ -398,8 +402,10 @@ void MySqlClient::addStatKeys(
       return;
     }
     sql::PreparedStatement* prep_stmt;
-    prep_stmt = (*connection)->prepareStatement(
-        "INSERT IGNORE INTO `ts_key` (`node_id`, `key`) VALUES (?, ?)");
+    prep_stmt =
+        (*connection)
+            ->prepareStatement(
+                "INSERT IGNORE INTO `ts_key` (`node_id`, `key`) VALUES (?, ?)");
 
     for (const auto& keys : nodeKeys) {
       LOG(INFO) << "addStatKeys => node_id: " << keys.first
@@ -470,6 +476,35 @@ folly::Optional<int64_t> MySqlClient::getKeyId(
   return folly::none;
 }
 
+// reads the latest BWGD for a given network
+// Unix time can be derived from the BWGD
+int64_t MySqlClient::getLastBwgd(const std::string& network) noexcept {
+  try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return MySqlError;
+    }
+
+    // normally, the last BWGD and last entry will be the same, but it's
+    // possible that the last entry BWGD is earlier than previous entries
+    // that is why we order by id and not by start_bwgd
+    std::string query =
+        "SELECT start_bwgd FROM tx_scan_results WHERE network='" + network +
+        "' ORDER BY id DESC LIMIT 1";
+
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
+    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
+    if (res->next()) {
+      return res->getInt64("start_bwgd");
+    }
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "ERROR reading last inserted ID: " << e.what();
+    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+  }
+  return MySqlError;
+}
+
 int64_t MySqlClient::getLastId(
     const int token,
     const int64_t startBwgd,
@@ -478,23 +513,22 @@ int64_t MySqlClient::getLastId(
     auto connection = openConnection();
     if (!connection) {
       LOG(ERROR) << "Unable to open MySQL connection.";
-      return -1;
+      return MySqlError;
     }
     std::string query =
         "SELECT id FROM tx_scan_results WHERE token=" + std::to_string(token) +
-        " AND start_bwgd=" + std::to_string(startBwgd) +
-        " AND network='" + network + "'";
+        " AND start_bwgd=" + std::to_string(startBwgd) + " AND network='" +
+        network + "'";
     std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
     std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
     if (res->next()) {
       return res->getInt64("id");
-    } else {
-      return -1;
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "ERROR reading last inserted ID: " << e.what();
     LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
   }
+  return MySqlError;
 }
 
 // there are two mySQL tables for scan responses - tx and rx
@@ -506,7 +540,7 @@ int MySqlClient::writeTxScanResponse(
     auto connection = openConnection();
     if (!connection) {
       LOG(ERROR) << "Unable to open MySQL connection.";
-      return -1;
+      return MySqlError;
     }
     std::string query =
         "INSERT INTO `tx_scan_results` "
@@ -528,13 +562,13 @@ int MySqlClient::writeTxScanResponse(
     prep_stmt->setInt(7, scanResponse.scanSubType);
     prep_stmt->setInt(8, scanResponse.scanMode);
     prep_stmt->setInt(9, scanResponse.applyFlag);
-    prep_stmt->setInt(10, scanResponse.status);
+    prep_stmt->setInt(10, (int32_t)scanResponse.status);
     prep_stmt->setInt(11, scanResponse.txPower);
     prep_stmt->setInt(12, scanResponse.respId);
     prep_stmt->setString(13, scanResponse.txNodeName);
     prep_stmt->setString(14, scanResponse.scanResp);
     prep_stmt->execute();
-    return MYSQL_NO_ERROR;
+    return MySqlOk;
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "Tx scan response ERR: " << e.what();
     LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
@@ -557,7 +591,7 @@ bool MySqlClient::writeRxScanResponse(
         "`new_beam_flag`) VALUES (?, COMPRESS(?), ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         (*connection)->prepareStatement(query));
-    prep_stmt->setInt(1, scanResponse.status);
+    prep_stmt->setInt(1, (int32_t)scanResponse.status);
     prep_stmt->setString(2, scanResponse.scanResp);
     prep_stmt->setInt(3, scanResponse.rxNodeId);
     prep_stmt->setUInt64(4, txId);
@@ -578,13 +612,13 @@ bool MySqlClient::writeScanResponses(
   for (const auto& mySqlScanResponse : mySqlScanResponses) {
     int errCode;
     if ((errCode = writeTxScanResponse(mySqlScanResponse.txResponse)) ==
-        MYSQL_NO_ERROR) {
+        MySqlOk) {
       numScansWritten++;
       int64_t tx_id = getLastId(
           mySqlScanResponse.txResponse.token,
           mySqlScanResponse.txResponse.startBwgd,
           mySqlScanResponse.txResponse.network);
-      if (tx_id > 0) {
+      if (tx_id != MySqlError) {
         for (const auto& rxResponse : mySqlScanResponse.rxResponses) {
           if (!writeRxScanResponse(rxResponse, tx_id)) {
             return false;
@@ -593,7 +627,7 @@ bool MySqlClient::writeScanResponses(
       } else {
         return false;
       }
-    } else if (errCode != MYSQL_DUPLICATE_ENTRY) {
+    } else if (errCode != MySqlDuplicateEntry) {
       // if the error is something other than duplicate entry,
       // something is wrong
       return false;
