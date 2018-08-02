@@ -886,7 +886,7 @@ class LinkInsight(object):
             Currently, the definitions of green, amber, and red links are:
             green: link_available_time / observed_window >= 95%
             amber: link_available_time / observed_window >= 75%
-            red: link_available_time / observed_window < 45%
+            red: link_available_time / observed_window < 75%
 
         Args:
         extracted_stats: a dict, which contains a key of "link_available_time" and
@@ -905,24 +905,14 @@ class LinkInsight(object):
 
         green_amber_cutoff = sample_duration_in_s * 0.95
         amber_lower_cutoff = sample_duration_in_s * 0.75
-        red_upper_cutoff = sample_duration_in_s * 0.45
 
-        unclassified_link = 0
         for link_available_time in extracted_stats["link_available_time"]:
             if link_available_time >= green_amber_cutoff:
                 links_health_stats["green_link"] += 1
             elif link_available_time >= amber_lower_cutoff:
                 links_health_stats["amber_link"] += 1
-            elif link_available_time < red_upper_cutoff:
-                links_health_stats["red_link"] += 1
             else:
-                unclassified_link += 1
-
-        if unclassified_link:
-            logging.warning(
-                "There are {} links with ".format(unclassified_link)
-                + "available time are unclassified"
-            )
+                links_health_stats["red_link"] += 1
 
         logging.info("The network link health stats is {}".format(links_health_stats))
 
