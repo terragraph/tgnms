@@ -36,10 +36,7 @@ class TopologyHelper(object):
 
         api_service_config = {}
         try:
-            analytics_config_file = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "../AnalyticsConfig.json")
-            )
-            mysql_db_access = MySqlDbAccess(analytics_config_file=analytics_config_file)
+            mysql_db_access = MySqlDbAccess()
             if mysql_db_access is None:
                 raise ValueError("Cannot create MySqlDbAccess object")
 

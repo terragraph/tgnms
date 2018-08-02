@@ -17,9 +17,8 @@ class CronMgmt(object):
     """
 
     def __init__(self):
-        self.comment = "NMS-Analytics"
-        self.cron = CronTab(user="root")
-        self.log = "/usr/local/analytics/cron_mgmt_log.txt"
+        self._comment = "NMS-Analytics"
+        self._cron = CronTab(user="root")
 
     def schedule_jobs_every_minutes(self, command, period_in_min=1):
         """
@@ -32,7 +31,7 @@ class CronMgmt(object):
         Return:
         void.
         """
-        job = self.cron.new(command=command, comment=self.comment)
+        job = self._cron.new(command=command, comment=self._comment)
         if period_in_min < 1:
             logging.error("Analytics should not submit sub-min jobs")
             return
@@ -47,17 +46,12 @@ class CronMgmt(object):
             job.minute.every(period_in_min)
 
         job.enable()
-        self.cron.write()
-        try:
-            with open(self.log, "a") as file:
-                file.writelines(
-                    str(datetime.datetime.now())
-                    + " Submit Command '{}' with period_in_min of {}\n".format(
-                        command, period_in_min
-                    )
-                )
-        except EnvironmentError as err:
-            logging.error("Cannot open log output file {}".format(err.args))
+        self._cron.write()
+        logging.warning(
+            "Submit command '{}' with period_in_min of {}".format(
+                command, period_in_min
+            )
+        )
 
     def show_current(self):
         """
@@ -67,8 +61,8 @@ class CronMgmt(object):
         List of submitted Analytics jobs. Each job is represented by a string.
         """
         jobs = []
-        for job in self.cron:
-            if job.comment == self.comment:
+        for job in self._cron:
+            if job.comment == self._comment:
                 jobs.append(repr(job))
 
         return jobs
@@ -77,14 +71,9 @@ class CronMgmt(object):
         """
         Remove all submitted Analytics cron jobs.
         """
-        for job in self.cron:
-            if job.comment == self.comment:
-                self.cron.remove(job)
-                self.cron.write()
-        try:
-            with open(self.log, "a") as file:
-                file.writelines(
-                    str(datetime.datetime.now()) + " Cleared all Analytics jobs\n"
-                )
-        except EnvironmentError as err:
-            logging.error("Cannot open log output file {}".format(err.args))
+        for job in self._cron:
+            if job.comment == self._comment:
+                self._cron.remove(job)
+                self._cron.write()
+
+        logging.warning("Cleared all Analytics jobs")

@@ -15,6 +15,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from link_insights.link_insight import LinkInsight
 from module.beringei_db_access import BeringeiDbAccess
 from module.topology_handler import TopologyHelper
+from module.mysql_db_access import MySqlDbAccess
+from module.path_store import PathStore
 
 
 class LinkPipeline(object):
@@ -47,12 +49,7 @@ class LinkPipeline(object):
             instance.link_macs_list += [[source_mac, peer_mac], [peer_mac, source_mac]]
 
         # initialize Beringei access class
-        analytics_config_file = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../AnalyticsConfig.json")
-        )
-        instance.beringei_db_access = BeringeiDbAccess(
-            analytics_config_file=analytics_config_file
-        )
+        instance.beringei_db_access = BeringeiDbAccess()
         if not instance.beringei_db_access:
             logging.error("Cannot create BeringeiDbAccess object")
             return None
@@ -272,30 +269,34 @@ class LinkPipeline(object):
 
 
 if __name__ == "__main__":
-    analytics_config_file = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../AnalyticsConfig.json")
-    )
-
     try:
-        with open(analytics_config_file) as config_file:
+        with open(PathStore.ANALYTICS_CONFIG_FILE) as config_file:
             analytics_config = json.load(config_file)
     except BaseException as err:
         logging.error("Cannot load config with error {}".format(err.args))
+
+    mysql_db_access = MySqlDbAccess()
+    if mysql_db_access is None:
+        raise ValueError("Cannot create MySqlDbAccess object")
+
+    api_service_config = mysql_db_access.read_api_service_setting()
+    if len(api_service_config) != 1:
+        raise ValueError("There should be a single topology")
+    topology_name = list(api_service_config.keys())[0]
+    link_pipeline = LinkPipeline(topology_name)
 
     if len(sys.argv) < 2:
         logging.error("No pipeline specified")
     elif sys.argv[1] == "link_mean_variance_pipeline":
         job_config = analytics_config["pipelines"]["link_mean_variance_pipeline"]
-        link_insight = LinkPipeline(job_config["topology_name"])
-        link_insight.link_mean_variance_pipeline(
+        link_pipeline.link_mean_variance_pipeline(
             job_config["metric_names"],
             job_config["sample_duration_in_s"],
             job_config["source_db_interval"],
         )
     elif sys.argv[1] == "traffic_stats_pipeline":
         job_config = analytics_config["pipelines"]["traffic_stats_pipeline"]
-        link_insight = LinkPipeline(job_config["topology_name"])
-        link_insight.traffic_stats_pipeline(
+        link_pipeline.traffic_stats_pipeline(
             job_config["sample_duration_in_s"], job_config["source_db_interval"]
         )
     else:
