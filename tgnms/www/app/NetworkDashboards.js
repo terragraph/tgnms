@@ -12,6 +12,7 @@ import DashboardSelect from './components/dashboard/DashboardSelect.js';
 import GraphConfigurationSelect from './components/dashboard/GraphConfigurationSelect.js';
 import CreateGraphModal from './components/dashboard/CreateGraphModal.js';
 import GraphInformationBox from './components/dashboard/GraphInformationBox.js';
+import {DASHBOARD_TOOLTIP_LABELS} from './constants/NetworkDashboardsConstants.js';
 import {
   formatKeyHelper,
   fetchKeyData,
@@ -25,6 +26,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import {Glyphicon} from 'react-bootstrap';
 import {clone, isEmpty, isEqual} from 'lodash-es';
+import ReactTooltip from 'react-tooltip';
 
 const ReactGridLayoutWidthProvider = WidthProvider(ReactGridLayout);
 
@@ -83,7 +85,7 @@ export default class NetworkDashboards extends React.Component {
     });
   }
 
-  async componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps, prevState) {
     if (!isEqual(prevProps.viewContext, this.props.viewContext)) {
       const {
         dashboardName,
@@ -107,11 +109,14 @@ export default class NetworkDashboards extends React.Component {
       );
       this.setState({dashboards, hideDataSelect: true});
     }
+    if (this.state.selectedDashboard !== prevState.selectedDashboard) {
+      ReactTooltip.rebuild();
+    }
   }
 
   selectDashboardChange = val => {
+    const {dashboards} = this.state;
     if (val.value === '#New') {
-      const {dashboards} = this.state;
       swal(
         {
           animation: 'slide-from-top',
@@ -136,18 +141,22 @@ export default class NetworkDashboards extends React.Component {
             return false;
           }
           dashboards[inputValue] = this.generateNewDashboard();
-          this.setState({selectedDashboard: inputValue});
 
           this.setState({
             dashboards,
             editView: false,
+            hideDataSelect: false,
+            selectedDashboard: inputValue,
           });
           this.saveDashboards();
           swal('Added!', 'dashboard: ' + inputValue, 'success');
         },
       );
     } else {
-      this.setState({selectedDashboard: val.label});
+      this.setState({
+        selectedDashboard: val.label,
+        hideDataSelect: dashboards[val.value].graphs.length > 0,
+      });
       this.setState({
         editView: false,
       });
@@ -804,6 +813,7 @@ export default class NetworkDashboards extends React.Component {
 
     return (
       <div className="network-dashboard">
+        <ReactTooltip place="right" multiline />
         {!this.state.hideDashboardOptions ? (
           <div className="dashboard-options">
             <button
@@ -874,6 +884,11 @@ export default class NetworkDashboards extends React.Component {
                         role="button">
                         <Glyphicon glyph="chevron-down" />
                       </div>
+                      <Glyphicon
+                        className="info-icon"
+                        glyph="info-sign"
+                        data-tip={DASHBOARD_TOOLTIP_LABELS.GRAPH_CONFIG_INFO}
+                      />
                     </div>
                   )}
                 </div>
