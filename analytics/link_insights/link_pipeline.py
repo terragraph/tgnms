@@ -150,7 +150,7 @@ class LinkPipeline(object):
         """Write the computed network insight to the Beringei database via BQS.
 
         Args:
-        network_stats: a dict that maps dict work key names (like "green_link")
+        network_stats: a dict that maps dict work key names (like "num_green_link")
                        to value.
         source_db_interval: int to indicate which Beringei database is read.
         sample_duration_in_s: sampling duration of the link stats.
@@ -331,7 +331,7 @@ class LinkPipeline(object):
         Void.
         """
 
-        logging.info("Running the link available pipeline")
+        logging.info("Running the link health pipeline")
         stats_query_timestamp = int(time.time())
         metric_names = [
             "stapkt.linkavailable",
