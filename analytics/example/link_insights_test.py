@@ -311,7 +311,7 @@ class TestLinkInsights(unittest.TestCase):
         for key in key_to_percentile:
             plt.subplot(1, num_sub_plot, sub_plot_idx)
             plt.plot(key_to_percentile[key], percentages, "b-")
-            plt.xlabel(key)
+            plt.gca().set_title(key)
             if sub_plot_idx == 1:
                 plt.ylabel("Percentages (%)")
             sub_plot_idx += 1
@@ -319,6 +319,32 @@ class TestLinkInsights(unittest.TestCase):
         plt.savefig(save_fig_name)
         logging.info("Saving fig to " + save_fig_name)
         plt.close()
+
+    def test_link_health_pipeline(self):
+        """ This is a simple offline visualization to plot the CDF
+            of link available time distribution of all links across the network.
+        """
+
+        json_log_name_prefix = "temp_available_"
+
+        # Compute the link_available_time and save a copy to a json file
+        self.link_pipeline.link_health_pipeline(
+            dump_to_json=True, json_log_name_prefix=json_log_name_prefix
+        )
+
+        stats_key_to_stats = self._extract_network_wide_stats(
+            ["link_available_time", "link_uptime"],
+            json_log_name_prefix + "available.json"
+        )
+
+        self.assertTrue(stats_key_to_stats["link_available_time"])
+
+        # Plot the CDF of the computed stats across links
+        save_fig_name = json_log_name_prefix + "plot.pdf"
+        self._plot_network_wide_cdf(stats_key_to_stats, save_fig_name=save_fig_name)
+
+        # Check that the figure is output
+        self.assertTrue(os.path.isfile(save_fig_name))
 
 
 if __name__ == "__main__":

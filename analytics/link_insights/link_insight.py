@@ -26,12 +26,10 @@ class LinkInsight(object):
        from Beringei database and the computed stats can be written back to
        Beringei database.
     """
-
-    def __init__(self):
-        # The increase speed of counter. The counter should increase by one
-        # every bwgd (25.6 ms). The counter could be heartbeat, keepalive, bwreq,
-        # or linkavailable.
-        self.counter_speed_per_s = 1000 / 25.6
+    # The increase speed of counter. The counter should increase by one
+    # every bwgd (25.6 ms). The counter could be heartbeat, keepalive, bwreq,
+    # or linkavailable.
+    COUNTER_SPEED_PER_S = 1000 / 25.6
 
     def construct_query_request(
         self,
@@ -209,6 +207,68 @@ class LinkInsight(object):
         stats_to_write = bq.StatsWriteRequest(
             topology=topology, agents=query_agents, interval=dest_db_interval
         )
+        return stats_to_write
+
+    def construct_network_stats_write_request(
+        self,
+        network_stats,
+        sample_duration_in_s,
+        source_db_interval,
+        stats_query_timestamp,
+        topology_name,
+        fake_mac,
+        dest_db_interval=30,
+    ):
+        """Prepare the network stats (aggregate stats) for writing to Beringei database.
+
+        Args:
+        network_stats: computed network stats, a dict.
+        sample_duration_in_s: the duration of the stats read, for example 3600
+            means link data of past 1 hour are used to computed the stats.
+        source_db_interval: interval of the Beringei database reading from.
+        stats_query_timestamp: the time at which the link stats is computed.
+        topology_name: name of the setup, like "tower G".
+        dest_db_interval: indicates which Beringei database to write to.
+        fake_mac: a mac in the network, is used to populate the node agent field.
+
+        Return:
+        stats_to_write: On success, stats to write to the Beringei database,
+                        type StatsWriteRequest. Raise exception on error.
+        """
+
+        # TODO:
+        # Currently, use current BQS node stats writing endpoint of StatsWriteRequest.
+        # Once the new aggregate stats write endpoint at BQS is ready. Will move to
+        # the new API.
+
+        topology = Topology(name=topology_name)
+        if topology is None:
+            raise ValueError("Cannot create topology object")
+
+        stats_with_keys = []
+        for network_stats_name in network_stats:
+            # For each computed network insight, like "num_green_links"
+            stats_with_key = bq.Stat(
+                key=(
+                    "{}.{}.{}.{}.{}".format(
+                        "network",
+                        topology_name.replace(" ", "_"),
+                        network_stats_name,
+                        sample_duration_in_s,
+                        source_db_interval,
+                    )
+                ),
+                ts=stats_query_timestamp,
+                value=network_stats[network_stats_name],
+            )
+            stats_with_keys.append(stats_with_key)
+
+        network_stats_agent = bq.NodeStates(mac=fake_mac, stats=stats_with_keys)
+
+        stats_to_write = bq.StatsWriteRequest(
+            topology=topology, agents=[network_stats_agent], interval=dest_db_interval
+        )
+
         return stats_to_write
 
     def compute_timeseries_avg_and_var(self, query_returns):
@@ -496,7 +556,7 @@ class LinkInsight(object):
         valid_windows = []
         # Sweep the reported counters from right to left. For each point, determine
         # the start time of the current window by:
-        #   time_stamp - counter_sum / (self.counter_speed_per_s * 2)
+        #   time_stamp - counter_sum / (COUNTER_SPEED_PER_S * 2)
         # Notice that this can lead to two link flap reports for a single link flap.
         # Condition: a). There is no re-transmission before the first two counter
         # reports (i.e., mgmttx counter increases by one per bwgd);
@@ -524,7 +584,7 @@ class LinkInsight(object):
                 sampling_start_time,
                 np.floor(
                     time_stamps[current_idx]
-                    - (counter_sums[current_idx] / (self.counter_speed_per_s * 2))
+                    - (counter_sums[current_idx] / (self.COUNTER_SPEED_PER_S * 2))
                 ),
             )
 
@@ -660,3 +720,224 @@ class LinkInsight(object):
             traffic_stats_returns.append([traffic_stats])
 
         return traffic_stats_returns
+
+    def compute_link_available(self, metric_names, read_returns, sampling_start_time):
+        """ Compute the link available times by using the "stapkt.linkavailable" counters.
+            Currently, to workaround stats pipeline glitches, we use the
+            link mgmttx counters and the computed link uptime valid windows. Please see
+            compute_single_link_available_stats() for the detailed algorithm.
+
+            Args:
+            metric_names: name of the stats queried of each link. The sequence
+            needs to be index matched to that of read query sent to BQS.
+            read_returns: the read return from BQS, of type RawQueryReturn.
+            sampling_start_time: start time (unix time in seconds) of the queried stats.
+
+            Return:
+            available_stats_returns: a 2-D list of stats. Each sub-list is of length 1
+            and the contained element is an dict with keys of "link_available_time" and
+            "link_uptime". Raise exception on error.
+        """
+
+        available_stats_returns = []
+        name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
+        if (
+            "stapkt.linkavailable" not in name_to_idx
+            or "mgmttx.uplinkbwreq" not in name_to_idx
+            or "mgmttx.keepalive" not in name_to_idx
+            or "mgmttx.heartbeat" not in name_to_idx
+        ):
+            raise ValueError("Not all needed metrics are queried")
+
+        for per_link_return in read_returns.queryReturnList:
+            per_link_return = per_link_return.timeSeriesAndKeyList
+
+            uplink_bwreq_return = per_link_return[name_to_idx["mgmttx.uplinkbwreq"]]
+            keepalive_return = per_link_return[name_to_idx["mgmttx.keepalive"]]
+            heartbeat_return = per_link_return[name_to_idx["mgmttx.heartbeat"]]
+            link_available_return = per_link_return[name_to_idx["stapkt.linkavailable"]]
+
+            try:
+                counters_list, counter_ts = self.match_values_list_by_timestamp(
+                    [
+                        uplink_bwreq_return.timeSeries,
+                        keepalive_return.timeSeries,
+                        heartbeat_return.timeSeries,
+                    ],
+                    source_db_interval=30,
+                )
+            except BaseException as err:
+                raise ValueError(
+                    "Error during match_values_list_by_timestamp():", err.args
+                )
+
+            uptime_windows = self.get_uptime_windows(
+                counters_list, counter_ts, sampling_start_time=sampling_start_time
+            )
+
+            available_stats = self.compute_single_link_available_stats(
+                link_available_return.timeSeries, uptime_windows, sampling_start_time
+            )
+
+            available_stats_returns.append([available_stats])
+
+        return available_stats_returns
+
+    def compute_single_link_available_stats(
+        self, available_time_series, link_uptime_windows, sampling_start_time
+    ):
+        """
+        Compute the link available time based on the "stapkt.linkavailable" time series.
+        The algorithm works as follows: a). Using the mgmttx (keepalive/heartbeat/bwreq)
+        counters to calculate the link uptime windows. b). For each window, used the
+        largest link available counter and counter increase speed to get the link
+        available time during that link uptime window. c). Sum over all link uptime
+        windows. The algorithm is effective for the cases when there is only a single
+        link available counter data point during the window or the first link available
+        counters are not reported during a link uptime window. Note that this algorithm
+        can lead to over accounting issue with the current link uptime
+        windows calculation (get_uptime_windows()). For example, if the link reset at
+        time 0. And we observe at time [15, 45, 75, 105] with mgmttx/linkAvailable
+        counter values of [15 * s, 45 * s, 75 * s, 105 * s]. The link uptime windows are
+        [[floor(7.5) ,15], [floor(22.5) ,105]]. With the above algorithm, the total link
+        available time will be 105 + 15 = 120, which is larger than 105. This issue will
+        be automatically resolved once the mgmttx counter is fixed on firmware and the
+        get_uptime_windows() is updated.
+
+        Args:
+        available_time_series: linkAvailable counters time series, of type timeSeries.
+        link_uptime_windows: list of valid windows, each element is of format
+                             [start_time, end_time].
+        sampling_start_time: start time (unix time in seconds) of the queried stats.
+
+        Return:
+        output_stats: a dict with keys of "link_available_time" and "link_uptime".
+        """
+
+        link_available_counters = [dp.value for dp in available_time_series]
+        link_available_ts = [dp.unixTime for dp in available_time_series]
+        if not link_available_ts:
+            logging.error("No link available counter report")
+            return {}
+
+        output_stats = {"link_available_time": 0, "link_uptime": 0}
+
+        for start_timestamp, end_timestamp in link_uptime_windows:
+            output_stats["link_uptime"] += end_timestamp - start_timestamp
+            if start_timestamp == sampling_start_time:
+                if link_available_ts[0] <= end_timestamp:
+                    # There are link available counter reports in the first window
+                    counter_start = link_available_counters[0]
+                else:
+                    # There is no available counter report in the first window
+                    continue
+            else:
+                counter_start = 0
+
+            right_counter_idx = self.find_largest_ts_idx(
+                link_available_ts, end_timestamp
+            )
+            if link_available_ts[right_counter_idx] < start_timestamp:
+                continue
+            else:
+                output_stats["link_available_time"] += (
+                    link_available_counters[right_counter_idx] - counter_start
+                ) / self.COUNTER_SPEED_PER_S
+
+        return output_stats
+
+    def find_largest_ts_idx(self, link_available_ts, end_timestamp):
+        """
+        Find the index of the largest time stamp that is smaller than the end_timestamp.
+
+        Args:
+        link_available_ts: a list of time stamps, should be in ascending order.
+        end_timestamp: the end_timestamp of a link uptime window.
+
+        Return:
+        start_idx: the index of the largest time stamp whose value is smaller or equal
+        to end_timestamp.
+        """
+        if link_available_ts[-1] <= end_timestamp:
+            return len(link_available_ts) - 1
+
+        start_idx = 0
+        end_idx = len(link_available_ts) - 1
+
+        # Find the smallest idx that is larger than the end_timestamp
+        while start_idx != end_idx:
+            mid_idx = int((start_idx + end_idx) / 2)
+            if link_available_ts[mid_idx] <= end_timestamp:
+                start_idx = mid_idx + 1
+            else:
+                end_idx = mid_idx
+
+        if end_idx > 0:
+            end_idx -= 1
+
+        return end_idx
+
+    def get_link_health_num(self, extracted_stats, sample_duration_in_s):
+        """ Compute the number of green, amber, and red links in a network.
+            Currently, the definitions of green, amber, and red links are:
+            green: link_available_time / observed_window >= 95%
+            amber: link_available_time / observed_window >= 75%
+            red: link_available_time / observed_window < 75%
+
+        Args:
+        extracted_stats: a dict, which contains a key of "link_available_time" and
+        corresponding dict value is a list of computed link available time of all
+        links in the network.
+        sample_duration_in_s: duration of the sampling window.
+
+        Return:
+        links_health_stats: a dict, with keys of "num_green_links", "num_amber_link",
+        and "num_red_link".
+        """
+        links_health_stats = {
+            "num_green_link": 0,
+            "num_amber_link": 0,
+            "num_red_link": 0,
+        }
+        if "link_available_time" not in extracted_stats:
+            logging.warning("There is no link available time reported for any link")
+            return links_health_stats
+
+        green_amber_cutoff = sample_duration_in_s * 0.95
+        amber_lower_cutoff = sample_duration_in_s * 0.75
+
+        for link_available_time in extracted_stats["link_available_time"]:
+            if link_available_time >= green_amber_cutoff:
+                links_health_stats["num_green_link"] += 1
+            elif link_available_time >= amber_lower_cutoff:
+                links_health_stats["num_amber_link"] += 1
+            else:
+                links_health_stats["num_red_link"] += 1
+
+        logging.info("The network link health stats is {}".format(links_health_stats))
+
+        return links_health_stats
+
+    def get_all_link_stats(self, computed_stats):
+        """ Extract links stats of all links from computed link stats.
+
+        Args:
+        computed_stats: a 2-D list of computed stats, each element of computed_stats
+        is a list of dict. Each dict maps the computed link stats name to its value.
+
+        Return:
+        stats_key_to_stats: dict, with keys being the link stats names (like
+        "link_available_time") and the dict values are a lists. Each value in a list
+        is the computed stats value of a link.
+        """
+        stats_key_to_stats = {}
+
+        for query_stats in computed_stats:
+            for query_key_stats in query_stats:
+                for stats_key in query_key_stats:
+                    if stats_key in stats_key_to_stats:
+                        stats_key_to_stats[stats_key].append(query_key_stats[stats_key])
+                    else:
+                        stats_key_to_stats[stats_key] = [query_key_stats[stats_key]]
+
+        return stats_key_to_stats
