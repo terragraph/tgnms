@@ -8,7 +8,7 @@ const express = require('express');
 const fs = require('fs');
 const querystring = require('querystring');
 
-const app = express();
+const router = express.Router();
 
 // set up the upgrade images path
 const NETWORK_UPGRADE_IMAGES_REL_PATH = '/static/tg-binaries';
@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage});
 
-app.post(
+router.post(
   /\/uploadUpgradeBinary$/i,
   upload.single('binary'),
   (req, res, next) => {
@@ -51,4 +51,4 @@ app.post(
   },
 );
 
-module.exports = app;
+module.exports = router;

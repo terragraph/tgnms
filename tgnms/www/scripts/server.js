@@ -74,6 +74,7 @@ app.set('views', './views');
 app.set('view engine', 'pug');
 
 // Routes
+app.use(access(USER));
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
@@ -117,16 +118,7 @@ if (devMode) {
   });
 }
 
-app.get('/login', (req, res) => {
-  if (LOGIN_ENABLED && req.isAuthenticated()) {
-    res.redirect('/');
-    return;
-  }
-
-  res.render('login');
-});
-
-app.get('/', access(USER), (req, res) => {
+app.get('/', (req, res) => {
   res.render('index', {
     configJson: JSON.stringify(getNetworkInstanceConfig()),
   });

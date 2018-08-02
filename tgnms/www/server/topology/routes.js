@@ -19,9 +19,9 @@ const path = require('path');
 const querystring = require('querystring');
 const logger = require('../log')(module);
 
-const app = express();
+const router = express.Router();
 
-app.get(/\/health\/(.+)$/i, (req, res, next) => {
+router.get(/\/health\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const networkHealth = getNetworkHealth(topologyName);
   if (networkHealth) {
@@ -32,11 +32,11 @@ app.get(/\/health\/(.+)$/i, (req, res, next) => {
   }
 });
 
-app.get(/\/list$/, (req, res, next) => {
+router.get(/\/list$/, (req, res, next) => {
   res.json(getAllTopologyNames().map(keyName => getTopologyByName(keyName)));
 });
 
-app.get(/\/get\/(.+)$/i, (req, res, next) => {
+router.get(/\/get\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const topology = getTopologyByName(topologyName);
 
@@ -47,7 +47,7 @@ app.get(/\/get\/(.+)$/i, (req, res, next) => {
   res.status(404).end('No such topology\n');
 });
 
-app.get(/\/get_stateless\/(.+)$/i, (req, res, next) => {
+router.get(/\/get_stateless\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const networkConfig = Object.assign({}, getTopologyByName(topologyName));
   const topology = networkConfig.topology;
@@ -80,7 +80,7 @@ app.get(/\/get_stateless\/(.+)$/i, (req, res, next) => {
   res.status(404).end('No such topology\n');
 });
 
-app.post(/\/config\/save$/i, (req, res, next) => {
+router.post(/\/config\/save$/i, (req, res, next) => {
   const configData = req.body;
   if (configData && configData.topologies) {
     configData.topologies.forEach(config => {
@@ -126,4 +126,4 @@ app.post(/\/config\/save$/i, (req, res, next) => {
   });
 });
 
-module.exports = app;
+module.exports = router;

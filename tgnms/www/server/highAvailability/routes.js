@@ -9,9 +9,9 @@ const {HAPeerType, getHAState, getPeerAPIServiceHost} = require('./model');
 const express = require('express');
 const proxy = require('express-http-proxy');
 
-const app = express();
+const router = express.Router();
 
-app.get('/:topology/status', (req, res) => {
+router.get('/:topology/status', (req, res) => {
   const {topology} = req.params;
   res.status(200).send({
     primary: getHAState(topology, HAPeerType.PRIMARY),
@@ -19,4 +19,4 @@ app.get('/:topology/status', (req, res) => {
   });
 });
 
-module.exports = app;
+module.exports = router;

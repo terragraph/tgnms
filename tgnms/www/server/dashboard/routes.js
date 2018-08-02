@@ -8,7 +8,7 @@ const express = require('express');
 const fs = require('fs');
 const logger = require('../log')(module);
 
-const app = express();
+const router = express.Router();
 
 let dashboards = {};
 fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
@@ -17,7 +17,7 @@ fs.readFile('./config/dashboards.json', 'utf-8', (err, data) => {
   }
 });
 
-app.get(/\/get\/(.+)$/i, (req, res, next) => {
+router.get(/\/get\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   if (!dashboards[topologyName]) {
     dashboards[topologyName] = {};
@@ -25,7 +25,7 @@ app.get(/\/get\/(.+)$/i, (req, res, next) => {
   res.json(dashboards[topologyName]);
 });
 
-app.post(/\/save\/$/i, (req, res, next) => {
+router.post(/\/save\/$/i, (req, res, next) => {
   const data = req.body;
   if (data.topologyName && data.dashboards) {
     dashboards[data.topologyName] = data.dashboards;
@@ -46,4 +46,4 @@ app.post(/\/save\/$/i, (req, res, next) => {
   }
 });
 
-module.exports = app;
+module.exports = router;

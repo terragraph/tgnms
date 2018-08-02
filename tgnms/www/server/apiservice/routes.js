@@ -14,7 +14,7 @@ const express = require('express');
 const isIp = require('is-ip');
 const proxy = require('express-http-proxy');
 
-const app = express();
+const router = express.Router();
 
 const PROXY_OPTIONS = {
   memoizeHost: false,
@@ -39,6 +39,6 @@ function getAPIServiceHost(req, res) {
   }
 }
 
-app.use('/:topology/:hostref/', proxy(getAPIServiceHost, PROXY_OPTIONS));
+router.use('/:topology/:hostref/', proxy(getAPIServiceHost, PROXY_OPTIONS));
 
-module.exports = app;
+module.exports = router;

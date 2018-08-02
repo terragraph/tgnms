@@ -13,10 +13,10 @@ const express = require('express');
 const request = require('request');
 const logger = require('../log')(module);
 
-const app = express();
+const router = express.Router();
 
 // raw stats data
-app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
+router.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const metricName = req.params[1];
   const linkMetrics = [
@@ -53,7 +53,7 @@ app.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
 });
 
 // newer charting, for multi-linechart/row
-app.post(/\/multi_chart\/$/i, (req, res, next) => {
+router.post(/\/multi_chart\/$/i, (req, res, next) => {
   // proxy query
   const chartUrl = BERINGEI_QUERY_URL + '/query';
   const queryRequest = {queries: req.body};
@@ -79,7 +79,7 @@ app.post(/\/multi_chart\/$/i, (req, res, next) => {
   );
 });
 
-app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
+router.get('/stats_ta/:topology/:pattern', (req, res, next) => {
   const taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
   const taRequest = {
     topologyName: req.params.topology,
@@ -101,12 +101,12 @@ app.get('/stats_ta/:topology/:pattern', (req, res, next) => {
   );
 });
 
-app.post(/\/scan_results$/i, (req, res) => {
+router.post(/\/scan_results$/i, (req, res) => {
   const topologyName = req.query.topology;
   dataJson.readScanResults(topologyName, res, req.body);
 });
 
-app.get(/\/self_test$/i, (req, res) => {
+router.get(/\/self_test$/i, (req, res) => {
   const topologyName = req.query.topology;
   const filter = {};
   filter.filterType = req.query.filter.filterType;
@@ -115,7 +115,7 @@ app.get(/\/self_test$/i, (req, res) => {
 });
 
 // raw stats data
-app.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
+router.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
   const analyzerData = getAnalyzerData(topologyName);
   if (analyzerData !== null) {
@@ -126,4 +126,4 @@ app.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
   }
 });
 
-module.exports = app;
+module.exports = router;

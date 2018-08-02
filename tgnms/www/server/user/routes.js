@@ -14,10 +14,10 @@ import {USER, SUPERUSER} from './accessRoles';
 import access from '../middleware/access';
 import {User} from '../models';
 
-const app = express();
+const router = express.Router();
 
 // Login / Logout Routes
-app.get('/login', (req, res) => {
+router.get('/login', (req, res) => {
   if (LOGIN_ENABLED && req.isAuthenticated()) {
     res.redirect('/');
     return;
@@ -26,7 +26,7 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.post(
+router.post(
   '/login',
   passport.authenticate('local', {
     successRedirect: '/',
@@ -34,7 +34,7 @@ app.post(
   }),
 );
 
-app.get('/logout', (req, res) => {
+router.get('/logout', (req, res) => {
   if (req.isAuthenticated()) {
     req.logout();
   }
@@ -42,7 +42,7 @@ app.get('/logout', (req, res) => {
 });
 
 // User Routes
-app.get('/', access(SUPERUSER), async (req, res) => {
+router.get('/', access(SUPERUSER), async (req, res) => {
   try {
     const users = await User.findAll();
     res.status(200).send({users});
@@ -52,7 +52,7 @@ app.get('/', access(SUPERUSER), async (req, res) => {
 });
 
 // TODO: Determine what access level this should have
-app.post('/', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const {email, password} = req.body;
     if (!email) {
@@ -79,7 +79,7 @@ app.post('/', async (req, res) => {
   }
 });
 
-app.put('/:id', access(SUPERUSER), async (req, res) => {
+router.put('/:id', access(SUPERUSER), async (req, res) => {
   try {
     const {id} = req.params;
     const {body} = req;
@@ -119,7 +119,7 @@ app.put('/:id', access(SUPERUSER), async (req, res) => {
   }
 });
 
-app.delete('/:id', access(SUPERUSER), async (req, res) => {
+router.delete('/:id', access(SUPERUSER), async (req, res) => {
   const {id} = req.params;
 
   try {
@@ -130,4 +130,4 @@ app.delete('/:id', access(SUPERUSER), async (req, res) => {
   }
 });
 
-module.exports = app;
+module.exports = router;
