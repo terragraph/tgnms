@@ -7,6 +7,7 @@
     "start": "nodemon -w scripts/ -w server/ scripts/server --exec babel-node",
     "build": "rimraf dist && NODE_ENV=production webpack --config ./config/webpack.production.config.js --progress --profile --colors",
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
+    "sequelize": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize $*",
     "jscs": "jscs .",
     "precommit": "./node_modules/.bin/lint-staged"
   },
@@ -64,7 +65,7 @@
     "react-numeric-input": "^2.2.3",
     "react-onclickoutside": "^6.7.1",
     "react-plotly.js": "^2.2.0",
-    "react-select": "^1.2.1",
+    "react-select": "^1.3.0",
     "react-sidebar": "^2.3.2",
     "react-split-pane": "^0.1.77",
     "react-stonecutter": "^0.3.9",

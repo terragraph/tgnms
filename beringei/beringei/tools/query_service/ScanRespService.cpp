@@ -39,6 +39,8 @@ DEFINE_int32(
     "Scan response polling period if no results");
 DEFINE_int32(max_num_scans_req, 50, "Maximum number of scans to request");
 
+#define MAX_ROUTE_NUM 256
+
 using apache::thrift::SimpleJSONSerializer;
 
 namespace facebook {
@@ -52,8 +54,9 @@ ScanRespService::ScanRespService(
   timer_->scheduleTimeout(FLAGS_scan_poll_period_short * 1000);
 }
 
-std::string ScanRespService::getScanRespIdRange(
+folly::dynamic ScanRespService::getScanRespIdRange(
     const std::string& topologyName) {
+  auto mySqlClient = MySqlClient::getInstance();
   int respIdFrom = 0;
   int respIdTo = 0;
 
@@ -63,6 +66,9 @@ std::string ScanRespService::getScanRespIdRange(
   auto it = scanRespId_.find(topologyName);
   if (it == scanRespId_.end()) {
     scanRespId_[topologyName] = 0;
+    lastBwgdAtStartup_[topologyName] = mySqlClient->getLastBwgd(topologyName);
+    LOG(INFO) << "[" << topologyName
+              << "] lastBwgdAtStartup_: " << lastBwgdAtStartup_[topologyName];
   }
 
   if (scanRespId_[topologyName] > 0) {
@@ -70,16 +76,16 @@ std::string ScanRespService::getScanRespIdRange(
     respIdTo = respIdFrom + FLAGS_max_num_scans_req - 1;
   }
 
-  LOG(INFO) << "Requesting scans from respId " << respIdFrom << " to "
-            << respIdTo;
-  auto postData = folly::toJson(
-      folly::dynamic::object("respIdFrom", respIdFrom)("respIdTo", respIdTo));
+  LOG(INFO) << "[" << topologyName << "] Requesting scans from respId "
+            << respIdFrom << " to " << respIdTo;
+  auto postData =
+      folly::dynamic::object("respIdFrom", respIdFrom)("respIdTo", respIdTo);
   return postData;
 }
 
 void ScanRespService::timerCb() {
   VLOG(2) << "Timer running; fetching scan response";
-  scanPollPeriod_ = FLAGS_scan_poll_period_long;
+  int scanPollPeriod = FLAGS_scan_poll_period_long;
 
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
@@ -88,16 +94,19 @@ void ScanRespService::timerCb() {
     auto topology = topologyConfig.second->topology;
     if (!topology.name.empty() && !topology.nodes.empty() &&
         !topology.links.empty()) {
-      const std::string idRange = getScanRespIdRange(topology.name);
+      const auto idRange = getScanRespIdRange(topology.name);
       scans::ScanStatus scanStatus =
           apiServiceClient_->fetchApiService<scans::ScanStatus>(
-              topologyConfig.second, idRange, "api/getScanStatus");
+              topologyConfig.second,
+              folly::toJson(idRange),
+              "api/getScanStatus");
       VLOG(2) << "Received " << scanStatus.scans.size()
-              << " scan responses";
+              << " scan responses from " << topology.name;
       // if we read the max number of scans on any topology, use the shorter
       // poll period, otherwise, use the longer poll period
-      if (scanStatus.scans.size() == FLAGS_max_num_scans_req) {
-        scanPollPeriod_ = FLAGS_scan_poll_period_short;
+      if ((scanStatus.scans.size() == FLAGS_max_num_scans_req) ||
+          (idRange["respIdFrom"] == 0 && scanStatus.scans.size() == 1)) {
+        scanPollPeriod = FLAGS_scan_poll_period_short;
       }
 
       int errCode;
@@ -114,7 +123,7 @@ void ScanRespService::timerCb() {
       }
     }
   }
-  timer_->scheduleTimeout(scanPollPeriod_ * 1000);
+  timer_->scheduleTimeout(scanPollPeriod * 1000);
 }
 
 void ScanRespService::setNewScanRespId(
@@ -144,7 +153,7 @@ void ScanRespService::setNewScanRespId(
 // all having the same token and start_bwgd
 int ScanRespService::writeData(
     const scans::ScanStatus& scanStatus,
-    const std::string& toplogyName) {
+    const std::string& topologyName) {
   std::vector<scans::MySqlScanResp> mySqlScanResponses;
   auto mySqlClient = MySqlClient::getInstance();
   // loop over scans: {token: ScanData}
@@ -154,13 +163,47 @@ int ScanRespService::writeData(
       LOG(ERROR) << "No response ID available for scan token " << scan.first;
       continue;
     }
-    scans::MySqlScanResp mySqlScanResponse;
+    int64_t startBwgdIdx = scan.second.startBwgdIdx;
+
+    // if this BWGD comes before the last one in the table at startup,
+    // then this is a duplicate entry - skip it; prevents startup problems
+    if (startBwgdIdx <= lastBwgdAtStartup_[topologyName]) {
+      LOG(INFO) << "[" << topologyName << "] Scan with respId " << respId
+                << " skipped -- duplicate.";
+      continue;
+    }
+
     std::string txNodeName = scan.second.txNode;
+
+    // write the result only if there is a response from the transmitter and
+    // at least one receiver (the normal case)
+    int txResponseCount = 0;
+    int rxResponseCount = 0;
+    for (const auto& responses : scan.second.responses) {
+      if (responses.first.compare(txNodeName) == 0) {
+        txResponseCount++;
+      } else if (!responses.second.routeInfoList.empty()) {
+        // at least one of the receivers should have a non-empty response
+        rxResponseCount++;
+      }
+    }
+    if (!txResponseCount || !rxResponseCount) {
+      LOG(INFO) << "[" << topologyName << "] Scan with respId " << respId
+                << " skipped -- tx missing or rx all empty.";
+      continue;
+    }
+
+    scans::MySqlScanResp mySqlScanResponse;
 
     // these fields apply to all scan responses with the same scan ID
     scans::MySqlScanTxResp mySqlScanTxResponse;
+    // combinedStatus indicates a non-zero status (error) - we can get
+    // more information by looking at the detailed scan response stored as a
+    // blob in MySQL
+    mySqlScanTxResponse.combinedStatus =
+        scan.second.__isset.nResponsesWaiting ? (1 << INCOMPLETE_RESPONSE) : 0;
     mySqlScanTxResponse.respId = respId;
-    mySqlScanTxResponse.startBwgd = scan.second.startBwgdIdx;
+    mySqlScanTxResponse.startBwgd = startBwgdIdx;
     mySqlScanTxResponse.applyFlag = scan.second.apply;
     mySqlScanTxResponse.scanType = (int16_t)scan.second.type;
     mySqlScanTxResponse.scanSubType = (int16_t)scan.second.subType;
@@ -168,7 +211,6 @@ int ScanRespService::writeData(
     mySqlScanTxResponse.token = scan.first;
 
     std::vector<scans::MySqlScanRxResp> mySqlScanRxResponses;
-    int combinedStatusBit = 1;
     // loop over scan responses within a scan {nodeName:: ScanResp}
     for (const std::pair<std::string, scans::ScanResp>& responses :
          scan.second.responses) {
@@ -183,25 +225,94 @@ int ScanRespService::writeData(
         mySqlScanTxResponse.txNodeId = *nodeId;
         mySqlScanTxResponse.status = responses.second.status;
         mySqlScanTxResponse.txPower = responses.second.txPwrIndex;
-        mySqlScanTxResponse.combinedStatus = (responses.second.status != 0);
-        mySqlScanTxResponse.network = toplogyName;
+        mySqlScanTxResponse.combinedStatus =
+            (responses.second.status != scans::ScanFwStatus::COMPLETE)
+            << TX_ERROR;
+        mySqlScanTxResponse.network = topologyName;
         mySqlScanTxResponse.txNodeName = responses.first;
         try {
           mySqlScanTxResponse.scanResp =
               SimpleJSONSerializer::serialize<std::string>(responses.second);
         } catch (const std::exception& ex) {
-          LOG(ERROR) << "Error deserializing responses: "
+          LOG(ERROR) << "Error deserializing scan responses: "
                      << folly::exceptionStr(ex);
           continue;
         }
 
       } else { // rx node
+        // don't write the rx response if the routeInfoList is empty
+        // e.g. in an IM scan, there can be hundreds of nodes with no response
+        if (responses.second.routeInfoList.empty()) {
+          // note that we checked above to make sure that at least one route
+          // is not empty in this scan
+          continue;
+        }
         scans::MySqlScanRxResp mySqlScanRxResponse;
+
+        // when we receive scan results from the controller, each route is
+        // visited multiple times in general; let's store only the average
+        // SNR for each route to save space and increase UI speed
+
+        // createXyHash creates a unique hash index for routes
+        auto createXyHash = [](const int x, const int y) {
+          return x * MAX_ROUTE_NUM + y;
+        };
+
+        // calculate the average SNR over all routes
+        scans::ScanResp scanRespNew = responses.second; // copy
+        scanRespNew.routeInfoList.clear();
+
+        std::unordered_map<int /* x,y hash */, int /* routeIndex */>
+            mapHashToIndex;
+        int routeIndex = 0;
+
+        for (const auto& routeInfo : responses.second.routeInfoList) {
+          const int txRoute = routeInfo.route.tx;
+          const int rxRoute = routeInfo.route.rx;
+
+          const int hash = createXyHash(txRoute, rxRoute);
+          if (mapHashToIndex.find(hash) == mapHashToIndex.end()) {
+            scans::MicroRoute route;
+            scans::RouteInfo routeInfoAvgTemp;
+            route.tx = txRoute;
+            route.rx = rxRoute;
+            routeInfoAvgTemp.route = route;
+            routeInfoAvgTemp.snrEst = routeInfo.snrEst;
+            routeInfoAvgTemp.n = 1; // number of times this route visited
+            routeInfoAvgTemp.__isset.n = true;
+
+            // don't store the following parameters in the DB
+            routeInfoAvgTemp.__isset.rxStart = false;
+            routeInfoAvgTemp.__isset.packetIdx = false;
+            routeInfoAvgTemp.__isset.sweepidx = false;
+            routeInfoAvgTemp.__isset.postSnr = false;
+            routeInfoAvgTemp.__isset.rssi = false;
+            mapHashToIndex[hash] = routeIndex;
+            scanRespNew.routeInfoList.push_back(routeInfoAvgTemp);
+            routeIndex++;
+          } else {
+            int index = mapHashToIndex[hash];
+            scans::RouteInfo* routeInfoListAvg =
+                &scanRespNew.routeInfoList[index];
+            routeInfoListAvg->n++;
+            // running average
+            routeInfoListAvg->snrEst +=
+                (routeInfo.snrEst - routeInfoListAvg->snrEst) /
+                routeInfoListAvg->n;
+          }
+        }
+
+        for (auto& routeInfoAvg : scanRespNew.routeInfoList) {
+          // take average and round to 2 decimal places before serializing
+          routeInfoAvg.snrEst = floor(routeInfoAvg.snrEst * 100 + 0.5) / 100;
+        }
+
         try {
           mySqlScanRxResponse.scanResp =
-              SimpleJSONSerializer::serialize<std::string>(responses.second);
+              SimpleJSONSerializer::serialize<std::string>(scanRespNew);
+
         } catch (const std::exception& ex) {
-          LOG(ERROR) << "Error deserializing responses: "
+          LOG(ERROR) << "Error serializing responses: "
                      << folly::exceptionStr(ex);
           continue;
         }
@@ -216,7 +327,8 @@ int ScanRespService::writeData(
              (responses.second.oldBeam != responses.second.newBeam));
         // one bit per individual node response - so we can query it
         mySqlScanTxResponse.combinedStatus =
-            ((responses.second.status != 0) << combinedStatusBit++);
+            ((responses.second.status != scans::ScanFwStatus::COMPLETE)
+             << RX_ERROR);
         mySqlScanRxResponses.push_back(mySqlScanRxResponse);
       }
     }

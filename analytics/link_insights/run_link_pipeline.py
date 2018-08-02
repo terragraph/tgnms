@@ -13,6 +13,7 @@ from link_pipeline import LinkPipeline
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.job_scheduler import JobScheduler
+from module.path_store import PathStore
 
 
 def print_current_unix_time():
@@ -84,9 +85,8 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    analytics_config_file = "../AnalyticsConfig.json"
     try:
-        with open(analytics_config_file) as config_file:
+        with open(PathStore.ANALYTICS_CONFIG_FILE) as config_file:
             analytics_config = json.load(config_file)
 
         topology_name = analytics_config["periodic_jobs"]["topology_name"]

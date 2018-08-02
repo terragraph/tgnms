@@ -89,9 +89,34 @@ export default class PlotlyGraph extends React.Component {
         indicator: 'NO_DATA',
       });
     }
-    this.props.options['data'] = this.props.options.key_data;
+    const {
+      agg_type,
+      endTime,
+      key_ids,
+      key_data,
+      minAgo,
+      startTime,
+    } = this.props.options;
+
+    // convert dates to time stamps (sec) using moment.format("X")
+    const startTsNum = startTime ? startTime.getTime() / 1000 : null;
+    const endTsNum = endTime ? endTime.getTime() / 1000 : null;
+
+    const graphRequest = [
+      {
+        agg_type,
+        data: key_data,
+        end_ts: endTsNum,
+        key_ids,
+        min_ago: minAgo,
+        start_ts: startTsNum,
+        type: 'key_ids',
+      },
+    ];
     axios
-      .post('/metrics/multi_chart/', JSON.stringify([this.props.options]))
+      .post('/metrics/multi_chart/', graphRequest, {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      })
       .then(resp => {
         if (!resp.data) {
           console.error('No data available');

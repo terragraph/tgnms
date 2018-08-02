@@ -22,20 +22,23 @@ const path = require('path');
 const session = require('express-session');
 const webpack = require('webpack');
 
+const {LOGIN_ENABLED} = require('../server/config');
 const {
   getNetworkInstanceConfig,
   reloadInstanceConfig,
 } = require('../server/topology/model');
+
+const {sequelize} = require('../server/models');
+const {USER} = require('../server/user/accessRoles');
 const topologyPeriodic = require('../server/topology/periodic');
 const highAvailabilityPeriodic = require('../server/highAvailability/periodic');
-const {sequelize} = require('../server/models');
 const {runMigrations} = require('./runMigrations');
 const logger = require('../server/log')(module);
 
+import access from '../server/middleware/access';
+
 const devMode = process.env.NODE_ENV !== 'production';
 const port = devMode && process.env.PORT ? process.env.PORT : 80;
-// NOTE: Login is disabled by default until its deployed publicly
-const enableLogin = process.env.LOGIN_ENABLED || false;
 const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
 
 const app = express();
@@ -115,7 +118,7 @@ if (devMode) {
 }
 
 app.get('/login', (req, res) => {
-  if (enableLogin && req.isAuthenticated()) {
+  if (LOGIN_ENABLED && req.isAuthenticated()) {
     res.redirect('/');
     return;
   }
@@ -123,13 +126,7 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.get('/', (req, res) => {
-  // TODO: Move into middleware
-  if (enableLogin && req.isUnauthenticated()) {
-    res.redirect('/login');
-    return;
-  }
-
+app.get('/', access(USER), (req, res) => {
   res.render('index', {
     configJson: JSON.stringify(getNetworkInstanceConfig()),
   });

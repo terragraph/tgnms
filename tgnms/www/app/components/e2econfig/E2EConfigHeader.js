@@ -5,46 +5,38 @@
  */
 'use strict';
 
-// E2EConfigHeader.js
-// contains the component to toggle between the Controller or Aggregator Config
-
 import {changeConfigType} from '../../actions/NetworkConfigActions.js';
-import {E2EConstants} from '../../constants/NetworkConstants.js';
-import {DropdownButton, MenuItem} from 'react-bootstrap';
+import {E2E} from '../../constants/NetworkConstants.js';
 import PropTypes from 'prop-types';
 import React from 'react';
+import Select from 'react-select';
+
+const e2eOptions = Object.values(E2E).map(value => ({
+  value,
+  label: value,
+}));
 
 export default class E2EConfigHeader extends React.Component {
   static propTypes = {
     activeConfig: PropTypes.string.isRequired,
   };
 
-  onConfigMenuSelect(key) {
-    changeConfigType(key);
-  }
-
-  renderHeader(title) {
-    return <h3 className="nc-header-toggle-title">{title}</h3>;
+  onConfigMenuSelect(option) {
+    changeConfigType(option.value);
   }
 
   render() {
     return (
       <div className="rc-config-header">
-        <DropdownButton
+        <Select
           className="nc-header-toggle"
-          id="e2e-config-dropdown"
-          title={this.renderHeader(`${this.props.activeConfig} Config`)}>
-          <MenuItem
-            key={E2EConstants.Controller}
-            onClick={() => this.onConfigMenuSelect(E2EConstants.Controller)}>
-            <h4 className="nc-header-toggle-item">Controller Config</h4>
-          </MenuItem>
-          <MenuItem
-            key={E2EConstants.Aggregator}
-            onClick={() => this.onConfigMenuSelect(E2EConstants.Aggregator)}>
-            <h4 className="nc-header-toggle-item">Aggregator Config</h4>
-          </MenuItem>
-        </DropdownButton>
+          defaultValue={E2E.PrimaryController}
+          clearable={false}
+          searchable={false}
+          value={this.props.activeConfig}
+          onChange={this.onConfigMenuSelect}
+          options={e2eOptions}
+        />
       </div>
     );
   }

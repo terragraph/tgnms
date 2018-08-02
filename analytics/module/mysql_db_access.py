@@ -9,6 +9,10 @@ import pymysql
 import os
 import json
 import logging
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from module.path_store import PathStore
 
 
 class MySqlDbAccess(object):
@@ -19,15 +23,11 @@ class MySqlDbAccess(object):
     # TODO: add the Beringei Query Server setting fetching once the topologies table
     # in MySQL is refactored and contains BQS setting.
 
-    def __new__(
-        cls, database_name="cxl", analytics_config_file="../AnalyticsConfig.json"
-    ):
+    def __new__(cls, database_name="cxl"):
         """Create new MySqlDbAccess object if MySQL database username and password
            are uniquely found in the docker env file.
         Args:
         database_name: name of the MySQL database.
-        analytics_config_file: path to the analytics setting file, is used to
-                               find MySQL host ip.
 
         Return: MySqlDbAccess object on success.
                 None on failure.
@@ -39,7 +39,7 @@ class MySqlDbAccess(object):
         # before large-scale deployment.
 
         try:
-            with open(analytics_config_file) as config_file:
+            with open(PathStore.ANALYTICS_CONFIG_FILE) as config_file:
                 analytics_config = json.load(config_file)
         except Exception:
             logging.error("Cannot find the configuration file")

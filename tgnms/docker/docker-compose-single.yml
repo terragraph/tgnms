@@ -126,6 +126,35 @@ services:
     depends_on:
       - ipv6
 
+  beringei_900s:
+    build:
+      context: .
+      dockerfile: Dockerfile.beringei
+    image: secure.cxl-terragraph.com:443/beringei:latest
+    env_file:
+      - ./env/time.env
+    environment:
+      - BERINGEI_HOST=beringei
+      - PORT=9993
+      - NAME=beringei_900s
+      - INTERVAL=900 # 15 mins
+      - BUCKETS=90 # 90 days
+      - BUCKET_SIZE=86400 # one day
+      - BUCKET_FINALIZE_SEC=1200
+      - ALLOWED_TIMESTAMP_BEHIND=1200
+    cap_add:
+      - SYS_NICE
+    restart: always
+    volumes:
+      - ./docker_volumes/beringei:/data
+    ports:
+      - "9993:9993"
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && beringei/tools/beringei_configuration_generator --file_path $${NAME}.json --host_names $${HOSTNAME} --port $${PORT} && beringei/service/beringei_main -beringei_configuration_path $${NAME}.json -create_directories -sleep_between_bucket_finalization_secs $${BUCKET_FINALIZE_SEC} -allowed_timestamp_behind $${ALLOWED_TIMESTAMP_BEHIND} -bucket_size $${BUCKET_SIZE} -buckets $${BUCKETS} -data_directory=/data/$${NAME} --port $${PORT} -mintimestampdelta=$${INTERVAL} -logtostderr -v=2"]
+    depends_on:
+      - ipv6
+
   bqs:
     build:
       context: .
@@ -150,6 +179,26 @@ services:
       - db
       - beringei_1s
       - beringei_30s
+      - beringei_900s
+
+  analytics:
+    build:
+      context: .
+    image: secure.cxl-terragraph.com:443/analytics:latest
+    env_file:
+      - ./env/mysql.env
+    restart: always
+    volumes:
+      - ./docker_volumes/logs:/analytics/logs
+    ports:
+      - "8087:8087"
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "cd /usr/local/analytics/link_insights; python3 run_link_pipeline.py"]
+    depends_on:
+      - ipv6
+      - db
+      - bqs
 
 networks:
   terragraph_net:

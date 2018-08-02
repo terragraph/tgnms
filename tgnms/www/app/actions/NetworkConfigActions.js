@@ -254,11 +254,16 @@ export const getNodeConfigSuccess = ({config, topologyName}) => {
   });
 };
 
-export const getControllerConfigSuccess = ({config, topologyName}) => {
+export const getControllerConfigSuccess = ({
+  config,
+  topologyName,
+  peerType,
+}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.GET_CONTROLLER_CONFIG_SUCCESS,
     topologyName,
     config,
+    peerType,
   });
 };
 
@@ -289,10 +294,11 @@ export const setNodeConfigSuccess = ({config, saveSelected}) => {
   });
 };
 
-export const setControllerConfigSuccess = ({config}) => {
+export const setControllerConfigSuccess = ({config, peerType}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SET_CONTROLLER_CONFIG_SUCCESS,
     config,
+    peerType,
   });
 };
 
