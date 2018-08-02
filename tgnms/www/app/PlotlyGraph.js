@@ -26,6 +26,7 @@ export default class PlotlyGraph extends React.Component {
     relayout: false,
     xasixEnd: null,
     xaxisStart: null,
+    showLegend: true,
   };
 
   componentDidMount() {
@@ -229,6 +230,7 @@ export default class PlotlyGraph extends React.Component {
             height: divHeight,
             title,
             width: divWidth,
+            showlegend: this.state.showLegend,
             xaxis: {
               range: [xaxisStart || startTime, xaxisEnd || endTime],
             },
@@ -240,6 +242,13 @@ export default class PlotlyGraph extends React.Component {
               'hoverCompareCartesian',
               'hoverClosestCartesian',
               'toggleSpikelines',
+            ],
+            modeBarButtonsToAdd: [
+              {
+                name: 'Toggle legend',
+                click: () =>
+                  this.setState({showLegend: !this.state.showLegend}),
+              },
             ],
           }}
           onRelayout={layoutData => this.onGraphRelayout(layoutData)}
