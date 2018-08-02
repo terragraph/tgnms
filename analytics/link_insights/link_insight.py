@@ -209,6 +209,68 @@ class LinkInsight(object):
         )
         return stats_to_write
 
+    def construct_network_stats_write_request(
+        self,
+        network_stats,
+        sample_duration_in_s,
+        source_db_interval,
+        stats_query_timestamp,
+        topology_name,
+        fake_mac,
+        dest_db_interval=30,
+    ):
+        """Prepare the network stats (aggregate stats) for writing to Beringei database.
+
+        Args:
+        network_stats: computed network stats, a dict.
+        sample_duration_in_s: the duration of the stats read, for example 3600
+            means link data of past 1 hour are used to computed the stats.
+        source_db_interval: interval of the Beringei database reading from.
+        stats_query_timestamp: the time at which the link stats is computed.
+        topology_name: name of the setup, like "tower G".
+        dest_db_interval: indicates which Beringei database to write to.
+        fake_mac: a mac in the network, is used to populate the node agent field.
+
+        Return:
+        stats_to_write: On success, stats to write to the Beringei database,
+                        type StatsWriteRequest. Raise exception on error.
+        """
+
+        # TODO:
+        # Currently, use current BQS node stats writing endpoint of StatsWriteRequest.
+        # Once the new aggregate stats write endpoint at BQS is ready. Will move to
+        # the new API.
+
+        topology = Topology(name=topology_name)
+        if topology is None:
+            raise ValueError("Cannot create topology object")
+
+        stats_with_keys = []
+        for network_stats_name in network_stats:
+            # For each computed network insight, like "num_green_links"
+            stats_with_key = bq.Stat(
+                key=(
+                    "{}.{}.{}.{}.{}".format(
+                        "network",
+                        topology_name.replace(" ", "_"),
+                        network_stats_name,
+                        sample_duration_in_s,
+                        source_db_interval,
+                    )
+                ),
+                ts=stats_query_timestamp,
+                value=network_stats[network_stats_name],
+            )
+            stats_with_keys.append(stats_with_key)
+
+        network_stats_agent = bq.NodeStates(mac=fake_mac, stats=stats_with_keys)
+
+        stats_to_write = bq.StatsWriteRequest(
+            topology=topology, agents=[network_stats_agent], interval=dest_db_interval
+        )
+
+        return stats_to_write
+
     def compute_timeseries_avg_and_var(self, query_returns):
         """Compute the link metric average and variance.
 
@@ -814,3 +876,68 @@ class LinkInsight(object):
             end_idx -= 1
 
         return end_idx
+
+    def get_link_health_num(self, extracted_stats, sample_duration_in_s):
+        """ Compute the number of green, amber, and red links in a network.
+            Currently, the definitions of green, amber, and red links are:
+            green: link_available_time / observed_window >= 95%
+            amber: link_available_time / observed_window >= 75%
+            red: link_available_time / observed_window < 75%
+
+        Args:
+        extracted_stats: a dict, which contains a key of "link_available_time" and
+        corresponding dict value is a list of computed link available time of all
+        links in the network.
+        sample_duration_in_s: duration of the sampling window.
+
+        Return:
+        links_health_stats: a dict, with keys of "num_green_links", "num_amber_link", and
+        "num_red_link".
+        """
+        links_health_stats = {
+            "num_green_link": 0,
+            "num_amber_link": 0,
+            "num_red_link": 0,
+        }
+        if "link_available_time" not in extracted_stats:
+            logging.warning("There is no link available time reported for any link")
+            return links_health_stats
+
+        green_amber_cutoff = sample_duration_in_s * 0.95
+        amber_lower_cutoff = sample_duration_in_s * 0.75
+
+        for link_available_time in extracted_stats["link_available_time"]:
+            if link_available_time >= green_amber_cutoff:
+                links_health_stats["num_green_link"] += 1
+            elif link_available_time >= amber_lower_cutoff:
+                links_health_stats["num_amber_link"] += 1
+            else:
+                links_health_stats["num_red_link"] += 1
+
+        logging.info("The network link health stats is {}".format(links_health_stats))
+
+        return links_health_stats
+
+    def get_all_link_stats(self, computed_stats):
+        """ Extract links stats of all links from computed link stats.
+
+        Args:
+        computed_stats: a 2-D list of computed stats, each element of computed_stats
+        is a list of dict. Each dict maps the computed link stats name to its value.
+
+        Return:
+        stats_key_to_stats: dict, with keys being the link stats names (like
+        "link_available_time") and the dict values are a lists. Each value in a list
+        is the computed stats value of a link.
+        """
+        stats_key_to_stats = {}
+
+        for query_stats in computed_stats:
+            for query_key_stats in query_stats:
+                for stats_key in query_key_stats:
+                    if stats_key in stats_key_to_stats:
+                        stats_key_to_stats[stats_key].append(query_key_stats[stats_key])
+                    else:
+                        stats_key_to_stats[stats_key] = [query_key_stats[stats_key]]
+
+        return stats_key_to_stats

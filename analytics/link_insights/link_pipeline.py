@@ -140,6 +140,49 @@ class LinkPipeline(object):
         self.beringei_db_access.write_beringei_db(stats_to_write)
         logging.info("Successfully write back to Beringei")
 
+    def _write_netowrk_stats_to_beringei(
+        self,
+        network_stats,
+        source_db_interval,
+        sample_duration_in_s,
+        stats_query_timestamp,
+    ):
+        """Write the computed network insight to the Beringei database via BQS.
+
+        Args:
+        network_stats: a dict that maps dict work key names (like "num_green_link")
+                       to value.
+        source_db_interval: int to indicate which Beringei database is read.
+        sample_duration_in_s: sampling duration of the link stats.
+        stats_query_timestamp: The time of the link stats computation. The sampling
+        window is [stats_query_timestamp - sample_duration_in_s, stats_query_timestamp].
+
+        Return:
+        void.
+        """
+
+        # TODO: Currently, construct_network_stats_write_request() will re-use the node
+        # stats write endpoint (StatsWriteHandler) before the new aggregate stats
+        # write handler at BQS is ready. To workaround the node mac, we will use the
+        # source_mac of the first link. Update construct_network_stats_write_request()
+        # once the aggregate stats write handler is landed.
+        if self.link_macs_list:
+            fake_mac = self.link_macs_list[0][0]
+        else:
+            raise ValueError("There is no link in the network")
+
+        network_write_request = self.link_insight.construct_network_stats_write_request(
+            network_stats,
+            sample_duration_in_s,
+            source_db_interval,
+            stats_query_timestamp,
+            self.topology_name,
+            fake_mac,
+        )
+
+        self.beringei_db_access.write_beringei_db(network_write_request)
+        logging.info("Successfully write network stats to Beringei")
+
     def link_mean_variance_pipeline(
         self,
         metric_names,
@@ -288,7 +331,7 @@ class LinkPipeline(object):
         Void.
         """
 
-        logging.info("Running the link available pipeline")
+        logging.info("Running the link health pipeline")
         stats_query_timestamp = int(time.time())
         metric_names = [
             "stapkt.linkavailable",
@@ -318,6 +361,19 @@ class LinkPipeline(object):
                 stats_query_timestamp,
                 json_log_name_prefix + "available.json",
                 "health",
+            )
+
+            # Compute the network wide link health stats
+            links_stats = self.link_insight.get_all_link_stats(computed_stats)
+            network_health_stats = self.link_insight.get_link_health_num(
+                links_stats, sample_duration_in_s
+            )
+
+            self._write_netowrk_stats_to_beringei(
+                network_health_stats,
+                source_db_interval,
+                sample_duration_in_s,
+                stats_query_timestamp,
             )
 
         except ValueError as err:
