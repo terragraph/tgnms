@@ -17,6 +17,7 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
 from facebook.gorilla.beringei_data.ttypes import RawQueryReturn
+from module.path_store import PathStore
 
 
 class BeringeiDbAccess(object):
@@ -25,19 +26,19 @@ class BeringeiDbAccess(object):
     Beringei Data Server.
     """
 
-    def __new__(cls, analytics_config_file="../AnalyticsConfig.json"):
+    def __new__(cls):
         """Create new BeringeiDbAccess object if BQS setting is found
            from the configuration file.
 
         Args:
-        analytics_config_file: Path to the PyAnalytics.
+        void.
 
         Return: BeringeiDbAccess object on success.
                 None on failure.
         """
 
         try:
-            with open(analytics_config_file) as local_file:
+            with open(PathStore.ANALYTICS_CONFIG_FILE) as local_file:
                 analytics_config = json.load(local_file)
         except Exception:
             print("Cannot find the configuration file")
