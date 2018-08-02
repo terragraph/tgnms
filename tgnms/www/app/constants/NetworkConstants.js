@@ -225,9 +225,15 @@ export const MapTiles = {
   Monochrome: '//stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
 };
 
-export const E2EConstants = {
+export const E2E = {
+  PrimaryController: 'Primary Controller',
+  BackupController: 'Backup Controller',
   Aggregator: 'Aggregator',
-  Controller: 'Controller',
+};
+
+export const ControllerPeerType = {
+  Primary: 'primary',
+  Backup: 'backup',
 };
 
 export const HighAvailability = {

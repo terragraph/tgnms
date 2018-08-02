@@ -122,16 +122,19 @@ export const getNodeOverrideConfig = topologyName => {
   );
 };
 
-export const getControllerConfig = topologyName => {
-  apiServiceRequest(topologyName, 'getControllerConfig').then(response => {
-    const {config} = response.data;
-    const parsedConfig = JSON.parse(config);
+export const getControllerConfig = (topologyName, peerType) => {
+  apiServiceRequest(topologyName, 'getControllerConfig', {}, {}, peerType).then(
+    response => {
+      const {config} = response.data;
+      const parsedConfig = JSON.parse(config);
 
-    getControllerConfigSuccess({
-      config: sortConfigByTag(parsedConfig),
-      topologyName,
-    });
-  });
+      getControllerConfigSuccess({
+        config: sortConfigByTag(parsedConfig),
+        topologyName,
+        peerType,
+      });
+    },
+  );
 };
 
 export const getControllerConfigMetadata = topologyName => {
@@ -200,13 +203,13 @@ export const setNodeOverrideConfig = (
     });
 };
 
-export const setControllerConfig = (topologyName, config) => {
+export const setControllerConfig = (topologyName, config, peerType) => {
   const data = {
     config: JSON.stringify(config),
   };
-  apiServiceRequest(topologyName, 'setControllerConfig', data)
+  apiServiceRequest(topologyName, 'setControllerConfig', data, {}, peerType)
     .then(response => {
-      setControllerConfigSuccess({config});
+      setControllerConfigSuccess({config, peerType});
     })
     .catch(error => {
       const errorText = getErrorTextFromE2EAck(error);

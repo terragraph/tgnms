@@ -103,39 +103,32 @@
 }
 
 .nc-header-toggle {
-  display: flex;
-  align-items: center;
-  border: none;
-  border-radius: 0;
-  transition: transform 50ms ease-in-out;
-  background-color: transparent;
+  margin-left: 5px;
+  min-width: 250px;
 }
 
-.nc-header-toggle:hover {
-  background-color: transparent;
-}
-
-.open > .nc-header-toggle.dropdown-toggle.btn-default,
-.btn-group.open .nc-header-toggle,
-.nc-header-toggle:active:focus,
-.nc-header-toggle:focus {
-  /* overwrite all of bootstrap's disgusting styles */
-  background-color: transparent;
+.nc-header-toggle.Select.is-focused:not(.is-open) > .Select-control {
+  border: 0;
   box-shadow: none;
 }
 
-.nc-header-toggle .caret {
-  /* size of caret is defined by border width */
-  border-width: 5px;
+.nc-header-toggle .Select-control {
+  border: 0;
+  border-radius: initial;
 }
 
-.nc-header-toggle-title {
-  margin: 11px 10px 11px 0;
+.nc-header-toggle .Select-control:hover {
+  box-shadow: none;
 }
 
-.nc-header-toggle-item {
-  color: #212121;
+.nc-header-toggle .Select-control .Select-value {
+  font-size: 1.5em;
 }
+
+.nc-header-toggle .Select-option {
+  font-size: 1.1em;
+}
+
 
 /* NETWORK CONFIG FOOTER */
 .rc-config-footer {

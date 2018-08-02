@@ -30,6 +30,7 @@ export default class E2EConfigBody extends React.Component {
     topologyName: PropTypes.string.isRequired,
     activeConfig: PropTypes.string.isRequired,
     config: PropTypes.object.isRequired,
+    changedConfig: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
     configDirty: PropTypes.bool.isRequired,
     draftConfig: PropTypes.object.isRequired,
@@ -92,6 +93,7 @@ export default class E2EConfigBody extends React.Component {
     const {
       activeConfig,
       config,
+      changedConfig,
       configMetadata,
       configDirty,
       draftConfig,
@@ -125,12 +127,12 @@ export default class E2EConfigBody extends React.Component {
           {isJSONText ? (
             <JSONConfigTextArea
               ref={this.jsonTextRef}
-              config={config}
+              config={changedConfig}
               draftConfig={draftConfig}
             />
           ) : (
             <JSONConfigForm
-              configs={[config]}
+              configs={[changedConfig]}
               draftConfig={draftConfig}
               newConfigFields={newConfigFields}
               metadata={configMetadata}
@@ -172,11 +174,8 @@ export default class E2EConfigBody extends React.Component {
                 This may cause the {activeConfig.toLowerCase()} to reboot.
               </div>
               <JSONDiff
-                oldConfig={this.props.config}
-                newConfig={createConfigToSubmit(
-                  this.props.config,
-                  this.props.draftConfig,
-                )}
+                oldConfig={config}
+                newConfig={createConfigToSubmit(changedConfig, draftConfig)}
               />
             </div>,
           )}

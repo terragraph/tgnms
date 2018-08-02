@@ -13,17 +13,20 @@ type E2EAck = {
   statusText: string,
 };
 
+type HostRef = 'default' | 'primary' | 'backup';
+
 export const apiServiceRequest = (
   topologyName: string,
   apiMethod: string,
   data: Object = {},
   config: Object = {},
+  hostRef: HostRef = 'default',
 ) => {
   // All apiservice requests are POST, and expect at least an empty dict.
   return new Promise((resolve, reject) => {
     axios
       .post(
-        `/apiservice/${topologyName}/default/api/${apiMethod}`,
+        `/apiservice/${topologyName}/${hostRef}/api/${apiMethod}`,
         data,
         config,
       )
