@@ -24,7 +24,8 @@ class TestMySQLAccess(unittest.TestCase):
         try:
             api_service = mysql_db_access.read_api_service_setting()
         except BaseException as err:
-            raise ValueError("Fail to get the api_service setting {}".format(err.args))
+            raise ValueError("Fail to get the api_service setting." +
+                             "Error: {}".format(err.args))
         mysql_db_access.close_connection()
 
         # Check to make sure there are valid api_service setting
