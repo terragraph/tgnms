@@ -245,7 +245,7 @@ export default class PlotlyGraph extends React.Component {
             ],
             modeBarButtonsToAdd: [
               {
-                name: 'Toggle legend',
+                name: 'Toggle Legend',
                 click: () =>
                   this.setState({showLegend: !this.state.showLegend}),
               },

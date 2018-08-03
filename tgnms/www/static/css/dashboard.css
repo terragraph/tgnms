@@ -173,8 +173,8 @@
 }
 
 .global-data-select .node-box p {
-  width: 150px;
   margin: auto;
+  width: 150px;
 }
 
 .global-data-select .node-box > div:first-of-type {
