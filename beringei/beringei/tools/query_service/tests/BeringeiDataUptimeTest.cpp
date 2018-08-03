@@ -14,7 +14,6 @@
 #define private public
 
 #include "../BeringeiData.h"
-
 #define THIRTY_SEC 30
 #define START_TIME_UNIX 1530832685
 #define TEST_KEY_ID 98110
