@@ -707,7 +707,7 @@ class LinkInsight(object):
                 )
             except BaseException as err:
                 raise ValueError(
-                    "Error during match_values_list_by_timestamp():", err.args
+                    "Error during match_values_list_by_timestamp(): {}".format(err.args)
                 )
 
             valid_windows = self.get_uptime_windows(
@@ -768,7 +768,7 @@ class LinkInsight(object):
                 )
             except BaseException as err:
                 raise ValueError(
-                    "Error during match_values_list_by_timestamp():", err.args
+                    "Error during match_values_list_by_timestamp(): {}".format(err.args)
                 )
 
             uptime_windows = self.get_uptime_windows(

@@ -241,7 +241,7 @@ class LinkPipeline(object):
                 None,
             )
         except ValueError as err:
-            logging.error("Error during pipeline execution:", err.args)
+            logging.error("Error during pipeline execution: {}".format(err.args))
             return
 
         logging.info("Link metric mean and variance pipeline execution finished")
@@ -305,7 +305,7 @@ class LinkPipeline(object):
                 "traffic",
             )
         except ValueError as err:
-            logging.error("Error during pipeline execution:", err.args)
+            logging.error("Error during pipeline execution: {}".format(err.args))
             return
 
         logging.info("Link traffic pipeline execution finished")
@@ -380,7 +380,7 @@ class LinkPipeline(object):
             )
 
         except ValueError as err:
-            logging.error("Error during pipeline execution:", err.args)
+            logging.error("Error during pipeline execution: {}".format(err.args))
             return
 
         logging.info("Link health pipeline execution finished")

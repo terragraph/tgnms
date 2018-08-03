@@ -39,7 +39,7 @@ class TestLinkInsights(unittest.TestCase):
             # Just use the first topology in the MySQL table for testing
             self.topology_name = list(api_service_config.keys())[0]
         except BaseException as err:
-            self.fail("Cannot load topology from the api_service", err.args)
+            self.fail("Cannot load topology from the api_service {}".format(err.args))
 
         logging.info("Using topology of {} for tests".format(self.topology_name))
         self.link_pipeline = LinkPipeline(self.topology_name)
@@ -130,7 +130,7 @@ class TestLinkInsights(unittest.TestCase):
         try:
             query_returns = beringei_db_access.read_beringei_db(query_request_to_send)
         except ValueError as err:
-            raise ValueError("Read Beringei database error:", err.args)
+            raise ValueError("Read Beringei database error: {}".format(err.args))
 
         # Check that the read query return is non-empty
         self.assertTrue(query_returns.queryReturnList)
