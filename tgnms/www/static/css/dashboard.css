@@ -173,12 +173,23 @@
 }
 
 .global-data-select .node-box p {
-  margin-right: 105px;
+  margin: auto;
+  width: 150px;
 }
 
 .global-data-select .node-box > div:first-of-type {
   flex: 1;
 }
+
+.info-icon {
+  color: #ddd;
+  margin: auto 15px;
+}
+
+.global-data-select .node-box .info-icon {
+  float: right;
+}
+
 
 .global-data-select .node-option, .typeahead-option {
   border-bottom: 1px solid #ddd;

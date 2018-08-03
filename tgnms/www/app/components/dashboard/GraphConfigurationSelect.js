@@ -9,11 +9,13 @@ import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-datetime/css/react-datetime.css';
 
 import Dispatcher from '../../NetworkDispatcher.js';
-import {Actions} from '../../constants/NetworkConstants.js';
+import {DASHBOARD_TOOLTIP_LABELS} from '../../constants/NetworkDashboardsConstants.js';
 import moment from 'moment';
 import Datetime from 'react-datetime';
 import React from 'react';
 import Select from 'react-select';
+import {Glyphicon} from 'react-bootstrap';
+import ReactTooltip from 'react-tooltip';
 
 const TIME_PICKER_OPTS = [
   {
@@ -260,12 +262,20 @@ export default class GraphConfigurationSelect extends React.Component {
       this.state.nodeASelected === '' || this.state.nodeZSelected === '';
     return (
       <div className="global-data-select">
+        <ReactTooltip multiline />
         <div className="node-box">
           {(this.props.globalUse ||
             this.props.graphType === 'Node' ||
             this.props.graphType === 'Link') && (
             <div className="node-box">
-              <p>Node A</p>
+              <p>
+                Node A
+                <Glyphicon
+                  className="info-icon"
+                  glyph="info-sign"
+                  data-tip={DASHBOARD_TOOLTIP_LABELS.NODE_A}
+                />
+              </p>
               <Select
                 name="node-a-select"
                 value={this.state.nodeASelected}
@@ -278,7 +288,14 @@ export default class GraphConfigurationSelect extends React.Component {
         </div>
         {(this.props.globalUse || this.props.graphType === 'Link') && (
           <div className="node-box">
-            <p>Node Z</p>
+            <p>
+              Node Z
+              <Glyphicon
+                className="info-icon"
+                glyph="info-sign"
+                data-tip={DASHBOARD_TOOLTIP_LABELS.NODE_Z}
+              />
+            </p>
             <Select
               name="node-z-select"
               value={this.state.nodeZSelected}
@@ -373,14 +390,21 @@ export default class GraphConfigurationSelect extends React.Component {
           />
         </div>
         {this.props.globalUse && (
-          <button
-            className="graph-button submit-button"
-            onClick={() => {
-              this.applyToAllGraphs();
-            }}
-            disabled={disableApplySubmit}>
-            Apply To All Graphs
-          </button>
+          <div>
+            <button
+              className="graph-button submit-button"
+              onClick={() => {
+                this.applyToAllGraphs();
+              }}
+              disabled={disableApplySubmit}>
+              Apply To All Graphs
+            </button>
+            <Glyphicon
+              className="info-icon"
+              glyph="info-sign"
+              data-tip={DASHBOARD_TOOLTIP_LABELS.APPLY_TO_ALL}
+            />
+          </div>
         )}
       </div>
     );

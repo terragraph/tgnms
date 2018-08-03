@@ -43,8 +43,8 @@ const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
 
 const app = express();
 
-app.use(bodyParser.json()); // parse json
-app.use(bodyParser.urlencoded({extended: false})); // parse application/x-www-form-urlencoded
+app.use(bodyParser.json({limit: '1mb'})); // parse json
+app.use(bodyParser.urlencoded({limit: '1mb', extended: false})); // parse application/x-www-form-urlencoded
 app.use(cookieParser());
 app.use(compression());
 
