@@ -73,7 +73,7 @@ def run_link_pipeline(topology_name, max_run_time_in_s, period_in_s):
             num_of_jobs_to_submit=num_of_jobs_to_submit,
         )
     except BaseException as err:
-        logging.error("Cannot create LinkPipeline. Error ", err.args)
+        logging.error("Cannot create LinkPipeline. Error {}".format(err.args))
 
     job_scheduler.run()
 
@@ -95,4 +95,4 @@ if __name__ == "__main__":
 
         run_link_pipeline(topology_name, max_run_time_in_s, period_in_s)
     except BaseException as err:
-        logging.error("Fail to schedule periodic jobs with error: ", err.args)
+        logging.error("Fail to schedule periodic jobs. Error: {}".format(err.args))

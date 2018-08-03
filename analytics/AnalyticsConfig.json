@@ -1,15 +1,15 @@
 {
   "BQS": {
-    "ip": "172.17.0.2",
+    "ip": "bqs",
     "port": 8086,
     "proxy": false
   },
   "MYSQL": {
-    "ip": "172.17.0.1"
+    "ip": "db"
   },
   "periodic_jobs": {
-  "max_run_time_in_s": 86400,
-  "period_in_s": 120,
+  "max_run_time_in_s": 432000,
+  "period_in_s": 180,
   "topology_name": "tower G"
   },
   "pipelines": {

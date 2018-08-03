@@ -61,7 +61,8 @@ class MySqlDbAccess(object):
             mysql_password = os.environ["MYSQL_PASS"]
 
         except BaseException as err:
-            logging.error("Error during loading MySQL environment info:", err.args)
+            logging.error("Error during loading MySQL environment info" +
+                          "error {}".format(err.args))
             return None
 
         try:
@@ -75,7 +76,7 @@ class MySqlDbAccess(object):
                 cursorclass=pymysql.cursors.DictCursor,
             )
         except BaseException as err:
-            logging.error("Error during MySQL connection setup:", err.args)
+            logging.error("Error during MySQL connection setup: {}".format(err.args))
             return None
 
         return instance
