@@ -90,6 +90,18 @@ class LinkPipeline(object):
             source_db_interval=source_db_interval,
         )
         query_returns = self.beringei_db_access.read_beringei_db(query_request_to_send)
+
+        # Raise error if no stats is returned
+        empty_returns = True
+        for query_return in query_returns.queryReturnList:
+            for time_series_and_key in query_return.timeSeriesAndKeyList:
+                if time_series_and_key.timeSeries:
+                    empty_returns = False
+                    break
+
+        if empty_returns:
+            raise ValueError("All read returns from BQS are empty")
+
         return query_returns, query_request_to_send
 
     def _write_beringei(
@@ -213,7 +225,11 @@ class LinkPipeline(object):
         Void.
         """
 
-        logging.info("Running the naive link pipeline for: " + ", ".join(metric_names))
+        logging.info(
+            "Running the naive link pipeline for: {} on {}".format(
+                metric_names, self.topology_name
+            )
+        )
         stats_query_timestamp = int(time.time())
 
         try:
@@ -241,10 +257,16 @@ class LinkPipeline(object):
                 None,
             )
         except ValueError as err:
-            logging.error("Error during pipeline execution: {}".format(err.args))
+            logging.error(
+                "Error during mean and variance pipeline execution for "
+                + "'{}'. Error: {}".format(self.topology_name, err.args)
+            )
             return
 
-        logging.info("Link metric mean and variance pipeline execution finished")
+        logging.info(
+            "Link metric mean and variance pipeline execution finished for "
+            + "'{}'".format(self.topology_name)
+        )
 
     def traffic_stats_pipeline(
         self,
@@ -271,7 +293,9 @@ class LinkPipeline(object):
         Void.
         """
 
-        logging.info("Running the link traffic pipeline")
+        logging.info(
+            "Running the link traffic pipeline on '{}'".format(self.topology_name)
+        )
         stats_query_timestamp = int(time.time())
         metric_names = [
             "mgmttx.uplinkbwreq",
@@ -305,10 +329,16 @@ class LinkPipeline(object):
                 "traffic",
             )
         except ValueError as err:
-            logging.error("Error during pipeline execution: {}".format(err.args))
+            logging.error(
+                "Error during traffic pipeline execution for "
+                + "'{}'. Error: {}".format(self.topology_name, err.args)
+            )
             return
 
-        logging.info("Link traffic pipeline execution finished")
+        logging.info(
+            "Link traffic pipeline execution finished for "
+            + "'{}'".format(self.topology_name)
+        )
 
     def link_health_pipeline(
         self,
@@ -334,7 +364,9 @@ class LinkPipeline(object):
         Void.
         """
 
-        logging.info("Running the link health pipeline")
+        logging.info(
+            "Running the link health pipeline on '{}'".format(self.topology_name)
+        )
         stats_query_timestamp = int(time.time())
         metric_names = [
             "stapkt.linkavailable",
@@ -380,10 +412,16 @@ class LinkPipeline(object):
             )
 
         except ValueError as err:
-            logging.error("Error during pipeline execution: {}".format(err.args))
+            logging.error(
+                "Error during health pipeline execution for "
+                + "'{}'. Error: {}".format(self.topology_name, err.args)
+            )
             return
 
-        logging.info("Link health pipeline execution finished")
+        logging.info(
+            "Link health pipeline execution finished for "
+            + "'{}'".format(self.topology_name)
+        )
 
 
 if __name__ == "__main__":
