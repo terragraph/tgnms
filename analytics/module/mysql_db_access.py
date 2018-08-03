@@ -45,10 +45,10 @@ class MySqlDbAccess(object):
             logging.error("Cannot find the configuration file")
             return None
 
-        if "MYSQL" not in analytics_config or "ip" not in analytics_config["MYSQL"]:
+        if "MYSQL" not in analytics_config or "hostname" not in analytics_config["MYSQL"]:
             logging.error("Cannot find MySQL config in the configurations")
             return None
-        mysql_host_ip = analytics_config["MYSQL"]["ip"]
+        mysql_host_ip = analytics_config["MYSQL"]["hostname"]
 
         instance = super().__new__(cls)
 

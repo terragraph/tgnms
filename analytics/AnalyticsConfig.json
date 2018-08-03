@@ -1,16 +1,15 @@
 {
   "BQS": {
-    "ip": "bqs",
+    "hostname": "bqs",
     "port": 8086,
     "proxy": false
   },
   "MYSQL": {
-    "ip": "db"
+    "hostname": "db"
   },
   "periodic_jobs": {
-  "max_run_time_in_s": 432000,
-  "period_in_s": 180,
-  "topology_name": "tower G"
+    "max_run_time_in_s": 432000,
+    "period_in_s": 180
   },
   "pipelines": {
     "link_mean_variance_pipeline": {
