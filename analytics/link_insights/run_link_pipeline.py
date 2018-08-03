@@ -50,10 +50,9 @@ def run_link_pipeline(topology_names, max_run_time_in_s, period_in_s):
 
     for topology_name in topology_names:
         logging.info(
-            "For {}, schedule link pipeline jobs with periodicity of {} mins".format(
-                topology_name, period_in_s / 60
+            "For {}, schedule jobs with periodicity of {} mins for {} hours".format(
+                topology_name, period_in_s / 60, max_run_time_in_s / 3600
             )
-            + " for the next {} hours".format(max_run_time_in_s / 3600)
         )
 
         try:
@@ -98,7 +97,7 @@ if __name__ == "__main__":
         if mysql_db_access is None:
             raise ValueError("Cannot create MySqlDbAccess object")
         api_service_config = mysql_db_access.read_api_service_setting()
-        # Just use the first topology in the MySQL table for testing
+        # Run through all the topologies
         topology_names = list(api_service_config.keys())
 
         max_run_time_in_s = analytics_config["periodic_jobs"]["max_run_time_in_s"]

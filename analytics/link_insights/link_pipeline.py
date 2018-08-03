@@ -226,7 +226,7 @@ class LinkPipeline(object):
         """
 
         logging.info(
-            "Running the naive link pipeline for: {} on {}".format(
+            "Running the link mean and variance pipeline for: {} on {}".format(
                 metric_names, self.topology_name
             )
         )
