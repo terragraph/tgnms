@@ -71,7 +71,7 @@ class BeringeiDbAccess(object):
         ]:
             raise ValueError("Unknown http path")
 
-        target_domain = "{}:{}".format(self._bqs_config["ip"], self._bqs_config["port"])
+        target_domain = "{}:{}".format(self._bqs_config["hostname"], self._bqs_config["port"])
 
         if self._bqs_config["proxy"]:
             # Enable proxy
@@ -85,7 +85,7 @@ class BeringeiDbAccess(object):
             os.environ["NO_PROXY"] = target_domain
 
         url_to_post = "http://{}:{}/".format(
-            self._bqs_config["ip"], self._bqs_config["port"]
+            self._bqs_config["hostname"], self._bqs_config["port"]
         )
         url_to_post += request_path
         print("url to send: ", url_to_post)
@@ -97,7 +97,7 @@ class BeringeiDbAccess(object):
 
         # Post the http requests and get response
         try:
-            response = requests.post(url_to_post, data=request_body_bytes)
+            response = requests.post(url_to_post, data=request_body_bytes, timeout=5)
         except OSError:
             raise ValueError("Cannot send to the server")
 

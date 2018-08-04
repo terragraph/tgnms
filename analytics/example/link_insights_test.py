@@ -39,7 +39,10 @@ class TestLinkInsights(unittest.TestCase):
             # Just use the first topology in the MySQL table for testing
             self.topology_name = list(api_service_config.keys())[0]
         except BaseException as err:
-            self.fail("Cannot load topology from the api_service", err.args)
+            self.fail(
+                ("Cannot load topology from the api_service. "
+                 "Error: {}").format(err.args)
+            )
 
         logging.info("Using topology of {} for tests".format(self.topology_name))
         self.link_pipeline = LinkPipeline(self.topology_name)
@@ -81,8 +84,8 @@ class TestLinkInsights(unittest.TestCase):
             Beringei key_id, the query_request_to_send is then used by
             BeringeiDbAccess.read_beringei_db to read raw link stats.
         """
-        logging.info("-" * 10 + "test_query_stats_by_beringei_key_id starts" + "-" * 10)
-        logging.info("running for topology of: " + self.topology_name)
+        logging.info("test_query_stats_by_beringei_key_id starts")
+        logging.info("running for topology '{}'".format(self.topology_name))
 
         link_insight = LinkInsight()
         topology_helper = TopologyHelper(topology_name=self.topology_name)
@@ -130,7 +133,7 @@ class TestLinkInsights(unittest.TestCase):
         try:
             query_returns = beringei_db_access.read_beringei_db(query_request_to_send)
         except ValueError as err:
-            raise ValueError("Read Beringei database error:", err.args)
+            raise ValueError("Read Beringei database error: {}".format(err.args))
 
         # Check that the read query return is non-empty
         self.assertTrue(query_returns.queryReturnList)
@@ -334,7 +337,7 @@ class TestLinkInsights(unittest.TestCase):
 
         stats_key_to_stats = self._extract_network_wide_stats(
             ["link_available_time", "link_uptime"],
-            json_log_name_prefix + "available.json"
+            json_log_name_prefix + "available.json",
         )
 
         self.assertTrue(stats_key_to_stats["link_available_time"])
