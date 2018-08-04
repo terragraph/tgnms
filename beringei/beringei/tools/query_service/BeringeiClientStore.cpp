@@ -19,6 +19,7 @@ BeringeiClientStore::BeringeiClientStore() {
   std::unordered_map<int32_t, std::string> intervalConfigList = {
       {1, "/usr/local/beringei/build/beringei_1s.json"},
       {30, "/usr/local/beringei/build/beringei_30s.json"},
+      {900, "/usr/local/beringei/build/beringei_900s.json"},
   };
   for (const auto& client : intervalConfigList) {
     // ensure we can read file
