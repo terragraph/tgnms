@@ -64,8 +64,8 @@ class JobScheduler(object):
             else:
                 self.s.enter(delay, priority, job_to_send, tuple(job_input))
         logging.info(
-            "{} jobs entered queue with scheduled delay of : {}".format(
-                len(job_delays), job_delays
+            "{} jobs entered queue with period of {} s, offset {} s".format(
+                len(job_delays), period_in_s, offset_time_in_s
             )
         )
 

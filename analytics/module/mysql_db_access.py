@@ -45,10 +45,10 @@ class MySqlDbAccess(object):
             logging.error("Cannot find the configuration file")
             return None
 
-        if "MYSQL" not in analytics_config or "ip" not in analytics_config["MYSQL"]:
+        if "MYSQL" not in analytics_config or "hostname" not in analytics_config["MYSQL"]:
             logging.error("Cannot find MySQL config in the configurations")
             return None
-        mysql_host_ip = analytics_config["MYSQL"]["ip"]
+        mysql_host_ip = analytics_config["MYSQL"]["hostname"]
 
         instance = super().__new__(cls)
 
@@ -61,7 +61,8 @@ class MySqlDbAccess(object):
             mysql_password = os.environ["MYSQL_PASS"]
 
         except BaseException as err:
-            logging.error("Error during loading MySQL environment info:", err.args)
+            logging.error("Error during loading MySQL environment info" +
+                          "error {}".format(err.args))
             return None
 
         try:
@@ -75,7 +76,7 @@ class MySqlDbAccess(object):
                 cursorclass=pymysql.cursors.DictCursor,
             )
         except BaseException as err:
-            logging.error("Error during MySQL connection setup:", err.args)
+            logging.error("Error during MySQL connection setup: {}".format(err.args))
             return None
 
         return instance

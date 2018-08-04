@@ -46,15 +46,20 @@ class TopologyHelper(object):
                     "Cannot find the API service config for ", topology_name
                 )
         except BaseException as err:
-            logging.error("Failed to get the api_service setting {}".format(err.args))
             logging.error(
-                "The found api service setting is {}".foramt(api_service_config)
+                "Failed to get the api_service setting. " + "Error: {}".format(err.args)
             )
+            logging.error(
+                "The found api service setting is {}".format(api_service_config)
+            )
+            return None
 
         instance = super().__new__(cls)
         logging.info("TopologyHelper object created")
         instance._api_service_config = {}
-        instance._api_service_config["ip"] = api_service_config[topology_name]["api_ip"]
+        instance._api_service_config["hostname"] = api_service_config[topology_name][
+            "api_ip"
+        ]
         instance._api_service_config["port"] = api_service_config[topology_name][
             "api_port"
         ]
@@ -70,14 +75,14 @@ class TopologyHelper(object):
         """
 
         target_domain = "{}:{}".format(
-            self._api_service_config["ip"], self._api_service_config["port"]
+            self._api_service_config["hostname"], self._api_service_config["port"]
         )
 
         # Proxy should not be used in current design
         os.environ["NO_PROXY"] = target_domain
 
         url_to_post = "http://{}:{}/".format(
-            self._api_service_config["ip"], self._api_service_config["port"]
+            self._api_service_config["hostname"], self._api_service_config["port"]
         )
         url_to_post += "api/getTopology"
         logging.debug("sending :", url_to_post)
@@ -87,7 +92,7 @@ class TopologyHelper(object):
 
         # Post the http requests and get response
         try:
-            response = requests.post(url_to_post, data=request_body)
+            response = requests.post(url_to_post, data=request_body, timeout=1)
         except OSError:
             logging.error("Cannot send to the server")
             return None

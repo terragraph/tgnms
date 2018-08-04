@@ -488,6 +488,13 @@ class LinkInsight(object):
         # each of timeseries
         ts_idx_to_dp_idx = [0] * len(time_series_list)
 
+        matched_values_list = []
+        matched_time_stamps = []
+
+        for ts in time_series_list:
+            if not ts:
+                return matched_values_list, matched_time_stamps
+
         # Beringei will return time series with time stamps in ascending order.
         # Thus, the start_time is the max of the first data point of all
         # input time series. And the end_time is the minimum of the last data point
@@ -495,8 +502,6 @@ class LinkInsight(object):
         start_time = max(ts[0].unixTime for ts in time_series_list)
         end_time = min(ts[-1].unixTime for ts in time_series_list)
 
-        matched_values_list = []
-        matched_time_stamps = []
         for time_stamp in range(
             start_time, end_time + source_db_interval, source_db_interval
         ):
@@ -707,7 +712,7 @@ class LinkInsight(object):
                 )
             except BaseException as err:
                 raise ValueError(
-                    "Error during match_values_list_by_timestamp():", err.args
+                    "Error during match_values_list_by_timestamp(): {}".format(err.args)
                 )
 
             valid_windows = self.get_uptime_windows(
@@ -768,7 +773,7 @@ class LinkInsight(object):
                 )
             except BaseException as err:
                 raise ValueError(
-                    "Error during match_values_list_by_timestamp():", err.args
+                    "Error during match_values_list_by_timestamp(): {}".format(err.args)
                 )
 
             uptime_windows = self.get_uptime_windows(
