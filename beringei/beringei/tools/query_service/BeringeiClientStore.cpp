@@ -32,12 +32,14 @@ BeringeiClientStore::BeringeiClientStore() {
     auto configurationAdapter =
         std::make_shared<BeringeiConfigurationAdapter>(false, client.second);
     // insert read + write clients for the interval
-    readClients_.insert({
+    auto readClients = readClients_.wlock();
+    readClients->insert({
         client.first,
         std::make_shared<BeringeiClient>(
             configurationAdapter, 1, BeringeiClient::kNoWriterThreads),
     });
-    writeClients_.insert({
+    auto writeClients = writeClients_.wlock();
+    writeClients->insert({
         client.first,
         std::make_shared<BeringeiClient>(
             configurationAdapter, FLAGS_writer_queue_size, 5),
@@ -54,8 +56,9 @@ std::shared_ptr<BeringeiClientStore> BeringeiClientStore::getInstance() {
 std::shared_ptr<BeringeiClient> BeringeiClientStore::getReadClient(
     int32_t intervalSec) {
   LOG(INFO) << "Request for read client " << intervalSec << " interval";
-  auto clientIt = readClients_.find(intervalSec);
-  if (clientIt != readClients_.end()) {
+  auto readClients = readClients_.rlock();
+  auto clientIt = readClients->find(intervalSec);
+  if (clientIt != readClients->end()) {
     return clientIt->second;
   }
   throw std::invalid_argument(
@@ -65,8 +68,9 @@ std::shared_ptr<BeringeiClient> BeringeiClientStore::getReadClient(
 std::shared_ptr<BeringeiClient> BeringeiClientStore::getWriteClient(
     int32_t intervalSec) {
   LOG(INFO) << "Request for write client " << intervalSec << " interval";
-  auto clientIt = writeClients_.find(intervalSec);
-  if (clientIt != writeClients_.end()) {
+  auto writeClients = writeClients_.rlock();
+  auto clientIt = writeClients->find(intervalSec);
+  if (clientIt != writeClients->end()) {
     return clientIt->second;
   }
   throw std::invalid_argument(
