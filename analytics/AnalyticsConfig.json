@@ -28,6 +28,14 @@
       "period_in_mins": 2,
       "sample_duration_in_s": 3600,
       "source_db_interval": 30
+    },
+    "link_health_pipeline": {
+      "command": "python3 {}/link_insights/link_pipeline.py link_health_pipeline",
+      "period_in_mins": 2,
+      "sample_duration_in_s": 3600,
+      "source_db_interval": 30,
+      "green_cutoff_ratio": 0.95,
+      "amber_cutoff_ratio": 0.75
     }
   }
 }
