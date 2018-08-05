@@ -11,6 +11,7 @@
 
 #include <folly/Singleton.h>
 
+#include <folly/Synchronized.h>
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/client/BeringeiConfigurationAdapterIf.h"
 #include "beringei/plugins/BeringeiConfigurationAdapter.h"
@@ -28,9 +29,13 @@ class BeringeiClientStore {
   std::shared_ptr<BeringeiClient> getWriteClient(int32_t intervalSec);
 
  private:
-  std::unordered_map<int32_t /* interval */, std::shared_ptr<BeringeiClient>>
+  folly::Synchronized<std::unordered_map<
+      int32_t /* interval */,
+      std::shared_ptr<BeringeiClient>>>
       readClients_;
-  std::unordered_map<int32_t /* interval */, std::shared_ptr<BeringeiClient>>
+  folly::Synchronized<std::unordered_map<
+      int32_t /* interval */,
+      std::shared_ptr<BeringeiClient>>>
       writeClients_;
 };
 
