@@ -1,4 +1,4 @@
-namespace cpp2 facebook.terragraph.thrift
+namespace cpp facebook.terragraph.thrift
 namespace py terragraph_thrift.FwOptParams
 
 // Firmware configuration parameters

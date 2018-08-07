@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-namespace cpp2 fbzmq.thrift
+namespace cpp fbzmq.thrift
 namespace php Fbzmq
 namespace py fbzmq.Monitor
 

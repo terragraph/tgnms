@@ -1,4 +1,4 @@
-namespace cpp2 facebook.terragraph.thrift
+namespace cpp facebook.terragraph.thrift
 namespace py terragraph_thrift.Controller
 
 cpp_include "<unordered_map>"
@@ -773,7 +773,7 @@ struct NodeParams {
   4: optional Topology.Location location;
   5: optional BWAllocation.NodeAirtime airtimeAllocMap;
   6: optional bool enableGps;
-  7: optional byte channel;
+  7: optional i8 channel;
 }
 
 /**
@@ -1023,7 +1023,7 @@ struct SetNodeParamsReq {
 struct SetNetworkParamsReq {
   1: optional BWAllocation.NetworkAirtime networkAirtime;
   2: optional BWAllocation.NetworkBwAlloc networkBWAlloc;
-  3: optional byte channel;
+  3: optional i8 channel;
 }
 
 /**
@@ -1212,7 +1212,7 @@ struct RouteInfo {
   3: double snrEst;    // measured during the short training field, in dB
   4: double postSnr;   // measured after the equalizer, in dB
   5: i32 rxStart;      // relative arrival time of the packet, in us
-  6: byte packetIdx;   // Repeat count of this packet, 0-based
+  6: i8 packetIdx;   // Repeat count of this packet, 0-based
   7: i16 sweepIdx;     // Sweep index for the packet, 0-based
 }
 
@@ -1272,7 +1272,7 @@ struct ScanReq {
   9: optional bool apply; // 1 - Apply new beams, 0 - ignore new beams
   // These are for selective scan
   10: optional RTCal rtCalType;
-  11: optional byte bwgdLen;
+  11: optional i8 bwgdLen;
 
   // This is to control tx power
   12: optional i16 txPwrIndex; // tx power index (0 - 31)
@@ -1321,7 +1321,7 @@ struct StartScan {
   6: optional list<BeamIndices> beams; // Beam indices for each node
   7: optional bool apply; // 1 - Apply new beams, 0 - ignore new beams
   8: optional RTCal rtCalType;
-  9: optional byte bwgdLen;
+  9: optional i8 bwgdLen;
 
   // This is to control tx power
   10: optional i16 txPwrIndex; // tx power index (0 - 31)
