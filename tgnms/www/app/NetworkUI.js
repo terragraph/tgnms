@@ -14,6 +14,7 @@ import NetworkDashboards from './NetworkDashboards.js';
 import Dispatcher from './NetworkDispatcher.js';
 import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
+import UsersSettings from './components/users/UsersSettings.js';
 import TopBar from './components/topbar/TopBar.js';
 import StatusIndicator from './components/common/StatusIndicator.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
@@ -383,6 +384,9 @@ export default class NetworkUI extends React.Component {
         break;
       case 'e2e-config':
         paneComponent = <E2EConfigContainer {...viewProps} />;
+        break;
+      case 'users':
+        paneComponent = <UsersSettings {...viewProps} />;
         break;
       default:
         paneComponent = (

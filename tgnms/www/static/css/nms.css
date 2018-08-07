@@ -562,3 +562,28 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   padding: 3px;
   width: 100%;
 }
+
+.add-user-header {
+  padding: 15px;
+}
+
+.add-user-header .btn {
+  float: right;
+}
+
+.add-user-modal input {
+  display: block;
+  margin: 5px 0;
+  width: 100%;
+}
+
+.add-user-modal-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.add-user-modal-footer .btn {
+  border-color: #999;
+  margin: 0 5px;
+}
