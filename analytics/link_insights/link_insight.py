@@ -882,23 +882,35 @@ class LinkInsight(object):
 
         return end_idx
 
-    def get_link_health_num(self, extracted_stats, sample_duration_in_s):
+    def get_link_health_num(
+        self,
+        extracted_stats,
+        sample_duration_in_s,
+        green_cutoff_ratio,
+        amber_cutoff_ratio,
+    ):
         """ Compute the number of green, amber, and red links in a network.
             Currently, the definitions of green, amber, and red links are:
-            green: link_available_time / observed_window >= 95%
-            amber: link_available_time / observed_window >= 75%
-            red: link_available_time / observed_window < 75%
+            green: link_available_time / observed_window >= green_cutoff_ratio
+            amber: link_available_time / observed_window >= amber_cutoff_ratio
+            red: link_available_time / observed_window < amber_cutoff_ratio
 
         Args:
         extracted_stats: a dict, which contains a key of "link_available_time" and
         corresponding dict value is a list of computed link available time of all
         links in the network.
         sample_duration_in_s: duration of the sampling window.
+        green_cutoff_ratio: threshold of green links.
+        amber_cutoff_ratio: threshold of amber links.
 
         Return:
         links_health_stats: a dict, with keys of "num_green_links", "num_amber_link",
         and "num_red_link".
         """
+
+        if amber_cutoff_ratio > green_cutoff_ratio:
+            logging.warning("Amber threshold larger than green threshold")
+
         links_health_stats = {
             "num_green_link": 0,
             "num_amber_link": 0,
@@ -908,8 +920,8 @@ class LinkInsight(object):
             logging.warning("There is no link available time reported for any link")
             return links_health_stats
 
-        green_amber_cutoff = sample_duration_in_s * 0.95
-        amber_lower_cutoff = sample_duration_in_s * 0.75
+        green_amber_cutoff = sample_duration_in_s * green_cutoff_ratio
+        amber_lower_cutoff = sample_duration_in_s * amber_cutoff_ratio
 
         for link_available_time in extracted_stats["link_available_time"]:
             if link_available_time >= green_amber_cutoff:

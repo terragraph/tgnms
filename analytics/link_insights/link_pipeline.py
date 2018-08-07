@@ -344,6 +344,8 @@ class LinkPipeline(object):
         self,
         sample_duration_in_s=3600,
         source_db_interval=30,
+        green_cutoff_ratio=0.95,
+        amber_cutoff_ratio=0.75,
         dump_to_json=False,
         json_log_name_prefix="sample_available_",
     ):
@@ -401,7 +403,10 @@ class LinkPipeline(object):
             # Compute the network wide link health stats
             links_stats = self.link_insight.get_all_link_stats(computed_stats)
             network_health_stats = self.link_insight.get_link_health_num(
-                links_stats, sample_duration_in_s
+                links_stats,
+                sample_duration_in_s,
+                green_cutoff_ratio,
+                amber_cutoff_ratio,
             )
 
             self._write_netowrk_stats_to_beringei(
@@ -454,6 +459,14 @@ if __name__ == "__main__":
         job_config = analytics_config["pipelines"]["traffic_stats_pipeline"]
         link_pipeline.traffic_stats_pipeline(
             job_config["sample_duration_in_s"], job_config["source_db_interval"]
+        )
+    elif sys.argv[1] == "link_health_pipeline":
+        job_config = analytics_config["pipelines"]["link_health_pipeline"]
+        link_pipeline.link_health_pipeline(
+            job_config["sample_duration_in_s"],
+            job_config["source_db_interval"],
+            job_config["green_cutoff_ratio"],
+            job_config["amber_cutoff_ratio"],
         )
     else:
         logging.error("Unknown pipeline")
