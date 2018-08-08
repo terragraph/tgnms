@@ -3,10 +3,48 @@ SELECT 'Running mysql init script.' AS '';
 CREATE DATABASE IF NOT EXISTS `cxl`;
 USE cxl;
 
-SELECT 'Creating nms user account.' AS '';
-CREATE USER 'nms'@'%' IDENTIFIED BY 'o0Oe8G0UrBrT';
-GRANT ALL PRIVILEGES ON cxl.* TO 'nms'@'%';
-FLUSH PRIVILEGES;
+DROP PROCEDURE IF EXISTS Create_Nms_User ;
+DELIMITER $$ 
+CREATE PROCEDURE Create_Nms_User () 
+BEGIN 
+  DECLARE usr VARCHAR(100)  DEFAULT ""; 
+  SET usr = (SELECT CURRENT_USER); 
+  IF usr LIKE 'root%'  then 
+     SELECT 'Creating nms user account.' AS '';
+     CREATE USER IF NOT EXISTS 'nms'@'%' IDENTIFIED BY 'o0Oe8G0UrBrT'; 
+     GRANT ALL PRIVILEGES ON cxl.* TO 'nms'@'%';
+     FLUSH PRIVILEGES; 
+  end if ;
+END; $$ 
+DELIMITER ;
+
+/* create NMS user only if user is root */
+call Create_Nms_User();
+
+/* procedure to_add a column if it doesn't exist or modify it if it does */
+DROP PROCEDURE IF EXISTS Add_Modify_Column;
+DELIMITER $$
+CREATE PROCEDURE Add_Modify_Column(IN tableName varchar(100), IN columnName varchar(100), IN varType varchar(100))
+BEGIN
+    DECLARE _count INT;
+    SET _count = (  SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE   TABLE_NAME = tableName AND 
+                            COLUMN_NAME = columnName);
+    IF _count = 0 THEN /* if column does not exist */
+	SET @s=CONCAT('ALTER TABLE ', tableName,' ADD COLUMN `', columnName, '` ', varType);
+        PREPARE addcmd FROM @s;
+	EXECUTE addcmd;
+	DEALLOCATE PREPARE addcmd;
+    ELSE 
+	SET @s=CONCAT('ALTER TABLE ', tableName, ' MODIFY COLUMN `', columnName, '` ', varType);
+        PREPARE addcmd FROM @s;
+	EXECUTE addcmd;
+	DEALLOCATE PREPARE addcmd;
+	
+    END IF;
+END $$
+DELIMITER ;
 
 CREATE TABLE IF NOT EXISTS `agg_key` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -80,22 +118,50 @@ CREATE TABLE IF NOT EXISTS `nodes` (
   KEY `site` (`site`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS `scan_results` (
+/* scan_results table is no longer used, replaced by tx_scan_results and 
+   rx_scan_results - added July 2018 */
+DROP TABLE IF EXISTS scan_results;
+
+CREATE TABLE IF NOT EXISTS `rx_scan_results` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `token` int,
+  `scan_resp` blob,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `rx_node_id` int,
+  `status` int,
+  `tx_id` int,
+  `new_beam_flag` tinyint,
+  `rx_node_name` varchar(100) DEFAULT NULL,
+  KEY `rx_node_id` (`rx_node_id`),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `tx_scan_results` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `scan_resp` blob,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `token` int unsigned,
   `tx_node_id` int,
   `start_bwgd` bigint,
-  `rx_node_id` int,
-  `superframe_num` bigint,
-  `tx_beam` int,
-  `rx_beam` int,
-  `rssi` float,
-  `snr_est` float,
-  `post_snr` float,
-  `rx_start` int,
-  `packet_idx` smallint,
+  `scan_type` tinyint,
+  `scan_sub_type` tinyint,
+  `scan_mode` tinyint,
+  `apply_flag` tinyint,
+  `status` int,
+  `tx_power` tinyint,
+  `resp_id` int,
+  `combined_status` int,
+  `tx_node_name` varchar(100) DEFAULT NULL,
+  `network` varchar(100) DEFAULT NULL,
+  CONSTRAINT unique_token UNIQUE(start_bwgd,token,network),
+  KEY `tx_node_id` (`tx_node_id`),
+  KEY `network` (`network`),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB;
+
+/* these can be deleted once all DBs are updated */
+CALL Add_Modify_Column('tx_scan_results','combined_status','int'); /* added July 2018 */
+CALL Add_Modify_Column('tx_scan_results','token','int unsigned');  /* added July 2018 */
 
 CREATE TABLE IF NOT EXISTS `sys_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
