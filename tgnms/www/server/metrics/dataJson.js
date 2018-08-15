@@ -10,12 +10,12 @@ const {MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB} = require('../config');
 const logger = require('../log')(module);
 
 const pool = mysql.createPool({
-  connectionLimit: 50,
+  connectionLimit: 10,
   host: MYSQL_HOST,
   user: MYSQL_USER,
   password: MYSQL_PASS,
   database: MYSQL_DB,
-  queueLimit: 10,
+  queueLimit: 4,
   waitForConnections: false,
 });
 pool.on('enqueue', () => {
@@ -40,133 +40,114 @@ const self = {
   rxColumnNames: [],
 
   refreshNodes() {
-    pool.getConnection((err, conn) => {
+    pool.query('SELECT * FROM `nodes`', (err, results) => {
       if (err) {
         logger.error('DB error: %s', err);
         return;
       }
-      conn.query('SELECT * FROM `nodes`', (err, results) => {
-        if (err) {
-          return;
+      results.forEach(row => {
+        self.macAddrToNode[row.mac.toLowerCase()] = row;
+        if (!(row.network in self.nodeNameToNode)) {
+          self.nodeNameToNode[row.network] = {};
         }
-        results.forEach(row => {
-          self.macAddrToNode[row.mac.toLowerCase()] = row;
-          if (!(row.network in self.nodeNameToNode)) {
-            self.nodeNameToNode[row.network] = {};
-          }
-          self.nodeNameToNode[row.network][row.node] = row;
+        self.nodeNameToNode[row.network][row.node] = row;
 
-          // don't need network node, id is unique
-          self.nodeToNodeName[row.id] = row.node;
-        });
-        conn.release();
+        // don't need network node, id is unique
+        self.nodeToNodeName[row.id] = row.node;
       });
     });
   },
 
   refreshColumnNames(res, tableName, sendResult) {
-    pool.getConnection((err, conn) => {
+    const queryCmd =
+      'SELECT column_name FROM information_schema.columns ' +
+      'WHERE table_name = ?';
+    const queryArgs = [tableName];
+    pool.query(queryCmd, queryArgs, (err, results) => {
       if (err) {
-        logger.error('DB error %s', err);
+        logger.error('DB error: %s', err);
         return;
       }
-      const queryCmd =
-        'SELECT column_name FROM information_schema.columns ' +
-        'WHERE table_name = ?';
-      const queryArgs = [tableName];
-      conn.query(queryCmd, queryArgs, (err, results) => {
-        if (err) {
-          logger.error('query error: %s', err);
-          return;
-        }
 
-        let columnObj = [];
-        if (tableName === 'tx_scan_results') {
-          columnObj = self.txColumnNames;
-        } else if (tableName === 'rx_scan_results') {
-          columnObj = self.rxColumnNames;
-        } else if (tableName === 'terragraph_network_analyzer') {
-          columnObj = self.selfTestColumnNames;
-        } else {
-          logger.error('ERROR!! unexpected table name');
-          return;
-        }
+      let columnObj = [];
+      if (tableName === 'tx_scan_results') {
+        columnObj = self.txColumnNames;
+      } else if (tableName === 'rx_scan_results') {
+        columnObj = self.rxColumnNames;
+      } else if (tableName === 'terragraph_network_analyzer') {
+        columnObj = self.selfTestColumnNames;
+      } else {
+        logger.error('ERROR!! unexpected table name');
+        return;
+      }
 
-        results.forEach(row => {
-          columnObj.push(row.column_name);
-        });
-
-        if (sendResult) {
-          res.send(columnObj).end(); // send column names
-        }
-        conn.release();
+      results.forEach(row => {
+        columnObj.push(row.column_name);
       });
+
+      if (sendResult) {
+        res.send(columnObj).end(); // send column names
+      }
     });
   },
 
   readSelfTestResults(network, res, filter) {
     const mysqlQueryRes = {};
 
-    pool.getConnection((err, conn) => {
-      if (err) {
-        logger.error('DB error: %s', err);
-        return;
-      }
+    // filterType is either TESTRESULTS or GROUPS
+    if (!filter.hasOwnProperty('filterType')) {
+      logger.error('filterType missing from filter');
+      return;
+    }
 
-      // filterType is either TESTRESULTS or GROUPS
-      if (!filter.hasOwnProperty('filterType')) {
-        logger.error('filterType missing from filter');
-        return;
-      }
+    if (
+      filter.filterType === 'TESTRESULTS' &&
+      !filter.hasOwnProperty('testtime')
+    ) {
+      logger.error('testtime missing from filter');
+      return;
+    }
 
-      if (
-        filter.filterType === 'TESTRESULTS' &&
-        !filter.hasOwnProperty('testtime')
-      ) {
-        logger.error('testtime missing from filter');
-        return;
-      }
-
-      let queryCmd = '';
-      const queryArgs = [];
-      if (filter.filterType === 'GROUPS') {
+    let queryCmd = '';
+    const queryArgs = [];
+    if (filter.filterType === 'GROUPS') {
+      queryCmd =
+        'SELECT time, test_tag FROM terragraph_network_analyzer GROUP BY ' +
+        'time DESC, test_tag limit 50';
+    } else if (filter.filterType === 'TESTRESULTS') {
+      if (filter.testtime === 'mostrecentiperfudp') {
+        const querySubCmd =
+          'SELECT time FROM terragraph_network_analyzer WHERE test_tag=? ' +
+          'ORDER BY time DESC limit 1';
         queryCmd =
-          'SELECT time, test_tag FROM terragraph_network_analyzer GROUP BY time DESC, test_tag limit 50';
-      } else if (filter.filterType === 'TESTRESULTS') {
-        if (filter.testtime === 'mostrecentiperfudp') {
-          const querySubCmd =
-            'SELECT time FROM terragraph_network_analyzer WHERE test_tag=? ORDER BY time DESC limit 1';
-          queryCmd =
-            'SELECT * FROM terragraph_network_analyzer WHERE time=(' +
-            querySubCmd +
-            ')';
-          queryArgs.push('iperf_udp');
-        } else {
-          queryCmd = 'SELECT * FROM terragraph_network_analyzer WHERE time=?';
-          queryArgs.push(filter.testtime);
-        }
+          'SELECT * FROM terragraph_network_analyzer WHERE time=(' +
+          querySubCmd +
+          ')';
+        queryArgs.push('iperf_udp');
       } else {
-        logger.error('invalid filterType %s', filter.filterType);
+        queryCmd = 'SELECT * FROM terragraph_network_analyzer WHERE time=?';
+        queryArgs.push(filter.testtime);
+      }
+    } else {
+      logger.error('invalid filterType %s', filter.filterType);
+      return;
+    }
+
+    const query = pool.query(queryCmd, queryArgs, (err, results) => {
+      if (err) {
+        logger.error('DB error (%s) %s', query.sql, err);
         return;
       }
-
-      const query = conn.query(queryCmd, queryArgs, (err, results) => {
-        if (err) {
-          logger.error('ERROR: mysql query err: %s %s', query.sql, err);
-          return;
-        }
-        // put the filter used into the results so we'll know what the
-        // current fetch corresponds to
-        mysqlQueryRes.results = results;
-        mysqlQueryRes.filter = filter;
-        if (res) {
-          res.send(mysqlQueryRes).end();
-        }
-        if (filter.filterType === 'GROUPS') {
-          self.selfTestGroups = results;
-        }
-        conn.release();
-      });
+      // put the filter used into the results so we'll know what the
+      // current fetch corresponds to
+      mysqlQueryRes.results = results;
+      mysqlQueryRes.filter = filter;
+      if (res) {
+        res.send(mysqlQueryRes).end();
+      }
+      if (filter.filterType === 'GROUPS') {
+        self.selfTestGroups = results;
+      }
     });
   },
 
@@ -245,41 +226,33 @@ const self = {
       'network=? ORDER BY timestamp DESC,resp_id DESC LIMIT ? OFFSET ?';
     const queryArgs = [network, filter.rowCount, filter.offset];
 
-    pool.getConnection((err, conn) => {
+    const query = pool.query(queryCmd, queryArgs, (err, results) => {
       if (err) {
-        logger.error('DB error: %s', err);
+        logger.error('DB error: (%s) %s', query.sql, err);
         return;
       }
-
-      const query = conn.query(queryCmd, queryArgs, (err, results) => {
-        if (err) {
-          logger.error('ERROR: mysql query err: %s %s', query.sql, err);
-          return;
-        }
-        // parse the json blob if not isConcise
-        const newResults = [];
-        let scan_resp = {};
-        results.forEach(row => {
-          if (!filter.isConcise) {
-            try {
-              scan_resp = JSON.parse(row.scan_resp);
-              row.scan_resp = scan_resp;
-              scan_resp = JSON.parse(row.tx_scan_resp);
-              row.tx_scan_resp = scan_resp;
-            } catch (ex) {
-              logger.error('ERROR: JSON parse scan response failed %s', ex);
-            }
+      // parse the json blob if not isConcise
+      const newResults = [];
+      let scan_resp = {};
+      results.forEach(row => {
+        if (!filter.isConcise) {
+          try {
+            scan_resp = JSON.parse(row.scan_resp);
+            row.scan_resp = scan_resp;
+            scan_resp = JSON.parse(row.tx_scan_resp);
+            row.tx_scan_resp = scan_resp;
+          } catch (ex) {
+            logger.error('ERROR: JSON parse scan response failed %s', ex);
           }
-          newResults.push(row);
-        });
-        // put the filter used into the results so we'll know what the
-        // current fetch corresponds to
-        const mysqlQueryRes = {};
-        mysqlQueryRes.results = results;
-        mysqlQueryRes.filter = filter;
-        res.send(mysqlQueryRes).end();
-        conn.release();
+        }
+        newResults.push(row);
       });
+      // put the filter used into the results so we'll know what the
+      // current fetch corresponds to
+      const mysqlQueryRes = {};
+      mysqlQueryRes.results = results;
+      mysqlQueryRes.filter = filter;
+      res.send(mysqlQueryRes).end();
     });
   },
 };
