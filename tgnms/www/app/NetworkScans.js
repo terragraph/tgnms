@@ -5,11 +5,7 @@
  */
 'use strict';
 import Dispatcher from './NetworkDispatcher.js';
-import {
-  availabilityColor,
-  variableColorDown,
-  variableColorUp,
-} from './helpers/NetworkHelpers.js';
+import {bwgdToUnixTime, unixTimeToDate} from './helpers/NetworkHelpers.js';
 import ReactEventChart from './ReactEventChart.js';
 // dispatcher
 import {Actions} from './constants/NetworkConstants.js';
@@ -122,19 +118,19 @@ export default class NetworkScans extends React.Component {
   };
   headerHeight = 80;
   overscanRowCount = 10;
-  maxRowsScanResults = 200;
+  maxRowsScanResults = 2000;
   scanResultsRefreshed = true;
 
   scanChartDescription = [
     {
-      label: 'time',
+      label: 'time ' + new Date().toString().match(/([A-Z]+[\+-][0-9]+)/)[1],
       key: 'time',
       hidden: false,
       isKey: false,
       width: 150,
       filter: false,
       sort: true,
-      sqlfield: 'timestamp',
+      sqlfield: 'start_bwgd',
     },
     {
       label: 'tx node name',
@@ -774,9 +770,9 @@ export default class NetworkScans extends React.Component {
           // format some of the scan results for the table
           if (this.scanResultsRefreshed) {
             try {
-              scanResult.timestamp = scanResult.timestamp
-                .replace('T', ' ')
-                .replace('.000Z', '');
+              scanResult.start_bwgd = unixTimeToDate(
+                bwgdToUnixTime(scanResult.start_bwgd),
+              );
               scanResult.scan_type = Object.keys(ScanType).find(
                 key => ScanType[key] === scanResult.scan_type,
               );

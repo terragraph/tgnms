@@ -136,3 +136,32 @@ export function getPolarityString(polarity) {
 
   return polarity;
 }
+
+/**
+ * converts BWGD to UNIX time in ms
+ */
+export function bwgdToUnixTime(bwgd) {
+  const realGpsTime = Math.floor((bwgd * 256) / 10);
+  const gpsTime = realGpsTime - 18000;
+  const unixTimeMs = gpsTime + 315964800000;
+  return unixTimeMs;
+}
+
+/**
+ * Returns the date as a string in local time
+ * example: "13 Aug 18, 18:08:43"
+ */
+export function unixTimeToDate(unixTimeMs) {
+  const options = {
+    day: '2-digit',
+    hour: 'numeric',
+    hour12: false,
+    minute: 'numeric',
+    month: 'short',
+    second: 'numeric',
+    year: '2-digit',
+  };
+  const event = new Date(unixTimeMs);
+  const str = event.toLocaleDateString('en-GB', options);
+  return str;
+}

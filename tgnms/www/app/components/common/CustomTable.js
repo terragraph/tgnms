@@ -358,7 +358,7 @@ export default class CustomTable extends React.Component {
   _filterFunction(event, key) {
     const {columns, initialData, filters, sortBy, sortDirection} = this.state;
 
-    filters[key] = event.target.value.toLowerCase();
+    filters[key] = String(event.target.value).toLowerCase();
 
     // Filter data
     let displayedData = CustomTable._applyFiltersToData(initialData, filters);
@@ -405,7 +405,11 @@ export default class CustomTable extends React.Component {
 
   static _applyFilterHelper(data, key, filter) {
     return data.filter(d => {
-      return d[key].toLowerCase().search(filter) !== -1;
+      return (
+        String(d[key])
+          .toLowerCase()
+          .search(filter) !== -1
+      );
     });
   }
 }
