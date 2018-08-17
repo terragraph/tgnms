@@ -15,8 +15,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from link_insights.link_insight import LinkInsight
 from module.beringei_db_access import BeringeiDbAccess
 from module.topology_handler import TopologyHelper
-from module.mysql_db_access import MySqlDbAccess
 from module.path_store import PathStore
+from module.scan_handler import ScanHandler
 
 
 class LinkPipeline(object):
@@ -47,6 +47,8 @@ class LinkPipeline(object):
             instance.network_config["link_macs_to_name"].keys()
         ):
             instance.link_macs_list += [[source_mac, peer_mac], [peer_mac, source_mac]]
+        instance.node_mac_to_polarity = instance.network_config["node_mac_to_polarity"]
+        instance.node_mac_to_golay = instance.network_config["node_mac_to_golay"]
 
         # initialize Beringei access class
         instance.beringei_db_access = BeringeiDbAccess()
@@ -57,6 +59,8 @@ class LinkPipeline(object):
         # initialize link insight class
         instance.link_insight = LinkInsight()
         logging.info("LinkPipeline object created")
+
+        instance.scan_handler = ScanHandler()
         return instance
 
     def _read_beringei(
@@ -155,7 +159,7 @@ class LinkPipeline(object):
         self.beringei_db_access.write_beringei_db(stats_to_write)
         logging.info("Successfully write back to Beringei")
 
-    def _write_netowrk_stats_to_beringei(
+    def _write_network_stats_to_beringei(
         self,
         network_stats,
         source_db_interval,
@@ -409,7 +413,7 @@ class LinkPipeline(object):
                 amber_cutoff_ratio,
             )
 
-            self._write_netowrk_stats_to_beringei(
+            self._write_network_stats_to_beringei(
                 network_health_stats,
                 source_db_interval,
                 sample_duration_in_s,
@@ -428,6 +432,157 @@ class LinkPipeline(object):
             + "'{}'".format(self.topology_name)
         )
 
+    def link_foliage_pipeline(
+        self,
+        sample_duration_in_s=3600,
+        source_db_interval=1,
+        foliage_threshold=0.85,
+        number_of_windows=5,
+        min_window_size=20,
+        minimum_var=0,
+        dump_to_json=False,
+        json_log_name_prefix="sample_foliage_",
+    ):
+        """
+        Calculate the level of covariance between forward link and reverse
+        link of each link.
+        """
+        logging.info("Running the link pathloss offset pipeline")
+        if source_db_interval != 1:
+            logging.warning("The foliage pipeline expects database with 1s")
+
+        stats_query_timestamp = int(time.time())
+
+        metric_names = ["stapkt.txpowerindex", "phystatus.srssi"]
+
+        try:
+            # Read the from the Beringei database, return type is RawQueryReturn
+            read_returns, query_request_to_send = self._read_beringei(
+                metric_names,
+                stats_query_timestamp,
+                sample_duration_in_s,
+                source_db_interval,
+            )
+
+            computed_stats = self.link_insight.compute_link_foliage(
+                read_returns,
+                metric_names,
+                self.link_macs_list,
+                source_db_interval,
+                number_of_windows,
+                min_window_size,
+                minimum_var,
+            )
+
+            self._write_beringei(
+                dump_to_json,
+                computed_stats,
+                query_request_to_send,
+                sample_duration_in_s,
+                source_db_interval,
+                stats_query_timestamp,
+                json_log_name_prefix + "foliage.json",
+                "foliage",
+            )
+
+            # Compute the network wide link foliage stats
+            links_stats = self.link_insight.get_all_link_stats(computed_stats)
+            network_foliage_stats = self.link_insight.get_link_foliage_num(
+                links_stats, foliage_threshold, len(self.link_macs_list) / 2
+            )
+
+            self._write_network_stats_to_beringei(
+                network_foliage_stats,
+                source_db_interval,
+                sample_duration_in_s,
+                stats_query_timestamp,
+            )
+
+        except ValueError as err:
+            logging.error(
+                "Error during foliage pipeline execution for "
+                + "'{}'. Error: {}".format(self.topology_name, err.args)
+            )
+            return
+
+        logging.info(
+            "Foliage pipeline execution finished for "
+            + "'{}'".format(self.topology_name)
+        )
+
+    def link_interference_pipeline(
+        self,
+        sample_duration_in_s=600,
+        source_db_interval=30,
+        dump_to_json=False,
+        json_log_name_prefix="sample_interference_",
+    ):
+        """
+        Calculate the snr, inr, sinr of each link based on the pathloss (via IM scan)
+        and link beam index from physical periodic beamforming scan.
+        """
+
+        logging.info("Running the link interference pipeline")
+        stats_query_timestamp = int(time.time())
+        metric_names = [
+            "phyperiodic.txbeamidx",
+            "phyperiodic.rxbeamidx",
+            "stapkt.txpowerindex",
+        ]
+
+        try:
+            # Read the from the Beringei database, return type is RawQueryReturn
+            read_returns, query_request_to_send = self._read_beringei(
+                metric_names,
+                stats_query_timestamp,
+                sample_duration_in_s,
+                source_db_interval,
+            )
+
+            # TODO: Since IM scan does not happen often, can potentially store a
+            # copy of pathloss_map back to MySQL to reduce computation.
+            pathloss_map, _ = self.scan_handler.get_pathloss_from_im_scan(
+                self.topology_name
+            )
+            if not pathloss_map:
+                raise ValueError("Cannot found any IM scan reports in MySQL")
+
+            logging.info(
+                "Obtained pathloss map of {} from IM scans".format(self.topology_name)
+            )
+
+            interference_stats = self.link_insight.compute_interference_stats(
+                metric_names,
+                self.link_macs_list,
+                read_returns,
+                pathloss_map,
+                self.node_mac_to_polarity,
+                self.node_mac_to_golay,
+            )
+
+            self._write_beringei(
+                dump_to_json,
+                interference_stats,
+                query_request_to_send,
+                sample_duration_in_s,
+                source_db_interval,
+                stats_query_timestamp,
+                json_log_name_prefix + "interference.json",
+                "interference",
+            )
+
+        except ValueError as err:
+            logging.error(
+                "Error during interference pipeline execution for "
+                + "'{}'. Error: {}".format(self.topology_name, err.args)
+            )
+            return
+
+        logging.info(
+            "Link interference pipeline execution finished for "
+            + "'{}'".format(self.topology_name)
+        )
+
 
 if __name__ == "__main__":
     try:
@@ -436,19 +591,12 @@ if __name__ == "__main__":
     except BaseException as err:
         logging.error("Cannot load config with error {}".format(err.args))
 
-    mysql_db_access = MySqlDbAccess()
-    if mysql_db_access is None:
-        raise ValueError("Cannot create MySqlDbAccess object")
+    if len(sys.argv) != 3:
+        logging.error("No pipeline or topology specified")
 
-    api_service_config = mysql_db_access.read_api_service_setting()
-    if len(api_service_config) != 1:
-        raise ValueError("There should be a single topology")
-    topology_name = list(api_service_config.keys())[0]
-    link_pipeline = LinkPipeline(topology_name)
+    link_pipeline = LinkPipeline(sys.argv[2])
 
-    if len(sys.argv) < 2:
-        logging.error("No pipeline specified")
-    elif sys.argv[1] == "link_mean_variance_pipeline":
+    if sys.argv[1] == "link_mean_variance_pipeline":
         job_config = analytics_config["pipelines"]["link_mean_variance_pipeline"]
         link_pipeline.link_mean_variance_pipeline(
             job_config["metric_names"],
@@ -467,6 +615,22 @@ if __name__ == "__main__":
             job_config["source_db_interval"],
             job_config["green_cutoff_ratio"],
             job_config["amber_cutoff_ratio"],
+        )
+    elif sys.argv[1] == "link_foliage_pipeline":
+        job_config = analytics_config["pipelines"]["link_foliage_pipeline"]
+        link_pipeline.link_foliage_pipeline(
+            job_config["sample_duration_in_s"],
+            job_config["source_db_interval"],
+            job_config["foliage_threshold"],
+            job_config["number_of_windows"],
+            job_config["min_window_size"],
+            job_config["minimum_var"],
+        )
+    elif sys.argv[1] == "link_interference_pipeline":
+        job_config = analytics_config["pipelines"]["link_interference_pipeline"]
+        link_pipeline.link_interference_pipeline(
+            job_config["sample_duration_in_s"],
+            job_config["source_db_interval"],
         )
     else:
         logging.error("Unknown pipeline")

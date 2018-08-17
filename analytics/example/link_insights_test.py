@@ -26,6 +26,7 @@ from module.topology_handler import TopologyHelper
 from module.mysql_db_access import MySqlDbAccess
 from link_insights.link_insight import LinkInsight
 from link_insights.link_pipeline import LinkPipeline
+from facebook.gorilla.beringei_data import ttypes as bd
 
 
 class TestLinkInsights(unittest.TestCase):
@@ -348,6 +349,174 @@ class TestLinkInsights(unittest.TestCase):
 
         # Check that the figure is output
         self.assertTrue(os.path.isfile(save_fig_name))
+
+    def test_link_interference_visualization(self):
+        """ This is a simple offline visualization to plot the CDF
+            of link sinr, inr, snr distribution of all links across the network.
+        """
+
+        json_log_name_prefix = "temp_interference_"
+
+        # Compute the interference pipeline and save to json
+        self.link_pipeline.link_interference_pipeline(
+            dump_to_json=True, json_log_name_prefix=json_log_name_prefix
+        )
+
+        stats_key_to_stats = self._extract_network_wide_stats(
+            ["snr", "inr", "sinr"], json_log_name_prefix + "interference.json"
+        )
+
+        # There should be at least 1 link that have "snr", "inr", "sinr" computed
+        for key in stats_key_to_stats:
+            self.assertTrue(stats_key_to_stats[key])
+        # Plot the CDF of the computed stats across links
+        save_fig_name = json_log_name_prefix + "plot.pdf"
+        self._plot_network_wide_cdf(stats_key_to_stats, save_fig_name=save_fig_name)
+        # Check that the figure is output
+        self.assertTrue(os.path.isfile(save_fig_name))
+
+    def test_foliage_pipeline_visualization(self):
+        """ This is a simple offline visualization to plot the CDF
+            of link foliage factor across the network.
+        """
+
+        json_log_name_prefix = "temp_foliage_"
+
+        # Compute the foliage factor of links and save to a json file
+        self.link_pipeline.link_foliage_pipeline(
+            dump_to_json=True, json_log_name_prefix=json_log_name_prefix
+        )
+
+        stats_key_to_stats = self._extract_network_wide_stats(
+            ["foliage_factor"], json_log_name_prefix + "foliage.json"
+        )
+        logging.info("The largest foliage_factor among all links is {}".format(
+                     max(stats_key_to_stats["foliage_factor"])))
+
+        # There should be at least 1 link that has foliage factor computed
+        self.assertTrue(stats_key_to_stats["foliage_factor"])
+
+        # Plot the CDF of the computed stats across links
+        save_fig_name = json_log_name_prefix + "plot.pdf"
+        self._plot_network_wide_cdf(stats_key_to_stats, save_fig_name=save_fig_name)
+
+        # Check that the figure is output
+        self.assertTrue(os.path.isfile(save_fig_name))
+
+    def test_compute_link_foliage(self):
+        """ Test case for compute_link_foliage().
+        """
+
+        source_db_interval = 1
+        test_len = 900
+        time_stamps = [i * source_db_interval for i in range(0, test_len)]
+        metric_names = ["stapkt.txpowerindex", "phystatus.srssi"]
+        link_macs_list = [["source_node", "peer_node"], ["peer_node", "source_node"]]
+
+        rssi_deltas = np.random.uniform(-1, 1, size=test_len)
+
+        rx_rssis_forward = []
+        rx_rssis_reverse = []
+        power_idxs = []
+        for time_idx, time_stamp in enumerate(time_stamps):
+            tx_power_idx = 21
+            power_idxs.append(bd.TimeValuePair(unixTime=time_stamp, value=tx_power_idx))
+            rx_rssis_forward.append(
+                bd.TimeValuePair(unixTime=time_stamp, value=-40 + rssi_deltas[time_idx])
+            )
+            rx_rssis_reverse.append(
+                bd.TimeValuePair(
+                    unixTime=time_stamp, value=-30 + rssi_deltas[time_idx] * 2
+                )
+            )
+
+        power_idx_ts = bd.RawTimeSeries(timeSeries=power_idxs)
+        rx_rssi_forward_ts = bd.RawTimeSeries(timeSeries=rx_rssis_forward)
+        rx_rssis_reverse_ts = bd.RawTimeSeries(timeSeries=rx_rssis_reverse)
+        forward_link_return = bd.RawTimeSeriesList(
+            timeSeriesAndKeyList=[power_idx_ts, rx_rssi_forward_ts]
+        )
+        reverse_link_return = bd.RawTimeSeriesList(
+            timeSeriesAndKeyList=[power_idx_ts, rx_rssis_reverse_ts]
+        )
+        read_returns = bd.RawQueryReturn(
+            queryReturnList=[forward_link_return, reverse_link_return]
+        )
+
+        foliage_factors = self.link_pipeline.link_insight.compute_link_foliage(
+            read_returns,
+            metric_names,
+            link_macs_list,
+            source_db_interval,
+            6,
+            20,
+            0
+        )
+
+        self.assertTrue(foliage_factors[0][0]["foliage_factor"] > 0.99)
+        self.assertTrue(foliage_factors[1][0]["foliage_factor"] > 0.99)
+
+    def test_compute_network_link_interference(self):
+        """
+            Test the interference computation in compute_network_link_interference().
+        """
+        pathloss_map = {"rx": {}}
+
+        pathloss_map["rx"]["tx"] = {(50, 0): 10}
+        pathloss_map["rx"]["interferer0"] = {(10, 0): 0}
+        pathloss_map["rx"]["interferer1"] = {(20, 0): 5}
+        pathloss_map["rx"]["interferer2"] = {(30, 0): 0}
+
+        link_macs_to_beam_power_stats = {}
+        link_macs_to_beam_power_stats["tx", "rx"] = {
+            "tx_beam_idx": 50,
+            "tx_power": 20,
+        }
+        link_macs_to_beam_power_stats["rx", "tx"] = {
+            "tx_beam_idx": 0,
+            "rx_beam_idx": 0,
+            "tx_power": 20,
+        }
+
+        node_mac_to_polarity = {
+            "tx": 0,
+            "rx": 1,
+            "interferer0": 0,
+            "interferer1": 0,
+            "interferer2": 1
+        }
+
+        node_mac_to_golay = {
+            "tx": {"rxGolayIdx": 1, "txGolayIdx": 1},
+            "rx": {"rxGolayIdx": 1, "txGolayIdx": 1},
+            "interferer0": {"rxGolayIdx": 2, "txGolayIdx": 2},
+            "interferer1": {"rxGolayIdx": 1, "txGolayIdx": 1},
+            "interferer2": {"rxGolayIdx": 1, "txGolayIdx": 1},
+        }
+
+        tx_mac_to_power_beam = {}
+        tx_mac_to_power_beam["tx"] = [[10, 0]]
+        tx_mac_to_power_beam["interferer0"] = [[10, 10]]
+        tx_mac_to_power_beam["interferer1"] = [[10, 20]]
+        tx_mac_to_power_beam["interferer2"] = [[100, 30]]
+
+        link_insight = self.link_pipeline.link_insight
+        interference_stats = link_insight.compute_network_link_interference(
+            link_macs_to_beam_power_stats,
+            pathloss_map,
+            tx_mac_to_power_beam,
+            node_mac_to_polarity,
+            node_mac_to_golay,
+            detection_floor_in_dBm=-30,
+        )
+
+        self.assertTrue(interference_stats["tx", "rx"]["snr"], 10)
+        self.assertAlmostEqual(interference_stats["tx", "rx"]["inr"], 11.19, places=2)
+        self.assertAlmostEqual(interference_stats["tx", "rx"]["sinr"], -1.51, places=2)
+        self.assertAlmostEqual(interference_stats["tx", "rx"]["inr_pilot"], 5, places=2)
+        self.assertAlmostEqual(
+            interference_stats["tx", "rx"]["sinr_pilot"], 3.81, places=2
+        )
 
 
 if __name__ == "__main__":

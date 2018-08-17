@@ -9,6 +9,7 @@ import os
 import requests
 import json
 import sys
+import logging
 
 from thrift.TSerialization import serialize, deserialize
 from thrift.protocol import TBinaryProtocol
@@ -41,15 +42,15 @@ class BeringeiDbAccess(object):
             with open(PathStore.ANALYTICS_CONFIG_FILE) as local_file:
                 analytics_config = json.load(local_file)
         except Exception:
-            print("Cannot find the configuration file")
+            logging.error("Cannot find the configuration file")
             return None
 
         if "BQS" not in analytics_config:
-            print("Cannot find BQS config in the configurations")
+            logging.error("Cannot find BQS config in the configurations")
             return None
         else:
             instance = super().__new__(cls)
-            print("BeringeiDbAccess object created")
+            logging.info("BeringeiDbAccess object created")
             instance._bqs_config = analytics_config["BQS"]
             return instance
 
@@ -68,6 +69,7 @@ class BeringeiDbAccess(object):
             "raw_query",
             "binary_stats_writer",
             "binary_stats_typeahead",
+            "stats_writer_v2",
         ]:
             raise ValueError("Unknown http path")
 
@@ -88,7 +90,7 @@ class BeringeiDbAccess(object):
             self._bqs_config["hostname"], self._bqs_config["port"]
         )
         url_to_post += request_path
-        print("url to send: ", url_to_post)
+        logging.debug("url to send: {}".format(url_to_post))
 
         # Serialize the query request by binary protocol
         request_body_bytes = serialize(
@@ -102,7 +104,9 @@ class BeringeiDbAccess(object):
             raise ValueError("Cannot send to the server")
 
         if not response.ok:
-            print("Response status error with code: ", response.status_code)
+            logging.error(
+                "Response status error with code: {}".format(response.status_code)
+            )
             raise ValueError("Response status not ok")
 
         return response
@@ -123,7 +127,7 @@ class BeringeiDbAccess(object):
                 type_ahead_request, "binary_stats_typeahead"
             )
         except ValueError as err:
-            print(err.args)
+            logging.error(err.args)
             raise ValueError("Fail to get http response")
 
         # response.content should be of str of folly::JSON
@@ -131,8 +135,8 @@ class BeringeiDbAccess(object):
             return_json_str = response.content.decode("utf-8")
             query_returns = json.JSONDecoder().decode(return_json_str)
         except Exception as ex:
-            print(
-                "During decoding JSON return, an exception of type {0} occurred.".format(
+            logging.error(
+                "During decoding return, a type {0} exception occurred.".format(
                     type(ex).__name__
                 )
             )
@@ -171,7 +175,7 @@ class BeringeiDbAccess(object):
                 query_request_to_send, "raw_query"
             )
         except ValueError as err:
-            print(err.args)
+            logging.error(err.args)
             raise ValueError("Fail to read from Beringei database")
 
         # response.content should be of binary bytes stream of RawQueryReturn
@@ -183,8 +187,8 @@ class BeringeiDbAccess(object):
                 protocol_factory=TBinaryProtocol.TBinaryProtocolFactory(),
             )
         except Exception as ex:
-            print(
-                "During return deserialization, an exception of type {0} occurred.".format(
+            logging.error(
+                "During return deserialization, a type {0} exception occurred.".format(
                     type(ex).__name__
                 )
             )
@@ -207,5 +211,24 @@ class BeringeiDbAccess(object):
                 stats_to_write, "binary_stats_writer"
             )
         except ValueError as err:
-            print(err.args)
+            logging.error(err.args)
             raise ValueError("Fail to write to Beringei database")
+
+    def write_agg_stats_beringei_db(self, stats_to_write):
+        """Send query to Beringei Query Server to write network wide aggregate stats to
+        Beringei database.
+
+        Args:
+        stats_to_write: list of aggregate stats to write, of type AggStatsWriteRequest.
+
+        Return:
+        void on success. Raise exception on error.
+        """
+
+        try:
+            self._post_http_request_to_beringei_query_server(
+                stats_to_write, "stats_writer_v2"
+            )
+        except ValueError as err:
+            logging.error(err.args)
+            raise ValueError("Fail to write aggregate stats to Beringei database")

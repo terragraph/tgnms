@@ -130,6 +130,14 @@ class TopologyHelper(object):
             single_node["mac_addr"]: single_node["site_name"]
             for single_node in topology_reply["nodes"]
         }
+
+        node_mac_to_golay = {node["mac_addr"]: node["golay_idx"]
+                             for node in topology_reply["nodes"]
+                             if "golay_idx" in node}
+        node_mac_to_polarity = {node["mac_addr"]: node["polarity"]
+                                for node in topology_reply["nodes"]
+                                if "polarity" in node}
+
         # the dict that map name to macs
         # the macs are tuple of [source_node_mac, peer_node_mac]
         link_macs_to_name = {}
@@ -147,8 +155,11 @@ class TopologyHelper(object):
 
         network_config = {
             "node_mac_to_name": node_mac_to_name,
+            "node_name_to_mac": node_name_to_mac,
             "link_macs_to_name": link_macs_to_name,
             "node_mac_to_site": node_mac_to_site,
+            "node_mac_to_polarity": node_mac_to_polarity,
+            "node_mac_to_golay": node_mac_to_golay,
         }
 
         return network_config

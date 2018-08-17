@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-""" Test example for the read, write, and get key_id between Analytics and BQS.
+""" Test examples for BeringeiDbAccess class.
 """
 
+import logging
 import os
 import sys
 import time
-
+import unittest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.beringei_db_access import BeringeiDbAccess
@@ -17,158 +18,191 @@ sys.path.append(
 )
 from facebook.gorilla.beringei_query import ttypes as bq
 from facebook.gorilla.Topology.ttypes import Topology
-
-# BeringeiDbAccess can read, write, and get key_id from Beringei DB
-beringei_db_access = BeringeiDbAccess()
-if not beringei_db_access:
-    sys.exit("Cannot create BeringeiDbAccess object")
-
-print("This is an example to get the query key_id from Beringei database")
-# Change the topology_name and metric_key to see other metrics
-topology_name = "tower G"
-metric_key = "tgf.38:3a:21:b0:08:75.phystatus.ssnrest"
-
-type_ahead_request = bq.TypeAheadRequest(topologyName=topology_name, input=metric_key)
-
-source_mac = "00:50:43:8e:bc:b7"
-return_key_id = None
-try:
-    return_key_id = beringei_db_access.get_beringei_key_id(
-        source_mac, type_ahead_request
-    )
-except ValueError as err:
-    print(err.args)
-
-if return_key_id is None:
-    print("Cannot find metrics")
-else:
-    print(
-        "For '{}' on '{}' ".format(metric_key, topology_name)
-        + "the keyId in the Beringei DB is {}".format(return_key_id)
-    )
-
-print("-" * 100)
-print("This is an example to write to Beringei DB via BQS")
-# Construct the request to send to server
-topology = Topology(name="tower G")
-stat1 = bq.Stat(key="tgf.crazy_mac.testkey1", ts=int(time.time()), value=7899999)
-stat2 = bq.Stat(key="testkey2", ts=int(time.time()), value=7699999)
-stat3 = bq.Stat(key="unknown_key3", ts=int(time.time()), value=0.77777)
-node_state1 = bq.NodeStates(
-    mac="38:3a:21:b0:03:e1", site="11L22", name="terra421.f7.tg.a404-if", stats=[stat1]
-)
-node_state2 = bq.NodeStates(
-    mac="38:3a:21:b0:07:2d",
-    site="TECH-NE",
-    name="terra211.f3.tg.a404-if",
-    stats=[stat2],
-)
-node_state3 = bq.NodeStates(
-    mac="38:3a:21:b0:09:1b", site="CC-SE", name="terra112.f5.tg.a404-if", stats=[stat3]
-)
-stats_to_write = bq.StatsWriteRequest(
-    topology=topology, agents=[node_state1, node_state2, node_state3], interval=30
-)
-
-try:
-    beringei_db_access.write_beringei_db(stats_to_write)
-except ValueError as err:
-    print(err.args)
-
-print("-" * 100)
-print("This is an example to read from Beringei DB via Beringei query server")
-
-current_time_in_s = time.time()
-# query_1 is by the Beringei key_id
-query_key_1 = bq.RawQueryKey(keyId=683696, topologyName="tower G")
-
-# query_ key2 is by the combination of source_mac, peer_mac, metric_name and
-# topology_name, and the data is just ended by us
-query_key_2 = bq.RawQueryKey(
-    sourceMac="38:3a:21:b0:03:e1",
-    peerMac="crazy_mac",
-    metricName="testkey1",
-    topologyName="tower G",
-)
-
-query_key_3 = bq.RawQueryKey(keyId=234126, topologyName="tower G")
-
-query_key_with_unknown_mac = bq.RawQueryKey(
-    sourceMac="some_non_exisitng_mac",
-    peerMac="another_non_exisitng_mac",
-    metricName="tphystatus.ssnrest",
-    topologyName="tower G",
-)
+from module.mysql_db_access import MySqlDbAccess
+from module.topology_handler import TopologyHelper
 
 
-query_key_with_unknown_metric = bq.RawQueryKey(
-    sourceMac="00:50:43:8e:bc:b7",
-    peerMac="38:3a:21:b0:08:75",
-    metricName="crazy_stats",
-    topologyName="tower G",
-)
-
-empty_query_key = bq.RawQueryKey()
-
-query_to_send = bq.RawReadQuery(
-    queryKeyList=[
-        query_key_1,
-        query_key_with_unknown_metric,
-        query_key_2,
-        query_key_with_unknown_mac,
-        query_key_3,
-        empty_query_key,
-    ],
-    startTimestamp=int(current_time_in_s - 60 * 60),
-    endTimestamp=int(current_time_in_s),
-    interval=30,
-)
-
-empty_query_to_send = bq.RawReadQuery(
-    queryKeyList=[],
-    startTimestamp=int(current_time_in_s - 60 * 60),
-    endTimestamp=int(current_time_in_s),
-    interval=30,
-)
-query_request_to_send = bq.RawReadQueryRequest(
-    [empty_query_to_send, query_to_send, empty_query_to_send]
-)
-
-query_returns = None
-try:
-    query_returns = beringei_db_access.read_beringei_db(query_request_to_send)
-except ValueError as err:
-    print("Failed to read Beringei database", err.args)
-
-if query_returns is not None:
-    query_returns = query_returns.queryReturnList
-
-    print("There are {} query returned".format(len(query_returns)))
-    print("Query 0 and Query 2 are empty queries and should not return anything")
-    print(
-        "In Query 1, RawQueryKey 1, 3, 5 are invalid keys and should"
-        + "not return anything"
-    )
-    print(
-        "Only Query 1, RawQueryKey 2 are found by macs and ids and should "
-        + "return fullMetricKeyName"
-    )
-    for query_idx, query_return in enumerate(query_returns):
-        query_return = query_return.timeSeriesAndKeyList
-        num_of_query_print = min(10, len(query_return))
-        print(
-            "\nFor query {}, there are {} timeseries returned, ".format(
-                query_idx, len(query_return)
+class TestBeringeiDbAccess(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestBeringeiDbAccess, self).__init__(*args, **kwargs)
+        try:
+            mysql_db_access = MySqlDbAccess()
+            if mysql_db_access is None:
+                raise ValueError("Cannot create MySqlDbAccess object")
+            api_service_config = mysql_db_access.read_api_service_setting()
+            # Just use the first topology in the MySQL table for testing
+            self.topology_name = list(api_service_config.keys())[0]
+        except BaseException as err:
+            self.fail(
+                "Cannot load topology from the api_service, error {}".format(err.args)
             )
-            + "and the first {} return are:".format(num_of_query_print)
+
+        try:
+            topology_helper = TopologyHelper(topology_name=self.topology_name)
+            topology_reply = topology_helper.get_topology_from_api_service()
+            network_config = topology_helper.obtain_network_dict(topology_reply)
+            self.test_source_mac = list(network_config["link_macs_to_name"].keys())[0][
+                0
+            ]
+            self.test_peer_mac = list(network_config["link_macs_to_name"].keys())[0][1]
+        except BaseException as err:
+            self.fail("Cannot get test macs, error {}".format(err.args))
+
+        self.beringei_db_access = BeringeiDbAccess()
+        if not self.beringei_db_access:
+            self.fail("Cannot create BeringeiDbAccess object")
+
+    def test_get_beringei_key_id(self):
+        logging.info(
+            "This is an example to get the query key_id from Beringei database"
         )
-        for i in range(num_of_query_print):
-            num_of_data_print = min(5, len(query_return[i].timeSeries))
-            print(
-                "In Return # {} is with fullMetricKeyName {}.".format(
-                    i, query_return[i].fullMetricKeyName
-                )
-                + "\n The first {} data points are {},".format(
-                    num_of_data_print, query_return[i].timeSeries[:num_of_data_print]
-                )
+        metric_key = "tgf.{}.phystatus.ssnrest".format(self.test_peer_mac)
+
+        type_ahead_request = bq.TypeAheadRequest(
+            topologyName=self.topology_name, input=metric_key
+        )
+
+        return_key_id = self.beringei_db_access.get_beringei_key_id(
+            self.test_source_mac, type_ahead_request
+        )
+        self.assertTrue(return_key_id is not None)
+
+        logging.info(
+            "For '{}' on '{}' ".format(metric_key, self.topology_name)
+            + "the keyId in the Beringei DB is {}".format(return_key_id)
+        )
+
+    def test_write_beringei_key_id(self):
+        logging.info("This is an example to write to Beringei DB via BQS")
+        # Construct the request to send to server
+        topology = Topology(name=self.topology_name)
+        stat1 = bq.Stat(
+            key="tgf.crazy_mac.testkey1", ts=int(time.time()), value=7899999
+        )
+        stat2 = bq.Stat(key="testkey2", ts=int(time.time()), value=7699999)
+        stat3 = bq.Stat(key="unknown_key3", ts=int(time.time()), value=0.77777)
+        node_state1 = bq.NodeStates(mac=self.test_source_mac, stats=[stat1])
+        node_state2 = bq.NodeStates(mac=self.test_peer_mac, stats=[stat2])
+        node_state3 = bq.NodeStates(mac=self.test_source_mac, stats=[stat3])
+        stats_to_write = bq.StatsWriteRequest(
+            topology=topology,
+            agents=[node_state1, node_state2, node_state3],
+            interval=30,
+        )
+
+        # Will raise exception if writing fails
+        self.beringei_db_access.write_beringei_db(stats_to_write)
+
+    def test_read_beringei(self):
+        logging.info(
+            "This is an example to read from Beringei DB via Beringei query server"
+        )
+
+        current_time_in_s = time.time()
+        # query_1 is by the Beringei key_id
+        query_key_1 = bq.RawQueryKey(keyId=683696, topologyName=self.topology_name)
+
+        # query_ key2 is by the combination of source_mac, peer_mac, metric_name and
+        # topology_name, and the data is just ended by us
+        query_key_2 = bq.RawQueryKey(
+            sourceMac=self.test_source_mac,
+            peerMac=self.test_peer_mac,
+            metricName="phystatus.ssnrest",
+            topologyName=self.topology_name,
+        )
+
+        query_key_3 = bq.RawQueryKey(keyId=234126, topologyName=self.topology_name)
+
+        query_key_with_unknown_mac = bq.RawQueryKey(
+            sourceMac="some_non_exisitng_mac",
+            peerMac="another_non_exisitng_mac",
+            metricName="phystatus.ssnrest",
+            topologyName=self.topology_name,
+        )
+
+        query_key_with_unknown_metric = bq.RawQueryKey(
+            sourceMac=self.test_source_mac,
+            peerMac=self.test_peer_mac,
+            metricName="crazy_stats",
+            topologyName=self.topology_name,
+        )
+
+        empty_query_key = bq.RawQueryKey()
+
+        query_to_send = bq.RawReadQuery(
+            queryKeyList=[
+                query_key_1,
+                query_key_with_unknown_metric,
+                query_key_2,
+                query_key_with_unknown_mac,
+                query_key_3,
+                empty_query_key,
+            ],
+            startTimestamp=int(current_time_in_s - 60 * 60),
+            endTimestamp=int(current_time_in_s),
+            interval=30,
+        )
+
+        empty_query_to_send = bq.RawReadQuery(
+            queryKeyList=[],
+            startTimestamp=int(current_time_in_s - 60 * 60),
+            endTimestamp=int(current_time_in_s),
+            interval=30,
+        )
+        query_request_to_send = bq.RawReadQueryRequest(
+            [empty_query_to_send, query_to_send, empty_query_to_send]
+        )
+
+        query_returns = None
+        try:
+            query_returns = self.beringei_db_access.read_beringei_db(
+                query_request_to_send
             )
+        except ValueError as err:
+            raise ValueError("Failed to read Beringei database {}".format(err.args))
+
+        if query_returns is not None:
+            query_returns = query_returns.queryReturnList
+            logging.info("There are {} query returned".format(len(query_returns)))
+            # Query 0 and 2 are empty
+            self.assertEqual(query_returns[0].timeSeriesAndKeyList, [])
+            self.assertEqual(query_returns[2].timeSeriesAndKeyList, [])
+
+            self.assertTrue(query_returns[1].timeSeriesAndKeyList)
+            # Query key of 1, 3, 5 of Query 1 shouldn't match anything
+            self.assertEqual(query_returns[1].timeSeriesAndKeyList[1].timeSeries, [])
+            self.assertEqual(query_returns[1].timeSeriesAndKeyList[3].timeSeries, [])
+            self.assertEqual(query_returns[1].timeSeriesAndKeyList[5].timeSeries, [])
+            self.assertTrue(query_returns[1].timeSeriesAndKeyList[2].timeSeries)
+            self.assertTrue(query_returns[1].timeSeriesAndKeyList[2].fullMetricKeyName)
+            self.assertEqual(
+                query_returns[1].timeSeriesAndKeyList[0].fullMetricKeyName, ""
+            )
+            self.assertEqual(
+                query_returns[1].timeSeriesAndKeyList[4].fullMetricKeyName, ""
+            )
+
+        else:
+            raise ValueError("None return")
+
+    def test_wrtie_agg_stats_beringei(self):
+        logging.info(
+            "This is an example to write aggregate stats to Beringei database"
+        )
+        stat = bq.Stat(key="tower_g.test_key", ts=int(time.time()), value=7654321)
+        agg_stats = bq.AggStats(topologyName=self.topology_name, stats=[stat])
+        stats_request_to_write = bq.UnifiedWriteRequest(
+            interval=30, aggStats=[agg_stats]
+        )
+
+        # Will raise exception if writing fails
+        self.beringei_db_access.write_agg_stats_beringei_db(stats_request_to_write)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    unittest.main()

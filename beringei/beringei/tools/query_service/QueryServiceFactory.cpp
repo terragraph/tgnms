@@ -9,6 +9,7 @@
 
 #include "QueryServiceFactory.h"
 
+#include "handlers/AggStatsWriteHandler.h"
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/QueryHandler.h"
@@ -68,6 +69,9 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     // The true input indicates that the incoming StatsWriteRequest is
     // serialized by Binary protocol
     return new StatsWriteHandler(true);
+  } else if (path == "/stats_writer_v2"){
+    // Write stats to the Beringei database
+    return new AggStatsWriteHandler();
   }
 
   // return not found for all other uris

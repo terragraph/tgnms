@@ -76,6 +76,18 @@ def run_link_pipeline(topology_names, max_run_time_in_s, period_in_s):
                 period_in_s=period_in_s,
                 num_of_jobs_to_submit=num_of_jobs_to_submit,
             )
+            # Schedule the jobs for foliage stats
+            job_scheduler.schedule_periodic_jobs(
+                link_pipeline.foliage_pipeline,
+                period_in_s=period_in_s,
+                num_of_jobs_to_submit=num_of_jobs_to_submit,
+            )
+            # Schedule the jobs for link interference stats
+            job_scheduler.schedule_periodic_jobs(
+                link_pipeline.link_interference_pipeline,
+                period_in_s=period_in_s,
+                num_of_jobs_to_submit=num_of_jobs_to_submit,
+            )
         except BaseException as err:
             logging.error("Cannot create LinkPipeline. Error {}".format(err.args))
 

@@ -19,6 +19,7 @@ from facebook.gorilla.Topology.ttypes import Topology
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.beringei_db_access import BeringeiDbAccess
+from module.unit_converter import UnitConverter
 
 
 class LinkInsight(object):
@@ -26,6 +27,7 @@ class LinkInsight(object):
        from Beringei database and the computed stats can be written back to
        Beringei database.
     """
+
     # The increase speed of counter. The counter should increase by one
     # every bwgd (25.6 ms). The counter could be heartbeat, keepalive, bwreq,
     # or linkavailable.
@@ -452,11 +454,10 @@ class LinkInsight(object):
                 return_key_id = beringei_db_access.get_beringei_key_id(
                     source_mac, type_ahead_request
                 )
+                key_id_to_macs[return_key_id] = (source_mac, peer_mac)
             except ValueError as err:
                 logging.exception("Get Beringei key_id error")
-                return {}
 
-            key_id_to_macs[return_key_id] = (source_mac, peer_mac)
         return key_id_to_macs
 
     def match_values_list_by_timestamp(self, time_series_list, source_db_interval=30):
@@ -958,3 +959,539 @@ class LinkInsight(object):
                         stats_key_to_stats[stats_key] = [query_key_stats[stats_key]]
 
         return stats_key_to_stats
+
+    def compute_link_foliage(
+        self,
+        read_returns,
+        metric_names,
+        link_macs_list,
+        source_db_interval,
+        number_of_windows,
+        min_window_size,
+        minimum_var,
+    ):
+        """ Compute the foliage factor of each link based on the pathloss covariance
+            between forward link and reverse link.
+
+            Args:
+            read_returns: the read return from BQS, of type RawQueryReturn.
+            metric_names: name of the stats queried of each link. The sequence
+            needs to be index matched to that of each link's query sent to BQS.
+            link_macs_list: list of link macs (source_mac, peer_mac), need to be
+            index matched to that of read query.
+            source_db_interval: database interval of the database queried from.
+
+            Return:
+            foliage_factor_returns: a 2-D list of stats. Each sub-list is of length 1
+            and contain a dict with key of "foliage_factor".
+            Raise exception on error.
+        """
+
+        name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
+        if (
+            "stapkt.txpowerindex" not in name_to_idx
+            or "phystatus.srssi" not in name_to_idx
+        ):
+            raise ValueError("Not all needed metrics are queried")
+
+        link_macs_to_tx_power_rx_rssi = {}
+        for link_idx, link_return in enumerate(read_returns.queryReturnList):
+            link_return = link_return.timeSeriesAndKeyList
+            forward_link_macs = (
+                link_macs_list[link_idx][0],
+                link_macs_list[link_idx][1],
+            )
+            reverse_link_macs = (forward_link_macs[1], forward_link_macs[0])
+
+            if forward_link_macs not in link_macs_to_tx_power_rx_rssi:
+                link_macs_to_tx_power_rx_rssi[forward_link_macs] = {}
+            if reverse_link_macs not in link_macs_to_tx_power_rx_rssi:
+                link_macs_to_tx_power_rx_rssi[reverse_link_macs] = {}
+
+            tx_power = link_return[name_to_idx["stapkt.txpowerindex"]].timeSeries
+            rx_rssi = link_return[name_to_idx["phystatus.srssi"]].timeSeries
+
+            link_macs_to_tx_power_rx_rssi[forward_link_macs]["tx_power"] = tx_power
+            link_macs_to_tx_power_rx_rssi[reverse_link_macs]["rx_rssi"] = rx_rssi
+
+        unit_converter = UnitConverter()
+        enable_second_array = False
+        link_macs_to_foliage_factor = {}
+        for link_macs in link_macs_to_tx_power_rx_rssi:
+            reverse_link_macs = (link_macs[1], link_macs[0])
+            if (
+                link_macs in link_macs_to_foliage_factor
+                or reverse_link_macs in link_macs_to_foliage_factor
+            ):
+                # Already processed
+                continue
+
+            try:
+                values_list, _ = self.match_values_list_by_timestamp(
+                    [
+                        link_macs_to_tx_power_rx_rssi[link_macs]["tx_power"],
+                        link_macs_to_tx_power_rx_rssi[link_macs]["rx_rssi"],
+                        link_macs_to_tx_power_rx_rssi[reverse_link_macs]["tx_power"],
+                        link_macs_to_tx_power_rx_rssi[reverse_link_macs]["rx_rssi"],
+                    ],
+                    source_db_interval=source_db_interval,
+                )
+                TX_POWER_FORWARD_IDX = 0
+                RSSI_POWER_FORWARD_IDX = 1
+                TX_POWER_REVERSE_IDX = 2
+                RSSI_POWER_REVERSE_IDX = 3
+            except BaseException as err:
+                logging.warning(
+                    "Error during match_values_list_by_timestamp(): {}".format(err.args)
+                )
+                continue
+
+            # pathloss = txPower(A) - RSSI(Z) + G_tx(A) + G_Rx(Z)
+            # G_tx(A) + G_Rx(Z): same across all links, thus we only need to compute
+            # pathloss_offset = txPower(A) - RSSI(Z)
+            forward_link_pathloss = [
+                unit_converter.tx_power_idx_to_power_dbm(
+                    values[TX_POWER_FORWARD_IDX], enable_second_array
+                )
+                - values[RSSI_POWER_FORWARD_IDX]
+                for values in values_list
+            ]
+            reverse_link_pathloss = [
+                unit_converter.tx_power_idx_to_power_dbm(
+                    values[TX_POWER_REVERSE_IDX], enable_second_array
+                )
+                - values[RSSI_POWER_REVERSE_IDX]
+                for values in values_list
+            ]
+            foliage_factor = self.compute_single_link_foliage_factor(
+                forward_link_pathloss,
+                reverse_link_pathloss,
+                number_of_windows,
+                min_window_size,
+                minimum_var,
+            )
+
+            if foliage_factor is not None:
+                link_macs_to_foliage_factor[link_macs] = foliage_factor
+
+        foliage_factor_returns = []
+        for link_macs in link_macs_list:
+            link_macs = tuple(link_macs)
+            foliage_stats = {}
+
+            if link_macs in link_macs_to_foliage_factor:
+                foliage_stats = {
+                    "foliage_factor": link_macs_to_foliage_factor[link_macs]
+                }
+            elif (link_macs[1], link_macs[0]) in link_macs_to_foliage_factor:
+                foliage_stats = {
+                    "foliage_factor": link_macs_to_foliage_factor[
+                        link_macs[1], link_macs[0]
+                    ]
+                }
+            else:
+                # If the foliage factor is not computed, foliage factor is not
+                # computed
+                foliage_stats = {}
+
+            foliage_factor_returns.append([foliage_stats])
+
+        return foliage_factor_returns
+
+    def compute_single_link_foliage_factor(
+        self,
+        forward_link_pathloss,
+        reverse_link_pathloss,
+        number_of_windows=5,
+        min_window_size=20,
+        minimum_var=0,
+    ):
+        """ Compute the link foliage factor based on the link pathloss covariance
+        between forward link and reverse link.
+
+        Args:
+        forward_link_pathloss: list of pathloss offset values of a link, from source
+        node to peer node.
+        reverse_link_pathloss: list of pathloss offset values of a link, from peer
+        node to source node, need to be index matched with forward_link_pathloss.
+        minimum_var: the minimum channel variance for foliage factor to be computed
+
+        Return:
+        foliage_factor: a float value between 0 and 1 that indicates the
+        level of foliage. Larger value means higher probability of foliage.
+        """
+
+        # TODO: Currently, do a uniform window slicing over time. Can potentially
+        # has a small running detection to find more accurate sub-windows.
+        if len(forward_link_pathloss) != len(reverse_link_pathloss):
+            logging.error("Different lengths of forward and reverse link pathloss")
+            return None
+
+        if len(forward_link_pathloss) < min_window_size * number_of_windows:
+            logging.error(
+                ("Cannot compute foliage factor, need {} samples," "{} provide").format(
+                    min_window_size * number_of_windows, len(forward_link_pathloss)
+                )
+            )
+            return None
+
+        window_len = len(forward_link_pathloss) / number_of_windows
+
+        windows = [
+            [int(i * window_len), int((i + 1) * window_len)]
+            for i in range(number_of_windows)
+        ]
+
+        cross_covariances = []
+        for start_idx, end_idx in windows:
+            forward_link_offsets = forward_link_pathloss[start_idx : end_idx + 1]
+            reverse_link_offsets = reverse_link_pathloss[start_idx : end_idx + 1]
+            forward_var = np.var(forward_link_offsets)
+            reverse_var = np.var(reverse_link_offsets)
+
+            if forward_var <= minimum_var or reverse_var <= minimum_var:
+                # If the channel is too stable, skip the window
+                continue
+            # Compute the un-normalized covariance between forward pathloss
+            cross_covariance = np.cov([forward_link_offsets, reverse_link_offsets])[0][
+                1
+            ]
+            # Normalize by variance of forward and reverse link pathloss
+            cross_covariance /= np.sqrt(forward_var * reverse_var)
+            cross_covariances.append([forward_var + reverse_var, cross_covariance])
+
+        foliage_factor = 0
+        total_weight = 0
+        for weight, factor in cross_covariances:
+            foliage_factor += weight * factor
+            total_weight += weight
+
+        if total_weight:
+            foliage_factor = foliage_factor / total_weight
+
+        return foliage_factor
+
+    def get_link_foliage_num(self, extracted_stats, foliage_threshold, num_links):
+        """ Compute the number of foliage and foliage_free links.
+            Currently, the definitions of foliage, foliage_free links are:
+            foliage: foliage_factor > foliage_threshold
+            foliage_free: foliage_factor <= foliage_threshold.
+
+        Args:
+        extracted_stats: a dict with key of "foliage_factor" and the corresponding
+        dict value is a list of computed foliage factor of all links in the network.
+        sample_duration_in_s: duration of the sampling window.
+        num_links: total number of links in current network topology.
+
+        Return:
+        links_foliage_stats: a dict, with keys of "num_foliage_links",
+        "num_foliage_free_links".
+        """
+
+        links_foliage_stats = {
+            "num_foliage_links": 0,
+            "num_foliage_free_links": 0,
+            "num_unclassified_foliage_links": 0,
+        }
+
+        for foliage_factor in extracted_stats["foliage_factor"]:
+            if foliage_factor > foliage_threshold:
+                links_foliage_stats["num_foliage_links"] += 0.5
+            else:
+                links_foliage_stats["num_foliage_free_links"] += 0.5
+
+        links_foliage_stats["num_unclassified_foliage_links"] = (
+            num_links
+            - links_foliage_stats["num_foliage_links"]
+            - links_foliage_stats["num_foliage_free_links"]
+        )
+
+        logging.info("The network link foliage stats is {}".format(links_foliage_stats))
+
+        return links_foliage_stats
+
+    def compute_interference_stats(
+        self,
+        metric_names,
+        link_macs_list,
+        read_returns,
+        pathloss_map,
+        node_mac_to_polarity,
+        node_mac_to_golay,
+        enable_second_array=False,
+    ):
+        """ Compute the interference stats of all links in a network.
+
+            Args:
+            metric_names: name of the stats queried of each link. The sequence
+            needs to be index matched to that of read query sent to BQS.
+            link_macs_list: list of link macs (tx_mac, rx_mac), need to be
+            index matched to that of read query.
+            read_returns: the read return from BQS, of type RawQueryReturn.
+            pathloss_map: pathloss of all node pairs with all beam index pairs. Computed
+            by using IM scan result, from get_pathloss_from_im_scan() in ScanHandler
+            class.
+            node_mac_to_polarity: dict, node mac to polarity.
+            node_mac_to_golay: dict, the values are dicts with keys of "rxGolayIdx" and
+                               "txGolayIdx".
+            enable_second_array: if second array is used.
+
+            Return:
+            interference_stats_returns: a 2-D list of stats. Each sub-list is of
+            length 1 and contains a dict with key of "snr", "inr", "sinr", "inr_pilot",
+            "sinr_pilot".
+            Raise exception on error.
+        """
+
+        name_to_idx = {metric: idx for idx, metric in enumerate(metric_names)}
+        if (
+            "phyperiodic.txbeamidx" not in name_to_idx
+            or "phyperiodic.rxbeamidx" not in name_to_idx
+            or "stapkt.txpowerindex" not in name_to_idx
+        ):
+            raise ValueError("Not all needed metrics are queried")
+
+        unit_converter = UnitConverter()
+
+        # link_macs_to_beam_power_stats is a dict that maps link mac pairs
+        # (tx_mac, rx_mac) to the power_beam_stats. The power_beam_stats is a
+        # dict with keys of "tx_beam_idx", "rx_beam_idx", "tx_power".
+        link_macs_to_beam_power_stats = {}
+        # tx_mac_to_power_beam maps each node mac to the a list of used tx_power and
+        # tx_beam_idx combinations. Each combination represents a link from this
+        # tx node.
+        tx_mac_to_power_beam = {}
+        for query_return_idx, query_return in enumerate(read_returns.queryReturnList):
+            mac_pair = tuple(link_macs_list[query_return_idx])
+
+            if mac_pair not in link_macs_to_beam_power_stats:
+                link_macs_to_beam_power_stats[mac_pair] = {}
+
+            query_return = query_return.timeSeriesAndKeyList
+            tx_beam_idx_ts = query_return[
+                name_to_idx["phyperiodic.txbeamidx"]
+            ].timeSeries
+            rx_beam_idx_ts = query_return[
+                name_to_idx["phyperiodic.rxbeamidx"]
+            ].timeSeries
+            tx_power_idx_ts = query_return[
+                name_to_idx["stapkt.txpowerindex"]
+            ].timeSeries
+
+            # Currently, the beam index pairs do not change often in the time.
+            # To reduce the computation complexity, we start by using the last slice
+            # of data for interference stats computation.
+            if tx_beam_idx_ts and rx_beam_idx_ts and tx_power_idx_ts:
+                tx_beam_idx = tx_beam_idx_ts[-1].value
+                rx_beam_idx = rx_beam_idx_ts[-1].value
+                tx_power_idx = tx_power_idx_ts[-1].value
+
+                tx_power = unit_converter.tx_power_idx_to_power_dbm(
+                    tx_power_idx, enable_second_array
+                )
+
+                link_macs_to_beam_power_stats[mac_pair] = {
+                    "tx_beam_idx": tx_beam_idx,
+                    "rx_beam_idx": rx_beam_idx,
+                    "tx_power": tx_power,
+                }
+                if mac_pair[0] not in tx_mac_to_power_beam:
+                    tx_mac_to_power_beam[mac_pair[0]] = [[tx_power, tx_beam_idx]]
+                else:
+                    tx_mac_to_power_beam[mac_pair[0]].append([tx_power, tx_beam_idx])
+
+        link_macs_to_interference_stats = self.compute_network_link_interference(
+            link_macs_to_beam_power_stats,
+            pathloss_map,
+            tx_mac_to_power_beam,
+            node_mac_to_polarity,
+            node_mac_to_golay,
+        )
+
+        interference_stats_returns = []
+        for link_macs in link_macs_list:
+            if tuple(link_macs) in link_macs_to_interference_stats:
+                link_interference_stats = link_macs_to_interference_stats[
+                    tuple(link_macs)
+                ]
+            else:
+                link_interference_stats = {}
+
+            interference_stats_returns.append([link_interference_stats])
+
+        return interference_stats_returns
+
+    def compute_network_link_interference(
+        self,
+        link_macs_to_beam_power_stats,
+        pathloss_map,
+        tx_mac_to_power_beam,
+        node_mac_to_polarity,
+        node_mac_to_golay,
+        detection_floor_in_dBm=-30,
+    ):
+        """Compute the interference stats of each link by using the beam index reported
+           by nodes in periodic beamforming. The pathloss of each link, pathloss_map,
+           comes from the IM scan.
+
+           Args:
+           link_macs_to_beam_power_stats: a dict that maps (tx_mac, rx_mac) to dicts
+           with keys of "tx_beam_idx", "rx_beam_idx", "tx_power".
+           pathloss_map: pathloss of all node pairs with all beam index pairs. Computed
+           by using IM scan result, from get_pathloss_from_im_scan() in ScanHandler
+           class.
+           tx_mac_to_power_beam: dict, maps node mac to a list of pairs of tx_power and
+           tx_beam_idx. Each pair corresponds to the report stats from a link with
+           tx_mac as tx node.
+           node_mac_to_polarity: dict, node mac to node polarity.
+           node_mac_to_golay: dict, node mac to node Golay assignments.
+           detection_floor_in_dBm: the minimum signal strength, used to populate the
+           inr, snr, or sinr if no signal can be found.
+
+           Return:
+           link_macs_to_interference_stats: a dict that maps mac pairs (tx_mac, rx_mac)
+           to the interference stats. Interference stats will have keys of "snr",
+           "sinr", "inr", "sinr_pilot", and "inr_pilot".
+        """
+
+        link_macs_to_interference_stats = {}
+
+        for link_macs in link_macs_to_beam_power_stats:
+            tx_mac = link_macs[0]
+            rx_mac = link_macs[1]
+            interference_stats = {}
+            snr = detection_floor_in_dBm
+            # inr absolute value value, not in dB
+            inr_absolute = 0
+            inr_pilot_absolute = 0
+            sinr = detection_floor_in_dBm
+            beam_power_stats = link_macs_to_beam_power_stats[link_macs]
+            reverse_power_stats = link_macs_to_beam_power_stats[rx_mac, tx_mac]
+            if (
+                "tx_power" not in beam_power_stats
+                or "tx_beam_idx" not in beam_power_stats
+                or "rx_beam_idx" not in reverse_power_stats
+            ):
+                continue
+
+            tx_power = beam_power_stats["tx_power"]
+            tx_beam_idx = beam_power_stats["tx_beam_idx"]
+            rx_beam_idx = reverse_power_stats["rx_beam_idx"]
+
+            try:
+                snr = tx_power - pathloss_map[rx_mac][tx_mac][tx_beam_idx, rx_beam_idx]
+            except BaseException as err:
+                logging.warning(
+                    "Link {}->{} ({}, {}) does not have im_scan report".format(
+                        tx_mac, rx_mac, tx_beam_idx, rx_beam_idx
+                    )
+                )
+
+            if rx_mac in pathloss_map:
+                try:
+                    rx_polarity = node_mac_to_polarity[rx_mac]
+                    rx_golay = node_mac_to_golay[rx_mac]["rxGolayIdx"]
+                except BaseException as err:
+                    logging.error(
+                        "Cannot find polarity/Golay for node {}".format(rx_mac)
+                    )
+                    continue
+
+                # Iterate through the possible interferences
+                for interferer_mac in pathloss_map[rx_mac]:
+                    if interferer_mac == tx_mac:
+                        continue
+
+                    try:
+                        interferer_polarity = node_mac_to_polarity[interferer_mac]
+                        interferer_golay = node_mac_to_golay[interferer_mac][
+                            "txGolayIdx"
+                        ]
+                    except BaseException as err:
+                        logging.error(
+                            "Cannot find polarity/Golay for node {}".format(
+                                interferer_mac)
+                        )
+                        continue
+
+                    if interferer_polarity == rx_polarity:
+                        # If the interferer and rx node are of same polarity,
+                        # no interference will be generated
+                        continue
+
+                    interference = detection_floor_in_dBm
+                    interference_pilot = detection_floor_in_dBm
+
+                    # If the interferer can potentially tx, use the link that leads
+                    # to the largest interference. Note this means that the computed
+                    # inr/sinr is the upper/lower bound of the true value.
+                    # (The possible multiple point to single point is not considered
+                    # here.)
+                    if interferer_mac in tx_mac_to_power_beam:
+                        for tx_power, tx_beam_idx in tx_mac_to_power_beam[
+                            interferer_mac
+                        ]:
+                            if (tx_beam_idx, rx_beam_idx) in pathloss_map[rx_mac][
+                                interferer_mac
+                            ]:
+                                logging.info(
+                                    "Data interference: {}->{}, ({}, {})".format(
+                                        interferer_mac, rx_mac, tx_beam_idx, rx_beam_idx
+                                    )
+                                )
+
+                                pathloss_absolute = pathloss_map[rx_mac][
+                                    interferer_mac
+                                ][tx_beam_idx, rx_beam_idx]
+
+                                per_beam_interference = tx_power - pathloss_absolute
+
+                                interference = max(interference, per_beam_interference)
+                                if rx_golay == interferer_golay:
+                                    interference_pilot = max(
+                                        interference_pilot, per_beam_interference
+                                    )
+                                    logging.info(
+                                        "Pilot interference: {}->{}, ({}, {})".format(
+                                            interferer_mac,
+                                            rx_mac,
+                                            tx_beam_idx,
+                                            rx_beam_idx,
+                                        )
+                                    )
+                            else:
+                                continue
+
+                    if interference > detection_floor_in_dBm:
+                        inr_absolute += 10 ** (interference / 10)
+                    if interference_pilot > detection_floor_in_dBm:
+                        inr_pilot_absolute += 10 ** (interference_pilot / 10)
+
+            sinr = 10 * np.log10((10 ** (snr / 10)) / (1 + inr_absolute))
+            sinr_pilot = 10 * np.log10((10 ** (snr / 10)) / (1 + inr_pilot_absolute))
+            if inr_absolute:
+                inr = 10 * np.log10(inr_absolute)
+            else:
+                inr = detection_floor_in_dBm
+
+            if inr_pilot_absolute:
+                inr_pilot = 10 * np.log10(inr_pilot_absolute)
+            else:
+                inr_pilot = detection_floor_in_dBm
+
+            logging.debug(
+                "{}->{} ({}, {}), snr: {}, inr: {}, sinr: {}".format(
+                    tx_mac, rx_mac, tx_beam_idx, rx_beam_idx, snr, inr, sinr
+                )
+            )
+
+            interference_stats = {
+                "snr": snr,
+                "inr": inr,
+                "sinr": sinr,
+                "sinr_pilot": sinr_pilot,
+                "inr_pilot": inr_pilot,
+            }
+            link_macs_to_interference_stats[link_macs] = interference_stats
+
+        return link_macs_to_interference_stats
