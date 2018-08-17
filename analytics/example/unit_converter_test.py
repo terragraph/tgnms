@@ -74,10 +74,7 @@ class TestUnitConverter(unittest.TestCase):
         )
         self.assertEqual(
             self.unit_converter.tx_power_dbm_to_power_idx(
-                self.unit_converter.tx_power_idx_to_power_dbm(
-                    power_idxs[2], True
-                ),
-                True,
+                self.unit_converter.tx_power_idx_to_power_dbm(power_idxs[2], True), True
             ),
             power_idxs[2],
         )

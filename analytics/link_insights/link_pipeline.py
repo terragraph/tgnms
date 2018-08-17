@@ -629,8 +629,7 @@ if __name__ == "__main__":
     elif sys.argv[1] == "link_interference_pipeline":
         job_config = analytics_config["pipelines"]["link_interference_pipeline"]
         link_pipeline.link_interference_pipeline(
-            job_config["sample_duration_in_s"],
-            job_config["source_db_interval"],
+            job_config["sample_duration_in_s"], job_config["source_db_interval"]
         )
     else:
         logging.error("Unknown pipeline")

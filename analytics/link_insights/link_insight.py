@@ -1410,7 +1410,8 @@ class LinkInsight(object):
                     except BaseException as err:
                         logging.error(
                             "Cannot find polarity/Golay for node {}".format(
-                                interferer_mac)
+                                interferer_mac
+                            )
                         )
                         continue
 

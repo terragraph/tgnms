@@ -36,13 +36,10 @@ def cron_run_link_pipeline():
         # Submit a cron job of each pipeline with each topology
         for topology_name in topology_names:
             command = pipeline_jobs[job]["command"].format(PathStore.ANALYTICS_DIR)
-            command += " \"{}\"".format(topology_name)
-            logging.info(
-                "Submitting job with command '{}'".format(command)
-            )
+            command += ' "{}"'.format(topology_name)
+            logging.info("Submitting job with command '{}'".format(command))
             cron_mgmt.schedule_jobs_every_minutes(
-                command,
-                period_in_min=pipeline_jobs[job]["period_in_mins"],
+                command, period_in_min=pipeline_jobs[job]["period_in_mins"]
             )
 
     logging.info("All pipeline jobs submitted")

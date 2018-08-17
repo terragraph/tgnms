@@ -71,8 +71,10 @@ class MySqlDbAccess(object):
 
         except BaseException as err:
             logging.error(
-                ("Error during loading MySQL environment info"
-                 "error {}".format(err.args))
+                (
+                    "Error during loading MySQL environment info"
+                    "error {}".format(err.args)
+                )
             )
             return None
 
@@ -130,12 +132,7 @@ class MySqlDbAccess(object):
 
         return api_service_config
 
-    def read_scan_results(
-        self,
-        network_name,
-        scan_type=None,
-        status_complete=True,
-    ):
+    def read_scan_results(self, network_name, scan_type=None, status_complete=True):
         """Read the scan results from MySQL database.
         Args:
         network_name: topology name, like "tower G".
@@ -171,10 +168,9 @@ class MySqlDbAccess(object):
 
             if status_complete:
                 complete_str = str(ScanFwStatus.COMPLETE)
-                t_fields_str += (" AND tx_scan_results.status={}"
-                                 " AND rx_scan_results.status={}").format(
-                    complete_str, complete_str
-                )
+                t_fields_str += (
+                    " AND tx_scan_results.status={} AND rx_scan_results.status={}"
+                ).format(complete_str, complete_str)
 
             # Find each node's most recent IM scan tx time
             latest_scan_time = (
@@ -188,9 +184,7 @@ class MySqlDbAccess(object):
             ).format(ScanFwStatus.COMPLETE)
 
             sql_string = (
-                "SELECT * "
-                "FROM ({}) AS t_fields "
-                "WHERE t_fields.start_bwgd=({});"
+                "SELECT * FROM ({}) AS t_fields WHERE t_fields.start_bwgd=({});"
             ).format(t_fields_str, latest_scan_time)
 
             logging.debug("Sending SQL query of '{}' to MySQL".format(sql_string))

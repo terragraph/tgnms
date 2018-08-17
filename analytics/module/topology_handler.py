@@ -131,12 +131,16 @@ class TopologyHelper(object):
             for single_node in topology_reply["nodes"]
         }
 
-        node_mac_to_golay = {node["mac_addr"]: node["golay_idx"]
-                             for node in topology_reply["nodes"]
-                             if "golay_idx" in node}
-        node_mac_to_polarity = {node["mac_addr"]: node["polarity"]
-                                for node in topology_reply["nodes"]
-                                if "polarity" in node}
+        node_mac_to_golay = {
+            node["mac_addr"]: node["golay_idx"]
+            for node in topology_reply["nodes"]
+            if "golay_idx" in node
+        }
+        node_mac_to_polarity = {
+            node["mac_addr"]: node["polarity"]
+            for node in topology_reply["nodes"]
+            if "polarity" in node
+        }
 
         # the dict that map name to macs
         # the macs are tuple of [source_node_mac, peer_node_mac]

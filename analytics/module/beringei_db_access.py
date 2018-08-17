@@ -73,7 +73,9 @@ class BeringeiDbAccess(object):
         ]:
             raise ValueError("Unknown http path")
 
-        target_domain = "{}:{}".format(self._bqs_config["hostname"], self._bqs_config["port"])
+        target_domain = "{}:{}".format(
+            self._bqs_config["hostname"], self._bqs_config["port"]
+        )
 
         if self._bqs_config["proxy"]:
             # Enable proxy

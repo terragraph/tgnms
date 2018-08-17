@@ -41,8 +41,9 @@ class TestLinkInsights(unittest.TestCase):
             self.topology_name = list(api_service_config.keys())[0]
         except BaseException as err:
             self.fail(
-                ("Cannot load topology from the api_service. "
-                 "Error: {}").format(err.args)
+                ("Cannot load topology from the api_service. Error: {}").format(
+                    err.args
+                )
             )
 
         logging.info("Using topology of {} for tests".format(self.topology_name))
@@ -390,8 +391,11 @@ class TestLinkInsights(unittest.TestCase):
         stats_key_to_stats = self._extract_network_wide_stats(
             ["foliage_factor"], json_log_name_prefix + "foliage.json"
         )
-        logging.info("The largest foliage_factor among all links is {}".format(
-                     max(stats_key_to_stats["foliage_factor"])))
+        logging.info(
+            "The largest foliage_factor among all links is {}".format(
+                max(stats_key_to_stats["foliage_factor"])
+            )
+        )
 
         # There should be at least 1 link that has foliage factor computed
         self.assertTrue(stats_key_to_stats["foliage_factor"])
@@ -444,13 +448,7 @@ class TestLinkInsights(unittest.TestCase):
         )
 
         foliage_factors = self.link_pipeline.link_insight.compute_link_foliage(
-            read_returns,
-            metric_names,
-            link_macs_list,
-            source_db_interval,
-            6,
-            20,
-            0
+            read_returns, metric_names, link_macs_list, source_db_interval, 6, 20, 0
         )
 
         self.assertTrue(foliage_factors[0][0]["foliage_factor"] > 0.99)
@@ -468,10 +466,7 @@ class TestLinkInsights(unittest.TestCase):
         pathloss_map["rx"]["interferer2"] = {(30, 0): 0}
 
         link_macs_to_beam_power_stats = {}
-        link_macs_to_beam_power_stats["tx", "rx"] = {
-            "tx_beam_idx": 50,
-            "tx_power": 20,
-        }
+        link_macs_to_beam_power_stats["tx", "rx"] = {"tx_beam_idx": 50, "tx_power": 20}
         link_macs_to_beam_power_stats["rx", "tx"] = {
             "tx_beam_idx": 0,
             "rx_beam_idx": 0,
@@ -483,7 +478,7 @@ class TestLinkInsights(unittest.TestCase):
             "rx": 1,
             "interferer0": 0,
             "interferer1": 0,
-            "interferer2": 1
+            "interferer2": 1,
         }
 
         node_mac_to_golay = {
