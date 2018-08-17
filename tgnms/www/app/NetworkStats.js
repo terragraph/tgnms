@@ -47,6 +47,18 @@ const TIME_PICKER_OPTS = [
     label: '3 Days',
     minAgo: 60 * 24 * 3,
   },
+  {
+    label: '1 Week',
+    minAgo: 7 * 60 * 24,
+  },
+  {
+    label: '30 Days',
+    minAgo: 30 * 60 * 24,
+  },
+  {
+    label: '90 Days',
+    minAgo: 90 * 60 * 24,
+  },
 ];
 
 const GRAPH_AGG_OPTS = [
@@ -144,13 +156,12 @@ export default class NetworkStats extends React.Component {
   }
 
   isValidStartDate(date) {
-    // TODO - more dynamic than one fixed week
-    const minDate = moment().subtract(7, 'days');
+    // TODO - more dynamic than 90 fixed days
+    const minDate = moment().subtract(90, 'days');
     return date.toDate() >= minDate.toDate() && date.toDate() < new Date();
   }
 
   isValidEndDate(date) {
-    // TODO - more dynamic than one fixed week
     // TODO - this should be more based on the day since that's the main view
     return date.toDate() >= this.state.startTime && date.toDate() <= new Date();
   }
