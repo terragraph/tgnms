@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-SRC_DIR="beringei/if"
+SRC_DIR=$(dirname "$0")
+SRC_DIR+="/beringei/if"
 DST_DIR=$(dirname "$0")
 
 BERINGEI_DATA_THRIFT="beringei_data.thrift"
