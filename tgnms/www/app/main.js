@@ -10,4 +10,7 @@ import NetworkUI from './NetworkUI.js';
 import ReactDOM from 'react-dom';
 import React from 'react';
 
-ReactDOM.render(<NetworkUI />, document.getElementById('root'));
+ReactDOM.render(
+  <NetworkUI user={window.USER} />,
+  document.getElementById('root'),
+);

@@ -314,6 +314,9 @@ export default class NetworkUI extends React.Component {
               break;
           }
           break;
+        case 'logout':
+          window.location = '/user/logout';
+          break;
       }
     }
   };
@@ -436,6 +439,7 @@ export default class NetworkUI extends React.Component {
           networkConfig={this.state.networkConfig}
           topologies={this.state.topologies}
           view={this.state.view}
+          user={this.props.user}
         />
         <div className="nms-body">{paneComponent}</div>
       </div>

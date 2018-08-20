@@ -18,6 +18,7 @@ const propTypes = {
   networkName: PropTypes.string.isRequired,
   networkConfig: PropTypes.object.isRequired,
   topologies: PropTypes.arrayOf(PropTypes.object).isRequired,
+  user: PropTypes.object,
   view: PropTypes.string.isRequired,
 };
 
@@ -106,6 +107,18 @@ function TopBar(props) {
         <img className="overlay-image" src={'/static/images/overlays.png'} />
         Site/Link Overlays
       </MenuItem>,
+      <Divider key={3} />,
+      <SubMenu
+        title={
+          <div>
+            <span className="glyphicon glyphicon-user" />
+            {props.user ? props.user.email.split('@')[0] : '<N/A>'}
+          </div>
+        }
+        key="user"
+        mode="vertical">
+        <MenuItem key="logout#">Logout</MenuItem>
+      </SubMenu>,
     ];
   }
 

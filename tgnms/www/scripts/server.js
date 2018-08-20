@@ -54,9 +54,10 @@ const store = new SequelizeStore({db: sequelize});
 app.use(
   session({
     // Used to sign the session cookie
+    resave: false,
     secret: sessionSecret,
-    resave: true,
     saveUninitialized: true,
+    unset: 'destroy',
     store,
   }),
 );
@@ -121,6 +122,7 @@ if (devMode) {
 app.get('/', (req, res) => {
   res.render('index', {
     configJson: JSON.stringify(getNetworkInstanceConfig()),
+    userJson: JSON.stringify(req.user),
   });
 });
 
