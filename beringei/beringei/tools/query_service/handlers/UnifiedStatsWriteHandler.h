@@ -22,9 +22,9 @@
 namespace facebook {
 namespace gorilla {
 
-class AggStatsWriteHandler : public proxygen::RequestHandler {
+class UnifiedStatsWriteHandler : public proxygen::RequestHandler {
  public:
-  explicit AggStatsWriteHandler();
+  explicit UnifiedStatsWriteHandler();
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -40,9 +40,16 @@ class AggStatsWriteHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  void writeData(query::UnifiedWriteRequest request);
+  void writeAggData(
+      query::UnifiedWriteRequest request,
+      std::vector<DataPoint>* bRows);
+  void writeNodeData(
+      query::UnifiedWriteRequest request,
+      std::vector<DataPoint>* bRows);
 
-  void writeBeringeiDataPoints(std::vector<DataPoint> bRows, int interval);
+  void formatDataPoint(DataPoint* bRow, query::Stat stat, int keyId);
+
+  void writeBeringeiDataPoints(std::vector<DataPoint>* bRows, int interval);
 
   std::unique_ptr<folly::IOBuf> body_;
 };

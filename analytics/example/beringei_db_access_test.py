@@ -99,11 +99,10 @@ class TestBeringeiDbAccess(unittest.TestCase):
         )
 
         current_time_in_s = time.time()
-        # query_1 is by the Beringei key_id
-        query_key_1 = bq.RawQueryKey(keyId=683696, topologyName=self.topology_name)
+        empty_query_key = bq.RawQueryKey()
 
-        # query_ key2 is by the combination of source_mac, peer_mac, metric_name and
-        # topology_name, and the data is just ended by us
+        # query_key_2 is by the combination of source_mac, peer_mac, metric_name and
+        # topology_name
         query_key_2 = bq.RawQueryKey(
             sourceMac=self.test_source_mac,
             peerMac=self.test_peer_mac,
@@ -111,7 +110,7 @@ class TestBeringeiDbAccess(unittest.TestCase):
             topologyName=self.topology_name,
         )
 
-        query_key_3 = bq.RawQueryKey(keyId=234126, topologyName=self.topology_name)
+        empty_query_key = bq.RawQueryKey()
 
         query_key_with_unknown_mac = bq.RawQueryKey(
             sourceMac="some_non_exisitng_mac",
@@ -131,11 +130,11 @@ class TestBeringeiDbAccess(unittest.TestCase):
 
         query_to_send = bq.RawReadQuery(
             queryKeyList=[
-                query_key_1,
+                empty_query_key,
                 query_key_with_unknown_metric,
                 query_key_2,
                 query_key_with_unknown_mac,
-                query_key_3,
+                empty_query_key,
                 empty_query_key,
             ],
             startTimestamp=int(current_time_in_s - 60 * 60),
@@ -190,7 +189,7 @@ class TestBeringeiDbAccess(unittest.TestCase):
         stat = bq.Stat(key="tower_g.test_key", ts=int(time.time()), value=7654321)
         agg_stats = bq.AggStats(topologyName=self.topology_name, stats=[stat])
         stats_request_to_write = bq.UnifiedWriteRequest(
-            interval=30, aggStats=[agg_stats]
+            intervals=[30], aggStats=[agg_stats]
         )
 
         # Will raise exception if writing fails

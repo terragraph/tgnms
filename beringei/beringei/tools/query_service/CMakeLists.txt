@@ -41,8 +41,8 @@ set(BERINGEI_QUERY_SRCS
 )
 
 set(BERINGEI_QUERY_HANDLER_SRCS
-    handlers/AggStatsWriteHandler.cpp
-    handlers/AggStatsWriteHandler.h
+    handlers/UnifiedStatsWriteHandler.cpp
+    handlers/UnifiedStatsWriteHandler.h
     handlers/LogsWriteHandler.cpp
     handlers/LogsWriteHandler.h
     handlers/NotFoundHandler.cpp

@@ -69,7 +69,7 @@ class BeringeiDbAccess(object):
             "raw_query",
             "binary_stats_writer",
             "binary_stats_typeahead",
-            "stats_writer_v2",
+            "unified_stats_writer",
         ]:
             raise ValueError("Unknown http path")
 
@@ -229,7 +229,7 @@ class BeringeiDbAccess(object):
 
         try:
             self._post_http_request_to_beringei_query_server(
-                stats_to_write, "stats_writer_v2"
+                stats_to_write, "unified_stats_writer"
             )
         except ValueError as err:
             logging.error(err.args)

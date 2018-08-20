@@ -9,7 +9,6 @@
 
 #include "QueryServiceFactory.h"
 
-#include "handlers/AggStatsWriteHandler.h"
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/QueryHandler.h"
@@ -18,6 +17,7 @@
 #include "handlers/StatsTypeAheadHandler.h"
 #include "handlers/StatsWriteHandler.h"
 #include "handlers/TableQueryHandler.h"
+#include "handlers/UnifiedStatsWriteHandler.h"
 
 using folly::EventBase;
 using folly::EventBaseManager;
@@ -69,9 +69,9 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     // The true input indicates that the incoming StatsWriteRequest is
     // serialized by Binary protocol
     return new StatsWriteHandler(true);
-  } else if (path == "/stats_writer_v2"){
-    // Write stats to the Beringei database
-    return new AggStatsWriteHandler();
+  } else if (path == "/unified_stats_writer") {
+    // Write both node stats and aggregate stats to the database
+    return new UnifiedStatsWriteHandler();
   }
 
   // return not found for all other uris

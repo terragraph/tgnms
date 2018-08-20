@@ -238,7 +238,7 @@ struct RawReadQueryRequest {
 // stats and aggregate stats. The aggregate stats can be
 // used for network wide insight writing to Beringei database.
 struct UnifiedWriteRequest {
-  1: i32 interval = 30, /* Target Beringei database interval in seconds */
+  1: list<i32> intervals, /* Target Beringei database interval in seconds */
   2: optional list<NodeStats> nodeStats,
   3: optional list<AggStats> aggStats,
 }
