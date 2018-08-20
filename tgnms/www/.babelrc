@@ -2,9 +2,12 @@
   "ignore": [
     "thrift/**/*.js"
   ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties"
+  ],
   "presets": [
-    "env",
-    "react",
-    "stage-0"
+    "@babel/preset-env",
+    "@babel/preset-flow",
+    "@babel/preset-react"
   ]
 }
