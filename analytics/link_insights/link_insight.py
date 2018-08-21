@@ -116,7 +116,7 @@ class LinkInsight(object):
 
         return query_request_to_send
 
-    def construct_write_request(
+    def construct_node_write_request(
         self,
         computed_stats,
         query_requests_to_send,
@@ -124,8 +124,7 @@ class LinkInsight(object):
         sample_duration_in_s,
         source_db_interval,
         stats_query_timestamp,
-        topology_name,
-        dest_db_interval=30,
+        dest_db_intervals,
         metric_name=None,
     ):
         """Prepare computed link stats request to be send to Beringei Query Server
@@ -142,8 +141,7 @@ class LinkInsight(object):
             means link data of past 1 hour are used to computed the link stats.
         source_db_interval: interval of the Beringei database reading from.
         stats_query_timestamp: the time on which the link stats is computed.
-        topology_name: name of the setup, like "tower G".
-        dest_db_interval: indicates which Beringei database to write to.
+        dest_db_intervals: indicates the Beringei databases to write to.
         metric_name: if provided, will use it as the name prefix of the computed stats.
         (For example, for SNR link mean write request construction, we only want the
         mean computed from the "phystatus.ssnr" not "stapkt.mcs".)
@@ -152,18 +150,15 @@ class LinkInsight(object):
 
         Return:
         stats_to_write: On success, stats to write to the Beringei database,
-                        type StatsWriteRequest. Raise exception on error.
+                        type UnifiedWriteRequest. Raise exception on error.
         """
-        topology = Topology(name=topology_name)
-        if topology is None:
-            raise ValueError("Cannot create topology object")
 
         if len(computed_stats) != len(query_requests_to_send.queries):
             raise ValueError(
                 "Computed stats length does not match that of query_requests"
             )
 
-        query_agents = []
+        node_stats = []
         for query_idx, query in enumerate(query_requests_to_send.queries):
             for key_idx in range(len(computed_stats[query_idx])):
                 query_key = query.queryKeyList[key_idx]
@@ -171,8 +166,6 @@ class LinkInsight(object):
                 peer_mac = query_key.peerMac
                 if metric_name is None:
                     metric_name = query_key.metricName
-                source_site = network_config["node_mac_to_site"][source_mac]
-                source_name = network_config["node_mac_to_name"][source_mac]
                 per_link_stats = computed_stats[query_idx][key_idx]
 
                 if per_link_stats is None:
@@ -198,16 +191,13 @@ class LinkInsight(object):
                         ts=stats_query_timestamp,
                         value=per_link_stats[computed_metric],
                     )
-                    node_state_to_write = bq.NodeStates(
-                        mac=source_mac,
-                        site=source_site,
-                        name=source_name,
-                        stats=[stats_with_key],
+                    node_stat_to_write = bq.NodeStats(
+                        mac=source_mac, stats=[stats_with_key]
                     )
-                    query_agents.append(node_state_to_write)
+                    node_stats.append(node_stat_to_write)
 
-        stats_to_write = bq.StatsWriteRequest(
-            topology=topology, agents=query_agents, interval=dest_db_interval
+        stats_to_write = bq.UnifiedWriteRequest(
+            intervals=dest_db_intervals, nodeStats=node_stats
         )
         return stats_to_write
 
@@ -218,8 +208,7 @@ class LinkInsight(object):
         source_db_interval,
         stats_query_timestamp,
         topology_name,
-        fake_mac,
-        dest_db_interval=30,
+        dest_db_intervals,
     ):
         """Prepare the network stats (aggregate stats) for writing to Beringei database.
 
@@ -230,19 +219,12 @@ class LinkInsight(object):
         source_db_interval: interval of the Beringei database reading from.
         stats_query_timestamp: the time at which the link stats is computed.
         topology_name: name of the setup, like "tower G".
-        dest_db_interval: indicates which Beringei database to write to.
-        fake_mac: a mac in the network, is used to populate the node agent field.
+        dest_db_intervals: indicates the Beringei databases to write to.
 
         Return:
         stats_to_write: On success, stats to write to the Beringei database,
-                        type StatsWriteRequest. Raise exception on error.
+                        type UnifiedWriteRequest. Raise exception on error.
         """
-
-        # TODO:
-        # Currently, use current BQS node stats writing endpoint of StatsWriteRequest.
-        # Once the new aggregate stats write endpoint at BQS is ready. Will move to
-        # the new API.
-
         topology = Topology(name=topology_name)
         if topology is None:
             raise ValueError("Cannot create topology object")
@@ -250,25 +232,24 @@ class LinkInsight(object):
         stats_with_keys = []
         for network_stats_name in network_stats:
             # For each computed network insight, like "num_green_links"
+            key_name = "{}.{}.{}.{}.{}".format(
+                "network",
+                topology_name.lower().replace(" ", "_"),
+                network_stats_name,
+                sample_duration_in_s,
+                source_db_interval,
+            )
             stats_with_key = bq.Stat(
-                key=(
-                    "{}.{}.{}.{}.{}".format(
-                        "network",
-                        topology_name.replace(" ", "_"),
-                        network_stats_name,
-                        sample_duration_in_s,
-                        source_db_interval,
-                    )
-                ),
+                key=key_name,
                 ts=stats_query_timestamp,
                 value=network_stats[network_stats_name],
             )
             stats_with_keys.append(stats_with_key)
 
-        network_stats_agent = bq.NodeStates(mac=fake_mac, stats=stats_with_keys)
+        agg_stat = bq.AggStats(topologyName=topology_name, stats=stats_with_keys)
 
-        stats_to_write = bq.StatsWriteRequest(
-            topology=topology, agents=[network_stats_agent], interval=dest_db_interval
+        stats_to_write = bq.UnifiedWriteRequest(
+            intervals=dest_db_intervals, aggStats=[agg_stat]
         )
 
         return stats_to_write

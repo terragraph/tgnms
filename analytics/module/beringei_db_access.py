@@ -216,12 +216,13 @@ class BeringeiDbAccess(object):
             logging.error(err.args)
             raise ValueError("Fail to write to Beringei database")
 
-    def write_agg_stats_beringei_db(self, stats_to_write):
+    def write_node_and_agg_stats_beringei_db(self, stats_to_write):
         """Send query to Beringei Query Server to write network wide aggregate stats to
         Beringei database.
 
         Args:
-        stats_to_write: list of aggregate stats to write, of type AggStatsWriteRequest.
+        stats_to_write: list of node and aggregate stats to write, of type
+                        UnifiedWriteRequest.
 
         Return:
         void on success. Raise exception on error.

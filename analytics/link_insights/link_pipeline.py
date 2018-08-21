@@ -118,6 +118,7 @@ class LinkPipeline(object):
         stats_query_timestamp,
         json_log_name,
         metric_name,
+        save_to_low_freq_db=False,
     ):
         """Write the computed insights to the Beringei database via BQS.
 
@@ -132,6 +133,8 @@ class LinkPipeline(object):
         window is [stats_query_timestamp - sample_duration_in_s, stats_query_timestamp].
         sample_duration_in_s: sampling duration.
         metric_name: name of the metric key prefix to write back to Beringei database.
+        save_to_low_freq_db: if False save stats to Beringei 30s only; If True, save to
+                             both Beringei 30s and Beringei 900s.
 
         Return:
         void.
@@ -146,17 +149,23 @@ class LinkPipeline(object):
                 stats_query_timestamp,
                 json_log_name,
             )
-        stats_to_write = self.link_insight.construct_write_request(
+
+        if save_to_low_freq_db:
+            dest_db_intervals = [30, 900]
+        else:
+            dest_db_intervals = [30]
+
+        stats_to_write = self.link_insight.construct_node_write_request(
             computed_stats,
             query_request_to_send,
             self.network_config,
             sample_duration_in_s,
             source_db_interval,
             stats_query_timestamp,
-            self.topology_name,
+            dest_db_intervals,
             metric_name=metric_name,
         )
-        self.beringei_db_access.write_beringei_db(stats_to_write)
+        self.beringei_db_access.write_node_and_agg_stats_beringei_db(stats_to_write)
         logging.info("Successfully write back to Beringei")
 
     def _write_network_stats_to_beringei(
@@ -165,6 +174,7 @@ class LinkPipeline(object):
         source_db_interval,
         sample_duration_in_s,
         stats_query_timestamp,
+        save_to_low_freq_db=False,
     ):
         """Write the computed network insight to the Beringei database via BQS.
 
@@ -175,20 +185,17 @@ class LinkPipeline(object):
         sample_duration_in_s: sampling duration of the link stats.
         stats_query_timestamp: The time of the link stats computation. The sampling
         window is [stats_query_timestamp - sample_duration_in_s, stats_query_timestamp].
+        save_to_low_freq_db: if False save stats to Beringei 30s only; If True, save to
+                             both Beringei 30s and Beringei 900s.
 
         Return:
         void.
         """
 
-        # TODO: Currently, construct_network_stats_write_request() will re-use the node
-        # stats write endpoint (StatsWriteHandler) before the new aggregate stats
-        # write handler at BQS is ready. To workaround the node mac, we will use the
-        # source_mac of the first link. Update construct_network_stats_write_request()
-        # once the aggregate stats write handler is landed.
-        if self.link_macs_list:
-            fake_mac = self.link_macs_list[0][0]
+        if save_to_low_freq_db:
+            dest_db_intervals = [30, 900]
         else:
-            raise ValueError("There is no link in the network")
+            dest_db_intervals = [30]
 
         network_write_request = self.link_insight.construct_network_stats_write_request(
             network_stats,
@@ -196,10 +203,12 @@ class LinkPipeline(object):
             source_db_interval,
             stats_query_timestamp,
             self.topology_name,
-            fake_mac,
+            dest_db_intervals,
         )
 
-        self.beringei_db_access.write_beringei_db(network_write_request)
+        self.beringei_db_access.write_node_and_agg_stats_beringei_db(
+            network_write_request
+        )
         logging.info("Successfully write network stats to Beringei")
 
     def link_mean_variance_pipeline(

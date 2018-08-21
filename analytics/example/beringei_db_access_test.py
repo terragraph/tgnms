@@ -184,7 +184,7 @@ class TestBeringeiDbAccess(unittest.TestCase):
         else:
             raise ValueError("None return")
 
-    def test_wrtie_agg_stats_beringei(self):
+    def test_write_node_and_agg_stats_beringei_db(self):
         logging.info("This is an example to write aggregate stats to Beringei database")
         stat = bq.Stat(key="tower_g.test_key", ts=int(time.time()), value=7654321)
         agg_stats = bq.AggStats(topologyName=self.topology_name, stats=[stat])
@@ -193,7 +193,9 @@ class TestBeringeiDbAccess(unittest.TestCase):
         )
 
         # Will raise exception if writing fails
-        self.beringei_db_access.write_agg_stats_beringei_db(stats_request_to_write)
+        self.beringei_db_access.write_node_and_agg_stats_beringei_db(
+            stats_request_to_write
+        )
 
 
 if __name__ == "__main__":
