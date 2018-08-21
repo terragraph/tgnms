@@ -20,8 +20,8 @@
             "latitude": 37.4848280435154,
             "longitude": -122.1472245455607,
             "zoom_level": 18,
-            "controller_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52",
-            "aggregator_ip": "2620:10d:c089:e00c:250:c2ff:fec9:9c52"
+            "controller_ip": "2620:10d:c089:ee04:250:56ff:fea8:2af6",
+            "aggregator_ip": "2620:10d:c089:ee04:250:56ff:fea8:2af6"
         },
         {
             "topology_file": "lab_f8_d.json",
