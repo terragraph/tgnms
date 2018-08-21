@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const {DEFAULT_API_SERVICE_PORT} = require('../config');
+const {DEFAULT_API_SERVICE_PORT, PROXY_ENABLED} = require('../config');
 const {
   BinaryStarFsmState,
 } = require('../../thrift/gen-nodejs/Controller_types');
@@ -66,6 +66,10 @@ function getPeerAPIServiceHost(topologyConfig, peerType) {
     return null;
   }
 
+  if (PROXY_ENABLED && isIp.v6(controllerIp)) {
+    // special case, proxy doesn't handle ipv6 addresses correctly
+    return `http://[[${controllerIp}]]:${DEFAULT_API_SERVICE_PORT}`;
+  }
   return isIp.v6(controllerIp)
     ? `http://[${controllerIp}]:${DEFAULT_API_SERVICE_PORT}`
     : `http://${controllerIp}:${DEFAULT_API_SERVICE_PORT}`;

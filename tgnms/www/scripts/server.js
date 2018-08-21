@@ -38,7 +38,7 @@ const logger = require('../server/log')(module);
 import access from '../server/middleware/access';
 
 const devMode = process.env.NODE_ENV !== 'production';
-const port = devMode && process.env.PORT ? process.env.PORT : 80;
+const port = process.env.PORT ? process.env.PORT : 80;
 const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
 
 const app = express();

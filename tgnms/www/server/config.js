@@ -12,9 +12,12 @@ const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 const LOGIN_ENABLED = process.env.LOGIN_ENABLED || false;
 
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
+const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
+
+const PROXY_ENABLED = process.env.http_proxy && process.env.http_proxy.length;
 
 const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086';
 
@@ -39,9 +42,11 @@ module.exports = {
   LOG_LEVEL,
   LOGIN_ENABLED,
   MYSQL_HOST,
+  MYSQL_PORT,
   MYSQL_USER,
   MYSQL_PASS,
   MYSQL_DB,
+  PROXY_ENABLED,
   BERINGEI_QUERY_URL,
   NETWORK_CONFIG_DEFAULT,
   NETWORK_CONFIG_INSTANCES_PATH,
