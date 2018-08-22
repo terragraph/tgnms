@@ -14,6 +14,7 @@
 #include "TopologyStore.h"
 
 #include <curl/curl.h>
+#include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>

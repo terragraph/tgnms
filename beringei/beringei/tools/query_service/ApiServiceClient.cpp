@@ -14,5 +14,16 @@ namespace gorilla {
 
 ApiServiceClient::ApiServiceClient() {}
 
+std::string
+ApiServiceClient::formatAddress(const std::string& address) {
+  try {
+    auto ipAddr = folly::IPAddress(address);
+    if (ipAddr.isV6()) {
+      return folly::sformat("[{}]", address);
+    }
+  } catch (const folly::IPAddressFormatException& ex) {}
+  return address;
+}
+
 } // namespace gorilla
 } // namespace facebook

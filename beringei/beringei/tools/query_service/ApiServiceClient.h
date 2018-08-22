@@ -65,7 +65,7 @@ class ApiServiceClient {
       // TODO: make this handle v4/6
       std::string endpoint = folly::sformat(
           "http://{}:{}/{}",
-          topologyConfig->api_ip,
+          formatAddress(topologyConfig->api_ip),
           topologyConfig->api_port,
           url);
       VLOG(1) << "API service fetch to " << endpoint << " with post data " <<
@@ -109,6 +109,9 @@ class ApiServiceClient {
 
     return returnStruct;
   }
+private:
+  std::string formatAddress(const std::string& address);
+
 };
 } // namespace gorilla
 } // namespace facebook
