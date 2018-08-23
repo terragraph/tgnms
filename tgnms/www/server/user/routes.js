@@ -92,18 +92,26 @@ router.put('/:id', access(SUPERUSER), async (req, res) => {
     }
 
     // Create object to pass into update()
-    const allowedProps = ['password', 'role'];
+    const allowedProps = ['password', 'superUser'];
     const userPropsToUpdate = {};
 
     for (const prop of allowedProps) {
       if (body.hasOwnProperty(prop)) {
-        if (prop === 'password') {
-          // Hash the password if we are changing the password
-          const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
-          const passwordHash = await bcrypt.hash(body[prop], salt);
-          userPropsToUpdate[prop] = passwordHash;
-        } else {
-          userPropsToUpdate[prop] = body[prop];
+        switch (prop) {
+          case 'password':
+            // Hash the password if we are changing the password
+            const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
+            const passwordHash = await bcrypt.hash(body[prop], salt);
+            userPropsToUpdate[prop] = passwordHash;
+            break;
+
+          case 'superUser':
+            userPropsToUpdate.role = body.superUser ? SUPERUSER : USER;
+            break;
+
+          default:
+            userPropsToUpdate[prop] = body[prop];
+            break;
         }
       }
     }

@@ -28,7 +28,9 @@ const MODAL_STYLE = {
 
 export default class UserModal extends React.Component {
   state = {
-    isSuperUser: false,
+    isSuperUser: this.props.editingUser
+      ? this.props.editingUser.role != 0
+      : false,
   };
 
   constructor(props) {
@@ -42,17 +44,33 @@ export default class UserModal extends React.Component {
     if (
       this.passwordRef.current.value !== this.passwordConfirmRef.current.value
     ) {
-      return swal({
+      swal({
         title: 'Passwords must match',
         type: 'error',
       });
+      return;
     }
 
-    if (!this.passwordRef.current.value || !this.emailRef.current.value) {
-      return swal({
+    if (
+      (!this.props.editingUser && !this.passwordRef.current.value) ||
+      !this.emailRef.current.value
+    ) {
+      swal({
         title: 'Email or password cannot be empty',
         type: 'error',
       });
+      return;
+    }
+
+    if (this.props.editingUser) {
+      axios
+        .put('/user/' + this.props.editingUser.id, {
+          email: this.emailRef.current.value,
+          password: this.passwordRef.current.value,
+          superUser: this.state.isSuperUser,
+        })
+        .then(response => this.props.onSave(response.data.user));
+      return;
     }
 
     axios
@@ -72,7 +90,14 @@ export default class UserModal extends React.Component {
     return (
       <Modal style={MODAL_STYLE} isOpen={this.props.shown}>
         <div className="add-user-modal">
-          <input ref={this.emailRef} placeholder="email" />
+          <input
+            ref={this.emailRef}
+            placeholder="email"
+            disabled={this.props.editingUser}
+            defaultValue={
+              this.props.editingUser ? this.props.editingUser.email : ''
+            }
+          />
           <input
             ref={this.passwordRef}
             placeholder="password"
@@ -104,6 +129,7 @@ export default class UserModal extends React.Component {
 }
 
 UserModal.propTypes = {
+  editingUser: PropTypes.object,
   shown: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,

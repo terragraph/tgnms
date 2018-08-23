@@ -8,10 +8,12 @@
 import axios from 'axios';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import React from 'react';
+import swal from 'sweetalert';
 import UserModal from './UserModal.js';
 
 export default class UsersSettings extends React.Component {
   state = {
+    editingUser: null,
     isSuperUser: false,
     showModal: false,
     users: null,
@@ -21,6 +23,26 @@ export default class UsersSettings extends React.Component {
     axios
       .get('/user/')
       .then(response => this.setState({users: response.data.users}));
+  }
+
+  deleteUser(user) {
+    swal(
+      {
+        confirmButtonColor: '#DD6B55',
+        confirmButtonText: 'Yes!',
+        showCancelButton: true,
+        text: 'You are about to delete ' + user.email,
+        title: 'Are you sure?',
+        type: 'warning',
+      },
+      () => {
+        axios.delete('/user/' + user.id).then(response =>
+          this.setState({
+            users: this.state.users.filter(u => u.id != user.id),
+          }),
+        );
+      },
+    );
   }
 
   render() {
@@ -50,6 +72,31 @@ export default class UsersSettings extends React.Component {
           dataFormat={(cell, row) => (cell == 0 ? 'User' : 'Super User')}>
           Role
         </TableHeaderColumn>
+        <TableHeaderColumn
+          dataField=""
+          editable={false}
+          dataFormat={(cell, row) => {
+            return (
+              <span>
+                <a
+                  role="link"
+                  tabindex="0"
+                  onClick={() => this.deleteUser(row)}>
+                  Delete
+                </a>
+                |
+                <a
+                  role="link"
+                  tabindex="0"
+                  onClick={() =>
+                    this.setState({editingUser: row, showModal: true})
+                  }>
+                  Edit
+                </a>
+              </span>
+            );
+          }}
+        />
       </BootstrapTable>
     );
 
@@ -65,13 +112,20 @@ export default class UsersSettings extends React.Component {
         </h3>
         {usersTable}
         <UserModal
+          key={this.state.editingUser ? this.state.editingUser.id : 'new_user'}
           shown={this.state.showModal}
-          onClose={() => this.setState({showModal: false})}
+          editingUser={this.state.editingUser}
+          onClose={() => this.setState({editingUser: null, showModal: false})}
           onSave={user =>
             this.setState(state => {
               const users = state.users.slice(0);
-              users.push(user);
-              return {showModal: false, users};
+              if (state.editingUser) {
+                const index = users.indexOf(state.editingUser);
+                users[index] = user;
+              } else {
+                users.push(user);
+              }
+              return {editingUser: null, showModal: false, users};
             })
           }
         />
