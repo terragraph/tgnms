@@ -26,6 +26,7 @@
     "d3-time-format": "^2.0.3",
     "diff": "^3.4.0",
     "dom-helpers": "^3.3.1",
+    "dotenv": "^6.0.0",
     "encoding": "^0.1.12",
     "equals": "^1.0.5",
     "express-http-proxy": "^1.2.0",

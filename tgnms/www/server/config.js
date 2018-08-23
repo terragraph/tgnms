@@ -7,6 +7,8 @@
 const fs = require('fs');
 const {join, resolve} = require('path');
 
+require('dotenv').config();
+
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 // NOTE: Login is disabled by default until its deployed publicly
 const LOGIN_ENABLED = process.env.LOGIN_ENABLED || false;
