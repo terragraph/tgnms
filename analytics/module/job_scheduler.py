@@ -20,6 +20,7 @@ class JobScheduler(object):
     def schedule_periodic_jobs(
         self,
         job_to_send,
+        low_freq_db_period,
         period_in_s=60 * 5,
         num_of_jobs_to_submit=10,
         offset_time_in_s=0,
@@ -58,11 +59,26 @@ class JobScheduler(object):
                 period_in_s,
             )
         )
+
+        job_input_save_both_dbs = {"save_to_low_freq_db": True}
+        job_input_save_high = {"save_to_low_freq_db": False}
+
+        if job_input is not None:
+            for arg_name in job_input:
+                job_input_save_both_dbs[arg_name] = job_input[arg_name]
+                job_input_save_high[arg_name] = job_input[arg_name]
+
+        time_sinced_saved_to_low_freq_db = low_freq_db_period
         for delay in job_delays:
-            if job_input is None:
-                self.s.enter(delay, priority, job_to_send)
+            if time_sinced_saved_to_low_freq_db < low_freq_db_period:
+                self.s.enter(delay, priority, job_to_send, kwargs=job_input_save_high)
             else:
-                self.s.enter(delay, priority, job_to_send, tuple(job_input))
+                time_sinced_saved_to_low_freq_db -= low_freq_db_period
+                self.s.enter(
+                    delay, priority, job_to_send, kwargs=job_input_save_both_dbs
+                )
+
+            time_sinced_saved_to_low_freq_db += period_in_s
         logging.info(
             "{} jobs entered queue with period of {} s, offset {} s".format(
                 len(job_delays), period_in_s, offset_time_in_s

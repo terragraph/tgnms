@@ -61,6 +61,21 @@ class LinkPipeline(object):
         logging.info("LinkPipeline object created")
 
         instance.scan_handler = ScanHandler()
+
+        try:
+            with open(PathStore.ANALYTICS_CONFIG_FILE) as config_file:
+                analytics_config = json.load(config_file)
+            instance.intervals_both_dbs = [
+                analytics_config["periodic_jobs"]["high_freq_db_period"],
+                analytics_config["periodic_jobs"]["low_freq_db_period"],
+            ]
+            instance.intervals_high_freq_db = [
+                analytics_config["periodic_jobs"]["high_freq_db_period"]
+            ]
+        except BaseException as err:
+            logging.error("Cannot find db setting {}".format(err.args))
+            return None
+
         return instance
 
     def _read_beringei(
@@ -151,9 +166,9 @@ class LinkPipeline(object):
             )
 
         if save_to_low_freq_db:
-            dest_db_intervals = [30, 900]
+            dest_db_intervals = self.intervals_both_dbs
         else:
-            dest_db_intervals = [30]
+            dest_db_intervals = self.intervals_high_freq_db
 
         stats_to_write = self.link_insight.construct_node_write_request(
             computed_stats,
@@ -193,9 +208,9 @@ class LinkPipeline(object):
         """
 
         if save_to_low_freq_db:
-            dest_db_intervals = [30, 900]
+            dest_db_intervals = self.intervals_both_dbs
         else:
-            dest_db_intervals = [30]
+            dest_db_intervals = self.intervals_high_freq_db
 
         network_write_request = self.link_insight.construct_network_stats_write_request(
             network_stats,
@@ -218,6 +233,7 @@ class LinkPipeline(object):
         source_db_interval=30,
         dump_to_json=False,
         json_log_name_prefix="sample_log_",
+        save_to_low_freq_db=False,
     ):
         """
         Read link stats from BQS and compute link stats. Currently compute mean
@@ -233,6 +249,8 @@ class LinkPipeline(object):
         If False, don't save to json.
         json_log_name_prefix: prefix of the output json log file, only used
         if dump_to_json.
+        save_to_low_freq_db: if False save stats to Beringei 30s only; If True, save to
+                             both Beringei 30s and Beringei 900s.
 
         Return:
         Void.
@@ -268,6 +286,7 @@ class LinkPipeline(object):
                 stats_query_timestamp,
                 json_log_name_prefix + "link_mean_variance.json",
                 None,
+                save_to_low_freq_db=save_to_low_freq_db,
             )
         except ValueError as err:
             logging.error(
@@ -287,6 +306,7 @@ class LinkPipeline(object):
         source_db_interval=30,
         dump_to_json=False,
         json_log_name_prefix="sample_log_",
+        save_to_low_freq_db=False,
     ):
         """
         Read link stats from BQS and compute link insights on traffic.
@@ -301,6 +321,8 @@ class LinkPipeline(object):
                       If False, don't save to json.
         json_log_name_prefix: prefix of the output json log file, only used
                               if dump_to_json.
+        save_to_low_freq_db: if False save stats to Beringei 30s only; If True, save to
+                             both Beringei 30s and Beringei 900s.
 
         Return:
         Void.
@@ -340,6 +362,7 @@ class LinkPipeline(object):
                 stats_query_timestamp,
                 json_log_name_prefix + "traffic.json",
                 "traffic",
+                save_to_low_freq_db=save_to_low_freq_db,
             )
         except ValueError as err:
             logging.error(
@@ -361,6 +384,7 @@ class LinkPipeline(object):
         amber_cutoff_ratio=0.75,
         dump_to_json=False,
         json_log_name_prefix="sample_available_",
+        save_to_low_freq_db=False,
     ):
         """
         Compute the link available time using the link "stapkt.linkavailable" counters.
@@ -411,6 +435,7 @@ class LinkPipeline(object):
                 stats_query_timestamp,
                 json_log_name_prefix + "available.json",
                 "health",
+                save_to_low_freq_db=save_to_low_freq_db,
             )
 
             # Compute the network wide link health stats
@@ -427,6 +452,7 @@ class LinkPipeline(object):
                 source_db_interval,
                 sample_duration_in_s,
                 stats_query_timestamp,
+                save_to_low_freq_db=save_to_low_freq_db,
             )
 
         except ValueError as err:
@@ -451,12 +477,13 @@ class LinkPipeline(object):
         minimum_var=0,
         dump_to_json=False,
         json_log_name_prefix="sample_foliage_",
+        save_to_low_freq_db=False,
     ):
         """
         Calculate the level of covariance between forward link and reverse
         link of each link.
         """
-        logging.info("Running the link pathloss offset pipeline")
+        logging.info("Running the link foliage offset pipeline")
         if source_db_interval != 1:
             logging.warning("The foliage pipeline expects database with 1s")
 
@@ -492,6 +519,7 @@ class LinkPipeline(object):
                 stats_query_timestamp,
                 json_log_name_prefix + "foliage.json",
                 "foliage",
+                save_to_low_freq_db=save_to_low_freq_db,
             )
 
             # Compute the network wide link foliage stats
@@ -505,6 +533,7 @@ class LinkPipeline(object):
                 source_db_interval,
                 sample_duration_in_s,
                 stats_query_timestamp,
+                save_to_low_freq_db=save_to_low_freq_db,
             )
 
         except ValueError as err:
@@ -525,6 +554,7 @@ class LinkPipeline(object):
         source_db_interval=30,
         dump_to_json=False,
         json_log_name_prefix="sample_interference_",
+        save_to_low_freq_db=False,
     ):
         """
         Calculate the snr, inr, sinr of each link based on the pathloss (via IM scan)
@@ -578,6 +608,7 @@ class LinkPipeline(object):
                 stats_query_timestamp,
                 json_log_name_prefix + "interference.json",
                 "interference",
+                save_to_low_freq_db=save_to_low_freq_db,
             )
 
         except ValueError as err:

@@ -66,15 +66,17 @@ void UnifiedStatsWriteHandler::formatDataPoint(
 void UnifiedStatsWriteHandler::writeBeringeiDataPoints(
     std::vector<DataPoint>* bRows,
     int interval) {
+  std::vector<DataPoint> bRowsCopy = *bRows;
   // Insert data points to Beringei database
-  if (!bRows->empty()) {
-    LOG(INFO) << "Begin entering " << bRows->size()
+  if (!bRowsCopy.empty()) {
+    LOG(INFO) << "Begin entering " << bRowsCopy.size()
               << " rows of data points to Beringei database";
     auto beringeiClientStore = BeringeiClientStore::getInstance();
     auto beringeiClient = beringeiClientStore->getWriteClient(interval);
     folly::EventBase eb;
-    eb.runInLoop([this, beringeiClient, bRows]() mutable {
-      auto pushedPoints = beringeiClient->putDataPoints(*bRows);
+    eb.runInLoop([this, beringeiClient, &bRowsCopy]() mutable {
+      // After exec putDataPoints, bRowsCopy will be invalid
+      auto pushedPoints = beringeiClient->putDataPoints(bRowsCopy);
       if (!pushedPoints) {
         LOG(ERROR) << "Failed to perform the put!";
       }

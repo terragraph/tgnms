@@ -81,7 +81,7 @@ class TopologyHelper(object):
         # Proxy should not be used in current design
         os.environ["NO_PROXY"] = target_domain
 
-        url_to_post = "http://{}:{}/".format(
+        url_to_post = "http://[{}]:{}/".format(
             self._api_service_config["hostname"], self._api_service_config["port"]
         )
         url_to_post += "api/getTopology"

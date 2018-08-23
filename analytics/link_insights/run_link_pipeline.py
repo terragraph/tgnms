@@ -9,19 +9,28 @@ import logging
 import json
 import time
 
-from link_pipeline import LinkPipeline
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from link_insights.link_pipeline import LinkPipeline
 from module.job_scheduler import JobScheduler
 from module.path_store import PathStore
 from module.mysql_db_access import MySqlDbAccess
 
 
-def print_current_unix_time():
+def print_current_unix_time(save_to_low_freq_db=False):
+    """
+    save_to_low_freq_db: a flag to tell whether the job output at the timepoint
+                         will be saved to only high freq db (False); Or will be
+                         saved to both high and low freq dbs (True).
+    """
     logging.info("This job is exec-ed at unix_time of {}".format(time.time()))
 
+    if save_to_low_freq_db:
+        logging.info("The insight output are saved to both Beringei 30s and 900s dbs")
 
-def run_link_pipeline(topology_names, max_run_time_in_s, period_in_s):
+
+def run_link_pipeline(
+    topology_names, max_run_time_in_s, period_in_s, low_freq_db_period
+):
     """ Run the link insights pipelines.
 
         Args:
@@ -44,6 +53,7 @@ def run_link_pipeline(topology_names, max_run_time_in_s, period_in_s):
     # python process when fail to initialize link pipeline.
     job_scheduler.schedule_periodic_jobs(
         print_current_unix_time,
+        low_freq_db_period=low_freq_db_period,
         period_in_s=period_in_s,
         num_of_jobs_to_submit=num_of_jobs_to_submit,
     )
@@ -60,31 +70,42 @@ def run_link_pipeline(topology_names, max_run_time_in_s, period_in_s):
             # Schedule the jobs for link mean and variance
             job_scheduler.schedule_periodic_jobs(
                 link_pipeline.link_mean_variance_pipeline,
+                low_freq_db_period=low_freq_db_period,
                 period_in_s=period_in_s,
                 num_of_jobs_to_submit=num_of_jobs_to_submit,
-                job_input=[["phystatus.ssnrest", "stapkt.txpowerindex", "stapkt.mcs"]],
+                job_input={
+                    "metric_names": [
+                        "phystatus.ssnrest",
+                        "stapkt.txpowerindex",
+                        "stapkt.mcs",
+                    ]
+                },
             )
             # Schedule the jobs for traffic stats
             job_scheduler.schedule_periodic_jobs(
                 link_pipeline.traffic_stats_pipeline,
+                low_freq_db_period=low_freq_db_period,
                 period_in_s=period_in_s,
                 num_of_jobs_to_submit=num_of_jobs_to_submit,
             )
             # Schedule the jobs for link health stats
             job_scheduler.schedule_periodic_jobs(
                 link_pipeline.link_health_pipeline,
+                low_freq_db_period=low_freq_db_period,
                 period_in_s=period_in_s,
                 num_of_jobs_to_submit=num_of_jobs_to_submit,
             )
             # Schedule the jobs for foliage stats
             job_scheduler.schedule_periodic_jobs(
-                link_pipeline.foliage_pipeline,
+                link_pipeline.link_foliage_pipeline,
+                low_freq_db_period=low_freq_db_period,
                 period_in_s=period_in_s,
                 num_of_jobs_to_submit=num_of_jobs_to_submit,
             )
             # Schedule the jobs for link interference stats
             job_scheduler.schedule_periodic_jobs(
                 link_pipeline.link_interference_pipeline,
+                low_freq_db_period=low_freq_db_period,
                 period_in_s=period_in_s,
                 num_of_jobs_to_submit=num_of_jobs_to_submit,
             )
@@ -114,7 +135,10 @@ if __name__ == "__main__":
 
         max_run_time_in_s = analytics_config["periodic_jobs"]["max_run_time_in_s"]
         period_in_s = analytics_config["periodic_jobs"]["period_in_s"]
+        low_freq_db_period = analytics_config["periodic_jobs"]["low_freq_db_period"]
 
-        run_link_pipeline(topology_names, max_run_time_in_s, period_in_s)
+        run_link_pipeline(
+            topology_names, max_run_time_in_s, period_in_s, low_freq_db_period
+        )
     except BaseException as err:
         logging.error("Fail to schedule periodic jobs. Error: {}".format(err.args))

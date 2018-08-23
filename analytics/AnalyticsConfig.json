@@ -9,7 +9,9 @@
   },
   "periodic_jobs": {
     "max_run_time_in_s": 432000,
-    "period_in_s": 180
+    "period_in_s": 180,
+    "high_freq_db_period": 30,
+    "low_freq_db_period": 900
   },
   "pipelines": {
     "link_mean_variance_pipeline": {
