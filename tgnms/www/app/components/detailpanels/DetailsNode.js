@@ -185,7 +185,6 @@ export default class DetailsNode extends React.Component {
   }
 
   deleteNode(force) {
-    const forceDelete = force ? 'force' : 'no_force';
     const {node, topologyName, links} = this.props;
     const ethernetLinks = Object.values(links).filter(link => {
       return (
@@ -213,6 +212,7 @@ export default class DetailsNode extends React.Component {
       () => {
         return new Promise((resolve, reject) => {
           const data = {
+            force,
             nodeName: node.name,
           };
           apiServiceRequest(topologyName, 'delNode', data)
