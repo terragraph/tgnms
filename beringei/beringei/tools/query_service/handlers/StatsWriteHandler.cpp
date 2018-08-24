@@ -95,7 +95,6 @@ int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
 }
 
 void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
-  std::unordered_map<std::string, query::MySqlNodeData> unknownNodes;
   std::unordered_map<int64_t, std::unordered_set<std::string>> missingNodeKey;
   std::vector<DataPoint> bRows;
 
@@ -108,11 +107,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
   for (const auto& agent : request.agents) {
     auto nodeId = mySqlClient->getNodeId(agent.mac);
     if (!nodeId) {
-      query::MySqlNodeData newNode;
-      newNode.mac = agent.mac;
-      newNode.network = request.topology.name;
-      unknownNodes[newNode.mac] = newNode;
-      LOG(INFO) << "Unknown mac: " << agent.mac;
+      LOG(INFO) << "Dropping report for unknown mac: " << agent.mac;
       continue;
     }
 
@@ -143,13 +138,12 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
       }
     }
   }
-  // write newly found macs and node/key combos
+  // write new keys to mysql
   // TODO: in the future, add a guard of the maximum number of allowed keys
-  if (!unknownNodes.empty() || !missingNodeKey.empty()) {
+  if (!missingNodeKey.empty()) {
     auto mySqlClient = MySqlClient::getInstance();
-    mySqlClient->addOrUpdateNodes(unknownNodes);
     mySqlClient->addStatKeys(missingNodeKey);
-    LOG(INFO) << "Ran addOrUpdateNodes/addStatKeys, refreshing";
+    LOG(INFO) << "Ran addStatKeys, refreshing";
     mySqlClient->refreshAll();
   }
 
