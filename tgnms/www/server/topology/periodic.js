@@ -9,7 +9,6 @@ const {
   getNetworkInstanceConfig,
   refreshNetworkHealth,
   refreshRuckusControllerCache,
-  refreshSelfTestData,
   refreshStatsTypeaheadCache,
   scheduleScansUpdate,
   scheduleTopologyUpdate,
@@ -46,7 +45,6 @@ function startPeriodicTasks() {
   }
 
   runNowAndSchedule(refreshHealthData, HEALTH_REFRESH_INTERVAL);
-  runNowAndSchedule(refreshSelfTestCache, TYPEAHEAD_REFRESH_INTERVAL);
   // start poll request interval for topology/statis
   runNowAndSchedule(
     scheduleTopologyUpdate,
@@ -73,15 +71,6 @@ function refreshHealthData() {
     );
     refreshNetworkHealth(configName);
     refreshAnalyzerData(configName);
-  });
-}
-
-function refreshSelfTestCache() {
-  logger.debug('periodic: refreshing self-test cache');
-  const allConfigs = getAllTopologyNames();
-  allConfigs.forEach(configName => {
-    logger.debug('periodic: refreshing self-test for %s', configName);
-    refreshSelfTestData(configName);
   });
 }
 

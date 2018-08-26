@@ -103,32 +103,6 @@ export default class NetworkUI extends React.Component {
       });
   };
 
-  // see self_test in server.js
-  getSelfTestResults(networkName, filter) {
-    if (
-      filter &&
-      filter.hasOwnProperty('filterType') &&
-      filter.hasOwnProperty('testtime')
-    ) {
-      axios
-        .get(
-          '/self_test?topology=' +
-            networkName +
-            '&filter[filterType]=' +
-            filter.filterType +
-            '&filter[testtime]=' +
-            filter.testtime,
-        )
-        .then(response => {
-          Dispatcher.dispatch({
-            actionType: Actions.SELF_TEST_REFRESHED,
-            selfTestResults: response.data,
-          });
-        })
-        .catch(_error => {});
-    }
-  }
-
   handleDispatchEvent = payload => {
     switch (payload.actionType) {
       case Actions.VIEW_SELECTED:
@@ -173,9 +147,6 @@ export default class NetworkUI extends React.Component {
         this.setState({
           pendingTopology: payload.topology,
         });
-        break;
-      case Actions.SELF_TEST_FETCH:
-        this.getSelfTestResults(this.state.networkName, payload.filter);
         break;
     }
   };

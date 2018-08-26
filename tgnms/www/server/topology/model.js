@@ -322,18 +322,6 @@ function refreshNetworkHealth(topologyName) {
   );
 }
 
-function refreshSelfTestData(topologyName) {
-  // !!!!self test does not have network name - need to add it !!!!
-  if (!configByName.hasOwnProperty(topologyName)) {
-    logger.error('self_test: Unknown topology %s', topologyName);
-    return;
-  }
-  const filter = {
-    filterType: 'GROUPS',
-  };
-  dataJson.readSelfTestResults(topologyName, null, filter);
-}
-
 const worker = cp.fork(join(__dirname, 'worker.js'));
 
 function scheduleTopologyUpdate() {
@@ -473,7 +461,6 @@ module.exports = {
   getTopologyByName,
   refreshNetworkHealth,
   refreshRuckusControllerCache,
-  refreshSelfTestData,
   reloadInstanceConfig,
   scheduleScansUpdate,
   scheduleTopologyUpdate,

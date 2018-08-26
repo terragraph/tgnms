@@ -484,25 +484,6 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
     display:inline-block;
 }
 
-.tr-warning {
-  background: #e5bbff;
-}
-.tr-marginal {
-  background: #feffbe;
-}
-.tr-healthy {
-  background: #b9d7ff;
-}
-.tr-excellent {
-  background: #e0ffac;
-}
-.tr-not-tested {
-  background: #c9c9c9;
-}
-.tr-other {
-  background: #fe6767;
-}
-
 .data-table-tab-list {
   align-items: center;
   border-top: 1px solid #e0e0e0;

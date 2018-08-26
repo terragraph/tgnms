@@ -126,14 +126,6 @@ router.post(/\/scan_results$/i, (req, res) => {
   dataJson.readScanResults(topologyName, res, req.body);
 });
 
-router.get(/\/self_test$/i, (req, res) => {
-  const topologyName = req.query.topology;
-  const filter = {};
-  filter.filterType = req.query.filter.filterType;
-  filter.testtime = req.query.filter.testtime;
-  dataJson.readSelfTestResults(topologyName, res, filter);
-});
-
 // raw stats data
 router.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];

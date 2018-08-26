@@ -19,7 +19,6 @@ import {Actions} from './constants/NetworkConstants.js';
 import {DEFAULT_DASHBOARD_NAMES} from './constants/NetworkDashboardsConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import PropTypes from 'prop-types';
-import Select from 'react-select';
 import React from 'react';
 import CustomTable from './components/common/CustomTable.js';
 import {SortDirection} from 'react-virtualized';
@@ -27,178 +26,6 @@ import {SortDirection} from 'react-virtualized';
 const SECONDS_HOUR = 60 * 60;
 const SECONDS_DAY = SECONDS_HOUR * 24;
 const INVALID_VALUE = 255;
-
-const selfTestTableDescriptionInit = {
-  from_node: {
-    title: 'From',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'link',
-  },
-  to_node: {
-    title: 'To',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'link',
-  },
-  scuba_link: {
-    title: 'Scuba',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'dashboard',
-  },
-  wireless_hop_count: {
-    title: 'Hop Count',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'wireless_hop_count',
-  },
-  health_tag: {
-    title: 'Health Tag',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'healthiness',
-  },
-  distance: {
-    title: 'Distance',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'distance',
-  },
-  per: {
-    title: 'PER (%)',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'iperf_PER_avg',
-  },
-  mcs_p90: {
-    title: 'MCS P90',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'mcs_p90',
-  },
-  mcs_avg: {
-    title: 'MCS avg',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'mcs_avg',
-  },
-  mcs_std: {
-    title: 'MCS std',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'mcs_std',
-  },
-  tx_power: {
-    title: 'txPower',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'txPowerAvg',
-  },
-  snr: {
-    title: 'SNR',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'snrAvg',
-  },
-  avg: {
-    title: 'Avg (Mbit/s)',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'iperf_avg',
-  },
-  std: {
-    title: 'Std (Mbit/s)',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'iperf_std',
-  },
-  min: {
-    title: 'Min (Mbit/s)',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'iperf_min',
-  },
-  max: {
-    title: 'Max (Mbit/s)',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'iperf_max',
-  },
-  time: {
-    title: 'unix time',
-    hidden: true,
-    iskey: false,
-    width: 125,
-    sqlfield: 'time',
-  },
-  // name field always hidden, used to show link on the map
-  name: {
-    title: 'link name',
-    hidden: false,
-    iskey: true,
-    width: 125,
-    sqlfield: 'link',
-  },
-};
-
-const selfTestTableDescriptionIperfUdp = {
-  from_node: {hidden: false},
-  to_node: {hidden: false},
-  wireless_hop_count: {hidden: true},
-  scuba_link: {hidden: false},
-  health_tag: {hidden: false},
-  distance: {hidden: false},
-  per: {hidden: false},
-  mcs_p90: {hidden: false},
-  mcs_avg: {hidden: false},
-  mcs_std: {hidden: false},
-  tx_power: {hidden: false},
-  snr: {hidden: false},
-  avg: {hidden: false},
-  std: {hidden: false},
-  min: {hidden: false},
-  max: {hidden: false},
-  time: {hidden: true},
-  name: {hidden: true},
-};
-
-const selfTestTableDescriptionMultiHop = {
-  from_node: {hidden: false},
-  to_node: {hidden: false},
-  wireless_hop_count: {hidden: false},
-  scuba_link: {hidden: true},
-  health_tag: {hidden: true},
-  distance: {hidden: true},
-  per: {hidden: true},
-  mcs_p90: {hidden: true},
-  mcs_avg: {hidden: true},
-  mcs_std: {hidden: true},
-  tx_power: {hidden: true},
-  snr: {hidden: true},
-  avg: {hidden: false},
-  std: {hidden: true},
-  min: {hidden: true},
-  max: {hidden: true},
-  time: {hidden: true},
-  name: {hidden: true},
-};
 
 export default class NetworkLinksTable extends React.Component {
   linksByName = {};
@@ -215,19 +42,6 @@ export default class NetworkLinksTable extends React.Component {
     showAnalyzer: false,
     sortBy: null,
     sortDirection: SortDirection.ASC,
-    showSelfTest: false,
-    selfTestResults: NetworkStore.selfTestResults,
-    selfTestGroups: NetworkStore.selfTestGroups,
-    selfTestButton: null,
-    selfTestFilter: null,
-    selfTestTableDescription: selfTestTableDescriptionInit,
-
-    // for react-select
-    removeSelected: false,
-    disabled: false,
-    stayOpen: false,
-    value: undefined,
-    rtl: false,
   };
 
   eventChartColumns = [
@@ -378,8 +192,6 @@ export default class NetworkLinksTable extends React.Component {
     this.linkSortFunc = this.linkSortFunc.bind(this);
     this.getTableRows = this.getTableRows.bind(this);
     this.getTableRowsAnalyzer = this.getTableRowsAnalyzer.bind(this);
-    this.getTableRowsSelfTest = this.getTableRowsSelfTest.bind(this);
-    this.handleSelectChange = this.handleSelectChange.bind(this);
   }
 
   componentDidMount() {
@@ -388,31 +200,6 @@ export default class NetworkLinksTable extends React.Component {
       this.handleDispatchEvent.bind(this),
     );
   }
-
-  updateSelfTestButton(selfTestGroups) {
-    const selfTestButton = [];
-    selfTestGroups.forEach(selfTestGroup => {
-      const row = {};
-      if (!selfTestGroup || !selfTestGroup.test_tag) {
-        console.log('ERROR: no results or test_tag field');
-        return;
-      }
-      const runtime = new Date(Number(selfTestGroup.time) * 1000);
-      const dateText = runtime.toString();
-      row.label = selfTestGroup.test_tag + ' ' + dateText;
-      row.value = selfTestGroup.time;
-      row.testtag = selfTestGroup.test_tag;
-      selfTestButton.push(row);
-    });
-    return selfTestButton;
-  }
-
-  // componentDidMount() {
-  //   if (this.selfTestGroups) {
-  //     const selfTestButton = this.updateSelfTestButton(this.selfTestGroups);
-  //     this.setState({selfTestButton: selfTestButton});
-  //   }
-  // }
 
   componentWillUnmount() {
     // un-register once hidden
@@ -473,42 +260,6 @@ export default class NetworkLinksTable extends React.Component {
           analyzerTable: payload.analyzerTable,
         });
         break;
-      case Actions.SELF_TEST_REFRESHED:
-        if (payload.selfTestResults.filter.filterType === 'GROUPS') {
-          const selfTestButton = this.updateSelfTestButton(
-            payload.selfTestResults.results,
-          );
-          this.setState({
-            selfTestGroups: payload.selfTestResults.results,
-            selfTestButton,
-          });
-        } else if (
-          payload.selfTestResults.filter.testtime !== 'mostrecentiperfudp'
-        ) {
-          const selfTestTableDescription = this.state.selfTestTableDescription;
-          const testtag = this.state.selfTestFilter.testtag;
-          if (testtag === 'iperf_udp' || testtag === 'iperf_udp_tcp') {
-            Object.keys(selfTestTableDescription).map(key => {
-              selfTestTableDescription[key].hidden =
-                selfTestTableDescriptionIperfUdp[key].hidden;
-            });
-          } else if (testtag === 'multihop') {
-            Object.keys(selfTestTableDescription).map(key => {
-              selfTestTableDescription[key].hidden =
-                selfTestTableDescriptionMultiHop[key].hidden;
-            });
-          } else {
-            Object.keys(selfTestTableDescription).map(key => {
-              selfTestTableDescription[key].hidden = true;
-            });
-            selfTestTableDescription.name.hidden = false;
-          }
-
-          this.setState({
-            selfTestResults: payload.selfTestResults.results,
-            selfTestTableDescription,
-          });
-        }
     }
   }
 
@@ -700,135 +451,6 @@ export default class NetworkLinksTable extends React.Component {
       });
     });
     return rows;
-  }
-
-  getTableRowsSelfTest(): Array<{
-    name: string,
-    a_node_name: string,
-    z_node_name: string,
-    alive: boolean,
-  }> {
-    const tablerows = [];
-    if (this.state.selfTestResults) {
-      const temp = this.state.selfTestResults;
-      temp.forEach(row => {
-        const tablerow = [];
-        Object.keys(this.state.selfTestTableDescription).map(key => {
-          if (
-            row.hasOwnProperty(
-              this.state.selfTestTableDescription[key].sqlfield,
-            )
-          ) {
-            // from_to is in the format "<from node>__<to node>" and "to node"
-            // is "pop" for the multiphop test
-            const fromNode = row[
-              this.state.selfTestTableDescription.from_node.sqlfield
-            ].split('__')[0];
-            const toNode = row[
-              this.state.selfTestTableDescription.to_node.sqlfield
-            ].split('__')[1];
-            if (key === 'from_node') {
-              tablerow[key] = fromNode;
-            } else if (key === 'to_node') {
-              tablerow[key] = toNode;
-            } else if (key === 'name') {
-              // we don't know if the link name is link-A-B or link-B-A so
-              // try both
-              let linkName = 'link-' + fromNode + '-' + toNode;
-              if (this.linksByName.hasOwnProperty(linkName)) {
-                tablerow[key] = linkName;
-              } else {
-                linkName = 'link-' + toNode + '-' + fromNode;
-                tablerow[key] = linkName;
-              }
-            } else {
-              tablerow[key] =
-                row[this.state.selfTestTableDescription[key].sqlfield];
-            }
-          }
-        });
-        tablerows.push(tablerow);
-      });
-      if (this.state.selfTestResults.length === 0) {
-        const tablerow = [];
-        tablerow.name =
-          "please select a self-test from the dropdown, then select 'fetch self-test results'";
-        tablerows.push(tablerow);
-      }
-    }
-    return tablerows;
-  }
-
-  handleSelectChange(value) {
-    let testtag = '';
-
-    for (let i = 0; i < this.state.selfTestButton.length; i++) {
-      if (this.state.selfTestButton[i].value === value) {
-        testtag = this.state.selfTestButton[i].testtag;
-        break;
-      }
-    }
-    const selfTestFilter = {
-      filterType: 'TESTRESULTS',
-      testtime: value,
-      testtag,
-    };
-    this.setState({
-      value,
-      selfTestFilter,
-    });
-  }
-
-  renderSelectButton() {
-    const {disabled, stayOpen, value} = this.state;
-
-    if (this.state.selfTestGroups.length > 0) {
-      return (
-        <div
-          style={
-            this.state.showSelfTest ? {display: 'block'} : {display: 'none'}
-          }>
-          <Select
-            name="form-field-name"
-            className="selectButtonClass"
-            closeOnSelect={!stayOpen}
-            value={value}
-            onChange={this.handleSelectChange}
-            options={this.state.selfTestButton}
-            disabled={disabled}
-            placeholder="Select self-test from list"
-            removeSelected={this.state.removeSelected}
-            rtl={this.state.rtl}
-            simpleValue
-          />
-          &nbsp;
-          <button
-            className={'graph-button-fetch'}
-            onClick={btn => {
-              Dispatcher.dispatch({
-                actionType: Actions.SELF_TEST_FETCH,
-                filter: this.state.selfTestFilter,
-              });
-            }}>
-            fetch self-test results
-          </button>
-          <button
-            className={'graph-button-fetch'}
-            onClick={btn => {
-              Dispatcher.dispatch({
-                actionType: Actions.SELF_TEST_FETCH,
-                filter: {filterType: 'GROUPS', testtime: 'notused'},
-              });
-            }}>
-            refresh self-test list
-          </button>
-        </div>
-      );
-    } else if (this.state.showSelfTest) {
-      return 'no results';
-    } else {
-      return;
-    }
   }
 
   tableOnRowSelect(row, isSelected) {
@@ -1083,36 +705,6 @@ export default class NetworkLinksTable extends React.Component {
     }
   }
 
-  // this creates a link to a Scuba dashboard
-  renderDashboardLinkSelfTest(cell, row) {
-    const a_node_name = row.from_node;
-    const z_node_name = row.to_node;
-    // if the field doesn't exist, don't display the link
-    if (
-      !this.nodesByName.hasOwnProperty(a_node_name) ||
-      !this.nodesByName.hasOwnProperty(z_node_name)
-    ) {
-      return;
-    }
-
-    let scubaURL = '';
-    for (const i in row.scuba_link.data) {
-      scubaURL += String.fromCharCode(row.scuba_link.data[i]);
-    }
-    const odsURL = this.renderODSLink(a_node_name, z_node_name);
-
-    return (
-      <span>
-        <a href={scubaURL} target="_new">
-          (Scuba)
-        </a>
-        <a href={odsURL} target="_new">
-          (ODS)
-        </a>
-      </span>
-    );
-  }
-
   renderAlivePerc(cell, row) {
     let cellColor = 'red';
     let cellText = '-';
@@ -1216,69 +808,10 @@ export default class NetworkLinksTable extends React.Component {
     });
   }
 
-  trClassFormat(row, rowIndex) {
-    // row is the current row data
-    if (row.health_tag) {
-      if (row.health_tag.toLowerCase().includes('warning')) {
-        return 'tr-warning';
-      } else if (row.health_tag.toLowerCase().includes('marginal')) {
-        return 'tr-marginal';
-      } else if (row.health_tag.toLowerCase().includes('healthy')) {
-        return 'tr-healthy';
-      } else if (row.health_tag.toLowerCase().includes('excellent')) {
-        return 'tr-excellent';
-      } else if (row.health_tag.toLowerCase().includes('not')) {
-        return 'tr-not-tested';
-      } else {
-        return 'tr-other';
-      }
-    }
-  }
-
   renderLinksTable() {
     let adjustedHeight = this.props.height - 40;
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
     const selected = this.state.selectedLink ? [this.state.selectedLink] : [];
-
-    if (this.state.showSelfTest) {
-      const selfTestColumns = Object.keys(
-        this.state.selfTestTableDescription,
-      ).map(key => {
-        const column = this.state.selfTestTableDescription[key];
-        return {
-          label: column.title,
-          key,
-          isKey: column.iskey,
-          width: column.width,
-          sort: true,
-          filter: true,
-          hidden: column.hidden,
-          render:
-            key === 'scuba_link'
-              ? this.renderDashboardLinkSelfTest.bind(this)
-              : (cell, row) => <span> {cell} </span>,
-        };
-      });
-      return (
-        <CustomTable
-          rowHeight={40}
-          headerHeight={this.headerHeight}
-          height={adjustedHeight - 45}
-          overscanRowCount={this.overscanRowCount}
-          columns={selfTestColumns}
-          data={this.getTableRowsSelfTest()}
-          sortBy={this.state.sortBy}
-          sortDirection={this.state.sortDirection}
-          onRowSelect={row => this.tableOnRowSelect(row)}
-          onSortChange={(sortBy, sortDirection) =>
-            this.onSortChange(sortBy, sortDirection)
-          }
-          selected={selected}
-          striped={false}
-          trClassName={this.trClassFormat}
-        />
-      );
-    }
 
     let rowHeight = 50;
     let columns = this.defaultChartColumns;
@@ -1322,7 +855,6 @@ export default class NetworkLinksTable extends React.Component {
     this.updateMappings(this.props.topology);
     // render display with or without events chart
     const linksTable = this.renderLinksTable();
-    const selectButton = this.renderSelectButton();
     let fbinternal = false;
     if (this.props.instance.hasOwnProperty('fbinternal')) {
       fbinternal = this.props.instance.fbinternal;
@@ -1361,7 +893,6 @@ export default class NetworkLinksTable extends React.Component {
               this.setState({
                 showAnalyzer: false,
                 showEventsChart: !this.state.showEventsChart,
-                showSelfTest: false,
               })
             }>
             Show Link Events
@@ -1376,33 +907,10 @@ export default class NetworkLinksTable extends React.Component {
               this.setState({
                 showAnalyzer: true,
                 showEventsChart: false,
-                showSelfTest: false,
               })
             }>
             Link Stats
           </button>
-          {fbinternal ? (
-            <button
-              className={
-                this.state.showSelfTest
-                  ? 'graph-button graph-button-selected'
-                  : 'graph-button'
-              }
-              onClick={btn => {
-                this.setState({
-                  showSelfTest: true,
-                  showEventsChart: false,
-                  showAnalyzer: false,
-                });
-                Dispatcher.dispatch({
-                  actionType: Actions.SELF_TEST_FETCH,
-                  filter: {filterType: 'GROUPS', testtime: 'notused'},
-                });
-              }}>
-              Self Test
-            </button>
-          ) : null}
-          {selectButton}
           {linksTable}
         </li>
       </ul>

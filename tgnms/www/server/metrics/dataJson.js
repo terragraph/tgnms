@@ -41,8 +41,6 @@ const self = {
   nodeNameToNode: {},
   scanResults: {},
   nodeToNodeName: {},
-  selfTestColumnNames: [],
-  selfTestGroups: {},
   txColumnNames: [],
   rxColumnNames: [],
 
@@ -81,8 +79,6 @@ const self = {
         columnObj = self.txColumnNames;
       } else if (tableName === 'rx_scan_results') {
         columnObj = self.rxColumnNames;
-      } else if (tableName === 'terragraph_network_analyzer') {
-        columnObj = self.selfTestColumnNames;
       } else {
         logger.error('ERROR!! unexpected table name');
         return;
@@ -94,66 +90,6 @@ const self = {
 
       if (sendResult) {
         res.send(columnObj).end(); // send column names
-      }
-    });
-  },
-
-  readSelfTestResults(network, res, filter) {
-    const mysqlQueryRes = {};
-
-    // filterType is either TESTRESULTS or GROUPS
-    if (!filter.hasOwnProperty('filterType')) {
-      logger.error('filterType missing from filter');
-      return;
-    }
-
-    if (
-      filter.filterType === 'TESTRESULTS' &&
-      !filter.hasOwnProperty('testtime')
-    ) {
-      logger.error('testtime missing from filter');
-      return;
-    }
-
-    let queryCmd = '';
-    const queryArgs = [];
-    if (filter.filterType === 'GROUPS') {
-      queryCmd =
-        'SELECT time, test_tag FROM terragraph_network_analyzer GROUP BY ' +
-        'time DESC, test_tag limit 50';
-    } else if (filter.filterType === 'TESTRESULTS') {
-      if (filter.testtime === 'mostrecentiperfudp') {
-        const querySubCmd =
-          'SELECT time FROM terragraph_network_analyzer WHERE test_tag=? ' +
-          'ORDER BY time DESC limit 1';
-        queryCmd =
-          'SELECT * FROM terragraph_network_analyzer WHERE time=(' +
-          querySubCmd +
-          ')';
-        queryArgs.push('iperf_udp');
-      } else {
-        queryCmd = 'SELECT * FROM terragraph_network_analyzer WHERE time=?';
-        queryArgs.push(filter.testtime);
-      }
-    } else {
-      logger.error('invalid filterType %s', filter.filterType);
-      return;
-    }
-
-    const query = pool.query(queryCmd, queryArgs, (err, results) => {
-      if (err) {
-        logger.error('DB error (%s) %s', query.sql, err);
-        return;
-      }
-      // put the filter used into the results so we'll know what the
-      // current fetch corresponds to
-      mysqlQueryRes.results = results;
-      mysqlQueryRes.filter = filter;
-      if (res) {
-        res.send(mysqlQueryRes).end();
-      }
-      if (filter.filterType === 'GROUPS') {
-        self.selfTestGroups = results;
       }
     });
   },
