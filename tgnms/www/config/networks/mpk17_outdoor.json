@@ -1,355 +1,1345 @@
 {
-  "name": "outdoor MPK 17 F8",
-  "nodes": [
+  "config" : {
+    "channel" : 2
+  },
+  "links" : [
     {
-        "name": "15-47.p1",
-        "mac_addr": "38:3A:21:B0:07:B0",
-        "site_name": "1547",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "38:3a:21:b0:0d:2d",
+      "a_node_name" : "15-42.p1",
+      "control_superframe" : 0,
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-42.p1-15-43.s2",
+      "z_node_mac" : "38:3a:21:b0:0e:e9",
+      "z_node_name" : "15-43.s2"
     },
     {
-        "name": "15-47.s2",
-        "mac_addr": "38:3A:21:B0:07:F1",
-        "site_name": "1547",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "2c:dc:ad:2f:ea:96",
+      "a_node_name" : "15-31.p3",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-31.p3-15-47.s3",
+      "z_node_mac" : "38:3a:21:b0:0f:67",
+      "z_node_name" : "15-47.s3"
     },
     {
-        "name": "15-47.s1",
-        "mac_addr": "38:3A:21:B0:05:9F",
-        "site_name": "1547",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 2,
-          "rxGolayIdx": 2
-        }
+      "a_node_mac" : "38:3a:21:b0:0f:67",
+      "a_node_name" : "15-47.s3",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s3-15-48.p3",
+      "z_node_mac" : "2c:dc:ad:2f:eb:44",
+      "z_node_name" : "15-48.p3"
     },
     {
-        "name": "15-46.s2",
-        "mac_addr": "38:3A:21:B0:08:CC",
-        "site_name": "1546",
-        "pop_node": false,
-        "polarity": 2,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "2c:dc:ad:2f:ea:7e",
+      "a_node_name" : "15-28.p2",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-28.p2-15-32.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:93",
+      "z_node_name" : "15-32.s1"
     },
     {
-        "name": "15-46.s1",
-        "mac_addr": "38:3A:21:B0:10:B3",
-        "site_name": "1546",
-        "pop_node": false,
-        "polarity": 2,
-        "golay_idx": {
-          "txGolayIdx": 2,
-          "rxGolayIdx": 2
-        }
+      "a_node_mac" : "38:3a:21:b0:12:30",
+      "a_node_name" : "corner17.p1",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-corner17.p1-medical.p1",
+      "z_node_mac" : "38:3a:21:b0:11:e2",
+      "z_node_name" : "medical.p1"
     },
     {
-        "name": "15-46.p1",
-        "mac_addr": "38:3A:21:B0:07:81",
-        "site_name": "1546",
-        "pop_node": true,
-        "polarity": 2,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "2c:dc:ad:1d:dd:9a",
+      "a_node_name" : "14-3_win1.cn1",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-14-3_win1.cn1-medical.s2",
+      "z_node_mac" : "38:3a:21:b0:10:d3",
+      "z_node_name" : "medical.s2"
     },
     {
-        "name": "15-43.s1",
-        "mac_addr": "38:3A:21:B0:04:F7",
-        "site_name": "1543",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "2c:dc:ad:1d:dd:28",
+      "a_node_name" : "15-28.p1",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-28.p1-15-32.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:93",
+      "z_node_name" : "15-32.s1"
     },
     {
-        "name": "15-43.s2",
-        "mac_addr": "38:3A:21:B0:08:95",
-        "site_name": "1543",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 2,
-          "rxGolayIdx": 2
-        }
+      "a_node_mac" : "38:3a:21:b0:0f:91",
+      "a_node_name" : "15-29.s1",
+      "is_alive" : false,
+      "link_type" : 1,
+      "linkup_attempts" : 108,
+      "name" : "link-15-29.s1-15-30.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:13",
+      "z_node_name" : "15-30.s1"
     },
     {
-        "name": "15-43.p1",
-        "mac_addr": "38:3A:21:B0:0E:32",
-        "site_name": "1543",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "38:3a:21:b0:0f:93",
+      "a_node_name" : "15-32.s1",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-32.s1-corner17.s2",
+      "z_node_mac" : "38:3a:21:b0:0f:47",
+      "z_node_name" : "corner17.s2"
     },
     {
-        "name": "18-9.s1",
-        "mac_addr": "38:3A:21:B0:05:29",
-        "site_name": "189",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "38:3a:21:b0:12:0c",
+      "a_node_name" : "15-32.p1",
+      "control_superframe" : 1,
+      "is_alive" : false,
+      "link_type" : 1,
+      "linkup_attempts" : 109,
+      "name" : "link-15-32.p1-15-42.s2",
+      "z_node_mac" : "38:3a:21:b0:10:23",
+      "z_node_name" : "15-42.s2"
     },
     {
-        "name": "18-9.p1",
-        "mac_addr": "38:3A:21:B0:0C:C1",
-        "site_name": "189",
-        "pop_node": false,
-        "polarity": 1,
-        "golay_idx": {
-          "txGolayIdx": 2,
-          "rxGolayIdx": 2
-        }
+      "a_node_mac" : "38:3a:21:b0:0f:c5",
+      "a_node_name" : "15-42.s1",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-42.s1-15-47.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:07",
+      "z_node_name" : "15-47.s1"
     },
     {
-        "name": "15-39.s1",
-        "mac_addr": "38:3A:21:B0:04:E5",
-        "site_name": "1539",
-        "pop_node": false,
-        "polarity": 2,
-        "golay_idx": {
-          "txGolayIdx": 2,
-          "rxGolayIdx": 2
-        }
+      "a_node_mac" : "38:3a:21:b0:10:c5",
+      "a_node_name" : "15-46.s2",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-46.s2-15-47.p1",
+      "z_node_mac" : "38:3a:21:b0:0e:7d",
+      "z_node_name" : "15-47.p1"
     },
     {
-        "name": "15-39.p1",
-        "mac_addr": "38:3A:21:B0:0C:A9",
-        "site_name": "1539",
-        "pop_node": false,
-        "polarity": 2,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "38:3a:21:b0:0f:67",
+      "a_node_name" : "15-47.s3",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s3-15-49.p1",
+      "z_node_mac" : "38:3a:21:b0:03:ae",
+      "z_node_name" : "15-49.p1"
     },
     {
-        "name": "15-42.s1",
-        "mac_addr": "38:3A:21:B0:05:2B",
-        "site_name": "1542",
-        "pop_node": false,
-        "polarity": 2,
-        "golay_idx": {
-          "txGolayIdx": 2,
-          "rxGolayIdx": 2
-        }
+      "a_node_mac" : "38:3a:21:b0:11:e2",
+      "a_node_name" : "medical.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-medical.p1-medical.s2",
+      "z_node_mac" : "38:3a:21:b0:10:d3",
+      "z_node_name" : "medical.s2"
     },
     {
-        "name": "15-42.p1",
-        "mac_addr": "38:3A:21:B0:06:4F",
-        "site_name": "1542",
-        "pop_node": false,
-        "polarity": 2,
-        "golay_idx": {
-          "txGolayIdx": 1,
-          "rxGolayIdx": 1
-        }
+      "a_node_mac" : "38:3a:21:b0:12:30",
+      "a_node_name" : "corner17.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-corner17.p1-corner17.s1",
+      "z_node_mac" : "38:3a:21:b0:10:dd",
+      "z_node_name" : "corner17.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:12:30",
+      "a_node_name" : "corner17.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-corner17.p1-corner17.s2",
+      "z_node_mac" : "38:3a:21:b0:0f:47",
+      "z_node_name" : "corner17.s2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:10:dd",
+      "a_node_name" : "corner17.s1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-corner17.s1-corner17.s2",
+      "z_node_mac" : "38:3a:21:b0:0f:47",
+      "z_node_name" : "corner17.s2"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:c4",
+      "a_node_name" : "15-29.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-29.p1-15-29.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:91",
+      "z_node_name" : "15-29.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0d:a8",
+      "a_node_name" : "15-30.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-30.p1-15-30.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:13",
+      "z_node_name" : "15-30.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:12:0c",
+      "a_node_name" : "15-32.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-32.p1-15-32.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:93",
+      "z_node_name" : "15-32.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0d:2d",
+      "a_node_name" : "15-42.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-42.p1-15-42.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:c5",
+      "z_node_name" : "15-42.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0d:2d",
+      "a_node_name" : "15-42.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-42.p1-15-42.s2",
+      "z_node_mac" : "38:3a:21:b0:10:23",
+      "z_node_name" : "15-42.s2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0f:c5",
+      "a_node_name" : "15-42.s1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-42.s1-15-42.s2",
+      "z_node_mac" : "38:3a:21:b0:10:23",
+      "z_node_name" : "15-42.s2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0d:33",
+      "a_node_name" : "15-43.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-43.p1-15-43.s1",
+      "z_node_mac" : "38:3a:21:b0:10:83",
+      "z_node_name" : "15-43.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:12:75",
+      "a_node_name" : "15-46.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-46.p1-15-46.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:11",
+      "z_node_name" : "15-46.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:12:75",
+      "a_node_name" : "15-46.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-46.p1-15-46.s2",
+      "z_node_mac" : "38:3a:21:b0:10:c5",
+      "z_node_name" : "15-46.s2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0f:11",
+      "a_node_name" : "15-46.s1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-46.s1-15-46.s2",
+      "z_node_mac" : "38:3a:21:b0:10:c5",
+      "z_node_name" : "15-46.s2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0e:7d",
+      "a_node_name" : "15-47.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.p1-15-47.s2",
+      "z_node_mac" : "38:3a:21:b0:0e:68",
+      "z_node_name" : "15-47.s2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0e:7d",
+      "a_node_name" : "15-47.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.p1-15-47.s1",
+      "z_node_mac" : "38:3a:21:b0:0f:07",
+      "z_node_name" : "15-47.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0e:7d",
+      "a_node_name" : "15-47.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.p1-15-47.s3",
+      "z_node_mac" : "38:3a:21:b0:0f:67",
+      "z_node_name" : "15-47.s3"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0f:07",
+      "a_node_name" : "15-47.s1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s1-15-47.s2",
+      "z_node_mac" : "38:3a:21:b0:0e:68",
+      "z_node_name" : "15-47.s2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0e:68",
+      "a_node_name" : "15-47.s2",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s2-15-47.s3",
+      "z_node_mac" : "38:3a:21:b0:0f:67",
+      "z_node_name" : "15-47.s3"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0f:07",
+      "a_node_name" : "15-47.s1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s1-15-47.s3",
+      "z_node_mac" : "38:3a:21:b0:0f:67",
+      "z_node_name" : "15-47.s3"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:03:ae",
+      "a_node_name" : "15-49.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-49.p1-15-49.s1",
+      "z_node_mac" : "38:3a:21:b0:10:47",
+      "z_node_name" : "15-49.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0e:89",
+      "a_node_name" : "18-9.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-18-9.p1-18-9.s1",
+      "z_node_mac" : "74:6f:f7:ca:1a:f8",
+      "z_node_name" : "18-9.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0d:a8",
+      "a_node_name" : "15-30.p1",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-30.p1-15-49.s1",
+      "z_node_mac" : "38:3a:21:b0:10:47",
+      "z_node_name" : "15-49.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0e:68",
+      "a_node_name" : "15-47.s2",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s2-17-3_win1.cn1",
+      "z_node_mac" : "38:3a:21:b0:0d:93",
+      "z_node_name" : "17-3_win1.cn1"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:6a",
+      "a_node_name" : "15-31.p1",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-31.p1-15-47.s3",
+      "z_node_mac" : "38:3a:21:b0:0f:67",
+      "z_node_name" : "15-47.s3"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0f:67",
+      "a_node_name" : "15-47.s3",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s3-15-48.p1",
+      "z_node_mac" : "2c:dc:ad:28:e6:83",
+      "z_node_name" : "15-48.p1"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:c4",
+      "a_node_name" : "15-29.p1",
+      "control_superframe" : 0,
+      "is_alive" : false,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-29.p1-15-32.p1",
+      "z_node_mac" : "38:3a:21:b0:12:0c",
+      "z_node_name" : "15-32.p1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0f:67",
+      "a_node_name" : "15-47.s3",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-47.s3-15-48.p2",
+      "z_node_mac" : "2c:dc:ad:1d:dd:2e",
+      "z_node_name" : "15-48.p2"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:d0",
+      "a_node_name" : "15-31.p2",
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-31.p2-15-47.s3",
+      "z_node_mac" : "38:3a:21:b0:0f:67",
+      "z_node_name" : "15-47.s3"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0e:e9",
+      "a_node_name" : "15-43.s2",
+      "control_superframe" : 1,
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-43.s2-15-46.p1",
+      "z_node_mac" : "38:3a:21:b0:12:75",
+      "z_node_name" : "15-46.p1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:12:75",
+      "a_node_name" : "15-46.p1",
+      "control_superframe" : 0,
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 0,
+      "name" : "link-15-46.p1-18-9.s1",
+      "z_node_mac" : "74:6f:f7:ca:1a:f8",
+      "z_node_name" : "18-9.s1"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:0d:33",
+      "a_node_name" : "15-43.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-43.p1-15-43.s2",
+      "z_node_mac" : "38:3a:21:b0:0e:e9",
+      "z_node_name" : "15-43.s2"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:28",
+      "a_node_name" : "15-28.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-28.p1-15-28.p2",
+      "z_node_mac" : "2c:dc:ad:2f:ea:7e",
+      "z_node_name" : "15-28.p2"
+    },
+    {
+      "a_node_mac" : "38:3a:21:b0:10:83",
+      "a_node_name" : "15-43.s1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-43.s1-15-43.s2",
+      "z_node_mac" : "38:3a:21:b0:0e:e9",
+      "z_node_name" : "15-43.s2"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:6a",
+      "a_node_name" : "15-31.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-31.p1-15-31.p3",
+      "z_node_mac" : "2c:dc:ad:2f:ea:96",
+      "z_node_name" : "15-31.p3"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:6a",
+      "a_node_name" : "15-31.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-31.p1-15-31.p2",
+      "z_node_mac" : "2c:dc:ad:1d:dd:d0",
+      "z_node_name" : "15-31.p2"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:28:e6:83",
+      "a_node_name" : "15-48.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-48.p1-15-48.p3",
+      "z_node_mac" : "2c:dc:ad:2f:eb:44",
+      "z_node_name" : "15-48.p3"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:28:e6:83",
+      "a_node_name" : "15-48.p1",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-48.p1-15-48.p2",
+      "z_node_mac" : "2c:dc:ad:1d:dd:2e",
+      "z_node_name" : "15-48.p2"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:d0",
+      "a_node_name" : "15-31.p2",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-31.p2-15-31.p3",
+      "z_node_mac" : "2c:dc:ad:2f:ea:96",
+      "z_node_name" : "15-31.p3"
+    },
+    {
+      "a_node_mac" : "2c:dc:ad:1d:dd:2e",
+      "a_node_name" : "15-48.p2",
+      "is_alive" : true,
+      "link_type" : 2,
+      "linkup_attempts" : 0,
+      "name" : "link-15-48.p2-15-48.p3",
+      "z_node_mac" : "2c:dc:ad:2f:eb:44",
+      "z_node_name" : "15-48.p3"
     }
   ],
-  "links": [
+  "name" : "outdoor MPK 17 F8",
+  "nodes" : [
     {
-        "name": "link-15-46.s2-15-47.p1",
-        "z_node_name": "15-47.p1",
-        "a_node_name": "15-46.s2",
-        "link_type": 1,
-        "is_alive": false
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:11:e2",
+      "name" : "medical.p1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [],
+      "site_name" : "medical",
+      "status" : 3
     },
     {
-        "name": "link-15-43.s2-15-46.s1",
-        "z_node_name": "15-46.s1",
-        "a_node_name": "15-43.s2",
-        "link_type": 1,
-        "is_alive": false
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 2,
+        "txGolayIdx" : 2
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:10:d3",
+      "name" : "medical.s2",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [],
+      "site_name" : "medical",
+      "status" : 3
     },
     {
-        "name": "link-15-42.p1-15-43.s1",
-        "z_node_name": "15-43.s1",
-        "a_node_name": "15-42.p1",
-        "link_type": 1,
-        "is_alive": false
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:12:30",
+      "name" : "corner17.p1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "corner17",
+      "status" : 3
     },
     {
-        "name": "link-15-42.s1-15-47.s1",
-        "z_node_name": "15-47.s1",
-        "a_node_name": "15-42.s1",
-        "link_type": 1,
-        "is_alive": false
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:10:dd",
+      "name" : "corner17.s1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "corner17",
+      "status" : 3
     },
     {
-        "name": "link-15-46.p1-18-9.s1",
-        "z_node_name": "18-9.s1",
-        "a_node_name": "15-46.p1",
-        "link_type": 1,
-        "is_alive": false
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:47",
+      "name" : "corner17.s2",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "corner17",
+      "status" : 3
     },
     {
-        "name": "link-15-39.s1-18-9.p1",
-        "z_node_name": "18-9.p1",
-        "a_node_name": "15-39.s1",
-        "link_type": 1,
-        "is_alive": false
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 2,
+        "txGolayIdx" : 2
+      },
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:1d:dd:9a",
+      "name" : "14-3_win1.cn1",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "14-3_win1",
+      "status" : 2
     },
     {
-        "name": "link-15-39.p1-15-43.p1",
-        "z_node_name": "15-43.p1",
-        "a_node_name": "15-39.p1",
-        "link_type": 1,
-        "is_alive": false
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:1d:dd:28",
+      "name" : "15-28.p1",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-28",
+      "status" : 2
     },
     {
-     "name": "link-15-47.p1-15-47.s1",
-     "a_node_name": "15-47.p1",
-     "z_node_name": "15-47.s1",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-    "name": "link-15-47.p1-15-47.s2",
-    "a_node_name": "15-47.p1",
-    "z_node_name": "15-47.s2",
-    "link_type": 2,
-    "is_alive": true
-   },
-   {
-    "name": "link-15-47.s1-15-47.s2",
-    "a_node_name": "15-47.s1",
-    "z_node_name": "15-47.s2",
-    "link_type": 2,
-    "is_alive": true
-   },
-   {
-     "name": "link-15-46.p1-15-46.s1",
-     "a_node_name": "15-46.p1",
-     "z_node_name": "15-46.s1",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-15-46.p1-15-46.s2",
-     "a_node_name": "15-46.p1",
-     "z_node_name": "15-46.s2",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-15-46.s1-15-46.s2",
-     "a_node_name": "15-46.s1",
-     "z_node_name": "15-46.s2",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-15-43.p1-15-43.s1",
-     "a_node_name": "15-43.p1",
-     "z_node_name": "15-43.s1",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-15-43.p1-15-43.s2",
-     "a_node_name": "15-43.p1",
-     "z_node_name": "15-43.s2",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-15-43.s1-15-43.s2",
-     "a_node_name": "15-43.s1",
-     "z_node_name": "15-43.s2",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-15-42.p1-15-42.s1",
-     "a_node_name": "15-42.p1",
-     "z_node_name": "15-42.s1",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-15-39.p1-15-39.s1",
-     "a_node_name": "15-39.p1",
-     "z_node_name": "15-39.s1",
-     "link_type": 2,
-     "is_alive": true
-   },
-   {
-     "name": "link-18-9.p1-18-9.s1",
-     "a_node_name": "18-9.p1",
-     "z_node_name": "18-9.s1",
-     "link_type": 2,
-     "is_alive": true
-   }
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:1d:dd:c4",
+      "name" : "15-29.p1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-29",
+      "status" : 1
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:91",
+      "name" : "15-29.s1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-29",
+      "status" : 1
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:0d:a8",
+      "name" : "15-30.p1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-30",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:13",
+      "name" : "15-30.s1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-30",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:12:0c",
+      "name" : "15-32.p1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-32",
+      "status" : 1
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:93",
+      "name" : "15-32.s1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-32",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:0d:2d",
+      "name" : "15-42.p1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-42",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 2,
+        "txGolayIdx" : 2
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:c5",
+      "name" : "15-42.s1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-42",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:10:23",
+      "name" : "15-42.s2",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-42",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:0d:33",
+      "name" : "15-43.p1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-43",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:10:83",
+      "name" : "15-43.s1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-43",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:12:75",
+      "name" : "15-46.p1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-46",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 2,
+        "txGolayIdx" : 2
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:11",
+      "name" : "15-46.s1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-46",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:10:c5",
+      "name" : "15-46.s2",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-46",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:0e:7d",
+      "name" : "15-47.p1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-47",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:0e:68",
+      "name" : "15-47.s2",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-47",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 2,
+        "txGolayIdx" : 2
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:07",
+      "name" : "15-47.s1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-47",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0f:67",
+      "name" : "15-47.s3",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-47",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:03:ae",
+      "name" : "15-49.p1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-49",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:10:47",
+      "name" : "15-49.s1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-49",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:0d:93",
+      "name" : "17-3_win1.cn1",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "17-3_win1",
+      "status" : 2
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 2,
+        "txGolayIdx" : 2
+      },
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:0e:89",
+      "name" : "18-9.p1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [],
+      "site_name" : "18-9",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "is_primary" : false,
+      "mac_addr" : "74:6f:f7:ca:1a:f8",
+      "name" : "18-9.s1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "18-9",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:1d:dd:6a",
+      "name" : "15-31.p1",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-31",
+      "status" : 2
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:28:e6:83",
+      "name" : "15-48.p1",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-48",
+      "status" : 2
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:1d:dd:d0",
+      "name" : "15-31.p2",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-31",
+      "status" : 2
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:1d:dd:2e",
+      "name" : "15-48.p2",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-48",
+      "status" : 2
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : false,
+      "mac_addr" : "38:3a:21:b0:0e:e9",
+      "name" : "15-43.s2",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-43",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:2f:ea:7e",
+      "name" : "15-28.p2",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-28",
+      "status" : 2
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:2f:eb:44",
+      "name" : "15-48.p3",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-48",
+      "status" : 2
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "golay_idx" : {
+        "rxGolayIdx" : 1,
+        "txGolayIdx" : 1
+      },
+      "has_cpe" : false,
+      "is_primary" : true,
+      "mac_addr" : "2c:dc:ad:2f:ea:96",
+      "name" : "15-31.p3",
+      "node_type" : 1,
+      "polarity" : 2,
+      "pop_node" : false,
+      "secondary_mac_addrs" : [],
+      "site_name" : "15-31",
+      "status" : 2
+    }
   ],
-  "sites": [
+  "sites" : [
     {
-      "name": "1543",
-      "location": {
-        "latitude": 37.4846455,
-        "longitude": -122.1462853,
-        "altitude": 0
-      }
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -45.784,
+        "latitude" : 37.484997,
+        "longitude" : -122.147772
+      },
+      "name" : "medical"
     },
     {
-      "name": "189",
-      "location": {
-        "latitude": 37.4847078,
-        "longitude": -122.1458150,
-        "altitude": 0
-      }
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -29.997,
+        "latitude" : 37.48441684,
+        "longitude" : -122.1473658
+      },
+      "name" : "corner17"
     },
     {
-      "name": "1539",
-      "location": {
-        "latitude": 37.4843047,
-        "longitude": -122.1461286,
-        "altitude": 0
-      }
+      "location" : {
+        "accuracy" : 0,
+        "altitude" : 0,
+        "latitude" : 37.485167,
+        "longitude" : -122.148393
+      },
+      "name" : "14-3_win1"
     },
     {
-      "name": "1547",
-      "location": {
-        "latitude": 37.4849724,
-        "longitude": -122.1467994,
-        "altitude": 0
-      }
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -19.567,
+        "latitude" : 37.484495,
+        "longitude" : -122.147123
+      },
+      "name" : "15-28"
     },
     {
-      "name": "1546",
-      "location": {
-        "latitude": 37.4849047,
-        "longitude": -122.1463606,
-        "altitude": 0
-      }
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : 0,
+        "latitude" : 37.48459484,
+        "longitude" : -122.1469079
+      },
+      "name" : "15-29"
     },
     {
-      "name": "1542",
-      "location": {
-        "latitude": 37.4847424,
-        "longitude": -122.1466809,
-        "altitude": 0
-      }
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -3.369,
+        "latitude" : 37.484778,
+        "longitude" : -122.147037
+      },
+      "name" : "15-30"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -25.668,
+        "latitude" : 37.48439282,
+        "longitude" : -122.1468293
+      },
+      "name" : "15-32"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -32.348,
+        "latitude" : 37.48469844,
+        "longitude" : -122.1466727
+      },
+      "name" : "15-42"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : 0,
+        "latitude" : 37.48462786,
+        "longitude" : -122.1463263
+      },
+      "name" : "15-43"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -34.963,
+        "latitude" : 37.48494202,
+        "longitude" : -122.146432
+      },
+      "name" : "15-46"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : -33.543,
+        "latitude" : 37.485019,
+        "longitude" : -122.1468128
+      },
+      "name" : "15-47"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : 0,
+        "latitude" : 37.4852064,
+        "longitude" : -122.1469102
+      },
+      "name" : "15-49"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : 0,
+        "latitude" : 37.4852056,
+        "longitude" : -122.1470222
+      },
+      "name" : "17-3_win1"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : 0,
+        "latitude" : 37.484652,
+        "longitude" : -122.1457706
+      },
+      "name" : "18-9"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : 0,
+        "latitude" : 37.48506,
+        "longitude" : -122.147088
+      },
+      "name" : "15-48"
+    },
+    {
+      "location" : {
+        "accuracy" : 5,
+        "altitude" : 0,
+        "latitude" : 37.48497202,
+        "longitude" : -122.147137
+      },
+      "name" : "15-31"
     }
   ]
 }

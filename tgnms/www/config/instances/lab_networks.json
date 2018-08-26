@@ -75,8 +75,8 @@
             "topology_file": "tower_G.json"
         },
         {
-            "controller_ip": "2620:10d:c089:e00e:3a3a:21ff:feb0:335",
-            "aggregator_ip": "2620:10d:c089:e00e:3a3a:21ff:feb0:335",
+            "controller_ip": "2620:10d:c089:e001:20c:29ff:feb0:1389",
+            "aggregator_ip": "2620:10d:c089:e001:20c:29ff:feb0:1389",
             "site_coords_override": true,
             "latitude": 37.333057579551586,
             "longitude": -121.88882589372953,
