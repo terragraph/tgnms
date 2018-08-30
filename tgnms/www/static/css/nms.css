@@ -365,6 +365,10 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   padding-right: 2px;
 }
 
+#legendControl a {
+  text-decoration: none;
+}
+
 .details-legend-table {
   width: 100%;
 }

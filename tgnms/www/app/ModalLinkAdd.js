@@ -11,6 +11,7 @@ import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
 } from './apiutils/ServiceAPIUtil';
+import {NodeType} from '../thrift/gen-nodejs/Topology_types';
 import {find} from 'lodash-es';
 import Modal from 'react-modal';
 import Select from 'react-select';
@@ -40,6 +41,7 @@ const LINK_TYPE_MAP = {
 
 export default class ModalLinkAdd extends React.Component {
   state = {
+    isBackupCnLink: null,
     linkNode1: null,
     linkNode2: null,
     linkType: null,
@@ -63,8 +65,11 @@ export default class ModalLinkAdd extends React.Component {
         nodeZ = this.state.linkNode1;
       }
     } else {
-      // eslint-disable-next-line no-alert
-      alert('Some Params are missing');
+      swal({
+        title: 'Incomplete Data',
+        text: 'Please fill in all form fields.',
+        type: 'error',
+      });
       return;
     }
 
@@ -75,7 +80,7 @@ export default class ModalLinkAdd extends React.Component {
     swal(
       {
         title: 'Are you sure?',
-        text: 'You are adding a link to this topology!',
+        text: `You are adding ${this.state.linkType.toLowerCase()} link "${linkName}" to this topology.`,
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DD6B55',
@@ -95,6 +100,10 @@ export default class ModalLinkAdd extends React.Component {
             z_node_name: nodeZ,
           },
         };
+        if (this.enableBackupCnOption() && this.state.isBackupCnLink) {
+          data.link.is_backup_cn_link = true;
+        }
+
         apiServiceRequest(this.props.topology.name, 'addLink', data)
           .then(response => {
             swal({
@@ -116,6 +125,27 @@ export default class ModalLinkAdd extends React.Component {
     );
   }
 
+  enableBackupCnOption() {
+    if (
+      !this.state.linkNode1 ||
+      !this.state.linkNode2 ||
+      this.state.linkType !== 'WIRELESS'
+    ) {
+      return false;
+    }
+
+    const linkNode1Type = find(this.props.topology.nodes, {
+      name: this.state.linkNode1,
+    }).node_type;
+    const linkNode2Type = find(this.props.topology.nodes, {
+      name: this.state.linkNode2,
+    }).node_type;
+    return (
+      (linkNode1Type === NodeType.DN && linkNode2Type === NodeType.CN) ||
+      (linkNode1Type === NodeType.CN && linkNode2Type === NodeType.DN)
+    );
+  }
+
   render() {
     const nodesVector = [];
 
@@ -127,6 +157,13 @@ export default class ModalLinkAdd extends React.Component {
         });
       });
     }
+
+    const linkName =
+      this.state.linkNode1 && this.state.linkNode2
+        ? this.state.linkNode1 < this.state.linkNode2
+          ? 'link-' + this.state.linkNode1 + '-' + this.state.linkNode2
+          : 'link-' + this.state.linkNode2 + '-' + this.state.linkNode1
+        : '-';
 
     return (
       <Modal
@@ -176,13 +213,25 @@ export default class ModalLinkAdd extends React.Component {
               </td>
             </tr>
             <tr className="blank_row" />
+            {this.enableBackupCnOption() && (
+              <tr>
+                <td width={100}>Is Backup?</td>
+                <td>
+                  <input
+                    name="isBackupCnLink"
+                    type="checkbox"
+                    checked={this.state.isBackupCnLink}
+                    onChange={event =>
+                      this.setState({isBackupCnLink: event.target.checked})
+                    }
+                  />
+                </td>
+              </tr>
+            )}
+            {this.enableBackupCnOption() && <tr className="blank_row" />}
             <tr>
               <td width={100}>Link Name</td>
-              <td>
-                {this.state.linkNode1 < this.state.linkNode2
-                  ? 'link-' + this.state.linkNode1 + '-' + this.state.linkNode2
-                  : 'link-' + this.state.linkNode2 + '-' + this.state.linkNode1}
-              </td>
+              <td style={{fontSize: '90%', fontStyle: 'italic'}}>{linkName}</td>
             </tr>
             <tr className="blank_row" />
             <tr>
