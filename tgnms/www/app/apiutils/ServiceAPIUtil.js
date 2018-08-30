@@ -21,7 +21,7 @@ export const apiServiceRequest = (
   data: Object = {},
   config: Object = {},
   hostRef: HostRef = 'default',
-) => {
+): Promise<any> => {
   // All apiservice requests are POST, and expect at least an empty dict.
   return new Promise((resolve, reject) => {
     axios
