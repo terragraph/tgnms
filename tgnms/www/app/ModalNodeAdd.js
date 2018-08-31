@@ -121,8 +121,7 @@ export default class ModalNodeAdd extends React.Component {
       <Modal
         isOpen={this.props.isOpen}
         onRequestClose={this.modalClose.bind(this)}
-        style={customModalStyle}
-        contentLabel="Example Modal">
+        style={customModalStyle}>
         <table>
           <tbody>
             <tr className="blank_row" />

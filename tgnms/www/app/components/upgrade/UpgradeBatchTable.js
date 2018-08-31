@@ -12,7 +12,6 @@ import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import {render} from 'react-dom';
 import React from 'react';
-import {versionSlicer} from '../../helpers/NetworkHelpers.js';
 
 const upgradeStatusToString = {
   10: 'NONE',
@@ -43,7 +42,7 @@ export default class UpgradeBatchTable extends React.Component {
     nodes.forEach(node => {
       // current version
       const version = node.status_dump
-        ? versionSlicer(node.status_dump.version)
+        ? node.status_dump.version
         : 'Not Available';
 
       const upgradeStatus =
@@ -60,7 +59,7 @@ export default class UpgradeBatchTable extends React.Component {
       // next version
       const nextVersion =
         node.status_dump && node.status_dump.upgradeStatus
-          ? versionSlicer(node.status_dump.upgradeStatus.nextImage.version)
+          ? node.status_dump.upgradeStatus.nextImage.version
           : 'N/A';
 
       rows.push({

@@ -7,7 +7,7 @@
 
 import Dispatcher from './NetworkDispatcher.js';
 // dispatcher
-import {availabilityColor, versionSlicer} from './helpers/NetworkHelpers.js';
+import {availabilityColor} from './helpers/NetworkHelpers.js';
 import ReactEventChart from './ReactEventChart.js';
 import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
@@ -153,6 +153,11 @@ export default class NetworkNodesTable extends React.Component {
     }
   }
 
+  _trimVersionString(v) {
+    const prefix = 'Facebook Terragraph Release ';
+    return v.indexOf(prefix) >= 0 ? v.substring(prefix.length) : v;
+  }
+
   getTableRows(
     nodes,
   ): Array<{
@@ -175,7 +180,7 @@ export default class NetworkNodesTable extends React.Component {
         ? node.status_dump.ipv6Address
         : 'Not Available';
       const version = node.status_dump
-        ? versionSlicer(node.status_dump.version)
+        ? this._trimVersionString(node.status_dump.version)
         : 'Not Available';
       const ubootVersion =
         node.status_dump && node.status_dump.uboot_version
