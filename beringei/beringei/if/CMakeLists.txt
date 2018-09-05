@@ -17,6 +17,7 @@ set(
     beringei_grafana.thrift
     beringei_query.thrift
     beringei.thrift
+    Stats.thrift
     Topology.thrift
     scans.thrift
 )
@@ -62,6 +63,14 @@ set(
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_types.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_types.tcc
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_types_custom_protocol.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_constants.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_constants.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_data.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_data.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.tcc
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types_custom_protocol.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_constants.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_constants.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_data.cpp

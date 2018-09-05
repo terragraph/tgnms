@@ -39,9 +39,9 @@ StatsTypeAheadCache::StatsTypeAheadCache() {
       "speed"};
 }
 
-std::vector<query::KeyData> StatsTypeAheadCache::getKeyData(
+std::vector<stats::KeyMetaData> StatsTypeAheadCache::getKeyData(
     const std::string& metricName) const {
-  std::vector<query::KeyData> retKeyData;
+  std::vector<stats::KeyMetaData> retKeyData;
   // return KeyData based on a metric name
   auto metricId = keyToMetricIds_.find(metricName);
   auto shortMetricId = nameToMetricIds_.find(metricName);
@@ -96,15 +96,15 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
           keyName.endsWith("avg.60") || keyName.endsWith("sum.0")) {
         continue;
       }
-      // create KeyData for each metric
-      auto keyData = std::make_shared<query::KeyData>();
+      // create KeyMetaData for each metric
+      auto keyData = std::make_shared<stats::KeyMetaData>();
       keyData->keyId = key.first;
-      keyData->key = key.second;
-      keyData->displayName = key.second;
-      keyData->node = node->mac;
+      keyData->keyName = key.second;
+      keyData->srcNodeMac = node->mac;
+      keyData->srcNodeName = node->node;
       // update units
       if (keyName.endsWith("_bytes")) {
-        keyData->unit = query::KeyUnit::BYTES_PER_SEC;
+        keyData->unit = stats::KeyUnit::BYTES_PER_SEC;
       }
       metricIdMetadata_[key.first] = keyData;
       // index the key name to its db id
@@ -117,10 +117,15 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
       continue;
     }
     for (const auto& key : topologyConfig.second->keys) {
-      auto keyData = std::make_shared<query::KeyData>();
+      auto keyData = std::make_shared<stats::KeyMetaData>();
       keyData->keyId = key.second;
-      keyData->key = key.first;
-      keyData->displayName = key.first;
+      keyData->keyName = key.first;
+      if (metricIdMetadata_.count(key.second) ||
+          keyToMetricIds_.count(key.first)) {
+        LOG(ERROR) << "Ignoring duplicate aggregate metric. Id="
+                   << key.second << ", Key=" << key.first;
+        continue;
+      }
       metricIdMetadata_[key.second] = keyData;
       keyToMetricIds_[key.first].push_back(key.second);
     }
@@ -154,15 +159,14 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
         }
         auto keyData = nodeMacToKeyList_[mac][keyName];
         // insert key / short name references
-        keyToMetricIds_[keyName].push_back(keyData->keyId);
         nameToMetricIds_[metricName].push_back(keyData->keyId);
         // push key data for link metric
         keyData->linkName = link.name;
-        keyData->linkTitleAppend = key["titleAppend"].asString();
-        keyData->displayName = metricName;
+        keyData->shortName = metricName;
+        keyData->linkDirection = (stats::LinkDirection)(key["linkDirection"].asInt());
         // update the unit
         if (key.count("unit")) {
-          query::KeyUnit unit = (query::KeyUnit)(key["unit"].asInt());
+          stats::KeyUnit unit = (stats::KeyUnit)(key["unit"].asInt());
           keyData->unit = unit;
         }
       }
@@ -176,7 +180,7 @@ folly::dynamic StatsTypeAheadCache::createLinkMetric(
     const std::string& title,
     const std::string& description,
     const std::string& keyName,
-    const query::KeyUnit& keyUnit,
+    const stats::KeyUnit& keyUnit,
     const std::string& keyPrefix) {
   return folly::dynamic::object("title", title)("description", description)(
       "scale", NULL)(
@@ -186,12 +190,12 @@ folly::dynamic StatsTypeAheadCache::createLinkMetric(
               "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
               "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + zNode.mac_addr + "." + keyName)(
-              "titleAppend", " (A)"),
+              "linkDirection", (int)stats::LinkDirection::LINK_A),
           folly::dynamic::object(
               "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
               "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + aNode.mac_addr + "." + keyName)(
-              "titleAppend", " (Z)")));
+              "linkDirection", (int)stats::LinkDirection::LINK_Z)));
 }
 
 folly::dynamic StatsTypeAheadCache::createLinkMetricAsymmetric(
@@ -201,7 +205,7 @@ folly::dynamic StatsTypeAheadCache::createLinkMetricAsymmetric(
     const std::string& description,
     const std::string& keyNameA,
     const std::string& keyNameZ,
-    const query::KeyUnit& keyUnit,
+    const stats::KeyUnit& keyUnit,
     const std::string& keyPrefix) {
   return folly::dynamic::object("title", title)("description", description)(
       "scale", NULL)(
@@ -211,12 +215,12 @@ folly::dynamic StatsTypeAheadCache::createLinkMetricAsymmetric(
               "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
               "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + zNode.mac_addr + "." + keyNameA)(
-              "titleAppend", " (A)"),
+              "linkDirection", (int)stats::LinkDirection::LINK_A),
           folly::dynamic::object(
               "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
               "unit", (int)keyUnit)(
               "keyName", keyPrefix + "." + aNode.mac_addr + "." + keyNameZ)(
-              "titleAppend", " (Z)")));
+              "linkDirection", (int)stats::LinkDirection::LINK_Z)));
 }
 
 folly::dynamic StatsTypeAheadCache::getLinkMetrics(
@@ -293,7 +297,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "TX bps",
         "Transferred bits/second",
         "tx_bytes",
-        query::KeyUnit::BYTES_PER_SEC,
+        stats::KeyUnit::BYTES_PER_SEC,
         "link");
   } else if (metricName == "rx_bytes") {
     return createLinkMetric(
@@ -302,7 +306,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "RX bps",
         "Received bits/second",
         "rx_bytes",
-        query::KeyUnit::BYTES_PER_SEC,
+        stats::KeyUnit::BYTES_PER_SEC,
         "link");
   } else if (metricName == "tx_errors") {
     return createLinkMetric(
@@ -311,7 +315,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "TX errors",
         "Transmit errors/second",
         "tx_errors",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "rx_errors") {
     return createLinkMetric(
@@ -320,7 +324,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "RX errors",
         "Receive errors/second",
         "rx_errors",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "tx_dropped") {
     return createLinkMetric(
@@ -329,7 +333,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "TX dropped",
         "Transmit dropped/second",
         "tx_dropped",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "rx_dropped") {
     return createLinkMetric(
@@ -338,7 +342,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "RX dropped",
         "Receive dropped/second",
         "rx_dropped",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "tx_pps") {
     return createLinkMetric(
@@ -347,7 +351,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "TX pps",
         "Transmit packets/second",
         "tx_packets",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "rx_pps") {
     return createLinkMetric(
@@ -356,7 +360,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "RX pps",
         "Receive packets/second",
         "rx_packets",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "tx_power") {
     return createLinkMetric(
@@ -368,7 +372,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "RX Frame",
         "RX Frame",
         "rx_frame",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "rx_overruns") {
     return createLinkMetric(
@@ -377,7 +381,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "RX Overruns",
         "RX Overruns",
         "rx_overruns",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "tx_overruns") {
     return createLinkMetric(
@@ -386,7 +390,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "TX Overruns",
         "TX Overruns",
         "tx_overruns",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "tx_collisions") {
     return createLinkMetric(
@@ -395,7 +399,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "TX Collisions",
         "TX Collisions",
         "tx_collisions",
-        query::KeyUnit::NONE,
+        stats::KeyUnit::NONE,
         "link");
   } else if (metricName == "speed") {
     return createLinkMetric(
@@ -404,7 +408,7 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
         "Speed",
         "Speed (mbps)",
         "speed",
-        query::KeyUnit::BYTES_PER_SEC,
+        stats::KeyUnit::BYTES_PER_SEC,
         "link");
   } else if (metricName == "link_status") {
     // TODO - reported by controller (zero-mac)
@@ -417,14 +421,15 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
             "e2e_controller.link_status.WIRELESS." + aNode.mac_addr + "." +
                 zNode.mac_addr)("titleAppend", " (A)")));
   }
+  return folly::dynamic::object();
 }
 
 // type-ahead search
-std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
+std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
     const std::string& metricName,
     const int limit) {
   VLOG(1) << "Search for " << metricName << " with limit " << limit;
-  std::vector<std::vector<query::KeyData>> retMetrics{};
+  std::vector<std::vector<stats::KeyMetaData>> retMetrics{};
   std::regex metricRegex;
   try {
     metricRegex = std::regex(metricName, std::regex::icase);
@@ -440,7 +445,7 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
   for (const auto& metric : nameToMetricIds_) {
     std::smatch metricMatch;
     if (std::regex_search(metric.first, metricMatch, metricRegex)) {
-      std::vector<query::KeyData> metricKeyList;
+      std::vector<stats::KeyMetaData> metricKeyList;
       // insert keydata
       VLOG(1) << "\tFound metric match " << metric.first << " with "
               << metric.second.size() << " keys.";
@@ -462,7 +467,7 @@ std::vector<std::vector<query::KeyData>> StatsTypeAheadCache::searchMetrics(
   for (const auto& metric : keyToMetricIds_) {
     std::smatch metricMatch;
     if (std::regex_search(metric.first, metricMatch, metricRegex)) {
-      std::vector<query::KeyData> metricKeyList;
+      std::vector<stats::KeyMetaData> metricKeyList;
       // insert keydata
       VLOG(1) << "\tFound key match " << metric.first << " with "
               << metric.second.size() << " keys.";

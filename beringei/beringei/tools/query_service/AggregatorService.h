@@ -32,10 +32,10 @@ class AggregatorService {
   // fetch ruckus ap stats
   void fetchRuckusStats();
   void ruckusControllerStats();
-  void buildQuery(
+  /*void buildQuery(
       std::unordered_map<std::string, double>& values,
       const std::unordered_set<std::string>& popNodeNames,
-      const std::shared_ptr<StatsTypeAheadCache> cache);
+      const std::shared_ptr<StatsTypeAheadCache> cache);*/
 
  private:
   folly::EventBase eb_;

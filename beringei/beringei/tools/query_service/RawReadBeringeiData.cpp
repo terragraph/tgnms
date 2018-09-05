@@ -300,7 +300,7 @@ int64_t RawReadBeringeiData::findBeringeiKeyId(query::RawQueryKey rawQueryKey) {
       return kFail;
     }
     auto taCache = taIt->second;
-    std::vector<query::KeyData> metricList =
+    std::vector<stats::KeyMetaData> metricList =
         taCache->getKeyData(stringToSearch);
     VLOG(4) << "getKeyData done for " << stringToSearch;
     locked.unlock();
@@ -308,13 +308,12 @@ int64_t RawReadBeringeiData::findBeringeiKeyId(query::RawQueryKey rawQueryKey) {
     if (metricList.size() > 0) {
       folly::dynamic keyList = folly::dynamic::array;
       for (const auto& key : metricList) {
-        VLOG(1) << "\t\tName: " << key.displayName << ", key: " << key.key
-                << ", node: " << key.nodeName
+        VLOG(1) << "\t\tName: " << key.shortName << ", key: " << key.keyName
+                << ", node: " << key.srcNodeName
                 << ", Beringei keyId: " << key.keyId;
         keyList.push_back(folly::dynamic::object(
-            "displayName", key.displayName)("key", key.key)("keyId", key.keyId)(
-            "nodeName", key.nodeName)("siteName", key.siteName)(
-            "node", key.node)("unit", (int)key.unit));
+            "shortName", key.shortName)("srcNodeName", key.srcNodeName)("keyId", key.keyId)(
+            "linkName", key.linkName)("unit", (int)key.unit));
       }
       if (!keyList.isNull()) {
         orderedMetricList.push_back(keyList);

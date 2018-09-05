@@ -20,12 +20,14 @@ set(BERINGEI_QUERY_SRCS
     ApiServiceClient.h
     BeringeiClientStore.cpp
     BeringeiClientStore.h
-    BeringeiData.cpp
-    BeringeiData.h
+    BeringeiReader.cpp
+    BeringeiReader.h
     MySqlClient.cpp
     MySqlClient.h
     QueryServiceFactory.cpp
     QueryServiceFactory.h
+    RawReadBeringeiData.cpp
+    RawReadBeringeiData.h
     RuckusController.cpp
     RuckusController.h
     ScanRespService.cpp
@@ -36,29 +38,25 @@ set(BERINGEI_QUERY_SRCS
     TopologyFetcher.h
     TopologyStore.cpp
     TopologyStore.h
-    RawReadBeringeiData.cpp
-    RawReadBeringeiData.h
 )
 
 set(BERINGEI_QUERY_HANDLER_SRCS
-    handlers/UnifiedStatsWriteHandler.cpp
-    handlers/UnifiedStatsWriteHandler.h
     handlers/LogsWriteHandler.cpp
     handlers/LogsWriteHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
-    handlers/RawReadHandler.cpp
-    handlers/RawReadHandler.h
-    handlers/QueryHandler.cpp
-    handlers/QueryHandler.h
     handlers/RuckusControllerStatsHandler.cpp
     handlers/RuckusControllerStatsHandler.h
+    handlers/StatsHandler.cpp
+    handlers/StatsHandler.h
     handlers/StatsTypeAheadHandler.cpp
     handlers/StatsTypeAheadHandler.h
     handlers/StatsWriteHandler.cpp
     handlers/StatsWriteHandler.h
-    handlers/TableQueryHandler.cpp
-    handlers/TableQueryHandler.h
+    handlers/UnifiedStatsWriteHandler.cpp
+    handlers/UnifiedStatsWriteHandler.h
+    handlers/RawReadHandler.cpp
+    handlers/RawReadHandler.h
 )
 
 set(BERINGEI_QUERY_SERVICE_SRCS

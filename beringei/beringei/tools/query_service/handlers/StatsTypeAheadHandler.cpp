@@ -59,18 +59,23 @@ void StatsTypeAheadHandler::onBody(
 }
 
 void StatsTypeAheadHandler::onEOM() noexcept {
-  auto body = body_->moveToFbString();
-  query::TypeAheadRequest request;
+  if (!body_ || body_->length() < 2) {
+      ResponseBuilder(downstream_).status(400, "Empty Request").sendWithEOM();
+      return;
+  }
+  auto byteRange = body_->coalesce();
+  std::string body(byteRange.begin(), byteRange.end());
+  stats::TypeaheadRequest request;
   try {
     if (enableBinarySerialization_) {
-      LOG(INFO) << "Using Binary protocol for TypeAheadRequest"
+      LOG(INFO) << "Using Binary protocol for TypeaheadRequest"
                 << "deserialization.";
-      request = BinarySerializer::deserialize<query::TypeAheadRequest>(body);
+      request = BinarySerializer::deserialize<stats::TypeaheadRequest>(body);
     } else {
-      LOG(INFO) << "Using SimpleJSON protocol for TypeAheadRequest"
+      LOG(INFO) << "Using SimpleJSON protocol for TypeaheadRequest"
                 << "deserialization.";
       request =
-          SimpleJSONSerializer::deserialize<query::TypeAheadRequest>(body);
+          SimpleJSONSerializer::deserialize<stats::TypeaheadRequest>(body);
     }
   } catch (const std::exception& ex) {
     LOG(INFO) << "Error deserializing stats type ahead request";
@@ -81,7 +86,7 @@ void StatsTypeAheadHandler::onEOM() noexcept {
         .sendWithEOM();
     return;
   }
-  LOG(INFO) << "Stats type ahead request for \"" << request.input << "\" on \""
+  LOG(INFO) << "Stats type ahead request for \"" << request.searchTerm << "\" on \""
             << request.topologyName << "\"";
   folly::dynamic orderedMetricList = folly::dynamic::array;
   {
@@ -101,17 +106,18 @@ void StatsTypeAheadHandler::onEOM() noexcept {
     // this loop can be pretty lengthy so holding a lock the whole time isn't
     // ideal
     auto taCache = taIt->second;
-    auto retMetrics = taCache->searchMetrics(request.input);
+    auto retMetrics = taCache->searchMetrics(request.searchTerm);
     locked.unlock();
     for (const auto& metricList : retMetrics) {
       folly::dynamic keyList = folly::dynamic::array;
       for (const auto& key : metricList) {
-        VLOG(1) << "\t\tName: " << key.displayName << ", key: " << key.key
-                << ", node: " << key.nodeName;
+        VLOG(1) << "\t\tName: " << key.keyName << ", key: " << key.keyId
+                << ", node: " << key.srcNodeMac;
         keyList.push_back(folly::dynamic::object(
-            "displayName", key.displayName)("key", key.key)("keyId", key.keyId)(
-            "nodeName", key.nodeName)("siteName", key.siteName)(
-            "node", key.node)("unit", (int)key.unit));
+            "keyId", key.keyId)("keyName", key.keyName)("shortName", key.shortName)(
+            "srcNodeMac", key.srcNodeMac)("srcNodeName", key.srcNodeName)(
+            "peerNodeMac", key.peerNodeMac)("linkName", key.linkName)(
+            "linkDirection", (int)key.linkDirection)("unit", (int)key.unit));
       }
       // add to json
       orderedMetricList.push_back(keyList);

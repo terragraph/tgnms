@@ -81,7 +81,6 @@ class ApiServiceClient {
       curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
       curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1000 /* 1 second */);
-
       // read data from request
       struct HTTPDataStruct dataChunk;
       dataChunk.data = (char*)malloc(1);
@@ -96,8 +95,8 @@ class ApiServiceClient {
       }
       // cleanup
       curl_easy_cleanup(curl);
-      returnStruct = SimpleJSONSerializer::deserialize<T>(dataChunk.data);
-
+      returnStruct = SimpleJSONSerializer::deserialize<T>(folly::StringPiece(
+          reinterpret_cast<const char*>(dataChunk.data), dataChunk.size));
       free(dataChunk.data);
       if (res != CURLE_OK) {
         LOG(WARNING) << "CURL error for endpoint " << endpoint << ": "
@@ -106,7 +105,6 @@ class ApiServiceClient {
     } catch (const std::exception& ex) {
       LOG(ERROR) << "Error reading from API service: " << folly::exceptionStr(ex);
     }
-
     return returnStruct;
   }
 private:

@@ -16,8 +16,9 @@
 
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/client/BeringeiConfigurationAdapterIf.h"
-#include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
-#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
+#include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
+
+using namespace facebook::stats;
 
 namespace facebook {
 namespace gorilla {
@@ -37,7 +38,7 @@ class StatsTypeAheadCache {
       const std::string& title,
       const std::string& description,
       const std::string& keyName,
-      const query::KeyUnit& keyUnit = query::KeyUnit::NONE,
+      const stats::KeyUnit& keyUnit = stats::KeyUnit::NONE,
       const std::string& keyPrefix = "tgf");
   folly::dynamic createLinkMetricAsymmetric(
       const query::Node& aNode,
@@ -46,7 +47,7 @@ class StatsTypeAheadCache {
       const std::string& description,
       const std::string& keyNameA,
       const std::string& keyNameZ,
-      const query::KeyUnit& keyUnit = query::KeyUnit::NONE,
+      const stats::KeyUnit& keyUnit = stats::KeyUnit::NONE,
       const std::string& keyPrefix = "tgf");
 
   folly::dynamic getLinkMetrics(
@@ -55,10 +56,10 @@ class StatsTypeAheadCache {
       const query::Node& zNode);
 
   // fetch topology-wide key data
-  std::vector<query::KeyData> getKeyData(const std::string& metricName) const;
+  std::vector<stats::KeyMetaData> getKeyData(const std::string& metricName) const;
 
   // type-ahead search
-  std::vector<std::vector<query::KeyData>> searchMetrics(
+  std::vector<std::vector<stats::KeyMetaData>> searchMetrics(
       const std::string& metricName,
       const int limit = 100);
 
@@ -70,7 +71,7 @@ class StatsTypeAheadCache {
   // map node mac -> key names
   std::unordered_map<
       std::string,
-      std::unordered_map<std::string, std::shared_ptr<query::KeyData>>>
+      std::unordered_map<std::string, std::shared_ptr<stats::KeyMetaData>>>
       nodeMacToKeyList_{};
 
   // --- Metrics for all nodes --- //
@@ -79,7 +80,7 @@ class StatsTypeAheadCache {
   // short names => [metric ids]
   std::unordered_map<std::string, std::vector<int>> nameToMetricIds_{};
   // metric id => meta data
-  std::unordered_map<int, std::shared_ptr<query::KeyData>> metricIdMetadata_{};
+  std::unordered_map<int, std::shared_ptr<stats::KeyMetaData>> metricIdMetadata_{};
 
   // TODO - graph struct for quick traversal
 };

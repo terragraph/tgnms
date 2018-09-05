@@ -10,10 +10,10 @@
 #include "AggregatorService.h"
 
 #include "BeringeiClientStore.h"
-#include "BeringeiData.h"
 #include "MySqlClient.h"
 #include "TopologyStore.h"
 
+#include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 
 #include <curl/curl.h>
@@ -221,7 +221,7 @@ void AggregatorService::timerCb() {
           VLOG(1) << "Cache found for: " << topology.name;
           // fetch back the metrics we care about (PER, MCS?)
           // and average the values
-          buildQuery(aggValues, popNodes, taCacheIt->second);
+          // buildQuery(aggValues, popNodes, taCacheIt->second);
           for (const auto& metric : aggValues) {
             VLOG(1) << "Agg: " << metric.first << " = "
                     << std::to_string(metric.second) << ", ts: " << timeStamp;
@@ -285,25 +285,27 @@ void AggregatorService::timerCb() {
     }
   }
 }
-
+/*
+TODO - disabled until the new structure is in use. These keys aren't in use yet
 void AggregatorService::buildQuery(
     std::unordered_map<std::string, double>& values,
     const std::unordered_set<std::string>& popNodeNames,
     const std::shared_ptr<StatsTypeAheadCache> cache) {
   // build queries
   query::QueryRequest queryRequest;
-  std::vector<query::Query> queries;
+  std::vector<stats::QueryRequest> query;
   std::vector<std::string> keyNames = {"per", "mcs", "snr", "rssi"};
   for (const auto& keyName : keyNames) {
     auto keyData = cache->getKeyData(keyName);
     query::Query query;
     query.type = "latest";
     std::vector<int64_t> keyIds;
-    std::vector<query::KeyData> keyDataRenamed;
+    std::vector<stats::KeyMetaData> keyDataRenamed;
     for (const auto& key : keyData) {
       keyIds.push_back(key.keyId);
       auto newKeyData = key;
-      newKeyData.displayName = key.linkName;
+      newKeyData.linkName = key.linkName;
+      // TODO - set peer name?
       keyDataRenamed.push_back(newKeyData);
     }
     query.key_ids = keyIds;
@@ -320,7 +322,7 @@ void AggregatorService::buildQuery(
     query::Query query;
     query.type = "latest";
     std::vector<int64_t> keyIds;
-    std::vector<query::KeyData> keyDataRenamed;
+    std::vector<query::KeyMetaData> keyDataRenamed;
     // restrict to pop nodes
     for (const auto& key : keyData) {
       if (!popNodeNames.count(key.nodeName)) {
@@ -331,7 +333,8 @@ void AggregatorService::buildQuery(
                 << ", unit: " << (int)key.unit;
       keyIds.push_back(key.keyId);
       auto newKeyData = key;
-      newKeyData.displayName = key.linkName;
+      newKeyData.linkName = key.linkName;
+      // TODO - set peer name?
       keyDataRenamed.push_back(newKeyData);
     }
     query.key_ids = keyIds;
@@ -361,7 +364,7 @@ void AggregatorService::buildQuery(
     values[keyNameSum] = sum;
     queryIdx++;
   }
-}
+}*/
 
 void AggregatorService::start() {
   eb_.loopForever();

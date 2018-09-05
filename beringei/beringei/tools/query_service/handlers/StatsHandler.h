@@ -9,6 +9,9 @@
 
 #pragma once
 
+#include "../BeringeiReader.h"
+#include "../StatsTypeAheadCache.h"
+
 #include <folly/Memory.h>
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
@@ -16,17 +19,15 @@
 
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/client/BeringeiConfigurationAdapterIf.h"
+#include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
-#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 namespace facebook {
 namespace gorilla {
 
-typedef std::vector<std::pair<Key, std::vector<TimeValuePair>>> TimeSeries;
-
-class QueryHandler : public proxygen::RequestHandler {
+class StatsHandler : public proxygen::RequestHandler {
  public:
-  explicit QueryHandler();
+  explicit StatsHandler(TACacheMap& typeaheadCache);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -42,8 +43,8 @@ class QueryHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  bool receivedBody_;
   std::unique_ptr<folly::IOBuf> body_;
+  TACacheMap& typeaheadCache_;
 };
 } // namespace gorilla
 } // namespace facebook

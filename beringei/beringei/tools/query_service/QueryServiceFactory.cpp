@@ -11,12 +11,11 @@
 
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
-#include "handlers/QueryHandler.h"
 #include "handlers/RawReadHandler.h"
 #include "handlers/RuckusControllerStatsHandler.h"
+#include "handlers/StatsHandler.h"
 #include "handlers/StatsTypeAheadHandler.h"
 #include "handlers/StatsWriteHandler.h"
-#include "handlers/TableQueryHandler.h"
 #include "handlers/UnifiedStatsWriteHandler.h"
 
 using folly::EventBase;
@@ -43,10 +42,8 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     // The false input indicates that the incoming StatsWriteRequest is
     // serialized by SimpleJSON protocol
     return new StatsWriteHandler(false);
-  } else if (path == "/query") {
-    return new QueryHandler();
-  } else if (path == "/table_query") {
-    return new TableQueryHandler(typeaheadCache_);
+  } else if (path == "/stats_query") {
+    return new StatsHandler(typeaheadCache_);
   } else if (path == "/logs_writer") {
     return new LogsWriteHandler();
   } else if (path == "/stats_typeahead") {
