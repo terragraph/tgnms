@@ -9,12 +9,14 @@ REQUESTS_VERSION="2.19.1"
 NUMPY_VERSION="1.14.5"
 MATPLOTLIB_VERSION="2.2.2"
 PYMYSQL_VERSION="0.9.2"
+JUPYTER_VERSION="1.0.0"
 
 # Install Python3 packages
 pip install numpy==$NUMPY_VERSION
 pip install requests==$REQUESTS_VERSION
 python3 -m pip install matplotlib==$MATPLOTLIB_VERSION
 python3 -m pip install PyMySQL==$PYMYSQL_VERSION
+python3 -m pip install jupyter==$JUPYTER_VERSION
 
 # Install Apache Thrift
 cd /tmp
