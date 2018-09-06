@@ -54,7 +54,7 @@ fi
 
 echo "Connectivity good to go"
 mkdir -p /tmp/tgtmp
-INV=`mktemp -p /tmp/tgtmp`
+INV=$(mktemp /tmp/tgtmp/tmp.XXXXXX)
 echo '[nms]' >> $INV
 echo "$box ansible_user=$user ansible_python_interpreter=$RPY" >> $INV
 

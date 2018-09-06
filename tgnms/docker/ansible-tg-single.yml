@@ -15,45 +15,30 @@
   roles:
     - role: zaxos.docker-ce-ansible-role
   tasks:
-    - name: set advertisement handling int
+    - name: set network ra and forwarding
       sysctl:
-        name: net.ipv6.conf.{{ ansible_default_ipv6.interface }}.accept_ra
-        value: 2
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
         sysctl_set: yes
         reload: yes
+      with_items:
+        - name: net.ipv6.conf.{{ ansible_default_ipv6.interface }}.accept_ra
+          value: 2
+        - name: net.ipv6.conf.all.accept_ra
+          value: 2
+        - name: net.ipv6.conf.all.forwarding
+          value: 1
+        - name: net.ipv6.conf.default.forwarding
+          value: 1
 
-    - name: set advertisement handling all
-      sysctl:
-        name: net.ipv6.conf.all.accept_ra
-        value: 2
-        sysctl_set: yes
-        reload: yes
-
-    - name: set all forwarding
-      sysctl:
-        name: net.ipv6.conf.all.forwarding
-        value: 1
-        sysctl_set: yes
-        reload: yes
-
-    - name: set default forwarding
-      sysctl:
-        name: net.ipv6.conf.default.forwarding
-        value: 1
-        sysctl_set: yes
-        reload: yes
-
-    - name: flush ip6tables filter
+    - name: flush ip6tables 
       iptables:
-        table: filter
+        table: "{{ item }}"
         ip_version: ipv6
         flush: true
-
-    - name: flush ip6tables nat
-      iptables:
-        table: nat
-        ip_version: ipv6
-        flush: true
+      with_items:
+        - nat
+        - filter
 
     - name: Adding existing user to docker group
       user: 
@@ -91,93 +76,37 @@
         name: docker-compose
         state: present
 
-    - name: mkdir terragraph
+    - name: make directories
       file:
-        path: terragraph
+        path: "{{ item }}"
         state: directory
         owner: "{{ docker_user }}"
         group: docker
         mode: 0755
+      with_items:
+        - terragraph
+        - terragraph/docker_volumes
+        - terragraph/docker_volumes/beringei
+        - terragraph/docker_volumes/logs
+        - terragraph/docker_volumes/mysql_db
+        - terragraph/env
+        - terragraph/docker_volumes/nms_config
+        - terragraph/mysql_init_scripts
 
-    - name: mkdir docker_volumes
-      file:
-        path: terragraph/docker_volumes
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
-    - name: mkdir beringei
-      file:
-        path: terragraph/docker_volumes/beringei
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
-    - name: mkdir logs
-      file:
-        path: terragraph/docker_volumes/logs
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
-    - name: mkdir mysql_db
-      file:
-        path: terragraph/docker_volumes/mysql_db
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
-    - name: mkdir mysql_init_scripts
-      file:
-        path: terragraph/mysql_init_scripts
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
-    - name: copy mysql init script
+    - name: copy scripts and config files
       template:
-        src: mysql_init_scripts/cxl.sql
-        dest: terragraph/mysql_init_scripts/cxl.sql
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
         owner: "{{ docker_user }}"
         group: docker
         mode: 0644
-
-    - name: mkdir nms_config
-      file:
-        path: terragraph/docker_volumes/nms_config
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
-    - name: add cleaner
-      template:
-        src: destructively-clean-all-docker.sh
-        dest: terragraph/destructively-clean-all-docker.sh
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
-
-    - name: copy compose
-      template:
-        src: docker-compose-single.yml
-        dest: terragraph/docker-compose.yml
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0644
-
-    - name: mkdir environment configs
-      file:
-        path: terragraph/env
-        state: directory
-        owner: "{{ docker_user }}"
-        group: docker
-        mode: 0755
+      with_items:
+        - src: mysql_init_scripts/cxl.sql
+          dest: terragraph/mysql_init_scripts/cxl.sql
+        - src: destructively-clean-all-docker.sh
+          dest: terragraph/destructively-clean-all-docker.sh
+        - src: docker-compose-single.yml
+          dest: terragraph/docker-compose.yml
 
     - name: copy environment configs
       template:
