@@ -219,7 +219,6 @@ export default class DetailsLegend extends React.Component {
 
     return (
       <Panel
-        bsStyle="info"
         id="legendControl"
         onToggle={() => this.setState({legendOpen: !this.state.legendOpen})}>
         <Panel.Heading>

@@ -47,14 +47,20 @@
 
 .nc-tooltip-value {
   word-break: break-all;
+  word-wrap: break-word;
 }
 
 .nc-tooltip-deprecated {
   color: #d63031;
 }
 
-.nc-tooltip-constraint-container {
+.nc-tooltip-container {
   margin-top: 1rem;
+}
+
+.nc-tooltip-heading {
+  font-size: 1.2em;
+  margin: 0 0 4px 0;
 }
 
 /* config action div + tooltip */

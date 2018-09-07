@@ -47,7 +47,11 @@ export default class UpgradeMonitor extends React.Component {
     return (
       <div className="rc-upgrade-monitor">
         <div className="upgrade-monitor-row">
-          <label>Node Upgrade Status (Select nodes for upgrade)</label>
+          <label>Node upgrade status</label>
+          <div className="upgrade-monitor-desc">
+            Select nodes from the table below, then choose an operation from the
+            left-hand column
+          </div>
           <UpgradeNodesTable
             nodes={nodes}
             selectedNodes={selectedNodes}

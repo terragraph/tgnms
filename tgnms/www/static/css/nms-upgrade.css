@@ -61,6 +61,10 @@
   padding-left: 10px;
 }
 
+.upgrade-monitor-desc {
+  padding-left: 10px;
+}
+
 /* UPGRADE MODAL */
 .upgrade-modal-content {
   display: flex;

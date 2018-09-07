@@ -24,13 +24,17 @@ export default class JSONFieldTooltip extends React.Component {
   constraint2English = {
     allowedRanges: 'Allowed Ranges: ',
     allowedValues: 'Allowed Values: ',
-    regexMatches: 'Regex Matches: ',
+    regexMatches: 'Matches Regex: ',
     intRanges: 'Integer Ranges: ',
-    floatRanges: 'Float Ranges',
+    floatRanges: 'Float Ranges: ',
   };
 
   renderValueConstraints() {
     const {metadata} = this.props;
+
+    const typePascalCase = metadata.hasOwnProperty('type')
+      ? metadata.type[0] + metadata.type.slice(1).toLowerCase()
+      : 'N/A';
 
     let constraintKeys = [];
     let constraints;
@@ -73,22 +77,31 @@ export default class JSONFieldTooltip extends React.Component {
             <span className="nc-tooltip-label">
               {this.constraint2English[key]}
             </span>
-            <span>{JSON.stringify(valueConstraints)}</span>
+            <samp>{JSON.stringify(valueConstraints)}</samp>
           </div>
         );
       });
 
     return (
-      <div className="nc-tooltip-constraint-container">{constraintElems}</div>
+      <div className="nc-tooltip-container">
+        <h4 className="nc-tooltip-heading">Constraints</h4>
+        <div>
+          <span className="nc-tooltip-label">Type:</span>
+          {typePascalCase}
+        </div>
+        {constraintElems}
+      </div>
     );
   }
 
   render() {
     const {metadata, configLayerValues} = this.props;
 
-    const typePascalCase = metadata.hasOwnProperty('type')
-      ? metadata.type[0] + metadata.type.slice(1).toLowerCase()
-      : 'N/A';
+    const description = metadata.hasOwnProperty('desc')
+      ? metadata.desc.endsWith('.')
+        ? metadata.desc
+        : metadata.desc + '.'
+      : null;
 
     const hasOverrides =
       (configLayerValues[1] !== undefined && configLayerValues[1] !== null) ||
@@ -106,7 +119,7 @@ export default class JSONFieldTooltip extends React.Component {
         return (
           <div key={`${CONFIG_LAYER_DESC[idx]}-${displayVal}`}>
             <span className="nc-tooltip-label">{CONFIG_LAYER_DESC[idx]}:</span>
-            <span className="nc-tooltip-value">{displayVal}</span>
+            <samp className="nc-tooltip-value">{displayVal}</samp>
           </div>
         );
       })
@@ -118,21 +131,21 @@ export default class JSONFieldTooltip extends React.Component {
         {metadata.deprecated && (
           <p className="nc-tooltip-label nc-tooltip-deprecated">DEPRECATED</p>
         )}
-        <div>
-          <span className="nc-tooltip-label">Description:</span>
-          {metadata.desc || 'N/A'}
-        </div>
-        <br />
-        <div>
-          <span className="nc-tooltip-label">Type:</span>
-          {typePascalCase}
-        </div>
-        <div>
-          <span className="nc-tooltip-label">Action:</span>
-          <em>{metadata.action || 'NO_ACTION'}</em>
-        </div>
-        {hasOverrides && [<br />, ...configLayerContents]}
+        {description && <p>{description}</p>}
+        {metadata.action && (
+          <div>
+            <em>** Applies</em>
+            <code>{metadata.action}</code>
+            <em>when changed. **</em>
+          </div>
+        )}
         {this.renderValueConstraints()}
+        {hasOverrides && (
+          <div className="nc-tooltip-container">
+            <h4 className="nc-tooltip-heading">Overrides</h4>
+            {configLayerContents}
+          </div>
+        )}
       </div>
     );
   }

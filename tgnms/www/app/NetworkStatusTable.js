@@ -6,7 +6,7 @@
 'use strict';
 
 import ipaddr from 'ipaddr.js';
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {Table} from 'react-bootstrap';
 import {render} from 'react-dom';
 import React from 'react';
 
@@ -17,6 +17,38 @@ export default class NetworkStatusTable extends React.Component {
         {onlineStatus ? trueText : falseText}
       </span>
     );
+  }
+
+  _getNodeVersions() {
+    const versionCounts = {};
+    let totalReported = 0;
+    this.props.topology.nodes.forEach(node => {
+      if (
+        node.hasOwnProperty('status_dump') &&
+        node.status_dump.hasOwnProperty('version')
+      ) {
+        const version = node.status_dump.version;
+        if (!versionCounts.hasOwnProperty(version)) {
+          versionCounts[version] = 0;
+        }
+        versionCounts[version]++;
+        totalReported++;
+      }
+    });
+
+    const nodeVersions = [];
+    Object.keys(versionCounts).forEach(version => {
+      const count = versionCounts[version];
+      nodeVersions.push(
+        <tr key={version}>
+          <td>{version}</td>
+          <td style={{whiteSpace: 'nowrap', width: '1%'}}>
+            {count} ({parseInt((count / totalReported) * 100)}%)
+          </td>
+        </tr>,
+      );
+    });
+    return nodeVersions;
   }
 
   render() {
@@ -33,28 +65,29 @@ export default class NetworkStatusTable extends React.Component {
         node => node.status == 2 || node.status == 3,
       ).length;
       topologyTable = (
-        <table className="status-table site-sector-link">
+        <Table condensed hover>
           <tbody>
             <tr>
-              <td>Sites</td>
-              <td>{topology.sites.length}</td>
-            </tr>
-            <tr>
-              <td>Sectors</td>
+              <td>Sectors Online</td>
               <td>
                 {sectorsOnline} / {topology.nodes.length}
               </td>
             </tr>
             <tr>
-              <td>RF Links</td>
+              <td>RF Links Online</td>
               <td>
                 {linksOnline} / {linksWireless}
               </td>
             </tr>
+            <tr>
+              <td>Total Sites</td>
+              <td>{topology.sites.length}</td>
+            </tr>
           </tbody>
-        </table>
+        </Table>
       );
     }
+
     let controllerErrorRow;
     if (this.props.instance.hasOwnProperty('controller_error')) {
       controllerErrorRow = (
@@ -66,90 +99,48 @@ export default class NetworkStatusTable extends React.Component {
         </tr>
       );
     }
-    const versionCounts = {};
-    let totalReported = 0;
-    this.props.topology.nodes.forEach(node => {
-      if (
-        node.hasOwnProperty('status_dump') &&
-        node.status_dump.hasOwnProperty('version')
-      ) {
-        const version = node.status_dump.version;
-        if (!versionCounts.hasOwnProperty(version)) {
-          versionCounts[version] = 0;
-        }
-        versionCounts[version]++;
-        totalReported++;
-      }
-    });
-    const nodeVersions = [];
-    let i = 0;
-    Object.keys(versionCounts).forEach(version => {
-      const count = versionCounts[version];
-      const versionHeader = (
-        <td rowSpan={Object.keys(versionCounts).length}>Node Versions</td>
-      );
-      nodeVersions.push(
-        <tr key={version}>
-          {i == 0 ? versionHeader : null}
-          <td>{version}</td>
-          <td>
-            {parseInt((count / totalReported) * 100)}% ({count})
-          </td>
-        </tr>,
-      );
-      i++;
-    });
+
     return (
       <div className="status-table-container">
-        <table className="status-table main">
-          <tbody>
-            <tr>
-              <td>Controller</td>
-              <td style={{borderRight: 0}}>
-                {this.props.instance.controller_ip}
-              </td>
-              <td style={{borderLeft: 0}}>
-                {this.statusColor(this.props.instance.controller_online)}
-              </td>
-            </tr>
-            <tr>
-              <td>Controller Version</td>
-              <td colSpan={2}>{this.props.instance.controller_version}</td>
-            </tr>
-            {controllerErrorRow}
-            <tr>
-              <td>Query Service</td>
-              <td style={{borderRight: 0}}>-</td>
-              <td style={{borderLeft: 0}}>
-                {this.statusColor(this.props.instance.query_service_online)}
-              </td>
-            </tr>
-            <tr>
-              <td>Latitude</td>
-              <td colSpan={2}>{this.props.instance.latitude}</td>
-            </tr>
-            <tr>
-              <td>Longitude</td>
-              <td colSpan={2}>{this.props.instance.longitude}</td>
-            </tr>
-            <tr>
-              <td>Initial Zoom Level</td>
-              <td colSpan={2}>{this.props.instance.zoom_level}</td>
-            </tr>
-            <tr>
-              <td>Site Coordinates Override</td>
-              <td colSpan={2}>
-                {this.statusColor(
-                  this.props.instance.site_coords_override,
-                  'Enabled',
-                  'Disabled',
-                )}
-              </td>
-            </tr>
-            {nodeVersions}
-          </tbody>
-        </table>
-        {topologyTable}
+        <div class="status-table status-table-left">
+          <h3>Services</h3>
+          <Table condensed hover>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>Controller</strong>
+                </td>
+                <td>{this.props.instance.controller_ip}</td>
+                <td style={{width: '1%'}}>
+                  {this.statusColor(this.props.instance.controller_online)}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Controller Version</strong>
+                </td>
+                <td colSpan={2}>{this.props.instance.controller_version}</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Query Service</strong>
+                </td>
+                <td>-</td>
+                <td style={{width: '1%'}}>
+                  {this.statusColor(this.props.instance.query_service_online)}
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+          <h3>Node Versions</h3>
+          <Table condensed hover>
+            <tbody>{this._getNodeVersions()}</tbody>
+          </Table>
+        </div>
+        <div class="status-table status-table-right">
+          <h3>Topology</h3>
+          {topologyTable}
+        </div>
       </div>
     );
   }

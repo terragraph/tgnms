@@ -30,16 +30,16 @@ const VIEWS = {
   // TODO: implement these views and uncomment them
   // eventlogs: {name: 'Event Logs', icon: 'list'},
   upgrade: {name: 'Upgrade', icon: 'upload'},
-  'nms-config': {name: 'NMS Instance Config (Alpha)', icon: 'cloud'},
+  'nms-config': {name: 'NMS Config', icon: 'cloud'},
   config: {name: 'Node Config', icon: 'cog'},
   'e2e-config': {name: 'E2E Config', icon: 'hdd'},
   users: {name: 'Users', icon: 'user'},
 };
 
 const TOPOLOGY_OPS = {
-  addSite: 'Add Planned Site',
-  addNode: 'Add Node',
-  addLink: 'Add Link',
+  addSite: {name: 'New Planned Site', icon: 'pushpin'},
+  addNode: {name: 'New Node', icon: 'asterisk'},
+  addLink: {name: 'New Link', icon: 'transfer'},
 };
 
 function TopBar(props) {
@@ -92,20 +92,22 @@ function TopBar(props) {
       <SubMenu
         title={
           <span>
-            Topology Operations <span className="caret" />
+            Topology Builder <span className="caret" />
           </span>
         }
         key="topOps"
         mode="vertical">
-        {Object.keys(TOPOLOGY_OPS).map(topOpsKey => {
-          const topOpsName = TOPOLOGY_OPS[topOpsKey];
-          return <MenuItem key={'topOps#' + topOpsKey}>{topOpsName}</MenuItem>;
-        })}
+        {Object.keys(TOPOLOGY_OPS).map(topOpsKey => (
+          <MenuItem key={'topOps#' + topOpsKey}>
+            <Glyphicon glyph={TOPOLOGY_OPS[topOpsKey].icon} />
+            {TOPOLOGY_OPS[topOpsKey].name}
+          </MenuItem>
+        ))}
       </SubMenu>,
       <Divider key={2} />,
       <MenuItem key={'overlays#'}>
         <img className="overlay-image" src={'/static/images/overlays.png'} />
-        Site/Link Overlays
+        Map Overlays
       </MenuItem>,
       <Divider key={3} />,
       <SubMenu
@@ -133,7 +135,7 @@ function TopBar(props) {
         <SubMenu
           title={
             <span>
-              View <span className="caret" />
+              Menu <span className="caret" />
             </span>
           }
           key="view"

@@ -168,7 +168,7 @@ div.top-menu-bar {
 .rc-menu-inline > .rc-menu-item,
 .rc-menu-vertical > .rc-menu-submenu > .rc-menu-submenu-title,
 .rc-menu-inline > .rc-menu-submenu > .rc-menu-submenu-title {
-  padding: 6px;
+  padding: 6px 24px 6px 6px;
 }
 .rc-menu-vertical.rc-menu-sub {
   min-width: 100%;

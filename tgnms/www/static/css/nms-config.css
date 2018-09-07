@@ -115,6 +115,7 @@
 .nc-header-toggle .Select-control {
   border: 0;
   border-radius: initial;
+  cursor: pointer;
 }
 
 .nc-header-toggle .Select-control:hover {
