@@ -169,11 +169,12 @@ services:
     restart: always
     volumes:
       - ./docker_volumes/logs:/home/nms/data
+      - ./mysql_init_scripts:/mysql-scripts
     ports:
       - "8086:8086"
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z db 3306; do sleep 1; done && mysql -u$${MYSQL_USER} -p$${MYSQL_PASS} < /docker-entrypoint-initdb.d/cxl.sql; until nc -z beringei_30s 9992; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei_1s.json --host_names beringei_1s --port 9991 && beringei/tools/beringei_configuration_generator --file_path beringei_30s.json --host_names beringei_30s --port 9992 && beringei/tools/beringei_configuration_generator --file_path beringei_900s.json --host_names beringei_900s --port 9993 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads $${BQS_THREADS} -writer_queue_size 500000 -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -logtostderr"]
+    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z db 3306; do sleep 1; done && mysql -u$${MYSQL_USER} -p$${MYSQL_PASS} < /mysql-scripts/cxl.sql; until nc -z beringei_30s 9992; do sleep 1; done && beringei/tools/beringei_configuration_generator --file_path beringei_1s.json --host_names beringei_1s --port 9991 && beringei/tools/beringei_configuration_generator --file_path beringei_30s.json --host_names beringei_30s --port 9992 && beringei/tools/beringei_configuration_generator --file_path beringei_900s.json --host_names beringei_900s --port 9993 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads $${BQS_THREADS} -writer_queue_size 500000 -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -logtostderr"]
     depends_on:
       - ipv6
       - db
