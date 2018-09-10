@@ -144,7 +144,7 @@ export default class NetworkNodesTable extends React.Component {
           selectedLink: null,
         });
         break;
-      case Actions.HEALTH_REFRESHED:
+      case Actions.NODE_HEALTH_REFRESHED:
         // Update nodes with new nodeHealth data
         this.setState({
           nodeHealth: payload.nodeHealth,
@@ -190,12 +190,10 @@ export default class NetworkNodesTable extends React.Component {
       let events = [];
       if (
         this.state.nodeHealth &&
-        this.state.nodeHealth.hasOwnProperty('metrics') &&
-        this.state.nodeHealth.metrics.hasOwnProperty(node.mac_addr)
+        this.state.nodeHealth.hasOwnProperty(node.name)
       ) {
-        availability = this.state.nodeHealth.metrics[node.mac_addr]
-          .minion_uptime;
-        events = this.state.nodeHealth.metrics[node.mac_addr].events;
+        availability = this.state.nodeHealth[node.name].alive;
+        events = this.state.nodeHealth[node.name].events;
       }
       rows.push({
         availability,

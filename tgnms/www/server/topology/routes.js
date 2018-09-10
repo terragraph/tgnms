@@ -10,7 +10,8 @@ const {
 } = require('../config');
 const {
   getAllTopologyNames,
-  getNetworkHealth,
+  getNetworkLinkHealth,
+  getNetworkNodeHealth,
   getTopologyByName,
 } = require('./model');
 const express = require('express');
@@ -21,11 +22,22 @@ const logger = require('../log')(module);
 
 const router = express.Router();
 
-router.get(/\/health\/(.+)$/i, (req, res, next) => {
+router.get(/\/link_health\/(.+)$/i, (req, res, next) => {
   const topologyName = req.params[0];
-  const networkHealth = getNetworkHealth(topologyName);
-  if (networkHealth) {
-    res.send(networkHealth).end();
+  const networkLinkHealth = getNetworkLinkHealth(topologyName);
+  if (networkLinkHealth) {
+    res.send(networkLinkHealth).end();
+  } else {
+    logger.debug('No cache found for %s', topologyName);
+    res.send('No cache').end();
+  }
+});
+
+router.get(/\/node_health\/(.+)$/i, (req, res, next) => {
+  const topologyName = req.params[0];
+  const networkNodeHealth = getNetworkNodeHealth(topologyName);
+  if (networkNodeHealth) {
+    res.send(networkNodeHealth).end();
   } else {
     logger.debug('No cache found for %s', topologyName);
     res.send('No cache').end();

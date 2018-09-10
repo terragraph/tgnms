@@ -159,15 +159,18 @@ export default class NetworkUI extends React.Component {
     }
     // update last request time
     this.lastHealthRequestTime = new Date() / 1000;
-    axios.get('/topology/health/' + networkName).then(response => {
+    axios.get('/topology/link_health/' + networkName).then(response => {
       const data = response.data;
-      if (data.length !== 2) {
-        return;
-      }
       Dispatcher.dispatch({
-        actionType: Actions.HEALTH_REFRESHED,
-        nodeHealth: data[0],
-        linkHealth: data[1],
+        actionType: Actions.LINK_HEALTH_REFRESHED,
+        linkHealth: data,
+      });
+    });
+    axios.get('/topology/node_health/' + networkName).then(response => {
+      const data = response.data;
+      Dispatcher.dispatch({
+        actionType: Actions.NODE_HEALTH_REFRESHED,
+        nodeHealth: data,
       });
     });
   }

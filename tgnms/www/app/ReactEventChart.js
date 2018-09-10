@@ -65,7 +65,10 @@ export default class ReactEventChart extends React.Component {
     if (this.props.events.length == 0 || this.props.events[0].length == 0) {
       return <div>No link data available</div>;
     }
-    const timeRange = new TimeRange(this.props.startTime, this.props.endTime);
+    const timeRange = new TimeRange(
+      this.props.startTime * 1000,
+      this.props.endTime * 1000,
+    );
     const events = this.props.events.map(
       ({startTime, endTime, ...data}) =>
         new TimeRangeEvent(

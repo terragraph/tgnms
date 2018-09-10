@@ -37,7 +37,8 @@ export const Actions = {
   // layer 3 - selected node, link, etc
   LAYER_CHANGED: 'LAYER_CHANGED',
   // network health
-  HEALTH_REFRESHED: 'HEALTH_REFRESHED',
+  LINK_HEALTH_REFRESHED: 'LINK_HEALTH_REFRESHED',
+  NODE_HEALTH_REFRESHED: 'NODE_HEALTH_REFRESHED',
   LINK_OVERLAY_REFRESHED: 'LINK_OVERLAY_REFRESHED',
   ANALYZER_REFRESHED: 'ANALYZER_REFRESHED',
   SCAN_REFRESHED: 'SCAN_REFRESHED',
@@ -176,7 +177,7 @@ export const LinkOverlayKeys = {
     ],
     prefix: 'Less than',
   },
-  FLAPS: {
+  /*FLAPS: {
     name: 'Link Flaps',
     metric: 'flaps',
     // not used
@@ -192,7 +193,7 @@ export const LinkOverlayKeys = {
       'hsl(0, 100%, 20%)',
     ],
     prefix: 'Less than',
-  },
+  },*/
 };
 
 export const UploadStatus = {

@@ -9,10 +9,13 @@ const {
   NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
 } = require('../config');
-const controllerTTypes = require('../../thrift/gen-nodejs/Controller_types');
 const dataJson = require('../metrics/dataJson');
 const {getNodesWithUpgradeStatus} = require('./upgrade_status');
 const {resetTopologyHAState} = require('../highAvailability/model');
+import {
+  GraphAggregation,
+  StatsOutputFormat,
+} from '../../thrift/gen-nodejs/Stats_types';
 
 const _ = require('lodash');
 const {join} = require('path');
@@ -31,7 +34,8 @@ let configByName = {};
 let fileSiteByName = {};
 let fileTopologyByName = {};
 const ignitionStateByName = {};
-const networkHealth = {};
+const networkLinkHealth = {};
+const networkNodeHealth = {};
 let networkInstanceConfig = {};
 let ruckusApsBySite = {};
 const statusDumpsByName = {};
@@ -48,8 +52,12 @@ function getConfigByName(topologyName) {
   return configByName[topologyName];
 }
 
-function getNetworkHealth(topologyName) {
-  return _.get(networkHealth, topologyName);
+function getNetworkLinkHealth(topologyName) {
+  return _.get(networkLinkHealth, topologyName);
+}
+
+function getNetworkNodeHealth(topologyName) {
+  return _.get(networkNodeHealth, topologyName);
 }
 
 function getTopologyByName(topologyName) {
@@ -271,33 +279,22 @@ function refreshNetworkHealth(topologyName) {
     logger.error('network_health: Unknown topology %s', topologyName);
     return;
   }
-  const nodeMetrics = [
-    {
-      name: 'minion_uptime',
-      metric: 'e2e_minion.uptime',
-      type: 'uptime_sec',
-      min_ago: 24 * 60 /* 24 hours */,
-    },
-  ];
-  const linkMetrics = [
-    {
-      name: 'alive',
-      metric: 'fw_uptime',
-      type: 'event',
-      min_ago: 24 * 60 /* 24 hours */,
-    },
-  ];
+  // refresh link health
   const startTime = new Date();
-  const query = {
+  const linkQuery = {
+    aggregation: GraphAggregation.NONE,
+    countPerSecond: Math.floor(1000 / 25.6),
+    keyNames: ['fw_uptime'],
+    maxResults: 0 /* All results */,
+    minAgo: 24 * 60 /* 24 hours */,
+    outputFormat: StatsOutputFormat.EVENT_LINK,
     topologyName,
-    nodeQueries: nodeMetrics,
-    linkQueries: linkMetrics,
   };
-  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
+  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
   request.post(
     {
+      body: JSON.stringify(linkQuery),
       url: chartUrl,
-      body: JSON.stringify(query),
     },
     (err, httpResponse, body) => {
       if (err) {
@@ -308,16 +305,58 @@ function refreshNetworkHealth(topologyName) {
       // set BQS online
       configByName[topologyName].query_service_online = true;
       const totalTime = new Date() - startTime;
-      logger.debug('Fetched health for %s in %s ms', topologyName, totalTime);
+      logger.debug(
+        'Fetched link health for %s in %s ms',
+        topologyName,
+        totalTime,
+      );
       let parsed;
       try {
         parsed = JSON.parse(httpResponse.body);
       } catch (ex) {
-        logger.error('Failed to parse health json: %s', httpResponse.body);
+        logger.error('Failed to parse link health json: %s', httpResponse.body);
         return;
       }
-      // join the results
-      networkHealth[topologyName] = parsed;
+      networkLinkHealth[topologyName] = parsed;
+    },
+  );
+  const nodeQuery = {
+    aggregation: GraphAggregation.NONE,
+    countPerSecond: 1,
+    keyNames: ['e2e_minion.uptime'],
+    maxResults: 0 /* All results */,
+    minAgo: 24 * 60 /* 24 hours */,
+    outputFormat: StatsOutputFormat.EVENT_NODE,
+    topologyName,
+  };
+  // refresh node (minion) health
+  request.post(
+    {
+      body: JSON.stringify(nodeQuery),
+      url: chartUrl,
+    },
+    (err, httpResponse, body) => {
+      if (err) {
+        logger.error('Error fetching from beringei: %s', err);
+        configByName[topologyName].query_service_online = false;
+        return;
+      }
+      // set BQS online
+      configByName[topologyName].query_service_online = true;
+      const totalTime = new Date() - startTime;
+      logger.debug(
+        'Fetched node health for %s in %s ms',
+        topologyName,
+        totalTime,
+      );
+      let parsed;
+      try {
+        parsed = JSON.parse(httpResponse.body);
+      } catch (ex) {
+        logger.error('Failed to parse node health json: %s', httpResponse.body);
+        return;
+      }
+      networkNodeHealth[topologyName] = parsed;
     },
   );
 }
@@ -456,8 +495,9 @@ worker.on('message', msg => {
 module.exports = {
   getAllTopologyNames,
   getConfigByName,
-  getNetworkHealth,
   getNetworkInstanceConfig,
+  getNetworkLinkHealth,
+  getNetworkNodeHealth,
   getTopologyByName,
   refreshNetworkHealth,
   refreshRuckusControllerCache,

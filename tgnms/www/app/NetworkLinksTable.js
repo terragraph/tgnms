@@ -213,12 +213,11 @@ export default class NetworkLinksTable extends React.Component {
       topology.links.forEach(link => {
         if (
           this.state.linkHealth &&
-          this.state.linkHealth.metrics &&
-          this.state.linkHealth.metrics.hasOwnProperty(link.name)
+          this.state.linkHealth.hasOwnProperty(link.name)
         ) {
-          const nodeHealth = this.state.linkHealth.metrics[link.name];
-          link.alive_perc = nodeHealth.alive;
-          link.events = nodeHealth.events;
+          const linkHealth = this.state.linkHealth[link.name];
+          link.alive_perc = linkHealth.alive;
+          link.events = linkHealth.events;
         }
         // link.name is the full name: e.g. link-15-46.p1-15-46.s2
         // link.a_node_name would be 15-46.p1 in this case
@@ -250,7 +249,7 @@ export default class NetworkLinksTable extends React.Component {
           selectedLink: payload.link.name,
         });
         break;
-      case Actions.HEALTH_REFRESHED:
+      case Actions.LINK_HEALTH_REFRESHED:
         this.setState({
           linkHealth: payload.linkHealth,
         });
@@ -774,9 +773,10 @@ export default class NetworkLinksTable extends React.Component {
   renderLinkAvailability(cell, row, style) {
     if (row && row.name) {
       const link = this.linksByName[row.name];
+      const res = [];
       if (link && link.events && link.events.length > 0) {
-        const startTime = this.state.linkHealth.start;
-        const endTime = this.state.linkHealth.end;
+        const startTime = this.state.linkHealth.startTime;
+        const endTime = this.state.linkHealth.endTime;
         return (
           <ReactEventChart
             events={link.events}
@@ -788,6 +788,7 @@ export default class NetworkLinksTable extends React.Component {
           />
         );
       }
+      return res;
     }
     return null;
   }

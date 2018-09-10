@@ -8,15 +8,17 @@
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-datetime/css/react-datetime.css';
 
-import Dispatcher from './NetworkDispatcher.js';
-import ReactMultiGraph from './ReactMultiGraph.js';
-import {Actions} from './constants/NetworkConstants.js';
 import axios from 'axios';
-import moment from 'moment';
-import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import Datetime from 'react-datetime';
+import Dispatcher from './NetworkDispatcher.js';
+import moment from 'moment';
 import React from 'react';
+import ReactMultiGraph from './ReactMultiGraph.js';
+
+import {Actions} from './constants/NetworkConstants.js';
+import {AsyncTypeahead} from 'react-bootstrap-typeahead';
 import {Glyphicon} from 'react-bootstrap';
+import {GraphAggregation} from '../thrift/gen-nodejs/Stats_types';
 
 const TIME_PICKER_OPTS = [
   {
@@ -63,52 +65,48 @@ const TIME_PICKER_OPTS = [
 
 const GRAPH_AGG_OPTS = [
   {
+    aggregationType: GraphAggregation.TOP_AVG,
     name: 'top',
     title: 'Top',
   },
   {
+    aggregationType: GraphAggregation.BOTTOM_AVG,
     name: 'bottom',
     title: 'Bottom',
   },
   {
+    aggregationType: GraphAggregation.AVG,
     name: 'avg',
     title: 'Avg + Min/Max',
   },
   {
+    aggregationType: GraphAggregation.SUM,
     name: 'sum',
     title: 'Sum',
   },
   {
+    aggregationType: GraphAggregation.COUNT,
     name: 'count',
     title: 'Count',
   },
-  /*  {
-    name: 'split',
-    title: 'Split',
-  },
-  {
-    name: 'groupby_site',
-    title: 'Group By Site',
-  },*/
-  // group by link
 ];
 
 export default class NetworkStats extends React.Component {
   state = {
+    // custom end time specified
+    endTime: new Date(),
+    graphAggType: 30,
+    keyIsLoading: false,
     // type-ahead data
     keyOptions: [],
     // type-ahead graphs
     keysSelected: [],
-    // time selection
-    useCustomTime: false,
     // simple minutes ago, won't have to adjust the start/end time displayed
     minAgo: 60,
-    // specific start+end time, doesn't support 'now' yet
+    // custom start time specified
     startTime: new Date(),
-    endTime: new Date(),
-
-    graphAggType: 'top',
-    keyIsLoading: false,
+    // time selection
+    useCustomTime: false,
   };
 
   constructor(props) {
@@ -168,17 +166,24 @@ export default class NetworkStats extends React.Component {
 
   formatKeyOptions(keyOptions) {
     const retKeys = [];
-    keyOptions.forEach(keyList => {
+    if (typeof keyOptions === 'object') {
       // aggregate data for this key
-      retKeys.push({name: keyList[0].displayName, data: keyList});
-    });
+      keyOptions.forEach(keyList => {
+        retKeys.push({
+          data: keyList,
+          name: keyList[0].shortName.length
+            ? keyList[0].shortName
+            : keyList[0].keyName,
+        });
+      });
+    }
     return retKeys;
   }
 
   renderTypeaheadKeyMenu(option, props, index) {
     return [
       <strong key="name">{option.name}</strong>,
-      <div key="data">Nodes: {option.data.length}</div>,
+      <div key="data">Keys: {option.data.length}</div>,
     ];
   }
 
@@ -234,19 +239,21 @@ export default class NetworkStats extends React.Component {
     let pos = 0;
     const multiGraphs = this.state.keysSelected.map(keyIds => {
       const graphOpts = {
-        type: 'key_ids',
-        key_ids: keyIds.data.map(data => data.keyId),
-        data: keyIds.data,
-        agg_type: this.state.graphAggType,
+        aggregation: this.state.graphAggType,
+        keyNames: keyIds.data[0].shortName.length
+          ? [keyIds.data[0].shortName]
+          : keyIds.data.map(data => data.keyName),
+        outputFormat: 1 /* POINTS */,
+        topologyName: this.props.networkConfig.topology.name,
       };
       if (this.state.useCustomTime) {
-        graphOpts.start_ts = this.state.startTime.getTime() / 1000;
-        graphOpts.end_ts = this.state.endTime.getTime() / 1000;
+        graphOpts.startTsSec = this.state.startTime.getTime() / 1000;
+        graphOpts.endTsSec = this.state.endTime.getTime() / 1000;
       } else {
-        graphOpts.min_ago = this.state.minAgo;
+        graphOpts.minAgo = this.state.minAgo;
       }
       pos++;
-      return <ReactMultiGraph options={[graphOpts]} key={pos} size="large" />;
+      return <ReactMultiGraph options={graphOpts} key={pos} size="large" />;
     });
     // custom time selector
     let customInputProps = {};
@@ -353,14 +360,19 @@ export default class NetworkStats extends React.Component {
             label={opts.name}
             key={opts.name}
             className={
-              opts.name === this.state.graphAggType
+              opts.aggregationType === this.state.graphAggType
                 ? 'graph-button graph-button-selected'
                 : 'graph-button'
             }
-            onClick={clk => this.setState({graphAggType: opts.name})}>
+            onClick={clk =>
+              this.setState({
+                graphAggType: opts.aggregationType,
+              })
+            }>
             {opts.title}
           </button>
         ))}
+        <br />
         {multiGraphs}
       </div>
     );

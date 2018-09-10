@@ -320,7 +320,7 @@ export default class NetworkMap extends React.Component {
           selectedSite: null,
         });
         break;
-      case Actions.HEALTH_REFRESHED:
+      case Actions.LINK_HEALTH_REFRESHED:
         this.setState({
           linkHealth: payload.linkHealth,
         });
@@ -409,14 +409,13 @@ export default class NetworkMap extends React.Component {
       link.angle = linkAngle;
       const linkLength = LeafletGeom.length([aSiteCoords, zSiteCoords]);
       link.distance = parseInt(linkLength * 100, 10) / 100; /* meters */
-      // apply health data
+      // apply health data on link object for dependent components
       if (
         this.state.linkHealth &&
-        this.state.linkHealth.metrics &&
-        this.state.linkHealth.metrics.hasOwnProperty(link.name)
+        this.state.linkHealth.hasOwnProperty(link.name)
       ) {
-        const nodeHealth = this.state.linkHealth.metrics[link.name];
-        link.alive_perc = nodeHealth.alive;
+        const linkHealth = this.state.linkHealth[link.name];
+        link.alive_perc = linkHealth.alive;
       }
 
       if (
@@ -1025,31 +1024,6 @@ export default class NetworkMap extends React.Component {
     });
 
     const ignitionLinks = new Set(this.props.networkConfig.ignition_state);
-    // find min/max for flap events
-    const linkEventCounts = [];
-    topology.links.map(link => {
-      if (link.link_type != 1) {
-        return;
-      }
-      if (
-        !this.nodesByName.hasOwnProperty(link.a_node_name) ||
-        !this.nodesByName.hasOwnProperty(link.z_node_name)
-      ) {
-        return;
-      }
-      if (
-        this.state.linkHealth.hasOwnProperty('metrics') &&
-        this.state.linkHealth.metrics.hasOwnProperty(link.name)
-      ) {
-        // we have health data for this link
-        const linkHealthEvents = this.state.linkHealth.metrics[link.name].events
-          .length;
-        linkEventCounts.push(linkHealthEvents);
-      }
-    });
-    linkEventCounts.sort((a, b) => {
-      return a > b ? 1 : a == b ? 0 : -1;
-    });
     // use min/max/std dev or something else here (TODO)
     topology.links.map(link => {
       if (link.link_type != 1) {
@@ -1194,10 +1168,11 @@ export default class NetworkMap extends React.Component {
               color_z,
             );
             break;
+          /*
+           * DISABLED - this will come back as a stat
           case 'FLAPS':
             // flaps is a special case, can use health data to count # of events
             if (
-              this.state.linkHealth.hasOwnProperty('metrics') &&
               this.state.linkHealth.metrics.hasOwnProperty(link.name)
             ) {
               // we have health data for this link
@@ -1214,6 +1189,7 @@ export default class NetworkMap extends React.Component {
               linkLine = this.getLinkLine(link, linkCoords, 'black');
             }
             break;
+          */
           default:
             linkLine = this.getLinkLine(link, linkCoords, 'grey');
         }

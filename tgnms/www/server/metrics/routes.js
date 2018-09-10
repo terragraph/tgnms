@@ -55,11 +55,11 @@ router.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
 // newer charting, for multi-linechart/row
 router.post(/\/multi_chart\/$/i, (req, res, next) => {
   // proxy query
-  const chartUrl = BERINGEI_QUERY_URL + '/query';
+  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
 
   // If the request window begin time is before 3 days, use the low frequency
   // database.
-  if (req.body.length > 0) {
+  /*if (req.body.length > 0) {
     if ('min_ago' in req.body[0] && req.body[0].min_ago > 3 * 24 * 60) {
       console.log(
         'Using low freq Beringei database for data fetching with min ago',
@@ -74,13 +74,11 @@ router.post(/\/multi_chart\/$/i, (req, res, next) => {
       );
       req.body[0].interval = 900;
     }
-  }
-
-  const queryRequest = {queries: req.body};
+  }*/
   request.post(
     {
+      body: JSON.stringify(req.body),
       url: chartUrl,
-      body: JSON.stringify(queryRequest),
     },
     (err, httpResponse, body) => {
       if (err) {
@@ -102,13 +100,13 @@ router.post(/\/multi_chart\/$/i, (req, res, next) => {
 router.get('/stats_ta/:topology/:pattern', (req, res, next) => {
   const taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
   const taRequest = {
+    searchTerm: req.params.pattern,
     topologyName: req.params.topology,
-    input: req.params.pattern,
   };
   request.post(
     {
-      url: taUrl,
       body: JSON.stringify(taRequest),
+      url: taUrl,
     },
     (err, httpResponse, body) => {
       if (err) {

@@ -192,8 +192,10 @@ Dispatcher.register(payload => {
     case Actions.TOPOLOGY_REFRESHED:
       NetworkStore.networkConfig = payload.networkConfig;
       break;
-    case Actions.HEALTH_REFRESHED:
+    case Actions.LINK_HEALTH_REFRESHED:
       NetworkStore.linkHealth = payload.linkHealth;
+      break;
+    case Actions.NODE_HEALTH_REFRESHED:
       NetworkStore.nodeHealth = payload.nodeHealth;
       break;
     case Actions.ANALYZER_REFRESHED:
