@@ -155,7 +155,7 @@ export default class NetworkDataTable extends React.Component {
           <Tab className="data-table-tab">Nodes</Tab>
           <Tab className="data-table-tab">Links</Tab>
           <Tab className="data-table-tab">Scans</Tab>
-          <Tab className="data-table-tab">Adjacencies</Tab>
+          {/* <Tab className="data-table-tab">Adjacencies</Tab> */}
         </TabList>
         <TabPanel>
           <NetworkStatusTable {...tableProps} />
@@ -169,9 +169,9 @@ export default class NetworkDataTable extends React.Component {
         <TabPanel>
           <NetworkScans {...tableProps} />
         </TabPanel>
-        <TabPanel>
+        {/* <TabPanel>
           <NetworkAdjacencyTable {...tableProps} />
-        </TabPanel>
+        </TabPanel> */}
       </Tabs>
     );
     /* DISABLED until status_dump is split into status_report and routing_report (pmccut)

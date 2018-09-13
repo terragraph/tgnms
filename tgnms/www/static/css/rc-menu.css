@@ -69,6 +69,11 @@ div.top-menu-bar {
   width: 100%;
   z-index: 9999;
 }
+div.top-menu-bar > .rc-menu-root > .rc-menu-item,
+div.top-menu-bar > .rc-menu-root > .rc-menu-submenu,
+div.top-menu-bar > .rc-menu-root > .rc-menu-submenu > .rc-menu-submenu-title {
+  max-height: 40px;
+}
 .network-status-menu,
 .rc-menu-horizontal.network-status-menu > .rc-menu-submenu {
   border: 0;
@@ -135,7 +140,7 @@ div.top-menu-bar {
 .rc-menu-horizontal {
   background-color: #303336;
   border: none;
-  border-bottom: 1px solid #d9d9d9;
+  /*border-bottom: 1px solid #d9d9d9;*/
   box-shadow: none;
 }
 .rc-menu-horizontal > .rc-menu-item,

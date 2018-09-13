@@ -33,7 +33,7 @@ const VIEWS = {
   'nms-config': {name: 'NMS Config', icon: 'cloud'},
   config: {name: 'Node Config', icon: 'cog'},
   'e2e-config': {name: 'E2E Config', icon: 'hdd'},
-  users: {name: 'Users', icon: 'user'},
+  //users: {name: 'Users', icon: 'user'},
 };
 
 const TOPOLOGY_OPS = {
@@ -109,18 +109,20 @@ function TopBar(props) {
         <img className="overlay-image" src={'/static/images/overlays.png'} />
         Map Overlays
       </MenuItem>,
+      /*
       <Divider key={3} />,
       <SubMenu
         title={
           <div>
             <span className="glyphicon glyphicon-user" />
-            {props.user ? props.user.email.split('@')[0] : '<N/A>'}
+            {props.user ? props.user.email.split('@')[0] : 'Guest'}
           </div>
         }
         key="user"
         mode="vertical">
         <MenuItem key="logout#">Logout</MenuItem>
       </SubMenu>,
+      */
     ];
   }
 
