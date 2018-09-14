@@ -311,9 +311,10 @@ int64_t RawReadBeringeiData::findBeringeiKeyId(query::RawQueryKey rawQueryKey) {
         VLOG(1) << "\t\tName: " << key.shortName << ", key: " << key.keyName
                 << ", node: " << key.srcNodeName
                 << ", Beringei keyId: " << key.keyId;
-        keyList.push_back(folly::dynamic::object(
-            "shortName", key.shortName)("srcNodeName", key.srcNodeName)("keyId", key.keyId)(
-            "linkName", key.linkName)("unit", (int)key.unit));
+        keyList.push_back(folly::dynamic::object("shortName", key.shortName)(
+            "srcNodeName", key.srcNodeName)("keyId", key.keyId)(
+            "linkName", key.linkName)("unit", (int)key.unit)(
+            "srcNodeMac", key.srcNodeMac)("keyName", key.keyName));
       }
       if (!keyList.isNull()) {
         orderedMetricList.push_back(keyList);
@@ -339,14 +340,14 @@ int64_t RawReadBeringeiData::findBeringeiKeyId(query::RawQueryKey rawQueryKey) {
 
   for (const auto& key_list_ : orderedMetricList) {
     for (const auto& single_key_ : key_list_) {
-      VLOG(4) << "The single_key_ is of node " << single_key_["node"]
+      VLOG(4) << "The single_key_ has MAC addr " << single_key_["srcNodeMac"]
               << " needed sourceMac:" << wantedSourceMac;
-      if (single_key_["node"] == wantedSourceMac) {
+      if (single_key_["srcNodeMac"] == wantedSourceMac) {
         LOG(INFO) << "Found KeyId " << single_key_["keyId"].getInt()
                   << ", will use it for Beringei Query";
         if (targetKeyId == kFail) {
           targetKeyId = single_key_["keyId"].getInt();
-          fullMetricKeyName_.back() = single_key_["key"].getString();
+          fullMetricKeyName_.back() = single_key_["keyName"].getString();
         } else if (targetKeyId != single_key_["keyId"].getInt()) {
           // Find a keyId that is different to the one above return kFail
           LOG(ERROR) << "Found duplicated keyId will skip this Beringei Query";
