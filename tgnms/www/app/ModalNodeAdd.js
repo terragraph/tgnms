@@ -190,7 +190,7 @@ export default class ModalNodeAdd extends React.Component {
             </tr>
             <tr className="blank_row" />
             <tr>
-              <td width={100}>Is Pop?</td>
+              <td width={100}>Is POP?</td>
               <td>
                 <input
                   name="isPop"

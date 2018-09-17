@@ -39,7 +39,8 @@ export default class ModalCommitUpgrade extends React.Component {
 
   state = {
     timeout: 180, // timeout for the entire commit operation per node
-    skipFailure: true, // skip failed nodes (will not stop operation)
+    skipFailure: false, // skip failed nodes (will not stop operation)
+    skipPopFailure: false, // skip failed POP nodes (will not stop operation)
     limit: 1, // limit per batch. max batch size is infinite if this is set to 0
     requestType: REQUEST_TYPE.AUTO, // network vs nodes upgrade request
     scheduleToCommit: 0, // delay between issuing the command and each node starting the commit
@@ -92,6 +93,7 @@ export default class ModalCommitUpgrade extends React.Component {
       excludeNodes,
       timeout: this.state.timeout,
       skipFailure: this.state.skipFailure,
+      skipPopFailure: this.state.skipPopFailure,
       skipLinks: [],
       limit,
       scheduleToCommit: this.state.scheduleToCommit,
@@ -113,7 +115,8 @@ export default class ModalCommitUpgrade extends React.Component {
     Commit modal:
       List nodes
       Timeout
-      Skipfailure?
+      SkipFailure?
+      SkipPopFailure?
       Batch size limit
       Commit delay
     */
@@ -214,20 +217,31 @@ export default class ModalCommitUpgrade extends React.Component {
             </div>
           )}
 
+          <div className="upgrade-modal-row">
+            <label>Skip Failures?</label>
+            <input
+              type="checkbox"
+              checked={this.state.skipFailure}
+              onChange={event =>
+                this.setState({skipFailure: event.target.checked})
+              }
+            />
+          </div>
+
+          <div className="upgrade-modal-row">
+            <label>Skip POP Failures?</label>
+            <input
+              type="checkbox"
+              checked={this.state.skipPopFailure}
+              onChange={event =>
+                this.setState({skipPopFailure: event.target.checked})
+              }
+            />
+          </div>
+
           <ShowMorePanel
             buttonClass="upgrade-more-options-button"
             moreButtonName="Show Additional Options">
-            <div className="upgrade-modal-row">
-              <label>Skip Failures?</label>
-              <input
-                type="checkbox"
-                checked={this.state.skipFailure}
-                onChange={event =>
-                  this.setState({skipFailure: event.target.checked})
-                }
-              />
-            </div>
-
             <div className="upgrade-modal-row">
               <label>Commit Delay (s):</label>
               <input

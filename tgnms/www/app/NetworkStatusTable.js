@@ -92,13 +92,17 @@ export default class NetworkStatusTable extends React.Component {
     if (this.props.instance.hasOwnProperty('controller_error')) {
       controllerErrorRow = (
         <tr>
-          <td>Controller Error</td>
-          <td colSpan="2" style={{fontWeight: 'bold', color: 'red'}}>
+          <td>
+            <strong>Controller Error</strong>
+          </td>
+          <td colSpan={2} style={{fontWeight: 'bold', color: 'red'}}>
             {this.props.instance.controller_error}
           </td>
         </tr>
       );
     }
+
+    const nodeVersions = this._getNodeVersions();
 
     return (
       <div className="status-table-container">
@@ -121,6 +125,7 @@ export default class NetworkStatusTable extends React.Component {
                 </td>
                 <td colSpan={2}>{this.props.instance.controller_version}</td>
               </tr>
+              {controllerErrorRow}
               <tr>
                 <td>
                   <strong>Query Service</strong>
@@ -132,10 +137,12 @@ export default class NetworkStatusTable extends React.Component {
               </tr>
             </tbody>
           </Table>
-          <h3>Node Versions</h3>
-          <Table condensed hover>
-            <tbody>{this._getNodeVersions()}</tbody>
-          </Table>
+          {nodeVersions.length > 0 && [
+            <h3>Node Versions</h3>,
+            <Table condensed hover>
+              <tbody>{nodeVersions}</tbody>
+            </Table>,
+          ]}
         </div>
         <div class="status-table status-table-right">
           <h3>Topology</h3>

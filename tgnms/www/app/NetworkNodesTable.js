@@ -57,7 +57,7 @@ export default class NetworkNodesTable extends React.Component {
       sortFunc: this.siteSortFunc.bind(this),
     },
     {
-      label: 'Pop?',
+      label: 'POP?',
       key: 'pop_node',
       width: 80,
       sort: true,

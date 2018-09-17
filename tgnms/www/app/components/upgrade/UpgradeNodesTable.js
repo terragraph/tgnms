@@ -6,6 +6,7 @@
 'use strict';
 
 import {availabilityColor} from '../../helpers/NetworkHelpers.js';
+import {NodeStatusType} from '../../../thrift/gen-nodejs/Topology_types';
 import {get, has} from 'lodash-es';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
@@ -69,7 +70,9 @@ export default class UpgradeNodesTable extends React.Component {
 
       rows.push({
         name: node.name,
-        ignited: node.status == 2 || node.status == 3,
+        alive:
+          node.status === NodeStatusType.ONLINE ||
+          node.status === NodeStatusType.ONLINE_INITIATOR,
         site_name: node.site_name,
         pop_node: node.pop_node,
         version,
@@ -191,9 +194,9 @@ export default class UpgradeNodesTable extends React.Component {
           <TableHeaderColumn
             width="90"
             dataSort={true}
-            dataField="ignited"
+            dataField="alive"
             dataFormat={this.renderStatusColor}>
-            Ignited
+            Alive?
           </TableHeaderColumn>
           <TableHeaderColumn width="80" dataSort={true} dataField="site_name">
             Site
@@ -203,7 +206,7 @@ export default class UpgradeNodesTable extends React.Component {
             dataSort={true}
             dataField="pop_node"
             dataFormat={this.renderStatusColor}>
-            Pop?
+            POP?
           </TableHeaderColumn>
           <TableHeaderColumn
             width="180"
