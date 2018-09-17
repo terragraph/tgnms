@@ -1,0 +1,102 @@
+{
+  "config" : {
+    "channel" : 2
+  },
+  "links" : [
+    {
+      "a_node_mac" : "0e:a3:e5:90:b0:00",
+      "a_node_name" : "A.p1",
+      "control_superframe" : 0,
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 2,
+      "name" : "link-A.p1-B.p1",
+      "z_node_mac" : "38:3a:21:b0:13:98",
+      "z_node_name" : "B.p1"
+    },
+    {
+      "a_node_mac" : "0e:a3:e5:90:b0:01",
+      "a_node_name" : "A.p1",
+      "control_superframe" : 1,
+      "is_alive" : true,
+      "link_type" : 1,
+      "linkup_attempts" : 2,
+      "name" : "link-A.p1-F.p1",
+      "z_node_mac" : "0e:a3:e5:90:c0:00",
+      "z_node_name" : "F.p1"
+    }
+  ],
+  "name" : "Lab Jaguar",
+  "nodes" : [
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "is_primary" : true,
+      "mac_addr" : "92:f0:47:28:d3:7d",
+      "name" : "A.p1",
+      "node_type" : 2,
+      "polarity" : 1,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [
+        "0e:a3:e5:90:b0:00",
+        "0e:a3:e5:90:b0:01"
+      ],
+      "site_name" : "A",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "is_primary" : true,
+      "mac_addr" : "38:3a:21:b0:13:98",
+      "name" : "B.p1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [],
+      "site_name" : "B",
+      "status" : 3
+    },
+    {
+      "ant_azimuth" : 0,
+      "ant_elevation" : 0,
+      "is_primary" : true,
+      "mac_addr" : "be:8b:eb:10:22:6a",
+      "name" : "F.p1",
+      "node_type" : 2,
+      "polarity" : 2,
+      "pop_node" : true,
+      "secondary_mac_addrs" : [
+        "0e:a3:e5:90:c0:00"
+      ],
+      "site_name" : "F",
+      "status" : 3
+    }
+  ],
+  "sites" : [
+    {
+      "name": "A",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1475237,
+        "altitude": 0
+      }
+    },
+    {
+      "name": "B",
+      "location": {
+        "latitude": 37.484946,
+        "longitude": -122.1472237,
+        "altitude": 0
+      }
+    },
+    {
+      "name": "F",
+      "location": {
+        "latitude": 37.484746,
+        "longitude": -122.1475237,
+        "altitude": 0
+      }
+    }
+  ]
+}
