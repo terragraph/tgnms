@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "This script is for installing the Terragraph controller suite on a server via ansible."
+echo "This script is for installing the Terragraph controller suite on a server via ansible. The box should be updated to latest"
 echo
 echo "Set TARGET_BOX to the target box and TARGET_USER to set the user. The default box is localhost and the default user us ubuntu."
-echo "The user must be a user that can connect to the target box over ssh and passwordlessly sudo to root.  An ssh key is recommended here, ssh key forwarding works."
+echo "The user must be a user that can connect to the target box over ssh and passwordlessly sudo to root.  An ssh key is required here, ssh key forwarding works."
 echo
 echo "It attempts to create a local python virtualenv for ansible, builds an inventory file and tests to make sure that the user can connect."
 echo "python is required on both ends and the virtualenv module is require locally. python2 requires 2.6+ and python3 requires 3.5+"
