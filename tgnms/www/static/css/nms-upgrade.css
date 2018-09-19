@@ -170,6 +170,22 @@
   background-color: #f9f9f9;
 }
 
+.upgrade-modal-image-list.Select--multi .Select-value {
+  color: #333;
+  background-color: #f9f9f9;
+  border: 1px solid #e3e3e3;
+}
+
+.upgrade-modal-image-list.Select--multi .Select-value-icon {
+  border-right: none;
+}
+
+.upgrade-modal-image-list.Select--multi .Select-value-icon:hover,
+.upgrade-modal-image-list.Select--multi .Select-value-icon:focus {
+  color: black;
+  background-color: #e3e3e3;
+}
+
 .prepare-modal-images-list {
   max-height: 200px;
   overflow-y: auto;
@@ -264,4 +280,5 @@
   font-size: 0.9em;
   font-style: italic;
   margin-top: 3px;
+  line-height: 1.2;
 }

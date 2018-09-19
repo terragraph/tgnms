@@ -34,7 +34,7 @@ export default class ModalPrepareUpgrade extends React.Component {
     skipFailure: true, // skip failed nodes (will not stop operation)
     isParallel: true, // parallelize the operation? (put all nodes in one batch)
     limit: 1, // limit per batch. max batch size is infinite if this is set to 0
-    selectedImage: {}, // image to upgrade, with a name and a link
+    selectedImages: [], // image(s) to upgrade, with a name and a link
 
     // HTTP
     downloadAttempts: 1, // number of attempts for downloading the image
@@ -48,11 +48,11 @@ export default class ModalPrepareUpgrade extends React.Component {
   };
 
   submitPrepare = () => {
-    if (isEmpty(this.state.selectedImage)) {
+    if (!this.state.selectedImages.length) {
       swal({
         title: 'No Image Selected',
         text: `No image was selected for upgrade.
-        Please select one from the list or upload one through the "Manage Upgrade Images" option.
+        Please select one or more from the list or upload one through the "Manage Upgrade Images" option.
         `,
         type: 'error',
       });
@@ -71,18 +71,38 @@ export default class ModalPrepareUpgrade extends React.Component {
       }
     }
 
+    // check for duplicate image boards
+    const allBoardIds = new Set();
+    for (let i = 0, n = this.state.selectedImages.length; i < n; i++) {
+      const image = this.state.selectedImages[i];
+      if (!image.hardwareBoardIds || !image.hardwareBoardIds.length) {
+        continue;
+      }
+      for (let j = 0, m = image.hardwareBoardIds.length; j < m; j++) {
+        const hwBoardId = image.hardwareBoardIds[j];
+        if (allBoardIds.has(hwBoardId)) {
+          swal({
+            title: 'Conflicting Images Selected',
+            text: `Multiple images target the same hardware board ID "${hwBoardId}".\n
+            If this was intended, please send a separate request for each image to the desired groups of nodes.
+            `,
+            type: 'error',
+          });
+          return;
+        }
+        allBoardIds.add(hwBoardId);
+      }
+    }
+
     const requestBody = {
       nodes: this.props.upgradeNodes,
-      imageUrl: this.state.selectedImage.magnetUri,
-      md5: this.state.selectedImage.md5,
-
+      images: this.state.selectedImages,
       timeout: this.state.timeout,
       skipFailure: this.state.skipFailure,
 
       // limit of 0 means unlimited max batch size
       limit: this.state.isParallel ? 0 : this.state.limit,
 
-      requestId: 'NMS' + new Date().getTime(),
       isHttp: this.state.isHttp,
       topologyName: this.props.topologyName,
     };
@@ -100,12 +120,12 @@ export default class ModalPrepareUpgrade extends React.Component {
     }
 
     prepareUpgrade(requestBody);
-    this.props.onClose();
+    this.modalClose();
   };
 
   modalClose = () => {
     this.setState({
-      selectedImage: {},
+      selectedImages: [],
     });
     this.props.onClose();
   };
@@ -116,19 +136,23 @@ export default class ModalPrepareUpgrade extends React.Component {
 
   selectUpgradeImage = val => {
     const {upgradeImages} = this.props;
-    const selectedImageName = val.value;
+    const selectedImageNames = val.map(v => v.value);
 
-    upgradeImages.forEach(image => {
-      if (image.name === selectedImageName) {
-        this.setState({selectedImage: image});
-        return;
+    const images = [];
+    selectedImageNames.forEach(selectedImageName => {
+      const selectedImage = upgradeImages.find(image => {
+        return image.name === selectedImageName;
+      });
+      if (selectedImage) {
+        images.push(selectedImage);
       }
     });
+    this.setState({selectedImages: images});
   };
 
   renderUpgradeImagesSelect() {
     const {upgradeImages} = this.props;
-    const {selectedImage} = this.state;
+    const {selectedImages} = this.state;
 
     const selectOptions = upgradeImages.map(image => ({
       label: image.name,
@@ -137,14 +161,16 @@ export default class ModalPrepareUpgrade extends React.Component {
 
     return (
       <div className="upgrade-modal-row">
-        <strong className="subtitle">Select an upgrade image</strong>
+        <strong className="subtitle">Select upgrade image(s)</strong>
         <Select
+          className="upgrade-modal-image-list"
           clearable={false}
+          multi
           name="Select Image"
           options={selectOptions}
           onChange={this.selectUpgradeImage}
-          placeholder="Select an Image"
-          value={selectedImage.name}
+          placeholder="-"
+          value={selectedImages.map(image => image.name)}
         />
       </div>
     );

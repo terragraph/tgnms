@@ -41,6 +41,12 @@ export default class UpgradeImagesTable extends React.Component {
             <div>
               <div className="image-table-title">{image.name}</div>
               <div className="image-table-subtitle">{`MD5: ${image.md5}`}</div>
+              {image.hardwareBoardIds &&
+                image.hardwareBoardIds.length > 0 && (
+                  <div className="image-table-subtitle">
+                    {`Boards: ${image.hardwareBoardIds.join(', ')}`}
+                  </div>
+                )}
             </div>
             <Glyphicon
               className="remove-button"

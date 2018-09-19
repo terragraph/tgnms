@@ -195,11 +195,9 @@ export const prepareUpgrade = upgradeGroupReq => {
   const {
     downloadAttempts,
     nodes,
-    imageUrl,
+    images,
     isHttp,
     limit,
-    md5,
-    requestId,
     skipFailure,
     timeout,
     topologyName,
@@ -212,28 +210,42 @@ export const prepareUpgrade = upgradeGroupReq => {
   } else {
     upgradeReqParams['torrentParams'] = torrentParams;
   }
-  const data = {
-    limit,
-    nodes,
-    skipFailure,
-    skipLinks: [],
-    timeout,
-    ugType: UpgradeGroupType.NODES,
-    urReq: {
-      imageUrl,
-      md5,
-      upgradeReqId: requestId,
-      urType: UpgradeReqType.PREPARE_UPGRADE,
-      ...upgradeReqParams,
-    },
-    version: '',
-  };
-  apiServiceRequest(topologyName, 'sendUpgradeRequest', data)
+
+  const now = new Date().getTime();
+  const requestIds = [];
+
+  const promises = images.map((image, idx) => {
+    const requestId = 'NMS' + (now + idx);
+    requestIds.push(requestId);
+    const data = {
+      limit,
+      nodes,
+      skipFailure,
+      skipLinks: [],
+      timeout,
+      ugType: UpgradeGroupType.NODES,
+      urReq: {
+        hardwareBoardIds:
+          image.hardwareBoardIds && image.hardwareBoardIds.length
+            ? image.hardwareBoardIds
+            : [],
+        imageUrl: image.magnetUri,
+        md5: image.md5,
+        upgradeReqId: requestId,
+        urType: UpgradeReqType.PREPARE_UPGRADE,
+        ...upgradeReqParams,
+      },
+      version: '',
+    };
+    return apiServiceRequest(topologyName, 'sendUpgradeRequest', data);
+  });
+
+  Promise.all(promises)
     .then(response => {
       swal({
         text:
           'You have initiated the "prepare upgrade" process with ' +
-          `requestId ${requestId}` +
+          `requestId(s) ${requestIds.join(', ')}` +
           '\n\n' +
           'The status of your upgrade should be shown on the "Node ' +
           'Upgrade Status" table.',
@@ -241,7 +253,10 @@ export const prepareUpgrade = upgradeGroupReq => {
         type: 'info',
       });
     })
-    .catch(createErrorHandler('Prepare upgrade failed'));
+    .catch(err => {
+      createErrorHandler('Prepare upgrade failed');
+      return '';
+    });
 };
 
 export const commitUpgrade = upgradeGroupReq => {
@@ -249,7 +264,6 @@ export const commitUpgrade = upgradeGroupReq => {
     excludeNodes,
     limit,
     nodes,
-    requestId,
     scheduleToCommit,
     skipFailure,
     skipPopFailure,
@@ -259,6 +273,7 @@ export const commitUpgrade = upgradeGroupReq => {
     ugType,
   } = upgradeGroupReq;
 
+  const requestId = 'NMS' + new Date().getTime();
   const data = {
     excludeNodes,
     limit,
@@ -281,7 +296,7 @@ export const commitUpgrade = upgradeGroupReq => {
       swal({
         text:
           'You have initiated the "commit upgrade" process with ' +
-          `requestId ${upgradeGroupReq.requestId}` +
+          `requestId ${requestId}` +
           '\n\n' +
           'The status of your upgrade should be shown on the "Node Upgrade ' +
           'Status" table.',

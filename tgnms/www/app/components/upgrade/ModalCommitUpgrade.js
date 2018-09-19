@@ -97,7 +97,6 @@ export default class ModalCommitUpgrade extends React.Component {
       skipLinks: [],
       limit,
       scheduleToCommit: this.state.scheduleToCommit,
-      requestId: 'NMS' + new Date().getTime(),
       topologyName: this.props.topologyName,
     };
 
