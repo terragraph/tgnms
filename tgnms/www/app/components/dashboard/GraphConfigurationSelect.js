@@ -8,7 +8,6 @@
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-datetime/css/react-datetime.css';
 
-import Dispatcher from '../../NetworkDispatcher.js';
 import {DASHBOARD_TOOLTIP_LABELS} from '../../constants/NetworkDashboardsConstants.js';
 import moment from 'moment';
 import Datetime from 'react-datetime';

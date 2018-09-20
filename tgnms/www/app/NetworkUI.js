@@ -5,27 +5,27 @@
  */
 'use strict';
 
+import axios from 'axios';
+import {has, isEmpty} from 'lodash-es';
+import React from 'react';
+
+import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
+import Dispatcher from './NetworkDispatcher.js';
+import DockerHosts from './components/docker/DockerHosts.js';
+import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
 import EventLogs from './EventLogs.js';
 import ModalLinkAdd from './ModalLinkAdd.js';
 import ModalNodeAdd from './ModalNodeAdd.js';
 import ModalOverlays from './ModalOverlays.js';
-import NMSConfig from './NMSConfig.js';
+import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
 import NetworkDashboards from './NetworkDashboards.js';
-import Dispatcher from './NetworkDispatcher.js';
 import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
-import UsersSettings from './components/users/UsersSettings.js';
-import TopBar from './components/topbar/TopBar.js';
-import StatusIndicator from './components/common/StatusIndicator.js';
-import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
-import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
-import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
-import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
-import axios from 'axios';
-import cx from 'classnames';
-import {has, isEmpty} from 'lodash-es';
-import React from 'react';
+import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
+import NMSConfig from './NMSConfig.js';
+import TopBar from './components/topbar/TopBar.js';
+import UsersSettings from './components/users/UsersSettings.js';
 
 // update network health at a lower interval (seconds)
 const NETWORK_HEALTH_INTERVAL_MIN = 30;
@@ -298,10 +298,10 @@ export default class NetworkUI extends React.Component {
   overlaysModalClose = (siteOverlay, linkOverlay, mapDimType, mapTile) => {
     this.setState({
       overlaysModalOpen: false,
-      selectedSiteOverlay: siteOverlay,
       selectedLinkOverlay: linkOverlay,
       selectedMapDimType: mapDimType,
       selectedMapTile: mapTile,
+      selectedSiteOverlay: siteOverlay,
     });
     Dispatcher.dispatch({
       actionType: Actions.LINK_OVERLAY_REFRESHED,
@@ -328,10 +328,10 @@ export default class NetworkUI extends React.Component {
     // select between view panes
     // TODO: Move this to React Router
     const viewProps = {
-      networkName: this.state.networkName,
-      networkConfig: this.state.networkConfig,
-      pendingTopology: this.state.pendingTopology,
       config: this.state.topologies,
+      networkConfig: this.state.networkConfig,
+      networkName: this.state.networkName,
+      pendingTopology: this.state.pendingTopology,
       viewContext: this.state.viewContext,
     };
     let paneComponent = null;
@@ -364,6 +364,9 @@ export default class NetworkUI extends React.Component {
         break;
       case 'users':
         paneComponent = <UsersSettings {...viewProps} />;
+        break;
+      case 'docker':
+        paneComponent = <DockerHosts {...viewProps} />;
         break;
       default:
         paneComponent = (

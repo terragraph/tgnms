@@ -15,6 +15,7 @@ const NetworkStore = new NetworkStoreI();
 // for all pages
 NetworkStore.networkName = null;
 NetworkStore.networkConfig = {};
+NetworkStore.dockerHosts = [];
 NetworkStore.viewName = 'map';
 // for map
 NetworkStore.tabName = 'status';

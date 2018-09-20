@@ -5,10 +5,8 @@
  */
 'use strict';
 
-import ipaddr from 'ipaddr.js';
-import {Table} from 'react-bootstrap';
-import {render} from 'react-dom';
 import React from 'react';
+import {Table} from 'react-bootstrap';
 
 export default class NetworkStatusTable extends React.Component {
   statusColor(onlineStatus, trueText = 'Online', falseText = 'Offline') {
@@ -106,7 +104,7 @@ export default class NetworkStatusTable extends React.Component {
 
     return (
       <div className="status-table-container">
-        <div class="status-table status-table-left">
+        <div className="status-table status-table-left">
           <h3>Services</h3>
           <Table condensed hover>
             <tbody>
@@ -144,7 +142,7 @@ export default class NetworkStatusTable extends React.Component {
             </Table>,
           ]}
         </div>
-        <div class="status-table status-table-right">
+        <div className="status-table status-table-right">
           <h3>Topology</h3>
           {topologyTable}
         </div>

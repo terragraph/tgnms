@@ -17,7 +17,6 @@ import ReactMultiGraph from './ReactMultiGraph.js';
 
 import {Actions} from './constants/NetworkConstants.js';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
-import {Glyphicon} from 'react-bootstrap';
 import {GraphAggregation} from '../thrift/gen-nodejs/Stats_types';
 
 const TIME_PICKER_OPTS = [

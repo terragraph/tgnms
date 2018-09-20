@@ -40,6 +40,9 @@ if (!fs.existsSync(NETWORK_CONFIG_PATH)) {
   process.exit(1);
 }
 
+// fix to a stable docker api version (https://docs.docker.com/engine/api/v1.37/)
+const DOCKER_API_VERSION = '1.37';
+
 module.exports = {
   LOG_LEVEL,
   LOGIN_ENABLED,
@@ -54,6 +57,7 @@ module.exports = {
   NETWORK_CONFIG_INSTANCES_PATH,
   NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
+  DOCKER_API_VERSION,
   DEFAULT_API_SERVICE_PORT: '8080',
   SALT_GEN_ROUNDS: 10,
 };
