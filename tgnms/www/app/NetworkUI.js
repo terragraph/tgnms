@@ -7,6 +7,7 @@
 
 import axios from 'axios';
 import {has, isEmpty} from 'lodash-es';
+import {hot} from 'react-hot-loader';
 import React from 'react';
 
 import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
@@ -30,7 +31,7 @@ import UsersSettings from './components/users/UsersSettings.js';
 // update network health at a lower interval (seconds)
 const NETWORK_HEALTH_INTERVAL_MIN = 30;
 
-export default class NetworkUI extends React.Component {
+class NetworkUI extends React.Component {
   state = {
     view: NetworkStore.viewName,
     // additional props for a view
@@ -423,3 +424,5 @@ export default class NetworkUI extends React.Component {
     );
   }
 }
+
+export default hot(module)(NetworkUI);
