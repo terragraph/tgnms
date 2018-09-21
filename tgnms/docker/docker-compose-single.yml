@@ -3,7 +3,7 @@ version: '3.6'
 services:
   ipv6:
     image: secure.cxl-terragraph.com:443/migo:latest
-    restart: always
+    restart: unless-stopped
     network_mode: "host"
     privileged: true
     volumes:
@@ -16,7 +16,7 @@ services:
       - ./env/mysql.env
     environment:
       - MYSQL_ROOT_PASSWORD=12345
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./mysql_init_scripts:/docker-entrypoint-initdb.d:ro
       - ./docker_volumes/mysql_db:/var/lib/mysql
@@ -36,7 +36,7 @@ services:
       - ./env/cleaner.env
       - ./env/mysql.env
       - ./env/time.env
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./docker_volumes/logs:/logs
     networks:
@@ -55,7 +55,7 @@ services:
       - ./env/mysql.env
       - ./env/nms.env
       - ./env/time.env
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
     networks:
@@ -86,7 +86,7 @@ services:
       - ALLOWED_TIMESTAMP_BEHIND=30
     cap_add:
       - SYS_NICE
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./docker_volumes/beringei:/data
     ports:
@@ -115,7 +115,7 @@ services:
       - ALLOWED_TIMESTAMP_BEHIND=120
     cap_add:
       - SYS_NICE
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./docker_volumes/beringei:/data
     ports:
@@ -144,7 +144,7 @@ services:
       - ALLOWED_TIMESTAMP_BEHIND=1200
     cap_add:
       - SYS_NICE
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./docker_volumes/beringei:/data
     ports:
@@ -166,7 +166,7 @@ services:
       - ./env/time.env
     cap_add:
       - SYS_NICE
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./docker_volumes/logs:/home/nms/data
       - ./mysql_init_scripts:/mysql-scripts
@@ -188,7 +188,7 @@ services:
     image: secure.cxl-terragraph.com:443/analytics:latest
     env_file:
       - ./env/mysql.env
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./docker_volumes/logs:/analytics/logs
     ports:
