@@ -9,6 +9,8 @@ const {join, resolve} = require('path');
 
 require('dotenv').config();
 
+const API_REQUEST_TIMEOUT = process.env.API_REQUEST_TIMEOUT || 5000;
+
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 // NOTE: Login is disabled by default until its deployed publicly
 const LOGIN_ENABLED = process.env.LOGIN_ENABLED || false;
@@ -44,20 +46,21 @@ if (!fs.existsSync(NETWORK_CONFIG_PATH)) {
 const DOCKER_API_VERSION = '1.37';
 
 module.exports = {
-  LOG_LEVEL,
+  API_REQUEST_TIMEOUT,
+  BERINGEI_QUERY_URL,
+  DEFAULT_API_SERVICE_PORT: '8080',
+  DOCKER_API_VERSION,
   LOGIN_ENABLED,
+  LOG_LEVEL,
+  MYSQL_DB,
   MYSQL_HOST,
+  MYSQL_PASS,
   MYSQL_PORT,
   MYSQL_USER,
-  MYSQL_PASS,
-  MYSQL_DB,
-  PROXY_ENABLED,
-  BERINGEI_QUERY_URL,
   NETWORK_CONFIG_DEFAULT,
   NETWORK_CONFIG_INSTANCES_PATH,
   NETWORK_CONFIG_NETWORKS_PATH,
   NETWORK_CONFIG_PATH,
-  DOCKER_API_VERSION,
-  DEFAULT_API_SERVICE_PORT: '8080',
+  PROXY_ENABLED,
   SALT_GEN_ROUNDS: 10,
 };
