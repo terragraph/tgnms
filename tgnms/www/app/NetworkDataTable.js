@@ -7,23 +7,17 @@
 
 import 'react-tabs/style/react-tabs.css';
 
-import NetworkAdjacencyTable from './NetworkAdjacencyTable.js';
+import {Actions} from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
+import {isEqual} from 'lodash';
 import NetworkLinksTable from './NetworkLinksTable.js';
 import NetworkNodesTable from './NetworkNodesTable.js';
-import NetworkRoutingTable from './NetworkRoutingTable.js';
 import NetworkScans from './NetworkScans.js';
 import NetworkStatusTable from './NetworkStatusTable.js';
-// dispatcher
-import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
-import {isEqual} from 'lodash';
 import PropTypes from 'prop-types';
-// leaflet maps
-import {render} from 'react-dom';
-// tabs
-import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 import React from 'react';
+import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
 const TAB_NAMES = [
   'status',
@@ -138,12 +132,12 @@ export default class NetworkDataTable extends React.Component {
     let adjustedHeight = this.props.height - 95;
     adjustedHeight = adjustedHeight < 0 ? 0 : adjustedHeight;
     const tableProps = {
-      instance: this.props.networkConfig,
       height: adjustedHeight,
-      topology: this.props.networkConfig.topology,
+      instance: this.props.networkConfig,
       routing: this.state.routing,
-      zoomLevel: this.state.zoomLevel,
+      topology: this.props.networkConfig.topology,
       viewDefaultDashboard: this.props.viewDefaultDashboard,
+      zoomLevel: this.state.zoomLevel,
     };
     return (
       <Tabs

@@ -41,7 +41,7 @@ export default class NetworkStatusTable extends React.Component {
         <tr key={version}>
           <td>{version}</td>
           <td style={{whiteSpace: 'nowrap', width: '1%'}}>
-            {count} ({parseInt((count / totalReported) * 100)}%)
+            {count} ({parseInt((count / totalReported) * 100, 10)}%)
           </td>
         </tr>,
       );
@@ -93,7 +93,7 @@ export default class NetworkStatusTable extends React.Component {
           <td>
             <strong>Controller Error</strong>
           </td>
-          <td colSpan={2} style={{fontWeight: 'bold', color: 'red'}}>
+          <td colSpan={2} style={{color: 'red', fontWeight: 'bold'}}>
             {this.props.instance.controller_error}
           </td>
         </tr>
@@ -136,8 +136,8 @@ export default class NetworkStatusTable extends React.Component {
             </tbody>
           </Table>
           {nodeVersions.length > 0 && [
-            <h3>Node Versions</h3>,
-            <Table condensed hover>
+            <h3 key="node-version-header">Node Versions</h3>,
+            <Table key="node-version-list" condensed hover>
               <tbody>{nodeVersions}</tbody>
             </Table>,
           ]}
