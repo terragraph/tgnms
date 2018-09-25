@@ -71,10 +71,10 @@ export function versionSlicer(versionName) {
   const releaseIdx = versionName.indexOf('RELEASE_');
   const splitIdxA = versionName.indexOf('-', releaseIdx);
   const splitIdxB = versionName.indexOf(' ', releaseIdx);
-  const splitIndex =
-    splitIdxA >= 0 && splitIdxB >= 0
-      ? Math.min(splitIdxA, splitIdxB)
-      : Math.max(splitIdxA, splitIdxB);
+  // try to show the longest version string before the details string
+  // this should look like 'M##-<GIT_HASH>' in most cases, at least until we
+  // change it again
+  const splitIndex = Math.max(splitIdxA, splitIdxB);
   const releaseName = versionName.substring(releaseIdx + 8, splitIndex);
   return releaseName;
 }
