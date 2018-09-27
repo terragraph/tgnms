@@ -116,7 +116,7 @@ if (devMode) {
 } else {
   // serve js from dist/ in prod mode
   app.get('/map.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '/dist/map.js'));
+    res.sendFile(path.join(__dirname, '../dist/map.js'));
   });
 }
 
