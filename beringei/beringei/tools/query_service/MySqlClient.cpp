@@ -13,7 +13,9 @@
 #include <utility>
 
 #include <folly/DynamicConverter.h>
+#include <folly/MapUtil.h>
 #include <folly/io/IOBuf.h>
+#include <thrift/lib/cpp/protocol/TProtocolTypes.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -635,6 +637,80 @@ bool MySqlClient::writeScanResponses(
   }
   LOG(INFO) << "Successfully wrote " << numScansWritten << " scans";
   return true;
+}
+
+void MySqlClient::addEvents(
+    const query::NodeEvents& nodeEvents,
+    const std::string& topologyName) {
+  auto stmt =
+      "INSERT INTO `event_log` "
+      "(`mac`, `name`, `topologyName`, `source`, `timestamp`, `reason`, `details`, `category`, `level`) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  auto connection = openConnection();
+  if (!connection) {
+    LOG(ERROR) << "Unable to open MySQL connection.";
+    return;
+  }
+  try {
+    for (const auto& event : nodeEvents.events) {
+      auto category = folly::get_default(
+          query::_EventCategory_VALUES_TO_NAMES, event.category, "UNKNOWN");
+      auto level = folly::get_default(
+          query::_EventLevel_VALUES_TO_NAMES, event.level, "UNKNOWN");
+      std::unique_ptr<sql::PreparedStatement> prep_stmt(
+          (*connection)->prepareStatement(stmt));
+      prep_stmt->setString(1, nodeEvents.mac);
+      prep_stmt->setString(2, nodeEvents.name);
+      prep_stmt->setString(3, topologyName);
+      prep_stmt->setString(4, event.source);
+      prep_stmt->setUInt(5, event.timestamp);
+      prep_stmt->setString(6, event.reason);
+      prep_stmt->setString(7, event.details);
+      prep_stmt->setString(8, category);
+      prep_stmt->setString(9, level);
+      prep_stmt->execute();
+    }
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "addEvents ERR: " << e.what();
+    LOG(ERROR) << "MySQL error code: " << e.getErrorCode();
+  }
+}
+
+folly::dynamic MySqlClient::getEvents(const query::EventsQueryRequest& request) {
+  auto regexStmt = folly::sformat(
+        "SELECT * FROM `event_log` WHERE "
+        "(topologyName LIKE \"%{}\" AND category LIKE \"%{}\" "
+        "AND level LIKE \"%{}\" AND timestamp >= {}) LIMIT {}",
+        request.topologyName,
+        request.category,
+        request.level,
+        request.timestamp,
+        request.maxResults);
+  folly::dynamic events = folly::dynamic::array;
+  auto connection = openConnection();
+  if (!connection) {
+    LOG(ERROR) << "Unable to open MySQL connection.";
+    return events;
+  }
+  try {
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
+    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(regexStmt));
+    while (res->next()) {
+      events.push_back(
+          folly::dynamic::object("mac", res->getString("mac").asStdString())(
+              "name", res->getString("name").asStdString())(
+              "source", res->getString("source").asStdString())(
+              "timestamp", res->getInt("timestamp"))(
+              "reason", res->getString("reason").asStdString())(
+              "details", res->getString("details").asStdString())(
+              "category", res->getString("category").asStdString())(
+              "level", res->getString("level").asStdString()));
+    }
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "getEvents ERR: " << e.what();
+    LOG(ERROR) << "MySQL error code: " << e.getErrorCode();
+  }
+  return events;
 }
 
 } // namespace gorilla

@@ -8,6 +8,7 @@
  */
 
 include "beringei/if/Topology.thrift"
+include "beringei/if/Event.thrift"
 
 namespace cpp2 facebook.gorilla.query
 namespace py facebook.gorilla.beringei_query
@@ -81,6 +82,14 @@ struct TableQueryRequest {
   11: list<TableQuery> linkQueries,
 }
 
+struct EventsQueryRequest {
+  1: string topologyName,
+  2: i64 timestamp,
+  3: i32 maxResults = 100,
+  4: string category,
+  5: string level,
+}
+
 struct QueryRequest {
   1: list<Query> queries,
 }
@@ -89,12 +98,6 @@ struct Stat {
   1: string key,
   2: i64 ts,
   3: double value,
-}
-
-struct Event {
-  1: string category,
-  2: i64 ts, /* Timestamp in us */
-  3: string sample,
 }
 
 struct Log {
@@ -121,7 +124,7 @@ struct NodeEvents {
   1: string mac,
   2: string name,
   3: string site,
-  4: list<Event> events,
+  4: list<Event.Event> events,
 }
 
 struct TopologyConfig {

@@ -9,6 +9,8 @@
 
 #include "QueryServiceFactory.h"
 
+#include "handlers/EventsQueryHandler.h"
+#include "handlers/EventsWriteHandler.h"
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/RawReadHandler.h"
@@ -69,6 +71,10 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
   } else if (path == "/unified_stats_writer") {
     // Write both node stats and aggregate stats to the database
     return new UnifiedStatsWriteHandler();
+  } else if (path == "/events_query") {
+    return new EventsQueryHandler();
+  } else if (path == "/events_writer") {
+    return new EventsWriteHandler();
   }
 
   // return not found for all other uris
