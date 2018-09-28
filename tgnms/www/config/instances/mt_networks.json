@@ -9,7 +9,8 @@
       "longitude": 19.6166915,
       "zoom_level": 15,
       "controller_ip": "172.17.0.1",
-      "aggregator_ip": "172.17.0.1"
+      "aggregator_ip": "172.17.0.1",
+      "controller_ip_backup": "2001:4c48:18:2::3"
     }
   ]
 }
