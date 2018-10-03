@@ -216,6 +216,7 @@ export default class NetworkMap extends React.Component {
           routingOverlayEnabled: false,
           selectedLink: null,
           selectedNode: null,
+          selectedSector: null,
           selectedSite: null,
           siteToEdit: null,
         });
@@ -225,6 +226,7 @@ export default class NetworkMap extends React.Component {
         this.setState({
           selectedLink: null,
           selectedNode: payload.nodeSelected,
+          selectedSector: payload.sectorSelected,
           selectedSite: site,
         });
         break;
@@ -233,6 +235,7 @@ export default class NetworkMap extends React.Component {
         this.setState({
           selectedLink: payload.link,
           selectedNode: null,
+          selectedSector: null,
           selectedSite: null,
         });
         break;
@@ -240,6 +243,7 @@ export default class NetworkMap extends React.Component {
         this.setState({
           selectedLink: null,
           selectedNode: null,
+          selectedSector: null,
           selectedSite: payload.siteSelected,
         });
         break;
@@ -251,6 +255,7 @@ export default class NetworkMap extends React.Component {
           routingOverlayEnabled: true,
           selectedLink: null,
           selectedNode: null,
+          selectedSector: null,
           selectedSite: null,
         });
         break;
@@ -317,6 +322,7 @@ export default class NetworkMap extends React.Component {
         this.setState({
           selectedLink: null,
           selectedNode: null,
+          selectedSector: null,
           selectedSite: null,
         });
         break;
@@ -542,7 +548,7 @@ export default class NetworkMap extends React.Component {
     });
   };
 
-  addNodeMarkerForSite(topology, site) {
+  addNodeMarkerForSite(topology, site, onlyShowSector) {
     const nodesInSite = topology.nodes.filter(node => {
       return node.site_name === site.name;
     });
@@ -552,7 +558,8 @@ export default class NetworkMap extends React.Component {
         [site.location.latitude, site.location.longitude],
         nodesInSite,
         this.linksByNode,
-        this.state.selectedNode,
+        this.state.selectedSector,
+        onlyShowSector,
         () => this.setState({hoveredSite: site}),
         () => this.setState({hoveredSite: null}),
       );
@@ -1243,7 +1250,11 @@ export default class NetworkMap extends React.Component {
         const site_a = this.sitesByName[node_a.site_name];
         const site_z = this.sitesByName[node_z.site_name];
         if (site_a && site_z && site_a.location && site_z.location) {
-          this.addNodeMarkerForSite(topology, site_a);
+          this.addNodeMarkerForSite(
+            topology,
+            site_a,
+            this.state.selectedLink.a_node_mac,
+          );
 
           siteMarkers = [
             <CircleMarker
@@ -1254,7 +1265,11 @@ export default class NetworkMap extends React.Component {
             />,
           ];
           if (site_a.name != site_z.name) {
-            this.addNodeMarkerForSite(topology, site_z);
+            this.addNodeMarkerForSite(
+              topology,
+              site_z,
+              this.state.selectedLink.z_node_mac,
+            );
 
             siteMarkers.push(
               <CircleMarker

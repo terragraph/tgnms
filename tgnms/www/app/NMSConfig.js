@@ -132,7 +132,7 @@ export default class NMSConfig extends React.Component {
     // color-code based on state of controller IP
     return (
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
-        {'' + cell}
+        {cell ? 'Yes' : 'No'}
       </span>
     );
   }

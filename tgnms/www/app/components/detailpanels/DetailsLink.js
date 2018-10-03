@@ -15,6 +15,7 @@ import {
 } from '../../apiutils/ServiceAPIUtil';
 import {availabilityColor} from '../../helpers/NetworkHelpers.js';
 import {Actions} from '../../constants/NetworkConstants.js';
+import {NodeStatusType} from '../../../thrift/gen-nodejs/Topology_types';
 import axios from 'axios';
 import classnames from 'classnames';
 import {Panel} from 'react-bootstrap';
@@ -37,7 +38,7 @@ export default class DetailsLink extends React.Component {
     this.changeLinkStatus = this.changeLinkStatus.bind(this);
   }
 
-  statusColor(onlineStatus, trueText = 'True', falseText = 'False') {
+  statusColor(onlineStatus, trueText = 'Yes', falseText = 'No') {
     return (
       <span style={{color: onlineStatus ? 'forestgreen' : 'firebrick'}}>
         {onlineStatus ? trueText : falseText}
@@ -314,6 +315,14 @@ export default class DetailsLink extends React.Component {
       nodeA.status_dump.ipv6Address &&
       nodeZ.status_dump &&
       nodeZ.status_dump.ipv6Address;
+
+    const aNodeAlive =
+      nodeA.status === NodeStatusType.ONLINE ||
+      nodeA.status === NodeStatusType.ONLINE_INITIATOR;
+    const zNodeAlive =
+      nodeZ.status === NodeStatusType.ONLINE ||
+      nodeZ.status === NodeStatusType.ONLINE_INITIATOR;
+
     return (
       <Panel
         bsStyle="primary"
@@ -340,7 +349,9 @@ export default class DetailsLink extends React.Component {
           <table className="details-table">
             <tbody>
               <tr>
-                <td width="100px">A-Node</td>
+                <td rowSpan={2} width="100px">
+                  A-Node
+                </td>
                 <td>
                   <span
                     className="details-link"
@@ -348,13 +359,13 @@ export default class DetailsLink extends React.Component {
                       this.selectNode(this.props.link.a_node_name);
                     }}>
                     {this.statusColor(
-                      nodeA.status === 2 || nodeA.status === 3,
+                      aNodeAlive,
                       this.props.link.a_node_name,
                       this.props.link.a_node_name,
                     )}
                   </span>
                 </td>
-                <td>
+                <td rowSpan={2}>
                   <span
                     className="details-link"
                     onClick={() => {
@@ -365,7 +376,12 @@ export default class DetailsLink extends React.Component {
                 </td>
               </tr>
               <tr>
-                <td width="100px">Z-Node</td>
+                <td>{this.props.link.a_node_mac}</td>
+              </tr>
+              <tr>
+                <td rowSpan={2} width="100px">
+                  Z-Node
+                </td>
                 <td>
                   <span
                     className="details-link"
@@ -373,13 +389,13 @@ export default class DetailsLink extends React.Component {
                       this.selectNode(this.props.link.z_node_name);
                     }}>
                     {this.statusColor(
-                      nodeZ.status === 2 || nodeZ.status === 3,
+                      zNodeAlive,
                       this.props.link.z_node_name,
                       this.props.link.z_node_name,
                     )}
                   </span>
                 </td>
-                <td>
+                <td rowSpan={2}>
                   <span
                     className="details-link"
                     onClick={() => {
@@ -388,6 +404,9 @@ export default class DetailsLink extends React.Component {
                     {siteZ}
                   </span>
                 </td>
+              </tr>
+              <tr>
+                <td>{this.props.link.z_node_mac}</td>
               </tr>
               <tr>
                 <td width="100px">Alive</td>

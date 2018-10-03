@@ -36,37 +36,52 @@ const sortkeysByValue = toSort => {
   return kvPairs.map(pair => pair[0]); // retrieve keys only
 };
 
-const getLinkAnglesForNodes = (nodeList, linksByNode) => {
-  const anglesByNode = {};
+const getLinkAnglesForNodes = (nodeList, linksBySector, onlyShowSector) => {
+  const anglesBySector = {};
 
   nodeList.forEach(node => {
-    const nodeName = node.name;
-    let linkAngle = node.ant_azimuth;
-    // assume 1 DN link per node, and we retrieve it here
-    let dnLinks = [];
-    if (linksByNode.hasOwnProperty(node.name)) {
-      dnLinks = linksByNode[node.name].filter(
-        link => link.link_type === LinkType.WIRELESS,
-      );
-    }
-    if (dnLinks.length > 0) {
-      const link = dnLinks[0];
-      linkAngle = link.angle;
-      if (node.name === link.a_node_name) {
-        anglesByNode[node.name] = linkAngle < 0 ? linkAngle + 360 : linkAngle;
-      } else if (node.name === link.z_node_name) {
-        const angleOfANode = linkAngle < 0 ? linkAngle + 360 : linkAngle;
-        anglesByNode[node.name] = (angleOfANode + 180) % 360;
+    const sectorList = [];
+    sectorList.push(node.mac_addr);
+    sectorList.push(...node.secondary_mac_addrs);
+
+    sectorList.forEach(mac => {
+      if (onlyShowSector && mac !== onlyShowSector) {
+        return;
       }
-    } else if (linkAngle !== 0) {
-      anglesByNode[node.name] = linkAngle;
-    }
+
+      let linkAngle = node.ant_azimuth;
+      // assume 1 DN link per sector, and we retrieve it here
+      let dnLinks = [];
+      if (linksBySector.hasOwnProperty(mac)) {
+        dnLinks = linksBySector[mac].filter(
+          link => link.link_type === LinkType.WIRELESS,
+        );
+      }
+      if (dnLinks.length > 0) {
+        const link = dnLinks[0];
+        linkAngle = link.angle;
+        if (mac === link.a_node_mac) {
+          anglesBySector[mac] = linkAngle < 0 ? linkAngle + 360 : linkAngle;
+        } else if (mac === link.z_node_mac) {
+          const angleOfANode = linkAngle < 0 ? linkAngle + 360 : linkAngle;
+          anglesBySector[mac] = (angleOfANode + 180) % 360;
+        }
+      } else if (linkAngle !== 0) {
+        anglesBySector[mac] = linkAngle;
+      }
+    });
   });
 
-  return anglesByNode;
+  return anglesBySector;
 };
 
-const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
+const partitionNodeSector = (
+  sector,
+  ownAngle,
+  leftAngle,
+  rightAngle,
+  padID,
+) => {
   // use padID as a identifier for the node in the site
   const leftOffset =
     ownAngle - leftAngle < 0
@@ -92,7 +107,7 @@ const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
   if (leftOffset > desiredOffset) {
     nodeValues[padID + '_left'] = ownAngle - desiredOffset - leftAngle;
   }
-  nodeValues[node] = 2 * desiredOffset;
+  nodeValues[sector] = 2 * desiredOffset;
   if (rightOffset > desiredOffset) {
     nodeValues[padID + '_right'] = rightAngle - desiredOffset - ownAngle;
   }
@@ -100,62 +115,62 @@ const partitionNodeSector = (node, ownAngle, leftAngle, rightAngle, padID) => {
   return nodeValues;
 };
 
-const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
+const getNodeValues = (linkAnglesForSectors, sortedSectorsByAngle) => {
   const nodeValues = {};
   const leftAngles = {};
   const rightAngles = {};
 
-  // special case when we have one node
-  if (sortedNodesByAngle.length === 1) {
-    const node = sortedNodesByAngle[0];
+  // special case when we have one sector
+  if (sortedSectorsByAngle.length === 1) {
+    const sector = sortedSectorsByAngle[0];
 
-    nodeValues[node + '_left'] = (360 - MAX_SECTOR_SIZE) / 2;
-    nodeValues[node] = MAX_SECTOR_SIZE;
-    nodeValues[node + '_right'] = (360 - MAX_SECTOR_SIZE) / 2;
+    nodeValues[sector + '_left'] = (360 - MAX_SECTOR_SIZE) / 2;
+    nodeValues[sector] = MAX_SECTOR_SIZE;
+    nodeValues[sector + '_right'] = (360 - MAX_SECTOR_SIZE) / 2;
 
     return {
       nodeValues,
-      offset: linkAnglesForNodes[node] + 90,
+      offset: linkAnglesForSectors[sector] + 90,
     };
   }
 
-  // we iterate using the order in sortedNodesByAngle (implicitly, we go around the circle of a site)
+  // we iterate using the order in sortedSectorsByAngle (implicitly, we go around the circle of a site)
   // populate a map of node name --> the rightmost angle of a node's sector in the pie chart
   // the rightmost angle is the bisector of the angle between the current node's and next node's links
-  sortedNodesByAngle.forEach((node, idx) => {
+  sortedSectorsByAngle.forEach((sector, idx) => {
     // treat as a circular array
-    const ownAngle = linkAnglesForNodes[node];
+    const ownAngle = linkAnglesForSectors[sector];
 
     // get the angle for the next sector
     const nextAngle =
-      linkAnglesForNodes[
-        sortedNodesByAngle[(idx + 1) % sortedNodesByAngle.length]
+      linkAnglesForSectors[
+        sortedSectorsByAngle[(idx + 1) % sortedSectorsByAngle.length]
       ];
     const adjNextAngle = nextAngle >= ownAngle ? nextAngle : nextAngle + 360;
 
-    rightAngles[node] = (ownAngle + (adjNextAngle - ownAngle) / 2) % 360;
+    rightAngles[sector] = (ownAngle + (adjNextAngle - ownAngle) / 2) % 360;
   });
 
   // populate a map of node name --> the LEFTmost angle of a node's sector in the pie chart
   // the leftmost angle is the bisector of the angle between the current node's and previous node's links
   // we also calculate the relative value of the node's sector in the pie chart through the difference
   // of the node's right-angle and left-angle
-  sortedNodesByAngle.forEach((node, idx) => {
-    const leftIdx = idx === 0 ? sortedNodesByAngle.length - 1 : idx - 1;
+  sortedSectorsByAngle.forEach((sector, idx) => {
+    const leftIdx = idx === 0 ? sortedSectorsByAngle.length - 1 : idx - 1;
 
-    const rightAngle = rightAngles[node];
-    const leftAngle = rightAngles[sortedNodesByAngle[leftIdx]];
+    const rightAngle = rightAngles[sector];
+    const leftAngle = rightAngles[sortedSectorsByAngle[leftIdx]];
     const adjLeftAngle = leftAngle > rightAngle ? leftAngle - 360 : leftAngle;
 
-    leftAngles[node] = adjLeftAngle;
+    leftAngles[sector] = adjLeftAngle;
     Object.assign(
       nodeValues,
       partitionNodeSector(
-        node,
-        linkAnglesForNodes[node],
+        sector,
+        linkAnglesForSectors[sector],
         adjLeftAngle,
         rightAngle,
-        node,
+        sector,
       ),
     );
   });
@@ -163,7 +178,7 @@ const getNodeValues = (linkAnglesForNodes, sortedNodesByAngle, nodesByName) => {
   // use the left-angle of the first sector to calculate the rotation offset needed for the pie chart
   return {
     nodeValues,
-    offset: leftAngles[sortedNodesByAngle[0]] - 90,
+    offset: leftAngles[sortedSectorsByAngle[0]] - 90,
   };
 };
 
@@ -171,31 +186,49 @@ export const getNodeMarker = (
   siteCoords,
   nodesInSite,
   linksByNode,
-  selectedNode,
+  selectedSector,
+  onlyShowSector,
   mouseEnterFunc,
   mouseLeaveFunc,
 ) => {
-  const nodesByName = {};
-  const linkAnglesForSiteNodes = {};
+  const linksBySector = {};
+  Object.keys(linksByNode).forEach(node => {
+    linksByNode[node].forEach(link => {
+      linksBySector[link.a_node_mac] = linksBySector[link.a_node_mac]
+        ? linksBySector[link.a_node_mac].concat(link)
+        : [link];
+      linksBySector[link.z_node_mac] = linksBySector[link.z_node_mac]
+        ? linksBySector[link.z_node_mac].concat(link)
+        : [link];
+    });
+  });
+
+  const nodesBySector = {};
   nodesInSite.forEach(node => {
-    nodesByName[node.name] = node;
+    nodesBySector[node.mac_addr] = node;
+    node.secondary_mac_addrs.forEach(mac => {
+      nodesBySector[mac] = node;
+    });
   });
 
   // filter the link angles for only the nodes in the site (the ones that we care about)
-  const linkAnglesForNodes = getLinkAnglesForNodes(nodesInSite, linksByNode);
+  const linkAnglesForSectors = getLinkAnglesForNodes(
+    nodesInSite,
+    linksBySector,
+    onlyShowSector,
+  );
   const {nodeValues, offset} = getNodeValues(
-    linkAnglesForNodes,
-    sortkeysByValue(linkAnglesForNodes),
-    nodesByName,
+    linkAnglesForSectors,
+    sortkeysByValue(linkAnglesForSectors),
   );
 
   const chartOptions = {};
-  Object.keys(nodeValues).forEach(nodeName => {
-    const node = nodesByName[nodeName];
+  Object.keys(nodeValues).forEach(mac => {
+    const node = nodesBySector[mac];
     const fillColor =
       node && (node.status === 2 || node.status === 3) ? '#44ff44' : '#ff2222';
 
-    chartOptions[nodeName] = {
+    chartOptions[mac] = {
       fillColor,
       fillOpacity: 1,
     };
@@ -214,7 +247,8 @@ export const getNodeMarker = (
 
   // TODO: hacky but only way we can bind onClick to each segment
   newMarker.eachLayer(layer => {
-    const node = nodesByName[layer.options.key];
+    const mac = layer.options.key;
+    const node = nodesBySector[mac];
 
     // per-segment styling
     let segmentOptions = {};
@@ -225,7 +259,7 @@ export const getNodeMarker = (
         fillOpacity: 0,
         weight: 0,
       };
-    } else if (node.name === selectedNode) {
+    } else if (mac === selectedSector) {
       segmentOptions = {
         barThickness: 12,
         radiusX: 24,
@@ -240,12 +274,13 @@ export const getNodeMarker = (
     // remove the pre-built event listeners and then add our own
     layer.off();
 
-    if (nodesByName.hasOwnProperty(layer.options.key)) {
+    if (nodesBySector.hasOwnProperty(mac)) {
       layer.on('click', e => {
-        const nodeName = e.target.options.key;
+        const mac = e.target.options.key;
         Dispatcher.dispatch({
           actionType: Actions.NODE_SELECTED,
-          nodeSelected: nodeName,
+          nodeSelected: nodesBySector[mac].name,
+          sectorSelected: mac,
           source: 'map',
         });
       });

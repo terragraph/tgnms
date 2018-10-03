@@ -56,7 +56,7 @@ export default class NetworkLinksTable extends React.Component {
       render: this.renderNameWithStatsLinks.bind(this),
     },
     {
-      label: 'Alive',
+      label: 'Alive?',
       key: 'alive',
       width: 100,
       sort: true,
@@ -796,7 +796,7 @@ export default class NetworkLinksTable extends React.Component {
   renderStatusColor(cell, row) {
     return (
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
-        {'' + cell}
+        {cell ? 'Yes' : 'No'}
       </span>
     );
   }

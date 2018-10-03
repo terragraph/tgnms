@@ -13,6 +13,7 @@ import {Actions} from './constants/NetworkConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import PropTypes from 'prop-types';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {NodeStatusType} from '../thrift/gen-nodejs/Topology_types';
 
 // leaflet maps
 import React from 'react';
@@ -40,11 +41,25 @@ export default class NetworkNodesTable extends React.Component {
       filter: true,
     },
     {label: 'MAC', key: 'mac_addr', width: 160, sort: true, filter: true},
-    {label: 'IPv6', key: 'ipv6', width: 180, sort: true, filter: true},
+    {
+      label: 'IPv6',
+      key: 'ipv6',
+      width: 180,
+      sort: true,
+      filter: true,
+      render: this.renderNullable,
+    },
     {label: 'Type', key: 'node_type', width: 80, sort: true},
     {
-      label: 'Ignited',
-      key: 'ignited',
+      label: 'Board ID',
+      key: 'hw_board_id',
+      width: 180,
+      sort: true,
+      render: this.renderNullable,
+    },
+    {
+      label: 'Alive?',
+      key: 'alive',
       width: 90,
       sort: true,
       render: this.renderStatusColor,
@@ -76,8 +91,20 @@ export default class NetworkNodesTable extends React.Component {
       width: 120,
       sort: true,
     },
-    {label: 'Image Version', key: 'version', width: 700, sort: true},
-    {label: 'Uboot Version', key: 'uboot_version', width: 700, sort: true},
+    {
+      label: 'Image Version',
+      key: 'version',
+      width: 700,
+      sort: true,
+      render: this.renderNullable,
+    },
+    {
+      label: 'Uboot Version',
+      key: 'uboot_version',
+      width: 700,
+      sort: true,
+      render: this.renderNullable,
+    },
   ];
 
   constructor(props) {
@@ -164,7 +191,7 @@ export default class NetworkNodesTable extends React.Component {
     name: string,
     mac_addr: string,
     node_type: string,
-    ignited: boolean,
+    alive: boolean,
     site_name: string,
     pop_node: boolean,
     ipv6: string,
@@ -173,19 +200,22 @@ export default class NetworkNodesTable extends React.Component {
     minion_restarts: number,
     events: array,
     uboot_version: string,
+    hw_board_id: string,
   }> {
     const rows = [];
     nodes.forEach(node => {
-      const ipv6 = node.status_dump
-        ? node.status_dump.ipv6Address
-        : 'Not Available';
+      const ipv6 = node.status_dump ? node.status_dump.ipv6Address : null;
       const version = node.status_dump
         ? this._trimVersionString(node.status_dump.version)
-        : 'Not Available';
+        : null;
       const ubootVersion =
         node.status_dump && node.status_dump.uboot_version
           ? node.status_dump.uboot_version
-          : 'Not Available';
+          : null;
+      const hwBoardId =
+        node.status_dump && node.status_dump.hardwareBoardId
+          ? node.status_dump.hardwareBoardId
+          : null;
       let availability = 0;
       let events = [];
       if (
@@ -196,9 +226,12 @@ export default class NetworkNodesTable extends React.Component {
         events = this.state.nodeHealth[node.name].events;
       }
       rows.push({
+        alive:
+          node.status === NodeStatusType.ONLINE ||
+          node.status === NodeStatusType.ONLINE_INITIATOR,
         availability,
         events,
-        ignited: node.status === 2 || node.status === 3,
+        hw_board_id: hwBoardId,
         ipv6,
         key: node.name,
         mac_addr: node.mac_addr,
@@ -268,7 +301,7 @@ export default class NetworkNodesTable extends React.Component {
   renderStatusColor(cell, row) {
     return (
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
-        {'' + cell}
+        {cell ? 'Yes' : 'No'}
       </span>
     );
   }
@@ -291,6 +324,14 @@ export default class NetworkNodesTable extends React.Component {
     const cellColor = availabilityColor(cell);
     const cellText = Math.round(cell * 100) / 100;
     return <span style={{color: cellColor}}>{'' + cellText}</span>;
+  }
+
+  renderNullable(cell, row) {
+    if (cell === null) {
+      return <span style={{fontStyle: 'italic'}}>Not Available</span>;
+    } else {
+      return <span>{'' + cell}</span>;
+    }
   }
 
   render() {
@@ -339,9 +380,9 @@ export default class NetworkNodesTable extends React.Component {
           <TableHeaderColumn
             width="90"
             dataSort={true}
-            dataField="ignited"
+            dataField="alive"
             dataFormat={this.renderStatusColor}>
-            Ignited
+            Alive
           </TableHeaderColumn>
           <TableHeaderColumn
             width="700"

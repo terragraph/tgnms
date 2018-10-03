@@ -142,7 +142,7 @@ export default class UpgradeNodesTable extends React.Component {
   renderStatusColor(cell, row) {
     return (
       <span style={{color: cell ? 'forestgreen' : 'firebrick'}}>
-        {'' + cell}
+        {cell ? 'Yes' : 'No'}
       </span>
     );
   }

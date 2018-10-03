@@ -313,7 +313,7 @@ export default class DetailsNode extends React.Component {
         text:
           'An azimuth of 0 (North) is default and will not be shown. ' +
           'A value of [1, 360] will be shown if no link exists.\n\n' +
-          'This is automatically set for nodes with links. Do not use when a link exist.',
+          'This is automatically set for nodes with links. Do not use when a link exists.',
         type: 'input',
         showCancelButton: true,
         closeOnConfirm: false,
@@ -522,12 +522,28 @@ export default class DetailsNode extends React.Component {
     let type = node.node_type === 2 ? 'DN' : 'CN';
     type += node.pop_node ? '-POP' : '';
 
-    let elapsedTime = 'N/A';
+    let elapsedTime = 'Not Available';
     if (node.status_dump) {
       const timeStampSec = node.status_dump.timeStamp;
       const timeStamp = new Date(timeStampSec * 1000);
       elapsedTime = moment().diff(timeStamp, 'seconds') + ' seconds ago';
     }
+
+    const radioMacRows = [];
+    node.secondary_mac_addrs.forEach((mac, index) => {
+      radioMacRows.push(
+        <tr key={mac}>
+          {index === 0 ? (
+            <td rowSpan={node.secondary_mac_addrs.length} width="100px">
+              Radio MACs
+            </td>
+          ) : (
+            undefined
+          )}
+          <td>{mac}</td>
+        </tr>,
+      );
+    });
 
     return (
       <Panel
@@ -553,6 +569,7 @@ export default class DetailsNode extends React.Component {
                 <td width="100px">MAC</td>
                 <td>{node.mac_addr}</td>
               </tr>
+              {radioMacRows}
               <tr>
                 <td width="100px">IPv6</td>
                 <td>{ipv6}</td>
