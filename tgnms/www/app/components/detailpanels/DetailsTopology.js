@@ -5,9 +5,6 @@
  */
 'use strict';
 
-import 'sweetalert/dist/sweetalert.css';
-
-import Dispatcher from '../../NetworkDispatcher.js';
 import {
   availabilityColor,
   chartColor,
@@ -15,12 +12,11 @@ import {
   versionSlicer,
   getPolarityString,
 } from '../../helpers/NetworkHelpers.js';
-import {Actions, ChartColors} from '../../constants/NetworkConstants.js';
+import {ChartColors} from '../../constants/NetworkConstants.js';
+import {NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import {Panel} from 'react-bootstrap';
-import {render} from 'react-dom';
 import PieChart from 'react-svg-piechart';
 import React from 'react';
-import swal from 'sweetalert';
 
 export default class DetailsTopology extends React.Component {
   state = {
@@ -54,16 +50,17 @@ export default class DetailsTopology extends React.Component {
       .forEach(version => {
         const count = versionCounts[version];
         versionData.push({
-          label: versionSlicer(version),
           color: chartColor(ChartColors, i),
+          label: versionSlicer(version),
           value: count,
         });
         i++;
       });
     // average availability of all links across site
     let alivePercAvg = 0;
-    let linksWithData = 0;
     let wirelessLinksCount = 0;
+    // split availability metrics by dn/cn
+    const alivePercByNodeType = {};
     Object.keys(this.props.links).forEach(linkName => {
       const link = this.props.links[linkName];
       if (link.link_type != 1) {
@@ -89,12 +86,22 @@ export default class DetailsTopology extends React.Component {
       }
       let alivePerc = 0;
       if (link.hasOwnProperty('alive_perc')) {
-        alivePerc = parseInt(link.alive_perc * 1000) / 1000.0;
-        linksWithData++;
+        alivePerc = parseInt(link.alive_perc * 1000, 10) / 1000.0;
       }
-      wirelessLinksCount++;
+      // link availability by node type
+      const nodeType =
+        nodeA.node_type === NodeType.CN || nodeZ.node_type === NodeType.CN
+          ? NodeType.CN
+          : NodeType.DN;
+      if (!alivePercByNodeType.hasOwnProperty(nodeType)) {
+        alivePercByNodeType[nodeType] = [];
+      }
+      alivePercByNodeType[nodeType].push(alivePerc);
+      // global link availability
       alivePercAvg += alivePerc;
+      wirelessLinksCount++;
     });
+
     const nodeTypes = {};
     const polarities = {};
     // { site name, polarity }
@@ -126,13 +133,13 @@ export default class DetailsTopology extends React.Component {
       }
     });
     alivePercAvg /= wirelessLinksCount;
-    alivePercAvg = parseInt(alivePercAvg * 1000) / 1000.0;
+    alivePercAvg = parseInt(alivePercAvg * 1000, 10) / 1000.0;
 
     const nodeTypeRows = Object.keys(nodeTypes).map((nodeType, nodeIndex) => {
       let nodeTypeName = 'Unknown';
-      if (nodeType == 1) {
+      if (nodeType == NodeType.CN) {
         nodeTypeName = 'CN';
-      } else if (nodeType == 2) {
+      } else if (nodeType == NodeType.DN) {
         nodeTypeName = 'DN';
       } else {
         nodeTypeName = 'Unknown';
@@ -140,7 +147,18 @@ export default class DetailsTopology extends React.Component {
       const nodeTypeCount = nodeTypes[nodeType];
       const nodeTypeCountPerc = parseInt(
         (nodeTypeCount / this.props.topology.nodes.length) * 100,
+        10,
       );
+      let nodeAlivePerc = 0;
+      if (alivePercByNodeType.hasOwnProperty(nodeType)) {
+        // sum all individual availability
+        nodeAlivePerc = alivePercByNodeType[nodeType].reduce(
+          (a, b) => a + b,
+          0,
+        );
+        // divide by # of links
+        nodeAlivePerc /= alivePercByNodeType[nodeType].length;
+      }
       return (
         <tr key={'nodeType-' + nodeType}>
           {nodeIndex == 0 ? (
@@ -153,6 +171,13 @@ export default class DetailsTopology extends React.Component {
           <td>{nodeTypeName}</td>
           <td>
             {nodeTypeCount} ({nodeTypeCountPerc}%)
+          </td>
+          <td>
+            <span style={{color: availabilityColor(nodeAlivePerc)}}>
+              {nodeAlivePerc > 0
+                ? parseInt(nodeAlivePerc * 1000, 10) / 1000.0
+                : '0'}
+            </span>
           </td>
         </tr>
       );
@@ -181,7 +206,7 @@ export default class DetailsTopology extends React.Component {
         <tr key="ruckus_ap_row">
           <td>Ruckus AP</td>
           <td>{totalRuckusAps} aps</td>
-          <td>{totalRuckusClients} clients</td>
+          <td colSpan={2}>{totalRuckusClients} clients</td>
         </tr>,
       );
     }
@@ -208,7 +233,7 @@ export default class DetailsTopology extends React.Component {
                 {polarityName}
               </span>
             </td>
-            <td>
+            <td colSpan={2}>
               {polarityCount} ({polarityCountPerc}%)
             </td>
           </tr>
@@ -233,7 +258,7 @@ export default class DetailsTopology extends React.Component {
           <td>
             <span style={{color: polarityColor(polarity)}}>{polarityName}</span>
           </td>
-          <td>
+          <td colSpan={2}>
             {polarityCount} ({polarityCountPerc}%)
           </td>
         </tr>
@@ -250,7 +275,7 @@ export default class DetailsTopology extends React.Component {
     const versionRows = versionData.map((element, i) => {
       const versionPerc =
         element.value > 0
-          ? parseInt((parseInt(element.value) / totalReported) * 100)
+          ? parseInt((parseInt(element.value, 10) / totalReported) * 100, 10)
           : 0;
       return (
         <tr key={i}>
@@ -259,7 +284,7 @@ export default class DetailsTopology extends React.Component {
               {versionPieChart}
             </td>
           ) : null}
-          <td key={i} style={{color: element.color}}>
+          <td key={i} style={{color: element.color}} colSpan={2}>
             <span
               style={{
                 fontWeight: this.state.expandedVersion === i ? 'bold' : null,
@@ -301,9 +326,9 @@ export default class DetailsTopology extends React.Component {
             <tbody>
               <tr>
                 <td width="150px">Availability (24 Hours)</td>
-                <td colSpan="2">
+                <td colSpan={3}>
                   <span style={{color: availabilityColor(alivePercAvg)}}>
-                    {linksWithData ? alivePercAvg + '%' : 'No Data'}
+                    {wirelessLinksCount ? alivePercAvg + '%' : 'No Data'}
                   </span>
                 </td>
               </tr>
