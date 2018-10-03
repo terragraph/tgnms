@@ -113,7 +113,7 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
     }
   }
   for (const auto& topologyConfig : mySqlClient->getTopologyConfigs()) {
-    if (topologyConfig.second->topology.name != request.name) {
+    if (topologyConfig.second->name != request.name) {
       continue;
     }
     for (const auto& key : topologyConfig.second->keys) {
@@ -491,5 +491,15 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
           << " query.";
   return retMetrics;
 }
+
+// retrieve list of nodes (MAC addresses) for the current topology
+folly::dynamic StatsTypeAheadCache::listNodes() {
+  folly::dynamic retNodes = folly::dynamic::array;
+  for (const auto &it : nodesByName_) {
+    retNodes.push_back(it.second.mac_addr);
+  }
+  return retNodes;
+}
+
 } // namespace gorilla
 } // namespace facebook

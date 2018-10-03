@@ -43,6 +43,8 @@ set(BERINGEI_QUERY_SRCS
 set(BERINGEI_QUERY_HANDLER_SRCS
     handlers/LogsWriteHandler.cpp
     handlers/LogsWriteHandler.h
+    handlers/TestConnectionHandler.cpp
+    handlers/TestConnectionHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
     handlers/RuckusControllerStatsHandler.cpp

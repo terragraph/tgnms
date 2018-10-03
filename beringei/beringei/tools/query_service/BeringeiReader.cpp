@@ -117,7 +117,7 @@ void BeringeiReader::loadKeyMetaData() {
           std::unordered_set<std::string> restrictorList(
               restrictor.values.begin(), restrictor.values.end());
           if (restrictor.restrictorType == stats::RestrictorType::NODE &&
-              !restrictorList.count(keyData.srcNodeName)) {
+              !restrictorList.count(keyData.srcNodeName) && !restrictorList.count(keyData.srcNodeMac)) {
             if (request_.debugLogToConsole) {
               LOG(INFO) << "\t\tSkipping node: " << keyData.srcNodeName;
             }

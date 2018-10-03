@@ -315,7 +315,7 @@ int64_t RawReadBeringeiData::findBeringeiKeyId(query::RawQueryKey rawQueryKey) {
             "srcNodeName", key.srcNodeName)("keyId", key.keyId)(
             "linkName", key.linkName)("unit", (int)key.unit)(
             "srcNodeMac", key.srcNodeMac)("keyName", key.keyName));
-      }
+              }
       if (!keyList.isNull()) {
         orderedMetricList.push_back(keyList);
       }

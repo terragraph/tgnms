@@ -8,6 +8,7 @@
  */
 
 #include "StatsTypeAheadHandler.h"
+#include "../MySqlClient.h"
 
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
@@ -86,10 +87,42 @@ void StatsTypeAheadHandler::onEOM() noexcept {
         .sendWithEOM();
     return;
   }
-  LOG(INFO) << "Stats type ahead request for \"" << request.searchTerm << "\" on \""
-            << request.topologyName << "\"";
+
+  // returns false if the key is not on the restrictor list or if there is
+  // no restrictor list
+  auto checkRestrictors = [&request] (const stats::KeyMetaData& keyData) {
+    bool skipKey = false;
+    for (const auto& restrictor : request.restrictors) {
+      std::unordered_set<std::string> restrictorList(
+          restrictor.values.begin(), restrictor.values.end());
+      if (restrictor.restrictorType == stats::RestrictorType::NODE &&
+          !restrictorList.count(keyData.srcNodeName) && !restrictorList.count(keyData.srcNodeMac)) {
+        if (request.debugLogToConsole) {
+          LOG(INFO) << "\t\tSkipping node: " << keyData.srcNodeName;
+        }
+        skipKey = true;
+        break;
+      }
+      if (restrictor.restrictorType == stats::RestrictorType::LINK &&
+          !restrictorList.count(keyData.linkName)) {
+        if (request.debugLogToConsole) {
+          LOG(INFO) << "\t\tSkipping link: " << keyData.linkName;
+        }
+        skipKey = true;
+        break;
+      }
+    }
+    return skipKey;
+  };
+
   folly::dynamic orderedMetricList = folly::dynamic::array;
-  {
+  if (request.typeaheadType == stats::TypeaheadType::TOPOLOGYNAME) {
+    auto mySqlClient = MySqlClient::getInstance();
+    for (const auto topologyConfig : mySqlClient->getTopologyConfigs()) {
+      orderedMetricList.push_back(topologyConfig.second->name);
+    }
+  }
+  else if (request.__isset.topologyName ) {
     // check for cache client
     auto locked = typeaheadCache_.rlock();
     auto taIt = locked->find(request.topologyName);
@@ -106,21 +139,41 @@ void StatsTypeAheadHandler::onEOM() noexcept {
     // this loop can be pretty lengthy so holding a lock the whole time isn't
     // ideal
     auto taCache = taIt->second;
-    auto retMetrics = taCache->searchMetrics(request.searchTerm);
-    locked.unlock();
-    for (const auto& metricList : retMetrics) {
-      folly::dynamic keyList = folly::dynamic::array;
-      for (const auto& key : metricList) {
-        VLOG(1) << "\t\tName: " << key.keyName << ", key: " << key.keyId
-                << ", node: " << key.srcNodeMac;
-        keyList.push_back(folly::dynamic::object(
-            "keyId", key.keyId)("keyName", key.keyName)("shortName", key.shortName)(
-            "srcNodeMac", key.srcNodeMac)("srcNodeName", key.srcNodeName)(
-            "peerNodeMac", key.peerNodeMac)("linkName", key.linkName)(
-            "linkDirection", (int)key.linkDirection)("unit", (int)key.unit));
+    if (request.typeaheadType == stats::TypeaheadType::NODENAME) {
+      LOG(INFO) << "Stats type ahead request on \""
+                << request.topologyName << "\"";
+      orderedMetricList = std::move(taCache->listNodes());
+      locked.unlock();
+    }
+    else if (request.__isset.searchTerm) {
+      LOG(INFO) << "Stats type ahead request for \"" << request.searchTerm << "\" on \""
+                << request.topologyName << "\"";
+      auto retMetrics = taCache->searchMetrics(request.searchTerm);
+      locked.unlock();
+
+      if (request.typeaheadType == stats::TypeaheadType::KEYNAME) {
+        // return is in format
+        // [[{},{}],[{},{}]]  outer array is per metric (e.g. 'rssi')
+        // inner array is every key for that metric (e.g. tgf.<MAC>.phystatus.srssi)
+        for (const auto& metricList : retMetrics) {
+          folly::dynamic keyList = folly::dynamic::array;
+          for (const auto& key : metricList) {
+            if (!checkRestrictors(key)) {
+              VLOG(1) << "\t\tName: " << key.keyName << ", key: " << key.keyId
+                      << ", node: " << key.srcNodeMac;
+              keyList.push_back(folly::dynamic::object(
+                  "keyId", key.keyId)("keyName", key.keyName)("shortName", key.shortName)(
+                  "srcNodeMac", key.srcNodeMac)("srcNodeName", key.srcNodeName)(
+                  "peerNodeMac", key.peerNodeMac)("linkName", key.linkName)(
+                  "linkDirection", (int)key.linkDirection)("unit", (int)key.unit));
+            }
+          }
+          // add to json
+          if (!keyList.empty()) {
+            orderedMetricList.push_back(keyList);
+          }
+        }
       }
-      // add to json
-      orderedMetricList.push_back(keyList);
     }
   }
   // build type-ahead list

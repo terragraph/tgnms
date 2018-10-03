@@ -17,6 +17,7 @@
 #include "handlers/StatsTypeAheadHandler.h"
 #include "handlers/StatsWriteHandler.h"
 #include "handlers/UnifiedStatsWriteHandler.h"
+#include "handlers/TestConnectionHandler.h"
 
 using folly::EventBase;
 using folly::EventBaseManager;
@@ -38,7 +39,10 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
   auto path = httpMessage->getPath();
   LOG(INFO) << "Received a request for path " << path;
 
-  if (path == "/stats_writer") {
+  if (path == "/") {
+    // returns 200 OK for checking that BQS is up
+    return new TestConnectionHandler();
+  } else if (path == "/stats_writer") {
     // The false input indicates that the incoming StatsWriteRequest is
     // serialized by SimpleJSON protocol
     return new StatsWriteHandler(false);

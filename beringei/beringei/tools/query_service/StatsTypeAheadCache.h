@@ -63,6 +63,9 @@ class StatsTypeAheadCache {
       const std::string& metricName,
       const int limit = 100);
 
+ // list (array) of node MAC addresses
+ folly::dynamic listNodes();
+
  private:
   std::vector<std::string> linkMetricKeyNames_{};
   std::unordered_set<std::string> macNodes_{};
