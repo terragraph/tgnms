@@ -24,6 +24,7 @@ import {
   CONFIG_VIEW_MODE,
   PATH_DELIMITER,
   DEFAULT_BASE_KEY,
+  DEFAULT_HARDWARE_BASE_KEY,
 } from '../../constants/NetworkConfigConstants.js';
 import {Actions} from '../../constants/NetworkConstants.js';
 import {
@@ -91,6 +92,8 @@ export default class NetworkConfigContainer extends React.Component {
       // base network config
       // map of software version to config
       baseConfig: {},
+      hardwareBaseConfig: {},
+
       configMetadata: {},
 
       autoOverrideConfig: {}, // Read-Only
@@ -120,8 +123,9 @@ export default class NetworkConfigContainer extends React.Component {
       // changed by selecting node(s) or the network in the left pane in the UI
       editMode: CONFIG_VIEW_MODE.NETWORK,
 
-      // currently selected image version
+      // currently selected image version/hardware type
       selectedImage: DEFAULT_BASE_KEY,
+      selectedHardwareType: DEFAULT_HARDWARE_BASE_KEY,
 
       // currently selected set of nodes which the config is being viewed as
       selectedNodes: [],
@@ -203,6 +207,10 @@ export default class NetworkConfigContainer extends React.Component {
           return {
             name: node.name,
             mac_addr: node.mac_addr,
+            hwBoardId:
+              node.status_dump && node.status_dump.hardwareBoardId
+                ? node.status_dump.hardwareBoardId
+                : null,
             imageVersion: node.status_dump ? node.status_dump.version : null,
             ignited: node.status == 2 || node.status == 3,
           };
@@ -242,6 +250,13 @@ export default class NetworkConfigContainer extends React.Component {
         // reset the new fields whenever user switches viewing context
         this.setState({
           selectedImage: payload.image,
+          newConfigFields: {},
+        });
+        break;
+      case NetworkConfigActions.SELECT_HARDWARE_TYPE:
+        // reset the new fields whenever user switches viewing context
+        this.setState({
+          selectedHardwareType: payload.hardwareType,
           newConfigFields: {},
         });
         break;
@@ -438,6 +453,9 @@ export default class NetworkConfigContainer extends React.Component {
       // actions from API call returns
       case NetworkConfigActions.GET_BASE_CONFIG_SUCCESS:
         this.setState({baseConfig: payload.config});
+        break;
+      case NetworkConfigActions.GET_HARDWARE_BASE_CONFIG_SUCCESS:
+        this.setState({hardwareBaseConfig: payload.config});
         break;
       case NetworkConfigActions.GET_CONFIG_METADATA_SUCCESS: {
         const {
@@ -944,6 +962,7 @@ export default class NetworkConfigContainer extends React.Component {
 
     const {
       baseConfig,
+      hardwareBaseConfig,
       configMetadata,
       autoOverrideConfig,
 
@@ -958,6 +977,7 @@ export default class NetworkConfigContainer extends React.Component {
 
       editMode,
       selectedImage,
+      selectedHardwareType,
       selectedNodes,
       errorMsg,
     } = this.state;
@@ -974,10 +994,13 @@ export default class NetworkConfigContainer extends React.Component {
             DEFAULT_BASE_KEY,
             ...getImageVersionsForNetwork(networkConfig.topology),
           ]}
+          hardwareTypes={Object.keys(hardwareBaseConfig)}
           selectedImage={selectedImage}
+          selectedHardwareType={selectedHardwareType}
           selectedNodes={selectedNodes}
           editMode={editMode}
           baseConfigByVersion={baseConfig}
+          hardwareBaseConfig={hardwareBaseConfig}
           autoOverrideConfig={autoOverrideConfig}
           newConfigFields={newConfigFields}
           configMetadata={configMetadata}

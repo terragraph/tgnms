@@ -21,6 +21,7 @@ export const NetworkConfigActions = {
   REFRESH_CONFIG: 'REFRESH_CONFIG',
 
   SELECT_IMAGE: 'SELECT_IMAGE',
+  SELECT_HARDWARE_TYPE: 'SELECT_HARDWARE_TYPE',
   SELECT_NODES: 'SELECT_NODES',
 
   ADD_NEW_FIELD: 'ADD_NEW_FIELD',
@@ -36,6 +37,9 @@ export const NetworkConfigActions = {
   // API call resolution actions for get
   GET_BASE_CONFIG_SUCCESS: 'GET_BASE_CONFIG_SUCCESS',
   GET_BASE_CONFIG_FAILED: 'GET_BASE_CONFIG_FAILED',
+
+  GET_HARDWARE_BASE_CONFIG_SUCCESS: 'GET_HARDWARE_BASE_CONFIG_SUCCESS',
+  GET_HARDWARE_BASE_CONFIG_FAILED: 'GET_HARDWARE_BASE_CONFIG_FAILED',
 
   GET_CONFIG_METADATA_SUCCESS: 'GET_CONFIG_METADATA_SUCCESS',
   GET_CONFIG_METADATA_FAILED: 'GET_CONFIG_METADATA_FAILED',
@@ -92,6 +96,13 @@ export const selectImage = ({image}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.SELECT_IMAGE,
     image,
+  });
+};
+
+export const selectHardwareType = ({hardwareType}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.SELECT_HARDWARE_TYPE,
+    hardwareType,
   });
 };
 
@@ -217,6 +228,14 @@ export const refreshConfig = () => {
 export const getBaseConfigSuccess = ({config, topologyName}) => {
   Dispatcher.dispatch({
     actionType: NetworkConfigActions.GET_BASE_CONFIG_SUCCESS,
+    topologyName,
+    config,
+  });
+};
+
+export const getHardwareBaseConfigSuccess = ({config, topologyName}) => {
+  Dispatcher.dispatch({
+    actionType: NetworkConfigActions.GET_HARDWARE_BASE_CONFIG_SUCCESS,
     topologyName,
     config,
   });

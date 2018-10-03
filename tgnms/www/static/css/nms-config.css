@@ -84,6 +84,13 @@
   flex-shrink: 0;
 }
 
+.nc-header-text {
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .nc-header-refresh-wrapper {
   flex: 1;
 }
@@ -197,12 +204,13 @@
 
 .nc-node-config-modal .alert {
   color: #d63031;
-  margin: 7px;
+  padding: 0;
+  margin-bottom: 8px;
 }
 
 .nc-node-config-modal .config-block {
   overflow: scroll;
-  height: 60vh;
+  height: 45vh;
   margin: 20px auto;
 }
 
@@ -213,4 +221,8 @@
 .nc-node-config-modal .copy-button {
   margin-right: 20px;
   width: 142px;
+}
+
+.nc-node-config-modal .Select {
+  padding: 4px 0;
 }

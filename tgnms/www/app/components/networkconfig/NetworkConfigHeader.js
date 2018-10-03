@@ -46,6 +46,11 @@ export default class NetworkConfigHeader extends React.Component {
     }
   };
 
+  _trimVersionString(v) {
+    const prefix = 'Facebook Terragraph Release ';
+    return v.indexOf(prefix) >= 0 ? v.substring(prefix.length) : v;
+  }
+
   render() {
     const {editMode, selectedNodes} = this.props;
     const editModeText =
@@ -56,12 +61,23 @@ export default class NetworkConfigHeader extends React.Component {
     let nodeStatusText = '';
     if (editMode === CONFIG_VIEW_MODE.NODE) {
       nodeStatusText = selectedNodes[0].ignited ? (
-        <span style={{color: '#009900'}}>
-          Node is Online running:{' '}
-          <strong>{selectedNodes[0].imageVersion}</strong>
+        <span className="nc-header-text">
+          <strong>Version: </strong>
+          <em>{this._trimVersionString(selectedNodes[0].imageVersion)}</em>
+          {selectedNodes[0].hwBoardId !== null && <br />}
+          {selectedNodes[0].hwBoardId !== null && (
+            <span>
+              <strong>Hardware: </strong>
+              <em>{selectedNodes[0].hwBoardId}</em>
+            </span>
+          )}
         </span>
       ) : (
-        <span style={{color: '#990000'}}>Node is Offline</span>
+        <span style={{color: '#990000'}}>
+          Node is offline
+          <br />
+          <em>The base configuration shown may be inaccurate</em>
+        </span>
       );
     }
 

@@ -30,6 +30,7 @@ export const CONFIG_CLASSNAMES = {
 };
 
 export const DEFAULT_BASE_KEY = 'default';
+export const DEFAULT_HARDWARE_BASE_KEY = 'MVL_ARMADA39X_P';
 
 export const ADD_FIELD_TYPES = {
   OBJECT: 'object',

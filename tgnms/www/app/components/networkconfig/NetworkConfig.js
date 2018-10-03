@@ -11,9 +11,11 @@
 import {
   CONFIG_VIEW_MODE,
   DEFAULT_BASE_KEY,
+  DEFAULT_HARDWARE_BASE_KEY,
 } from '../../constants/NetworkConfigConstants.js';
 import NetworkConfigBody from './NetworkConfigBody.js';
 import NetworkConfigLeftPane from './NetworkConfigLeftPane.js';
+import {cloneDeep, merge} from 'lodash-es';
 import isEmpty from 'lodash-es/isEmpty';
 import isPlainObject from 'lodash-es/isPlainObject';
 import PropTypes from 'prop-types';
@@ -25,11 +27,14 @@ export default class NetworkConfig extends React.Component {
     topologyName: PropTypes.string.isRequired,
     nodes: PropTypes.array.isRequired,
     imageVersions: PropTypes.array.isRequired,
+    hardwareTypes: PropTypes.array.isRequired,
     selectedImage: PropTypes.string.isRequired,
+    selectedHardwareType: PropTypes.string.isRequired,
     selectedNodes: PropTypes.array.isRequired,
 
     editMode: PropTypes.string.isRequired,
     baseConfigByVersion: PropTypes.object.isRequired,
+    hardwareBaseConfig: PropTypes.object.isRequired,
     autoOverrideConfig: PropTypes.object.isRequired,
     newConfigFields: PropTypes.object.isRequired,
     configMetadata: PropTypes.object,
@@ -43,19 +48,44 @@ export default class NetworkConfig extends React.Component {
     removedNodeOverrides: PropTypes.object.isRequired, // <NodeMacAddr, Set>
   };
 
-  getBaseConfig(baseConfigByVersion, editMode, selectedImage, selectedNodes) {
-    let baseKey = DEFAULT_BASE_KEY;
-    if (editMode === CONFIG_VIEW_MODE.NODE && selectedNodes[0].imageVersion) {
-      baseKey = selectedNodes[0].imageVersion;
-    } else if (editMode === CONFIG_VIEW_MODE.NETWORK && selectedImage !== '') {
-      baseKey = selectedImage;
+  getBaseConfig(
+    baseConfigByVersion,
+    hardwareBaseConfig,
+    editMode,
+    selectedImage,
+    selectedHardwareType,
+    selectedNodes,
+  ) {
+    let baseVersion = DEFAULT_BASE_KEY;
+    let baseHwBoardId = DEFAULT_HARDWARE_BASE_KEY;
+    if (editMode === CONFIG_VIEW_MODE.NODE) {
+      if (selectedNodes[0].imageVersion) {
+        baseVersion = selectedNodes[0].imageVersion;
+      }
+      if (selectedNodes[0].hwBoardId) {
+        baseHwBoardId = selectedNodes[0].hwBoardId;
+      }
+    } else if (editMode === CONFIG_VIEW_MODE.NETWORK) {
+      if (selectedImage !== '') {
+        baseVersion = selectedImage;
+      }
+      if (selectedHardwareType !== '') {
+        baseHwBoardId = selectedHardwareType;
+      }
     }
 
     // handle the case where we have rendered the component but not received the API response
-    // users don't usually see this
-    return baseConfigByVersion[baseKey] === undefined
-      ? {}
-      : baseConfigByVersion[baseKey];
+    if (baseConfigByVersion[baseVersion] === undefined) {
+      return {};
+    }
+
+    const baseConfigObj = cloneDeep(baseConfigByVersion[baseVersion]);
+    if (baseHwBoardId && hardwareBaseConfig.hasOwnProperty(baseHwBoardId)) {
+      if (hardwareBaseConfig[baseHwBoardId].hasOwnProperty(baseVersion)) {
+        merge(baseConfigObj, hardwareBaseConfig[baseHwBoardId][baseVersion]);
+      }
+    }
+    return baseConfigObj;
   }
 
   // nodeConfig is keyed by node name
@@ -84,12 +114,15 @@ export default class NetworkConfig extends React.Component {
     const {
       topologyName,
       imageVersions,
+      hardwareTypes,
       selectedImage,
+      selectedHardwareType,
       nodes,
       selectedNodes,
 
       editMode,
       baseConfigByVersion,
+      hardwareBaseConfig,
       autoOverrideConfig,
       newConfigFields,
       configMetadata,
@@ -105,8 +138,10 @@ export default class NetworkConfig extends React.Component {
 
     const baseConfig = this.getBaseConfig(
       baseConfigByVersion,
+      hardwareBaseConfig,
       editMode,
       selectedImage,
+      selectedHardwareType,
       selectedNodes,
     );
 
@@ -159,7 +194,9 @@ export default class NetworkConfig extends React.Component {
         <NetworkConfigLeftPane
           topologyName={topologyName}
           imageVersions={imageVersions}
+          hardwareTypes={hardwareTypes}
           selectedImage={selectedImage}
+          selectedHardwareType={selectedHardwareType}
           editMode={editMode}
           networkDraftExists={networkDraftExists}
           nodes={nodes}

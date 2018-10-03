@@ -23,11 +23,13 @@ export default class NetworkConfigLeftPane extends React.Component {
   static propTypes = {
     topologyName: PropTypes.string.isRequired,
     selectedImage: PropTypes.string.isRequired,
+    selectedHardwareType: PropTypes.string.isRequired,
 
     editMode: PropTypes.string.isRequired,
     networkDraftExists: PropTypes.bool.isRequired,
 
     imageVersions: PropTypes.array.isRequired,
+    hardwareTypes: PropTypes.array.isRequired,
 
     nodes: PropTypes.array.isRequired,
     selectedNodes: PropTypes.array.isRequired,
@@ -78,7 +80,9 @@ export default class NetworkConfigLeftPane extends React.Component {
       nodesWithOverrides,
       removedNodeOverrides,
       imageVersions,
+      hardwareTypes,
       selectedImage,
+      selectedHardwareType,
     } = this.props;
     const viewModeSelector = this.renderViewModeSelector();
 
@@ -100,12 +104,11 @@ export default class NetworkConfigLeftPane extends React.Component {
             />
           )}
           {editMode === CONFIG_VIEW_MODE.NETWORK && (
-            <div className="selector-title">Select Base Version</div>
-          )}
-          {editMode === CONFIG_VIEW_MODE.NETWORK && (
             <NetworkConfigImageSelector
               imageVersions={imageVersions}
               selectedImage={selectedImage}
+              hardwareTypes={hardwareTypes}
+              selectedHardwareType={selectedHardwareType}
             />
           )}
         </div>

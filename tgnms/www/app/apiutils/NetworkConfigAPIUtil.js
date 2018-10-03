@@ -9,6 +9,7 @@
 
 import {
   getBaseConfigSuccess,
+  getHardwareBaseConfigSuccess,
   getConfigMetadataSuccess,
   getControllerConfigSuccess,
   getControllerConfigMetadataSuccess,
@@ -52,6 +53,18 @@ export const getConfigsForTopology = (
       topologyName,
     });
   });
+
+  apiServiceRequest(topologyName, 'getHardwareBaseConfig', data).then(
+    response => {
+      const {config} = response.data;
+      const parsedConfig = JSON.parse(config);
+
+      getHardwareBaseConfigSuccess({
+        config: sortConfig(parsedConfig),
+        topologyName,
+      });
+    },
+  );
 
   if (getNetworkAndNodeConfig) {
     getNetworkOverrideConfig(topologyName);

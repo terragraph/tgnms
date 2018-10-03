@@ -203,6 +203,7 @@ export default class NetworkConfigBody extends React.Component {
             onConfirm={() => this.setState({showFullNodeConfig: false})}
             show={showFullNodeConfig}
             swVersion={selectedNodes[0].imageVersion}
+            hardwareType={selectedNodes[0].hwBoardId}
             topologyName={topologyName}
           />
         )}

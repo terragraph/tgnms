@@ -8,6 +8,7 @@
 import {
   changeEditMode,
   selectImage,
+  selectHardwareType,
 } from '../../actions/NetworkConfigActions.js';
 import {CONFIG_VIEW_MODE} from '../../constants/NetworkConfigConstants.js';
 import classNames from 'classnames';
@@ -27,32 +28,58 @@ export default class NetworkConfigImageSelector extends React.Component {
     });
   }
 
-  renderBaseVersionSelector(imageVersions, selectedImage) {
-    const selectOptions = imageVersions.map(image => {
+  selectHardwareType(val) {
+    selectHardwareType({
+      hardwareType: val.value,
+    });
+  }
+
+  render() {
+    const {
+      imageVersions,
+      selectedImage,
+      hardwareTypes,
+      selectedHardwareType,
+    } = this.props;
+
+    const selectImageOptions = imageVersions.map(image => {
       return {
         label: image,
         value: image,
       };
     });
 
-    return (
+    const selectHardwareTypeOptions = hardwareTypes.map(hardwareType => {
+      return {
+        label: hardwareType,
+        value: hardwareType,
+      };
+    });
+
+    return [
+      <div className="selector-title">Select Base Version</div>,
       <Select
         name="Select Base Version"
         value={selectedImage}
-        options={selectOptions}
+        options={selectImageOptions}
         onChange={this.selectImage}
         clearable={false}
-      />
-    );
-  }
-
-  render() {
-    const {imageVersions, selectedImage} = this.props;
-    return this.renderBaseVersionSelector(imageVersions, selectedImage);
+      />,
+      <div className="selector-title">Select Hardware Base</div>,
+      <Select
+        name="Select Hardware Base"
+        value={selectedHardwareType}
+        options={selectHardwareTypeOptions}
+        onChange={this.selectHardwareType}
+        clearable={false}
+      />,
+    ];
   }
 }
 
 NetworkConfigImageSelector.propTypes = {
   selectedImage: PropTypes.string.isRequired,
   imageVersions: PropTypes.array.isRequired,
+  selectedHardwareType: PropTypes.string.isRequired,
+  hardwareTypes: PropTypes.array.isRequired,
 };
