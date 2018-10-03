@@ -103,7 +103,9 @@ export default class NetworkStatusTable extends React.Component {
     const nodeVersions = this._getNodeVersions();
 
     return (
-      <div className="status-table-container">
+      <div
+        className="status-table-container"
+        style={{height: this.props.height + 'px'}}>
         <div className="status-table status-table-left">
           <h3>Services</h3>
           <Table condensed hover>

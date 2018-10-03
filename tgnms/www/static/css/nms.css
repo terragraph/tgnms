@@ -154,6 +154,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   flex-direction: row;
   height: 100%;
   margin: auto 10px;
+  overflow-y: auto;
 }
 .status-table {
   padding: 10px;

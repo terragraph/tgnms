@@ -49,7 +49,7 @@ module.exports.rules = {
   'no-alert': 'off',
   'no-console': ['warn', {allow: ['error', 'warn']}],
   'prefer-const': ['warn', {destructuring: 'all'}],
-  'sort-keys': 'warn',
+  'sort-keys': 'off',
   'max-len': 'warn',
   strict: 'off',
 
