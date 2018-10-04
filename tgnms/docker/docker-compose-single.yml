@@ -189,6 +189,50 @@ services:
       - db
       - bqs
 
+grafana:
+    build:
+      context: .
+    image: secure.cxl-terragraph.com:443/tg_grafana:latest
+    env_file:
+      - ./env/mysql.env
+      - ./env/grafana.env
+    environment:
+      - GF_DATABASE_TYPE=mysql
+      - GF_DATABASE_HOST=db:3306
+      - GF_DATABASE_NAME=$${GRAFANA_DB}
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_SECURITY_ADMIN_PASSWORD=$${GRAFANA_ADMIN_PWD}
+      - GF_DATABASE_USER=$${MYSQL_USER}
+      - GF_DATABASE_PASSWORD=$${MYSQL_PASS}
+    restart: unless-stopped
+    ports:
+      - "443:3000"
+    networks:
+      - terragraph_net
+    depends_on:
+      - ipv6
+      - db
+      - bqs
+
+grafana_util:
+  build:
+    context: .
+  image: secure.cxl-terragraph.com:443/tg_grafana:latest
+  env_file:
+    - ./env/mysql.env
+    - ./env/grafana.env
+  restart: "no"
+  ports:
+    - "3001:3001"
+  networks:
+    - terragraph_net
+  entrypoint: ["/bin/sh", "-c", "until nc -z grafana 3000; do sleep 1; done && until nc -z bqs 8086; do sleep 1; done && cd /var/lib/grafana/utilities; python3 add_users.py grafana 3000 admin $${GRAFANA_ADMIN_PWD}; ./import_dashboards.sh -I grafana -P 3000 -W $${GRAFANA_ADMIN_PWD}; python3 import_data_sources.py grafana 3000 admin $${GRAFANA_ADMIN_PWD} bqs 8086 --force"]
+  depends_on:
+    - ipv6
+    - db
+    - bqs
+    - grafana
+
 networks:
   terragraph_net:
     external: true

@@ -4,18 +4,22 @@ CREATE DATABASE IF NOT EXISTS `cxl`;
 USE cxl;
 
 DROP PROCEDURE IF EXISTS Create_Nms_User ;
-DELIMITER $$ 
-CREATE PROCEDURE Create_Nms_User () 
-BEGIN 
-  DECLARE usr VARCHAR(100)  DEFAULT ""; 
-  SET usr = (SELECT CURRENT_USER); 
-  IF usr LIKE 'root%'  then 
+DELIMITER $$
+CREATE PROCEDURE Create_Nms_User ()
+BEGIN
+  DECLARE usr VARCHAR(100)  DEFAULT "";
+  SET usr = (SELECT CURRENT_USER);
+  IF usr LIKE 'root%'  then
+     CREATE DATABASE IF NOT EXISTS `grafana`;
+     CREATE DATABASE IF NOT EXISTS `network_test`;
      SELECT 'Creating nms user account.' AS '';
-     CREATE USER IF NOT EXISTS 'nms'@'%' IDENTIFIED BY 'o0Oe8G0UrBrT'; 
+     CREATE USER IF NOT EXISTS 'nms'@'%' IDENTIFIED BY 'o0Oe8G0UrBrT';
      GRANT ALL PRIVILEGES ON cxl.* TO 'nms'@'%';
-     FLUSH PRIVILEGES; 
+     GRANT ALL PRIVILEGES ON grafana.* TO 'nms'@'%';
+     GRANT ALL PRIVILEGES ON network_test.* TO 'nms'@'%';
+     FLUSH PRIVILEGES;
   end if ;
-END; $$ 
+END; $$
 DELIMITER ;
 
 /* create NMS user only if user is root */
@@ -27,21 +31,21 @@ DELIMITER $$
 CREATE PROCEDURE Add_Modify_Column(IN tableName varchar(100), IN columnName varchar(100), IN varType varchar(100))
 BEGIN
     DECLARE _count INT;
-    SET _count = (  SELECT COUNT(*) 
+    SET _count = (  SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = tableName AND 
+                    WHERE   TABLE_NAME = tableName AND
                             COLUMN_NAME = columnName);
     IF _count = 0 THEN /* if column does not exist */
 	SET @s=CONCAT('ALTER TABLE ', tableName,' ADD COLUMN `', columnName, '` ', varType);
         PREPARE addcmd FROM @s;
 	EXECUTE addcmd;
 	DEALLOCATE PREPARE addcmd;
-    ELSE 
+    ELSE
 	SET @s=CONCAT('ALTER TABLE ', tableName, ' MODIFY COLUMN `', columnName, '` ', varType);
         PREPARE addcmd FROM @s;
 	EXECUTE addcmd;
 	DEALLOCATE PREPARE addcmd;
-	
+
     END IF;
 END $$
 DELIMITER ;
@@ -118,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `nodes` (
   KEY `site` (`site`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
-/* scan_results table is no longer used, replaced by tx_scan_results and 
+/* scan_results table is no longer used, replaced by tx_scan_results and
    rx_scan_results - added July 2018 */
 DROP TABLE IF EXISTS scan_results;
 
