@@ -120,16 +120,12 @@ if (devMode) {
   });
 }
 
-app.get('/', (req, res) => {
+// Catch All
+app.get('*', (req, res) => {
   res.render('index', {
     configJson: JSON.stringify(getNetworkInstanceConfig()),
     userJson: JSON.stringify(req.user),
   });
-});
-
-// Catch All
-app.get('*', (req, res) => {
-  res.redirect('/');
 });
 
 (async function main() {

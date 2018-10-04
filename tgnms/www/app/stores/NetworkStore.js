@@ -33,6 +33,21 @@ NetworkStore.layers = [];
 
 const SITE_ROOT = '/';
 
+// icon: Glyphicon from Bootstrap 3.3.7
+const VIEWS = {
+  map: {name: 'Map', icon: 'map-marker'},
+  dashboards: {name: 'Dashboards', icon: 'dashboard'},
+  stats: {name: 'Stats', icon: 'stats'},
+  // TODO: implement these views and uncomment them
+  // eventlogs: {name: 'Event Logs', icon: 'list'},
+  upgrade: {name: 'Upgrade', icon: 'upload'},
+  'nms-config': {name: 'NMS Config', icon: 'cloud'},
+  config: {name: 'Node Config', icon: 'cog'},
+  'e2e-config': {name: 'E2E Config', icon: 'hdd'},
+  //users: {name: 'Users', icon: 'user'},
+  docker: {name: 'Docker', icon: 'cog'},
+};
+
 const BrowserHistory = createHistory();
 const PushUrl = () => {
   // console.log('url stuff', NetworkStore);
@@ -119,8 +134,9 @@ for (let layer = 0; layer < urlParts.length; layer++) {
   switch (layer) {
     case 0:
       // view
-      NetworkStore.viewName = urlParts[layer];
-      // console.log('updated initial view to', NetworkStore.viewName);
+      if (VIEWS.hasOwnProperty(urlParts[layer])) {
+        NetworkStore.viewName = urlParts[layer];
+      }
       break;
     case 1:
       NetworkStore.networkName = urlParts[layer];
@@ -151,6 +167,7 @@ for (let layer = 0; layer < urlParts.length; layer++) {
       console.error('unhandled layer', layer, urlParts[layer]);
   }
 }
+PushUrl();
 
 Dispatcher.register(payload => {
   // console.log('dispatched', payload);
@@ -276,4 +293,5 @@ const urlHistory = BrowserHistory.listen((location, action) => {
   // console.log('action', action, 'location', location);
 });
 
+export {VIEWS};
 export default NetworkStore;

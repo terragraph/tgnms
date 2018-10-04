@@ -12,6 +12,7 @@ import NetworkStatusMenu from './NetworkStatusMenu';
 import StatusIndicator from '../common/StatusIndicator';
 import {HighAvailability} from '../../constants/NetworkConstants';
 import {getStatusIndicatorColor} from '../../helpers/HighAvailabilityHelpers';
+import {VIEWS} from '../../stores/NetworkStore.js';
 
 const propTypes = {
   handleMenuBarSelect: PropTypes.func.isRequired,
@@ -23,20 +24,6 @@ const propTypes = {
 };
 
 // icon: Glyphicon from Bootstrap 3.3.7
-const VIEWS = {
-  map: {name: 'Map', icon: 'map-marker'},
-  dashboards: {name: 'Dashboards', icon: 'dashboard'},
-  stats: {name: 'Stats', icon: 'stats'},
-  // TODO: implement these views and uncomment them
-  // eventlogs: {name: 'Event Logs', icon: 'list'},
-  upgrade: {name: 'Upgrade', icon: 'upload'},
-  'nms-config': {name: 'NMS Config', icon: 'cloud'},
-  config: {name: 'Node Config', icon: 'cog'},
-  'e2e-config': {name: 'E2E Config', icon: 'hdd'},
-  //users: {name: 'Users', icon: 'user'},
-  docker: {name: 'Docker', icon: 'cog'},
-};
-
 const TOPOLOGY_OPS = {
   addSite: {name: 'New Planned Site', icon: 'pushpin'},
   addNode: {name: 'New Node', icon: 'asterisk'},
