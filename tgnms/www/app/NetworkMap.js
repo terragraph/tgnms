@@ -35,6 +35,7 @@ import {
   NodeType,
   PolarityType,
   NodeStatusType,
+  LinkType,
 } from '../thrift/gen-nodejs/Topology_types';
 import {rgb, scaleLinear} from 'd3';
 import LeafletGeom from 'leaflet-geometryutil';
@@ -59,6 +60,12 @@ const SITE_MARKER = Leaflet.icon({
   iconAnchor: [25, 25],
   iconSize: [50, 50],
   iconUrl: '/static/images/site.png',
+});
+
+const LinkDisplayTypeEnum = Object.freeze({
+  BACKUP_LINK: 1, // backup 5G links across sites
+  CN_BACKUP_LINK: 2,
+  WIRELESS_LINK: 3, // normal wireless link
 });
 
 export class CustomMap extends Map {
@@ -655,7 +662,7 @@ export default class NetworkMap extends React.Component {
     );
   };
 
-  getLinkLine(link, coords, color): React.Element<any> {
+  getLinkLine(link, coords, color, linkDisplayType): React.Element<any> {
     return (
       <Polyline
         key={link.name}
@@ -673,6 +680,13 @@ export default class NetworkMap extends React.Component {
           });
         }}
         color={color}
+        dashArray={
+          linkDisplayType == LinkDisplayTypeEnum.BACKUP_LINK
+            ? '4 8'
+            : linkDisplayType == LinkDisplayTypeEnum.CN_BACKUP_LINK
+              ? '1 12'
+              : ''
+        }
         level={5}
       />
     );
@@ -1033,9 +1047,6 @@ export default class NetworkMap extends React.Component {
     const ignitionLinks = new Set(this.props.networkConfig.ignition_state);
     // use min/max/std dev or something else here (TODO)
     topology.links.map(link => {
-      if (link.link_type != 1) {
-        return;
-      }
       if (
         !this.nodesByName.hasOwnProperty(link.a_node_name) ||
         !this.nodesByName.hasOwnProperty(link.z_node_name)
@@ -1047,6 +1058,21 @@ export default class NetworkMap extends React.Component {
 
       const aSite = this.nodesByName[link.a_node_name].site_name;
       const zSite = this.nodesByName[link.z_node_name].site_name;
+
+      // backup links are marked as cross site Ethernet links
+      let linkDisplayType;
+      if (link.is_backup_cn_link) {
+        linkDisplayType = LinkDisplayTypeEnum.CN_BACKUP_LINK;
+      } else if (aSite !== zSite && link.link_type === LinkType.ETHERNET) {
+        // cross site backup links is marked as Ethernet type
+        linkDisplayType = LinkDisplayTypeEnum.BACKUP_LINK;
+      } else if (link.link_type === LinkType.WIRELESS) {
+        linkDisplayType = LinkDisplayTypeEnum.WIRELESS_LINK;
+      } else {
+        // do not show same site Ethernet links
+        return;
+      }
+
       if (
         !this.sitesByName.hasOwnProperty(aSite) ||
         !this.sitesByName.hasOwnProperty(zSite)
@@ -1081,7 +1107,12 @@ export default class NetworkMap extends React.Component {
           const linkColor = rgb(
             bwUsageColor(this.state.routeWeights[link.name]),
           );
-          linkLine = this.getLinkLine(link, linkCoords, linkColor);
+          linkLine = this.getLinkLine(
+            link,
+            linkCoords,
+            linkColor,
+            linkDisplayType,
+          );
         }
       } else {
         const overlayKey = LinkOverlayKeys[this.props.linkOverlay];
@@ -1089,11 +1120,26 @@ export default class NetworkMap extends React.Component {
           case 'Health':
             // TODO - move color assignment into separate function for legend
             if (link.is_alive) {
-              linkLine = this.getLinkLine(link, linkCoords, 'green');
+              linkLine = this.getLinkLine(
+                link,
+                linkCoords,
+                'green',
+                linkDisplayType,
+              );
             } else if (ignitionLinks.has(link.name)) {
-              linkLine = this.getLinkLine(link, linkCoords, 'purple');
+              linkLine = this.getLinkLine(
+                link,
+                linkCoords,
+                'purple',
+                linkDisplayType,
+              );
             } else {
-              linkLine = this.getLinkLine(link, linkCoords, 'red');
+              linkLine = this.getLinkLine(
+                link,
+                linkCoords,
+                'red',
+                linkDisplayType,
+              );
             }
             break;
           case 'Uptime':
@@ -1105,9 +1151,19 @@ export default class NetworkMap extends React.Component {
                   break;
                 }
               }
-              linkLine = this.getLinkLine(link, linkCoords, color);
+              linkLine = this.getLinkLine(
+                link,
+                linkCoords,
+                color,
+                linkDisplayType,
+              );
             } else {
-              linkLine = this.getLinkLine(link, linkCoords, 'grey');
+              linkLine = this.getLinkLine(
+                link,
+                linkCoords,
+                'grey',
+                linkDisplayType,
+              );
             }
             break;
           case 'RxGolayIdx':
@@ -1198,7 +1254,12 @@ export default class NetworkMap extends React.Component {
             break;
           */
           default:
-            linkLine = this.getLinkLine(link, linkCoords, 'grey');
+            linkLine = this.getLinkLine(
+              link,
+              linkCoords,
+              'grey',
+              linkDisplayType,
+            );
         }
       }
       if (linkLine) {
