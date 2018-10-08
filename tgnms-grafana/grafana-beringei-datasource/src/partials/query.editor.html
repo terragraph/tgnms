@@ -46,6 +46,9 @@
       <div class="gf-form">
         <label class="gf-form-label query-keyword width-10">Scale</label>
         <div class="gf-form max-width-32">
+	  <info-popover ng-if="ctrl.target.refId != 'A'" mode="right-absolute">
+	    Multiple query scales will attempt to be matched to target. If unable, scale is defaulted to query A's scale.
+          </info-popover>
 	  <input type="text" class="gf-form-input" ng-model="ctrl.target.scale" placeholder="Scale" ng-change="ctrl.onScaleChange()"></input>
         </div>
       </div>

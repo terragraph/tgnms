@@ -64,6 +64,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
           this.withCredentials = instanceSettings.withCredentials;
           this.headers = { 'Content-Type': 'application/json' };
           this.scale = 1;
+          this.keyname_scale_map = new Map();
           if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
             this.headers['Authorization'] = instanceSettings.basicAuth;
           }
@@ -138,6 +139,13 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
             } else {
               this.scale = 1;
             }
+            for (var i = 0; i < options.targets.length; i++) {
+              var new_scale = Number(options.targets[i].scale);
+              if (isNaN(new_scale)) {
+                new_scale = 1;
+              }
+              this.keyname_scale_map.set(options.targets[i].keyname, new_scale);
+            };
 
             var timeFilter = this.getTimeFilter(options);
 
@@ -262,11 +270,13 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
             // start with i = 1, i = 0 is "time"
             for (var i = 1; i < result.data.columns.length; i++) {
               data.push(new Object());
+              var keyname = this.get_keyname_from_target(result.data.columns[i]);
               data[i - 1].target = result.data.columns[i];
+              var scale = this.keyname_scale_map.get(keyname) ? Number(this.keyname_scale_map.get(keyname)) : this.scale;
               data[i - 1].datapoints = new Array();
               for (var j = 0; j < result.data.points.length; j++) {
                 var tmp = new Array();
-                tmp.push(result.data.points[j][i] * this.scale); // value
+                tmp.push(result.data.points[j][i] * scale); // value
                 tmp.push(result.data.points[j][0]); // unixTime
                 data[i - 1].datapoints.push(tmp);
               }
@@ -274,6 +284,37 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
             delete result.data;
             result.data = data;
             return result;
+          }
+        }, {
+          key: "get_keyname_from_target",
+          value: function get_keyname_from_target(target) {
+            var keys = this.keyname_scale_map.keys();
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+              for (var _iterator = keys[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var key = _step.value;
+
+                if (target.includes(key)) {
+                  return key;
+                }
+              }
+            } catch (err) {
+              _didIteratorError = true;
+              _iteratorError = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+              } finally {
+                if (_didIteratorError) {
+                  throw _iteratorError;
+                }
+              }
+            }
           }
         }, {
           key: "testDatasource",

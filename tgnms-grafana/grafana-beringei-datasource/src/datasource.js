@@ -18,6 +18,7 @@ export class GenericDatasource {
     this.withCredentials = instanceSettings.withCredentials;
     this.headers = {'Content-Type': 'application/json'};
     this.scale = 1;
+    this.keyname_scale_map = new Map();
     if (typeof instanceSettings.basicAuth === 'string' &&
       instanceSettings.basicAuth.length > 0) {
       this.headers['Authorization'] = instanceSettings.basicAuth;
@@ -93,6 +94,14 @@ export class GenericDatasource {
     else {
       this.scale = 1;
     }
+    for (let i = 0; i < options.targets.length; i++) {
+      let new_scale = Number(options.targets[i].scale);
+      if (isNaN(new_scale)) {
+        new_scale = 1;
+      }
+      this.keyname_scale_map.set(options.targets[i].keyname, new_scale);
+    };
+
 
     let timeFilter = this.getTimeFilter(options);
 
@@ -221,11 +230,13 @@ export class GenericDatasource {
     // start with i = 1, i = 0 is "time"
     for (let i = 1; i < result.data.columns.length; i++) {
       data.push(new Object());
+      const keyname = this.get_keyname_from_target(result.data.columns[i]);
       data[i - 1].target = result.data.columns[i];
+      const scale = this.keyname_scale_map.get(keyname) ? Number(this.keyname_scale_map.get(keyname)) : this.scale;
       data[i - 1].datapoints = new Array();
       for (let j = 0; j < result.data.points.length; j++) {
         let tmp = new Array();
-        tmp.push(result.data.points[j][i] * this.scale); // value
+        tmp.push(result.data.points[j][i] * scale); // value
         tmp.push(result.data.points[j][0]); // unixTime
         data[i - 1].datapoints.push(tmp);
       }
@@ -233,6 +244,16 @@ export class GenericDatasource {
     delete result.data;
     result.data = data;
     return result;
+  }
+
+
+  get_keyname_from_target(target) {
+    const keys = this.keyname_scale_map.keys();
+    for (var key of keys) {
+      if (target.includes(key)) {
+        return key;
+      }
+    }
   }
 
   testDatasource() {
