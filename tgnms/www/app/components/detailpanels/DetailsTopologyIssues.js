@@ -361,7 +361,7 @@ export default class DetailsTopologyIssues extends React.Component {
       );
     }
     return (
-      <Panel bsStyle="primary" id="myModal">
+      <Panel id="myModal">
         <Panel.Heading>
           <Panel.Title componentClass="h3">Topology Issues</Panel.Title>
         </Panel.Heading>

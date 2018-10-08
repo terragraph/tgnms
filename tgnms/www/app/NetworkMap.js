@@ -1349,6 +1349,7 @@ export default class NetworkMap extends React.Component {
       <Control position="topright">
         <img
           src="/static/images/layers.png"
+          style={{cursor: 'pointer'}}
           onClick={() => {
             this.disableMapScrolling();
             this.setState({detailsExpanded: true});
@@ -1445,7 +1446,10 @@ export default class NetworkMap extends React.Component {
     const tablesControl = (
       <Control position="bottomright">
         <img
-          style={{backgroundColor: 'rgba(245, 245, 245, 0.8)'}}
+          style={{
+            backgroundColor: 'rgba(245, 245, 245, 0.8)',
+            cursor: 'pointer',
+          }}
           src={
             this.state.tablesExpanded
               ? '/static/images/table.png'

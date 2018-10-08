@@ -9,10 +9,15 @@
  * Shared methods
  */
 
-import {PolarityType} from '../../thrift/gen-nodejs/Topology_types';
+import {
+  LinkType,
+  PolarityType,
+  NodeStatusType,
+} from '../../thrift/gen-nodejs/Topology_types';
 import LeafletGeom from 'leaflet-geometryutil';
 import {LatLng} from 'leaflet';
 import invert from 'lodash-es/invert';
+import React from 'react';
 
 export function availabilityColor(alive_perc) {
   if (alive_perc >= 99.99) {
@@ -164,4 +169,59 @@ export function unixTimeToDate(unixTimeMs) {
   const event = new Date(unixTimeMs);
   const str = event.toLocaleDateString('en-GB', options);
   return str;
+}
+
+/**
+ * Returns high-level topology status as <tr> rows.
+ */
+export function getTopologyStatusRows(topology) {
+  const linksOnline = topology.links.filter(
+    link => link.link_type == LinkType.WIRELESS && link.is_alive,
+  ).length;
+  const linksWireless = topology.links.filter(
+    link => link.link_type == LinkType.WIRELESS,
+  ).length;
+  const sectorsOnline = topology.nodes.filter(
+    node =>
+      node.status === NodeStatusType.ONLINE ||
+      node.status === NodeStatusType.ONLINE_INITIATOR,
+  ).length;
+  let totalRuckusAps = 0;
+  let totalRuckusClients = 0;
+  topology.sites.forEach(site => {
+    if (site.hasOwnProperty('ruckus')) {
+      totalRuckusAps++;
+      totalRuckusClients += site.ruckus.clientCount;
+    }
+  });
+
+  const rows = [
+    <tr key="sectors_online">
+      <td>Sectors Online</td>
+      <td>
+        {sectorsOnline} / {topology.nodes.length}
+      </td>
+    </tr>,
+    <tr key="rf_links_online">
+      <td>RF Links Online</td>
+      <td>
+        {linksOnline} / {linksWireless}
+      </td>
+    </tr>,
+    <tr key="total_sites">
+      <td>Total Sites</td>
+      <td>{topology.sites.length}</td>
+    </tr>,
+  ];
+  if (totalRuckusAps > 0) {
+    rows.push(
+      <tr key="ruckus_aps">
+        <td>Ruckus APs</td>
+        <td>
+          {totalRuckusAps} APs, {totalRuckusClients} clients
+        </td>
+      </tr>,
+    );
+  }
+  return rows;
 }

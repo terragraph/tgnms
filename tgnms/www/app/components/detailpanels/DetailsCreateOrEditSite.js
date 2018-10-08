@@ -63,7 +63,6 @@ export default class DetailsCreateOrEditSite extends React.Component {
 
     return (
       <Panel
-        bsStyle="primary"
         id="CreateEditSiteModal"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}>

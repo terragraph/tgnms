@@ -547,7 +547,6 @@ export default class DetailsNode extends React.Component {
 
     return (
       <Panel
-        bsStyle="primary"
         id="myModal"
         onMouseEnter={this.props.onEnter}
         onMouseLeave={this.props.onLeave}>

@@ -346,11 +346,7 @@ export default class DetailsSite extends React.Component {
       );
 
     return (
-      <Panel
-        bsStyle="primary"
-        id="myModal"
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}>
+      <Panel id="myModal" onMouseEnter={onEnter} onMouseLeave={onLeave}>
         <Panel.Heading>
           <span className="details-close" onClick={onClose}>
             &times;
