@@ -39,8 +39,8 @@ var GenericDatasource = exports.GenericDatasource = function () {
     this.templateSrv = templateSrv;
     this.withCredentials = instanceSettings.withCredentials;
     this.headers = { 'Content-Type': 'application/json' };
-    this.scale = 1;
-    this.keyname_scale_map = new Map();
+    this.keyname_options_map = new Map();
+    this.editor_options_fallback_map = new Map().set('scale', 1).set('diff', false);
     if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
       this.headers['Authorization'] = instanceSettings.basicAuth;
     }
@@ -110,18 +110,17 @@ var GenericDatasource = exports.GenericDatasource = function () {
         return target.target !== 'enter raw query' && target.rawQuery || !target.rawQuery;
       });
 
-      if (!isNaN(Number(options.targets[0].scale))) {
-        this.scale = options.targets[0].scale;
-      } else {
-        this.scale = 1;
-      }
+      // set defaults
+      this.editor_options_fallback_map.set('scale', options.targets[0].scale).set('diff', options.targets[0].diff);
+
+      this.keyname_options_map = new Map(); // clear in case of query deletion
       for (var i = 0; i < options.targets.length; i++) {
         var new_scale = Number(options.targets[i].scale);
         if (isNaN(new_scale)) {
           new_scale = 1;
         }
-        this.keyname_scale_map.set(options.targets[i].keyname, new_scale);
-      };
+        this.keyname_options_map.set(options.targets[i].keyname, { "scale": new_scale, "diff": options.targets[i].diff });
+      }
 
       var timeFilter = this.getTimeFilter(options);
 
@@ -247,14 +246,31 @@ var GenericDatasource = exports.GenericDatasource = function () {
       for (var i = 1; i < result.data.columns.length; i++) {
         data.push(new Object());
         var keyname = this.get_keyname_from_target(result.data.columns[i]);
+        var editor_options = this.keyname_options_map.get(keyname);
+        var scale = editor_options ? editor_options.scale : this.editor_options_fallback_map.get("scale");
+        var diff = editor_options ? editor_options.diff : this.editor_options_fallback_map.get("diff");
         data[i - 1].target = result.data.columns[i];
-        var scale = this.keyname_scale_map.get(keyname) ? Number(this.keyname_scale_map.get(keyname)) : this.scale;
         data[i - 1].datapoints = new Array();
-        for (var j = 0; j < result.data.points.length; j++) {
-          var tmp = new Array();
-          tmp.push(result.data.points[j][i] * scale); // value
-          tmp.push(result.data.points[j][0]); // unixTime
-          data[i - 1].datapoints.push(tmp);
+        if (diff) {
+          for (var j = 1; j < result.data.points.length; j++) {
+            var tmp = new Array();
+            var diff_value = void 0;
+            if (result.data.points[j][i] === null || result.data.points[j - 1][i] === null) {
+              diff_value = null;
+            } else {
+              diff_value = result.data.points[j][i] - result.data.points[j - 1][i];
+            }
+            tmp.push(diff_value * scale); // diff_value
+            tmp.push(result.data.points[j][0]); // unixTime
+            data[i - 1].datapoints.push(tmp);
+          }
+        } else {
+          for (var _j = 0; _j < result.data.points.length; _j++) {
+            var _tmp = new Array();
+            _tmp.push(result.data.points[_j][i] * scale); // value
+            _tmp.push(result.data.points[_j][0]); // unixTime
+            data[i - 1].datapoints.push(_tmp);
+          }
         }
       }
       delete result.data;
@@ -264,7 +280,7 @@ var GenericDatasource = exports.GenericDatasource = function () {
   }, {
     key: "get_keyname_from_target",
     value: function get_keyname_from_target(target) {
-      var keys = this.keyname_scale_map.keys();
+      var keys = this.keyname_options_map.keys();
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;

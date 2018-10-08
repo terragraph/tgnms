@@ -52,6 +52,13 @@
 	  <input type="text" class="gf-form-input" ng-model="ctrl.target.scale" placeholder="Scale" ng-change="ctrl.onScaleChange()"></input>
         </div>
       </div>
+
+      <div class="gf-form">
+        <label class="gf-form-label query-keyword width-10">Diff</label>
+        <div class="gf-form max-width-32">
+          <input type="checkbox" class="gf-form-input" ng-model="ctrl.target.diff" ng-change="ctrl.onChangeInternal()"></input>
+        </div>
+      </div>
     </div>
 
   </div>

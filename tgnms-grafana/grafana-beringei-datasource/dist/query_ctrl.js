@@ -73,6 +73,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
           _this.target.beringeisource = _this.target.beringeisource || "30";
           _this.target.type = _this.target.type || 'timeserie';
           _this.target.scale = _this.target.scale || 1.0;
+          _this.target.diff = _this.target.diff || false;
           return _this;
         }
 

@@ -13,6 +13,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     this.target.beringeisource = this.target.beringeisource || "30";
     this.target.type = this.target.type || 'timeserie';
     this.target.scale = this.target.scale || 1.0;
+    this.target.diff = this.target.diff || false;
   }
 
   getKeys(query) {

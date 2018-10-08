@@ -17,8 +17,8 @@ export class GenericDatasource {
     this.templateSrv = templateSrv;
     this.withCredentials = instanceSettings.withCredentials;
     this.headers = {'Content-Type': 'application/json'};
-    this.scale = 1;
-    this.keyname_scale_map = new Map();
+    this.keyname_options_map = new Map();
+    this.editor_options_fallback_map = new Map().set('scale', 1).set('diff', false);
     if (typeof instanceSettings.basicAuth === 'string' &&
       instanceSettings.basicAuth.length > 0) {
       this.headers['Authorization'] = instanceSettings.basicAuth;
@@ -88,19 +88,22 @@ export class GenericDatasource {
               || !target.rawQuery;
     });
 
-    if (!isNaN(Number(options.targets[0].scale))) {
-      this.scale = options.targets[0].scale;
-    }
-    else {
-      this.scale = 1;
-    }
+    // set defaults
+    this.editor_options_fallback_map.set('scale', options.targets[0].scale)
+      .set('diff', options.targets[0].diff);
+
+    this.keyname_options_map = new Map(); // clear in case of query deletion
     for (let i = 0; i < options.targets.length; i++) {
       let new_scale = Number(options.targets[i].scale);
       if (isNaN(new_scale)) {
         new_scale = 1;
       }
-      this.keyname_scale_map.set(options.targets[i].keyname, new_scale);
-    };
+      this.keyname_options_map.set(
+        options.targets[i].keyname,
+        {"scale": new_scale, "diff": options.targets[i].diff}
+      );
+    }
+
 
 
     let timeFilter = this.getTimeFilter(options);
@@ -231,14 +234,36 @@ export class GenericDatasource {
     for (let i = 1; i < result.data.columns.length; i++) {
       data.push(new Object());
       const keyname = this.get_keyname_from_target(result.data.columns[i]);
+      const editor_options = this.keyname_options_map.get(keyname);
+      const scale = editor_options ? editor_options.scale :
+                                     this.editor_options_fallback_map.get("scale");
+      const diff = editor_options ? editor_options.diff :
+                                    this.editor_options_fallback_map.get("diff");
       data[i - 1].target = result.data.columns[i];
-      const scale = this.keyname_scale_map.get(keyname) ? Number(this.keyname_scale_map.get(keyname)) : this.scale;
       data[i - 1].datapoints = new Array();
-      for (let j = 0; j < result.data.points.length; j++) {
-        let tmp = new Array();
-        tmp.push(result.data.points[j][i] * scale); // value
-        tmp.push(result.data.points[j][0]); // unixTime
-        data[i - 1].datapoints.push(tmp);
+      if (diff) {
+        for (let j = 1; j < result.data.points.length; j++) {
+          let tmp = new Array();
+          let diff_value;
+          if (result.data.points[j][i] === null ||
+              result.data.points[j-1][i] === null) {
+            diff_value = null;
+          }
+          else {
+            diff_value = result.data.points[j][i] - result.data.points[j-1][i];
+          }
+          tmp.push(diff_value * scale); // diff_value
+          tmp.push(result.data.points[j][0]); // unixTime
+          data[i - 1].datapoints.push(tmp);
+        }
+      }
+      else {
+        for (let j = 0; j < result.data.points.length; j++) {
+          let tmp = new Array();
+          tmp.push(result.data.points[j][i] * scale); // value
+          tmp.push(result.data.points[j][0]); // unixTime
+          data[i - 1].datapoints.push(tmp);
+        }
       }
     }
     delete result.data;
@@ -248,7 +273,7 @@ export class GenericDatasource {
 
 
   get_keyname_from_target(target) {
-    const keys = this.keyname_scale_map.keys();
+    const keys = this.keyname_options_map.keys();
     for (var key of keys) {
       if (target.includes(key)) {
         return key;
