@@ -12,6 +12,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     this.target.restrictor = this.target.restrictor || 'select restrictor';
     this.target.beringeisource = this.target.beringeisource || "30";
     this.target.type = this.target.type || 'timeserie';
+    this.target.scale = this.target.scale || 1.0;
   }
 
   getKeys(query) {
@@ -38,6 +39,13 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
 
   onChangeQueryStats() {
     this.datasource.buildQuery(query, this.target);
+  }
+
+  onScaleChange() {
+    // Refresh panel if scale has changed to valid number
+    if (!isNaN(this.target.scale)) {
+      this.onChangeInternal();
+    }
   }
 }
 

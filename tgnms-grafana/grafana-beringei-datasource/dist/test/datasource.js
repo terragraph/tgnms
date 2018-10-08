@@ -39,6 +39,7 @@ var GenericDatasource = exports.GenericDatasource = function () {
     this.templateSrv = templateSrv;
     this.withCredentials = instanceSettings.withCredentials;
     this.headers = { 'Content-Type': 'application/json' };
+    this.scale = 1;
     if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
       this.headers['Authorization'] = instanceSettings.basicAuth;
     }
@@ -107,6 +108,12 @@ var GenericDatasource = exports.GenericDatasource = function () {
       options.targets = _lodash2.default.filter(options.targets, function (target) {
         return target.target !== 'enter raw query' && target.rawQuery || !target.rawQuery;
       });
+
+      if (!isNaN(Number(options.targets[0].scale))) {
+        this.scale = options.targets[0].scale;
+      } else {
+        this.scale = 1;
+      }
 
       var timeFilter = this.getTimeFilter(options);
 
@@ -209,7 +216,7 @@ var GenericDatasource = exports.GenericDatasource = function () {
         url: this.url + '/stats_query',
         data: query.targets[0].target,
         method: 'POST'
-      }).then(this.mapToGrafanaFormat);
+      }).then(this.mapToGrafanaFormat.bind(this));
     }
   }, {
     key: "mapToGrafanaFormat",
@@ -235,7 +242,7 @@ var GenericDatasource = exports.GenericDatasource = function () {
         data[i - 1].datapoints = new Array();
         for (var j = 0; j < result.data.points.length; j++) {
           var tmp = new Array();
-          tmp.push(result.data.points[j][i]); // value
+          tmp.push(result.data.points[j][i] * this.scale); // value
           tmp.push(result.data.points[j][0]); // unixTime
           data[i - 1].datapoints.push(tmp);
         }

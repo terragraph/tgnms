@@ -42,10 +42,14 @@
       </gf-form-dropdown>
       </div>
       </div>
+      
+      <div class="gf-form">
+        <label class="gf-form-label query-keyword width-10">Scale</label>
+        <div class="gf-form max-width-32">
+	  <input type="text" class="gf-form-input" ng-model="ctrl.target.scale" placeholder="Scale" ng-change="ctrl.onScaleChange()"></input>
+        </div>
+      </div>
+    </div>
 
-    </div>
-    <div class="gf-form gf-form--grow">
-      <div class="gf-form-label gf-form-label--grow"></div>
-    </div>
   </div>
 </query-editor-row>

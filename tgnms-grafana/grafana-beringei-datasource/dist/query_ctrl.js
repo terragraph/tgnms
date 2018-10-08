@@ -72,6 +72,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
           _this.target.restrictor = _this.target.restrictor || 'select restrictor';
           _this.target.beringeisource = _this.target.beringeisource || "30";
           _this.target.type = _this.target.type || 'timeserie';
+          _this.target.scale = _this.target.scale || 1.0;
           return _this;
         }
 
@@ -105,6 +106,14 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
           key: 'onChangeQueryStats',
           value: function onChangeQueryStats() {
             this.datasource.buildQuery(query, this.target);
+          }
+        }, {
+          key: 'onScaleChange',
+          value: function onScaleChange() {
+            // Refresh panel if scale has changed to valid number
+            if (!isNaN(this.target.scale)) {
+              this.onChangeInternal();
+            }
           }
         }]);
 

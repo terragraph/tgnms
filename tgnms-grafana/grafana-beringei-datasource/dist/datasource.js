@@ -63,6 +63,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
           this.templateSrv = templateSrv;
           this.withCredentials = instanceSettings.withCredentials;
           this.headers = { 'Content-Type': 'application/json' };
+          this.scale = 1;
           if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
             this.headers['Authorization'] = instanceSettings.basicAuth;
           }
@@ -131,6 +132,12 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
             options.targets = _.filter(options.targets, function (target) {
               return target.target !== 'enter raw query' && target.rawQuery || !target.rawQuery;
             });
+
+            if (!isNaN(Number(options.targets[0].scale))) {
+              this.scale = options.targets[0].scale;
+            } else {
+              this.scale = 1;
+            }
 
             var timeFilter = this.getTimeFilter(options);
 
@@ -233,7 +240,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               url: this.url + '/stats_query',
               data: query.targets[0].target,
               method: 'POST'
-            }).then(this.mapToGrafanaFormat);
+            }).then(this.mapToGrafanaFormat.bind(this));
           }
         }, {
           key: "mapToGrafanaFormat",
@@ -259,7 +266,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               data[i - 1].datapoints = new Array();
               for (var j = 0; j < result.data.points.length; j++) {
                 var tmp = new Array();
-                tmp.push(result.data.points[j][i]); // value
+                tmp.push(result.data.points[j][i] * this.scale); // value
                 tmp.push(result.data.points[j][0]); // unixTime
                 data[i - 1].datapoints.push(tmp);
               }

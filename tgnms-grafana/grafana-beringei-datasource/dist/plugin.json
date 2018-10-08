@@ -13,23 +13,22 @@
   "info": {
     "description": "beringei datasource",
     "author": {
-      "name": "Grafana Labs",
-      "url": "https://grafana.com"
+      "name": "Facebook Terragraph",
+      "url": "https://terragraph.com"
     },
     "logos": {
-      "small": "img/simpleJson_logo.svg",
-      "large": "img/simpleJson_logo.svg"
+      "small": "img/beringei_logo_clear.svg",
+      "large": "img/beringei_logo_clear.svg"
     },
     "links": [
-      {"name": "GitHub", "url": "https://github.com/grafana/simple-json-datasource"},
-      {"name": "MIT License", "url": "https://github.com/grafana/simple-json-datasource/blob/master/LICENSE"}
+      {"name": "GitHub", "url": "https://github.com/facebookexternal/terragraph-nms"}
     ],
-    "version": "1.4.0",
-    "updated": "2018-06-20"
+    "version": "0.0.1",
+    "updated": "2018-10-02"
   },
 
   "dependencies": {
-    "grafanaVersion": "3.x.x",
+    "grafanaVersion": "5.x.x",
     "plugins": [ ]
   }
 }
