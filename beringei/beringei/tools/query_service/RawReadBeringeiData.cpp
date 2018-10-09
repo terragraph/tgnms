@@ -280,7 +280,7 @@ int64_t RawReadBeringeiData::findBeringeiKeyId(query::RawQueryKey rawQueryKey) {
     stringsToSearch.push_back(
         "link." + rawQueryKey.peerMac + "." + rawQueryKey.metricName);
     stringsToSearch.push_back(
-        "tgd." + rawQueryKey.peerMac + "." + rawQueryKey.metricName);
+        rawQueryKey.peerMac + "." + rawQueryKey.metricName);
     stringsToSearch.push_back(
         "tgf." + rawQueryKey.peerMac + "." + rawQueryKey.metricName);
   } else {
