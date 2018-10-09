@@ -8,9 +8,18 @@
       "latitude": 47.158927,
       "longitude": 19.6166915,
       "zoom_level": 15,
-      "controller_ip": "172.17.0.1",
-      "aggregator_ip": "172.17.0.1",
+      "controller_ip": "2001:4c48:18::3",
+      "aggregator_ip": "2001:4c48:18::3",
       "controller_ip_backup": "2001:4c48:18:2::3"
+    },
+    {
+      "topology_file": "marko_network.json",
+      "latitude": 47.123908,
+      "longitude": 17.813706,
+      "zoom_level": 15,
+      "controller_ip": "2001:4c48:18:4::3",
+      "aggregator_ip": "2001:4c48:18:4::3",
+      "controller_ip_backup": "2001:4c48:18:5::3"
     }
   ]
 }
