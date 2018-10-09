@@ -101,7 +101,7 @@ class BeringeiDbAccess(object):
 
         # Post the http requests and get response
         try:
-            response = requests.post(url_to_post, data=request_body_bytes, timeout=5)
+            response = requests.post(url_to_post, data=request_body_bytes, timeout=10)
         except OSError:
             raise ValueError("Cannot send to the server")
 
