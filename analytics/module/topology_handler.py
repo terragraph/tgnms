@@ -9,6 +9,7 @@ import requests
 import json
 import sys
 import logging
+from typing import Dict, Optional
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.mysql_db_access import MySqlDbAccess
@@ -17,6 +18,35 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
 from facebook.gorilla.Topology.ttypes import LinkType
+
+
+def fetch_network_info(topology_id: Optional[int] = None) -> Dict[int, Dict]:
+    """
+    returns all networks or just one if topology_id input is set
+    networks.keys() are same as topology id
+    networks[id].keys() includes "e2e_ip", "e2e_port", "topology", etc.
+    networks[id]["topology"].keys() includes "nodes", "links", "sites", etc.
+    """
+    networks = {}
+    try:
+        api_services = MySqlDbAccess().read_api_service_setting()
+        for _name, cfg in api_services.items():
+            if topology_id and cfg["id"] != topology_id:
+                continue
+            target_domain = "{}:{}".format(cfg["api_ip"], cfg["api_port"])
+            os.environ["NO_PROXY"] = target_domain
+            url = "http://[{}]:{}/".format(cfg["api_ip"], cfg["api_port"])
+            url += "api/getTopology"
+            response = requests.post(url, data="{}", timeout=1)
+            topology_string = response.content.decode("utf-8")
+            topology_reply = json.loads(topology_string)
+            cfg["topology"] = topology_reply
+            networks[cfg["id"]] = cfg
+    except Exception as e:
+        logging.error("Exception happened while fetching network info")
+        logging.warning("Exception: {}".format(e))
+
+    return networks
 
 
 class TopologyHelper(object):
