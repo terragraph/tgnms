@@ -57,3 +57,40 @@ def get_link_availability_and_flaps_1d(
     # correction for missing datapoints at the start
     la_bwgd += min(t[0] * slope, la[0])
     return la_bwgd / (slope * (num_points - 1)), link_flaps.sum()
+
+
+def power_dbm_nd(power_idx: np.ndarray, enable_second_array: bool) -> np.ndarray:
+    """
+    numpy version of function in unit_converter.py
+    """
+    max_power_dbm = 43.5  # dBm
+    max_power_index = 28
+    power_cut_off = 21
+
+    high_idx = power_idx >= power_cut_off
+    low_idx = np.logical_not(high_idx)
+    power_in_dbm = np.array(power_idx, dtype=float)
+    power_in_dbm[high_idx] = max_power_dbm - 0.5 * (
+        max_power_index - power_idx[high_idx]
+    )
+    power_in_dbm[low_idx] = max_power_dbm - 0.5 * (max_power_index - power_cut_off)
+    power_in_dbm[low_idx] -= power_cut_off - power_idx[low_idx]
+
+    # power benefit from using the second array
+    if enable_second_array:
+        power_in_dbm += 4.5
+
+    return power_in_dbm
+
+
+def pathloss_asymmetry_nd(
+    tx_power_index: np.ndarray, srssi: np.ndarray, dir_axis: int
+) -> Tuple[np.ndarray, np.ndarray]:
+    tx_power = power_dbm_nd(tx_power_index, False)
+    pl_az = tx_power.take(0, axis=dir_axis) - srssi.take(1, axis=dir_axis)
+    pl_za = tx_power.take(1, axis=dir_axis) - srssi.take(0, axis=dir_axis)
+    pathloss_asymmetry = np.absolute(pl_az - pl_za)
+    return (
+        np.stack([pl_az, pl_za], axis=dir_axis),
+        np.stack([pathloss_asymmetry] * 2, axis=dir_axis),
+    )

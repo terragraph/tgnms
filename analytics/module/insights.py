@@ -2,6 +2,7 @@
 
 import time
 import numpy as np
+
 # import logging
 import module.numpy_operations as npo
 from module.numpy_time_series import StatType, NumpyTimeSeries
@@ -49,3 +50,17 @@ def generate_insights():
             )
         )
     nts.write_stats("mcs.p90", mcs_p90, StatType.LINK, 900)
+
+    # path-loss asymmetry
+    tx_power_idx = nts.read_stats("staPkt.txPowerIndex", StatType.LINK)
+    srssi = nts.read_stats("phystatus.srssi", StatType.LINK)
+    pathloss = []
+    pathloss_asymmetry = []
+    for ti in range(k["num_topologies"]):
+        pl, asm = npo.pathloss_asymmetry_nd(tx_power_idx[ti], srssi[ti], nts.DIR_AXIS)
+        pl = np.nanmean(pl, axis=nts.TIME_AXIS, keepdims=True)
+        asm = np.nanmean(asm, axis=nts.TIME_AXIS, keepdims=True)
+        pathloss.append(pl)
+        pathloss_asymmetry.append(asm)
+    nts.write_stats("pathloss", pathloss, StatType.LINK, 900)
+    nts.write_stats("pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, 900)

@@ -51,6 +51,49 @@ class NumpyOperationsTest(unittest.TestCase):
         self.assertAlmostEqual(availability, 1, places=3)
         self.assertEqual(flaps, 1)
 
+    def test_pathloss_asymmetry_nd(self):
+        tx_power_index = np.array([28, 28])  # 43.5dBm
+        srssi = np.array([43.5, 43.5])
+        exp_pl = np.array([0, 0])
+        exp_asm = np.array([0, 0])
+        obs_pl, obs_asm = npo.pathloss_asymmetry_nd(tx_power_index, srssi, 0)
+        np.testing.assert_array_equal(obs_pl, exp_pl)
+        np.testing.assert_array_equal(obs_asm, exp_asm)
+
+        tx_power_index = np.array([28, 28])  # 43.5dBm
+        srssi = np.array([43.5, np.nan])
+        exp_pl = np.array([np.nan, 0])
+        exp_asm = np.array([np.nan, np.nan])
+        obs_pl, obs_asm = npo.pathloss_asymmetry_nd(tx_power_index, srssi, 0)
+        np.testing.assert_array_equal(obs_pl, exp_pl)
+        np.testing.assert_array_equal(obs_asm, exp_asm)
+
+        tx_power_index = np.array([28, 27])  # 43.5dBm, 43dBm
+        srssi = np.array([43.5, 43.5])
+        exp_pl = np.array([0, -0.5])
+        exp_asm = np.array([0.5, 0.5])
+        obs_pl, obs_asm = npo.pathloss_asymmetry_nd(tx_power_index, srssi, 0)
+        np.testing.assert_array_equal(obs_pl, exp_pl)
+        np.testing.assert_array_equal(obs_asm, exp_asm)
+
+        tx_power_index = np.array([27, 20])  # 43dBm, 39dBm
+        srssi = np.array([43.5, 42])
+        exp_pl = np.array([1, -4.5])
+        exp_asm = np.array([5.5, 5.5])
+        obs_pl, obs_asm = npo.pathloss_asymmetry_nd(tx_power_index, srssi, 0)
+        np.testing.assert_array_equal(obs_pl, exp_pl)
+        np.testing.assert_array_equal(obs_asm, exp_asm)
+
+        # use multi dimension
+        # use 2 links x 2 dirs x 2 times - use above 4 inputs/outputs
+        tx_power_index = np.array([[[28, 28], [28, 28]], [[28, 27], [27, 20]]])
+        srssi = np.array([[[43.5, 43.5], [43.5, np.nan]], [[43.5, 43.5], [43.5, 42]]])
+        exp_pl = np.array([[[0, np.nan], [0, 0]], [[0, 1], [-0.5, -4.5]]])
+        exp_asm = np.array([[[0, np.nan], [0, np.nan]], [[0.5, 5.5], [0.5, 5.5]]])
+        obs_pl, obs_asm = npo.pathloss_asymmetry_nd(tx_power_index, srssi, 1)
+        np.testing.assert_array_equal(obs_pl, exp_pl)
+        np.testing.assert_array_equal(obs_asm, exp_asm)
+
 
 if __name__ == "__main__":
     logging.basicConfig(

@@ -12,7 +12,7 @@ import numpy as np
 import os
 from math import ceil, floor
 import sys
-from typing import List
+from typing import List, Dict, Any
 from module.topology_handler import fetch_network_info
 import module.beringei_time_series as bts
 import module.numpy_operations as npo
@@ -204,7 +204,7 @@ class NumpyTimeSeries(object):
         if len(tsl):
             bts.write_time_series_list(tsl, [write_interval])
 
-    def get_consts(self):
+    def get_consts(self) -> Dict[Any, Any]:
         consts = {}
         consts["num_topologies"] = len(self._tmap)
         consts["num_times"] = self._num_times
