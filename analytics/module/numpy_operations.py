@@ -6,7 +6,7 @@ utilities for numpy operations
 
 import logging
 import numpy as np
-from typing import Tuple
+from typing import List, Tuple
 
 
 def is_valid(arr: np.ndarray) -> np.ndarray:
@@ -21,6 +21,20 @@ def nan_arr(shape: Tuple) -> np.ndarray:
 
 def diff_1d(array: np.ndarray) -> np.ndarray:
     return np.convolve(array, [1, -1], "valid")
+
+
+def list_or(np_list: List[np.ndarray]) -> np.ndarray:
+    result = np_list[0]
+    for arr in np_list:
+        result = np.logical_or(result, arr)
+    return result
+
+
+def list_and(np_list: List[np.ndarray]) -> np.ndarray:
+    result = np_list[0]
+    for arr in np_list:
+        result = np.logical_and(result, arr)
+    return result
 
 
 def get_link_availability_and_flaps_1d(

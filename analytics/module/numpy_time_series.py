@@ -10,9 +10,9 @@ StatType.NETWORK:         1 x        1 x num_times
 from enum import Enum
 import numpy as np
 import os
-from math import ceil, floor
+from math import ceil, floor, fabs, pi, sqrt, cos
 import sys
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Optional
 from module.topology_handler import fetch_network_info
 import module.beringei_time_series as bts
 import module.numpy_operations as npo
@@ -39,7 +39,13 @@ class NumpyTimeSeries(object):
     DIR_AXIS = 1
     TIME_AXIS = 2
 
-    def __init__(self, start_time: int, end_time: int, read_interval: int) -> None:
+    def __init__(
+        self,
+        start_time: int,
+        end_time: int,
+        read_interval: int,
+        network_info: Optional[Dict] = None,
+    ) -> None:
         self._read_interval = read_interval
         self._start_time = ceil(start_time / read_interval) * read_interval
         self._end_time = floor(end_time / read_interval) * read_interval
@@ -51,8 +57,9 @@ class NumpyTimeSeries(object):
         }
         self._num_times = len(self._times_to_idx)
         # process topologies
-        ni = fetch_network_info()
-        self._topologies = [n["topology"] for _, n in ni.items()]
+        if not network_info:
+            network_info = fetch_network_info()
+        self._topologies = [n["topology"] for _, n in network_info.items()]
         self._tmap = []
         for t in self._topologies:
             # for node stats
@@ -145,7 +152,7 @@ class NumpyTimeSeries(object):
         np_time_series_list: List[np.ndarray],
         stat_type: StatType,
         write_interval: int,
-    ):
+    ) -> List[bts.TimeSeries]:
         tsl = []
         end_time = floor(self._end_time / write_interval) * write_interval
         for topo_idx, topo in enumerate(self._tmap):
@@ -204,6 +211,8 @@ class NumpyTimeSeries(object):
         if len(tsl):
             bts.write_time_series_list(tsl, [write_interval])
 
+        return tsl
+
     def get_consts(self) -> Dict[Any, Any]:
         consts = {}
         consts["num_topologies"] = len(self._tmap)
@@ -213,3 +222,46 @@ class NumpyTimeSeries(object):
             consts[it]["num_nodes"] = self._tmap[it]["num_nodes"]
             consts[it]["num_links"] = self._tmap[it]["num_links"]
         return consts
+
+    def approx_distance(self, l1: Dict[str, float], l2: Dict[str, float]) -> float:
+        # copied from approxDistance() in
+        # meta-terragraph/recipes-facebook/e2e/files/src/controller/topology/TopologyWrapper.cpp
+        # https://en.wikipedia.org/wiki/Earth
+        # Circumference 40,075.017 km (24,901.461 mi) (equatorial)
+        earthCircumference = 40075017
+        deg = 360
+        rad = 2 * pi
+        lengthPerDeg = earthCircumference / deg
+        avgLatitudeRadian = ((l1["latitude"] + l2["latitude"]) / 2) * (rad / deg)
+        # calculate distance across latitude change
+        dLat = fabs(l1["latitude"] - l2["latitude"]) * lengthPerDeg
+        # calculate distance across longitude change
+        # take care of links across 180 meridian and effect of different latitudes
+        dLong = fabs(l1["longitude"] - l2["longitude"])
+        if (dLong > (deg / 2)):
+            dLong = deg - dLong
+        dLong *= lengthPerDeg * cos(avgLatitudeRadian)
+        # calculate distance across altitude change
+        dAlt = fabs(l1["altitude"] - l2["altitude"])
+        # assume orthogonality over small distance
+        return sqrt((dLat * dLat) + (dLong * dLong) + (dAlt * dAlt))
+
+    def get_link_length(self) -> np.ndarray:
+        np_time_series_list = []
+        for t in self._topologies:
+            lengths = []
+            node_name_to_site = {n["name"]: n["site_name"] for n in t["nodes"]}
+            site_name_to_coordinate = {
+                s["name"]: s["location"] for s in t["sites"]
+            }
+            for l in t["links"]:
+                if l["link_type"] == LinkType.WIRELESS:
+                    al = site_name_to_coordinate[node_name_to_site[l["a_node_name"]]]
+                    zl = site_name_to_coordinate[node_name_to_site[l["z_node_name"]]]
+                    lengths.append(self.approx_distance(al, zl))
+            lengths = np.array(lengths)
+            lengths = np.stack([lengths] * self.NUM_DIR, axis=self.DIR_AXIS)
+            # lengths = np.stack([lengths] * self._num_times, axis=self.TIME_AXIS)
+            lengths = np.expand_dims(lengths, axis=self.TIME_AXIS)
+            np_time_series_list.append(lengths)
+        return np_time_series_list

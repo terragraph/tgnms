@@ -3,9 +3,9 @@
 import time
 import numpy as np
 
-# import logging
 import module.numpy_operations as npo
 from module.numpy_time_series import StatType, NumpyTimeSeries
+from typing import Dict, List
 
 
 def generate_insights():
@@ -64,3 +64,66 @@ def generate_insights():
         pathloss_asymmetry.append(asm)
     nts.write_stats("pathloss", pathloss, StatType.LINK, 900)
     nts.write_stats("pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, 900)
+
+
+def link_health(start_time: int, end_time: int, network_info: Dict) -> List:
+
+    nts = NumpyTimeSeries(start_time, end_time, 1, network_info=network_info)
+    k = nts.get_consts()
+    link_length = nts.get_link_length()[0]
+    mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)[0]
+    link_available = nts.read_stats("staPkt.linkAvailable", StatType.LINK)[0]
+    mcs = nts.read_stats("staPkt.mcs", StatType.LINK)[0]
+    # tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)[0]
+    # tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)[0]
+    link_length = nts.get_link_length()[0]
+    num_links = k[0]["num_links"]
+    num_dir = nts.NUM_DIR
+
+    availability = npo.nan_arr((num_links, num_dir, 1))
+    for li in range(num_links):
+        for di in range(num_dir):
+            availability[li, di, 0], _ = npo.get_link_availability_and_flaps_1d(
+                mgmt_link_up[li, di, :], link_available[li, di, :], 1
+            )
+    max_a = np.nanmax(availability, axis=nts.DIR_AXIS)
+    availability = np.stack([max_a] * 2, axis=nts.DIR_AXIS)
+
+    mcs_p90 = np.nanpercentile(
+        mcs, 10, axis=nts.TIME_AXIS, interpolation="lower", keepdims=True
+    )
+
+    # TODO: Calculate Tx PER
+
+    excellent = np.logical_and(
+        availability > 0.99,
+        np.logical_or(
+            np.logical_and(link_length > 100, mcs_p90 >= 9),
+            np.logical_and(link_length <= 100, mcs_p90 == 12),
+        ),
+    )
+    healthy = np.logical_and(
+        availability > 0.97,
+        np.logical_or(
+            np.logical_and(link_length > 100, mcs_p90 >= 9),
+            np.logical_and(link_length <= 100, mcs_p90 >= 11),
+        ),
+    )
+    marginal = np.logical_and(
+        availability > 0.90,
+        np.logical_or(
+            np.logical_and(link_length > 100, mcs_p90 >= 7),
+            np.logical_and(link_length <= 100, mcs_p90 >= 9),
+        ),
+    )
+    valid = np.logical_and(npo.is_valid(availability), npo.is_valid(mcs_p90))
+    warning = np.logical_and(
+        valid, np.logical_not(npo.list_or([excellent, healthy, marginal]))
+    )
+    link_health = npo.nan_arr((num_links, num_dir, 1))
+    link_health[np.logical_not(valid)] = 4
+    link_health[warning] = 3
+    link_health[marginal] = 2
+    link_health[healthy] = 1
+    link_health[excellent] = 0
+    return nts.write_stats("link_health", [link_health], StatType.LINK, 900)
