@@ -203,3 +203,13 @@ class NumpyTimeSeries(object):
                     tsl.append(ts)
         if len(tsl):
             bts.write_time_series_list(tsl, [write_interval])
+
+    def get_consts(self):
+        consts = {}
+        consts["num_topologies"] = len(self._tmap)
+        consts["num_times"] = self._num_times
+        for it in range(consts["num_topologies"]):
+            consts[it] = {}
+            consts[it]["num_nodes"] = self._tmap[it]["num_nodes"]
+            consts[it]["num_links"] = self._tmap[it]["num_links"]
+        return consts
