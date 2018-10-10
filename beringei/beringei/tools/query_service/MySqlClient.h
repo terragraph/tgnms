@@ -16,8 +16,6 @@
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 
-#include "beringei/if/gen-cpp2/Event_types.h"
-#include "beringei/if/gen-cpp2/Event_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/scans_types_custom_protocol.h"
@@ -106,9 +104,6 @@ class MySqlClient {
       const std::vector<scans::MySqlScanResp>& mySqlScanResponses) noexcept;
   int64_t refreshScanResponse(std::string& network) noexcept;
   int64_t getLastBwgd(const std::string& network) noexcept;
-
-  void addEvents(const query::NodeEvents& nodeEvents, const std::string& topologyName);
-  folly::dynamic getEvents(const query::EventsQueryRequest& request);
 
  private:
   folly::Synchronized<std::vector<std::shared_ptr<query::MySqlNodeData>>>

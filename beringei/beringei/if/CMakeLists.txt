@@ -13,7 +13,6 @@ set(BERINGEI_THRIFT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2 PARENT)
 
 set(
     THRIFT_FILES
-    Event.thrift
     beringei_data.thrift
     beringei_grafana.thrift
     beringei_query.thrift
@@ -72,14 +71,6 @@ set(
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.tcc
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Event_types_custom_protocol.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_constants.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_constants.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_data.cpp
