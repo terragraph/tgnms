@@ -48,6 +48,7 @@ BeringeiReader::getTimeStr(time_t timeSec) {
 }
 
 folly::dynamic BeringeiReader::process() {
+  output_ = folly::dynamic::object;
   auto startTime = getTimeInMs();
   loadKeyMetaData();
   auto keyDataTime = getTimeInMs();
@@ -418,7 +419,6 @@ void BeringeiReader::limitDataPoints() {
 
 // format (POINTS, RAW, ...)
 void BeringeiReader::formatData() {
-  output_ = folly::dynamic::object;
   folly::dynamic dpList = folly::dynamic::array;
   // dpList is an array of (time, v1, v2 .... v(N)) where time is the Unix
   // timestamp in ms and N is the number of expected time series points
