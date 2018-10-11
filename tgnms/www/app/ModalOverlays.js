@@ -77,16 +77,15 @@ export default class ModalOverlays extends React.Component {
           <td />
           <td>
             <font style={{color: linkOverlaySource.colors[index]}}>
-              {linkOverlaySource.prefix + ' ' + value}
+              {linkOverlaySource.hasOwnProperty('prefix')
+                ? linkOverlaySource.prefix + ' ' + value
+                : value}
             </font>
           </td>
         </tr>
       ));
 
-      if (
-        this.state.selectedLinkOverlay !== 'RxGolayIdx' &&
-        this.state.selectedLinkOverlay !== 'TxGolayIdx'
-      ) {
+      if (linkOverlaySource.hasOwnProperty('prefix')) {
         linkOverlayKeyRows.push(
           <tr key="last">
             <td />

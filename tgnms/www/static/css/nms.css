@@ -614,3 +614,25 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   border-color: #999;
   margin: 0 5px;
 }
+
+// commit plan styles
+.commit-plan-container-box {
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+.commit-plan-batch-nav-text {
+  padding: 0px 10px;
+  font-size: 20px;
+}
+.commit-plan-batch-button-container {
+  width: 50px;
+}
+.commit-plan-batch-container-text {
+  text-align: center;
+}
+.commit-plan-batch-text {
+  font-size: 12px;
+  font-style: italic;
+}

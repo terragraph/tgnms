@@ -11,6 +11,7 @@ import {hot} from 'react-hot-loader';
 import React from 'react';
 
 import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
+import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
 import Dispatcher from './NetworkDispatcher.js';
 import DockerHosts from './components/docker/DockerHosts.js';
 import E2EConfigContainer from './components/e2econfig/E2EConfigContainer.js';
@@ -72,7 +73,37 @@ class NetworkUI extends React.Component {
   getNetworkStatusPeriodic = () => {
     if (this.state.networkName !== null) {
       this.getNetworkStatus(this.state.networkName);
+      // load commit plan
+      if (this.state.commitPlan === null) {
+        this.getCommitPlan(this.state.networkName);
+      }
     }
+  };
+
+  getCommitPlan = networkName => {
+    apiServiceRequest(networkName, 'getUpgradeCommitPlan')
+      .then(response => {
+        // validate commit plan
+        if (
+          response.data &&
+          response.data.hasOwnProperty('commitBatches') &&
+          response.data['commitBatches'].length > 0
+        ) {
+          this.setState({
+            commitPlan: response.data,
+          });
+        } else {
+          // unset the old commit plan
+          this.setState({
+            commitPlan: null,
+          });
+        }
+      })
+      .catch(error => {
+        console.error('failed to fetch upgrade commit plan', error);
+        // clear old topology list
+        this.setState({commitPlan: null});
+      });
   };
 
   getNetworkStatus = networkName => {
@@ -121,6 +152,7 @@ class NetworkUI extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology
         this.getNetworkStatus(payload.networkName);
+        this.getCommitPlan(payload.networkName);
         this.setState({
           networkName: payload.networkName,
         });
@@ -377,6 +409,7 @@ class NetworkUI extends React.Component {
             siteOverlay={this.state.selectedSiteOverlay}
             mapDimType={this.state.selectedMapDimType}
             mapTile={this.state.selectedMapTile}
+            commitPlan={this.state.commitPlan}
           />
         );
     }

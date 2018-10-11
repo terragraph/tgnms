@@ -19,10 +19,11 @@ import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssu
 // dispatcher
 import {
   Actions,
-  SiteOverlayKeys,
+  CommitPlanSiteState,
   LinkOverlayKeys,
   MapDimensions,
   MapTiles,
+  SiteOverlayKeys,
 } from './constants/NetworkConstants.js';
 import {
   apiServiceRequest,
@@ -91,7 +92,6 @@ export class CustomMap extends Map {
 export default class NetworkMap extends React.Component {
   static propTypes = {
     commitPlan: PropTypes.shape({
-      canaryLinks: PropTypes.arrayOf(PropTypes.string),
       commitBatches: PropTypes.array,
     }),
     linkOverlay: PropTypes.string.isRequired,
@@ -106,6 +106,7 @@ export default class NetworkMap extends React.Component {
 
   state = {
     analyzerTable: {},
+    commitPlanBatch: 0, // selected batch
     detailsExpanded: true,
     hoveredSite: null,
     linkHealth: {},
@@ -218,6 +219,7 @@ export default class NetworkMap extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology name and wipe the zoom level
         this.setState({
+          commitPlanBatch: 0,
           plannedSite: null,
           recentlyEditedSite: null,
           routingOverlayEnabled: false,
@@ -903,7 +905,13 @@ export default class NetworkMap extends React.Component {
   };
 
   render() {
-    const {selectedSite, siteToEdit, recentlyEditedSite} = this.state;
+    const {commitPlan} = this.props;
+    const {
+      commitPlanBatch,
+      selectedSite,
+      siteToEdit,
+      recentlyEditedSite,
+    } = this.state;
 
     if (this.nodesRef.current) {
       // clear the nodes layer
@@ -968,14 +976,14 @@ export default class NetworkMap extends React.Component {
 
       const totalCount = nodeKeysInSite.length;
       let healthyCount = 0;
-      const inCommitBatch = 0;
+      let nodesInCommitBatch = 0;
       let hasPop = false;
       let bgpDisabled = false;
       let hasMac = false;
       let isCn = false;
       const hasAp = site.hasOwnProperty('ruckus');
       let sitePolarity = null;
-
+      let sitePlan = CommitPlanSiteState.NONE;
       nodeKeysInSite.forEach(nodeIndex => {
         const node = topology.nodes[nodeIndex];
 
@@ -991,6 +999,14 @@ export default class NetworkMap extends React.Component {
         } else if (sitePolarity !== node.polarity) {
           // Site Polarity has been set and doesn't match another node's polarity
           site.polarity = PolarityType.HYBRID_ODD;
+        }
+
+        if (
+          commitPlan != null &&
+          commitPlan.commitBatches.length > commitPlanBatch &&
+          commitPlan.commitBatches[commitPlanBatch].includes(node.name)
+        ) {
+          nodesInCommitBatch++;
         }
 
         if (node.pop_node) {
@@ -1017,6 +1033,12 @@ export default class NetworkMap extends React.Component {
         }
       });
 
+      if (nodesInCommitBatch === totalCount) {
+        sitePlan = CommitPlanSiteState.FULL;
+      } else if (nodesInCommitBatch > 0) {
+        sitePlan = CommitPlanSiteState.PARTIAL;
+      }
+
       let siteColor = SiteOverlayKeys.Health.Unhealthy.color; // default
       let siteIndexForMarker = siteIndex;
 
@@ -1037,6 +1059,11 @@ export default class NetworkMap extends React.Component {
             break;
           case 'Polarity':
             siteColor = polarityColor(sitePolarity);
+            break;
+          case 'CommitPlan':
+            // color based on all nodes within the site being upgraded vs
+            // partial or none
+            siteColor = SiteOverlayKeys.CommitPlan[sitePlan].color;
             break;
           default:
             siteColor = SiteOverlayKeys.Health.Unhealthy.color;
@@ -1246,6 +1273,23 @@ export default class NetworkMap extends React.Component {
               color_z,
             );
             break;
+          case 'CommitPlan':
+            if (
+              this.props.commitPlan &&
+              this.state.commitPlanBatch <
+                this.props.commitPlan.commitBatches.length
+            ) {
+              const commitBatch = this.props.commitPlan.commitBatches[
+                this.state.commitPlanBatch
+              ];
+              linkLine = this.getLinkLineTwoSides(
+                link,
+                linkCoords,
+                overlayKey.colors[commitBatch.includes(aNode.name) ? 1 : 0],
+                overlayKey.colors[commitBatch.includes(zNode.name) ? 1 : 0],
+              );
+            }
+            break;
           /*
            * DISABLED - this will come back as a stat
           case 'FLAPS':
@@ -1442,6 +1486,15 @@ export default class NetworkMap extends React.Component {
             onClose={this.closeModal}
             onEnter={this.disableMapScrolling}
             onLeave={this.enableMapScrolling}
+            siteOverlay={this.props.siteOverlay}
+            linkOverlay={this.props.linkOverlay}
+            commitPlan={this.props.commitPlan}
+            commitPlanBatch={this.state.commitPlanBatch}
+            commitPlanBatchChangedCb={increment =>
+              this.setState({
+                commitPlanBatch: this.state.commitPlanBatch + increment,
+              })
+            }
           />
         </Control>
       );

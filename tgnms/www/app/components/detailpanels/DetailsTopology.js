@@ -99,6 +99,62 @@ export default class DetailsTopology extends React.Component {
     });
   }
 
+  _getCommitPlanRows() {
+    const commitPlanRows = [];
+    if (
+      this.props.commitPlan &&
+      (this.props.siteOverlay === 'CommitPlan' ||
+        this.props.linkOverlay === 'CommitPlan')
+    ) {
+      commitPlanRows.push(
+        <tr key="commit-plan-row-nav">
+          <td className="commit-plan-batch-button-container">
+            {this.props.commitPlanBatch > 0 && [
+              <button
+                type="button"
+                key="commit-plan-back-button"
+                className="btn btn-default"
+                onClick={() => this.props.commitPlanBatchChangedCb(-1)}>
+                <span className="glyphicon glyphicon-chevron-left" />
+              </button>,
+            ]}
+          </td>
+          <td>
+            <span className="commit-plan-batch-nav-text">
+              Batch {this.props.commitPlanBatch + 1}/{
+                this.props.commitPlan.commitBatches.length
+              }
+            </span>
+          </td>
+          <td className="commit-plan-batch-button-container">
+            {this.props.commitPlanBatch + 1 <
+              this.props.commitPlan.commitBatches.length && [
+              <button
+                type="button"
+                key="commit-plan-next-button"
+                className="btn btn-default"
+                onClick={() => this.props.commitPlanBatchChangedCb(1)}>
+                <span className="glyphicon glyphicon-chevron-right" />
+              </button>,
+            ]}
+          </td>
+        </tr>,
+        <tr key="commit-plan-row-nodes-count">
+          <td colSpan="3" className="commit-plan-batch-container-text">
+            <span className="commit-plan-batch-text">
+              Nodes In Upgrade Batch:&nbsp;
+              {
+                this.props.commitPlan.commitBatches[this.props.commitPlanBatch]
+                  .length
+              }
+            </span>
+          </td>
+        </tr>,
+      );
+    }
+    return commitPlanRows;
+  }
+
   render() {
     // average availability of all links across site
     let alivePercAvg = 0;
@@ -215,6 +271,7 @@ export default class DetailsTopology extends React.Component {
 
     // show node versions pie chart
     const versionRows = this._getVersionRows(this.props.topology);
+    const commitPlanRows = this._getCommitPlanRows();
 
     return (
       <Panel
@@ -234,6 +291,18 @@ export default class DetailsTopology extends React.Component {
         <Panel.Body
           className="details"
           style={{maxHeight: this.props.maxHeight, width: '100%'}}>
+          {commitPlanRows.length > 0 && [
+            <div className="details-overview-title" key="commit_plan_heading">
+              Upgrade Commit Plan
+            </div>,
+            <div className="details-overview-wrapper" key="commit_plan_table">
+              <table className="details-overview-table">
+                <tbody className="commit-plan-container-box">
+                  {commitPlanRows}
+                </tbody>
+              </table>
+            </div>,
+          ]}
           <div className="details-overview-title">Availability (24h)</div>
           <div className="details-overview-wrapper">
             <table className="details-overview-table">

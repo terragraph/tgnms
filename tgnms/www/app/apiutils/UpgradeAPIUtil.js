@@ -333,3 +333,16 @@ export const abortUpgrade = upgradeAbortReq => {
       ),
     );
 };
+
+export const commitUpgradePlan = topologyName => {
+  apiServiceRequest(topologyName, 'getUpgradeCommitPlan')
+    .then(response => {
+      Dispatcher.dispatch({
+        actionType: Actions.UPGRADE_PLAN_LOADED,
+        upgradePlan: response.data,
+      });
+    })
+    .catch(error => {
+      console.error('failed to fetch upgrade images', error);
+    });
+};

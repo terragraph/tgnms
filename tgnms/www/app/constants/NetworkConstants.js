@@ -85,6 +85,11 @@ export const SiteOverlayKeys = {
     Site: {color: 'pink'},
     Node: {color: 'pink'},
   },
+  CommitPlan: {
+    Full: {color: 'blue'},
+    Partial: {color: 'orange'},
+    None: {color: 'green'},
+  },
 };
 
 export const ChartColors = ['#9F1E11', '#9F6B11', '#620C68', '#0D7825'];
@@ -120,7 +125,6 @@ export const LinkOverlayKeys = {
       'hsl(100,50%,50%)',
       'hsl(280,50%,50%)',
     ],
-    prefix: 'Equals',
   },
   TxGolayIdx: {
     name: 'TxGolayIdx',
@@ -136,7 +140,6 @@ export const LinkOverlayKeys = {
       'hsl(100,50%,50%)',
       'hsl(280,50%,50%)',
     ],
-    prefix: 'Equals',
   },
   SNR: {
     name: 'SNR',
@@ -177,6 +180,12 @@ export const LinkOverlayKeys = {
     ],
     prefix: 'Less than',
   },
+  CommitPlan: {
+    name: 'Commit Plan',
+    metric: null,
+    values: ['Not Included', 'Included'],
+    colors: ['green', 'blue'],
+  },
   /*FLAPS: {
     name: 'Link Flaps',
     metric: 'flaps',
@@ -208,6 +217,14 @@ export const DeleteStatus = {
   SUCCESS: 'SUCCESS',
   FAILURE: 'FAILURE',
 };
+
+// From SiteOverlayKeys.CommitPlan
+export const CommitPlanSiteState = {
+  FULL: 'Full',
+  PARTIAL: 'Partial',
+  NONE: 'None',
+};
+
 // marker/line constants
 export const MapDimensions = {
   Default: {

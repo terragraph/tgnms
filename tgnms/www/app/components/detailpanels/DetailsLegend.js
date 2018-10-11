@@ -130,7 +130,6 @@ export default class DetailsLegend extends React.Component {
     let linkOverlaySource = LinkOverlayKeys[this.props.linkOverlay];
     const health = {
       colors: ['green', 'purple', 'red'],
-      prefix: '',
       values: ['Alive', 'Ignition Candidate', 'Dead'],
     };
 
@@ -158,17 +157,15 @@ export default class DetailsLegend extends React.Component {
           </td>
           <td>
             <span style={{color: linkOverlaySource.colors[index]}}>
-              {linkOverlaySource.prefix + ' ' + value}
+              {linkOverlaySource.hasOwnProperty('prefix')
+                ? linkOverlaySource.prefix + ' ' + value
+                : value}
             </span>
           </td>
         </tr>
       ));
 
-      if (
-        this.props.linkOverlay !== 'RxGolayIdx' &&
-        this.props.linkOverlay !== 'TxGolayIdx' &&
-        this.props.linkOverlay !== 'Health'
-      ) {
+      if (linkOverlaySource.hasOwnProperty('prefix')) {
         linkOverlayKeyRows.push(
           <tr key="last">
             <td>
