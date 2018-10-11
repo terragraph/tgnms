@@ -22,6 +22,11 @@ ttypes.RestrictorType = {
   'NODE' : 1,
   'LINK' : 2
 };
+ttypes.TypeaheadType = {
+  'KEYNAME' : 1,
+  'NODENAME' : 3,
+  'TOPOLOGYNAME' : 4
+};
 ttypes.LinkDirection = {
   'LINK_A' : 1,
   'LINK_Z' : 2
@@ -139,7 +144,9 @@ QueryRestrictor.prototype.write = function(output) {
 var TypeaheadRequest = module.exports.TypeaheadRequest = function(args) {
   this.topologyName = null;
   this.searchTerm = null;
+  this.typeaheadType = 1;
   this.restrictors = null;
+  this.debugLogToConsole = false;
   if (args) {
     if (args.topologyName !== undefined && args.topologyName !== null) {
       this.topologyName = args.topologyName;
@@ -147,8 +154,14 @@ var TypeaheadRequest = module.exports.TypeaheadRequest = function(args) {
     if (args.searchTerm !== undefined && args.searchTerm !== null) {
       this.searchTerm = args.searchTerm;
     }
+    if (args.typeaheadType !== undefined && args.typeaheadType !== null) {
+      this.typeaheadType = args.typeaheadType;
+    }
     if (args.restrictors !== undefined && args.restrictors !== null) {
       this.restrictors = Thrift.copyList(args.restrictors, [ttypes.QueryRestrictor]);
+    }
+    if (args.debugLogToConsole !== undefined && args.debugLogToConsole !== null) {
+      this.debugLogToConsole = args.debugLogToConsole;
     }
   }
 };
@@ -180,6 +193,13 @@ TypeaheadRequest.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
+      case 3:
+      if (ftype == Thrift.Type.I32) {
+        this.typeaheadType = input.readI32();
+      } else {
+        input.skip(ftype);
+      }
+      break;
       case 10:
       if (ftype == Thrift.Type.LIST) {
         var _size8 = 0;
@@ -197,6 +217,13 @@ TypeaheadRequest.prototype.read = function(input) {
           this.restrictors.push(elem14);
         }
         input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 1000:
+      if (ftype == Thrift.Type.BOOL) {
+        this.debugLogToConsole = input.readBool();
       } else {
         input.skip(ftype);
       }
@@ -222,6 +249,11 @@ TypeaheadRequest.prototype.write = function(output) {
     output.writeString(this.searchTerm);
     output.writeFieldEnd();
   }
+  if (this.typeaheadType !== null && this.typeaheadType !== undefined) {
+    output.writeFieldBegin('typeaheadType', Thrift.Type.I32, 3);
+    output.writeI32(this.typeaheadType);
+    output.writeFieldEnd();
+  }
   if (this.restrictors !== null && this.restrictors !== undefined) {
     output.writeFieldBegin('restrictors', Thrift.Type.LIST, 10);
     output.writeListBegin(Thrift.Type.STRUCT, this.restrictors.length);
@@ -234,6 +266,11 @@ TypeaheadRequest.prototype.write = function(output) {
       }
     }
     output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  if (this.debugLogToConsole !== null && this.debugLogToConsole !== undefined) {
+    output.writeFieldBegin('debugLogToConsole', Thrift.Type.BOOL, 1000);
+    output.writeBool(this.debugLogToConsole);
     output.writeFieldEnd();
   }
   output.writeFieldStop();

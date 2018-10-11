@@ -8,35 +8,32 @@ const {BERINGEI_QUERY_URL} = require('../config');
 const {getAnalyzerData} = require('../topology/analyzer_data');
 // new json writer
 const dataJson = require('./dataJson');
-
 const express = require('express');
+import {
+  GraphAggregation,
+  StatsOutputFormat,
+} from '../../thrift/gen-nodejs/Stats_types';
 const request = require('request');
 const logger = require('../log')(module);
 
 const router = express.Router();
 
 // raw stats data
-router.get(/\/overlay\/linkStat\/(.+)\/(.+)$/i, (req, res, next) => {
-  const topologyName = req.params[0];
-  const metricName = req.params[1];
-  const linkMetrics = [
-    {
-      name: 'not_used',
-      metric: metricName,
-      type: 'latest',
-      min_ago: 60 /* 1 hour */,
-    },
-  ];
-  const query = {
+router.get('/overlay/linkStat/:topologyName/:metricName', (req, res, next) => {
+  const {metricName, topologyName} = req.params;
+  const linkQuery = {
+    aggregation: GraphAggregation.LATEST,
+    keyNames: [metricName],
+    maxResults: 0 /* All results */,
+    minAgo: 60 /* 1 hour */,
+    outputFormat: StatsOutputFormat.RAW_LINK,
     topologyName,
-    nodeQueries: [],
-    linkQueries: linkMetrics,
   };
-  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
+  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
   request.post(
     {
+      body: JSON.stringify(linkQuery),
       url: chartUrl,
-      body: JSON.stringify(query),
     },
     (err, httpResponse, body) => {
       if (err) {

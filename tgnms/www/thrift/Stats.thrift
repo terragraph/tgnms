@@ -26,6 +26,12 @@ enum RestrictorType {
   LINK = 2,
 }
 
+enum TypeaheadType {
+  KEYNAME = 1, // default
+  NODENAME = 3, // to find a node name
+  TOPOLOGYNAME = 4, // to find the topology
+}
+
 struct QueryRestrictor {
   1: RestrictorType restrictorType,
   // list of values allowed in the response data
@@ -33,10 +39,13 @@ struct QueryRestrictor {
   2: list<string> values,
 }
 
+
+
 struct TypeaheadRequest {
-  1: string topologyName,
+  1: optional string topologyName,
   // search term to match key names + short names against
-  2: string searchTerm,
+  2: optional string searchTerm,
+  3: TypeaheadType typeaheadType = TypeaheadType.KEYNAME,
   /**
    * list of ordered restrictors to apply
    * leave empty to return all results
@@ -54,6 +63,8 @@ struct TypeaheadRequest {
    * ]
    */
   10: list<QueryRestrictor> restrictors,
+  // output debug data to console for this request
+  1000: optional bool debugLogToConsole = false,
 }
 
 enum LinkDirection {

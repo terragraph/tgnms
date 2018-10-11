@@ -210,7 +210,7 @@ class NetworkUI extends React.Component {
           .then(response => {
             Dispatcher.dispatch({
               actionType: Actions.LINK_OVERLAY_REFRESHED,
-              overlay: response.data[0],
+              overlay: response.data,
             });
           });
       }

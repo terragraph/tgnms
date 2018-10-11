@@ -379,6 +379,7 @@ export default class NetworkMap extends React.Component {
     });
     const linksByName = {};
     const linksByNode = {};
+    const overlaySource = LinkOverlayKeys[this.props.linkOverlay];
     Object.keys(topologyJson.links).map(linkIndex => {
       const link = topologyJson.links[linkIndex];
       linksByName[link.name] = link;
@@ -436,8 +437,23 @@ export default class NetworkMap extends React.Component {
         Object.keys(this.state.linkOverlayData).length > 0
       ) {
         if (this.state.linkOverlayData.hasOwnProperty(link.name)) {
-          link.overlay_a = this.state.linkOverlayData[link.name];
-          link.overlay_z = this.state.linkOverlayData[link.name];
+          const linkOverlayData = this.state.linkOverlayData[link.name];
+          if (
+            linkOverlayData.hasOwnProperty('A') &&
+            linkOverlayData['A'].hasOwnProperty(overlaySource.metric)
+          ) {
+            link.overlay_a = linkOverlayData['A'][overlaySource.metric];
+          } else {
+            delete link.overlay_a;
+          }
+          if (
+            linkOverlayData.hasOwnProperty('Z') &&
+            linkOverlayData['Z'].hasOwnProperty(overlaySource.metric)
+          ) {
+            link.overlay_z = linkOverlayData['Z'][overlaySource.metric];
+          } else {
+            delete link.overlay_z;
+          }
         }
         return;
         // TODO - A/Z
@@ -453,7 +469,6 @@ export default class NetworkMap extends React.Component {
       ) {
         const a_node = nodesByName[link.a_node_name];
         const z_node = nodesByName[link.z_node_name];
-
         if (link.golay_idx) {
           const idx =
             this.props.linkOverlay == 'RxGolayIdx'
