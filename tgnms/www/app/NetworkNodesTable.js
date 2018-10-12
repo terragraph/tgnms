@@ -209,8 +209,8 @@ export default class NetworkNodesTable extends React.Component {
         ? this._trimVersionString(node.status_dump.version)
         : null;
       const ubootVersion =
-        node.status_dump && node.status_dump.uboot_version
-          ? node.status_dump.uboot_version
+        node.status_dump && node.status_dump.ubootVersion
+          ? node.status_dump.ubootVersion
           : null;
       const hwBoardId =
         node.status_dump && node.status_dump.hardwareBoardId
