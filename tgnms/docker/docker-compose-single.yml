@@ -189,6 +189,25 @@ services:
       - db
       - bqs
 
+  network_test:
+    build:
+      context: .
+    image: secure.cxl-terragraph.com:443/analytics:latest
+    env_file:
+      - ./env/mysql.env
+    restart: always
+    volumes:
+      - ./docker_volumes/logs:/analytics/logs
+    ports:
+      - "8000:8000"
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "cd /usr/local/analytics/network_test_api; until nc -z db 3306; do sleep 1; done && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+    depends_on:
+      - ipv6
+      - db
+      - bqs
+
 networks:
   terragraph_net:
     external: true
