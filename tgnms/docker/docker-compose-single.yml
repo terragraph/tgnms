@@ -195,6 +195,7 @@ services:
     image: secure.cxl-terragraph.com:443/analytics:latest
     env_file:
       - ./env/mysql.env
+      - ./env/django.env
     restart: always
     volumes:
       - ./docker_volumes/logs:/analytics/logs
