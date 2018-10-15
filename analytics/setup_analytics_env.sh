@@ -12,6 +12,8 @@ MATPLOTLIB_VERSION="2.2.2"
 NUMPY_VERSION="1.14.5"
 PYMYSQL_VERSION="0.9.2"
 REQUESTS_VERSION="2.19.1"
+PYZMQ_VERSION="17.1.2"
+MYSQLCLIENT="1.3.13"
 
 # Install Python3 packages
 pip install django==$DJANGO_VERSION
@@ -20,6 +22,8 @@ pip install matplotlib==$MATPLOTLIB_VERSION
 pip install numpy==$NUMPY_VERSION
 pip install PyMySQL==$PYMYSQL_VERSION
 pip install requests==$REQUESTS_VERSION
+pip install pyzmq==$PYZMQ_VERSION
+pip install mysqlclient==$MYSQLCLIENT
 
 # Install Apache Thrift
 cd /tmp
