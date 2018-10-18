@@ -42,7 +42,9 @@ const getLinkAnglesForNodes = (nodeList, linksBySector, onlyShowSector) => {
   nodeList.forEach(node => {
     const sectorList = [];
     sectorList.push(node.mac_addr);
-    sectorList.push(...node.secondary_mac_addrs);
+    if (node.wlan_mac_addrs) {
+      sectorList.push(...node.wlan_mac_addrs);
+    }
 
     sectorList.forEach(mac => {
       if (onlyShowSector && mac !== onlyShowSector) {
@@ -206,9 +208,11 @@ export const getNodeMarker = (
   const nodesBySector = {};
   nodesInSite.forEach(node => {
     nodesBySector[node.mac_addr] = node;
-    node.secondary_mac_addrs.forEach(mac => {
-      nodesBySector[mac] = node;
-    });
+    if (node.wlan_mac_addrs) {
+      node.wlan_mac_addrs.forEach(mac => {
+        nodesBySector[mac] = node;
+      });
+    }
   });
 
   // filter the link angles for only the nodes in the site (the ones that we care about)

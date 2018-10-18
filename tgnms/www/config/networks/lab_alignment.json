@@ -35,7 +35,7 @@
             "node_type": 2,
             "polarity": 1,
             "pop_node": true,
-            "secondary_mac_addrs": [],
+            "wlan_mac_addrs": [],
             "site_name": "RF1",
             "status": 3
         },
@@ -53,7 +53,7 @@
             "node_type": 2,
             "polarity": 2,
             "pop_node": true,
-            "secondary_mac_addrs": [],
+            "wlan_mac_addrs": [],
             "site_name": "RF2",
             "status": 3
         }

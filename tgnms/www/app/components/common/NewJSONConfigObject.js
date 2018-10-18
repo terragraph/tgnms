@@ -17,8 +17,8 @@ import {
 import {ADD_FIELD_TYPES} from '../../constants/NetworkConfigConstants.js';
 import {convertAndValidateNewConfigObject} from '../../helpers/NetworkConfigHelpers.js';
 import AddJSONConfigField from './AddJSONConfigField.js';
+import {Glyphicon} from 'react-bootstrap';
 import NewJSONConfigField from './NewJSONConfigField.js';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import React from 'react';
@@ -138,11 +138,17 @@ export default class NewJSONConfigObject extends React.Component {
         <div className="nc-object-field-body">
           {canSubmit && (
             <div className="nc-form-action">
-              <img
-                src="/static/images/check.png"
-                style={{marginLeft: '5px'}}
-                onClick={this.onSubmitNewField}
-              />
+              <span
+                role="button"
+                tabIndex="0"
+                style={{
+                  color: '#226ab2',
+                  marginLeft: '5px',
+                  fontSize: '19px',
+                }}
+                onClick={this.onSubmitNewField}>
+                <Glyphicon title="ok" glyph="ok" />
+              </span>
               <span className="nc-form-action-tooltip">
                 Add new field to override
               </span>
@@ -150,11 +156,13 @@ export default class NewJSONConfigObject extends React.Component {
           )}
 
           <div className="nc-form-action">
-            <img
-              src="/static/images/delete.png"
-              style={{marginLeft: '5px', height: '19px'}}
-              onClick={this.onDeleteNewField}
-            />
+            <span
+              role="button"
+              tabIndex="0"
+              style={{color: 'firebrick', marginLeft: '5px', fontSize: '19px'}}
+              onClick={this.onDeleteNewField}>
+              <Glyphicon title="remove" glyph="remove" />
+            </span>
             <span className="nc-form-action-tooltip">Delete new field</span>
           </div>
         </div>

@@ -554,7 +554,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : true,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "medical",
       "status" : 3
     },
@@ -571,7 +571,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : true,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "medical",
       "status" : 3
     },
@@ -588,7 +588,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "corner17",
       "status" : 3
     },
@@ -605,7 +605,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "corner17",
       "status" : 3
     },
@@ -622,7 +622,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "corner17",
       "status" : 3
     },
@@ -639,7 +639,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "14-3_win1",
       "status" : 2
     },
@@ -656,7 +656,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-28",
       "status" : 2
     },
@@ -673,7 +673,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-29",
       "status" : 1
     },
@@ -690,7 +690,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-29",
       "status" : 1
     },
@@ -707,7 +707,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : true,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-30",
       "status" : 3
     },
@@ -724,7 +724,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : true,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-30",
       "status" : 3
     },
@@ -741,7 +741,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-32",
       "status" : 1
     },
@@ -758,7 +758,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-32",
       "status" : 3
     },
@@ -775,7 +775,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-42",
       "status" : 3
     },
@@ -792,7 +792,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-42",
       "status" : 3
     },
@@ -809,7 +809,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-42",
       "status" : 3
     },
@@ -826,7 +826,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-43",
       "status" : 3
     },
@@ -843,7 +843,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-43",
       "status" : 3
     },
@@ -860,7 +860,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-46",
       "status" : 3
     },
@@ -877,7 +877,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-46",
       "status" : 3
     },
@@ -894,7 +894,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-46",
       "status" : 3
     },
@@ -911,7 +911,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-47",
       "status" : 3
     },
@@ -928,7 +928,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-47",
       "status" : 3
     },
@@ -945,7 +945,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-47",
       "status" : 3
     },
@@ -962,7 +962,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-47",
       "status" : 3
     },
@@ -979,7 +979,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-49",
       "status" : 3
     },
@@ -996,7 +996,7 @@
       "node_type" : 2,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-49",
       "status" : 3
     },
@@ -1013,7 +1013,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "17-3_win1",
       "status" : 2
     },
@@ -1030,7 +1030,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : true,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "18-9",
       "status" : 3
     },
@@ -1047,7 +1047,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "18-9",
       "status" : 3
     },
@@ -1065,7 +1065,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-31",
       "status" : 2
     },
@@ -1083,7 +1083,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-48",
       "status" : 2
     },
@@ -1101,7 +1101,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-31",
       "status" : 2
     },
@@ -1119,7 +1119,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-48",
       "status" : 2
     },
@@ -1137,7 +1137,7 @@
       "node_type" : 2,
       "polarity" : 1,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-43",
       "status" : 3
     },
@@ -1155,7 +1155,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-28",
       "status" : 2
     },
@@ -1173,7 +1173,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-48",
       "status" : 2
     },
@@ -1191,7 +1191,7 @@
       "node_type" : 1,
       "polarity" : 2,
       "pop_node" : false,
-      "secondary_mac_addrs" : [],
+      "wlan_mac_addrs" : [],
       "site_name" : "15-31",
       "status" : 2
     }
