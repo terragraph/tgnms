@@ -101,6 +101,14 @@
             "zoom_level": 18,
             "controller_ip": "2620:10d:c089:ee04:8895:b75f:c219:7b5f",
             "aggregator_ip": "2620:10d:c089:ee04:8895:b75f:c219:7b5f"
+        },
+        {
+            "controller_ip": "2620:10d:c089:ee04:250:56ff:feb4:b0b",
+            "aggregator_ip": "2620:10d:c089:ee04:250:56ff:feb4:b0b",
+            "latitude": 37.48391283804449,
+            "longitude": -122.14773952960968,
+            "zoom_level": 18,
+            "topology_file": "mpk15_basset.json"
         }
     ]
 }
