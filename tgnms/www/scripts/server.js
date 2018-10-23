@@ -124,7 +124,6 @@ if (devMode) {
 app.get('*', (req, res) => {
   res.render('index', {
     configJson: JSON.stringify(getNetworkInstanceConfig()),
-    userJson: JSON.stringify(req.user),
   });
 });
 
