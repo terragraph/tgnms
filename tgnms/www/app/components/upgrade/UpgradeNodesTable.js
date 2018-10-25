@@ -52,6 +52,7 @@ export default class UpgradeNodesTable extends React.Component {
     site_name: string,
     pop_node: boolean,
     upgradeStatus: string,
+    upgradeStatusReason: string,
     version: string,
   }> => {
     const rows = [];
@@ -67,6 +68,9 @@ export default class UpgradeNodesTable extends React.Component {
       const upgradeStatus = has(node, 'status_dump.upgradeStatus.usType')
         ? upgradeStatusToString[node.status_dump.upgradeStatus.usType]
         : emptyTableEntryString;
+      const upgradeStatusReason = has(node, 'status_dump.upgradeStatus.reason')
+        ? node.status_dump.upgradeStatus.reason || '-'
+        : '-';
 
       rows.push({
         name: node.name,
@@ -78,6 +82,7 @@ export default class UpgradeNodesTable extends React.Component {
         version,
         nextVersion,
         upgradeStatus,
+        upgradeStatusReason,
 
         key: node.name,
       });
@@ -213,6 +218,12 @@ export default class UpgradeNodesTable extends React.Component {
             dataSort={true}
             dataField="upgradeStatus">
             Upgrade Status
+          </TableHeaderColumn>
+          <TableHeaderColumn
+            width="140"
+            dataSort={true}
+            dataField="upgradeStatusReason">
+            Reason
           </TableHeaderColumn>
           <TableHeaderColumn
             width="400"

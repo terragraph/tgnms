@@ -39,6 +39,7 @@ export default class ModalCommitUpgrade extends React.Component {
 
   state = {
     timeout: 180, // timeout for the entire commit operation per node
+    retryLimit: 3, // maximum retry attempts for each node
     skipFailure: false, // skip failed nodes (will not stop operation)
     skipPopFailure: false, // skip failed POP nodes (will not stop operation)
     limit: 1, // limit per batch. max batch size is infinite if this is set to 0
@@ -94,6 +95,7 @@ export default class ModalCommitUpgrade extends React.Component {
       timeout: this.state.timeout,
       skipFailure: this.state.skipFailure,
       skipPopFailure: this.state.skipPopFailure,
+      retryLimit: this.state.retryLimit,
       skipLinks: [],
       limit,
       scheduleToCommit: this.state.scheduleToCommit,
@@ -146,7 +148,9 @@ export default class ModalCommitUpgrade extends React.Component {
             <input
               type="number"
               value={this.state.timeout}
-              onChange={event => this.setState({timeout: event.target.value})}
+              onChange={event =>
+                this.setState({timeout: parseInt(event.target.value, 10)})
+              }
             />
           </div>
           <div className="upgrade-modal-row">
@@ -211,7 +215,9 @@ export default class ModalCommitUpgrade extends React.Component {
               <input
                 type="number"
                 value={this.state.limit}
-                onChange={event => this.setState({limit: event.target.value})}
+                onChange={event =>
+                  this.setState({limit: parseInt(event.target.value, 10)})
+                }
               />
             </div>
           )}
@@ -242,18 +248,31 @@ export default class ModalCommitUpgrade extends React.Component {
             buttonClass="upgrade-more-options-button"
             moreButtonName="Show Additional Options">
             <div className="upgrade-modal-row">
-              <label>Commit Delay (s):</label>
+              <label>Retry Limit</label>
               <input
                 type="number"
-                value={this.state.scheduleToCommit}
+                value={this.state.retryLimit}
                 onChange={event =>
-                  this.setState({scheduleToCommit: event.target.value})
+                  this.setState({retryLimit: parseInt(event.target.value, 10)})
                 }
               />
             </div>
 
             <div className="upgrade-modal-row">
-              <strong className="subtitle"> Request Type:</strong>
+              <label>Commit Delay (s):</label>
+              <input
+                type="number"
+                value={this.state.scheduleToCommit}
+                onChange={event =>
+                  this.setState({
+                    scheduleToCommit: parseInt(event.target.value, 10),
+                  })
+                }
+              />
+            </div>
+
+            <div className="upgrade-modal-row">
+              <strong className="subtitle">Request Type:</strong>
               <div className="type-selector">
                 <label
                   className="choice"

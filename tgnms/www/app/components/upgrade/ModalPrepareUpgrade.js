@@ -10,8 +10,6 @@ import 'sweetalert/dist/sweetalert.css';
 import ShowMorePanel from '../common/ShowMorePanel.js';
 import {prepareUpgrade} from '../../apiutils/UpgradeAPIUtil.js';
 import {MODAL_STYLE} from '../../constants/UpgradeConstants.js';
-import classNames from 'classnames';
-import {isEmpty} from 'lodash-es';
 import PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import Modal from 'react-modal';
@@ -31,6 +29,7 @@ export default class ModalPrepareUpgrade extends React.Component {
 
   state = {
     timeout: 180, // timeout for the entire prepare operation
+    retryLimit: 3, // maximum retry attempts for each node
     skipFailure: true, // skip failed nodes (will not stop operation)
     isParallel: true, // parallelize the operation? (put all nodes in one batch)
     limit: 1, // limit per batch. max batch size is infinite if this is set to 0
@@ -99,6 +98,7 @@ export default class ModalPrepareUpgrade extends React.Component {
       images: this.state.selectedImages,
       timeout: this.state.timeout,
       skipFailure: this.state.skipFailure,
+      retryLimit: this.state.retryLimit,
 
       // limit of 0 means unlimited max batch size
       limit: this.state.isParallel ? 0 : this.state.limit,
@@ -177,7 +177,7 @@ export default class ModalPrepareUpgrade extends React.Component {
   }
 
   render() {
-    const {isOpen, upgradeNodes, upgradeState} = this.props;
+    const {isOpen, upgradeNodes} = this.props;
     /*
     Prepare modal:
       List nodes
@@ -222,13 +222,26 @@ export default class ModalPrepareUpgrade extends React.Component {
             <input
               type="number"
               value={this.state.timeout}
-              onChange={event => this.setState({timeout: event.target.value})}
+              onChange={event =>
+                this.setState({timeout: parseInt(event.target.value, 10)})
+              }
             />
           </div>
 
           <ShowMorePanel
             buttonClass="upgrade-more-options-button"
             moreButtonName="Show Additional Options">
+            <div className="upgrade-modal-row">
+              <label>Retry Limit</label>
+              <input
+                type="number"
+                value={this.state.retryLimit}
+                onChange={event =>
+                  this.setState({retryLimit: parseInt(event.target.value, 10)})
+                }
+              />
+            </div>
+
             <div className="upgrade-modal-row">
               <label>Skip Failures?</label>
               <input
@@ -257,7 +270,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                 <input
                   type="number"
                   value={this.state.limit}
-                  onChange={event => this.setState({limit: event.target.value})}
+                  onChange={event =>
+                    this.setState({limit: parseInt(event.target.value, 10)})
+                  }
                 />
               </div>
             )}
@@ -296,7 +311,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                   type="number"
                   value={this.state.downloadAttempts}
                   onChange={event =>
-                    this.setState({downloadAttempts: event.target.value})
+                    this.setState({
+                      downloadAttempts: parseInt(event.target.value, 10),
+                    })
                   }
                 />
               </div>
@@ -310,7 +327,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                     type="number"
                     value={this.state.downloadTimeout}
                     onChange={event =>
-                      this.setState({downloadTimeout: event.target.value})
+                      this.setState({
+                        downloadTimeout: parseInt(event.target.value, 10),
+                      })
                     }
                   />
                 </div>
@@ -321,7 +340,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                     type="number"
                     value={this.state.downloadLimit}
                     onChange={event =>
-                      this.setState({downloadLimit: event.target.value})
+                      this.setState({
+                        downloadLimit: parseInt(event.target.value, 10),
+                      })
                     }
                   />
                 </div>
@@ -332,7 +353,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                     type="number"
                     value={this.state.uploadLimit}
                     onChange={event =>
-                      this.setState({uploadLimit: event.target.value})
+                      this.setState({
+                        uploadLimit: parseInt(event.target.value, 10),
+                      })
                     }
                   />
                 </div>
@@ -343,7 +366,9 @@ export default class ModalPrepareUpgrade extends React.Component {
                     type="number"
                     value={this.state.maxConnections}
                     onChange={event =>
-                      this.setState({maxConnections: event.target.value})
+                      this.setState({
+                        maxConnections: parseInt(event.target.value, 10),
+                      })
                     }
                   />
                 </div>
