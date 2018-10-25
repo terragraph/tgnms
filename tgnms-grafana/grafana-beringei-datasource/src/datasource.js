@@ -335,20 +335,33 @@ export class GenericDatasource {
 
     let searchTerm = this.templateSrv.replace(query, null, 'regex');
     let typeaheadType = TYPEAHEADTYPE["KEYNAME"];
+    let restrictors = [];
 
     // this is the search from the topology variable
     if (searchTerm === "__bqs_topology_query") {
       typeaheadType = TYPEAHEADTYPE["TOPOLOGYNAME"];
+    }
+    // A restricted node query is __bqs_noderestrict_[[nodeA]]_[[topology]]
+    // to find only the nodes which are linked to [[nodeA]], a MAC address
+    else if (searchTerm.includes("__bqs_noderestrict_")) {
+      typeaheadType = TYPEAHEADTYPE["NODENAME"];
+      const topologyIndex = searchTerm.lastIndexOf("_");
+      const nodeAIndex = 19;
+      const nodeAstr = searchTerm.slice(nodeAIndex, topologyIndex);
+      const topologyName = searchTerm.slice(topologyIndex + 1);
+      let restrictorObj = {};
+      restrictorObj.values = [];
+      restrictorObj.values.push(nodeAstr);
+      restrictors.push(restrictorObj);
     }
     // a node query is __bqs_[[topology]] where topology is a variable
     else if (searchTerm.includes("__bqs_")) {
       typeaheadType = TYPEAHEADTYPE["NODENAME"];
       topologyName = searchTerm.split('__bqs_')[1]; // just topology name
     }
-    let restrictors = [];
-    if (this.target && this.target.restrictor &&
-      this.target.restrictor.length > 0) {
-      restrictorObj = {};
+    if (restrictors == [] && this.target && this.target.restrictor &&
+        this.target.restrictor.length > 0) {
+      let restrictorObj = {};
       restrictorObj.restrictorType = RESTRICTORTYPE["NODE"];
       restrictorObj.values = [];
       restrictorObj.values.push(this.target.restrictor);

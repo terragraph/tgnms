@@ -389,23 +389,36 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
 
             var searchTerm = this.templateSrv.replace(query, null, 'regex');
             var typeaheadType = TYPEAHEADTYPE["KEYNAME"];
+            var restrictors = [];
 
             // this is the search from the topology variable
             if (searchTerm === "__bqs_topology_query") {
               typeaheadType = TYPEAHEADTYPE["TOPOLOGYNAME"];
             }
-            // a node query is __bqs_[[topology]] where topology is a variable
-            else if (searchTerm.includes("__bqs_")) {
+            // A restricted node query is __bqs_noderestrict_[[nodeA]]_[[topology]]
+            // to find only the nodes which are linked to [[nodeA]]
+            else if (searchTerm.includes("__bqs_noderestrict_")) {
                 typeaheadType = TYPEAHEADTYPE["NODENAME"];
-                topologyName = searchTerm.split('__bqs_')[1]; // just topology name
+                var topologyIndex = searchTerm.lastIndexOf("_");
+                var nodeAIndex = 19;
+                var nodeAstr = searchTerm.slice(nodeAIndex, topologyIndex);
+                topologyName = searchTerm.slice(topologyIndex + 1);
+                var restrictorObj = {};
+                restrictorObj.values = [];
+                restrictorObj.values.push(nodeAstr);
+                restrictors.push(restrictorObj);
               }
-            var restrictors = [];
-            if (this.target && this.target.restrictor && this.target.restrictor.length > 0) {
-              restrictorObj = {};
-              restrictorObj.restrictorType = RESTRICTORTYPE["NODE"];
-              restrictorObj.values = [];
-              restrictorObj.values.push(this.target.restrictor);
-              restrictors.push(restrictorObj);
+              // a node query is __bqs_[[topology]] where topology is a variable
+              else if (searchTerm.includes("__bqs_")) {
+                  typeaheadType = TYPEAHEADTYPE["NODENAME"];
+                  topologyName = searchTerm.split('__bqs_')[1]; // just topology name
+                }
+            if (restrictors == [] && this.target && this.target.restrictor && this.target.restrictor.length > 0) {
+              var _restrictorObj = {};
+              _restrictorObj.restrictorType = RESTRICTORTYPE["NODE"];
+              _restrictorObj.values = [];
+              _restrictorObj.values.push(this.target.restrictor);
+              restrictors.push(_restrictorObj);
             }
 
             var interpolated = {
