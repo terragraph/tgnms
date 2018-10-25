@@ -26,7 +26,7 @@
             Comma-separated list. Applies to all queries.
           </info-popover>
           <input type="text" class="gf-form-input" ng-model="ctrl.target.restrictor" spellcheck='false' placeholder="restrictors"
-          data-min-length=0 data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
+          data-min-length=0 data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()" width=100>
         </input>
         </div>
         </div>
@@ -42,7 +42,9 @@
       </gf-form-dropdown>
       </div>
       </div>
-      
+    </div> <!-- gf-form-inline -->
+
+    <div class="gf-form-block">
       <div class="gf-form">
         <label class="gf-form-label query-keyword width-10">Scale</label>
         <div class="gf-form max-width-32">
