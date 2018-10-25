@@ -18,6 +18,8 @@
 #include "beringei/client/BeringeiConfigurationAdapterIf.h"
 #include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 
+#define MAC_ADDR_LEN 17
+
 using namespace facebook::stats;
 
 namespace facebook {
@@ -56,15 +58,19 @@ class StatsTypeAheadCache {
       const query::Node& zNode);
 
   // fetch topology-wide key data
-  std::vector<stats::KeyMetaData> getKeyData(const std::string& metricName) const;
+  std::vector<stats::KeyMetaData> getKeyData(
+      const std::string& metricName) const;
 
   // type-ahead search
   std::vector<std::vector<stats::KeyMetaData>> searchMetrics(
       const std::string& metricName,
       const int limit = 100);
 
- // list (array) of node MAC addresses
- folly::dynamic listNodes();
+  // list (array) of node MAC addresses
+  folly::dynamic listNodes();
+
+  // list (array) of node MAC addresses linked to nodeA
+  folly::dynamic listNodes(std::string nodeA_MAC, std::string topologyName);
 
  private:
   std::vector<std::string> linkMetricKeyNames_{};
@@ -83,7 +89,8 @@ class StatsTypeAheadCache {
   // short names => [metric ids]
   std::unordered_map<std::string, std::vector<int>> nameToMetricIds_{};
   // metric id => meta data
-  std::unordered_map<int, std::shared_ptr<stats::KeyMetaData>> metricIdMetadata_{};
+  std::unordered_map<int, std::shared_ptr<stats::KeyMetaData>>
+      metricIdMetadata_{};
 
   // TODO - graph struct for quick traversal
 };

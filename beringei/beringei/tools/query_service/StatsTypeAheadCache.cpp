@@ -10,6 +10,7 @@
 #include "StatsTypeAheadCache.h"
 
 #include "MySqlClient.h"
+#include "TopologyStore.h"
 
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -122,8 +123,8 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
       keyData->keyName = key.first;
       if (metricIdMetadata_.count(key.second) ||
           keyToMetricIds_.count(key.first)) {
-        LOG(ERROR) << "Ignoring duplicate aggregate metric. Id="
-                   << key.second << ", Key=" << key.first;
+        LOG(ERROR) << "Ignoring duplicate aggregate metric. Id=" << key.second
+                   << ", Key=" << key.first;
         continue;
       }
       metricIdMetadata_[key.second] = keyData;
@@ -163,7 +164,8 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
         // push key data for link metric
         keyData->linkName = link.name;
         keyData->shortName = metricName;
-        keyData->linkDirection = (stats::LinkDirection)(key["linkDirection"].asInt());
+        keyData->linkDirection =
+            (stats::LinkDirection)(key["linkDirection"].asInt());
         // update the unit
         if (key.count("unit")) {
           stats::KeyUnit unit = (stats::KeyUnit)(key["unit"].asInt());
@@ -495,11 +497,68 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
 // retrieve list of nodes (MAC addresses) for the current topology
 folly::dynamic StatsTypeAheadCache::listNodes() {
   folly::dynamic retNodes = folly::dynamic::array;
-  for (const auto &it : nodesByName_) {
+  for (const auto& it : nodesByName_) {
     retNodes.push_back(it.second.mac_addr);
   }
   return retNodes;
 }
+
+// retrieve list of nodes wirelessly linked to nodeA for the specified
+// nodeAstr can be either the node name or MAC address
+folly::dynamic StatsTypeAheadCache::listNodes(
+    std::string nodeAstr,
+    std::string topologyName) {
+  auto topologyInstance = TopologyStore::getInstance();
+  auto topologyList = topologyInstance->getTopologyList();
+
+  query::Topology* topology;
+  for (const auto& topologyConfig : topologyList) {
+    if (topologyConfig.first == topologyName) {
+      topology = &topologyConfig.second->topology;
+    }
+  }
+
+  if (topology == NULL) {
+    LOG(ERROR) << "topology " << topologyName << " not found";
+    return folly::dynamic::object();
+  }
+  // find node name corresponding to the input MAC address
+  std::string nodeA_name;
+  bool isMac = (std::count(nodeAstr.begin(), nodeAstr.end(), ':') == 5) &&
+      (nodeAstr.length() == MAC_ADDR_LEN);
+  if (isMac) {
+    for (const auto& node : topology->nodes) {
+      if (std::equal(
+              nodeAstr.begin(),
+              nodeAstr.end(),
+              node.mac_addr.c_str(),
+              [](char a, char c) { return tolower(a) == tolower(c); })) {
+        nodeA_name = node.name;
+        break;
+      }
+    }
+  } else {
+    nodeA_name = nodeAstr;
+  }
+
+  if (nodeA_name.empty()) {
+    LOG(ERROR) << "nodeA not found in topology";
+    return folly::dynamic::object();
+  }
+
+  // get all linked nodeZ mac_addrs from nodeA
+  folly::dynamic node_z_macs = folly::dynamic::array;
+  for (const auto& link : topology->links) {
+    if (link.a_node_name == nodeA_name) {
+      for (const auto& node : topology->nodes) {
+        if (node.name == link.z_node_name) {
+          node_z_macs.push_back(node.mac_addr);
+        }
+      }
+    }
+  }
+  return node_z_macs;
+} // namespace gorilla
 
 } // namespace gorilla
 } // namespace facebook
