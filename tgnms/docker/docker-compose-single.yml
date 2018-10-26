@@ -194,6 +194,8 @@ services:
     cap_add:
       - SYS_NICE
     restart: unless-stopped
+    ports:
+      - "8086:8086"
     volumes:
       - ./docker_volumes/logs:/home/nms/data
       - ./mysql_init_scripts:/mysql-scripts
