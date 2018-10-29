@@ -18,6 +18,7 @@ import LeafletGeom from 'leaflet-geometryutil';
 import {LatLng} from 'leaflet';
 import invert from 'lodash-es/invert';
 import React from 'react';
+import {SitePolarityMixed} from '../constants/NetworkConstants.js';
 
 export function availabilityColor(alive_perc) {
   if (alive_perc >= 99.99) {
@@ -50,17 +51,24 @@ export function variableColorDown(value, thresh1, thresh2) {
 }
 // accepts the polarity id, not name
 export function polarityColor(polarity) {
+  // 'hybrid' site isn't a defined polarity, use special case
+  if (typeof polarity === 'string' && polarity === SitePolarityMixed) {
+    return 'orange';
+  }
   if (polarity == null || polarity == undefined) {
     return 'red';
   }
+  // value must be an integer
+  polarity = parseInt(polarity, 10);
   switch (polarity) {
     case PolarityType.ODD:
       return 'blue';
     case PolarityType.EVEN:
       return 'magenta';
     case PolarityType.HYBRID_ODD:
+      return 'green';
     case PolarityType.HYBRID_EVEN:
-      return 'orange';
+      return 'purple';
     default:
       return 'red';
   }
@@ -117,8 +125,10 @@ export function linkLength(aSite, zSite) {
  */
 export function getPolarityString(polarity) {
   const polarityToString = invert(PolarityType);
-
   if (typeof polarity === 'string') {
+    if (polarity === SitePolarityMixed) {
+      return 'Mixed';
+    }
     if (!isNaN(polarity)) {
       polarity = parseInt(polarity);
     } else {

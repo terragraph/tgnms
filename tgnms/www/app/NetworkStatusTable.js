@@ -12,6 +12,7 @@ import {
 } from './helpers/NetworkHelpers.js';
 import {NodeType} from '../thrift/gen-nodejs/Topology_types';
 import React from 'react';
+import {SitePolarityMixed} from './constants/NetworkConstants.js';
 import {Table} from 'react-bootstrap';
 
 export default class NetworkStatusTable extends React.Component {
@@ -83,7 +84,7 @@ export default class NetworkStatusTable extends React.Component {
       } else {
         polarityBySite[node.site_name] =
           polarityBySite[node.site_name] !== nodePolarity
-            ? 3 /* HYBRID */
+            ? SitePolarityMixed
             : nodePolarity;
       }
     });
@@ -148,7 +149,6 @@ export default class NetworkStatusTable extends React.Component {
     });
     const polarityBySiteRows = Object.keys(polarityCountBySite).map(
       (polarity, index) => {
-        polarity = parseInt(polarity, 10);
         const polarityName = getPolarityString(polarity);
         const polarityCount = polarityCountBySite[polarity];
         const polarityCountPerc = parseInt(

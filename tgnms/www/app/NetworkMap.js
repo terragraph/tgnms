@@ -24,6 +24,7 @@ import {
   MapDimensions,
   MapTiles,
   SiteOverlayKeys,
+  SitePolarityMixed,
 } from './constants/NetworkConstants.js';
 import {
   apiServiceRequest,
@@ -997,8 +998,8 @@ export default class NetworkMap extends React.Component {
         if (sitePolarity === null) {
           sitePolarity = node.polarity;
         } else if (sitePolarity !== node.polarity) {
-          // Site Polarity has been set and doesn't match another node's polarity
-          site.polarity = PolarityType.HYBRID_ODD;
+          // Site polarity has been set and doesn't match another nodes polarity
+          sitePolarity = SitePolarityMixed;
         }
 
         if (

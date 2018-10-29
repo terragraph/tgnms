@@ -6,6 +6,7 @@
 'use strict';
 
 import {polarityColor} from '../helpers/NetworkHelpers.js';
+import {PolarityType} from '../../thrift/gen-nodejs/Topology_types';
 
 export const Actions = {
   // topology actions
@@ -69,6 +70,9 @@ export const Actions = {
   PENDING_TOPOLOGY: 'PENDING_TOPOLOGY',
 };
 
+// site hardware hybrid/mixed polarity doesn't have a node polarity equivalent
+export const SitePolarityMixed = 'SITE_POLARITY_MIXED';
+
 export const SiteOverlayKeys = {
   Health: {
     Healthy: {color: 'green'},
@@ -77,9 +81,11 @@ export const SiteOverlayKeys = {
     Empty: {color: 'gray'},
   },
   Polarity: {
-    Odd: {color: polarityColor(1)},
-    Even: {color: polarityColor(2)},
-    Hybrid: {color: polarityColor(3)},
+    Odd: {color: polarityColor(PolarityType.ODD)},
+    Even: {color: polarityColor(PolarityType.EVEN)},
+    'Hybrid Odd': {color: polarityColor(PolarityType.HYBRID_ODD)},
+    'Hybrid Even': {color: polarityColor(PolarityType.HYBRID_EVEN)},
+    Mixed: {color: polarityColor(SitePolarityMixed)},
   },
   Pending: {
     Site: {color: 'pink'},
