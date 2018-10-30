@@ -52,12 +52,21 @@ class Base:
             self._my_exit(False,
                           "Failed to send {}; {}".format(msg_type_str, ex))
 
-    def _my_exit(self, success, error_msg="", operation=None):
+    def _my_exit(
+        self,
+        success,
+        error_msg="",
+        operation=None,
+        test_aborted=False
+    ):
         # Mark the test as finished as all iPerf sessions are over
         try:
             test_run_obj = TestRunExecution.objects.get(pk=int(
                                             self.parameters['test_run_id']))
-            test_run_obj.status = TEST_STATUS_FINISHED
+            if not test_aborted:
+                test_run_obj.status = TEST_STATUS_FINISHED
+            else:
+                pass
             test_run_obj.save()
         except Exception as ex:
             _log.error("\nWrite to db failed: {}".format(ex))
@@ -70,8 +79,8 @@ class Base:
         if not operation:
             operation = type(self).__name__
         if success:
-            _log.warning("\n{} succeeded. {}".format(operation, error_msg))
+            _log.warning("\n{} succeeded. {}\n".format(operation, error_msg))
             sys.exit(0)
         else:
-            _log.error("\n{} failed. {}".format(operation, error_msg))
+            _log.error("\n{} failed. {}\n".format(operation, error_msg))
             sys.exit(1)

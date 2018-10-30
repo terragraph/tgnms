@@ -28,68 +28,69 @@ def process_iperf_response_bidirectional(response, is_threaded=False):
     iperf_duration = []
     count = 0
 
-    for line in response.split("\n"):
-        if (' sec ' in line and '/sec' in line and
-           'datagrams received out-of-order' not in line):
-            count += 1
-            if not is_threaded or (is_threaded and '[SUM]' in line):
-                # Get data of Bandwidth
-                duration = re.findall('\d+\.\d+', line)
-                if duration:
-                    if len(duration) >= 2:
-                        second = float(duration[1])
-                        iperf_duration.append(int(second))
+    if len(response) > 0:
+        for line in response.split("\n"):
+            if (' sec ' in line and '/sec' in line and
+               'datagrams received out-of-order' not in line):
+                count += 1
+                if not is_threaded or (is_threaded and '[SUM]' in line):
+                    # Get data of Bandwidth
+                    duration = re.findall('\d+\.\d+', line)
+                    if duration:
+                        if len(duration) >= 2:
+                            second = float(duration[1])
+                            iperf_duration.append(int(second))
 
-                m = re.search('([\d.]+) ([GMK]?)bits/sec', line)
-                if m:
-                    if 'G' in m.group(2):
-                        bps = float(m.group(1)) * 1
-                    elif 'M' in m.group(2):
-                        bps = float(m.group(1)) * 1
-                    elif 'K' in m.group(2):
-                        bps = float(m.group(1)) * 1
+                    m = re.search('([\d.]+) ([GMK]?)bits/sec', line)
+                    if m:
+                        if 'G' in m.group(2):
+                            bps = float(m.group(1)) * 1
+                        elif 'M' in m.group(2):
+                            bps = float(m.group(1)) * 1
+                        elif 'K' in m.group(2):
+                            bps = float(m.group(1)) * 1
+                        else:
+                            bps = float(m.group(1))
+                        iperf_throughput_data.append(bps)
+
+                    # Get % data of Packet loss (link error)
+                    m = re.search('([\d.]+)%', line)
+                    if m:
+                        link_error = float(m.group(1))
+                        iperf_link_data.append(link_error)
+
+                    # Get Jitter Values
+                    m = re.search('([\d.]+) ms', line)
+                    if m:
+                        temp_jitter = float(m.group(1))
+                        iperf_jitter.append(temp_jitter)
                     else:
-                        bps = float(m.group(1))
-                    iperf_throughput_data.append(bps)
+                        iperf_jitter.append(0)
 
-                # Get % data of Packet loss (link error)
-                m = re.search('([\d.]+)%', line)
-                if m:
-                    link_error = float(m.group(1))
-                    iperf_link_data.append(link_error)
+                    total_packets = 0
+                    lost_packets = 0
 
-                # Get Jitter Values
-                m = re.search('([\d.]+) ms', line)
-                if m:
-                    temp_jitter = float(m.group(1))
-                    iperf_jitter.append(temp_jitter)
-                else:
-                    iperf_jitter.append(0)
+                    # Calculate packet loss
+                    m = re.search('([\d.]+) \(', line)
+                    if m:
+                        total_packets = int(m.group(1))
 
-                total_packets = 0
-                lost_packets = 0
+                    m = re.search('([\d.]+)/', line)
+                    if m:
+                        lost_packets = int(m.group(1))
 
-                # Calculate packet loss
-                m = re.search('([\d.]+) \(', line)
-                if m:
-                    total_packets = int(m.group(1))
-
-                m = re.search('([\d.]+)/', line)
-                if m:
-                    lost_packets = int(m.group(1))
-
-                if lost_packets == 0:
-                    temp_link_error = 0
-                    iperf_link_error.append(temp_link_error)
-                else:
-                    if total_packets > 0:
-                        temp_link_error = (float(lost_packets) * 100 /
-                                           int(total_packets))
+                    if lost_packets == 0:
+                        temp_link_error = 0
+                        iperf_link_error.append(temp_link_error)
                     else:
-                        temp_link_error = 0.0
-                    iperf_link_error.append(temp_link_error)
+                        if total_packets > 0:
+                            temp_link_error = (float(lost_packets) * 100 /
+                                               int(total_packets))
+                        else:
+                            temp_link_error = 0.0
+                        iperf_link_error.append(temp_link_error)
 
-            iperf_real_data.append(line)
+                iperf_real_data.append(line)
 
     iperf_stats[THROUGHPUT_DATA] = iperf_throughput_data
     iperf_stats[IPERF_OUTPUT] = iperf_real_data

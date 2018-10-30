@@ -5,17 +5,22 @@ import os
 import zmq
 import sys
 import time
+import queue
 import logging
-from threading import Thread
+from threading import Thread, currentThread
 from api.network_test import base
+from api.network_test import run_iperf
+from api.network_test import run_ping
 from django.db import transaction
 from django.utils import timezone
-from api.models import (TestRunExecution, SingleHopTest)
+from api.models import (
+    TestRunExecution,
+    SingleHopTest,
+    TEST_STATUS_ABORTED,
+    TEST_STATUS_FINISHED
+)
 from api.iperf_ping_analyze import (parse_and_pack_iperf_data,
                                     get_ping_statistics)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
-                + "/../../"))
-from module.insights import link_health
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
                 + "/../../interface/gen-py"))
 from terragraph_thrift.Controller import ttypes as ctrl_types
@@ -34,6 +39,8 @@ class RecvFromCtrl(base.Base):
         parameters
     ):
         super().__init__(_ctrl_sock, zmq_identifier)
+        self.ctrl_sock = _ctrl_sock
+        self.zmq_identifier = zmq_identifier
         self.recv_timeout = time.time() + recv_timeout
         self.expected_number_of_responses = expected_number_of_responses
         self.number_of_responses = 0
@@ -43,6 +50,8 @@ class RecvFromCtrl(base.Base):
         self.parsed_iperf_client_data = ""
         self.parsed_iperf_server_data = ""
         self.parsed_ping_data = ""
+        self.test_aborted = False
+        self.test_aborted_queue = queue.Queue()
 
     def _get_recv_obj(self, msg_type, actual_sender_app):
         msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES\
@@ -77,7 +86,8 @@ class RecvFromCtrl(base.Base):
     def _process_output(self, msg_type, msg_data):
         if msg_type == ctrl_types.MessageType.PING_OUTPUT:
             _log.info("\nReceived output:\n{}".format(msg_data.output))
-            self.parsed_ping_data = msg_data.output.strip()
+            self.parsed_ping_data = self._strip_ping_output(
+                                            msg_data.output.strip())
             self._log_to_mysql(
                 source_node=msg_data.startPing.pingConfig.srcNodeId,
                 destination_node=msg_data.startPing.pingConfig.dstNodeId,
@@ -98,7 +108,6 @@ class RecvFromCtrl(base.Base):
                     destination_node=msg_data.startIperf.iperfConfig.dstNodeId,
                     is_iperf=True,
                 )
-
         elif msg_type == ctrl_types.MessageType.START_PING_RESP:
             self.start_ping_ids.append(msg_data.id)
         elif msg_type == ctrl_types.MessageType.START_IPERF_RESP:
@@ -106,6 +115,12 @@ class RecvFromCtrl(base.Base):
         elif msg_type == ctrl_types.MessageType.E2E_ACK:
             _log.info("\nReceived output from E2E_ACK:\n{}".format(
                                                 msg_data.message))
+
+    def _strip_ping_output(self, ping_output):
+        if "Address unreachable" in ping_output:
+            return ""
+        else:
+            return ping_output
 
     def _strip_iperf_output(self, iperf_output):
         strip_before = "[ ID] Interval"
@@ -125,7 +140,6 @@ class RecvFromCtrl(base.Base):
                 link['dst_node_id'] == destination_node
             ):
                 return link
-
         return None
 
     def _log_to_mysql(
@@ -212,88 +226,93 @@ class RecvFromCtrl(base.Base):
                         link_db_obj.ping_output_blob = self.parsed_ping_data
                         link_db_obj.save()
 
-    def _write_analytics_stats_to_db(self, analytics_stats):
-        # analytics_stats is list of Beringei TimeSeries objects
-        for stats in analytics_stats:
-            if stats.name == 'link_health':
-                link = self._get_link(stats.src_mac, stats.peer_mac)
-                if link is not None:
-                    link_db_obj = SingleHopTest.objects.filter(
-                        id=link['id']
-                    ).first()
-                    if link_db_obj is not None:
-                        with transaction.atomic():
-                            link_db_obj.health = stats.values[0]
-                            link_db_obj.save()
+    def _stop_iperf_ping(self):
+        self.iperf_obj = run_iperf.RunIperf(self.ctrl_sock, self.zmq_identifier)
+        self.ping_obj = run_ping.RunPing(self.ctrl_sock, self.zmq_identifier)
+        # send stop iperf requests to the Ctrl
+        for iperf_id in self.start_iperf_ids:
+            self.iperf_obj._stop_iperf(iperf_id)
+        # send stop ping requests to the Ctrl
+        for ping_id in self.start_ping_ids:
+            self.ping_obj._stop_ping(ping_id)
+        return
 
     def _listen_on_socket(self):
+
+        # spawn a thread to check if test is aborted
+        test_aborted_obj = CheckAbortStatus(
+                                    test_aborted_queue=self.test_aborted_queue,
+                                    recv_timeout=self.recv_timeout,
+                                    parameters=self.parameters,
+                                    listen_thread=currentThread()
+                                )
+        test_aborted_obj.start()
+
+        # start listening on Socket
         while ((self.number_of_responses != self.expected_number_of_responses)
-                and (time.time() < self.recv_timeout)):
-            # 3 messages are expected per response
-            # First one is a blank response, followed by the ID of the app
-            # for whom this response is for, followed by the response data
-            try:
-                self._ctrl_sock.recv(flags=zmq.NOBLOCK)
-                actual_sender_app = self._ctrl_sock.recv(flags=zmq.NOBLOCK)\
-                                                   .decode('utf-8')
-                ser_msg = self._ctrl_sock.recv(flags=zmq.NOBLOCK)
-                self.number_of_responses += 1
-            except zmq.Again:
-                continue
-            except Exception as ex:
-                _log.error("\nError receiving response: {}".format(ex))
-                _log.info(
-                    "Note: Specify correct controller ip and port wih "
-                    + "-c/--controller_ip and -p/--controller_port options, "
-                    + "and make sure that Controller is running on the host "
-                    + "or ports are open on that server for network "
-                    + "communication.")
-                self._my_exit(False)
+                and (time.time() < self.recv_timeout)
+                and not self.test_aborted):
+            if self.test_aborted_queue.empty():
+                # 3 messages are expected per response
+                # First one is a blank response, followed by the ID of the app
+                # for whom this response is for, followed by the response data
+                try:
+                    self._ctrl_sock.recv(flags=zmq.NOBLOCK)
+                    actual_sender_app = self._ctrl_sock\
+                                            .recv(flags=zmq.NOBLOCK)\
+                                            .decode('utf-8')
+                    ser_msg = self._ctrl_sock.recv(flags=zmq.NOBLOCK)
+                    self.number_of_responses += 1
+                except zmq.Again:
+                    continue
+                except Exception as ex:
+                    _log.error("\nError receiving response: {}".format(ex))
+                    _log.info(
+                        "Note: Specify correct controller ip and port with "
+                        + "-c/--controller_ip and -p/--controller_port "
+                        + "options, and make sure that Controller is running "
+                        + "on the host or ports are open on that server "
+                        + "for network communication.")
+                    self._my_exit(False)
 
-            # deserialize message
-            deser_msg = ctrl_types.Message()
-            try:
-                self._deserialize(ser_msg, deser_msg)
-                msg_data = self._get_recv_obj(deser_msg.mType,
-                                              actual_sender_app)
-                self._deserialize(deser_msg.value, msg_data)
-                self._process_output(deser_msg.mType, msg_data)
-            except Exception as ex:
-                _log.error("\nError reading response: {}".format(ex))
-                _log.info(
-                    "Note: Specify correct controller ip and port with "
-                    + "-c/--controller_ip and -p/--controller_port options, "
-                    + "and make sure that Controller is running on the host "
-                    + "or ports are open on that server for network "
-                    + "communication.")
-                self._my_exit(False)
+                # deserialize message
+                deser_msg = ctrl_types.Message()
+                try:
+                    self._deserialize(ser_msg, deser_msg)
+                    msg_data = self._get_recv_obj(deser_msg.mType,
+                                                  actual_sender_app)
+                    self._deserialize(deser_msg.value, msg_data)
+                    self._process_output(deser_msg.mType, msg_data)
+                except Exception as ex:
+                    _log.error("\nError reading response: {}".format(ex))
+                    _log.info(
+                        "Note: Specify correct controller ip and port with "
+                        + "-c/--controller_ip and -p/--controller_port "
+                        + "options, and make sure that Controller is running "
+                        + "on the host or ports are open on that server "
+                        + "for network communication.")
+                    self._my_exit(False)
+            else:
+                self.test_aborted = self.test_aborted_queue.get()
 
+        # check if test was Aborted by user
+        if self.test_aborted:
+            self._stop_iperf_ping()
+            self._my_exit(
+                    False,
+                    error_msg="Test Aborted by User",
+                    test_aborted=True
+                )
+
+        # check if test ended before receiving all responses in time
         self.test_end_time = time.time()
-        # Mark the end time of the test in db
-        try:
-            test_run_obj = TestRunExecution.objects.get(pk=int(
-                                            self.parameters['test_run_id']))
-            test_run_obj.end_date = timezone.now()
-            test_run_obj.save()
-            # get start date and the end date of the test
-            start_time = int(test_run_obj.start_date.strftime('%s'))
-            end_time = int(test_run_obj.end_date.strftime('%s'))
-        except Exception as ex:
-            self._my_exit(False, error_msg=ex)
-
-        # get analytics stats of the network for the duration of the test
-        self._write_analytics_stats_to_db(link_health(
-                start_time,
-                end_time,
-                self.parameters['network_info']
-            )
-        )
         if self.test_end_time > self.recv_timeout:
             self._my_exit(False, error_msg="Did not receive all responses "
                                            + "in time.")
         else:
             # clean exit
-            self._my_exit(True)
+            self._my_exit(True, error_msg="Received all expected responses in "
+                                          + "time.")
 
 
 class Listen(Thread):
@@ -320,3 +339,43 @@ class Listen(Thread):
                                   self.duration,
                                   self.parameters)
         listen_obj._listen_on_socket()
+
+
+class CheckAbortStatus(Thread):
+
+    def __init__(
+        self,
+        test_aborted_queue,
+        recv_timeout,
+        parameters,
+        listen_thread
+    ):
+        Thread.__init__(self)
+        self.test_aborted_queue = test_aborted_queue
+        self.recv_timeout = recv_timeout
+        self.parameters = parameters
+        self.listen_thread = listen_thread
+        self.db_fail_count = 0
+
+    def run(self):
+        # check if test is aborted in db
+
+        while (time.time() < self.recv_timeout
+               and self.listen_thread.is_alive()):
+            try:
+                test_run_obj = TestRunExecution.objects.get(pk=int(
+                                    self.parameters['test_run_id']))
+                if test_run_obj.status == TEST_STATUS_ABORTED:
+                    self.test_aborted_queue.put(True)
+                    break
+                elif test_run_obj.status == TEST_STATUS_FINISHED:
+                    break
+                else:
+                    time.sleep(5)
+            except Exception as ex:
+                self.db_fail_count += 1
+                if self.db_fail_count == 5:
+                    self._my_exit(False, error_msg="Failed to get db object " +
+                                  "{} times: {}".format(self.db_fail_count,
+                                                        ex))
+                pass

@@ -32,7 +32,10 @@ class TestNetwork(Thread):
         self.num_sent_req = 0
         self.test_start_time = time.time()
 
-    def myget(self, link_dict, obj):
+    def run(self):
+        self._test_network()
+
+    def _myget(self, link_dict, obj):
         try:
             if obj == 'iperf_object':
                 return link_dict[obj].time_sec
@@ -41,7 +44,7 @@ class TestNetwork(Thread):
         except Exception:
             return 0
 
-    def test_network(self):
+    def _test_network(self):
 
         # connect to controller
         get_socket = connect_to_ctrl.ConnectToController(self.controller_addr,
@@ -62,8 +65,8 @@ class TestNetwork(Thread):
         # Set the recv_timeout = max(endtime), where for each item on the list,
         # the endtime is start_delay + max(iperf/ping duration)
         self.recv_timeout = (max(
-            x['start_delay'] + max(self.myget(x, 'iperf_object'),
-                                   self.myget(x, 'ping_object'))
+            x['start_delay'] + max(self._myget(x, 'iperf_object'),
+                                   self._myget(x, 'ping_object'))
             for x in self.test_list) +
             15
         )
@@ -131,8 +134,8 @@ class TestNetwork(Thread):
                     self.num_sent_req += 1
             time.sleep(1)
 
-    def run(self):
-        self.test_network()
+        # wait for listen thread to finish
+        self.listen_obj.join()
 
 
 class IperfObj:
