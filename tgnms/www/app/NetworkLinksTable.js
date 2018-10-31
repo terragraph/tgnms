@@ -14,9 +14,7 @@ import {
 import ReactEventChart from './ReactEventChart.js';
 // using ReactEventChart until performance for Plotly is improved
 // import PlotlyEventChart from './PlotlyEventChart.js';
-// dispatcher
 import {Actions} from './constants/NetworkConstants.js';
-import {DEFAULT_DASHBOARD_NAMES} from './constants/NetworkDashboardsConstants.js';
 import NetworkStore from './stores/NetworkStore.js';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -53,7 +51,7 @@ export default class NetworkLinksTable extends React.Component {
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
       filter: true,
-      render: this.renderNameWithStatsLinks.bind(this),
+      render: this.renderLinkName.bind(this),
     },
     {
       label: 'Alive?',
@@ -462,35 +460,8 @@ export default class NetworkLinksTable extends React.Component {
     }
   }
 
-  renderNameWithStatsLinks(cell, row) {
-    return (
-      <span>
-        {cell}
-        <br />
-        <div
-          className="table-button"
-          onClick={() =>
-            this.onViewDefaultDashboardClick(
-              row.a_node_name,
-              row.z_node_name,
-              DEFAULT_DASHBOARD_NAMES.LINK,
-            )
-          }>
-          Link Dashboard
-        </div>
-        <div
-          className="table-button"
-          onClick={() =>
-            this.onViewDefaultDashboardClick(
-              row.a_node_name,
-              row.z_node_name,
-              DEFAULT_DASHBOARD_NAMES.NODE,
-            )
-          }>
-          Node Dashboard
-        </div>
-      </span>
-    );
+  renderLinkName(cell, row) {
+    return <span>{cell}</span>;
   }
 
   // convert time in ms to hh:MM:ss<AM/PM> format
@@ -556,19 +527,6 @@ export default class NetworkLinksTable extends React.Component {
     return url;
   }
 
-  onViewDefaultDashboardClick = (nodeAName, nodeZName, dashboardName) => {
-    Dispatcher.dispatch({
-      actionType: Actions.VIEW_SELECTED,
-      context: {
-        dashboardName,
-        nodeAName,
-        nodeZName,
-        topologyName: this.props.topology.name,
-      },
-      viewName: 'dashboards',
-    });
-  };
-
   // create a link to the high frequency Scuba dashboard
   renderScubaLink(a_node_name, z_node_name, startTms, endTms) {
     const aNode = this.nodesByName[a_node_name];
@@ -633,11 +591,13 @@ export default class NetworkLinksTable extends React.Component {
   // PHY statistics; the link will only work when connected to the FB
   // corporate network
   renderDashboardLink(cell, row) {
-    let fbinternal = false;
-    if (this.props.instance.hasOwnProperty('fbinternal')) {
-      fbinternal = this.props.instance.fbinternal;
+    // nothing to display if non-internal
+    if (
+      !this.props.instance.hasOwnProperty('fbinternal') ||
+      !this.props.instance.fbinternal
+    ) {
+      return null;
     }
-
     // if the field doesn't exist, don't display the link
     if (
       !this.nodesByName.hasOwnProperty(row.a_node_name) ||
@@ -660,48 +620,17 @@ export default class NetworkLinksTable extends React.Component {
 
     const odsURL = this.renderODSLink(row.a_node_name, row.z_node_name);
 
-    if (fbinternal) {
-      return (
-        <span>
-          {cell}
-
-          <div
-            className="table-button"
-            onClick={() =>
-              this.onViewDefaultDashboardClick(
-                row.a_node_name,
-                row.z_node_name,
-                DEFAULT_DASHBOARD_NAMES.LINK,
-              )
-            }>
-            Dashboard
-          </div>
-          <a href={scubaURL} target="_new">
-            <div className="table-button">Scuba</div>
-          </a>
-          <a href={odsURL} target="_new">
-            <div className="table-button">ODS</div>
-          </a>
-        </span>
-      );
-    } else {
-      return (
-        <span>
-          {cell}
-          <div
-            className="table-button"
-            onClick={() =>
-              this.onViewDefaultDashboardClick(
-                row.a_node_name,
-                row.z_node_name,
-                DEFAULT_DASHBOARD_NAMES.LINK,
-              )
-            }>
-            Dashboard
-          </div>
-        </span>
-      );
-    }
+    return (
+      <span>
+        {cell}
+        <a href={scubaURL} target="_new">
+          <div className="table-button">Scuba</div>
+        </a>
+        <a href={odsURL} target="_new">
+          <div className="table-button">ODS</div>
+        </a>
+      </span>
+    );
   }
 
   renderAlivePerc(cell, row) {

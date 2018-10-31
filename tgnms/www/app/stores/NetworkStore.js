@@ -36,7 +36,6 @@ const SITE_ROOT = '/';
 // icon: Glyphicon from Bootstrap 3.3.7
 const VIEWS = {
   map: {name: 'Map', icon: 'map-marker'},
-  dashboards: {name: 'Dashboards', icon: 'dashboard'},
   stats: {name: 'Stats', icon: 'stats'},
   // TODO: implement these views and uncomment them
   // eventlogs: {name: 'Event Logs', icon: 'list'},

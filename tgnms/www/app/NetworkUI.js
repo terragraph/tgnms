@@ -20,7 +20,6 @@ import ModalLinkAdd from './ModalLinkAdd.js';
 import ModalNodeAdd from './ModalNodeAdd.js';
 import ModalOverlays from './ModalOverlays.js';
 import NetworkConfigContainer from './components/networkconfig/NetworkConfigContainer.js';
-import NetworkDashboards from './NetworkDashboards.js';
 import NetworkMap from './NetworkMap.js';
 import NetworkStats from './NetworkStats.js';
 import NetworkStore from './stores/NetworkStore.js';
@@ -371,9 +370,6 @@ class NetworkUI extends React.Component {
     switch (this.state.view) {
       case 'eventlogs':
         paneComponent = <EventLogs {...viewProps} />;
-        break;
-      case 'dashboards':
-        paneComponent = <NetworkDashboards {...viewProps} />;
         break;
       case 'stats':
         paneComponent = <NetworkStats {...viewProps} />;

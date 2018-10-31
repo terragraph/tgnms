@@ -12,8 +12,8 @@ import axios from 'axios';
 import Datetime from 'react-datetime';
 import Dispatcher from './NetworkDispatcher.js';
 import moment from 'moment';
+import PlotlyGraph from './PlotlyGraph.js';
 import React from 'react';
-import ReactMultiGraph from './ReactMultiGraph.js';
 
 import {Actions} from './constants/NetworkConstants.js';
 import {AsyncTypeahead} from 'react-bootstrap-typeahead';
@@ -237,12 +237,15 @@ export default class NetworkStats extends React.Component {
     // all graphs
     let pos = 0;
     const multiGraphs = this.state.keysSelected.map(keyIds => {
+      const keyNames = keyIds.data[0].shortName.length
+        ? [keyIds.data[0].shortName]
+        : keyIds.data.map(data => data.keyName);
       const graphOpts = {
         aggregation: this.state.graphAggType,
-        keyNames: keyIds.data[0].shortName.length
-          ? [keyIds.data[0].shortName]
-          : keyIds.data.map(data => data.keyName),
+        keyNames,
         outputFormat: 1 /* POINTS */,
+        maxResults: 7,
+        maxDataPoints: 100 /* restrict individual points to 100 */,
         topologyName: this.props.networkConfig.topology.name,
       };
       if (this.state.useCustomTime) {
@@ -252,7 +255,14 @@ export default class NetworkStats extends React.Component {
         graphOpts.minAgo = this.state.minAgo;
       }
       pos++;
-      return <ReactMultiGraph options={graphOpts} key={pos} size="large" />;
+      return (
+        <PlotlyGraph
+          key={'graph-' + pos}
+          containerId="statsBoxDiv"
+          title={keyNames.length == 1 ? keyNames[0] : keyNames.join(', ')}
+          options={graphOpts}
+        />
+      );
     });
     // custom time selector
     let customInputProps = {};
@@ -372,7 +382,7 @@ export default class NetworkStats extends React.Component {
           </button>
         ))}
         <br />
-        {multiGraphs}
+        <div id="statsBoxDiv">{multiGraphs}</div>
       </div>
     );
   }

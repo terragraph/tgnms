@@ -12,6 +12,13 @@ import Plot from 'react-plotly.js';
 import axios from 'axios';
 import moment from 'moment';
 
+// graph sizing defaults
+// these are large due to the key names in the legend being typically verbose
+const MIN_GRAPH_WIDTH = 700;
+const GRAPH_HEIGHT = 400;
+// margin between graphs to ensure they land inline on the same line
+const GRAPH_GAP_WIDTH = 20;
+
 export default class PlotlyGraph extends React.Component {
   constructor(props, context) {
     super(props, context);
@@ -34,9 +41,15 @@ export default class PlotlyGraph extends React.Component {
 
     // schedule fixed interval refresh
     this.timer = setInterval(() => this.refreshData(), 10000);
+    window.addEventListener('resize', () =>
+      this.windowResizeListener.bind(this),
+    );
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', () =>
+      this.windowResizeListener.bind(this),
+    );
     this.cancelAsyncRequests();
   }
 
@@ -49,24 +62,13 @@ export default class PlotlyGraph extends React.Component {
 
   componentDidUpdate(nextProps, nextState) {
     // check to see if props were updated
-    let changed =
-      this.props.options.length !== nextProps.options.length &&
-      nextProps.options.length;
-    if (!changed) {
-      for (let i = 0; i < this.props.options.length; i++) {
-        const curOpts = this.props.options[i];
-        const nextOpts = nextProps.options[i];
-        if (!equals(curOpts, nextOpts)) {
-          changed = true;
-          break;
-        }
-      }
-    }
+    const changed = !equals(this.props.options, nextProps.options);
     if (changed) {
       this.cancelAsyncRequests();
       this.setState({
         data: null,
         indicator: 'LOAD',
+        plotlyData: [],
       });
       this.timer = setInterval(() => this.refreshData(), 30000);
       this.refreshData();
@@ -83,51 +85,30 @@ export default class PlotlyGraph extends React.Component {
     return false;
   }
 
+  windowResizeListener() {
+    this.forceUpdate();
+  }
+
   refreshData() {
-    if (!this.props.options.key_ids.length) {
+    if (!this.props.options.keyNames.length) {
       this.setState({
         data: null,
         indicator: 'NO_DATA',
       });
     }
-    const {
-      agg_type,
-      endTime,
-      key_ids,
-      key_data,
-      minAgo,
-      startTime,
-    } = this.props.options;
-
-    // convert dates to time stamps (sec) using moment.format("X")
-    const startTsNum = startTime ? startTime.getTime() / 1000 : null;
-    const endTsNum = endTime ? endTime.getTime() / 1000 : null;
-
-    const graphRequest = [
-      {
-        agg_type,
-        data: key_data,
-        end_ts: endTsNum,
-        key_ids,
-        min_ago: minAgo,
-        start_ts: startTsNum,
-        type: 'key_ids',
-      },
-    ];
     axios
-      .post('/metrics/multi_chart/', graphRequest, {
+      .post('/metrics/multi_chart/', this.props.options, {
         'Content-Type': 'application/x-www-form-urlencoded',
       })
       .then(resp => {
         if (!resp.data) {
-          console.error('No data available');
           this.setState({
             data: null,
             indicator: 'NO_DATA',
           });
         } else {
           // process data to fit format for Plotly
-          const graphData = resp.data[0];
+          const graphData = resp.data;
           const traces = this.plotDataFormatter(graphData);
 
           this.setState({
@@ -154,7 +135,7 @@ export default class PlotlyGraph extends React.Component {
 
       // If there is already plotly data (lines are already on the graph),
       // then refresh the trace's x and y data, otherwise make new traces
-      if (this.state.plotlyData.length !== 0) {
+      if (this.state.plotlyData && this.state.plotlyData.length !== 0) {
         traces = this.state.plotlyData.map(trace => ({
           ...trace,
           x: [],
@@ -204,35 +185,46 @@ export default class PlotlyGraph extends React.Component {
 
   render() {
     const {xaxisStart, xaxisEnd} = this.state;
-    const {divkey, title} = this.props;
-
     // Format time range based on if minAgo is specified or not
-    let {startTime, endTime, minAgo} = this.props.options;
+    const {title, containerId} = this.props;
+    let {startTsSec, endTsSec, minAgo} = this.props.options;
     if (minAgo) {
-      endTime = moment().toDate();
-      startTime = moment()
+      endTsSec = moment().toDate();
+      startTsSec = moment()
         .subtract(minAgo, 'minutes')
         .toDate();
     }
     // Format height and width of graph
-    let divHeight = 0;
-    let divWidth = 0;
-    if (document.getElementById('plot-' + divkey) !== null) {
-      divHeight = document.getElementById('plot-' + divkey).offsetHeight;
-      divWidth = document.getElementById('plot-' + divkey).offsetWidth;
+
+    let width = MIN_GRAPH_WIDTH;
+    if (document.getElementById(containerId) !== null) {
+      const containerWidth = document.getElementById(containerId).offsetWidth;
+      // try to fit two if each graph width > minGraphWidth
+      if (containerWidth > MIN_GRAPH_WIDTH * 2.0 + GRAPH_GAP_WIDTH) {
+        width = Math.floor(containerWidth / 2.0 - GRAPH_GAP_WIDTH);
+      } else if (containerWidth > MIN_GRAPH_WIDTH) {
+        width = containerWidth;
+      } else {
+        width = MIN_GRAPH_WIDTH;
+      }
     }
 
     return (
-      <div className="dashboard-plotly-wrapper" id={'plot-' + divkey}>
+      <div className="dashboard-plotly-wrapper" style={{display: 'inline'}}>
         <Plot
           data={this.state.plotlyData}
           layout={{
-            height: divHeight,
+            height: GRAPH_HEIGHT,
             title,
-            width: divWidth,
+            width,
             showlegend: this.state.showLegend,
+            legend: {
+              x: 1,
+              y: 0.5,
+              //orientation: 'h',
+            },
             xaxis: {
-              range: [xaxisStart || startTime, xaxisEnd || endTime],
+              range: [xaxisStart || startTsSec, xaxisEnd || endTsSec],
             },
           }}
           config={{
@@ -259,7 +251,7 @@ export default class PlotlyGraph extends React.Component {
 }
 
 PlotlyGraph.propTypes = {
-  divkey: PropTypes.string.isRequired,
+  containerId: PropTypes.string.isRequired,
   options: PropTypes.object.isRequired,
   title: PropTypes.string.isRequired,
 };

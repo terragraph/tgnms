@@ -136,7 +136,6 @@ export default class NetworkDataTable extends React.Component {
       instance: this.props.networkConfig,
       routing: this.state.routing,
       topology: this.props.networkConfig.topology,
-      viewDefaultDashboard: this.props.viewDefaultDashboard,
       zoomLevel: this.state.zoomLevel,
     };
     return (
