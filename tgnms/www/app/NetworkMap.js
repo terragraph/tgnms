@@ -537,10 +537,12 @@ export default class NetworkMap extends React.Component {
       // Don't allow re-selection if a site is being edited
       return;
     }
-
-    const site = this.props.networkConfig.topology.sites[
-      ev.target.options.siteIndex
-    ];
+    const {siteName} = ev.target.options;
+    if (!this.sitesByName.hasOwnProperty(siteName)) {
+      console.error('Unable to find site', siteName, 'in', this.sitesByName);
+      return;
+    }
+    const site = this.sitesByName[siteName];
     // dispatch to update all UIs
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
@@ -601,7 +603,6 @@ export default class NetworkMap extends React.Component {
     bgpDisabled,
     isCn,
     hasMac,
-    siteIndex,
   ): React.Element<any> => {
     let apMarker = null;
     let secondaryMarkerProps = null;
@@ -616,7 +617,7 @@ export default class NetworkMap extends React.Component {
           fill={false}
           color="purple"
           key={'ap-site ' + site.name}
-          siteIndex={siteIndex}
+          siteName={site.name}
           onClick={this.handleMarkerClick}
           level={12}
         />
@@ -655,7 +656,7 @@ export default class NetworkMap extends React.Component {
         fillOpacity={1}
         color={color}
         key={site.name}
-        siteIndex={siteIndex}
+        siteName={site.name}
         onClick={this.handleMarkerClick}
         onMouseOver={() => this.handleMarkerHover(site)}
         onMouseOut={() => this.handleMarkerHover(null)}
@@ -669,7 +670,7 @@ export default class NetworkMap extends React.Component {
             clickable
             fillOpacity={1}
             key={'pop-node ' + site.name}
-            siteIndex={siteIndex}
+            siteName={site.name}
             stroke={false}
             onClick={this.handleMarkerClick}
             level={12}
@@ -1041,7 +1042,6 @@ export default class NetworkMap extends React.Component {
       }
 
       let siteColor = SiteOverlayKeys.Health.Unhealthy.color; // default
-      let siteIndexForMarker = siteIndex;
 
       if (site.hasOwnProperty('pending') && site.pending) {
         siteColor = SiteOverlayKeys.Pending.Site;
@@ -1068,7 +1068,6 @@ export default class NetworkMap extends React.Component {
             break;
           default:
             siteColor = SiteOverlayKeys.Health.Unhealthy.color;
-            siteIndexForMarker = undefined; // hack
         }
       }
 
@@ -1082,7 +1081,6 @@ export default class NetworkMap extends React.Component {
           bgpDisabled,
           isCn,
           hasMac,
-          siteIndexForMarker,
         ),
       );
     });
