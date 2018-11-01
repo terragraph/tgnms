@@ -306,6 +306,7 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   margin-bottom: 5px;
   padding: 2px;
   width: 100%;
+  border: 0px solid black;
 }
 .details-table th {
   padding-right: 10px;
@@ -319,6 +320,9 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 }
 .details-table.bgp-route-info {
   margin-top: 10px;
+}
+.details-table.search-nearby td {
+  white-space: nowrap;
 }
 .details-separator {
   margin: 1px;

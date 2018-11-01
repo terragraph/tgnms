@@ -42,9 +42,9 @@ const LINK_TYPE_MAP = {
 export default class ModalLinkAdd extends React.Component {
   state = {
     isBackupCnLink: null,
-    linkNode1: null,
-    linkNode2: null,
-    linkType: null,
+    linkNode1: this.props.defaultLinkNode1 || null,
+    linkNode2: this.props.defaultLinkNode2 || null,
+    linkType: this.props.defaultLinkType || null,
   };
 
   componentDidMount() {}

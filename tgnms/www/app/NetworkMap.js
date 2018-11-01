@@ -13,6 +13,7 @@ import DetailsLegend from './components/detailpanels/DetailsLegend.js';
 import DetailsLink from './components/detailpanels/DetailsLink.js';
 import DetailsNode from './components/detailpanels/DetailsNode.js';
 import DetailsCreateOrEditSite from './components/detailpanels/DetailsCreateOrEditSite.js';
+import DetailsSearchNearby from './components/detailpanels/DetailsSearchNearby.js';
 import DetailsSite from './components/detailpanels/DetailsSite.js';
 import DetailsTopology from './components/detailpanels/DetailsTopology.js';
 import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssues.js';
@@ -100,6 +101,7 @@ export default class NetworkMap extends React.Component {
     mapTile: PropTypes.string.isRequired,
     networkConfig: PropTypes.object.isRequired,
     networkName: PropTypes.string.isRequired,
+    onTopologyOperation: PropTypes.func.isRequired,
     pendingTopology: PropTypes.object.isRequired,
     siteOverlay: PropTypes.string.isRequired,
     viewContext: PropTypes.object.isRequired,
@@ -119,6 +121,8 @@ export default class NetworkMap extends React.Component {
     routeSourceNode: null,
     routeWeights: {},
     routingOverlayEnabled: false,
+    searchNearbyNode: null,
+    nearbyNode: null,
     selectedLink: null,
     selectedSite: null,
     siteToEdit: null,
@@ -224,6 +228,8 @@ export default class NetworkMap extends React.Component {
           plannedSite: null,
           recentlyEditedSite: null,
           routingOverlayEnabled: false,
+          nearbyNode: null,
+          searchNearbyNode: null,
           selectedLink: null,
           selectedNode: null,
           selectedSector: null,
@@ -234,6 +240,8 @@ export default class NetworkMap extends React.Component {
       case Actions.NODE_SELECTED: {
         const site = this.nodesByName[payload.nodeSelected].site_name;
         this.setState({
+          nearbyNode: null,
+          searchNearbyNode: null,
           selectedLink: null,
           selectedNode: payload.nodeSelected,
           selectedSector: payload.sectorSelected,
@@ -243,6 +251,8 @@ export default class NetworkMap extends React.Component {
       }
       case Actions.LINK_SELECTED:
         this.setState({
+          nearbyNode: null,
+          searchNearbyNode: null,
           selectedLink: payload.link,
           selectedNode: null,
           selectedSector: null,
@@ -251,6 +261,8 @@ export default class NetworkMap extends React.Component {
         break;
       case Actions.SITE_SELECTED:
         this.setState({
+          nearbyNode: null,
+          searchNearbyNode: null,
           selectedLink: null,
           selectedNode: null,
           selectedSector: null,
@@ -263,6 +275,8 @@ export default class NetworkMap extends React.Component {
           routeSourceNode: payload.routeSourceNode,
           routeWeights: payload.routeWeights,
           routingOverlayEnabled: true,
+          nearbyNode: null,
+          searchNearbyNode: null,
           selectedLink: null,
           selectedNode: null,
           selectedSector: null,
@@ -330,6 +344,8 @@ export default class NetworkMap extends React.Component {
       }
       case Actions.CLEAR_NODE_LINK_SELECTED:
         this.setState({
+          nearbyNode: null,
+          searchNearbyNode: null,
           selectedLink: null,
           selectedNode: null,
           selectedSector: null,
@@ -361,6 +377,12 @@ export default class NetworkMap extends React.Component {
         this.setState({
           newTopology: payload.topology,
           showTopologyIssuesPane: payload.visible,
+        });
+        break;
+      case Actions.START_SEARCH_NEARBY:
+        this.setState({
+          nearbyNode: null,
+          searchNearbyNode: payload.node,
         });
         break;
     }
@@ -603,9 +625,30 @@ export default class NetworkMap extends React.Component {
     bgpDisabled,
     isCn,
     hasMac,
+    hasNearbyNode,
   ): React.Element<any> => {
     let apMarker = null;
+    let nearbyNodeMarker = null;
     let secondaryMarkerProps = null;
+
+    // Highlight this site if a user is hovering over a nearbyNode
+    // (DetailsSearchNearby) that is on this site.
+    if (hasNearbyNode) {
+      nearbyNodeMarker = (
+        <CircleMarker
+          center={pos}
+          radius={this.state.zoomLevel - 5}
+          weight={4}
+          clickable
+          fill={false}
+          color="grey"
+          key={'nearby-node-site ' + site.name}
+          siteName={site.name}
+          onClick={this.handleMarkerClick}
+          level={12}
+        />
+      );
+    }
 
     if (hasAp) {
       apMarker = (
@@ -663,6 +706,7 @@ export default class NetworkMap extends React.Component {
         fillColor={color}
         level={10}>
         {apMarker}
+        {nearbyNodeMarker}
         {secondaryMarkerProps && (
           <CircleMarker
             center={pos}
@@ -906,13 +950,19 @@ export default class NetworkMap extends React.Component {
     this.setState({detailsExpanded: false});
   };
 
+  updateNearbyNode(nearbyNode) {
+    this.setState({nearbyNode});
+  }
+
   render() {
     const {commitPlan} = this.props;
     const {
       commitPlanBatch,
-      selectedSite,
-      siteToEdit,
       recentlyEditedSite,
+      nearbyNode,
+      selectedSite,
+      searchNearbyNode,
+      siteToEdit,
     } = this.state;
 
     if (this.nodesRef.current) {
@@ -1071,6 +1121,9 @@ export default class NetworkMap extends React.Component {
         }
       }
 
+      const hasNearbyNode = nearbyNode
+        ? nearbyNode.nearestSite === site.name
+        : false;
       siteComponents.push(
         this.getSiteMarker(
           site,
@@ -1081,6 +1134,7 @@ export default class NetworkMap extends React.Component {
           bgpDisabled,
           isCn,
           hasMac,
+          hasNearbyNode,
         ),
       );
     });
@@ -1595,6 +1649,31 @@ export default class NetworkMap extends React.Component {
             onMouseLeave={this.enableMapScrolling}
             onSaveSite={this.editSite}
             onSiteUpdate={this.updateSiteToEdit}
+          />
+        </Control>
+      );
+    }
+
+    if (searchNearbyNode) {
+      layersControl = (
+        <Control position="topright">
+          <DetailsSearchNearby
+            maxHeight={maxModalHeight}
+            node={searchNearbyNode}
+            onClose={() => {
+              this.enableMapScrolling();
+              this.setState({
+                nearbyNode: null,
+                searchNearbyNode: null,
+              });
+            }}
+            onTopologyOperation={(topOp, topOpsProps) =>
+              this.props.onTopologyOperation(topOp, topOpsProps)
+            }
+            onMouseEnter={this.disableMapScrolling}
+            onMouseLeave={this.enableMapScrolling}
+            onNearbyNodeUpdate={node => this.updateNearbyNode(node)}
+            topology={this.props.networkConfig.topology}
           />
         </Control>
       );

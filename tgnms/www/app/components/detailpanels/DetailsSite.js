@@ -153,7 +153,7 @@ export default class DetailsSite extends React.Component {
   };
 
   editSite = () => {
-    const {site, topologyName} = this.props;
+    const {site} = this.props;
 
     Dispatcher.dispatch({
       actionType: Actions.START_SITE_EDIT,

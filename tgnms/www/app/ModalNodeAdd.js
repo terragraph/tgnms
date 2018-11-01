@@ -31,20 +31,18 @@ const customModalStyle = {
 
 export default class ModalNodeAdd extends React.Component {
   state = {
-    node_name: '',
+    node_name: this.props.defaultNodeName || '',
     node_is_primary: false,
     node_type: null,
-    node_mac_addr: '',
+    node_mac_addr: this.props.defaultNodeMacAddr || '',
     node_is_pop: false,
     node_polarity: null,
     node_txGolayIdx: null,
     node_rxGolayIdx: null,
-    node_site_name: null,
+    node_site_name: this.props.defaultNodeSiteName || null,
     node_ant_azimuth: null,
     node_has_cpe: false,
   };
-
-  componentDidMount() {}
 
   modalClose() {
     this.props.onClose();
@@ -65,10 +63,6 @@ export default class ModalNodeAdd extends React.Component {
       site_name: this.state.node_site_name,
       ant_azimuth: this.state.node_ant_azimuth,
       has_cpe: this.state.node_has_cpe,
-    };
-    const postData = {
-      topology: this.props.topology.name,
-      newNode,
     };
     swal(
       {

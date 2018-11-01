@@ -38,6 +38,7 @@ export default class DetailsNode extends React.Component {
     showBGP: true,
     hiddenBgpNeighbors: new Set(),
     showActions: true,
+    nearbyNodes: [],
   };
 
   statusColor(onlineStatus, trueText = 'True', falseText = 'False') {
@@ -61,7 +62,7 @@ export default class DetailsNode extends React.Component {
     }, 1);
   }
 
-  selectLink = linkName => {
+  selectLink(linkName) {
     const link = this.props.links[linkName];
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
@@ -74,7 +75,7 @@ export default class DetailsNode extends React.Component {
         source: 'map',
       });
     }, 1);
-  };
+  }
 
   changeToConfigView(node) {
     Dispatcher.dispatch({
@@ -241,7 +242,7 @@ export default class DetailsNode extends React.Component {
     });
   }
 
-  renameNode = () => {
+  renameNode() {
     const {node, topologyName} = this.props;
     swal({
       title: 'Rename Node',
@@ -290,7 +291,7 @@ export default class DetailsNode extends React.Component {
       }
       return true;
     });
-  };
+  }
 
   editAzimuth() {
     const {node, topologyName} = this.props;
@@ -596,7 +597,7 @@ export default class DetailsNode extends React.Component {
     this.setState({[showTable]: !show});
   }
 
-  onBgpNeighborHeaderClick = neighborIp => {
+  onBgpNeighborHeaderClick(neighborIp) {
     const newHiddenBgpNeighbors = new Set(this.state.hiddenBgpNeighbors);
     if (newHiddenBgpNeighbors.has(neighborIp)) {
       newHiddenBgpNeighbors.delete(neighborIp);
@@ -607,7 +608,17 @@ export default class DetailsNode extends React.Component {
     this.setState({
       hiddenBgpNeighbors: newHiddenBgpNeighbors,
     });
-  };
+  }
+
+  searchNearby() {
+    const {node, topologyName} = this.props;
+
+    Dispatcher.dispatch({
+      actionType: Actions.START_SEARCH_NEARBY,
+      node,
+      topologyName,
+    });
+  }
 
   render() {
     const {links, node} = this.props;
@@ -823,7 +834,9 @@ export default class DetailsNode extends React.Component {
               {this.state.showBGP && (
                 <BGPStatusInfo
                   bgpStatus={node.status_dump.bgpStatus}
-                  onBgpNeighborHeaderClick={this.onBgpNeighborHeaderClick}
+                  onBgpNeighborHeaderClick={neighborIp => {
+                    this.onBgpNeighborHeaderClick(neighborIp);
+                  }}
                   hiddenBgpNeighbors={this.state.hiddenBgpNeighbors}
                 />
               )}
@@ -873,7 +886,7 @@ export default class DetailsNode extends React.Component {
                   role="link"
                   tabIndex="0"
                   className="details-link"
-                  onClick={this.renameNode}>
+                  onClick={() => this.renameNode()}>
                   Rename Node
                 </span>
               </div>
@@ -893,6 +906,15 @@ export default class DetailsNode extends React.Component {
                   className="details-link"
                   onClick={() => this.changeToConfigView(node)}>
                   Node Configuration
+                </span>
+              </div>
+              <div>
+                <span
+                  role="link"
+                  tabIndex="0"
+                  className="details-link"
+                  onClick={() => this.searchNearby()}>
+                  Search Nearby
                 </span>
               </div>
             </div>

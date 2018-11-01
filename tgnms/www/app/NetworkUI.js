@@ -341,6 +341,16 @@ class NetworkUI extends React.Component {
     });
   };
 
+  // Passed through NetworkMap to DetailsSearchNearby to open the
+  // addNode/addLink modal
+  onTopologyOperation(topOp, topOpsProps) {
+    if (topOp === 'addNode') {
+      this.setState({topOpsAddNodeModalOpen: true, topOpsProps});
+    } else if (topOp === 'addLink') {
+      this.setState({topOpsAddLinkModalOpen: true, topOpsProps});
+    }
+  }
+
   render() {
     // If the topology isn't loaded, render the loader
     if (
@@ -406,6 +416,9 @@ class NetworkUI extends React.Component {
             mapDimType={this.state.selectedMapDimType}
             mapTile={this.state.selectedMapTile}
             commitPlan={this.state.commitPlan}
+            onTopologyOperation={(topOp, topOpsProps) =>
+              this.onTopologyOperation(topOp, topOpsProps)
+            }
           />
         );
     }
@@ -415,16 +428,22 @@ class NetworkUI extends React.Component {
       visibleModal = (
         <ModalNodeAdd
           isOpen={this.state.topOpsAddNodeModalOpen}
-          onClose={() => this.setState({topOpsAddNodeModalOpen: false})}
+          onClose={() =>
+            this.setState({topOpsAddNodeModalOpen: false, topOpsProps: null})
+          }
           topology={this.state.topology}
+          {...this.state.topOpsProps}
         />
       );
     } else if (this.state.topOpsAddLinkModalOpen) {
       visibleModal = (
         <ModalLinkAdd
           isOpen={this.state.topOpsAddLinkModalOpen}
-          onClose={() => this.setState({topOpsAddLinkModalOpen: false})}
+          onClose={() =>
+            this.setState({topOpsAddLinkModalOpen: false, topOpsProps: null})
+          }
           topology={this.state.topology}
+          {...this.state.topOpsProps}
         />
       );
     }
