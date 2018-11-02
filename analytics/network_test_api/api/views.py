@@ -101,8 +101,12 @@ def start_test(request):
                                                     test_push_rate
                                                 )
                     run_tp.start()
-                error = False
-                msg = "Started iPerf"
+                    error = False
+                    msg = ("Started Short Term Parallel "
+                           + "Link Healthiness Test Plan.")
+                else:
+                    error = True
+                    msg = ("Incorrect test_code.")
         except Exception as e:
             error = True
             msg = str(e)
