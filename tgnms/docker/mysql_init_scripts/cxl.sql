@@ -80,24 +80,18 @@ CREATE TABLE IF NOT EXISTS `alerts` (
   KEY `node_id` (`node_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS `event_categories` (
+CREATE TABLE IF NOT EXISTS `event_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `node_id` int(11) NOT NULL,
-  `category` varchar(255) NOT NULL DEFAULT '',
-  PRIMARY KEY (`node_id`,`category`),
-  KEY `id` (`id`),
-  KEY `node_id` (`node_id`),
-  KEY `category` (`category`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
-
-CREATE TABLE IF NOT EXISTS `events` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sample` text NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `category_id` int(11) NOT NULL,
-  KEY `id` (`id`),
-  KEY `timestamp` (`timestamp`),
-  KEY `category_id` (`category_id`)
+  `mac` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `topologyName` varchar(100) not NULL,
+  `source` varchar(100) not NULL,
+  `timestamp` int(10) unsigned not NULL,
+  `reason` text not NULL,
+  `details` text not NULL,
+  `category` varchar(100) not NULL,
+  `level` varchar(100) not NULL,
+  KEY `id` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `log_sources` (
@@ -125,6 +119,9 @@ CREATE TABLE IF NOT EXISTS `nodes` (
 /* scan_results table is no longer used, replaced by tx_scan_results and
    rx_scan_results - added July 2018 */
 DROP TABLE IF EXISTS scan_results;
+
+DROP TABLE IF EXISTS event_categories;
+DROP TABLE IF EXISTS events;
 
 CREATE TABLE IF NOT EXISTS `rx_scan_results` (
   `id` int NOT NULL AUTO_INCREMENT,

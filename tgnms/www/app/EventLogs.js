@@ -4,273 +4,246 @@
  * @format
  */
 'use strict';
-
 import axios from 'axios';
 import moment from 'moment';
-import PropTypes from 'prop-types';
-import AsyncButton from 'react-async-button';
-// dispatcher
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
-import DatePicker from 'react-datepicker';
-import NumericInput from 'react-numeric-input';
-import Select from 'react-select';
 import React from 'react';
+import DateTime from 'react-datetime';
+import Select from 'react-select';
+import {SortDirection} from 'react-virtualized';
 
-const Spinner = () => (
-  <div className="spinner">
-    <div className="double-bounce1" />
-    <div className="double-bounce2" />
-  </div>
-);
+import CustomTable from './components/common/CustomTable.js';
+import {Actions} from './constants/NetworkConstants.js';
+import Dispatcher from './NetworkDispatcher.js';
+
+const eventTTypes = require('../thrift/gen-nodejs/Event_types');
 
 export default class EventLogs extends React.Component {
-  state = {
-    tables: [],
-    selectedTable: null,
-    selectedTableName: null,
-    searchResult: [],
-    from: 0,
-    size: 500,
-    dateFrom: moment(),
-  };
-
   constructor(props) {
     super(props);
-    this.selectChange = this.selectChange.bind(this);
-    this.getConfigs = this.getConfigs.bind(this);
-    this.diveClick = this.diveClick.bind(this);
-    this.findprop = this.findprop.bind(this);
-    this.renderTableColumns = this.renderTableColumns.bind(this);
-    this.renderDataTable = this.renderDataTable.bind(this);
-    this.handleSizeChange = this.handleSizeChange.bind(this);
-    this.handleFromChange = this.handleFromChange.bind(this);
+    this.handleCategoryChange = this.handleCategoryChange.bind(this);
+    this.handleLevelChange = this.handleLevelChange.bind(this);
     this.handleDateChange = this.handleDateChange.bind(this);
+    this.getEvents = this.getEvents.bind(this);
+    const categories = Object.keys(eventTTypes.EventCategory);
+    const levels = Object.keys(eventTTypes.EventLevel);
 
-    this.getConfigs();
-  }
-
-  getConfigs() {
-    axios.get('/getEventLogsTables').then(response => {
-      this.setState({tables: response.data.tables});
-    });
-  }
-
-  async diveClick(e) {
-    const {dateFrom, from, selectedTableName, size} = this.state;
-    const {networkName} = this.props;
-    const formattedDate = dateFrom.format('YYYY_MM_DD');
-    const url = `/getEventLogs/${selectedTableName}/${from}/${size}/${networkName}/d_${formattedDate}`;
-    const response = await axios.get(url);
-    this.setState({searchResult: response.data});
-  }
-
-  selectChange(val) {
-    Object(this.state.tables).forEach(table => {
-      if (table.name === val.value) {
-        this.setState({
-          selectedTable: table,
-          selectedTableName: val.label,
-          searchResult: [],
-        });
-        return;
-      }
-    });
-  }
-
-  findprop(obj, path) {
-    const args = path.split('.');
-    const l = args.length;
-
-    for (let i = 0; i < l; i++) {
-      if (!obj.hasOwnProperty(args[i])) {
-        return;
-      }
-      obj = obj[args[i]];
-    }
-    return obj;
-  }
-
-  getTableRows(): Array {
-    const rows = [];
-    if (!this.state.selectedTable) {
-      return rows;
-    }
-
-    const table = this.state.selectedTable;
-    const columns = table.display.columns;
-    let id = 0;
-    Object(this.state.searchResult).forEach(result => {
-      const row = {};
-      const tzoffset = new Date().getTimezoneOffset() * 60000;
-
-      row._id = id++;
-      Object(columns).forEach(column => {
-        let val = this.findprop(result, column.field);
-        if (column.format) {
-          switch (column.format) {
-            case 'TIME_MS':
-              val = new Date(val - tzoffset)
-                .toISOString()
-                .replace(/T/, ' ')
-                .replace(/\..+/, '');
-              break;
-            case 'TIME_S':
-              val = new Date(val * 1000 - tzoffset)
-                .toISOString()
-                .replace(/T/, ' ')
-                .replace(/\..+/, '');
-              break;
-          }
-        }
-        row[column.field] = val;
-      });
-      rows.push(row);
-    });
-
-    return rows;
-  }
-
-  renderTableColumns(): React.Element<any> {
-    const tableColumns = [];
-    tableColumns.push(
-      <TableHeaderColumn key="keyColumn" isKey={true} hidden dataField="_id" />,
-    );
-
-    if (this.state.selectedTable && this.state.tables) {
-      const table = this.state.selectedTable;
-      const columns = table.display.columns;
-      Object(columns).forEach(column => {
-        tableColumns.push(
-          <TableHeaderColumn
-            key={column.field}
-            dataSort={true}
-            filter={{type: 'TextFilter', delay: 1000}}
-            width={column.width ? column.width : ''}
-            dataField={column.field}>
-            {column.label}
-          </TableHeaderColumn>,
-        );
-      });
-    }
-    return tableColumns;
-  }
-
-  renderDataTable(): React.Element<any> {
-    const options = {
-      sizePerPageList: [
-        {text: '50', value: 50},
-        {text: '100', value: 100},
-        {text: '500', value: 500},
-      ],
-      sizePerPage: 50,
+    this.state = {
+      afterDate: moment.unix(0),
+      catOptions: categories.map(category => ({
+        label: category,
+        value: category,
+      })),
+      error:
+        'No events found for topology ' +
+        this.props.networkConfig.topology.name,
+      events: [],
+      filters: {},
+      levelOptions: levels.map(level => ({label: level, value: level})),
+      maxResults: 100,
+      selectedCategory: '',
+      selectedLevel: '',
+      sortBy: null,
+      sortDirection: SortDirection.ASC,
     };
-    if (this.state.selectedTable && this.state.tables) {
-      return (
-        <BootstrapTable pagination options={options} data={this.getTableRows()}>
-          {this.renderTableColumns()}
-        </BootstrapTable>
-      );
-    } else {
-      return <div />;
+  }
+
+  componentDidMount() {
+    // register for topology changes
+    this.dispatchToken = Dispatcher.register(
+      (this.handleDispatchEvent = payload => {
+        switch (payload.actionType) {
+          case Actions.TOPOLOGY_SELECTED:
+            this.getEvents(payload.networkName);
+            break;
+        }
+      }),
+    );
+    this.getEvents();
+  }
+
+  componentWillUnmount() {
+    // un-register once hidden
+    Dispatcher.unregister(this.dispatchToken);
+  }
+
+  handleCategoryChange = selectedCategory => {
+    this.setState({
+      selectedCategory: selectedCategory ? selectedCategory.value : '',
+    });
+  };
+
+  handleLevelChange = selectedLevel => {
+    this.setState({selectedLevel: selectedLevel ? selectedLevel.value : ''});
+  };
+
+  handleDateChange = afterDate => {
+    this.setState({afterDate});
+  };
+
+  getEvents(topologyName = this.props.networkConfig.topology.name) {
+    const uri = `/metrics/events/${topologyName}\
+                 /${this.state.selectedLevel}\
+                 /${this.state.selectedCategory}\
+                 /${this.state.afterDate.format('X')}\
+                 /${this.state.maxResults}`;
+    axios
+      .get(uri)
+      .then(response => {
+        const events = response.data;
+        this.setState({
+          error:
+            events.length == 0
+              ? 'No events found for topology ' + topologyName
+              : '',
+          events,
+        });
+      })
+      .catch(error => {
+        this.setState({error});
+        console.error('failed to fetch events', error);
+      });
+  }
+
+  static sortEventsHelper(a, b, sortBy, sortDirection) {
+    let ret = 0;
+    if (a[sortBy] < b[sortBy]) {
+      ret = -1;
     }
+
+    if (a[sortBy] > b[sortBy]) {
+      ret = 1;
+    }
+
+    return sortDirection === SortDirection.ASC ? ret : -ret;
   }
 
-  handleFromChange(val) {
-    this.setState({
-      from: val,
+  sortHelper({sortBy, sortDirection}) {
+    const events = this.state.events.sort((a, b) => {
+      return EventLogs.sortEventsHelper(a, b, sortBy, sortDirection);
     });
-  }
-  handleSizeChange(val) {
+
     this.setState({
-      size: val,
+      events,
+      sortBy,
+      sortDirection,
     });
   }
 
-  handleDateChange(date) {
-    this.setState({
-      dateFrom: date,
-    });
+  renderDate(cell, row) {
+    const date = new Date(cell * 1000);
+    return date.toLocaleString();
   }
+
+  renderLevelColor(cell, row) {
+    let cellColor = 'forestgreen';
+    if (cell == 'WARNING') {
+      cellColor = 'gold';
+    } else if (cell == 'FATAL' || cell == 'ERROR') {
+      cellColor = 'firebrick';
+    }
+    return <span style={{color: cellColor}}>{cell}</span>;
+  }
+
+  headers = [
+    {
+      filter: true,
+      key: 'level',
+      label: 'Level',
+      render: this.renderLevelColor,
+      sort: true,
+      width: 30,
+    },
+    {
+      key: 'timestamp',
+      label: 'Date',
+      render: this.renderDate,
+      sort: true,
+      width: 80,
+    },
+    {filter: true, key: 'name', label: 'Name', sort: true, width: 100},
+    {filter: true, key: 'mac', label: 'Mac', sort: true, width: 50},
+    {filter: true, key: 'source', label: 'Source', sort: true, width: 50},
+    {filter: true, key: 'category', label: 'Category', sort: true, width: 50},
+    {
+      filter: true,
+      key: 'subcategory',
+      label: 'Subcategory',
+      sort: true,
+      width: 75,
+    },
+    {key: 'reason', label: 'Reason', sort: false, width: 100},
+    {key: 'details', label: 'Details', sort: false, width: 30},
+  ];
 
   render() {
-    const options = [];
-    if (this.state.tables) {
-      Object(this.state.tables).forEach(table => {
-        options.push({
-          value: table.name,
-          label: table.name,
-        });
-      });
-    }
-
+    const rowHeight = 40;
+    const headerHeight = 80;
+    const overscanRowCount = 10;
     return (
-      <div style={{width: '100%', float: 'left'}}>
-        <table style={{borderCollapse: 'separate', borderSpacing: '15px 5px'}}>
-          <tbody>
-            <tr>
-              <td width={330}>
-                <div style={{width: 300}}>
-                  <Select
-                    options={options}
-                    name="Select Table"
-                    value={this.state.selectedTableName}
-                    onChange={this.selectChange}
-                    clearable={false}
-                  />
-                </div>
-              </td>
-              <td>Date:</td>
-              <td>
-                <DatePicker
-                  selected={this.state.dateFrom}
-                  onChange={this.handleDateChange}
-                />
-              </td>
-              <td>From:</td>
-              <td width={80}>
-                <NumericInput
-                  className="form-control"
-                  style={false}
-                  value={this.state.from}
-                  onChange={this.handleFromChange}
-                />
-              </td>
-              <td>Size:</td>
-              <td width={80}>
-                <NumericInput
-                  className="form-control"
-                  style={false}
-                  value={this.state.size}
-                  onChange={this.handleSizeChange}
-                />
-              </td>
-              <td>
-                <AsyncButton
-                  className="btn btn-primary"
-                  text="Dive!"
-                  pendingText="Searching..."
-                  fulFilledText="Dive!"
-                  fulFilledClass="btn-success"
-                  rejectedText="Dive!"
-                  rejectedClass="btn-danger"
-                  onClick={this.diveClick}>
-                  {({buttonText, isPending}) => (
-                    <span>
-                      {isPending && <Spinner />}
-                      <span>{buttonText}</span>
-                    </span>
-                  )}
-                </AsyncButton>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div>{this.renderDataTable()}</div>
+      <div className="eventlog">
+        <div className="eventlog-left-pane">
+          <label className="eventlog-header-label">Filter options</label>
+          <div>
+            <Select
+              name="Level"
+              placeholder="Select level..."
+              value={this.state.selectedLevel}
+              onChange={this.handleLevelChange}
+              options={this.state.levelOptions}
+              clearable={true}
+            />
+          </div>
+          <div>
+            <Select
+              name="Category"
+              placeholder="Select category..."
+              value={this.state.selectedCategory}
+              onChange={this.handleCategoryChange}
+              options={this.state.catOptions}
+              clearable={true}
+            />
+          </div>
+          <div>
+            <label className="eventlog-label">After date:</label>
+            <DateTime
+              onChange={this.handleDateChange}
+              isValidDate={current => current.isBefore(moment().endOf('day'))}
+            />
+          </div>
+          <div>
+            <label className="eventlog-label">Limit results:</label>
+            <input
+              type="text"
+              value={this.state.maxResults}
+              onChange={event =>
+                this.setState({
+                  maxResults: event.target.value.replace(/\D/, ''),
+                })
+              }
+            />
+            <button className="upgrade-btn" onClick={() => this.getEvents()}>
+              Load
+            </button>
+          </div>
+        </div>
+        <div className="eventlog-body">
+          {this.state.error != '' ? (
+            <label className="eventlog-header-label">{this.state.error}</label>
+          ) : (
+            <CustomTable
+              rowHeight={rowHeight}
+              headerHeight={headerHeight}
+              height={window.innerHeight}
+              overscanRowCount={overscanRowCount}
+              columns={this.headers}
+              data={this.state.events}
+              sortFunction={val => this.sortHelper(val)}
+              sortBy={this.state.sortBy}
+              sortDirection={this.state.sortDirection}
+            />
+          )}
+        </div>
       </div>
     );
   }
 }
-EventLogs.propTypes = {
-  networkName: PropTypes.string.isRequired,
-  networkConfig: PropTypes.object.isRequired,
-};

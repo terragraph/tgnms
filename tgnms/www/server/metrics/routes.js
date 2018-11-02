@@ -3,16 +3,16 @@
  *
  * @format
  */
+import {
+  GraphAggregation,
+  StatsOutputFormat,
+} from '../../thrift/gen-nodejs/Stats_types';
 
 const {BERINGEI_QUERY_URL} = require('../config');
 const {getAnalyzerData} = require('../topology/analyzer_data');
 // new json writer
 const dataJson = require('./dataJson');
 const express = require('express');
-import {
-  GraphAggregation,
-  StatsOutputFormat,
-} from '../../thrift/gen-nodejs/Stats_types';
 const request = require('request');
 const logger = require('../log')(module);
 
@@ -132,5 +132,41 @@ router.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
     res.send('No analyzer cache').end();
   }
 });
+
+router.get(
+  '/events/:topology/:level/:category/:time/:limit',
+  (req, res, next) => {
+    const eventUrl = BERINGEI_QUERY_URL + '/events_query';
+    const query = {
+      category: req.params.category.trim(),
+      level: req.params.level.trim(),
+      maxResults: parseInt(req.params.limit, 10),
+      timestamp: parseInt(req.params.time, 10),
+      topologyName: req.params.topology.trim(),
+    };
+    request.post(
+      {
+        body: JSON.stringify(query),
+        url: eventUrl,
+      },
+      (err, httpResponse, body) => {
+        if (err) {
+          res
+            .status(500)
+            .send('Error fetching from beringei: ' + err)
+            .end();
+          return;
+        }
+        try {
+          const parsed = JSON.parse(httpResponse.body);
+          res.send(parsed).end();
+        } catch (ex) {
+          console.error('Failed to parse event json:', httpResponse.body);
+          return;
+        }
+      },
+    );
+  },
+);
 
 module.exports = router;

@@ -4,12 +4,12 @@
  * @format
  */
 'use strict';
-
-import Dispatcher from '../NetworkDispatcher.js';
-import {Actions} from '../constants/NetworkConstants.js';
-// URL history
 import createHistory from 'history/createBrowserHistory';
 
+import {Actions} from '../constants/NetworkConstants.js';
+import Dispatcher from '../NetworkDispatcher.js';
+
+// URL history
 class NetworkStoreI {}
 const NetworkStore = new NetworkStoreI();
 // for all pages
@@ -37,8 +37,7 @@ const SITE_ROOT = '/';
 const VIEWS = {
   map: {name: 'Map', icon: 'map-marker'},
   stats: {name: 'Stats', icon: 'stats'},
-  // TODO: implement these views and uncomment them
-  // eventlogs: {name: 'Event Logs', icon: 'list'},
+  eventlogs: {name: 'Event Logs', icon: 'list'},
   upgrade: {name: 'Upgrade', icon: 'upload'},
   'nms-config': {name: 'NMS Config', icon: 'cloud'},
   config: {name: 'Node Config', icon: 'cog'},

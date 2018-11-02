@@ -3,16 +3,16 @@
  *
  * @format
  */
-
 import PropTypes from 'prop-types';
+import Menu, {Divider, Item as MenuItem, SubMenu} from 'rc-menu';
 import React from 'react';
 import {Glyphicon} from 'react-bootstrap';
-import Menu, {SubMenu, Item as MenuItem, Divider} from 'rc-menu';
-import NetworkStatusMenu from './NetworkStatusMenu';
-import StatusIndicator from '../common/StatusIndicator';
+
 import {HighAvailability} from '../../constants/NetworkConstants';
 import {getStatusIndicatorColor} from '../../helpers/HighAvailabilityHelpers';
 import {VIEWS} from '../../stores/NetworkStore.js';
+import StatusIndicator from '../common/StatusIndicator';
+import NetworkStatusMenu from './NetworkStatusMenu';
 
 const propTypes = {
   handleMenuBarSelect: PropTypes.func.isRequired,
@@ -23,11 +23,10 @@ const propTypes = {
   view: PropTypes.string.isRequired,
 };
 
-// icon: Glyphicon from Bootstrap 3.3.7
 const TOPOLOGY_OPS = {
-  addSite: {name: 'New Planned Site', icon: 'pushpin'},
-  addNode: {name: 'New Node', icon: 'asterisk'},
-  addLink: {name: 'New Link', icon: 'transfer'},
+  addLink: {icon: 'transfer', name: 'New Link'},
+  addNode: {icon: 'asterisk', name: 'New Node'},
+  addSite: {icon: 'pushpin', name: 'New Planned Site'},
 };
 
 function TopBar(props) {

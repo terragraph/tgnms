@@ -4,23 +4,24 @@
  * @format
  */
 'use strict';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {SortDirection} from 'react-virtualized';
 
-import Dispatcher from './NetworkDispatcher.js';
+import {LinkType} from '../thrift/gen-nodejs/Topology_types';
+import CustomTable from './components/common/CustomTable.js';
+import {Actions} from './constants/NetworkConstants.js';
 import {
   availabilityColor,
   variableColorDown,
   variableColorUp,
 } from './helpers/NetworkHelpers.js';
+import Dispatcher from './NetworkDispatcher.js';
 import ReactEventChart from './ReactEventChart.js';
+import NetworkStore from './stores/NetworkStore.js';
+
 // using ReactEventChart until performance for Plotly is improved
 // import PlotlyEventChart from './PlotlyEventChart.js';
-import {Actions} from './constants/NetworkConstants.js';
-import NetworkStore from './stores/NetworkStore.js';
-import PropTypes from 'prop-types';
-import React from 'react';
-import CustomTable from './components/common/CustomTable.js';
-import {SortDirection} from 'react-virtualized';
-
 const SECONDS_HOUR = 60 * 60;
 const SECONDS_DAY = SECONDS_HOUR * 24;
 const INVALID_VALUE = 255;
@@ -30,155 +31,166 @@ export default class NetworkLinksTable extends React.Component {
   nodesByName = {};
 
   state = {
-    selectedLink: NetworkStore.selectedName,
-    linkHealth: NetworkStore.linkHealth,
     analyzerTable: NetworkStore.analyzerTable,
-    hideWired: true,
-    showEventsChart: true,
     hideDnToDnLinks: false,
-    topLink: null,
+    hideWired: true,
+    linkHealth: NetworkStore.linkHealth,
+    selectedLink: NetworkStore.selectedName,
     showAnalyzer: false,
+    showEventsChart: true,
     sortBy: null,
     sortDirection: SortDirection.ASC,
+    topLink: null,
   };
 
   eventChartColumns = [
     {
-      label: 'Name',
-      key: 'name',
+      filter: true,
       isKey: true,
-      width: 400,
+      key: 'name',
+      label: 'Name',
+      render: this.renderNameWithStatsLinks.bind(this),
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
-      filter: true,
-      render: this.renderLinkName.bind(this),
     },
     {
-      label: 'Alive?',
       key: 'alive',
-      width: 100,
-      sort: true,
+      label: 'Alive?',
       render: this.renderStatusColor.bind(this),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Uptime (24 hours)',
       key: 'alive_perc',
-      width: 120,
-      sort: true,
+      label: 'Uptime (24 hours)',
       render: this.renderAlivePerc.bind(this),
+      sort: true,
+      width: 120,
     },
     {
-      label: 'Availability (24 hours)',
       key: 'availability_chart',
-      width: 810,
-      sort: true,
+      label: 'Availability (24 hours)',
       render: this.renderLinkAvailability.bind(this),
+      sort: true,
+      width: 810,
     },
-    {label: 'Attempts', key: 'linkup_attempts', width: 100, sort: true},
-    {label: 'Distance (m)', key: 'distance', width: 120, sort: true},
+    {key: 'linkup_attempts', label: 'Attempts', sort: true, width: 100},
+    {key: 'distance', label: 'Distance (m)', sort: true, width: 120},
   ];
 
   analyzerChartColumns = [
     {
-      label: 'Name',
-      key: 'name',
+      filter: true,
       isKey: true,
-      width: 350,
+      key: 'name',
+      label: 'Name',
+      render: this.renderDashboardLink.bind(this),
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
+      width: 350,
+    },
+    {
       filter: true,
-      render: this.renderDashboardLink.bind(this),
+      key: 'a_node_name',
+      label: 'A-Node',
+      sort: true,
+      width: 140,
     },
-    {label: 'A-Node', key: 'a_node_name', width: 140, sort: true, filter: true},
-    {label: 'Z-Node', key: 'z_node_name', width: 140, sort: true, filter: true},
     {
-      label: 'Alive',
+      filter: true,
+      key: 'z_node_name',
+      label: 'Z-Node',
+      sort: true,
+      width: 140,
+    },
+    {
       key: 'alive',
-      width: 100,
-      sort: true,
+      label: 'Alive',
       render: this.renderStatusColor.bind(this),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Avg MCS',
       key: 'mcs',
-      width: 100,
-      sort: true,
+      label: 'Avg MCS',
       render: cell => this.renderFloatPoint('mcs', cell),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Avg SNR',
       key: 'snr',
-      width: 100,
-      sort: true,
+      label: 'Avg SNR',
       render: cell => this.renderFloatPoint('snr', cell),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Avg PER',
       key: 'per',
-      width: 100,
-      sort: true,
+      label: 'Avg PER',
       render: cell => this.renderFloatPoint('per', cell),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Avg tput(PPS)',
       key: 'tput',
-      width: 100,
-      sort: true,
+      label: 'Avg tput(PPS)',
       render: cell => this.renderFloatPoint('tput', cell),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Avg txPower',
       key: 'txpower',
-      width: 100,
-      sort: true,
+      label: 'Avg txPower',
       render: cell => this.renderFloatPoint('txpower', cell),
+      sort: true,
+      width: 100,
     },
     {
-      label: '#Restarts',
       key: 'fw_restarts',
-      width: 100,
-      sort: true,
+      label: '#Restarts',
       render: cell => this.renderFloatPoint('fw_restarts', cell),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Uptime (min)',
       key: 'uptime',
-      width: 100,
-      sort: true,
+      label: 'Uptime (min)',
       render: cell => this.renderFloatPoint('uptime', cell),
+      sort: true,
+      width: 100,
     },
-    {label: 'Distance (m)', key: 'distance', width: 120, sort: true},
+    {key: 'distance', label: 'Distance (m)', sort: true, width: 120},
   ];
 
   defaultChartColumns = [
     {
-      label: 'Name',
-      key: 'name',
+      filter: true,
       isKey: true,
-      width: 350,
+      key: 'name',
+      label: 'Name',
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
-      filter: true,
+      width: 350,
     },
-    {label: 'A-Node', key: 'a_node_name', width: 180, filter: true},
-    {label: 'Z-Node', key: 'z_node_name', width: 180, filter: true},
+    {filter: true, key: 'a_node_name', label: 'A-Node', width: 180},
+    {filter: true, key: 'z_node_name', label: 'Z-Node', width: 180},
     {
-      label: 'Alive',
       key: 'alive',
-      width: 100,
-      sort: true,
+      label: 'Alive',
       render: this.renderStatusColor.bind(this),
+      sort: true,
+      width: 100,
     },
     {
-      label: 'Uptime (24 hours)',
       key: 'alive_perc',
-      width: 140,
-      sort: true,
+      label: 'Uptime (24 hours)',
       render: this.renderAlivePerc.bind(this),
+      sort: true,
+      width: 140,
     },
-    {label: 'Type', key: 'type', width: 100},
-    {label: 'Attempts', key: 'linkup_attempts', width: 100, sort: true},
-    {label: 'Distance (m)', key: 'distance', width: 120, sort: true},
+    {key: 'type', label: 'Type', width: 100},
+    {key: 'linkup_attempts', label: 'Attempts', sort: true, width: 100},
+    {key: 'distance', label: 'Distance (m)', sort: true, width: 120},
   ];
 
   headerHeight = 80;
@@ -237,6 +249,7 @@ export default class NetworkLinksTable extends React.Component {
         break;
       case Actions.LINK_SELECTED:
         this.setState({
+          selectedLink: payload.link.name,
           sortBy: payload.source === 'table' ? this.state.sortBy : 'name',
           sortDirection:
             payload.source === 'table'
@@ -244,7 +257,6 @@ export default class NetworkLinksTable extends React.Component {
               : SortDirection.ASC,
           topLink:
             payload.source === 'table' ? this.state.topLink : payload.link,
-          selectedLink: payload.link.name,
         });
         break;
       case Actions.LINK_HEALTH_REFRESHED:
@@ -347,14 +359,14 @@ export default class NetworkLinksTable extends React.Component {
         return;
       }
       rows.push({
-        name: link.name,
         a_node_name: link.a_node_name,
-        z_node_name: link.z_node_name,
         alive: link.is_alive,
-        type: link.link_type === 1 ? 'Wireless' : 'Wired',
         alive_perc: link.alive_perc,
-        linkup_attempts: linkupAttempts,
         distance: link.distance,
+        linkup_attempts: linkupAttempts,
+        name: link.name,
+        type: link.link_type === LinkType.WIRELESS ? 'Wireless' : 'Wired',
+        z_node_name: link.z_node_name,
       });
     });
     return rows;
@@ -414,37 +426,37 @@ export default class NetworkLinksTable extends React.Component {
 
       // this is the A->Z link
       rows.push({
-        name: link.name,
         a_node_name: link.a_node_name,
-        z_node_name: link.z_node_name,
         alive: link.is_alive,
-        type: link.link_type === 1 ? 'Wireless' : 'Wired',
         alive_perc: link.alive_perc,
+        distance: link.distance,
         fw_restarts: analyzerLinkA.flaps,
-        uptime: analyzerLinkA.uptime / 60.0,
         mcs: this.formatAnalyzerValue(analyzerLinkA, 'avgmcs'),
-        snr: this.formatAnalyzerValue(analyzerLinkZ, 'avgsnr'),
+        name: link.name,
         per: this.formatAnalyzerValue(analyzerLinkA, 'avgper'),
+        snr: this.formatAnalyzerValue(analyzerLinkZ, 'avgsnr'),
         tput: this.formatAnalyzerValue(analyzerLinkA, 'tput'),
         txpower: this.formatAnalyzerValue(analyzerLinkA, 'avgtxpower'),
-        distance: link.distance,
+        type: link.link_type === LinkType.WIRELESS ? 'Wireless' : 'Wired',
+        uptime: analyzerLinkA.uptime / 60.0,
+        z_node_name: link.z_node_name,
       });
       // this is the Z->A link
       rows.push({
-        name: link.name,
         a_node_name: link.z_node_name,
-        z_node_name: link.a_node_name,
         alive: link.is_alive,
-        type: link.link_type === 1 ? 'Wireless' : 'Wired',
         alive_perc: link.alive_perc,
+        distance: link.distance,
         fw_restarts: analyzerLinkZ.flaps,
-        uptime: analyzerLinkZ.uptime / 60.0,
         mcs: this.formatAnalyzerValue(analyzerLinkZ, 'avgmcs'),
-        snr: this.formatAnalyzerValue(analyzerLinkA, 'avgsnr'),
+        name: link.name,
         per: this.formatAnalyzerValue(analyzerLinkZ, 'avgper'),
+        snr: this.formatAnalyzerValue(analyzerLinkA, 'avgsnr'),
         tput: this.formatAnalyzerValue(analyzerLinkZ, 'tput'),
         txpower: this.formatAnalyzerValue(analyzerLinkZ, 'avgtxpower'),
-        distance: link.distance,
+        type: link.link_type === LinkType.WIRELESS ? 'Wireless' : 'Wired',
+        uptime: analyzerLinkZ.uptime / 60.0,
+        z_node_name: link.a_node_name,
       });
     });
     return rows;
