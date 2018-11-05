@@ -14,10 +14,12 @@ class TestNetwork(Thread):
 
     def __init__(
             self,
-            parameters
+            parameters,
+            received_output_queue
     ):
         Thread.__init__(self)
         self.parameters = parameters
+        self.received_output_queue = received_output_queue
         self.controller_addr = parameters['controller_addr']
         self.controller_port = parameters['controller_port']
         self.test_list = parameters['test_list']
@@ -75,7 +77,8 @@ class TestNetwork(Thread):
                                         self.zmq_identifier,
                                         self.expected_number_of_responses,
                                         self.recv_timeout,
-                                        self.parameters)
+                                        self.parameters,
+                                        self.received_output_queue)
         self.listen_obj.start()
 
         # Mark the expected end time of the test in db

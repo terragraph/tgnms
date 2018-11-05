@@ -36,7 +36,8 @@ class RecvFromCtrl(base.Base):
         zmq_identifier,
         expected_number_of_responses,
         recv_timeout,
-        parameters
+        parameters,
+        received_output_queue
     ):
         super().__init__(_ctrl_sock, zmq_identifier)
         self.ctrl_sock = _ctrl_sock
@@ -52,6 +53,7 @@ class RecvFromCtrl(base.Base):
         self.parsed_ping_data = ""
         self.test_aborted = False
         self.test_aborted_queue = queue.Queue()
+        self.received_output_queue = received_output_queue
 
     def _get_recv_obj(self, msg_type, actual_sender_app):
         msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES\
@@ -86,13 +88,21 @@ class RecvFromCtrl(base.Base):
     def _process_output(self, msg_type, msg_data):
         if msg_type == ctrl_types.MessageType.PING_OUTPUT:
             _log.info("\nReceived output:\n{}".format(msg_data.output))
+            source_node = msg_data.startPing.pingConfig.srcNodeId
+            destination_node = msg_data.startPing.pingConfig.dstNodeId
             self.parsed_ping_data = self._strip_ping_output(
                                             msg_data.output.strip())
             self._log_to_mysql(
-                source_node=msg_data.startPing.pingConfig.srcNodeId,
-                destination_node=msg_data.startPing.pingConfig.dstNodeId,
+                source_node=source_node,
+                destination_node=destination_node,
                 is_iperf=False
             )
+            received_output_dict = {
+                                'source_node': source_node,
+                                'destination_node': destination_node,
+                                'traffic_type': 'PING_OUTPUT'
+                            }
+            self.received_output_queue.put(received_output_dict)
         elif msg_type == ctrl_types.MessageType.IPERF_OUTPUT:
             _log.info("\nReceived output from {}:\n{}".format(
                 "server" if msg_data.isServer else "client",
@@ -101,13 +111,21 @@ class RecvFromCtrl(base.Base):
                 self.parsed_iperf_client_data = self._strip_iperf_output(
                                                     msg_data.output.strip())
             else:
+                source_node = msg_data.startIperf.iperfConfig.srcNodeId
+                destination_node = msg_data.startIperf.iperfConfig.dstNodeId
                 self.parsed_iperf_server_data = self._strip_iperf_output(
                                                 msg_data.output.strip())
                 self._log_to_mysql(
-                    source_node=msg_data.startIperf.iperfConfig.srcNodeId,
-                    destination_node=msg_data.startIperf.iperfConfig.dstNodeId,
+                    source_node=source_node,
+                    destination_node=destination_node,
                     is_iperf=True,
                 )
+                received_output_dict = {
+                                    'source_node': source_node,
+                                    'destination_node': destination_node,
+                                    'traffic_type': 'IPERF_OUTPUT'
+                                }
+                self.received_output_queue.put(received_output_dict)
         elif msg_type == ctrl_types.MessageType.START_PING_RESP:
             self.start_ping_ids.append(msg_data.id)
         elif msg_type == ctrl_types.MessageType.START_IPERF_RESP:
@@ -323,7 +341,8 @@ class Listen(Thread):
         zmq_identifier,
         expt_num_of_resp,
         duration,
-        parameters
+        parameters,
+        received_output_queue
     ):
         Thread.__init__(self)
         self.socket = socket
@@ -331,13 +350,15 @@ class Listen(Thread):
         self.expt_num_of_resp = expt_num_of_resp
         self.duration = duration
         self.parameters = parameters
+        self.received_output_queue = received_output_queue
 
     def run(self):
         listen_obj = RecvFromCtrl(self.socket,
                                   self.zmq_identifier,
                                   self.expt_num_of_resp,
                                   self.duration,
-                                  self.parameters)
+                                  self.parameters,
+                                  self.received_output_queue)
         listen_obj._listen_on_socket()
 
 

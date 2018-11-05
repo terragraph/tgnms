@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import queue
 import logging
 from threading import Thread
 from datetime import date
@@ -49,6 +50,8 @@ class RunTestPlan83(Thread):
         self.start_time = time.time()
         self.end_time = time.time() + test_duration
         self.test_status = None
+        self.received_output = {}
+        self.received_output_queue = queue.Queue()
 
     def run(self):
 
@@ -76,8 +79,12 @@ class RunTestPlan83(Thread):
         }
 
         # Create TestNetwork object and kick it off
-        test_nw = TestNetwork(self.parameters)
+        test_nw = TestNetwork(self.parameters, self.received_output_queue)
         test_nw.start()
+
+        while (test_nw.is_alive()):
+            if not self.received_output_queue.empty():
+                self.received_output = self.received_output_queue.get()
 
         # wait until the TestNetwork thread ends (blocking call)
         test_nw.join()
