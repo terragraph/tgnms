@@ -193,6 +193,9 @@ export default class PlotlyGraph extends React.Component {
       startTsSec = moment()
         .subtract(minAgo, 'minutes')
         .toDate();
+    } else {
+      startTsSec *= 1000;
+      endTsSec *= 1000;
     }
     // Format height and width of graph
 

@@ -94,15 +94,11 @@ router.post(/\/multi_chart\/$/i, (req, res, next) => {
   );
 });
 
-router.get('/stats_ta/:topology/:pattern', (req, res, next) => {
+router.post('/stats_ta', (req, res, next) => {
   const taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
-  const taRequest = {
-    searchTerm: req.params.pattern,
-    topologyName: req.params.topology,
-  };
   request.post(
     {
-      body: JSON.stringify(taRequest),
+      body: JSON.stringify(req.body),
       url: taUrl,
     },
     (err, httpResponse, body) => {

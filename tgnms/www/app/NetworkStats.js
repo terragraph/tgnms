@@ -5,107 +5,61 @@
  */
 'use strict';
 
-import 'react-bootstrap-typeahead/css/Typeahead.css';
-import 'react-datetime/css/react-datetime.css';
-
+import {
+  Actions,
+  STATS_DS_INTERVAL_SEC,
+  STATS_GRAPH_AGG_OPTS,
+  STATS_MAX_DPS,
+  STATS_MAX_RESULTS,
+  STATS_TIME_PICKER_OPTS,
+} from './constants/NetworkConstants.js';
+import AsyncSelect from 'react-select/lib/Async';
 import axios from 'axios';
-import Datetime from 'react-datetime';
 import Dispatcher from './NetworkDispatcher.js';
-import moment from 'moment';
+import FormControl from '@material-ui/core/FormControl';
+import {
+  GraphAggregation,
+  RestrictorType,
+} from '../thrift/gen-nodejs/Stats_types';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import {LinkType} from '../thrift/gen-nodejs/Topology_types';
+import MaterialSelect from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 import PlotlyGraph from './PlotlyGraph.js';
 import React from 'react';
+import Select from 'react-select';
+import Typography from '@material-ui/core/Typography';
+import {withStyles} from '@material-ui/core/styles';
 
-import {Actions} from './constants/NetworkConstants.js';
-import {AsyncTypeahead} from 'react-bootstrap-typeahead';
-import {GraphAggregation} from '../thrift/gen-nodejs/Stats_types';
+const styles = theme => ({
+  root: {
+    flexGrow: 1,
+    height: 250,
+    padding: 10,
+  },
+  formControl: {
+    margin: theme.spacing.unit,
+    minWidth: 120,
+  },
+});
 
-const TIME_PICKER_OPTS = [
-  {
-    label: '30 Minutes',
-    minAgo: 30,
-  },
-  {
-    label: '60 Minutes',
-    minAgo: 60,
-  },
-  {
-    label: '2 Hours',
-    minAgo: 60 * 2,
-  },
-  {
-    label: '6 Hours',
-    minAgo: 60 * 6,
-  },
-  {
-    label: '12 Hours',
-    minAgo: 60 * 12,
-  },
-  {
-    label: '1 Day',
-    minAgo: 60 * 24,
-  },
-  {
-    label: '3 Days',
-    minAgo: 60 * 24 * 3,
-  },
-  {
-    label: '1 Week',
-    minAgo: 7 * 60 * 24,
-  },
-  {
-    label: '30 Days',
-    minAgo: 30 * 60 * 24,
-  },
-  {
-    label: '90 Days',
-    minAgo: 90 * 60 * 24,
-  },
-];
-
-const GRAPH_AGG_OPTS = [
-  {
-    aggregationType: GraphAggregation.TOP_AVG,
-    name: 'top',
-    title: 'Top',
-  },
-  {
-    aggregationType: GraphAggregation.BOTTOM_AVG,
-    name: 'bottom',
-    title: 'Bottom',
-  },
-  {
-    aggregationType: GraphAggregation.AVG,
-    name: 'avg',
-    title: 'Avg + Min/Max',
-  },
-  {
-    aggregationType: GraphAggregation.SUM,
-    name: 'sum',
-    title: 'Sum',
-  },
-  {
-    aggregationType: GraphAggregation.COUNT,
-    name: 'count',
-    title: 'Count',
-  },
-];
-
-export default class NetworkStats extends React.Component {
+class NetworkStats extends React.Component {
   state = {
-    // custom end time specified
-    endTime: new Date(),
-    graphAggType: 30,
-    keyIsLoading: false,
-    // type-ahead data
-    keyOptions: [],
-    // type-ahead graphs
+    // data source interval
+    dsIntervalSec: 30,
+    // graph aggregation type
+    graphAggType: GraphAggregation.TOP_AVG,
+    // type-ahead for key names selected
     keysSelected: [],
+    // type-ahead for selected links
+    linksSelected: [],
+    // max data points
+    maxDataPoints: 100,
+    // max results to return per graph
+    maxResults: 5,
     // simple minutes ago, won't have to adjust the start/end time displayed
     minAgo: 60,
-    // custom start time specified
-    startTime: new Date(),
-    // time selection
-    useCustomTime: false,
   };
 
   constructor(props) {
@@ -127,263 +81,161 @@ export default class NetworkStats extends React.Component {
   handleDispatchEvent(payload) {
     switch (payload.actionType) {
       case Actions.TOPOLOGY_SELECTED:
-        // TODO - this needs to be a comparison of topology names in props
-        // clear selected data
-        this._typeaheadKey.getInstance().clear();
+        // clear the selected links, but leave the key names
+        this.setState({linksSelected: []});
         break;
     }
   }
 
-  getNodeData(nodeList) {
-    // return a list of node names and macs
-    const nodesByName = {};
-    this.props.networkConfig.topology.nodes.forEach(node => {
-      nodesByName[node.name] = node;
-    });
-    return nodeList.map(nodeName => {
-      return nodesByName[nodeName];
-    });
-  }
-
-  metricSelectionChanged(selectedOpts) {
-    // update graph options
-    this.setState({
-      keysSelected: selectedOpts,
-    });
-  }
-
-  isValidStartDate(date) {
-    // TODO - more dynamic than 90 fixed days
-    const minDate = moment().subtract(90, 'days');
-    return date.toDate() >= minDate.toDate() && date.toDate() < new Date();
-  }
-
-  isValidEndDate(date) {
-    // TODO - this should be more based on the day since that's the main view
-    return date.toDate() >= this.state.startTime && date.toDate() <= new Date();
-  }
-
-  formatKeyOptions(keyOptions) {
+  formatKeyOptions(keyOptions, selectedOptions) {
     const retKeys = [];
     if (typeof keyOptions === 'object') {
       // aggregate data for this key
       keyOptions.forEach(keyList => {
+        const labelName = keyList[0].shortName.length
+          ? keyList[0].shortName
+          : keyList[0].keyName;
+        // skip if already selected
+        if (selectedOptions.has(labelName)) {
+          return;
+        }
         retKeys.push({
-          data: keyList,
-          name: keyList[0].shortName.length
-            ? keyList[0].shortName
-            : keyList[0].keyName,
+          value: labelName,
         });
       });
     }
-    return retKeys;
-  }
-
-  renderTypeaheadKeyMenu(option, props, index) {
-    return [
-      <strong key="name">{option.name}</strong>,
-      <div key="data">Keys: {option.data.length}</div>,
-    ];
+    return {options: retKeys};
   }
 
   render() {
-    // index nodes by name
-    const nodeMacList = [];
-    const nodeNameList = [];
-    Object.keys(this.props.networkConfig.topology.nodes).map(nodeIndex => {
-      const node = this.props.networkConfig.topology.nodes[nodeIndex];
-      nodeMacList.push(node.mac_addr);
-      nodeNameList.push(node.name);
-    });
-    // nodes list
-    const nodes = {};
-    this.props.networkConfig.topology.nodes.forEach(node => {
-      nodes[node.mac_addr] = {
-        name: node.name,
-        version: 'Unknown',
-      };
-    });
-    // index nodes
-    const nodesByName = {};
-    this.props.networkConfig.topology.nodes.forEach(node => {
-      nodesByName[node.name] = {
-        name: node.name,
-        mac_addr: node.mac_addr,
-        site_name: node.site_name,
-      };
-    });
-    // construct links
-    const links = {};
-    const linkRows = [];
-    this.props.networkConfig.topology.links.forEach(link => {
-      // skipped wired links
-      if (link.link_type === 2) {
-        return;
-      }
-      linkRows.push({
-        name: link.name,
-      });
-      links[link.name] = {
-        a_node: {
-          name: link.a_node_name,
-          mac: nodesByName[link.a_node_name].mac_addr,
-        },
-        z_node: {
-          name: link.z_node_name,
-          mac: nodesByName[link.z_node_name].mac_addr,
-        },
-      };
-    });
-    // all graphs
-    let pos = 0;
-    const multiGraphs = this.state.keysSelected.map(keyIds => {
-      const keyNames = keyIds.data[0].shortName.length
-        ? [keyIds.data[0].shortName]
-        : keyIds.data.map(data => data.keyName);
+    // list all links to filter key name results on type-ahead
+    const linkOptions = this.props.networkConfig.topology.links
+      .filter(link => link.link_type === LinkType.WIRELESS)
+      .map(link => ({
+        value: link.name,
+      }));
+    // create a graph for each key name
+    const multiGraphs = this.state.keysSelected.map((graphKey, pos) => {
       const graphOpts = {
         aggregation: this.state.graphAggType,
-        keyNames,
+        keyNames: [graphKey.value],
         outputFormat: 1 /* POINTS */,
-        maxResults: 7,
-        maxDataPoints: 100 /* restrict individual points to 100 */,
+        maxResults: this.state.maxResults,
+        maxDataPoints: this.state
+          .maxDataPoints /* restrict individual points to 100 */,
+        dsIntervalSec: this.state.dsIntervalSec,
         topologyName: this.props.networkConfig.topology.name,
       };
-      if (this.state.useCustomTime) {
-        graphOpts.startTsSec = this.state.startTime.getTime() / 1000;
-        graphOpts.endTsSec = this.state.endTime.getTime() / 1000;
-      } else {
-        graphOpts.minAgo = this.state.minAgo;
+      if (this.state.linksSelected.length) {
+        graphOpts.restrictors = [
+          {
+            restrictorType: RestrictorType.LINK,
+            values: this.state.linksSelected.map(link => link.value),
+          },
+        ];
       }
+      graphOpts.minAgo = this.state.minAgo;
       pos++;
       return (
         <PlotlyGraph
           key={'graph-' + pos}
           containerId="statsBoxDiv"
-          title={keyNames.length == 1 ? keyNames[0] : keyNames.join(', ')}
+          title={graphKey.value}
           options={graphOpts}
         />
       );
     });
-    // custom time selector
-    let customInputProps = {};
-    if (!this.state.useCustomTime) {
-      customInputProps = {disabled: true};
-    }
-
+    const {classes, theme} = this.props;
+    const selectStyles = {
+      input: base => ({
+        ...base,
+        color: theme.palette.text.primary,
+        '& input': {
+          font: 'inherit',
+        },
+      }),
+    };
+    const inputOpts = [
+      ['Time Window', STATS_TIME_PICKER_OPTS, 'minAgo'],
+      ['Graph Aggregation', STATS_GRAPH_AGG_OPTS, 'graphAggType'],
+      ['Max Data Points', STATS_MAX_DPS, 'maxDataPoints'],
+      ['DS Interval', STATS_DS_INTERVAL_SEC, 'dsIntervalSec'],
+      ['Max Results', STATS_MAX_RESULTS, 'maxResults'],
+    ];
     return (
-      <div width="800">
-        <AsyncTypeahead
-          key="keys"
-          labelKey="name"
-          multiple
-          placeholder="Enter metric/key name"
-          ref={ref => (this._typeaheadKey = ref)}
-          isLoading={this.state.keyIsLoading}
-          onSearch={query => {
-            const topoName = this.props.networkConfig.topology.name;
-            this.setState({keyIsLoading: true, keyOptions: []});
-            axios
-              .get('/metrics/stats_ta/' + topoName + '/' + query)
-              .then(response =>
-                this.setState({
-                  keyIsLoading: false,
-                  keyOptions: this.formatKeyOptions(response.data),
-                }),
+      <div className={classes.root}>
+        <Typography variant="subheading">Key Names</Typography>
+        <AsyncSelect
+          // prevent caching results since we use 'filter by links' for
+          // additional filtering
+          cache={false}
+          labelKey="value"
+          loadOptions={(searchTerm, cb) => {
+            const taRequest = {
+              searchTerm,
+              topologyName: this.props.networkConfig.topology.name,
+            };
+            if (this.state.linksSelected.length) {
+              taRequest.restrictors = [
+                {
+                  restrictorType: RestrictorType.LINK,
+                  values: this.state.linksSelected.map(link => link.value),
+                },
+              ];
+            }
+            // request type-ahead metrics for searchTerm, excluding
+            // already selected entries
+            axios.post('/metrics/stats_ta', taRequest).then(response => {
+              cb(
+                null,
+                this.formatKeyOptions(
+                  response.data,
+                  new Set(this.state.keysSelected.map(entry => entry.value)),
+                ),
               );
+            });
           }}
-          selected={this.state.keysSelected}
-          onChange={this.metricSelectionChanged.bind(this)}
-          useCache={false}
-          emptyLabel={false}
-          filterBy={(opt, txt) => {
-            return true;
+          multi={true}
+          onChange={value => {
+            this.setState({keysSelected: value});
           }}
-          renderMenuItemChildren={this.renderTypeaheadKeyMenu.bind(this)}
-          options={this.state.keyOptions}
+          value={this.state.keysSelected}
         />
-        <span className="graph-opt-title">Time Window</span>
-        {TIME_PICKER_OPTS.map(opts => (
-          <button
-            label={opts.label}
-            key={opts.label}
-            className={
-              !this.state.useCustomTime && opts.minAgo === this.state.minAgo
-                ? 'graph-button graph-button-selected'
-                : 'graph-button'
-            }
-            onClick={clk =>
-              this.setState({
-                useCustomTime: false,
-                minAgo: opts.minAgo,
-              })
-            }>
-            {opts.label}
-          </button>
+        <Typography variant="subheading">Filter By Links</Typography>
+        <Select
+          classes={classes}
+          styles={selectStyles}
+          options={linkOptions}
+          labelKey="value"
+          multi={true}
+          onChange={value => {
+            this.setState({linksSelected: value});
+          }}
+          value={this.state.linksSelected}
+        />
+        {inputOpts.map(opts => (
+          <FormControl className={classes.formControl} key={opts[2]}>
+            <InputLabel htmlFor={'input-' + opts.value}>{opts[0]}</InputLabel>
+            <MaterialSelect
+              value={this.state[opts[2]]}
+              onChange={evt =>
+                this.setState({
+                  [opts[2]]: evt.target.value,
+                })
+              }
+              input={<Input name={opts.value} id={'input-' + opts.value} />}>
+              {opts[1].map(opts => (
+                <MenuItem key={opts.value} value={opts.value}>
+                  {opts.label}
+                </MenuItem>
+              ))}
+            </MaterialSelect>
+          </FormControl>
         ))}
-        <br />
-        <span className="graph-opt-title">Custom Time</span>
-        <button
-          label="Custom"
-          key="customButton"
-          className={
-            this.state.useCustomTime
-              ? 'graph-button graph-button-selected'
-              : 'graph-button'
-          }
-          onClick={clk =>
-            this.setState({
-              useCustomTime: !this.state.useCustomTime,
-            })
-          }>
-          Custom
-        </button>
-        <span className="timeTitle">Start</span>
-        <Datetime
-          className="timePicker"
-          key="startTime"
-          inputProps={customInputProps}
-          isValidDate={this.isValidStartDate.bind(this)}
-          onChange={change => {
-            if (typeof change === 'object') {
-              this.setState({startTime: change.toDate()});
-            }
-          }}
-        />
-        <span className="timeTitle">End</span>
-        <Datetime
-          open={false}
-          className="timePicker"
-          inputProps={customInputProps}
-          isValidDate={this.isValidEndDate.bind(this)}
-          key="endTime"
-          onChange={change => {
-            if (typeof change === 'object') {
-              this.setState({endTime: change.toDate()});
-            }
-          }}
-        />
-        <br />
-        <span className="graph-opt-title">Graph Aggregation</span>
-        {GRAPH_AGG_OPTS.map(opts => (
-          <button
-            label={opts.name}
-            key={opts.name}
-            className={
-              opts.aggregationType === this.state.graphAggType
-                ? 'graph-button graph-button-selected'
-                : 'graph-button'
-            }
-            onClick={clk =>
-              this.setState({
-                graphAggType: opts.aggregationType,
-              })
-            }>
-            {opts.title}
-          </button>
-        ))}
-        <br />
         <div id="statsBoxDiv">{multiGraphs}</div>
       </div>
     );
   }
 }
+
+export default withStyles(styles, {withTheme: true})(NetworkStats);
