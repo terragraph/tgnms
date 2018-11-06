@@ -564,37 +564,6 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   font-weight: bold;
 }
 
-.login-form {
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  margin: auto;
-  margin-top: 150px;
-  width: 300px;
-}
-
-.login-form-title {
-  background-color: #eee;
-  height: 75px;
-  line-height: 75px;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.login-form-inner {
-  padding: 0 25px;
-}
-
-.login-form input {
-  margin-bottom: 15px;
-  width: 100%;
-}
-
-.login-form button {
-  margin-bottom: 15px;
-  padding: 3px;
-  width: 100%;
-}
-
 .add-user-header {
   padding: 15px;
 }

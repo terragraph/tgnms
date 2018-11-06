@@ -12,8 +12,8 @@
     "precommit": "./node_modules/.bin/lint-staged"
   },
   "dependencies": {
-    "@material-ui/core": "^1.5.1",
-    "@material-ui/icons": "^2.0.3",
+    "@material-ui/core": "^3.3.0",
+    "@material-ui/icons": "^3.0.0",
     "ajv": "^6.5.0",
     "axios": "^0.18.0",
     "bcryptjs": "^2.4.3",

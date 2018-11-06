@@ -10,4 +10,4 @@ import ReactDOM from 'react-dom';
 import React from 'react';
 import LoginForm from './LoginForm.js';
 
-ReactDOM.render(<LoginForm />, document.getElementById('root'));
+ReactDOM.render(<LoginForm />, document.getElementById('login-root'));
