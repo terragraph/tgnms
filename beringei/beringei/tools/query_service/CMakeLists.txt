@@ -7,6 +7,11 @@
 
 set(CMAKE_CXX_FLAGS "-g")
 
+# set ASAN=1 to to build with ASAN enabled
+if("$ENV{ASAN}" STREQUAL "1")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -DASAN=ON")
+endif()
+
 find_library(MYSQL_CLIENT_LIB NAMES "mysqlclient"
   PATHS "/usr/local/mysql/lib"
   NO_DEFAULT_PATH
@@ -22,6 +27,8 @@ set(BERINGEI_QUERY_SRCS
     BeringeiClientStore.h
     BeringeiReader.cpp
     BeringeiReader.h
+    EventProcessor.cpp
+    EventProcessor.h
     MySqlClient.cpp
     MySqlClient.h
     QueryServiceFactory.cpp

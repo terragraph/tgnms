@@ -10,6 +10,7 @@
 #include "BeringeiReader.h"
 
 #include "BeringeiClientStore.h"
+#include "EventProcessor.h"
 
 #include <algorithm>
 #include <array>
@@ -29,10 +30,14 @@ using std::chrono::system_clock;
 namespace facebook {
 namespace gorilla {
 
+const static int GENERATED_KEY_START_INDEX = 9999999;
+
 BeringeiReader::BeringeiReader(
     TACacheMap& typeaheadCache,
     stats::QueryRequest& request)
-    : typeaheadCache_(typeaheadCache), request_(request) {}
+    : genKeyIndex_(GENERATED_KEY_START_INDEX),
+      typeaheadCache_(typeaheadCache),
+      request_(request) {}
 
 int64_t BeringeiReader::getTimeInMs() {
   return (int64_t)duration_cast<milliseconds>(
@@ -255,6 +260,9 @@ void BeringeiReader::graphAggregation() {
     case stats::GraphAggregation::LATEST:
       graphAggregationLatest();
       break;
+    case stats::GraphAggregation::LINK_STATS:
+      graphAggregationStats();
+      break;
     default:
       LOG(ERROR) << "No supported graph aggregation: "
                  << (int)request_.aggregation;
@@ -334,6 +342,139 @@ void BeringeiReader::graphAggregationLatest() {
       if (!std::isnan(timeSeries.second[i])) {
         valuePerKey_.emplace(timeSeries.first, timeSeries.second[i]);
         break;
+      }
+    }
+  }
+}
+
+void BeringeiReader::graphAggregationStats() {
+  // keep track of packet/bytes counters to calculate PER
+  std::unordered_map<std::string /* link name */,
+      std::unordered_map<stats::LinkDirection,
+          std::unordered_map<std::string /* short name */,
+              double*>>> linkMetricsCache{};
+  // per-key interval status (up/down)
+  std::unordered_map<std::string, int*> linkIntervalStatusMap{};
+  // ensure we have all of the data we need requested
+  for (const auto& timeSeries : keyTimeSeries_) {
+    auto& keyMetaData = keyDataList_[timeSeries.first];
+    // give the computed key for each requested metric
+    std::unordered_set<std::string> avgMetricsList = {
+      "snr",
+      "mcs",
+      "tx_power"};
+    if (avgMetricsList.count(keyMetaData.shortName)) {
+      int count = 0;
+      double sum = 0;
+      for (int i = 0; i < numDataPoints_; i++) {
+        if (!std::isnan(timeSeries.second[i])) {
+          sum += timeSeries.second[i];
+          count++;
+        }
+      }
+      double avg = count > 0 ? (sum / count) : 0;
+      createLinkKey(
+        folly::sformat("avg_{}", keyMetaData.shortName), avg, keyMetaData);
+    } else if (keyMetaData.shortName == "fw_uptime") {
+      int* intervalStatus = EventProcessor::computeIntervalStatus(
+        timeSeries.second,
+        startTime_,
+        endTime_,
+        numDataPoints_,
+        timeInterval_,
+        request_.countPerSecond
+      );
+      // use link name when recording stat, so we can match a/z side
+      const std::string& linkName = keyMetaData.linkName;
+      if (linkIntervalStatusMap.count(linkName)) {
+        // resolve differences in link uptime reported from A/Z
+        if (request_.debugLogToConsole) {
+          LOG(INFO) << "Resolving link differences for "
+                    << linkName;
+        }
+        // resolve link differences
+        resolveLinkUptimeDifferences(linkIntervalStatusMap[linkName] /* dest */, intervalStatus);
+        // delete the current allocation
+        delete[] intervalStatus;
+        // swap our focus to the merged link data
+        intervalStatus = linkIntervalStatusMap.at(linkName);
+      } else {
+        // first side reporting
+        linkIntervalStatusMap[linkName] = intervalStatus;
+      }
+
+    } else if (keyMetaData.shortName == "tx_fail" ||
+               keyMetaData.shortName == "tx_ok") {
+      // value needs correlation, store in cache
+      linkMetricsCache[keyMetaData.linkName]
+                      [keyMetaData.linkDirection]
+                      [keyMetaData.shortName] = timeSeries.second;
+    }
+  }
+  // process events after a/z sides of link have been compared
+  for (const auto& linkIntervalStatus : linkIntervalStatusMap) {
+    auto intervalEventList = EventProcessor::formatIntervalStatus(
+      linkIntervalStatus.second,
+      startTime_,
+      endTime_,
+      numDataPoints_,
+      timeInterval_
+    );
+    // free the int* intervalStatus memory
+    delete[] linkIntervalStatus.second;
+    // create metrics on side 'A', the UI will show 'A'  for both sides
+    createLinkKey("uptime",
+                  intervalEventList.alive,
+                  linkIntervalStatus.first,
+                  stats::LinkDirection::LINK_A);
+    int flaps = !intervalEventList.events.empty() ?
+        intervalEventList.events.size() - 1 :
+        0;
+    createLinkKey("flaps",
+                  flaps,
+                  linkIntervalStatus.first,
+                  stats::LinkDirection::LINK_A);
+  }
+  // calculate metrics that require multiple sources
+  for (const auto& linkNameMap : linkMetricsCache) {
+    for (const auto& linkDirectionMap : linkNameMap.second) {
+      // if tx_ok && tx_fail exist, calculate per
+      auto txOkIt = linkDirectionMap.second.find("tx_ok");
+      auto txFailIt = linkDirectionMap.second.find("tx_fail");
+      if (txOkIt != linkDirectionMap.second.end() &&
+          txFailIt != linkDirectionMap.second.end()) {
+        double* txFail = txFailIt->second;
+        double* txOk = txOkIt->second;
+        // record sum of all valid data points
+        double sumTxOk = 0;
+        double sumTxFail = 0;
+        // last real values for both metrics
+        double lastTxOk = 0;
+        double lastTxFail = 0;
+        // loop over all counter data points
+        // if counter rolls back - drop the interval (link reset)
+        for (int i = 0; i < numDataPoints_; i++) {
+          if (!std::isnan(txOk[i]) && !std::isnan(txFail[i])) {
+            // if currentValue > lastValue, add difference
+            if (txOk[i] >= lastTxOk && txFail[i] >= lastTxFail) {
+              sumTxOk += (txOk[i] - lastTxOk);
+              sumTxFail += (txFail[i] - lastTxFail);
+            }
+            lastTxOk = txOk[i];
+            lastTxFail = txFail[i];
+          }
+        }
+        double avgPer = sumTxFail > 0 ?
+          (sumTxFail / (sumTxOk + sumTxFail) * 100.0) : 0;
+        double avgTputPps = (sumTxOk + sumTxFail) / (endTime_ - startTime_);
+        createLinkKey("avg_per",
+                      avgPer,
+                      linkNameMap.first,
+                      linkDirectionMap.first);
+        createLinkKey("avg_tput",
+                      avgTputPps,
+                      linkNameMap.first,
+                      linkDirectionMap.first);
       }
     }
   }
@@ -472,7 +613,10 @@ void BeringeiReader::formatData() {
       if (!valuePerKey_.empty()) {
         // add meta data to each key id
         for (const auto& keyValue : valuePerKey_) {
-          auto& keyMeta = keyDataList_[keyValue.first];
+          // ensure key meta-data exists
+          auto metaDataIt = keyDataList_.find(keyValue.first);
+          assert(metaDataIt != keyDataList_.end());
+          auto& keyMeta = metaDataIt->second;
           if (keyMeta.linkName.empty()) {
             LOG(ERROR) << "RAW_LINK selected on non-link metric.";
             continue;
@@ -485,8 +629,10 @@ void BeringeiReader::formatData() {
           if (!output_[keyMeta.linkName].count(linkDirection)) {
             output_[keyMeta.linkName][linkDirection] = folly::dynamic::object();
           }
-          output_[keyMeta.linkName][linkDirection][keyMeta.keyName] =
-              keyValue.second;
+          if (!keyMeta.keyName.empty()) {
+            output_[keyMeta.linkName][linkDirection][keyMeta.keyName] =
+                keyValue.second;
+          }
           // add short name if set
           if (!keyMeta.shortName.empty()) {
             output_[keyMeta.linkName][linkDirection][keyMeta.shortName] =
@@ -499,7 +645,10 @@ void BeringeiReader::formatData() {
       if (!valuePerKey_.empty()) {
         // add meta data to each key id
         for (const auto& keyValue : valuePerKey_) {
-          auto& keyMeta = keyDataList_[keyValue.first];
+          // ensure key meta-data exists
+          auto metaDataIt = keyDataList_.find(keyValue.first);
+          assert(metaDataIt != keyDataList_.end());
+          auto& keyMeta = metaDataIt->second;
           if (!output_.count(keyMeta.srcNodeName)) {
             output_[keyMeta.srcNodeName] = folly::dynamic::object();
           }
@@ -716,6 +865,28 @@ void BeringeiReader::cleanUp() {
     delete[] timeSeries.second;
   }
   aggregateKeyTimeSeries_.clear();
+}
+
+void BeringeiReader::createLinkKey(const std::string& keyName,
+                                   double value,
+                                   const std::string& linkName,
+                                   const stats::LinkDirection& linkDirection) {
+  int64_t keyId = ++genKeyIndex_;
+  valuePerKey_.emplace(std::to_string(keyId), value);
+  KeyMetaData metaData;
+  metaData.keyId = keyId;
+  metaData.keyName = keyName;
+  metaData.__isset.linkName = true;
+  metaData.linkName = linkName;
+  metaData.__isset.linkDirection = true;
+  metaData.linkDirection = linkDirection;
+  keyDataList_.emplace(std::to_string(keyId), metaData);
+}
+
+void BeringeiReader::createLinkKey(const std::string& keyName,
+                                   double value,
+                                   const KeyMetaData& metaDataExisting) {
+  createLinkKey(keyName, value, metaDataExisting.linkName, metaDataExisting.linkDirection);
 }
 
 } // namespace gorilla

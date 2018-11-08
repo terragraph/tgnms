@@ -80,10 +80,16 @@ void StatsHandler::onEOM() noexcept {
   // match to a type-ahead cache
   BeringeiReader dataFetcher(typeaheadCache_, request);
   auto output = dataFetcher.process();
+  std::string jsonOutput = "{}";
+  try {
+    jsonOutput = folly::toJson(output);
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << "Unable to write results as JSON: " << ex.what();
+  }
   ResponseBuilder(downstream_)
       .status(200, "OK")
       .header("Content-Type", "application/json")
-      .body(folly::toJson(output))
+      .body(jsonOutput)
       .sendWithEOM();
 }
 

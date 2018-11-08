@@ -53,6 +53,7 @@ class BeringeiReader {
   void graphAggregationAvg();
   void graphAggregationCount();
   void graphAggregationLatest();
+  void graphAggregationStats();
   // apply max results
   void limitResults();
   // apply max data points/avg
@@ -63,6 +64,16 @@ class BeringeiReader {
   void formatDataEvent(bool isLink = false);
   // resolve differences in link uptime
   void resolveLinkUptimeDifferences(int* dstLink, int* srcLink);
+  // create+insert new key w/ meta-data
+  void createLinkKey(const std::string& keyName,
+                     double value,
+                     const std::string& linkName,
+                     const stats::LinkDirection& linkDirection);
+  // helper
+  void createLinkKey(const std::string& keyName,
+                     double value,
+                     const KeyMetaData& metaDataExisting);
+
   // clean-up memory
   void cleanUp();
 
@@ -70,6 +81,10 @@ class BeringeiReader {
   time_t endTime_;
   int32_t timeInterval_;
   int32_t numDataPoints_;
+  // generated key id
+  // used for generating new key names with createLinkKey(..)
+  // TODO - this has overlapping key space potential, just like aggregate keys
+  int64_t genKeyIndex_;
   TimeSeries beringeiTimeSeries_{};
   folly::dynamic output_{};
   TACacheMap typeaheadCache_;

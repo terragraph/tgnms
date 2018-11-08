@@ -47,6 +47,9 @@ void TopologyFetcher::updateDbNodesTable(query::Topology& topology) {
   // update the nodes table with retrieved information
   auto mySqlClient = MySqlClient::getInstance();
   for (const auto& node : topology.nodes) {
+    if (node.mac_addr.empty()) {
+      continue;
+    }
     auto nodeId = mySqlClient->getNodeId(node.mac_addr);
     query::MySqlNodeData newNode;
     if (!nodeId) {

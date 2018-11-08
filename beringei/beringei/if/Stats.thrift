@@ -139,8 +139,9 @@ enum GraphAggregation {
   /* NOT IMPLEMENTED */
   BOTTOM_AVG = 40,
   BOTTOM_MIN = 41,
-  BOTTOM_MAX = 42
+  BOTTOM_MAX = 42,
 
+  LINK_STATS = 100,
 }
 /**
  * Request for a single graph.
@@ -173,4 +174,22 @@ struct QueryRequest {
   110: i32 dsIntervalSec = 30,
   // output debug data to console for this request
   1000: optional bool debugLogToConsole = false,
+}
+
+// output formats
+struct EventDescription {
+  1: i64 startTime,
+  2: i64 endTime,
+  3: string description,
+}
+
+struct EventList {
+  1: double alive,
+  2: list<EventDescription> events,
+}
+
+struct OutputFormatEvents {
+  1: i64 startTime,
+  2: i64 endTime,
+  3: map<string /* key name */, EventList> events,
 }

@@ -70,6 +70,7 @@ class BeringeiReaderUptimeTest : public testing::Test {
   }
 
   void process(BeringeiReader& dataFetcher, double* keyDataA, double* keyDataZ) {
+    dataFetcher.output_ = folly::dynamic::object;
     // add links we care about
     dataFetcher.keyDataList_.emplace("10", keyMetaDataA_);
     dataFetcher.keyDataList_.emplace("20", keyMetaDataZ_);
