@@ -6,6 +6,10 @@
 
 const {BERINGEI_QUERY_URL} = require('../config');
 const _ = require('lodash');
+import {
+  GraphAggregation,
+  StatsOutputFormat,
+} from '../../thrift/gen-nodejs/Stats_types';
 const request = require('request');
 const logger = require('../log')(module);
 
@@ -16,60 +20,28 @@ function getAnalyzerData(topologyName) {
 }
 
 function refreshAnalyzerData(topologyName) {
-  const linkMetrics = [
-    {
-      name: 'not_used',
-      metric: 'fw_uptime',
-      type: 'analyzer_table',
-      min_ago: 60 /* 1 hour */,
-    },
-    {
-      name: 'not_used',
-      metric: 'tx_ok',
-      type: 'analyzer_table',
-      min_ago: 60 /* 1 hour */,
-    },
-    {
-      name: 'not_used',
-      metric: 'tx_fail',
-      type: 'analyzer_table',
-      min_ago: 60 /* 1 hour */,
-    },
-    {
-      name: 'not_used',
-      metric: 'mcs',
-      type: 'analyzer_table',
-      min_ago: 60 /* 1 hour */,
-    },
-    {
-      name: 'not_used',
-      metric: 'tx_power',
-      type: 'analyzer_table',
-      min_ago: 60 /* 1 hour */,
-    },
-    {
-      name: 'not_used',
-      metric: 'snr',
-      type: 'analyzer_table',
-      min_ago: 60 /* 1 hour */,
-    },
-  ];
-  const startTime = new Date();
-  const query = {
+  const linkQuery = {
+    aggregation: GraphAggregation.LINK_STATS,
+    keyNames: ['fw_uptime', 'tx_ok', 'tx_fail', 'mcs', 'tx_power', 'snr'],
+    maxResults: 0 /* All results */,
+    minAgo: 60 /* 1 hour */,
+    outputFormat: StatsOutputFormat.RAW_LINK,
     topologyName,
-    nodeQueries: [],
-    linkQueries: linkMetrics,
   };
-  const chartUrl = BERINGEI_QUERY_URL + '/table_query';
+  const startTime = new Date();
+  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
   request.post(
-    {url: chartUrl, body: JSON.stringify(query)},
+    {
+      body: JSON.stringify(linkQuery),
+      url: chartUrl,
+    },
     (err, httpResponse, body) => {
       if (err) {
         logger.error('Error fetching from beringei: %s', err);
         return;
       }
       const totalTime = new Date() - startTime;
-      logger.debug(
+      logger.info(
         'Fetched analyzer data for %s in %f ms',
         topologyName,
         totalTime,

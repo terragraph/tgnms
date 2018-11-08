@@ -217,14 +217,10 @@ class NetworkUI extends React.Component {
     this.lastAnalyzerRequestTime = new Date() / 1000;
     axios.get('/metrics/link_analyzer/' + networkName).then(response => {
       const json = response.data;
-      // merge data
-      if (json.length !== 1) {
-        return;
-      }
       // ensure we can decode the response
       Dispatcher.dispatch({
         actionType: Actions.ANALYZER_REFRESHED,
-        analyzerTable: json[0],
+        analyzerTable: json,
       });
     });
   }

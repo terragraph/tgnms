@@ -118,8 +118,8 @@ router.post(/\/scan_results$/i, (req, res) => {
 });
 
 // raw stats data
-router.get(/\/link_analyzer\/(.+)$/i, (req, res, next) => {
-  const topologyName = req.params[0];
+router.get('/link_analyzer/:topologyName', (req, res, next) => {
+  const topologyName = req.params.topologyName;
   const analyzerData = getAnalyzerData(topologyName);
   if (analyzerData !== null) {
     res.send(analyzerData).end();

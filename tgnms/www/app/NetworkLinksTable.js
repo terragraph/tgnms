@@ -49,9 +49,10 @@ export default class NetworkLinksTable extends React.Component {
       isKey: true,
       key: 'name',
       label: 'Name',
-      render: this.renderNameWithStatsLinks.bind(this),
+      render: this.renderLinkName.bind(this),
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
+      width: 400,
     },
     {
       key: 'alive',
@@ -153,8 +154,8 @@ export default class NetworkLinksTable extends React.Component {
       width: 100,
     },
     {
+      label: 'Uptime',
       key: 'uptime',
-      label: 'Uptime (min)',
       render: cell => this.renderFloatPoint('uptime', cell),
       sort: true,
       width: 100,
@@ -384,13 +385,11 @@ export default class NetworkLinksTable extends React.Component {
     }
     Object.keys(this.linksByName).forEach(linkName => {
       const link = this.linksByName[linkName];
-      if (!this.state.analyzerTable || !this.state.analyzerTable.metrics) {
+      if (!this.state.analyzerTable || !this.state.analyzerTable) {
         return;
       }
-      const analyzerLink = this.state.analyzerTable.metrics.hasOwnProperty(
-        linkName,
-      )
-        ? this.state.analyzerTable.metrics[linkName]
+      const analyzerLink = this.state.analyzerTable.hasOwnProperty(linkName)
+        ? this.state.analyzerTable[linkName]
         : [];
       const analyzerLinkA = analyzerLink.hasOwnProperty('A')
         ? analyzerLink.A
@@ -426,37 +425,39 @@ export default class NetworkLinksTable extends React.Component {
 
       // this is the A->Z link
       rows.push({
+        name: link.name,
         a_node_name: link.a_node_name,
+        z_node_name: link.z_node_name,
         alive: link.is_alive,
         alive_perc: link.alive_perc,
-        distance: link.distance,
         fw_restarts: analyzerLinkA.flaps,
-        mcs: this.formatAnalyzerValue(analyzerLinkA, 'avgmcs'),
-        name: link.name,
-        per: this.formatAnalyzerValue(analyzerLinkA, 'avgper'),
-        snr: this.formatAnalyzerValue(analyzerLinkZ, 'avgsnr'),
-        tput: this.formatAnalyzerValue(analyzerLinkA, 'tput'),
-        txpower: this.formatAnalyzerValue(analyzerLinkA, 'avgtxpower'),
-        type: link.link_type === LinkType.WIRELESS ? 'Wireless' : 'Wired',
-        uptime: analyzerLinkA.uptime / 60.0,
-        z_node_name: link.z_node_name,
+        uptime: analyzerLinkA.uptime,
+        mcs: this.formatAnalyzerValue(analyzerLinkA, 'avg_mcs'),
+        // snr is the receive signal strength which needs to come from the
+        // other side of the link
+        snr: this.formatAnalyzerValue(analyzerLinkZ, 'avg_snr'),
+        per: this.formatAnalyzerValue(analyzerLinkA, 'avg_per'),
+        tput: this.formatAnalyzerValue(analyzerLinkA, 'avg_tput'),
+        txpower: this.formatAnalyzerValue(analyzerLinkA, 'avg_tx_power'),
+        distance: link.distance,
       });
       // this is the Z->A link
       rows.push({
+        name: link.name,
         a_node_name: link.z_node_name,
+        z_node_name: link.a_node_name,
         alive: link.is_alive,
         alive_perc: link.alive_perc,
+        fw_restarts: analyzerLinkA.flaps,
+        uptime: analyzerLinkA.uptime,
+        mcs: this.formatAnalyzerValue(analyzerLinkZ, 'avg_mcs'),
+        // snr is the receive signal strength which needs to come from the
+        // other side of the link
+        snr: this.formatAnalyzerValue(analyzerLinkA, 'avg_snr'),
+        per: this.formatAnalyzerValue(analyzerLinkZ, 'avg_per'),
+        tput: this.formatAnalyzerValue(analyzerLinkZ, 'avg_tput'),
+        txpower: this.formatAnalyzerValue(analyzerLinkZ, 'avg_tx_power'),
         distance: link.distance,
-        fw_restarts: analyzerLinkZ.flaps,
-        mcs: this.formatAnalyzerValue(analyzerLinkZ, 'avgmcs'),
-        name: link.name,
-        per: this.formatAnalyzerValue(analyzerLinkZ, 'avgper'),
-        snr: this.formatAnalyzerValue(analyzerLinkA, 'avgsnr'),
-        tput: this.formatAnalyzerValue(analyzerLinkZ, 'tput'),
-        txpower: this.formatAnalyzerValue(analyzerLinkZ, 'avgtxpower'),
-        type: link.link_type === LinkType.WIRELESS ? 'Wireless' : 'Wired',
-        uptime: analyzerLinkZ.uptime / 60.0,
-        z_node_name: link.a_node_name,
       });
     });
     return rows;
@@ -688,18 +689,13 @@ export default class NetworkLinksTable extends React.Component {
           cellColor = variableColorUp(cell, 0, 0);
           break;
         case 'per':
-          if (cell === 254) {
-            cellText = 'N/A';
-            cellColor = 'black';
-          } else {
-            cellText = cell.toExponential(2);
-            // if value<thresh1 green, elseif <thresh2 orange, else red
-            cellColor = variableColorDown(cell, 0.005, 0.01);
-          }
+          cellText = cell.toFixed(2) + '%'; //cell.toExponential(2);
+          // if value<thresh1 green, elseif <thresh2 orange, else red
+          cellColor = variableColorDown(cell, 0.5, 1);
           break;
         case 'uptime':
-          cellText = cell.toFixed(0);
-          cellColor = variableColorUp(cell, 59, 59);
+          cellText = cell.toFixed(2) + '%';
+          cellColor = availabilityColor(cell);
           break;
         case 'fw_restarts':
           cellText = cell.toFixed(0);

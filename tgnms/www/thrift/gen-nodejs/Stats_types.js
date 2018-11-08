@@ -51,7 +51,8 @@ ttypes.GraphAggregation = {
   'TOP_MAX' : 32,
   'BOTTOM_AVG' : 40,
   'BOTTOM_MIN' : 41,
-  'BOTTOM_MAX' : 42
+  'BOTTOM_MAX' : 42,
+  'LINK_STATS' : 100
 };
 var QueryRestrictor = module.exports.QueryRestrictor = function(args) {
   this.restrictorType = null;
@@ -839,6 +840,287 @@ QueryRequest.prototype.write = function(output) {
   if (this.debugLogToConsole !== null && this.debugLogToConsole !== undefined) {
     output.writeFieldBegin('debugLogToConsole', Thrift.Type.BOOL, 1000);
     output.writeBool(this.debugLogToConsole);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+var EventDescription = module.exports.EventDescription = function(args) {
+  this.startTime = null;
+  this.endTime = null;
+  this.description = null;
+  if (args) {
+    if (args.startTime !== undefined && args.startTime !== null) {
+      this.startTime = args.startTime;
+    }
+    if (args.endTime !== undefined && args.endTime !== null) {
+      this.endTime = args.endTime;
+    }
+    if (args.description !== undefined && args.description !== null) {
+      this.description = args.description;
+    }
+  }
+};
+EventDescription.prototype = {};
+EventDescription.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.I64) {
+        this.startTime = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.I64) {
+        this.endTime = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.STRING) {
+        this.description = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+EventDescription.prototype.write = function(output) {
+  output.writeStructBegin('EventDescription');
+  if (this.startTime !== null && this.startTime !== undefined) {
+    output.writeFieldBegin('startTime', Thrift.Type.I64, 1);
+    output.writeI64(this.startTime);
+    output.writeFieldEnd();
+  }
+  if (this.endTime !== null && this.endTime !== undefined) {
+    output.writeFieldBegin('endTime', Thrift.Type.I64, 2);
+    output.writeI64(this.endTime);
+    output.writeFieldEnd();
+  }
+  if (this.description !== null && this.description !== undefined) {
+    output.writeFieldBegin('description', Thrift.Type.STRING, 3);
+    output.writeString(this.description);
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+var EventList = module.exports.EventList = function(args) {
+  this.alive = null;
+  this.events = null;
+  if (args) {
+    if (args.alive !== undefined && args.alive !== null) {
+      this.alive = args.alive;
+    }
+    if (args.events !== undefined && args.events !== null) {
+      this.events = Thrift.copyList(args.events, [ttypes.EventDescription]);
+    }
+  }
+};
+EventList.prototype = {};
+EventList.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.DOUBLE) {
+        this.alive = input.readDouble();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.LIST) {
+        var _size50 = 0;
+        var _rtmp354;
+        this.events = [];
+        var _etype53 = 0;
+        _rtmp354 = input.readListBegin();
+        _etype53 = _rtmp354.etype;
+        _size50 = _rtmp354.size;
+        for (var _i55 = 0; _i55 < _size50; ++_i55)
+        {
+          var elem56 = null;
+          elem56 = new ttypes.EventDescription();
+          elem56.read(input);
+          this.events.push(elem56);
+        }
+        input.readListEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+EventList.prototype.write = function(output) {
+  output.writeStructBegin('EventList');
+  if (this.alive !== null && this.alive !== undefined) {
+    output.writeFieldBegin('alive', Thrift.Type.DOUBLE, 1);
+    output.writeDouble(this.alive);
+    output.writeFieldEnd();
+  }
+  if (this.events !== null && this.events !== undefined) {
+    output.writeFieldBegin('events', Thrift.Type.LIST, 2);
+    output.writeListBegin(Thrift.Type.STRUCT, this.events.length);
+    for (var iter57 in this.events)
+    {
+      if (this.events.hasOwnProperty(iter57))
+      {
+        iter57 = this.events[iter57];
+        iter57.write(output);
+      }
+    }
+    output.writeListEnd();
+    output.writeFieldEnd();
+  }
+  output.writeFieldStop();
+  output.writeStructEnd();
+  return;
+};
+
+var OutputFormatEvents = module.exports.OutputFormatEvents = function(args) {
+  this.startTime = null;
+  this.endTime = null;
+  this.events = null;
+  if (args) {
+    if (args.startTime !== undefined && args.startTime !== null) {
+      this.startTime = args.startTime;
+    }
+    if (args.endTime !== undefined && args.endTime !== null) {
+      this.endTime = args.endTime;
+    }
+    if (args.events !== undefined && args.events !== null) {
+      this.events = Thrift.copyMap(args.events, [ttypes.EventList]);
+    }
+  }
+};
+OutputFormatEvents.prototype = {};
+OutputFormatEvents.prototype.read = function(input) {
+  input.readStructBegin();
+  while (true)
+  {
+    var ret = input.readFieldBegin();
+    var fname = ret.fname;
+    var ftype = ret.ftype;
+    var fid = ret.fid;
+    if (ftype == Thrift.Type.STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+      if (ftype == Thrift.Type.I64) {
+        this.startTime = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 2:
+      if (ftype == Thrift.Type.I64) {
+        this.endTime = input.readI64();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 3:
+      if (ftype == Thrift.Type.MAP) {
+        var _size58 = 0;
+        var _rtmp362;
+        this.events = {};
+        var _ktype59 = 0;
+        var _vtype60 = 0;
+        _rtmp362 = input.readMapBegin();
+        _ktype59 = _rtmp362.ktype;
+        _vtype60 = _rtmp362.vtype;
+        _size58 = _rtmp362.size;
+        for (var _i63 = 0; _i63 < _size58; ++_i63)
+        {
+          var key64 = null;
+          var val65 = null;
+          key64 = input.readString();
+          val65 = new ttypes.EventList();
+          val65.read(input);
+          this.events[key64] = val65;
+        }
+        input.readMapEnd();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      default:
+        input.skip(ftype);
+    }
+    input.readFieldEnd();
+  }
+  input.readStructEnd();
+  return;
+};
+
+OutputFormatEvents.prototype.write = function(output) {
+  output.writeStructBegin('OutputFormatEvents');
+  if (this.startTime !== null && this.startTime !== undefined) {
+    output.writeFieldBegin('startTime', Thrift.Type.I64, 1);
+    output.writeI64(this.startTime);
+    output.writeFieldEnd();
+  }
+  if (this.endTime !== null && this.endTime !== undefined) {
+    output.writeFieldBegin('endTime', Thrift.Type.I64, 2);
+    output.writeI64(this.endTime);
+    output.writeFieldEnd();
+  }
+  if (this.events !== null && this.events !== undefined) {
+    output.writeFieldBegin('events', Thrift.Type.MAP, 3);
+    output.writeMapBegin(Thrift.Type.STRING, Thrift.Type.STRUCT, Thrift.objectLength(this.events));
+    for (var kiter66 in this.events)
+    {
+      if (this.events.hasOwnProperty(kiter66))
+      {
+        var viter67 = this.events[kiter66];
+        output.writeString(kiter66);
+        viter67.write(output);
+      }
+    }
+    output.writeMapEnd();
     output.writeFieldEnd();
   }
   output.writeFieldStop();
