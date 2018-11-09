@@ -44,7 +44,7 @@ class BeringeiReader {
   // apply restrictors
   void loadKeyMetaData();
   // compute time interval
-  void setTimeWindow();
+  bool setTimeWindow();
   // fetch beringei data
   void fetchBeringeiData();
   // apply graph aggregation (NONE, SUM, TOP_AVG)

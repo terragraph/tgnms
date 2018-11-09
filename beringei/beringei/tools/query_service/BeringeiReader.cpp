@@ -57,7 +57,10 @@ folly::dynamic BeringeiReader::process() {
   auto startTime = getTimeInMs();
   loadKeyMetaData();
   auto keyDataTime = getTimeInMs();
-  setTimeWindow();
+  if (!setTimeWindow()) {
+    output_["error"] = "Invalid time window";
+    return output_;
+  }
   auto validateTime = getTimeInMs();
   if (!validateQuery()) {
     return output_;
@@ -154,7 +157,7 @@ void BeringeiReader::loadKeyMetaData() {
   }
 }
 
-void BeringeiReader::setTimeWindow() {
+bool BeringeiReader::setTimeWindow() {
   timeInterval_ = request_.dsIntervalSec;
   if (request_.__isset.minAgo) {
     endTime_ = std::time(nullptr);
@@ -167,7 +170,7 @@ void BeringeiReader::setTimeWindow() {
     if (endTime_ <= startTime_) {
       LOG(ERROR) << "Request for invalid time window: " << startTime_ << " <-> "
                  << endTime_;
-      throw std::runtime_error("Request for invalid time window");
+      return false;
     }
   } else {
     // default to 1 day here
@@ -179,6 +182,7 @@ void BeringeiReader::setTimeWindow() {
             << ", minutes: " << ((endTime_ - startTime_) / 60)
             << ", interval: " << timeInterval_
             << ", data points: " << numDataPoints_;
+  return true;
 }
 
 void BeringeiReader::fetchBeringeiData() {
@@ -592,11 +596,16 @@ void BeringeiReader::formatData() {
         }
         if (aggregateKeyTimeSeries_.empty()) {
           auto& keyMetaData = keyDataList_[timeSeries.first];
-          // use "<node name> / <key name>" for now
+          // use "<node name> / <key name>" by default
           auto keyName = folly::sformat(
               "{} / {}", keyMetaData.srcNodeName, keyMetaData.keyName);
-          // plotting library doesn't support '.'
-          std::replace(keyName.begin(), keyName.end(), '.', ' ');
+          if (!keyMetaData.linkName.empty()) {
+            // attempt to use link name + direction if link name set
+            keyName = folly::sformat("{} ({})",
+              keyMetaData.linkName,
+              keyMetaData.linkDirection == stats::LinkDirection::LINK_A ?
+                "A" : "Z");
+          }
           columnNames.push_back(keyName);
         } else {
           auto keyName = timeSeries.first;
