@@ -225,7 +225,29 @@ services:
       - ./docker_volumes/logs:/analytics/logs
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "jupyter notebook --no-browser --ip '*' --allow-root --port 8443 --notebook-dir /usr/local/analytics --NotebookApp.token=tokenforterragraphnotebook & cd /usr/local/analytics/link_insights; python3 run_link_pipeline.py"]
+    command: ["/bin/sh", "-c", "cd /usr/local/analytics/link_insights; python3 run_link_pipeline.py"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    depends_on:
+      - ipv6
+      - db
+      - bqs
+
+  jupyter:
+    build:
+      context: .
+    image: secure.cxl-terragraph.com:443/analytics:latest
+    env_file:
+      - ./env/mysql.env
+    restart: unless-stopped
+    volumes:
+      - ./docker_volumes/logs:/analytics/logs
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "jupyter notebook --no-browser --ip '0.0.0.0' --allow-root --port 8443 --notebook-dir /usr/local/analytics --NotebookApp.token=tokenforterragraphnotebook"]
     logging:
       driver: "json-file"
       options:
