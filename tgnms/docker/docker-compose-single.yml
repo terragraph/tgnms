@@ -272,7 +272,7 @@ services:
       - "8000:8000"
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "cd /usr/local/analytics/network_test_api; until nc -z db 3306; do sleep 1; done && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+    command: ["/bin/sh", "-c", "cd /usr/local/analytics/network_test_api; until nc -z db 3306; do sleep 1; done && python manage.py migrate && python nmsapi/clean_up_db.py && python manage.py runserver 0.0.0.0:8000"]
     logging:
       driver: "json-file"
       options:
