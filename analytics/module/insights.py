@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import time
 import logging
-import numpy as np
+import time
+from typing import Dict, List
 
 import module.numpy_operations as npo
-from module.numpy_time_series import StatType, NumpyTimeSeries
-from typing import Dict, List
+import numpy as np
+from module.numpy_time_series import NumpyLinkTimeSeries, NumpyTimeSeries, StatType
 
 
 def generate_insights(save_to_low_freq_db=None):
@@ -125,19 +125,17 @@ def generate_insights(save_to_low_freq_db=None):
     )
 
 
-def link_health(start_time: int, end_time: int, network_info: Dict) -> List:
+def link_health(links: List, network_info: Dict) -> List:
 
-    nts = NumpyTimeSeries(start_time, end_time, 1, network_info=network_info)
-    k = nts.get_consts()
-    link_length = nts.get_link_length()[0]
-    mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)[0]
-    link_available = nts.read_stats("staPkt.linkAvailable", StatType.LINK)[0]
-    mcs = nts.read_stats("staPkt.mcs", StatType.LINK)[0]
-    # tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)[0]
-    # tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)[0]
-    link_length = nts.get_link_length()[0]
-    num_links = k[0]["num_links"]
-    num_dir = nts.NUM_DIR
+    nlts = NumpyLinkTimeSeries(links, 1, network_info)
+    link_length = nlts.get_link_length()
+    mgmt_link_up = nlts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
+    link_available = nlts.read_stats("staPkt.linkAvailable", StatType.LINK)
+    mcs = nlts.read_stats("staPkt.mcs", StatType.LINK)
+    # tx_ok = nlts.read_stats("staPkt.txOk", StatType.LINK)
+    # tx_fail = nlts.read_stats("staPkt.txFail", StatType.LINK)
+    num_links = nlts._num_links
+    num_dir = nlts.NUM_DIR
 
     availability = npo.nan_arr((num_links, num_dir, 1))
     for li in range(num_links):
@@ -145,11 +143,11 @@ def link_health(start_time: int, end_time: int, network_info: Dict) -> List:
             availability[li, di, 0], _ = npo.get_link_availability_and_flaps_1d(
                 mgmt_link_up[li, di, :], link_available[li, di, :], 1
             )
-    max_a = np.nanmax(availability, axis=nts.DIR_AXIS)
-    availability = np.stack([max_a] * 2, axis=nts.DIR_AXIS)
+    max_a = np.nanmax(availability, axis=nlts.DIR_AXIS)
+    availability = np.stack([max_a] * 2, axis=nlts.DIR_AXIS)
 
     mcs_p90 = np.nanpercentile(
-        mcs, 10, axis=nts.TIME_AXIS, interpolation="lower", keepdims=True
+        mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True
     )
 
     # TODO: Calculate Tx PER
@@ -185,4 +183,4 @@ def link_health(start_time: int, end_time: int, network_info: Dict) -> List:
     link_health[marginal] = 2
     link_health[healthy] = 1
     link_health[excellent] = 0
-    return nts.write_stats("link_health", [link_health], StatType.LINK, 900)
+    return nlts.write_stats("link_health", link_health, 900)

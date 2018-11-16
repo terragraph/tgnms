@@ -356,7 +356,11 @@ class NumpyLinkTimeSeries(object):
                 start_time,
             )
             # group queries
-            assert ts.topology == self._topology["name"]
+            assert (not ts.topology) or (
+                ts.topology == self._topology["name"]
+            ), "topology name mismatch, '{}', '{}'".format(
+                ts.topology, self._topology["name"]
+            )
             key = start_time
             if key not in self._map_query:
                 self._map_query[key] = {"src_macs": [], "peer_macs": []}
