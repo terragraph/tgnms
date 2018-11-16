@@ -20,6 +20,7 @@ from api.network_test.test_network import (TestNetwork, IperfObj, PingObj)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
                 + "/../../"))
 from module.insights import link_health
+from module.beringei_time_series import TimeSeries
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -107,10 +108,22 @@ class RunTestPlan83(Thread):
             # get network wide analytics stats for the duration of the test
             _log.info("\nWriting Analytics stats to the db:")
             self._write_analytics_stats_to_db(link_health(
-                    self.start_time,
-                    self.end_time,
-                    self.parameters['network_info']
-                ))
+                            links=self._create_time_series_list(),
+                            network_info=self.parameters['network_info'],
+                        ))
+
+    def _create_time_series_list(self):
+        time_series_list = []
+        for link in self.parameters['test_list']:
+            time_series_list.append(TimeSeries(
+                                        name='TEST_PLAN_8_3',
+                                        topology=self.topology_name,
+                                        times=[self.start_time, self.end_time],
+                                        values=[0, 0],
+                                        src_mac=link['src_node_id'],
+                                        peer_mac=link['dst_node_id'],
+                                    ))
+        return time_series_list
 
     def _write_analytics_stats_to_db(self, analytics_stats):
         # analytics_stats is list of Beringei TimeSeries objects
