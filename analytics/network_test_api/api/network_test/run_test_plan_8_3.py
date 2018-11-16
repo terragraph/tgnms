@@ -35,6 +35,8 @@ class RunTestPlan83(Thread):
         self.controller_port = network_parameters["controller_port"]
         self.network_info = network_parameters["network_info"]
         self.test_code = network_parameters["test_code"]
+        self.topology_id = network_parameters["topology_id"]
+        self.topology_name = network_parameters["topology_name"]
         self.topology = network_parameters["topology"]
         self.test_duration = network_parameters["test_duration"]
         self.test_push_rate = network_parameters["test_push_rate"]
@@ -58,6 +60,8 @@ class RunTestPlan83(Thread):
             test_run = TestRunExecution.objects.create(
                 status=TEST_STATUS_RUNNING,
                 test_code=self.test_code,
+                topology_id=self.topology_id,
+                topology_name=self.topology_name,
             )
             for link in test_list:
                 link_id = SingleHopTest.objects.create(
