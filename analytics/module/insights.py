@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import time
+import logging
 import numpy as np
 
 import module.numpy_operations as npo
@@ -8,14 +9,26 @@ from module.numpy_time_series import StatType, NumpyTimeSeries
 from typing import Dict, List
 
 
-def generate_insights():
+def generate_insights(save_to_low_freq_db=None):
     interval = 30
     end_time = int(time.time())
     start_time = end_time - 3600
     nts = NumpyTimeSeries(start_time, end_time, interval)
     k = nts.get_consts()
+    logging.info(
+        "Generate insights, start_time={}, end_time={}, num_topologies={}".format(
+            start_time, end_time, k["num_topologies"]
+        )
+    )
+    for ti in range(k["num_topologies"]):
+        logging.info(
+            "idx={}, num_nodes={}, num_link={}".format(
+                ti, k[ti]["num_nodes"], k[ti]["num_links"]
+            )
+        )
 
     # link availability and flaps
+    logging.info("Generate availability, flaps")
     mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
     link_available = nts.read_stats("staPkt.linkAvailable", StatType.LINK)
     availability = []
@@ -41,6 +54,7 @@ def generate_insights():
     nts.write_stats("flaps", flaps, StatType.LINK, 900)
 
     # P90 mcs
+    logging.info("Generate mcs.p90")
     mcs = nts.read_stats("staPkt.mcs", StatType.LINK)
     mcs_p90 = []
     for ti in range(k["num_topologies"]):
@@ -52,6 +66,7 @@ def generate_insights():
     nts.write_stats("mcs.p90", mcs_p90, StatType.LINK, 900)
 
     # path-loss asymmetry
+    logging.info("Generate pathloss, pathloss_asymmetry")
     tx_power_idx = nts.read_stats("staPkt.txPowerIndex", StatType.LINK)
     srssi = nts.read_stats("phystatus.srssi", StatType.LINK)
     pathloss = []
@@ -64,6 +79,50 @@ def generate_insights():
         pathloss_asymmetry.append(asm)
     nts.write_stats("pathloss", pathloss, StatType.LINK, 900)
     nts.write_stats("pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, 900)
+
+    # generate indicators of self health
+    total_inputs = []
+    missing_inputs_percent = []
+    total_outputs = []
+    missing_outputs_percent = []
+    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi]
+    outputs = [availability, flaps, mcs_p90, pathloss, pathloss_asymmetry]
+    for ti in range(k["num_topologies"]):
+        total_inputs.append(np.zeros((1, 1, 1)))
+        missing_inputs_percent.append(np.zeros((1, 1, 1)))
+        total_outputs.append(np.zeros((1, 1, 1)))
+        missing_outputs_percent.append(np.zeros((1, 1, 1)))
+        for input in inputs:
+            total_inputs[ti][0] += len(input[ti].flatten())
+            missing_inputs_percent[ti][0] += np.isnan(input[ti]).sum()
+        for output in outputs:
+            total_outputs[ti][0] += len(output[ti].flatten())
+            missing_outputs_percent[ti][0] += np.isnan(output[ti]).sum()
+        missing_inputs_percent[ti][0] = (
+            missing_inputs_percent[ti][0] * 100 / total_inputs[ti][0]
+        )
+        missing_outputs_percent[ti][0] = (
+            missing_outputs_percent[ti][0] * 100 / total_outputs[ti][0]
+        )
+        logging.info(
+            "missing stats, {}% of {} inputs, {}% of {} outputs".format(
+                float(np.round(missing_inputs_percent[ti], 2)),
+                int(total_inputs[ti]),
+                float(np.round(missing_outputs_percent[ti], 2)),
+                int(total_outputs[ti]),
+            )
+        )
+    nts.write_stats("insights.total_inputs", total_inputs, StatType.NETWORK, 900)
+    nts.write_stats(
+        "insights.missing_inputs_percent", missing_inputs_percent, StatType.NETWORK, 900
+    )
+    nts.write_stats("insights.total_outputs", total_outputs, StatType.NETWORK, 900)
+    nts.write_stats(
+        "insights.missing_outputs_percent",
+        missing_outputs_percent,
+        StatType.NETWORK,
+        900,
+    )
 
 
 def link_health(start_time: int, end_time: int, network_info: Dict) -> List:

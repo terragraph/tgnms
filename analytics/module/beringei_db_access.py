@@ -50,7 +50,7 @@ class BeringeiDbAccess(object):
             return None
         else:
             instance = super().__new__(cls)
-            logging.info("BeringeiDbAccess object created")
+            logging.debug("BeringeiDbAccess object created")
             instance._bqs_config = analytics_config["BQS"]
             return instance
 
