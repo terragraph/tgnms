@@ -17,77 +17,19 @@ set(
     beringei_grafana.thrift
     beringei_query.thrift
     beringei.thrift
+    BWAllocation.thrift
+    Controller.thrift
+    IpPrefix.thrift
+    Lsdb.thrift
+    scans.thrift
     Stats.thrift
     Topology.thrift
-    scans.thrift
 )
 
-set(
-    THRIFT_GEN
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/BeringeiService.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/BeringeiService.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/BeringeiService.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/BeringeiService_client.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/BeringeiService_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/BeringeiService_processmap_binary.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/BeringeiService_processmap_compact.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_data_types_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_grafana_types_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_query_types_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/beringei_types_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Stats_types_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/Topology_types_custom_protocol.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_constants.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types.tcc
-    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/scans_types_custom_protocol.h
-)
+file(GLOB_RECURSE THRIFT_GEN
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/*.tcc)
 
 add_custom_command(
   OUTPUT ${THRIFT_GEN}

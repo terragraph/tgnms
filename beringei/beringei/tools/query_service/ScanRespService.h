@@ -13,6 +13,7 @@
 
 #include <folly/Synchronized.h>
 #include <folly/io/async/EventBaseManager.h>
+#include "beringei/if/gen-cpp2/Controller_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/scans_types_custom_protocol.h"
 
 namespace facebook {
@@ -50,11 +51,11 @@ class ScanRespService {
   std::shared_ptr<ApiServiceClient> apiServiceClient_;
 
   int writeData(
-      const scans::ScanStatus& scanStatus,
+      const terragraph::thrift::ScanStatus& scanStatus,
       const std::string& toplogyName);
   folly::dynamic getScanRespIdRange(const std::string& topologyName);
   void setNewScanRespId(
-      const scans::ScanStatus& scanStatus,
+      const terragraph::thrift::ScanStatus& scanStatus,
       const std::string& topologyName);
   void timerCb();
   void updateTopology();

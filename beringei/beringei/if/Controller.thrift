@@ -4,7 +4,7 @@ namespace py terragraph_thrift.Controller
 cpp_include "<unordered_map>"
 cpp_include "<unordered_set>"
 
-include "openr/if/Lsdb.thrift"
+include "Lsdb.thrift"
 
 include "BWAllocation.thrift"
 include "Topology.thrift"
