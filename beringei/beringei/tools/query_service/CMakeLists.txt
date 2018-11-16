@@ -41,6 +41,8 @@ set(BERINGEI_QUERY_SRCS
     ScanRespService.h
     StatsTypeAheadCache.cpp
     StatsTypeAheadCache.h
+    TimeWindowAggregator.cpp
+    TimeWindowAggregator.h
     TopologyFetcher.cpp
     TopologyFetcher.h
     TopologyStore.cpp

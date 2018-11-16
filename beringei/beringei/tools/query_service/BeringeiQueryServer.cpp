@@ -13,6 +13,7 @@
 #include "ApiServiceClient.h"
 #include "QueryServiceFactory.h"
 #include "ScanRespService.h"
+#include "TimeWindowAggregator.h"
 #include "TopologyFetcher.h"
 
 #include <curl/curl.h>
@@ -86,9 +87,15 @@ int main(int argc, char* argv[]) {
       [&topologyFetch]() { topologyFetch->start(); });
 
   LOG(INFO) << "Starting Aggregator Service";
-  // create timer thread
-  auto aggregator = std::make_shared<AggregatorService>(typeaheadCache);
-  std::thread aggThread([&aggregator]() { aggregator->start(); });
+  // create timer thread for aggregator
+  auto topologyAggregator = std::make_shared<AggregatorService>(typeaheadCache);
+  std::thread aggThread([&topologyAggregator]() { topologyAggregator->start(); });
+
+  LOG(INFO) << "Starting Time Window Aggregator Service";
+  // create timer thread for stats aggregation
+  auto timeWindowAggregator = std::make_shared<TimeWindowAggregator>();
+  std::thread timeWindowAggThread([&timeWindowAggregator]() {
+      timeWindowAggregator->start(); });
 
   LOG(INFO) << "Starting Scan Response Service";
   // create timer thread
@@ -96,10 +103,11 @@ int main(int argc, char* argv[]) {
       std::make_shared<ScanRespService>(apiServiceClient);
   std::thread scanThread([&scanRespService]() { scanRespService->start(); });
 
+  scanThread.join();
+  timeWindowAggThread.join();
   aggThread.join();
   topologyFetchThread.join();
   httpThread.join();
-  scanThread.join();
   // clean-up curl memory
   curl_global_cleanup();
   return 0;

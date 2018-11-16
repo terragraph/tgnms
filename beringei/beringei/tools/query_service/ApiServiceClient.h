@@ -80,7 +80,7 @@ class ApiServiceClient {
       curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
       curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
       curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-      curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1000 /* 1 second */);
+      curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1L /* 1 second */);
       // read data from request
       struct HTTPDataStruct dataChunk;
       dataChunk.data = (char*)malloc(1);
