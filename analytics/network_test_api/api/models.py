@@ -71,6 +71,8 @@ class TestRunExecution(models.Model):
     status = models.IntegerField(default=0, choices=TEST_STATUS)
     expected_end_time = models.IntegerField(default=time.time())
     test_code = models.CharField(max_length=120, blank=True, null=True)
+    topology_id = models.IntegerField(null=True)
+    topology_name = models.CharField(default="", max_length=256)
 
     class Meta:
         verbose_name = "Test Run Execution"
@@ -129,6 +131,7 @@ class SingleHopTest(models.Model):
     ping_pkt_rx = models.IntegerField(null=True)
     ping_pkt_tx = models.IntegerField(null=True)
     ping_output_blob = models.TextField(null=True, blank=True)
+    iperf_pushed_throughput = models.FloatField(null=True)
     iperf_throughput_min = models.FloatField(null=True)
     iperf_throughput_max = models.FloatField(null=True)
     iperf_throughput_mean = models.FloatField(null=True)
