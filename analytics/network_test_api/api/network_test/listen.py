@@ -16,8 +16,10 @@ from django.utils import timezone
 from api.models import (
     TestRunExecution,
     SingleHopTest,
+    TEST_STATUS_RUNNING,
     TEST_STATUS_ABORTED,
-    TEST_STATUS_FINISHED
+    TEST_STATUS_FINISHED,
+    TEST_STATUS_FAILED
 )
 from api.iperf_ping_analyze import (parse_and_pack_iperf_data,
                                     get_ping_statistics)
@@ -48,6 +50,7 @@ class RecvFromCtrl(base.Base):
         self.parameters = parameters
         self.start_iperf_ids = []
         self.start_ping_ids = []
+        self.parsed_iperf_data = ""
         self.parsed_iperf_client_data = ""
         self.parsed_iperf_server_data = ""
         self.parsed_ping_data = ""
@@ -107,25 +110,32 @@ class RecvFromCtrl(base.Base):
             _log.info("\nReceived output from {}:\n{}".format(
                 "server" if msg_data.isServer else "client",
                 msg_data.output))
-            if (not msg_data.isServer):
-                self.parsed_iperf_client_data = self._strip_iperf_output(
-                                                    msg_data.output.strip())
-            else:
-                source_node = msg_data.startIperf.iperfConfig.srcNodeId
-                destination_node = msg_data.startIperf.iperfConfig.dstNodeId
-                self.parsed_iperf_server_data = self._strip_iperf_output(
+            source_node = msg_data.startIperf.iperfConfig.srcNodeId
+            destination_node = msg_data.startIperf.iperfConfig.dstNodeId
+            self.parsed_iperf_data = self._strip_iperf_output(
                                                 msg_data.output.strip())
-                self._log_to_mysql(
+            if not self.parsed_iperf_data:
+                self._log_failed_iperf_to_mysql(
                     source_node=source_node,
                     destination_node=destination_node,
-                    is_iperf=True,
+                    iperf_data=msg_data
                 )
-                received_output_dict = {
-                                    'source_node': source_node,
-                                    'destination_node': destination_node,
-                                    'traffic_type': 'IPERF_OUTPUT'
-                                }
-                self.received_output_queue.put(received_output_dict)
+            else:
+                if not msg_data.isServer:
+                    self.parsed_iperf_client_data = self.parsed_iperf_data
+                else:
+                    self.parsed_iperf_server_data = self.parsed_iperf_data
+                    self._log_to_mysql(
+                        source_node=source_node,
+                        destination_node=destination_node,
+                        is_iperf=True,
+                    )
+                    received_output_dict = {
+                                        'source_node': source_node,
+                                        'destination_node': destination_node,
+                                        'traffic_type': 'IPERF_OUTPUT'
+                                    }
+                    self.received_output_queue.put(received_output_dict)
         elif msg_type == ctrl_types.MessageType.START_PING_RESP:
             self.start_ping_ids.append(msg_data.id)
         elif msg_type == ctrl_types.MessageType.START_IPERF_RESP:
@@ -133,6 +143,29 @@ class RecvFromCtrl(base.Base):
         elif msg_type == ctrl_types.MessageType.E2E_ACK:
             _log.info("\nReceived output from E2E_ACK:\n{}".format(
                                                 msg_data.message))
+
+    def _log_failed_iperf_to_mysql(
+            self,
+            source_node,
+            destination_node,
+            iperf_data
+    ):
+        link = self._get_link(
+            source_node,
+            destination_node,
+        )
+        if link is not None:
+            link_db_obj = SingleHopTest.objects.filter(
+                id=link['id']
+            ).first()
+            if link_db_obj is not None:
+                with transaction.atomic():
+                    if not iperf_data.isServer:
+                        link_db_obj.iperf_client_blob = iperf_data.output
+                    else:
+                        link_db_obj.iperf_server_blob = iperf_data.output
+                    link_db_obj.status = TEST_STATUS_FAILED
+                    link_db_obj.save()
 
     def _strip_ping_output(self, ping_output):
         if "Address unreachable" in ping_output:
@@ -149,7 +182,7 @@ class RecvFromCtrl(base.Base):
             return iperf_output
         except Exception as ex:
             self.expected_number_of_responses -= 1
-            pass
+            return ""
 
     def _get_link(self, source_node, destination_node):
         for link in self.parameters['test_list']:
@@ -178,6 +211,7 @@ class RecvFromCtrl(base.Base):
                 ).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
+                        link_db_obj.status = TEST_STATUS_FINISHED
                         link_db_obj.origin_node = source_node
                         link_db_obj.peer_node = destination_node
                         link_db_obj.link_name = (source_node + " -- "

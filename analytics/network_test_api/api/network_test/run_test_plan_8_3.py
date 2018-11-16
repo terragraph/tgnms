@@ -66,6 +66,7 @@ class RunTestPlan83(Thread):
             for link in test_list:
                 link_id = SingleHopTest.objects.create(
                     test_run_execution=test_run,
+                    status=TEST_STATUS_RUNNING,
                 )
                 link['id'] = link_id.id
 
