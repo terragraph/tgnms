@@ -36,6 +36,7 @@ def start_test(request):
     topology_id = int(received_json_data['topology_id'])
     test_duration = int(received_json_data['test_duration'])
     test_push_rate = int(received_json_data['test_push_rate'])
+    protocol = str(received_json_data['protocol'])
 
     # fetch Controller info and Topology
     network_info = fetch_network_info(topology_id)
@@ -60,6 +61,15 @@ def start_test(request):
         context_data['msg'] = msg
         return HttpResponse(json.dumps(context_data),
                             content_type='application/json')
+
+    if protocol not in ["UDP", "TCP"]:
+        error = True
+        msg = ("Incorrect Protocol. Please choose between UDP and TCP")
+        context_data['error'] = error
+        context_data['msg'] = msg
+        return HttpResponse(json.dumps(context_data),
+                            content_type='application/json')
+
     error = None
     msg = ''
 
@@ -87,19 +97,23 @@ def start_test(request):
             if test_run_list.count() >= 1:
                 error = True
                 msg = ('There is a test running on the network. ' +
-                       'Please wait till it finishes.')
+                       'Please wait until it finishes.')
             else:
+                network_parameters = {
+                    "controller_addr": controller_addr,
+                    "controller_port": controller_port,
+                    "network_info": network_info,
+                    "test_code": test_code,
+                    "topology": topology,
+                    "test_duration": test_duration,
+                    "test_push_rate": test_push_rate,
+                    "protocol": protocol,
+                }
                 # Run the test plan
                 if test_code == 8.3:
                     run_tp = run_test_plan_8_3.RunTestPlan83(
-                                                    controller_addr,
-                                                    controller_port,
-                                                    network_info,
-                                                    test_code,
-                                                    topology,
-                                                    test_duration,
-                                                    test_push_rate
-                                                )
+                                        network_parameters=network_parameters
+                                    )
                     run_tp.start()
                     error = False
                     msg = ("Started Short Term Parallel "

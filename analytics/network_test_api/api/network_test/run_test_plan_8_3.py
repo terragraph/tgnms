@@ -28,27 +28,22 @@ class RunTestPlan83(Thread):
 
     def __init__(
             self,
-            controller_addr,
-            controller_port,
-            network_info,
-            test_code,
-            topology,
-            test_duration,
-            test_push_rate
+            network_parameters
     ):
         Thread.__init__(self)
-        self.controller_addr = controller_addr
-        self.controller_port = controller_port
-        self.network_info = network_info
-        self.test_code = test_code
-        self.topology = topology
-        self.test_duration = test_duration
-        self.test_push_rate = test_push_rate
+        self.controller_addr = network_parameters["controller_addr"]
+        self.controller_port = network_parameters["controller_port"]
+        self.network_info = network_parameters["network_info"]
+        self.test_code = network_parameters["test_code"]
+        self.topology = network_parameters["topology"]
+        self.test_duration = network_parameters["test_duration"]
+        self.test_push_rate = network_parameters["test_push_rate"]
+        self.protocol = network_parameters["protocol"]
         self.start_end_time_error = False
         self.parameters = {}
         self.test_run_obj = None
         self.start_time = time.time()
-        self.end_time = time.time() + test_duration
+        self.end_time = time.time() + network_parameters["test_duration"]
         self.test_status = None
         self.received_output = {}
         self.received_output_queue = queue.Queue()
@@ -156,7 +151,7 @@ class RunTestPlan83(Thread):
                     dst_node_id=z_node_mac,
                     bitrate=self.test_push_rate,
                     time_sec=self.test_duration,
-                    proto="UDP",
+                    proto=self.protocol,
                     interval_sec=1,
                     window_size=4000000,
                     mss=7500,
@@ -195,7 +190,7 @@ class RunTestPlan83(Thread):
                         dst_node_id=a_node_mac,
                         bitrate=self.test_push_rate,
                         time_sec=self.test_duration,
-                        proto="UDP",
+                        proto=self.protocol,
                         interval_sec=1,
                         window_size=4000000,
                         mss=7500,
