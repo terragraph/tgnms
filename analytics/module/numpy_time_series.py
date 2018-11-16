@@ -238,7 +238,7 @@ class NumpyTimeSeries(object):
         # calculate distance across longitude change
         # take care of links across 180 meridian and effect of different latitudes
         dLong = fabs(l1["longitude"] - l2["longitude"])
-        if (dLong > (deg / 2)):
+        if dLong > (deg / 2):
             dLong = deg - dLong
         dLong *= lengthPerDeg * cos(avgLatitudeRadian)
         # calculate distance across altitude change
@@ -251,9 +251,7 @@ class NumpyTimeSeries(object):
         for t in self._topologies:
             lengths = []
             node_name_to_site = {n["name"]: n["site_name"] for n in t["nodes"]}
-            site_name_to_coordinate = {
-                s["name"]: s["location"] for s in t["sites"]
-            }
+            site_name_to_coordinate = {s["name"]: s["location"] for s in t["sites"]}
             for l in t["links"]:
                 if l["link_type"] == LinkType.WIRELESS:
                     al = site_name_to_coordinate[node_name_to_site[l["a_node_name"]]]

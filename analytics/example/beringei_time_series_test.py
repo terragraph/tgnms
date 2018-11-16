@@ -88,10 +88,7 @@ class BeringeiTimeSeriesTest(unittest.TestCase):
     def test_write_read_network_stat(self):
         # write ramp time series
         ramp_ts = bts.TimeSeries(
-            self._values,
-            self._times,
-            self._name,
-            self._topology_name,
+            self._values, self._times, self._name, self._topology_name
         )
         bts.write_time_series_list([ramp_ts], [self._interval])
         # reading aggregated stats is not supported, check ui

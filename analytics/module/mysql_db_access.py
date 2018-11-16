@@ -111,7 +111,9 @@ class MySqlDbAccess(object):
         api_service_config = {}
 
         with self.__connection.cursor() as cursor:
-            sql_string = "SELECT id, name, api_ip, api_port, e2e_ip, e2e_port FROM topologies;"
+            sql_string = (
+                "SELECT id, name, api_ip, api_port, e2e_ip, e2e_port FROM topologies;"
+            )
             try:
                 cursor.execute(sql_string)
             except BaseException as err:
@@ -131,7 +133,9 @@ class MySqlDbAccess(object):
                 ]
                 api_service_config[api_result["name"]]["id"] = api_result["id"]
                 api_service_config[api_result["name"]]["e2e_ip"] = api_result["e2e_ip"]
-                api_service_config[api_result["name"]]["e2e_port"] = api_result["e2e_port"]
+                api_service_config[api_result["name"]]["e2e_port"] = api_result[
+                    "e2e_port"
+                ]
                 api_service_config[api_result["name"]]["name"] = api_result["name"]
 
         return api_service_config
