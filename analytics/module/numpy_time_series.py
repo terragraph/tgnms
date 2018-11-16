@@ -12,7 +12,8 @@ import numpy as np
 import os
 from math import ceil, floor, fabs, pi, sqrt, cos
 import sys
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any, Dict, List, Optional, Tuple
 from module.topology_handler import fetch_network_info
 import module.beringei_time_series as bts
 import module.numpy_operations as npo
@@ -21,6 +22,30 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
 from facebook.gorilla.Topology.ttypes import LinkType
+
+
+def approx_distance(l1: Dict[str, float], l2: Dict[str, float]) -> float:
+    # copied from approxDistance() in
+    # meta-terragraph/recipes-facebook/e2e/files/src/controller/topology/TopologyWrapper.cpp
+    # https://en.wikipedia.org/wiki/Earth
+    # Circumference 40,075.017 km (24,901.461 mi) (equatorial)
+    earthCircumference = 40075017
+    deg = 360
+    rad = 2 * pi
+    lengthPerDeg = earthCircumference / deg
+    avgLatitudeRadian = ((l1["latitude"] + l2["latitude"]) / 2) * (rad / deg)
+    # calculate distance across latitude change
+    dLat = fabs(l1["latitude"] - l2["latitude"]) * lengthPerDeg
+    # calculate distance across longitude change
+    # take care of links across 180 meridian and effect of different latitudes
+    dLong = fabs(l1["longitude"] - l2["longitude"])
+    if dLong > (deg / 2):
+        dLong = deg - dLong
+    dLong *= lengthPerDeg * cos(avgLatitudeRadian)
+    # calculate distance across altitude change
+    dAlt = fabs(l1["altitude"] - l2["altitude"])
+    # assume orthogonality over small distance
+    return sqrt((dLat * dLat) + (dLong * dLong) + (dAlt * dAlt))
 
 
 # link stats have src_mac and peer_mac
@@ -32,6 +57,8 @@ class StatType(Enum):
     NETWORK = 3
 
 
+# NumpyTimeSeries reads and writes the Beringei TimeSeries (BTS) data base
+# It provides interface to read/write data in numpy ndarray format
 class NumpyTimeSeries(object):
     NUM_DIR = 2
     NODE_AXIS = 0
@@ -75,6 +102,7 @@ class NumpyTimeSeries(object):
             node_name_to_mac = {n["name"]: n["mac_addr"] for n in t["nodes"]}
             link_macs_to_idx = {}
             link_idx_to_macs = {}
+            src_to_peers = {}
             src_macs = []
             peer_macs = []
             num_links = 0
@@ -86,6 +114,12 @@ class NumpyTimeSeries(object):
                     link_macs_to_idx[(z_node_mac, a_node_mac)] = (num_links, 1)
                     link_idx_to_macs[(num_links, 0)] = (a_node_mac, z_node_mac)
                     link_idx_to_macs[(num_links, 1)] = (z_node_mac, a_node_mac)
+                    if a_node_mac not in src_to_peers:
+                        src_to_peers[a_node_mac] = []
+                    if z_node_mac not in src_to_peers:
+                        src_to_peers[z_node_mac] = []
+                    src_to_peers[a_node_mac].append(z_node_mac)
+                    src_to_peers[z_node_mac].append(a_node_mac)
                     src_macs.extend([a_node_mac, z_node_mac])
                     peer_macs.extend([z_node_mac, a_node_mac])
                     num_links += 1
@@ -99,6 +133,7 @@ class NumpyTimeSeries(object):
                     "num_links": num_links,
                     "link_macs_to_idx": link_macs_to_idx,
                     "link_idx_to_macs": link_idx_to_macs,
+                    "src_to_peers": src_to_peers,
                     "src_macs": src_macs,
                     "peer_macs": peer_macs,
                 }
@@ -223,30 +258,7 @@ class NumpyTimeSeries(object):
             consts[it]["num_links"] = self._tmap[it]["num_links"]
         return consts
 
-    def approx_distance(self, l1: Dict[str, float], l2: Dict[str, float]) -> float:
-        # copied from approxDistance() in
-        # meta-terragraph/recipes-facebook/e2e/files/src/controller/topology/TopologyWrapper.cpp
-        # https://en.wikipedia.org/wiki/Earth
-        # Circumference 40,075.017 km (24,901.461 mi) (equatorial)
-        earthCircumference = 40075017
-        deg = 360
-        rad = 2 * pi
-        lengthPerDeg = earthCircumference / deg
-        avgLatitudeRadian = ((l1["latitude"] + l2["latitude"]) / 2) * (rad / deg)
-        # calculate distance across latitude change
-        dLat = fabs(l1["latitude"] - l2["latitude"]) * lengthPerDeg
-        # calculate distance across longitude change
-        # take care of links across 180 meridian and effect of different latitudes
-        dLong = fabs(l1["longitude"] - l2["longitude"])
-        if dLong > (deg / 2):
-            dLong = deg - dLong
-        dLong *= lengthPerDeg * cos(avgLatitudeRadian)
-        # calculate distance across altitude change
-        dAlt = fabs(l1["altitude"] - l2["altitude"])
-        # assume orthogonality over small distance
-        return sqrt((dLat * dLat) + (dLong * dLong) + (dAlt * dAlt))
-
-    def get_link_length(self) -> np.ndarray:
+    def get_link_length(self) -> List[np.ndarray]:
         np_time_series_list = []
         for t in self._topologies:
             lengths = []
@@ -256,10 +268,206 @@ class NumpyTimeSeries(object):
                 if l["link_type"] == LinkType.WIRELESS:
                     al = site_name_to_coordinate[node_name_to_site[l["a_node_name"]]]
                     zl = site_name_to_coordinate[node_name_to_site[l["z_node_name"]]]
-                    lengths.append(self.approx_distance(al, zl))
+                    lengths.append(approx_distance(al, zl))
             lengths = np.array(lengths)
             lengths = np.stack([lengths] * self.NUM_DIR, axis=self.DIR_AXIS)
             # lengths = np.stack([lengths] * self._num_times, axis=self.TIME_AXIS)
             lengths = np.expand_dims(lengths, axis=self.TIME_AXIS)
             np_time_series_list.append(lengths)
         return np_time_series_list
+
+    def reshape_node_to_link(self, np_time_series_list):
+        out_np_tsl = []
+        for topo_idx, topo in enumerate(self._tmap):
+            np_ts = np_time_series_list[topo_idx]
+            out_np_ts = npo.nan_arr(
+                (topo["num_links"], self.NUM_DIR, np_ts.shape[self.TIME_AXIS])
+            )
+            assert np_ts.shape[self.NODE_AXIS] == topo["num_nodes"]
+            assert np_ts.shape[self.DIR_AXIS] == 1
+            for n_idx in range(topo["num_nodes"]):
+                src_mac = topo["node_idx_to_mac"][n_idx]
+                if src_mac in topo["src_to_peers"]:
+                    for peer_mac in topo["src_to_peers"][src_mac]:
+                        l_idx = topo["link_macs_to_idx"][(src_mac, peer_mac)]
+                        out_np_ts[l_idx[0], l_idx[1], :] = np_ts[n_idx, 0, :]
+            out_np_tsl.append(out_np_ts)
+        return out_np_tsl
+
+
+# Same as NumpyTimeSeries except:
+# this will deal with single topology and link stats
+# node stats are converted to link stats dimensions
+# use TimeSeries to specify link, with start_time, end_time
+# assumes that input link appear once (even though there are two directions)
+class NumpyLinkTimeSeries(object):
+    NUM_DIR = 2
+    LINK_AXIS = 0
+    DIR_AXIS = 1
+    TIME_AXIS = 2
+
+    def __init__(
+        self, links: List[bts.TimeSeries], interval: int, network_info: Dict
+    ) -> None:
+        self._topology = [n["topology"] for _, n in network_info.items()][0]
+        self._interval = interval
+        # map from start_time -> {src_macs, peer_macs}
+        self._map_query: Dict[int, Dict] = {}
+        # (src_mac, peer_mac) -> (link idx, direction idx, start_time)
+        self._link_macs_to_idx: Dict[Tuple, Tuple] = {}
+        # (link idx, direction idx) -> (src_mac, peer_mac, start_time)
+        self._idx_to_link_info: Dict[Tuple, Tuple] = {}
+        # src_mac -> [peer_mac, ...]
+        self._src_to_peers: Dict[str, List[str]] = {}
+        self._num_links = 0
+        self._duration = 0
+        for ts in links:
+            # set the duration
+            start_time = ceil(ts.times[0] / self._interval) * self._interval
+            end_time = floor(ts.times[1] / self._interval) * self._interval
+            duration = end_time - start_time
+            if self._duration == 0:
+                self._duration = duration
+            elif self._duration != duration:
+                logging.error("detected links with different durations, using shorter")
+                self._duration = min(self._duration, duration)
+            # set the indices for link, direction, time
+            if (ts.src_mac, ts.peer_mac) in self._link_macs_to_idx:
+                logging.error("ignoring duplicate entry for macs")
+                continue
+            self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)] = (
+                self._num_links,
+                0,
+                start_time,
+            )
+            self._link_macs_to_idx[(ts.peer_mac, ts.src_mac)] = (
+                self._num_links,
+                1,
+                start_time,
+            )
+            self._idx_to_link_info[(self._num_links, 0)] = (
+                ts.src_mac,
+                ts.peer_mac,
+                start_time,
+            )
+            self._idx_to_link_info[(self._num_links, 1)] = (
+                ts.peer_mac,
+                ts.src_mac,
+                start_time,
+            )
+            # group queries
+            assert ts.topology == self._topology["name"]
+            key = start_time
+            if key not in self._map_query:
+                self._map_query[key] = {"src_macs": [], "peer_macs": []}
+            self._map_query[key]["src_macs"].extend([ts.src_mac, ts.peer_mac])
+            self._map_query[key]["peer_macs"].extend([ts.peer_mac, ts.src_mac])
+            # src_to_peers
+            if ts.src_mac not in self._src_to_peers:
+                self._src_to_peers[ts.src_mac] = []
+            if ts.peer_mac not in self._src_to_peers:
+                self._src_to_peers[ts.peer_mac] = []
+            self._src_to_peers[ts.src_mac].append(ts.peer_mac)
+            self._src_to_peers[ts.peer_mac].append(ts.src_mac)
+            self._num_links += 1
+        self._num_times = int((self._duration / self._interval) + 1)
+
+    def _t2i(self, t, start_time):
+        return int((t - start_time) / self._interval)
+
+    def read_stats(self, name: str, stat_type: StatType) -> List[np.ndarray]:
+        data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
+        if stat_type == StatType.LINK:
+            done_links: List[Tuple] = []
+            for k, v in self._map_query.items():
+                tsl = bts.read_time_series_list(
+                    name,
+                    v["src_macs"],
+                    v["peer_macs"],
+                    k,
+                    k + self._duration,
+                    self._interval,
+                    self._topology["name"],
+                )
+                for ts in tsl:
+                    link_macs = (ts.src_mac, ts.peer_mac)
+                    if link_macs not in done_links:
+                        done_links.append(link_macs)
+                    else:
+                        logging.error("Ignoring duplicate timeseries")
+                        continue
+                    idx = self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)]
+                    t_idx = [self._t2i(t, idx[2]) for t in ts.times]
+                    data[idx[0], idx[1], t_idx] = ts.values
+        elif stat_type == StatType.NODE:
+            for k, v in self._map_query.items():
+                done_nodes: List[str] = []
+                tsl = bts.read_time_series_list(
+                    name,
+                    list(set(v["src_macs"] + v["peer_macs"])),
+                    [],
+                    k,
+                    k + self._duration,
+                    self._interval,
+                    self._topology["name"],
+                )
+                for ts in tsl:
+                    if ts.src_mac not in done_nodes:
+                        done_nodes.append(ts.src_mac)
+                    else:
+                        logging.error("Ignoring duplicate timeseries")
+                        continue
+                    for peer_mac in self._src_to_peers[ts.src_mac]:
+                        link_macs = (ts.src_mac, peer_mac)
+                        idx = self._link_macs_to_idx[(ts.src_mac, peer_mac)]
+                        t_idx = [self._t2i(t, idx[2]) for t in ts.times]
+                        data[idx[0], idx[1], t_idx] = ts.values
+        else:
+            # network stats read is not relevant
+            pass
+        return data
+
+    # converts numpy array to list of TimeSeries
+    def write_stats(
+        self, name: str, np_time_series: np.ndarray, write_interval: int
+    ) -> List[bts.TimeSeries]:
+        np_ts = np_time_series
+        tsl = []
+
+        assert np_ts.shape[self.LINK_AXIS] == self._num_links
+        assert np_ts.shape[self.DIR_AXIS] == self.NUM_DIR
+        for l_idx in range(self._num_links):
+            for d_idx in range(self.NUM_DIR):
+                valids = npo.is_valid(np_ts[l_idx, d_idx, :])
+                values = np_ts[l_idx, d_idx, valids]
+                if len(values):
+                    src_mac, peer_mac, start_time = self._idx_to_link_info[
+                        (l_idx, d_idx)
+                    ]
+                    end_time = start_time + self._duration
+                    end_time = floor(end_time / write_interval) * write_interval
+                    times = end_time - (
+                        np.array(range(np_ts.shape[self.TIME_AXIS] - 1, -1, -1))
+                        * write_interval
+                    )
+                    ts = bts.TimeSeries(
+                        values=list(values),
+                        times=list(times[valids]),
+                        name=name,
+                        topology=self._topology["name"],
+                        src_mac=src_mac,
+                        peer_mac=peer_mac,
+                    )
+                    tsl.append(ts)
+        return tsl
+
+    def get_link_length(self) -> np.ndarray:
+        data = npo.nan_arr((self._num_links, self.NUM_DIR, 1))
+        t = self._topology
+        mac_to_site = {n["mac_addr"]: n["site_name"] for n in t["nodes"]}
+        site_name_to_coordinate = {s["name"]: s["location"] for s in t["sites"]}
+        for link_mac, idx in self._link_macs_to_idx.items():
+            src_coo = site_name_to_coordinate[mac_to_site[link_mac[0]]]
+            peer_coo = site_name_to_coordinate[mac_to_site[link_mac[1]]]
+            data[idx[0], idx[1], 0] = approx_distance(src_coo, peer_coo)
+        return data
