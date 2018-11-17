@@ -225,7 +225,7 @@ services:
       - ./docker_volumes/logs:/analytics/logs
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "cd /usr/local/analytics/link_insights; python3 run_link_pipeline.py"]
+    command: ["/bin/sh", "-c", "cd /usr/local/analytics/module; python run_pipeline.py"]
     logging:
       driver: "json-file"
       options:
