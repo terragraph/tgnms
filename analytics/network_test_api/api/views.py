@@ -7,7 +7,8 @@ import os
 import time
 from django.http import HttpResponse
 from api.network_test import (
-    run_test_plan_8_3
+    run_test_plan_8_3,
+    run_test_plan_8_2
 )
 from django.views.decorators.csrf import csrf_exempt
 from api.models import (
@@ -120,7 +121,15 @@ def start_test(request):
                     run_tp.start()
                     error = False
                     msg = ("Started Short Term Parallel "
-                           + "Link Healthiness Test Plan.")
+                           + "Link Health Test Plan.")
+                elif test_code == 8.2:
+                    run_tp = run_test_plan_8_2.RunTestPlan82(
+                                        network_parameters=network_parameters
+                                    )
+                    run_tp.start()
+                    error = False
+                    msg = ("Started Short Term Sequential "
+                           + "Link Health Test Plan.")
                 else:
                     error = True
                     msg = ("Incorrect test_code.")

@@ -9,6 +9,7 @@ import random
 import logging
 from threading import Thread
 from datetime import date
+from module.beringei_time_series import TimeSeries
 from django.utils import timezone
 from django.db import transaction
 from api.models import (
@@ -22,12 +23,11 @@ from api.network_test.test_network import (TestNetwork, IperfObj, PingObj)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
                 + "/../../"))
 from module.insights import link_health
-from module.beringei_time_series import TimeSeries
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-class RunTestPlan83(Thread):
+class RunTestPlan82(Thread):
 
     def __init__(
             self,
@@ -44,20 +44,19 @@ class RunTestPlan83(Thread):
         self.test_duration = network_parameters["test_duration"]
         self.test_push_rate = network_parameters["test_push_rate"]
         self.protocol = network_parameters["protocol"]
-        self.status_error = False
         self.parameters = {}
         self.test_run_obj = None
         self.start_time = time.time()
         self.end_time = time.time() + network_parameters["test_duration"]
-        self.test_status = None
         self.received_output = {}
         self.received_output_queue = queue.Queue()
         self.bidirectional = True
+        self.links = []
 
     def run(self):
 
         # Configure test data using test API
-        test_list = self._test_8_3(self.topology)
+        test_list = self._test_8_2(self.topology)
 
         # Create the single hop test iperf records
         with transaction.atomic():
@@ -70,7 +69,6 @@ class RunTestPlan83(Thread):
             for link in test_list:
                 link_id = SingleHopTest.objects.create(
                     test_run_execution=test_run,
-                    status=TEST_STATUS_RUNNING,
                 )
                 link['id'] = link_id.id
 
@@ -89,46 +87,72 @@ class RunTestPlan83(Thread):
         while (test_nw.is_alive()):
             if not self.received_output_queue.empty():
                 self.received_output = self.received_output_queue.get()
+                if self.received_output['traffic_type'] == 'IPERF_OUTPUT':
+                    rcvd_src_node = self.received_output['source_node']
+                    rcvd_dest_node = self.received_output['destination_node']
+                    if self.bidirectional:
+                        if (
+                            (rcvd_src_node, rcvd_dest_node) not in self.links
+                            and
+                            (rcvd_dest_node, rcvd_src_node) not in self.links
+                        ):
+                            self.links.append((rcvd_src_node, rcvd_dest_node))
+                        else:
+                            try:
+                                self.links.remove((rcvd_src_node,
+                                                   rcvd_dest_node))
+                            except ValueError:
+                                self.links.remove((rcvd_dest_node,
+                                                   rcvd_src_node))
+                            # get analytics stats for both drections
+                            self._db_stats_wrapper(rcvd_src_node,
+                                                   rcvd_dest_node)
+                    else:
+                        # get analytics stats for one drection
+                        self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node)
 
         # wait until the TestNetwork thread ends (blocking call)
         test_nw.join()
 
-        # Mark the end time of the test and get the status of the test from db
+        # get analytics stats for remaining links
+        if self.links:
+            for links in self.links:
+                self._db_stats_wrapper(links[0], links[1])
+
+        # Mark the end time of the test in db
         try:
             self.test_run_obj = TestRunExecution.objects.get(pk=int(
                                             self.parameters['test_run_id']))
             self.test_run_obj.end_date = timezone.now()
             self.test_run_obj.save()
-            self.test_status = self.test_run_obj.status
         except Exception as ex:
-            _log.error("\nError in getting status of the test: {}".format(ex)
-                       + "\nSkipping writing Analytics stats to the db")
-            self.status_error = True
-        if not self.status_error:
-            if self.test_status == TEST_STATUS_ABORTED:
-                _log.error("\nTest Aborted by User."
-                           + "\nSkipping writing Analytics stats to the db.\n")
-            else:
-                # get network wide analytics stats for the duration of the test
-                _log.info("\nWriting Analytics stats to the db:")
-                self._write_analytics_stats_to_db(link_health(
-                                links=self._create_time_series_list(),
-                                network_info=self.parameters['network_info'],
-                            ))
+            _log.error("\nError setting end_date of the test: {}".format(ex))
 
-    def _create_time_series_list(self):
+    def _db_stats_wrapper(self, rcvd_src_node, rcvd_dest_node):
+        _log.info("\nWriting Analytics stats to the db:")
+        link = self._get_link(rcvd_src_node, rcvd_dest_node)
+        link_start_time = self.start_time + link['start_delay']
+        link_end_time = link_start_time + self.test_duration
+        self._write_analytics_stats_to_db(link_health(
+            links=self._create_time_series_list(
+                link=link,
+                start_time=link_start_time,
+                end_time=link_end_time,
+            ),
+            network_info=self.parameters['network_info'],
+        ))
+
+    def _create_time_series_list(self, link, start_time, end_time):
         time_series_list = []
-        links = self.parameters['test_list']
-        direction = (2 if self.bidirectional else 1)
-        for atoz in range(0, len(links), direction):
-            time_series_list.append(TimeSeries(
-                                        name='TEST_PLAN_8_3',
-                                        topology=self.topology_name,
-                                        times=[self.start_time, self.end_time],
-                                        values=[0, 0],
-                                        src_mac=links[atoz]['src_node_id'],
-                                        peer_mac=links[atoz]['dst_node_id'],
-                                    ))
+        # for link in self.parameters['test_list']:
+        time_series_list.append(TimeSeries(
+                                    name='TEST_PLAN_8_2',
+                                    topology=self.topology_name,
+                                    times=[start_time, end_time],
+                                    values=[0, 0],
+                                    src_mac=link['src_node_id'],
+                                    peer_mac=link['dst_node_id'],
+                                ))
         return time_series_list
 
     def _write_analytics_stats_to_db(self, analytics_stats):
@@ -154,15 +178,15 @@ class RunTestPlan83(Thread):
                 return link
         return None
 
-    def _test_8_3(self, topology):
+    def _test_8_2(self, topology):
         """
-        Test Name: Short Term Parallel Link Health
-        Test Objective:  Verify that all links are healthy in the possible
-                         presence of self interference
+        Test Name: Short Term Sequential Link Health
+        Test Objective:  Verify link health in the absence of self interference
         """
         node_name_to_mac = {n["name"]: n["mac_addr"]
                             for n in topology["nodes"]}
         test_list = []
+        start_delay = 0
         links = topology["links"]
         for rand_index in random.sample(range(len(links)), len(links)):
             if links[rand_index]["link_type"] == WIRELESS:
@@ -202,7 +226,7 @@ class RunTestPlan83(Thread):
                 test_dict['dst_node_id'] = z_node_mac
                 test_dict['iperf_object'] = iperf_object
                 test_dict['ping_object'] = ping_object
-                test_dict['start_delay'] = 0
+                test_dict['start_delay'] = start_delay
                 test_dict['id'] = None
                 test_list.append(test_dict)
 
@@ -241,7 +265,8 @@ class RunTestPlan83(Thread):
                     test_dict['dst_node_id'] = a_node_mac
                     test_dict['iperf_object'] = iperf_object
                     test_dict['ping_object'] = ping_object
-                    test_dict['start_delay'] = 0
+                    test_dict['start_delay'] = start_delay
                     test_dict['id'] = None
                     test_list.append(test_dict)
+                start_delay += self.test_duration
         return test_list

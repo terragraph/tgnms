@@ -93,6 +93,11 @@ class RecvFromCtrl(base.Base):
             _log.info("\nReceived output:\n{}".format(msg_data.output))
             source_node = msg_data.startPing.pingConfig.srcNodeId
             destination_node = msg_data.startPing.pingConfig.dstNodeId
+            # remove start_ping_id for the link from the list
+            try:
+                self.start_ping_ids.remove(msg_data.startPing.id)
+            except ValueError:
+                pass
             self.parsed_ping_data = self._strip_ping_output(
                                             msg_data.output.strip())
             self._log_to_mysql(
@@ -124,6 +129,11 @@ class RecvFromCtrl(base.Base):
                 if not msg_data.isServer:
                     self.parsed_iperf_client_data = self.parsed_iperf_data
                 else:
+                    # remove start_iperf_id for the link from the list
+                    try:
+                        self.start_iperf_ids.remove(msg_data.startIperf.id)
+                    except ValueError:
+                        pass
                     self.parsed_iperf_server_data = self.parsed_iperf_data
                     self._log_to_mysql(
                         source_node=source_node,
@@ -150,6 +160,11 @@ class RecvFromCtrl(base.Base):
             destination_node,
             iperf_data
     ):
+        # remove start_iperf_id for the failed link from the list
+        try:
+            self.start_iperf_ids.remove(iperf_data.startIperf.id)
+        except ValueError:
+            pass
         link = self._get_link(
             source_node,
             destination_node,

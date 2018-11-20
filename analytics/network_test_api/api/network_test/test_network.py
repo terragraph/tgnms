@@ -96,7 +96,8 @@ class TestNetwork(Thread):
         self.ping_obj = run_ping.RunPing(self.socket, self.zmq_identifier)
         while (
             self.num_sent_req != len(self.test_list) and
-            time.time() < (self.test_start_time + self.recv_timeout)
+            time.time() < (self.test_start_time + self.recv_timeout) and
+            self.listen_obj.is_alive()
         ):
             for link in self.test_list:
                 if time.time() >= (self.test_start_time + link['start_delay']):
