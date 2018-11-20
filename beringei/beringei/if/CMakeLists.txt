@@ -26,18 +26,18 @@ set(
     Topology.thrift
 )
 
+# Generate thrift
+execute_process(
+  COMMAND bash "build_thrift.sh" ${THRIFT_FILES}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# Include all the gen-cpp2/ files
 file(GLOB_RECURSE THRIFT_GEN
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2/*.tcc)
 
-add_custom_command(
-  OUTPUT ${THRIFT_GEN}
-  COMMAND bash "build_thrift.sh" ${THRIFT_FILES}
-  MAIN_DEPENDENCY build_thrift.sh
-  DEPENDS ${THRIFT_FILES} ${FBTHRIFT_INCLUDE_DIR}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
 
 set_source_files_properties(
     ${THRIFT_GEN}
