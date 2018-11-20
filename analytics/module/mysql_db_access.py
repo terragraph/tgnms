@@ -18,7 +18,7 @@ from module.path_store import PathStore
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
-from facebook.gorilla.scans.ttypes import ScanFwStatus
+from terragraph_thrift.Controller.ttypes import ScanFwStatus
 
 
 class MySqlDbAccess(object):

@@ -18,7 +18,7 @@ from module.unit_converter import UnitConverter
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
-from facebook.gorilla.scans.ttypes import ScanType
+from terragraph_thrift.Controller.ttypes import ScanType
 
 
 class ScanHandler(object):
