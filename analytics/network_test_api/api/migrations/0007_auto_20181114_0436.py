@@ -5,19 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('api', '0006_auto_20181011_1840'),
-    ]
+    dependencies = [("api", "0006_auto_20181011_1840")]
 
     operations = [
         migrations.AddField(
-            model_name='singlehoptest',
-            name='iperf_pushed_throughput',
+            model_name="singlehoptest",
+            name="iperf_pushed_throughput",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='testrunexecution',
-            name='topology_id',
+            model_name="testrunexecution",
+            name="topology_id",
             field=models.IntegerField(null=True),
         ),
     ]

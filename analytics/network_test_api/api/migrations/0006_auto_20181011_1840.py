@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('api', '0005_testrunexecution_expected_end_time'),
-    ]
+    dependencies = [("api", "0005_testrunexecution_expected_end_time")]
 
     operations = [
         migrations.AlterField(
-            model_name='testrunexecution',
-            name='expected_end_time',
+            model_name="testrunexecution",
+            name="expected_end_time",
             field=models.IntegerField(default=1539283248.2099714),
-        ),
+        )
     ]

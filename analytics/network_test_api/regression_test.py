@@ -1,8 +1,9 @@
 #!/usr/bin/env python3.6
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import requests
 import time
+
+import requests
 
 
 def regression():
@@ -13,8 +14,8 @@ def regression():
             "test_code": 8.3,
             "topology_id": 1,
             "test_duration": 60,
-            "test_push_rate": 200000000
-        }
+            "test_push_rate": 200000000,
+        },
     )
     print(r.text)
 

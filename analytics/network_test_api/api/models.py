@@ -2,9 +2,11 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import time
-from django.utils import timezone
-from django.db import models
+
 from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
+
 
 WIRELESS = 1
 
@@ -18,9 +20,9 @@ TEST_STATUS_ABORTED = 3
 TEST_STATUS_FAILED = 4
 
 TEST_STATUS = (
-    (TEST_STATUS_RUNNING, 'Running'),
-    (TEST_STATUS_FINISHED, 'Finished'),
-    (TEST_STATUS_ABORTED, 'Aborted'),
+    (TEST_STATUS_RUNNING, "Running"),
+    (TEST_STATUS_FINISHED, "Finished"),
+    (TEST_STATUS_ABORTED, "Aborted"),
 )
 
 
@@ -40,8 +42,9 @@ class TestRunExecution(models.Model):
 
 
 class SingleHopTest(models.Model):
-    test_run_execution = (models.ForeignKey(TestRunExecution,
-                          on_delete=models.CASCADE, null=True))
+    test_run_execution = models.ForeignKey(
+        TestRunExecution, on_delete=models.CASCADE, null=True
+    )
     status = models.IntegerField(default=0, choices=TEST_STATUS)
     origin_node = models.CharField(default="", max_length=256)
     peer_node = models.CharField(default="", max_length=256)

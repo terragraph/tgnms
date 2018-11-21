@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('api', '0007_auto_20181114_0436'),
-    ]
+    dependencies = [("api", "0007_auto_20181114_0436")]
 
     operations = [
         migrations.AddField(
-            model_name='testrunexecution',
-            name='topology_name',
-            field=models.CharField(default='', max_length=256),
-        ),
+            model_name="testrunexecution",
+            name="topology_name",
+            field=models.CharField(default="", max_length=256),
+        )
     ]

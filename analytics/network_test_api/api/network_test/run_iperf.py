@@ -1,16 +1,21 @@
 #!/usr/bin/env python3.6
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import sys
 import os
+import sys
+
 from api.network_test import base
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
-                + "/../../interface/gen-py"))
+
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
+    )
+)
 from terragraph_thrift.Controller import ttypes as ctrl_types
 
 
 class RunIperf(base.Base):
-
     def __init__(self, _ctrl_sock, zmq_identifier):
         super().__init__(_ctrl_sock, zmq_identifier)
 
@@ -47,6 +52,7 @@ class RunIperf(base.Base):
         * {Boolean} [use_link_local]
         *             Whether to use the link-local IP address and interface
     """
+
     def _config_iperf(
         self,
         src_node_id,
@@ -63,7 +69,7 @@ class RunIperf(base.Base):
         json,
         buffer_length,
         format,
-        use_link_local
+        use_link_local,
     ):
 
         # send request
@@ -71,8 +77,7 @@ class RunIperf(base.Base):
         if proto:
             proto = proto.upper()
             if proto not in ctrl_types.IperfTransportProtocol._NAMES_TO_VALUES:
-                return self._my_exit(False,
-                                     "Invalid transport protocol specified")
+                return self._my_exit(False, "Invalid transport protocol specified")
             protocol = ctrl_types.IperfTransportProtocol._NAMES_TO_VALUES[proto]
         options = ctrl_types.IperfOptions(
             bitrate=bitrate,
@@ -86,7 +91,7 @@ class RunIperf(base.Base):
             verbose=verbose,
             json=json,
             bufferLength=buffer_length,
-            format=format
+            format=format,
         )
 
         self._send_to_ctrl(
@@ -95,10 +100,10 @@ class RunIperf(base.Base):
                 srcNodeId=src_node_id,
                 dstNodeId=dst_node_id,
                 options=options,
-                useLinkLocal=use_link_local
+                useLinkLocal=use_link_local,
             ),
             self._TRAFFIC_APP_CTRL_ID,
-            type="iPerf"
+            type="iPerf",
         )
 
     def _stop_iperf(self, id):
@@ -106,5 +111,5 @@ class RunIperf(base.Base):
             ctrl_types.MessageType.STOP_IPERF,
             ctrl_types.StopIperf(id),
             self._TRAFFIC_APP_CTRL_ID,
-            type="Stop iPerf"
+            type="Stop iPerf",
         )

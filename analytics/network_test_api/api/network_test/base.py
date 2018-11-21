@@ -1,22 +1,27 @@
 #!/usr/bin/env python3.6
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import zmq
-import sys
-import os
 import logging
-from thrift.TSerialization import serialize, deserialize
+import os
+import sys
+
+import zmq
+from api.models import TEST_STATUS_FINISHED, TestRunExecution
 from thrift.protocol.TCompactProtocol import TCompactProtocolAcceleratedFactory
-from api.models import (TestRunExecution, TEST_STATUS_FINISHED)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
-                + "/../../interface/gen-py"))
+from thrift.TSerialization import deserialize, serialize
+
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
+    )
+)
 from terragraph_thrift.Controller import ttypes as ctrl_types
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
 class Base:
-
     def __init__(self, _ctrl_sock, zmq_identifier):
         self._ctrl_sock = _ctrl_sock
         self._TRAFFIC_APP_CTRL_ID = "ctrl-app-TRAFFIC_APP"
@@ -24,45 +29,33 @@ class Base:
 
     def _deserialize(self, in_byte_array, out_thrift_struct):
         deserialize(
-            out_thrift_struct,
-            in_byte_array,
-            TCompactProtocolAcceleratedFactory()
+            out_thrift_struct, in_byte_array, TCompactProtocolAcceleratedFactory()
         )
 
     def _serialize(self, in_thrift_struct):
-        return serialize(in_thrift_struct,
-                         TCompactProtocolAcceleratedFactory())
+        return serialize(in_thrift_struct, TCompactProtocolAcceleratedFactory())
 
     def _send_to_ctrl(self, msg_type, msg_data, receiver_app, type, minion=""):
         _log.info("\nSending {} request...".format(type))
-        msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES.get(
-                                                                msg_type,
-                                                                "UNKNOWN")
+        msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES.get(msg_type, "UNKNOWN")
 
         # prepare message
-        data = self._serialize(ctrl_types.Message(
-                                msg_type, self._serialize(msg_data)))
+        data = self._serialize(ctrl_types.Message(msg_type, self._serialize(msg_data)))
         # send message
         try:
-            self._ctrl_sock.send(str(minion).encode('ascii'), zmq.SNDMORE)
-            self._ctrl_sock.send(str(receiver_app).encode('ascii'), zmq.SNDMORE)
-            self._ctrl_sock.send(str(self._MYID).encode('ascii'), zmq.SNDMORE)
+            self._ctrl_sock.send(str(minion).encode("ascii"), zmq.SNDMORE)
+            self._ctrl_sock.send(str(receiver_app).encode("ascii"), zmq.SNDMORE)
+            self._ctrl_sock.send(str(self._MYID).encode("ascii"), zmq.SNDMORE)
             self._ctrl_sock.send(data)
         except Exception as ex:
-            self._my_exit(False,
-                          "Failed to send {}; {}".format(msg_type_str, ex))
+            self._my_exit(False, "Failed to send {}; {}".format(msg_type_str, ex))
 
-    def _my_exit(
-        self,
-        success,
-        error_msg="",
-        operation=None,
-        test_aborted=False
-    ):
+    def _my_exit(self, success, error_msg="", operation=None, test_aborted=False):
         # Mark the test as finished as all iPerf sessions are over
         try:
-            test_run_obj = TestRunExecution.objects.get(pk=int(
-                                            self.parameters['test_run_id']))
+            test_run_obj = TestRunExecution.objects.get(
+                pk=int(self.parameters["test_run_id"])
+            )
             if not test_aborted:
                 test_run_obj.status = TEST_STATUS_FINISHED
             else:

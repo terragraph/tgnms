@@ -1,16 +1,21 @@
 #!/usr/bin/env python3.6
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import sys
 import os
+import sys
+
 from api.network_test import base
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
-                + "/../../interface/gen-py"))
+
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
+    )
+)
 from terragraph_thrift.Controller import ttypes as ctrl_types
 
 
 class RunPing(base.Base):
-
     def __init__(self, _ctrl_sock, zmq_identifier):
         super().__init__(_ctrl_sock, zmq_identifier)
 
@@ -34,6 +39,7 @@ class RunPing(base.Base):
         * {Boolean} [use_link_local]
         *           Whether to use the link-local IP address and interface
     """
+
     def _config_ping(
         self,
         src_node_id,
@@ -44,7 +50,7 @@ class RunPing(base.Base):
         verbose,
         deadline,
         timeout,
-        use_link_local
+        use_link_local,
     ):
 
         # send request
@@ -54,7 +60,7 @@ class RunPing(base.Base):
             packetSize=packet_size,
             verbose=verbose,
             deadline=deadline,
-            timeout=timeout
+            timeout=timeout,
         )
 
         self._send_to_ctrl(
@@ -63,10 +69,10 @@ class RunPing(base.Base):
                 srcNodeId=src_node_id,
                 dstNodeId=dst_node_id,
                 options=options,
-                useLinkLocal=use_link_local
+                useLinkLocal=use_link_local,
             ),
             self._TRAFFIC_APP_CTRL_ID,
-            type="Ping"
+            type="Ping",
         )
 
     def _stop_ping(self, id):
@@ -74,5 +80,5 @@ class RunPing(base.Base):
             ctrl_types.MessageType.STOP_PING,
             ctrl_types.StopPing(id),
             self._TRAFFIC_APP_CTRL_ID,
-            type="Stop Ping"
+            type="Stop Ping",
         )

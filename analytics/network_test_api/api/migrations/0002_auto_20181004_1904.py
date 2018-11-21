@@ -5,19 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('api', '0001_initial'),
-    ]
+    dependencies = [("api", "0001_initial")]
 
     operations = [
         migrations.AddField(
-            model_name='singlehoptest',
-            name='iperf_client_blob',
+            model_name="singlehoptest",
+            name="iperf_client_blob",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='singlehoptest',
-            name='iperf_server_blob',
+            model_name="singlehoptest",
+            name="iperf_server_blob",
             field=models.TextField(blank=True, null=True),
         ),
     ]

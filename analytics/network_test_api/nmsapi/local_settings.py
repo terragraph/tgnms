@@ -3,13 +3,14 @@
 
 import os
 
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'network_test',
-        'USER': os.environ['MYSQL_USER'],
-        'PASSWORD': os.environ['MYSQL_PASS'],
-        'HOST': os.environ['MYSQL_HOST'],
-        'PORT': '3306',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "network_test",
+        "USER": os.environ["MYSQL_USER"],
+        "PASSWORD": os.environ["MYSQL_PASS"],
+        "HOST": os.environ["MYSQL_HOST"],
+        "PORT": "3306",
     }
 }

@@ -5,19 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('api', '0003_singlehoptest_ping_output_blob'),
-    ]
+    dependencies = [("api", "0003_singlehoptest_ping_output_blob")]
 
     operations = [
         migrations.AlterField(
-            model_name='singlehoptest',
-            name='origin_node',
-            field=models.CharField(default='', max_length=256),
+            model_name="singlehoptest",
+            name="origin_node",
+            field=models.CharField(default="", max_length=256),
         ),
         migrations.AlterField(
-            model_name='singlehoptest',
-            name='peer_node',
-            field=models.CharField(default='', max_length=256),
+            model_name="singlehoptest",
+            name="peer_node",
+            field=models.CharField(default="", max_length=256),
         ),
     ]

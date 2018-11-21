@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('api', '0002_auto_20181004_1904'),
-    ]
+    dependencies = [("api", "0002_auto_20181004_1904")]
 
     operations = [
         migrations.AddField(
-            model_name='singlehoptest',
-            name='ping_output_blob',
+            model_name="singlehoptest",
+            name="ping_output_blob",
             field=models.TextField(blank=True, null=True),
-        ),
+        )
     ]
