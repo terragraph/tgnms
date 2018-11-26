@@ -179,6 +179,7 @@ class RunTestPlan82(Thread):
         Test Objective:  Verify link health in the absence of self interference
         """
         node_name_to_mac = {n["name"]: n["mac_addr"] for n in topology["nodes"]}
+        node_mac_to_name = {n["mac_addr"]: n["name"] for n in topology["nodes"]}
         test_list = []
         start_delay = 0
         links = topology["links"]
@@ -188,7 +189,16 @@ class RunTestPlan82(Thread):
                 test_dict = {}
                 a_node_mac = node_name_to_mac[links[rand_index]["a_node_name"]]
                 z_node_mac = node_name_to_mac[links[rand_index]["z_node_name"]]
+                link_name = (
+                    "link-"
+                    + node_mac_to_name[a_node_mac]
+                    + "-"
+                    + node_mac_to_name[z_node_mac]
+                )
                 iperf_object = IperfObj(
+                    link_name=link_name,
+                    src_node_name=node_mac_to_name[a_node_mac],
+                    dst_node_name=node_mac_to_name[z_node_mac],
                     src_node_id=a_node_mac,
                     dst_node_id=z_node_mac,
                     bitrate=self.test_push_rate,
@@ -206,6 +216,9 @@ class RunTestPlan82(Thread):
                     use_link_local=True,
                 )
                 ping_object = PingObj(
+                    link_name=link_name,
+                    src_node_name=node_mac_to_name[a_node_mac],
+                    dst_node_name=node_mac_to_name[z_node_mac],
                     src_node_id=a_node_mac,
                     dst_node_id=z_node_mac,
                     count=self.test_duration,
@@ -228,6 +241,9 @@ class RunTestPlan82(Thread):
                     # z -> a direction
                     test_dict = {}
                     iperf_object = IperfObj(
+                        link_name=link_name,
+                        src_node_name=node_mac_to_name[z_node_mac],
+                        dst_node_name=node_mac_to_name[a_node_mac],
                         src_node_id=z_node_mac,
                         dst_node_id=a_node_mac,
                         bitrate=self.test_push_rate,
@@ -245,6 +261,9 @@ class RunTestPlan82(Thread):
                         use_link_local=True,
                     )
                     ping_object = PingObj(
+                        link_name=link_name,
+                        src_node_name=node_mac_to_name[z_node_mac],
+                        dst_node_name=node_mac_to_name[a_node_mac],
                         src_node_id=z_node_mac,
                         dst_node_id=a_node_mac,
                         count=self.test_duration,

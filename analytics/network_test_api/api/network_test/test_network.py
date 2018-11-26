@@ -144,6 +144,9 @@ class TestNetwork(Thread):
 class IperfObj:
     def __init__(
         self,
+        link_name,
+        src_node_name,
+        dst_node_name,
         src_node_id,
         dst_node_id,
         bitrate,
@@ -160,6 +163,9 @@ class IperfObj:
         format,
         use_link_local,
     ):
+        self.link_name = link_name
+        self.src_node_name = src_node_name
+        self.dst_node_name = dst_node_name
         self.src_node_id = src_node_id
         self.dst_node_id = dst_node_id
         self.bitrate = bitrate
@@ -181,6 +187,9 @@ class IperfObj:
 class PingObj:
     def __init__(
         self,
+        link_name,
+        src_node_name,
+        dst_node_name,
         src_node_id,
         dst_node_id,
         count,
@@ -191,6 +200,9 @@ class PingObj:
         timeout,
         use_link_local,
     ):
+        self.link_name = link_name
+        self.src_node_name = src_node_name
+        self.dst_node_name = dst_node_name
         self.src_node_id = src_node_id
         self.dst_node_id = dst_node_id
         self.count = count

@@ -204,9 +204,9 @@ class RecvFromCtrl(base.Base):
                 if link_db_obj is not None:
                     with transaction.atomic():
                         link_db_obj.status = TEST_STATUS_FINISHED
-                        link_db_obj.origin_node = source_node
-                        link_db_obj.peer_node = destination_node
-                        link_db_obj.link_name = source_node + " -- " + destination_node
+                        link_db_obj.origin_node = link['iperf_object'].src_node_name
+                        link_db_obj.peer_node = link['iperf_object'].dst_node_name
+                        link_db_obj.link_name = link['iperf_object'].link_name
                         link_db_obj.iperf_throughput_min = stats["throughput"]["min"]
                         link_db_obj.iperf_throughput_max = stats["throughput"]["max"]
                         link_db_obj.iperf_throughput_mean = stats["throughput"]["mean"]
@@ -242,9 +242,9 @@ class RecvFromCtrl(base.Base):
                 link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
-                        link_db_obj.origin_node = source_node
-                        link_db_obj.peer_node = destination_node
-                        link_db_obj.link_name = source_node + " -- " + destination_node
+                        link_db_obj.origin_node = link['ping_object'].src_node_name
+                        link_db_obj.peer_node = link['ping_object'].dst_node_name
+                        link_db_obj.link_name = link['ping_object'].link_name
                         link_db_obj.ping_max_latency = stats["max"]
                         link_db_obj.ping_min_latency = stats["min"]
                         link_db_obj.ping_avg_latency = stats["mean"]
