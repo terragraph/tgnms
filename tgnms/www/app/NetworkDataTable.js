@@ -16,19 +16,12 @@ import NetworkNodesTable from './NetworkNodesTable.js';
 import NetworkScans from './NetworkScans.js';
 import NetworkStatusTable from './NetworkStatusTable.js';
 import NetworkStore from './stores/NetworkStore.js';
+import NetworkTestsTable from './NetworkTestsTable.js';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
-const TAB_NAMES = [
-  'status',
-  'nodes',
-  'links',
-  'scans',
-  'discovery',
-  'adjacencies',
-  'routing',
-];
+const TAB_NAMES = ['status', 'nodes', 'links', 'scans', 'discovery'];
 
 export default class NetworkDataTable extends React.Component {
   static propTypes = {
@@ -117,11 +110,19 @@ export default class NetworkDataTable extends React.Component {
     this.setState({
       selectedTabIndex: index,
     });
-    // TODO - should we null the selected node?
+    const lastTabName = TAB_NAMES[last];
+    const newTabName = TAB_NAMES[index];
     Dispatcher.dispatch({
       actionType: Actions.TAB_SELECTED,
-      tabName: TAB_NAMES[index],
+      tabName: newTabName,
     });
+    // don't de-select between links/test
+    if (
+      (lastTabName === 'tests' && newTabName === 'links') ||
+      (lastTabName === 'links' && newTabName === 'tests')
+    ) {
+      return;
+    }
     Dispatcher.dispatch({
       actionType: Actions.CLEAR_NODE_LINK_SELECTED,
     });
@@ -136,7 +137,6 @@ export default class NetworkDataTable extends React.Component {
     const tableProps = {
       height: adjustedHeight,
       instance: this.props.networkConfig,
-      routing: this.state.routing,
       topology: this.props.networkConfig.topology,
       zoomLevel: this.state.zoomLevel,
     };
@@ -149,9 +149,9 @@ export default class NetworkDataTable extends React.Component {
           <Tab className="data-table-tab">Status</Tab>
           <Tab className="data-table-tab">Nodes</Tab>
           <Tab className="data-table-tab">Links</Tab>
+          <Tab className="data-table-tab">Tests</Tab>
           <Tab className="data-table-tab">Scans</Tab>
           <Tab className="data-table-tab">Discovery</Tab>
-          {/* <Tab className="data-table-tab">Adjacencies</Tab> */}
         </TabList>
         <TabPanel>
           <NetworkStatusTable {...tableProps} />
@@ -163,20 +163,15 @@ export default class NetworkDataTable extends React.Component {
           <NetworkLinksTable {...tableProps} />
         </TabPanel>
         <TabPanel>
+          <NetworkTestsTable {...tableProps} />
+        </TabPanel>
+        <TabPanel>
           <NetworkScans {...tableProps} />
         </TabPanel>
         <TabPanel>
           <NetworkDiscoveryTable {...tableProps} />
         </TabPanel>
-        {/* <TabPanel>
-          <NetworkAdjacencyTable {...tableProps} />
-        </TabPanel> */}
       </Tabs>
     );
-    /* DISABLED until status_dump is split into status_report and routing_report (pmccut)
-        <TabPanel>
-          <NetworkRoutingTable {...tableProps} />
-        </TabPanel>
-    */
   }
 }

@@ -3,6 +3,8 @@
  *
  * @format
  */
+
+import moment from 'moment';
 import PropTypes from 'prop-types';
 import Menu, {Divider, Item as MenuItem, SubMenu} from 'rc-menu';
 import React from 'react';
@@ -18,6 +20,8 @@ const propTypes = {
   handleMenuBarSelect: PropTypes.func.isRequired,
   networkName: PropTypes.string.isRequired,
   networkConfig: PropTypes.object.isRequired,
+  networkTests: PropTypes.array.isRequired,
+  selectedNetworkTest: PropTypes.number,
   topologies: PropTypes.arrayOf(PropTypes.object).isRequired,
   user: PropTypes.object,
   view: PropTypes.string.isRequired,
@@ -29,16 +33,8 @@ const TOPOLOGY_OPS = {
   addSite: {icon: 'pushpin', name: 'New Planned Site'},
 };
 
-function TopBar(props) {
-  // Create list of selected keys
-  const selectedKeys = ['view#' + props.view];
-  if (props.networkName) {
-    selectedKeys.push('topo#' + props.networkName);
-  }
-
-  // NOTE: Can't create components for these functions because the <Menu />
-  // creates refs for these submenu items which creates weird errors
-  function createViewSubMenuItems() {
+export default class TopBar extends React.Component {
+  createViewSubMenuItems() {
     return Object.keys(VIEWS).map(viewKey => (
       <MenuItem key={'view#' + viewKey}>
         <Glyphicon glyph={VIEWS[viewKey].icon} />
@@ -47,8 +43,8 @@ function TopBar(props) {
     ));
   }
 
-  function createTopologySubMenuItems() {
-    return props.topologies.map(topologyConfig => {
+  createTopologySubMenuItems() {
+    return this.props.topologies.map(topologyConfig => {
       const keyName = 'topo#' + topologyConfig.name;
       const highAvailabilityEnabled =
         topologyConfig.haState &&
@@ -73,7 +69,7 @@ function TopBar(props) {
     });
   }
 
-  function createMapSubMenuItems() {
+  createMapSubMenuItems() {
     return [
       <Divider key={1} />,
       <SubMenu
@@ -90,6 +86,39 @@ function TopBar(props) {
             {TOPOLOGY_OPS[topOpsKey].name}
           </MenuItem>
         ))}
+      </SubMenu>,
+      <Divider key={3} />,
+      <SubMenu
+        title={
+          <span>
+            Tests <span className="caret" />
+          </span>
+        }
+        key="networkTest"
+        mode="vertical">
+        <MenuItem key={'test#new'}>
+          <Glyphicon glyph={'new-window'} />
+          Start Test
+        </MenuItem>
+        {this.props.networkTests.map(networkTest => {
+          const timeAgo = moment(networkTest.start_date).fromNow();
+          const networkTestStatusIcon = {
+            1: 'hourglass', // running
+            2: 'ok', // finished
+            3: 'remove', // aborted
+          };
+          const statusIcon = networkTestStatusIcon.hasOwnProperty(
+            networkTest.status,
+          )
+            ? networkTestStatusIcon[networkTest.status]
+            : 'wrench';
+          return (
+            <MenuItem key={'test#' + networkTest.id}>
+              <Glyphicon glyph={statusIcon} />
+              Network Single-Hop #{networkTest.id} ({timeAgo})
+            </MenuItem>
+          );
+        })}
       </SubMenu>,
       <Divider key={2} />,
       <MenuItem key={'overlays#'}>
@@ -113,48 +142,70 @@ function TopBar(props) {
     ];
   }
 
-  return (
-    <div className="top-menu-bar">
-      <Menu
-        onSelect={props.handleMenuBarSelect}
-        mode="horizontal"
-        selectedKeys={selectedKeys}
-        style={{float: 'left'}}
-        openAnimation="slide-up">
-        <SubMenu
-          title={
-            <span>
-              Menu <span className="caret" />
-            </span>
-          }
-          key="view"
-          mode="vertical">
-          {createViewSubMenuItems()}
-        </SubMenu>
-        <MenuItem key="view-selected" disabled>
-          <Glyphicon glyph={VIEWS[props.view].icon} />
-          {VIEWS[props.view].name}
-        </MenuItem>
-        <Divider />
-        <SubMenu
-          title={
-            <span>
-              Topology <span className="caret" />
-            </span>
-          }
-          key="topo"
-          mode="vertical">
-          {createTopologySubMenuItems()}
-        </SubMenu>
-        <MenuItem key="topology-selected" disabled>
-          {props.networkName ? props.networkName : '-'}
-        </MenuItem>
-        {props.view === 'map' && createMapSubMenuItems()}
-      </Menu>
-      <NetworkStatusMenu networkConfig={props.networkConfig} />
-    </div>
-  );
+  render() {
+    const {networkConfig, networkName, selectedNetworkTest, view} = this.props;
+    // Create list of selected keys
+    const selectedKeys = ['view#' + view];
+    if (networkName) {
+      selectedKeys.push('topo#' + networkName);
+    }
+    if (selectedNetworkTest) {
+      selectedKeys.push('test#' + selectedNetworkTest);
+    }
+    // NOTE: Can't create components for these functions because the <Menu />
+    // creates refs for these submenu items which creates weird errors
+
+    return (
+      <div className="top-menu-bar">
+        <Menu
+          onSelect={this.props.handleMenuBarSelect}
+          mode="horizontal"
+          selectedKeys={selectedKeys}
+          style={{float: 'left'}}
+          openAnimation="slide-up">
+          <SubMenu
+            title={
+              <span>
+                Menu <span className="caret" />
+              </span>
+            }
+            key="view"
+            mode="vertical">
+            {this.createViewSubMenuItems()}
+          </SubMenu>
+          <MenuItem key="view-selected" disabled>
+            <Glyphicon glyph={VIEWS[view].icon} />
+            {VIEWS[view].name}
+          </MenuItem>
+          <Divider />
+          <SubMenu
+            title={
+              <span>
+                Topology <span className="caret" />
+              </span>
+            }
+            key="topo"
+            mode="vertical">
+            {this.createTopologySubMenuItems()}
+          </SubMenu>
+          <MenuItem key="topology-selected" disabled>
+            {networkName ? networkName : '-'}
+          </MenuItem>
+          {view === 'map' && this.createMapSubMenuItems()}
+        </Menu>
+        <NetworkStatusMenu networkConfig={networkConfig} />
+      </div>
+    );
+  }
 }
 
-TopBar.propTypes = propTypes;
-export default TopBar;
+TopBar.propTypes = {
+  handleMenuBarSelect: PropTypes.func.isRequired,
+  networkConfig: PropTypes.object.isRequired,
+  networkName: PropTypes.string.isRequired,
+  networkTests: PropTypes.array.isRequired,
+  selectedNetworkTest: PropTypes.number,
+  topologies: PropTypes.arrayOf(PropTypes.object).isRequired,
+  user: PropTypes.object,
+  view: PropTypes.string.isRequired,
+};

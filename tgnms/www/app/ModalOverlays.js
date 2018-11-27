@@ -13,6 +13,7 @@ import {
 } from './constants/NetworkConstants.js';
 import {render} from 'react-dom';
 import Modal from 'react-modal';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const customModalStyle = {
@@ -27,40 +28,17 @@ const customModalStyle = {
 };
 
 export default class ModalOverlays extends React.Component {
-  state = {
-    selectedSiteOverlay: 'Health',
-    selectedLinkOverlay: 'Health',
-    selectedMapDimType: 'Default',
-    selectedMapTile: 'Default',
+  static propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    selectedSiteOverlay: PropTypes.string.isRequired,
+    selectedLinkOverlay: PropTypes.string.isRequired,
+    selectedMapDimType: PropTypes.string.isRequired,
+    selectedMapTile: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
   };
 
-  componentDidMount() {
-    if (
-      this.props.selectedSiteOverlay &&
-      this.props.selectedLinkOverlay &&
-      this.props.selectedMapDimType &&
-      this.props.selectedMapTile
-    ) {
-      this.setState({
-        selectedSiteOverlay: this.props.selectedSiteOverlay,
-        selectedLinkOverlay: this.props.selectedLinkOverlay,
-        selectedMapDimType: this.props.selectedMapDimType,
-        selectedMapTile: this.props.selectedMapTile,
-      });
-    }
-  }
-
-  modalClose() {
-    this.props.onClose(
-      this.state.selectedSiteOverlay,
-      this.state.selectedLinkOverlay,
-      this.state.selectedMapDimType,
-      this.state.selectedMapTile,
-    );
-  }
-
   render() {
-    const siteOverlaySource = SiteOverlayKeys[this.state.selectedSiteOverlay];
+    const siteOverlaySource = SiteOverlayKeys[this.props.selectedSiteOverlay];
     const siteOverlayKeyRows = Object.keys(siteOverlaySource).map(siteState => (
       <tr key={siteState}>
         <td />
@@ -70,7 +48,7 @@ export default class ModalOverlays extends React.Component {
       </tr>
     ));
     let linkOverlayKeyRows = [];
-    const linkOverlaySource = LinkOverlayKeys[this.state.selectedLinkOverlay];
+    const linkOverlaySource = LinkOverlayKeys[this.props.selectedLinkOverlay];
     if (linkOverlaySource.values) {
       linkOverlayKeyRows = linkOverlaySource.values.map((value, index) => (
         <tr key={value}>
@@ -109,7 +87,15 @@ export default class ModalOverlays extends React.Component {
     return (
       <Modal
         isOpen={this.props.isOpen}
-        onRequestClose={this.modalClose.bind(this)}
+        onRequestClose={() => {
+          this.props.onChange(
+            false,
+            this.props.selectedSiteOverlay,
+            this.props.selectedLinkOverlay,
+            this.props.selectedMapDimType,
+            this.props.selectedMapTile,
+          );
+        }}
         style={customModalStyle}>
         <table>
           <tbody>
@@ -119,11 +105,15 @@ export default class ModalOverlays extends React.Component {
                 <div style={{width: 100}}>
                   <select
                     style={{width: 100}}
-                    value={this.state.selectedSiteOverlay}
+                    value={this.props.selectedSiteOverlay}
                     onChange={ev => {
-                      this.setState({
-                        selectedSiteOverlay: ev.currentTarget.value,
-                      });
+                      this.props.onChange(
+                        true,
+                        ev.currentTarget.value,
+                        this.props.selectedLinkOverlay,
+                        this.props.selectedMapDimType,
+                        this.props.selectedMapTile,
+                      );
                     }}>
                     {Object.keys(SiteOverlayKeys).map(overlay => (
                       <option key={overlay} value={overlay}>
@@ -142,11 +132,15 @@ export default class ModalOverlays extends React.Component {
                 <div style={{width: 100}}>
                   <select
                     style={{width: 100}}
-                    value={this.state.selectedLinkOverlay}
+                    value={this.props.selectedLinkOverlay}
                     onChange={ev => {
-                      this.setState({
-                        selectedLinkOverlay: ev.currentTarget.value,
-                      });
+                      this.props.onChange(
+                        true,
+                        this.props.selectedSiteOverlay,
+                        ev.currentTarget.value,
+                        this.props.selectedMapDimType,
+                        this.props.selectedMapTile,
+                      );
                     }}>
                     {Object.keys(LinkOverlayKeys).map(overlay => (
                       <option key={overlay} value={overlay}>
@@ -164,11 +158,15 @@ export default class ModalOverlays extends React.Component {
                 <div style={{width: 100}}>
                   <select
                     style={{width: 100}}
-                    value={this.state.selectedMapDimType}
+                    value={this.props.selectedMapDimType}
                     onChange={ev => {
-                      this.setState({
-                        selectedMapDimType: ev.currentTarget.value,
-                      });
+                      this.props.onChange(
+                        true,
+                        this.props.selectedSiteOverlay,
+                        this.props.selectedLinkOverlay,
+                        ev.currentTarget.value,
+                        this.props.selectedMapTile,
+                      );
                     }}>
                     {Object.keys(MapDimensions).map(name => (
                       <option key={name} value={name}>
@@ -185,11 +183,15 @@ export default class ModalOverlays extends React.Component {
                 <div style={{width: 100}}>
                   <select
                     style={{width: 100}}
-                    value={this.state.selectedMapTile}
+                    value={this.props.selectedMapTile}
                     onChange={ev => {
-                      this.setState({
-                        selectedMapTile: ev.currentTarget.value,
-                      });
+                      this.props.onChange(
+                        true,
+                        this.props.selectedSiteOverlay,
+                        this.props.selectedLinkOverlay,
+                        this.props.selectedMapDimType,
+                        ev.currentTarget.value,
+                      );
                     }}>
                     {Object.keys(MapTiles).map(name => (
                       <option key={name} value={name}>
@@ -206,7 +208,15 @@ export default class ModalOverlays extends React.Component {
                 <button
                   style={{float: 'left'}}
                   className="graph-button"
-                  onClick={this.modalClose.bind(this)}>
+                  onClick={() => {
+                    this.props.onChange(
+                      false,
+                      this.props.selectedSiteOverlay,
+                      this.props.selectedLinkOverlay,
+                      this.props.selectedMapDimType,
+                      this.props.selectedMapTile,
+                    );
+                  }}>
                   Close
                 </button>
               </td>

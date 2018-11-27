@@ -37,14 +37,13 @@ import {getNodeMarker} from './helpers/NetworkMapHelpers.js';
 import NetworkStore from './stores/NetworkStore.js';
 import {
   NodeType,
-  PolarityType,
   NodeStatusType,
   LinkType,
 } from '../thrift/gen-nodejs/Topology_types';
 import {rgb, scaleLinear} from 'd3';
 import LeafletGeom from 'leaflet-geometryutil';
 // leaflet maps
-import {get, isEmpty, some} from 'lodash-es';
+import {get, some} from 'lodash-es';
 import Leaflet, {LatLng} from 'leaflet';
 import Control from 'react-leaflet-control';
 import {
@@ -105,6 +104,8 @@ export default class NetworkMap extends React.Component {
     networkName: PropTypes.string.isRequired,
     onTopologyOperation: PropTypes.func.isRequired,
     pendingTopology: PropTypes.object.isRequired,
+    selectedNetworkTest: PropTypes.number,
+    selectedNetworkTestResults: PropTypes.object,
     siteOverlay: PropTypes.string.isRequired,
     viewContext: PropTypes.object.isRequired,
   };
@@ -716,6 +717,26 @@ export default class NetworkMap extends React.Component {
       );
     }
 
+    if (this.props.selectedNetworkTest) {
+      return (
+        <CircleMarker
+          center={pos}
+          // TODO: Scale Radius to zoomLevel
+          radius={MapDimensions[this.props.mapDimType].SITE_RADIUS}
+          clickable
+          fillOpacity={1}
+          color={color}
+          key={site.name}
+          siteName={site.name}
+          onClick={this.handleMarkerClick}
+          onMouseOver={() => this.handleMarkerHover(site)}
+          onMouseOut={() => this.handleMarkerHover(null)}
+          fillColor="white"
+          level={10}
+        />
+      );
+    }
+
     if (hasAp) {
       apMarker = (
         <CircleMarker
@@ -793,29 +814,33 @@ export default class NetworkMap extends React.Component {
 
   getLinkLine(link, coords, color, linkDisplayType): React.Element<any> {
     let key;
-    let onClick;
-    if (typeof link === 'string') {
-      // If 'link' is a string (e.g. for "site links"), no onClick action
-      key = link;
-      onClick = e => {};
-    } else if (this.state.showTopologyDiscoveryPane) {
-      // Normal link, but no onClick action if adding/removing "site links"
-      key = link.name;
-      onClick = e => {};
-    } else {
-      // Normal link
-      key = link.name;
-      onClick = e => {
+    let linkSelectFunc = () => {
+      if (
+        NetworkStore.tabName !== 'links' &&
+        NetworkStore.tabName !== 'tests'
+      ) {
         Dispatcher.dispatch({
           actionType: Actions.TAB_SELECTED,
           tabName: 'links',
         });
-        Dispatcher.dispatch({
-          actionType: Actions.LINK_SELECTED,
-          link,
-          source: 'map',
-        });
-      };
+      }
+      Dispatcher.dispatch({
+        actionType: Actions.LINK_SELECTED,
+        link,
+        source: 'map',
+      });
+    };
+    if (typeof link === 'string') {
+      // If 'link' is a string (e.g. for "site links"), no onClick action
+      key = link;
+      linkSelectFunc = e => {};
+    } else if (this.state.showTopologyDiscoveryPane) {
+      // Normal link, but no onClick action if adding/removing "site links"
+      key = link.name;
+      linkSelectFunc = e => {};
+    } else {
+      // Normal link
+      key = link.name;
     }
 
     return (
@@ -823,7 +848,7 @@ export default class NetworkMap extends React.Component {
         key={key}
         positions={coords}
         weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
-        onClick={onClick}
+        onClick={linkSelectFunc}
         color={color}
         dashArray={linkDisplayType || ''}
         level={5}
@@ -838,22 +863,28 @@ export default class NetworkMap extends React.Component {
       (coords_a[0] + coords_z[0]) / 2,
       (coords_a[1] + coords_z[1]) / 2,
     ];
+    const linkSelectFunc = () => {
+      if (
+        NetworkStore.tabName !== 'links' &&
+        NetworkStore.tabName !== 'tests'
+      ) {
+        Dispatcher.dispatch({
+          actionType: Actions.TAB_SELECTED,
+          tabName: 'links',
+        });
+      }
+      Dispatcher.dispatch({
+        actionType: Actions.LINK_SELECTED,
+        link,
+        source: 'map',
+      });
+    };
     return [
       <Polyline
         key={link.name + '(A)'}
         positions={[coords_a, midPoint]}
         weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
-        onClick={e => {
-          Dispatcher.dispatch({
-            actionType: Actions.TAB_SELECTED,
-            tabName: 'links',
-          });
-          Dispatcher.dispatch({
-            actionType: Actions.LINK_SELECTED,
-            link,
-            source: 'map',
-          });
-        }}
+        onClick={linkSelectFunc}
         color={color_a}
         level={5}
       />,
@@ -861,17 +892,7 @@ export default class NetworkMap extends React.Component {
         key={link.name + '(Z)'}
         positions={[coords_z, midPoint]}
         weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
-        onClick={e => {
-          Dispatcher.dispatch({
-            actionType: Actions.TAB_SELECTED,
-            tabName: 'links',
-          });
-          Dispatcher.dispatch({
-            actionType: Actions.LINK_SELECTED,
-            link,
-            source: 'map',
-          });
-        }}
+        onClick={linkSelectFunc}
         color={color_z}
         level={5}
       />,
@@ -1435,6 +1456,27 @@ export default class NetworkMap extends React.Component {
                 overlayKey.colors[commitBatch.includes(aNode.name) ? 1 : 0],
                 overlayKey.colors[commitBatch.includes(zNode.name) ? 1 : 0],
               );
+            }
+            break;
+          case 'TestHealth':
+            const {selectedNetworkTestResults} = this.props;
+            if (selectedNetworkTestResults.hasOwnProperty(link.name)) {
+              const networkHealth = selectedNetworkTestResults[link.name];
+              const MISSING_DATA_HEALTH_INDEX = 4;
+              const linkHealthA = networkHealth.hasOwnProperty('A')
+                ? networkHealth['A'].health
+                : MISSING_DATA_HEALTH_INDEX;
+              const linkHealthZ = networkHealth.hasOwnProperty('Z')
+                ? networkHealth['Z'].health
+                : MISSING_DATA_HEALTH_INDEX;
+              linkLine = this.getLinkLineTwoSides(
+                link,
+                linkCoords,
+                overlayKey.colors[linkHealthA],
+                overlayKey.colors[linkHealthZ],
+              );
+            } else {
+              linkLine = this.getLinkLine(link, linkCoords, 'black');
             }
             break;
           /*

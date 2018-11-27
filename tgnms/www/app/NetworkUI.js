@@ -9,7 +9,6 @@ import axios from 'axios';
 import {has, isEmpty} from 'lodash-es';
 import {hot} from 'react-hot-loader';
 import React from 'react';
-
 import {Actions, LinkOverlayKeys} from './constants/NetworkConstants.js';
 import {apiServiceRequest} from './apiutils/ServiceAPIUtil';
 import Dispatcher from './NetworkDispatcher.js';
@@ -25,6 +24,8 @@ import NetworkStats from './NetworkStats.js';
 import NetworkStore from './stores/NetworkStore.js';
 import NetworkUpgrade from './components/upgrade/NetworkUpgrade.js';
 import NMSConfig from './NMSConfig.js';
+import {startNetworkTest} from './apiutils/NetworkTestUtils';
+import swal from 'sweetalert';
 import TopBar from './components/topbar/TopBar.js';
 import UsersSettings from './components/users/UsersSettings.js';
 
@@ -40,6 +41,7 @@ class NetworkUI extends React.Component {
     networkName: NetworkStore.networkName,
     networkConfig: {},
     nodesByName: {},
+    nodesByMac: {},
     topologies: [],
     routing: {},
     overlaysModalOpen: false,
@@ -53,6 +55,10 @@ class NetworkUI extends React.Component {
     // additional topology to render on the map
     pendingTopology: {},
     commitPlan: null,
+    // network tests
+    networkTests: [],
+    selectedNetworkTest: undefined,
+    selectedNetworkTestResults: {},
   };
 
   constructor(props) {
@@ -72,6 +78,7 @@ class NetworkUI extends React.Component {
   getNetworkStatusPeriodic = () => {
     if (this.state.networkName !== null) {
       this.getNetworkStatus(this.state.networkName);
+      this.getNetworkTests(this.state.networkName);
       // load commit plan
       if (this.state.commitPlan === null) {
         this.getCommitPlan(this.state.networkName);
@@ -134,6 +141,85 @@ class NetworkUI extends React.Component {
       });
   };
 
+  fetchNetworkTestResults = networkResultId => {
+    axios
+      .get(
+        `/network_tests/${this.state.networkName}/results/${networkResultId}`,
+      )
+      .then(response => {
+        const {nodesByMac} = this.state;
+        const testResultsByLinkName = {};
+        // index results by link name
+        response.data.forEach(row => {
+          //testResultsByLinkName[row.link_name] = row;
+          const nodeMacA = row.origin_node;
+          const nodeMacZ = row.peer_node;
+          if (
+            nodesByMac.hasOwnProperty(nodeMacA) &&
+            nodesByMac.hasOwnProperty(nodeMacZ) &&
+            this.state.topology.hasOwnProperty('links')
+          ) {
+            // TODO - do we keep a linkByNodeName map somewhere?
+            this.state.topology.links.forEach(link => {
+              const newRow = {
+                ...row,
+                linkData: link,
+              };
+              if (!testResultsByLinkName.hasOwnProperty(link.name)) {
+                testResultsByLinkName[link.name] = {};
+              }
+              if (
+                link.a_node_mac === nodeMacA &&
+                link.z_node_mac === nodeMacZ
+              ) {
+                // link matched, origin node is the A side
+                testResultsByLinkName[link.name]['A'] = newRow;
+              } else if (
+                link.a_node_mac === nodeMacZ &&
+                link.z_node_mac === nodeMacA
+              ) {
+                // link matched, peer ndoe is the Z side
+                testResultsByLinkName[link.name]['Z'] = newRow;
+              }
+            });
+          }
+        });
+        this.setState({
+          selectedNetworkTestResults: testResultsByLinkName,
+        });
+        Dispatcher.dispatch({
+          actionType: Actions.NETWORK_TEST_DATA_LOADED,
+          results: testResultsByLinkName,
+        });
+        Dispatcher.dispatch({
+          actionType: Actions.TAB_SELECTED,
+          tabName: 'tests',
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching network test results', error);
+      });
+  };
+
+  getNetworkTests = networkName => {
+    // TODO - network name instead of 'all'
+    axios
+      .get(`/network_tests/${networkName}/list`)
+      .then(response => {
+        this.setState({
+          networkTests: response.data,
+        });
+        // dispatch the updated topology json
+        Dispatcher.dispatch({
+          actionType: Actions.NETWORK_TESTS_REFRESHED,
+          tests: response.data,
+        });
+      })
+      .catch(error => {
+        console.error('Unable to refresh network tests', error);
+      });
+  };
+
   handleDispatchEvent = payload => {
     switch (payload.actionType) {
       case Actions.VIEW_SELECTED:
@@ -151,9 +237,11 @@ class NetworkUI extends React.Component {
       case Actions.TOPOLOGY_SELECTED:
         // update selected topology
         this.getNetworkStatus(payload.networkName);
+        this.getNetworkTests(payload.networkName);
         this.getCommitPlan(payload.networkName);
         this.setState({
           networkName: payload.networkName,
+          networkTests: [],
         });
         // reset our health updater (make this better)
         this.lastHealthRequestTime = 0;
@@ -162,12 +250,15 @@ class NetworkUI extends React.Component {
         break;
       case Actions.TOPOLOGY_REFRESHED:
         const nodesByName = {};
+        const nodesByMac = {};
         payload.networkConfig.topology.nodes.forEach(node => {
           nodesByName[node.name] = node;
+          nodesByMac[node.mac_addr] = node;
         });
         // update node name mapping
         this.setState({
           nodesByName,
+          nodesByMac,
           topology: payload.networkConfig.topology,
         });
         // update link health
@@ -178,6 +269,13 @@ class NetworkUI extends React.Component {
       case Actions.PENDING_TOPOLOGY:
         this.setState({
           pendingTopology: payload.topology,
+        });
+        break;
+      case Actions.LINK_OVERLAY_SELECTED:
+        // allows remote changing of the link overlay, but the overlay is still
+        // managed by this class instead of NetworkStore
+        this.setState({
+          selectedLinkOverlay: payload.linkOverlay,
         });
         break;
     }
@@ -319,13 +417,78 @@ class NetworkUI extends React.Component {
         case 'logout':
           window.location = '/user/logout';
           break;
+        case 'test':
+          if (keySplit[1] === 'new') {
+            swal(
+              {
+                title: 'Start Test',
+                text: 'Start a new network-wide single-hop test?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DD6B55',
+                confirmButtonText: 'Start Test',
+                closeOnConfirm: true,
+              },
+              () => {
+                // TODO - hard-set testId for network-wide single-hop test
+                startNetworkTest(this.state.topology.name, '8.3')
+                  .then(response => {
+                    if (
+                      response.hasOwnProperty('error') &&
+                      response.hasOwnProperty('msg')
+                    ) {
+                      swal({
+                        title: response.error
+                          ? 'Failed to start test'
+                          : 'Test started',
+                        text: 'Response: ' + response.msg,
+                        type: response.error ? 'error' : 'success',
+                      });
+                    } else {
+                      swal({
+                        title: 'Failed to start test',
+                        text: 'Unable to parse response',
+                        type: 'error',
+                      });
+                    }
+                  })
+                  .catch(error =>
+                    swal({
+                      title: 'Failed!',
+                      type: 'error',
+                    }),
+                  );
+              },
+            );
+          } else {
+            const networkTestResultId = parseInt(keySplit[1], 10);
+            this.fetchNetworkTestResults(networkTestResultId);
+            // enable the network-test link overlay
+            this.setState({
+              selectedMapTile: 'Monochrome',
+              selectedMapDimType: 'BigLine',
+              selectedLinkOverlay: 'TestHealth',
+              selectedNetworkTest: networkTestResultId,
+            });
+            Dispatcher.dispatch({
+              actionType: Actions.NETWORK_TEST_SELECTED,
+              testId: networkTestResultId,
+            });
+          }
+          break;
       }
     }
   };
 
-  overlaysModalClose = (siteOverlay, linkOverlay, mapDimType, mapTile) => {
+  overlaysModalChange = (
+    modalOpen,
+    siteOverlay,
+    linkOverlay,
+    mapDimType,
+    mapTile,
+  ) => {
     this.setState({
-      overlaysModalOpen: false,
+      overlaysModalOpen: modalOpen,
       selectedLinkOverlay: linkOverlay,
       selectedMapDimType: mapDimType,
       selectedMapTile: mapTile,
@@ -409,6 +572,8 @@ class NetworkUI extends React.Component {
             {...viewProps}
             linkOverlay={this.state.selectedLinkOverlay}
             siteOverlay={this.state.selectedSiteOverlay}
+            selectedNetworkTest={this.state.selectedNetworkTest}
+            selectedNetworkTestResults={this.state.selectedNetworkTestResults}
             mapDimType={this.state.selectedMapDimType}
             mapTile={this.state.selectedMapTile}
             commitPlan={this.state.commitPlan}
@@ -450,9 +615,9 @@ class NetworkUI extends React.Component {
           isOpen={this.state.overlaysModalOpen}
           selectedSiteOverlay={this.state.selectedSiteOverlay}
           selectedLinkOverlay={this.state.selectedLinkOverlay}
-          selectedMapDimensions={this.state.selectedMapDimType}
+          selectedMapDimType={this.state.selectedMapDimType}
           selectedMapTile={this.state.selectedMapTile}
-          onClose={this.overlaysModalClose}
+          onChange={this.overlaysModalChange}
         />
         {visibleModal}
         <TopBar
@@ -460,6 +625,8 @@ class NetworkUI extends React.Component {
           networkName={this.state.networkName}
           networkConfig={this.state.networkConfig}
           topologies={this.state.topologies}
+          networkTests={this.state.networkTests}
+          selectedNetworkTest={this.state.selectedNetworkTest}
           view={this.state.view}
           user={this.props.user}
         />

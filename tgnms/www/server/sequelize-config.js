@@ -32,4 +32,13 @@ module.exports = {
     dialect: 'mysql',
     logging: msg => logger.debug(msg),
   },
+  network_test: {
+    username: MYSQL_USER,
+    password: MYSQL_PASS,
+    database: 'network_test',
+    host: MYSQL_HOST,
+    port: MYSQL_PORT,
+    dialect: 'mysql',
+    logging: msg => logger.debug(msg),
+  },
 };

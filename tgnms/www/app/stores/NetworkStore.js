@@ -30,6 +30,9 @@ NetworkStore.nodeHealth = {};
 NetworkStore.analyzerTable = {};
 NetworkStore.scanResults = undefined;
 NetworkStore.layers = [];
+NetworkStore.tests = [];
+NetworkStore.networkTestId = undefined;
+NetworkStore.networkTestResults = [];
 
 const SITE_ROOT = '/';
 
@@ -220,6 +223,9 @@ Dispatcher.register(payload => {
     case Actions.SCAN_REFRESHED:
       NetworkStore.scanResults = payload.scanResults;
       break;
+    case Actions.NETWORK_TESTS_REFRESHED:
+      NetworkStore.tests = payload.tests;
+      break;
     case Actions.TAB_SELECTED:
       NetworkStore.tabName = payload.tabName;
       // clear selected
@@ -239,6 +245,12 @@ Dispatcher.register(payload => {
       }
       NetworkStore.selectedName = payload.siteSelected;
       PushUrl();
+      break;
+    case Actions.NETWORK_TEST_SELECTED:
+      NetworkStore.networkTestId = payload.testId;
+      break;
+    case Actions.NETWORK_TEST_DATA_LOADED:
+      NetworkStore.networkTestResults = payload.results;
       break;
   }
 });

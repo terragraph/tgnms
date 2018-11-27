@@ -43,6 +43,7 @@ export const Actions = {
   LINK_HEALTH_REFRESHED: 'LINK_HEALTH_REFRESHED',
   NODE_HEALTH_REFRESHED: 'NODE_HEALTH_REFRESHED',
   LINK_OVERLAY_REFRESHED: 'LINK_OVERLAY_REFRESHED',
+  LINK_OVERLAY_SELECTED: 'LINK_OVERLAY_SELECTED',
   ANALYZER_REFRESHED: 'ANALYZER_REFRESHED',
   SCAN_REFRESHED: 'SCAN_REFRESHED',
   SCAN_FETCH: 'SCAN_FETCH',
@@ -70,6 +71,11 @@ export const Actions = {
 
   // pending topology
   PENDING_TOPOLOGY: 'PENDING_TOPOLOGY',
+
+  // network tests
+  NETWORK_TESTS_REFRESHED: 'NETWORK_TESTS_REFRESHED',
+  NETWORK_TEST_SELECTED: 'NETWORK_TEST_SELECTED',
+  NETWORK_TEST_DATA_LOADED: 'NETWORK_TEST_DATA_LOADED',
 };
 
 // site hardware hybrid/mixed polarity doesn't have a node polarity equivalent
@@ -193,6 +199,18 @@ export const LinkOverlayKeys = {
     metric: null,
     values: ['Not Included', 'Included'],
     colors: ['green', 'blue'],
+  },
+  TestHealth: {
+    name: 'TestHealth',
+    metric: null,
+    values: ['Excellent', 'Healthy', 'Warning', 'Marginal', 'No Data'],
+    colors: [
+      'hsl(120,100%,20%)',
+      'hsl(180, 70%, 40%)',
+      'hsl(50,100%,40%)',
+      'hsl(0,100%,20%)',
+      'black',
+    ],
   },
   /*FLAPS: {
     name: 'Link Flaps',

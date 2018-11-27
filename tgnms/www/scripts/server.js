@@ -81,6 +81,7 @@ app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
 app.use('/dashboards', require('../server/dashboard/routes'));
 app.use('/docker', require('../server/docker/routes'));
+app.use('/network_tests', require('../server/network_tests/routes'));
 app.use('/highavailability', require('../server/highAvailability/routes'));
 app.use('/map', require('../server/map/routes'));
 app.use('/metrics', require('../server/metrics/routes'));

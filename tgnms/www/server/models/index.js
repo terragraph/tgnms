@@ -12,7 +12,17 @@ const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require('../sequelize-config')[env];
 const db = {};
-const sequelize = new Sequelize(config.database, config.username, config.password, config);
+const sequelize = new Sequelize(config.database,
+                                config.username,
+                                config.password,
+                                config);
+// network test
+const networkTestConfig = require('../sequelize-config')['network_test'];
+const networkTestSequelize = new Sequelize(networkTestConfig.database,
+                                           networkTestConfig.username,
+                                           networkTestConfig.password,
+                                           networkTestConfig);
+
 
 fs
   .readdirSync(__dirname)
@@ -20,8 +30,14 @@ fs
     return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
   })
   .forEach(file => {
-    const model = sequelize['import'](path.join(__dirname, file));
-    db[model.name] = model;
+    // use a different db for network test
+    if (file === 'network_test_link.js' || file === 'network_test_results.js') {
+      const model = networkTestSequelize['import'](path.join(__dirname, file));
+      db[model.name] = model;
+    } else {
+      const model = sequelize['import'](path.join(__dirname, file));
+      db[model.name] = model;
+    }
   });
 
 Object.keys(db).forEach(modelName => {
