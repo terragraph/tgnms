@@ -36,8 +36,13 @@ export default class ReactEventChart extends React.Component {
   }
 
   outageEventStyleCB(event, state) {
-    // green
-    const color = '#4daf4a';
+    // see Stats.thrift
+    const LINK_STATE = {LINK_UP: 1, LINK_UP_DATADOWN: 2};
+    // green if LSM_LINK_UP or pink if LSM_LINK_UP_DATADOWN
+    const color =
+      event.get('linkState') === LINK_STATE.LINK_UP_DATADOWN
+        ? '#ff3672'
+        : '#4daf4a';
     switch (state) {
       case 'normal':
         return {
@@ -100,7 +105,7 @@ export default class ReactEventChart extends React.Component {
               series={series}
               height={80}
               style={this.outageEventStyleCB}
-              label={e => e.get('title')}
+              label={e => e.get('description')}
             />
           </Charts>
         </ChartRow>
@@ -112,6 +117,5 @@ export default class ReactEventChart extends React.Component {
 ReactEventChart.propTypes = {
   endTime: PropTypes.number.isRequired,
   events: PropTypes.array.isRequired,
-  size: PropTypes.string.isRequired,
   startTime: PropTypes.number.isRequired,
 };

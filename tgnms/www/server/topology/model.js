@@ -283,8 +283,9 @@ function refreshNetworkHealth(topologyName) {
   const startTime = new Date();
   const linkQuery = {
     aggregation: GraphAggregation.NONE,
-    countPerSecond: Math.floor(1000 / 25.6),
-    keyNames: ['fw_uptime'],
+    countPerSecond: 1000 / 25.6,
+    debugLogToConsole: false,
+    keyNames: ['fw_uptime', 'link_avail'],
     maxResults: 0 /* All results */,
     minAgo: 24 * 60 /* 24 hours */,
     outputFormat: StatsOutputFormat.EVENT_LINK,

@@ -52,7 +52,7 @@ export default class NetworkLinksTable extends React.Component {
       render: this.renderLinkName.bind(this),
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
-      width: 400,
+      width: 300,
     },
     {
       key: 'alive',
@@ -69,8 +69,15 @@ export default class NetworkLinksTable extends React.Component {
       width: 120,
     },
     {
-      key: 'availability_chart',
+      key: 'avail_perc',
       label: 'Availability (24 hours)',
+      render: this.renderAlivePerc.bind(this),
+      sort: true,
+      width: 120,
+    },
+    {
+      key: 'availability_chart',
+      label: 'Uptime/Availability (24 hours)',
       render: this.renderLinkAvailability.bind(this),
       sort: true,
       width: 810,
@@ -224,11 +231,15 @@ export default class NetworkLinksTable extends React.Component {
       topology.links.forEach(link => {
         if (
           this.state.linkHealth &&
-          this.state.linkHealth.hasOwnProperty(link.name)
+          this.state.linkHealth.hasOwnProperty('events') &&
+          this.state.linkHealth.events.hasOwnProperty(link.name)
         ) {
-          const linkHealth = this.state.linkHealth[link.name];
-          link.alive_perc = linkHealth.alive;
+          const linkHealth = this.state.linkHealth.events[link.name];
+          link.alive_perc = linkHealth.linkAlive;
           link.events = linkHealth.events;
+          link.avail_perc = linkHealth.hasOwnProperty('linkAvailForData')
+            ? linkHealth.linkAvailForData
+            : NaN;
         }
         // link.name is the full name: e.g. link-15-46.p1-15-46.s2
         // link.a_node_name would be 15-46.p1 in this case
@@ -363,6 +374,7 @@ export default class NetworkLinksTable extends React.Component {
         a_node_name: link.a_node_name,
         alive: link.is_alive,
         alive_perc: link.alive_perc,
+        avail_perc: link.avail_perc,
         distance: link.distance,
         linkup_attempts: linkupAttempts,
         name: link.name,
