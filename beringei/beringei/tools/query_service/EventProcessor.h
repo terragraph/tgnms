@@ -11,6 +11,7 @@
 
 #include <unordered_map>
 
+#include <folly/dynamic.h>
 #include "beringei/client/BeringeiClient.h"
 #include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
@@ -24,23 +25,28 @@ class EventProcessor {
 
   static int* computeIntervalStatus(
       const double* timeSeries,
-      const time_t startTime,
-      const time_t endTime,
       const int32_t numDataPoints,
       const int32_t timeInterval,
       const int countPerSecond,
       const bool debugLogToConsole = false);
 
- static stats::EventList formatIntervalStatus(
-      int* intervalStatus,
+  static stats::EventList formatIntervalStatus(
+      const int* intervalStatus,
       const time_t startTime,
-      const time_t endTime,
       const int32_t numDataPoints,
       const int32_t timeInterval,
       const bool debugLogToConsole = false);
 
+  static folly::dynamic formatIntervalStatus(
+      const int* intervalStatus,
+      const time_t startTime,
+      const int32_t numDataPoints,
+      const int32_t timeInterval,
+      const int* availableStatus,
+      const bool debugLogToConsole = 0);
+
  private:
-   static std::string getTimeStr(time_t timeSec);
+  static std::string getTimeStr(time_t timeSec);
 };
 
 } // namespace gorilla

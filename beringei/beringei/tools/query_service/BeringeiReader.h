@@ -65,17 +65,25 @@ class BeringeiReader {
   // resolve differences in link uptime
   void resolveLinkUptimeDifferences(int* dstLink, int* srcLink);
   // create+insert new key w/ meta-data
-  void createLinkKey(const std::string& keyName,
-                     double value,
-                     const std::string& linkName,
-                     const stats::LinkDirection& linkDirection);
+  void createLinkKey(
+      const std::string& keyName,
+      double value,
+      const std::string& linkName,
+      const stats::LinkDirection& linkDirection);
   // helper
-  void createLinkKey(const std::string& keyName,
-                     double value,
-                     const KeyMetaData& metaDataExisting);
+  void createLinkKey(
+      const std::string& keyName,
+      double value,
+      const KeyMetaData& metaDataExisting);
 
   // clean-up memory
   void cleanUp();
+  double findLinkAvailability(
+      int* availableStatus,
+      const double* linkAvailable,
+      const double* mgmtLinkUp,
+      const int* intervalStatus,
+      const bool debugLogToConsole = false);
 
   time_t startTime_;
   time_t endTime_;

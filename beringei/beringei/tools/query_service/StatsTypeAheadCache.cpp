@@ -33,11 +33,11 @@ StatsTypeAheadCache::StatsTypeAheadCache() {
   // minion_uptime,
   // link metrics
   linkMetricKeyNames_ = {
-      "snr",        "rssi",     "mcs",         "per",         "fw_uptime",
-      "tx_power",   "rx_bytes", "tx_bytes",    "rx_pps",      "tx_pps",
-      "tx_fail",    "tx_ok",    "rx_errors",   "tx_errors",   "rx_dropped",
-      "tx_dropped", "rx_frame", "rx_overruns", "tx_overruns", "tx_collisions",
-      "speed"};
+      "snr",        "rssi",      "mcs",         "per",         "fw_uptime",
+      "tx_power",   "rx_bytes",  "tx_bytes",    "rx_pps",      "tx_pps",
+      "tx_fail",    "tx_ok",     "rx_errors",   "tx_errors",   "rx_dropped",
+      "tx_dropped", "rx_frame",  "rx_overruns", "tx_overruns", "tx_collisions",
+      "speed",      "link_avail"};
 }
 
 std::vector<stats::KeyMetaData> StatsTypeAheadCache::getKeyData(
@@ -251,38 +251,16 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
     return createLinkMetric(
         aNode, zNode, "PER", "Packet Error Rate", "staPkt.perE6");
   } else if (metricName == "fw_uptime") {
-    if (aNode.node_type == query::NodeType::DN &&
-        zNode.node_type == query::NodeType::DN) {
-      return createLinkMetric(
-          aNode,
-          zNode,
-          "FW Uptime",
-          "Mgmt Tx Keepalive Count",
-          "mgmtTx.keepAlive");
-    } else if (
-        aNode.node_type == query::NodeType::DN &&
-        zNode.node_type == query::NodeType::CN) {
-      return createLinkMetricAsymmetric(
-          aNode,
-          zNode,
-          "FW Uptime",
-          "Mgmt Tx ULBWREQ and HB",
-          "mgmtTx.heartBeat",
-          "mgmtTx.uplinkBwreq");
-    } else if (
-        aNode.node_type == query::NodeType::CN &&
-        zNode.node_type == query::NodeType::DN) {
-      return createLinkMetricAsymmetric(
-          zNode,
-          aNode,
-          "FW Uptime",
-          "Mgmt Tx ULBWREQ and HB",
-          "mgmtTx.heartBeat",
-          "mgmtTx.uplinkBwreq");
-    } else {
-      LOG(ERROR) << "Unhandled node type combination: " << aNode.name << " / "
-                 << zNode.name;
-    }
+    // mgmtLinkUp added in M25
+    return createLinkMetric(
+        aNode, zNode, "FW Uptime", "Mgmt Link Up Count", "staPkt.mgmtLinkUp");
+  } else if (metricName == "link_avail") {
+    return createLinkMetric(
+        aNode,
+        zNode,
+        "FW Available Time",
+        "Mgmt Link Available Count",
+        "staPkt.linkAvailable");
   } else if (metricName == "rx_ok") {
     return createLinkMetric(
         aNode, zNode, "RX Packets", "Received packets", "staPkt.rxOk");

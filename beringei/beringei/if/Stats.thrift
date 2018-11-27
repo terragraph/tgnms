@@ -176,16 +176,26 @@ struct QueryRequest {
   1000: optional bool debugLogToConsole = false,
 }
 
+// type of restriction to apply
+enum LinkStateType {
+  LINK_UP = 1,
+  LINK_UP_DATADOWN = 2,
+}
+
 // output formats
 struct EventDescription {
   1: i64 startTime,
   2: i64 endTime,
   3: string description,
+  4: optional LinkStateType linkState,
 }
 
 struct EventList {
-  1: double alive,
+  // percentage - link is in LINK_UP or LINK_UP_DATADOWN (heartbeats going)
+  1: double linkAlive,
   2: list<EventDescription> events,
+  // percentage - link is in LINK_UP - capable of passing data packets
+  3: optional double linkAvailForData,
 }
 
 struct OutputFormatEvents {

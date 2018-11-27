@@ -12,9 +12,9 @@
 #include "BeringeiClientStore.h"
 #include "EventProcessor.h"
 
+#include <math.h>
 #include <algorithm>
 #include <array>
-#include <math.h>
 #include <utility>
 
 #include <folly/DynamicConverter.h>
@@ -45,8 +45,7 @@ int64_t BeringeiReader::getTimeInMs() {
       .count();
 }
 
-std::string
-BeringeiReader::getTimeStr(time_t timeSec) {
+std::string BeringeiReader::getTimeStr(time_t timeSec) {
   char timeStr[100];
   std::strftime(timeStr, sizeof(timeStr), "%T", std::localtime(&timeSec));
   return std::string(timeStr);
@@ -126,7 +125,8 @@ void BeringeiReader::loadKeyMetaData() {
           std::unordered_set<std::string> restrictorList(
               restrictor.values.begin(), restrictor.values.end());
           if (restrictor.restrictorType == stats::RestrictorType::NODE &&
-              !restrictorList.count(keyData.srcNodeName) && !restrictorList.count(keyData.srcNodeMac)) {
+              !restrictorList.count(keyData.srcNodeName) &&
+              !restrictorList.count(keyData.srcNodeMac)) {
             if (request_.debugLogToConsole) {
               LOG(INFO) << "\t\tSkipping node: " << keyData.srcNodeName;
             }
@@ -177,7 +177,8 @@ bool BeringeiReader::setTimeWindow() {
     startTime_ = std::time(nullptr) - (24 * 60 * 60);
     endTime_ = std::time(nullptr);
   }
-  numDataPoints_ = std::ceil((endTime_ - startTime_) / (double)timeInterval_) + 1;
+  numDataPoints_ =
+      std::ceil((endTime_ - startTime_) / (double)timeInterval_) + 1;
   LOG(INFO) << "Request for start: " << startTime_ << " <-> " << endTime_
             << ", minutes: " << ((endTime_ - startTime_) / 60)
             << ", interval: " << timeInterval_
@@ -227,8 +228,7 @@ void BeringeiReader::fetchBeringeiData() {
       }
       int timeBucketId = (timePair.unixTime - startTime_) / timeInterval_;
       if (numDataPoints_ <= timeBucketId) {
-        LOG(INFO) << "Start time: " << startTime_
-                  << ", end time: " << endTime_
+        LOG(INFO) << "Start time: " << startTime_ << ", end time: " << endTime_
                   << ", timeInterval_: " << timeInterval_
                   << ", num data points: " << numDataPoints_
                   << ", time bucket id: " << timeBucketId;
@@ -353,20 +353,19 @@ void BeringeiReader::graphAggregationLatest() {
 
 void BeringeiReader::graphAggregationStats() {
   // keep track of packet/bytes counters to calculate PER
-  std::unordered_map<std::string /* link name */,
-      std::unordered_map<stats::LinkDirection,
-          std::unordered_map<std::string /* short name */,
-              double*>>> linkMetricsCache{};
+  std::unordered_map<
+      std::string /* link name */,
+      std::unordered_map<
+          stats::LinkDirection,
+          std::unordered_map<std::string /* short name */, double*>>>
+      linkMetricsCache{};
   // per-key interval status (up/down)
   std::unordered_map<std::string, int*> linkIntervalStatusMap{};
   // ensure we have all of the data we need requested
   for (const auto& timeSeries : keyTimeSeries_) {
     auto& keyMetaData = keyDataList_[timeSeries.first];
     // give the computed key for each requested metric
-    std::unordered_set<std::string> avgMetricsList = {
-      "snr",
-      "mcs",
-      "tx_power"};
+    std::unordered_set<std::string> avgMetricsList = {"snr", "mcs", "tx_power"};
     if (avgMetricsList.count(keyMetaData.shortName)) {
       int count = 0;
       double sum = 0;
@@ -378,26 +377,23 @@ void BeringeiReader::graphAggregationStats() {
       }
       double avg = count > 0 ? (sum / count) : 0;
       createLinkKey(
-        folly::sformat("avg_{}", keyMetaData.shortName), avg, keyMetaData);
+          folly::sformat("avg_{}", keyMetaData.shortName), avg, keyMetaData);
     } else if (keyMetaData.shortName == "fw_uptime") {
       int* intervalStatus = EventProcessor::computeIntervalStatus(
-        timeSeries.second,
-        startTime_,
-        endTime_,
-        numDataPoints_,
-        timeInterval_,
-        request_.countPerSecond
-      );
+          timeSeries.second,
+          numDataPoints_,
+          timeInterval_,
+          request_.countPerSecond);
       // use link name when recording stat, so we can match a/z side
       const std::string& linkName = keyMetaData.linkName;
       if (linkIntervalStatusMap.count(linkName)) {
         // resolve differences in link uptime reported from A/Z
         if (request_.debugLogToConsole) {
-          LOG(INFO) << "Resolving link differences for "
-                    << linkName;
+          LOG(INFO) << "Resolving link differences for " << linkName;
         }
         // resolve link differences
-        resolveLinkUptimeDifferences(linkIntervalStatusMap[linkName] /* dest */, intervalStatus);
+        resolveLinkUptimeDifferences(
+            linkIntervalStatusMap[linkName] /* dest */, intervalStatus);
         // delete the current allocation
         delete[] intervalStatus;
         // swap our focus to the merged link data
@@ -407,37 +403,35 @@ void BeringeiReader::graphAggregationStats() {
         linkIntervalStatusMap[linkName] = intervalStatus;
       }
 
-    } else if (keyMetaData.shortName == "tx_fail" ||
-               keyMetaData.shortName == "tx_ok") {
+    } else if (
+        keyMetaData.shortName == "tx_fail" ||
+        keyMetaData.shortName == "tx_ok") {
       // value needs correlation, store in cache
-      linkMetricsCache[keyMetaData.linkName]
-                      [keyMetaData.linkDirection]
+      linkMetricsCache[keyMetaData.linkName][keyMetaData.linkDirection]
                       [keyMetaData.shortName] = timeSeries.second;
     }
   }
   // process events after a/z sides of link have been compared
   for (const auto& linkIntervalStatus : linkIntervalStatusMap) {
     auto intervalEventList = EventProcessor::formatIntervalStatus(
-      linkIntervalStatus.second,
-      startTime_,
-      endTime_,
-      numDataPoints_,
-      timeInterval_
-    );
+        linkIntervalStatus.second,
+        startTime_,
+        numDataPoints_,
+        timeInterval_,
+        request_.debugLogToConsole);
     // free the int* intervalStatus memory
     delete[] linkIntervalStatus.second;
     // create metrics on side 'A', the UI will show 'A'  for both sides
-    createLinkKey("uptime",
-                  intervalEventList.alive,
-                  linkIntervalStatus.first,
-                  stats::LinkDirection::LINK_A);
-    int flaps = !intervalEventList.events.empty() ?
-        intervalEventList.events.size() - 1 :
-        0;
-    createLinkKey("flaps",
-                  flaps,
-                  linkIntervalStatus.first,
-                  stats::LinkDirection::LINK_A);
+    createLinkKey(
+        "uptime",
+        intervalEventList.linkAlive,
+        linkIntervalStatus.first,
+        stats::LinkDirection::LINK_A);
+    int flaps = !intervalEventList.events.empty()
+        ? intervalEventList.events.size() - 1
+        : 0;
+    createLinkKey(
+        "flaps", flaps, linkIntervalStatus.first, stats::LinkDirection::LINK_A);
   }
   // calculate metrics that require multiple sources
   for (const auto& linkNameMap : linkMetricsCache) {
@@ -468,17 +462,13 @@ void BeringeiReader::graphAggregationStats() {
             lastTxFail = txFail[i];
           }
         }
-        double avgPer = sumTxFail > 0 ?
-          (sumTxFail / (sumTxOk + sumTxFail) * 100.0) : 0;
+        double avgPer =
+            sumTxFail > 0 ? (sumTxFail / (sumTxOk + sumTxFail) * 100.0) : 0;
         double avgTputPps = (sumTxOk + sumTxFail) / (endTime_ - startTime_);
-        createLinkKey("avg_per",
-                      avgPer,
-                      linkNameMap.first,
-                      linkDirectionMap.first);
-        createLinkKey("avg_tput",
-                      avgTputPps,
-                      linkNameMap.first,
-                      linkDirectionMap.first);
+        createLinkKey(
+            "avg_per", avgPer, linkNameMap.first, linkDirectionMap.first);
+        createLinkKey(
+            "avg_tput", avgTputPps, linkNameMap.first, linkDirectionMap.first);
       }
     }
   }
@@ -525,7 +515,7 @@ void BeringeiReader::limitDataPoints() {
               << ", num dp: " << numDataPoints_
               << ", per-interval: " << dataPointsPerInterval;
   }
-  std::unordered_map<std::string, double*> *keyTimeSeries = &keyTimeSeries_;
+  std::unordered_map<std::string, double*>* keyTimeSeries = &keyTimeSeries_;
   if (!aggregateKeyTimeSeries_.empty()) {
     keyTimeSeries = &aggregateKeyTimeSeries_;
   }
@@ -571,7 +561,7 @@ void BeringeiReader::formatData() {
   folly::dynamic columnNames = folly::dynamic::array;
   columnNames.push_back("time");
   // dynamically decide which map to iterate
-  std::unordered_map<std::string, double*> *keyTimeSeries = &keyTimeSeries_;
+  std::unordered_map<std::string, double*>* keyTimeSeries = &keyTimeSeries_;
   switch (request_.outputFormat) {
     case stats::StatsOutputFormat::POINTS:
       // use columns
@@ -581,8 +571,8 @@ void BeringeiReader::formatData() {
       for (int i = 0; i < numDataPoints_; i++) {
         folly::dynamic tsList = folly::dynamic::array;
         // timestamp in ms (javascript Date format)
-        double timestamp = (long)((startTime_ + (endTime_ - startTime_) *
-                           ((double)i / numDataPoints_)) * 1000);
+        double timestamp =
+            (long)((startTime_ + (endTime_ - startTime_) * ((double)i / numDataPoints_)) * 1000);
         tsList.push_back(timestamp);
         dpList.push_back(tsList);
       }
@@ -601,10 +591,12 @@ void BeringeiReader::formatData() {
               "{} / {}", keyMetaData.srcNodeName, keyMetaData.keyName);
           if (!keyMetaData.linkName.empty()) {
             // attempt to use link name + direction if link name set
-            keyName = folly::sformat("{} ({})",
-              keyMetaData.linkName,
-              keyMetaData.linkDirection == stats::LinkDirection::LINK_A ?
-                "A" : "Z");
+            keyName = folly::sformat(
+                "{} ({})",
+                keyMetaData.linkName,
+                keyMetaData.linkDirection == stats::LinkDirection::LINK_A
+                    ? "A"
+                    : "Z");
           }
           columnNames.push_back(keyName);
         } else {
@@ -705,144 +697,166 @@ void BeringeiReader::formatData() {
   }
 }
 
-void
-BeringeiReader::formatDataEvent(bool isLink) {
+void BeringeiReader::formatDataEvent(bool isLink) {
   // event processing
+  std::unordered_map<
+      std::string /* linkName */,
+      std::unordered_map<
+          stats::LinkDirection /* direction */,
+          std::unordered_map<
+              std::string /* link_avail or fw_uptime */,
+              double* /* pointer to timeSeries */>>>
+      linkUpAvailablePairMap{};
+
+  if (isLink) {
+    // create association between mgmtLinkUp and linkAvailable
+    for (const auto& keyId : keyDataList_) {
+      if (keyTimeSeries_.count(keyId.first)) {
+        linkUpAvailablePairMap[keyId.second.linkName]
+                              [keyId.second.linkDirection]
+                              [keyId.second.shortName] =
+                                  keyTimeSeries_[keyId.first];
+        if (request_.debugLogToConsole) {
+          LOG(INFO) << "linkName " << keyId.second.linkName << " linkDirection "
+                    << (int)keyId.second.linkDirection << " shortName "
+                    << keyId.second.shortName;
+        }
+      } else if (request_.debugLogToConsole) {
+        LOG(INFO) << "[" << request_.topologyName << "] keyId " << keyId.first
+                  << " returned no results in DB fetch";
+      }
+    }
+  }
+
   const double expectedStatCounterSlope =
       request_.countPerSecond * timeInterval_;
   std::unordered_map<std::string, int*> intervalStatusMap{};
+
+  if (request_.debugLogToConsole) {
+    LOG(INFO) << "[" << request_.topologyName
+              << "] keyTimeSeries_.size(): " << keyTimeSeries_.size()
+              << " numDataPoints_: " << numDataPoints_ << " isLink: " << isLink;
+  }
+
   for (const auto& timeSeries : keyTimeSeries_) {
-    int missingIntervals = 0;
-    int* intervalStatus = new int[numDataPoints_]{};
-    for (int i = 0; i < numDataPoints_; i++) {
-      std::string slopeValue = "";
-      if (std::isnan(timeSeries.second[i])) {
-        // mark missing interval
-        missingIntervals++;
-        slopeValue = "MISSING_INTERVAL";
-        // special handling of the last 2 data points
-        // if missing and previous are up, then assume currently up
-        if (i == (numDataPoints_ - 1) && missingIntervals <= 2 &&
-            intervalStatus[i - missingIntervals] == 1) {
-          slopeValue = "MISSING_FILL_LAST1(" +
-                       std::to_string(missingIntervals) + ")";
-          std::fill_n(intervalStatus + i - missingIntervals + 1,
-                      missingIntervals,
-                      1);
-        }
-      } else {
-        // no missing data, either UP or DOWN
-        if (missingIntervals == 0) {
-          if (timeSeries.second[i] >= expectedStatCounterSlope) {
-            // entire interval is online
-            intervalStatus[i] = 1;
-            slopeValue = "UP_INTERVAL";
-          } else {
-            slopeValue = "DOWN_INTERVAL";
-          }
-        } else if (missingIntervals > 0) {
-          // missing/NaN data we can assume were up based on the current value
-          if (timeSeries.second[i] >=
-                ((missingIntervals + 1) * expectedStatCounterSlope)) {
-            slopeValue = "UP_FILLED_ALL_MISSING(" +
-                         std::to_string(missingIntervals) + ")";
-            std::fill_n(intervalStatus + i - missingIntervals,
-                        missingIntervals + 1,
-                        1);
-          } else if (timeSeries.second[i] > 0) {
-            int filledIntervals = (timeSeries.second[i] / expectedStatCounterSlope);
-            std::fill_n(intervalStatus + i + 1 - filledIntervals,
-                        filledIntervals,
-                        1);
-            // some part of the interval was up, not filling partial for now
-            // to keep this simple
-            slopeValue = "UP_FILLED_PARTIAL(" +
-                         std::to_string(filledIntervals) + ")";
-          } else {
-            slopeValue = "DOWN_NO_FILL";
-          }
-        }
-        missingIntervals = 0;
-      }
-      if (request_.debugLogToConsole) {
-        LOG(INFO) << "\tTS(" << i << ") = " << timeSeries.second[i]
-                  << " [" << slopeValue << "]";
-      }
-    }
-    // key name for reporting stat
     auto& keyMetaData = keyDataList_[timeSeries.first];
-    std::string keyName(keyMetaData.srcNodeName);
-    if (isLink) {
-      keyName = keyMetaData.linkName;
+    if (isLink && keyMetaData.shortName != "fw_uptime") {
+      continue;
     }
-    if (isLink && intervalStatusMap.count(keyName)) {
+    int* intervalStatus = EventProcessor::computeIntervalStatus(
+        timeSeries.second,
+        numDataPoints_,
+        timeInterval_,
+        request_.countPerSecond);
+    std::string srcOrLinkName(keyMetaData.srcNodeName);
+    if (isLink) {
+      srcOrLinkName = keyMetaData.linkName;
+    }
+    if (isLink && intervalStatusMap.count(srcOrLinkName)) {
       // resolve differences in link uptime reported from A/Z
       if (request_.debugLogToConsole) {
-        LOG(INFO) << "Resolving link differences for " << keyName;
+        LOG(INFO) << "Resolving link differences for " << srcOrLinkName;
       }
       // resolve link differences
-      resolveLinkUptimeDifferences(intervalStatusMap[keyName] /* dest */, intervalStatus);
+      resolveLinkUptimeDifferences(
+          intervalStatusMap[srcOrLinkName] /* dest */, intervalStatus);
       // delete the current allocation
       delete[] intervalStatus;
       // swap our focus to the merged link data
-      intervalStatus = intervalStatusMap.at(keyName);
+      intervalStatus = intervalStatusMap.at(srcOrLinkName);
     } else {
       // first side reporting
-      intervalStatusMap[keyName] = intervalStatus;
+      intervalStatusMap[srcOrLinkName] = intervalStatus;
     }
-    folly::dynamic eventsArray = folly::dynamic::array;
-    int lastChange = 0;
-    for (int i = 0; i < numDataPoints_; i++) {
-      // log event when state changes (UP/DOWN)
-      if (i > 0 && intervalStatus[i] != intervalStatus[i - 1]) {
-        // status changed
-        if (intervalStatus[i] == 0) {
-          // new status is down, add event for the previous uptime
-          // start = lastChange, end = i
-          int64_t startTime = startTime_ + lastChange * timeInterval_;
-          int64_t endTime = startTime_ + (i - 1) * timeInterval_;
-          eventsArray.push_back(folly::dynamic::object
-            ("startTime", startTime)
-            ("endTime", endTime)
-            ("title", folly::sformat("{} minutes between {} <-> {}",
-                (endTime - startTime) / 60.0,
-                getTimeStr(startTime),
-                getTimeStr(endTime))));
+  } // end of link up loop
+
+  // now caclulate link availability
+  // if this is not a link, linkUpAvailablePairMap will be empty
+  std::unordered_map<std::string, int*> availableStatusMap{};
+  std::unordered_map<std::string, double> linkAvailablePercMap{};
+
+  if (request_.debugLogToConsole) {
+    LOG(INFO) << "[" << request_.topologyName
+              << "] linkUpAvailablePairMap.size() "
+              << linkUpAvailablePairMap.size();
+  }
+  for (const auto& linkNameMap : linkUpAvailablePairMap) { // each link
+    std::string linkName = linkNameMap.first;
+    for (const auto& linkDirMap : linkNameMap.second) { // both directions
+      // calculate link availability
+      if (linkDirMap.second.count("fw_uptime") &&
+          linkDirMap.second.count("link_avail")) {
+        int* availableStatus = new int[numDataPoints_]{};
+        const double* linkAvailable = linkDirMap.second.at("link_avail");
+        const double* mgmtLinkUp = linkDirMap.second.at("fw_uptime");
+        const int* intervalStatus = intervalStatusMap.at(linkName);
+        double linkAvailablePerc = findLinkAvailability(
+            availableStatus, linkAvailable, mgmtLinkUp, intervalStatus);
+        if (availableStatusMap.count(linkName)) {
+          // resolve link differences
+          resolveLinkUptimeDifferences(
+              availableStatusMap[linkName] /* dest */, availableStatus);
+          // delete the current allocation
+          delete[] availableStatus;
+          linkAvailablePercMap[linkName] =
+              std::max(linkAvailablePerc, linkAvailablePercMap[linkName]);
+        } else {
+          // first side reporting
+          availableStatusMap[linkName] = availableStatus;
+          linkAvailablePercMap[linkName] = linkAvailablePerc;
         }
-        lastChange = i;
       }
-      // special handling for last data point
-      if (i == (numDataPoints_ - 1) && intervalStatus[i] == 1) {
-        // last data point is up, record an event
-        int64_t startTime = startTime_ + lastChange * timeInterval_;
-        int64_t endTime = startTime_ + i * timeInterval_;
-        eventsArray.push_back(folly::dynamic::object
-          ("startTime", startTime)
-          ("endTime", endTime)
-          ("title", folly::sformat("{} minutes between {} <-> {}",
-              (endTime - startTime) / 60.0,
-              getTimeStr(startTime),
-              getTimeStr(endTime))));
-      }
-      if (request_.debugLogToConsole) {
-        LOG(INFO) << "[" << i << "]: " << ((intervalStatus[i] == 1) ? "UP" :
-                  (intervalStatus[i] == 0 ? "DOWN" : "____ERROR____"));
-      }
-    }
-    // calculate the amount of intervals online
-    int onlineIntervals = std::accumulate(&intervalStatus[0],
-                                          &intervalStatus[numDataPoints_], 0);
-    double alivePerc = onlineIntervals / (double)numDataPoints_ * 100.0;
-    output_[keyName] = folly::dynamic::object(
-        "alive", alivePerc)("events", eventsArray);
-    output_["startTime"] = startTime_;
-    output_["endTime"] = endTime_;
-    if (request_.debugLogToConsole) {
-      LOG(INFO) << "Total uptime: " << onlineIntervals << "/" << numDataPoints_;
     }
   }
+
+  if (request_.debugLogToConsole) {
+    LOG(INFO) << "[" << request_.topologyName
+              << "] Starting final loop with intervalStatusMap.size() "
+              << intervalStatusMap.size();
+  }
+  int* allOnes = new int[numDataPoints_];
+  std::fill_n(allOnes, numDataPoints_, 1);
+  output_["events"] = folly::dynamic::object();
+  output_["startTime"] = startTime_;
+  output_["endTime"] = endTime_;
+
+  for (const auto& intervalStatusEvent : intervalStatusMap) {
+    const int* intervalStatus = intervalStatusEvent.second;
+    const std::string& srcOrLinkName = intervalStatusEvent.first;
+
+    folly::dynamic intervalEventList = folly::dynamic::object();
+    if (availableStatusMap.count(srcOrLinkName)) {
+      const int* availableStatus = availableStatusMap[srcOrLinkName];
+      intervalEventList = EventProcessor::formatIntervalStatus(
+          intervalStatus,
+          startTime_,
+          numDataPoints_,
+          timeInterval_,
+          availableStatus,
+          request_.debugLogToConsole);
+      if (linkAvailablePercMap.count(srcOrLinkName)) {
+        intervalEventList["linkAvailForData"] =
+            linkAvailablePercMap[srcOrLinkName];
+      }
+    } else {
+      // if availableStatus is all ones, then algorithm only considers
+      // intervalStatus
+      intervalEventList = EventProcessor::formatIntervalStatus(
+          intervalStatus,
+          startTime_,
+          numDataPoints_,
+          timeInterval_,
+          allOnes,
+          request_.debugLogToConsole);
+    }
+    output_["events"][srcOrLinkName] = intervalEventList;
+  }
   // cleanup
+  delete[] allOnes;
   for (const auto& entry : intervalStatusMap) {
+    delete[] entry.second;
+  }
+  for (const auto& entry : availableStatusMap) {
     delete[] entry.second;
   }
 }
@@ -864,6 +878,114 @@ void BeringeiReader::resolveLinkUptimeDifferences(int* dstLink, int* srcLink) {
   }
 }
 
+/** Find link availability - time PHY is in the LINK_UP state
+ *
+ * two stats are generated by the PHY: linkAvailable and mgmtLinkUp
+ * if the link is up, mgmtLinkUp increments every BWGD, if the link is
+ * available and up, linkAvailable increments every BWGD
+ *
+ * output: availability percentage
+ * output: availableStatus vector length numDataPoints_ with 1 for link is
+ *         available (LINK_UP) and 0 for link is not available
+ *         (LINK_UP_DATADOWN  -- state that indicates that link
+ *        can not support data transmission)
+ * input: linkAvailable - FW counter that increments every 25.6ms if the link
+ *        is up and not in LINK_UP_DATADOWN
+ * input: mgmtLinkUp - FW counter that increments every 25.6ms if the link
+ *        is up (LINK_UP or LINK_UP_DATADOWN)
+ */
+double BeringeiReader::findLinkAvailability(
+    int* availableStatus,
+    const double* linkAvailable,
+    const double* mgmtLinkUp,
+    const int* intervalStatus,
+    bool debugLogToConsole) {
+  double counterDiff;
+  double counterDiff_ = std::nan("");
+  double firstAvailable_ = intervalStatus[0] ? std::nan("") : 0;
+  double availabilityMs = 0;
+  int missingIntervals = 0;
+  for (int i = 0; i < numDataPoints_; i++) {
+    if (std::isnan(linkAvailable[i]) || std::isnan(mgmtLinkUp[i])) {
+      missingIntervals++;
+    } else {
+      counterDiff = mgmtLinkUp[i] - linkAvailable[i];
+      if (std::isnan(counterDiff_)) {
+        counterDiff_ = counterDiff; // for first sample only
+      }
+      if (std::isnan(firstAvailable_)) {
+        // if link starts in "up" state
+        firstAvailable_ = linkAvailable[i];
+      }
+      if (counterDiff == counterDiff_) {
+        // if the difference between mgmtLinkUp and linkAvailable has not
+        // changed, the link has been available the whole time
+        // or it could also have been down
+
+        // this min calculation is applicable when the link is just coming up
+        // in that case, the link was not available for all of the missing
+        // intervals
+        missingIntervals = std::min(
+            missingIntervals,
+            (int)floor(
+                linkAvailable[i] / request_.countPerSecond / timeInterval_));
+        std::fill_n(
+            availableStatus + i - missingIntervals, missingIntervals + 1, 1);
+      } else if (counterDiff > counterDiff_) {
+        // if the difference between mgmtLinkUp and linkAvailable has increased
+        // it means the link was unavailable for at least part of the last
+        // interval
+        int numBucketsUnavailable = std::min(
+            missingIntervals + 1,
+            (int)ceil(
+                (counterDiff - counterDiff_) / request_.countPerSecond /
+                timeInterval_));
+        std::fill_n(
+            availableStatus + i - missingIntervals, numBucketsUnavailable, 0);
+        std::fill_n(
+            availableStatus + i - missingIntervals + numBucketsUnavailable,
+            missingIntervals - numBucketsUnavailable,
+            1);
+      } else {
+        std::fill_n(
+            availableStatus + i - missingIntervals, missingIntervals + 1, 0);
+      }
+      missingIntervals = 0;
+      counterDiff_ = counterDiff;
+      if (intervalStatus[i]) {
+        // if the link is up, accumulate the availability
+        availabilityMs += (linkAvailable[i] - firstAvailable_) * 1000.0 /
+            request_.countPerSecond;
+        if (debugLogToConsole) {
+          LOG(INFO) << "[" << i << "]"
+                    << "availabilityMs: " << availabilityMs << " linkAvailable["
+                    << i << "]: " << linkAvailable[i] << " firstAvailable_ "
+                    << firstAvailable_ << " countPerSecond "
+                    << request_.countPerSecond;
+        }
+        firstAvailable_ = linkAvailable[i];
+      }
+    }
+    if (!intervalStatus[i]) {
+      firstAvailable_ = 0;
+      counterDiff_ = std::nan("");
+    }
+  }
+  // numDataPoints_ - 1 because we are subtracting the counter based on the
+  // initial counter value at sample 0
+  if (debugLogToConsole) {
+    LOG(INFO) << "end -- availabilityMs: " << availabilityMs
+              << " numDataPoints_: " << numDataPoints_;
+  }
+  // numDataPoints_ calculated is too high by two
+  missingIntervals = std::min(missingIntervals, 2);
+  double availabilityPercent = numDataPoints_ - 1 - missingIntervals
+      ? (availabilityMs / (numDataPoints_ - 1 - missingIntervals) /
+         timeInterval_ / 10.0)
+      : -1.0;
+  return availabilityPercent;
+}
+
 void BeringeiReader::cleanUp() {
   // free data points
   for (const auto& timeSeries : keyTimeSeries_) {
@@ -876,10 +998,11 @@ void BeringeiReader::cleanUp() {
   aggregateKeyTimeSeries_.clear();
 }
 
-void BeringeiReader::createLinkKey(const std::string& keyName,
-                                   double value,
-                                   const std::string& linkName,
-                                   const stats::LinkDirection& linkDirection) {
+void BeringeiReader::createLinkKey(
+    const std::string& keyName,
+    double value,
+    const std::string& linkName,
+    const stats::LinkDirection& linkDirection) {
   int64_t keyId = ++genKeyIndex_;
   valuePerKey_.emplace(std::to_string(keyId), value);
   KeyMetaData metaData;
@@ -892,10 +1015,15 @@ void BeringeiReader::createLinkKey(const std::string& keyName,
   keyDataList_.emplace(std::to_string(keyId), metaData);
 }
 
-void BeringeiReader::createLinkKey(const std::string& keyName,
-                                   double value,
-                                   const KeyMetaData& metaDataExisting) {
-  createLinkKey(keyName, value, metaDataExisting.linkName, metaDataExisting.linkDirection);
+void BeringeiReader::createLinkKey(
+    const std::string& keyName,
+    double value,
+    const KeyMetaData& metaDataExisting) {
+  createLinkKey(
+      keyName,
+      value,
+      metaDataExisting.linkName,
+      metaDataExisting.linkDirection);
 }
 
 } // namespace gorilla

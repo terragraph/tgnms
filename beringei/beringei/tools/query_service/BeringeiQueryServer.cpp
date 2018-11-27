@@ -40,6 +40,7 @@ DEFINE_int32(
     0,
     "Number of threads to listen on. Numbers <= 0 "
     "will use the number of cores on this machine.");
+DEFINE_bool(enable_scans, true, "Enable the scan response service");
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
@@ -67,10 +68,9 @@ int main(int argc, char* argv[]) {
   options.idleTimeout = std::chrono::milliseconds(60000);
   options.shutdownOn = {SIGINT, SIGTERM};
   options.enableContentCompression = false;
-  options.handlerFactories =
-      RequestHandlerChain()
-          .addThen<QueryServiceFactory>(typeaheadCache)
-          .build();
+  options.handlerFactories = RequestHandlerChain()
+                                 .addThen<QueryServiceFactory>(typeaheadCache)
+                                 .build();
 
   LOG(INFO) << "Starting Beringei Query Service server on port "
             << FLAGS_http_port;
@@ -89,21 +89,25 @@ int main(int argc, char* argv[]) {
   LOG(INFO) << "Starting Aggregator Service";
   // create timer thread for aggregator
   auto topologyAggregator = std::make_shared<AggregatorService>(typeaheadCache);
-  std::thread aggThread([&topologyAggregator]() { topologyAggregator->start(); });
+  std::thread aggThread(
+      [&topologyAggregator]() { topologyAggregator->start(); });
 
   LOG(INFO) << "Starting Time Window Aggregator Service";
   // create timer thread for stats aggregation
   auto timeWindowAggregator = std::make_shared<TimeWindowAggregator>();
-  std::thread timeWindowAggThread([&timeWindowAggregator]() {
-      timeWindowAggregator->start(); });
+  std::thread timeWindowAggThread(
+      [&timeWindowAggregator]() { timeWindowAggregator->start(); });
 
-  LOG(INFO) << "Starting Scan Response Service";
-  // create timer thread
-  auto scanRespService =
-      std::make_shared<ScanRespService>(apiServiceClient);
-  std::thread scanThread([&scanRespService]() { scanRespService->start(); });
+  if (FLAGS_enable_scans) {
+    LOG(INFO) << "Starting Scan Response Service";
+    // create timer thread
+    auto scanRespService = std::make_shared<ScanRespService>(apiServiceClient);
+    std::thread scanThread([&scanRespService]() { scanRespService->start(); });
+    scanThread.join();
+  } else {
+    LOG(INFO) << "Scan Response Service Disabled";
+  }
 
-  scanThread.join();
   timeWindowAggThread.join();
   aggThread.join();
   topologyFetchThread.join();
