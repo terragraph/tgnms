@@ -7,6 +7,7 @@ import queue
 import random
 import sys
 import time
+from collections import defaultdict
 from datetime import date
 from threading import Thread
 
@@ -53,8 +54,12 @@ class RunTestPlan83(Thread):
         self.received_output = {}
         self.received_output_queue = queue.Queue()
         self.bidirectional = True
+        self.topology_sector_info = defaultdict(int)
 
     def run(self):
+
+        # get topology sector information
+        self._get_topology_sector_info()
 
         # Configure test data using test API
         test_list = self._test_8_3(self.topology)
@@ -160,6 +165,23 @@ class RunTestPlan83(Thread):
                 return link
         return None
 
+    def _get_topology_sector_info(self):
+        for link in self.topology["links"]:
+            if link["link_type"] == WIRELESS:
+                self.topology_sector_info[link["a_node_mac"]] += 1
+                self.topology_sector_info[link["z_node_mac"]] += 1
+
+    def _get_bitrate(self, test_push_rate, src_node_mac, dst_node_mac):
+        src_node_num_linked_nodes = self.topology_sector_info[src_node_mac]
+        dst_node_num_linked_nodes = self.topology_sector_info[dst_node_mac]
+        try:
+            return int(
+                test_push_rate
+                / max(src_node_num_linked_nodes, dst_node_num_linked_nodes)
+            )
+        except ZeroDivisionError:
+            return test_push_rate
+
     def _test_8_3(self, topology):
         """
         Test Name: Short Term Parallel Link Health
@@ -182,13 +204,14 @@ class RunTestPlan83(Thread):
                     + "-"
                     + node_mac_to_name[z_node_mac]
                 )
+                bitrate = self._get_bitrate(self.test_push_rate, a_node_mac, z_node_mac)
                 iperf_object = IperfObj(
                     link_name=link_name,
                     src_node_name=node_mac_to_name[a_node_mac],
                     dst_node_name=node_mac_to_name[z_node_mac],
                     src_node_id=a_node_mac,
                     dst_node_id=z_node_mac,
-                    bitrate=self.test_push_rate,
+                    bitrate=bitrate,
                     time_sec=self.test_duration,
                     proto=self.protocol,
                     interval_sec=1,
@@ -233,7 +256,7 @@ class RunTestPlan83(Thread):
                         dst_node_name=node_mac_to_name[a_node_mac],
                         src_node_id=z_node_mac,
                         dst_node_id=a_node_mac,
-                        bitrate=self.test_push_rate,
+                        bitrate=bitrate,
                         time_sec=self.test_duration,
                         proto=self.protocol,
                         interval_sec=1,

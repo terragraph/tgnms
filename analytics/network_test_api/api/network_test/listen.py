@@ -207,6 +207,9 @@ class RecvFromCtrl(base.Base):
                         link_db_obj.origin_node = link['iperf_object'].src_node_name
                         link_db_obj.peer_node = link['iperf_object'].dst_node_name
                         link_db_obj.link_name = link['iperf_object'].link_name
+                        link_db_obj.iperf_pushed_throughput = link[
+                            "iperf_object"
+                        ].bitrate
                         link_db_obj.iperf_throughput_min = stats["throughput"]["min"]
                         link_db_obj.iperf_throughput_max = stats["throughput"]["max"]
                         link_db_obj.iperf_throughput_mean = stats["throughput"]["mean"]
