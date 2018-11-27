@@ -22,10 +22,20 @@ DEFINE_string(mysql_user, "root", "mysql user");
 DEFINE_string(mysql_pass, "", "mysql passward");
 DEFINE_string(mysql_database, "cxl", "mysql database");
 
+using namespace facebook::terragraph::thrift;
+
 namespace facebook {
 namespace gorilla {
 
 static folly::Singleton<MySqlClient> mysqlClientInstance_;
+static std::unordered_map<int, std::string> ScanTypeMap = {
+    {(int)ScanType::RTCAL, "RTCAL"},
+    {(int)ScanType::PBF, "PBF"},
+    {(int)ScanType::IM, "IM"},
+    {(int)ScanType::CBF_TX, "CBF_TX"},
+    {(int)ScanType::CBF_RX, "CBF_RX"},
+    {(int)ScanType::TOPO, "TOPO"},
+};
 
 folly::Optional<std::unique_ptr<sql::Connection>>
 MySqlClient::openConnection() noexcept {
@@ -551,8 +561,6 @@ int MySqlClient::writeTxScanResponse(
         "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COMPRESS(?))";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         (*connection)->prepareStatement(query));
-    LOG(INFO) << "Scan response token:" << scanResponse.token
-              << " respId:" << scanResponse.respId;
     prep_stmt->setInt(1, scanResponse.token);
     prep_stmt->setInt(2, scanResponse.combinedStatus);
     prep_stmt->setInt(3, scanResponse.txNodeId);
@@ -611,6 +619,15 @@ bool MySqlClient::writeScanResponses(
   int numScansWritten = 0;
   for (const auto& mySqlScanResponse : mySqlScanResponses) {
     int errCode;
+    try {
+      LOG(INFO) << "Writing "
+                << ScanTypeMap.at(mySqlScanResponse.txResponse.scanType)
+                << " scans to DB, respId: "
+                << mySqlScanResponse.txResponse.respId << "; "
+                << mySqlScanResponse.rxResponses.size() << " rx responses";
+    } catch (const std::out_of_range& oor) {
+      LOG(ERROR) << "Invalid scan type: " << oor.what();
+    }
     if ((errCode = writeTxScanResponse(mySqlScanResponse.txResponse)) ==
         MySqlOk) {
       numScansWritten++;

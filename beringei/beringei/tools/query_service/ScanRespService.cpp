@@ -97,11 +97,8 @@ void ScanRespService::timerCb() {
     if (!topology.name.empty() && !topology.nodes.empty() &&
         !topology.links.empty()) {
       const auto idRange = getScanRespIdRange(topology.name);
-      ScanStatus scanStatus =
-          apiServiceClient_->fetchApiService<ScanStatus>(
-              topologyConfig.second,
-              folly::toJson(idRange),
-              "api/getScanStatus");
+      ScanStatus scanStatus = apiServiceClient_->fetchApiService<ScanStatus>(
+          topologyConfig.second, folly::toJson(idRange), "api/getScanStatus");
       VLOG(2) << "Received " << scanStatus.scans.size()
               << " scan responses from " << topology.name;
       // if we read the max number of scans on any topology, use the shorter
@@ -165,15 +162,6 @@ int ScanRespService::writeData(
       LOG(ERROR) << "No response ID available for scan token " << scan.first;
       continue;
     }
-    int64_t startBwgdIdx = scan.second.startBwgdIdx;
-
-    // if this BWGD comes before the last one in the table at startup,
-    // then this is a duplicate entry - skip it; prevents startup problems
-    if (startBwgdIdx <= lastBwgdAtStartup_[topologyName]) {
-      LOG(INFO) << "[" << topologyName << "] Scan with respId " << respId
-                << " skipped -- duplicate.";
-      continue;
-    }
 
     std::string txNodeName = scan.second.txNode;
 
@@ -189,10 +177,11 @@ int ScanRespService::writeData(
         rxResponseCount++;
       }
     }
-    if (!txResponseCount || (!rxResponseCount &&
-        scan.second.type != ScanType::TOPO)) {
+    if (!txResponseCount ||
+        (!rxResponseCount && scan.second.type != ScanType::TOPO)) {
       LOG(INFO) << "[" << topologyName << "] Scan with respId " << respId
-                << " skipped -- tx missing or rx all empty.";
+                << " skipped -- number of tx responses: " << txResponseCount
+                << " and rx responses: " << rxResponseCount;
       continue;
     }
 
@@ -206,7 +195,6 @@ int ScanRespService::writeData(
     mySqlScanTxResponse.combinedStatus =
         scan.second.__isset.nResponsesWaiting ? (1 << INCOMPLETE_RESPONSE) : 0;
     mySqlScanTxResponse.respId = respId;
-    mySqlScanTxResponse.startBwgd = startBwgdIdx;
     mySqlScanTxResponse.applyFlag = scan.second.apply;
     mySqlScanTxResponse.scanType = (int16_t)scan.second.type;
     mySqlScanTxResponse.scanSubType = (int16_t)scan.second.subType;
@@ -214,6 +202,7 @@ int ScanRespService::writeData(
     mySqlScanTxResponse.token = scan.first;
 
     std::vector<scans::MySqlScanRxResp> mySqlScanRxResponses;
+    bool duplicateScanResp = false;
     // loop over scan responses within a scan {nodeName:: ScanResp}
     for (const std::pair<std::string, ScanResp>& responses :
          scan.second.responses) {
@@ -229,10 +218,21 @@ int ScanRespService::writeData(
         mySqlScanTxResponse.status = responses.second.status;
         mySqlScanTxResponse.txPower = responses.second.txPwrIndex;
         mySqlScanTxResponse.combinedStatus =
-            (responses.second.status != ScanFwStatus::COMPLETE)
-            << TX_ERROR;
+            (responses.second.status != ScanFwStatus::COMPLETE) << TX_ERROR;
         mySqlScanTxResponse.network = topologyName;
         mySqlScanTxResponse.txNodeName = responses.first;
+        int64_t startBwgdIdx = responses.second.curSuperframeNum / 16;
+        mySqlScanTxResponse.startBwgd = startBwgdIdx;
+
+        // if this BWGD comes before the last one in the table at startup,
+        // then this is a duplicate entry - skip it; prevents startup problems
+        if (startBwgdIdx <= lastBwgdAtStartup_[topologyName]) {
+          LOG(INFO) << "[" << topologyName << "] Scan with respId " << respId
+                    << " skipped -- duplicate.";
+          duplicateScanResp = true;
+          break;
+        }
+
         try {
           mySqlScanTxResponse.scanResp =
               SimpleJSONSerializer::serialize<std::string>(responses.second);
@@ -243,14 +243,15 @@ int ScanRespService::writeData(
         }
 
       } else { // rx node
+        scans::MySqlScanRxResp mySqlScanRxResponse;
+
         // don't write the rx response if the routeInfoList is empty
         // e.g. in an IM scan, there can be hundreds of nodes with no response
-        if (responses.second.routeInfoList.empty()) {
-          // note that we checked above to make sure that at least one route
-          // is not empty in this scan
+        // unless scan is TOPO scan
+        if (responses.second.routeInfoList.empty() &&
+            scan.second.type != ScanType::TOPO) {
           continue;
         }
-        scans::MySqlScanRxResp mySqlScanRxResponse;
 
         // when we receive scan results from the controller, each route is
         // visited multiple times in general; let's store only the average
@@ -265,11 +266,13 @@ int ScanRespService::writeData(
         ScanResp scanRespNew = responses.second; // copy
         scanRespNew.routeInfoList.clear();
 
-        std::unordered_map<int /* x,y hash */,
+        std::unordered_map<
+            int /* x,y hash */,
             std::pair<int /* routeIndex */, int /* route visited count */>>
-              routeInfoMap;
+            routeInfoMap;
         int routeIndex = 0;
 
+        // if the response is empty, this loop won't run
         for (const auto& routeInfo : responses.second.routeInfoList) {
           const int txRoute = routeInfo.route.tx;
           const int rxRoute = routeInfo.route.rx;
@@ -330,14 +333,15 @@ int ScanRespService::writeData(
              (responses.second.oldBeam != responses.second.newBeam));
         // one bit per individual node response - so we can query it
         mySqlScanTxResponse.combinedStatus =
-            ((responses.second.status != ScanFwStatus::COMPLETE)
-             << RX_ERROR);
+            ((responses.second.status != ScanFwStatus::COMPLETE) << RX_ERROR);
         mySqlScanRxResponses.push_back(mySqlScanRxResponse);
       }
     }
-    mySqlScanResponse.txResponse = mySqlScanTxResponse;
-    mySqlScanResponse.rxResponses = mySqlScanRxResponses;
-    mySqlScanResponses.push_back(mySqlScanResponse);
+    if (!duplicateScanResp) {
+      mySqlScanResponse.txResponse = mySqlScanTxResponse;
+      mySqlScanResponse.rxResponses = mySqlScanRxResponses;
+      mySqlScanResponses.push_back(mySqlScanResponse);
+    }
   }
   bool success = mySqlClient->writeScanResponses(mySqlScanResponses);
   return success ? 0 : -1;

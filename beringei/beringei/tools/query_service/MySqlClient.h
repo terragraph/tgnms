@@ -16,6 +16,7 @@
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 
+#include "beringei/if/gen-cpp2/Controller_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/scans_types_custom_protocol.h"
