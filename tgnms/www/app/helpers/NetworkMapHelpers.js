@@ -192,6 +192,7 @@ export const getNodeMarker = (
   onlyShowSector,
   mouseEnterFunc,
   mouseLeaveFunc,
+  useOnClickEvent,
 ) => {
   const linksBySector = {};
   Object.keys(linksByNode).forEach(node => {
@@ -278,7 +279,7 @@ export const getNodeMarker = (
     // remove the pre-built event listeners and then add our own
     layer.off();
 
-    if (nodesBySector.hasOwnProperty(mac)) {
+    if (useOnClickEvent && nodesBySector.hasOwnProperty(mac)) {
       layer.on('click', e => {
         const mac = e.target.options.key;
         Dispatcher.dispatch({

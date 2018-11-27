@@ -16,6 +16,7 @@ import DetailsCreateOrEditSite from './components/detailpanels/DetailsCreateOrEd
 import DetailsSearchNearby from './components/detailpanels/DetailsSearchNearby.js';
 import DetailsSite from './components/detailpanels/DetailsSite.js';
 import DetailsTopology from './components/detailpanels/DetailsTopology.js';
+import DetailsTopologyDiscovery from './components/detailpanels/DetailsTopologyDiscovery.js';
 import DetailsTopologyIssues from './components/detailpanels/DetailsTopologyIssues.js';
 // dispatcher
 import {
@@ -66,9 +67,10 @@ const SITE_MARKER = Leaflet.icon({
 });
 
 const LinkDisplayTypeEnum = Object.freeze({
-  BACKUP_LINK: 1, // backup 5G links across sites
-  CN_BACKUP_LINK: 2,
-  WIRELESS_LINK: 3, // normal wireless link
+  BACKUP_LINK: '4 8', // backup 5G links across sites
+  CN_BACKUP_LINK: '1 12',
+  WIRELESS_LINK: '', // normal wireless link
+  SITE_LINK: '2 12',
 });
 
 export class CustomMap extends Map {
@@ -125,6 +127,8 @@ export default class NetworkMap extends React.Component {
     nearbyNode: null,
     selectedLink: null,
     selectedSite: null,
+    showTopologyDiscoveryPane: false,
+    siteLinks: [],
     siteToEdit: null,
     recentlyEditedSite: null, // Show location of new site until topology updates
     showTopologyIssuesPane: false,
@@ -234,6 +238,8 @@ export default class NetworkMap extends React.Component {
           selectedNode: null,
           selectedSector: null,
           selectedSite: null,
+          showTopologyDiscoveryPane: false,
+          siteLinks: [],
           siteToEdit: null,
         });
         break;
@@ -246,17 +252,28 @@ export default class NetworkMap extends React.Component {
           selectedNode: payload.nodeSelected,
           selectedSector: payload.sectorSelected,
           selectedSite: site,
+          showTopologyDiscoveryPane: false,
+          siteLinks: [],
         });
         break;
       }
       case Actions.LINK_SELECTED:
+        // If link name is given ('linkSelected'), prefer using the local link
+        // struct over struct one in the request.
+        const link =
+          payload.hasOwnProperty('linkSelected') &&
+          this.linksByName.hasOwnProperty(payload.linkSelected)
+            ? this.linksByName[payload.linkSelected]
+            : payload.link;
         this.setState({
           nearbyNode: null,
           searchNearbyNode: null,
-          selectedLink: payload.link,
+          selectedLink: link,
           selectedNode: null,
           selectedSector: null,
           selectedSite: null,
+          showTopologyDiscoveryPane: false,
+          siteLinks: [],
         });
         break;
       case Actions.SITE_SELECTED:
@@ -267,6 +284,20 @@ export default class NetworkMap extends React.Component {
           selectedNode: null,
           selectedSector: null,
           selectedSite: payload.siteSelected,
+          showTopologyDiscoveryPane: false,
+          siteLinks: [],
+        });
+        break;
+      case Actions.SHOW_TOPOLOGY_DISCOVERY_PANE:
+        this.setState({
+          nearbyNode: null,
+          searchNearbyNode: null,
+          selectedLink: null,
+          selectedNode: null,
+          selectedSector: null,
+          selectedSite: null,
+          showTopologyDiscoveryPane: true,
+          siteLinks: [],
         });
         break;
       case Actions.DISPLAY_ROUTE:
@@ -281,6 +312,8 @@ export default class NetworkMap extends React.Component {
           selectedNode: null,
           selectedSector: null,
           selectedSite: null,
+          showTopologyDiscoveryPane: false,
+          siteLinks: [],
         });
         break;
       case Actions.CLEAR_ROUTE:
@@ -350,6 +383,8 @@ export default class NetworkMap extends React.Component {
           selectedNode: null,
           selectedSector: null,
           selectedSite: null,
+          showTopologyDiscoveryPane: false,
+          siteLinks: [],
         });
         break;
       case Actions.LINK_HEALTH_REFRESHED:
@@ -565,15 +600,45 @@ export default class NetworkMap extends React.Component {
       return;
     }
     const site = this.sitesByName[siteName];
-    // dispatch to update all UIs
-    Dispatcher.dispatch({
-      actionType: Actions.TAB_SELECTED,
-      tabName: 'nodes',
-    });
-    Dispatcher.dispatch({
-      actionType: Actions.SITE_SELECTED,
-      siteSelected: site.name,
-    });
+    if (this.state.showTopologyDiscoveryPane) {
+      // User is adding/removing "site links" for Topology Discovery scans
+      const selectedSite = this.state.selectedSite;
+      if (selectedSite !== null) {
+        // Previously selected a site...
+        if (selectedSite !== site.name) {
+          // Clicked two different sites: add/remove the "site link"
+          const newSiteLinks = this.state.siteLinks.filter(obj => {
+            return !(
+              (obj.aSite === selectedSite && obj.zSite === site.name) ||
+              (obj.aSite === site.name && obj.zSite === selectedSite)
+            );
+          });
+          if (newSiteLinks.length < this.state.siteLinks.length) {
+            // This "site link" already existed -- remove it (already done)
+          } else {
+            // Add new "site link"
+            newSiteLinks.push({aSite: selectedSite, zSite: site.name});
+          }
+          this.setState({selectedSite: null, siteLinks: newSiteLinks});
+        } else {
+          // Clicked the same site: so un-select it
+          this.setState({selectedSite: null});
+        }
+      } else {
+        // No previously-selected site, so select this one
+        this.setState({selectedSite: site.name});
+      }
+    } else {
+      // Dispatch to update all UIs
+      Dispatcher.dispatch({
+        actionType: Actions.TAB_SELECTED,
+        tabName: 'nodes',
+      });
+      Dispatcher.dispatch({
+        actionType: Actions.SITE_SELECTED,
+        siteSelected: site.name,
+      });
+    }
   };
 
   handleMarkerHover = hoveredSite => {
@@ -611,6 +676,7 @@ export default class NetworkMap extends React.Component {
         onlyShowSector,
         () => this.setState({hoveredSite: site}),
         () => this.setState({hoveredSite: null}),
+        !this.state.showTopologyDiscoveryPane,
       );
       nodeMarkersForSite.addTo(this.nodesRef.current.leafletElement);
     }
@@ -726,30 +792,40 @@ export default class NetworkMap extends React.Component {
   };
 
   getLinkLine(link, coords, color, linkDisplayType): React.Element<any> {
+    let key;
+    let onClick;
+    if (typeof link === 'string') {
+      // If 'link' is a string (e.g. for "site links"), no onClick action
+      key = link;
+      onClick = e => {};
+    } else if (this.state.showTopologyDiscoveryPane) {
+      // Normal link, but no onClick action if adding/removing "site links"
+      key = link.name;
+      onClick = e => {};
+    } else {
+      // Normal link
+      key = link.name;
+      onClick = e => {
+        Dispatcher.dispatch({
+          actionType: Actions.TAB_SELECTED,
+          tabName: 'links',
+        });
+        Dispatcher.dispatch({
+          actionType: Actions.LINK_SELECTED,
+          link,
+          source: 'map',
+        });
+      };
+    }
+
     return (
       <Polyline
-        key={link.name}
+        key={key}
         positions={coords}
         weight={MapDimensions[this.props.mapDimType].LINK_LINE_WEIGHT}
-        onClick={e => {
-          Dispatcher.dispatch({
-            actionType: Actions.TAB_SELECTED,
-            tabName: 'links',
-          });
-          Dispatcher.dispatch({
-            actionType: Actions.LINK_SELECTED,
-            link,
-            source: 'map',
-          });
-        }}
+        onClick={onClick}
         color={color}
-        dashArray={
-          linkDisplayType == LinkDisplayTypeEnum.BACKUP_LINK
-            ? '4 8'
-            : linkDisplayType == LinkDisplayTypeEnum.CN_BACKUP_LINK
-              ? '1 12'
-              : ''
-        }
+        dashArray={linkDisplayType || ''}
         level={5}
       />
     );
@@ -948,6 +1024,24 @@ export default class NetworkMap extends React.Component {
   closeModal = () => {
     this.enableMapScrolling();
     this.setState({detailsExpanded: false});
+  };
+
+  showOverviewPane = () => {
+    this.setState({
+      detailsExpanded: true,
+      nearbyNode: null,
+      searchNearbyNode: null,
+      selectedLink: null,
+      selectedNode: null,
+      selectedSector: null,
+      selectedSite: null,
+      showTopologyDiscoveryPane: false,
+      siteLinks: [],
+    });
+  };
+
+  siteLinksUpdated = siteLinks => {
+    this.setState({siteLinks});
   };
 
   updateNearbyNode(nearbyNode) {
@@ -1379,6 +1473,26 @@ export default class NetworkMap extends React.Component {
       }
     });
 
+    // Render "site links"
+    if (this.state.showTopologyDiscoveryPane) {
+      this.state.siteLinks.forEach(siteLink => {
+        const aSite = this.sitesByName[siteLink.aSite];
+        const zSite = this.sitesByName[siteLink.zSite];
+        const linkCoords = [
+          [aSite.location.latitude, aSite.location.longitude],
+          [zSite.location.latitude, zSite.location.longitude],
+        ];
+        linkComponents.push(
+          this.getLinkLine(
+            'sitelink-' + aSite.name + '-' + zSite.name,
+            linkCoords,
+            'turquoise',
+            LinkDisplayTypeEnum.SITE_LINK,
+          ),
+        );
+      });
+    }
+
     if (this.state.routingOverlayEnabled && this.state.routeSourceNode) {
       const sourceSite = this.sitesByName[this.state.routeSourceNode.site_name];
       const destSite = this.sitesByName[this.state.routeDestNode.site_name];
@@ -1548,6 +1662,23 @@ export default class NetworkMap extends React.Component {
                 commitPlanBatch: this.state.commitPlanBatch + increment,
               })
             }
+          />
+        </Control>
+      );
+    }
+    if (this.state.showTopologyDiscoveryPane) {
+      // start topology discovery scan
+      layersControl = (
+        <Control position="topright">
+          <DetailsTopologyDiscovery
+            topologyName={this.props.networkConfig.topology.name}
+            sites={this.sitesByName}
+            maxHeight={maxModalHeight}
+            onClose={this.showOverviewPane}
+            onMouseEnter={this.disableMapScrolling}
+            onMouseLeave={this.enableMapScrolling}
+            siteLinks={this.state.siteLinks}
+            onSiteLinkUpdate={this.siteLinksUpdated}
           />
         </Control>
       );

@@ -10,6 +10,7 @@ import 'react-tabs/style/react-tabs.css';
 import {Actions} from './constants/NetworkConstants.js';
 import Dispatcher from './NetworkDispatcher.js';
 import {isEqual} from 'lodash';
+import NetworkDiscoveryTable from './NetworkDiscoveryTable.js';
 import NetworkLinksTable from './NetworkLinksTable.js';
 import NetworkNodesTable from './NetworkNodesTable.js';
 import NetworkScans from './NetworkScans.js';
@@ -24,6 +25,7 @@ const TAB_NAMES = [
   'nodes',
   'links',
   'scans',
+  'discovery',
   'adjacencies',
   'routing',
 ];
@@ -148,6 +150,7 @@ export default class NetworkDataTable extends React.Component {
           <Tab className="data-table-tab">Nodes</Tab>
           <Tab className="data-table-tab">Links</Tab>
           <Tab className="data-table-tab">Scans</Tab>
+          <Tab className="data-table-tab">Discovery</Tab>
           {/* <Tab className="data-table-tab">Adjacencies</Tab> */}
         </TabList>
         <TabPanel>
@@ -161,6 +164,9 @@ export default class NetworkDataTable extends React.Component {
         </TabPanel>
         <TabPanel>
           <NetworkScans {...tableProps} />
+        </TabPanel>
+        <TabPanel>
+          <NetworkDiscoveryTable {...tableProps} />
         </TabPanel>
         {/* <TabPanel>
           <NetworkAdjacencyTable {...tableProps} />

@@ -176,6 +176,48 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
   border-top: none;
 }
 
+.discovery-table-container {
+  display: block;
+  height: 100%;
+  margin: auto 10px;
+  overflow-y: auto;
+  line-height: 1em;
+}
+.discovery-table-head-wrapper {
+  overflow: auto;
+  border: 2px double grey;
+  border-radius: 8px;
+}
+.discovery-table-head {
+  padding: 10px;
+}
+.discovery-table-head > p:last-child {
+    margin-bottom: 0;
+}
+.discovery-table-body-wrapper {
+  clear: both;
+  display: flex;
+  padding-top: 8px;
+}
+.discovery-table-body {
+  flex: 50%;
+  padding: 0 10px;
+}
+.discovery-table-body > h3 {
+  font-size: 1.4em;
+  margin: 4px 0 8px 0;
+}
+.discovery-table-body > h3 > .badge {
+  margin-left: 4px;
+}
+.discovery-table-body > p {
+  padding-left: 6px;
+}
+
+.badge {
+  background-color: #aaa;
+}
+
 .details {
     overflow: auto; /* Enable scroll if needed */
     background-color: #fefefe;
@@ -354,6 +396,25 @@ div.SplitPane.soloPane2.horizontal > .Pane2 {
 }
 .controller-status-icon {
   float: right;
+}
+
+.details-select {
+  max-width: 200px;
+}
+.details-glyph-button {
+  cursor: pointer;
+  padding: 0 0 0 4px;
+}
+
+.details-form-error {
+  border: 1px solid red !important;
+}
+
+.details-pre-wrap {
+  margin: 12px 0 0 0;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .many .dygraph-legend > span { display: none; }

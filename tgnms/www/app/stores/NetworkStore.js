@@ -227,10 +227,16 @@ Dispatcher.register(payload => {
       PushUrl();
       break;
     case Actions.LINK_SELECTED:
+      if (payload.hasOwnProperty('blockUrlPush') && payload.blockUrlPush) {
+        break;
+      }
       NetworkStore.selectedName = payload.link.name;
       PushUrl();
       break;
     case Actions.SITE_SELECTED:
+      if (payload.hasOwnProperty('blockUrlPush') && payload.blockUrlPush) {
+        break;
+      }
       NetworkStore.selectedName = payload.siteSelected;
       PushUrl();
       break;
