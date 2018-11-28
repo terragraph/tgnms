@@ -6,6 +6,7 @@ echo "It requires that you run it as root. sudo works great for that."
 
 APACHE_THRIFT_VERSION="0.11.0"
 # Python package versions
+AIOHTTP_VERSION="3.4.4"
 DJANGO_VERSION="2.1.1"
 JUPYTER_VERSION="1.0.0"
 MATPLOTLIB_VERSION="2.2.2"
@@ -16,6 +17,7 @@ PYZMQ_VERSION="17.1.2"
 MYSQLCLIENT="1.3.13"
 
 # Install Python3 packages
+pip install aiohttp==$AIOHTTP_VERSION
 pip install django==$DJANGO_VERSION
 pip install jupyter==$JUPYTER_VERSION
 pip install matplotlib==$MATPLOTLIB_VERSION
