@@ -195,19 +195,17 @@ def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
                     r4n.routes = [r2p]
                 elif num_hops == r4n.num_hops:
                     # Add to the list of existing routes if current route has an
-                    # equal hop count
-                    if pop_node_name in {r.pop_name for r in r4n.routes}:
-                        # Set ecmp to True if there is already an existing route
-                        # to the same POP
-                        r2p = RouteToPop(pop_node_name, num_p2mp_hops, True, path)
+                    # equal hop count. Set ecmp to True if there is already an
+                    # existing route to the same POP
+                    ecmp = False
+                    for r2p in r4n.routes:
+                        if r2p.pop_name == pop_node_name:
+                            ecmp = True
+                            r2p.ecmp = True
 
-                        for r in r4n.routes:
-                            if r.pop_name == pop_node_name:
-                                r.ecmp = True
-                    else:
-                        r2p = RouteToPop(pop_node_name, num_p2mp_hops, False, path)
-
-                    r4n.routes.append(r2p)
+                    r4n.routes.append(
+                        RouteToPop(pop_node_name, num_p2mp_hops, ecmp, path)
+                    )
 
         # Only add to the return list if a valid route was found
         if r4n.routes:
