@@ -52,6 +52,7 @@ class RunTestPlan82(Thread):
         self.received_output_queue = queue.Queue()
         self.bidirectional = True
         self.links = []
+        self.interval_sec = 1
 
     def run(self):
 
@@ -77,6 +78,7 @@ class RunTestPlan82(Thread):
             "test_run_id": test_run.id,
             "test_list": test_list,
             "test_duration": self.test_duration,
+            "expected_num_of_intervals": self.test_duration * self.interval_sec,
         }
 
         # Create TestNetwork object and kick it off
@@ -205,7 +207,7 @@ class RunTestPlan82(Thread):
                     bitrate=self.test_push_rate,
                     time_sec=self.test_duration,
                     proto=self.protocol,
-                    interval_sec=1,
+                    interval_sec=self.interval_sec,
                     window_size=4000000,
                     mss=7500,
                     no_delay=True,
@@ -250,7 +252,7 @@ class RunTestPlan82(Thread):
                         bitrate=self.test_push_rate,
                         time_sec=self.test_duration,
                         proto=self.protocol,
-                        interval_sec=1,
+                        interval_sec=self.interval_sec,
                         window_size=4000000,
                         mss=7500,
                         no_delay=True,
