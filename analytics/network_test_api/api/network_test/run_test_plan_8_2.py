@@ -76,6 +76,7 @@ class RunTestPlan82(Thread):
             "network_info": self.network_info,
             "test_run_id": test_run.id,
             "test_list": test_list,
+            "test_duration": self.test_duration,
         }
 
         # Create TestNetwork object and kick it off
@@ -210,7 +211,7 @@ class RunTestPlan82(Thread):
                     no_delay=True,
                     omit_sec=0,
                     verbose=True,
-                    json=False,
+                    json=True,
                     buffer_length=7500,
                     format=2,
                     use_link_local=True,
@@ -255,7 +256,7 @@ class RunTestPlan82(Thread):
                         no_delay=True,
                         omit_sec=0,
                         verbose=True,
-                        json=False,
+                        json=True,
                         buffer_length=7500,
                         format=2,
                         use_link_local=True,

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.6
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import json
 import logging
 import os
 import queue
@@ -115,7 +116,7 @@ class RecvFromCtrl(base.Base):
             )
             source_node = msg_data.startIperf.iperfConfig.srcNodeId
             destination_node = msg_data.startIperf.iperfConfig.dstNodeId
-            self.parsed_iperf_data = self._strip_iperf_output(msg_data.output.strip())
+            self.parsed_iperf_data = self._parse_iperf_output(msg_data.output.strip())
             if not self.parsed_iperf_data:
                 self._log_failed_iperf_to_mysql(
                     source_node=source_node,
@@ -174,17 +175,20 @@ class RecvFromCtrl(base.Base):
         else:
             return ping_output
 
-    def _strip_iperf_output(self, iperf_output):
-        strip_before = "[ ID] Interval"
-        strip_after = "receiver"
+    def _parse_iperf_output(self, iperf_output):
         try:
-            iperf_output = iperf_output[
-                iperf_output.index(strip_before) : iperf_output.index(strip_after) + 8
-            ]
-            return iperf_output
-        except Exception as ex:
-            self.expected_number_of_responses -= 1
-            return ""
+            parsed_iperf_output_dict = json.loads(iperf_output)
+        except json.decoder.JSONDecodeError:
+            iperf_output = iperf_output.split("Control connection MSS 7728")[1]
+            parsed_iperf_output_dict = json.loads(iperf_output)
+        if parsed_iperf_output_dict.get("error"):
+            if "error" in parsed_iperf_output_dict["error"]:
+                self.expected_number_of_responses -= 1
+                return ""
+            else:
+                return parsed_iperf_output_dict
+        else:
+            return parsed_iperf_output_dict
 
     def _get_link(self, source_node, destination_node):
         for link in self.parameters["test_list"]:
@@ -197,16 +201,19 @@ class RecvFromCtrl(base.Base):
 
     def _log_to_mysql(self, source_node, destination_node, is_iperf):
         if is_iperf:
-            stats = parse_and_pack_iperf_data(self.parsed_iperf_server_data)
+            stats = parse_and_pack_iperf_data(
+                self.parsed_iperf_server_data,
+                self.parameters["expected_num_of_intervals"],
+            )
             link = self._get_link(source_node, destination_node)
             if link is not None:
                 link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
                         link_db_obj.status = TEST_STATUS_FINISHED
-                        link_db_obj.origin_node = link['iperf_object'].src_node_name
-                        link_db_obj.peer_node = link['iperf_object'].dst_node_name
-                        link_db_obj.link_name = link['iperf_object'].link_name
+                        link_db_obj.origin_node = link["iperf_object"].src_node_name
+                        link_db_obj.peer_node = link["iperf_object"].dst_node_name
+                        link_db_obj.link_name = link["iperf_object"].link_name
                         link_db_obj.iperf_pushed_throughput = link[
                             "iperf_object"
                         ].bitrate
@@ -245,9 +252,9 @@ class RecvFromCtrl(base.Base):
                 link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
-                        link_db_obj.origin_node = link['ping_object'].src_node_name
-                        link_db_obj.peer_node = link['ping_object'].dst_node_name
-                        link_db_obj.link_name = link['ping_object'].link_name
+                        link_db_obj.origin_node = link["ping_object"].src_node_name
+                        link_db_obj.peer_node = link["ping_object"].dst_node_name
+                        link_db_obj.link_name = link["ping_object"].link_name
                         link_db_obj.ping_max_latency = stats["max"]
                         link_db_obj.ping_min_latency = stats["min"]
                         link_db_obj.ping_avg_latency = stats["mean"]

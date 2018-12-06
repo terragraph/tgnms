@@ -2,7 +2,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import re
-from decimal import Decimal
 from statistics import mean, stdev
 
 
@@ -19,100 +18,47 @@ MEAN = "mean"
 STD = "std"
 
 
-def process_iperf_response_bidirectional(response, is_threaded=False):
+def process_iperf_response_bidirectional(response, expected_num_of_intervals):
     iperf_stats = {}
     iperf_throughput_data = []
-    iperf_real_data = []
-    iperf_link_data = []
+    iperf_lost_data_percent = []
     iperf_jitter = []
     iperf_link_error = []
-    iperf_duration = []
-    count = 0
 
-    if len(response) > 0:
-        for line in response.split("\n"):
-            if (
-                " sec " in line
-                and "/sec" in line
-                and "datagrams received out-of-order" not in line
-            ):
-                count += 1
-                if not is_threaded or (is_threaded and "[SUM]" in line):
-                    # Get data of Bandwidth
-                    duration = re.findall("\d+\.\d+", line)
-                    if duration:
-                        if len(duration) >= 2:
-                            second = float(duration[1])
-                            iperf_duration.append(int(second))
-
-                    m = re.search("([\d.]+) ([GMK]?)bits/sec", line)
-                    if m:
-                        if "G" in m.group(2):
-                            bps = float(m.group(1)) * 1
-                        elif "M" in m.group(2):
-                            bps = float(m.group(1)) * 1
-                        elif "K" in m.group(2):
-                            bps = float(m.group(1)) * 1
-                        else:
-                            bps = float(m.group(1))
-                        iperf_throughput_data.append(bps)
-
-                    # Get % data of Packet loss (link error)
-                    m = re.search("([\d.]+)%", line)
-                    if m:
-                        link_error = float(m.group(1))
-                        iperf_link_data.append(link_error)
-
-                    # Get Jitter Values
-                    m = re.search("([\d.]+) ms", line)
-                    if m:
-                        temp_jitter = float(m.group(1))
-                        iperf_jitter.append(temp_jitter)
+    for interval in response["intervals"][:expected_num_of_intervals]:
+        if "omitted" in interval["sum"] and not interval["sum"]["omitted"]:
+            # note the throughput received for this interval
+            if "bits_per_second" in interval["sum"]:
+                iperf_throughput_data.append(interval["sum"]["bits_per_second"])
+            # note the jitter received for this interval
+            if "jitter_ms" in interval["sum"]:
+                iperf_jitter.append(interval["sum"]["jitter_ms"])
+            # note the lost datagram percentage received for this interval
+            if "lost_percent" in interval["sum"]:
+                iperf_lost_data_percent.append(interval["sum"]["lost_percent"])
+                # note the link error for this interval
+                if not interval["sum"].get("lost_percent"):
+                    iperf_link_error.append(0.0)
+                else:
+                    if "packets" in interval["sum"] and interval["sum"]["packets"]:
+                        link_error = (
+                            float(interval["sum"]["lost_packets"])
+                            * 100
+                            / int(interval["sum"]["packets"])
+                        )
                     else:
-                        iperf_jitter.append(0)
-
-                    total_packets = 0
-                    lost_packets = 0
-
-                    # Calculate packet loss
-                    m = re.search("([\d.]+) \(", line)
-                    if m:
-                        total_packets = int(m.group(1))
-
-                    m = re.search("([\d.]+)/", line)
-                    if m:
-                        lost_packets = int(m.group(1))
-
-                    if lost_packets == 0:
-                        temp_link_error = 0
-                        iperf_link_error.append(temp_link_error)
-                    else:
-                        if total_packets > 0:
-                            temp_link_error = (
-                                float(lost_packets) * 100 / int(total_packets)
-                            )
-                        else:
-                            temp_link_error = 0.0
-                        iperf_link_error.append(temp_link_error)
-
-                iperf_real_data.append(line)
+                        link_error = 0.0
+                    iperf_link_error.append(link_error)
 
     iperf_stats[THROUGHPUT_DATA] = iperf_throughput_data
-    iperf_stats[IPERF_OUTPUT] = iperf_real_data
-    iperf_stats[LOST_DATA] = iperf_link_data
+    iperf_stats[LOST_DATA] = iperf_lost_data_percent
     iperf_stats[JITTER] = iperf_jitter
     iperf_stats[LINK_ERROR] = iperf_link_error
-    # Make sure to get all the unique values
-    iperf_stats[DURATION_LIST] = list(set(iperf_duration))
-
     return iperf_stats
 
 
 def get_all_stats(input_list):
     detail_dict = {}
-
-    if not input_list:
-        return detail_dict
 
     try:
         # Populate dict
@@ -120,11 +66,7 @@ def get_all_stats(input_list):
         detail_dict[MAXIMUM] = max(input_list)
         detail_dict[MEAN] = mean(input_list)
         detail_dict[STD] = stdev(input_list)
-
-    except Exception as e:
-
-        print(str(e))
-        # Populate with 0
+    except Exception:
         detail_dict[MINIMUM] = None
         detail_dict[MAXIMUM] = None
         detail_dict[MEAN] = None
@@ -133,11 +75,13 @@ def get_all_stats(input_list):
     return detail_dict
 
 
-def parse_and_pack_iperf_data(input_data):
+def parse_and_pack_iperf_data(input_data, expected_num_of_intervals):
     return_dict = {}
     # Parse the iperf output to get the throughput values
     # jitter, link errors for each second
-    all_stats_dict = process_iperf_response_bidirectional(input_data, is_threaded=False)
+    all_stats_dict = process_iperf_response_bidirectional(
+        input_data, expected_num_of_intervals
+    )
     # Get the throughput min, max, mean and std from the sample
     if THROUGHPUT_DATA in all_stats_dict:
         throughput_list = all_stats_dict[THROUGHPUT_DATA]

@@ -55,6 +55,7 @@ class RunTestPlan83(Thread):
         self.received_output_queue = queue.Queue()
         self.bidirectional = True
         self.topology_sector_info = defaultdict(int)
+        self.interval_sec = 1
 
     def run(self):
 
@@ -84,6 +85,7 @@ class RunTestPlan83(Thread):
             "network_info": self.network_info,
             "test_run_id": test_run.id,
             "test_list": test_list,
+            "expected_num_of_intervals": self.test_duration * self.interval_sec,
         }
 
         # Create TestNetwork object and kick it off
@@ -214,13 +216,13 @@ class RunTestPlan83(Thread):
                     bitrate=bitrate,
                     time_sec=self.test_duration,
                     proto=self.protocol,
-                    interval_sec=1,
+                    interval_sec=self.interval_sec,
                     window_size=4000000,
                     mss=7500,
                     no_delay=True,
                     omit_sec=0,
                     verbose=True,
-                    json=False,
+                    json=True,
                     buffer_length=7500,
                     format=2,
                     use_link_local=True,
@@ -259,13 +261,13 @@ class RunTestPlan83(Thread):
                         bitrate=bitrate,
                         time_sec=self.test_duration,
                         proto=self.protocol,
-                        interval_sec=1,
+                        interval_sec=self.interval_sec,
                         window_size=4000000,
                         mss=7500,
                         no_delay=True,
                         omit_sec=0,
                         verbose=True,
-                        json=False,
+                        json=True,
                         buffer_length=7500,
                         format=2,
                         use_link_local=True,
