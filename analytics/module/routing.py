@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from aiohttp import ClientSession
-from typing import List, Tuple
+from typing import List
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
@@ -40,7 +40,7 @@ class RouteToPop(object):
         return False
 
     def __init__(
-        self, pop_name: str, num_p2mp_hops: int, ecmp: bool, path: List[Tuple]
+        self, pop_name: str, num_p2mp_hops: int, ecmp: bool, path: List[str]
     ) -> None:
         self.pop_name = pop_name
         self.num_p2mp_hops = num_p2mp_hops
@@ -172,7 +172,6 @@ def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
                 # wireless hop in the path
                 num_hops = 0
                 num_p2mp_hops = 0
-                path = []
 
                 for src, dst in zip(route, route[1:]):
                     hop = tuple(sorted((src, dst)))
@@ -186,11 +185,10 @@ def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
                             )
                             else 0
                         )
-                        path.append(hop)
 
                 if num_hops < r4n.num_hops:
                     # Shorter multihop route found
-                    r2p = RouteToPop(pop_node_name, num_p2mp_hops, False, path)
+                    r2p = RouteToPop(pop_node_name, num_p2mp_hops, False, route)
                     r4n.num_hops = num_hops
                     r4n.routes = [r2p]
                 elif num_hops == r4n.num_hops:
@@ -204,7 +202,7 @@ def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
                             r2p.ecmp = True
 
                     r4n.routes.append(
-                        RouteToPop(pop_node_name, num_p2mp_hops, ecmp, path)
+                        RouteToPop(pop_node_name, num_p2mp_hops, ecmp, route)
                     )
 
         # Only add to the return list if a valid route was found

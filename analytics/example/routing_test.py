@@ -334,21 +334,6 @@ class RoutingTest(unittest.TestCase):
             self.assertEqual(data.num_hops, 0)
             self.assertEqual(data.routes, [])
 
-    def test_ignore_ethernet_links(self):
-        """
-        Verify that no hops in any RoutesForNode routes are ethernet links.
-        """
-
-        link_map = {
-            (link["a_node_name"], link["z_node_name"]): link["link_type"]
-            for link in self.network_info["topology"]["links"]
-        }
-
-        for r4n in self.node_name_to_routes.values():
-            for r2p in r4n.routes:
-                for hop in r2p.path:
-                    self.assertEqual(link_map[hop], LinkType().WIRELESS)
-
     def test_only_one_pop_in_route(self):
         """
         Verify that no routes have more than one POP node and confirm that the
@@ -363,9 +348,8 @@ class RoutingTest(unittest.TestCase):
 
         for r4n in self.node_name_to_routes.values():
             for r2p in r4n.routes:
-                nodes_in_path = list(itertools.chain(*r2p.path))
-                self.assertEqual(len(pop_node_names.intersection(nodes_in_path)), 1)
-                self.assertTrue(nodes_in_path[-1] in pop_node_names)
+                self.assertEqual(len(pop_node_names.intersection(r2p.path)), 1)
+                self.assertTrue(r2p.path[-1] in pop_node_names)
 
     def test_multiple_equidistant_pops(self):
         """
@@ -381,7 +365,7 @@ class RoutingTest(unittest.TestCase):
 
     def test_num_p2mp_hops(self):
         """
-        Node A1 can reach P2 via [("A1", "C1"), ("C2", "P2")] which includes a
+        Node A1 can reach P2 via ["A1", "C1", "C2", "P2"] which includes a
         P2MP hop as A1 is also wirelessly linked to B1. Verify that this route
         has one P2MP hop and is a member of A1"s routes.
         """
@@ -391,7 +375,7 @@ class RoutingTest(unittest.TestCase):
             pop_name="P2",
             num_p2mp_hops=1,
             ecmp=True,
-            path=[("A1", "C1"), ("C2", "P2")],
+            path=["A1", "C1", "C2", "P2"],
         )
 
         self.assertIn(expected_r2p, routes_for_a1.routes)
@@ -399,9 +383,9 @@ class RoutingTest(unittest.TestCase):
     def test_multiple_routes_to_same_pop(self):
         """
         Node A1 can reach P2 through two distinct (but equal in terms of number
-        of wireless hops) paths: [("A1", "C1"), ("C2", "P2")] and
-        [("A1", "D1"), ("D2", "P2")]. A1 can reach P3 through only one route
-        [("A3", "E1"), ("E2", "P3")].
+        of wireless hops) paths: ["A1", "C1", "C2", "P2"] and
+        ["A1", "A2", D1", "D2", "P2"]. A1 can reach P3 through only one route
+        ["A1", "A3", "E1", "E2", "P3"].
 
         Verify that ecmp is True for both P2 routes and False for the route to
         P3 since it can only be reached one way.
@@ -431,7 +415,7 @@ class RoutingTest(unittest.TestCase):
             pop_name="P3",
             num_p2mp_hops=0,
             ecmp=False,
-            path=[("A3", "E1"), ("E2", "P3")],
+            path=["A1", "A3", "E1", "E2", "P3"],
         )
 
         non_ecmp_routes = routes_for_a1.get_non_ecmp_routes()
