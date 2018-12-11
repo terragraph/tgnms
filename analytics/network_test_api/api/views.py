@@ -6,8 +6,14 @@ import os
 import sys
 import time
 
-from api.models import TEST_STATUS_ABORTED, TEST_STATUS_RUNNING, TestRunExecution
-from api.network_test import run_test_plan_8_2, run_test_plan_8_3
+from api.models import (
+    PARALLEL_TEST,
+    SEQUENTIAL_TEST,
+    TEST_STATUS_ABORTED,
+    TEST_STATUS_RUNNING,
+    TestRunExecution,
+)
+from api.network_test import run_sequential_test_plan, run_parallel_test_plan
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -109,15 +115,15 @@ def start_test(request):
                     "protocol": protocol,
                 }
                 # Run the test plan
-                if test_code == 8.3:
-                    run_tp = run_test_plan_8_3.RunTestPlan83(
+                if test_code == PARALLEL_TEST:
+                    run_tp = run_parallel_test_plan.RunParallelTestPlan(
                         network_parameters=network_parameters
                     )
                     run_tp.start()
                     error = False
                     msg = "Started Short Term Parallel Link Health Test Plan."
-                elif test_code == 8.2:
-                    run_tp = run_test_plan_8_2.RunTestPlan82(
+                elif test_code == SEQUENTIAL_TEST:
+                    run_tp = run_sequential_test_plan.RunSequentialTestPlan(
                         network_parameters=network_parameters
                     )
                     run_tp.start()

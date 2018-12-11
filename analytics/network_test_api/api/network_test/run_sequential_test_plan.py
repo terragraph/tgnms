@@ -31,7 +31,7 @@ _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-class RunTestPlan82(Thread):
+class RunSequentialTestPlan(Thread):
     def __init__(self, network_parameters):
         Thread.__init__(self)
         self.controller_addr = network_parameters["controller_addr"]
@@ -57,7 +57,7 @@ class RunTestPlan82(Thread):
     def run(self):
 
         # Configure test data using test API
-        test_list = self._test_8_2(self.topology)
+        test_list = self._sequential_test(self.topology)
 
         # Create the single hop test iperf records
         with transaction.atomic():
@@ -145,7 +145,7 @@ class RunTestPlan82(Thread):
         # for link in self.parameters['test_list']:
         time_series_list.append(
             TimeSeries(
-                name="TEST_PLAN_8_2",
+                name="SEQUENTIAL_TEST_PLAN",
                 topology=self.topology_name,
                 times=[start_time, end_time],
                 values=[0, 0],
@@ -176,7 +176,7 @@ class RunTestPlan82(Thread):
                 return link
         return None
 
-    def _test_8_2(self, topology):
+    def _sequential_test(self, topology):
         """
         Test Name: Short Term Sequential Link Health
         Test Objective:  Verify link health in the absence of self interference

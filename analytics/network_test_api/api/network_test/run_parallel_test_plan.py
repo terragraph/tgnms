@@ -32,7 +32,7 @@ _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-class RunTestPlan83(Thread):
+class RunParallelTestPlan(Thread):
     def __init__(self, network_parameters):
         Thread.__init__(self)
         self.controller_addr = network_parameters["controller_addr"]
@@ -63,7 +63,7 @@ class RunTestPlan83(Thread):
         self._get_topology_sector_info()
 
         # Configure test data using test API
-        test_list = self._test_8_3(self.topology)
+        test_list = self._parallel_test(self.topology)
 
         # Create the single hop test iperf records
         with transaction.atomic():
@@ -136,7 +136,7 @@ class RunTestPlan83(Thread):
         for atoz in range(0, len(links), direction):
             time_series_list.append(
                 TimeSeries(
-                    name="TEST_PLAN_8_3",
+                    name="PARALLEL_TEST_PLAN",
                     topology=self.topology_name,
                     times=[self.start_time, self.end_time],
                     values=[0, 0],
@@ -184,7 +184,7 @@ class RunTestPlan83(Thread):
         except ZeroDivisionError:
             return test_push_rate
 
-    def _test_8_3(self, topology):
+    def _parallel_test(self, topology):
         """
         Test Name: Short Term Parallel Link Health
         Test Objective:  Verify that all links are healthy in the possible

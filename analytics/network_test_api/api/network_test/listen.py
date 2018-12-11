@@ -10,7 +10,6 @@ import time
 from threading import Thread, currentThread
 
 import zmq
-from api.iperf_ping_analyze import get_ping_statistics, parse_and_pack_iperf_data
 from api.models import (
     TEST_STATUS_ABORTED,
     TEST_STATUS_FAILED,
@@ -19,7 +18,7 @@ from api.models import (
     SingleHopTest,
     TestRunExecution,
 )
-from api.network_test import base, run_iperf, run_ping
+from api.network_test import base, iperf_ping_analyze, run_iperf, run_ping
 from django.db import transaction
 from django.utils import timezone
 
@@ -30,6 +29,7 @@ sys.path.append(
     )
 )
 from terragraph_thrift.Controller import ttypes as ctrl_types
+
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -201,7 +201,7 @@ class RecvFromCtrl(base.Base):
 
     def _log_to_mysql(self, source_node, destination_node, is_iperf):
         if is_iperf:
-            stats = parse_and_pack_iperf_data(
+            stats = iperf_ping_analyze.parse_and_pack_iperf_data(
                 self.parsed_iperf_server_data,
                 self.parameters["expected_num_of_intervals"],
             )
@@ -246,7 +246,7 @@ class RecvFromCtrl(base.Base):
                         link_db_obj.iperf_server_blob = self.parsed_iperf_server_data
                         link_db_obj.save()
         else:
-            stats = get_ping_statistics(self.parsed_ping_data)
+            stats = iperf_ping_analyze.get_ping_statistics(self.parsed_ping_data)
             link = self._get_link(source_node, destination_node)
             if link is not None:
                 link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
