@@ -13,6 +13,7 @@ set(BERINGEI_THRIFT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2 PARENT)
 
 set(
     THRIFT_FILES
+    Event.thrift
     beringei_data.thrift
     beringei_grafana.thrift
     beringei_query.thrift

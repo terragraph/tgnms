@@ -50,6 +50,8 @@ set(BERINGEI_QUERY_SRCS
 )
 
 set(BERINGEI_QUERY_HANDLER_SRCS
+    handlers/EventsHandler.cpp
+    handlers/EventsHandler.h
     handlers/LogsWriteHandler.cpp
     handlers/LogsWriteHandler.h
     handlers/TestConnectionHandler.cpp
