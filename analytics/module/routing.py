@@ -24,10 +24,18 @@ class RouteToPop(object):
 
     Params:
         pop_name: name of the POP at which the route terminates
-        num_p2mp_hops: number of (wireless) P2MP hops in the route
+        num_p2mp_hops: number of P2MP hops in the route
         ecmp: whether pop_name can be reached in additional equal cost routes
-        path: list of wireless hops (as tuples) that form the route
+        path: list of nodes that form the route to pop_name
     """
+
+    def __init__(
+        self, pop_name: str, num_p2mp_hops: int, ecmp: bool, path: List[str]
+    ) -> None:
+        self.pop_name = pop_name
+        self.num_p2mp_hops = num_p2mp_hops
+        self.ecmp = ecmp
+        self.path = path
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, RouteToPop):
@@ -39,14 +47,6 @@ class RouteToPop(object):
             )
         return False
 
-    def __init__(
-        self, pop_name: str, num_p2mp_hops: int, ecmp: bool, path: List[str]
-    ) -> None:
-        self.pop_name = pop_name
-        self.num_p2mp_hops = num_p2mp_hops
-        self.ecmp = ecmp
-        self.path = path
-
 
 class RoutesForNode(object):
     """
@@ -55,9 +55,14 @@ class RoutesForNode(object):
 
     Params:
         name: node name
-        num_hops: minimum number of (wireless) hops from the nearest POP(s)
+        num_hops: minimum number of (wireless) hops to the nearest POP(s)
         routes: RouteToPop list, one for each route to any of the nearest POP(s)
     """
+
+    def __init__(self, name: str, num_hops: int, routes: List[RouteToPop]) -> None:
+        self.name = name
+        self.num_hops = num_hops
+        self.routes = routes
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, RoutesForNode):
@@ -67,11 +72,6 @@ class RoutesForNode(object):
                 and self.routes == other.routes
             )
         return False
-
-    def __init__(self, name: str, num_hops: int, routes: List[RouteToPop]) -> None:
-        self.name = name
-        self.num_hops = num_hops
-        self.routes = routes
 
     def get_non_ecmp_routes(self) -> List[RouteToPop]:
         """
