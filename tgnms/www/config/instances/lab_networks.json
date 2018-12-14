@@ -57,8 +57,8 @@
             "aggregator_ip": "2620:10d:c089:e001:20c:29ff:fe69:6c10"
         },
         {
-            "controller_ip": "2620:10d:c089:e001:20c:29ff:fe18:32ad",
-            "aggregator_ip": "2620:10d:c089:e001:20c:29ff:fe18:32ad",
+            "controller_ip": "2620:10d:c089:e001::69",
+            "aggregator_ip": "2620:10d:c089:e001::69",
             "site_coords_override": true,
             "latitude": 37.4848280435154,
             "longitude": -122.1472245455607,
