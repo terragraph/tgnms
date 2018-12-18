@@ -23,11 +23,11 @@ class EventProcessor {
  public:
   explicit EventProcessor();
 
-  static int* computeIntervalStatus(
+  static std::pair<int* /* intervalStatus */, int /* missingIntervals */>  computeIntervalStatus(
       const double* timeSeries,
       const int32_t numDataPoints,
       const int32_t timeInterval,
-      const int countPerSecond,
+      const double countPerSecond,
       const bool debugLogToConsole = false);
 
   static stats::EventList formatIntervalStatus(
@@ -44,6 +44,16 @@ class EventProcessor {
       const int32_t timeInterval,
       const int* availableStatus,
       const bool debugLogToConsole = 0);
+
+  static std::unordered_map<std::string, double> findLinkAvailability(
+      int* availableStatus,
+      const double* linkAvailable,
+      const double* mgmtLinkUp,
+      const int* intervalStatus,
+      const int32_t numDataPoints,
+      const int32_t timeInterval,
+      const double countPerSecond,
+      const bool debugLogToConsole = false);
 
  private:
   static std::string getTimeStr(time_t timeSec);

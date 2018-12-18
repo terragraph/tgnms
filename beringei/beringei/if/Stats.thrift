@@ -178,8 +178,10 @@ struct QueryRequest {
 
 // type of restriction to apply
 enum LinkStateType {
+  LINK_DOWN_OR_NOT_AVAIL = 0,
   LINK_UP = 1,
   LINK_UP_DATADOWN = 2,
+  LINK_UP_AVAIL_UNKNOWN = 3,
 }
 
 // output formats

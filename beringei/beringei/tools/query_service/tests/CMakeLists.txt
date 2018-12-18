@@ -15,6 +15,7 @@ add_executable(
     beringei_query_service_core_test_bin
     BeringeiReaderDataPointsTest.cpp
     BeringeiReaderUptimeTest.cpp
+    BeringeiReaderLinkAvailableTest.cpp
 )
 target_link_libraries(
     beringei_query_service_core_test_bin

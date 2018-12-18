@@ -167,7 +167,8 @@ void StatsTypeAheadHandler::onEOM() noexcept {
           for (const auto& key : metricList) {
             if (!checkRestrictors(key)) {
               VLOG(1) << "\t\tName: " << key.keyName << ", key: " << key.keyId
-                      << ", node: " << key.srcNodeMac;
+                      << ", node: " << key.srcNodeMac << ", shortName: "
+                      << key.shortName << ", linkName: " << key.linkName;
               keyList.push_back(folly::dynamic::object("keyId", key.keyId)(
                   "keyName", key.keyName)("shortName", key.shortName)(
                   "srcNodeMac", key.srcNodeMac)("srcNodeName", key.srcNodeName)(

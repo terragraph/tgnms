@@ -62,8 +62,6 @@ class BeringeiReader {
   void formatData();
   // format data in EVENT format
   void formatDataEvent(bool isLink = false);
-  // resolve differences in link uptime
-  void resolveLinkUptimeDifferences(int* dstLink, int* srcLink);
   // create+insert new key w/ meta-data
   void createLinkKey(
       const std::string& keyName,
@@ -78,12 +76,6 @@ class BeringeiReader {
 
   // clean-up memory
   void cleanUp();
-  double findLinkAvailability(
-      int* availableStatus,
-      const double* linkAvailable,
-      const double* mgmtLinkUp,
-      const int* intervalStatus,
-      const bool debugLogToConsole = false);
 
   time_t startTime_;
   time_t endTime_;

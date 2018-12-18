@@ -118,10 +118,11 @@ TEST_F(BeringeiReaderUptimeTest, EventAlwaysUp) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
   // Uptime is 100%
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), 100.0);
   // Only one event in output, since test should show 100% uptime
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
@@ -157,17 +158,19 @@ TEST_F(BeringeiReaderUptimeTest, EventPartialOutage) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), (double)2880 / 2881 * 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), (double)2880 / 2881 * 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 2);
 
   // Ensure the correct start + end time and title for the first event
   ASSERT_EQ(keyIt->second["events"][0]["startTime"].asInt(),
             queryRequest_.startTsSec);
+  // if, for example, link is up for only one timebucket, endTime should be
+  // 30 + startTime
   ASSERT_EQ(keyIt->second["events"][0]["endTime"].asInt(),
-            queryRequest_.startTsSec + (intervalInSeconds_ * intervalBreak));
+            queryRequest_.startTsSec + (intervalInSeconds_ * (intervalBreak + 1)));
 
   // second event is down one interval after the break
   // expect 2 intervals after to report up
@@ -205,10 +208,10 @@ TEST_F(BeringeiReaderUptimeTest, EventMissingFillAll) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
   // Ensure the correct start + end time and title for the first event
@@ -242,11 +245,11 @@ TEST_F(BeringeiReaderUptimeTest, EventMissingFillPartial) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
   // 2881 intervals, first 50 (0-49) are missing
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), (double)2831 / 2881 * 100);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), (double)2831 / 2881 * 100);
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
   // start time should be offset by the # of missing intervals
@@ -278,10 +281,10 @@ TEST_F(BeringeiReaderUptimeTest, EventMissingMissingGaps) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
   ASSERT_EQ(keyIt->second["events"][0]["startTime"].asInt(),
@@ -313,10 +316,10 @@ TEST_F(BeringeiReaderUptimeTest, EventMissingLastPoint) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
   ASSERT_EQ(keyIt->second["events"][0]["startTime"].asInt(),
@@ -348,10 +351,10 @@ TEST_F(BeringeiReaderUptimeTest, EventMissingLastTwoPoints) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
   ASSERT_EQ(keyIt->second["events"][0]["startTime"].asInt(),
@@ -387,17 +390,17 @@ TEST_F(BeringeiReaderUptimeTest, EventMissingLastPointPreviousDown) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), (double)2879 / 2881 * 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), (double)2879 / 2881 * 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
   // 2 data points down at the end
   ASSERT_EQ(keyIt->second["events"][0]["startTime"].asInt(),
             queryRequest_.startTsSec);
   ASSERT_EQ(keyIt->second["events"][0]["endTime"].asInt(),
-            queryRequest_.endTsSec - 2 * intervalInSeconds_);
+            queryRequest_.endTsSec - 1 * intervalInSeconds_);
 }
 
 /**
@@ -421,10 +424,10 @@ TEST_F(BeringeiReaderUptimeTest, EventLinkFillMissingOnOneSide) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 1);
 
   ASSERT_EQ(keyIt->second["events"][0]["startTime"].asInt(),
@@ -460,18 +463,18 @@ TEST_F(BeringeiReaderUptimeTest, EventLinkFillDifferingOneSide) {
   // process query
   process(dataFetcher, keyDataA, keyDataZ);
   // expect the linkName to be found
-  auto keyIt = dataFetcher.output_.find(keyMetaDataA_.linkName);
-  ASSERT_TRUE(keyIt != dataFetcher.output_.items().end());
+  auto keyIt = dataFetcher.output_["events"].find(keyMetaDataA_.linkName);
+  ASSERT_TRUE(keyIt != dataFetcher.output_["events"].items().end());
 
   // expect 6 missing intervals
-  ASSERT_EQ(keyIt->second["alive"].asDouble(), (double)2875 / 2881 * 100.0);
+  ASSERT_EQ(keyIt->second["linkAlive"].asDouble(), (double)2875 / 2881 * 100.0);
   ASSERT_EQ(keyIt->second["events"].size(), 2);
 
   // 1005 is the first interval with 0 data on both sides, so end at 1004
   ASSERT_EQ(keyIt->second["events"][0]["startTime"].asInt(),
             queryRequest_.startTsSec);
   ASSERT_EQ(keyIt->second["events"][0]["endTime"].asInt(),
-            queryRequest_.startTsSec + (intervalInSeconds_ * 1004));
+            queryRequest_.startTsSec + (intervalInSeconds_ * 1005));
   // resume online status at 1011
   ASSERT_EQ(keyIt->second["events"][1]["startTime"].asInt(),
             queryRequest_.startTsSec + (intervalInSeconds_ * 1011));
