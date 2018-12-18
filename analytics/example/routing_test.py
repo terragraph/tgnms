@@ -158,8 +158,8 @@ class RoutingTest(unittest.TestCase):
         cls.network_info["topology"] = {}
 
         """
-        Nodes with beginning with "P" are POP nodes. All nodes beginning with
-        the same letter (except POPs) are connected via ethernet (physical)
+        Nodes with beginning with "P" are PoP nodes. All nodes beginning with
+        the same letter (except PoPs) are connected via ethernet (physical)
         links.
 
         D2--D1------A2--A3------E1--E2------P3
@@ -319,8 +319,8 @@ class RoutingTest(unittest.TestCase):
 
     def test_pop_nodes(self):
         """
-        Verify that POP nodes have a 0 hop count and empty route list since they
-        are themselves their closest POP nodes.
+        Verify that PoP nodes have a 0 hop count and empty route list since they
+        are themselves their closest PoP nodes.
         """
 
         pop_node_names = {
@@ -336,8 +336,8 @@ class RoutingTest(unittest.TestCase):
 
     def test_only_one_pop_in_route(self):
         """
-        Verify that no routes have more than one POP node and confirm that the
-        last node in the route is the POP node.
+        Verify that no routes have more than one PoP node and confirm that the
+        last node in the route is the PoP node.
         """
 
         pop_node_names = {
@@ -354,7 +354,7 @@ class RoutingTest(unittest.TestCase):
     def test_multiple_equidistant_pops(self):
         """
         Node A1 can reach both P2 and P3 in 2 wireless hops. Verify that both
-        POP names are present in A1's routes.
+        PoP names are present in A1's routes.
         """
 
         routes_for_a1 = self.node_name_to_routes["A1"]
@@ -372,10 +372,7 @@ class RoutingTest(unittest.TestCase):
 
         routes_for_a1 = self.node_name_to_routes["A1"]
         expected_r2p = RouteToPop(
-            pop_name="P2",
-            num_p2mp_hops=1,
-            ecmp=True,
-            path=["A1", "C1", "C2", "P2"],
+            pop_name="P2", num_p2mp_hops=1, ecmp=True, path=["A1", "C1", "C2", "P2"]
         )
 
         self.assertIn(expected_r2p, routes_for_a1.routes)
@@ -405,7 +402,7 @@ class RoutingTest(unittest.TestCase):
 
     def test_get_non_ecmp_routes(self):
         """
-        Node A1 has three unique equidistant routes to POPs. Two of them are to
+        Node A1 has three unique equidistant routes to PoPs. Two of them are to
         P2, and one is to P3. Verify that get_non_ecmp_routes will only return
         the RouteToPop ending at P3.
         """
@@ -422,6 +419,32 @@ class RoutingTest(unittest.TestCase):
 
         self.assertEqual(len(non_ecmp_routes), 1)
         self.assertIn(expected_r2p, non_ecmp_routes)
+
+    @mock.patch("module.routing._fetch", side_effect=mocked_fetch)
+    def test_filtered_node_names(self, mock_fetch):
+        """
+        get_routes_for_nodes can accept an additional (optional) argument that
+        allows the user to provide a subset of node names to filter by. Verify
+        that the output only contains RoutesForNode objects corresponding to the
+        node names in the filter set.
+        """
+
+        node_filter_set = {"A1", "D2", "E1", "E2", "P3"}
+
+        output = get_routes_for_nodes(self.network_info, node_filter_set)
+        self.assertSetEqual({r4n.name for r4n in output}, node_filter_set)
+
+    @mock.patch("module.routing._fetch", side_effect=mocked_fetch)
+    def test_non_existent_filtered_node_names(self, mock_fetch):
+        """
+        Verify that If a node name doesn't exist in the topology, no
+        RoutesForNode object should be created for that node.
+        """
+
+        node_filter_set = {"A1", "D2", "Z"}
+
+        output = get_routes_for_nodes(self.network_info, node_filter_set)
+        self.assertSetEqual({r4n.name for r4n in output}, {"A1", "D2"})
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from aiohttp import ClientSession
-from typing import List
+from typing import List, Optional, Set
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
@@ -20,10 +20,10 @@ from facebook.gorilla.Topology.ttypes import LinkType
 
 class RouteToPop(object):
     """
-    Wrapper class for storing data on a multihop route that terminates at a POP.
+    Wrapper class for storing data on a multihop route that terminates at a PoP.
 
     Params:
-        pop_name: name of the POP at which the route terminates
+        pop_name: name of the PoP at which the route terminates
         num_p2mp_hops: number of P2MP hops in the route
         ecmp: whether pop_name can be reached in additional equal cost routes
         path: list of nodes that form the route to pop_name
@@ -55,8 +55,8 @@ class RoutesForNode(object):
 
     Params:
         name: node name
-        num_hops: minimum number of (wireless) hops to the nearest POP(s)
-        routes: RouteToPop list, one for each route to any of the nearest POP(s)
+        num_hops: minimum number of (wireless) hops to the nearest PoP(s)
+        routes: RouteToPop list, one for each route to any of the nearest PoP(s)
     """
 
     def __init__(self, name: str, num_hops: int, routes: List[RouteToPop]) -> None:
@@ -76,7 +76,7 @@ class RoutesForNode(object):
     def get_non_ecmp_routes(self) -> List[RouteToPop]:
         """
         Return: list of possible RouteToPops that do not involve ECMP (i.e. are
-                to a unique POP)
+                to a unique PoP)
         """
 
         return [route for route in self.routes if not route.ecmp]
@@ -120,29 +120,48 @@ async def _run(hostname, port, node_names, pop_node_names):
         return await asyncio.gather(*tasks)
 
 
-def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
+def get_routes_for_nodes(
+    network_info: dict, node_filter_set: Optional[Set[str]] = None
+) -> List[RoutesForNode]:
     """
     Query the E2E controller and get a list of multihop routing info on the
     nodes in the network topology.
+
+    Args:
+        network_info: dict of network info from api/getTopology
+        node_filter_set: an optional subset of node names that allows the user
+                         to control for which nodes to compute RoutesForNodes.
+
+    Return:
+        return_list: list of RoutesForNode objects corresponding to the nodes in
+                     network_info (optionally filtered by node_filter_set)
     """
 
     topology = network_info["topology"]
+    nodes = set()  # type: Set[str]
+    pop_nodes = set()  # type: Set[str]
 
-    nodes = set()
-    pop_nodes = set()
-    for node in topology["nodes"]:
-        if node["pop_node"]:
-            pop_nodes.add(node["name"])
-        else:
-            nodes.add(node["name"])
+    if node_filter_set:
+        nodes = node_filter_set
+        pop_nodes = {node["name"] for node in topology["nodes"] if node["pop_node"]}
+    else:
+        for node in topology["nodes"]:
+            if node["pop_node"]:
+                pop_nodes.add(node["name"])
+            else:
+                nodes.add(node["name"])
 
     if not pop_nodes:
-        logging.error("Couldn't find any POP nodes in {}".format(topology["name"]))
+        logging.error("Couldn't find any PoP nodes in {}".format(topology["name"]))
         return []
 
-    # POP nodes are trivial and can be handled separately. POPs have 0 hop count
+    # PoP nodes are trivial and can be handled separately. PoPs have 0 hop count
     # and an empty route list
-    return_list = [RoutesForNode(name, 0, []) for name in pop_nodes]
+    return_list = [
+        RoutesForNode(name, 0, [])
+        for name in pop_nodes
+        if not node_filter_set or name in node_filter_set
+    ]
 
     # Fetch route data from the controller asynchronously to reduce wait time
     output = asyncio.get_event_loop().run_until_complete(
@@ -164,7 +183,7 @@ def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
                 continue
 
             for route in routes:
-                # Skip if the route has multiple POPs
+                # Skip if the route has multiple PoPs
                 if len(pop_nodes.intersection(route)) > 1:
                     continue
 
@@ -194,7 +213,7 @@ def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
                 elif num_hops == r4n.num_hops:
                     # Add to the list of existing routes if current route has an
                     # equal hop count. Set ecmp to True if there is already an
-                    # existing route to the same POP
+                    # existing route to the same PoP
                     ecmp = False
                     for r2p in r4n.routes:
                         if r2p.pop_name == pop_node_name:
@@ -205,7 +224,7 @@ def get_routes_for_nodes(network_info: dict) -> List[RoutesForNode]:
                         RouteToPop(pop_node_name, num_p2mp_hops, ecmp, route)
                     )
 
-        # Only add to the return list if a valid route was found
+        # Only add to the return list if at least one valid route was found
         if r4n.routes:
             return_list.append(r4n)
 
