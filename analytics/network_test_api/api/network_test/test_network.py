@@ -94,12 +94,16 @@ class TestNetwork(Thread):
         self.iperf_obj = run_iperf.RunIperf(self.socket, self.zmq_identifier)
         self.ping_obj = run_ping.RunPing(self.socket, self.zmq_identifier)
         while (
-            self.num_sent_req != len(self.test_list)
+            self.num_sent_req <= len(self.test_list)
             and time.time() < (self.test_start_time + self.recv_timeout)
             and self.listen_obj.is_alive()
         ):
             for link in self.test_list:
-                if time.time() >= (self.test_start_time + link["start_delay"]):
+                if (
+                    time.time() >= (self.test_start_time + link["start_delay"])
+                    and not link["iperf_object"].request_sent
+                    and not link["ping_object"].request_sent
+                ):
                     if link.get("iperf_object"):
                         if not link["iperf_object"].request_sent:
                             self.iperf_obj._config_iperf(
