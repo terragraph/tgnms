@@ -21,28 +21,19 @@ export default class ReactEventChart extends React.Component {
     super(props, context);
   }
 
-  nextColor(index) {
-    const colors = [
-      '#e41a1c',
-      '#377eb8',
-      '#4daf4a',
-      '#984ea3',
-      '#ff7f00',
-      '#ffff33',
-      '#a65628',
-      '#f781bf',
-    ];
-    return colors.length > index ? colors[index] : '#000000';
-  }
-
   outageEventStyleCB(event, state) {
     // see Stats.thrift
-    const LINK_STATE = {LINK_UP: 1, LINK_UP_DATADOWN: 2};
-    // green if LSM_LINK_UP or pink if LSM_LINK_UP_DATADOWN
-    const color =
-      event.get('linkState') === LINK_STATE.LINK_UP_DATADOWN
-        ? '#ff3672'
-        : '#4daf4a';
+    const LINK_STATE = {
+      LINK_UP: 1,
+      LINK_UP_DATADOWN: 2,
+      LINK_UP_AVAIL_UNKNOWN: 3,
+    };
+    let color = '#4daf4a'; // for LINK_UP
+    if (event.get('linkState') === LINK_STATE.LINK_UP_DATADOWN) {
+      color = '#ff3672';
+    } else if (event.get('linkState') === LINK_STATE.LINK_UP_AVAIL_UNKNOWN) {
+      color = '#ababab';
+    }
     switch (state) {
       case 'normal':
         return {

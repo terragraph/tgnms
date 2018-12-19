@@ -220,10 +220,11 @@ export default class NetworkNodesTable extends React.Component {
       let events = [];
       if (
         this.state.nodeHealth &&
-        this.state.nodeHealth.hasOwnProperty(node.name)
+        this.state.nodeHealth.hasOwnProperty('events') &&
+        this.state.nodeHealth.events.hasOwnProperty(node.name)
       ) {
-        availability = this.state.nodeHealth[node.name].alive;
-        events = this.state.nodeHealth[node.name].events;
+        availability = this.state.nodeHealth.events[node.name].linkAlive;
+        events = this.state.nodeHealth.events[node.name].events;
       }
       rows.push({
         alive:

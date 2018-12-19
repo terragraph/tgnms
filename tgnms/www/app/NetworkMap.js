@@ -487,10 +487,11 @@ export default class NetworkMap extends React.Component {
       // apply health data on link object for dependent components
       if (
         this.state.linkHealth &&
-        this.state.linkHealth.hasOwnProperty(link.name)
+        this.state.linkHealth.hasOwnProperty('events') &&
+        this.state.linkHealth.events.hasOwnProperty(link.name)
       ) {
-        const linkHealth = this.state.linkHealth[link.name];
-        link.alive_perc = linkHealth.alive;
+        const linkHealth = this.state.linkHealth.events[link.name];
+        link.alive_perc = linkHealth.linkAlive;
       }
 
       if (

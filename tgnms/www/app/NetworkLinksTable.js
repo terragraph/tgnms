@@ -731,7 +731,6 @@ export default class NetworkLinksTable extends React.Component {
             events={link.events}
             startTime={startTime}
             endTime={endTime}
-            size={'small'}
             width={style.width - 10}
             height={style.height - 10}
           />
