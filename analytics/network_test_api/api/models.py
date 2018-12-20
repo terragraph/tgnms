@@ -118,3 +118,5 @@ class SingleHopTest(models.Model):
     iperf_p90_tput = models.FloatField(null=True)
     iperf_client_blob = models.TextField(null=True, blank=True)
     iperf_server_blob = models.TextField(null=True, blank=True)
+    is_ecmp = models.BooleanField(default=False)
+    route_changed_count = models.IntegerField(default=0)
