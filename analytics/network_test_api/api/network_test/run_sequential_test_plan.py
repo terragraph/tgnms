@@ -11,6 +11,9 @@ from datetime import date
 from threading import Thread
 
 from api.models import (
+    BIDIRECTIONAL,
+    NORTHBOUND,
+    SOUTHBOUND,
     TEST_STATUS_ABORTED,
     TEST_STATUS_RUNNING,
     WIRELESS,
@@ -48,9 +51,7 @@ class RunSequentialTestPlan(Thread):
         * test_push_rate {bps}: Throughput push rate for iPerf.
                                 Specified by User (UI)
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
-        * direction: {1/2/3}: Run bidirectional traffic if 1
-                                      Pop -> node if 2
-                                      node -> Pop if 3
+        * direction: one of: bidirectional, POP -> node, node -> POP
     """
 
     def __init__(self, network_parameters):
@@ -65,12 +66,12 @@ class RunSequentialTestPlan(Thread):
         self.session_duration = network_parameters["session_duration"]
         self.test_push_rate = network_parameters["test_push_rate"]
         self.protocol = network_parameters["protocol"]
+        self.direction = network_parameters["direction"]
         self.parameters = {}
         self.test_run_obj = None
         self.start_time = time.time()
         self.received_output = {}
         self.received_output_queue = queue.Queue()
-        self.bidirectional = True
         self.links = []
         self.interval_sec = 1
 
@@ -113,7 +114,7 @@ class RunSequentialTestPlan(Thread):
                 if self.received_output["traffic_type"] == "IPERF_OUTPUT":
                     rcvd_src_node = self.received_output["source_node"]
                     rcvd_dest_node = self.received_output["destination_node"]
-                    if self.bidirectional:
+                    if self.direction == BIDIRECTIONAL:
                         if (rcvd_src_node, rcvd_dest_node) not in self.links and (
                             rcvd_dest_node,
                             rcvd_src_node,
@@ -218,14 +219,18 @@ class RunSequentialTestPlan(Thread):
                     + "-"
                     + node_mac_to_name[z_node_mac]
                 )
-                if self.bidirectional:
+                if self.direction == BIDIRECTIONAL:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac},
                         {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac},
                     ]
-                else:
+                elif self.direction == SOUTHBOUND:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac}
+                    ]
+                elif self.direction == NORTHBOUND:
+                    mac_list = [
+                        {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}
                     ]
                 for mac_addr in mac_list:
                     test_dict = {}

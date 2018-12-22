@@ -55,8 +55,18 @@ def start_test(request):
     session_duration = int(received_json_data["session_duration"])
     test_push_rate = int(received_json_data["test_push_rate"])
     protocol = str(received_json_data["protocol"])
+    traffic_direction = int(received_json_data["traffic_direction"])
     multi_hop_parallel_sessions = 3
     multi_hop_session_iteration_count = None
+
+
+    if traffic_direction not in [1, 2, 3]:
+        msg = "Incorrect traffic_direction value. Options: 1/2/3"
+        context_data["error"] = True
+        context_data["msg"] = msg
+        return HttpResponse(
+            json.dumps(context_data), content_type="application/json"
+        )
 
     if test_code == MULTI_HOP_TEST:
         try:
@@ -150,6 +160,7 @@ def start_test(request):
                     "protocol": protocol,
                     "multi_hop_parallel_sessions": multi_hop_parallel_sessions,
                     "multi_hop_session_iteration_count": multi_hop_session_iteration_count,
+                    "direction": traffic_direction,
                 }
                 # Run the test plan
                 if test_code == PARALLEL_TEST:

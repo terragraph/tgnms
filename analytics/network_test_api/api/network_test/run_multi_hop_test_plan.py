@@ -12,6 +12,9 @@ from datetime import date
 from threading import Thread
 
 from api.models import (
+    BIDIRECTIONAL,
+    NORTHBOUND,
+    SOUTHBOUND,
     TEST_STATUS_ABORTED,
     TEST_STATUS_RUNNING,
     WIRELESS,
@@ -57,6 +60,7 @@ class RunMultiHopTestPlan(Thread):
                                        run (will stop once entire network is traversed
                                        if multi_hop_session_iteration_count is larger
                                        than entire network)
+        * direction: one of: bidirectional, POP -> node, node -> POP
 """
 
     def __init__(self, network_parameters):
@@ -77,11 +81,11 @@ class RunMultiHopTestPlan(Thread):
         self.multi_hop_session_iteration_count = network_parameters[
             "multi_hop_session_iteration_count"
         ]
+        self.direction = network_parameters["direction"]
         self.parameters = {}
         self.start_time = time.time()
         self.received_output = {}
         self.received_output_queue = queue.Queue()
-        self.bidirectional = True
         self.links = []
         self.network_hop_info = None
         self.interval_sec = 1
@@ -138,7 +142,7 @@ class RunMultiHopTestPlan(Thread):
                 if self.received_output["traffic_type"] == "IPERF_OUTPUT":
                     rcvd_src_node = self.received_output["source_node"]
                     rcvd_dest_node = self.received_output["destination_node"]
-                    if self.bidirectional:
+                    if self.direction == BIDIRECTIONAL:
                         if (rcvd_src_node, rcvd_dest_node) not in self.links and (
                             rcvd_dest_node,
                             rcvd_src_node,
@@ -268,14 +272,18 @@ class RunMultiHopTestPlan(Thread):
                 + "-"
                 + node_mac_to_name[dst_node_mac]
             )
-            if self.bidirectional:
+            if self.direction == BIDIRECTIONAL:
                 mac_list = [
                     {"pop_node_mac": pop_node_mac, "dst_node_mac": dst_node_mac},
                     {"pop_node_mac": dst_node_mac, "dst_node_mac": pop_node_mac},
                 ]
-            else:
+            elif self.direction == SOUTHBOUND:
                 mac_list = [
                     {"pop_node_mac": pop_node_mac, "dst_node_mac": dst_node_mac}
+                ]
+            elif self.direction == NORTHBOUND:
+                mac_list = [
+                    {"pop_node_mac": dst_node_mac, "dst_node_mac": pop_node_mac}
                 ]
             for mac_addr in mac_list:
                 test_dict = {}

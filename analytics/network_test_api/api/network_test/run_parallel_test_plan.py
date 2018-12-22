@@ -12,6 +12,9 @@ from datetime import date
 from threading import Thread
 
 from api.models import (
+    BIDIRECTIONAL,
+    NORTHBOUND,
+    SOUTHBOUND,
     TEST_STATUS_ABORTED,
     TEST_STATUS_RUNNING,
     WIRELESS,
@@ -49,9 +52,7 @@ class RunParallelTestPlan(Thread):
         * test_push_rate {bps}: Throughput push rate for iPerf.
                                 Specified by User (UI)
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
-        * direction: {1/2/3}: Run bidirectional traffic if 1
-                                      Pop -> node if 2
-                                      node -> Pop if 3
+        * direction: one of: bidirectional, POP -> node, node -> POP
     """
 
     def __init__(self, network_parameters):
@@ -66,6 +67,7 @@ class RunParallelTestPlan(Thread):
         self.session_duration = network_parameters["session_duration"]
         self.test_push_rate = network_parameters["test_push_rate"]
         self.protocol = network_parameters["protocol"]
+        self.direction = network_parameters["direction"]
         self.status_error = False
         self.parameters = {}
         self.test_run_obj = None
@@ -74,7 +76,6 @@ class RunParallelTestPlan(Thread):
         self.test_status = None
         self.received_output = {}
         self.received_output_queue = queue.Queue()
-        self.bidirectional = True
         self.topology_sector_info = defaultdict(int)
         self.interval_sec = 1
 
@@ -156,8 +157,8 @@ class RunParallelTestPlan(Thread):
     def _create_time_series_list(self):
         time_series_list = []
         links = self.parameters["test_list"]
-        direction = 2 if self.bidirectional else 1
-        for atoz in range(0, len(links), direction):
+        num_direction = 2 if self.direction == BIDIRECTIONAL else 1
+        for atoz in range(0, len(links), num_direction):
             time_series_list.append(
                 TimeSeries(
                     name="PARALLEL_TEST_PLAN",
@@ -229,14 +230,18 @@ class RunParallelTestPlan(Thread):
                     + node_mac_to_name[z_node_mac]
                 )
                 bitrate = self._get_bitrate(self.test_push_rate, a_node_mac, z_node_mac)
-                if self.bidirectional:
+                if self.direction == BIDIRECTIONAL:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac},
                         {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac},
                     ]
-                else:
+                elif self.direction == SOUTHBOUND:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac}
+                    ]
+                elif self.direction == NORTHBOUND:
+                    mac_list = [
+                        {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}
                     ]
                 for mac_addr in mac_list:
                     test_dict = {}
