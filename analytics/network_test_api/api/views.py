@@ -234,8 +234,8 @@ def help(request):
     """
     This function returns json object which has the Network Test API information
     """
-    start_test_url_ext = "/api/stop_test/"
-    stop_test_url_ext = "/api/start_test/"
+    start_test_url_ext = "/api/start_test/"
+    stop_test_url_ext = "/api/stop_test/"
 
     # thrift help info for test_code
     sequential_test_code = network_ttypes.DropDown(
