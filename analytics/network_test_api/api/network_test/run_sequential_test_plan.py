@@ -51,7 +51,6 @@ class RunSequentialTestPlan(Thread):
         * test_push_rate {bps}: Throughput push rate for iPerf.
                                 Specified by User (UI)
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
-        * direction: one of: bidirectional, POP -> node, node -> POP
     """
 
     def __init__(self, network_parameters):
@@ -66,7 +65,7 @@ class RunSequentialTestPlan(Thread):
         self.session_duration = network_parameters["session_duration"]
         self.test_push_rate = network_parameters["test_push_rate"]
         self.protocol = network_parameters["protocol"]
-        self.direction = network_parameters["direction"]
+        self.direction = BIDIRECTIONAL
         self.parameters = {}
         self.test_run_obj = None
         self.start_time = time.time()

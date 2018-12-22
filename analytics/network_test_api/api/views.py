@@ -7,9 +7,12 @@ import sys
 import time
 
 from api.models import (
+    BIDIRECTIONAL,
     MULTI_HOP_TEST,
+    NORTHBOUND,
     PARALLEL_TEST,
     SEQUENTIAL_TEST,
+    SOUTHBOUND,
     TEST_STATUS_ABORTED,
     TEST_STATUS_RUNNING,
     TestRunExecution,
@@ -59,16 +62,14 @@ def start_test(request):
     multi_hop_parallel_sessions = 3
     multi_hop_session_iteration_count = None
 
-
-    if traffic_direction not in [1, 2, 3]:
-        msg = "Incorrect traffic_direction value. Options: 1/2/3"
-        context_data["error"] = True
-        context_data["msg"] = msg
-        return HttpResponse(
-            json.dumps(context_data), content_type="application/json"
-        )
-
     if test_code == MULTI_HOP_TEST:
+        if traffic_direction not in [BIDIRECTIONAL, SOUTHBOUND, NORTHBOUND]:
+            msg = "Incorrect traffic_direction value. Options: 1/2/3"
+            context_data["error"] = True
+            context_data["msg"] = msg
+            return HttpResponse(
+                json.dumps(context_data), content_type="application/json"
+            )
         try:
             multi_hop_parallel_sessions = int(
                 received_json_data["multi_hop_parallel_sessions"]
@@ -300,6 +301,22 @@ def help(request):
         label="iPerf Traffic Protocol", value="UDP", meta=protocol_meta
     )
 
+    # thrift help info for traffic_direction
+    bidirectional = network_ttypes.DropDown(
+        label="Bidirectional", value=str(BIDIRECTIONAL)
+    )
+    southbound = network_ttypes.DropDown(label="Southbound", value=str(SOUTHBOUND))
+    northbound = network_ttypes.DropDown(label="Northbound", value=str(NORTHBOUND))
+    traffic_direction_dropdown = [bidirectional, southbound, northbound]
+    traffic_direction_meta = network_ttypes.Meta(
+        dropdown=traffic_direction_dropdown, unit="None", type="int"
+    )
+    traffic_direction = network_ttypes.Parameter(
+        label="iPerf Traffic Direction",
+        value=str(BIDIRECTIONAL),
+        meta=traffic_direction_meta,
+    )
+
     # thrift help info for multi_hop_parallel_sessions
     one = network_ttypes.DropDown(label="1", value="1")
     two = network_ttypes.DropDown(label="2", value="2")
@@ -350,6 +367,7 @@ def help(request):
         session_duration,
         test_push_rate,
         protocol,
+        traffic_direction,
         multi_hop_parallel_sessions,
         multi_hop_session_iteration_count,
     ]
