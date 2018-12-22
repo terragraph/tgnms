@@ -1,11 +1,21 @@
 #!/usr/bin/env python3.6
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
+import os
+import sys
 import time
 from threading import Thread
 
-from api.models import TestRunExecution
+from api.models import MULTI_HOP_TEST, SingleHopTest, TestRunExecution
 from api.network_test import connect_to_ctrl, listen, run_iperf, run_ping
+from django.db import transaction
+
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/../../")
+)
+from module.routing import get_routes_for_nodes
 
 
 class TestNetwork(Thread):
@@ -16,6 +26,8 @@ class TestNetwork(Thread):
         self.controller_addr = parameters["controller_addr"]
         self.controller_port = parameters["controller_port"]
         self.test_list = parameters["test_list"]
+        self.session_duration = parameters["session_duration"]
+        self.topology = parameters["topology"]
         self.recv_timeout = 0
         self.number_of_iperf_object = 0
         self.number_of_ping_object = 0
@@ -26,6 +38,8 @@ class TestNetwork(Thread):
         self.ping_obj = None
         self.num_sent_req = 0
         self.test_start_time = time.time()
+        self.current_second = 0
+        self.polling_delay = 5
 
     def run(self):
         self._test_network()
@@ -93,6 +107,8 @@ class TestNetwork(Thread):
         # send iperf and ping requests to the Ctrl
         self.iperf_obj = run_iperf.RunIperf(self.socket, self.zmq_identifier)
         self.ping_obj = run_ping.RunPing(self.socket, self.zmq_identifier)
+        node_mac_to_name = {n["mac_addr"]: n["name"] for n in self.topology["nodes"]}
+        asyncio.set_event_loop(asyncio.new_event_loop())
         while (
             self.num_sent_req <= len(self.test_list)
             and time.time() < (self.test_start_time + self.recv_timeout)
@@ -124,6 +140,9 @@ class TestNetwork(Thread):
                                 link["iperf_object"].use_link_local,
                             )
                             link["iperf_object"].request_sent = True
+                            link["iperf_object"].end_time = (
+                                time.time() + self.session_duration
+                            )
                     if link.get("ping_object"):
                         if not link["ping_object"].request_sent:
                             self.ping_obj._config_ping(
@@ -138,11 +157,56 @@ class TestNetwork(Thread):
                                 link["ping_object"].use_link_local,
                             )
                             link["ping_object"].request_sent = True
+                            link["ping_object"].end_time = (
+                                time.time() + self.session_duration
+                            )
                     self.num_sent_req += 1
+            # poll for route integrity in every polling_delay seconds
+            if self.parameters["test_code"] == MULTI_HOP_TEST:
+                if not (self.current_second % self.polling_delay):
+                    for link in self.test_list:
+                        if (
+                            link["iperf_object"].request_sent
+                            and link["ping_object"].request_sent
+                            and time.time() <= link["iperf_object"].end_time
+                            and time.time() <= link["ping_object"].end_time
+                        ):
+                            if link["route"] is None:
+                                link["route"] = get_routes_for_nodes(
+                                    network_info=self.parameters["network_info"][
+                                        self.parameters["topology_id"]
+                                    ],
+                                    node_filter_set={
+                                        node_mac_to_name[link["dst_node_id"]]
+                                    },
+                                )
+                            else:
+                                current_route = get_routes_for_nodes(
+                                    network_info=self.parameters["network_info"][
+                                        self.parameters["topology_id"]
+                                    ],
+                                    node_filter_set={
+                                        node_mac_to_name[link["dst_node_id"]]
+                                    },
+                                )
+                                if not (current_route == link["route"]):
+                                    link["route_changed_count"] += 1
+                                    link["route"] = current_route
             time.sleep(1)
-
+            self.current_second += 1
         # wait for listen thread to finish
         self.listen_obj.join()
+
+        # write route_changed_count of all links to db
+        if self.parameters["test_code"] == MULTI_HOP_TEST:
+            for link in self.test_list:
+                link_db_obj = SingleHopTest.objects.filter(
+                    id=link["id"]
+                ).first()
+                if link_db_obj is not None:
+                    with transaction.atomic():
+                        link_db_obj.route_changed_count = link["route_changed_count"]
+                        link_db_obj.save()
 
 
 class IperfObj:
@@ -186,6 +250,7 @@ class IperfObj:
         self.format = format
         self.use_link_local = use_link_local
         self.request_sent = False
+        self.end_time = None
 
 
 class PingObj:
@@ -217,3 +282,4 @@ class PingObj:
         self.timeout = timeout
         self.use_link_local = use_link_local
         self.request_sent = False
+        self.end_time = None

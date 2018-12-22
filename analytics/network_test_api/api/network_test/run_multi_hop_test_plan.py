@@ -90,7 +90,9 @@ class RunMultiHopTestPlan(Thread):
 
         # Get Network Hop information
         asyncio.set_event_loop(asyncio.new_event_loop())
-        self.network_hop_info = get_routes_for_nodes(self.network_info[1])
+        self.network_hop_info = get_routes_for_nodes(
+            self.network_info[self.topology_id]
+        )
 
         # Calculate pop to node links based on number of hops
         pop_to_node_links = self._get_pop_to_node_links(self.network_hop_info)
@@ -119,6 +121,11 @@ class RunMultiHopTestPlan(Thread):
             "test_run_id": test_run.id,
             "test_list": test_list,
             "expected_num_of_intervals": self.session_duration * self.interval_sec,
+            "test_code": self.test_code,
+            "network_hop_info": self.network_hop_info,
+            "session_duration": self.session_duration,
+            "topology": self.topology,
+            "topology_id": self.topology_id,
         }
 
         # Create TestNetwork object and kick it off
@@ -313,6 +320,8 @@ class RunMultiHopTestPlan(Thread):
                 test_dict["start_delay"] = pop_to_node_link["start_delay"]
                 test_dict["ecmp"] = pop_to_node_link["ecmp"]
                 test_dict["id"] = None
+                test_dict["route"] = None
+                test_dict["route_changed_count"] = 0
                 test_list.append(test_dict)
             session_count += 1
             if session_count == session_limit_count:

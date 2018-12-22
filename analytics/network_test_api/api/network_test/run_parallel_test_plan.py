@@ -88,6 +88,8 @@ class RunParallelTestPlan(Thread):
             "test_list": test_list,
             "session_duration": self.session_duration,
             "expected_num_of_intervals": self.session_duration * self.interval_sec,
+            "topology": self.topology,
+            "test_code": self.test_code,
         }
 
         # Create TestNetwork object and kick it off
