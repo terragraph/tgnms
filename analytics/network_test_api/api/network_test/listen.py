@@ -179,7 +179,9 @@ class RecvFromCtrl(base.Base):
         try:
             parsed_iperf_output_dict = json.loads(iperf_output)
         except json.decoder.JSONDecodeError:
-            iperf_output = iperf_output.split("Control connection MSS 7728")[1]
+            # Remove first line of iperf_output
+            end_of_first_line_index = iperf_output.index("\n")
+            iperf_output = iperf_output[end_of_first_line_index + 1:]
             parsed_iperf_output_dict = json.loads(iperf_output)
         if parsed_iperf_output_dict.get("error"):
             if "error" in parsed_iperf_output_dict["error"]:
