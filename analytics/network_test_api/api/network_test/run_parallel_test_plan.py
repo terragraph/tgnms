@@ -34,6 +34,26 @@ logging.basicConfig(level=logging.INFO)
 
 
 class RunParallelTestPlan(Thread):
+    """
+        * controller_addr: IP address of the E2E Controller
+        * controller_port: Port address of the E2E Controller
+        * network_info: Contains Network information (controller and topology)
+            of the topology_id specified by User (UI)
+        * test_code {8.2/8.3/8.9}: ID corresponding to the Test Plan.
+                                   Specified by User (UI)
+        * topology_id: ID corresponding to the Topology. Specified by User (UI)
+        * topology_name: Name of selected Topology
+        * topology: Topology information extracted from network_info
+        * session_duration {seconds}: Duration of each iperf/ping session.
+                               Specified by User (UI)
+        * test_push_rate {bps}: Throughput push rate for iPerf.
+                                Specified by User (UI)
+        * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
+        * direction: {1/2/3}: Run bidirectional traffic if 1
+                                      Pop -> node if 2
+                                      node -> Pop if 3
+    """
+
     def __init__(self, network_parameters):
         Thread.__init__(self)
         self.controller_addr = network_parameters["controller_addr"]

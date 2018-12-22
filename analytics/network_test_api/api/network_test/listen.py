@@ -35,6 +35,17 @@ logging.basicConfig(level=logging.INFO)
 
 
 class RecvFromCtrl(base.Base):
+    """
+        * ctrl_sock: ZMQ Socket handle used to communicate with the controller
+        * zmq_identifier: Identifier associated with the ZMQ Socket
+        * recv_timeout {seconds}: Timeout before which all responses have to be
+                                  received
+        * expected_number_of_responses: Total number of expected responses
+        * received_output_queue: Queue share between threads to keep track of
+                                 the links for which we have received the
+                                 iperf/ping responses.
+    """
+
     def __init__(
         self,
         _ctrl_sock,
@@ -49,8 +60,9 @@ class RecvFromCtrl(base.Base):
         self.zmq_identifier = zmq_identifier
         self.recv_timeout = time.time() + recv_timeout
         self.expected_number_of_responses = expected_number_of_responses
-        self.number_of_responses = 0
         self.parameters = parameters
+        self.received_output_queue = received_output_queue
+        self.number_of_responses = 0
         self.start_iperf_ids = []
         self.start_ping_ids = []
         self.parsed_iperf_data = ""
@@ -59,7 +71,6 @@ class RecvFromCtrl(base.Base):
         self.parsed_ping_data = ""
         self.test_aborted = False
         self.test_aborted_queue = queue.Queue()
-        self.received_output_queue = received_output_queue
 
     def _get_recv_obj(self, msg_type, actual_sender_app):
         msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES.get(msg_type, "UNKNOWN")

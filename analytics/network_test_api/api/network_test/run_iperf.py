@@ -20,37 +20,25 @@ class RunIperf(base.Base):
         super().__init__(_ctrl_sock, zmq_identifier)
 
     """
-        * {String} [src_node_id]
-        *           The source node MAC address
-        * {String} [dst_node_id]
-        *           The destination node MAC address
-        * {Int64} [bitrate]
-        *           The target traffic bitrate (bps)
-        * {Int32} [time_sec]
-        *           The measurement duration (in seconds)
-        * {Int(IperfTransportProtocol)=6,17} [proto]
-        *           The transport proto (6=TCP, 17=UDP)
-        * {Int32} [interval_sec]
-        *           The interval between periodic bandwidth reports
-        *           (in seconds)
-        * {Int64} [window_size]
-        *           The window size (in bytes)
-        * {Int32} [mss]
-        *           The TCP maximum segment size (MTU - 40 bytes)
-        * {Boolean} [no_delay]
-        *           Disable Nagle's Algorithm
-        * {Int32} [omit_sec]
-        *           Omit the first n seconds of the measurement
-        * {Boolean} [verbose]
-        *           Show more detailed output
-        * {Boolean} [json] Output in JSON format
-        * {Int64} [buffer_length] T
-        *           he buffer length (in bytes)
-        * {Int(IperfFormat)=1,2,3,4,5,6} [format]
-        *           The format to report (1=KILOBITS, 2=MEGABITS, 3=GIGABITS,
-        *           4=KILOBYTES, 5=MEGABYTES, 6=GIGABYTES)
-        * {Boolean} [use_link_local]
-        *             Whether to use the link-local IP address and interface
+        * src_node_id {String}: The source node MAC address
+        * dst_node_id {String}: The destination node MAC address
+        * bitrate {Int64}: The target traffic bitrate (bps)
+        * time_sec {Int32}: The measurement duration (in seconds)
+        * proto {Int(IperfTransportProtocol)=6,17}: The transport proto (6=TCP, 17=UDP)
+        * interval_sec {Int32}: The interval between periodic bandwidth reports
+                                (in seconds)
+        * window_size {Int64}: The window size (in bytes)
+        * mss {Int32}: The TCP maximum segment size (MTU - 40 bytes)
+        * no_delay {Boolean}: Disable Nagle's Algorithm
+        * omit_sec {Int32}: Omit the first n seconds of the measurement
+        * verbose {Boolean}: Show more detailed output
+        * json {Boolean}: Output in JSON format
+        * buffer_length{Int64}: The buffer length (in bytes)
+        * format {Int(IperfFormat)=1,2,3,4,5,6}: The format to report
+                                    (1=KILOBITS, 2=MEGABITS, 3=GIGABITS,
+                                    4=KILOBYTES, 5=MEGABYTES, 6=GIGABYTES)
+        * use_link_local {Boolean}: Whether to use the link-local IP address
+                                    and interface
     """
 
     def _config_iperf(

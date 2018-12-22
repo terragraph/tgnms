@@ -19,6 +19,15 @@ from module.routing import get_routes_for_nodes
 
 
 class TestNetwork(Thread):
+    """
+        * received_output_queue: Queue share between threads to keep track of
+                                 the links for which we have received the
+                                 iperf/ping responses.
+        * controller_addr: IP address of the E2E Controller
+        * controller_port: Port address of the E2E Controller
+        * test_list: list of links on which iPerf/ping is to be started.
+    """
+
     def __init__(self, parameters, received_output_queue):
         Thread.__init__(self)
         self.parameters = parameters

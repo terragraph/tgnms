@@ -13,6 +13,11 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ConnectToController:
+    """
+        * controller_addr: IP address of the E2E Controller
+        * controller_port: Port address of the E2E Controller
+    """
+
     def __init__(self, controller_addr, controller_port):
         self._controller_addr = controller_addr
         self._controller_port = controller_port
