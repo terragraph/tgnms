@@ -8,4 +8,5 @@ from django.conf.urls import url
 urlpatterns = [
     url(r"start_test/$", views.start_test, name="start_test"),
     url(r"stop_test/$", views.stop_test, name="stop_test"),
+    url(r"help/$", views.help, name="help"),
 ]
