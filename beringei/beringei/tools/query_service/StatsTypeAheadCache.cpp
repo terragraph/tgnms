@@ -420,6 +420,7 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
   std::set<int> usedShortMetricIds;
   int retMetricId = 0;
   // search short-name metrics
+  // nameToMetricIds_[shortName] = [keyId1, keyId2, ... ]
   VLOG(1) << "Found " << nameToMetricIds_.size()
           << " metric names to search through.";
   for (const auto& metric : nameToMetricIds_) {
@@ -444,6 +445,7 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
     }
   }
   VLOG(1) << "Found " << keyToMetricIds_.size() << " keys to search through.";
+  // keyToMetricIds_[keyName] = [keyId1, keyId2, ... ]
   for (const auto& metric : keyToMetricIds_) {
     std::smatch metricMatch;
     if (std::regex_search(metric.first, metricMatch, metricRegex)) {
@@ -459,6 +461,8 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
           metricKeyList.push_back(*metricIt->second);
         }
         if (retMetrics.size() >= limit) {
+          VLOG(1) << "(Limit reached) Returning " << retMetrics.size()
+                  << " metrics for " << metricName << " query.";
           return retMetrics;
         }
       }

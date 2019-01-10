@@ -597,11 +597,11 @@ void BeringeiReader::formatData() {
           if (!keyMetaData.linkName.empty()) {
             // attempt to use link name + direction if link name set
             keyName = folly::sformat(
-                "{} ({})",
+                "{} ({}) / {}",
                 keyMetaData.linkName,
-                keyMetaData.linkDirection == stats::LinkDirection::LINK_A
-                    ? "A"
-                    : "Z");
+                keyMetaData.linkDirection == stats::LinkDirection::LINK_A ? "A"
+                                                                          : "Z",
+                keyMetaData.keyName);
           }
           columnNames.push_back(keyName);
         } else {
