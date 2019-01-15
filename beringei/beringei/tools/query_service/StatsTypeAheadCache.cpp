@@ -524,18 +524,29 @@ folly::dynamic StatsTypeAheadCache::listNodes(
   }
 
   if (nodeA_name.empty()) {
-    LOG(ERROR) << "nodeA not found in topology";
     return folly::dynamic::object();
   }
 
-  // get all linked nodeZ mac_addrs from nodeA
+  // get all linked mac_addrs from nodeA
   folly::dynamic node_z_macs = folly::dynamic::array;
   for (const auto& link : topology->links) {
-    if (link.a_node_name == nodeA_name) {
-      for (const auto& node : topology->nodes) {
-        if (node.name == link.z_node_name) {
-          node_z_macs.push_back(node.mac_addr);
-        }
+    std::string matchingName;
+    if (link.link_type == query::LinkType::WIRELESS) {
+      if (link.a_node_name == nodeA_name) {
+        matchingName = link.z_node_name;
+      } else if (link.z_node_name == nodeA_name) {
+        matchingName = link.a_node_name;
+      } else {
+        continue;
+      }
+    }
+    else {
+      continue; // consider only WIRELESS links
+    }
+
+    for (const auto& node : topology->nodes) {
+      if (node.name == matchingName) {
+        node_z_macs.push_back(node.mac_addr);
       }
     }
   }
