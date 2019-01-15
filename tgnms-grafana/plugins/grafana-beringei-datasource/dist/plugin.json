@@ -24,7 +24,7 @@
       {"name": "GitHub", "url": "https://github.com/facebookexternal/terragraph-nms"}
     ],
     "version": "0.0.1",
-    "updated": "2018-10-02"
+    "updated": "2018-12-25"
   },
 
   "dependencies": {

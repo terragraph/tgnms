@@ -88,24 +88,6 @@ export class GenericDatasource {
               || !target.rawQuery;
     });
 
-    // set defaults
-    this.editor_options_fallback_map.set('scale', options.targets[0].scale)
-      .set('diff', options.targets[0].diff);
-
-    this.keyname_options_map = new Map(); // clear in case of query deletion
-    for (let i = 0; i < options.targets.length; i++) {
-      let new_scale = Number(options.targets[i].scale);
-      if (isNaN(new_scale)) {
-        new_scale = 1;
-      }
-      this.keyname_options_map.set(
-        options.targets[i].keyname,
-        {"scale": new_scale, "diff": options.targets[i].diff}
-      );
-    }
-
-
-
     let timeFilter = this.getTimeFilter(options);
 
     let targets = _.map(options.targets, target => {
@@ -128,12 +110,26 @@ export class GenericDatasource {
         return retObject;
       } else {
         // put query in the form in Stats.thrift::QueryRequest
+        // "replace" command replaces variables with actual value
+        // "replace" does not work on numbers or checkboxes - only strings
         const restrictor = this.templateSrv.replace(target.restrictor,
           options.scopedVars, 'regex');
         const keyname = this.templateSrv.replace(target.keyname,
           options.scopedVars, 'regex');
-        let beringeisource = this.templateSrv.replace(target.beringeisource,
-          options.scopedVars, 'regex');
+        let beringeisource = target.beringeisource;
+        let scale = Number(target.scale);
+        scale = isNaN(scale) ? 1.0 : scale;
+        const diff = target.diff;
+
+        if (!this.editor_options_fallback_map.get('scale')) {
+          this.editor_options_fallback_map.set('scale', scale)
+            .set('diff', diff);
+        }
+
+        const refId = target.refId;
+        this.keyname_options_map.set(
+          keyname, {"scale": scale, "diff": diff}
+        );
 
         // build the query
         let targetnew = {};
@@ -203,7 +199,8 @@ export class GenericDatasource {
     for (let i = 1; i < query.targets.length; i++) {
       if (query.targets[0].target.keyNames &&
         query.targets[i].target.keyNames) {
-        query.targets[0].target.keyNames.push(query.targets[i].target.keyNames[0]);
+        query.targets[0].target.keyNames.
+           push(query.targets[i].target.keyNames[0]);
       }
     }
 
@@ -222,23 +219,34 @@ export class GenericDatasource {
     }
     if (result.data.columns.length <= 1) {
       console.log('columns field has only one entry');
+      result.data = [];
       return result;
     }
 
     if (result.data.points[0].length !== result.data.columns.length) {
       console.log('columns and every element of points same length error');
+      result.data = [];
     }
 
     let data = new Array();
     // start with i = 1, i = 0 is "time"
+    // grafana wants: results.data = [{target: "key1"},
+    //    {datapoints: [[val,time], [val,time], ...]}, {target: "key2"},
+    //    {datapoints: [[val,time], [val,time], ...]}, ...]
+    // BQS returns
+    //  result.data.columns = ["time", "key1", "key2", ...]
+    //  result.data.points = [0:n-1][0] = time
+    //  result.data.points = [0:n-1][1] = key1 data
+    //  ...
+    //  result.data.points = [0:n-1][n] = keyn data
     for (let i = 1; i < result.data.columns.length; i++) {
       data.push(new Object());
       const keyname = this.get_keyname_from_target(result.data.columns[i]);
       const editor_options = this.keyname_options_map.get(keyname);
       const scale = editor_options ? editor_options.scale :
-                                     this.editor_options_fallback_map.get("scale");
+                                this.editor_options_fallback_map.get("scale");
       const diff = editor_options ? editor_options.diff :
-                                    this.editor_options_fallback_map.get("diff");
+                                this.editor_options_fallback_map.get("diff");
       data[i - 1].target = result.data.columns[i];
       data[i - 1].datapoints = new Array();
       if (diff) {
@@ -246,13 +254,14 @@ export class GenericDatasource {
           let tmp = new Array();
           let diff_value;
           if (result.data.points[j][i] === null ||
-              result.data.points[j-1][i] === null) {
+              result.data.points[j - 1][i] === null) {
             diff_value = null;
           }
           else {
-            diff_value = result.data.points[j][i] - result.data.points[j-1][i];
+            diff_value =
+              (result.data.points[j][i] - result.data.points[j - 1][i]) * scale;
           }
-          tmp.push(diff_value * scale); // diff_value
+          tmp.push(diff_value);
           tmp.push(result.data.points[j][0]); // unixTime
           data[i - 1].datapoints.push(tmp);
         }
@@ -260,13 +269,13 @@ export class GenericDatasource {
       else {
         for (let j = 0; j < result.data.points.length; j++) {
           let tmp = new Array();
-          tmp.push(result.data.points[j][i] * scale); // value
+          tmp.push(result.data.points[j][i] === null ? null :
+                   result.data.points[j][i] * scale);
           tmp.push(result.data.points[j][0]); // unixTime
           data[i - 1].datapoints.push(tmp);
         }
       }
     }
-    delete result.data;
     result.data = data;
     return result;
   }
@@ -425,7 +434,7 @@ export class GenericDatasource {
       });
     }
     else {
-      return [];
+      return { text: "BQS not responding", value: "BQS not responding"};
     }
   }
 

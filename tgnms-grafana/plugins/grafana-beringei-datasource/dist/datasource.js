@@ -134,18 +134,6 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               return target.target !== 'enter raw query' && target.rawQuery || !target.rawQuery;
             });
 
-            // set defaults
-            this.editor_options_fallback_map.set('scale', options.targets[0].scale).set('diff', options.targets[0].diff);
-
-            this.keyname_options_map = new Map(); // clear in case of query deletion
-            for (var i = 0; i < options.targets.length; i++) {
-              var new_scale = Number(options.targets[i].scale);
-              if (isNaN(new_scale)) {
-                new_scale = 1;
-              }
-              this.keyname_options_map.set(options.targets[i].keyname, { "scale": new_scale, "diff": options.targets[i].diff });
-            }
-
             var timeFilter = this.getTimeFilter(options);
 
             var targets = _.map(options.targets, function (target) {
@@ -166,9 +154,21 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
                 return retObject;
               } else {
                 // put query in the form in Stats.thrift::QueryRequest
+                // "replace" command replaces variables with actual value
+                // "replace" does not work on numbers or checkboxes - only strings
                 var restrictor = _this.templateSrv.replace(target.restrictor, options.scopedVars, 'regex');
                 var keyname = _this.templateSrv.replace(target.keyname, options.scopedVars, 'regex');
-                var beringeisource = _this.templateSrv.replace(target.beringeisource, options.scopedVars, 'regex');
+                var beringeisource = target.beringeisource;
+                var scale = Number(target.scale);
+                scale = isNaN(scale) ? 1.0 : scale;
+                var diff = target.diff;
+
+                if (!_this.editor_options_fallback_map.get('scale')) {
+                  _this.editor_options_fallback_map.set('scale', scale).set('diff', diff);
+                }
+
+                var refId = target.refId;
+                _this.keyname_options_map.set(keyname, { "scale": scale, "diff": diff });
 
                 // build the query
                 var _targetnew = {};
@@ -258,15 +258,26 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
             }
             if (result.data.columns.length <= 1) {
               console.log('columns field has only one entry');
+              result.data = [];
               return result;
             }
 
             if (result.data.points[0].length !== result.data.columns.length) {
               console.log('columns and every element of points same length error');
+              result.data = [];
             }
 
             var data = new Array();
             // start with i = 1, i = 0 is "time"
+            // grafana wants: results.data = [{target: "key1"},
+            //    {datapoints: [[val,time], [val,time], ...]}, {target: "key2"},
+            //    {datapoints: [[val,time], [val,time], ...]}, ...]
+            // BQS returns
+            //  result.data.columns = ["time", "key1", "key2", ...]
+            //  result.data.points = [0:n-1][0] = time
+            //  result.data.points = [0:n-1][1] = key1 data
+            //  ...
+            //  result.data.points = [0:n-1][n] = keyn data
             for (var i = 1; i < result.data.columns.length; i++) {
               data.push(new Object());
               var keyname = this.get_keyname_from_target(result.data.columns[i]);
@@ -282,22 +293,21 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
                   if (result.data.points[j][i] === null || result.data.points[j - 1][i] === null) {
                     diff_value = null;
                   } else {
-                    diff_value = result.data.points[j][i] - result.data.points[j - 1][i];
+                    diff_value = (result.data.points[j][i] - result.data.points[j - 1][i]) * scale;
                   }
-                  tmp.push(diff_value * scale); // diff_value
+                  tmp.push(diff_value);
                   tmp.push(result.data.points[j][0]); // unixTime
                   data[i - 1].datapoints.push(tmp);
                 }
               } else {
                 for (var _j = 0; _j < result.data.points.length; _j++) {
                   var _tmp = new Array();
-                  _tmp.push(result.data.points[_j][i] * scale); // value
+                  _tmp.push(result.data.points[_j][i] === null ? null : result.data.points[_j][i] * scale);
                   _tmp.push(result.data.points[_j][0]); // unixTime
                   data[i - 1].datapoints.push(_tmp);
                 }
               }
             }
-            delete result.data;
             result.data = data;
             return result;
           }
@@ -396,13 +406,13 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               typeaheadType = TYPEAHEADTYPE["TOPOLOGYNAME"];
             }
             // A restricted node query is __bqs_noderestrict_[[nodeA]]_[[topology]]
-            // to find only the nodes which are linked to [[nodeA]]
+            // to find only the nodes which are linked to [[nodeA]], a MAC address
             else if (searchTerm.includes("__bqs_noderestrict_")) {
                 typeaheadType = TYPEAHEADTYPE["NODENAME"];
                 var topologyIndex = searchTerm.lastIndexOf("_");
                 var nodeAIndex = 19;
                 var nodeAstr = searchTerm.slice(nodeAIndex, topologyIndex);
-                topologyName = searchTerm.slice(topologyIndex + 1);
+                var _topologyName = searchTerm.slice(topologyIndex + 1);
                 var restrictorObj = {};
                 restrictorObj.values = [];
                 restrictorObj.values.push(nodeAstr);
@@ -480,7 +490,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
                 return { text: d, value: d };
               });
             } else {
-              return [];
+              return { text: "BQS not responding", value: "BQS not responding" };
             }
           }
         }, {
