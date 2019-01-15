@@ -1,0 +1,1 @@
+{"id":2,"orgId":1,"name":"MySQL","type":"mysql","typeLogoUrl":"public/app/plugins/datasource/mysql/img/mysql_logo.svg","access":"proxy","url":"url:port","password":"mysqlpasswd","user":"mysqluser","database":"cxl","basicAuth":false,"isDefault":false,"jsonData":{"keepCookies":[]},"readOnly":false}

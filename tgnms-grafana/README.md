@@ -6,7 +6,7 @@ The terragraph Grafana image can be built using the script
 - build_grafana_docker.sh
 
 The tg-grafana image is used both for running Grafana and, as a second
-container for inititating users, data sources, and installing pre-built
+container for initiating users, data sources, and installing pre-built
 dashboards.
 
 Once installed, Grafana will have two data sources:

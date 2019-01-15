@@ -1,0 +1,278 @@
+{ "dashboard" : {
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 2,
+  "iteration": 1546467997261,
+  "links": [],
+  "panels": [
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Beringei",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 6,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "beringeisource": "30",
+          "keyname": "tgf.[[nodeA]].phystatus.ssnrest",
+          "refId": "A",
+          "restrictor": "[[nodeZ]]",
+          "target": "enter raw query",
+          "type": "timeserie"
+        },
+        {
+          "beringeisource": "30",
+          "keyname": "tgf.[[nodeA]].phystatusdata.spostsnrdb",
+          "refId": "B",
+          "restrictor": "select restrictor",
+          "target": "enter raw query",
+          "type": "timeserie"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Click to edit",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 16,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "text": "outdoor MPK 17 F8",
+          "value": "outdoor MPK 17 F8"
+        },
+        "datasource": "Beringei",
+        "definition": "",
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "topology",
+        "options": [
+          {
+            "selected": false,
+            "text": "Lab Alignment",
+            "value": "Lab Alignment"
+          },
+          {
+            "selected": true,
+            "text": "outdoor MPK 17 F8",
+            "value": "outdoor MPK 17 F8"
+          },
+          {
+            "selected": false,
+            "text": "tower G",
+            "value": "tower G"
+          },
+          {
+            "selected": false,
+            "text": "TowerC Floor1",
+            "value": "TowerC Floor1"
+          },
+          {
+            "selected": false,
+            "text": "tower E",
+            "value": "tower E"
+          },
+          {
+            "selected": false,
+            "text": "Lab F8 D",
+            "value": "Lab F8 D"
+          },
+          {
+            "selected": false,
+            "text": "Lab F8 B",
+            "value": "Lab F8 B"
+          },
+          {
+            "selected": false,
+            "text": "1 DN config",
+            "value": "1 DN config"
+          }
+        ],
+        "query": "__bqs_topology_query",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "38:3a:21:b0:0d:2d",
+          "value": "38:3a:21:b0:0d:2d"
+        },
+        "datasource": "Beringei",
+        "definition": "",
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "nodeA",
+        "options": [],
+        "query": "__bqs_[[topology]]",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "38:3a:21:b0:0e:e9",
+          "value": "38:3a:21:b0:0e:e9"
+        },
+        "datasource": "Beringei",
+        "definition": "",
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "nodeZ",
+        "options": [],
+        "query": "__bqs_noderestrict_[[nodeA]]_[[topology]]",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-12h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "",
+  "title": "Template 1",
+  "uid": null,
+  "version": 1
+},
+"folderId" : 0,
+"overwrite" : false
+}
