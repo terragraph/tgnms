@@ -283,6 +283,49 @@ services:
       - db
       - bqs
 
+  grafana:
+    build:
+      context: .
+    image: secure.cxl-terragraph.com:443/tg_grafana:latest
+    env_file:
+      - ./env/mysql.env
+      - ./env/grafana.env
+    environment:
+      - GF_DATABASE_TYPE=mysql
+      - GF_DATABASE_HOST=db:3306
+      - GF_DATABASE_NAME=$${GRAFANA_DB}
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_SECURITY_ADMIN_PASSWORD=$${GRAFANA_ADMIN_PASS}
+      - GF_DATABASE_USER=$${GRAFANA_MYSQL_WRITER}
+      - GF_DATABASE_PASSWORD=$${GRAFANA_MYSQL_WRITER_PASS}
+      - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Editor
+    restart: unless-stopped
+    ports:
+      - "443:3000"
+    networks:
+      - terragraph_net
+    depends_on:
+      - ipv6
+      - db
+      - bqs
+
+  grafana_util:
+    build:
+      context: .
+    image: secure.cxl-terragraph.com:443/tg_grafana:latest
+    env_file:
+      - ./env/mysql.env
+      - ./env/grafana.env
+    restart: "no"
+    networks:
+      - terragraph_net
+    entrypoint: ["/bin/sh", "-c", "until nc -z grafana 3000; do sleep 1; done && until nc -z bqs 8086; do sleep 1; done && cd /var/lib/grafana && grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip bqs --ds_port 8086 --ds_file beringei_data_source.json; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip db --ds_port 3306 --ds_file mysql_data_source.json --ds_user $${GRAFANA_MYSQL_READER} --ds_passwd $${GRAFANA_MYSQL_READER_PASS}; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} add-users; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-dashboards"]
+    depends_on:
+      - ipv6
+      - db
+      - bqs
+      - grafana
+
 networks:
   terragraph_net:
     external: true

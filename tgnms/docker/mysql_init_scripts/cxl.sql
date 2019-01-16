@@ -10,20 +10,65 @@ BEGIN
   DECLARE usr VARCHAR(100)  DEFAULT "";
   SET usr = (SELECT CURRENT_USER);
   IF usr LIKE 'root%'  then
-     CREATE DATABASE IF NOT EXISTS `grafana`;
-     CREATE DATABASE IF NOT EXISTS `network_test`;
      SELECT 'Creating nms user account.' AS '';
      CREATE USER IF NOT EXISTS 'nms'@'%' IDENTIFIED BY 'o0Oe8G0UrBrT';
      GRANT ALL PRIVILEGES ON cxl.* TO 'nms'@'%';
-     GRANT ALL PRIVILEGES ON grafana.* TO 'nms'@'%';
+     FLUSH PRIVILEGES;
+  end if ;
+END; $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS Create_Grafana_Database ;
+DELIMITER $$
+CREATE PROCEDURE Create_Grafana_Database ()
+BEGIN
+  DECLARE usr VARCHAR(100)  DEFAULT "";
+  SET usr = (SELECT CURRENT_USER);
+  IF usr LIKE 'root%'  then
+     SELECT 'Creating grafanaWriter user account.' AS '';
+     CREATE USER IF NOT EXISTS 'grafanaWriter'@'%' IDENTIFIED BY 'guHXwEDduo78';
+     CREATE DATABASE IF NOT EXISTS `grafana`;
+     GRANT ALL PRIVILEGES ON grafana.* TO 'grafanaWriter'@'%';
+     FLUSH PRIVILEGES;
+  end if ;
+END; $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS Create_Grafana_Reader ;
+DELIMITER $$
+CREATE PROCEDURE Create_Grafana_Reader ()
+BEGIN
+  DECLARE usr VARCHAR(100)  DEFAULT "";
+  SET usr = (SELECT CURRENT_USER);
+  IF usr LIKE 'root%'  then
+     SELECT 'Creating grafanaReader user account.' AS '';
+     CREATE USER IF NOT EXISTS 'grafanaReader' IDENTIFIED BY 'uMDC36aagIUR';
+     GRANT SELECT ON cxl.* TO 'grafanaReader'@'%';
+     FLUSH PRIVILEGES;
+  end if ;
+END; $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS Create_Network_Test ;
+DELIMITER $$
+CREATE PROCEDURE Create_Network_Test ()
+BEGIN
+  DECLARE usr VARCHAR(100)  DEFAULT "";
+  SET usr = (SELECT CURRENT_USER);
+  IF usr LIKE 'root%'  then
+     CREATE DATABASE IF NOT EXISTS `network_test`;
+     GRANT SELECT ON network_test.* TO 'grafanaReader'@'%';
      GRANT ALL PRIVILEGES ON network_test.* TO 'nms'@'%';
      FLUSH PRIVILEGES;
   end if ;
 END; $$
 DELIMITER ;
 
-/* create NMS user only if user is root */
+/* create new users only if current user is root */
 call Create_Nms_User();
+call Create_Grafana_Database();
+call Create_Grafana_Reader();
+call Create_Network_Test();
 
 /* procedure to_add a column if it doesn't exist or modify it if it does */
 DROP PROCEDURE IF EXISTS Add_Modify_Column;
