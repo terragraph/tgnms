@@ -50,6 +50,9 @@ class BeringeiReader {
   // apply graph aggregation (NONE, SUM, TOP_AVG)
   void graphAggregation();
   void graphAggregationSum();
+  void sumTimeSeriesForSorting();
+  void graphAggregationTop();
+  void graphAggregationBottom();
   void graphAggregationAvg();
   void graphAggregationCount();
   void graphAggregationLatest();
@@ -94,6 +97,9 @@ class BeringeiReader {
   std::unordered_map<std::string /* aggregate name */, double*>
       aggregateKeyTimeSeries_{};
   std::unordered_map<std::string /* key id */, double> valuePerKey_{};
+  // used when we need a sorted value for later limiting (top, bottom
+  // aggregations)
+  std::vector<std::pair<std::string, double>> sortedValuePerKey_{};
 };
 
 } // namespace gorilla

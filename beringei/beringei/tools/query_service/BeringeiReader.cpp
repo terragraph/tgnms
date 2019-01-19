@@ -259,8 +259,10 @@ void BeringeiReader::graphAggregation() {
       graphAggregationSum();
       break;
     case stats::GraphAggregation::TOP_AVG:
+      graphAggregationTop();
       break;
     case stats::GraphAggregation::BOTTOM_AVG:
+      graphAggregationBottom();
       break;
     case stats::GraphAggregation::LATEST:
       graphAggregationLatest();
@@ -284,6 +286,36 @@ void BeringeiReader::graphAggregationSum() {
     }
   }
   ASSERT(aggregateKeyTimeSeries_.emplace("Sum", sumPerInterval).second);
+}
+
+void BeringeiReader::sumTimeSeriesForSorting() {
+  for (const auto& timeSeries : keyTimeSeries_) {
+    double seriesSum = 0;
+    for (int i = 0; i < numDataPoints_; i++) {
+      if (!std::isnan(timeSeries.second[i])) {
+        seriesSum += timeSeries.second[i];
+      }
+    }
+    sortedValuePerKey_.emplace_back(timeSeries.first, seriesSum);
+  }
+}
+
+void BeringeiReader::graphAggregationTop() {
+  sumTimeSeriesForSorting();
+  std::sort(sortedValuePerKey_.begin(), sortedValuePerKey_.end(),
+    [](const auto& l, const auto& r) {
+      return l.second > r.second;
+    }
+  );
+}
+
+void BeringeiReader::graphAggregationBottom() {
+  sumTimeSeriesForSorting();
+  std::sort(sortedValuePerKey_.begin(), sortedValuePerKey_.end(),
+    [](const auto& l, const auto& r) {
+      return l.second < r.second;
+    }
+  );
 }
 
 void BeringeiReader::graphAggregationAvg() {
@@ -494,11 +526,24 @@ void BeringeiReader::limitResults() {
   LOG(INFO) << "Limiting results from " << keyTimeSeries_.size() << " to "
             << request_.maxResults;
   while (keyTimeSeries_.size() > request_.maxResults) {
-    // remove entries from KeyMetaData map and free memory as we remove
-    auto it = keyTimeSeries_.begin();
-    ASSERT(keyDataList_.erase(it->first) == 1);
-    delete[] it->second;
-    keyTimeSeries_.erase(it);
+    if (!sortedValuePerKey_.empty()) {
+      // remove based on sorted map
+      // iterator to the end of the map for removing later
+      auto removeElement = --sortedValuePerKey_.end();
+      // erase the KeyMetaData mapping
+      ASSERT(keyDataList_.erase(removeElement->first) == 1);
+      auto keyTimeSeriesIt = keyTimeSeries_.find(removeElement->first);
+      // erase the time series data
+      delete[] keyTimeSeriesIt->second;
+      keyTimeSeries_.erase(keyTimeSeriesIt);
+      sortedValuePerKey_.erase(removeElement);
+    } else {
+      // remove entries from KeyMetaData map and free memory as we remove
+      auto it = keyTimeSeries_.begin();
+      ASSERT(keyDataList_.erase(it->first) == 1);
+      delete[] it->second;
+      keyTimeSeries_.erase(it);
+    }
   }
 }
 
@@ -900,6 +945,7 @@ void BeringeiReader::cleanUp() {
     delete[] timeSeries.second;
   }
   aggregateKeyTimeSeries_.clear();
+  sortedValuePerKey_.clear();
 }
 
 void BeringeiReader::createLinkKey(

@@ -16,6 +16,7 @@
 #include <folly/io/async/EventBaseManager.h>
 
 #include "beringei/client/BeringeiClient.h"
+#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 
 namespace facebook {
@@ -24,29 +25,33 @@ namespace gorilla {
 class AggregatorService {
  public:
   explicit AggregatorService(TACacheMap& typeaheadCache);
-
-  // run eventbase
+  // loop eventbase
   void start();
-  void timerCb();
-  void ruckusControllerCb();
-  // fetch ruckus ap stats
-  void fetchRuckusStats();
-  void ruckusControllerStats();
-  /*void buildQuery(
-      std::unordered_map<std::string, double>& values,
-      const std::unordered_set<std::string>& popNodeNames,
-      const std::shared_ptr<StatsTypeAheadCache> cache);*/
 
  private:
   folly::EventBase eb_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
-  std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
   // from queryservicefactory
   TACacheMap& typeaheadCache_;
-  // store the last set of ruckus stats to push
-  folly::Synchronized<std::unordered_map<std::string /* key name */, double>>
-      ruckusStats_{};
-  RuckusController ruckusController_;
+
+
+  // schedule timer in a loop for periodic work
+  void timerCb();
+  // perform all periodic work
+  void doPeriodicWork();
+  // query and log topology based metrics (nodes & links online)
+  void fetchAndLogTopologyMetrics(
+      std::unordered_map<std::string /* key name */,
+                         std::pair<time_t, double>>& aggValues,
+      const query::Topology& topology);
+  // create datapoints from metrics
+  void createDataPoints(
+      std::vector<DataPoint>& bDataPoints,
+      const std::unordered_map<std::string /* key name */,
+                               std::pair<time_t, double>>& aggValues,
+      std::shared_ptr<query::TopologyConfig> topologyConfig);
+  // store metrics in beringei backend
+  void storeAggregateMetrics(std::vector<DataPoint>& bDataPoints);
 };
 } // namespace gorilla
 } // namespace facebook

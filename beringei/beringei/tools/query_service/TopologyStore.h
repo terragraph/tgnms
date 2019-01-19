@@ -12,6 +12,7 @@
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 #include <folly/Singleton.h>
+#include <folly/Synchronized.h>
 
 namespace facebook {
 namespace gorilla {
@@ -31,9 +32,9 @@ class TopologyStore {
   void delTopology(const std::string& name);
 
  private:
-  std::unordered_map<
+  folly::Synchronized<std::unordered_map<
       std::string /* topology name */,
-      std::shared_ptr<query::TopologyConfig>>
+      std::shared_ptr<query::TopologyConfig>>>
       topologyConfigs_{};
 };
 

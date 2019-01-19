@@ -20,8 +20,9 @@ std::shared_ptr<TopologyStore> TopologyStore::getInstance() {
 
 std::shared_ptr<query::TopologyConfig> TopologyStore::getTopology(
     const std::string& name) {
-  auto it = topologyConfigs_.find(name);
-  if (it != topologyConfigs_.end()) {
+  auto locked = topologyConfigs_.rlock();
+  auto it = locked->find(name);
+  if (it != locked->end()) {
     return it->second;
   }
   throw std::invalid_argument("No topology named: " + name);
@@ -29,16 +30,19 @@ std::shared_ptr<query::TopologyConfig> TopologyStore::getTopology(
 
 std::unordered_map<std::string, std::shared_ptr<query::TopologyConfig>>
 TopologyStore::getTopologyList() {
-  return topologyConfigs_;
+  auto locked = topologyConfigs_.rlock();
+  return *locked;
 }
 
 void TopologyStore::addTopology(
     std::shared_ptr<query::TopologyConfig> topologyConfig) {
-  topologyConfigs_[topologyConfig->name] = topologyConfig;
+  auto locked = topologyConfigs_.wlock();
+  (*locked)[topologyConfig->name] = topologyConfig;
 }
 
 void TopologyStore::delTopology(const std::string& name) {
-  topologyConfigs_.erase(name);
+  auto locked = topologyConfigs_.wlock();
+  locked->erase(name);
 }
 
 } // namespace gorilla
