@@ -22,29 +22,37 @@ struct Box {
 
 // dropdown: list of Parameter inside Drop Down
 // range: Range of the Parameter
+// ui_type: [dropdown/range]
 // unit: Unit of the Parameter
 // type: Type of the Parameter
 struct Meta {
   1: optional list<DropDown> dropdown;
-  2: optional Box range
-  3: optional string unit;
-  4: optional string type;
+  2: optional Box range;
+  3: optional string ui_type;
+  4: optional string unit;
+  5: optional string type;
 }
 
 // label: Name of the Parameter
+// key: key of the Parameter
 // value: Default value of the parameter when requesting help; Value of the Parameter when starting test
 // meta: Metadata of the Parameter
 struct Parameter {
-  1: string label;
+  1: string key;
   2: string value;
-  3: optional Meta meta;
+  3: optional string label;
+  4: optional Meta meta;
 }
 
 // url_ext: URL extension associated with Start Test
 // parameters: list of Parameters needed to trigger Network Test
+// label: Name of the Test
+// test_code: value of the test_code parameter for the Test
 struct StartTest {
-  1: list<Parameter> parameters;
-  2: optional string url_ext;
+  1: optional string label;
+  2: optional double test_code;
+  3: optional string url_ext;
+  4: list<Parameter> parameters;
 }
 
 // url_ext: URL extension associated with Start Test

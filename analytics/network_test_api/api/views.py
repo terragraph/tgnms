@@ -237,22 +237,6 @@ def help(request):
     start_test_url_ext = "/api/start_test/"
     stop_test_url_ext = "/api/stop_test/"
 
-    # thrift help info for test_code
-    sequential_test_code = network_ttypes.DropDown(
-        label="Sequential Link Test", value="8.2"
-    )
-    parallel_test_code = network_ttypes.DropDown(
-        label="Parallel Link Test", value="8.3"
-    )
-    multi_hop_test_code = network_ttypes.DropDown(label="Multi-hop Test", value="8.9")
-    test_code_dropdown = [sequential_test_code, parallel_test_code, multi_hop_test_code]
-    test_code_meta = network_ttypes.Meta(
-        dropdown=test_code_dropdown, unit="None", type="float"
-    )
-    test_code = network_ttypes.Parameter(
-        label="Test Plan", value=parallel_test_code.value, meta=test_code_meta
-    )
-
     # thrift help info for topology_id
     api_services = MySqlDbAccess().read_api_service_setting()
     topology_id_min = min(cfg["id"] for _name, cfg in api_services.items())
@@ -261,33 +245,39 @@ def help(request):
         min_value=topology_id_min, max_value=topology_id_max
     )
     topology_id_meta = network_ttypes.Meta(
-        range=topology_id_box, unit="None", type="int"
+        range=topology_id_box, ui_type="range", unit="", type="int"
     )
     topology_id = network_ttypes.Parameter(
-        label="Topology ID", value="1", meta=topology_id_meta
+        label="Topology ID", key="topology_id", value="1", meta=topology_id_meta
     )
 
     # thrift help info for session_duration
     session_duration_min = 10
     session_duration_box = network_ttypes.Box(min_value=session_duration_min)
     session_duration_meta = network_ttypes.Meta(
-        range=session_duration_box, unit="seconds", type="int"
+        range=session_duration_box, ui_type="range", unit="seconds", type="int"
     )
     session_duration = network_ttypes.Parameter(
-        label="Single iPerf Session Duration", value="60", meta=session_duration_meta
+        label="Single iPerf Session Duration",
+        key="session_duration",
+        value="60",
+        meta=session_duration_meta,
     )
 
     # thrift help info for test_push_rate
     test_push_rate_min = 5000000
-    test_push_rate_max = 800000000
+    test_push_rate_max = 2000000000
     test_push_rate_box = network_ttypes.Box(
         min_value=test_push_rate_min, max_value=test_push_rate_max
     )
     test_push_rate_meta = network_ttypes.Meta(
-        range=test_push_rate_box, unit="bits/sec", type="int"
+        range=test_push_rate_box, ui_type="range", unit="bits/sec", type="int"
     )
     test_push_rate = network_ttypes.Parameter(
-        label="Test Push Rate", value="200000000", meta=test_push_rate_meta
+        label="Test Push Rate",
+        key="test_push_rate",
+        value="200000000",
+        meta=test_push_rate_meta,
     )
 
     # thrift help info for protocol
@@ -295,10 +285,10 @@ def help(request):
     TCP_protocol = network_ttypes.DropDown(label="TCP", value="TCP")
     protocol_dropdown = [UDP_protocol, TCP_protocol]
     protocol_meta = network_ttypes.Meta(
-        dropdown=protocol_dropdown, unit="None", type="str"
+        dropdown=protocol_dropdown, ui_type="dropdown", unit="", type="str"
     )
     protocol = network_ttypes.Parameter(
-        label="iPerf Traffic Protocol", value="UDP", meta=protocol_meta
+        label="iPerf Traffic Protocol", key="protocol", value="UDP", meta=protocol_meta
     )
 
     # thrift help info for traffic_direction
@@ -309,10 +299,11 @@ def help(request):
     northbound = network_ttypes.DropDown(label="Northbound", value=str(NORTHBOUND))
     traffic_direction_dropdown = [bidirectional, southbound, northbound]
     traffic_direction_meta = network_ttypes.Meta(
-        dropdown=traffic_direction_dropdown, unit="None", type="int"
+        dropdown=traffic_direction_dropdown, ui_type="dropdown", unit="", type="int"
     )
     traffic_direction = network_ttypes.Parameter(
         label="iPerf Traffic Direction",
+        key="traffic_direction",
         value=str(BIDIRECTIONAL),
         meta=traffic_direction_meta,
     )
@@ -325,10 +316,14 @@ def help(request):
     five = network_ttypes.DropDown(label="5", value="5")
     multi_hop_parallel_sessions_dropdown = [one, two, three, four, five]
     multi_hop_parallel_sessions_meta = network_ttypes.Meta(
-        dropdown=multi_hop_parallel_sessions_dropdown, unit="None", type="int"
+        dropdown=multi_hop_parallel_sessions_dropdown,
+        ui_type="dropdown",
+        unit="",
+        type="int",
     )
     multi_hop_parallel_sessions = network_ttypes.Parameter(
         label="Number of multi-hop sessions to run in parallel",
+        key="multi_hop_parallel_sessions",
         value="3",
         meta=multi_hop_parallel_sessions_meta,
     )
@@ -339,30 +334,31 @@ def help(request):
         min_value=multi_hop_session_iteration_count_min
     )
     multi_hop_session_iteration_count_meta = network_ttypes.Meta(
-        range=multi_hop_session_iteration_count_box, unit="None", type="int"
+        range=multi_hop_session_iteration_count_box,
+        ui_type="range",
+        unit="",
+        type="int",
     )
     multi_hop_session_iteration_count = network_ttypes.Parameter(
         label="Number of sequential multi-hop sessions",
-        value="None",
+        key="multi_hop_session_iteration_count",
+        value="",
         meta=multi_hop_session_iteration_count_meta,
     )
 
     sequential_test_plan_parameters = [
-        test_code,
         topology_id,
         session_duration,
         test_push_rate,
         protocol,
     ]
     parallel_test_plan_parameters = [
-        test_code,
         topology_id,
         session_duration,
         test_push_rate,
         protocol,
     ]
     multi_hop_test_plan_parameters = [
-        test_code,
         topology_id,
         session_duration,
         test_push_rate,
@@ -373,13 +369,22 @@ def help(request):
     ]
 
     sequential_test_plan = network_ttypes.StartTest(
-        url_ext=start_test_url_ext, parameters=sequential_test_plan_parameters
+        label="Sequential Link Test",
+        test_code="8.2",
+        url_ext=start_test_url_ext,
+        parameters=sequential_test_plan_parameters,
     )
     parallel_test_plan = network_ttypes.StartTest(
-        url_ext=start_test_url_ext, parameters=parallel_test_plan_parameters
+        label="Parallel Link Test",
+        test_code="8.3",
+        url_ext=start_test_url_ext,
+        parameters=parallel_test_plan_parameters,
     )
     multi_hop_test_plan = network_ttypes.StartTest(
-        url_ext=start_test_url_ext, parameters=multi_hop_test_plan_parameters
+        label="Multi-hop Test",
+        test_code="8.9",
+        url_ext=start_test_url_ext,
+        parameters=multi_hop_test_plan_parameters,
     )
 
     supported_test_plans = [
