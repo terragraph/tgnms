@@ -109,6 +109,16 @@
             "longitude": -122.14773952960968,
             "zoom_level": 18,
             "topology_file": "mpk15_basset.json"
+        },
+        {
+
+            "controller_ip": "2620:10d:c089:e001:250:56ff:feb4:2470",
+            "controller_ip_backup": "2620:10d:c089:e001:250:56ff:feb4:3143",
+            "aggregator_ip": "2620:10d:c089:e001:250:56ff:feb4:2470",
+            "latitude": 37.486445,
+            "longitude": -122.147577,
+            "zoom_level": 19,
+            "topology_file": "tg_rf_test_network.json"
         }
     ]
 }
