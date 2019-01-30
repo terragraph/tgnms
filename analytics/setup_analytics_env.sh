@@ -15,6 +15,7 @@ PYMYSQL_VERSION="0.9.2"
 REQUESTS_VERSION="2.19.1"
 PYZMQ_VERSION="17.1.2"
 MYSQLCLIENT="1.3.13"
+CLICK_VERSION="7.0"
 
 # Install Python3 packages
 pip install aiohttp==$AIOHTTP_VERSION
@@ -26,6 +27,7 @@ pip install PyMySQL==$PYMYSQL_VERSION
 pip install requests==$REQUESTS_VERSION
 pip install pyzmq==$PYZMQ_VERSION
 pip install mysqlclient==$MYSQLCLIENT
+pip install click==$CLICK_VERSION
 
 # Install Apache Thrift
 cd /tmp
