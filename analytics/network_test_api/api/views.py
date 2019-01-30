@@ -58,18 +58,24 @@ def start_test(request):
     session_duration = int(received_json_data["session_duration"])
     test_push_rate = int(received_json_data["test_push_rate"])
     protocol = str(received_json_data["protocol"])
-    traffic_direction = int(received_json_data["traffic_direction"])
+    traffic_direction = BIDIRECTIONAL
     multi_hop_parallel_sessions = 3
     multi_hop_session_iteration_count = None
 
     if test_code == MULTI_HOP_TEST:
-        if traffic_direction not in [BIDIRECTIONAL, SOUTHBOUND, NORTHBOUND]:
-            msg = "Incorrect traffic_direction value. Options: 1/2/3"
-            context_data["error"] = True
-            context_data["msg"] = msg
-            return HttpResponse(
-                json.dumps(context_data), content_type="application/json"
-            )
+        try:
+            traffic_direction = int(received_json_data["traffic_direction"])
+            if traffic_direction not in [BIDIRECTIONAL, SOUTHBOUND, NORTHBOUND]:
+                msg = "Incorrect traffic_direction value. Options: {}/{}/{}".format(
+                    BIDIRECTIONAL, SOUTHBOUND, NORTHBOUND
+                )
+                context_data["error"] = True
+                context_data["msg"] = msg
+                return HttpResponse(
+                    json.dumps(context_data), content_type="application/json"
+                )
+        except Exception:
+            pass
         try:
             multi_hop_parallel_sessions = int(
                 received_json_data["multi_hop_parallel_sessions"]
