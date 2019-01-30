@@ -8,7 +8,7 @@ WORKDIR /var/lib/grafana
 USER root
 RUN apt-get update
 RUN apt-get -y upgrade
-RUN apt-get install -y vim netcat
+RUN apt-get install -y netcat ${DEV_EXTRA_PACKAGES}
 # end installing packages for debugging
 
 # grafana expects plugins to be owned by user grafana
