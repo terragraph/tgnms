@@ -52,7 +52,15 @@ def start_test(request):
     run execution id
     """
     context_data = {}
-    received_json_data = json.loads(request.body.decode("utf-8"))
+    try:
+        received_json_data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        msg = "Invalid Content-Type, please format the request as JSON."
+        context_data["error"] = True
+        context_data["msg"] = msg
+        return HttpResponse(
+            json.dumps(context_data), content_type="application/json"
+        )
     test_code = float(received_json_data["test_code"])
     topology_id = int(received_json_data["topology_id"])
     session_duration = int(received_json_data["session_duration"])
