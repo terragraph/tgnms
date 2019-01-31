@@ -17,12 +17,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
   }
 
   getKeys(query) {
-    return this.datasource.metricFindQuery(query || '');
-  }
-
-  getRestrictors(query) {
-    const datasourceResult = this.datasource.metricFindNodeNames(query || '');
-    return datasourceResult;
+    return this.datasource.metricFindQuery(query || '', this.target.restrictor);
   }
 
   getBeringeiSource() {

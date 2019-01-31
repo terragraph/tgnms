@@ -147,7 +147,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
                 try {
                   targetnew = JSON.parse(_this.templateSrv.replace(target.target, options.scopedVars, 'regex'));
                 } catch (e) {
-                  console.log('invalid json object');
+                  console.log('Invalid json object');
                   return retObject;
                 }
                 retObject.target = targetnew;
@@ -253,17 +253,17 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
           key: "mapToGrafanaFormat",
           value: function mapToGrafanaFormat(result) {
             if (!result.data.hasOwnProperty('columns') || !result.data.hasOwnProperty('points')) {
-              console.log('no columns or points field');
+              console.log('No columns or points field');
               return result;
             }
             if (result.data.columns.length <= 1) {
-              console.log('columns field has only one entry');
+              console.log('Columns field has only one entry');
               result.data = [];
               return result;
             }
 
             if (result.data.points[0].length !== result.data.columns.length) {
-              console.log('columns and every element of points same length error');
+              console.log('Columns and every element of points same length error');
               result.data = [];
             }
 
@@ -382,7 +382,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
           }
         }, {
           key: "metricFindQuery",
-          value: function metricFindQuery(query) {
+          value: function metricFindQuery(query, restrictor) {
             // topologyName comes from a variable called "topology"
             var topologyName = "";
             if (this.templateSrv.variables) {
@@ -393,12 +393,12 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               });
             }
             if (topologyName.length === 0) {
-              console.log("must set a variable called 'topology'");
+              console.log("There must set a variable called 'topology'");
               return [];
             }
 
             var searchTerm = this.templateSrv.replace(query, null, 'regex');
-            var typeaheadType = TYPEAHEADTYPE["KEYNAME"];
+            var typeaheadType = TYPEAHEADTYPE["KEYNAME"];;
             var restrictors = [];
 
             // this is the search from the topology variable
@@ -422,14 +422,22 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               else if (searchTerm.includes("__bqs_")) {
                   typeaheadType = TYPEAHEADTYPE["NODENAME"];
                   topologyName = searchTerm.split('__bqs_')[1]; // just topology name
+                } else {
+                  // query is a key, not a variable
+                  if (typeof restrictor === "string" && restrictor.length > 0) {
+                    typeaheadType = TYPEAHEADTYPE["KEYNAME"];
+                    var restrictorResolved = this.templateSrv.replace(restrictor, null, 'regex');
+                    var _restrictorObj = {};
+                    _restrictorObj.restrictorType = RESTRICTORTYPE["NODE"];
+                    _restrictorObj.values = [];
+                    _restrictorObj.values.push(restrictorResolved);
+                    restrictors.push(_restrictorObj);
+                  } else if (restrictor) {
+                    console.error("Unexpected restrictor type");
+                    console.log(restrictor);
+                    return [];
+                  }
                 }
-            if (restrictors == [] && this.target && this.target.restrictor && this.target.restrictor.length > 0) {
-              var _restrictorObj = {};
-              _restrictorObj.restrictorType = RESTRICTORTYPE["NODE"];
-              _restrictorObj.values = [];
-              _restrictorObj.values.push(this.target.restrictor);
-              restrictors.push(_restrictorObj);
-            }
 
             var interpolated = {
               restrictors: restrictors,
@@ -457,7 +465,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               });
             }
             if (topologyName.length === 0) {
-              console.log("must set a variable called 'topology'");
+              console.log("There must set a variable called 'topology'");
               return [];
             }
 

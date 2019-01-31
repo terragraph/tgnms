@@ -103,7 +103,7 @@ export class GenericDatasource {
             options.scopedVars, 'regex'));
         }
         catch(e) {
-          console.log('invalid json object');
+          console.log('Invalid json object');
           return retObject;
         }
         retObject.target = targetnew;
@@ -214,17 +214,17 @@ export class GenericDatasource {
   mapToGrafanaFormat(result) {
     if (!result.data.hasOwnProperty('columns') ||
         !result.data.hasOwnProperty('points')) {
-      console.log('no columns or points field');
+      console.log('No columns or points field');
       return result;
     }
     if (result.data.columns.length <= 1) {
-      console.log('columns field has only one entry');
+      console.log('Columns field has only one entry');
       result.data = [];
       return result;
     }
 
     if (result.data.points[0].length !== result.data.columns.length) {
-      console.log('columns and every element of points same length error');
+      console.log('Columns and every element of points same length error');
       result.data = [];
     }
 
@@ -327,7 +327,7 @@ export class GenericDatasource {
   }
 
 
-  metricFindQuery(query) {
+  metricFindQuery(query, restrictor) {
     // topologyName comes from a variable called "topology"
     let topologyName = "";
     if (this.templateSrv.variables) {
@@ -338,7 +338,7 @@ export class GenericDatasource {
       });
     }
     if (topologyName.length === 0) {
-      console.log("must set a variable called 'topology'");
+      console.log("There must set a variable called 'topology'");
       return [];
     }
 
@@ -368,13 +368,23 @@ export class GenericDatasource {
       typeaheadType = TYPEAHEADTYPE["NODENAME"];
       topologyName = searchTerm.split('__bqs_')[1]; // just topology name
     }
-    if (restrictors == [] && this.target && this.target.restrictor &&
-        this.target.restrictor.length > 0) {
-      let restrictorObj = {};
-      restrictorObj.restrictorType = RESTRICTORTYPE["NODE"];
-      restrictorObj.values = [];
-      restrictorObj.values.push(this.target.restrictor);
-      restrictors.push(restrictorObj);
+    else {
+      // the query is a keyname search, not a Grafana variable
+      if (typeof(restrictor) === "string" && restrictor.length > 0) {
+        typeaheadType = TYPEAHEADTYPE["KEYNAME"];
+          let restrictorResolved =
+              this.templateSrv.replace(restrictor, null, 'regex');
+          let restrictorObj = {};
+          restrictorObj.restrictorType = RESTRICTORTYPE["NODE"];
+          restrictorObj.values = [];
+          restrictorObj.values.push(restrictorResolved);
+          restrictors.push(restrictorObj);
+      }
+      else if (restrictor) {
+        console.error("Unexpected restrictor type");
+        console.log(restrictor);
+        return [];
+      }
     }
 
     var interpolated = {
@@ -402,7 +412,7 @@ export class GenericDatasource {
       });
     }
     if (topologyName.length === 0) {
-      console.log("must set a variable called 'topology'");
+      console.log("There must set a variable called 'topology'");
       return [];
     }
 

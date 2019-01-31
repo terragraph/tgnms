@@ -39,13 +39,7 @@ var GenericDatasourceQueryCtrl = exports.GenericDatasourceQueryCtrl = function (
   _createClass(GenericDatasourceQueryCtrl, [{
     key: 'getKeys',
     value: function getKeys(query) {
-      return this.datasource.metricFindQuery(query || '');
-    }
-  }, {
-    key: 'getRestrictors',
-    value: function getRestrictors(query) {
-      var datasourceResult = this.datasource.metricFindNodeNames(query || '');
-      return datasourceResult;
+      return this.datasource.metricFindQuery(query || '', this.target.restrictor);
     }
   }, {
     key: 'getBeringeiSource',
