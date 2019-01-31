@@ -25,6 +25,7 @@ enum MessageType {
   REBOOT_NODE = 142,
   GET_MINION_NEIGHBORS_REQ = 143,
   UPDATE_LINK_METRICS = 144,
+  RESTART_MINION = 145,
 
   // Messages originated (by Minion StatusApp)
   STATUS_REPORT = 161,
@@ -52,6 +53,9 @@ enum MessageType {
   SET_NODE_STATUS = 302,
   SET_NODE_MAC = 303,
   SET_NODE_MAC_LIST = 315,
+  ADD_NODE_WLAN_MACS = 330,
+  DEL_NODE_WLAN_MACS = 331,
+  CHANGE_NODE_WLAN_MAC = 332,
   SET_NODE_PARAMS_REQ = 304,
   BUMP_LINKUP_ATTEMPTS = 305,
   ADD_NODE = 306,
@@ -67,14 +71,17 @@ enum MessageType {
   SET_TOPOLOGY_NAME = 314,
   BULK_ADD = 316,
   GET_ROUTES = 320,
+  GET_DEFAULT_ROUTES = 334,
   SET_PREFIXES = 324,
   GET_NODE_PREFIXES = 325,
   GET_ZONE_PREFIXES = 326,
   ALLOCATE_PREFIXES = 329,
+  PREFIX_ALLOC_PARAMS_UPDATED = 333,
   // Responses given (by Ctrl TopologyApp)
   TOPOLOGY = 321,
   NETWORK_AIRTIME = 322,
   GET_ROUTES_RESP = 323,
+  GET_DEFAULT_ROUTES_RESP = 335,
   GET_NODE_PREFIXES_RESP = 327,
   GET_ZONE_PREFIXES_RESP = 328,
 
@@ -111,10 +118,14 @@ enum MessageType {
   GET_CTRL_CONFIG_NODE_OVERRIDES_RESP = 734,
   GET_CTRL_CONFIG_BASE_REQ = 735,
   GET_CTRL_CONFIG_BASE_RESP = 736,
+  GET_CTRL_CONFIG_HARDWARE_BASE_REQ = 757,
+  GET_CTRL_CONFIG_HARDWARE_BASE_RESP = 758,
   GET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ = 737,
   GET_CTRL_CONFIG_NETWORK_OVERRIDES_RESP = 738,
   SET_CTRL_CONFIG_NODE_OVERRIDES_REQ = 739,
   SET_CTRL_CONFIG_NETWORK_OVERRIDES_REQ = 740,
+  GET_CTRL_CONFIG_PATHS_REQ = 760,
+  GET_CTRL_CONFIG_PATHS_RESP = 761,
   // 741, 742 (deprecated in RELEASE_M21)
   GET_CTRL_CONFIG_METADATA_REQ = 743,
   GET_CTRL_CONFIG_METADATA_RESP = 744,
@@ -130,6 +141,7 @@ enum MessageType {
   GET_CTRL_CONFIG_CONTROLLER_METADATA_RESP = 754,
   GET_CTRL_CONFIG_AUTO_NODE_OVERRIDES_REQ = 755,
   GET_CTRL_CONFIG_AUTO_NODE_OVERRIDES_RESP = 756,
+  TRIGGER_POLARITY_OPTIMIZATION = 759,
 
   // ===  ScanApp === //
   // E2E -> Minion and Minion -> FW
@@ -138,6 +150,7 @@ enum MessageType {
   SCAN_RESP = 621,
   // CLI -> E2E
   START_SCAN = 641,
+  START_SCAN_RESP = 652,
   GET_SCAN_STATUS = 642,
   RESET_SCAN_STATUS = 643,
   GET_SCAN_SCHEDULE = 644,
@@ -171,6 +184,7 @@ enum MessageType {
   DR_DEV_ALLOC_RES = 493,
   DR_WSEC_STATUS = 494,
   DR_WSEC_LINKUP_STATUS = 497,
+  DR_DEV_UPDOWN_STATUS = 498,
   // south bound
   GPS_GET_POS_REQ = 495,
   DR_DEV_ALLOC_REQ = 496,
@@ -229,6 +243,17 @@ enum MessageType {
   START_IPERF_SERVER_RESP = 921,
   IPERF_OUTPUT = 922,
   PING_OUTPUT = 923,
+
+  // ===  TopologyBuilderApp  === //
+  // Requests handled (by Ctrl TopologyBuilderApp)
+  START_TOPOLOGY_SCAN = 1301,
+  TOPOLOGY_SCAN_RESULT = 1302,
+  START_NETWORK_TOPOLOGY_SCAN = 1303,
+  STOP_NETWORK_TOPOLOGY_SCAN = 1304,
+  GET_NETWORK_TOPOLOGY_SCAN_STATUS = 1305,
+  // Responses given (by Ctrl TopologyApp)
+  START_TOPOLOGY_SCAN_RESP = 1311,
+  NETWORK_TOPOLOGY_SCAN_STATUS = 1312,
 
   // ===  BinaryStarApp  === //
   // Messages between peer controllers
@@ -295,11 +320,16 @@ enum UpgradeStatusType {
  * @apiDefine ImageMeta_SUCCESS
  * @apiSuccess (:ImageMeta) {String} md5 The image MD5 digest
  * @apiSuccess (:ImageMeta) {String} version The image version string
+ * @apiSuccess (:ImageMeta) {String} model The targeted hardware model
+ * @apiSuccess (:ImageMeta) {String[]} hardwareBoardIds
+ *                          The supported hardware board IDs
  */
 // terragraph image meta struct
 struct ImageMeta {
-  1: string md5; // image md5
-  2: string version; // image version
+  1: string md5;
+  2: string version;
+  3: string model;
+  4: list<string> hardwareBoardIds;
 }
 
 /**
@@ -364,6 +394,9 @@ struct UpgradeTorrentParams {
  * @apiParam (:UpgradeReq) {String} md5
  *           The expected MD5 hash of the upgrade image file
  *           (only used in prepare/commit)
+ * @apiParam (:UpgradeReq) {String} hardwareBoardIds
+ *           The hardware board IDs that this image supports
+ *           (only used in prepare)
  * @apiParam (:UpgradeReq) {String} imageUrl
  *           The URI for the upgrade image, which must be either an HTTP/HTTPS
  *           URL or Magnet URI (only used in prepare)
@@ -375,6 +408,8 @@ struct UpgradeTorrentParams {
  *           image (only used in prepare over HTTP/HTTPS)
  * @apiParam (:UpgradeReq) {Object(UpgradeTorrentParams)} [torrentParams]
  *           The torrent parameters (only used in prepare over BitTorrent)
+ * @apiParam (:UpgradeReq) {String} [nextNodeConfigJson]
+ *           The preloaded node config JSON for the new software image
  */
 struct UpgradeReq {
   1: UpgradeReqType urType;
@@ -385,6 +420,7 @@ struct UpgradeReq {
   6: optional i64 downloadAttempts;  // for PREPARE_UPGRADE
   7: optional UpgradeTorrentParams torrentParams;  // for PREPARE_UPGRADE
   8: optional string nextNodeConfigJson; // for COMMIT_UPGRADE
+  9: list<string> hardwareBoardIds;  // for PREPARE_UPGRADE
 }
 
 enum UpgradeGroupType {
@@ -407,6 +443,10 @@ enum UpgradeGroupType {
  *           If true, the controller will move on to the next node if the
  *           current node can't be upgraded; if false, it will abort the upgrade
  *           upon seeing a single node failure
+ * @apiParam {Boolean} skipPopFailure
+ *           If true, the controller will not perform extra checks for POP
+ *           nodes; if false, it will abort the upgrade upon seeing a POP node
+ *           fail to re-establish BGP connections after upgrading
  * @apiParam {String} version Skip nodes with this version before prepare/commit
  * @apiParam {String[]} skipLinks Skip the link aliveness check for these links
  *           when updating the commit status
@@ -424,6 +464,7 @@ struct UpgradeGroupReq {
   4: UpgradeReq urReq;
   5: i64 timeout;
   6: bool skipFailure;
+  11: bool skipPopFailure;
   7: string version;
   8: list<string> skipLinks;
   9: i64 limit;
@@ -491,11 +532,14 @@ struct UpgradeCommitPlan {
  * @apiSuccess (:UpgradeImage) {String} name The unique, descriptive image name
  * @apiSuccess (:UpgradeImage) {String} magnetUri The magnet URI for the image
  * @apiSuccess (:UpgradeImage) {String} md5 The MD5 hash of the image
+ * @apiSuccess (:UpgradeImage) {String[]} hardwareBoardIds
+ *                             The supported hardware board IDs
  */
 struct UpgradeImage {
-  1: string name; // unique, descriptive name for the image (not filename)
-  2: string magnetUri; // magnet URI for this image
-  3: string md5; // md5 hash (needed for PREPARE_UPGRADE/COMMIT_UPGRADE)
+  1: string name; // version string (not filename)
+  2: string magnetUri;
+  3: string md5; // needed for PREPARE_UPGRADE/COMMIT_UPGRADE
+  4: list<string> hardwareBoardIds;
 }
 
 /**
@@ -543,11 +587,13 @@ enum CfgAction {
   RELOAD_RSYSLOG_CONFIG = 26,
   RESTART_KEA = 27,
   UPDATE_FIREWALL = 28,
+  SYMLINK_TIMEZONE = 29,
   SYNC_LINK_MONITOR = 30,
   INJECT_KVSTORE_KEYS = 31,
   UPDATE_LINK_METRICS = 32,
   UPDATE_GLOG_LEVEL = 40,
   UPDATE_SCAN_CONFIG = 50,
+  UPDATE_PREFIX_ALLOC_PARAMS = 60,
 }
 
 // Config parameter data types
@@ -589,10 +635,14 @@ struct GetMinionConfigActionsResp {
  *           If this is omitted, the controller will use the last version that
  *           the node reported; if no version is known to the controller, an
  *           error will be returned.
+ * @apiParam {String} [hwBoardId]
+ *           The hardware board ID to use for the hardware base config.
+ *           See above for actions taken when this is omitted.
  */
 struct GetCtrlConfigReq {
   1: string node;
-  2: optional string swVersion; // To determine the config base to use
+  2: optional string swVersion;  // Determines the config base to use
+  3: optional string hwBoardId;  // Determines the hardware config base to use
 }
 
 /**
@@ -616,7 +666,7 @@ struct GetCtrlConfigAutoNodeOverridesReq {
  * @apiSuccess {String} overrides The automated node config overrides (JSON)
  */
 struct GetCtrlConfigAutoNodeOverridesResp {
-  1: string overrides; // Json of node overrides
+  1: string overrides;
 }
 
 /**
@@ -632,7 +682,7 @@ struct GetCtrlConfigNodeOverridesReq {
  * @apiSuccess {String} overrides The node config overrides (JSON)
  */
 struct GetCtrlConfigNodeOverridesResp {
-  1: string overrides; // Json of node overrides
+  1: string overrides;
 }
 
 /**
@@ -641,7 +691,7 @@ struct GetCtrlConfigNodeOverridesResp {
  *           names to their config overrides
  */
 struct SetCtrlConfigNodeOverridesReq {
-  1: string overrides; // Json of node overrides (maps node name to overrides)
+  1: string overrides;
 }
 
 /**
@@ -650,7 +700,7 @@ struct SetCtrlConfigNodeOverridesReq {
  *           names to their config overrides
  */
 struct GetCtrlConfigNodeOverridesActionsReq {
-  1: string overrides; // Json of node overrides (maps node name to overrides)
+  1: string overrides;
 }
 
 /**
@@ -668,7 +718,27 @@ struct GetCtrlConfigBaseReq {
  *             names to their base configs
  */
 struct GetCtrlConfigBaseResp {
-  1: string config; // Json of base configs (maps SW version to base config)
+  1: string config;
+}
+
+/**
+ * @apiDefine GetCtrlConfigHardwareBaseReq
+ * @apiParam {String[]} hwBoardIds The hardware board IDs, or all if empty
+ * @apiParam {String[]} swVersions The software versions, or all if empty
+ */
+struct GetCtrlConfigHardwareBaseReq {
+  1: list<string> hwBoardIds;
+  2: list<string> swVersions;
+}
+
+/**
+ * @apiDefine GetCtrlConfigHardwareBaseResp_SUCCESS
+ * @apiSuccess {String} config
+ *             The hardware base configs (JSON), mapping hardware board IDs to
+ *             software version names to their base configs
+ */
+struct GetCtrlConfigHardwareBaseResp {
+  1: string config;
 }
 
 /**
@@ -689,7 +759,7 @@ struct GetCtrlConfigNetworkOverridesResp {
  * @apiParam {String} overrides The network config overrides (JSON)
  */
 struct SetCtrlConfigNetworkOverridesReq {
-  1: string overrides; // Json of network overrides
+  1: string overrides;
 }
 
 /**
@@ -697,7 +767,7 @@ struct SetCtrlConfigNetworkOverridesReq {
  * @apiParam {String} overrides The network config overrides (JSON)
  */
 struct GetCtrlConfigNetworkOverridesActionsReq {
-  1: string overrides; // Json of network overrides
+  1: string overrides;
 }
 
 /**
@@ -759,7 +829,39 @@ struct GetCtrlConfigMetadataResp {
   1: string metadata;
 }
 
+/**
+ * @apiDefine GetCtrlConfigPathsReq
+ * @apiParam {String[]} nodeNames List of node names to get config for.
+ *           Get for all nodes when empty.
+ * @apiParam {String[]} configPaths List of node config paths to return
+ *           Each config path is a text traversal of the JSON tree with dot
+ *           delimiters and '*' wildcards
+ *           (e.g. radioParamsOverride.*.fwParams.wsecEnable)
+ */
+struct GetCtrlConfigPathsReq {
+  1: list<string> nodeNames;
+  2: list<string> configPaths;
+}
+
+/**
+ * @apiDefine GetCtrlConfigPathsResp_SUCCESS
+ * @apiSuccess {Map(String:String)} config Maps node name to expanded config
+ *             JSON string
+ */
+struct GetCtrlConfigPathsResp {
+  1: map<string /* nodeName */, string>
+      (cpp.template = "std::unordered_map") config;
+}
+
 struct MinionConfigChanged {}
+
+/**
+ * @apiDefine TriggerPolarityOptimization
+ * @apiParam {String} clearUserPolarityConfig Clear user-configured polarities
+ */
+struct TriggerPolarityOptimization {
+  1: bool clearUserPolarityConfig;
+}
 
 /**
  * @apiDefine GetCtrlControllerConfigReq
@@ -822,7 +924,7 @@ enum NodeParamsType {
 
 // Node parameters configured on each node.
 struct NodeParams {
-  1: optional BWAllocation.NodeBwAlloc bwAllocMap;
+  // 1: (deprecated in RELEASE_M27)
   2: optional Topology.PolarityType polarity;
   3: optional Topology.GolayIdx golayIdx;
   4: optional Topology.Location location;
@@ -887,13 +989,17 @@ struct BgpInfo {
  *                             The upgrade status
  * @apiSuccess (:StatusReport) {String} hardwareModel
  *                             The hardware model
- *                             (from "/proc/device-tree/model")
  * @apiSuccess (:StatusReport) {Map(String:Object(BgpInfo))} bgpStatus
  *                             If this is a POP node, this will contain a map of
  *                             BGP neighbor IPs to summary and route information
+ * @apiSuccess (:StatusReport) {String} hardwareBoardId
+ *                             The hardware board identity
+ * @apiSuccess (:StatusReport) {Int64} nodeReachability
+ *                             Percentage of ack success for status reports sent
+ *                             from node
  */
- // NOTE: "version", "ubootVersion", and "hardwareModel" will be empty strings
- // after the controller initially learns them.
+ // NOTE: "version", "ubootVersion", "hardwareModel", and "hardwareBoardId" will
+ // be empty strings after the controller initially learns them.
 struct StatusReport {
   1: i64 timeStamp;  // timestamp at which this response was received
   2: string ipv6Address;  // global-reachable IPv6 address for minion
@@ -903,10 +1009,14 @@ struct StatusReport {
   5: UpgradeStatus upgradeStatus;
   7: string configMd5;
   8: optional bool nodeIsPrimary; // true if node is primary, otherwise false
-  9: string hardwareModel; // hardware model from "/proc/device-tree/model"
+  9: string hardwareModel; // hardware model
   // map from bgp neighbor addresses to bgp information for pop nodes
   10: optional map<string /* neighborIp */, BgpInfo>
       (cpp.template = "std::unordered_map") bgpStatus;
+  11: string hardwareBoardId; // hardware board identity
+  12: optional Topology.NodeType nodeType;
+  13: optional double nodeReachability
+
 }
 
 struct StatusReportAck {
@@ -999,6 +1109,10 @@ struct GetMinionNeighborsResp {
 }
 
 struct UpdateLinkMetrics {}
+
+struct RestartMinion {
+  1: i32 secondsToRestart;
+}
 
 #############  IgnitionApp ##############
 
@@ -1132,37 +1246,31 @@ struct SetNodeStatus {
 struct SetNodeParamsReq {
   1: string nodeMac;
   2: optional BWAllocation.NodeAirtime nodeAirtime;
-  3: optional BWAllocation.NodeBwAlloc nodeBWAlloc;
+  // 3: (deprecated in RELEASE_M27)
   4: optional bool nodeIsPrimary;
 }
 
 struct SetNetworkParamsReq {
   1: optional BWAllocation.NetworkAirtime networkAirtime;
-  2: optional BWAllocation.NetworkBwAlloc networkBWAlloc;
+  // 2: (deprecated in RELEASE_M27)
   3: optional byte channel;
 }
 
 /**
  * @apiDefine SetNodeMac
  * @apiParam {String} nodeName The node name
- * @apiParam {String} nodeMac The primary MAC address to set
- * @apiParam {String[]} nodeSecondaryMacs
- *           The secondary MAC addresses of any other RFs to set
+ * @apiParam {String} nodeMac The MAC address to set
  * @apiParam {Boolean} force Force set
  */
 /**
  * @apiDefine SetNodeMac_GROUP
  * @apiParam (:SetNodeMac) {String} nodeName The node name
- * @apiParam (:SetNodeMac) {String} nodeMac The primary MAC address to set
- * @apiParam (:SetNodeMac) {String[]} nodeSecondaryMacs
- *                         The secondary MAC addresses of any other RFs to set
+ * @apiParam (:SetNodeMac) {String} nodeMac The MAC address to set
  * @apiParam (:SetNodeMac) {Boolean} force Force set
  */
 struct SetNodeMac {
   1: string nodeName;
   2: string nodeMac;
-  // numbering is intentional
-  4: list<string> nodeSecondaryMacs;
   3: bool force;
 }
 
@@ -1173,6 +1281,42 @@ struct SetNodeMac {
  */
 struct SetNodeMacList {
   1: list<SetNodeMac> setNodeMacList;
+}
+
+/**
+ * @apiDefine AddNodeWlanMacs
+ * @apiParam {String} nodeName The node name
+ * @apiParam {String[]} wlanMacs Wlan MAC addresses to add
+ */
+struct AddNodeWlanMacs {
+  1: string nodeName;
+  2: list<string> wlanMacs;
+}
+
+/**
+ * @apiDefine DelNodeWlanMacs
+ * @apiParam {String} nodeName The node name
+ * @apiParam {String[]} wlanMacs Wlan MAC addresses to delete
+ * @apiParam {Boolean} force Force delete
+ */
+struct DelNodeWlanMacs {
+  1: string nodeName;
+  2: list<string> wlanMacs;
+  3: bool force;
+}
+
+/**
+ * @apiDefine ChangeNodeWlanMac
+ * @apiParam {String} nodeName The node name
+ * @apiParam {String} oldWlanMac Wlan MAC address to change
+ * @apiParam {String} newWlanMac New wlan MAC address
+ * @apiParam {Boolean} force Force set
+ */
+struct ChangeNodeWlanMac {
+  1: string nodeName;
+  2: string oldWlanMac;
+  3: string newWlanMac;
+  4: bool force;
 }
 
 struct SetTopologyName {
@@ -1293,6 +1437,24 @@ struct GetRoutesResp {
 }
 
 /**
+ * @apiDefine GetDefaultRoutes
+ * @apiParam {String[]} nodes The list of source node names
+ */
+struct GetDefaultRoutes {
+  1: list<string /* node name */> nodes;
+}
+
+/**
+ * @apiDefine GetDefaultRoutesResp_SUCCESS
+ * @apiSuccess {Map(String:String[][])} defaultRoutes
+ *              Map of node names to list of default routes
+ */
+struct GetDefaultRoutesResp {
+  1: map<string /* node name */, list<list<string>>>
+     (cpp.template = "std::unordered_map") defaultRoutes;
+}
+
+/**
  * @apiDefine GetNodePrefixes
  */
 struct GetNodePrefixes {}
@@ -1304,7 +1466,7 @@ struct GetZonePrefixes {}
 
 /**
  * @apiDefine GetZonePrefixesResp_SUCCESS
- * @apiSuccess (:GetZonePrefixesResp) {Map(String:Set(String)} zonePrefixes
+ * @apiSuccess (:GetZonePrefixesResp) {Map(String:Set(String))} zonePrefixes
  *             Map of site names to zone prefixes
  */
 struct GetZonePrefixesResp {
@@ -1316,7 +1478,7 @@ struct GetZonePrefixesResp {
 
 /**
  * @apiDefine GetNodePrefixesResp_SUCCESS
- * @apiSuccess (:GetNodePrefixesResp) {Map(String:String} nodePrefixes
+ * @apiSuccess (:GetNodePrefixesResp) {Map(String:String)} nodePrefixes
  *             Map of node names to their assigned prefixes
  */
 struct GetNodePrefixesResp {
@@ -1328,6 +1490,8 @@ struct GetNodePrefixesResp {
  * @apiDefine AllocatePrefixes
  */
 struct AllocatePrefixes {}
+
+struct PrefixAllocParamsUpdated {}
 
 // openr local adjacency response back to fw
 struct FwAdjResp {
@@ -1386,6 +1550,7 @@ enum ScanType {
   CBF_TX = 4,   // Coordinated beamforming (aka interference nulling), tx side
   CBF_RX = 5,   // Same, rx side
   TOPO = 6,     // Topology_scan
+  TEST_UPD_AWV = 7, // Test Update AWV
 }
 
 enum ScanMode {
@@ -1435,6 +1600,11 @@ struct BeamIndices {
   2: i32 high;
 }
 
+struct BeamInfo {
+  1: string addr; // Peer MAC address for beam
+  2: i16 beam;    // Beam index used in corresponding RouteInfo
+}
+
 struct ScanReq {
   1: i32 token; // token to match request to response
   13: optional ScanType scanType;
@@ -1467,9 +1637,11 @@ struct ScanReq {
  * @apiSuccess (:TopoResponderInfo) {Object(Location)} [pos]
  *             The GPS position of the responder
  * @apiSuccess (:TopoResponderInfo) {Map(Int16:Map(Int16:Int16))} [itorLqmMat]
- *             The I-to-R uRoute link quality metric (LQM) matrix
+ *             The initiator-to-responder micro-route link quality metric
+ *             (LQM) matrix
  * @apiSuccess (:TopoResponderInfo) {Map(Int16:Map(Int16:Int16))} [rtoiLqmMat]
- *             The R-to-I uRoute link quality metric (LQM) matrix
+ *             The responder-to-initiator micro-route link quality metric
+ *             (LQM) matrix
  * @apiSuccess (:TopoResponderInfo) {Set(String)} [adjs]
  *             The set of local adjacencies at the responder
  */
@@ -1516,6 +1688,8 @@ struct TopoResponderInfo {
  * @apiSuccess (:ScanResp) {Map(Int16:Object(TopoResponderInfo))} [topoResps]
  *             The map of responders to topology scan results
  *             (responderIndex:info)
+ * @apiSuccess (:ScanResp) {Object(BeamInfo)[]} beamInfoList
+ *             The list of beam info
  */
 struct ScanResp {
    1: i32 token;
@@ -1533,16 +1707,19 @@ struct ScanResp {
    14: optional i16 sweepEndBeam;
    15: optional map<i16 /* Responder index */, TopoResponderInfo>
        (cpp.template = "std::unordered_map") topoResps;
+   16: optional list<BeamInfo> beamInfoList;
 }
 
 /**
  * @apiDefine StartScan
  * @apiParam {Int(ScanType)} scanType
- *           The scan type (1=PBF, 2=IM, 3=RTCAL, 4=CBF_TX, 5=CBF_RX, 6=TOPO)
+ *           The scan type (1=PBF, 2=IM, 3=RTCAL, 4=CBF_TX, 5=CBF_RX, 6=TOPO,
+ *                          7=TEST_UPD_AWV)
  * @apiParam {Int(ScanMode)} scanMode
  *           The scan mode (1=COARSE, 2=FINE, 3=SELECTIVE, 4=RELATIVE)
  * @apiParam {Int64} startTime
- *           The scan start time (UNIX time)
+ *           The scan start time (UNIX time), or 0 for TOPO scans to run
+ *           immediately
  * @apiParam {String} [txNode]
  *           The transmitter node.
  *           If present, run the scan on transmitter-to-receiver links.
@@ -1606,6 +1783,21 @@ struct StartScan {
   16: optional i16 nullAngle;
   17: optional i16 cbfBeamIdx;
   18: optional bool setConfig; // 0 - One-time scan, 1 - update config
+}
+
+/**
+ * @apiDefine StartScanResp_SUCCESS
+ * @apiSuccess {Boolean} success The response status
+ * @apiSuccess {String} message The response message
+ * @apiSuccess {Int32} [token] The token (used for retrieving scan data)
+ * @apiSuccess {Int32} [lastToken] The token at the end of the token range,
+ *                                 if multiple scans were scheduled
+ */
+struct StartScanResp {
+  1: bool success;
+  2: string message;
+  3: optional i32 token;
+  4: optional i32 lastToken;
 }
 
 struct CbfConfig {
@@ -1674,7 +1866,8 @@ struct ResetScanStatus {
  * @apiSuccess (:ScanData) {Int64} startBwgdIdx
  *             The starting bandwidth grant duration (BWGD) index
  * @apiSuccess (:ScanData) {Int(ScanType)} type
- *             The scan type (1=PBF, 2=IM, 3=RTCAL, 4=CBF_TX, 5=CBF_RX, 6=TOPO)
+ *             The scan type (1=PBF, 2=IM, 3=RTCAL, 4=CBF_TX, 5=CBF_RX, 6=TOPO,
+ *                            7=TEST_UPD_AWV)
  * @apiSuccess (:ScanData) {Int(ScanSubType)} [subType]
  *             The scan subtype (used in CBF/RTCAL)
  * @apiSuccess (:ScanData) {Int(ScanMode)} mode
@@ -1731,6 +1924,12 @@ struct ScanData {
  */
 struct ScanStatus {
   1: map<i32 /* token */, ScanData> scans;
+}
+
+// Completed scan result (sent to TopologyBuilderApp)
+struct ScanResult {
+  1: i32 token;
+  2: ScanData data;
 }
 
 struct GetCbfConfig {}
@@ -1823,16 +2022,19 @@ struct GetRoutingAdjacencies {}
 
 /**
  * @apiDefine RoutingAdjacencies_SUCCESS
- * @apiSuccess {Map(String:Object(AdjacencyDatabase)} adjacencyMap
+ * @apiSuccess {Map(String:Object(AdjacencyDatabase))} adjacencyMap
  *             The adjacency map (nodeId:adjacencyDb)
- * @apiSuccess {Map(String:Object(PrefixDatabase)} prefixMap
+ * @apiSuccess {Map(String:Object(PrefixDatabase))} prefixMap
  *             The prefix map (nodeId:prefixDb)
+ * @apiSuccess {String} network
+ *             The E2E network prefix
  */
 struct RoutingAdjacencies {
   1: map<string /* node id */, Lsdb.AdjacencyDatabase>
      (cpp.template = "std::unordered_map") adjacencyMap;
   2: map<string /* node id */, Lsdb.PrefixDatabase>
      (cpp.template = "std::unordered_map") prefixMap;
+  3: string network;
 }
 
 struct SetLinkMetric {
@@ -2098,6 +2300,140 @@ struct PingStatus {
 struct PingOutput {
   1: string output;
   2: StartMinionPing startPing;
+}
+
+############# TopologyBuilderApp #############
+
+/**
+ * @apiDefine StartTopologyScan
+ * @apiParam {String} txNode The transmitter node name
+ * @apiParam {Int16} [txPwrIndex]
+ *           The transmit power index (0-31, 255=current average power)
+ */
+struct StartTopologyScan {
+  1: string txNode;
+  2: optional i16 txPwrIndex;
+}
+
+/**
+ * @apiDefine StartTopologyScanResp_SUCCESS
+ * @apiSuccess {Object(TopologyScanInfo)[]} responders
+ *             The list of responders to the topology scan
+ * @apiSuccess {String} txNode The transmitter node name
+ * @apiSuccess {Int16} [txPwrIndex]
+ *             The transmit power index used for the scan (0-31)
+ */
+struct StartTopologyScanResp {
+  1: list<TopologyScanInfo> responders;
+  2: string txNode;
+  3: optional i16 txPwrIndex;
+}
+
+/**
+ * @apiDefine TopologyScanInfo_SUCCESS
+ * @apiSuccess (:TopologyScanInfo) {Object(TopoResponderInfo)} responderInfo
+ *             The raw responder information
+ * @apiSuccess (:TopologyScanInfo) {Double} bestSnr
+ *             The best signal-to-noise ratio (SNR) reported by the
+ *             transmitter node, in dB
+ * @apiSuccess (:TopologyScanInfo) {Double} bestTxAngle
+ *             The transmitter beam angle at which the best SNR was found,
+ *             in degrees
+ * @apiSuccess (:TopologyScanInfo) {Double} bestRxAngle
+ *             The receiver beam angle at which the best SNR was found,
+ *             in degrees
+ * @apiSuccess (:TopologyScanInfo) {String} nearestSite
+ *             The name of the geographically nearest site in the topology
+ * @apiSuccess (:TopologyScanInfo) {Double} nearestSiteDistance
+ *             The approximate distance to the nearest site in the
+ *             topology, in meters
+ */
+struct TopologyScanInfo {
+  1: TopoResponderInfo responderInfo;
+  2: double bestSnr;
+  3: double bestTxAngle;
+  4: double bestRxAngle;
+  5: string nearestSite;
+  6: double nearestSiteDistance;
+}
+
+/**
+ * @apiDefine StartNetworkTopologyScan
+ * @apiParam {Object(SiteLink)[]} siteLinks
+ *           All links between sites that should be formed
+ * @apiParam {Set(String)} macAddrs
+ *           The node MAC addresses to accept (or any MAC if empty)
+ * @apiParam {Set(String)} cnSites
+ *           The sites comprised of CN nodes (if any)
+ * @apiParam {Set(String)} yStreetSites
+ *           The sites to allow creating Y-street topologies on (if any)
+ * @apiParam {Double} beamAnglePenalty=0.1
+ *           The penalty for high tx/rx beam angles when selecting the "best"
+ *           quality link to form, except on P2MP sites:
+ *           link quality := SNR - (penalty * combined beam angle)
+ * @apiParam {Double} distanceThreshold=50
+ *           The maximum distance, in meters, to allow between a responder's
+ *           reported position and the nearest site
+ * @apiParam {Double} snrThreshold=6.1
+ *           The minimum signal-to-noise ratio (SNR), in dB, to allow on new
+ *           links (default of 6.1dB is needed to support MCS2 at a PER of 1e-3)
+ * @apiParam {Int32} scansPerNode=1
+ *           The number of scans that each node will initiate (regardless of
+ *           success)
+ */
+struct StartNetworkTopologyScan {
+  1: list<SiteLink> siteLinks;
+  2: set<string> (cpp.template = "std::unordered_set") macAddrs;
+  3: set<string> (cpp.template = "std::unordered_set") cnSites;
+  4: set<string> (cpp.template = "std::unordered_set") yStreetSites;
+  5: double beamAnglePenalty = 0.1;
+  6: double distanceThreshold = 50;
+  7: double snrThreshold = 6.1;
+  8: i32 scansPerNode = 1;
+}
+
+/**
+ * @apiDefine SiteLink_GROUP
+ * @apiParam (:SiteLink) {String} aSite The first site (order does not matter)
+ * @apiParam (:SiteLink) {String} zSite The second site (order does not matter)
+ */
+struct SiteLink {
+  1: string aSite;
+  2: string zSite;
+}
+
+/**
+ * @apiDefine StopNetworkTopologyScan
+ */
+struct StopNetworkTopologyScan {}
+
+/**
+ * @apiDefine GetNetworkTopologyScanStatus
+ */
+struct GetNetworkTopologyScanStatus {}
+
+/**
+ * @apiDefine NetworkTopologyScanStatus_SUCCESS
+ * @apiSuccess {Boolean} active Whether a network-wide topology scan is running
+ * @apiSuccess {Int64} lastUpdateTime
+ *             The UNIX timestamp when the last update occurred
+ *             (e.g. started a scan, received results, finished all scans)
+ * @apiSuccess {String} currentScanNode The current scan initiator node
+ * @apiSuccess {String[]} queuedSites The list of sites left to scan
+ * @apiSuccess {String[]} emptySites The list of sites not yet discovered
+ * @apiSuccess {String[]} visitedSites The list of sites already scanned
+ * @apiSuccess {Object(Node)[]} newNodes The list of newly-added nodes
+ * @apiSuccess {Object(Link)[]} newLinks The list of newly-added links
+ */
+struct NetworkTopologyScanStatus {
+  1: bool active;
+  2: i64 lastUpdateTime;
+  3: string currentScanNode;
+  4: list<string> queuedSites;
+  5: list<string> emptySites;
+  6: list<string> visitedSites;
+  7: list<Topology.Node> newNodes;
+  8: list<Topology.Link> newLinks;
 }
 
 ############# BinaryStarApp #############
