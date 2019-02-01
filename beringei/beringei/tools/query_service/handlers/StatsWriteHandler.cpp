@@ -57,41 +57,16 @@ void StatsWriteHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
 }
 
 int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
-  /*
-    int64_t timeInSeconds;
-    int64_t currentTime = std::time(nullptr);
-    int64_t min_s  = 1500000000;
-    int64_t min_ms = 1500000000000;
-    int64_t min_us = 1500000000000000;
-    int64_t min_ns = 1500000000000000000;
-    int64_t max_s  = 2000000000;
-    int64_t max_ms = 2000000000000;
-    int64_t max_us = 2000000000000000;
-    int64_t max_ns = 2000000000000000000;
-    if (timeIn < max_s && timeIn > min_s) {
-      timeInSeconds = timeIn;
-    } else if (timeIn < max_ms && timeIn > min_ms) {
-      timeInSeconds = timeIn / 1000;
-    } else if (timeIn < max_us && timeIn > min_us) {
-      timeInSeconds = timeIn / 1000000;
-    } else if (timeIn < max_ns && timeIn > min_ns) {
-      timeInSeconds = timeIn / 1000000000;
-    } else{
-      // just use current time
-      timeInSeconds = currentTime;
-    }
-
-    int64_t timeDiff = currentTime - timeInSeconds;
-    if (timeDiff > 30*60 || timeDiff < -30*60) {
-      LOG(INFO) << "Timestamp " << timeInSeconds
-                << " is out of sync with current time " << currentTime;
-      timeInSeconds = currentTime;
-    }
-    return folly::to<int64_t>(ceil (timeInSeconds / FLAGS_agg_bucket_seconds))
-      * FLAGS_agg_bucket_seconds;
-  */
-  return folly::to<int64_t>(ceil(std::time(nullptr) / intervalSec)) *
-      intervalSec;
+  int64_t currentTime = std::time(nullptr);
+  int64_t timeDiff = currentTime - timeIn;
+  const int64_t k5min = 5 * 60;
+  if (timeDiff > k5min || timeDiff < -k5min) {
+    LOG(INFO) << "Timestamp " << timeIn
+              << " is out of sync with current time " << currentTime;
+    timeIn = currentTime;
+  }
+  // Align timestamp to interval boundary
+  return folly::to<int64_t>(floor(timeIn / intervalSec)) * intervalSec;
 }
 
 void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
