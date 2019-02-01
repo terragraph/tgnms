@@ -17,10 +17,6 @@ BIDIRECTIONAL = 1
 SOUTHBOUND = 2
 NORTHBOUND = 3
 
-TEST_PLAN_EXECUTION_STATUS_RUNNING = 1
-TEST_PLAN_EXECUTION_STATUS_FINISHED = 2
-TEST_PLAN_EXECUTION_STATUS_ABORTED = 3
-
 TEST_STATUS_RUNNING = 1
 TEST_STATUS_FINISHED = 2
 TEST_STATUS_ABORTED = 3
@@ -35,8 +31,8 @@ TEST_STATUS = (
 
 class TestRunExecution(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(null=True)
+    start_date_utc = models.DateTimeField(default=timezone.now)
+    end_date_utc = models.DateTimeField(null=True)
     status = models.IntegerField(default=0, choices=TEST_STATUS)
     expected_end_time = models.IntegerField(default=time.time())
     test_code = models.CharField(max_length=120, blank=True, null=True)

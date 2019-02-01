@@ -172,7 +172,7 @@ class RunMultiHopTestPlan(Thread):
             test_run_obj = TestRunExecution.objects.get(
                 pk=int(self.parameters["test_run_id"])
             )
-            test_run_obj.end_date = timezone.now()
+            test_run_obj.end_date_utc = timezone.now()
             test_run_obj.save()
         except Exception as ex:
             _log.error("\nError setting end_date of the test: {}".format(ex))

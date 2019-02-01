@@ -128,7 +128,7 @@ class RunParallelTestPlan(Thread):
             self.test_run_obj = TestRunExecution.objects.get(
                 pk=int(self.parameters["test_run_id"])
             )
-            self.test_run_obj.end_date = timezone.now()
+            self.test_run_obj.end_date_utc = timezone.now()
             self.test_run_obj.save()
             self.test_status = self.test_run_obj.status
         except Exception as ex:
