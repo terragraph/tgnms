@@ -379,7 +379,7 @@ class NumpyLinkTimeSeries(object):
     def _t2i(self, t, start_time):
         return int((t - start_time) / self._interval)
 
-    def read_stats(self, name: str, stat_type: StatType) -> List[np.ndarray]:
+    def read_stats(self, name: str, stat_type: StatType) -> np.ndarray:
         data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
         if stat_type == StatType.LINK:
             done_links: List[Tuple] = []
@@ -463,6 +463,9 @@ class NumpyLinkTimeSeries(object):
                         peer_mac=peer_mac,
                     )
                     tsl.append(ts)
+        if len(tsl):
+            bts.write_time_series_list(tsl, [write_interval])
+
         return tsl
 
     def get_link_length(self) -> np.ndarray:

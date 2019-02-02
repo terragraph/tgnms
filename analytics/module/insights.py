@@ -7,13 +7,17 @@ from typing import Dict, List
 import module.numpy_operations as npo
 import numpy as np
 from module.numpy_time_series import NumpyLinkTimeSeries, NumpyTimeSeries, StatType
+from module.topology_handler import fetch_network_info
+from module.visibility import write_power_status
 
 
 def generate_insights(save_to_low_freq_db=None):
     interval = 30
     end_time = int(time.time())
     start_time = end_time - 3600
-    nts = NumpyTimeSeries(start_time, end_time, interval)
+    network_info = fetch_network_info()
+
+    nts = NumpyTimeSeries(start_time, end_time, interval, network_info)
     k = nts.get_consts()
     logging.info(
         "Generate insights, start_time={}, end_time={}, num_topologies={}".format(
@@ -123,6 +127,9 @@ def generate_insights(save_to_low_freq_db=None):
         StatType.NETWORK,
         900,
     )
+
+    # write power status of the nodes in each topology
+    write_power_status(network_info)
 
 
 def link_health(links: List, network_info: Dict) -> List:
