@@ -105,8 +105,13 @@ def start_test(request):
             pass
 
     # fetch Controller info and Topology
-    network_info = fetch_network_info(topology_id)
-    if not network_info:
+    try:
+        network_info = fetch_network_info(topology_id)
+        topology = network_info[topology_id]["topology"]
+        topology_name = network_info[topology_id]["topology"]["name"]
+        controller_addr = network_info[topology_id]["e2e_ip"]
+        controller_port = network_info[topology_id]["e2e_port"]
+    except Exception:
         msg = (
             "Cannot find the configuration file. Please verify that "
             + "the Topologies have been correctly added to the DB"
@@ -115,11 +120,14 @@ def start_test(request):
         context_data["msg"] = msg
         return HttpResponse(json.dumps(context_data), content_type="application/json")
 
-    topology = network_info[topology_id]["topology"]
-    topology_name = network_info[topology_id]["topology"]["name"]
-    controller_addr = network_info[topology_id]["e2e_ip"]
-    controller_port = network_info[topology_id]["e2e_port"]
+    # verify that Topology is not None
+    if not topology:
+        msg = "Topology is None. Please verify that it is correctly set in E2E Config."
+        context_data["error"] = True
+        context_data["msg"] = msg
+        return HttpResponse(json.dumps(context_data), content_type="application/json")
 
+    # verify that Controller info is not None
     if not controller_addr or not controller_port:
         msg = (
             "Controller IP/Port is None. "
@@ -129,6 +137,7 @@ def start_test(request):
         context_data["msg"] = msg
         return HttpResponse(json.dumps(context_data), content_type="application/json")
 
+    # verify that the traffic protocol is valid
     if protocol not in ["UDP", "TCP"]:
         msg = "Incorrect Protocol. Please choose between UDP and TCP"
         context_data["error"] = True
