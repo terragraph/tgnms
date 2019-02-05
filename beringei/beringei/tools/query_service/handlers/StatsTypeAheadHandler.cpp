@@ -92,7 +92,8 @@ void StatsTypeAheadHandler::onEOM() noexcept {
   if (request.typeaheadType == stats::TypeaheadType::TOPOLOGYNAME) {
     auto mySqlClient = MySqlClient::getInstance();
     for (const auto topologyConfig : mySqlClient->getTopologyConfigs()) {
-      orderedMetricList.push_back(topologyConfig.second->name);
+      orderedMetricList.push_back(
+          folly::dynamic::object("topologyName", topologyConfig.second->name));
     }
   } else if (request.__isset.topologyName) {
     // check for cache client
@@ -139,8 +140,9 @@ void StatsTypeAheadHandler::onEOM() noexcept {
           folly::dynamic keyList = folly::dynamic::array;
           for (const auto& key : metricList) {
             VLOG(1) << "\t\tName: " << key.keyName << ", key: " << key.keyId
-                    << ", node: " << key.srcNodeMac << ", shortName: "
-                    << key.shortName << ", linkName: " << key.linkName;
+                    << ", node: " << key.srcNodeMac
+                    << ", shortName: " << key.shortName
+                    << ", linkName: " << key.linkName;
             keyList.push_back(folly::dynamic::object("keyId", key.keyId)(
                 "keyName", key.keyName)("shortName", key.shortName)(
                 "srcNodeMac", key.srcNodeMac)("srcNodeName", key.srcNodeName)(

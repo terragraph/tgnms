@@ -398,7 +398,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
             }
 
             var searchTerm = this.templateSrv.replace(query, null, 'regex');
-            var typeaheadType = TYPEAHEADTYPE["KEYNAME"];;
+            var typeaheadType = TYPEAHEADTYPE["KEYNAME"];
             var restrictors = [];
 
             // this is the search from the topology variable
@@ -423,7 +423,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
                   typeaheadType = TYPEAHEADTYPE["NODENAME"];
                   topologyName = searchTerm.split('__bqs_')[1]; // just topology name
                 } else {
-                  // query is a key, not a variable
+                  // the query is a keyname search, not a Grafana variable
                   if (typeof restrictor === "string" && restrictor.length > 0) {
                     typeaheadType = TYPEAHEADTYPE["KEYNAME"];
                     var restrictorResolved = this.templateSrv.replace(restrictor, null, 'regex');
@@ -498,17 +498,22 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               });
               var keyNameVec = _.map(data1d, function (d, i) {
                 if (d && d.keyName) {
-                  // "keyName" is returned by BQS
+                  // keyname search
                   return { text: d.keyName, value: d.keyName };
-                } else if (_.isObject(d)) {
-                  // it will never reach this point
-                  return { text: d, value: d };
+                } else if (d && d.srcNodeMac && d.srcNodeName) {
+                  // node name search
+                  var displayName = d.srcNodeMac + " (" + d.srcNodeName + ")";
+                  return { text: displayName, value: d.srcNodeMac };
+                } else if (d && d.topologyName) {
+                  // topology name search
+                  return { text: d.topologyName, value: d.topologyName };
+                } else {
+                  return { text: "", value: "unexpected" };
                 }
-                return { text: d, value: d };
               });
               return shortNameVec.concat(keyNameVec);
             } else {
-              return [{ text: "BQS not responding", value: "BQS not responding" }];
+              return [{ text: "", value: "BQS not responding" }];
             }
           }
         }, {

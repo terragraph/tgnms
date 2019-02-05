@@ -92,6 +92,7 @@ struct KeyMetaData {
   // link details
   30: optional string linkName,
   31: optional LinkDirection linkDirection,
+  32: optional string topologyName,
 
   100: KeyUnit unit,
 }

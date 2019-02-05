@@ -504,11 +504,12 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
   return retMetrics;
 }
 
-// retrieve list of nodes (MAC addresses) for the current topology
+// retrieve list of nodes -- MAC address and node name for the current topology
 folly::dynamic StatsTypeAheadCache::listNodes() {
   folly::dynamic retNodes = folly::dynamic::array;
   for (const auto& it : nodesByName_) {
-    retNodes.push_back(it.second.mac_addr);
+    retNodes.push_back(folly::dynamic::object("srcNodeMac", it.second.mac_addr)(
+        "srcNodeName", it.first));
   }
   return retNodes;
 }
@@ -624,7 +625,9 @@ folly::dynamic StatsTypeAheadCache::listNodes(
 
     for (const auto& node : topology->nodes) {
       if (node.name == matchingName) {
-        node_z_macs.push_back(node.mac_addr);
+        node_z_macs.push_back(
+            folly::dynamic::object("srcNodeMac", node.mac_addr)(
+                "srcNodeName", node.name)("topologyName", topologyName));
       }
     }
   }

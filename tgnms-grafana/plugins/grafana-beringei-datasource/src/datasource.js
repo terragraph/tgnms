@@ -443,18 +443,23 @@ export class GenericDatasource {
       });
       let keyNameVec = _.map(data1d, (d, i) => {
         if (d && d.keyName) {
-          // "keyName" is returned by BQS
+          // keyname search
           return { text: d.keyName, value: d.keyName };
-        } else if (_.isObject(d)) {
-          // it will never reach this point
-          return { text: d, value: d};
+        } else if (d && d.srcNodeMac && d.srcNodeName) {
+          // node name search
+          const displayName = d.srcNodeMac + " (" + d.srcNodeName + ")";
+          return { text: displayName, value: d.srcNodeMac};
+        } else if (d && d.topologyName) {
+          // topology name search
+          return { text: d.topologyName, value: d.topologyName};
+        } else {
+          return {text: "", value: "unexpected"};
         }
-        return { text: d, value: d};
       });
       return shortNameVec.concat(keyNameVec);
     }
     else {
-      return [{ text: "BQS not responding", value: "BQS not responding"}];
+      return [{ text: "", value: "BQS not responding"}];
     }
   }
 

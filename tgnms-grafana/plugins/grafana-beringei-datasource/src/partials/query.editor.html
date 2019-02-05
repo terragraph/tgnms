@@ -24,6 +24,7 @@
           <info-popover mode="right-absolute">
             Either node names or MAC addresses.
             Comma-separated list. Applies to all queries.
+            Variable resolves to MAC address: i.e. tgf.[[nodeA]].stapkt.mcs
           </info-popover>
           <input type="text" class="gf-form-input" ng-model="ctrl.target.restrictor" spellcheck='false' placeholder="restrictors"
           data-min-length=0 data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()" width=100>
