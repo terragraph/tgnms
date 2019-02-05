@@ -388,6 +388,7 @@ export class GenericDatasource {
     }
 
     var interpolated = {
+        noDuplicateKeyNames: true,
         restrictors: restrictors,
         searchTerm: searchTerm,
         topologyName: topologyName,
@@ -433,18 +434,27 @@ export class GenericDatasource {
   mapToTextValue(result) {
     if (result && result.data && _.isArray(result.data)) {
       const data1d = [].concat(...result.data); // flatten
-      return _.map(data1d, (d, i) => {
+      let shortNameVec = [];
+      data1d.some(d => {
+        if (d && d.keyName && d.shortName && d.shortName.length > 0) {
+          shortNameVec.push({ text: d.shortName, value: d.shortName });
+          return true;
+        }
+      });
+      let keyNameVec = _.map(data1d, (d, i) => {
         if (d && d.keyName) {
           // "keyName" is returned by BQS
           return { text: d.keyName, value: d.keyName };
         } else if (_.isObject(d)) {
+          // it will never reach this point
           return { text: d, value: d};
         }
         return { text: d, value: d};
       });
+      return shortNameVec.concat(keyNameVec);
     }
     else {
-      return { text: "BQS not responding", value: "BQS not responding"};
+      return [{ text: "BQS not responding", value: "BQS not responding"}];
     }
   }
 

@@ -416,6 +416,7 @@ var GenericDatasource = exports.GenericDatasource = function () {
           }
 
       var interpolated = {
+        noDuplicateKeyNames: true,
         restrictors: restrictors,
         searchTerm: searchTerm,
         topologyName: topologyName,
@@ -464,17 +465,26 @@ var GenericDatasource = exports.GenericDatasource = function () {
         var _ref;
 
         var data1d = (_ref = []).concat.apply(_ref, _toConsumableArray(result.data)); // flatten
-        return _lodash2.default.map(data1d, function (d, i) {
+        var shortNameVec = [];
+        data1d.some(function (d) {
+          if (d && d.keyName && d.shortName && d.shortName.length > 0) {
+            shortNameVec.push({ text: d.shortName, value: d.shortName });
+            return true;
+          }
+        });
+        var keyNameVec = _lodash2.default.map(data1d, function (d, i) {
           if (d && d.keyName) {
             // "keyName" is returned by BQS
             return { text: d.keyName, value: d.keyName };
           } else if (_lodash2.default.isObject(d)) {
+            // it will never reach this point
             return { text: d, value: d };
           }
           return { text: d, value: d };
         });
+        return shortNameVec.concat(keyNameVec);
       } else {
-        return { text: "BQS not responding", value: "BQS not responding" };
+        return [{ text: "BQS not responding", value: "BQS not responding" }];
       }
     }
   }, {

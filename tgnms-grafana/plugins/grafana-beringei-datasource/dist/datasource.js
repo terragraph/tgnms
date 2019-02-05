@@ -440,6 +440,7 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
                 }
 
             var interpolated = {
+              noDuplicateKeyNames: true,
               restrictors: restrictors,
               searchTerm: searchTerm,
               topologyName: topologyName,
@@ -488,17 +489,26 @@ System.register(["app/core/utils/datemath", "lodash"], function (_export, _conte
               var _ref;
 
               var data1d = (_ref = []).concat.apply(_ref, _toConsumableArray(result.data)); // flatten
-              return _.map(data1d, function (d, i) {
+              var shortNameVec = [];
+              data1d.some(function (d) {
+                if (d && d.keyName && d.shortName && d.shortName.length > 0) {
+                  shortNameVec.push({ text: d.shortName, value: d.shortName });
+                  return true;
+                }
+              });
+              var keyNameVec = _.map(data1d, function (d, i) {
                 if (d && d.keyName) {
                   // "keyName" is returned by BQS
                   return { text: d.keyName, value: d.keyName };
                 } else if (_.isObject(d)) {
+                  // it will never reach this point
                   return { text: d, value: d };
                 }
                 return { text: d, value: d };
               });
+              return shortNameVec.concat(keyNameVec);
             } else {
-              return { text: "BQS not responding", value: "BQS not responding" };
+              return [{ text: "BQS not responding", value: "BQS not responding" }];
             }
           }
         }, {

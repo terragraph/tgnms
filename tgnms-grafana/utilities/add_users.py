@@ -4,6 +4,7 @@
 import logging
 
 import requests
+
 from .common import genUrl
 
 
@@ -13,7 +14,11 @@ def add_users(cli_opts):
     auth_user = cli_opts.auth_user
     auth_passwd = cli_opts.auth_passwd
     url = genUrl(grafana_ip, grafana_port)
-    user_org_list = [{"user": "fbuser"}]
+    # email addressses have to be unique or else Grafana will complain
+    user_org_list = [
+        {"user": "fbuser", "password": "facebook", "email" : "noreply@fb.com"},
+        {"user": "tgnms", "password": "Facebook@123", "email" : "noreply@tg.com"},
+    ]
 
     logging.info("\nStarting add_users")
     logging.debug("url is {}".format(url))
@@ -46,14 +51,16 @@ def add_users(cli_opts):
                 )
                 logging.info("Creating user {}".format(user))
                 try:
+                    password = usorg["password"]
+                    email = usorg["email"]
                     r = requests.post(
                         url + "/api/admin/users",
                         auth=(auth_user, auth_passwd),
                         json={
                             "name": user,
-                            "email": "noreply@fb.com",
+                            "email": email,
                             "login": user,
-                            "password": "facebook",
+                            "password": password,
                         },
                     )
                 except requests.exceptions.RequestException as e:
