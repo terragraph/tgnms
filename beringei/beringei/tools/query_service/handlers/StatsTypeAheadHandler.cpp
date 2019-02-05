@@ -88,34 +88,6 @@ void StatsTypeAheadHandler::onEOM() noexcept {
     return;
   }
 
-  // returns false if the key is not on the restrictor list or if there is
-  // no restrictor list
-  auto checkRestrictors = [&request](const stats::KeyMetaData& keyData) {
-    bool skipKey = false;
-    for (const auto& restrictor : request.restrictors) {
-      std::unordered_set<std::string> restrictorList(
-          restrictor.values.begin(), restrictor.values.end());
-      if (restrictor.restrictorType == stats::RestrictorType::NODE &&
-          !restrictorList.count(keyData.srcNodeName) &&
-          !restrictorList.count(keyData.srcNodeMac)) {
-        if (request.debugLogToConsole) {
-          LOG(INFO) << "\t\tSkipping node: " << keyData.srcNodeName;
-        }
-        skipKey = true;
-        break;
-      }
-      if (restrictor.restrictorType == stats::RestrictorType::LINK &&
-          !restrictorList.count(keyData.linkName)) {
-        if (request.debugLogToConsole) {
-          LOG(INFO) << "\t\tSkipping link: " << keyData.linkName;
-        }
-        skipKey = true;
-        break;
-      }
-    }
-    return skipKey;
-  };
-
   folly::dynamic orderedMetricList = folly::dynamic::array;
   if (request.typeaheadType == stats::TypeaheadType::TOPOLOGYNAME) {
     auto mySqlClient = MySqlClient::getInstance();
@@ -154,27 +126,29 @@ void StatsTypeAheadHandler::onEOM() noexcept {
     } else if (request.__isset.searchTerm) {
       LOG(INFO) << "Stats type ahead request for \"" << request.searchTerm
                 << "\" on \"" << request.topologyName << "\"";
-      auto retMetrics = taCache->searchMetrics(request.searchTerm);
+      auto retMetrics = taCache->searchMetrics(request.searchTerm, request);
       locked.unlock();
 
       if (request.typeaheadType == stats::TypeaheadType::KEYNAME) {
         // return is in format
-        // [[{},{}],[{},{}]]  outer array is per metric (e.g. 'rssi')
+        // [[{},{}],[{},{}]]  outer array is per metric
+        // (e.g. 'tgf.<MAC>.phystatus.srssi')
         // inner array is every key for that metric (e.g.
-        // tgf.<MAC>.phystatus.srssi)
+        // [source node 1, source node 2, ...])
         for (const auto& metricList : retMetrics) {
           folly::dynamic keyList = folly::dynamic::array;
           for (const auto& key : metricList) {
-            if (!checkRestrictors(key)) {
-              VLOG(1) << "\t\tName: " << key.keyName << ", key: " << key.keyId
-                      << ", node: " << key.srcNodeMac << ", shortName: "
-                      << key.shortName << ", linkName: " << key.linkName;
-              keyList.push_back(folly::dynamic::object("keyId", key.keyId)(
-                  "keyName", key.keyName)("shortName", key.shortName)(
-                  "srcNodeMac", key.srcNodeMac)("srcNodeName", key.srcNodeName)(
-                  "peerNodeMac", key.peerNodeMac)("linkName", key.linkName)(
-                  "linkDirection", (int)key.linkDirection)(
-                  "unit", (int)key.unit));
+            VLOG(1) << "\t\tName: " << key.keyName << ", key: " << key.keyId
+                    << ", node: " << key.srcNodeMac << ", shortName: "
+                    << key.shortName << ", linkName: " << key.linkName;
+            keyList.push_back(folly::dynamic::object("keyId", key.keyId)(
+                "keyName", key.keyName)("shortName", key.shortName)(
+                "srcNodeMac", key.srcNodeMac)("srcNodeName", key.srcNodeName)(
+                "peerNodeMac", key.peerNodeMac)("linkName", key.linkName)(
+                "linkDirection", (int)key.linkDirection)(
+                "unit", (int)key.unit));
+            if (request.noDuplicateKeyNames) {
+              break; // return
             }
           }
           // add to json

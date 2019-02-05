@@ -64,6 +64,12 @@ struct TypeaheadRequest {
    * ]
    */
   10: list<QueryRestrictor> restrictors,
+  /**
+  * When searching for keynames for the purpose of displaying them for
+  * plotting on a dashboard, there is no need to return multiple keyIds
+  * for the same keyName
+  */
+  11: optional bool noDuplicateKeyNames = false,
   // output debug data to console for this request
   1000: optional bool debugLogToConsole = false,
 }

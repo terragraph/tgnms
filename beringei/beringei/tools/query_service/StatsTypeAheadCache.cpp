@@ -12,6 +12,7 @@
 #include "MySqlClient.h"
 #include "TopologyStore.h"
 
+#include <folly/MacAddress.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <iostream>
@@ -407,7 +408,25 @@ folly::dynamic StatsTypeAheadCache::getLinkMetrics(
 // type-ahead search
 std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
     const std::string& metricName,
+    stats::TypeaheadRequest& request,
     const int limit) {
+  // prepare for restrictor search
+  // create a set of node MAC addresses and link names
+  std::unordered_set<std::string> restrictorList({});
+  for (const auto& restrictor : request.restrictors) {
+    for (auto& value : restrictor.values) {
+      if (restrictor.restrictorType == stats::RestrictorType::NODE) {
+        auto macAddr = nodeNameToMac(value);
+        if (macAddr) {
+          restrictorList.emplace(*macAddr);
+        }
+      } else if (!value.empty()) {
+        restrictorList.emplace(value);
+      }
+    }
+  }
+
+  VLOG(1) << "There are " << restrictorList.size() << " restrictors.";
   VLOG(1) << "Search for " << metricName << " with limit " << limit;
   std::vector<std::vector<stats::KeyMetaData>> retMetrics{};
   std::regex metricRegex;
@@ -432,18 +451,23 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
               << metric.second.size() << " keys.";
       for (const auto& keyId : metric.second) {
         auto metricIt = metricIdMetadata_.find(keyId);
-        if (metricIt != metricIdMetadata_.end()) {
-          auto& kd = metricIt->second;
+        if (metricIt != metricIdMetadata_.end() &&
+            (restrictorList.empty() ||
+             restrictorList.count(metricIt->second->srcNodeMac) ||
+             restrictorList.count(metricIt->second->linkName))) {
           metricKeyList.push_back(*metricIt->second);
           usedShortMetricIds.insert(keyId);
         }
         if (retMetrics.size() >= limit) {
+          VLOG(1) << "(Limit reached) Returning " << retMetrics.size()
+                  << " metrics for " << metricName << " query.";
           return retMetrics;
         }
       }
       retMetrics.push_back(metricKeyList);
     }
   }
+  VLOG(1) << "Found " << retMetrics.size() << " after metric name search.";
   VLOG(1) << "Found " << keyToMetricIds_.size() << " keys to search through.";
   // keyToMetricIds_[keyName] = [keyId1, keyId2, ... ]
   for (const auto& metric : keyToMetricIds_) {
@@ -455,9 +479,13 @@ std::vector<std::vector<stats::KeyMetaData>> StatsTypeAheadCache::searchMetrics(
               << metric.second.size() << " keys.";
       for (const auto& keyId : metric.second) {
         auto metricIt = metricIdMetadata_.find(keyId);
-        // Skip metric name if used by a short/alias key
+        // Skip metric name if used by a short/alias key or if the source
+        // node does not match restrictors
         if (metricIt != metricIdMetadata_.end() &&
-            !usedShortMetricIds.count(keyId)) {
+            !usedShortMetricIds.count(keyId) &&
+            (restrictorList.empty() ||
+             restrictorList.count(metricIt->second->srcNodeMac) ||
+             restrictorList.count(metricIt->second->linkName))) {
           metricKeyList.push_back(*metricIt->second);
         }
         if (retMetrics.size() >= limit) {
@@ -485,45 +513,96 @@ folly::dynamic StatsTypeAheadCache::listNodes() {
   return retNodes;
 }
 
-// retrieve list of nodes wirelessly linked to nodeA for the specified
-// nodeAstr can be either the node name or MAC address
-folly::dynamic StatsTypeAheadCache::listNodes(
-    std::string nodeAstr,
+// input can be a node name or a MAC address; if it's a MAC address
+// return the MAC address (lower case), otherwise return the MAC
+// address corresponding to the input node name
+folly::Optional<std::string> StatsTypeAheadCache::nodeNameToMac(
+    const std::string& nameOrMacAddr) {
+  if (!nameOrMacAddr.empty()) {
+    try {
+      // MacAddress returns the MAC address with lower case
+      folly::Optional<std::string> macAddrLower =
+          folly::MacAddress(nameOrMacAddr).toString();
+      VLOG(1) << "Input " << *macAddrLower << " is a MAC address";
+      return macAddrLower;
+    } catch (const std::exception& ex) {
+      // name is not a MAC address, assume it is a node name
+      auto it = nodesByName_.find(nameOrMacAddr);
+      if (it != nodesByName_.end()) {
+        folly::Optional<std::string> macAddrLower =
+            folly::MacAddress(it->second.mac_addr).toString();
+        VLOG(1) << "Found MAC " << *macAddrLower << " for node name "
+                << nameOrMacAddr;
+        return macAddrLower;
+      }
+    }
+  }
+  VLOG(1) << "Did not find a MAC addr match for " << nameOrMacAddr;
+  return folly::none;
+}
+
+// input can be a MAC address or a node name; if it's a MAC address
+// return the corresponding node name; otherwise return the input
+folly::Optional<std::string> StatsTypeAheadCache::macToNodeName(
+    const std::string& nameOrMacAddr) {
+  folly::Optional<std::string> nodeName;
+  if (!nameOrMacAddr.empty()) {
+    try {
+      // MacAddress returns the MAC address with lower case
+      const std::string& macAddrLower =
+          folly::MacAddress(nameOrMacAddr).toString();
+      const auto itmac = nodeMacToKeyList_.find(macAddrLower);
+      if (itmac != nodeMacToKeyList_.end()) {
+        // use the first key in the list, all keys have the same node name
+        const auto itkey = itmac->second.begin();
+        if (itkey != itmac->second.end()) {
+          const auto kmd = itkey->second;
+          nodeName = kmd->srcNodeName;
+          VLOG(1) << "Found node name " << *nodeName << " for MAC address "
+                  << macAddrLower;
+        }
+      }
+    } catch (const std::exception& ex) {
+      nodeName = nameOrMacAddr;
+      VLOG(1) << "Input " << nameOrMacAddr << " is not a MAC address";
+    }
+  }
+  if (!nodeName) {
+    VLOG(1) << "Did not find a node match for " << nameOrMacAddr;
+  }
+  return nodeName;
+}
+
+std::shared_ptr<query::Topology> StatsTypeAheadCache::topologyNameToInstance(
     std::string topologyName) {
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
-
-  query::Topology* topology;
+  auto topology = std::make_shared<query::Topology>();
   for (const auto& topologyConfig : topologyList) {
     if (topologyConfig.first == topologyName) {
-      topology = &topologyConfig.second->topology;
+      topology =
+          std::make_shared<query::Topology>(topologyConfig.second->topology);
+      break;
     }
   }
+  return topology;
+}
+
+// retrieve list of nodes wirelessly linked to nodeA for the specified
+// nodeAstr can be either the node name or MAC address
+folly::dynamic StatsTypeAheadCache::listNodes(
+    const std::string& nodeAstr,
+    const std::string& topologyName) {
+  auto topology = topologyNameToInstance(topologyName);
 
   if (topology == NULL) {
     LOG(ERROR) << "topology " << topologyName << " not found";
     return folly::dynamic::object();
   }
   // find node name corresponding to the input MAC address
-  std::string nodeA_name;
-  bool isMac = (std::count(nodeAstr.begin(), nodeAstr.end(), ':') == 5) &&
-      (nodeAstr.length() == MAC_ADDR_LEN);
-  if (isMac) {
-    for (const auto& node : topology->nodes) {
-      if (std::equal(
-              nodeAstr.begin(),
-              nodeAstr.end(),
-              node.mac_addr.c_str(),
-              [](char a, char c) { return tolower(a) == tolower(c); })) {
-        nodeA_name = node.name;
-        break;
-      }
-    }
-  } else {
-    nodeA_name = nodeAstr;
-  }
+  auto nodeA_name = macToNodeName(nodeAstr);
 
-  if (nodeA_name.empty()) {
+  if (!nodeA_name) {
     return folly::dynamic::object();
   }
 
@@ -532,15 +611,14 @@ folly::dynamic StatsTypeAheadCache::listNodes(
   for (const auto& link : topology->links) {
     std::string matchingName;
     if (link.link_type == query::LinkType::WIRELESS) {
-      if (link.a_node_name == nodeA_name) {
+      if (link.a_node_name == *nodeA_name) {
         matchingName = link.z_node_name;
-      } else if (link.z_node_name == nodeA_name) {
+      } else if (link.z_node_name == *nodeA_name) {
         matchingName = link.a_node_name;
       } else {
         continue;
       }
-    }
-    else {
+    } else {
       continue; // consider only WIRELESS links
     }
 
