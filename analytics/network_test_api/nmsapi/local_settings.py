@@ -7,7 +7,7 @@ import os
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "network_test",
+        "NAME": "cxl",
         "USER": os.environ["MYSQL_USER"],
         "PASSWORD": os.environ["MYSQL_PASS"],
         "HOST": os.environ["MYSQL_HOST"],
