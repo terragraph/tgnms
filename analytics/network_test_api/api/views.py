@@ -262,13 +262,15 @@ def help(request):
 
     # thrift help info for topology_id
     api_services = MySqlDbAccess().read_api_service_setting()
-    topology_id_min = min(cfg["id"] for _name, cfg in api_services.items())
-    topology_id_max = max(cfg["id"] for _name, cfg in api_services.items())
-    topology_id_box = network_ttypes.Box(
-        min_value=topology_id_min, max_value=topology_id_max
-    )
+    try:
+        topology_id_dropdown = [
+            network_ttypes.DropDown(label=str(cfg["name"]), value=str(cfg["id"]))
+            for _name, cfg in api_services.items()
+        ]
+    except Exception:
+        topology_id_dropdown = []
     topology_id_meta = network_ttypes.Meta(
-        range=topology_id_box, ui_type="range", unit="", type="int"
+        dropdown=topology_id_dropdown, ui_type="dropdown", unit="", type="int"
     )
     topology_id = network_ttypes.Parameter(
         label="Topology ID", key="topology_id", value="1", meta=topology_id_meta
