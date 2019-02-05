@@ -20,6 +20,9 @@ class NumpyOperationsTest(unittest.TestCase):
         )
         self.assertAlmostEqual(availability, 1, places=3)
         self.assertEqual(flaps, 0)
+        uptime, resets = npo.get_uptime_and_resets_1d(mgmt_link_up, 30, 1000 / 25.6)
+        self.assertAlmostEqual(uptime, 1, places=3)
+        self.assertEqual(resets, 0)
 
         mgmt_link_up = np.array(ramp)
         link_available = np.array(ramp) / 2
@@ -38,6 +41,9 @@ class NumpyOperationsTest(unittest.TestCase):
         )
         self.assertAlmostEqual(availability, 1, places=3)
         self.assertEqual(flaps, 0)
+        uptime, resets = npo.get_uptime_and_resets_1d(mgmt_link_up, 30, 1000 / 25.6)
+        self.assertAlmostEqual(uptime, 1, places=3)
+        self.assertEqual(resets, 0)
 
         mgmt_link_up = np.array(ramp)
         link_available = np.array(ramp)
@@ -50,6 +56,24 @@ class NumpyOperationsTest(unittest.TestCase):
         )
         self.assertAlmostEqual(availability, 1, places=3)
         self.assertEqual(flaps, 1)
+        uptime, resets = npo.get_uptime_and_resets_1d(mgmt_link_up, 30, 1000 / 25.6)
+        self.assertAlmostEqual(uptime, 1, places=3)
+        self.assertEqual(resets, 1)
+
+        mgmt_link_up = np.array(ramp)
+        link_available = np.array(ramp)
+        mgmt_link_up[60:99] = ramp[0:39]
+        link_available[60:99] = ramp[0:39]
+        mgmt_link_up[50:60] = np.nan
+        link_available[50:70] = np.nan
+        availability, flaps = npo.get_link_availability_and_flaps_1d(
+            mgmt_link_up, link_available, 30
+        )
+        self.assertAlmostEqual(availability, 0.9, places=1)
+        self.assertEqual(flaps, 1)
+        uptime, resets = npo.get_uptime_and_resets_1d(mgmt_link_up, 30, 1000 / 25.6)
+        self.assertAlmostEqual(uptime, 0.9, places=1)
+        self.assertEqual(resets, 1)
 
     def test_pathloss_asymmetry_nd(self):
         tx_power_index = np.array([28, 28])  # 43.5dBm

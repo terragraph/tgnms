@@ -84,13 +84,47 @@ def generate_insights(save_to_low_freq_db=None):
     nts.write_stats("pathloss", pathloss, StatType.LINK, 900)
     nts.write_stats("pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, 900)
 
+    # uptimes for system, e2e_minion, stats_agent, openr
+    logging.info("process uptimes")
+    input_names = ["uptime", "e2e_minion.uptime", "stats_agent.uptime", "openr.uptime"]
+    output_names = ["linux", "e2e_minion", "stats_agent", "openr"]
+    raw_uptime_stats = []
+    proc_uptime_stats = []
+    for in_n, out_n in zip(input_names, output_names):
+        counter = nts.read_stats(in_n, StatType.NODE)
+        avail = []
+        resets = []
+        n_avail = []
+        raw_uptime_stats.append(counter)
+        for ti in range(k["num_topologies"]):
+            num_nodes = k[ti]["num_nodes"]
+            avail.append(npo.nan_arr((num_nodes, 1, 1)))
+            resets.append(npo.nan_arr((num_nodes, 1, 1)))
+            n_avail.append(npo.nan_arr((1, 1, 1)))
+            for ni in range(num_nodes):
+                ava, res = npo.get_uptime_and_resets_1d(counter[ti][ni, 0, :], 30, 1)
+                avail[ti][ni, 0, 0] = ava
+                resets[ti][ni, 0, 0] = res
+            # assume no data means availability=0,
+            n_avail[ti] = np.nan_to_num(avail[ti]).mean(axis=nts.NODE_AXIS, keepdims=True)
+        nts.write_stats(out_n + "_availability", avail, StatType.NODE, 900)
+        nts.write_stats(out_n + "_availability", n_avail, StatType.NETWORK, 900)
+        nts.write_stats(out_n + "_resets", resets, StatType.NODE, 900)
+        proc_uptime_stats.extend([avail, n_avail, resets])
+
     # generate indicators of self health
     total_inputs = []
     missing_inputs_percent = []
     total_outputs = []
     missing_outputs_percent = []
-    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi]
-    outputs = [availability, flaps, mcs_p90, pathloss, pathloss_asymmetry]
+    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi] + raw_uptime_stats
+    outputs = [
+        availability,
+        flaps,
+        mcs_p90,
+        pathloss,
+        pathloss_asymmetry,
+    ] + proc_uptime_stats
     for ti in range(k["num_topologies"]):
         total_inputs.append(np.zeros((1, 1, 1)))
         missing_inputs_percent.append(np.zeros((1, 1, 1)))

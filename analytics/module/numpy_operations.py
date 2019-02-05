@@ -5,8 +5,9 @@ utilities for numpy operations
 """
 
 import logging
-import numpy as np
 from typing import List, Tuple
+
+import numpy as np
 
 
 def is_valid(arr: np.ndarray) -> np.ndarray:
@@ -39,7 +40,7 @@ def list_and(np_list: List[np.ndarray]) -> np.ndarray:
 
 def get_link_availability_and_flaps_1d(
     mgmt_link_up: np.ndarray, link_available: np.ndarray, interval: int
-) -> Tuple[int, int]:
+) -> Tuple[float, int]:
     lu = mgmt_link_up
     la = link_available
     assert len(lu) == len(la)
@@ -71,6 +72,30 @@ def get_link_availability_and_flaps_1d(
     # correction for missing datapoints at the start
     la_bwgd += min(t[0] * slope, la[0])
     return la_bwgd / (slope * (num_points - 1)), link_flaps.sum()
+
+
+def get_uptime_and_resets_1d(counter: np.ndarray, interval: int, slope_per_second: float) -> Tuple[float, int]:
+    # set slope to be increment per interval, instead of per second
+    slope = slope_per_second * interval
+    num_points = len(counter)
+    t = np.arange(num_points)
+    v = is_valid(counter)
+    if v.sum() < 2:
+        return np.nan
+    c = counter[v]
+    t = t[v]
+    dt = diff_1d(t)
+    dc = diff_1d(c)
+    e = 1 / interval
+    resets = c[1:] < slope * (dt + e)
+    dc[resets] = c[1:][resets]
+    error = np.logical_or(dc > slope * (dt + e), dc < 0)
+    if error.any():
+        logging.error("possible timestamp error while computing uptime")
+    dc[error] = 0
+    dc = dc.sum()
+    dc += min(t[0] * slope, c[0])
+    return dc / (slope * (num_points - 1)), resets.sum()
 
 
 def power_dbm_nd(power_idx: np.ndarray, enable_second_array: bool) -> np.ndarray:
