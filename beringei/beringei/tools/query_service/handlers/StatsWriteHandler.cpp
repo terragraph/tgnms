@@ -61,8 +61,8 @@ int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
   int64_t timeDiff = currentTime - timeIn;
   const int64_t k5min = 5 * 60;
   if (timeDiff > k5min || timeDiff < -k5min) {
-    LOG(INFO) << "Timestamp " << timeIn
-              << " is out of sync with current time " << currentTime;
+    VLOG(2) << "Timestamp " << timeIn
+            << " is out of sync with current time " << currentTime;
     timeIn = currentTime;
   }
   // Align timestamp to interval boundary
