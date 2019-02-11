@@ -6,17 +6,7 @@ import os
 import sys
 import time
 
-from api.models import (
-    BIDIRECTIONAL,
-    MULTI_HOP_TEST,
-    NORTHBOUND,
-    PARALLEL_TEST,
-    SEQUENTIAL_TEST,
-    SOUTHBOUND,
-    TEST_STATUS_ABORTED,
-    TEST_STATUS_RUNNING,
-    TestRunExecution,
-)
+from api.models import TestRunExecution, Tests, TestStatus, TrafficDirection
 from api.network_test import (
     run_multi_hop_test_plan,
     run_parallel_test_plan,
@@ -58,24 +48,28 @@ def start_test(request):
         msg = "Invalid Content-Type, please format the request as JSON."
         context_data["error"] = True
         context_data["msg"] = msg
-        return HttpResponse(
-            json.dumps(context_data), content_type="application/json"
-        )
+        return HttpResponse(json.dumps(context_data), content_type="application/json")
     test_code = float(received_json_data["test_code"])
     topology_id = int(received_json_data["topology_id"])
     session_duration = int(received_json_data["session_duration"])
     test_push_rate = int(received_json_data["test_push_rate"])
     protocol = str(received_json_data["protocol"])
-    traffic_direction = BIDIRECTIONAL
+    traffic_direction = TrafficDirection.BIDIRECTIONAL.value
     multi_hop_parallel_sessions = 3
     multi_hop_session_iteration_count = None
 
-    if test_code == MULTI_HOP_TEST:
+    if test_code == Tests.MULTI_HOP_TEST.value:
         try:
             traffic_direction = int(received_json_data["traffic_direction"])
-            if traffic_direction not in [BIDIRECTIONAL, SOUTHBOUND, NORTHBOUND]:
+            if traffic_direction not in [
+                TrafficDirection.BIDIRECTIONAL.value,
+                TrafficDirection.SOUTHBOUND.value,
+                TrafficDirection.NORTHBOUND.value,
+            ]:
                 msg = "Incorrect traffic_direction value. Options: {}/{}/{}".format(
-                    BIDIRECTIONAL, SOUTHBOUND, NORTHBOUND
+                    TrafficDirection.BIDIRECTIONAL.value,
+                    TrafficDirection.SOUTHBOUND.value,
+                    TrafficDirection.NORTHBOUND.value,
                 )
                 context_data["error"] = True
                 context_data["msg"] = msg
@@ -151,18 +145,18 @@ def start_test(request):
         try:
             # Check if any stale tests are still running
             test_run_list = TestRunExecution.objects.filter(
-                status__in=[TEST_STATUS_RUNNING]
+                status__in=[TestStatus.RUNNING.value]
             )
             if test_run_list.count() >= 1:
                 for obj in test_run_list:
                     if time.time() > obj.expected_end_time:
-                        obj.status = TEST_STATUS_ABORTED
+                        obj.status = TestStatus.ABORTED.value
                         obj.save()
 
             # Check if we are already running the test.
             # If so, ignore this request and return appropriate error
             test_run_list = TestRunExecution.objects.filter(
-                status__in=[TEST_STATUS_RUNNING]
+                status__in=[TestStatus.RUNNING.value]
             )
             if test_run_list.count() >= 1:
                 error = True
@@ -187,21 +181,21 @@ def start_test(request):
                     "direction": traffic_direction,
                 }
                 # Run the test plan
-                if test_code == PARALLEL_TEST:
+                if test_code == Tests.PARALLEL_TEST.value:
                     run_tp = run_parallel_test_plan.RunParallelTestPlan(
                         network_parameters=network_parameters
                     )
                     run_tp.start()
                     error = False
                     msg = "Started Short Term Parallel Link Health Test Plan."
-                elif test_code == SEQUENTIAL_TEST:
+                elif test_code == Tests.SEQUENTIAL_TEST.value:
                     run_tp = run_sequential_test_plan.RunSequentialTestPlan(
                         network_parameters=network_parameters
                     )
                     run_tp.start()
                     error = False
                     msg = "Started Short Term Sequential Link Health Test Plan."
-                elif test_code == MULTI_HOP_TEST:
+                elif test_code == Tests.MULTI_HOP_TEST.value:
                     run_tp = run_multi_hop_test_plan.RunMultiHopTestPlan(
                         network_parameters=network_parameters
                     )
@@ -233,11 +227,11 @@ def stop_test(request):
     try:
         # Check if we are already running the test.
         test_run_list = TestRunExecution.objects.filter(
-            status__in=[TEST_STATUS_RUNNING]
+            status__in=[TestStatus.RUNNING.value]
         )
         if test_run_list.count() >= 1:
             for obj in test_run_list:
-                obj.status = TEST_STATUS_ABORTED
+                obj.status = TestStatus.ABORTED.value
                 obj.save()
                 msg += "Test run execution id : " + str(obj.id) + " stopped. "
             error = False
@@ -318,10 +312,17 @@ def help(request):
 
     # thrift help info for traffic_direction
     bidirectional = network_ttypes.DropDown(
-        label="Bidirectional", value=str(BIDIRECTIONAL)
+        label=str(TrafficDirection.BIDIRECTIONAL.name),
+        value=str(TrafficDirection.BIDIRECTIONAL.value),
     )
-    southbound = network_ttypes.DropDown(label="Southbound", value=str(SOUTHBOUND))
-    northbound = network_ttypes.DropDown(label="Northbound", value=str(NORTHBOUND))
+    southbound = network_ttypes.DropDown(
+        label=str(TrafficDirection.SOUTHBOUND.name),
+        value=str(TrafficDirection.SOUTHBOUND.value),
+    )
+    northbound = network_ttypes.DropDown(
+        label=str(TrafficDirection.NORTHBOUND.name),
+        value=str(TrafficDirection.NORTHBOUND.value),
+    )
     traffic_direction_dropdown = [bidirectional, southbound, northbound]
     traffic_direction_meta = network_ttypes.Meta(
         dropdown=traffic_direction_dropdown, ui_type="dropdown", unit="", type="int"
@@ -329,7 +330,7 @@ def help(request):
     traffic_direction = network_ttypes.Parameter(
         label="iPerf Traffic Direction",
         key="traffic_direction",
-        value=str(BIDIRECTIONAL),
+        value=str(TrafficDirection.BIDIRECTIONAL.value),
         meta=traffic_direction_meta,
     )
 

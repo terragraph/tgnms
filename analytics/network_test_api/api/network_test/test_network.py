@@ -7,7 +7,7 @@ import sys
 import time
 from threading import Thread
 
-from api.models import MULTI_HOP_TEST, SingleHopTest, TestRunExecution
+from api.models import SingleHopTest, Tests, TestRunExecution
 from api.network_test import connect_to_ctrl, listen, run_iperf, run_ping
 from django.db import transaction
 
@@ -171,7 +171,7 @@ class TestNetwork(Thread):
                             )
                     self.num_sent_req += 1
             # poll for route integrity in every polling_delay seconds
-            if self.parameters["test_code"] == MULTI_HOP_TEST:
+            if self.parameters["test_code"] == Tests.MULTI_HOP_TEST.value:
                 if not (self.current_second % self.polling_delay):
                     for link in self.test_list:
                         if (
@@ -207,7 +207,7 @@ class TestNetwork(Thread):
         self.listen_obj.join()
 
         # write route_changed_count of all links to db
-        if self.parameters["test_code"] == MULTI_HOP_TEST:
+        if self.parameters["test_code"] == Tests.MULTI_HOP_TEST.value:
             for link in self.test_list:
                 link_db_obj = SingleHopTest.objects.filter(
                     id=link["id"]

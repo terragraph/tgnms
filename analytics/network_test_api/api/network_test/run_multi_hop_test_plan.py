@@ -11,16 +11,7 @@ import time
 from datetime import date
 from threading import Thread
 
-from api.models import (
-    BIDIRECTIONAL,
-    NORTHBOUND,
-    SOUTHBOUND,
-    TEST_STATUS_ABORTED,
-    TEST_STATUS_RUNNING,
-    WIRELESS,
-    SingleHopTest,
-    TestRunExecution,
-)
+from api.models import SingleHopTest, TestRunExecution, TestStatus, TrafficDirection
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 from django.db import transaction
 from django.utils import timezone
@@ -107,7 +98,7 @@ class RunMultiHopTestPlan(Thread):
         # Create the single hop test iperf records
         with transaction.atomic():
             test_run = TestRunExecution.objects.create(
-                status=TEST_STATUS_RUNNING,
+                status=TestStatus.RUNNING.value,
                 test_code=self.test_code,
                 topology_id=self.topology_id,
                 topology_name=self.topology_name,
@@ -142,7 +133,7 @@ class RunMultiHopTestPlan(Thread):
                 if self.received_output["traffic_type"] == "IPERF_OUTPUT":
                     rcvd_src_node = self.received_output["source_node"]
                     rcvd_dest_node = self.received_output["destination_node"]
-                    if self.direction == BIDIRECTIONAL:
+                    if self.direction == TrafficDirection.BIDIRECTIONAL.value:
                         if (rcvd_src_node, rcvd_dest_node) not in self.links and (
                             rcvd_dest_node,
                             rcvd_src_node,
@@ -272,16 +263,16 @@ class RunMultiHopTestPlan(Thread):
                 + "-"
                 + node_mac_to_name[dst_node_mac]
             )
-            if self.direction == BIDIRECTIONAL:
+            if self.direction == TrafficDirection.BIDIRECTIONAL.value:
                 mac_list = [
                     {"pop_node_mac": pop_node_mac, "dst_node_mac": dst_node_mac},
                     {"pop_node_mac": dst_node_mac, "dst_node_mac": pop_node_mac},
                 ]
-            elif self.direction == SOUTHBOUND:
+            elif self.direction == TrafficDirection.SOUTHBOUND.value:
                 mac_list = [
                     {"pop_node_mac": pop_node_mac, "dst_node_mac": dst_node_mac}
                 ]
-            elif self.direction == NORTHBOUND:
+            elif self.direction == TrafficDirection.NORTHBOUND.value:
                 mac_list = [
                     {"pop_node_mac": dst_node_mac, "dst_node_mac": pop_node_mac}
                 ]

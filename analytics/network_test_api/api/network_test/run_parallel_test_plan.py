@@ -12,14 +12,11 @@ from datetime import date
 from threading import Thread
 
 from api.models import (
-    BIDIRECTIONAL,
-    NORTHBOUND,
-    SOUTHBOUND,
-    TEST_STATUS_ABORTED,
-    TEST_STATUS_RUNNING,
-    WIRELESS,
     SingleHopTest,
     TestRunExecution,
+    Tests,
+    TestStatus,
+    TrafficDirection,
 )
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 from django.db import transaction
@@ -66,7 +63,7 @@ class RunParallelTestPlan(Thread):
         self.session_duration = network_parameters["session_duration"]
         self.test_push_rate = network_parameters["test_push_rate"]
         self.protocol = network_parameters["protocol"]
-        self.direction = BIDIRECTIONAL
+        self.direction = TrafficDirection.BIDIRECTIONAL.value
         self.status_error = False
         self.parameters = {}
         self.test_run_obj = None
@@ -89,14 +86,14 @@ class RunParallelTestPlan(Thread):
         # Create the single hop test iperf records
         with transaction.atomic():
             test_run = TestRunExecution.objects.create(
-                status=TEST_STATUS_RUNNING,
+                status=TestStatus.RUNNING.value,
                 test_code=self.test_code,
                 topology_id=self.topology_id,
                 topology_name=self.topology_name,
             )
             for link in test_list:
                 link_id = SingleHopTest.objects.create(
-                    test_run_execution=test_run, status=TEST_STATUS_RUNNING
+                    test_run_execution=test_run, status=TestStatus.RUNNING.value
                 )
                 link["id"] = link_id.id
 
@@ -138,7 +135,7 @@ class RunParallelTestPlan(Thread):
             )
             self.status_error = True
         if not self.status_error:
-            if self.test_status == TEST_STATUS_ABORTED:
+            if self.test_status == TestStatus.ABORTED.value:
                 _log.error(
                     "\nTest Aborted by User."
                     + "\nSkipping writing Analytics stats to the db.\n"
@@ -156,7 +153,9 @@ class RunParallelTestPlan(Thread):
     def _create_time_series_list(self):
         time_series_list = []
         links = self.parameters["test_list"]
-        num_direction = 2 if self.direction == BIDIRECTIONAL else 1
+        num_direction = (
+            2 if self.direction == TrafficDirection.BIDIRECTIONAL.value else 1
+        )
         for atoz in range(0, len(links), num_direction):
             time_series_list.append(
                 TimeSeries(
@@ -193,7 +192,7 @@ class RunParallelTestPlan(Thread):
 
     def _get_topology_sector_info(self):
         for link in self.topology["links"]:
-            if link["link_type"] == WIRELESS:
+            if link["link_type"] == Tests.WIRELESS.value:
                 self.topology_sector_info[link["a_node_mac"]] += 1
                 self.topology_sector_info[link["z_node_mac"]] += 1
 
@@ -219,7 +218,7 @@ class RunParallelTestPlan(Thread):
         test_list = []
         random.shuffle(topology["links"])
         for link in topology["links"]:
-            if link["link_type"] == WIRELESS:
+            if link["link_type"] == Tests.WIRELESS.value:
                 a_node_mac = node_name_to_mac[link["a_node_name"]]
                 z_node_mac = node_name_to_mac[link["z_node_name"]]
                 link_name = (
@@ -229,16 +228,16 @@ class RunParallelTestPlan(Thread):
                     + node_mac_to_name[z_node_mac]
                 )
                 bitrate = self._get_bitrate(self.test_push_rate, a_node_mac, z_node_mac)
-                if self.direction == BIDIRECTIONAL:
+                if self.direction == TrafficDirection.BIDIRECTIONAL.value:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac},
                         {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac},
                     ]
-                elif self.direction == SOUTHBOUND:
+                elif self.direction == TrafficDirection.SOUTHBOUND.value:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac}
                     ]
-                elif self.direction == NORTHBOUND:
+                elif self.direction == TrafficDirection.NORTHBOUND.value:
                     mac_list = [
                         {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}
                     ]

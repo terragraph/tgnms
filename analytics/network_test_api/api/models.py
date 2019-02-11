@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.6
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import enum
 import time
 
 from django.contrib.auth.models import User
@@ -8,32 +9,37 @@ from django.db import models
 from django.utils import timezone
 
 
-WIRELESS = 1
-SEQUENTIAL_TEST = 8.2
-PARALLEL_TEST = 8.3
-MULTI_HOP_TEST = 8.9
+# Enum values of Tests correspond to Operator Network Level Test Plan section numbers
+class Tests(enum.Enum):
+    WIRELESS = 1
+    SEQUENTIAL_TEST = 8.2
+    PARALLEL_TEST = 8.3
+    MULTI_HOP_TEST = 8.9
 
-BIDIRECTIONAL = 1
-SOUTHBOUND = 2
-NORTHBOUND = 3
 
-TEST_STATUS_RUNNING = 1
-TEST_STATUS_FINISHED = 2
-TEST_STATUS_ABORTED = 3
-TEST_STATUS_FAILED = 4
+# Enum values for Traffic Direction
+class TrafficDirection(enum.Enum):
+    BIDIRECTIONAL = 1
+    SOUTHBOUND = 2
+    NORTHBOUND = 3
 
-TEST_STATUS = (
-    (TEST_STATUS_RUNNING, "Running"),
-    (TEST_STATUS_FINISHED, "Finished"),
-    (TEST_STATUS_ABORTED, "Aborted"),
-)
+
+# Enum values for Test Status
+class TestStatus(enum.Enum):
+    RUNNING = 1
+    FINISHED = 2
+    ABORTED = 3
+    FAILED = 4
 
 
 class TestRunExecution(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     start_date_utc = models.DateTimeField(default=timezone.now)
     end_date_utc = models.DateTimeField(null=True)
-    status = models.IntegerField(default=0, choices=TEST_STATUS)
+    status = models.IntegerField(
+        default=0,
+        choices=[(test_status.value, test_status.name) for test_status in TestStatus],
+    )
     expected_end_time = models.IntegerField(default=time.time())
     test_code = models.CharField(max_length=120, blank=True, null=True)
     topology_id = models.IntegerField(null=True)
@@ -48,7 +54,10 @@ class SingleHopTest(models.Model):
     test_run_execution = models.ForeignKey(
         TestRunExecution, on_delete=models.CASCADE, null=True
     )
-    status = models.IntegerField(default=0, choices=TEST_STATUS)
+    status = models.IntegerField(
+        default=0,
+        choices=[(test_status.value, test_status.name) for test_status in TestStatus],
+    )
     origin_node = models.CharField(default="", max_length=256)
     peer_node = models.CharField(default="", max_length=256)
     link_name = models.CharField(max_length=256)

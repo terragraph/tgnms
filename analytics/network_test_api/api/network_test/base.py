@@ -6,7 +6,7 @@ import os
 import sys
 
 import zmq
-from api.models import TEST_STATUS_FINISHED, TestRunExecution
+from api.models import TestRunExecution, TestStatus
 from thrift.protocol.TCompactProtocol import TCompactProtocolAcceleratedFactory
 from thrift.TSerialization import deserialize, serialize
 
@@ -57,7 +57,7 @@ class Base:
                 pk=int(self.parameters["test_run_id"])
             )
             if not test_aborted:
-                test_run_obj.status = TEST_STATUS_FINISHED
+                test_run_obj.status = TestStatus.FINISHED.value
             else:
                 pass
             test_run_obj.save()

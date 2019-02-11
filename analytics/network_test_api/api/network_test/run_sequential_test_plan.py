@@ -11,14 +11,11 @@ from datetime import date
 from threading import Thread
 
 from api.models import (
-    BIDIRECTIONAL,
-    NORTHBOUND,
-    SOUTHBOUND,
-    TEST_STATUS_ABORTED,
-    TEST_STATUS_RUNNING,
-    WIRELESS,
     SingleHopTest,
     TestRunExecution,
+    Tests,
+    TestStatus,
+    TrafficDirection,
 )
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 from django.db import transaction
@@ -65,7 +62,7 @@ class RunSequentialTestPlan(Thread):
         self.session_duration = network_parameters["session_duration"]
         self.test_push_rate = network_parameters["test_push_rate"]
         self.protocol = network_parameters["protocol"]
-        self.direction = BIDIRECTIONAL
+        self.direction = TrafficDirection.BIDIRECTIONAL.value
         self.parameters = {}
         self.test_run_obj = None
         self.start_time = time.time()
@@ -82,7 +79,7 @@ class RunSequentialTestPlan(Thread):
         # Create the single hop test iperf records
         with transaction.atomic():
             test_run = TestRunExecution.objects.create(
-                status=TEST_STATUS_RUNNING,
+                status=TestStatus.RUNNING.value,
                 test_code=self.test_code,
                 topology_id=self.topology_id,
                 topology_name=self.topology_name,
@@ -113,7 +110,7 @@ class RunSequentialTestPlan(Thread):
                 if self.received_output["traffic_type"] == "IPERF_OUTPUT":
                     rcvd_src_node = self.received_output["source_node"]
                     rcvd_dest_node = self.received_output["destination_node"]
-                    if self.direction == BIDIRECTIONAL:
+                    if self.direction == TrafficDirection.BIDIRECTIONAL.value:
                         if (rcvd_src_node, rcvd_dest_node) not in self.links and (
                             rcvd_dest_node,
                             rcvd_src_node,
@@ -209,7 +206,7 @@ class RunSequentialTestPlan(Thread):
         start_delay = 0
         random.shuffle(topology["links"])
         for link in topology["links"]:
-            if link["link_type"] == WIRELESS:
+            if link["link_type"] == Tests.WIRELESS.value:
                 a_node_mac = node_name_to_mac[link["a_node_name"]]
                 z_node_mac = node_name_to_mac[link["z_node_name"]]
                 link_name = (
@@ -218,16 +215,16 @@ class RunSequentialTestPlan(Thread):
                     + "-"
                     + node_mac_to_name[z_node_mac]
                 )
-                if self.direction == BIDIRECTIONAL:
+                if self.direction == TrafficDirection.BIDIRECTIONAL.value:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac},
                         {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac},
                     ]
-                elif self.direction == SOUTHBOUND:
+                elif self.direction == TrafficDirection.SOUTHBOUND.value:
                     mac_list = [
                         {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac}
                     ]
-                elif self.direction == NORTHBOUND:
+                elif self.direction == TrafficDirection.NORTHBOUND.value:
                     mac_list = [
                         {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}
                     ]

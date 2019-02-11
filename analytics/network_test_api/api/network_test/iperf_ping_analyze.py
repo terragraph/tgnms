@@ -5,19 +5,6 @@ import re
 from statistics import mean, stdev
 
 
-THROUGHPUT_DATA = "throughput_data"
-IPERF_OUTPUT = "iperf_output"
-LOST_DATA = "lost_data"
-JITTER = "jitter"
-LINK_ERROR = "link_error"
-DURATION_LIST = "duration_list"
-
-MINIMUM = "min"
-MAXIMUM = "max"
-MEAN = "mean"
-STD = "std"
-
-
 def process_iperf_response_bidirectional(response, expected_num_of_intervals):
     iperf_stats = {}
     iperf_throughput_data = []
@@ -50,10 +37,10 @@ def process_iperf_response_bidirectional(response, expected_num_of_intervals):
                         link_error = 0.0
                     iperf_link_error.append(link_error)
 
-    iperf_stats[THROUGHPUT_DATA] = iperf_throughput_data
-    iperf_stats[LOST_DATA] = iperf_lost_data_percent
-    iperf_stats[JITTER] = iperf_jitter
-    iperf_stats[LINK_ERROR] = iperf_link_error
+    iperf_stats["throughput_data"] = iperf_throughput_data
+    iperf_stats["lost_data"] = iperf_lost_data_percent
+    iperf_stats["jitter"] = iperf_jitter
+    iperf_stats["link_error"] = iperf_link_error
     return iperf_stats
 
 
@@ -62,15 +49,15 @@ def get_all_stats(input_list):
 
     try:
         # Populate dict
-        detail_dict[MINIMUM] = min(input_list)
-        detail_dict[MAXIMUM] = max(input_list)
-        detail_dict[MEAN] = mean(input_list)
-        detail_dict[STD] = stdev(input_list)
+        detail_dict["min"] = min(input_list)
+        detail_dict["max"] = max(input_list)
+        detail_dict["mean"] = mean(input_list)
+        detail_dict["std"] = stdev(input_list)
     except Exception:
-        detail_dict[MINIMUM] = None
-        detail_dict[MAXIMUM] = None
-        detail_dict[MEAN] = None
-        detail_dict[STD] = None
+        detail_dict["min"] = None
+        detail_dict["max"] = None
+        detail_dict["mean"] = None
+        detail_dict["std"] = None
 
     return detail_dict
 
@@ -83,29 +70,29 @@ def parse_and_pack_iperf_data(input_data, expected_num_of_intervals):
         input_data, expected_num_of_intervals
     )
     # Get the throughput min, max, mean and std from the sample
-    if THROUGHPUT_DATA in all_stats_dict:
-        throughput_list = all_stats_dict[THROUGHPUT_DATA]
+    if "throughput_data" in all_stats_dict:
+        throughput_list = all_stats_dict["throughput_data"]
         # Get all the stats
         stats = get_all_stats(throughput_list)
         return_dict["throughput"] = stats
 
     # Get the link_error min, max, mean and std from the sample
-    if LINK_ERROR in all_stats_dict:
-        link_error_list = all_stats_dict[LINK_ERROR]
+    if "link_error" in all_stats_dict:
+        link_error_list = all_stats_dict["link_error"]
         # Get all the stats
         stats = get_all_stats(link_error_list)
         return_dict["link_errors"] = stats
 
     # Get the Jitter min, max, mean and std from the sample
-    if JITTER in all_stats_dict:
-        jitter_list = all_stats_dict[JITTER]
+    if "jitter" in all_stats_dict:
+        jitter_list = all_stats_dict["jitter"]
         # Get all the stats
         stats = get_all_stats(jitter_list)
         return_dict["jitter"] = stats
 
     # Get the Lost datagram min, max, mean and std from the sample
-    if LOST_DATA in all_stats_dict:
-        lost_datagram_list = all_stats_dict[LOST_DATA]
+    if "lost_data" in all_stats_dict:
+        lost_datagram_list = all_stats_dict["lost_data"]
         # Get all the stats
         stats = get_all_stats(lost_datagram_list)
         return_dict["lost_datagram"] = stats

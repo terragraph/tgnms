@@ -10,14 +10,7 @@ import time
 from threading import Thread, currentThread
 
 import zmq
-from api.models import (
-    TEST_STATUS_ABORTED,
-    TEST_STATUS_FAILED,
-    TEST_STATUS_FINISHED,
-    TEST_STATUS_RUNNING,
-    SingleHopTest,
-    TestRunExecution,
-)
+from api.models import SingleHopTest, TestRunExecution, TestStatus
 from api.network_test import base, iperf_ping_analyze, run_iperf, run_ping
 from django.db import transaction
 from django.utils import timezone
@@ -177,7 +170,7 @@ class RecvFromCtrl(base.Base):
                         link_db_obj.iperf_client_blob = iperf_data.output
                     else:
                         link_db_obj.iperf_server_blob = iperf_data.output
-                    link_db_obj.status = TEST_STATUS_FAILED
+                    link_db_obj.status = TestStatus.FAILED.value
                     link_db_obj.save()
 
     def _strip_ping_output(self, ping_output):
@@ -192,7 +185,7 @@ class RecvFromCtrl(base.Base):
         except json.decoder.JSONDecodeError:
             # Remove first line of iperf_output
             end_of_first_line_index = iperf_output.index("\n")
-            iperf_output = iperf_output[end_of_first_line_index + 1:]
+            iperf_output = iperf_output[end_of_first_line_index + 1 :]
             parsed_iperf_output_dict = json.loads(iperf_output)
         if parsed_iperf_output_dict.get("error"):
             if "error" in parsed_iperf_output_dict["error"]:
@@ -223,7 +216,7 @@ class RecvFromCtrl(base.Base):
                 link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
-                        link_db_obj.status = TEST_STATUS_FINISHED
+                        link_db_obj.status = TestStatus.FINISHED.value
                         link_db_obj.origin_node = link["iperf_object"].src_node_name
                         link_db_obj.peer_node = link["iperf_object"].dst_node_name
                         link_db_obj.link_name = link["iperf_object"].link_name
@@ -411,10 +404,10 @@ class CheckAbortStatus(Thread):
                 test_run_obj = TestRunExecution.objects.get(
                     pk=int(self.parameters["test_run_id"])
                 )
-                if test_run_obj.status == TEST_STATUS_ABORTED:
+                if test_run_obj.status == TestStatus.ABORTED.value:
                     self.test_aborted_queue.put(True)
                     break
-                elif test_run_obj.status == TEST_STATUS_FINISHED:
+                elif test_run_obj.status == TestStatus.FINISHED.value:
                     break
                 else:
                     time.sleep(5)
