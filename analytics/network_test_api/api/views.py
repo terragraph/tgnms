@@ -6,6 +6,7 @@ import os
 import sys
 import time
 
+from api import base
 from api.models import TestRunExecution, Tests, TestStatus, TrafficDirection
 from api.network_test import (
     run_multi_hop_test_plan,
@@ -14,15 +15,12 @@ from api.network_test import (
 )
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
-from thrift.transport import TTransport
 
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/../../")
 )
 from module.mysql_db_access import MySqlDbAccess
-from module.topology_handler import fetch_network_info
 
 sys.path.append(
     os.path.abspath(
@@ -41,107 +39,56 @@ def start_test(request):
     reason. otherwise, The error is false and the msg will return test
     run execution id
     """
-    context_data = {}
     try:
         received_json_data = json.loads(request.body.decode("utf-8"))
     except Exception:
-        msg = "Invalid Content-Type, please format the request as JSON."
-        context_data["error"] = True
-        context_data["msg"] = msg
-        return HttpResponse(json.dumps(context_data), content_type="application/json")
-    test_code = float(received_json_data["test_code"])
-    topology_id = int(received_json_data["topology_id"])
-    session_duration = int(received_json_data["session_duration"])
-    test_push_rate = int(received_json_data["test_push_rate"])
-    protocol = str(received_json_data["protocol"])
-    traffic_direction = TrafficDirection.BIDIRECTIONAL.value
-    multi_hop_parallel_sessions = 3
-    multi_hop_session_iteration_count = None
+        return base.generate_http_response(
+            error=True, msg="Invalid Content-Type, please format the request as JSON."
+        )
 
-    if test_code == Tests.MULTI_HOP_TEST.value:
-        try:
-            traffic_direction = int(received_json_data["traffic_direction"])
-            if traffic_direction not in [
-                TrafficDirection.BIDIRECTIONAL.value,
-                TrafficDirection.SOUTHBOUND.value,
-                TrafficDirection.NORTHBOUND.value,
-            ]:
-                msg = "Incorrect traffic_direction value. Options: {}/{}/{}".format(
-                    TrafficDirection.BIDIRECTIONAL.value,
-                    TrafficDirection.SOUTHBOUND.value,
-                    TrafficDirection.NORTHBOUND.value,
-                )
-                context_data["error"] = True
-                context_data["msg"] = msg
-                return HttpResponse(
-                    json.dumps(context_data), content_type="application/json"
-                )
-        except Exception:
-            pass
-        try:
-            multi_hop_parallel_sessions = int(
-                received_json_data["multi_hop_parallel_sessions"]
-            )
-            if multi_hop_parallel_sessions < 1:
-                msg = "multi_hop_parallel_sessions has to be greater than 0"
-                context_data["error"] = True
-                context_data["msg"] = msg
-                return HttpResponse(
-                    json.dumps(context_data), content_type="application/json"
-                )
-        except Exception:
-            pass
-        try:
-            multi_hop_session_iteration_count = int(
-                received_json_data["multi_hop_session_iteration_count"]
-            )
-        except Exception:
-            pass
+    # parse received_json_data
+    parsed_json_data = base.parse_received_json_data(received_json_data)
+    if parsed_json_data.get("error"):
+        return parsed_json_data["error"]
+    test_code = parsed_json_data["test_code"]
+    topology_id = parsed_json_data["topology_id"]
+    session_duration = parsed_json_data["session_duration"]
+    test_push_rate = parsed_json_data["test_push_rate"]
+    protocol = parsed_json_data["protocol"]
+
+    # parse and validate multi-hop test parameters
+    multi_hop_parameters = base.validate_multi_hop_parameters(
+        received_json_data, test_code
+    )
+    if multi_hop_parameters.get("error"):
+        return multi_hop_parameters["error"]
+    traffic_direction = multi_hop_parameters["traffic_direction"]
+    multi_hop_parallel_sessions = multi_hop_parameters["multi_hop_parallel_sessions"]
+    multi_hop_session_iteration_count = multi_hop_parameters[
+        "multi_hop_session_iteration_count"
+    ]
+    speed_test_pop_to_node_dict = multi_hop_parameters["speed_test_pop_to_node_dict"]
 
     # fetch Controller info and Topology
-    try:
-        network_info = fetch_network_info(topology_id)
-        topology = network_info[topology_id]["topology"]
-        topology_name = network_info[topology_id]["topology"]["name"]
-        controller_addr = network_info[topology_id]["e2e_ip"]
-        controller_port = network_info[topology_id]["e2e_port"]
-    except Exception:
-        msg = (
-            "Cannot find the configuration file. Please verify that "
-            + "the Topologies have been correctly added to the DB"
-        )
-        context_data["error"] = True
-        context_data["msg"] = msg
-        return HttpResponse(json.dumps(context_data), content_type="application/json")
+    parsed_network_info = base.fetch_and_parse_network_info(topology_id)
+    if parsed_network_info.get("error"):
+        return parsed_network_info["error"]
+    network_info = parsed_network_info["network_info"]
+    topology = parsed_network_info["topology"]
+    topology_name = parsed_network_info["topology_name"]
+    controller_addr = parsed_network_info["controller_addr"]
+    controller_port = parsed_network_info["controller_port"]
 
-    # verify that Topology is not None
-    if not topology:
-        msg = "Topology is None. Please verify that it is correctly set in E2E Config."
-        context_data["error"] = True
-        context_data["msg"] = msg
-        return HttpResponse(json.dumps(context_data), content_type="application/json")
+    # verify that speed_test_pop_to_node_dict is valid
+    validated_speed_test_pop_to_node_dict = base.validate_speed_test_pop_to_node_dict(
+        speed_test_pop_to_node_dict, topology
+    )
+    if validated_speed_test_pop_to_node_dict.get("error"):
+        return validated_speed_test_pop_to_node_dict["error"]
 
-    # verify that Controller info is not None
-    if not controller_addr or not controller_port:
-        msg = (
-            "Controller IP/Port is None. "
-            + "Please verify that it is correctly set in the DB"
-        )
-        context_data["error"] = True
-        context_data["msg"] = msg
-        return HttpResponse(json.dumps(context_data), content_type="application/json")
-
-    # verify that the traffic protocol is valid
-    if protocol not in ["UDP", "TCP"]:
-        msg = "Incorrect Protocol. Please choose between UDP and TCP"
-        context_data["error"] = True
-        context_data["msg"] = msg
-        return HttpResponse(json.dumps(context_data), content_type="application/json")
-
-    error = None
-    msg = ""
-
-    if test_code:
+    if not test_code:
+        return base.generate_http_response(error=True, msg="Test Code is required")
+    else:
         try:
             # Check if any stale tests are still running
             test_run_list = TestRunExecution.objects.filter(
@@ -159,10 +106,12 @@ def start_test(request):
                 status__in=[TestStatus.RUNNING.value]
             )
             if test_run_list.count() >= 1:
-                error = True
-                msg = (
-                    "There is a test running on the network. "
-                    + "Please wait until it finishes."
+                return base.generate_http_response(
+                    error=True,
+                    msg=(
+                        "There is a test running on the network. "
+                        + "Please wait until it finishes."
+                    ),
                 )
             else:
                 network_parameters = {
@@ -179,6 +128,7 @@ def start_test(request):
                     "multi_hop_parallel_sessions": multi_hop_parallel_sessions,
                     "multi_hop_session_iteration_count": multi_hop_session_iteration_count,
                     "direction": traffic_direction,
+                    "speed_test_pop_to_node_dict": speed_test_pop_to_node_dict,
                 }
                 # Run the test plan
                 if test_code == Tests.PARALLEL_TEST.value:
@@ -186,34 +136,36 @@ def start_test(request):
                         network_parameters=network_parameters
                     )
                     run_tp.start()
-                    error = False
-                    msg = "Started Short Term Parallel Link Health Test Plan."
+                    return base.generate_http_response(
+                        error=False,
+                        msg="Started Short Term Parallel Link Health Test Plan.",
+                    )
                 elif test_code == Tests.SEQUENTIAL_TEST.value:
                     run_tp = run_sequential_test_plan.RunSequentialTestPlan(
                         network_parameters=network_parameters
                     )
                     run_tp.start()
-                    error = False
-                    msg = "Started Short Term Sequential Link Health Test Plan."
+                    return base.generate_http_response(
+                        error=False,
+                        msg="Started Short Term Sequential Link Health Test Plan.",
+                    )
                 elif test_code == Tests.MULTI_HOP_TEST.value:
                     run_tp = run_multi_hop_test_plan.RunMultiHopTestPlan(
                         network_parameters=network_parameters
                     )
                     run_tp.start()
-                    error = False
-                    msg = "Started Multi-hop Network Health Test Plan."
+                    msg = (
+                        "Started Speed Test."
+                        if speed_test_pop_to_node_dict
+                        else "Started Multi-hop Network Health Test Plan."
+                    )
+                    return base.generate_http_response(error=False, msg=msg)
                 else:
-                    error = True
-                    msg = "Incorrect test_code."
+                    return base.generate_http_response(
+                        error=True, msg="Incorrect test_code."
+                    )
         except Exception as e:
-            error = True
-            msg = str(e)
-    else:
-        error = True
-        msg = "Test Code is required"
-    context_data["error"] = error
-    context_data["msg"] = msg
-    return HttpResponse(json.dumps(context_data), content_type="application/json")
+            return base.generate_http_response(error=True, msg=str(e))
 
 
 @csrf_exempt
@@ -221,8 +173,6 @@ def stop_test(request):
     """
     This function returns json object which have 'error' and 'msg' key.
     """
-    context_data = {}
-    error = None
     msg = ""
     try:
         # Check if we are already running the test.
@@ -234,16 +184,13 @@ def stop_test(request):
                 obj.status = TestStatus.ABORTED.value
                 obj.save()
                 msg += "Test run execution id : " + str(obj.id) + " stopped. "
-            error = False
+            return base.generate_http_response(error=False, msg=msg)
         else:
-            error = True
-            msg = "No test is currently running"
+            return base.generate_http_response(
+                error=True, msg="No test is currently running"
+            )
     except Exception as e:
-        error = True
-        msg = str(e)
-    context_data["error"] = error
-    context_data["msg"] = msg
-    return HttpResponse(json.dumps(context_data), content_type="application/json")
+        return base.generate_http_response(error=True, msg=str(e))
 
 
 @csrf_exempt
@@ -372,6 +319,18 @@ def help(request):
         meta=multi_hop_session_iteration_count_meta,
     )
 
+    # thrift help for pop_to_node_link
+    pop_to_node_link_info = network_ttypes.PopToNodeLink(pop="", node="")
+    pop_to_node_link_meta = network_ttypes.Meta(
+        pop_to_node_link=pop_to_node_link_info,
+        ui_type="pop_to_node_link",
+        unit="",
+        type="dict",
+    )
+    pop_to_node_link = network_ttypes.Parameter(
+        label="Speed Test", key="pop_to_node_link", value="", meta=pop_to_node_link_meta
+    )
+
     sequential_test_plan_parameters = [
         topology_id,
         session_duration,
@@ -392,6 +351,7 @@ def help(request):
         traffic_direction,
         multi_hop_parallel_sessions,
         multi_hop_session_iteration_count,
+        pop_to_node_link,
     ]
 
     sequential_test_plan = network_ttypes.StartTest(
@@ -425,24 +385,5 @@ def help(request):
     )
 
     return HttpResponse(
-        _serialize_to_json(context_data), content_type="application/json"
+        base.serialize_to_json(context_data), content_type="application/json"
     )
-
-
-# TODO: fix deserialize logic
-# def deserialize_json(data):
-#     factory = TSimpleJSONProtocolFactory()
-#     return Serializer.deserialize(factory, data, network_ttypes.StartTest())
-
-# def _deserialize_json(encoded_json):
-#     dt = network_ttypes.StartTest()
-#     dt.read(encoded_json)
-#     return dt
-#     return network_ttypes.StartTest().readFromJson(encoded_json)
-
-
-def _serialize_to_json(obj) -> str:
-    trans = TTransport.TMemoryBuffer()
-    prot = TSimpleJSONProtocolFactory().getProtocol(trans)
-    obj.write(prot)
-    return trans.getvalue().decode("utf-8")

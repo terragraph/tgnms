@@ -20,17 +20,26 @@ struct Box {
   2: optional double max_value;
 }
 
+// pop: Name of Pop node
+// node: Name of Node
+struct PopToNodeLink{
+  1: string pop;
+  2: string node;
+}
+
 // dropdown: list of Parameter inside Drop Down
 // range: Range of the Parameter
-// ui_type: [dropdown/range]
+// pop_to_node_link: Pop to Node link info
+// ui_type: [dropdown/range/pop_to_node_link]
 // unit: Unit of the Parameter
 // type: Type of the Parameter
 struct Meta {
   1: optional list<DropDown> dropdown;
   2: optional Box range;
-  3: optional string ui_type;
-  4: optional string unit;
-  5: optional string type;
+  3: optional PopToNodeLink pop_to_node_link;
+  4: optional string ui_type;
+  5: optional string unit;
+  6: optional string type;
 }
 
 // label: Name of the Parameter

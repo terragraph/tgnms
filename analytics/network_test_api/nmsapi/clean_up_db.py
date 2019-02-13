@@ -13,14 +13,17 @@ sys.path.insert(0, setting_path)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 django.setup()
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from api.models import TEST_STATUS_ABORTED, TEST_STATUS_RUNNING, TestRunExecution
+from api.models import TestRunExecution, TestStatus
+
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
 def clean_up_db():
     # Check if any stale tests are still running
-    test_run_list = TestRunExecution.objects.filter(status__in=[TEST_STATUS_RUNNING])
+    test_run_list = TestRunExecution.objects.filter(
+        status__in=[TestStatus.RUNNING.value]
+    )
 
     if test_run_list.count() >= 1:
         for obj in test_run_list:
@@ -28,7 +31,7 @@ def clean_up_db():
                 "\nTest {} is currently running. ".format(obj.test_code)
                 + "Updating the status to Aborted."
             )
-            obj.status = TEST_STATUS_ABORTED
+            obj.status = TestStatus.ABORTED.value
             obj.save()
     else:
         _log.info("\nNo test is currently running. No clean-up needed.")

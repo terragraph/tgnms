@@ -73,6 +73,9 @@ class RunMultiHopTestPlan(Thread):
             "multi_hop_session_iteration_count"
         ]
         self.direction = network_parameters["direction"]
+        self.speed_test_pop_to_node_dict = network_parameters[
+            "speed_test_pop_to_node_dict"
+        ]
         self.parameters = {}
         self.start_time = time.time()
         self.received_output = {}
@@ -222,20 +225,28 @@ class RunMultiHopTestPlan(Thread):
         pop_to_node_links = []
         parallel_sessions_count = 0
         start_delay = 0
-        random.shuffle(network_hop_info)
-        for node in network_hop_info:
-            if node.num_hops:
-                for route in node.routes:
-                    pop_node_desc = {}
-                    pop_node_desc["pop_name"] = route.pop_name
-                    pop_node_desc["node_name"] = node.name
-                    pop_node_desc["start_delay"] = start_delay
-                    pop_node_desc["ecmp"] = route.ecmp
-                    pop_to_node_links.append(pop_node_desc)
-                    parallel_sessions_count += 1
-                    if parallel_sessions_count == self.multi_hop_parallel_sessions:
-                        start_delay += self.session_duration
-                        parallel_sessions_count = 0
+        if not self.speed_test_pop_to_node_dict:
+            random.shuffle(network_hop_info)
+            for node in network_hop_info:
+                if node.num_hops:
+                    for route in node.routes:
+                        pop_node_desc = {}
+                        pop_node_desc["pop_name"] = route.pop_name
+                        pop_node_desc["node_name"] = node.name
+                        pop_node_desc["start_delay"] = start_delay
+                        pop_node_desc["ecmp"] = route.ecmp
+                        pop_to_node_links.append(pop_node_desc)
+                        parallel_sessions_count += 1
+                        if parallel_sessions_count == self.multi_hop_parallel_sessions:
+                            start_delay += self.session_duration
+                            parallel_sessions_count = 0
+        else:
+            pop_node_desc = {}
+            pop_node_desc["pop_name"] = self.speed_test_pop_to_node_dict["pop"]
+            pop_node_desc["node_name"] = self.speed_test_pop_to_node_dict["node"]
+            pop_node_desc["start_delay"] = start_delay
+            pop_node_desc["ecmp"] = False
+            pop_to_node_links.append(pop_node_desc)
         return pop_to_node_links
 
     def _multi_hop_test(self, topology, pop_to_node_links):
