@@ -95,6 +95,18 @@ BEGIN
 END $$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS Adjust_Agg_Key_Auto;
+DELIMITER $$
+CREATE PROCEDURE Adjust_Agg_Key_Auto ()
+BEGIN
+  DECLARE incr_val INT  DEFAULT 0;
+  SET incr_val = (SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'cxl' AND TABLE_NAME = 'agg_key');
+  IF incr_val < 1000000000  then
+        ALTER TABLE `agg_key` AUTO_INCREMENT=1000000000;
+  end if ;
+END; $$
+DELIMITER ;
+
 CREATE TABLE IF NOT EXISTS `agg_key` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `topology_id` int(11) NOT NULL COMMENT 'References topologies.id',
@@ -108,6 +120,10 @@ CREATE TABLE IF NOT EXISTS `agg_key` (
  */
 AUTO_INCREMENT=1000000000
 DEFAULT CHARSET=latin1;
+
+/* for reasons unknown, on initial startup, AUTO_INCREMENT value in the
+   CREATE TABLE is not set properly; this function sets is again */
+CALL Adjust_Agg_Key_Auto;
 
 CREATE TABLE IF NOT EXISTS `alerts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
