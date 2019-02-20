@@ -286,7 +286,7 @@ services:
   grafana:
     build:
       context: .
-    image: secure.cxl-terragraph.com:443/tg_grafana:latest
+    image: secure.cxl-terragraph.com:443/tgnms-grafana:latest
     env_file:
       - ./env/mysql.env
       - ./env/grafana.env
@@ -312,7 +312,7 @@ services:
   grafana_util:
     build:
       context: .
-    image: secure.cxl-terragraph.com:443/tg_grafana:latest
+    image: secure.cxl-terragraph.com:443/tgnms-grafana:latest
     env_file:
       - ./env/mysql.env
       - ./env/grafana.env
