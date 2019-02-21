@@ -54,7 +54,7 @@ MySqlClient::openConnection() noexcept {
     return connection;
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "connect ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
   return folly::none;
 }
@@ -130,20 +130,33 @@ void MySqlClient::refreshTopologies() noexcept {
       return;
     }
     std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
-    std::unique_ptr<sql::ResultSet> res(
-        stmt->executeQuery("SELECT * FROM `topologies`"));
+    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        "SELECT "
+          "t.id, "
+          "t.name, "
+          "cp.ip AS `pip`, "
+          "cp.api_port AS `papi_port`, "
+          "cp.e2e_port AS `pe2e_port`, "
+          "cb.ip AS `bip`, "
+          "cb.api_port AS `bapi_port`, "
+          "cb.e2e_port AS `be2e_port` "
+        "FROM topology t "
+        "JOIN (controller cp) ON (t.primary_controller=cp.id) "
+        "LEFT JOIN (controller cb) ON (t.backup_controller=cb.id)"));
     std::map<int64_t, std::shared_ptr<query::TopologyConfig>> topologyIdTmp;
     while (res->next()) {
       auto config = std::make_shared<query::TopologyConfig>();
       config->id = res->getInt("id");
       config->name = res->getString("name");
-      config->initial_latitude = res->getDouble("initial_latitude");
-      config->initial_longitude = res->getDouble("initial_longitude");
-      config->initial_zoom_level = res->getDouble("initial_zoom_level");
-      config->e2e_ip = res->getString("e2e_ip");
-      config->e2e_port = res->getInt("e2e_port");
-      config->api_ip = res->getString("api_ip");
-      config->api_port = res->getInt("api_port");
+      config->primary_controller.ip = res->getString("pip");
+      config->primary_controller.api_port = res->getInt("papi_port");
+      config->primary_controller.e2e_port = res->getInt("pe2e_port");
+      const std::string backupIp = res->getString("bip");
+      if (!backupIp.empty()) {
+        config->backup_controller.ip = backupIp;
+        config->backup_controller.api_port = res->getInt("bapi_port");
+        config->backup_controller.e2e_port = res->getInt("be2e_port");
+      }
       // add to topology list
       topologyIdTmp[config->id] = config;
     }
@@ -153,7 +166,7 @@ void MySqlClient::refreshTopologies() noexcept {
     LOG(INFO) << "refreshTopologies:  " << topologyIdMap_.rlock()->size();
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshTopologies ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 }
 
@@ -189,7 +202,7 @@ void MySqlClient::refreshAggregateKeys(
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshAggregateKeys ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 }
 
@@ -218,7 +231,7 @@ void MySqlClient::addAggKeys(
     refreshTopologies();
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "addAggKeys ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 }
 
@@ -270,7 +283,7 @@ void MySqlClient::refreshNodes() noexcept {
     nodes_.swap(nodesTmp);
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshNodes ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 }
 
@@ -315,7 +328,7 @@ void MySqlClient::refreshStatKeys() noexcept {
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshStatKeys ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 }
 
@@ -391,7 +404,7 @@ bool MySqlClient::addOrUpdateNodes(
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "addNode ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode() << ")";
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode() << ")";
   }
   // only update nodes table if changed
   if (changed) {
@@ -430,7 +443,7 @@ void MySqlClient::addStatKeys(
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "addStatKey ERR: " << e.what();
-    LOG(ERROR) << " (MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 
   refreshStatKeys();
@@ -512,7 +525,7 @@ int64_t MySqlClient::getLastBwgd(const std::string& network) noexcept {
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "ERROR reading last inserted ID: " << e.what();
-    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
   return MySqlError;
 }
@@ -538,7 +551,7 @@ int64_t MySqlClient::getLastId(
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "ERROR reading last inserted ID: " << e.what();
-    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
   return MySqlError;
 }
@@ -581,7 +594,7 @@ int MySqlClient::writeTxScanResponse(
     return MySqlOk;
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "Tx scan response ERR: " << e.what();
-    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
     return e.getErrorCode();
   }
 }
@@ -611,7 +624,7 @@ bool MySqlClient::writeRxScanResponse(
     return true;
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "Rx scan response ERR: " << e.what();
-    LOG(ERROR) << " MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
     return false;
   }
 }
@@ -689,7 +702,7 @@ void MySqlClient::addEvents(
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "addEvents ERR: " << e.what();
-    LOG(ERROR) << "MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 }
 
@@ -725,7 +738,7 @@ folly::dynamic MySqlClient::getEvents(const query::EventsQueryRequest& request) 
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "getEvents ERR: " << e.what();
-    LOG(ERROR) << "MySQL error code: " << e.getErrorCode();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
   return events;
 }

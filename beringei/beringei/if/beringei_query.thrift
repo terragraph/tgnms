@@ -127,17 +127,18 @@ struct NodeEvents {
   4: list<Event.Event> events,
 }
 
+struct ControllerConfig {
+  1: string ip,
+  2: i32 api_port,
+  3: i32 e2e_port,
+}
+
 struct TopologyConfig {
   1: i32 id,
   10: string name,
-  20: double initial_latitude,
-  21: double initial_longitude,
-  22: i32 initial_zoom_level,
 
-  100: string e2e_ip,
-  101: i32 e2e_port,
-  110: string api_ip,
-  111: i32 api_port,
+  100: ControllerConfig primary_controller,
+  110: optional ControllerConfig backup_controller,
 
   200: optional Topology.Topology topology,
   // aggregate stat keys for the network

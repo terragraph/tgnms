@@ -65,13 +65,13 @@ class ApiServiceClient {
       // TODO: make this handle v4/6
       std::string endpoint = folly::sformat(
           "http://{}:{}/{}",
-          formatAddress(topologyConfig->api_ip),
-          topologyConfig->api_port,
+          formatAddress(topologyConfig->primary_controller.ip),
+          topologyConfig->primary_controller.api_port,
           url);
       VLOG(1) << "API service fetch to " << endpoint << " with post data " <<
                  postData << " (TCP/IP address:port is " <<
-                 topologyConfig->api_ip << ":" <<
-                 topologyConfig->api_port << ")";
+                 topologyConfig->primary_controller.ip << ":" <<
+                 topologyConfig->primary_controller.api_port << ")";
       // we can't verify the peer with our current image/lack of certs
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
       curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
