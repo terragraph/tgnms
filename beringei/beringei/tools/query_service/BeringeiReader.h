@@ -33,9 +33,9 @@ class BeringeiReader {
       stats::QueryRequest& request);
 
   folly::dynamic process();
+  static time_t getTimeInMs();
 
  private:
-  int64_t getTimeInMs();
   std::string getTimeStr(time_t timeSec);
   // query validation
   bool validateQuery();

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "PrometheusUtils.h"
 #include "RuckusController.h"
 #include "StatsTypeAheadCache.h"
 
@@ -41,14 +42,12 @@ class AggregatorService {
   void doPeriodicWork();
   // query and log topology based metrics (nodes & links online)
   void fetchAndLogTopologyMetrics(
-      std::unordered_map<std::string /* key name */,
-                         std::pair<time_t, double>>& aggValues,
+      std::vector<Metric>& aggValues,
       const query::Topology& topology);
   // create datapoints from metrics
   void createDataPoints(
       std::vector<DataPoint>& bDataPoints,
-      const std::unordered_map<std::string /* key name */,
-                               std::pair<time_t, double>>& aggValues,
+      const std::vector<Metric>& aggValues,
       std::shared_ptr<query::TopologyConfig> topologyConfig);
   // store metrics in beringei backend
   void storeAggregateMetrics(std::vector<DataPoint>& bDataPoints);

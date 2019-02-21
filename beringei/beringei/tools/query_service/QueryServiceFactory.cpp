@@ -46,7 +46,7 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
   } else if (path == "/stats_writer") {
     // The false input indicates that the incoming StatsWriteRequest is
     // serialized by SimpleJSON protocol
-    return new StatsWriteHandler(false);
+    return new StatsWriteHandler(typeaheadCache_, false);
   } else if (path == "/stats_query") {
     return new StatsHandler(typeaheadCache_);
   } else if (path == "/logs_writer") {
@@ -70,7 +70,7 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     // NMS Write Request
     // The true input indicates that the incoming StatsWriteRequest is
     // serialized by Binary protocol
-    return new StatsWriteHandler(true);
+    return new StatsWriteHandler(typeaheadCache_, true);
   } else if (path == "/unified_stats_writer") {
     // Write both node stats and aggregate stats to the database
     return new UnifiedStatsWriteHandler();

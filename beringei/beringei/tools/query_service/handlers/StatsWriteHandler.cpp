@@ -10,7 +10,9 @@
 #include "StatsWriteHandler.h"
 
 #include "../BeringeiClientStore.h"
+#include "../BeringeiReader.h"
 #include "../MySqlClient.h"
+#include "../PrometheusUtils.h"
 #include "mysql_connection.h"
 #include "mysql_driver.h"
 
@@ -22,6 +24,7 @@
 #include <cppconn/prepared_statement.h>
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
+#include <curl/curl.h>
 #include <folly/DynamicConverter.h>
 #include <folly/io/IOBuf.h>
 #include <proxygen/httpserver/ResponseBuilder.h>
@@ -35,13 +38,14 @@ using std::chrono::milliseconds;
 using std::chrono::system_clock;
 using namespace proxygen;
 
-// DEFINE_int32(agg_bucket_seconds, 30, "time aggregation bucket size");
-
 namespace facebook {
 namespace gorilla {
 
-StatsWriteHandler::StatsWriteHandler(bool enableBinarySerialization)
-    : RequestHandler(), enableBinarySerialization_(enableBinarySerialization) {}
+StatsWriteHandler::StatsWriteHandler(TACacheMap& typeaheadCache,
+                                     bool enableBinarySerialization)
+    : RequestHandler(),
+      typeaheadCache_(typeaheadCache),
+      enableBinarySerialization_(enableBinarySerialization) {}
 
 void StatsWriteHandler::onRequest(
     std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -69,15 +73,11 @@ int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
   return folly::to<int64_t>(floor(timeIn / intervalSec)) * intervalSec;
 }
 
-void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
+void StatsWriteHandler::writeData(const query::StatsWriteRequest& request) {
   std::unordered_map<int64_t, std::unordered_set<std::string>> missingNodeKey;
   std::vector<DataPoint> bRows;
-
-  auto startTime = (int64_t)duration_cast<milliseconds>(
-                       system_clock::now().time_since_epoch())
-                       .count();
-
   int interval = request.interval;
+  auto startTime = BeringeiReader::getTimeInMs();
   auto mySqlClient = MySqlClient::getInstance();
   for (const auto& agent : request.agents) {
     auto nodeId = mySqlClient->getNodeId(agent.mac);
@@ -87,7 +87,7 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
     }
 
     for (const auto& stat : agent.stats) {
-      // check timestamp
+      // tag short name
       int64_t tsParsed = timeCalc(stat.ts, interval);
       auto keyId = mySqlClient->getKeyId(*nodeId, stat.key);
       // verify node/key combo exists
@@ -136,14 +136,13 @@ void StatsWriteHandler::writeData(query::StatsWriteRequest request) {
     std::thread tEb([&eb]() { eb.loop(); });
     tEb.join();
 
-    auto endTime = (int64_t)duration_cast<milliseconds>(
-                       system_clock::now().time_since_epoch())
-                       .count();
+    auto endTime = BeringeiReader::getTimeInMs();
     LOG(INFO) << "Writing stats complete. "
               << "Total: " << (endTime - startTime) << "ms.";
   } else {
     LOG(INFO) << "No stats data to write";
   }
+  PrometheusUtils::writeNodeMetrics(typeaheadCache_, request);
 }
 
 void StatsWriteHandler::onEOM() noexcept {
@@ -151,12 +150,12 @@ void StatsWriteHandler::onEOM() noexcept {
   query::StatsWriteRequest request;
   try {
     if (enableBinarySerialization_) {
-      LOG(INFO) << "Using Binary protocol for TypeAheadRequest"
-                << "deserialization.";
+      VLOG(2) << "Using Binary protocol for TypeAheadRequest"
+              << "deserialization.";
       request = BinarySerializer::deserialize<query::StatsWriteRequest>(body);
     } else {
-      LOG(INFO) << "Using SimpleJSON protocol for TypeAheadRequest"
-                << "deserialization.";
+      VLOG(2) << "Using SimpleJSON protocol for TypeAheadRequest"
+              << "deserialization.";
       request =
           SimpleJSONSerializer::deserialize<query::StatsWriteRequest>(body);
     }
@@ -205,6 +204,7 @@ void StatsWriteHandler::onError(ProxygenError /* unused */) noexcept {
   delete this;
 }
 
-void StatsWriteHandler::logRequest(query::StatsWriteRequest request) {}
+void StatsWriteHandler::logRequest(const query::StatsWriteRequest& request) {}
+
 } // namespace gorilla
 } // namespace facebook

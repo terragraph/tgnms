@@ -31,6 +31,8 @@ set(BERINGEI_QUERY_SRCS
     EventProcessor.h
     MySqlClient.cpp
     MySqlClient.h
+    PrometheusUtils.cpp
+    PrometheusUtils.h
     QueryServiceFactory.cpp
     QueryServiceFactory.h
     RawReadBeringeiData.cpp

@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "../StatsTypeAheadCache.h"
+
 #include <folly/Memory.h>
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
@@ -24,7 +26,8 @@ namespace gorilla {
 
 class StatsWriteHandler : public proxygen::RequestHandler {
  public:
-  explicit StatsWriteHandler(bool enableBinarySerialization);
+  explicit StatsWriteHandler(TACacheMap& typeaheadCache,
+                             bool enableBinarySerialization);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -40,12 +43,13 @@ class StatsWriteHandler : public proxygen::RequestHandler {
   void onError(proxygen::ProxygenError err) noexcept override;
 
  private:
-  void logRequest(query::StatsWriteRequest request);
-
-  void writeData(query::StatsWriteRequest request);
+  void logRequest(const query::StatsWriteRequest& request);
+  void writeData(const query::StatsWriteRequest& request);
 
   std::unique_ptr<folly::IOBuf> body_;
+  TACacheMap& typeaheadCache_;
   bool enableBinarySerialization_;
+
 };
 } // namespace gorilla
 } // namespace facebook

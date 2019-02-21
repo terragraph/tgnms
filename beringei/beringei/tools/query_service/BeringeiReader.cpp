@@ -40,7 +40,7 @@ BeringeiReader::BeringeiReader(
       typeaheadCache_(typeaheadCache),
       request_(request) {}
 
-int64_t BeringeiReader::getTimeInMs() {
+time_t BeringeiReader::getTimeInMs() {
   return (int64_t)duration_cast<milliseconds>(
              system_clock::now().time_since_epoch())
       .count();
@@ -216,7 +216,9 @@ void BeringeiReader::fetchBeringeiData() {
   for (const auto& keyTimeSeries : beringeiTimeSeries_) {
     const std::string& keyId = keyTimeSeries.first.key;
     // keyIndex = keyMapIndex[keyName];
-    const auto& keyMetaData = keyDataList_.at(keyId);
+    auto keyDataIt = keyDataList_.find(keyId);
+    ASSERT(keyDataIt != keyDataList_.end());
+    const auto& keyMetaData = keyDataIt->second;
     if (request_.debugLogToConsole) {
       LOG(INFO) << "Key id: " << keyId << ", name: " << keyMetaData.keyName;
     }
@@ -845,13 +847,22 @@ void BeringeiReader::formatDataEvent(bool isLink) {
   }
   for (const auto& linkNameMap : linkUpAvailablePairMap) { // each link
     std::string linkName = linkNameMap.first;
-    const auto intervalTuple = intervalStatusMap.at(linkName);
-    const auto linkDirMap = linkNameMap.second.at(std::get<2>(intervalTuple));
+    auto intervalTupleIt = intervalStatusMap.find(linkName);
+    if (intervalTupleIt == intervalStatusMap.end()) {
+      LOG(ERROR) << "Unable to find link: " << linkName
+                 << " in intervalStatusMap";
+      return;
+    }
+    const auto& intervalTuple = intervalTupleIt->second;
+    ASSERT(linkNameMap.second.find(std::get<2>(intervalTuple)) != linkNameMap.second.end());
+    const auto& linkDirMap = linkNameMap.second.at(std::get<2>(intervalTuple));
     // for (const auto& linkDirMap : linkNameMap.second) { // both directions
     // calculate link availability
     if (linkDirMap.count("fw_uptime") && linkDirMap.count("link_avail")) {
       int* availableStatus = new int[numDataPoints_]{};
+      ASSERT(linkDirMap.find("link_avail") != linkDirMap.end());
       const double* linkAvailable = linkDirMap.at("link_avail");
+      ASSERT(linkDirMap.find("fw_uptime") != linkDirMap.end());
       const double* mgmtLinkUp = linkDirMap.at("fw_uptime");
       const int* intervalStatus = std::get<0>(intervalTuple);
 

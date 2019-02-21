@@ -57,6 +57,10 @@ class StatsTypeAheadCache {
       const query::Node& aNode,
       const query::Node& zNode);
 
+  folly::Optional<stats::KeyMetaData> getKeyDataByNodeKey(
+      const std::string& nodeMac,
+      const std::string& keyName) const;
+
   // fetch topology-wide key data
   std::vector<stats::KeyMetaData> getKeyData(
       const std::string& metricName) const;

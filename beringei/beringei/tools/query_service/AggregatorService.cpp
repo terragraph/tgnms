@@ -81,24 +81,24 @@ void AggregatorService::timerCb() {
 }
 
 void AggregatorService::doPeriodicWork() {
-  std::unordered_map<std::string /* key name */, std::pair<time_t, double>>
-      aggValues;
   std::vector<DataPoint> bDataPoints;
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
   for (const auto& topologyConfig : topologyList) {
+    std::vector<Metric> aggValues{};
     auto topology = topologyConfig.second->topology;
     fetchAndLogTopologyMetrics(aggValues, topology);
     // create data points from metric data in beringei format
     createDataPoints(bDataPoints, aggValues, topologyConfig.second);
+    // write metrics to prometheus (per network)
+    PrometheusUtils::writeMetrics(topology.name, "aggregator_service", aggValues);
   }
   // store metrics to beringei
   storeAggregateMetrics(bDataPoints);
 }
 
 void AggregatorService::fetchAndLogTopologyMetrics(
-    std::unordered_map<std::string /* key name */,
-                       std::pair<time_t, double>>& aggValues,
+    std::vector<Metric>& aggValues,
     const query::Topology& topology) {
   LOG(INFO) << "\tTopology: " << topology.name;
   if (topology.name.empty() || topology.nodes.empty() ||
@@ -109,17 +109,27 @@ void AggregatorService::fetchAndLogTopologyMetrics(
   // nodes up + down
   int onlineNodes = 0;
   int popNodes = 0;
+  // quicker lookups of node metadata
+  std::unordered_map<std::string, query::Node> nodeNameMap{};
   for (const auto& node : topology.nodes) {
     onlineNodes += (node.status != query::NodeStatusType::OFFLINE);
     if (node.pop_node) {
       popNodes++;
     }
+    nodeNameMap[node.name] = node;
+    // record status of node
+    aggValues.emplace_back(Metric(
+        "node_online",
+        {folly::sformat("node=\"{}\"", node.mac_addr),
+         folly::sformat("pop=\"{}\"", node.pop_node ? "true" : "false")
+        },
+        (int)(node.status != query::NodeStatusType::OFFLINE)));
   }
-  aggValues["total_nodes"] = std::make_pair(0, topology.nodes.size());
-  aggValues["online_nodes"] = std::make_pair(0, onlineNodes);
-  aggValues["online_nodes_perc"] = std::make_pair(0,
-      (double)onlineNodes / topology.nodes.size() * 100.0);
-  aggValues["pop_nodes"] = std::make_pair(0, popNodes);
+  aggValues.emplace_back(Metric("total_nodes", topology.nodes.size()));
+  aggValues.emplace_back(Metric("online_nodes", onlineNodes));
+  aggValues.emplace_back(Metric("online_nodes_perc",
+      (double)onlineNodes / topology.nodes.size() * 100.0));
+  aggValues.emplace_back(Metric("pop_nodes", popNodes));
 
   // (wireless) links up + down
   int wirelessLinks = 0;
@@ -130,17 +140,32 @@ void AggregatorService::fetchAndLogTopologyMetrics(
     }
     wirelessLinks++;
     onlineLinks += link.is_alive;
+    // check if either side of the link is a CN
+    bool hasCnNode =
+        (nodeNameMap.at(link.a_node_name).node_type == query::NodeType::CN ||
+         nodeNameMap.at(link.z_node_name).node_type == query::NodeType::CN);
+    // meta-data per link
+    std::vector<std::string> linkMetaData = {
+        folly::sformat("link=\"{}\"",
+                       PrometheusUtils::formatPrometheusKeyName(link.name)),
+        folly::sformat("cn=\"{}\"", hasCnNode ? "true" : "false")};
+    // record link metrics
+    aggValues.emplace_back(Metric("link_online",
+                                  linkMetaData,
+                                  (int)(link.is_alive)));
+    aggValues.emplace_back(Metric("link_attempts",
+                                  linkMetaData,
+                                  link.linkup_attempts));
   }
-  aggValues["total_wireless_links"] = std::make_pair(0, wirelessLinks);
-  aggValues["online_wireless_links"] = std::make_pair(0, onlineLinks);
-  aggValues["online_wireless_links_perc"] = std::make_pair(0,
-      (double)onlineLinks / wirelessLinks * 100.0);
+  aggValues.emplace_back(Metric("total_wireless_links", wirelessLinks));
+  aggValues.emplace_back(Metric("online_wireless_links", onlineLinks));
+  aggValues.emplace_back(Metric("online_wireless_links_perc",
+      (double)onlineLinks / wirelessLinks * 100.0));
 }
 
 void AggregatorService::createDataPoints(
     std::vector<DataPoint>& bDataPoints,
-    const std::unordered_map<std::string /* key name */,
-                             std::pair<time_t, double>>& aggValues,
+    const std::vector<Metric>& aggValues,
     std::shared_ptr<query::TopologyConfig> topologyConfig) {
   VLOG(1) << "--------------------------------------";
   int64_t timeStamp =
@@ -154,14 +179,14 @@ void AggregatorService::createDataPoints(
       // find metrics, update beringei
       std::unordered_set<std::string> aggMetricNamesToAdd;
       for (const auto& metric : aggValues) {
-        VLOG(1) << "Agg: " << metric.first << " = "
-                << std::to_string(metric.second.second) << ", ts: " << metric.second.first;
+        VLOG(1) << "Agg: " << metric.name << " = "
+                << std::to_string(metric.value) << ", ts: " << metric.ts;
         auto topologyAggKeyIt =
-            topologyConfig->keys.find(metric.first);
+            topologyConfig->keys.find(metric.name);
         if (topologyAggKeyIt == topologyConfig->keys.end()) {
           // add key name to db
-          aggMetricNamesToAdd.insert(metric.first);
-          LOG(INFO) << "Missing key name: " << metric.first;
+          aggMetricNamesToAdd.insert(metric.name);
+          LOG(INFO) << "Missing key name: " << metric.name;
           continue;
         }
         int keyId = topologyAggKeyIt->second;
@@ -173,9 +198,9 @@ void AggregatorService::createDataPoints(
         bKey.key = std::to_string(keyId);
         bDataPoint.key = bKey;
         // use timestamp of metric if non-zero, otherwise use current time
-        bTimePair.unixTime = metric.second.first == 0 ? timeStamp :
-                                                        metric.second.first;
-        bTimePair.value = metric.second.second;
+        bTimePair.unixTime = metric.ts == 0 ? timeStamp :
+                                                     metric.ts;
+        bTimePair.value = metric.value;
         bDataPoint.value = bTimePair;
         bDataPoints.push_back(bDataPoint);
       }

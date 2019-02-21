@@ -13,6 +13,7 @@
 #include "TopologyStore.h"
 
 #include <folly/MacAddress.h>
+#include <folly/Optional.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <iostream>
@@ -39,6 +40,19 @@ StatsTypeAheadCache::StatsTypeAheadCache() {
       "tx_fail",    "tx_ok",     "rx_errors",   "tx_errors",   "rx_dropped",
       "tx_dropped", "rx_frame",  "rx_overruns", "tx_overruns", "tx_collisions",
       "speed",      "link_avail"};
+}
+
+folly::Optional<stats::KeyMetaData> StatsTypeAheadCache::getKeyDataByNodeKey(
+    const std::string& nodeMac,
+    const std::string& keyName) const {
+  auto nodeIt = nodeMacToKeyList_.find(nodeMac);
+  if (nodeIt != nodeMacToKeyList_.end()) {
+    auto keyDataIt = nodeIt->second.find(keyName);
+    if (keyDataIt != nodeIt->second.end()) {
+      return *keyDataIt->second;
+    }
+  }
+  return folly::none;
 }
 
 std::vector<stats::KeyMetaData> StatsTypeAheadCache::getKeyData(
