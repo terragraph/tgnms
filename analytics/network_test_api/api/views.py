@@ -202,7 +202,7 @@ def help(request):
     stop_test_url_ext = "/api/stop_test/"
 
     # thrift help info for topology_id
-    api_services = MySqlDbAccess().read_api_service_setting()
+    api_services = MySqlDbAccess().read_api_service_setting(use_primary_controller=True)
     try:
         topology_id_dropdown = [
             network_ttypes.DropDown(label=str(cfg["name"]), value=str(cfg["id"]))

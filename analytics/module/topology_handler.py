@@ -20,22 +20,26 @@ sys.path.append(
 from facebook.gorilla.Topology.ttypes import LinkType
 
 
-def fetch_network_info(topology_id: Optional[int] = None) -> Dict[int, Dict]:
+def fetch_network_info(
+    topology_id: Optional[int] = None, use_primary_controller: Optional[bool] = True
+) -> Dict[int, Dict]:
     """
     returns all networks or just one if topology_id input is set
+    use_primary_controller is True for Primary Controller info; False for Backup
+        Controller info.
     networks.keys() are same as topology id
     networks[id].keys() includes "e2e_ip", "e2e_port", "topology", etc.
     networks[id]["topology"].keys() includes "nodes", "links", "sites", etc.
     """
     networks = {}
     try:
-        api_services = MySqlDbAccess().read_api_service_setting()
+        api_services = MySqlDbAccess().read_api_service_setting(use_primary_controller)
         for _name, cfg in api_services.items():
             if topology_id and cfg["id"] != topology_id:
                 continue
-            target_domain = "{}:{}".format(cfg["api_ip"], cfg["api_port"])
+            target_domain = "{}:{}".format(cfg["ip"], cfg["api_port"])
             os.environ["NO_PROXY"] = target_domain
-            url = "http://[{}]:{}/".format(cfg["api_ip"], cfg["api_port"])
+            url = "http://[{}]:{}/".format(cfg["ip"], cfg["api_port"])
             url += "api/getTopology"
             response = requests.post(url, data="{}", timeout=1)
             topology_string = response.content.decode("utf-8")

@@ -99,10 +99,11 @@ class MySqlDbAccess(object):
         """
         self.__connection.close()
 
-    def read_api_service_setting(self):
+    def read_api_service_setting(self, use_primary_controller=True):
         """Read the API service setting from MySQL.
         Args:
-        void
+        use_primary_controller: True for Primary Controller info; False for
+                Backup Controller info.
 
         Return: dict which maps the topology names to the corresponding
                 api_service ip/port. Each mapped topology name is a dict with
@@ -111,8 +112,14 @@ class MySqlDbAccess(object):
         api_service_config = {}
 
         with self.__connection.cursor() as cursor:
+            if use_primary_controller:
+                controller = "primary_controller"
+            else:
+                controller = "backup_controller"
+
             sql_string = (
-                "SELECT id, name, api_ip, api_port, e2e_ip, e2e_port FROM topologies;"
+                "SELECT topology.id, name, ip, api_port, e2e_port FROM topology "
+                + "INNER JOIN controller ON {}=controller.id;".format(controller)
             )
             try:
                 cursor.execute(sql_string)
@@ -127,12 +134,11 @@ class MySqlDbAccess(object):
                         "Find multiple api set up for network", api_result["name"]
                     )
                 api_service_config[api_result["name"]] = {}
-                api_service_config[api_result["name"]]["api_ip"] = api_result["api_ip"]
+                api_service_config[api_result["name"]]["ip"] = api_result["ip"]
                 api_service_config[api_result["name"]]["api_port"] = api_result[
                     "api_port"
                 ]
                 api_service_config[api_result["name"]]["id"] = api_result["id"]
-                api_service_config[api_result["name"]]["e2e_ip"] = api_result["e2e_ip"]
                 api_service_config[api_result["name"]]["e2e_port"] = api_result[
                     "e2e_port"
                 ]
