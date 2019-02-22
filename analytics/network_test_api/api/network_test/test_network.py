@@ -7,7 +7,7 @@ import sys
 import time
 from threading import Thread
 
-from api.models import SingleHopTest, Tests, TestRunExecution
+from api.models import TestResult, TestRunExecution, Tests
 from api.network_test import connect_to_ctrl, listen, run_iperf, run_ping
 from django.db import transaction
 
@@ -209,9 +209,7 @@ class TestNetwork(Thread):
         # write route_changed_count of all links to db
         if self.parameters["test_code"] == Tests.MULTI_HOP_TEST.value:
             for link in self.test_list:
-                link_db_obj = SingleHopTest.objects.filter(
-                    id=link["id"]
-                ).first()
+                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
                         link_db_obj.route_changed_count = link["route_changed_count"]

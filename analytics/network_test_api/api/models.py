@@ -50,7 +50,7 @@ class TestRunExecution(models.Model):
         verbose_name_plural = "Test Runs Executions"
 
 
-class SingleHopTest(models.Model):
+class TestResult(models.Model):
     test_run_execution = models.ForeignKey(
         TestRunExecution, on_delete=models.CASCADE, null=True
     )

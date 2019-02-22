@@ -11,13 +11,7 @@ from collections import defaultdict
 from datetime import date
 from threading import Thread
 
-from api.models import (
-    SingleHopTest,
-    TestRunExecution,
-    Tests,
-    TestStatus,
-    TrafficDirection,
-)
+from api.models import TestResult, TestRunExecution, Tests, TestStatus, TrafficDirection
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 from django.db import transaction
 from django.utils import timezone
@@ -92,7 +86,7 @@ class RunParallelTestPlan(Thread):
                 topology_name=self.topology_name,
             )
             for link in test_list:
-                link_id = SingleHopTest.objects.create(
+                link_id = TestResult.objects.create(
                     test_run_execution=test_run, status=TestStatus.RUNNING.value
                 )
                 link["id"] = link_id.id
@@ -175,7 +169,7 @@ class RunParallelTestPlan(Thread):
             if stats.name == "link_health":
                 link = self._get_link(stats.src_mac, stats.peer_mac)
                 if link is not None:
-                    link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
+                    link_db_obj = TestResult.objects.filter(id=link["id"]).first()
                     if link_db_obj is not None:
                         with transaction.atomic():
                             link_db_obj.health = stats.values[0]

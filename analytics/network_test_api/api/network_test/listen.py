@@ -10,7 +10,7 @@ import time
 from threading import Thread, currentThread
 
 import zmq
-from api.models import SingleHopTest, TestRunExecution, TestStatus
+from api.models import TestResult, TestRunExecution, TestStatus
 from api.network_test import base, iperf_ping_analyze, run_iperf, run_ping
 from django.db import transaction
 from django.utils import timezone
@@ -163,7 +163,7 @@ class RecvFromCtrl(base.Base):
             pass
         link = self._get_link(source_node, destination_node)
         if link is not None:
-            link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
+            link_db_obj = TestResult.objects.filter(id=link["id"]).first()
             if link_db_obj is not None:
                 with transaction.atomic():
                     if not iperf_data.isServer:
@@ -213,7 +213,7 @@ class RecvFromCtrl(base.Base):
             )
             link = self._get_link(source_node, destination_node)
             if link is not None:
-                link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
+                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
                         link_db_obj.status = TestStatus.FINISHED.value
@@ -255,7 +255,7 @@ class RecvFromCtrl(base.Base):
             stats = iperf_ping_analyze.get_ping_statistics(self.parsed_ping_data)
             link = self._get_link(source_node, destination_node)
             if link is not None:
-                link_db_obj = SingleHopTest.objects.filter(id=link["id"]).first()
+                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
                         link_db_obj.origin_node = link["ping_object"].src_node_name
