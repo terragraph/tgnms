@@ -11,13 +11,58 @@ from module.topology_handler import fetch_network_info
 from module.visibility import write_power_status
 
 
-def generate_insights(save_to_low_freq_db=None):
-    interval = 30
-    end_time = int(time.time())
-    start_time = end_time - 3600
-    network_info = fetch_network_info()
+def uptime_insights(
+    current_time: int,
+    window: int,
+    read_interval: int,
+    write_interval: int,
+    network_info: dict,
+):
+    end_time = current_time
+    start_time = current_time - window
+    nts = NumpyTimeSeries(start_time, end_time, read_interval, network_info)
+    k = nts.get_consts()
+    # uptimes for system, e2e_minion, stats_agent, openr
+    logging.info("process uptimes")
+    input_names = ["uptime", "e2e_minion.uptime", "stats_agent.uptime", "openr.uptime"]
+    output_names = ["linux", "e2e_minion", "stats_agent", "openr"]
+    for in_n, out_n in zip(input_names, output_names):
+        counter = nts.read_stats(in_n, StatType.NODE)
+        avail = []
+        resets = []
+        n_avail = []
+        for ti in range(k["num_topologies"]):
+            num_nodes = k[ti]["num_nodes"]
+            avail.append(npo.nan_arr((num_nodes, 1, 1)))
+            resets.append(npo.nan_arr((num_nodes, 1, 1)))
+            n_avail.append(npo.nan_arr((1, 1, 1)))
+            for ni in range(num_nodes):
+                ava, res = npo.get_uptime_and_resets_1d(
+                    counter[ti][ni, 0, :], read_interval, 1
+                )
+                avail[ti][ni, 0, 0] = ava
+                resets[ti][ni, 0, 0] = res
+            # assume no data means availability=0,
+            n_avail[ti] = np.nan_to_num(avail[ti]).mean(
+                axis=nts.NODE_AXIS, keepdims=True
+            )
+        nts.write_stats(out_n + "_availability", avail, StatType.NODE, write_interval)
+        nts.write_stats(
+            out_n + "_availability", n_avail, StatType.NETWORK, write_interval
+        )
+        nts.write_stats(out_n + "_resets", resets, StatType.NODE, write_interval)
 
-    nts = NumpyTimeSeries(start_time, end_time, interval, network_info)
+
+def misc_insights(
+    current_time: int,
+    window: int,
+    read_interval: int,
+    write_interval: int,
+    network_info: dict,
+):
+    end_time = current_time
+    start_time = current_time - window
+    nts = NumpyTimeSeries(start_time, end_time, read_interval, network_info)
     k = nts.get_consts()
     logging.info(
         "Generate insights, start_time={}, end_time={}, num_topologies={}".format(
@@ -45,7 +90,9 @@ def generate_insights(save_to_low_freq_db=None):
         for li in range(num_links):
             for di in range(num_dir):
                 a, f = npo.get_link_availability_and_flaps_1d(
-                    mgmt_link_up[ti][li, di, :], link_available[ti][li, di, :], interval
+                    mgmt_link_up[ti][li, di, :],
+                    link_available[ti][li, di, :],
+                    read_interval,
                 )
                 availability[ti][li, di, 0], flaps[ti][li, di, 0] = a, f
         # write max along direction to each direction
@@ -54,8 +101,8 @@ def generate_insights(save_to_low_freq_db=None):
         for di in range(num_dir):
             availability[ti][:, di, :] = max_a
             flaps[ti][:, di, :] = max_f
-    nts.write_stats("availability", availability, StatType.LINK, 900)
-    nts.write_stats("flaps", flaps, StatType.LINK, 900)
+    nts.write_stats("availability", availability, StatType.LINK, write_interval)
+    nts.write_stats("flaps", flaps, StatType.LINK, write_interval)
 
     # P90 mcs
     logging.info("Generate mcs.p90")
@@ -67,7 +114,7 @@ def generate_insights(save_to_low_freq_db=None):
                 mcs[ti], 10, axis=nts.TIME_AXIS, interpolation="lower", keepdims=True
             )
         )
-    nts.write_stats("mcs.p90", mcs_p90, StatType.LINK, 900)
+    nts.write_stats("mcs.p90", mcs_p90, StatType.LINK, write_interval)
 
     # path-loss asymmetry
     logging.info("Generate pathloss, pathloss_asymmetry")
@@ -81,50 +128,18 @@ def generate_insights(save_to_low_freq_db=None):
         asm = np.nanmean(asm, axis=nts.TIME_AXIS, keepdims=True)
         pathloss.append(pl)
         pathloss_asymmetry.append(asm)
-    nts.write_stats("pathloss", pathloss, StatType.LINK, 900)
-    nts.write_stats("pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, 900)
-
-    # uptimes for system, e2e_minion, stats_agent, openr
-    logging.info("process uptimes")
-    input_names = ["uptime", "e2e_minion.uptime", "stats_agent.uptime", "openr.uptime"]
-    output_names = ["linux", "e2e_minion", "stats_agent", "openr"]
-    raw_uptime_stats = []
-    proc_uptime_stats = []
-    for in_n, out_n in zip(input_names, output_names):
-        counter = nts.read_stats(in_n, StatType.NODE)
-        avail = []
-        resets = []
-        n_avail = []
-        raw_uptime_stats.append(counter)
-        for ti in range(k["num_topologies"]):
-            num_nodes = k[ti]["num_nodes"]
-            avail.append(npo.nan_arr((num_nodes, 1, 1)))
-            resets.append(npo.nan_arr((num_nodes, 1, 1)))
-            n_avail.append(npo.nan_arr((1, 1, 1)))
-            for ni in range(num_nodes):
-                ava, res = npo.get_uptime_and_resets_1d(counter[ti][ni, 0, :], 30, 1)
-                avail[ti][ni, 0, 0] = ava
-                resets[ti][ni, 0, 0] = res
-            # assume no data means availability=0,
-            n_avail[ti] = np.nan_to_num(avail[ti]).mean(axis=nts.NODE_AXIS, keepdims=True)
-        nts.write_stats(out_n + "_availability", avail, StatType.NODE, 900)
-        nts.write_stats(out_n + "_availability", n_avail, StatType.NETWORK, 900)
-        nts.write_stats(out_n + "_resets", resets, StatType.NODE, 900)
-        proc_uptime_stats.extend([avail, n_avail, resets])
+    nts.write_stats("pathloss", pathloss, StatType.LINK, write_interval)
+    nts.write_stats(
+        "pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, write_interval
+    )
 
     # generate indicators of self health
     total_inputs = []
     missing_inputs_percent = []
     total_outputs = []
     missing_outputs_percent = []
-    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi] + raw_uptime_stats
-    outputs = [
-        availability,
-        flaps,
-        mcs_p90,
-        pathloss,
-        pathloss_asymmetry,
-    ] + proc_uptime_stats
+    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi]
+    outputs = [availability, flaps, mcs_p90, pathloss, pathloss_asymmetry]
     for ti in range(k["num_topologies"]):
         total_inputs.append(np.zeros((1, 1, 1)))
         missing_inputs_percent.append(np.zeros((1, 1, 1)))
@@ -150,20 +165,76 @@ def generate_insights(save_to_low_freq_db=None):
                 int(total_outputs[ti]),
             )
         )
-    nts.write_stats("insights.total_inputs", total_inputs, StatType.NETWORK, 900)
     nts.write_stats(
-        "insights.missing_inputs_percent", missing_inputs_percent, StatType.NETWORK, 900
+        "insights.total_inputs", total_inputs, StatType.NETWORK, write_interval
     )
-    nts.write_stats("insights.total_outputs", total_outputs, StatType.NETWORK, 900)
+    nts.write_stats(
+        "insights.missing_inputs_percent",
+        missing_inputs_percent,
+        StatType.NETWORK,
+        write_interval,
+    )
+    nts.write_stats(
+        "insights.total_outputs", total_outputs, StatType.NETWORK, write_interval
+    )
     nts.write_stats(
         "insights.missing_outputs_percent",
         missing_outputs_percent,
         StatType.NETWORK,
-        900,
+        write_interval,
     )
 
-    # write power status of the nodes in each topology
-    write_power_status(network_info)
+
+def generate_insights():
+    current_time = int(time.time())
+    network_info = fetch_network_info()
+    # Runs every 30s
+    if current_time % 30 == 0:
+        write_power_status(
+            current_time=current_time,
+            window=900,
+            read_interval=30,
+            write_interval=30,
+            network_info=network_info,
+        )
+        misc_insights(
+            current_time=current_time,
+            window=30,
+            read_interval=1,
+            write_interval=30,
+            network_info=network_info,
+        )
+        # max time to reach 30s_db is 60s
+        uptime_insights(
+            current_time=current_time - 60,
+            window=30,
+            read_interval=30,
+            write_interval=30,
+            network_info=network_info,
+        )
+    # Runs every 15min
+    if current_time % 900 == 0:
+        write_power_status(
+            current_time=current_time,
+            window=900,
+            read_interval=30,
+            write_interval=900,
+            network_info=network_info,
+        )
+        misc_insights(
+            current_time=current_time,
+            window=900,
+            read_interval=30,
+            write_interval=900,
+            network_info=network_info,
+        )
+        uptime_insights(
+            current_time=current_time,
+            window=900,
+            read_interval=30,
+            write_interval=900,
+            network_info=network_info,
+        )
 
 
 def link_health(links: List, network_info: Dict) -> List:

@@ -2,18 +2,13 @@
 
 import os
 import sys
+import time
 import unittest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.beringei_time_series import read_time_series_list
 from module.topology_handler import fetch_network_info
-from module.visibility import (
-    END_TIME,
-    INTERVAL,
-    NodePowerStatus,
-    START_TIME,
-    write_power_status,
-)
+from module.visibility import NodePowerStatus, write_power_status
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
@@ -25,7 +20,10 @@ class VisibilityTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.network_info = fetch_network_info()
-        write_power_status(cls.network_info)
+        current_time = int(time.time())
+        window = 900
+        interval = 30
+        write_power_status(current_time, window, interval, window, cls.network_info)
 
         cls.id_to_cns = {}
         cls.id_to_tsl = {}
@@ -43,9 +41,9 @@ class VisibilityTest(unittest.TestCase):
                 name="power_status",
                 src_macs=cns,
                 peer_macs=[],
-                start_time=START_TIME,
-                end_time=END_TIME,
-                interval=INTERVAL,
+                start_time=current_time - window,
+                end_time=current_time,
+                interval=interval,
                 topology_name=topology["name"],
             )
 

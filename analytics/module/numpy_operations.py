@@ -74,14 +74,16 @@ def get_link_availability_and_flaps_1d(
     return la_bwgd / (slope * (num_points - 1)), link_flaps.sum()
 
 
-def get_uptime_and_resets_1d(counter: np.ndarray, interval: int, slope_per_second: float) -> Tuple[float, int]:
+def get_uptime_and_resets_1d(
+    counter: np.ndarray, interval: int, slope_per_second: float
+) -> Tuple[float, int]:
     # set slope to be increment per interval, instead of per second
     slope = slope_per_second * interval
     num_points = len(counter)
     t = np.arange(num_points)
     v = is_valid(counter)
     if v.sum() < 2:
-        return np.nan
+        return np.nan, np.nan
     c = counter[v]
     t = t[v]
     dt = diff_1d(t)

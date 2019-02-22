@@ -7,7 +7,7 @@ Use the JobScheduler class to run insights pipeline
 import sys
 import os
 import logging
-import json
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.job_scheduler import JobScheduler
@@ -21,19 +21,10 @@ if __name__ == "__main__":
         level=logging.INFO,
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    # get configurations
-    with open(PathStore.ANALYTICS_CONFIG_FILE) as config_file:
-        analytics_config = json.load(config_file)
-    max_run_time_in_s = analytics_config["periodic_jobs"]["max_run_time_in_s"]
-    period_in_s = analytics_config["periodic_jobs"]["period_in_s"]
-    low_freq_db_period = analytics_config["periodic_jobs"]["low_freq_db_period"]
-    num_of_jobs_to_submit = max_run_time_in_s / period_in_s
-    # run periodically
-    job_scheduler = JobScheduler()
-    job_scheduler.schedule_periodic_jobs(
-        generate_insights,
-        low_freq_db_period=low_freq_db_period,
-        period_in_s=period_in_s,
-        num_of_jobs_to_submit=num_of_jobs_to_submit,
-    )
-    job_scheduler.run()
+
+    interval = 30
+    while True:
+        current_time = time.time()
+        next_boundary = (int(current_time / interval) * interval) + interval
+        time.sleep(next_boundary - current_time)
+        generate_insights()
