@@ -17,6 +17,7 @@ find_library(MYSQL_CLIENT_LIB NAMES "mysqlclient"
   NO_DEFAULT_PATH
 )
 find_library(CURL curl)
+find_library(SNAPPY snappy)
 
 set(BERINGEI_QUERY_SRCS
     AggregatorService.cpp
@@ -109,6 +110,7 @@ target_link_libraries(
     ${LIBGLOG_LIBRARIES}
     ${PROXYGEN_LIBRARIES}
     Threads::Threads
+    ${SNAPPY}
 )
 
 add_subdirectory(tests)

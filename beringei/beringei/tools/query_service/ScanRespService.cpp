@@ -17,6 +17,7 @@
 #include <folly/String.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/json.h>
+#include <snappy.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -41,6 +42,7 @@ DEFINE_int32(max_num_scans_req, 50, "Maximum number of scans to request");
 
 #define MAX_ROUTE_NUM 256
 
+using apache::thrift::BinarySerializer;
 using apache::thrift::SimpleJSONSerializer;
 
 using namespace facebook::terragraph::thrift;
@@ -147,6 +149,27 @@ void ScanRespService::setNewScanRespId(
   }
 }
 
+// 1. thrift serialize using BinarySerializer
+//    (there is bug in javascript thrift with the CompactSerializer DOUBLE)
+// 2. compress using Google snappy
+// 3. write result as string into the DB
+folly::Optional<std::string> ScanRespService::serializeAndCompress(
+    const ScanResp& scanResp) {
+  std::string serstr;
+  try {
+    serstr =
+        BinarySerializer::serialize<std::string>(scanResp);
+  } catch (const std::exception& ex) {
+    LOG(ERROR) << "Error serializing responses: " << folly::exceptionStr(ex);
+    return folly::none;
+  }
+  std::string compstr;
+  snappy::Compress(serstr.data(), serstr.size(), &compstr);
+  LOG(INFO) << "Snappy compression input size " << serstr.size()
+            << "; compressed size " << compstr.size();
+  return (folly::Optional<std::string>)compstr;
+}
+
 // each row in the mySQL table corresponds to one tx and one rx node
 // if a scan has multiple responders, they are each a separate row in the table
 // all having the same token and start_bwgd
@@ -185,10 +208,10 @@ int ScanRespService::writeData(
       continue;
     }
 
-    scans::MySqlScanResp mySqlScanResponse;
+    scans::MySqlScanResp mySqlScanResponse{};
 
     // these fields apply to all scan responses with the same scan ID
-    scans::MySqlScanTxResp mySqlScanTxResponse;
+    scans::MySqlScanTxResp mySqlScanTxResponse{};
     // combinedStatus indicates a non-zero status (error) - we can get
     // more information by looking at the detailed scan response stored as a
     // blob in MySQL
@@ -233,13 +256,11 @@ int ScanRespService::writeData(
           break;
         }
 
-        try {
-          mySqlScanTxResponse.scanResp =
-              SimpleJSONSerializer::serialize<std::string>(responses.second);
-        } catch (const std::exception& ex) {
-          LOG(ERROR) << "Error deserializing scan responses: "
-                     << folly::exceptionStr(ex);
-          continue;
+        auto compressedString = serializeAndCompress(responses.second);
+        if (compressedString) {
+          mySqlScanTxResponse.scanResp = std::move(*compressedString);
+        } else {
+          mySqlScanTxResponse.scanResp = "Serialize failure in BQS";
         }
 
       } else { // rx node
@@ -279,24 +300,12 @@ int ScanRespService::writeData(
 
           const int hash = createXyHash(txRoute, rxRoute);
           if (routeInfoMap.find(hash) == routeInfoMap.end()) {
-            MicroRoute route;
-            RouteInfo routeInfoAvgTemp;
-            route.tx = txRoute;
-            route.rx = rxRoute;
-            routeInfoAvgTemp.route = route;
-            routeInfoAvgTemp.snrEst = routeInfo.snrEst;
-
-            // don't store the following parameters in the DB
-            routeInfoAvgTemp.__isset.rxStart = false;
-            routeInfoAvgTemp.__isset.packetIdx = false;
-            routeInfoAvgTemp.__isset.sweepIdx = false;
-            routeInfoAvgTemp.__isset.postSnr = false;
-            routeInfoAvgTemp.__isset.rssi = false;
             routeInfoMap[hash].first = routeIndex;
             routeInfoMap[hash].second = 1;
-            scanRespNew.routeInfoList.push_back(routeInfoAvgTemp);
+            scanRespNew.routeInfoList.push_back(routeInfo);
             routeIndex++;
           } else {
+            // this route (tx/rx) is already added, so average results
             std::pair<int, int>& routeIndexAndCount = routeInfoMap[hash];
             RouteInfo* routeInfoListAvg =
                 &scanRespNew.routeInfoList[routeIndexAndCount.first];
@@ -305,23 +314,22 @@ int ScanRespService::writeData(
             routeInfoListAvg->snrEst +=
                 (routeInfo.snrEst - routeInfoListAvg->snrEst) /
                 routeIndexAndCount.second;
+            routeInfoListAvg->rssi +=
+                (routeInfo.rssi - routeInfoListAvg->rssi) /
+                routeIndexAndCount.second;
+            routeInfoListAvg->postSnr +=
+                (routeInfo.postSnr - routeInfoListAvg->postSnr) /
+                routeIndexAndCount.second;
           }
         }
 
-        for (auto& routeInfoAvg : scanRespNew.routeInfoList) {
-          // take average and round to 2 decimal places before serializing
-          routeInfoAvg.snrEst = floor(routeInfoAvg.snrEst * 100 + 0.5) / 100;
+        auto compressedString = serializeAndCompress(scanRespNew);
+        if (compressedString) {
+          mySqlScanRxResponse.scanResp = std::move(*compressedString);
+        } else {
+          mySqlScanTxResponse.scanResp = "Serialize failure in BQS";
         }
 
-        try {
-          mySqlScanRxResponse.scanResp =
-              SimpleJSONSerializer::serialize<std::string>(scanRespNew);
-
-        } catch (const std::exception& ex) {
-          LOG(ERROR) << "Error serializing responses: "
-                     << folly::exceptionStr(ex);
-          continue;
-        }
         mySqlScanRxResponse.status = responses.second.status;
         mySqlScanRxResponse.rxNodeId = *nodeId;
         mySqlScanRxResponse.rxNodeName = responses.first;

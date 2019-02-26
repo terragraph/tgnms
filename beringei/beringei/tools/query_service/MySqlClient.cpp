@@ -573,7 +573,7 @@ int MySqlClient::writeTxScanResponse(
         "`scan_type`, `network`,`scan_sub_type`, `scan_mode`, "
         "`apply_flag`, `status`, `tx_power`, `resp_id`, `tx_node_name`, "
         "`scan_resp`) VALUES "
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COMPRESS(?))";
+        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         (*connection)->prepareStatement(query));
     prep_stmt->setInt(1, scanResponse.token);
@@ -611,7 +611,7 @@ bool MySqlClient::writeRxScanResponse(
     std::string query =
         "INSERT INTO `rx_scan_results` "
         "(`status`, `scan_resp`, `rx_node_id`, `tx_id`, `rx_node_name`, "
-        "`new_beam_flag`) VALUES (?, COMPRESS(?), ?, ?, ?, ?)";
+        "`new_beam_flag`) VALUES (?, ?, ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         (*connection)->prepareStatement(query));
     prep_stmt->setInt(1, (int32_t)scanResponse.status);
@@ -674,7 +674,8 @@ void MySqlClient::addEvents(
     const std::string& topologyName) {
   auto stmt =
       "INSERT INTO `event_log` "
-      "(`mac`, `name`, `topologyName`, `source`, `timestamp`, `reason`, `details`, `category`, `level`) "
+      "(`mac`, `name`, `topologyName`, `source`, `timestamp`, `reason`, "
+      "`details`, `category`, `level`) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
   auto connection = openConnection();
   if (!connection) {
@@ -706,16 +707,17 @@ void MySqlClient::addEvents(
   }
 }
 
-folly::dynamic MySqlClient::getEvents(const query::EventsQueryRequest& request) {
+folly::dynamic MySqlClient::getEvents(
+    const query::EventsQueryRequest& request) {
   auto regexStmt = folly::sformat(
-        "SELECT * FROM `event_log` WHERE "
-        "(topologyName LIKE \"%{}\" AND category LIKE \"%{}\" "
-        "AND level LIKE \"%{}\" AND timestamp >= {}) LIMIT {}",
-        request.topologyName,
-        request.category,
-        request.level,
-        request.timestamp,
-        request.maxResults);
+      "SELECT * FROM `event_log` WHERE "
+      "(topologyName LIKE \"%{}\" AND category LIKE \"%{}\" "
+      "AND level LIKE \"%{}\" AND timestamp >= {}) LIMIT {}",
+      request.topologyName,
+      request.category,
+      request.level,
+      request.timestamp,
+      request.maxResults);
   folly::dynamic events = folly::dynamic::array;
   auto connection = openConnection();
   if (!connection) {

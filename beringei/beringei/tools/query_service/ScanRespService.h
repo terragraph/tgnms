@@ -59,6 +59,8 @@ class ScanRespService {
       const std::string& topologyName);
   void timerCb();
   void updateTopology();
+  folly::Optional<std::string> serializeAndCompress(
+      const terragraph::thrift::ScanResp& str);
 };
 } // namespace gorilla
 } // namespace facebook
