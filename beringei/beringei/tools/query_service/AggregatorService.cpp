@@ -117,12 +117,18 @@ void AggregatorService::fetchAndLogTopologyMetrics(
       popNodes++;
     }
     nodeNameMap[node.name] = node;
+    std::vector<std::string> nodeLabels = {
+        folly::sformat("name=\"{}\"",
+                       PrometheusUtils::formatPrometheusKeyName(node.name)),
+        folly::sformat("pop=\"{}\"", node.pop_node ? "true" : "false")};
+    // ensure mac_addr is set
+    if (!node.mac_addr.empty()) {
+      nodeLabels.emplace_back(folly::sformat("node=\"{}\"", node.mac_addr));
+    }
     // record status of node
     aggValues.emplace_back(Metric(
         "node_online",
-        {folly::sformat("node=\"{}\"", node.mac_addr),
-         folly::sformat("pop=\"{}\"", node.pop_node ? "true" : "false")
-        },
+        nodeLabels,
         (int)(node.status != query::NodeStatusType::OFFLINE)));
   }
   aggValues.emplace_back(Metric("total_nodes", topology.nodes.size()));
