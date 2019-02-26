@@ -712,7 +712,7 @@ folly::dynamic MySqlClient::getEvents(
   auto regexStmt = folly::sformat(
       "SELECT * FROM `event_log` WHERE "
       "(topologyName LIKE \"%{}\" AND category LIKE \"%{}\" "
-      "AND level LIKE \"%{}\" AND timestamp >= {}) LIMIT {}",
+      "AND level LIKE \"%{}\" AND timestamp >= {}) ORDER BY id DESC LIMIT {}",
       request.topologyName,
       request.category,
       request.level,
