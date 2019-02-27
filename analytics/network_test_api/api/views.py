@@ -356,19 +356,19 @@ def help(request):
 
     sequential_test_plan = network_ttypes.StartTest(
         label="Sequential Link Test",
-        test_code="8.2",
+        test_code=Tests.SEQUENTIAL_TEST.value,
         url_ext=start_test_url_ext,
         parameters=sequential_test_plan_parameters,
     )
     parallel_test_plan = network_ttypes.StartTest(
         label="Parallel Link Test",
-        test_code="8.3",
+        test_code=Tests.PARALLEL_TEST.value,
         url_ext=start_test_url_ext,
         parameters=parallel_test_plan_parameters,
     )
     multi_hop_test_plan = network_ttypes.StartTest(
         label="Multi-hop Test",
-        test_code="8.9",
+        test_code=Tests.MULTI_HOP_TEST.value,
         url_ext=start_test_url_ext,
         parameters=multi_hop_test_plan_parameters,
     )
