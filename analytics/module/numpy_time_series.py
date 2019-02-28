@@ -478,3 +478,12 @@ class NumpyLinkTimeSeries(object):
             peer_coo = site_name_to_coordinate[mac_to_site[link_mac[1]]]
             data[idx[0], idx[1], 0] = approx_distance(src_coo, peer_coo)
         return data
+
+    def get_consts(self) -> Dict[Any, Any]:
+        consts = {}
+        consts["num_topologies"] = 1
+        consts["num_times"] = self._num_times
+        consts[0] = {}
+        consts[0]["num_nodes"] = 0
+        consts[0]["num_links"] = self._num_links
+        return consts

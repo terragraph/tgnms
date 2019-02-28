@@ -11,6 +11,47 @@ from module.topology_handler import fetch_network_info
 from module.visibility import write_power_status
 
 
+def link_health_insights(
+    current_time: int,
+    window: int,
+    read_interval: int,
+    write_interval: int,
+    network_info: dict,
+):
+    end_time = current_time
+    start_time = current_time - window
+    nts = NumpyTimeSeries(start_time, end_time, read_interval, network_info)
+    k = nts.get_consts()
+    logging.info("process link health")
+    link_length = nts.get_link_length()
+    mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
+    link_available = nts.read_stats("staPkt.linkAvailable", StatType.LINK)
+    mcs = nts.read_stats("staPkt.mcs", StatType.LINK)
+    tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)
+    tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)
+    no_traffic = nts.read_stats("latpcStats.noTrafficCountSF", StatType.LINK)
+    num_dir = nts.NUM_DIR
+
+    link_health = []
+    for ti in range(k["num_topologies"]):
+        num_links = k[ti]["num_links"]
+        link_health.append(npo.nan_arr((num_links, num_dir, 1)))
+        for li in range(num_links):
+            for di in range(num_dir):
+                link_health[-1][li, di, 0] = npo.get_link_health_1d(
+                    mgmt_link_up[ti][li, di, :],
+                    tx_ok[ti][li, di, :],
+                    tx_fail[ti][li, di, :],
+                    no_traffic[ti][li, di, :],
+                    link_available[ti][li, di, :],
+                    mcs[ti][li, di, :],
+                    link_length[ti][li, di, :],
+                    read_interval,
+                )
+
+    nts.write_stats("link_health", link_health, StatType.LINK, write_interval)
+
+
 def uptime_insights(
     current_time: int,
     window: int,
@@ -116,6 +157,25 @@ def misc_insights(
         )
     nts.write_stats("mcs.p90", mcs_p90, StatType.LINK, write_interval)
 
+    # Tx PER
+    logging.info("Generate tx_per")
+    tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)
+    tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)
+    tx_per = []
+    for ti in range(k["num_topologies"]):
+        num_links = k[ti]["num_links"]
+        num_dir = nts.NUM_DIR
+        tx_per.append(npo.nan_arr((num_links, num_dir, 1)))
+        for li in range(num_links):
+            for di in range(num_dir):
+                tx_per[ti][li, di, 0] = npo.get_tx_per_1d(
+                    mgmt_link_up[ti][li, di, :],
+                    tx_ok[ti][li, di, :],
+                    tx_fail[ti][li, di, :],
+                    write_interval,
+                )
+    nts.write_stats("tx_per", tx_per, StatType.LINK, write_interval)
+
     # path-loss asymmetry
     logging.info("Generate pathloss, pathloss_asymmetry")
     tx_power_idx = nts.read_stats("staPkt.txPowerIndex", StatType.LINK)
@@ -138,8 +198,8 @@ def misc_insights(
     missing_inputs_percent = []
     total_outputs = []
     missing_outputs_percent = []
-    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi]
-    outputs = [availability, flaps, mcs_p90, pathloss, pathloss_asymmetry]
+    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi, tx_ok, tx_fail]
+    outputs = [availability, flaps, mcs_p90, pathloss, pathloss_asymmetry, tx_per]
     for ti in range(k["num_topologies"]):
         total_inputs.append(np.zeros((1, 1, 1)))
         missing_inputs_percent.append(np.zeros((1, 1, 1)))
@@ -188,32 +248,44 @@ def misc_insights(
 def generate_insights():
     current_time = int(time.time())
     network_info = fetch_network_info()
-    # Runs every 30s
+    # max time to reach 30s_db is 60s
+    # max time to reach 1s_db is 2s
+    # add few seconds margin for latency from node to nms
+    # adjust current time if sensitive
+    OFFSET_30S_DB = 90
+    OFFSET_1S_DB = 10
     if current_time % 30 == 0:
+        # Runs every 30s
         write_power_status(
-            current_time=current_time,
+            current_time=current_time - OFFSET_30S_DB,
             window=900,
             read_interval=30,
             write_interval=30,
             network_info=network_info,
         )
         misc_insights(
-            current_time=current_time,
+            current_time=current_time - OFFSET_1S_DB,
             window=30,
             read_interval=1,
             write_interval=30,
             network_info=network_info,
         )
-        # max time to reach 30s_db is 60s
         uptime_insights(
-            current_time=current_time - 60,
+            current_time=current_time - OFFSET_30S_DB,
             window=30,
             read_interval=30,
             write_interval=30,
             network_info=network_info,
         )
-    # Runs every 15min
+        link_health_insights(
+            current_time=current_time - OFFSET_1S_DB,
+            window=900,
+            read_interval=1,
+            write_interval=30,
+            network_info=network_info,
+        )
     if current_time % 900 == 0:
+        # Runs every 15min
         write_power_status(
             current_time=current_time,
             window=900,
@@ -222,16 +294,23 @@ def generate_insights():
             network_info=network_info,
         )
         misc_insights(
-            current_time=current_time,
+            current_time=current_time - OFFSET_30S_DB,
             window=900,
             read_interval=30,
             write_interval=900,
             network_info=network_info,
         )
         uptime_insights(
-            current_time=current_time,
+            current_time=current_time - OFFSET_30S_DB,
             window=900,
             read_interval=30,
+            write_interval=900,
+            network_info=network_info,
+        )
+        link_health_insights(
+            current_time=current_time - OFFSET_1S_DB,
+            window=900,
+            read_interval=1,
             write_interval=900,
             network_info=network_info,
         )
@@ -244,55 +323,24 @@ def link_health(links: List, network_info: Dict) -> List:
     mgmt_link_up = nlts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
     link_available = nlts.read_stats("staPkt.linkAvailable", StatType.LINK)
     mcs = nlts.read_stats("staPkt.mcs", StatType.LINK)
-    # tx_ok = nlts.read_stats("staPkt.txOk", StatType.LINK)
-    # tx_fail = nlts.read_stats("staPkt.txFail", StatType.LINK)
+    tx_ok = nlts.read_stats("staPkt.txOk", StatType.LINK)
+    tx_fail = nlts.read_stats("staPkt.txFail", StatType.LINK)
+    no_traffic = nlts.read_stats("latpcStats.noTrafficCountSF", StatType.LINK)
     num_links = nlts._num_links
     num_dir = nlts.NUM_DIR
 
-    availability = npo.nan_arr((num_links, num_dir, 1))
+    link_health = npo.nan_arr((num_links, num_dir, 1))
     for li in range(num_links):
         for di in range(num_dir):
-            availability[li, di, 0], _ = npo.get_link_availability_and_flaps_1d(
-                mgmt_link_up[li, di, :], link_available[li, di, :], 1
+            link_health[li, di, 0] = npo.get_link_health_1d(
+                mgmt_link_up[li, di, :],
+                tx_ok[li, di, :],
+                tx_fail[li, di, :],
+                no_traffic[li, di, :],
+                link_available[li, di, :],
+                mcs[li, di, :],
+                link_length[li, di, :],
+                1,
             )
-    max_a = np.nanmax(availability, axis=nlts.DIR_AXIS)
-    availability = np.stack([max_a] * 2, axis=nlts.DIR_AXIS)
 
-    mcs_p90 = np.nanpercentile(
-        mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True
-    )
-
-    # TODO: Calculate Tx PER
-
-    excellent = np.logical_and(
-        availability > 0.99,
-        np.logical_or(
-            np.logical_and(link_length > 100, mcs_p90 >= 9),
-            np.logical_and(link_length <= 100, mcs_p90 == 12),
-        ),
-    )
-    healthy = np.logical_and(
-        availability > 0.97,
-        np.logical_or(
-            np.logical_and(link_length > 100, mcs_p90 >= 9),
-            np.logical_and(link_length <= 100, mcs_p90 >= 11),
-        ),
-    )
-    marginal = np.logical_and(
-        availability > 0.90,
-        np.logical_or(
-            np.logical_and(link_length > 100, mcs_p90 >= 7),
-            np.logical_and(link_length <= 100, mcs_p90 >= 9),
-        ),
-    )
-    valid = np.logical_and(npo.is_valid(availability), npo.is_valid(mcs_p90))
-    warning = np.logical_and(
-        valid, np.logical_not(npo.list_or([excellent, healthy, marginal]))
-    )
-    link_health = npo.nan_arr((num_links, num_dir, 1))
-    link_health[np.logical_not(valid)] = 4
-    link_health[warning] = 3
-    link_health[marginal] = 2
-    link_health[healthy] = 1
-    link_health[excellent] = 0
     return nlts.write_stats("link_health", link_health, 900)

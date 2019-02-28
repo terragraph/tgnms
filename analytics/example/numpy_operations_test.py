@@ -118,6 +118,160 @@ class NumpyOperationsTest(unittest.TestCase):
         np.testing.assert_array_equal(obs_pl, exp_pl)
         np.testing.assert_array_equal(obs_asm, exp_asm)
 
+    def test_get_largest_traffic_interval_1d(self):
+
+        # acronyms:
+        # mgmt_link_up: lu
+        # no_traffic: nt
+        # interval: i
+        # observed traffic_interval: obs_ti
+        # expected traffic_interval: exp_ti
+
+        # no valid data
+        lu = np.array([np.nan, np.nan, np.nan])
+        nt = np.array([np.nan, np.nan, np.nan])
+        i = 1
+        exp_ti = np.array([False, False, False])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # all valid data
+        lu = np.array([1000, 1039, 1078])
+        nt = np.array([100, 100, 100])
+        i = 1
+        exp_ti = np.array([True, True, True])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # no traffic scenario
+        lu = np.array([1000, 1039, 1078])
+        nt = np.array([100, 100, 101])
+        i = 1
+        exp_ti = np.array([True, True, False])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # link reset scenario
+        lu = np.array([0, 39, 78])
+        nt = np.array([100, 100, 100])
+        i = 1
+        exp_ti = np.array([False, True, True])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # favor recent interval
+        lu = np.array([1000, 1039, 39, 78, 117])
+        nt = np.array([0, 0, 0, 0, 0])
+        i = 1
+        exp_ti = np.array([False, False, True, True, True])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # largest interval
+        lu = np.array([1000, 1039, 0, 39, 78, 117, 0, 39])
+        nt = np.array([0, 0, 0, 0, 0, 0, 0, 0])
+        i = 1
+        exp_ti = np.array([False, False, False, True, True, True, False, False])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # largest interval, with holes
+        lu = np.array([100, 1039, 0, 39, 78, 117, np.nan, 39])
+        nt = np.array([0, np.nan, 0, 0, 0, 0, 0, 0])
+        i = 1
+        exp_ti = np.array([False, False, False, True, True, True, False, False])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # misc
+        lu = np.floor((np.arange(10) * 39.0625) + (3600.0 * 39.0625))
+        nt = np.array([0, 10, np.nan, 30, 40, 40, 40, np.nan, np.nan, 40]) * 1.0
+        i = 1
+        exp_ti = np.array([False, False, False, False, True, True, True, True, True, True])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+        # misc but different interval
+        lu = np.floor((np.arange(10) * 39.0625 * 39) + (3600.0 * 39.0625))
+        nt = np.array([0, 10, np.nan, 30, 40, 40, 40, np.nan, np.nan, 40]) * 1.0
+        i = 39
+        exp_ti = np.array([False, False, False, False, True, True, True, True, True, True])
+        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        np.testing.assert_array_equal(obs_ti, exp_ti)
+
+    def test_get_tx_per_1d(self):
+
+        # acronyms:
+        # lu: mgmt_link_up
+        # to: tx_ok
+        # tf: tx_fail
+        # i: interval
+        # obs: observed
+        # exp: expected
+
+        # no data
+        lu = np.array([np.nan, np.nan])
+        to = np.array([np.nan, np.nan])
+        tf = np.array([np.nan, np.nan])
+        i = 1
+        exp_per = np.nan
+        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        np.testing.assert_equal(obs_per, exp_per)
+
+        # base case 0 per
+        lu = np.array([100, 139])
+        to = np.array([100, 110])
+        tf = np.array([10, 10])
+        i = 1
+        exp_per = 0
+        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        np.testing.assert_equal(obs_per, exp_per)
+
+        # base case 1 per
+        lu = np.array([100, 139])
+        to = np.array([100, 100])
+        tf = np.array([10, 20])
+        i = 1
+        exp_per = 1
+        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        np.testing.assert_equal(obs_per, exp_per)
+
+        # base case 0.5 per
+        lu = np.array([100, 139, 178])
+        to = np.array([100, 110, 130])
+        tf = np.array([10, 40, 40])
+        i = 1
+        exp_per = 0.5
+        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        np.testing.assert_equal(obs_per, exp_per)
+
+        # with resets
+        lu = np.array([100, 139, 10, 49])
+        to = np.array([100, 110, 5, 10])
+        tf = np.array([10, 70, 0, 0])
+        i = 1
+        exp_per = 0.75
+        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        np.testing.assert_equal(obs_per, exp_per)
+
+        # add holes
+        lu = np.array([100, 139, 10, np.nan, 88, 127])
+        to = np.array([100, 110, 5, np.nan, 10, 10])
+        tf = np.array([10, 70, 0, np.nan, np.nan, 0])
+        i = 1
+        exp_per = 0.75
+        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        np.testing.assert_equal(obs_per, exp_per)
+
+        # different interval
+        lu = np.array([100, 139, 10, np.nan, 88, 127]) * 39
+        to = np.array([100, 110, 5, np.nan, 10, 10]) * 39
+        tf = np.array([10, 70, 0, np.nan, np.nan, 0]) * 39
+        i = 39
+        exp_per = 0.75
+        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        np.testing.assert_equal(obs_per, exp_per)
+
 
 if __name__ == "__main__":
     logging.basicConfig(
