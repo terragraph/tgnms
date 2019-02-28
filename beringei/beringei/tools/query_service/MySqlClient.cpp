@@ -139,10 +139,15 @@ void MySqlClient::refreshTopologies() noexcept {
           "cp.e2e_port AS `pe2e_port`, "
           "cb.ip AS `bip`, "
           "cb.api_port AS `bapi_port`, "
-          "cb.e2e_port AS `be2e_port` "
+          "cb.e2e_port AS `be2e_port`, "
+          "wc.type AS `wac_type`, "
+          "wc.url AS `wac_url`, "
+          "wc.username AS `wac_username`, "
+          "wc.password AS `wac_password` "
         "FROM topology t "
         "JOIN (controller cp) ON (t.primary_controller=cp.id) "
-        "LEFT JOIN (controller cb) ON (t.backup_controller=cb.id)"));
+        "LEFT JOIN (controller cb) ON (t.backup_controller=cb.id) "
+        "LEFT JOIN (wireless_controller wc) ON (t.wireless_controller=wc.id)"));
     std::map<int64_t, std::shared_ptr<query::TopologyConfig>> topologyIdTmp;
     while (res->next()) {
       auto config = std::make_shared<query::TopologyConfig>();
@@ -153,9 +158,18 @@ void MySqlClient::refreshTopologies() noexcept {
       config->primary_controller.e2e_port = res->getInt("pe2e_port");
       const std::string backupIp = res->getString("bip");
       if (!backupIp.empty()) {
+        config->__isset.backup_controller = true;
         config->backup_controller.ip = backupIp;
         config->backup_controller.api_port = res->getInt("bapi_port");
         config->backup_controller.e2e_port = res->getInt("be2e_port");
+      }
+      const std::string wacType = res->getString("wac_type");
+      if (!wacType.empty()) {
+        config->__isset.wireless_controller = true;
+        config->wireless_controller.type = wacType;
+        config->wireless_controller.url = res->getString("wac_url");
+        config->wireless_controller.username = res->getString("wac_username");
+        config->wireless_controller.password = res->getString("wac_password");
       }
       // add to topology list
       topologyIdTmp[config->id] = config;

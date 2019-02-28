@@ -13,12 +13,12 @@
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/RawReadHandler.h"
-#include "handlers/RuckusControllerStatsHandler.h"
 #include "handlers/StatsHandler.h"
 #include "handlers/StatsTypeAheadHandler.h"
 #include "handlers/StatsWriteHandler.h"
-#include "handlers/UnifiedStatsWriteHandler.h"
 #include "handlers/TestConnectionHandler.h"
+#include "handlers/UnifiedStatsWriteHandler.h"
+#include "handlers/WirelessControllerStatsHandler.h"
 
 using folly::EventBase;
 using folly::EventBaseManager;
@@ -61,8 +61,8 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     // The true input indicates that the incoming TypeAheadRequest is
     // serialized by Binary protocol
     return new StatsTypeAheadHandler(typeaheadCache_, true);
-  } else if (path == "/ruckus_ap_stats") {
-    return new RuckusControllerStatsHandler();
+  } else if (path == "/wireless_controller_stats") {
+    return new WirelessControllerStatsHandler();
   } else if (path == "/raw_query") {
     // NMS Raw Read Request, will read only raw data points
     return new RawReadHandler(typeaheadCache_);

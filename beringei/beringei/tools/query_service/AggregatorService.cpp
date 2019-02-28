@@ -13,6 +13,7 @@
 #include "BeringeiReader.h"
 #include "MySqlClient.h"
 #include "TopologyStore.h"
+#include "WirelessController.h"
 
 #include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
@@ -30,6 +31,13 @@ DEFINE_int32(
     30,
     "Ruckus controller stats fetch time period");
 DEFINE_bool(write_agg_data, true, "Write aggregator data to beringei");
+
+// skip labels with statistics data when tagging ruckus APs
+const std::set<std::string> RUCKUS_SKIP_LABELS = {
+    "approvedTime",
+    "clientCount",
+    "lastSeenTime",
+    "uptime"};
 
 using std::chrono::duration_cast;
 using std::chrono::seconds;
@@ -88,6 +96,7 @@ void AggregatorService::doPeriodicWork() {
     std::vector<Metric> aggValues{};
     auto topology = topologyConfig.second->topology;
     fetchAndLogTopologyMetrics(aggValues, topology);
+    fetchAndLogWirelessControllerMetrics(aggValues, *(topologyConfig.second));
     // create data points from metric data in beringei format
     createDataPoints(bDataPoints, aggValues, topologyConfig.second);
     // write metrics to prometheus (per network)
@@ -167,6 +176,56 @@ void AggregatorService::fetchAndLogTopologyMetrics(
   aggValues.emplace_back(Metric("online_wireless_links", onlineLinks));
   aggValues.emplace_back(Metric("online_wireless_links_perc",
       (double)onlineLinks / wirelessLinks * 100.0));
+}
+
+void AggregatorService::fetchAndLogWirelessControllerMetrics(
+    std::vector<Metric>& aggValues,
+    const query::TopologyConfig& topologyConfig) {
+  if (topologyConfig.__isset.wireless_controller &&
+      topologyConfig.wireless_controller.type == "ruckus") {
+    fetchAndLogRuckusControllerMetrics(aggValues, topologyConfig);
+  }
+}
+
+void AggregatorService::fetchAndLogRuckusControllerMetrics(
+    std::vector<Metric>& aggValues,
+    const query::TopologyConfig& topologyConfig) {
+  const auto& wac = topologyConfig.wireless_controller;
+  VLOG(1) << "Fetching metrics from ruckus controller: " << wac.url;
+  folly::dynamic WirelessControllerStats =
+      WirelessController::ruckusControllerStats(wac);
+  // push AP metrics
+  if (WirelessControllerStats.isObject()) {
+    for (const auto& wap : WirelessControllerStats.items()) {
+      VLOG(2) << "\tAP: " << wap.first;
+      std::vector<std::string> wapMetaData{};
+      for (const auto& ruckusKey : wap.second.items()) {
+        const std::string ruckusKeyName = ruckusKey.first.asString();
+        // skip ruckus numeric labels and null values
+        if (RUCKUS_SKIP_LABELS.count(ruckusKeyName) ||
+            ruckusKey.second.isNull()) {
+          continue;
+        }
+        VLOG(2) << "\tLabel: " << ruckusKey.first << " = " << ruckusKey.second;
+        wapMetaData.emplace_back(folly::sformat("{}=\"{}\"",
+            ruckusKeyName,
+            PrometheusUtils::formatPrometheusKeyName(
+                ruckusKey.second.asString())));
+      }
+      // metrics to report per-AP
+      std::map<std::string, std::string> wapMetrics = {
+          {"clientCount", "wap_client_count"},
+          {"uptime", "wap_uptime"}};
+      for (const auto& wapMetric : wapMetrics) {
+        auto wapMetricIt = wap.second.find(wapMetric.first);
+        if (wapMetricIt != wap.second.items().end()) {
+          aggValues.emplace_back(Metric(wapMetric.second,
+                                        wapMetaData,
+                                        wapMetricIt->second.asInt()));
+        }
+      }
+    }
+  }
 }
 
 void AggregatorService::createDataPoints(

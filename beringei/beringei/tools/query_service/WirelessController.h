@@ -9,6 +9,8 @@
 
 #include <folly/dynamic.h>
 
+#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
+
 #pragma once
 
 namespace facebook {
@@ -20,14 +22,16 @@ struct CurlResponse {
   std::string body;
 };
 
-class RuckusController {
+class WirelessController {
  public:
-  explicit RuckusController(){};
+  explicit WirelessController(){};
 
   // fetch ruckus ap stats
-  static folly::dynamic ruckusControllerStats();
+  static folly::dynamic ruckusControllerStats(
+      const query::WirelessController& controller);
 
   static struct CurlResponse ruckusControllerRequest(
+      const query::WirelessController& controller,
       const std::string& uri,
       const std::string& sessionCookie,
       const std::string& postData);

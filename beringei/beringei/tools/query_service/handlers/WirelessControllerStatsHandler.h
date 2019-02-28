@@ -13,13 +13,16 @@
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 #include <proxygen/httpserver/RequestHandler.h>
+#include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
+
+#include "../TopologyStore.h"
 
 namespace facebook {
 namespace gorilla {
 
-class RuckusControllerStatsHandler : public proxygen::RequestHandler {
+class WirelessControllerStatsHandler : public proxygen::RequestHandler {
  public:
-  explicit RuckusControllerStatsHandler(){};
+  explicit WirelessControllerStatsHandler(){};
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
 

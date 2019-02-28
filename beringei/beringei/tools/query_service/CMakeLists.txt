@@ -38,8 +38,8 @@ set(BERINGEI_QUERY_SRCS
     QueryServiceFactory.h
     RawReadBeringeiData.cpp
     RawReadBeringeiData.h
-    RuckusController.cpp
-    RuckusController.h
+    WirelessController.cpp
+    WirelessController.h
     ScanRespService.cpp
     ScanRespService.h
     StatsTypeAheadCache.cpp
@@ -61,8 +61,8 @@ set(BERINGEI_QUERY_HANDLER_SRCS
     handlers/TestConnectionHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
-    handlers/RuckusControllerStatsHandler.cpp
-    handlers/RuckusControllerStatsHandler.h
+    handlers/WirelessControllerStatsHandler.cpp
+    handlers/WirelessControllerStatsHandler.h
     handlers/StatsHandler.cpp
     handlers/StatsHandler.h
     handlers/StatsTypeAheadHandler.cpp

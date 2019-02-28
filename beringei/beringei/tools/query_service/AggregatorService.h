@@ -10,8 +10,8 @@
 #pragma once
 
 #include "PrometheusUtils.h"
-#include "RuckusController.h"
 #include "StatsTypeAheadCache.h"
+#include "WirelessController.h"
 
 #include <folly/Synchronized.h>
 #include <folly/io/async/EventBaseManager.h>
@@ -44,6 +44,13 @@ class AggregatorService {
   void fetchAndLogTopologyMetrics(
       std::vector<Metric>& aggValues,
       const query::Topology& topology);
+  // query and log wireless controller metrics
+  void fetchAndLogWirelessControllerMetrics(
+      std::vector<Metric>& aggValues,
+      const query::TopologyConfig& topologyConfig);
+  void fetchAndLogRuckusControllerMetrics(
+      std::vector<Metric>& aggValues,
+      const query::TopologyConfig& topologyConfig);
   // create datapoints from metrics
   void createDataPoints(
       std::vector<DataPoint>& bDataPoints,

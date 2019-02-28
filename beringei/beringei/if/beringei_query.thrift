@@ -133,6 +133,13 @@ struct ControllerConfig {
   3: i32 e2e_port,
 }
 
+struct WirelessController {
+  1: string url,
+  2: string type,
+  10: string username,
+  11: string password,
+}
+
 struct TopologyConfig {
   1: i32 id,
   10: string name,
@@ -141,8 +148,15 @@ struct TopologyConfig {
   110: optional ControllerConfig backup_controller,
 
   200: optional Topology.Topology topology,
-  // aggregate stat keys for the network
+  // Aggregate stat keys for the network
   300: optional map<string, i64> keys,
+
+  // Wireless Access Controller
+  400: optional WirelessController wireless_controller,
+}
+
+struct WirelessControllerStatsRequest {
+  1: string topologyName,
 }
 
 struct StatsWriteRequest {

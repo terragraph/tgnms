@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "RuckusController.h"
+#include "WirelessController.h"
 
 #include <curl/curl.h>
 #include <folly/Conv.h>
@@ -16,22 +16,6 @@
 #include <folly/json.h>
 
 #include "beringei/client/BeringeiClient.h"
-
-// ruckus ap controller
-DEFINE_string(ruckus_controller_host, "172.17.0.1", "Ruckus controller host");
-DEFINE_int32(ruckus_controller_port, 7443, "Ruckus controller port");
-DEFINE_string(
-    ruckus_controller_uri,
-    "/api/public/v5_0/",
-    "Ruckus controller base uri");
-DEFINE_string(
-    ruckus_controller_username,
-    "admin",
-    "Ruckus controller username");
-DEFINE_string(
-    ruckus_controller_password,
-    "Terra@171",
-    "Ruckus controller password");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -59,15 +43,16 @@ curlWriteCb(void* content, size_t size, size_t nmemb, void* userp) {
 namespace facebook {
 namespace gorilla {
 
-folly::dynamic RuckusController::ruckusControllerStats() {
+folly::dynamic WirelessController::ruckusControllerStats(
+    const query::WirelessController& controller) {
   // return
   folly::dynamic apStats = folly::dynamic::object;
   // login and get a new session id
   folly::dynamic loginObj =
-      folly::dynamic::object("username", FLAGS_ruckus_controller_username)(
-          "password", FLAGS_ruckus_controller_password);
-  struct CurlResponse loginResp = RuckusController::ruckusControllerRequest(
-      "session", "", folly::toJson(loginObj));
+      folly::dynamic::object("username", controller.username)(
+          "password", controller.password);
+  struct CurlResponse loginResp = WirelessController::ruckusControllerRequest(
+      controller, "session", "", folly::toJson(loginObj));
   VLOG(1) << "Header: " << loginResp.header << ", body: " << loginResp.body;
   // find the cookie string
   std::string cookieStr;
@@ -84,67 +69,84 @@ folly::dynamic RuckusController::ruckusControllerStats() {
                << loginResp.responseCode;
     return apStats;
   }
-  // fetch ap list
-  struct CurlResponse apListResp = RuckusController::ruckusControllerRequest(
-      "aps?listSize=500", cookieStr, "");
-  if (apListResp.responseCode != 200) {
-    LOG(ERROR) << "Unable to fetch AP list, response code: "
-               << apListResp.responseCode;
-    return apStats;
-  }
-  folly::dynamic apListObj;
-  try {
-    apListObj = folly::parseJson(apListResp.body);
-  } catch (const std::exception& ex) {
-    LOG(ERROR) << "Unable to parse JSON: " << apListResp.body;
-    return apStats;
-  }
-  auto apListObjIt = apListObj.find("list");
-  if (apListObjIt != apListObj.items().end()) {
-    long totalClientCount = 0L;
-    for (const auto& apItem : apListObjIt->second) {
-      std::string apName = apItem["name"].asString();
-      std::transform(apName.begin(), apName.end(), apName.begin(), ::tolower);
-      std::string macAddr = apItem["mac"].asString();
-      // fetch details for each ap
-      struct CurlResponse apDetailsResp =
-          RuckusController::ruckusControllerRequest(
-              folly::sformat("aps/{}/operational/summary", macAddr),
-              cookieStr,
-              "");
-      try {
-        folly::dynamic apDetailsObj = folly::parseJson(apDetailsResp.body);
-        long apUptime = apDetailsObj["uptime"].asInt();
-        long clientCount = apDetailsObj["clientCount"].asInt();
-        totalClientCount += clientCount;
-        std::string registrationState(
-            apDetailsObj["registrationState"].asString());
-        std::string administrativeState(
-            apDetailsObj["administrativeState"].asString());
-        std::string ipAddr(apDetailsObj["externalIp"].asString());
-        /*LOG(INFO) << "AP: " << apName
+  // fetch ap list in batches
+  const int apListSize = 100;
+  int apListIndex = 0;
+  bool hasMore = true;
+  while (hasMore) {
+    struct CurlResponse apListResp =
+        WirelessController::ruckusControllerRequest(
+            controller,
+            folly::sformat("aps?listSize={}&index={}", apListSize, apListIndex),
+            cookieStr,
+            "");
+    if (apListResp.responseCode != 200) {
+      LOG(ERROR) << "Unable to fetch AP list, response code: "
+                 << apListResp.responseCode;
+      return apStats;
+    }
+    folly::dynamic apListObj;
+    try {
+      apListObj = folly::parseJson(apListResp.body);
+    } catch (const std::exception& ex) {
+      LOG(ERROR) << "Unable to parse JSON: " << apListResp.body;
+      return apStats;
+    }
+    // ensure all entries are found
+    auto apListHasMoreIt = apListObj.find("hasMore");
+    hasMore = apListHasMoreIt != apListObj.items().end() &&
+              apListHasMoreIt->second.asBool();
+    apListIndex += apListSize;
+    auto apListObjIt = apListObj.find("list");
+    if (apListObjIt != apListObj.items().end()) {
+      long totalClientCount = 0L;
+      for (const auto& apItem : apListObjIt->second) {
+        std::string apName = apItem["name"].asString();
+        std::transform(apName.begin(), apName.end(), apName.begin(), ::tolower);
+        std::string macAddr = apItem["mac"].asString();
+        // fetch details for each ap
+        struct CurlResponse apDetailsResp =
+            WirelessController::ruckusControllerRequest(
+                controller,
+                folly::sformat("aps/{}/operational/summary", macAddr),
+                cookieStr,
+                "");
+        try {
+          folly::dynamic apDetailsObj = folly::parseJson(apDetailsResp.body);
+          long apUptime = apDetailsObj["uptime"].asInt();
+          long clientCount = apDetailsObj["clientCount"].asInt();
+          totalClientCount += clientCount;
+          std::string registrationState(
+              apDetailsObj["registrationState"].asString());
+          std::string administrativeState(
+              apDetailsObj["administrativeState"].asString());
+          std::string ipAddr(apDetailsObj["externalIp"].asString());
+          VLOG(2) << "AP: " << apName
                   << ", MAC: " << macAddr
                   << ", uptime: " << apUptime
                   << ", reg state: " << registrationState
                   << ", client count: " << clientCount
                   << ", admin state: " << administrativeState
-                  << ", ip: " << ipAddr;*/
-        apStats[apName] = apDetailsObj;
-      } catch (const folly::TypeError& error) {
-        LOG(ERROR) << "\tType-error: " << error.what();
-      } catch (const std::exception& error) {
-        LOG(ERROR) << "Unable to parse JSON: " << apDetailsResp.body;
+                  << ", ip: " << ipAddr;
+          apStats[apName] = apDetailsObj;
+        } catch (const folly::TypeError& error) {
+          LOG(ERROR) << "\tType-error: " << error.what();
+        } catch (const std::exception& error) {
+          LOG(ERROR) << "Unable to parse JSON: " << apDetailsResp.body;
+        }
       }
+      VLOG(2) << "Total client count: " << totalClientCount;
     }
-    LOG(INFO) << "Total client count: " << totalClientCount;
   }
   return apStats;
 }
 
-struct CurlResponse RuckusController::ruckusControllerRequest(
+struct CurlResponse WirelessController::ruckusControllerRequest(
+    const query::WirelessController& controller,
     const std::string& uri,
     const std::string& sessionCookie,
     const std::string& postData) {
+
   struct CurlResponse curlResponse;
   // construct login request
   struct curl_slist* headerList = NULL;
@@ -159,10 +161,8 @@ struct CurlResponse RuckusController::ruckusControllerRequest(
     }
     // we have to forward the v4 address right now since no local v6
     std::string endpoint(folly::sformat(
-        "https://{}:{}{}{}",
-        FLAGS_ruckus_controller_host,
-        FLAGS_ruckus_controller_port,
-        FLAGS_ruckus_controller_uri,
+        "{}/{}",
+        controller.url,
         uri));
     // we can't verify the peer with our current image/lack of certs
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
