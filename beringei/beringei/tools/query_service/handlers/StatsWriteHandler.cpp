@@ -61,25 +61,21 @@ void StatsWriteHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
 }
 
 int64_t timeCalc(int64_t timeIn, int32_t intervalSec) {
-  // Align input timestamp to interval boundary
-  // if it is in future OR too much in past, return 0 indicating error
-  timeIn = folly::to<int64_t>(floor(timeIn / intervalSec)) * intervalSec;
   int64_t currentTime = std::time(nullptr);
   int64_t timeDiff = currentTime - timeIn;
   const int64_t k5min = 5 * 60;
-  if (timeDiff > k5min || timeDiff < 0) {
+  if (timeDiff > k5min || timeDiff < -k5min) {
     VLOG(2) << "Timestamp " << timeIn
             << " is out of sync with current time " << currentTime;
-    timeIn = 0;
+    timeIn = currentTime;
   }
-  return timeIn;
+  // Align timestamp to interval boundary
+  return folly::to<int64_t>(floor(timeIn / intervalSec)) * intervalSec;
 }
 
 void StatsWriteHandler::writeData(const query::StatsWriteRequest& request) {
   std::unordered_map<int64_t, std::unordered_set<std::string>> missingNodeKey;
   std::vector<DataPoint> bRows;
-  int missingCache = 0;
-  int timestampError = 0;
   int interval = request.interval;
   auto startTime = BeringeiReader::getTimeInMs();
   auto mySqlClient = MySqlClient::getInstance();
@@ -94,15 +90,8 @@ void StatsWriteHandler::writeData(const query::StatsWriteRequest& request) {
       // tag short name
       int64_t tsParsed = timeCalc(stat.ts, interval);
       auto keyId = mySqlClient->getKeyId(*nodeId, stat.key);
-
-      if (!keyId) {
-        VLOG(2) << "Missing cache for " << *nodeId << "/" << stat.key;
-        missingNodeKey[*nodeId].insert(stat.key);
-        missingCache++;
-      } else if (!tsParsed) {
-        VLOG(2) << "Dropping stat for timestamp error";
-        timestampError++;
-      } else {
+      // verify node/key combo exists
+      if (keyId) {
         // insert row for beringei
         DataPoint bRow;
         TimeValuePair timePair;
@@ -118,10 +107,12 @@ void StatsWriteHandler::writeData(const query::StatsWriteRequest& request) {
         timePair.value = stat.value;
         bRow.value = timePair;
         bRows.push_back(bRow);
+      } else {
+        VLOG(2) << "Missing cache for " << *nodeId << "/" << stat.key;
+        missingNodeKey[*nodeId].insert(stat.key);
       }
     }
   }
-
   // write new keys to mysql
   // TODO: in the future, add a guard of the maximum number of allowed keys
   if (!missingNodeKey.empty()) {
@@ -130,10 +121,6 @@ void StatsWriteHandler::writeData(const query::StatsWriteRequest& request) {
     LOG(INFO) << "Ran addStatKeys, refreshing";
     mySqlClient->refreshAll();
   }
-
-  LOG(INFO) << "Attempting to write " << bRows.size() << " rows,"
-            << " with " << missingCache << " missing cache "
-            << "and " << timestampError << " timestamp error.";
 
   // insert rows
   if (!bRows.empty()) {
