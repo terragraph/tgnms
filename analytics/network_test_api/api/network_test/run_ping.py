@@ -5,13 +5,6 @@ import os
 import sys
 
 from api.network_test import base
-
-
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
-    )
-)
 from terragraph_thrift.Controller import ttypes as ctrl_types
 
 

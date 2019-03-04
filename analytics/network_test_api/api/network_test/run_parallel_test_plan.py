@@ -15,13 +15,9 @@ from api.models import TestResult, TestRunExecution, Tests, TestStatus, TrafficD
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 from django.db import transaction
 from django.utils import timezone
-
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/../../")
-)
 from module.beringei_time_series import TimeSeries
 from module.insights import link_health
+
 
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

@@ -7,16 +7,11 @@ import sys
 
 import zmq
 from api.models import TestRunExecution, TestStatus
+from terragraph_thrift.Controller import ttypes as ctrl_types
 from thrift.protocol.TCompactProtocol import TCompactProtocolAcceleratedFactory
 from thrift.TSerialization import deserialize, serialize
 
 
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
-    )
-)
-from terragraph_thrift.Controller import ttypes as ctrl_types
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 

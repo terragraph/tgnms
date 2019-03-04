@@ -10,11 +10,6 @@ from threading import Thread
 from api.models import TestResult, TestRunExecution, Tests
 from api.network_test import connect_to_ctrl, listen, run_iperf, run_ping
 from django.db import transaction
-
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/../../")
-)
 from module.routing import get_routes_for_nodes
 
 

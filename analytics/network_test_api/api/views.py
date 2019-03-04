@@ -15,18 +15,7 @@ from api.network_test import (
 )
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/../../")
-)
 from module.mysql_db_access import MySqlDbAccess
-
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
-    )
-)
 from terragraph_thrift.network_test import ttypes as network_ttypes
 
 

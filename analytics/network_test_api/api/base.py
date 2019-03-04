@@ -12,8 +12,18 @@ from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
 from thrift.transport import TTransport
 
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/../"))
-from module.topology_handler import fetch_network_info
+# global system path initialization
+sys.path.append("../")
+sys.path.append(
+    os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
+    )
+)
+
+try:
+    from module.topology_handler import fetch_network_info
+except Exception:
+    raise
 
 
 def parse_received_json_data(received_json_data: Dict[str, Any]) -> Dict[str, Any]:

@@ -14,14 +14,8 @@ from api.models import TestResult, TestRunExecution, TestStatus
 from api.network_test import base, iperf_ping_analyze, run_iperf, run_ping
 from django.db import transaction
 from django.utils import timezone
-
-
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
-    )
-)
 from terragraph_thrift.Controller import ttypes as ctrl_types
+
 
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

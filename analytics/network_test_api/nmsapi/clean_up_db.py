@@ -8,12 +8,15 @@ import sys
 import django
 
 
-setting_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, setting_path)
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
-django.setup()
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from api.models import TestRunExecution, TestStatus
+try:
+    setting_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, setting_path)
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+    django.setup()
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from api.models import TestRunExecution, TestStatus
+except Exception:
+    raise
 
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
