@@ -69,6 +69,8 @@ services:
       - ./env/nms.env
       - ./env/time.env
     restart: unless-stopped
+    volumes:
+      - ./docker_volumes/logs:/nodelogs
     ports:
       - "80:80"
     networks:
