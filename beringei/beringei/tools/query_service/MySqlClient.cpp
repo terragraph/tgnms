@@ -574,13 +574,9 @@ int64_t MySqlClient::getLastId(
 // each row of the table is a single scan response from a node
 // to retrieve scan results, the tables are JOINed by token/network/bwgd
 int MySqlClient::writeTxScanResponse(
-    const scans::MySqlScanTxResp& scanResponse) noexcept {
+    const scans::MySqlScanTxResp& scanResponse,
+    sql::Connection* connection) noexcept {
   try {
-    auto connection = openConnection();
-    if (!connection) {
-      LOG(ERROR) << "Unable to open MySQL connection.";
-      return MySqlError;
-    }
     std::string query =
         "INSERT INTO `tx_scan_results` "
         "(`token`, `combined_status`, `tx_node_id`, `start_bwgd`, "
@@ -589,7 +585,7 @@ int MySqlClient::writeTxScanResponse(
         "`scan_resp`) VALUES "
         "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        (*connection)->prepareStatement(query));
+        connection->prepareStatement(query));
     prep_stmt->setInt(1, scanResponse.token);
     prep_stmt->setInt(2, scanResponse.combinedStatus);
     prep_stmt->setInt(3, scanResponse.txNodeId);
@@ -615,19 +611,15 @@ int MySqlClient::writeTxScanResponse(
 
 bool MySqlClient::writeRxScanResponse(
     const scans::MySqlScanRxResp& scanResponse,
-    const int64_t txId) noexcept {
+    const int64_t txId,
+    sql::Connection* connection) noexcept {
   try {
-    auto connection = openConnection();
-    if (!connection) {
-      LOG(ERROR) << "Unable to open MySQL connection.";
-      return false;
-    }
     std::string query =
         "INSERT INTO `rx_scan_results` "
         "(`status`, `scan_resp`, `rx_node_id`, `tx_id`, `rx_node_name`, "
         "`new_beam_flag`) VALUES (?, ?, ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
-        (*connection)->prepareStatement(query));
+        connection->prepareStatement(query));
     prep_stmt->setInt(1, (int32_t)scanResponse.status);
     prep_stmt->setString(2, scanResponse.scanResp);
     prep_stmt->setInt(3, scanResponse.rxNodeId);
@@ -646,6 +638,11 @@ bool MySqlClient::writeRxScanResponse(
 bool MySqlClient::writeScanResponses(
     const std::vector<scans::MySqlScanResp>& mySqlScanResponses) noexcept {
   int numScansWritten = 0;
+  auto connection = openConnection();
+  if (!connection) {
+    LOG(ERROR) << "Unable to open MySQL connection.";
+    return false;
+  }
   for (const auto& mySqlScanResponse : mySqlScanResponses) {
     int errCode;
     try {
@@ -657,8 +654,8 @@ bool MySqlClient::writeScanResponses(
     } catch (const std::out_of_range& oor) {
       LOG(ERROR) << "Invalid scan type: " << oor.what();
     }
-    if ((errCode = writeTxScanResponse(mySqlScanResponse.txResponse)) ==
-        MySqlOk) {
+    if ((errCode = writeTxScanResponse(
+             mySqlScanResponse.txResponse, connection->get())) == MySqlOk) {
       numScansWritten++;
       int64_t tx_id = getLastId(
           mySqlScanResponse.txResponse.token,
@@ -666,7 +663,7 @@ bool MySqlClient::writeScanResponses(
           mySqlScanResponse.txResponse.network);
       if (tx_id != MySqlError) {
         for (const auto& rxResponse : mySqlScanResponse.rxResponses) {
-          if (!writeRxScanResponse(rxResponse, tx_id)) {
+          if (!writeRxScanResponse(rxResponse, tx_id, connection->get())) {
             return false;
           }
         }

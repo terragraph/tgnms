@@ -127,8 +127,11 @@ class MySqlClient {
 
   bool writeRxScanResponse(
       const scans::MySqlScanRxResp& scanResponse,
-      const int64_t txId) noexcept;
-  int writeTxScanResponse(const scans::MySqlScanTxResp& scanResponse) noexcept;
+      const int64_t txId,
+      sql::Connection* connection) noexcept;
+  int writeTxScanResponse(
+      const scans::MySqlScanTxResp& scanResponse,
+      sql::Connection* connection) noexcept;
   int64_t getLastId(
       const int token,
       const int64_t startBwgd,
