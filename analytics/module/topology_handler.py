@@ -32,9 +32,9 @@ def fetch_network_info(
     networks[id]["topology"].keys() includes "nodes", "links", "sites", etc.
     """
     networks = {}
-    try:
-        api_services = MySqlDbAccess().read_api_service_setting(use_primary_controller)
-        for _name, cfg in api_services.items():
+    api_services = MySqlDbAccess().read_api_service_setting(use_primary_controller)
+    for _name, cfg in api_services.items():
+        try:
             if topology_id and cfg["id"] != topology_id:
                 continue
             target_domain = "{}:{}".format(cfg["ip"], cfg["api_port"])
@@ -46,9 +46,9 @@ def fetch_network_info(
             topology_reply = json.loads(topology_string)
             cfg["topology"] = topology_reply
             networks[cfg["id"]] = cfg
-    except Exception as e:
-        logging.error("Exception happened while fetching network info")
-        logging.warning("Exception: {}".format(e))
+        except Exception as e:
+            logging.error("Exception happened while fetching network info")
+            logging.warning("Exception: {}".format(e))
 
     return networks
 

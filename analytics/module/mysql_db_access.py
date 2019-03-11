@@ -125,7 +125,7 @@ class MySqlDbAccess(object):
                 cursor.execute(sql_string)
             except BaseException as err:
                 logging.error(err.args)
-                raise ValueError("MySQL execution error")
+                return {}
 
             results = cursor.fetchall()
             for api_result in results:
