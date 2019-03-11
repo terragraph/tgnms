@@ -32,13 +32,13 @@ def link_health_insights(
     no_traffic = nts.read_stats("latpcStats.noTrafficCountSF", StatType.LINK)
     num_dir = nts.NUM_DIR
 
-    link_health = []
+    health = []
     for ti in range(k["num_topologies"]):
         num_links = k[ti]["num_links"]
-        link_health.append(npo.nan_arr((num_links, num_dir, 1)))
+        health.append(npo.nan_arr((num_links, num_dir, 1)))
         for li in range(num_links):
             for di in range(num_dir):
-                link_health[-1][li, di, 0] = npo.get_link_health_1d(
+                health[-1][li, di, 0] = npo.get_link_health_1d(
                     mgmt_link_up[ti][li, di, :],
                     tx_ok[ti][li, di, :],
                     tx_fail[ti][li, di, :],
@@ -49,7 +49,7 @@ def link_health_insights(
                     read_interval,
                 )
 
-    nts.write_stats("link_health", link_health, StatType.LINK, write_interval)
+    nts.write_stats("health", health, StatType.LINK, write_interval)
 
 
 def uptime_insights(
@@ -180,18 +180,18 @@ def misc_insights(
     nts.write_stats("tx_per", tx_per, StatType.LINK, write_interval)
 
     # path-loss asymmetry
-    logging.info("Generate pathloss, pathloss_asymmetry")
+    logging.info("Generate pathloss_avg, pathloss_asymmetry")
     tx_power_idx = nts.read_stats("staPkt.txPowerIndex", StatType.LINK)
     srssi = nts.read_stats("phystatus.srssi", StatType.LINK)
-    pathloss = []
+    pathloss_avg = []
     pathloss_asymmetry = []
     for ti in range(k["num_topologies"]):
         pl, asm = npo.pathloss_asymmetry_nd(tx_power_idx[ti], srssi[ti], nts.DIR_AXIS)
         pl = np.nanmean(pl, axis=nts.TIME_AXIS, keepdims=True)
         asm = np.nanmean(asm, axis=nts.TIME_AXIS, keepdims=True)
-        pathloss.append(pl)
+        pathloss_avg.append(pl)
         pathloss_asymmetry.append(asm)
-    nts.write_stats("pathloss", pathloss, StatType.LINK, write_interval)
+    nts.write_stats("pathloss_avg", pathloss_avg, StatType.LINK, write_interval)
     nts.write_stats(
         "pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, write_interval
     )
@@ -215,7 +215,7 @@ def misc_insights(
     total_outputs = []
     missing_outputs_percent = []
     inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi, tx_ok, tx_fail]
-    outputs = [availability, flaps, mcs_p90, pathloss, pathloss_asymmetry, tx_per]
+    outputs = [availability, flaps, mcs_p90, pathloss_avg, pathloss_asymmetry, tx_per]
     for ti in range(k["num_topologies"]):
         total_inputs.append(np.zeros((1, 1, 1)))
         missing_inputs_percent.append(np.zeros((1, 1, 1)))
@@ -350,10 +350,10 @@ def link_health(links: List, network_info: Dict) -> List:
     output = []
     CONST_INTERVAL = 900
 
-    link_health = npo.nan_arr((num_links, num_dir, 1))
+    health = npo.nan_arr((num_links, num_dir, 1))
     for li in range(num_links):
         for di in range(num_dir):
-            link_health[li, di, 0] = npo.get_link_health_1d(
+            health[li, di, 0] = npo.get_link_health_1d(
                 mgmt_link_up[li, di, :],
                 tx_ok[li, di, :],
                 tx_fail[li, di, :],
@@ -363,11 +363,11 @@ def link_health(links: List, network_info: Dict) -> List:
                 link_length[li, di, :],
                 1,
             )
-    output.extend(nlts.write_stats("link_health", link_health, CONST_INTERVAL))
+    output.extend(nlts.write_stats("health", health, CONST_INTERVAL))
 
     pathloss, _ = npo.pathloss_asymmetry_nd(tx_power_idx, srssi, nlts.DIR_AXIS)
-    pathloss = np.nanmean(pathloss, axis=nlts.TIME_AXIS, keepdims=True)
-    output.extend(nlts.write_stats("pathloss", pathloss, CONST_INTERVAL))
+    pathloss_avg = np.nanmean(pathloss, axis=nlts.TIME_AXIS, keepdims=True)
+    output.extend(nlts.write_stats("pathloss_avg", pathloss_avg, CONST_INTERVAL))
 
     mcs_p90 = np.nanpercentile(mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True)
     mcs_avg = np.nanmean(mcs, axis=nlts.TIME_AXIS, keepdims=True)

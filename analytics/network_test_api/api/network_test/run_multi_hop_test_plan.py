@@ -199,14 +199,13 @@ class RunMultiHopTestPlan(Thread):
     def _write_analytics_stats_to_db(self, analytics_stats):
         # analytics_stats is list of Beringei TimeSeries objects
         for stats in analytics_stats:
-            if stats.name == "link_health":
-                link = self._get_link(stats.src_mac, stats.peer_mac)
-                if link is not None:
-                    link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                    if link_db_obj is not None:
-                        with transaction.atomic():
-                            link_db_obj.health = stats.values[0]
-                            link_db_obj.save()
+            link = self._get_link(stats.src_mac, stats.peer_mac)
+            if link is not None:
+                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
+                if link_db_obj is not None:
+                    with transaction.atomic():
+                        setattr(link_db_obj, stats.name, stats.values[0])
+                        link_db_obj.save()
 
     def _get_link(self, source_node, destination_node):
         for link in self.parameters["test_list"]:
