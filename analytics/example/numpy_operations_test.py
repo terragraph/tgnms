@@ -199,7 +199,7 @@ class NumpyOperationsTest(unittest.TestCase):
         obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
-    def test_get_tx_per_1d(self):
+    def test_get_per_1d(self):
 
         # acronyms:
         # lu: mgmt_link_up
@@ -215,7 +215,7 @@ class NumpyOperationsTest(unittest.TestCase):
         tf = np.array([np.nan, np.nan])
         i = 1
         exp_per = np.nan
-        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
         # base case 0 per
@@ -224,7 +224,7 @@ class NumpyOperationsTest(unittest.TestCase):
         tf = np.array([10, 10])
         i = 1
         exp_per = 0
-        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
         # base case 1 per
@@ -233,7 +233,7 @@ class NumpyOperationsTest(unittest.TestCase):
         tf = np.array([10, 20])
         i = 1
         exp_per = 1
-        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
         # base case 0.5 per
@@ -242,7 +242,7 @@ class NumpyOperationsTest(unittest.TestCase):
         tf = np.array([10, 40, 40])
         i = 1
         exp_per = 0.5
-        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
         # with resets
@@ -251,7 +251,7 @@ class NumpyOperationsTest(unittest.TestCase):
         tf = np.array([10, 70, 0, 0])
         i = 1
         exp_per = 0.75
-        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
         # add holes
@@ -260,7 +260,7 @@ class NumpyOperationsTest(unittest.TestCase):
         tf = np.array([10, 70, 0, np.nan, np.nan, 0])
         i = 1
         exp_per = 0.75
-        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
         # different interval
@@ -269,7 +269,7 @@ class NumpyOperationsTest(unittest.TestCase):
         tf = np.array([10, 70, 0, np.nan, np.nan, 0]) * 39
         i = 39
         exp_per = 0.75
-        obs_per = npo.get_tx_per_1d(lu, to, tf, i)
+        obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
 

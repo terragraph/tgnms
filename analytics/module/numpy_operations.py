@@ -191,7 +191,7 @@ def get_largest_traffic_interval_1d(
 
 
 # calculates the average PER over the interval
-def get_tx_per_1d(
+def get_per_1d(
     mgmt_link_up: np.ndarray, tx_ok: np.ndarray, tx_fail: np.ndarray, interval: int
 ) -> np.float64:
     lu = mgmt_link_up
@@ -242,7 +242,7 @@ def get_link_health_1d(
     availability, _ = get_link_availability_and_flaps_1d(
         mgmt_link_up, link_available, interval
     )
-    tx_per = get_tx_per_1d(mgmt_link_up, tx_ok, tx_fail, interval)
+    tx_per = get_per_1d(mgmt_link_up, tx_ok, tx_fail, interval)
 
     if is_traffic:
         if (
