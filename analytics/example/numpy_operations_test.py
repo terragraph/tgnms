@@ -272,6 +272,55 @@ class NumpyOperationsTest(unittest.TestCase):
         obs_per = npo.get_per_1d(lu, to, tf, i)
         np.testing.assert_equal(obs_per, exp_per)
 
+    def test_link_stat_diff_1d(self):
+
+        # acronyms:
+        # lu: mgmt_link_up
+        # ls: link_stat
+        # i: interval
+        # obs: observed
+        # exp: expected
+
+        # no data
+        lu = np.array([np.nan, np.nan])
+        ls = np.array([np.nan, np.nan])
+        i = 1
+        exp = np.nan
+        obs = npo.link_stat_diff_1d(lu, ls, i)
+        np.testing.assert_equal(obs, exp)
+
+        # base case
+        lu = np.array([100, 139])
+        ls = np.array([100, 110])
+        i = 1
+        exp = 10
+        obs = npo.link_stat_diff_1d(lu, ls, i)
+        np.testing.assert_equal(obs, exp)
+
+        # with resets
+        lu = np.array([100, 139, 10, 49])
+        ls = np.array([100, 110, 5, 10])
+        i = 1
+        exp = 20
+        obs = npo.link_stat_diff_1d(lu, ls, i)
+        np.testing.assert_equal(obs, exp)
+
+        # add holes
+        lu = np.array([100, 139, 10, np.nan, 88, 127, 166])
+        ls = np.array([100, 110, 5, np.nan, 10, 10, 29])
+        i = 1
+        exp = 39
+        obs = npo.link_stat_diff_1d(lu, ls, i)
+        np.testing.assert_equal(obs, exp)
+
+        # different interval
+        lu = np.array([100, 139, 10, np.nan, 88, 127]) * 39
+        ls = np.array([100, 110, 5, np.nan, 10, 10]) * 39
+        i = 39
+        exp = 20 * 39
+        obs = npo.link_stat_diff_1d(lu, ls, i)
+        np.testing.assert_equal(obs, exp)
+
 
 if __name__ == "__main__":
     logging.basicConfig(

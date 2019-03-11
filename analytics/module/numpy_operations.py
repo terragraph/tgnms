@@ -50,6 +50,27 @@ def list_and(np_list: List[np.ndarray]) -> np.ndarray:
 BWGD_SEC = 0.0256
 
 
+def link_stat_diff_1d(
+    mgmt_link_up: np.ndarray, link_stat: np.ndarray, interval: int
+) -> np.float64:
+    lu = mgmt_link_up
+    ls = link_stat
+    num_points = len(lu)
+    assert len(ls) == num_points
+    t = np.arange(num_points)
+    v = np.logical_and(is_valid(lu), is_valid(ls))
+    if v.sum() < 2:
+        return np.nan
+    lu = lu[v]
+    ls = ls[v]
+    t = t[v]
+    dls = diff_1d(ls)
+    dt = diff_1d(t)
+    resets = lu[1:] <= np.ceil(dt * interval / BWGD_SEC)
+    dls[resets] = ls[1:][resets]
+    return dls.sum()
+
+
 def get_link_availability_and_flaps_1d(
     mgmt_link_up: np.ndarray, link_available: np.ndarray, interval: int
 ) -> Tuple[float, int]:
@@ -194,27 +215,9 @@ def get_largest_traffic_interval_1d(
 def get_per_1d(
     mgmt_link_up: np.ndarray, tx_ok: np.ndarray, tx_fail: np.ndarray, interval: int
 ) -> np.float64:
-    lu = mgmt_link_up
-    to = tx_ok
-    tf = tx_fail
-    num_points = len(lu)
-    assert len(to) == num_points
-    assert len(tf) == num_points
-    t = np.arange(num_points)
-    v = np.logical_and(is_valid(lu), np.logical_and(is_valid(to), is_valid(tf)))
-    if v.sum() < 2:
-        return np.nan
-    lu = lu[v]
-    to = to[v]
-    tf = tf[v]
-    t = t[v]
-    dto = diff_1d(to)
-    dtf = diff_1d(tf)
-    dt = diff_1d(t)
-    resets = lu[1:] <= np.ceil(dt * interval / BWGD_SEC)
-    dto[resets] = to[1:][resets]
-    dtf[resets] = tf[1:][resets]
-    return dtf.sum() / (dtf.sum() + dto.sum())
+    dto = link_stat_diff_1d(mgmt_link_up, tx_ok, interval)
+    dtf = link_stat_diff_1d(mgmt_link_up, tx_fail, interval)
+    return dtf / (dto + dtf)
 
 
 def get_link_health_1d(

@@ -11,6 +11,36 @@ from module.topology_handler import fetch_network_info
 from module.visibility import write_power_status
 
 
+def get_link_counters_1d(
+    mgmt_link_up,
+    tx_ba,
+    rx_ba,
+    tx_ppdu,
+    rx_ppdu,
+    tx_ok,
+    tx_fail,
+    rx_ok,
+    rx_fail,
+    interval,
+):
+    out = {}
+    dtb = npo.link_stat_diff_1d(mgmt_link_up, tx_ba, interval)
+    drb = npo.link_stat_diff_1d(mgmt_link_up, rx_ba, interval)
+    dtp = npo.link_stat_diff_1d(mgmt_link_up, tx_ppdu, interval)
+    drp = npo.link_stat_diff_1d(mgmt_link_up, rx_ppdu, interval)
+    dto = npo.link_stat_diff_1d(mgmt_link_up, tx_ok, interval)
+    dtf = npo.link_stat_diff_1d(mgmt_link_up, tx_fail, interval)
+    dro = npo.link_stat_diff_1d(mgmt_link_up, rx_ok, interval)
+    drf = npo.link_stat_diff_1d(mgmt_link_up, rx_fail, interval)
+    out["num_tx_packets"] = dto + dtf
+    out["num_rx_packets"] = dro + drf
+    out["tx_ba"] = dtb
+    out["rx_ba"] = drb
+    out["tx_ppdu"] = dtp
+    out["rx_ppdu"] = drp
+    return out
+
+
 def link_health_insights(
     current_time: int,
     window: int,
@@ -166,13 +196,20 @@ def misc_insights(
     tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)
     rx_ok = nts.read_stats("staPkt.rxOk", StatType.LINK)
     rx_fail = nts.read_stats("staPkt.rxFail", StatType.LINK)
+    tx_ba = nts.read_stats("staPkt.txBa", StatType.LINK)
+    rx_ba = nts.read_stats("staPkt.rxBa", StatType.LINK)
+    tx_ppdu = nts.read_stats("staPkt.txPpdu", StatType.LINK)
+    rx_ppdu = nts.read_stats("staPkt.rxPpdu", StatType.LINK)
     tx_per = []
     rx_per = []
+    counters = {}
     for ti in range(k["num_topologies"]):
         num_links = k[ti]["num_links"]
         num_dir = nts.NUM_DIR
         tx_per.append(npo.nan_arr((num_links, num_dir, 1)))
         rx_per.append(npo.nan_arr((num_links, num_dir, 1)))
+        for key in counters:
+            counters[key].append(npo.nan_arr((num_links, num_dir, 1)))
         for li in range(num_links):
             for di in range(num_dir):
                 tx_per[ti][li, di, 0] = npo.get_per_1d(
@@ -187,6 +224,24 @@ def misc_insights(
                     rx_fail[ti][li, di, :],
                     read_interval,
                 )
+                counters_1d = get_link_counters_1d(
+                    mgmt_link_up[ti][li, di, :],
+                    tx_ba[ti][li, di, :],
+                    rx_ba[ti][li, di, :],
+                    tx_ppdu[ti][li, di, :],
+                    rx_ppdu[ti][li, di, :],
+                    tx_ok[ti][li, di, :],
+                    tx_fail[ti][li, di, :],
+                    rx_ok[ti][li, di, :],
+                    rx_fail[ti][li, di, :],
+                    read_interval,
+                )
+                for key in counters_1d:
+                    if key not in counters:
+                        counters[key] = [npo.nan_arr((num_links, num_dir, 1))]
+                    counters[key][ti][li, di, 0] = counters_1d[key]
+    for key in counters:
+        nts.write_stats(key, counters[key], StatType.LINK, write_interval)
     nts.write_stats("tx_per", tx_per, StatType.LINK, write_interval)
     nts.write_stats("rx_per", rx_per, StatType.LINK, write_interval)
 
@@ -359,6 +414,10 @@ def link_health(links: List, network_info: Dict) -> List:
     snr = nlts.read_stats("phystatus.ssnrEst", StatType.LINK)
     rx_ok = nlts.read_stats("staPkt.rxOk", StatType.LINK)
     rx_fail = nlts.read_stats("staPkt.rxFail", StatType.LINK)
+    tx_ba = nlts.read_stats("staPkt.txBa", StatType.LINK)
+    rx_ba = nlts.read_stats("staPkt.rxBa", StatType.LINK)
+    tx_ppdu = nlts.read_stats("staPkt.txPpdu", StatType.LINK)
+    rx_ppdu = nlts.read_stats("staPkt.rxPpdu", StatType.LINK)
     num_links = nlts._num_links
     num_dir = nlts.NUM_DIR
     output = []
@@ -366,6 +425,7 @@ def link_health(links: List, network_info: Dict) -> List:
     health = npo.nan_arr((num_links, num_dir, 1))
     tx_per = npo.nan_arr((num_links, num_dir, 1))
     rx_per = npo.nan_arr((num_links, num_dir, 1))
+    counters = {}
     for li in range(num_links):
         for di in range(num_dir):
             health[li, di, 0] = npo.get_link_health_1d(
@@ -390,15 +450,35 @@ def link_health(links: List, network_info: Dict) -> List:
                 rx_fail[li, di, :],
                 CONST_INTERVAL,
             )
+            counters_1d = get_link_counters_1d(
+                mgmt_link_up[li, di, :],
+                tx_ba[li, di, :],
+                rx_ba[li, di, :],
+                tx_ppdu[li, di, :],
+                rx_ppdu[li, di, :],
+                tx_ok[li, di, :],
+                tx_fail[li, di, :],
+                rx_ok[li, di, :],
+                rx_fail[li, di, :],
+                CONST_INTERVAL,
+            )
+            for key in counters_1d:
+                if key not in counters:
+                    counters[key] = npo.nan_arr((num_links, num_dir, 1))
+                counters[key][li, di, 0] = counters_1d[key]
     output.extend(nlts.write_stats("health", health, CONST_INTERVAL))
     output.extend(nlts.write_stats("tx_per", tx_per, CONST_INTERVAL))
     output.extend(nlts.write_stats("rx_per", rx_per, CONST_INTERVAL))
+    for key in counters:
+        output.extend(nlts.write_stats(key, counters[key], CONST_INTERVAL))
 
     pathloss, _ = npo.pathloss_asymmetry_nd(tx_power_idx, srssi, nlts.DIR_AXIS)
     pathloss_avg = np.nanmean(pathloss, axis=nlts.TIME_AXIS, keepdims=True)
     output.extend(nlts.write_stats("pathloss_avg", pathloss_avg, CONST_INTERVAL))
 
-    mcs_p90 = np.nanpercentile(mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True)
+    mcs_p90 = np.nanpercentile(
+        mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True
+    )
     mcs_avg = np.nanmean(mcs, axis=nlts.TIME_AXIS, keepdims=True)
     output.extend(nlts.write_stats("mcs_p90", mcs_p90, CONST_INTERVAL))
     output.extend(nlts.write_stats("mcs_avg", mcs_avg, CONST_INTERVAL))
