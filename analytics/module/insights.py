@@ -145,17 +145,20 @@ def misc_insights(
     nts.write_stats("availability", availability, StatType.LINK, write_interval)
     nts.write_stats("flaps", flaps, StatType.LINK, write_interval)
 
-    # P90 mcs
-    logging.info("Generate mcs.p90")
+    # P90 and average mcs
+    logging.info("Generate mcs_p90, mcs_avg")
     mcs = nts.read_stats("staPkt.mcs", StatType.LINK)
     mcs_p90 = []
+    mcs_avg = []
     for ti in range(k["num_topologies"]):
         mcs_p90.append(
             np.nanpercentile(
                 mcs[ti], 10, axis=nts.TIME_AXIS, interpolation="lower", keepdims=True
             )
         )
-    nts.write_stats("mcs.p90", mcs_p90, StatType.LINK, write_interval)
+        mcs_avg.append(np.nanmean(mcs[ti], axis=nts.TIME_AXIS, keepdims=True))
+    nts.write_stats("mcs_p90", mcs_p90, StatType.LINK, write_interval)
+    nts.write_stats("mcs_avg", mcs_avg, StatType.LINK, write_interval)
 
     # Tx PER
     logging.info("Generate tx_per")
@@ -192,6 +195,19 @@ def misc_insights(
     nts.write_stats(
         "pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, write_interval
     )
+
+    # Generate average and standard deviation on rssi, snr, tx power index
+    snr = nts.read_stats("phystatus.ssnrEst", StatType.LINK)
+    stat_names = ["rssi", "snr", "txpwr"]
+    raw_stats = [srssi, snr, tx_power_idx]
+    for name, raw in zip(stat_names, raw_stats):
+        avg_stats = []
+        std_stats = []
+        for ti in range(k["num_topologies"]):
+            avg_stats.append(np.nanmean(raw[ti], axis=nts.TIME_AXIS, keepdims=True))
+            std_stats.append(np.nanstd(raw[ti], axis=nts.TIME_AXIS, keepdims=True))
+        nts.write_stats(name + "_avg", avg_stats, StatType.LINK, write_interval)
+        nts.write_stats(name + "_std", std_stats, StatType.LINK, write_interval)
 
     # generate indicators of self health
     total_inputs = []
@@ -326,8 +342,13 @@ def link_health(links: List, network_info: Dict) -> List:
     tx_ok = nlts.read_stats("staPkt.txOk", StatType.LINK)
     tx_fail = nlts.read_stats("staPkt.txFail", StatType.LINK)
     no_traffic = nlts.read_stats("latpcStats.noTrafficCountSF", StatType.LINK)
+    tx_power_idx = nlts.read_stats("staPkt.txPowerIndex", StatType.LINK)
+    srssi = nlts.read_stats("phystatus.srssi", StatType.LINK)
+    snr = nlts.read_stats("phystatus.ssnrEst", StatType.LINK)
     num_links = nlts._num_links
     num_dir = nlts.NUM_DIR
+    output = []
+    CONST_INTERVAL = 900
 
     link_health = npo.nan_arr((num_links, num_dir, 1))
     for li in range(num_links):
@@ -342,5 +363,23 @@ def link_health(links: List, network_info: Dict) -> List:
                 link_length[li, di, :],
                 1,
             )
+    output.extend(nlts.write_stats("link_health", link_health, CONST_INTERVAL))
 
-    return nlts.write_stats("link_health", link_health, 900)
+    pathloss, _ = npo.pathloss_asymmetry_nd(tx_power_idx, srssi, nlts.DIR_AXIS)
+    pathloss = np.nanmean(pathloss, axis=nlts.TIME_AXIS, keepdims=True)
+    output.extend(nlts.write_stats("pathloss", pathloss, CONST_INTERVAL))
+
+    mcs_p90 = np.nanpercentile(mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True)
+    mcs_avg = np.nanmean(mcs, axis=nlts.TIME_AXIS, keepdims=True)
+    output.extend(nlts.write_stats("mcs_p90", mcs_p90, CONST_INTERVAL))
+    output.extend(nlts.write_stats("mcs_avg", mcs_avg, CONST_INTERVAL))
+
+    stat_names = ["rssi", "snr", "txpwr"]
+    raw_stats = [srssi, snr, tx_power_idx]
+    for name, raw in zip(stat_names, raw_stats):
+        avg_stats = np.nanmean(raw, axis=nlts.TIME_AXIS, keepdims=True)
+        std_stats = np.nanstd(raw, axis=nlts.TIME_AXIS, keepdims=True)
+        output.extend(nlts.write_stats(name + "_avg", avg_stats, CONST_INTERVAL))
+        output.extend(nlts.write_stats(name + "_std", std_stats, CONST_INTERVAL))
+
+    return output

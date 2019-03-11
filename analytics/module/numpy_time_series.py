@@ -463,8 +463,6 @@ class NumpyLinkTimeSeries(object):
                         peer_mac=peer_mac,
                     )
                     tsl.append(ts)
-        if len(tsl):
-            bts.write_time_series_list(tsl, [write_interval])
 
         return tsl
 
