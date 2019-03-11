@@ -88,6 +88,7 @@ struct EventsQueryRequest {
   3: i32 maxResults = 100,
   4: string category,
   5: string level,
+  6: string subcategory,
 }
 
 struct QueryRequest {

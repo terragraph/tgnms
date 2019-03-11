@@ -132,18 +132,18 @@ void MySqlClient::refreshTopologies() noexcept {
     std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
     std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
         "SELECT "
-          "t.id, "
-          "t.name, "
-          "cp.ip AS `pip`, "
-          "cp.api_port AS `papi_port`, "
-          "cp.e2e_port AS `pe2e_port`, "
-          "cb.ip AS `bip`, "
-          "cb.api_port AS `bapi_port`, "
-          "cb.e2e_port AS `be2e_port`, "
-          "wc.type AS `wac_type`, "
-          "wc.url AS `wac_url`, "
-          "wc.username AS `wac_username`, "
-          "wc.password AS `wac_password` "
+        "t.id, "
+        "t.name, "
+        "cp.ip AS `pip`, "
+        "cp.api_port AS `papi_port`, "
+        "cp.e2e_port AS `pe2e_port`, "
+        "cb.ip AS `bip`, "
+        "cb.api_port AS `bapi_port`, "
+        "cb.e2e_port AS `be2e_port`, "
+        "wc.type AS `wac_type`, "
+        "wc.url AS `wac_url`, "
+        "wc.username AS `wac_username`, "
+        "wc.password AS `wac_password` "
         "FROM topology t "
         "JOIN (controller cp) ON (t.primary_controller=cp.id) "
         "LEFT JOIN (controller cb) ON (t.backup_controller=cb.id) "
@@ -686,8 +686,8 @@ void MySqlClient::addEvents(
   auto stmt =
       "INSERT INTO `event_log` "
       "(`mac`, `name`, `topologyName`, `source`, `timestamp`, `reason`, "
-      "`details`, `category`, `level`) "
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      "`details`, `category`, `level`, `subcategory`) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   auto connection = openConnection();
   if (!connection) {
     LOG(ERROR) << "Unable to open MySQL connection.";
@@ -697,6 +697,10 @@ void MySqlClient::addEvents(
     for (const auto& event : nodeEvents.events) {
       auto category = folly::get_default(
           query::_EventCategory_VALUES_TO_NAMES, event.category, "UNKNOWN");
+      auto subcategory = folly::get_default(
+          query::_EventSubcategory_VALUES_TO_NAMES,
+          event.subcategory,
+          "UNKNOWN");
       auto level = folly::get_default(
           query::_EventLevel_VALUES_TO_NAMES, event.level, "UNKNOWN");
       std::unique_ptr<sql::PreparedStatement> prep_stmt(
@@ -710,6 +714,7 @@ void MySqlClient::addEvents(
       prep_stmt->setString(7, event.details);
       prep_stmt->setString(8, category);
       prep_stmt->setString(9, level);
+      prep_stmt->setString(10, subcategory);
       prep_stmt->execute();
     }
   } catch (sql::SQLException& e) {
@@ -723,10 +728,12 @@ folly::dynamic MySqlClient::getEvents(
   auto regexStmt = folly::sformat(
       "SELECT * FROM `event_log` WHERE "
       "(topologyName LIKE \"%{}\" AND category LIKE \"%{}\" "
-      "AND level LIKE \"%{}\" AND timestamp >= {}) ORDER BY id DESC LIMIT {}",
+      "AND level LIKE \"%{}\" AND subcategory LIKE \"%{}\" "
+      "AND timestamp >= {}) ORDER BY id DESC LIMIT {}",
       request.topologyName,
       request.category,
       request.level,
+      request.subcategory,
       request.timestamp,
       request.maxResults);
   folly::dynamic events = folly::dynamic::array;
@@ -747,6 +754,7 @@ folly::dynamic MySqlClient::getEvents(
               "reason", res->getString("reason").asStdString())(
               "details", res->getString("details").asStdString())(
               "category", res->getString("category").asStdString())(
+              "subcategory", res->getString("subcategory").asStdString())(
               "level", res->getString("level").asStdString()));
     }
   } catch (sql::SQLException& e) {
