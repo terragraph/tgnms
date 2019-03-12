@@ -2,20 +2,15 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-import os
 import queue
 import random
-import sys
 import time
 from collections import defaultdict
-from datetime import date
 from threading import Thread
 
-from api.models import TestResult, TestRunExecution, Tests, TestStatus, TrafficDirection
+from api.models import Tests, TestStatus, TrafficDirection
+from api.network_test import base
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
-from django.db import transaction
-from django.utils import timezone
-from module.beringei_time_series import TimeSeries
 from module.insights import link_health
 
 
@@ -56,11 +51,10 @@ class RunParallelTestPlan(Thread):
         self.direction = TrafficDirection.BIDIRECTIONAL.value
         self.status_error = False
         self.parameters = {}
-        self.test_run_obj = None
+        self.run_test_get_stats = None
         self.start_time = time.time()
         self.end_time = time.time() + network_parameters["session_duration"]
         self.test_status = None
-        self.received_output = {}
         self.received_output_queue = queue.Queue()
         self.topology_sector_info = defaultdict(int)
         self.interval_sec = 1
@@ -74,24 +68,15 @@ class RunParallelTestPlan(Thread):
         test_list = self._parallel_test(self.topology)
 
         # Create the single hop test iperf records
-        with transaction.atomic():
-            test_run = TestRunExecution.objects.create(
-                status=TestStatus.RUNNING.value,
-                test_code=self.test_code,
-                topology_id=self.topology_id,
-                topology_name=self.topology_name,
-            )
-            for link in test_list:
-                link_id = TestResult.objects.create(
-                    test_run_execution=test_run, status=TestStatus.RUNNING.value
-                )
-                link["id"] = link_id.id
+        test_run_db_obj = base._create_db_test_records(
+            self.test_code, self.topology_id, self.topology_name, test_list
+        )
 
         self.parameters = {
             "controller_addr": self.controller_addr,
             "controller_port": self.controller_port,
             "network_info": self.network_info,
-            "test_run_id": test_run.id,
+            "test_run_id": test_run_db_obj.id,
             "test_list": test_list,
             "session_duration": self.session_duration,
             "expected_num_of_intervals": self.session_duration * self.interval_sec,
@@ -100,24 +85,26 @@ class RunParallelTestPlan(Thread):
         }
 
         # Create TestNetwork object and kick it off
-        test_nw = TestNetwork(self.parameters, self.received_output_queue)
-        test_nw.start()
-
-        while test_nw.is_alive():
-            if not self.received_output_queue.empty():
-                self.received_output = self.received_output_queue.get()
+        test_nw_thread_obj = TestNetwork(self.parameters, self.received_output_queue)
+        test_nw_thread_obj.start()
 
         # wait until the TestNetwork thread ends (blocking call)
-        test_nw.join()
+        test_nw_thread_obj.join()
 
         # Mark the end time of the test and get the status of the test from db
+        self.run_test_get_stats = base.RunTestGetStats(
+            test_name="PARALLEL_LINK_TEST",
+            test_nw_thread_obj=test_nw_thread_obj,
+            topology_name=self.topology_name,
+            parameters=self.parameters,
+            direction=self.direction,
+            received_output_queue=self.received_output_queue,
+            start_time=self.start_time,
+            session_duration=self.session_duration,
+        )
         try:
-            self.test_run_obj = TestRunExecution.objects.get(
-                pk=int(self.parameters["test_run_id"])
-            )
-            self.test_run_obj.end_date_utc = timezone.now()
-            self.test_run_obj.save()
-            self.test_status = self.test_run_obj.status
+            test_run_obj = self.run_test_get_stats._log_test_end_time()
+            self.test_status = test_run_obj.status
         except Exception as ex:
             _log.error(
                 "\nError in getting status of the test: {}".format(ex)
@@ -133,51 +120,29 @@ class RunParallelTestPlan(Thread):
             else:
                 # get network wide analytics stats for the duration of the test
                 _log.info("\nWriting Analytics stats to the db:")
-                self._write_analytics_stats_to_db(
+                self.run_test_get_stats._write_analytics_stats_to_db(
                     link_health(
-                        links=self._create_time_series_list(),
+                        links=self._time_series_list_wrapper(),
                         network_info=self.parameters["network_info"],
                     )
                 )
 
-    def _create_time_series_list(self):
+    def _time_series_list_wrapper(self):
         time_series_list = []
         links = self.parameters["test_list"]
         num_direction = (
             2 if self.direction == TrafficDirection.BIDIRECTIONAL.value else 1
         )
         for atoz in range(0, len(links), num_direction):
-            time_series_list.append(
-                TimeSeries(
-                    name="PARALLEL_TEST_PLAN",
-                    topology=self.topology_name,
-                    times=[self.start_time, self.end_time],
-                    values=[0, 0],
-                    src_mac=links[atoz]["src_node_id"],
-                    peer_mac=links[atoz]["dst_node_id"],
-                )
+            time_series_list += self.run_test_get_stats._create_time_series_list(
+                start_time=self.start_time,
+                end_time=self.end_time,
+                link=self.run_test_get_stats._get_link(
+                    source_node=links[atoz]["src_node_id"],
+                    destination_node=links[atoz]["dst_node_id"],
+                ),
             )
         return time_series_list
-
-    def _write_analytics_stats_to_db(self, analytics_stats):
-        # analytics_stats is list of Beringei TimeSeries objects
-        for stats in analytics_stats:
-            link = self._get_link(stats.src_mac, stats.peer_mac)
-            if link is not None:
-                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                if link_db_obj is not None:
-                    with transaction.atomic():
-                        setattr(link_db_obj, stats.name, stats.values[0])
-                        link_db_obj.save()
-
-    def _get_link(self, source_node, destination_node):
-        for link in self.parameters["test_list"]:
-            if (
-                link["src_node_id"] == source_node
-                and link["dst_node_id"] == destination_node
-            ):
-                return link
-        return None
 
     def _get_topology_sector_info(self):
         for link in self.topology["links"]:
@@ -217,19 +182,7 @@ class RunParallelTestPlan(Thread):
                     + node_mac_to_name[z_node_mac]
                 )
                 bitrate = self._get_bitrate(self.test_push_rate, a_node_mac, z_node_mac)
-                if self.direction == TrafficDirection.BIDIRECTIONAL.value:
-                    mac_list = [
-                        {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac},
-                        {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac},
-                    ]
-                elif self.direction == TrafficDirection.SOUTHBOUND.value:
-                    mac_list = [
-                        {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac}
-                    ]
-                elif self.direction == TrafficDirection.NORTHBOUND.value:
-                    mac_list = [
-                        {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}
-                    ]
+                mac_list = base._get_mac_list(self.direction, a_node_mac, z_node_mac)
                 for mac_addr in mac_list:
                     test_dict = {}
                     iperf_object = IperfObj(

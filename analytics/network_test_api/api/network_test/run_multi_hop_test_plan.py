@@ -3,20 +3,13 @@
 
 import asyncio
 import logging
-import os
 import queue
 import random
-import sys
 import time
-from datetime import date
 from threading import Thread
 
-from api.models import TestResult, TestRunExecution, TestStatus, TrafficDirection
+from api.network_test import base
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
-from django.db import transaction
-from django.utils import timezone
-from module.beringei_time_series import TimeSeries
-from module.insights import link_health
 from module.routing import get_routes_for_nodes
 
 
@@ -95,24 +88,15 @@ class RunMultiHopTestPlan(Thread):
         test_list = self._multi_hop_test(self.topology, pop_to_node_links)
 
         # Create the single hop test iperf records
-        with transaction.atomic():
-            test_run = TestRunExecution.objects.create(
-                status=TestStatus.RUNNING.value,
-                test_code=self.test_code,
-                topology_id=self.topology_id,
-                topology_name=self.topology_name,
-            )
-            for link in test_list:
-                link_id = TestResult.objects.create(test_run_execution=test_run)
-                link["id"] = link_id.id
-                link_id.is_ecmp = link["ecmp"]
-                link_id.save()
+        test_run_db_obj = base._create_db_test_records(
+            self.test_code, self.topology_id, self.topology_name, test_list
+        )
 
         self.parameters = {
             "controller_addr": self.controller_addr,
             "controller_port": self.controller_port,
             "network_info": self.network_info,
-            "test_run_id": test_run.id,
+            "test_run_id": test_run_db_obj.id,
             "test_list": test_list,
             "expected_num_of_intervals": self.session_duration * self.interval_sec,
             "test_code": self.test_code,
@@ -123,98 +107,21 @@ class RunMultiHopTestPlan(Thread):
         }
 
         # Create TestNetwork object and kick it off
-        test_nw = TestNetwork(self.parameters, self.received_output_queue)
-        test_nw.start()
+        test_nw_thread_obj = TestNetwork(self.parameters, self.received_output_queue)
+        test_nw_thread_obj.start()
 
-        while test_nw.is_alive():
-            if not self.received_output_queue.empty():
-                self.received_output = self.received_output_queue.get()
-                if self.received_output["traffic_type"] == "IPERF_OUTPUT":
-                    rcvd_src_node = self.received_output["source_node"]
-                    rcvd_dest_node = self.received_output["destination_node"]
-                    if self.direction == TrafficDirection.BIDIRECTIONAL.value:
-                        if (rcvd_src_node, rcvd_dest_node) not in self.links and (
-                            rcvd_dest_node,
-                            rcvd_src_node,
-                        ) not in self.links:
-                            self.links.append((rcvd_src_node, rcvd_dest_node))
-                        else:
-                            try:
-                                self.links.remove((rcvd_src_node, rcvd_dest_node))
-                            except ValueError:
-                                self.links.remove((rcvd_dest_node, rcvd_src_node))
-                            # get analytics stats for both drections
-                            self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node)
-                    else:
-                        # get analytics stats for one drection
-                        self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node)
-
-        # wait until the TestNetwork thread ends (blocking call)
-        test_nw.join()
-
-        # get analytics stats for remaining links
-        if self.links:
-            for links in self.links:
-                self._db_stats_wrapper(links[0], links[1])
-
-        # Mark the end time of the test in db
-        try:
-            test_run_obj = TestRunExecution.objects.get(
-                pk=int(self.parameters["test_run_id"])
-            )
-            test_run_obj.end_date_utc = timezone.now()
-            test_run_obj.save()
-        except Exception as ex:
-            _log.error("\nError setting end_date of the test: {}".format(ex))
-
-    def _db_stats_wrapper(self, rcvd_src_node, rcvd_dest_node):
-        _log.info("\nWriting Analytics stats to the db:")
-        link = self._get_link(rcvd_src_node, rcvd_dest_node)
-        link_start_time = self.start_time + link["start_delay"]
-        link_end_time = link_start_time + self.session_duration
-        self._write_analytics_stats_to_db(
-            link_health(
-                links=self._create_time_series_list(
-                    link=link, start_time=link_start_time, end_time=link_end_time
-                ),
-                network_info=self.parameters["network_info"],
-            )
+        # wait for and log results/stats
+        run_test_get_stats = base.RunTestGetStats(
+            test_name="MULTI_HOP_TEST",
+            test_nw_thread_obj=test_nw_thread_obj,
+            topology_name=self.topology_name,
+            parameters=self.parameters,
+            direction=self.direction,
+            received_output_queue=self.received_output_queue,
+            start_time=self.start_time,
+            session_duration=self.session_duration,
         )
-
-    def _create_time_series_list(self, link, start_time, end_time):
-        time_series_list = []
-        # for link in self.parameters['test_list']:
-        time_series_list.append(
-            TimeSeries(
-                name="MULTI_HOP_TEST_PLAN",
-                topology=self.topology_name,
-                times=[start_time, end_time],
-                values=[0, 0],
-                src_mac=link["src_node_id"],
-                peer_mac=link["dst_node_id"],
-            )
-        )
-        return time_series_list
-
-    def _write_analytics_stats_to_db(self, analytics_stats):
-        # analytics_stats is list of Beringei TimeSeries objects
-        for stats in analytics_stats:
-            link = self._get_link(stats.src_mac, stats.peer_mac)
-            if link is not None:
-                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                if link_db_obj is not None:
-                    with transaction.atomic():
-                        setattr(link_db_obj, stats.name, stats.values[0])
-                        link_db_obj.save()
-
-    def _get_link(self, source_node, destination_node):
-        for link in self.parameters["test_list"]:
-            if (
-                link["src_node_id"] == source_node
-                and link["dst_node_id"] == destination_node
-            ):
-                return link
-        return None
+        run_test_get_stats.start()
 
     def _get_pop_to_node_links(self, network_hop_info):
         pop_to_node_links = []
@@ -269,26 +176,14 @@ class RunMultiHopTestPlan(Thread):
                 + "-"
                 + node_mac_to_name[dst_node_mac]
             )
-            if self.direction == TrafficDirection.BIDIRECTIONAL.value:
-                mac_list = [
-                    {"pop_node_mac": pop_node_mac, "dst_node_mac": dst_node_mac},
-                    {"pop_node_mac": dst_node_mac, "dst_node_mac": pop_node_mac},
-                ]
-            elif self.direction == TrafficDirection.SOUTHBOUND.value:
-                mac_list = [
-                    {"pop_node_mac": pop_node_mac, "dst_node_mac": dst_node_mac}
-                ]
-            elif self.direction == TrafficDirection.NORTHBOUND.value:
-                mac_list = [
-                    {"pop_node_mac": dst_node_mac, "dst_node_mac": pop_node_mac}
-                ]
+            mac_list = base._get_mac_list(self.direction, pop_node_mac, dst_node_mac)
             for mac_addr in mac_list:
                 test_dict = {}
                 iperf_object = IperfObj(
                     link_name=link_name,
-                    src_node_name=node_mac_to_name[mac_addr["pop_node_mac"]],
+                    src_node_name=node_mac_to_name[mac_addr["src_node_mac"]],
                     dst_node_name=node_mac_to_name[mac_addr["dst_node_mac"]],
-                    src_node_id=mac_addr["pop_node_mac"],
+                    src_node_id=mac_addr["src_node_mac"],
                     dst_node_id=mac_addr["dst_node_mac"],
                     bitrate=self.test_push_rate,
                     time_sec=self.session_duration,
@@ -306,9 +201,9 @@ class RunMultiHopTestPlan(Thread):
                 )
                 ping_object = PingObj(
                     link_name=link_name,
-                    src_node_name=node_mac_to_name[mac_addr["pop_node_mac"]],
+                    src_node_name=node_mac_to_name[mac_addr["src_node_mac"]],
                     dst_node_name=node_mac_to_name[mac_addr["dst_node_mac"]],
-                    src_node_id=mac_addr["pop_node_mac"],
+                    src_node_id=mac_addr["src_node_mac"],
                     dst_node_id=mac_addr["dst_node_mac"],
                     count=self.session_duration,
                     interval=self.interval_sec,
@@ -318,7 +213,7 @@ class RunMultiHopTestPlan(Thread):
                     timeout=1,
                     use_link_local=False,
                 )
-                test_dict["src_node_id"] = mac_addr["pop_node_mac"]
+                test_dict["src_node_id"] = mac_addr["src_node_mac"]
                 test_dict["dst_node_id"] = mac_addr["dst_node_mac"]
                 test_dict["iperf_object"] = iperf_object
                 test_dict["ping_object"] = ping_object
