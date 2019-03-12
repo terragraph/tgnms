@@ -10,6 +10,7 @@ from threading import Thread
 from api.models import TestResult, TestRunExecution, Tests
 from api.network_test import connect_to_ctrl, listen, run_iperf, run_ping
 from django.db import transaction
+from django.utils import timezone
 from module.routing import get_routes_for_nodes
 
 
@@ -124,6 +125,11 @@ class TestNetwork(Thread):
                     and not link["iperf_object"].request_sent
                     and not link["ping_object"].request_sent
                 ):
+                    # mark test start time for link
+                    with transaction.atomic():
+                        link_db_obj = TestResult.objects.filter(id=link["id"]).first()
+                        link_db_obj.start_date_utc = timezone.now()
+                        link_db_obj.save()
                     if link.get("iperf_object"):
                         if not link["iperf_object"].request_sent:
                             self.iperf_obj._config_iperf(

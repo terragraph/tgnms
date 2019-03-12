@@ -122,6 +122,13 @@ class RunTestGetStats:
                 if received_output["traffic_type"] == "IPERF_OUTPUT":
                     rcvd_src_node = received_output["source_node"]
                     rcvd_dest_node = received_output["destination_node"]
+
+                    # mark the end of the test for the link
+                    self._log_test_end_time_for_link(
+                        source_node=rcvd_src_node, destination_node=rcvd_dest_node
+                    )
+
+                    # get analytics stats based on traffic direction
                     if self.direction == TrafficDirection.BIDIRECTIONAL.value:
                         if (rcvd_src_node, rcvd_dest_node) not in self.links and (
                             rcvd_dest_node,
@@ -197,9 +204,23 @@ class RunTestGetStats:
             test_run_obj.save()
 
             if self.test_name == "PARALLEL_LINK_TEST":
+                for link in self.parameters["test_list"]:
+                    self._log_test_end_time_for_link(
+                        source_node=link["src_node_id"],
+                        destination_node=link["dst_node_id"],
+                    )
                 return test_run_obj
         except Exception as ex:
             _log.error("\nError setting end_date of the test: {}".format(ex))
+
+    def _log_test_end_time_for_link(self, source_node, destination_node):
+        link = self._get_link(source_node, destination_node)
+        if link is not None:
+            link_db_obj = TestResult.objects.filter(id=link["id"]).first()
+            if link_db_obj is not None:
+                with transaction.atomic():
+                    link_db_obj.end_date_utc = timezone.now()
+                    link_db_obj.save()
 
 
 # functions common across tests #
