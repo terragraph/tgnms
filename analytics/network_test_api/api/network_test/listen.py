@@ -206,7 +206,7 @@ class RecvFromCtrl(base.Base):
                 self.parameters["expected_num_of_intervals"],
             )
             link = self._get_link(source_node, destination_node)
-            if link is not None:
+            if link is not None and stats:
                 link_db_obj = TestResult.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():
@@ -250,7 +250,7 @@ class RecvFromCtrl(base.Base):
             link = self._get_link(source_node, destination_node)
             if link is not None:
                 link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                if link_db_obj is not None:
+                if link_db_obj is not None and stats:
                     with transaction.atomic():
                         link_db_obj.origin_node = link["ping_object"].src_node_name
                         link_db_obj.peer_node = link["ping_object"].dst_node_name
