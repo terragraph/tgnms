@@ -107,7 +107,7 @@ def fetch_and_parse_network_info(topology_id: int) -> Dict[str, Any]:
         network_info = fetch_network_info(topology_id)
         topology = network_info[topology_id]["topology"]
         topology_name = network_info[topology_id]["topology"]["name"]
-        controller_addr = network_info[topology_id]["ip"]
+        controller_addr = network_info[topology_id]["e2e_ip"]
         controller_port = network_info[topology_id]["e2e_port"]
     except Exception:
         return {

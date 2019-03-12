@@ -118,8 +118,10 @@ class MySqlDbAccess(object):
                 controller = "backup_controller"
 
             sql_string = (
-                "SELECT topology.id, name, ip, api_port, e2e_port FROM topology "
-                + "INNER JOIN controller ON {}=controller.id;".format(controller)
+                "SELECT topology.id, name, api_ip, api_port, e2e_ip, e2e_port FROM "
+                + "topology INNER JOIN controller ON {}=controller.id;".format(
+                    controller
+                )
             )
             try:
                 cursor.execute(sql_string)
@@ -134,11 +136,12 @@ class MySqlDbAccess(object):
                         "Find multiple api set up for network", api_result["name"]
                     )
                 api_service_config[api_result["name"]] = {}
-                api_service_config[api_result["name"]]["ip"] = api_result["ip"]
+                api_service_config[api_result["name"]]["api_ip"] = api_result["api_ip"]
                 api_service_config[api_result["name"]]["api_port"] = api_result[
                     "api_port"
                 ]
                 api_service_config[api_result["name"]]["id"] = api_result["id"]
+                api_service_config[api_result["name"]]["e2e_ip"] = api_result["e2e_ip"]
                 api_service_config[api_result["name"]]["e2e_port"] = api_result[
                     "e2e_port"
                 ]

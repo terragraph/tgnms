@@ -37,9 +37,9 @@ def fetch_network_info(
         try:
             if topology_id and cfg["id"] != topology_id:
                 continue
-            target_domain = "{}:{}".format(cfg["ip"], cfg["api_port"])
+            target_domain = "{}:{}".format(cfg["api_ip"], cfg["api_port"])
             os.environ["NO_PROXY"] = target_domain
-            url = "http://[{}]:{}/".format(cfg["ip"], cfg["api_port"])
+            url = "http://[{}]:{}/".format(cfg["api_ip"], cfg["api_port"])
             url += "api/getTopology"
             response = requests.post(url, data="{}", timeout=1)
             topology_string = response.content.decode("utf-8")
