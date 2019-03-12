@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import json
+import queue
 import time
 
 from api import base
@@ -118,38 +119,49 @@ def start_test(request):
                     "speed_test_pop_to_node_dict": speed_test_pop_to_node_dict,
                 }
                 # Run the test plan
+                test_run_db_queue = queue.Queue()
                 if test_code == Tests.PARALLEL_TEST.value:
                     run_tp = run_parallel_test_plan.RunParallelTestPlan(
-                        network_parameters=network_parameters
+                        network_parameters=network_parameters,
+                        db_queue=test_run_db_queue,
                     )
                     run_tp.start()
+                    test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
                     return base.generate_http_response(
                         error=False,
                         msg="Started Short Term Parallel Link Health Test Plan.",
+                        id=test_run_db_obj_id,
                     )
                 elif test_code == Tests.SEQUENTIAL_TEST.value:
                     run_tp = run_sequential_test_plan.RunSequentialTestPlan(
-                        network_parameters=network_parameters
+                        network_parameters=network_parameters,
+                        db_queue=test_run_db_queue,
                     )
                     run_tp.start()
+                    test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
                     return base.generate_http_response(
                         error=False,
                         msg="Started Short Term Sequential Link Health Test Plan.",
+                        id=test_run_db_obj_id,
                     )
                 elif test_code == Tests.MULTI_HOP_TEST.value:
                     run_tp = run_multi_hop_test_plan.RunMultiHopTestPlan(
-                        network_parameters=network_parameters
+                        network_parameters=network_parameters,
+                        db_queue=test_run_db_queue,
                     )
                     run_tp.start()
+                    test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
                     msg = (
                         "Started Speed Test."
                         if speed_test_pop_to_node_dict
                         else "Started Multi-hop Network Health Test Plan."
                     )
-                    return base.generate_http_response(error=False, msg=msg)
+                    return base.generate_http_response(
+                        error=False, msg=msg, id=test_run_db_obj_id
+                    )
                 else:
                     return base.generate_http_response(
-                        error=True, msg="Incorrect test_code."
+                        error=True, msg="Incorrect test_code.", id=test_run_db_obj_id
                     )
         except Exception as e:
             return base.generate_http_response(error=True, msg=str(e))
@@ -170,8 +182,8 @@ def stop_test(request):
             for obj in test_run_list:
                 obj.status = TestStatus.ABORTED.value
                 obj.save()
-                msg += "Test run execution id : " + str(obj.id) + " stopped. "
-            return base.generate_http_response(error=False, msg=msg)
+                msg += "Test run execution stopped."
+            return base.generate_http_response(error=False, msg=msg, id=obj.id)
         else:
             return base.generate_http_response(
                 error=True, msg="No test is currently running"

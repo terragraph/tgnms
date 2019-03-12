@@ -2,9 +2,11 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import json
+import logging
 import os
 import sys
-from typing import Any, Dict
+import time
+from typing import Any, Dict, Optional
 
 from api.models import Tests, TrafficDirection
 from django.http import HttpResponse
@@ -24,6 +26,9 @@ try:
     from module.topology_handler import fetch_network_info
 except Exception:
     raise
+
+_log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def parse_received_json_data(received_json_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -189,10 +194,23 @@ def validate_speed_test_pop_to_node_dict(
     return {"error": False}
 
 
-def generate_http_response(error: bool, msg: str) -> object:
+def generate_http_response(error: bool, msg: str, id: Optional[int] = None) -> object:
     return HttpResponse(
-        json.dumps({"error": error, "msg": msg}), content_type="application/json"
+        json.dumps(
+            {"error": error, "msg": msg, "id": id}
+            if id
+            else {"error": error, "msg": msg}
+        ),
+        content_type="application/json",
     )
+
+
+def get_test_run_db_obj_id(test_run_db_queue):
+    try:
+        return test_run_db_queue.get(block=True, timeout=10)
+    except Exception as e:
+        _log.error("\nError getting the test run id from DB: {}".format(e))
+        return None
 
 
 def serialize_to_json(obj) -> str:

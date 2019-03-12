@@ -36,8 +36,9 @@ class RunParallelTestPlan(Thread):
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
     """
 
-    def __init__(self, network_parameters):
+    def __init__(self, network_parameters, db_queue):
         Thread.__init__(self)
+        self.db_queue = db_queue
         self.controller_addr = network_parameters["controller_addr"]
         self.controller_port = network_parameters["controller_port"]
         self.network_info = network_parameters["network_info"]
@@ -69,7 +70,11 @@ class RunParallelTestPlan(Thread):
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
-            self.test_code, self.topology_id, self.topology_name, test_list
+            test_code=self.test_code,
+            topology_id=self.topology_id,
+            topology_name=self.topology_name,
+            test_list=test_list,
+            db_queue=self.db_queue,
         )
 
         self.parameters = {

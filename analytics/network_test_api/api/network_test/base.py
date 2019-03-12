@@ -226,7 +226,7 @@ class RunTestGetStats:
 # functions common across tests #
 
 
-def _create_db_test_records(test_code, topology_id, topology_name, test_list):
+def _create_db_test_records(test_code, topology_id, topology_name, test_list, db_queue):
     with transaction.atomic():
         test_run_db_obj = TestRunExecution.objects.create(
             status=TestStatus.RUNNING.value,
@@ -234,6 +234,7 @@ def _create_db_test_records(test_code, topology_id, topology_name, test_list):
             topology_id=topology_id,
             topology_name=topology_name,
         )
+        db_queue.put(test_run_db_obj.id)
         for link in test_list:
             link_id = TestResult.objects.create(
                 test_run_execution=test_run_db_obj, status=TestStatus.RUNNING.value
@@ -249,11 +250,7 @@ def _get_mac_list(direction, a_node_mac, z_node_mac):
             {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac},
         ]
     elif direction == TrafficDirection.SOUTHBOUND.value:
-        mac_list = [
-            {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac}
-        ]
+        mac_list = [{"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac}]
     elif direction == TrafficDirection.NORTHBOUND.value:
-        mac_list = [
-            {"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}
-        ]
+        mac_list = [{"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}]
     return mac_list
