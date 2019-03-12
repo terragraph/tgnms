@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import os
-import sys
 
 from api.network_test import base
 from terragraph_thrift.Controller import ttypes as ctrl_types

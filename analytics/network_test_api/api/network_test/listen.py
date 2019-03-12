@@ -3,9 +3,7 @@
 
 import json
 import logging
-import os
 import queue
-import sys
 import time
 from threading import Thread, currentThread
 
@@ -13,7 +11,6 @@ import zmq
 from api.models import TestResult, TestRunExecution, TestStatus
 from api.network_test import base, iperf_ping_analyze, run_iperf, run_ping
 from django.db import transaction
-from django.utils import timezone
 from terragraph_thrift.Controller import ttypes as ctrl_types
 
 

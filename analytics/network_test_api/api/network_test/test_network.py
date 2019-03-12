@@ -2,8 +2,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import os
-import sys
 import time
 from threading import Thread
 

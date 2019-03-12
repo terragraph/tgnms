@@ -13,10 +13,6 @@ from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 from module.routing import get_routes_for_nodes
 
 
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
-
 class RunMultiHopTestPlan(Thread):
     """
         * controller_addr: IP address of the E2E Controller

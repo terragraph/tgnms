@@ -12,10 +12,6 @@ from api.network_test import base
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 
 
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
-
 class RunSequentialTestPlan(Thread):
     """
         * controller_addr: IP address of the E2E Controller

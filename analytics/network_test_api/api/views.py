@@ -2,8 +2,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import json
-import os
-import sys
 import time
 
 from api import base
