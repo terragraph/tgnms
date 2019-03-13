@@ -190,7 +190,7 @@ def misc_insights(
     nts.write_stats("mcs_p90", mcs_p90, StatType.LINK, write_interval)
     nts.write_stats("mcs_avg", mcs_avg, StatType.LINK, write_interval)
 
-    # Tx PER
+    # PER
     logging.info("Generate tx_per, rx_per")
     tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)
     tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)
@@ -246,21 +246,29 @@ def misc_insights(
     nts.write_stats("rx_per", rx_per, StatType.LINK, write_interval)
 
     # path-loss asymmetry
-    logging.info("Generate pathloss_avg, pathloss_asymmetry")
+    logging.info("Generate pathloss_avg, pathloss_asymmetry, mode of beam indices")
     tx_power_idx = nts.read_stats("staPkt.txPowerIndex", StatType.LINK)
     srssi = nts.read_stats("phystatus.srssi", StatType.LINK)
+    tbi = nts.read_stats("phyPeriodic.txBeamIdx", StatType.LINK)
+    rbi = nts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK)
     pathloss_avg = []
     pathloss_asymmetry = []
+    tx_beam_idx = []
+    rx_beam_idx = []
     for ti in range(k["num_topologies"]):
         pl, asm = npo.pathloss_asymmetry_nd(tx_power_idx[ti], srssi[ti], nts.DIR_AXIS)
         pl = np.nanmean(pl, axis=nts.TIME_AXIS, keepdims=True)
         asm = np.nanmean(asm, axis=nts.TIME_AXIS, keepdims=True)
         pathloss_avg.append(pl)
         pathloss_asymmetry.append(asm)
+        tx_beam_idx.append(np.apply_along_axis(npo.mode_int_1d, nts.TIME_AXIS, tbi[ti]))
+        rx_beam_idx.append(np.apply_along_axis(npo.mode_int_1d, nts.TIME_AXIS, rbi[ti]))
     nts.write_stats("pathloss_avg", pathloss_avg, StatType.LINK, write_interval)
     nts.write_stats(
         "pathloss_asymmetry", pathloss_asymmetry, StatType.LINK, write_interval
     )
+    nts.write_stats("tx_beam_idx", tx_beam_idx, StatType.LINK, write_interval)
+    nts.write_stats("rx_beam_idx", rx_beam_idx, StatType.LINK, write_interval)
 
     # Generate average and standard deviation on rssi, snr, tx power index
     snr = nts.read_stats("phystatus.ssnrEst", StatType.LINK)
@@ -418,6 +426,8 @@ def link_health(links: List, network_info: Dict) -> List:
     rx_ba = nlts.read_stats("staPkt.rxBa", StatType.LINK)
     tx_ppdu = nlts.read_stats("staPkt.txPpdu", StatType.LINK)
     rx_ppdu = nlts.read_stats("staPkt.rxPpdu", StatType.LINK)
+    tbi = nlts.read_stats("phyPeriodic.txBeamIdx", StatType.LINK)
+    rbi = nlts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK)
     num_links = nlts._num_links
     num_dir = nlts.NUM_DIR
     output = []
@@ -474,7 +484,11 @@ def link_health(links: List, network_info: Dict) -> List:
 
     pathloss, _ = npo.pathloss_asymmetry_nd(tx_power_idx, srssi, nlts.DIR_AXIS)
     pathloss_avg = np.nanmean(pathloss, axis=nlts.TIME_AXIS, keepdims=True)
+    tx_beam_idx = np.apply_along_axis(npo.mode_int_1d, nlts.TIME_AXIS, tbi)
+    rx_beam_idx = np.apply_along_axis(npo.mode_int_1d, nlts.TIME_AXIS, rbi)
     output.extend(nlts.write_stats("pathloss_avg", pathloss_avg, CONST_INTERVAL))
+    output.extend(nlts.write_stats("tx_beam_idx", tx_beam_idx, CONST_INTERVAL))
+    output.extend(nlts.write_stats("rx_beam_idx", rx_beam_idx, CONST_INTERVAL))
 
     mcs_p90 = np.nanpercentile(
         mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True

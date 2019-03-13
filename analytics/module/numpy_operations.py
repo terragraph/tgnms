@@ -50,6 +50,12 @@ def list_and(np_list: List[np.ndarray]) -> np.ndarray:
 BWGD_SEC = 0.0256
 
 
+def mode_int_1d(ar: np.ndarray):
+    unique, unique_counts = np.unique(ar, return_counts=True)
+    index = np.nanargmax(unique_counts)
+    return np.array([unique[index]])
+
+
 def link_stat_diff_1d(
     mgmt_link_up: np.ndarray, link_stat: np.ndarray, interval: int
 ) -> np.float64:

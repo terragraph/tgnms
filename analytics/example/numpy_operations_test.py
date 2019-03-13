@@ -321,6 +321,32 @@ class NumpyOperationsTest(unittest.TestCase):
         obs = npo.link_stat_diff_1d(lu, ls, i)
         np.testing.assert_equal(obs, exp)
 
+    def test_mode_int_1d(self):
+
+        # simple case
+        ar = np.array([0, 1, 1, 2])
+        exp = np.array([1])
+        obs = npo.mode_int_1d(ar)
+        np.testing.assert_equal(obs, exp)
+
+        # negatives
+        ar = np.array([0, -1, -1, -1, 1, 2, -4])
+        exp = np.array([-1])
+        obs = npo.mode_int_1d(ar)
+        np.testing.assert_equal(obs, exp)
+
+        # np.nan but not mode
+        ar = np.array([-1, -1, np.nan, np.nan, np.nan, np.nan])
+        exp = np.array([-1])
+        obs = npo.mode_int_1d(ar)
+        np.testing.assert_equal(obs, exp)
+
+        # np.nan
+        ar = np.array([np.nan, np.nan, np.nan, np.nan])
+        exp = np.array([np.nan])
+        obs = npo.mode_int_1d(ar)
+        np.testing.assert_equal(obs, exp)
+
 
 if __name__ == "__main__":
     logging.basicConfig(
