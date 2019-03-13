@@ -2,7 +2,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import enum
-import time
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -40,7 +39,7 @@ class TestRunExecution(models.Model):
         default=0,
         choices=[(test_status.value, test_status.name) for test_status in TestStatus],
     )
-    expected_end_time = models.IntegerField(default=time.time())
+    expected_end_time = models.IntegerField(null=True)
     test_code = models.CharField(max_length=120, blank=True, null=True)
     topology_id = models.IntegerField(null=True)
     topology_name = models.CharField(default="", max_length=256)
