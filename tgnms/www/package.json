@@ -134,7 +134,7 @@
     "plotly.js": "^1.37.1",
     "postcss-flexbugs-fixes": "3.2.0",
     "postcss-loader": "2.0.8",
-    "prettier": "1.13.6",
+    "prettier": "1.16.4",
     "prop-types": "^15.5.8",
     "react-dev-utils": "^5.0.1",
     "react-test-renderer": "16.4.1",
