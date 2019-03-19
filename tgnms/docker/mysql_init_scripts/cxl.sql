@@ -226,6 +226,7 @@ CREATE TABLE IF NOT EXISTS `tx_scan_results` (
 CALL Add_Modify_Column('tx_scan_results','combined_status','int'); /* added July 2018 */
 CALL Add_Modify_Column('tx_scan_results','token','int unsigned');  /* added July 2018 */
 CALL Add_Modify_Column('event_log','subcategory','varchar(100)');  /* added Feb 2019 */
+CALL Add_Modify_Column('tx_scan_results', 'n_responses_waiting', 'int unsigned'); /* added March 2019 */
 
 CREATE TABLE IF NOT EXISTS `sys_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
