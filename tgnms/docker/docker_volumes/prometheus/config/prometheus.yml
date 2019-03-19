@@ -1,0 +1,35 @@
+# my global config
+global:
+  scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 30s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      # - alertmanager:9093
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+    # honor_labels: true
+    static_configs:
+            - targets: ['cadvisor:8080']
+
+  - job_name: 'bqs_30s'
+    metrics_path: /metrics/30s
+    static_configs:
+            - targets: ['bqs:8086']
+
+  - job_name: 'bqs_1s'
+    metrics_path: /metrics/1s
+    scrape_interval: 1s
+    scrape_timeout: 1s
+    static_configs:
+            - targets: ['bqs:8086']
