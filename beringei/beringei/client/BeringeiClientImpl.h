@@ -68,21 +68,24 @@ class BeringeiClientImpl {
       std::function<bool(const std::vector<KeyUpdateTime>& keys)> callback);
 
   // Get compressed data points from Gorilla.
-  // If set, serviceOverride bypasses the gorilla_read_services property.
+  // If set, serviceOverride overrides services given by the configuration
+  // adapter.
   virtual void get(
       GetDataRequest& request,
       GetDataResult& result,
       const std::string& serviceOverride = "");
 
   // Get unpacked data points from Gorilla.
-  // If set, serviceOverride bypasses the gorilla_read_services property.
+  // If set, serviceOverride overrides services given by the configuration
+  // adapter.
   void get(
       GetDataRequest& request,
       GorillaResultVector& result,
       const std::string& serviceOverride = "");
 
   // Get unpacked data points from Gorilla.
-  // If set, serviceOverride bypasses the gorilla_read_services property.
+  // If set, serviceOverride overrides services given by the configuration
+  // adapter.
   virtual BeringeiGetResult get(
       GetDataRequest& request,
       const std::string& serviceOverride = "");
