@@ -9,6 +9,7 @@
 
 #include "PrometheusUtils.h"
 
+#include "consts/PrometheusConsts.h"
 #include "handlers/StatsHandler.h"
 
 #include <algorithm>
@@ -23,18 +24,19 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
-DEFINE_bool(prometheus_pushgateway_metrics_forwarding_enabled,
-            false,
-            "Prometheus pushgateway metrics forwarding enable flag");
-DEFINE_string(prometheus_pushgateway_ip,
-              "[2620:10d:c089:ee04:250:56ff:feb4:b412]",
-              "Prometheus endpoint address to forward metrics to");
-DEFINE_int32(prometheus_pushgateway_port,
-             9091,
-             "Prometheus endpoint port");
-DEFINE_string(prometheus_pushgateway_uri,
-              "/metrics/",
-              "Prometheus endpoint uri");
+DEFINE_bool(
+    prometheus_metrics_queue_enabled,
+    true,
+    "Maintain a queue of prometheus metrics for prometheus to poll");
+// Maximum count to accept (of vectors of Metrics)
+DEFINE_int32(
+    prometheus_metrics_queue_size,
+    100,
+    "Total stats requests accepted per interval");
+DEFINE_string(
+    prometheus_network_name_label,
+    "network",
+    "Prometheus network/topology name label");
 
 extern "C" {
 struct HTTPDataStruct {
@@ -62,8 +64,65 @@ curlWriteCb(void* content, size_t size, size_t nmemb, void* userp) {
 namespace facebook {
 namespace gorilla {
 
-std::string
-PrometheusUtils::formatPrometheusKeyName(const std::string& keyName) {
+static folly::Singleton<PrometheusUtils> instance_;
+
+PrometheusUtils::PrometheusUtils() {
+  // populate allowable intervals
+  std::vector<std::vector<Metric>> req;
+  nodeMetricsByInterval_.wlock()->emplace(std::make_pair(1, req));
+  nodeMetricsByInterval_.wlock()->emplace(std::make_pair(30, req));
+}
+
+std::shared_ptr<PrometheusUtils> PrometheusUtils::getInstance() {
+  return instance_.try_get();
+}
+
+std::vector<std::string> PrometheusUtils::pollMetrics(
+    TACacheMap& typeaheadCache,
+    const int intervalSec) {
+  std::vector<std::string> prometheusDataPoints{};
+  std::vector<std::vector<Metric>> prometheusMetrics{};
+  // drain metrics from the queue
+  {
+    // lock for the duration
+    auto locked = nodeMetricsByInterval_.wlock();
+    auto intervalIt = locked->find(intervalSec);
+    if (intervalIt == locked->end()) {
+      return prometheusDataPoints;
+    }
+    // collect all Metric data
+    while (!intervalIt->second.empty()) {
+      const auto metricsList = intervalIt->second.begin();
+      prometheusMetrics.emplace_back(*metricsList);
+      intervalIt->second.erase(metricsList);
+    }
+  }
+  // format all metrics to prometheus string format
+  for (const auto& metricList : prometheusMetrics) {
+    for (const auto& prometheusMetric : metricList) {
+      std::string labelsString{};
+      if (!prometheusMetric.prometheusLabels.empty()) {
+        labelsString =
+            "{" + folly::join(",", prometheusMetric.prometheusLabels) + "}";
+      }
+      prometheusDataPoints.push_back(folly::sformat(
+          "{}{} {} {}",
+          prometheusMetric.name,
+          labelsString,
+          prometheusMetric.value,
+          prometheusMetric.ts));
+    }
+  }
+}
+
+std::string PrometheusUtils::formatNetworkLabel(
+    const std::string& topologyName) {
+  return folly::sformat(
+      "{}=\"{}\"", FLAGS_prometheus_network_name_label, topologyName);
+}
+
+std::string PrometheusUtils::formatPrometheusKeyName(
+    const std::string& keyName) {
   // replace non-alphanumeric characters that prometheus doesn't allow
   std::string keyNameCopy{keyName};
   std::replace(keyNameCopy.begin(), keyNameCopy.end(), '.', '_');
@@ -74,16 +133,39 @@ PrometheusUtils::formatPrometheusKeyName(const std::string& keyName) {
   return keyNameCopy;
 }
 
-void
-PrometheusUtils::writeNodeMetrics(
+void PrometheusUtils::writeNodeMetrics(
     TACacheMap& typeaheadCache,
     const query::StatsWriteRequest& request) {
-  if (!FLAGS_prometheus_pushgateway_metrics_forwarding_enabled ||
-      request.interval != 30) {
-    // only write 30s interval data until we know how to process 1s
+  // ensure we're accepting the stats data interval
+  if (!FLAGS_prometheus_metrics_queue_enabled ||
+      !nodeMetricsByInterval_.rlock()->count(request.interval)) {
     return;
   }
-  std::vector<std::string> prometheusDataPoints{};
+
+  // format stats request as a list of Metrics
+  std::vector<Metric> prometheusMetrics{};
+  formatStatsRequestAsPrometheusMetrics(
+      prometheusMetrics, typeaheadCache, request);
+  {
+    // save metrics in local queue for prometheus to query
+    auto locked = nodeMetricsByInterval_.wlock();
+    auto intervalIt = locked->find(request.interval);
+    if (intervalIt != locked->end()) {
+      if (intervalIt->second.size() >= FLAGS_prometheus_metrics_queue_size) {
+        LOG(ERROR) << "Metrics queue full for interval: " << request.interval
+                   << ", dropping request.";
+        return;
+      }
+      // push metrics to local instance to be pulled by prometheus directly
+      intervalIt->second.emplace_back(prometheusMetrics);
+    }
+  }
+}
+
+void PrometheusUtils::formatStatsRequestAsPrometheusMetrics(
+    std::vector<Metric>& prometheusMetricOutput,
+    TACacheMap& typeaheadCache,
+    const query::StatsWriteRequest& request) {
   // get meta-data for topology
   auto locked = typeaheadCache.rlock();
   auto taCacheIt = locked->find(request.topology.name);
@@ -93,6 +175,9 @@ PrometheusUtils::writeNodeMetrics(
     return;
   }
   auto taCache = taCacheIt->second;
+  std::string topologyLabel =
+      PrometheusUtils::formatNetworkLabel(request.topology.name);
+
   for (const auto& agent : request.agents) {
     for (const auto& stat : agent.stats) {
       // lower-case the key name and mac address for lookup
@@ -102,157 +187,68 @@ PrometheusUtils::writeNodeMetrics(
       std::string macAddr = agent.mac;
       std::transform(
           macAddr.begin(), macAddr.end(), macAddr.begin(), ::tolower);
+      // set initial labels for all node stats
+      std::vector<std::string> labelTags = {
+          topologyLabel,
+          folly::sformat(
+              "{}=\"{}\"",
+              PrometheusConsts::LABEL_DATA_INTERVAL,
+              request.interval),
+          folly::sformat(
+              "{}=\"{}\"", PrometheusConsts::LABEL_NODE_MAC, macAddr),
+          folly::sformat(
+              "{}=\"{}\"", PrometheusConsts::LABEL_NODE_NAME, agent.name),
+          folly::sformat(
+              "{}=\"{}\"", PrometheusConsts::LABEL_SITE_NAME, agent.site)};
       // fetch meta-data for node/key
       folly::Optional<stats::KeyMetaData> keyMetaData =
           taCache->getKeyDataByNodeKey(macAddr, keyName);
       // replace characters for prometheus label format
       keyName = formatPrometheusKeyName(keyName);
-      prometheusDataPoints.push_back(
-          folly::sformat("{}{{node=\"{}\"}} {}",
-                         keyName,
-                         macAddr,
-                         stat.value));
-
+      // push the raw metric before checking for link tags
+      // this prevents creating a new time series in prometheus when we add a
+      // short name for this metric later
+      // I don't feel strongly about this either way (pm@)
+      prometheusMetricOutput.emplace_back(
+          Metric(keyName, stat.ts * 1000, labelTags, stat.value));
       // publish metric short names
       if (keyMetaData && !keyMetaData->shortName.empty()) {
-        std::vector<std::string> labelTags{};
-        labelTags.push_back(folly::sformat("node=\"{}\"", macAddr));
         if (!keyMetaData->linkName.empty()) {
           // tag link labels
-          labelTags.push_back(folly::sformat("link=\"{}\"",
+          labelTags.push_back(folly::sformat(
+              "{}=\"{}\"",
+              PrometheusConsts::LABEL_LINK_NAME,
               formatPrometheusKeyName(keyMetaData->linkName)));
-          labelTags.push_back(folly::sformat("linkDirection=\"{}\"",
-              keyMetaData->linkDirection == stats::LinkDirection::LINK_A ?
-              "A" :
-              "Z"));
+          labelTags.push_back(folly::sformat(
+              "{}=\"{}\"",
+              PrometheusConsts::LABEL_LINK_DIRECTION,
+              keyMetaData->linkDirection == stats::LinkDirection::LINK_A
+                  ? "A"
+                  : "Z"));
         }
-        prometheusDataPoints.push_back(folly::sformat("{}{{{}}} {}",
-            keyMetaData->shortName,
-            folly::join(",", labelTags),
-            stat.value));
+        prometheusMetricOutput.emplace_back(Metric(
+            keyMetaData->shortName, stat.ts * 1000, labelTags, stat.value));
       }
     }
   }
-  // forward metrics
-  if (!prometheusDataPoints.empty()) {
-    forwardMetricsToPrometheus(request.topology.name,
-                               "node_metrics" /* unique job identifier */,
-                               prometheusDataPoints);
-  }
 }
 
-void
-PrometheusUtils::writeMetrics(
+void PrometheusUtils::writeMetrics(
     const std::string& topologyName,
     const std::string& jobName, /* unique identifier */
+    const int intervalSec,
     const std::vector<Metric>& aggValues) {
-  if (!FLAGS_prometheus_pushgateway_metrics_forwarding_enabled) {
+  if (!FLAGS_prometheus_metrics_queue_enabled) {
     return;
   }
-  std::vector<std::string> prometheusDataPoints{};
-  for (const auto& aggValue : aggValues) {
-    std::string labelsString{};
-    if (!aggValue.prometheusLabels.empty()) {
-      labelsString = "{" + folly::join(",", aggValue.prometheusLabels) +
-          "}";
+  // write metrics to local cache
+  {
+    // save metrics in local queue for prometheus to query
+    auto locked = nodeMetricsByInterval_.wlock();
+    auto intervalIt = locked->find(intervalSec);
+    if (intervalIt != locked->end()) {
+      intervalIt->second.emplace_back(aggValues);
     }
-    prometheusDataPoints.push_back(folly::sformat("{}{} {}",
-        aggValue.name,
-        labelsString,
-        aggValue.value));
-  }
-  // forward metrics
-  if (!prometheusDataPoints.empty()) {
-    forwardMetricsToPrometheus(topologyName, jobName, prometheusDataPoints);
-  }
-}
-
-void
-PrometheusUtils::forwardMetricsToPrometheus(
-    const std::string& topologyName,
-    const std::string& jobName, /* unique identifier */
-    const std::vector<std::string>& prometheusDataPoints) {
-
-  time_t startTime = BeringeiReader::getTimeInMs();
-  // join data points with newline
-  const std::string postData = folly::join("\n", prometheusDataPoints) + "\n";
-  // construct login request
-  struct curl_slist* headerList = NULL;
-  // we need to specify the content type to get a valid response
-  headerList = curl_slist_append(headerList,
-      "Content-Type: application/x-www-form-urlencoded");
-  try {
-    CURL* curl;
-    CURLcode res;
-    curl = curl_easy_init();
-    if (!curl) {
-      throw std::runtime_error("Unable to initialize CURL");
-    }
-    // url escaping
-    char* jobNameEscaped =
-        curl_easy_escape(curl, jobName.c_str(), jobName.length());
-    char* topologyNameEscaped =
-        curl_easy_escape(curl, topologyName.c_str(), topologyName.length());
-    // craft pushgateway endpoint url to include job + network
-    const std::string endpoint(folly::sformat(
-        "http://{}:{}{}job/{}/network/{}",
-        FLAGS_prometheus_pushgateway_ip,
-        FLAGS_prometheus_pushgateway_port,
-        FLAGS_prometheus_pushgateway_uri,
-        jobNameEscaped,
-        topologyNameEscaped));
-    // we can't verify the peer with our current image/lack of certs
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
-    if (!postData.empty()) {
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postData.length());
-    }
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-    // use a high timeout since the login service can be sluggish
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15000 /* 15 seconds */);
-    // read data from request
-    struct HTTPDataStruct dataChunk;
-    dataChunk.data = (char*)malloc(1);
-    dataChunk.size = 0;
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curlWriteCb);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&dataChunk);
-    // make curl request
-    res = curl_easy_perform(curl);
-    long responseCode;
-    if (res == CURLE_OK) {
-      curl_easy_getinfo(
-          curl, CURLINFO_RESPONSE_CODE, &responseCode);
-    }
-    time_t endTime = BeringeiReader::getTimeInMs();
-    // validate the response
-    if (responseCode == 202) {
-      LOG(INFO) << "Successfully sent " << prometheusDataPoints.size()
-                << " data-points to prometheus pushgateway in "
-                << (endTime - startTime) << "ms";
-    } else {
-      LOG(ERROR) << "Failure sending to prometheus pushgateway ("
-                 << endpoint << "), response code: " << responseCode;
-      if (dataChunk.size > 0) {
-        const std::string httpResp(
-            reinterpret_cast<const char*>(dataChunk.data), dataChunk.size);
-        LOG(ERROR) << "\tHTTP Error: " << httpResp;
-      }
-    }
-    // cleanup
-    curl_slist_free_all(headerList);
-    curl_easy_cleanup(curl);
-    free(dataChunk.data);
-    if (res != CURLE_OK) {
-      LOG(WARNING) << "CURL error for endpoint " << endpoint << ": "
-                   << curl_easy_strerror(res);
-    }
-  } catch (const std::exception& ex) {
-    LOG(ERROR) << "CURL Error: " << ex.what();
   }
 }
 

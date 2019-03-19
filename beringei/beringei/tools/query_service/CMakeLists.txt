@@ -50,6 +50,8 @@ set(BERINGEI_QUERY_SRCS
     TopologyFetcher.h
     TopologyStore.cpp
     TopologyStore.h
+    consts/PrometheusConsts.cpp
+    consts/PrometheusConsts.h
 )
 
 set(BERINGEI_QUERY_HANDLER_SRCS
@@ -73,6 +75,8 @@ set(BERINGEI_QUERY_HANDLER_SRCS
     handlers/UnifiedStatsWriteHandler.h
     handlers/RawReadHandler.cpp
     handlers/RawReadHandler.h
+    handlers/PrometheusMetricsHandler.cpp
+    handlers/PrometheusMetricsHandler.h
 )
 
 set(BERINGEI_QUERY_SERVICE_SRCS

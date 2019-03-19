@@ -9,6 +9,7 @@
 
 #include "AggregatorService.h"
 
+#include "consts/PrometheusConsts.h"
 #include "BeringeiClientStore.h"
 #include "BeringeiReader.h"
 #include "MySqlClient.h"
@@ -100,7 +101,11 @@ void AggregatorService::doPeriodicWork() {
     // create data points from metric data in beringei format
     createDataPoints(bDataPoints, aggValues, topologyConfig.second);
     // write metrics to prometheus (per network)
-    PrometheusUtils::writeMetrics(topology.name, "aggregator_service", aggValues);
+    auto prometheusInstance = PrometheusUtils::getInstance();
+    prometheusInstance->writeMetrics(topology.name,
+                                     "aggregator_service",
+                                     30,
+                                     aggValues);
   }
   // store metrics to beringei
   storeAggregateMetrics(bDataPoints);
@@ -119,6 +124,10 @@ void AggregatorService::fetchAndLogTopologyMetrics(
   int onlineNodes = 0;
   int popNodes = 0;
   // quicker lookups of node metadata
+  long ts = BeringeiReader::getTimeInMs();
+  std::string networkLabel = PrometheusUtils::formatNetworkLabel(topology.name);
+  std::string intervalLabel = folly::sformat("{}=\"{}\"",
+      PrometheusConsts::LABEL_DATA_INTERVAL, FLAGS_agg_time_period);
   std::unordered_map<std::string, query::Node> nodeNameMap{};
   for (const auto& node : topology.nodes) {
     onlineNodes += (node.status != query::NodeStatusType::OFFLINE);
@@ -127,24 +136,34 @@ void AggregatorService::fetchAndLogTopologyMetrics(
     }
     nodeNameMap[node.name] = node;
     std::vector<std::string> nodeLabels = {
-        folly::sformat("name=\"{}\"",
+        networkLabel,
+        intervalLabel,
+        folly::sformat("{}=\"{}\"",
+                       PrometheusConsts::LABEL_NODE_NAME,
                        PrometheusUtils::formatPrometheusKeyName(node.name)),
-        folly::sformat("pop=\"{}\"", node.pop_node ? "true" : "false")};
+        folly::sformat("{}=\"{}\"", PrometheusConsts::LABEL_NODE_IS_POP,
+                                    node.pop_node ? "true" : "false"),
+    };
     // ensure mac_addr is set
     if (!node.mac_addr.empty()) {
-      nodeLabels.emplace_back(folly::sformat("node=\"{}\"", node.mac_addr));
+      nodeLabels.emplace_back(folly::sformat("{}=\"{}\"",
+          PrometheusConsts::LABEL_NODE_MAC, node.mac_addr));
     }
     // record status of node
     aggValues.emplace_back(Metric(
         "node_online",
+        ts,
         nodeLabels,
         (int)(node.status != query::NodeStatusType::OFFLINE)));
   }
-  aggValues.emplace_back(Metric("total_nodes", topology.nodes.size()));
-  aggValues.emplace_back(Metric("online_nodes", onlineNodes));
-  aggValues.emplace_back(Metric("online_nodes_perc",
+  std::vector<std::string> topologyLabels = {networkLabel, intervalLabel};
+  aggValues.emplace_back(Metric("total_nodes", ts, topologyLabels,
+      topology.nodes.size()));
+  aggValues.emplace_back(Metric("online_nodes", ts, topologyLabels,
+      onlineNodes));
+  aggValues.emplace_back(Metric("online_nodes_perc", ts, topologyLabels,
       (double)onlineNodes / topology.nodes.size() * 100.0));
-  aggValues.emplace_back(Metric("pop_nodes", popNodes));
+  aggValues.emplace_back(Metric("pop_nodes", ts, topologyLabels, popNodes));
 
   // (wireless) links up + down
   int wirelessLinks = 0;
@@ -161,21 +180,29 @@ void AggregatorService::fetchAndLogTopologyMetrics(
          nodeNameMap.at(link.z_node_name).node_type == query::NodeType::CN);
     // meta-data per link
     std::vector<std::string> linkMetaData = {
-        folly::sformat("link=\"{}\"",
+        networkLabel,
+        intervalLabel,
+        folly::sformat("{}=\"{}\"",
+                       PrometheusConsts::LABEL_LINK_NAME,
                        PrometheusUtils::formatPrometheusKeyName(link.name)),
-        folly::sformat("cn=\"{}\"", hasCnNode ? "true" : "false")};
+        folly::sformat("{}=\"{}\"", PrometheusConsts::LABEL_NODE_IS_CN,
+                                    hasCnNode ? "true" : "false")};
     // record link metrics
     aggValues.emplace_back(Metric("link_online",
+                                  ts,
                                   linkMetaData,
                                   (int)(link.is_alive)));
     aggValues.emplace_back(Metric("link_attempts",
+                                  ts,
                                   linkMetaData,
                                   link.linkup_attempts));
   }
-  aggValues.emplace_back(Metric("total_wireless_links", wirelessLinks));
-  aggValues.emplace_back(Metric("online_wireless_links", onlineLinks));
-  aggValues.emplace_back(Metric("online_wireless_links_perc",
-      (double)onlineLinks / wirelessLinks * 100.0));
+  aggValues.emplace_back(Metric("total_wireless_links", ts, topologyLabels,
+      wirelessLinks));
+  aggValues.emplace_back(Metric("online_wireless_links", ts, topologyLabels,
+      onlineLinks));
+  aggValues.emplace_back(Metric("online_wireless_links_perc", ts,
+      topologyLabels, (double)onlineLinks / wirelessLinks * 100.0));
 }
 
 void AggregatorService::fetchAndLogWirelessControllerMetrics(
@@ -196,9 +223,11 @@ void AggregatorService::fetchAndLogRuckusControllerMetrics(
       WirelessController::ruckusControllerStats(wac);
   // push AP metrics
   if (WirelessControllerStats.isObject()) {
+    long ts = BeringeiReader::getTimeInMs();
     for (const auto& wap : WirelessControllerStats.items()) {
       VLOG(2) << "\tAP: " << wap.first;
-      std::vector<std::string> wapMetaData{};
+      std::vector<std::string> wapMetaData{
+          PrometheusUtils::formatNetworkLabel(topologyConfig.name)};
       for (const auto& ruckusKey : wap.second.items()) {
         const std::string ruckusKeyName = ruckusKey.first.asString();
         // skip ruckus numeric labels and null values
@@ -220,6 +249,7 @@ void AggregatorService::fetchAndLogRuckusControllerMetrics(
         auto wapMetricIt = wap.second.find(wapMetric.first);
         if (wapMetricIt != wap.second.items().end()) {
           aggValues.emplace_back(Metric(wapMetric.second,
+                                        ts,
                                         wapMetaData,
                                         wapMetricIt->second.asInt()));
         }
@@ -263,8 +293,7 @@ void AggregatorService::createDataPoints(
         bKey.key = std::to_string(keyId);
         bDataPoint.key = bKey;
         // use timestamp of metric if non-zero, otherwise use current time
-        bTimePair.unixTime = metric.ts == 0 ? timeStamp :
-                                                     metric.ts;
+        bTimePair.unixTime = metric.ts == 0 ? timeStamp : metric.ts;
         bTimePair.value = metric.value;
         bDataPoint.value = bTimePair;
         bDataPoints.push_back(bDataPoint);

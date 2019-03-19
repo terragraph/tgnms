@@ -12,6 +12,7 @@
 #include "handlers/EventsHandler.h"
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
+#include "handlers/PrometheusMetricsHandler.h"
 #include "handlers/RawReadHandler.h"
 #include "handlers/StatsHandler.h"
 #include "handlers/StatsTypeAheadHandler.h"
@@ -80,6 +81,10 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     return new EventsHandler(true);
   } else if (path == "/events_writer") {
     return new EventsHandler(false);
+  } else if (path == "/metrics/30s") {
+    return new PrometheusMetricsHandler(typeaheadCache_, 30);
+  } else if (path == "/metrics/1s") {
+    return new PrometheusMetricsHandler(typeaheadCache_, 1);
   }
 
   // return not found for all other uris

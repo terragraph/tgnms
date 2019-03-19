@@ -142,7 +142,8 @@ void StatsWriteHandler::writeData(const query::StatsWriteRequest& request) {
   } else {
     LOG(INFO) << "No stats data to write";
   }
-  PrometheusUtils::writeNodeMetrics(typeaheadCache_, request);
+  auto prometheusInstance = PrometheusUtils::getInstance();
+  prometheusInstance->writeNodeMetrics(typeaheadCache_, request);
 }
 
 void StatsWriteHandler::onEOM() noexcept {
