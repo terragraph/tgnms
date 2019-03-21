@@ -43,26 +43,6 @@ class RunMultiHopTestPlan(Thread):
         Thread.__init__(self)
         self.db_queue = db_queue
         self.network_parameters = network_parameters
-        self.controller_addr = network_parameters["controller_addr"]
-        self.controller_port = network_parameters["controller_port"]
-        self.network_info = network_parameters["network_info"]
-        self.test_code = network_parameters["test_code"]
-        self.topology_id = network_parameters["topology_id"]
-        self.topology_name = network_parameters["topology_name"]
-        self.topology = network_parameters["topology"]
-        self.session_duration = network_parameters["session_duration"]
-        self.test_push_rate = network_parameters["test_push_rate"]
-        self.protocol = network_parameters["protocol"]
-        self.multi_hop_parallel_sessions = network_parameters[
-            "multi_hop_parallel_sessions"
-        ]
-        self.multi_hop_session_iteration_count = network_parameters[
-            "multi_hop_session_iteration_count"
-        ]
-        self.direction = network_parameters["direction"]
-        self.speed_test_pop_to_node_dict = network_parameters[
-            "speed_test_pop_to_node_dict"
-        ]
         self.parameters = {}
         self.start_time = time.time()
         self.received_output = {}
@@ -76,14 +56,18 @@ class RunMultiHopTestPlan(Thread):
         # Get Network Hop information
         asyncio.set_event_loop(asyncio.new_event_loop())
         self.network_hop_info = get_routes_for_nodes(
-            self.network_info[self.topology_id]
+            self.network_parameters["network_info"][
+                self.network_parameters["topology_id"]
+            ]
         )
 
         # Calculate pop to node links based on number of hops
         pop_to_node_links = self._get_pop_to_node_links(self.network_hop_info)
 
         # Configure test data using test API
-        test_list = self._multi_hop_test(self.topology, pop_to_node_links)
+        test_list = self._multi_hop_test(
+            self.network_parameters["topology"], pop_to_node_links
+        )
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
@@ -92,19 +76,13 @@ class RunMultiHopTestPlan(Thread):
             db_queue=self.db_queue,
         )
 
-        self.parameters = {
-            "controller_addr": self.controller_addr,
-            "controller_port": self.controller_port,
-            "network_info": self.network_info,
-            "test_run_id": test_run_db_obj.id,
-            "test_list": test_list,
-            "expected_num_of_intervals": self.session_duration * self.interval_sec,
-            "test_code": self.test_code,
-            "network_hop_info": self.network_hop_info,
-            "session_duration": self.session_duration,
-            "topology": self.topology,
-            "topology_id": self.topology_id,
-        }
+        self.parameters = base._get_parameters(
+            network_parameters=self.network_parameters,
+            test_run_db_obj=test_run_db_obj,
+            test_list=test_list,
+            interval_sec=self.interval_sec,
+            network_hop_info=self.network_hop_info,
+        )
 
         # Create TestNetwork object and kick it off
         test_nw_thread_obj = TestNetwork(self.parameters, self.received_output_queue)
@@ -114,12 +92,12 @@ class RunMultiHopTestPlan(Thread):
         run_test_get_stats = base.RunTestGetStats(
             test_name="MULTI_HOP_TEST",
             test_nw_thread_obj=test_nw_thread_obj,
-            topology_name=self.topology_name,
+            topology_name=self.network_parameters["topology_name"],
             parameters=self.parameters,
-            direction=self.direction,
+            direction=self.network_parameters["direction"],
             received_output_queue=self.received_output_queue,
             start_time=self.start_time,
-            session_duration=self.session_duration,
+            session_duration=self.network_parameters["session_duration"],
         )
         run_test_get_stats.start()
 
@@ -127,7 +105,7 @@ class RunMultiHopTestPlan(Thread):
         pop_to_node_links = []
         parallel_sessions_count = 0
         start_delay = 0
-        if not self.speed_test_pop_to_node_dict:
+        if not self.network_parameters["speed_test_pop_to_node_dict"]:
             random.shuffle(network_hop_info)
             for node in network_hop_info:
                 if node.num_hops:
@@ -139,13 +117,20 @@ class RunMultiHopTestPlan(Thread):
                         pop_node_desc["ecmp"] = route.ecmp
                         pop_to_node_links.append(pop_node_desc)
                         parallel_sessions_count += 1
-                        if parallel_sessions_count == self.multi_hop_parallel_sessions:
-                            start_delay += self.session_duration
+                        if (
+                            parallel_sessions_count
+                            == self.network_parameters["multi_hop_parallel_sessions"]
+                        ):
+                            start_delay += self.network_parameters["session_duration"]
                             parallel_sessions_count = 0
         else:
             pop_node_desc = {}
-            pop_node_desc["pop_name"] = self.speed_test_pop_to_node_dict["pop"]
-            pop_node_desc["node_name"] = self.speed_test_pop_to_node_dict["node"]
+            pop_node_desc["pop_name"] = self.network_parameters[
+                "speed_test_pop_to_node_dict"
+            ]["pop"]
+            pop_node_desc["node_name"] = self.network_parameters[
+                "speed_test_pop_to_node_dict"
+            ]["node"]
             pop_node_desc["start_delay"] = start_delay
             pop_node_desc["ecmp"] = False
             pop_to_node_links.append(pop_node_desc)
@@ -160,10 +145,10 @@ class RunMultiHopTestPlan(Thread):
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in topology["nodes"]}
         test_list = []
         session_count = 0
-        if self.multi_hop_session_iteration_count is not None:
+        if self.network_parameters["multi_hop_session_iteration_count"] is not None:
             session_limit_count = (
-                self.multi_hop_session_iteration_count
-                * self.multi_hop_parallel_sessions
+                self.network_parameters["multi_hop_session_iteration_count"]
+                * self.network_parameters["multi_hop_parallel_sessions"]
             )
         else:
             session_limit_count = len(pop_to_node_links)
@@ -176,7 +161,9 @@ class RunMultiHopTestPlan(Thread):
                 + "-"
                 + node_mac_to_name[dst_node_mac]
             )
-            mac_list = base._get_mac_list(self.direction, pop_node_mac, dst_node_mac)
+            mac_list = base._get_mac_list(
+                self.network_parameters["direction"], pop_node_mac, dst_node_mac
+            )
             for mac_addr in mac_list:
                 test_dict = {}
                 iperf_object = IperfObj(
@@ -185,9 +172,9 @@ class RunMultiHopTestPlan(Thread):
                     dst_node_name=node_mac_to_name[mac_addr["dst_node_mac"]],
                     src_node_id=mac_addr["src_node_mac"],
                     dst_node_id=mac_addr["dst_node_mac"],
-                    bitrate=self.test_push_rate,
-                    time_sec=self.session_duration,
-                    proto=self.protocol,
+                    bitrate=self.network_parameters["test_push_rate"],
+                    time_sec=self.network_parameters["session_duration"],
+                    proto=self.network_parameters["protocol"],
                     interval_sec=self.interval_sec,
                     window_size=4000000,
                     mss=7500,
@@ -205,11 +192,11 @@ class RunMultiHopTestPlan(Thread):
                     dst_node_name=node_mac_to_name[mac_addr["dst_node_mac"]],
                     src_node_id=mac_addr["src_node_mac"],
                     dst_node_id=mac_addr["dst_node_mac"],
-                    count=self.session_duration,
+                    count=self.network_parameters["session_duration"],
                     interval=self.interval_sec,
                     packet_size=64,
                     verbose=False,
-                    deadline=self.session_duration + 10,
+                    deadline=self.network_parameters["session_duration"] + 10,
                     timeout=1,
                     use_link_local=False,
                 )

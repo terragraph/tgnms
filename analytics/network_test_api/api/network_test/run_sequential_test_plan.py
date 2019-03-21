@@ -34,16 +34,6 @@ class RunSequentialTestPlan(Thread):
         Thread.__init__(self)
         self.db_queue = db_queue
         self.network_parameters = network_parameters
-        self.controller_addr = network_parameters["controller_addr"]
-        self.controller_port = network_parameters["controller_port"]
-        self.network_info = network_parameters["network_info"]
-        self.test_code = network_parameters["test_code"]
-        self.topology_id = network_parameters["topology_id"]
-        self.topology_name = network_parameters["topology_name"]
-        self.topology = network_parameters["topology"]
-        self.session_duration = network_parameters["session_duration"]
-        self.test_push_rate = network_parameters["test_push_rate"]
-        self.protocol = network_parameters["protocol"]
         self.direction = TrafficDirection.BIDIRECTIONAL.value
         self.parameters = {}
         self.test_run_obj = None
@@ -56,7 +46,7 @@ class RunSequentialTestPlan(Thread):
     def run(self):
 
         # Configure test data using test API
-        test_list = self._sequential_test(self.topology)
+        test_list = self._sequential_test(self.network_parameters["topology"])
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
@@ -65,17 +55,12 @@ class RunSequentialTestPlan(Thread):
             db_queue=self.db_queue,
         )
 
-        self.parameters = {
-            "controller_addr": self.controller_addr,
-            "controller_port": self.controller_port,
-            "network_info": self.network_info,
-            "test_run_id": test_run_db_obj.id,
-            "test_list": test_list,
-            "session_duration": self.session_duration,
-            "expected_num_of_intervals": self.session_duration * self.interval_sec,
-            "topology": self.topology,
-            "test_code": self.test_code,
-        }
+        self.parameters = base._get_parameters(
+            network_parameters=self.network_parameters,
+            test_run_db_obj=test_run_db_obj,
+            test_list=test_list,
+            interval_sec=self.interval_sec,
+        )
 
         # Create TestNetwork object and kick it off
         test_nw_thread_obj = TestNetwork(self.parameters, self.received_output_queue)
@@ -85,12 +70,12 @@ class RunSequentialTestPlan(Thread):
         run_test_get_stats = base.RunTestGetStats(
             test_name="SEQUENTIAL_LINK_TEST",
             test_nw_thread_obj=test_nw_thread_obj,
-            topology_name=self.topology_name,
+            topology_name=self.network_parameters["topology_name"],
             parameters=self.parameters,
             direction=self.direction,
             received_output_queue=self.received_output_queue,
             start_time=self.start_time,
-            session_duration=self.session_duration,
+            session_duration=self.network_parameters["session_duration"],
         )
         run_test_get_stats.start()
 
@@ -123,9 +108,9 @@ class RunSequentialTestPlan(Thread):
                         dst_node_name=node_mac_to_name[mac_addr["dst_node_mac"]],
                         src_node_id=mac_addr["src_node_mac"],
                         dst_node_id=mac_addr["dst_node_mac"],
-                        bitrate=self.test_push_rate,
-                        time_sec=self.session_duration,
-                        proto=self.protocol,
+                        bitrate=self.network_parameters["test_push_rate"],
+                        time_sec=self.network_parameters["session_duration"],
+                        proto=self.network_parameters["protocol"],
                         interval_sec=self.interval_sec,
                         window_size=4000000,
                         mss=7500,
@@ -143,11 +128,11 @@ class RunSequentialTestPlan(Thread):
                         dst_node_name=node_mac_to_name[mac_addr["dst_node_mac"]],
                         src_node_id=mac_addr["src_node_mac"],
                         dst_node_id=mac_addr["dst_node_mac"],
-                        count=self.session_duration,
+                        count=self.network_parameters["session_duration"],
                         interval=self.interval_sec,
                         packet_size=64,
                         verbose=False,
-                        deadline=self.session_duration + 10,
+                        deadline=self.network_parameters["session_duration"] + 10,
                         timeout=1,
                         use_link_local=True,
                     )
@@ -158,5 +143,5 @@ class RunSequentialTestPlan(Thread):
                     test_dict["start_delay"] = start_delay
                     test_dict["id"] = None
                     test_list.append(test_dict)
-                start_delay += self.session_duration
+                start_delay += self.network_parameters["session_duration"]
         return test_list

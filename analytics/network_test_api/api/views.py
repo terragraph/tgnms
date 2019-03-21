@@ -129,7 +129,7 @@ def start_test(request):
                     test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
                     return base.generate_http_response(
                         error=False,
-                        msg="Started Short Term Parallel Link Health Test Plan.",
+                        msg="Started Parallel Link Health Test.",
                         id=test_run_db_obj_id,
                     )
                 elif test_code == Tests.SEQUENTIAL_TEST.value:
@@ -141,7 +141,7 @@ def start_test(request):
                     test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
                     return base.generate_http_response(
                         error=False,
-                        msg="Started Short Term Sequential Link Health Test Plan.",
+                        msg="Started Sequential Link Health Test.",
                         id=test_run_db_obj_id,
                     )
                 elif test_code == Tests.MULTI_HOP_TEST.value:
@@ -154,7 +154,7 @@ def start_test(request):
                     msg = (
                         "Started Speed Test."
                         if speed_test_pop_to_node_dict
-                        else "Started Multi-hop Network Health Test Plan."
+                        else "Started Multi-hop Test."
                     )
                     return base.generate_http_response(
                         error=False, msg=msg, id=test_run_db_obj_id

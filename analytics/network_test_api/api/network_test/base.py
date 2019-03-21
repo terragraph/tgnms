@@ -267,3 +267,23 @@ def _get_mac_list(direction, a_node_mac, z_node_mac):
     elif direction == TrafficDirection.NORTHBOUND.value:
         mac_list = [{"src_node_mac": z_node_mac, "dst_node_mac": a_node_mac}]
     return mac_list
+
+
+def _get_parameters(
+    network_parameters, test_run_db_obj, test_list, interval_sec, network_hop_info=None
+):
+    return {
+        "controller_addr": network_parameters["controller_addr"],
+        "controller_port": network_parameters["controller_port"],
+        "network_info": network_parameters["network_info"],
+        "test_run_id": test_run_db_obj.id,
+        "session_duration": network_parameters["session_duration"],
+        "topology": network_parameters["topology"],
+        "test_code": network_parameters["test_code"],
+        "expected_num_of_intervals": (
+            network_parameters["session_duration"] * interval_sec
+        ),
+        "topology_id": network_parameters["topology_id"],
+        "test_list": test_list,
+        "network_hop_info": network_hop_info if network_hop_info else None,
+    }
