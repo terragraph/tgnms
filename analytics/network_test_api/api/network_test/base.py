@@ -226,13 +226,26 @@ class RunTestGetStats:
 # functions common across tests #
 
 
-def _create_db_test_records(test_code, topology_id, topology_name, test_list, db_queue):
+def _create_db_test_records(network_parameters, test_list, db_queue):
     with transaction.atomic():
         test_run_db_obj = TestRunExecution.objects.create(
             status=TestStatus.RUNNING.value,
-            test_code=test_code,
-            topology_id=topology_id,
-            topology_name=topology_name,
+            test_code=network_parameters["test_code"],
+            topology_id=network_parameters["topology_id"],
+            topology_name=network_parameters["topology_name"],
+            session_duration=network_parameters["session_duration"],
+            test_push_rate=network_parameters["test_push_rate"],
+            protocol=network_parameters["protocol"],
+            traffic_direction=network_parameters["direction"],
+            multi_hop_parallel_sessions=network_parameters[
+                "multi_hop_parallel_sessions"
+            ],
+            multi_hop_session_iteration_count=network_parameters[
+                "multi_hop_session_iteration_count"
+            ],
+            pop_to_node_link=network_parameters[
+                "speed_test_pop_to_node_dict"
+            ],
         )
         db_queue.put(test_run_db_obj.id)
         for link in test_list:

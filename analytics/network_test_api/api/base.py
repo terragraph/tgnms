@@ -80,9 +80,10 @@ def validate_multi_hop_parameters(
 
     # validate multi_hop_parallel_sessions parameter
     multi_hop_parallel_sessions = received_json_data.get(
-        "multi_hop_parallel_sessions", 3
+        "multi_hop_parallel_sessions",
+        3 if test_code == Tests.MULTI_HOP_TEST.value else None,
     )
-    if multi_hop_parallel_sessions < 1:
+    if multi_hop_parallel_sessions and multi_hop_parallel_sessions < 1:
         return {
             "error": generate_http_response(
                 error=True, msg="multi_hop_parallel_sessions has to be greater than 0."

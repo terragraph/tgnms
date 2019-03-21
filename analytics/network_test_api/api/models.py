@@ -43,6 +43,13 @@ class TestRunExecution(models.Model):
     test_code = models.CharField(max_length=120, blank=True, null=True)
     topology_id = models.IntegerField(null=True)
     topology_name = models.CharField(default="", max_length=256)
+    session_duration = models.IntegerField(null=True)
+    test_push_rate = models.IntegerField(null=True)
+    protocol = models.CharField(max_length=256, null=True)
+    traffic_direction = models.IntegerField(null=True)
+    multi_hop_parallel_sessions = models.IntegerField(null=True)
+    multi_hop_session_iteration_count = models.IntegerField(null=True)
+    pop_to_node_link = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Test Run Execution"
