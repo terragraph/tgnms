@@ -1,8 +1,0 @@
-!.eslintrc.js
-**/*.min.js
-
-**/node_modules/**/*.js
-
-dist/**/*.js
-thrift/**/*.js
-config/webpack.*.js
