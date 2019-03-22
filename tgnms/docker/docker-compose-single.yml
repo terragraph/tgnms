@@ -227,7 +227,7 @@ services:
       - ./docker_volumes/logs:/analytics/logs
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "jupyter notebook --no-browser --ip '0.0.0.0' --allow-root --port 8443 --notebook-dir /usr/local/analytics --NotebookApp.token=tokenforterragraphnotebook"]
+    command: ["/bin/sh", "-c", "jupyter notebook --no-browser --ip '0.0.0.0' --allow-root --port 8888 --notebook-dir /usr/local/analytics --NotebookApp.token='' --NotebookApp.base_url=jupyter"]
     logging:
       driver: "json-file"
       options:

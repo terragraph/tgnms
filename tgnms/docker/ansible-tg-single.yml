@@ -129,6 +129,7 @@
         force: no
       with_items:
         - nginx/conf.d/default.conf
+        - nginx/services.d/jupyter.conf
         - nginx/services.d/grafana.conf
         - nginx/services.d/nms.conf
         - nginx/services.d/prometheus.conf
