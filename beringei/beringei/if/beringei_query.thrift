@@ -131,7 +131,6 @@ struct NodeEvents {
 struct ControllerConfig {
   1: string ip,
   2: i32 api_port,
-  3: i32 e2e_port,
 }
 
 struct WirelessController {

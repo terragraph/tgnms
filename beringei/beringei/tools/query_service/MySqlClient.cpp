@@ -134,12 +134,10 @@ void MySqlClient::refreshTopologies() noexcept {
         "SELECT "
         "t.id, "
         "t.name, "
-        "cp.ip AS `pip`, "
+        "cp.api_ip AS `pip`, "
         "cp.api_port AS `papi_port`, "
-        "cp.e2e_port AS `pe2e_port`, "
-        "cb.ip AS `bip`, "
+        "cb.api_ip AS `bip`, "
         "cb.api_port AS `bapi_port`, "
-        "cb.e2e_port AS `be2e_port`, "
         "wc.type AS `wac_type`, "
         "wc.url AS `wac_url`, "
         "wc.username AS `wac_username`, "
@@ -155,13 +153,11 @@ void MySqlClient::refreshTopologies() noexcept {
       config->name = res->getString("name");
       config->primary_controller.ip = res->getString("pip");
       config->primary_controller.api_port = res->getInt("papi_port");
-      config->primary_controller.e2e_port = res->getInt("pe2e_port");
       const std::string backupIp = res->getString("bip");
       if (!backupIp.empty()) {
         config->__isset.backup_controller = true;
         config->backup_controller.ip = backupIp;
         config->backup_controller.api_port = res->getInt("bapi_port");
-        config->backup_controller.e2e_port = res->getInt("be2e_port");
       }
       const std::string wacType = res->getString("wac_type");
       if (!wacType.empty()) {
