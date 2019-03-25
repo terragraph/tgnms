@@ -324,7 +324,7 @@ services:
     restart: "no"
     networks:
       - terragraph_net
-    entrypoint: ["/bin/sh", "-c", "until nc -z grafana 3000; do sleep 1; done && until nc -z bqs 8086; do sleep 1; done && cd /var/lib/grafana && grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip bqs --ds_port 8086 --ds_file beringei_data_source.json; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip db --ds_port 3306 --ds_file mysql_data_source.json --ds_user $${GRAFANA_MYSQL_READER} --ds_passwd $${GRAFANA_MYSQL_READER_PASS}; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} add-users; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-dashboards"]
+    entrypoint: ["/bin/sh", "-c", "until nc -z grafana 3000; do sleep 1; done && until nc -z bqs 8086; do sleep 1; done && cd /var/lib/grafana && grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip bqs --ds_port 8086 --ds_file beringei_data_source.json; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip db --ds_port 3306 --ds_file mysql_data_source.json --ds_user $${GRAFANA_MYSQL_READER} --ds_passwd $${GRAFANA_MYSQL_READER_PASS}; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip prometheus --ds_port 9090 --ds_file prometheus_data_source.json; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} add-users; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-dashboards"]
     logging:
       driver: "json-file"
       options:
