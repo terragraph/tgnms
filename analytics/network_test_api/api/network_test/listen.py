@@ -92,15 +92,18 @@ class RecvFromCtrl(base.Base):
             except ValueError:
                 pass
             self.parsed_ping_data = self._strip_ping_output(msg_data.output.strip())
+            ping_stats = iperf_ping_analyze.get_ping_statistics(self.parsed_ping_data)
             self._log_to_mysql(
                 source_node=source_node,
                 destination_node=destination_node,
+                stats=ping_stats,
                 is_iperf=False,
             )
             received_output_dict = {
                 "source_node": source_node,
                 "destination_node": destination_node,
                 "traffic_type": "PING_OUTPUT",
+                "stats": ping_stats,
             }
             self.received_output_queue.put(received_output_dict)
         elif msg_type == ctrl_types.MessageType.IPERF_OUTPUT:
@@ -128,15 +131,21 @@ class RecvFromCtrl(base.Base):
                     except ValueError:
                         pass
                     self.parsed_iperf_server_data = self.parsed_iperf_data
+                    iperf_stats = iperf_ping_analyze.parse_and_pack_iperf_data(
+                        self.parsed_iperf_server_data,
+                        self.parameters["expected_num_of_intervals"],
+                    )
                     self._log_to_mysql(
                         source_node=source_node,
                         destination_node=destination_node,
+                        stats=iperf_stats,
                         is_iperf=True,
                     )
                     received_output_dict = {
                         "source_node": source_node,
                         "destination_node": destination_node,
                         "traffic_type": "IPERF_OUTPUT",
+                        "stats": iperf_stats,
                     }
                     self.received_output_queue.put(received_output_dict)
         elif msg_type == ctrl_types.MessageType.START_PING_RESP:
@@ -196,12 +205,8 @@ class RecvFromCtrl(base.Base):
                 return link
         return None
 
-    def _log_to_mysql(self, source_node, destination_node, is_iperf):
+    def _log_to_mysql(self, source_node, destination_node, stats, is_iperf):
         if is_iperf:
-            stats = iperf_ping_analyze.parse_and_pack_iperf_data(
-                self.parsed_iperf_server_data,
-                self.parameters["expected_num_of_intervals"],
-            )
             link = self._get_link(source_node, destination_node)
             if link is not None and stats:
                 link_db_obj = TestResult.objects.filter(id=link["id"]).first()
@@ -243,7 +248,6 @@ class RecvFromCtrl(base.Base):
                         link_db_obj.iperf_server_blob = self.parsed_iperf_server_data
                         link_db_obj.save()
         else:
-            stats = iperf_ping_analyze.get_ping_statistics(self.parsed_ping_data)
             link = self._get_link(source_node, destination_node)
             if link is not None:
                 link_db_obj = TestResult.objects.filter(id=link["id"]).first()

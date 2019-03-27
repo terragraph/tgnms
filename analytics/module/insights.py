@@ -406,7 +406,7 @@ def generate_insights():
         )
 
 
-def link_health(links: List, network_info: Dict) -> List:
+def link_health(links: List, network_info: Dict, iperf_stats: List) -> List:
 
     CONST_INTERVAL = 1
     nlts = NumpyLinkTimeSeries(links, CONST_INTERVAL, network_info)

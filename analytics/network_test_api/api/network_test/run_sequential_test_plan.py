@@ -72,7 +72,6 @@ class RunSequentialTestPlan(Thread):
             test_nw_thread_obj=test_nw_thread_obj,
             topology_name=self.network_parameters["topology_name"],
             parameters=self.parameters,
-            direction=self.direction,
             received_output_queue=self.received_output_queue,
             start_time=self.start_time,
             session_duration=self.network_parameters["session_duration"],

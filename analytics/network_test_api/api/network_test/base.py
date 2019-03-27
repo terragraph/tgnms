@@ -84,7 +84,6 @@ class RunTestGetStats:
         test_nw_thread_obj,
         topology_name,
         parameters,
-        direction,
         received_output_queue,
         start_time,
         session_duration,
@@ -93,11 +92,9 @@ class RunTestGetStats:
         self.test_nw_thread_obj = test_nw_thread_obj
         self.topology_name = topology_name
         self.parameters = parameters
-        self.direction = direction
         self.received_output_queue = received_output_queue
         self.start_time = start_time
         self.session_duration = session_duration
-        self.links = []
 
     def start(self):
 
@@ -106,11 +103,6 @@ class RunTestGetStats:
 
         # wait until the TestNetwork thread ends (blocking call)
         self.test_nw_thread_obj.join()
-
-        # get analytics stats for remaining links
-        if self.links:
-            for links in self.links:
-                self._db_stats_wrapper(rcvd_src_node=links[0], rcvd_dest_node=links[1])
 
         # Mark the end time of the test in db
         self._log_test_end_time()
@@ -122,58 +114,80 @@ class RunTestGetStats:
                 if received_output["traffic_type"] == "IPERF_OUTPUT":
                     rcvd_src_node = received_output["source_node"]
                     rcvd_dest_node = received_output["destination_node"]
+                    rcvd_stats = received_output["stats"]
 
                     # mark the end of the test for the link
                     self._log_test_end_time_for_link(
                         source_node=rcvd_src_node, destination_node=rcvd_dest_node
                     )
 
-                    # get analytics stats based on traffic direction
-                    if self.direction == TrafficDirection.BIDIRECTIONAL.value:
-                        if (rcvd_src_node, rcvd_dest_node) not in self.links and (
-                            rcvd_dest_node,
-                            rcvd_src_node,
-                        ) not in self.links:
-                            self.links.append((rcvd_src_node, rcvd_dest_node))
-                        else:
-                            try:
-                                self.links.remove((rcvd_src_node, rcvd_dest_node))
-                            except ValueError:
-                                self.links.remove((rcvd_dest_node, rcvd_src_node))
-                            # get analytics stats for both drections
-                            self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node)
-                    else:
-                        # get analytics stats for one drection
-                        self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node)
+                    # get analytics stats
+                    self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node, rcvd_stats)
 
-    def _db_stats_wrapper(self, rcvd_src_node, rcvd_dest_node):
+    def _db_stats_wrapper(self, rcvd_src_node, rcvd_dest_node, rcvd_stats):
         _log.info("\nWriting Analytics stats to the db:")
         link = self._get_link(rcvd_src_node, rcvd_dest_node)
         link_start_time = self.start_time + link["start_delay"]
         link_end_time = link_start_time + self.session_duration
+        links_time_series_list, iperf_time_series_list = self._time_series_lists(
+            src_node_id=rcvd_src_node,
+            dst_node_id=rcvd_dest_node,
+            start_time=link_start_time,
+            end_time=link_end_time,
+            iperf_throughput_mean=rcvd_stats["throughput"]["mean"],
+        )
         self._write_analytics_stats_to_db(
             link_health(
-                links=self._create_time_series_list(
-                    start_time=link_start_time, end_time=link_end_time, link=link
-                ),
+                links=links_time_series_list,
                 network_info=self.parameters["network_info"],
+                iperf_stats=iperf_time_series_list,
             )
         )
 
-    def _create_time_series_list(self, start_time, end_time, link):
-        time_series_list = []
-        # for link in self.parameters['test_list']:
-        time_series_list.append(
-            TimeSeries(
-                name=self.test_name,
-                topology=self.topology_name,
-                times=[start_time, end_time],
-                values=[0, 0],
-                src_mac=link["src_node_id"],
-                peer_mac=link["dst_node_id"],
-            )
-        )
-        return time_series_list
+    def _time_series_lists(
+        self, src_node_id, dst_node_id, start_time, end_time, iperf_throughput_mean
+    ):
+        links_time_series_list = []
+        iperf_time_series_list = []
+
+        # get link
+        link = self._get_link(source_node=src_node_id, destination_node=dst_node_id)
+
+        if link is not None:
+            # populate links_time_series_list
+            links_time_series_list = [
+                TimeSeries(
+                    name=self.test_name,
+                    topology=self.topology_name,
+                    times=[start_time, end_time],
+                    values=[0, 0],
+                    src_mac=link["src_node_id"],
+                    peer_mac=link["dst_node_id"],
+                )
+            ]
+
+            # populate iperf_time_series_list
+            iperf_time_series_list = [
+                # add entry for iperf_requested_rate
+                TimeSeries(
+                    name="iperf_requested_rate",
+                    topology=self.topology_name,
+                    times=[end_time],
+                    values=[link["iperf_object"].bitrate],
+                    src_mac=link["src_node_id"],
+                    peer_mac=link["dst_node_id"],
+                ),
+                # add entry for iperf_actual_rate
+                TimeSeries(
+                    name="iperf_actual_rate",
+                    topology=self.topology_name,
+                    times=[end_time],
+                    values=[iperf_throughput_mean],
+                    src_mac=link["src_node_id"],
+                    peer_mac=link["dst_node_id"],
+                ),
+            ]
+        return links_time_series_list, iperf_time_series_list
 
     def _write_analytics_stats_to_db(self, analytics_stats):
         # analytics_stats is list of Beringei TimeSeries objects
@@ -243,9 +257,7 @@ def _create_db_test_records(network_parameters, test_list, db_queue):
             multi_hop_session_iteration_count=network_parameters[
                 "multi_hop_session_iteration_count"
             ],
-            pop_to_node_link=network_parameters[
-                "speed_test_pop_to_node_dict"
-            ],
+            pop_to_node_link=network_parameters["speed_test_pop_to_node_dict"],
         )
         db_queue.put(test_run_db_obj.id)
         for link in test_list:

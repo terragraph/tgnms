@@ -77,20 +77,35 @@ class RunParallelTestPlan(Thread):
         test_nw_thread_obj = TestNetwork(self.parameters, self.received_output_queue)
         test_nw_thread_obj.start()
 
-        # wait until the TestNetwork thread ends (blocking call)
-        test_nw_thread_obj.join()
-
-        # Mark the end time of the test and get the status of the test from db
+        # create object of RunTestGetStats
         self.run_test_get_stats = base.RunTestGetStats(
             test_name="PARALLEL_LINK_TEST",
             test_nw_thread_obj=test_nw_thread_obj,
             topology_name=self.network_parameters["topology_name"],
             parameters=self.parameters,
-            direction=self.direction,
             received_output_queue=self.received_output_queue,
             start_time=self.start_time,
             session_duration=self.network_parameters["session_duration"],
         )
+
+        # wait for test to finish and get iperf stats
+        while test_nw_thread_obj.is_alive():
+            if not self.received_output_queue.empty():
+                received_output = self.received_output_queue.get()
+                if received_output["traffic_type"] == "IPERF_OUTPUT":
+                    link = self.run_test_get_stats._get_link(
+                        source_node=received_output["source_node"],
+                        destination_node=received_output["destination_node"],
+                    )
+                    if link:
+                        link["iperf_throughput_mean"] = received_output["stats"][
+                            "throughput"
+                        ]["mean"]
+
+        # wait until the TestNetwork thread ends (blocking call)
+        test_nw_thread_obj.join()
+
+        # Mark the end time of the test and get the status of the test from db
         try:
             test_run_obj = self.run_test_get_stats._log_test_end_time()
             self.test_status = test_run_obj.status
@@ -109,29 +124,45 @@ class RunParallelTestPlan(Thread):
             else:
                 # get network wide analytics stats for the duration of the test
                 _log.info("\nWriting Analytics stats to the db:")
+                links_time_series_list, iperf_time_series_list = (
+                    self._get_time_series_lists()
+                )
                 self.run_test_get_stats._write_analytics_stats_to_db(
                     link_health(
-                        links=self._time_series_list_wrapper(),
+                        links=links_time_series_list,
                         network_info=self.parameters["network_info"],
+                        iperf_stats=iperf_time_series_list,
                     )
                 )
 
-    def _time_series_list_wrapper(self):
-        time_series_list = []
+    def _get_time_series_lists(self):
+        links_time_series = []
+        iperf_time_series = []
         links = self.parameters["test_list"]
-        num_direction = (
-            2 if self.direction == TrafficDirection.BIDIRECTIONAL.value else 1
-        )
-        for atoz in range(0, len(links), num_direction):
-            time_series_list += self.run_test_get_stats._create_time_series_list(
-                start_time=self.start_time,
-                end_time=self.end_time,
-                link=self.run_test_get_stats._get_link(
-                    source_node=links[atoz]["src_node_id"],
-                    destination_node=links[atoz]["dst_node_id"],
-                ),
+
+        for atoz in range(0, len(links)):
+            # get link
+            link = self.run_test_get_stats._get_link(
+                source_node=links[atoz]["src_node_id"],
+                destination_node=links[atoz]["dst_node_id"],
             )
-        return time_series_list
+            if link is not None:
+                # get link and iperf TimeSeries objects
+                links_ts, iperf_ts = self.run_test_get_stats._time_series_lists(
+                    src_node_id=links[atoz]["src_node_id"],
+                    dst_node_id=links[atoz]["dst_node_id"],
+                    start_time=self.start_time,
+                    end_time=self.end_time,
+                    iperf_throughput_mean=link["iperf_throughput_mean"],
+                )
+
+                # append received object to links_time_series list
+                links_time_series += links_ts
+
+                # append received object to iperf_time_series list
+                iperf_time_series += iperf_ts
+
+        return links_time_series, iperf_time_series
 
     def _get_topology_sector_info(self):
         for link in self.network_parameters["topology"]["links"]:
@@ -216,5 +247,6 @@ class RunParallelTestPlan(Thread):
                     test_dict["ping_object"] = ping_object
                     test_dict["start_delay"] = 0
                     test_dict["id"] = None
+                    test_dict["iperf_throughput_mean"] = None
                     test_list.append(test_dict)
         return test_list
