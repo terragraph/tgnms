@@ -262,7 +262,9 @@ def _create_db_test_records(network_parameters, test_list, db_queue):
         db_queue.put(test_run_db_obj.id)
         for link in test_list:
             link_id = TestResult.objects.create(
-                test_run_execution=test_run_db_obj, status=TestStatus.RUNNING.value
+                test_run_execution=test_run_db_obj,
+                status=TestStatus.RUNNING.value,
+                link_name=link["iperf_object"].link_name,
             )
             link["id"] = link_id.id
         return test_run_db_obj
