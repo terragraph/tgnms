@@ -721,17 +721,22 @@ void MySqlClient::addEvents(
 
 folly::dynamic MySqlClient::getEvents(
     const query::EventsQueryRequest& request) {
-  auto regexStmt = folly::sformat(
+  auto eventQuery = folly::sformat(
       "SELECT * FROM `event_log` WHERE "
-      "(topologyName LIKE \"%{}\" AND category LIKE \"%{}\" "
-      "AND level LIKE \"%{}\" AND subcategory LIKE \"%{}\" "
-      "AND timestamp >= {}) ORDER BY id DESC LIMIT {}",
+      "topologyName = \"{}\" "
+      "{}{}{}"
+      "AND timestamp >= {} "
+      "ORDER BY id DESC LIMIT {}",
       request.topologyName,
-      request.category,
-      request.level,
-      request.subcategory,
+      request.category.empty() ? "" :
+          folly::sformat("AND category = \"{}\" ", request.category),
+      request.subcategory.empty() ? "" :
+          folly::sformat("AND subcategory = \"{}\" ", request.subcategory),
+      request.level.empty() ? "" :
+          folly::sformat("AND level = \"{}\" ", request.level),
       request.timestamp,
       request.maxResults);
+
   folly::dynamic events = folly::dynamic::array;
   auto connection = openConnection();
   if (!connection) {
@@ -740,7 +745,7 @@ folly::dynamic MySqlClient::getEvents(
   }
   try {
     std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
-    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(regexStmt));
+    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(eventQuery));
     while (res->next()) {
       events.push_back(
           folly::dynamic::object("mac", res->getString("mac").asStdString())(
