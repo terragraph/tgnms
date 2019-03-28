@@ -141,21 +141,6 @@ CREATE TABLE IF NOT EXISTS `alerts` (
   KEY `node_id` (`node_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS `event_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `mac` varchar(100) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `topologyName` varchar(100) not NULL,
-  `source` varchar(100) not NULL,
-  `timestamp` int(10) unsigned not NULL,
-  `reason` text not NULL,
-  `details` text not NULL,
-  `category` varchar(100) not NULL,
-  `subcategory` varchar(100) not NULL,
-  `level` varchar(100) not NULL,
-  KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
-
 CREATE TABLE IF NOT EXISTS `log_sources` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `node_id` int(11) NOT NULL,
@@ -225,7 +210,6 @@ CREATE TABLE IF NOT EXISTS `tx_scan_results` (
 /* these can be deleted once all DBs are updated */
 CALL Add_Modify_Column('tx_scan_results','combined_status','int'); /* added July 2018 */
 CALL Add_Modify_Column('tx_scan_results','token','int unsigned');  /* added July 2018 */
-CALL Add_Modify_Column('event_log','subcategory','varchar(100)');  /* added Feb 2019 */
 CALL Add_Modify_Column('tx_scan_results', 'n_responses_waiting', 'int unsigned'); /* added March 2019 */
 
 CREATE TABLE IF NOT EXISTS `sys_logs` (
