@@ -6,6 +6,7 @@ from typing import Dict, List
 
 import module.numpy_operations as npo
 import numpy as np
+from facebook.gorilla.Topology.ttypes import LinkType
 from module.numpy_time_series import NumpyLinkTimeSeries, NumpyTimeSeries, StatType
 from module.topology_handler import fetch_network_info
 from module.visibility import write_power_status
@@ -122,6 +123,118 @@ def uptime_insights(
             out_n + "_availability", n_avail, StatType.NETWORK, write_interval
         )
         nts.write_stats(out_n + "_resets", resets, StatType.NODE, write_interval)
+
+
+# temporary function until TSDB stat is available
+# reads linkup_attempts from the topology for each link
+def get_linkup_attempts_from_topology(network_info: dict) -> dict:
+    topologies = [n["topology"] for _, n in network_info.items()]
+    lu_att = {}
+    for ti, t in enumerate(topologies):
+        for l in t["links"]:
+            if l["link_type"] == LinkType.WIRELESS:
+                lu_att[(ti, l["name"])] = l["linkup_attempts"]
+    return lu_att
+
+
+# global variable
+_up_down = []
+
+
+# detects an event where the link goes down and fails to restart
+# for unknown reasons
+# characterized by link is trying to ignite but failing
+# when event triggers, we increment up_down counter
+def detect_ignition_failure(
+    current_time: int,
+    window: int,
+    read_interval: int,
+    write_interval: int,
+    network_info: dict,
+    lu_att: dict,
+) -> dict:
+
+    global _up_down
+
+    if not network_info:
+        logging.error("network_info is empty - returning")
+        return
+
+    topologies = [n["topology"] for _, n in network_info.items()]
+    lu_att["0"] = get_linkup_attempts_from_topology(network_info)
+    if not lu_att["-2"]:
+        logging.debug("startup: lu_att is not yet filled")
+        return lu_att
+
+    end_time = current_time
+    start_time = current_time - window
+    nts = NumpyTimeSeries(start_time, end_time, read_interval, network_info)
+    k = nts.get_consts()
+    logging.info(
+        "detect_ignition_failure, start_time={}, end_time={}, num_topologies={}".format(
+            start_time, end_time, k["num_topologies"]
+        )
+    )
+
+    mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
+    nts_link_names = nts.get_link_names()
+    num_dir = nts.NUM_DIR
+
+    # initialize _up_down
+    if len(_up_down) == 0:
+        _up_down = [{} for _ in range(k["num_topologies"])]
+
+    failure_detected = False
+    up_down = []
+    for ti, t in enumerate(topologies):
+        num_links = k[ti]["num_links"]
+        up_down.append(npo.nan_arr((num_links, num_dir, 1)))
+        for li in range(num_links):
+            link_name = nts_link_names[ti][li]
+            up_down_link = [0, 0]
+            for di in range(num_dir):
+                cond1 = npo.detect_up_then_down_1d(
+                    mgmt_link_up[ti][li, di, :], read_interval
+                )
+                cond2 = lu_att["0"][(ti, link_name)] - lu_att["-1"][(ti, link_name)] > 0
+                cond3 = (
+                    lu_att["-1"][(ti, link_name)] - lu_att["-2"][(ti, link_name)] > 0
+                )
+                up_down_link[di] = cond1 and cond2 and cond3
+
+                if cond1 or (cond2 and cond3):
+                    logging.debug(
+                        "{}::{}, up_then_down {}, link_up_attemps {}:{}".format(
+                            t["name"], link_name, cond1, cond2, cond3
+                        )
+                    )
+                    logging.debug(mgmt_link_up[ti][li, di, :])
+
+                # if either direction is flagged, flag both directions
+                if di == num_dir - 1:
+                    up_down_link[0] = up_down_link[0] or up_down_link[di]
+
+            # write the stat for both directions, we don't have a stat
+            # type that applies to a link - only to a link per direction
+            if link_name not in _up_down[ti]:
+                _up_down[ti][link_name] = 0
+            _up_down[ti][link_name] += up_down_link[0]
+            up_down[ti][li, 0, 0] = _up_down[ti][link_name]
+            up_down[ti][li, 1, 0] = _up_down[ti][link_name]
+            if up_down_link[0]:
+                failure_detected = True
+                logging.info(
+                    "Link ignition failure event detected {}::{}".format(
+                        t["name"], link_name
+                    )
+                )
+
+    nts.write_stats("ignition_failure", up_down, StatType.LINK, write_interval)
+
+    if not failure_detected:
+        logging.info("No ignition failure detected")
+
+    return lu_att
 
 
 def misc_insights(
@@ -335,9 +448,17 @@ def misc_insights(
     )
 
 
+lu_att = {}
+lu_att["-1"] = {}
+lu_att["0"] = {}
+
+
 def generate_insights():
     current_time = int(time.time())
     network_info = fetch_network_info()
+    global lu_att
+    lu_att["-2"] = lu_att["-1"]
+    lu_att["-1"] = lu_att["0"]
     # max time to reach 30s_db is 60s
     # max time to reach 1s_db is 2s
     # add few seconds margin for latency from node to nms
@@ -374,6 +495,16 @@ def generate_insights():
             write_interval=30,
             network_info=network_info,
         )
+        # run this pipeline in Jupyter, not in analytics
+        if False:
+            lu_att = detect_ignition_failure(
+                current_time=current_time - OFFSET_30S_DB,
+                window=240,
+                read_interval=30,
+                write_interval=30,
+                network_info=network_info,
+                lu_att=lu_att,
+            )
     if current_time % 900 == 0:
         # Runs every 15min
         write_power_status(

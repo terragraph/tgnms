@@ -226,6 +226,30 @@ def get_per_1d(
     return dtf / (dto + dtf)
 
 
+# condition is 1 or more positive values and 60/interval or more
+# non-positive (0 or nan) values at the end
+# needed because when no sta is associated, there is no stat and
+# if we sample at 30s, high probability of nan
+def detect_up_then_down_1d(mgmt_link_up: np.ndarray, interval: int) -> int:
+    mlu = mgmt_link_up
+    v = is_valid(mlu)
+    mlu = mlu[v]
+    nz = 0
+    zr = 0
+    for mlu_val in mlu:
+        if mlu_val > 0:
+            nz += 1
+        else:
+            break
+
+    for mlu_val in mgmt_link_up[::-1]:
+        if mlu_val == 0 or np.isnan(mlu_val):
+            zr += 1
+        else:
+            break
+    return int(nz >= 1 and zr >= (60 / interval))
+
+
 def get_link_health_1d(
     mgmt_link_up: np.ndarray,
     tx_ok: np.ndarray,

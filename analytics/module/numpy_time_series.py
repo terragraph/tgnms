@@ -7,21 +7,23 @@ StatType.LINK:    num_links x num_dirs x num_times
 StatType.NODE:    num_nodes x        1 x num_times
 StatType.NETWORK:         1 x        1 x num_times
 """
-from enum import Enum
-import numpy as np
-import os
-from math import ceil, floor, fabs, pi, sqrt, cos
-import sys
 import logging
+import os
+import sys
+from enum import Enum
+from math import ceil, cos, fabs, floor, pi, sqrt
 from typing import Any, Dict, List, Optional, Tuple
-from module.topology_handler import fetch_network_info
+
 import module.beringei_time_series as bts
 import module.numpy_operations as npo
+import numpy as np
+from facebook.gorilla.Topology.ttypes import LinkType
+from module.topology_handler import fetch_network_info
+
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
 )
-from facebook.gorilla.Topology.ttypes import LinkType
 
 
 def approx_distance(l1: Dict[str, float], l2: Dict[str, float]) -> float:
@@ -102,6 +104,7 @@ class NumpyTimeSeries(object):
             node_name_to_mac = {n["name"]: n["mac_addr"] for n in t["nodes"]}
             link_macs_to_idx = {}
             link_idx_to_macs = {}
+            link_idx_to_link_names = {}
             src_to_peers = {}
             src_macs = []
             peer_macs = []
@@ -114,6 +117,8 @@ class NumpyTimeSeries(object):
                     link_macs_to_idx[(z_node_mac, a_node_mac)] = (num_links, 1)
                     link_idx_to_macs[(num_links, 0)] = (a_node_mac, z_node_mac)
                     link_idx_to_macs[(num_links, 1)] = (z_node_mac, a_node_mac)
+                    link_idx_to_link_names[(num_links, 0)] = l["name"]
+                    link_idx_to_link_names[(num_links, 1)] = l["name"]
                     if a_node_mac not in src_to_peers:
                         src_to_peers[a_node_mac] = []
                     if z_node_mac not in src_to_peers:
@@ -133,11 +138,21 @@ class NumpyTimeSeries(object):
                     "num_links": num_links,
                     "link_macs_to_idx": link_macs_to_idx,
                     "link_idx_to_macs": link_idx_to_macs,
+                    "link_idx_to_link_names": link_idx_to_link_names,
                     "src_to_peers": src_to_peers,
                     "src_macs": src_macs,
                     "peer_macs": peer_macs,
                 }
             )
+
+    def get_link_names(self) -> List[str]:
+        link_names_list = []
+        for _, t in enumerate(self._tmap):
+            names_per_link = []
+            for li in range(t["num_links"]):
+                names_per_link.append(t["link_idx_to_link_names"][(li, 0)])
+            link_names_list .append(names_per_link)
+        return link_names_list 
 
     def t2i(self, t: int) -> int:
         return self._times_to_idx[floor(t / self._read_interval) * self._read_interval]
