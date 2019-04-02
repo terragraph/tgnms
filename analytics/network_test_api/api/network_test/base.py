@@ -201,13 +201,9 @@ class RunTestGetStats:
                         link_db_obj.save()
 
     def _get_link(self, source_node, destination_node):
-        for link in self.parameters["test_list"]:
-            if (
-                link["src_node_id"] == source_node
-                and link["dst_node_id"] == destination_node
-            ):
-                return link
-        return None
+        return self.parameters["test_links_dict"].get(
+            (source_node, destination_node), None
+        )
 
     def _log_test_end_time(self):
         try:
@@ -218,10 +214,10 @@ class RunTestGetStats:
             test_run_obj.save()
 
             if self.test_name == "PARALLEL_LINK_TEST":
-                for link in self.parameters["test_list"]:
+                for src_node_id, dst_node_id in self.parameters["test_links_dict"]:
                     self._log_test_end_time_for_link(
-                        source_node=link["src_node_id"],
-                        destination_node=link["dst_node_id"],
+                        source_node=src_node_id,
+                        destination_node=dst_node_id,
                     )
                 return test_run_obj
         except Exception as ex:
@@ -240,7 +236,7 @@ class RunTestGetStats:
 # functions common across tests #
 
 
-def _create_db_test_records(network_parameters, test_list, db_queue):
+def _create_db_test_records(network_parameters, test_links_dict, db_queue):
     with transaction.atomic():
         test_run_db_obj = TestRunExecution.objects.create(
             status=TestStatus.RUNNING.value,
@@ -260,7 +256,7 @@ def _create_db_test_records(network_parameters, test_list, db_queue):
             pop_to_node_link=network_parameters["speed_test_pop_to_node_dict"],
         )
         db_queue.put(test_run_db_obj.id)
-        for link in test_list:
+        for link in test_links_dict.values():
             link_id = TestResult.objects.create(
                 test_run_execution=test_run_db_obj,
                 status=TestStatus.RUNNING.value,
@@ -284,7 +280,7 @@ def _get_mac_list(direction, a_node_mac, z_node_mac):
 
 
 def _get_parameters(
-    network_parameters, test_run_db_obj, test_list, interval_sec, network_hop_info=None
+    network_parameters, test_run_db_obj, test_links_dict, interval_sec, network_hop_info=None
 ):
     return {
         "controller_addr": network_parameters["controller_addr"],
@@ -298,6 +294,6 @@ def _get_parameters(
             network_parameters["session_duration"] * interval_sec
         ),
         "topology_id": network_parameters["topology_id"],
-        "test_list": test_list,
+        "test_links_dict": test_links_dict,
         "network_hop_info": network_hop_info if network_hop_info else None,
     }

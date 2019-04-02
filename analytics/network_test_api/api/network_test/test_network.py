@@ -19,7 +19,7 @@ class TestNetwork(Thread):
                                  iperf/ping responses.
         * controller_addr: IP address of the E2E Controller
         * controller_port: Port address of the E2E Controller
-        * test_list: list of links on which iPerf/ping is to be started.
+        * test_links_dict: dictionary of links on which iPerf/ping is to be started.
     """
 
     def __init__(self, parameters, received_output_queue):
@@ -28,7 +28,7 @@ class TestNetwork(Thread):
         self.received_output_queue = received_output_queue
         self.controller_addr = parameters["controller_addr"]
         self.controller_port = parameters["controller_port"]
-        self.test_list = parameters["test_list"]
+        self.test_links_dict = parameters["test_links_dict"]
         self.session_duration = parameters["session_duration"]
         self.topology = parameters["topology"]
         self.recv_timeout = 0
@@ -68,7 +68,7 @@ class TestNetwork(Thread):
         # 5 responses are expected per (iperf + ping) request
         # ping requests will return an ack from the controller and a response
         # iperf requests will return an ack from the controller and 2 responses
-        for link in self.test_list:
+        for link in self.test_links_dict.values():
             if link.get("iperf_object"):
                 self.number_of_iperf_object += 1
             if link.get("ping_object"):
@@ -82,7 +82,7 @@ class TestNetwork(Thread):
             max(
                 x["start_delay"]
                 + max(self._myget(x, "iperf_object"), self._myget(x, "ping_object"))
-                for x in self.test_list
+                for x in self.test_links_dict.values()
             )
             + 15
         )
@@ -113,11 +113,11 @@ class TestNetwork(Thread):
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in self.topology["nodes"]}
         asyncio.set_event_loop(asyncio.new_event_loop())
         while (
-            self.num_sent_req <= len(self.test_list)
+            self.num_sent_req <= len(self.test_links_dict)
             and time.time() < (self.test_start_time + self.recv_timeout)
             and self.listen_obj.is_alive()
         ):
-            for link in self.test_list:
+            for link in self.test_links_dict.values():
                 if (
                     time.time() >= (self.test_start_time + link["start_delay"])
                     and not link["iperf_object"].request_sent
@@ -172,7 +172,7 @@ class TestNetwork(Thread):
             # poll for route integrity in every polling_delay seconds
             if self.parameters["test_code"] == Tests.MULTI_HOP_TEST.value:
                 if not (self.current_second % self.polling_delay):
-                    for link in self.test_list:
+                    for link in self.test_links_dict.values():
                         if (
                             link["iperf_object"].request_sent
                             and link["ping_object"].request_sent
@@ -207,7 +207,7 @@ class TestNetwork(Thread):
 
         # write route_changed_count of all links to db
         if self.parameters["test_code"] == Tests.MULTI_HOP_TEST.value:
-            for link in self.test_list:
+            for link in self.test_links_dict.values():
                 link_db_obj = TestResult.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None:
                     with transaction.atomic():

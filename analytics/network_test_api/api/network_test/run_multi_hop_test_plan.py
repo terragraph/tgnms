@@ -65,21 +65,21 @@ class RunMultiHopTestPlan(Thread):
         pop_to_node_links = self._get_pop_to_node_links(self.network_hop_info)
 
         # Configure test data using test API
-        test_list = self._multi_hop_test(
+        test_links_dict = self._multi_hop_test(
             self.network_parameters["topology"], pop_to_node_links
         )
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
             network_parameters=self.network_parameters,
-            test_list=test_list,
+            test_links_dict=test_links_dict,
             db_queue=self.db_queue,
         )
 
         self.parameters = base._get_parameters(
             network_parameters=self.network_parameters,
             test_run_db_obj=test_run_db_obj,
-            test_list=test_list,
+            test_links_dict=test_links_dict,
             interval_sec=self.interval_sec,
             network_hop_info=self.network_hop_info,
         )
@@ -142,7 +142,7 @@ class RunMultiHopTestPlan(Thread):
         """
         node_name_to_mac = {n["name"]: n["mac_addr"] for n in topology["nodes"]}
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in topology["nodes"]}
-        test_list = []
+        test_links_dict = {}
         session_count = 0
         if self.network_parameters["multi_hop_session_iteration_count"] is not None:
             session_limit_count = (
@@ -164,7 +164,7 @@ class RunMultiHopTestPlan(Thread):
                 self.network_parameters["direction"], pop_node_mac, dst_node_mac
             )
             for mac_addr in mac_list:
-                test_dict = {}
+                link_dict = {}
                 iperf_object = IperfObj(
                     link_name=link_name,
                     src_node_name=node_mac_to_name[mac_addr["src_node_mac"]],
@@ -199,17 +199,23 @@ class RunMultiHopTestPlan(Thread):
                     timeout=1,
                     use_link_local=False,
                 )
-                test_dict["src_node_id"] = mac_addr["src_node_mac"]
-                test_dict["dst_node_id"] = mac_addr["dst_node_mac"]
-                test_dict["iperf_object"] = iperf_object
-                test_dict["ping_object"] = ping_object
-                test_dict["start_delay"] = pop_to_node_link["start_delay"]
-                test_dict["ecmp"] = pop_to_node_link["ecmp"]
-                test_dict["id"] = None
-                test_dict["route"] = None
-                test_dict["route_changed_count"] = 0
-                test_list.append(test_dict)
+                # populate link info in link_dict
+                link_dict["src_node_id"] = mac_addr["src_node_mac"]
+                link_dict["dst_node_id"] = mac_addr["dst_node_mac"]
+                link_dict["iperf_object"] = iperf_object
+                link_dict["ping_object"] = ping_object
+                link_dict["start_delay"] = pop_to_node_link["start_delay"]
+                link_dict["ecmp"] = pop_to_node_link["ecmp"]
+                link_dict["id"] = None
+                link_dict["route"] = None
+                link_dict["route_changed_count"] = 0
+
+                # each link is identified using the link_tuple
+                link_tuple = (mac_addr["src_node_mac"], mac_addr["dst_node_mac"])
+                # map link info to corresponding link_tuple
+                test_links_dict[link_tuple] = link_dict
+
             session_count += 1
             if session_count == session_limit_count:
                 break
-        return test_list
+        return test_links_dict

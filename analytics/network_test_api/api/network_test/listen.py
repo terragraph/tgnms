@@ -197,13 +197,9 @@ class RecvFromCtrl(base.Base):
             return parsed_iperf_output_dict
 
     def _get_link(self, source_node, destination_node):
-        for link in self.parameters["test_list"]:
-            if (
-                link["src_node_id"] == source_node
-                and link["dst_node_id"] == destination_node
-            ):
-                return link
-        return None
+        return self.parameters["test_links_dict"].get(
+            (source_node, destination_node), None
+        )
 
     def _log_to_mysql(self, source_node, destination_node, stats, is_iperf):
         if is_iperf:

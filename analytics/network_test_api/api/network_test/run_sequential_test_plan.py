@@ -46,19 +46,19 @@ class RunSequentialTestPlan(Thread):
     def run(self):
 
         # Configure test data using test API
-        test_list = self._sequential_test(self.network_parameters["topology"])
+        test_links_dict = self._sequential_test(self.network_parameters["topology"])
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
             network_parameters=self.network_parameters,
-            test_list=test_list,
+            test_links_dict=test_links_dict,
             db_queue=self.db_queue,
         )
 
         self.parameters = base._get_parameters(
             network_parameters=self.network_parameters,
             test_run_db_obj=test_run_db_obj,
-            test_list=test_list,
+            test_links_dict=test_links_dict,
             interval_sec=self.interval_sec,
         )
 
@@ -85,7 +85,7 @@ class RunSequentialTestPlan(Thread):
         """
         node_name_to_mac = {n["name"]: n["mac_addr"] for n in topology["nodes"]}
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in topology["nodes"]}
-        test_list = []
+        test_links_dict = {}
         start_delay = 0
         random.shuffle(topology["links"])
         for link in topology["links"]:
@@ -100,7 +100,7 @@ class RunSequentialTestPlan(Thread):
                 )
                 mac_list = base._get_mac_list(self.direction, a_node_mac, z_node_mac)
                 for mac_addr in mac_list:
-                    test_dict = {}
+                    link_dict = {}
                     iperf_object = IperfObj(
                         link_name=link_name,
                         src_node_name=node_mac_to_name[mac_addr["src_node_mac"]],
@@ -135,12 +135,17 @@ class RunSequentialTestPlan(Thread):
                         timeout=1,
                         use_link_local=True,
                     )
-                    test_dict["src_node_id"] = mac_addr["src_node_mac"]
-                    test_dict["dst_node_id"] = mac_addr["dst_node_mac"]
-                    test_dict["iperf_object"] = iperf_object
-                    test_dict["ping_object"] = ping_object
-                    test_dict["start_delay"] = start_delay
-                    test_dict["id"] = None
-                    test_list.append(test_dict)
+                    # populate link info in link_dict
+                    link_dict["src_node_id"] = mac_addr["src_node_mac"]
+                    link_dict["dst_node_id"] = mac_addr["dst_node_mac"]
+                    link_dict["iperf_object"] = iperf_object
+                    link_dict["ping_object"] = ping_object
+                    link_dict["start_delay"] = start_delay
+                    link_dict["id"] = None
+                    # each link is identified using the link_tuple
+                    link_tuple = (mac_addr["src_node_mac"], mac_addr["dst_node_mac"])
+                    # map link info to corresponding link_tuple
+                    test_links_dict[link_tuple] = link_dict
+
                 start_delay += self.network_parameters["session_duration"]
-        return test_list
+        return test_links_dict

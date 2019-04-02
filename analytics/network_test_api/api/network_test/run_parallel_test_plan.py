@@ -57,19 +57,19 @@ class RunParallelTestPlan(Thread):
         self._get_topology_sector_info()
 
         # Configure test data using test API
-        test_list = self._parallel_test(self.network_parameters["topology"])
+        test_links_dict = self._parallel_test(self.network_parameters["topology"])
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
             network_parameters=self.network_parameters,
-            test_list=test_list,
+            test_links_dict=test_links_dict,
             db_queue=self.db_queue,
         )
 
         self.parameters = base._get_parameters(
             network_parameters=self.network_parameters,
             test_run_db_obj=test_run_db_obj,
-            test_list=test_list,
+            test_links_dict=test_links_dict,
             interval_sec=self.interval_sec,
         )
 
@@ -138,19 +138,18 @@ class RunParallelTestPlan(Thread):
     def _get_time_series_lists(self):
         links_time_series = []
         iperf_time_series = []
-        links = self.parameters["test_list"]
 
-        for atoz in range(0, len(links)):
+        for src_node_id, dst_node_id in self.parameters["test_links_dict"]:
             # get link
             link = self.run_test_get_stats._get_link(
-                source_node=links[atoz]["src_node_id"],
-                destination_node=links[atoz]["dst_node_id"],
+                source_node=src_node_id,
+                destination_node=dst_node_id,
             )
             if link is not None:
                 # get link and iperf TimeSeries objects
                 links_ts, iperf_ts = self.run_test_get_stats._time_series_lists(
-                    src_node_id=links[atoz]["src_node_id"],
-                    dst_node_id=links[atoz]["dst_node_id"],
+                    src_node_id=src_node_id,
+                    dst_node_id=dst_node_id,
                     start_time=self.start_time,
                     end_time=self.end_time,
                     iperf_throughput_mean=link["iperf_throughput_mean"],
@@ -189,7 +188,7 @@ class RunParallelTestPlan(Thread):
         """
         node_name_to_mac = {n["name"]: n["mac_addr"] for n in topology["nodes"]}
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in topology["nodes"]}
-        test_list = []
+        test_links_dict = {}
         random.shuffle(topology["links"])
         for link in topology["links"]:
             if link["link_type"] == Tests.WIRELESS.value:
@@ -206,7 +205,7 @@ class RunParallelTestPlan(Thread):
                 )
                 mac_list = base._get_mac_list(self.direction, a_node_mac, z_node_mac)
                 for mac_addr in mac_list:
-                    test_dict = {}
+                    link_dict = {}
                     iperf_object = IperfObj(
                         link_name=link_name,
                         src_node_name=node_mac_to_name[mac_addr["src_node_mac"]],
@@ -241,12 +240,16 @@ class RunParallelTestPlan(Thread):
                         timeout=1,
                         use_link_local=True,
                     )
-                    test_dict["src_node_id"] = mac_addr["src_node_mac"]
-                    test_dict["dst_node_id"] = mac_addr["dst_node_mac"]
-                    test_dict["iperf_object"] = iperf_object
-                    test_dict["ping_object"] = ping_object
-                    test_dict["start_delay"] = 0
-                    test_dict["id"] = None
-                    test_dict["iperf_throughput_mean"] = None
-                    test_list.append(test_dict)
-        return test_list
+                    # populate link info in link_dict
+                    link_dict["src_node_id"] = mac_addr["src_node_mac"]
+                    link_dict["dst_node_id"] = mac_addr["dst_node_mac"]
+                    link_dict["iperf_object"] = iperf_object
+                    link_dict["ping_object"] = ping_object
+                    link_dict["start_delay"] = 0
+                    link_dict["id"] = None
+                    link_dict["iperf_throughput_mean"] = None
+                    # each link is identified using the link_tuple
+                    link_tuple = (mac_addr["src_node_mac"], mac_addr["dst_node_mac"])
+                    # map link info to corresponding link_tuple
+                    test_links_dict[link_tuple] = link_dict
+        return test_links_dict
