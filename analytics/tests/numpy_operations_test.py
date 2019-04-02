@@ -1,11 +1,13 @@
-import numpy as np
-import unittest
-import logging
-import os
-import sys
+#!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import logging
+import unittest
+
 import module.numpy_operations as npo
+import numpy as np
+
+
 
 
 class NumpyOperationsTest(unittest.TestCase):
@@ -187,7 +189,9 @@ class NumpyOperationsTest(unittest.TestCase):
         lu = np.floor((np.arange(10) * 39.0625) + (3600.0 * 39.0625))
         nt = np.array([0, 10, np.nan, 30, 40, 40, 40, np.nan, np.nan, 40]) * 1.0
         i = 1
-        exp_ti = np.array([False, False, False, False, True, True, True, True, True, True])
+        exp_ti = np.array(
+            [False, False, False, False, True, True, True, True, True, True]
+        )
         obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
@@ -195,7 +199,9 @@ class NumpyOperationsTest(unittest.TestCase):
         lu = np.floor((np.arange(10) * 39.0625 * 39) + (3600.0 * 39.0625))
         nt = np.array([0, 10, np.nan, 30, 40, 40, 40, np.nan, np.nan, 40]) * 1.0
         i = 39
-        exp_ti = np.array([False, False, False, False, True, True, True, True, True, True])
+        exp_ti = np.array(
+            [False, False, False, False, True, True, True, True, True, True]
+        )
         obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 

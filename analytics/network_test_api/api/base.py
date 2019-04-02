@@ -3,29 +3,14 @@
 
 import json
 import logging
-import os
-import sys
-import time
 from typing import Any, Dict, Optional
 
 from api.models import Tests, TrafficDirection
 from django.http import HttpResponse
+from module.topology_handler import fetch_network_info
 from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
 from thrift.transport import TTransport
 
-
-# global system path initialization
-sys.path.append("../")
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..") + "/../../interface/gen-py"
-    )
-)
-
-try:
-    from module.topology_handler import fetch_network_info
-except Exception:
-    raise
 
 _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

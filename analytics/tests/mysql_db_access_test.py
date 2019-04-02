@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 """Provide tests for MySqlDbAccess class.
 """
 
-import unittest
-import sys
-import os
 import logging
+import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.mysql_db_access import MySqlDbAccess
 from module.scan_handler import ScanHandler
 

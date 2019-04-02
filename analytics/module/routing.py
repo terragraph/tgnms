@@ -7,14 +7,10 @@
 import asyncio
 import itertools
 import logging
-import os
 import sys
 from aiohttp import ClientSession
 from typing import List, Optional, Set
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
 from facebook.gorilla.Topology.ttypes import LinkType
 
 

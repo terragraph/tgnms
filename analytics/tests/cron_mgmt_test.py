@@ -1,12 +1,12 @@
+#!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
+
 """Provide tests for CronMgmt class.
 """
 
 import logging
-import os
-import sys
 import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.cron_mgmt import CronMgmt
 
 

@@ -3,19 +3,15 @@
 
 import logging
 import os
-import sys
 
 import django
 
 
 try:
-    setting_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sys.path.insert(0, setting_path)
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nmsapi.settings")
     django.setup()
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
     from api.models import TestRunExecution, TestStatus
-except Exception:
+except django.core.exceptions.ImproperlyConfigured:
     raise
 
 _log = logging.getLogger(__name__)

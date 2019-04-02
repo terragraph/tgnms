@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 """ Test example for the JobScheduler class.
 """
 
-import sys
-import os
 import logging
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from module.job_scheduler import JobScheduler
 from link_insights.run_link_pipeline import print_current_unix_time
+from module.job_scheduler import JobScheduler
 
 
 job_scheduler = JobScheduler()

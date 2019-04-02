@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 """
 Test examples for beringei_time_series module
 """
 import logging
 import math
-import os
-import sys
 import time
 import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import module.beringei_time_series as bts
 from module.topology_handler import fetch_network_info
 

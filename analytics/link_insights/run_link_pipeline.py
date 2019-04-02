@@ -3,17 +3,14 @@
 """ Use the JobScheduler class to run link insights pipelines in LinkPipeline class.
 """
 
-import sys
-import os
-import logging
 import json
+import logging
 import time
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from link_insights.link_pipeline import LinkPipeline
 from module.job_scheduler import JobScheduler
-from module.path_store import PathStore
 from module.mysql_db_access import MySqlDbAccess
+from module.path_store import PathStore
 
 
 def print_current_unix_time(save_to_low_freq_db=False):

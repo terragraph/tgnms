@@ -4,20 +4,14 @@
     process for topology related configurations.
 """
 
-import os
-import requests
 import json
-import sys
 import logging
+import os
 from typing import Dict, Optional
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from module.mysql_db_access import MySqlDbAccess
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
+import requests
 from facebook.gorilla.Topology.ttypes import LinkType
+from module.mysql_db_access import MySqlDbAccess
 
 
 def fetch_network_info(

@@ -5,19 +5,13 @@
    processing.
 """
 
-import os
 import json
 import logging
-import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.mysql_db_access import MySqlDbAccess
 from module.topology_handler import TopologyHelper
 from module.unit_converter import UnitConverter
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
 from terragraph_thrift.Controller.ttypes import ScanType
 
 

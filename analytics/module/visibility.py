@@ -5,16 +5,10 @@
 """
 
 import numpy as np
-import os
-import sys
-import time
 from enum import IntEnum
 from module.beringei_time_series import TimeSeries, write_time_series_list
 from module.numpy_time_series import NumpyLinkTimeSeries, StatType
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
 from facebook.gorilla.Topology.ttypes import NodeType
 
 

@@ -1,18 +1,12 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 import itertools
-import os
-import sys
 import unittest
 from unittest import mock
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from module.routing import get_routes_for_nodes, RouteToPop
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
 from facebook.gorilla.Topology.ttypes import LinkType
+from module.routing import RouteToPop, get_routes_for_nodes
 
 
 async def mocked_fetch(*args, **kwargs):

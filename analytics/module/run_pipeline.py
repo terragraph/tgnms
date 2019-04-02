@@ -9,7 +9,6 @@ import os
 import logging
 import time
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.job_scheduler import JobScheduler
 from module.path_store import PathStore
 from module.insights import generate_insights

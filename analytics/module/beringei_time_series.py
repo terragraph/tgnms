@@ -5,14 +5,9 @@ Read/Writes List of TimeSeries to Beringei database
 """
 
 import logging
-import os
-import sys
 from typing import Optional, List
 from module.beringei_db_access import BeringeiDbAccess
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
 from facebook.gorilla.beringei_query import ttypes as bq
 
 

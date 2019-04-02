@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 """ Provide example to read topology from the API service.
 """
 
-import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.topology_handler import TopologyHelper
 
 

@@ -4,20 +4,12 @@
     PPS, PER, link health and write back the processed stats back to Beringei database.
 """
 
-import numpy as np
-import sys
-import os
 import json
 import logging
 
-# Include the API between BQS and Analytics
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
+import numpy as np
 from facebook.gorilla.beringei_query import ttypes as bq
 from facebook.gorilla.Topology.ttypes import Topology
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.beringei_db_access import BeringeiDbAccess
 from module.unit_converter import UnitConverter
 

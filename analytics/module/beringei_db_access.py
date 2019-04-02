@@ -8,15 +8,11 @@
 import os
 import requests
 import json
-import sys
 import logging
 
 from thrift.TSerialization import serialize, deserialize
 from thrift.protocol import TBinaryProtocol
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
 from facebook.gorilla.beringei_data.ttypes import RawQueryReturn
 from module.path_store import PathStore
 

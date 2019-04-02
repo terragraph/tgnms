@@ -5,18 +5,15 @@
     stats back to Beringei database (via BQS).
 """
 
-import logging
-import os
-import sys
-import time
 import json
+import logging
+import time
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from link_insights.link_insight import LinkInsight
 from module.beringei_db_access import BeringeiDbAccess
-from module.topology_handler import TopologyHelper
 from module.path_store import PathStore
 from module.scan_handler import ScanHandler
+from module.topology_handler import TopologyHelper
 
 
 class LinkPipeline(object):

@@ -84,7 +84,7 @@ The Analytics module will be running inside its own container. The workflow of D
 Please refer to the Docker file.
 
 ## Testing:
-* Please see example for test. To run all tests, run auto_test.sh under example/
+* Please see example for test. To run all tests, run auto_test.sh under tests/
 * To locally build Analytics docker image, please run build_analytics_docker.sh
 
 ## Naming rules:

@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
-import os
-import sys
 import time
 import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from facebook.gorilla.Topology.ttypes import NodeType
 from module.beringei_time_series import read_time_series_list
 from module.topology_handler import fetch_network_info
 from module.visibility import NodePowerStatus, write_power_status
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
-from facebook.gorilla.Topology.ttypes import NodeType
 
 
 class VisibilityTest(unittest.TestCase):

@@ -21,4 +21,13 @@ do
         thrift --gen py -o $DST_DIR "${DST_DIR}/${file}"
 done
 
+# Copy generated thrift Python into dist-packages rather than have sys.path hacks
+# in our source code everywhere
+PYTHON_DIST_PKGS="/usr/lib/python3/dist-packages"
+for src_thrift_dir in $(find $DST_DIR -type d)
+do
+  echo "Copying $src_thrift_dir thrift files to "
+  cp -rv "$src_thrift_dir" "$PYTHON_DIST_PKGS"
+done
+
 echo Data structures successfully generated!

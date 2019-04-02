@@ -4,7 +4,6 @@
    Provide CronMgmt class that can submit, view, remove cron jobs via crontab.
 """
 
-import datetime
 import logging
 
 from crontab import CronTab

@@ -14,5 +14,5 @@ class PathStore(object):
 
     ANALYTICS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     ANALYTICS_CONFIG_FILE = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../AnalyticsConfig.json")
+        os.path.join(os.path.dirname(__file__), "AnalyticsConfig.json")
     )

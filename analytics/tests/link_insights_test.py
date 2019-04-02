@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 """ Provide examples which compute the link metrics mean/variance and
     generate the corresponding link metrics mean/variance CDF across all links
@@ -6,27 +7,28 @@
 """
 
 
-import matplotlib
-
-# Walk around the XWindow issues for plotting
-matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt
-import sys
-import os
 import json
-import numpy as np
-import unittest
 import logging
+import os
 import time
+import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from module.beringei_db_access import BeringeiDbAccess
-from module.topology_handler import TopologyHelper
-from module.mysql_db_access import MySqlDbAccess
+import numpy as np
+from facebook.gorilla.beringei_data import ttypes as bd
 from link_insights.link_insight import LinkInsight
 from link_insights.link_pipeline import LinkPipeline
-from facebook.gorilla.beringei_data import ttypes as bd
+from module.beringei_db_access import BeringeiDbAccess
+from module.mysql_db_access import MySqlDbAccess
+from module.topology_handler import TopologyHelper
+
+
+try:
+    import matplotlib
+    # Walk around the XWindow issues for plotting
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+except ImportError:
+    raise
 
 
 class TestLinkInsights(unittest.TestCase):

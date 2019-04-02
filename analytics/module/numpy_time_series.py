@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 """
 Read/Writes Time Series for entire topology to beringei db as numpy array
@@ -8,8 +9,6 @@ StatType.NODE:    num_nodes x        1 x num_times
 StatType.NETWORK:         1 x        1 x num_times
 """
 import logging
-import os
-import sys
 from enum import Enum
 from math import ceil, cos, fabs, floor, pi, sqrt
 from typing import Any, Dict, List, Optional, Tuple
@@ -19,11 +18,6 @@ import module.numpy_operations as npo
 import numpy as np
 from facebook.gorilla.Topology.ttypes import LinkType
 from module.topology_handler import fetch_network_info
-
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..") + "/interface/gen-py")
-)
 
 
 def approx_distance(l1: Dict[str, float], l2: Dict[str, float]) -> float:
@@ -151,8 +145,8 @@ class NumpyTimeSeries(object):
             names_per_link = []
             for li in range(t["num_links"]):
                 names_per_link.append(t["link_idx_to_link_names"][(li, 0)])
-            link_names_list .append(names_per_link)
-        return link_names_list 
+            link_names_list.append(names_per_link)
+        return link_names_list
 
     def t2i(self, t: int) -> int:
         return self._times_to_idx[floor(t / self._read_interval) * self._read_interval]

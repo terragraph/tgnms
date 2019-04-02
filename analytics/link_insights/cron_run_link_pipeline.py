@@ -3,15 +3,12 @@
 """ Use the CronMgmt class to run link insights pipelines in LinkPipeline class.
 """
 
-import sys
-import os
-import logging
 import json
+import logging
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from module.cron_mgmt import CronMgmt
-from module.path_store import PathStore
 from module.mysql_db_access import MySqlDbAccess
+from module.path_store import PathStore
 
 
 def cron_run_link_pipeline():

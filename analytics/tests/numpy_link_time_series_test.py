@@ -1,27 +1,19 @@
 #!/usr/bin/env python3
+# Copyright 2004-present Facebook. All Rights Reserved.
 
 """
 Test examples for numpy_time_series module
 """
 import logging
 import math
-import numpy as np
-import os
-import sys
 import time
 import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from module.numpy_time_series import StatType, NumpyTimeSeries, NumpyLinkTimeSeries
-from module.beringei_time_series import TimeSeries
-from module.topology_handler import fetch_network_info
-
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../..") + "/interface/gen-py"
-    )
-)
+import numpy as np
 from facebook.gorilla.Topology.ttypes import LinkType
+from module.beringei_time_series import TimeSeries
+from module.numpy_time_series import NumpyLinkTimeSeries, NumpyTimeSeries, StatType
+from module.topology_handler import fetch_network_info
 
 
 class NumpyLinkTimeSeriesTest(unittest.TestCase):
