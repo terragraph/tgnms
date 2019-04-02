@@ -270,3 +270,8 @@ struct AggStats {
   1: string topologyName,
   2: list<Stat> stats,
 }
+
+struct StatsWriteResponse {
+  1: bool success,
+  2: optional string error,
+}

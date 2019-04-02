@@ -83,7 +83,10 @@ void TopologyFetcher::refreshTopologyCache() {
   for (auto topologyConfig : mySqlClient->getTopologyConfigs()) {
     const std::string postData = "{}";
     auto topology = apiServiceClient_->fetchApiService<query::Topology>(
-        topologyConfig.second, postData, "api/getTopology");
+        topologyConfig.second->primary_controller.ip,
+        topologyConfig.second->primary_controller.api_port,
+        "api/getTopology",
+        postData);
     if (topology.nodes.empty()) {
       LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {

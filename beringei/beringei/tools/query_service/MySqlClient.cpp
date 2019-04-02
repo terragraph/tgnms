@@ -21,7 +21,7 @@
 
 DEFINE_string(mysql_url, "localhost", "mysql host");
 DEFINE_string(mysql_user, "root", "mysql user");
-DEFINE_string(mysql_pass, "", "mysql passward");
+DEFINE_string(mysql_pass, "", "mysql password");
 DEFINE_string(mysql_database, "cxl", "mysql database");
 
 using namespace facebook::terragraph::thrift;

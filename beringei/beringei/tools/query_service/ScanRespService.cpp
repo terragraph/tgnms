@@ -100,7 +100,10 @@ void ScanRespService::timerCb() {
         !topology.links.empty()) {
       const auto idRange = getScanRespIdRange(topology.name);
       ScanStatus scanStatus = apiServiceClient_->fetchApiService<ScanStatus>(
-          topologyConfig.second, folly::toJson(idRange), "api/getScanStatus");
+          topologyConfig.second->primary_controller.ip,
+          topologyConfig.second->primary_controller.api_port,
+          "api/getScanStatus",
+          folly::toJson(idRange));
       VLOG(2) << "Received " << scanStatus.scans.size()
               << " scan responses from " << topology.name;
       // if we read the max number of scans on any topology, use the shorter

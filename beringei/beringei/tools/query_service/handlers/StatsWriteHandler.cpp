@@ -149,6 +149,8 @@ void StatsWriteHandler::writeData(const query::StatsWriteRequest& request) {
 void StatsWriteHandler::onEOM() noexcept {
   auto body = body_->moveToFbString();
   query::StatsWriteRequest request;
+  query::StatsWriteResponse response;
+
   try {
     if (enableBinarySerialization_) {
       VLOG(2) << "Using Binary protocol for TypeAheadRequest"
@@ -162,10 +164,13 @@ void StatsWriteHandler::onEOM() noexcept {
     }
   } catch (const std::exception&) {
     LOG(INFO) << "Error deserializing stats_writer request";
+    response.success = false;
+    response.error = "Failed de-serializing stats_writer request";
+
     ResponseBuilder(downstream_)
         .status(500, "Internal Server Error")
         .header("Content-Type", "application/json")
-        .body("Failed de-serializing stats_writer request")
+        .body(SimpleJSONSerializer::serialize<std::string>(response))
         .sendWithEOM();
     return;
   }
@@ -178,17 +183,22 @@ void StatsWriteHandler::onEOM() noexcept {
     writeData(request);
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Unable to handle stats_writer request: " << ex.what();
+    response.success = false;
+    response.error = "Failed handling stats_writer request";
+
     ResponseBuilder(downstream_)
         .status(500, "Internal Server Error")
         .header("Content-Type", "application/json")
-        .body("Failed handling stats_writer request")
+        .body(SimpleJSONSerializer::serialize<std::string>(response))
         .sendWithEOM();
     return;
   }
+
+  response.success = true;
   ResponseBuilder(downstream_)
       .status(200, "OK")
       .header("Content-Type", "application/json")
-      .body("Success")
+      .body(SimpleJSONSerializer::serialize<std::string>(response))
       .sendWithEOM();
 }
 

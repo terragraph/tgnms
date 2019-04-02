@@ -55,4 +55,5 @@ target_link_libraries(
     Threads::Threads
 )
 
+add_subdirectory(ping_service)
 add_subdirectory(query_service)

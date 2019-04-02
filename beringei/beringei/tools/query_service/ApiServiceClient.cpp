@@ -9,13 +9,14 @@
 
 #include "ApiServiceClient.h"
 
+#include <folly/IPAddress.h>
+
 namespace facebook {
 namespace gorilla {
 
 ApiServiceClient::ApiServiceClient() {}
 
-std::string
-ApiServiceClient::formatAddress(const std::string& address) {
+std::string ApiServiceClient::formatAddress(const std::string& address) {
   try {
     auto ipAddr = folly::IPAddress(address);
     if (ipAddr.isV6()) {

@@ -22,6 +22,7 @@ set(
     Controller.thrift
     IpPrefix.thrift
     Lsdb.thrift
+    Pinger.thrift
     scans.thrift
     Stats.thrift
     Topology.thrift
