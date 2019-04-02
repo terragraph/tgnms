@@ -180,7 +180,9 @@ def validate_speed_test_pop_to_node_dict(
     return {"error": False}
 
 
-def generate_http_response(error: bool, msg: str, id: Optional[int] = None) -> object:
+def generate_http_response(
+    error: bool, msg: str, id: Optional[int] = None
+) -> HttpResponse:
     return HttpResponse(
         json.dumps(
             {"error": error, "msg": msg, "id": id}
@@ -191,7 +193,7 @@ def generate_http_response(error: bool, msg: str, id: Optional[int] = None) -> o
     )
 
 
-def get_test_run_db_obj_id(test_run_db_queue):
+def get_test_run_db_obj_id(test_run_db_queue: Any) -> None:
     try:
         return test_run_db_queue.get(block=True, timeout=10)
     except Exception as e:
@@ -199,7 +201,7 @@ def get_test_run_db_obj_id(test_run_db_queue):
         return None
 
 
-def serialize_to_json(obj) -> str:
+def serialize_to_json(obj: object) -> str:
     trans = TTransport.TMemoryBuffer()
     prot = TSimpleJSONProtocolFactory().getProtocol(trans)
     obj.write(prot)

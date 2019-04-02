@@ -3,9 +3,12 @@
 
 import re
 from statistics import mean, stdev
+from typing import Any, Dict, List
 
 
-def process_iperf_response_bidirectional(response, expected_num_of_intervals):
+def process_iperf_response_bidirectional(
+    response: Dict[str, Any], expected_num_of_intervals: int
+) -> Dict[str, List[int]]:
     iperf_stats = {}
     iperf_throughput_data = []
     iperf_lost_data_percent = []
@@ -41,10 +44,11 @@ def process_iperf_response_bidirectional(response, expected_num_of_intervals):
     iperf_stats["lost_data"] = iperf_lost_data_percent
     iperf_stats["jitter"] = iperf_jitter
     iperf_stats["link_error"] = iperf_link_error
+
     return iperf_stats
 
 
-def get_all_stats(input_list):
+def get_all_stats(input_list: List[int]) -> Dict[str, Any]:
     detail_dict = {}
 
     try:
@@ -62,7 +66,9 @@ def get_all_stats(input_list):
     return detail_dict
 
 
-def parse_and_pack_iperf_data(input_data, expected_num_of_intervals):
+def parse_and_pack_iperf_data(
+    input_data: Dict[str, Any], expected_num_of_intervals: int
+) -> Dict[str, Dict[str, Any]]:
     return_dict = {}
     # Parse the iperf output to get the throughput values
     # jitter, link errors for each second
@@ -100,7 +106,7 @@ def parse_and_pack_iperf_data(input_data, expected_num_of_intervals):
     return return_dict
 
 
-def get_ping_statistics(ping_logs):
+def get_ping_statistics(ping_logs: str) -> Dict[str, int]:
     return_dict = {}
     ping_statistics_line = None
     try:

@@ -6,6 +6,7 @@ import queue
 import random
 import time
 from threading import Thread
+from typing import Any, Dict, List, Tuple
 
 from api.models import Tests, TrafficDirection
 from api.network_test import base
@@ -30,7 +31,7 @@ class RunSequentialTestPlan(Thread):
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
     """
 
-    def __init__(self, network_parameters, db_queue):
+    def __init__(self, network_parameters: Dict[str, Any], db_queue: Any) -> None:
         Thread.__init__(self)
         self.db_queue = db_queue
         self.network_parameters = network_parameters
@@ -43,7 +44,7 @@ class RunSequentialTestPlan(Thread):
         self.links = []
         self.interval_sec = 1
 
-    def run(self):
+    def run(self) -> None:
 
         # Configure test data using test API
         test_links_dict = self._sequential_test(self.network_parameters["topology"])
@@ -78,7 +79,9 @@ class RunSequentialTestPlan(Thread):
         )
         run_test_get_stats.start()
 
-    def _sequential_test(self, topology):
+    def _sequential_test(
+        self, topology: Dict[str, Any]
+    ) -> Dict[Tuple[str, str], Dict[str, Any]]:
         """
         Test Name: Short Term Sequential Link Health
         Test Objective:  Verify link health in the absence of self interference

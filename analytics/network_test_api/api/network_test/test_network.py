@@ -4,6 +4,7 @@
 import asyncio
 import time
 from threading import Thread
+from typing import Any, Dict
 
 from api.models import TestResult, TestRunExecution, Tests
 from api.network_test import connect_to_ctrl, listen, run_iperf, run_ping
@@ -22,7 +23,7 @@ class TestNetwork(Thread):
         * test_links_dict: dictionary of links on which iPerf/ping is to be started.
     """
 
-    def __init__(self, parameters, received_output_queue):
+    def __init__(self, parameters: Dict[str, Any], received_output_queue: Any) -> None:
         Thread.__init__(self)
         self.parameters = parameters
         self.received_output_queue = received_output_queue
@@ -44,10 +45,10 @@ class TestNetwork(Thread):
         self.current_second = 0
         self.polling_delay = 5
 
-    def run(self):
+    def run(self) -> None:
         self._test_network()
 
-    def _myget(self, link_dict, obj):
+    def _myget(self, link_dict: Dict[str, Any], obj: str) -> int:
         try:
             if obj == "iperf_object":
                 return link_dict[obj].time_sec
@@ -56,7 +57,7 @@ class TestNetwork(Thread):
         except Exception:
             return 0
 
-    def _test_network(self):
+    def _test_network(self) -> None:
 
         # connect to controller
         get_socket = connect_to_ctrl.ConnectToController(
@@ -218,25 +219,25 @@ class TestNetwork(Thread):
 class IperfObj:
     def __init__(
         self,
-        link_name,
-        src_node_name,
-        dst_node_name,
-        src_node_id,
-        dst_node_id,
-        bitrate,
-        time_sec,
-        proto,
-        interval_sec,
-        window_size,
-        mss,
-        no_delay,
-        omit_sec,
-        verbose,
-        json,
-        buffer_length,
-        format,
-        use_link_local,
-    ):
+        link_name: str,
+        src_node_name: str,
+        dst_node_name: str,
+        src_node_id: str,
+        dst_node_id: str,
+        bitrate: int,
+        time_sec: int,
+        proto: str,
+        interval_sec: int,
+        window_size: int,
+        mss: int,
+        no_delay: bool,
+        omit_sec: int,
+        verbose: bool,
+        json: bool,
+        buffer_length: int,
+        format: int,
+        use_link_local: bool,
+    ) -> None:
         self.link_name = link_name
         self.src_node_name = src_node_name
         self.dst_node_name = dst_node_name
@@ -262,19 +263,19 @@ class IperfObj:
 class PingObj:
     def __init__(
         self,
-        link_name,
-        src_node_name,
-        dst_node_name,
-        src_node_id,
-        dst_node_id,
-        count,
-        interval,
-        packet_size,
-        verbose,
-        deadline,
-        timeout,
-        use_link_local,
-    ):
+        link_name: str,
+        src_node_name: str,
+        dst_node_name: str,
+        src_node_id: str,
+        dst_node_id: str,
+        count: int,
+        interval: int,
+        packet_size: int,
+        verbose: bool,
+        deadline: int,
+        timeout: int,
+        use_link_local: bool,
+    ) -> None:
         self.link_name = link_name
         self.src_node_name = src_node_name
         self.dst_node_name = dst_node_name

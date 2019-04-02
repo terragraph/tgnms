@@ -12,6 +12,7 @@ from api.network_test import (
     run_parallel_test_plan,
     run_sequential_test_plan,
 )
+from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from module.mysql_db_access import MySqlDbAccess
@@ -19,7 +20,7 @@ from terragraph_thrift.network_test import ttypes as network_ttypes
 
 
 @csrf_exempt
-def start_test(request):
+def start_test(request: WSGIRequest) -> HttpResponse:
     """
     This function returns json object which have 'error' and 'msg' key.
     If the test is already running or any exception occurred then the
@@ -168,7 +169,7 @@ def start_test(request):
 
 
 @csrf_exempt
-def stop_test(request):
+def stop_test(request: WSGIRequest) -> HttpResponse:
     """
     This function returns json object which have 'error' and 'msg' key.
     """
@@ -193,7 +194,7 @@ def stop_test(request):
 
 
 @csrf_exempt
-def help(request):
+def help(request: WSGIRequest) -> HttpResponse:
     """
     This function returns json object which has the Network Test API information
     """

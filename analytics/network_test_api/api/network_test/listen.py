@@ -6,12 +6,14 @@ import logging
 import queue
 import time
 from threading import Thread, currentThread
+from typing import Any, Dict
 
 import zmq
 from api.models import TestResult, TestRunExecution, TestStatus
 from api.network_test import base, iperf_ping_analyze, run_iperf, run_ping
 from django.db import transaction
 from terragraph_thrift.Controller import ttypes as ctrl_types
+from zmq.sugar.socket import Socket
 
 
 _log = logging.getLogger(__name__)
@@ -32,13 +34,13 @@ class RecvFromCtrl(base.Base):
 
     def __init__(
         self,
-        _ctrl_sock,
-        zmq_identifier,
-        expected_number_of_responses,
-        recv_timeout,
-        parameters,
-        received_output_queue,
-    ):
+        _ctrl_sock: Socket,
+        zmq_identifier: str,
+        expected_number_of_responses: int,
+        recv_timeout: int,
+        parameters: Dict[str, Any],
+        received_output_queue: Any,
+    ) -> None:
         super().__init__(_ctrl_sock, zmq_identifier)
         self.ctrl_sock = _ctrl_sock
         self.zmq_identifier = zmq_identifier
@@ -56,7 +58,7 @@ class RecvFromCtrl(base.Base):
         self.test_aborted = False
         self.test_aborted_queue = queue.Queue()
 
-    def _get_recv_obj(self, msg_type, actual_sender_app):
+    def _get_recv_obj(self, msg_type: int, actual_sender_app: str) -> object:
         msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES.get(msg_type, "UNKNOWN")
         if msg_type == ctrl_types.MessageType.START_PING_RESP:
             _log.info("\nReceived {} from : {}".format(msg_type_str, actual_sender_app))
@@ -81,7 +83,7 @@ class RecvFromCtrl(base.Base):
             _log.info("\nReceived {} from : {}".format(msg_type_str, actual_sender_app))
             self._my_exit(False, error_msg="Unexpected response from Ctrl")
 
-    def _process_output(self, msg_type, msg_data):
+    def _process_output(self, msg_type: int, msg_data: object) -> None:
         if msg_type == ctrl_types.MessageType.PING_OUTPUT:
             _log.info("\nReceived output:\n{}".format(msg_data.output))
             source_node = msg_data.startPing.pingConfig.srcNodeId
@@ -155,7 +157,9 @@ class RecvFromCtrl(base.Base):
         elif msg_type == ctrl_types.MessageType.E2E_ACK:
             _log.info("\nReceived output from E2E_ACK:\n{}".format(msg_data.message))
 
-    def _log_failed_iperf_to_mysql(self, source_node, destination_node, iperf_data):
+    def _log_failed_iperf_to_mysql(
+        self, source_node: str, destination_node: str, iperf_data: object
+    ) -> None:
         # remove start_iperf_id for the failed link from the list
         try:
             self.start_iperf_ids.remove(iperf_data.startIperf.id)
@@ -173,13 +177,13 @@ class RecvFromCtrl(base.Base):
                     link_db_obj.status = TestStatus.FAILED.value
                     link_db_obj.save()
 
-    def _strip_ping_output(self, ping_output):
+    def _strip_ping_output(self, ping_output: str) -> str:
         if "Address unreachable" in ping_output:
             return ""
         else:
             return ping_output
 
-    def _parse_iperf_output(self, iperf_output):
+    def _parse_iperf_output(self, iperf_output: Dict[str, Any]) -> Any:
         try:
             parsed_iperf_output_dict = json.loads(iperf_output)
         except json.decoder.JSONDecodeError:
@@ -196,12 +200,18 @@ class RecvFromCtrl(base.Base):
         else:
             return parsed_iperf_output_dict
 
-    def _get_link(self, source_node, destination_node):
+    def _get_link(self, source_node: str, destination_node: str) -> Any:
         return self.parameters["test_links_dict"].get(
             (source_node, destination_node), None
         )
 
-    def _log_to_mysql(self, source_node, destination_node, stats, is_iperf):
+    def _log_to_mysql(
+        self,
+        source_node: str,
+        destination_node: str,
+        stats: Dict[str, Any],
+        is_iperf: bool,
+    ) -> None:
         if is_iperf:
             link = self._get_link(source_node, destination_node)
             if link is not None and stats:
@@ -256,7 +266,7 @@ class RecvFromCtrl(base.Base):
                         link_db_obj.ping_output_blob = self.parsed_ping_data
                         link_db_obj.save()
 
-    def _stop_iperf_ping(self):
+    def _stop_iperf_ping(self) -> None:
         self.iperf_obj = run_iperf.RunIperf(self.ctrl_sock, self.zmq_identifier)
         self.ping_obj = run_ping.RunPing(self.ctrl_sock, self.zmq_identifier)
         # send stop iperf requests to the Ctrl
@@ -265,9 +275,8 @@ class RecvFromCtrl(base.Base):
         # send stop ping requests to the Ctrl
         for ping_id in self.start_ping_ids:
             self.ping_obj._stop_ping(ping_id)
-        return
 
-    def _listen_on_socket(self):
+    def _listen_on_socket(self) -> None:
 
         # spawn a thread to check if test is aborted
         test_aborted_obj = CheckAbortStatus(
@@ -349,13 +358,13 @@ class RecvFromCtrl(base.Base):
 class Listen(Thread):
     def __init__(
         self,
-        socket,
-        zmq_identifier,
-        expt_num_of_resp,
-        duration,
-        parameters,
-        received_output_queue,
-    ):
+        socket: Socket,
+        zmq_identifier: str,
+        expt_num_of_resp: int,
+        duration: int,
+        parameters: Dict[str, Any],
+        received_output_queue: Any,
+    ) -> None:
         Thread.__init__(self)
         self.socket = socket
         self.zmq_identifier = zmq_identifier
@@ -364,7 +373,7 @@ class Listen(Thread):
         self.parameters = parameters
         self.received_output_queue = received_output_queue
 
-    def run(self):
+    def run(self) -> None:
         listen_obj = RecvFromCtrl(
             self.socket,
             self.zmq_identifier,
@@ -377,7 +386,13 @@ class Listen(Thread):
 
 
 class CheckAbortStatus(Thread):
-    def __init__(self, test_aborted_queue, recv_timeout, parameters, listen_thread):
+    def __init__(
+        self,
+        test_aborted_queue: Any,
+        recv_timeout: int,
+        parameters: Dict[str, Any],
+        listen_thread: Listen,
+    ) -> None:
         Thread.__init__(self)
         self.test_aborted_queue = test_aborted_queue
         self.recv_timeout = recv_timeout
@@ -385,7 +400,7 @@ class CheckAbortStatus(Thread):
         self.listen_thread = listen_thread
         self.db_fail_count = 0
 
-    def run(self):
+    def run(self) -> None:
         # check if test is aborted in db
 
         while time.time() < self.recv_timeout and self.listen_thread.is_alive():

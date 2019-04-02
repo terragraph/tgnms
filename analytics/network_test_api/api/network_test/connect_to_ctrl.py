@@ -4,8 +4,10 @@
 import logging
 import random
 import sys
+from typing import Optional, Tuple
 
 import zmq
+from zmq.sugar.socket import Socket
 
 
 _log = logging.getLogger(__name__)
@@ -18,14 +20,16 @@ class ConnectToController:
         * controller_port: Port address of the E2E Controller
     """
 
-    def __init__(self, controller_addr, controller_port):
+    def __init__(self, controller_addr: str, controller_port: str) -> None:
         self._controller_addr = controller_addr
         self._controller_port = controller_port
         self._context = zmq.Context()
         self._ctrl_sock = None
         self._MYID = "p2p_traffic_id_" + str(random.randint(0, 65535))
 
-    def _connect_to_controller(self, send_timeout=4000):
+    def _connect_to_controller(
+        self, send_timeout: Optional[int] = 4000
+    ) -> Tuple[Socket, str]:
         # prepare socket
         self._ctrl_sock = self._context.socket(zmq.DEALER)
         self._ctrl_sock.SNDTIMEO = send_timeout  # ms

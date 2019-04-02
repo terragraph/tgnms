@@ -3,6 +3,7 @@
 
 import logging
 import sys
+from typing import Any, Dict, List, Optional, Tuple
 
 import zmq
 from api.models import TestResult, TestRunExecution, TestStatus, TrafficDirection
@@ -10,9 +11,11 @@ from django.db import transaction
 from django.utils import timezone
 from module.beringei_time_series import TimeSeries
 from module.insights import link_health
+from module.routing import RoutesForNode
 from terragraph_thrift.Controller import ttypes as ctrl_types
 from thrift.protocol.TCompactProtocol import TCompactProtocolAcceleratedFactory
 from thrift.TSerialization import deserialize, serialize
+from zmq.sugar.socket import Socket
 
 
 _log = logging.getLogger(__name__)
@@ -20,20 +23,27 @@ logging.basicConfig(level=logging.INFO)
 
 
 class Base:
-    def __init__(self, _ctrl_sock, zmq_identifier):
+    def __init__(self, _ctrl_sock: Socket, zmq_identifier: str) -> None:
         self._ctrl_sock = _ctrl_sock
         self._TRAFFIC_APP_CTRL_ID = "ctrl-app-TRAFFIC_APP"
         self._MYID = zmq_identifier
 
-    def _deserialize(self, in_byte_array, out_thrift_struct):
+    def _deserialize(self, in_byte_array: object, out_thrift_struct: object) -> None:
         deserialize(
             out_thrift_struct, in_byte_array, TCompactProtocolAcceleratedFactory()
         )
 
-    def _serialize(self, in_thrift_struct):
+    def _serialize(self, in_thrift_struct: object) -> bytes:
         return serialize(in_thrift_struct, TCompactProtocolAcceleratedFactory())
 
-    def _send_to_ctrl(self, msg_type, msg_data, receiver_app, type, minion=""):
+    def _send_to_ctrl(
+        self,
+        msg_type: int,
+        msg_data: object,
+        receiver_app: str,
+        type: str,
+        minion: Optional[str] = "",
+    ) -> None:
         _log.info("\nSending {} request...".format(type))
         msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES.get(msg_type, "UNKNOWN")
 
@@ -48,7 +58,13 @@ class Base:
         except Exception as ex:
             self._my_exit(False, "Failed to send {}; {}".format(msg_type_str, ex))
 
-    def _my_exit(self, success, error_msg="", operation=None, test_aborted=False):
+    def _my_exit(
+        self,
+        success: bool,
+        error_msg: Optional[str] = "",
+        operation: Optional[Any] = None,
+        test_aborted: Optional[bool] = False,
+    ) -> None:
         # Mark the test as finished as all iPerf sessions are over
         try:
             test_run_obj = TestRunExecution.objects.get(
@@ -80,14 +96,14 @@ class Base:
 class RunTestGetStats:
     def __init__(
         self,
-        test_name,
-        test_nw_thread_obj,
-        topology_name,
-        parameters,
-        received_output_queue,
-        start_time,
-        session_duration,
-    ):
+        test_name: str,
+        test_nw_thread_obj: object,
+        topology_name: str,
+        parameters: Dict[str, Any],
+        received_output_queue: Any,
+        start_time: int,
+        session_duration: int,
+    ) -> None:
         self.test_name = test_name
         self.test_nw_thread_obj = test_nw_thread_obj
         self.topology_name = topology_name
@@ -96,8 +112,7 @@ class RunTestGetStats:
         self.start_time = start_time
         self.session_duration = session_duration
 
-    def start(self):
-
+    def start(self) -> None:
         # get analytics stats for links whose iperf data is received from the controller
         self._log_stats_for_received_links(test_nw=self.test_nw_thread_obj)
 
@@ -107,7 +122,7 @@ class RunTestGetStats:
         # Mark the end time of the test in db
         self._log_test_end_time()
 
-    def _log_stats_for_received_links(self, test_nw):
+    def _log_stats_for_received_links(self, test_nw: object) -> None:
         while test_nw.is_alive():
             if not self.received_output_queue.empty():
                 received_output = self.received_output_queue.get()
@@ -124,7 +139,9 @@ class RunTestGetStats:
                     # get analytics stats
                     self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node, rcvd_stats)
 
-    def _db_stats_wrapper(self, rcvd_src_node, rcvd_dest_node, rcvd_stats):
+    def _db_stats_wrapper(
+        self, rcvd_src_node: str, rcvd_dest_node: str, rcvd_stats: Dict[str, Any]
+    ) -> None:
         _log.info("\nWriting Analytics stats to the db:")
         link = self._get_link(rcvd_src_node, rcvd_dest_node)
         link_start_time = self.start_time + link["start_delay"]
@@ -145,8 +162,13 @@ class RunTestGetStats:
         )
 
     def _time_series_lists(
-        self, src_node_id, dst_node_id, start_time, end_time, iperf_throughput_mean
-    ):
+        self,
+        src_node_id: str,
+        dst_node_id: str,
+        start_time: int,
+        end_time: int,
+        iperf_throughput_mean: int,
+    ) -> Tuple[List[TimeSeries], List[TimeSeries]]:
         links_time_series_list = []
         iperf_time_series_list = []
 
@@ -189,7 +211,7 @@ class RunTestGetStats:
             ]
         return links_time_series_list, iperf_time_series_list
 
-    def _write_analytics_stats_to_db(self, analytics_stats):
+    def _write_analytics_stats_to_db(self, analytics_stats: List[TimeSeries]) -> None:
         # analytics_stats is list of Beringei TimeSeries objects
         for stats in analytics_stats:
             link = self._get_link(stats.src_mac, stats.peer_mac)
@@ -200,12 +222,12 @@ class RunTestGetStats:
                         setattr(link_db_obj, stats.name, stats.values[0])
                         link_db_obj.save()
 
-    def _get_link(self, source_node, destination_node):
+    def _get_link(self, source_node: str, destination_node: str) -> Any:
         return self.parameters["test_links_dict"].get(
             (source_node, destination_node), None
         )
 
-    def _log_test_end_time(self):
+    def _log_test_end_time(self) -> TestRunExecution:
         try:
             test_run_obj = TestRunExecution.objects.get(
                 pk=int(self.parameters["test_run_id"])
@@ -216,14 +238,15 @@ class RunTestGetStats:
             if self.test_name == "PARALLEL_LINK_TEST":
                 for src_node_id, dst_node_id in self.parameters["test_links_dict"]:
                     self._log_test_end_time_for_link(
-                        source_node=src_node_id,
-                        destination_node=dst_node_id,
+                        source_node=src_node_id, destination_node=dst_node_id
                     )
                 return test_run_obj
         except Exception as ex:
             _log.error("\nError setting end_date of the test: {}".format(ex))
 
-    def _log_test_end_time_for_link(self, source_node, destination_node):
+    def _log_test_end_time_for_link(
+        self, source_node: str, destination_node: str
+    ) -> None:
         link = self._get_link(source_node, destination_node)
         if link is not None:
             link_db_obj = TestResult.objects.filter(id=link["id"]).first()
@@ -236,7 +259,11 @@ class RunTestGetStats:
 # functions common across tests #
 
 
-def _create_db_test_records(network_parameters, test_links_dict, db_queue):
+def _create_db_test_records(
+    network_parameters: Dict[str, Any],
+    test_links_dict: Dict[Tuple[str, str], Dict[str, Any]],
+    db_queue: Any,
+) -> TestRunExecution:
     with transaction.atomic():
         test_run_db_obj = TestRunExecution.objects.create(
             status=TestStatus.RUNNING.value,
@@ -266,7 +293,9 @@ def _create_db_test_records(network_parameters, test_links_dict, db_queue):
         return test_run_db_obj
 
 
-def _get_mac_list(direction, a_node_mac, z_node_mac):
+def _get_mac_list(
+    direction: int, a_node_mac: str, z_node_mac: str
+) -> List[Dict[str, str]]:
     if direction == TrafficDirection.BIDIRECTIONAL.value:
         mac_list = [
             {"src_node_mac": a_node_mac, "dst_node_mac": z_node_mac},
@@ -280,7 +309,11 @@ def _get_mac_list(direction, a_node_mac, z_node_mac):
 
 
 def _get_parameters(
-    network_parameters, test_run_db_obj, test_links_dict, interval_sec, network_hop_info=None
+    network_parameters: Dict[str, Any],
+    test_run_db_obj: TestRunExecution,
+    test_links_dict: Dict[Tuple[str, str], Dict[str, Any]],
+    interval_sec: int,
+    network_hop_info: Optional[List[RoutesForNode]] = None,
 ):
     return {
         "controller_addr": network_parameters["controller_addr"],

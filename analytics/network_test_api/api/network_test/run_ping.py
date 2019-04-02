@@ -4,10 +4,11 @@
 
 from api.network_test import base
 from terragraph_thrift.Controller import ttypes as ctrl_types
+from zmq.sugar.socket import Socket
 
 
 class RunPing(base.Base):
-    def __init__(self, _ctrl_sock, zmq_identifier):
+    def __init__(self, _ctrl_sock: Socket, zmq_identifier: str) -> None:
         super().__init__(_ctrl_sock, zmq_identifier)
 
     """
@@ -26,16 +27,16 @@ class RunPing(base.Base):
 
     def _config_ping(
         self,
-        src_node_id,
-        dst_node_id,
-        count,
-        interval,
-        packet_size,
-        verbose,
-        deadline,
-        timeout,
-        use_link_local,
-    ):
+        src_node_id: str,
+        dst_node_id: str,
+        count: int,
+        interval: int,
+        packet_size: int,
+        verbose: bool,
+        deadline: int,
+        timeout: int,
+        use_link_local: bool,
+    ) -> None:
 
         # send request
         options = ctrl_types.PingOptions(
@@ -59,7 +60,7 @@ class RunPing(base.Base):
             type="Ping",
         )
 
-    def _stop_ping(self, id):
+    def _stop_ping(self, id: int) -> None:
         self._send_to_ctrl(
             ctrl_types.MessageType.STOP_PING,
             ctrl_types.StopPing(id),

@@ -7,10 +7,11 @@ import queue
 import random
 import time
 from threading import Thread
+from typing import Any, Dict, List, Tuple
 
 from api.network_test import base
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
-from module.routing import get_routes_for_nodes
+from module.routing import RoutesForNode, get_routes_for_nodes
 
 
 class RunMultiHopTestPlan(Thread):
@@ -39,7 +40,7 @@ class RunMultiHopTestPlan(Thread):
         * direction: one of: bidirectional, POP -> node, node -> POP
 """
 
-    def __init__(self, network_parameters, db_queue):
+    def __init__(self, network_parameters: Dict[str, Any], db_queue: Any) -> None:
         Thread.__init__(self)
         self.db_queue = db_queue
         self.network_parameters = network_parameters
@@ -51,7 +52,7 @@ class RunMultiHopTestPlan(Thread):
         self.network_hop_info = None
         self.interval_sec = 1
 
-    def run(self):
+    def run(self) -> None:
 
         # Get Network Hop information
         asyncio.set_event_loop(asyncio.new_event_loop())
@@ -100,7 +101,9 @@ class RunMultiHopTestPlan(Thread):
         )
         run_test_get_stats.start()
 
-    def _get_pop_to_node_links(self, network_hop_info):
+    def _get_pop_to_node_links(
+        self, network_hop_info: List[RoutesForNode]
+    ) -> List[Dict[str, Any]]:
         pop_to_node_links = []
         parallel_sessions_count = 0
         start_delay = 0
@@ -135,7 +138,9 @@ class RunMultiHopTestPlan(Thread):
             pop_to_node_links.append(pop_node_desc)
         return pop_to_node_links
 
-    def _multi_hop_test(self, topology, pop_to_node_links):
+    def _multi_hop_test(
+        self, topology: Dict[str, Any], pop_to_node_links: List[Dict[str, Any]]
+    ) -> Dict[Tuple[str, str], Dict[str, Any]]:
         """
         Test Name: Multi-hop Network Health
         Test Objective: Verify that all multi-hop routes are healthy

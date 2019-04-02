@@ -7,10 +7,12 @@ import random
 import time
 from collections import defaultdict
 from threading import Thread
+from typing import Any, Dict, List, Tuple
 
 from api.models import Tests, TestStatus, TrafficDirection
 from api.network_test import base
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
+from module.beringei_time_series import TimeSeries
 from module.insights import link_health
 
 
@@ -36,7 +38,7 @@ class RunParallelTestPlan(Thread):
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
     """
 
-    def __init__(self, network_parameters, db_queue):
+    def __init__(self, network_parameters: Dict[str, Any], db_queue: Any) -> None:
         Thread.__init__(self)
         self.db_queue = db_queue
         self.network_parameters = network_parameters
@@ -51,7 +53,7 @@ class RunParallelTestPlan(Thread):
         self.topology_sector_info = defaultdict(int)
         self.interval_sec = 1
 
-    def run(self):
+    def run(self) -> None:
 
         # get topology sector information
         self._get_topology_sector_info()
@@ -135,15 +137,14 @@ class RunParallelTestPlan(Thread):
                     )
                 )
 
-    def _get_time_series_lists(self):
+    def _get_time_series_lists(self) -> Tuple[List[TimeSeries], List[TimeSeries]]:
         links_time_series = []
         iperf_time_series = []
 
         for src_node_id, dst_node_id in self.parameters["test_links_dict"]:
             # get link
             link = self.run_test_get_stats._get_link(
-                source_node=src_node_id,
-                destination_node=dst_node_id,
+                source_node=src_node_id, destination_node=dst_node_id
             )
             if link is not None:
                 # get link and iperf TimeSeries objects
@@ -163,13 +164,16 @@ class RunParallelTestPlan(Thread):
 
         return links_time_series, iperf_time_series
 
-    def _get_topology_sector_info(self):
+    def _get_topology_sector_info(self) -> None:
         for link in self.network_parameters["topology"]["links"]:
             if link["link_type"] == Tests.WIRELESS.value:
                 self.topology_sector_info[link["a_node_mac"]] += 1
                 self.topology_sector_info[link["z_node_mac"]] += 1
 
-    def _get_bitrate(self, test_push_rate, src_node_mac, dst_node_mac):
+    def _get_bitrate(
+        self, test_push_rate: int, src_node_mac: str, dst_node_mac: str
+    ) -> int:
+
         src_node_num_linked_nodes = self.topology_sector_info[src_node_mac]
         dst_node_num_linked_nodes = self.topology_sector_info[dst_node_mac]
         try:
@@ -180,7 +184,9 @@ class RunParallelTestPlan(Thread):
         except ZeroDivisionError:
             return test_push_rate
 
-    def _parallel_test(self, topology):
+    def _parallel_test(
+        self, topology: Dict[str, Any]
+    ) -> Dict[Tuple[str, str], Dict[str, Any]]:
         """
         Test Name: Short Term Parallel Link Health
         Test Objective:  Verify that all links are healthy in the possible
