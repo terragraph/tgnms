@@ -71,12 +71,7 @@ EventProcessor::computeIntervalStatus(
     } else {
       // no missing data, either UP or DOWN
       if (missingIntervals == 0) {
-        // because of time drift between FW logs and the Beringei time buckets
-        // time buckets might actually be > 30s apart so we should check
-        // also for increasing counters
-        bool timeSeriesIncreasing =
-            (i == 0 || (i > 0 && timeSeries[i] > timeSeries[i - 1]));
-        if (timeSeries[i] >= expectedStatCounterSlope && timeSeriesIncreasing) {
+        if (timeSeries[i] >= expectedStatCounterSlope) {
           // entire interval is online
           intervalStatus[i] = 1;
           slopeValue = "UP_INTERVAL";
@@ -91,21 +86,6 @@ EventProcessor::computeIntervalStatus(
               "UP_FILLED_ALL_MISSING(" + std::to_string(missingIntervals) + ")";
           std::fill_n(
               intervalStatus + i - missingIntervals, missingIntervals + 1, 1);
-
-          // If value before missing interval is greater than the predicted
-          // value starting at the beginning of the missing interval,
-          // then the link did go down.
-          // This check is only needed because the Beringei buckets
-          // are sometimes > 30s.
-          const double predictedFirstMissingValue =
-              timeSeries[i] - (missingIntervals - 1) * expectedStatCounterSlope;
-          if (((i - missingIntervals - 1) > 0) &&
-              (predictedFirstMissingValue <
-               timeSeries[i - missingIntervals - 1])) {
-            intervalStatus[i - missingIntervals] = 0;
-            slopeValue = "UP_FILLED_PARTIAL(" +
-                std::to_string(missingIntervals - 1) + ")";
-          }
         } else if (timeSeries[i] > 0) {
           int filledIntervals = (timeSeries[i] / expectedStatCounterSlope);
           std::fill_n(
