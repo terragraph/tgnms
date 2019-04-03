@@ -12,4 +12,4 @@ else
     echo "Building image and adding: ${DEV_EXTRA_PACKAGES}"
 fi
 
-docker build -t grafana:tg_grafana --build-arg "GRAFANA_VERSION=5.4.1" "DEV_EXTRA_PACKAGES=${DEV_EXTRA_PACKAGES}" .
+docker build -t grafana:tg_grafana --build-arg "DEV_EXTRA_PACKAGES=${DEV_EXTRA_PACKAGES}" .

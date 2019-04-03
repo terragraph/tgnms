@@ -1,4 +1,4 @@
-{ "dashboard" : {
+{
   "annotations": {
     "list": [
       {
@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1546467997261,
+  "iteration": 1554248195799,
   "links": [],
   "panels": [
     {
@@ -46,6 +46,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -140,6 +141,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -234,6 +236,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -328,6 +331,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -422,6 +426,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -509,6 +514,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -596,6 +602,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -683,6 +690,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -771,6 +779,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -863,6 +872,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -955,6 +965,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1044,6 +1055,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1133,6 +1145,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1232,6 +1245,7 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "paceLength": 10,
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1305,7 +1319,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 16,
+  "schemaVersion": 18,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -1313,9 +1327,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "outdoor MPK 17 F8",
-          "value": "outdoor MPK 17 F8"
+          "text": "SELECT-NETWORK",
+          "value": "SELECT-NETWORK"
         },
         "datasource": "Beringei",
         "definition": "",
@@ -1324,50 +1337,9 @@
         "label": null,
         "multi": false,
         "name": "topology",
-        "options": [
-          {
-            "selected": false,
-            "text": "Lab Alignment",
-            "value": "Lab Alignment"
-          },
-          {
-            "selected": true,
-            "text": "outdoor MPK 17 F8",
-            "value": "outdoor MPK 17 F8"
-          },
-          {
-            "selected": false,
-            "text": "tower G",
-            "value": "tower G"
-          },
-          {
-            "selected": false,
-            "text": "TowerC Floor1",
-            "value": "TowerC Floor1"
-          },
-          {
-            "selected": false,
-            "text": "tower E",
-            "value": "tower E"
-          },
-          {
-            "selected": false,
-            "text": "Lab F8 D",
-            "value": "Lab F8 D"
-          },
-          {
-            "selected": false,
-            "text": "Lab F8 B",
-            "value": "Lab F8 B"
-          },
-          {
-            "selected": false,
-            "text": "1 DN config",
-            "value": "1 DN config"
-          }
-        ],
+        "options": [],
         "query": "__bqs_topology_query",
-        "refresh": 0,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -1380,8 +1352,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "38:3a:21:b0:0d:2d",
-          "value": "38:3a:21:b0:0d:2d"
+          "text": "2c:dc:ad:2f:e9:97 (1009_PRI_1)",
+          "value": "2c:dc:ad:2f:e9:97"
         },
         "datasource": "Beringei",
         "definition": "",
@@ -1392,7 +1364,7 @@
         "name": "nodeA",
         "options": [],
         "query": "__bqs_[[topology]]",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -1405,8 +1377,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "38:3a:21:b0:0e:e9",
-          "value": "38:3a:21:b0:0e:e9"
+          "text": "2c:dc:ad:c0:df:5a (4325_SEC_1)",
+          "value": "2c:dc:ad:c0:df:5a"
         },
         "datasource": "Beringei",
         "definition": "",
@@ -1417,7 +1389,7 @@
         "name": "nodeZ",
         "options": [],
         "query": "__bqs_noderestrict_[[nodeA]]_[[topology]]",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -1460,9 +1432,6 @@
   },
   "timezone": "",
   "title": "Link Dashboard",
-  "uid": null,
-  "version": 2
-},
-"folderId" : 0,
-"overwrite" : false
+  "uid": "twtQEFqik",
+  "version": 12
 }
