@@ -578,8 +578,8 @@ int MySqlClient::writeTxScanResponse(
         "(`token`, `combined_status`, `tx_node_id`, `start_bwgd`, "
         "`scan_type`, `network`,`scan_sub_type`, `scan_mode`, "
         "`apply_flag`, `status`, `tx_power`, `resp_id`, `tx_node_name`, "
-        "`scan_resp`) VALUES "
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "`scan_resp`, `n_responses_waiting`) VALUES "
+        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         connection->prepareStatement(query));
     prep_stmt->setInt(1, scanResponse.token);
@@ -595,7 +595,15 @@ int MySqlClient::writeTxScanResponse(
     prep_stmt->setInt(11, scanResponse.txPower);
     prep_stmt->setInt(12, scanResponse.respId);
     prep_stmt->setString(13, scanResponse.txNodeName);
-    prep_stmt->setString(14, scanResponse.scanResp);
+    // If we did not receive a real tx response from this scan (as signified
+    // by a NO_TX_RESPONSE status), set the scan response to null
+    if (scanResponse.scanResp.empty()) {
+      prep_stmt->setNull(14, 0); // scanResp
+    } else {
+      prep_stmt->setString(14, scanResponse.scanResp);
+    }
+    prep_stmt->setInt(15, scanResponse.nResponsesWaiting);
+
     prep_stmt->execute();
     return MySqlOk;
   } catch (sql::SQLException& e) {
@@ -617,7 +625,13 @@ bool MySqlClient::writeRxScanResponse(
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         connection->prepareStatement(query));
     prep_stmt->setInt(1, (int32_t)scanResponse.status);
-    prep_stmt->setString(2, scanResponse.scanResp);
+    // If rx scan reponse is empty, no route info was given. Signify this by
+    // setting scanResp to NULL
+    if (scanResponse.scanResp.empty()) {
+      prep_stmt->setNull(2, 0); // scanResp
+    } else {
+      prep_stmt->setString(2, scanResponse.scanResp);
+    }
     prep_stmt->setInt(3, scanResponse.rxNodeId);
     prep_stmt->setUInt64(4, txId);
     prep_stmt->setString(5, scanResponse.rxNodeName);

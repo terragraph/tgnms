@@ -160,8 +160,7 @@ folly::Optional<std::string> ScanRespService::serializeAndCompress(
     const ScanResp& scanResp) {
   std::string serstr;
   try {
-    serstr =
-        BinarySerializer::serialize<std::string>(scanResp);
+    serstr = BinarySerializer::serialize<std::string>(scanResp);
   } catch (const std::exception& ex) {
     LOG(ERROR) << "Error serializing responses: " << folly::exceptionStr(ex);
     return folly::none;
@@ -190,36 +189,25 @@ int ScanRespService::writeData(
     }
 
     std::string txNodeName = scan.second.txNode;
-
-    // write the result only if there is a response from the transmitter and
-    // at least one receiver (the normal case)
-    int txResponseCount = 0;
-    int rxResponseCount = 0;
-    for (const auto& responses : scan.second.responses) {
-      if (responses.first.compare(txNodeName) == 0) {
-        txResponseCount++;
-      } else if (!responses.second.routeInfoList.empty()) {
-        // at least one of the receivers should have a non-empty response
-        rxResponseCount++;
-      }
-    }
-    if (!txResponseCount ||
-        (!rxResponseCount && scan.second.type != ScanType::TOPO)) {
+    if (scan.second.responses.empty()) {
       LOG(INFO) << "[" << topologyName << "] Scan with respId " << respId
-                << " skipped -- number of tx responses: " << txResponseCount
-                << " and rx responses: " << rxResponseCount;
-      continue;
+                << " has no responses";
     }
 
     scans::MySqlScanResp mySqlScanResponse{};
+    scans::MySqlScanTxResp mySqlScanTxResponse{};
+    bool hasTxResponse = false;
 
     // these fields apply to all scan responses with the same scan ID
-    scans::MySqlScanTxResp mySqlScanTxResponse{};
     // combinedStatus indicates a non-zero status (error) - we can get
     // more information by looking at the detailed scan response stored as a
     // blob in MySQL
+    int nResponsesWaiting = scan.second.__isset.nResponsesWaiting
+        ? scan.second.nResponsesWaiting
+        : 0;
     mySqlScanTxResponse.combinedStatus =
-        scan.second.__isset.nResponsesWaiting ? (1 << INCOMPLETE_RESPONSE) : 0;
+        nResponsesWaiting > 0 ? (1 << INCOMPLETE_RESPONSE) : 0;
+    mySqlScanTxResponse.nResponsesWaiting = nResponsesWaiting;
     mySqlScanTxResponse.respId = respId;
     mySqlScanTxResponse.applyFlag = scan.second.apply;
     mySqlScanTxResponse.scanType = (int16_t)scan.second.type;
@@ -240,6 +228,7 @@ int ScanRespService::writeData(
       // check if this is the tx or an rx node
       if (responses.first.compare(txNodeName) == 0) {
         // this is the tx node
+        hasTxResponse = true;
         mySqlScanTxResponse.txNodeId = *nodeId;
         mySqlScanTxResponse.status = responses.second.status;
         mySqlScanTxResponse.txPower = responses.second.txPwrIndex;
@@ -259,78 +248,82 @@ int ScanRespService::writeData(
           break;
         }
 
-        auto compressedString = serializeAndCompress(responses.second);
-        if (compressedString) {
-          mySqlScanTxResponse.scanResp = std::move(*compressedString);
-        } else {
-          mySqlScanTxResponse.scanResp = "Serialize failure in BQS";
+        // If this tx response is not from a duplicate scan, compress and
+        // serialize it
+        if (!duplicateScanResp) {
+          auto compressedString = serializeAndCompress(responses.second);
+          if (compressedString) {
+            mySqlScanTxResponse.scanResp = std::move(*compressedString);
+          } else {
+            mySqlScanTxResponse.scanResp = "Serialize failure in BQS";
+          }
         }
-
       } else { // rx node
         scans::MySqlScanRxResp mySqlScanRxResponse;
 
-        // don't write the rx response if the routeInfoList is empty
-        // e.g. in an IM scan, there can be hundreds of nodes with no response
-        // unless scan is TOPO scan
+        // if the route info list is empty, write an empty response
         if (responses.second.routeInfoList.empty() &&
             scan.second.type != ScanType::TOPO) {
-          continue;
-        }
-
-        // when we receive scan results from the controller, each route is
-        // visited multiple times in general; let's store only the average
-        // SNR for each route to save space and increase UI speed
-
-        // createXyHash creates a unique hash index for routes
-        auto createXyHash = [](const int x, const int y) {
-          return x * MAX_ROUTE_NUM + y;
-        };
-
-        // calculate the average SNR over all routes
-        ScanResp scanRespNew = responses.second; // copy
-        scanRespNew.routeInfoList.clear();
-
-        std::unordered_map<
-            int /* x,y hash */,
-            std::pair<int /* routeIndex */, int /* route visited count */>>
-            routeInfoMap;
-        int routeIndex = 0;
-
-        // if the response is empty, this loop won't run
-        for (const auto& routeInfo : responses.second.routeInfoList) {
-          const int txRoute = routeInfo.route.tx;
-          const int rxRoute = routeInfo.route.rx;
-
-          const int hash = createXyHash(txRoute, rxRoute);
-          if (routeInfoMap.find(hash) == routeInfoMap.end()) {
-            routeInfoMap[hash].first = routeIndex;
-            routeInfoMap[hash].second = 1;
-            scanRespNew.routeInfoList.push_back(routeInfo);
-            routeIndex++;
-          } else {
-            // this route (tx/rx) is already added, so average results
-            std::pair<int, int>& routeIndexAndCount = routeInfoMap[hash];
-            RouteInfo* routeInfoListAvg =
-                &scanRespNew.routeInfoList[routeIndexAndCount.first];
-            routeIndexAndCount.second++;
-            // running average
-            routeInfoListAvg->snrEst +=
-                (routeInfo.snrEst - routeInfoListAvg->snrEst) /
-                routeIndexAndCount.second;
-            routeInfoListAvg->rssi +=
-                (routeInfo.rssi - routeInfoListAvg->rssi) /
-                routeIndexAndCount.second;
-            routeInfoListAvg->postSnr +=
-                (routeInfo.postSnr - routeInfoListAvg->postSnr) /
-                routeIndexAndCount.second;
-          }
-        }
-
-        auto compressedString = serializeAndCompress(scanRespNew);
-        if (compressedString) {
-          mySqlScanRxResponse.scanResp = std::move(*compressedString);
+          LOG(INFO) << "[" << topologyName << "] Scan with respId " << respId
+                    << " rx node " << responses.first
+                    << " had an empty route info list";
+          mySqlScanRxResponse.scanResp = "";
         } else {
-          mySqlScanTxResponse.scanResp = "Serialize failure in BQS";
+          // when we receive scan results from the controller, each route is
+          // visited multiple times in general; let's store only the average
+          // SNR for each route to save space and increase UI speed
+
+          // createXyHash creates a unique hash index for routes
+          auto createXyHash = [](const int x, const int y) {
+            return x * MAX_ROUTE_NUM + y;
+          };
+
+          // calculate the average SNR over all routes
+          ScanResp scanRespNew = responses.second; // copy
+          scanRespNew.routeInfoList.clear();
+
+          std::unordered_map<
+              int /* x,y hash */,
+              std::pair<int /* routeIndex */, int /* route visited count */>>
+              routeInfoMap;
+          int routeIndex = 0;
+
+          // if the response is empty, this loop won't run
+          for (const auto& routeInfo : responses.second.routeInfoList) {
+            const int txRoute = routeInfo.route.tx;
+            const int rxRoute = routeInfo.route.rx;
+
+            const int hash = createXyHash(txRoute, rxRoute);
+            if (routeInfoMap.find(hash) == routeInfoMap.end()) {
+              routeInfoMap[hash].first = routeIndex;
+              routeInfoMap[hash].second = 1;
+              scanRespNew.routeInfoList.push_back(routeInfo);
+              routeIndex++;
+            } else {
+              // this route (tx/rx) is already added, so average results
+              std::pair<int, int>& routeIndexAndCount = routeInfoMap[hash];
+              RouteInfo* routeInfoListAvg =
+                  &scanRespNew.routeInfoList[routeIndexAndCount.first];
+              routeIndexAndCount.second++;
+              // running average
+              routeInfoListAvg->snrEst +=
+                  (routeInfo.snrEst - routeInfoListAvg->snrEst) /
+                  routeIndexAndCount.second;
+              routeInfoListAvg->rssi +=
+                  (routeInfo.rssi - routeInfoListAvg->rssi) /
+                  routeIndexAndCount.second;
+              routeInfoListAvg->postSnr +=
+                  (routeInfo.postSnr - routeInfoListAvg->postSnr) /
+                  routeIndexAndCount.second;
+            }
+          }
+
+          auto compressedString = serializeAndCompress(scanRespNew);
+          if (compressedString) {
+            mySqlScanRxResponse.scanResp = std::move(*compressedString);
+          } else {
+            mySqlScanRxResponse.scanResp = "Serialize failure in BQS";
+          }
         }
 
         mySqlScanRxResponse.status = responses.second.status;
@@ -347,6 +340,24 @@ int ScanRespService::writeData(
             ((responses.second.status != ScanFwStatus::COMPLETE) << RX_ERROR);
         mySqlScanRxResponses.push_back(mySqlScanRxResponse);
       }
+    }
+    if (!hasTxResponse) {
+      // If no tx response was present in the scan data, add a placeholder for
+      // error tracking purposes
+      auto nodeId = mySqlClient->getNodeIdFromNodeName(txNodeName);
+      if (!nodeId) {
+        LOG(ERROR) << "Error no node ID corresponding to expected tx node "
+                   << txNodeName << " for scan " << respId;
+        mySqlScanTxResponse.txNodeId = 0;
+      } else {
+        mySqlScanTxResponse.txNodeId = *nodeId;
+      }
+      mySqlScanTxResponse.txNodeName = txNodeName;
+      mySqlScanTxResponse.scanResp = "";
+      mySqlScanTxResponse.combinedStatus = 1 << TX_ERROR;
+      mySqlScanTxResponse.status = ScanFwStatus::COMPLETE;
+      mySqlScanTxResponse.network = topologyName;
+      mySqlScanTxResponse.startBwgd = 0;
     }
     if (!duplicateScanResp) {
       mySqlScanResponse.txResponse = mySqlScanTxResponse;

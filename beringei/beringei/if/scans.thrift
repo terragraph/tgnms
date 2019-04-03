@@ -33,6 +33,7 @@ struct MySqlScanTxResp {
   12: i32 respId;
   13: string txNodeName;
   14: string scanResp; // json blob containing the entire ScanResp struct
+  15: i16 nResponsesWaiting; // Number of nodes we are still expecting a response from
 }
 
 struct MySqlScanRxResp {
