@@ -107,6 +107,7 @@ target_link_libraries(
     beringei_query_service
     beringei_query_lib
     beringei_query_handlers_lib
+    beringei_query_lib
     ${FBTHRIFT_LIBRARIES}
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
