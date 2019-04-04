@@ -43,6 +43,26 @@ def fetch_network_info(
         except Exception as e:
             logging.error("Exception happened while fetching network info")
             logging.warning("Exception: {}".format(e))
+    # remove nodes, links with mac_addr == "", this is proxy for future nodes
+    topologies = [n["topology"] for _, n in networks.items()]
+    for t in topologies:
+        future_node_names = []
+        future_node_indices = []
+        future_link_indices = []
+        for i, n in enumerate(t["nodes"]):
+            if not n["mac_addr"]:
+                future_node_names.append(n["name"])
+                future_node_indices.append(i)
+        for i, l in enumerate(t["links"]):
+            if (
+                l["a_node_name"] in future_node_names
+                or l["z_node_name"] in future_node_names
+            ):
+                future_link_indices.append(i)
+        for i in reversed(future_node_indices):
+            t["nodes"].pop(i)
+        for i in reversed(future_link_indices):
+            t["links"].pop(i)
 
     return networks
 
