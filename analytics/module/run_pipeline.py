@@ -4,8 +4,6 @@
 Use the JobScheduler class to run insights pipeline
 """
 
-import sys
-import os
 import logging
 import time
 

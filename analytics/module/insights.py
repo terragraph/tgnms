@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import logging
 import time
 from typing import Dict, List
@@ -8,7 +9,8 @@ import module.numpy_operations as npo
 import numpy as np
 from facebook.gorilla.Topology.ttypes import LinkType
 from module.numpy_time_series import NumpyLinkTimeSeries, NumpyTimeSeries, StatType
-from module.topology_handler import fetch_network_info
+from module.path_store import PathStore
+from module.topology_handler import fetch_network_info, restart_minion
 from module.visibility import write_power_status
 
 
@@ -138,13 +140,16 @@ def get_linkup_attempts_from_topology(network_info: dict) -> dict:
 
 
 # global variable
-_up_down = []
+_up_down = {}
+_last_up_down = {}
 
 
 # detects an event where the link goes down and fails to restart
 # for unknown reasons
 # characterized by link is trying to ignite but failing
-# when event triggers, we increment up_down counter
+# when event triggers, increment up_down counter and restart minion
+# white list contains list of links to enable ("all" to use all)
+# exclude links on the black list
 def detect_ignition_failure(
     current_time: int,
     window: int,
@@ -152,17 +157,19 @@ def detect_ignition_failure(
     write_interval: int,
     network_info: dict,
     lu_att: dict,
+    restart_minion_white_list: dict,
+    restart_minion_black_list: dict,
 ) -> dict:
 
     global _up_down
+    global _last_up_down
 
     if not network_info:
         logging.error("network_info is empty - returning")
-        return
+        return {}
 
-    topologies = [n["topology"] for _, n in network_info.items()]
     lu_att["0"] = get_linkup_attempts_from_topology(network_info)
-    if not lu_att["-2"]:
+    if not lu_att.get("-2", {}) or not lu_att.get("-1", {}):
         logging.debug("startup: lu_att is not yet filled")
         return lu_att
 
@@ -178,17 +185,20 @@ def detect_ignition_failure(
 
     mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
     nts_link_names = nts.get_link_names()
+    nts_node_names = nts.get_node_names_per_link()
     num_dir = nts.NUM_DIR
-
-    # initialize _up_down
-    if len(_up_down) == 0:
-        _up_down = [{} for _ in range(k["num_topologies"])]
 
     failure_detected = False
     up_down = []
-    for ti, t in enumerate(topologies):
+    ti = -1
+    for _, n in network_info.items():
+        ti += 1
+        t = n["topology"]
+        topo_name = t["name"]
         num_links = k[ti]["num_links"]
         up_down.append(npo.nan_arr((num_links, num_dir, 1)))
+        white_list = restart_minion_white_list.get(topo_name, [])
+        black_list = restart_minion_black_list.get(topo_name, [])
         for li in range(num_links):
             link_name = nts_link_names[ti][li]
             up_down_link = [0, 0]
@@ -196,16 +206,28 @@ def detect_ignition_failure(
                 cond1 = npo.detect_up_then_down_1d(
                     mgmt_link_up[ti][li, di, :], read_interval
                 )
-                cond2 = lu_att["0"][(ti, link_name)] - lu_att["-1"][(ti, link_name)] > 0
-                cond3 = (
-                    lu_att["-1"][(ti, link_name)] - lu_att["-2"][(ti, link_name)] > 0
-                )
+                cond2 = False
+                cond3 = False
+                # it is possible that (ti, link_name) is not in the list
+                # if a new link is added between topology reads
+                if (
+                    (ti, link_name) in lu_att["0"]
+                    and (ti, link_name) in lu_att["-1"]
+                    and (ti, link_name) in lu_att["-2"]
+                ):
+                    cond2 = (
+                        lu_att["0"][(ti, link_name)] - lu_att["-1"][(ti, link_name)] > 0
+                    )
+                    cond3 = (
+                        lu_att["-1"][(ti, link_name)] - lu_att["-2"][(ti, link_name)]
+                        > 0
+                    )
                 up_down_link[di] = cond1 and cond2 and cond3
 
                 if cond1 or (cond2 and cond3):
-                    logging.debug(
+                    logging.info(
                         "{}::{}, up_then_down {}, link_up_attemps {}:{}".format(
-                            t["name"], link_name, cond1, cond2, cond3
+                            topo_name, link_name, cond1, cond2, cond3
                         )
                     )
                     logging.debug(mgmt_link_up[ti][li, di, :])
@@ -216,16 +238,42 @@ def detect_ignition_failure(
 
             # write the stat for both directions, we don't have a stat
             # type that applies to a link - only to a link per direction
-            if link_name not in _up_down[ti]:
-                _up_down[ti][link_name] = 0
-            _up_down[ti][link_name] += up_down_link[0]
-            up_down[ti][li, 0, 0] = _up_down[ti][link_name]
-            up_down[ti][li, 1, 0] = _up_down[ti][link_name]
-            if up_down_link[0]:
+            if topo_name not in _up_down:
+                _up_down[topo_name] = {}
+            if link_name not in _up_down[topo_name]:
+                _up_down[topo_name][link_name] = 0
+            _up_down[topo_name][link_name] += up_down_link[0]
+            up_down[ti][li, 0, 0] = _up_down[topo_name][link_name]
+            up_down[ti][li, 1, 0] = _up_down[topo_name][link_name]
+            if up_down_link[0] or (link_name in white_list and "test" in white_list):
                 failure_detected = True
+                if (link_name in white_list or "all" in white_list) and (
+                    link_name not in black_list
+                ):
+                    if topo_name not in _last_up_down:
+                        _last_up_down[topo_name] = {}
+                    if link_name not in _last_up_down[topo_name]:
+                        _last_up_down[topo_name][link_name] = 0
+                    if current_time - _last_up_down[topo_name][link_name] > 15 * 60:
+                        # if more than 15 minutes since last minion restart
+                        # restart minion and reset timer
+
+                        # the node watchdog will restart minion on the node if
+                        # it loses contact with the firmware for >15mn or if no
+                        # RF link forms within 15mn; the 15mn timer here is a
+                        # back-off timer to prevent fast, back-to-back restarts
+                        restart_minion(
+                            n["api_ip"], n["api_port"], nts_node_names[ti][li], 1
+                        )
+                        _last_up_down[topo_name][link_name] = current_time
+                        logging.error(
+                            "Minion restart event {}::{} at time {}".format(
+                                topo_name, link_name, current_time
+                            )
+                        )
                 logging.info(
                     "Link ignition failure event detected {}::{}".format(
-                        t["name"], link_name
+                        topo_name, link_name
                     )
                 )
 
@@ -449,16 +497,14 @@ def misc_insights(
 
 
 lu_att = {}
-lu_att["-1"] = {}
-lu_att["0"] = {}
 
 
 def generate_insights():
     current_time = int(time.time())
     network_info = fetch_network_info()
     global lu_att
-    lu_att["-2"] = lu_att["-1"]
-    lu_att["-1"] = lu_att["0"]
+    lu_att["-2"] = lu_att.get("-1", {})
+    lu_att["-1"] = lu_att.get("0", {})
     # max time to reach 30s_db is 60s
     # max time to reach 1s_db is 2s
     # add few seconds margin for latency from node to nms
@@ -467,36 +513,85 @@ def generate_insights():
     OFFSET_1S_DB = 10
     if current_time % 30 == 0:
         # Runs every 30s
-        write_power_status(
-            current_time=current_time - OFFSET_30S_DB,
-            window=900,
-            read_interval=30,
-            write_interval=30,
-            network_info=network_info,
-        )
-        misc_insights(
-            current_time=current_time - OFFSET_1S_DB,
-            window=30,
-            read_interval=1,
-            write_interval=30,
-            network_info=network_info,
-        )
-        uptime_insights(
-            current_time=current_time - OFFSET_30S_DB,
-            window=30,
-            read_interval=30,
-            write_interval=30,
-            network_info=network_info,
-        )
-        link_health_insights(
-            current_time=current_time - OFFSET_1S_DB,
-            window=900,
-            read_interval=1,
-            write_interval=30,
-            network_info=network_info,
-        )
-        # run this pipeline in Jupyter, not in analytics
-        if False:
+        try:
+            with open(PathStore.ANALYTICS_CONFIG_FILE) as local_file:
+                analytics_config = json.load(local_file)
+        except Exception:
+            logging.error("Cannot find the configuration file")
+            return None
+
+        try:
+            enable_30s = analytics_config["insights_pipelines_30s"]["enabled"]
+            wps_enabled = (
+                analytics_config["insights_pipelines_30s"]["write_power_status"][
+                    "enabled"
+                ]
+                and enable_30s
+            )
+            mi_enabled = (
+                analytics_config["insights_pipelines_30s"]["misc_insights"]["enabled"]
+                and enable_30s
+            )
+            ui_enabled = (
+                analytics_config["insights_pipelines_30s"]["uptime_insights"]["enabled"]
+                and enable_30s
+            )
+            lhi_enabled = (
+                analytics_config["insights_pipelines_30s"]["link_health_insights"][
+                    "enabled"
+                ]
+                and enable_30s
+            )
+            dif_enabled = (
+                analytics_config["insights_pipelines_30s"]["detect_ignition_failure"][
+                    "enabled"
+                ]
+                and enable_30s
+            )
+            dif_links_white_list = analytics_config["insights_pipelines_30s"][
+                "detect_ignition_failure"
+            ]["minion_restart_links_white_list"]
+            dif_links_black_list = analytics_config["insights_pipelines_30s"][
+                "detect_ignition_failure"
+            ]["minion_restart_links_black_list"]
+        except Exception:
+            logging.error("Problem reading configuration file -- returning")
+            return
+
+        if wps_enabled:
+            write_power_status(
+                current_time=current_time - OFFSET_30S_DB,
+                window=900,
+                read_interval=30,
+                write_interval=30,
+                network_info=network_info,
+            )
+        if mi_enabled:
+            misc_insights(
+                current_time=current_time - OFFSET_1S_DB,
+                window=30,
+                read_interval=1,
+                write_interval=30,
+                network_info=network_info,
+            )
+        if ui_enabled:
+            uptime_insights(
+                current_time=current_time - OFFSET_30S_DB,
+                window=30,
+                read_interval=30,
+                write_interval=30,
+                network_info=network_info,
+            )
+        if lhi_enabled:
+            link_health_insights(
+                current_time=current_time - OFFSET_1S_DB,
+                window=900,
+                read_interval=1,
+                write_interval=30,
+                network_info=network_info,
+            )
+        if dif_enabled:
+            logging.debug("detect_ignition_failure running")
             lu_att = detect_ignition_failure(
                 current_time=current_time - OFFSET_30S_DB,
                 window=240,
@@ -504,37 +599,72 @@ def generate_insights():
                 write_interval=30,
                 network_info=network_info,
                 lu_att=lu_att,
+                restart_minion_white_list=dif_links_white_list,
+                restart_minion_black_list=dif_links_black_list,
             )
+
     if current_time % 900 == 0:
         # Runs every 15min
-        write_power_status(
-            current_time=current_time,
-            window=900,
-            read_interval=30,
-            write_interval=900,
-            network_info=network_info,
-        )
-        misc_insights(
-            current_time=current_time - OFFSET_30S_DB,
-            window=900,
-            read_interval=30,
-            write_interval=900,
-            network_info=network_info,
-        )
-        uptime_insights(
-            current_time=current_time - OFFSET_30S_DB,
-            window=900,
-            read_interval=30,
-            write_interval=900,
-            network_info=network_info,
-        )
-        link_health_insights(
-            current_time=current_time - OFFSET_1S_DB,
-            window=900,
-            read_interval=1,
-            write_interval=900,
-            network_info=network_info,
-        )
+        try:
+            enable_900s = analytics_config["insights_pipelines_900s"]["enabled"]
+            wps_enabled = (
+                analytics_config["insights_pipelines_900s"]["write_power_status"][
+                    "enabled"
+                ]
+                and enable_900s
+            )
+            mi_enabled = (
+                analytics_config["insights_pipelines_900s"]["misc_insights"]["enabled"]
+                and enable_900s
+            )
+            ui_enabled = (
+                analytics_config["insights_pipelines_900s"]["uptime_insights"][
+                    "enabled"
+                ]
+                and enable_900s
+            )
+            lhi_enabled = (
+                analytics_config["insights_pipelines_900s"]["link_health_insights"][
+                    "enabled"
+                ]
+                and enable_900s
+            )
+        except Exception:
+            logging.error("Problem reading configuration file -- returning")
+            return
+
+        if wps_enabled:
+            write_power_status(
+                current_time=current_time,
+                window=900,
+                read_interval=30,
+                write_interval=900,
+                network_info=network_info,
+            )
+        if mi_enabled:
+            misc_insights(
+                current_time=current_time - OFFSET_30S_DB,
+                window=900,
+                read_interval=30,
+                write_interval=900,
+                network_info=network_info,
+            )
+        if ui_enabled:
+            uptime_insights(
+                current_time=current_time - OFFSET_30S_DB,
+                window=900,
+                read_interval=30,
+                write_interval=900,
+                network_info=network_info,
+            )
+        if lhi_enabled:
+            link_health_insights(
+                current_time=current_time - OFFSET_1S_DB,
+                window=900,
+                read_interval=1,
+                write_interval=900,
+                network_info=network_info,
+            )
 
 
 def link_health(links: List, network_info: Dict, iperf_stats: List) -> List:

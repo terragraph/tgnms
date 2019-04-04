@@ -7,7 +7,7 @@
 import json
 import logging
 import os
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import requests
 from facebook.gorilla.Topology.ttypes import LinkType
@@ -65,6 +65,40 @@ def fetch_network_info(
             t["links"].pop(i)
 
     return networks
+
+
+def restart_minion(
+    api_ip: str,
+    api_port: int,
+    node_list: Tuple,
+    delay_sec: int,
+) -> int:
+    """Restart minion for the given list of node names.
+
+    Return:
+    Status code of the http put request
+    """
+    try:
+        target_domain = "{}:{}".format(api_ip, api_port)
+        os.environ["NO_PROXY"] = target_domain
+        url = "http://[{}]:{}/".format(api_ip, api_port)
+        url += "api/restartMinion"
+
+        # Request body
+        request_body = {}
+        request_body["nodes"] = node_list
+        request_body["secondsToRestart"] = delay_sec
+
+        response = requests.post(url, json=request_body, timeout=1)
+
+        if not response.ok:
+            logging.error("Response status error with code: ", response.status_code)
+
+        return response.status_code
+    except Exception as e:
+        logging.error("Exception happened while fetching network info")
+        logging.warning("Exception: {}".format(e))
+        return 0
 
 
 class TopologyHelper(object):

@@ -98,7 +98,8 @@ class NumpyTimeSeries(object):
             node_name_to_mac = {n["name"]: n["mac_addr"] for n in t["nodes"]}
             link_macs_to_idx = {}
             link_idx_to_macs = {}
-            link_idx_to_link_names = {}
+            link_idx_to_link_names = []
+            link_idx_to_node_names = []
             src_to_peers = {}
             src_macs = []
             peer_macs = []
@@ -111,8 +112,8 @@ class NumpyTimeSeries(object):
                     link_macs_to_idx[(z_node_mac, a_node_mac)] = (num_links, 1)
                     link_idx_to_macs[(num_links, 0)] = (a_node_mac, z_node_mac)
                     link_idx_to_macs[(num_links, 1)] = (z_node_mac, a_node_mac)
-                    link_idx_to_link_names[(num_links, 0)] = l["name"]
-                    link_idx_to_link_names[(num_links, 1)] = l["name"]
+                    link_idx_to_link_names.append(l["name"])
+                    link_idx_to_node_names.append((l["a_node_name"], l["z_node_name"]))
                     if a_node_mac not in src_to_peers:
                         src_to_peers[a_node_mac] = []
                     if z_node_mac not in src_to_peers:
@@ -133,6 +134,7 @@ class NumpyTimeSeries(object):
                     "link_macs_to_idx": link_macs_to_idx,
                     "link_idx_to_macs": link_idx_to_macs,
                     "link_idx_to_link_names": link_idx_to_link_names,
+                    "link_idx_to_node_names": link_idx_to_node_names,
                     "src_to_peers": src_to_peers,
                     "src_macs": src_macs,
                     "peer_macs": peer_macs,
@@ -144,9 +146,18 @@ class NumpyTimeSeries(object):
         for _, t in enumerate(self._tmap):
             names_per_link = []
             for li in range(t["num_links"]):
-                names_per_link.append(t["link_idx_to_link_names"][(li, 0)])
+                names_per_link.append(t["link_idx_to_link_names"][li])
             link_names_list.append(names_per_link)
         return link_names_list
+
+    def get_node_names_per_link(self) -> List[str]:
+        node_names_list = []
+        for _, t in enumerate(self._tmap):
+            names_per_link = []
+            for li in range(t["num_links"]):
+                names_per_link.append(t["link_idx_to_node_names"][li])
+            node_names_list.append(names_per_link)
+        return node_names_list
 
     def t2i(self, t: int) -> int:
         return self._times_to_idx[floor(t / self._read_interval) * self._read_interval]
