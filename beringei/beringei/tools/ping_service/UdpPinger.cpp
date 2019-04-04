@@ -240,7 +240,7 @@ createUdpSockets(
       optlen = sizeof(optval);
       ::getsockopt(socket->getFD(), SOL_SOCKET, SO_RCVBUF, &optval, &optlen);
 
-      if (2 * bufferSize != optval) {
+      if (bufferSize != optval) {
         LOG(WARNING) << "Udp socket: getsockopt SO_RCVBUF returned '" << optval
                      << "'"
                      << " when requested " << bufferSize;
