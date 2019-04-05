@@ -162,7 +162,9 @@ class NumpyTimeSeries(object):
     def t2i(self, t: int) -> int:
         return self._times_to_idx[floor(t / self._read_interval) * self._read_interval]
 
-    def read_stats(self, name: str, stat_type: StatType) -> List[np.ndarray]:
+    def read_stats(
+        self, name: str, stat_type: StatType, swap_dir: bool = False
+    ) -> List[np.ndarray]:
         np_time_series_list = []
         for t in self._tmap:
             if stat_type == StatType.LINK:
@@ -198,6 +200,8 @@ class NumpyTimeSeries(object):
             else:
                 # network stats read is not supported
                 data = npo.nan_arr((1, 1, self._num_times))
+            if swap_dir:
+                data[...] = data[:, [1, 0], :]
             np_time_series_list.append(data)
         return np_time_series_list
 
@@ -399,7 +403,9 @@ class NumpyLinkTimeSeries(object):
     def _t2i(self, t, start_time):
         return int((t - start_time) / self._interval)
 
-    def read_stats(self, name: str, stat_type: StatType) -> np.ndarray:
+    def read_stats(
+        self, name: str, stat_type: StatType, swap_dir: bool = False
+    ) -> np.ndarray:
         data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
         if stat_type == StatType.LINK:
             done_links: List[Tuple] = []
@@ -449,6 +455,8 @@ class NumpyLinkTimeSeries(object):
         else:
             # network stats read is not relevant
             pass
+        if swap_dir:
+            data[...] = data[:, [1, 0], :]
         return data
 
     # converts numpy array to list of TimeSeries

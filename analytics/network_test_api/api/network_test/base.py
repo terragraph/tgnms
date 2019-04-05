@@ -10,7 +10,7 @@ from api.models import TestResult, TestRunExecution, TestStatus, TrafficDirectio
 from django.db import transaction
 from django.utils import timezone
 from module.beringei_time_series import TimeSeries
-from module.insights import link_health
+from module.insights import get_test_links_metrics
 from module.routing import RoutesForNode
 from terragraph_thrift.Controller import ttypes as ctrl_types
 from thrift.protocol.TCompactProtocol import TCompactProtocolAcceleratedFactory
@@ -154,7 +154,7 @@ class RunTestGetStats:
             iperf_throughput_mean=rcvd_stats["throughput"]["mean"],
         )
         self._write_analytics_stats_to_db(
-            link_health(
+            get_test_links_metrics(
                 links=links_time_series_list,
                 network_info=self.parameters["network_info"],
                 iperf_stats=iperf_time_series_list,

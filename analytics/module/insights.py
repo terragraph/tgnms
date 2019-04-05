@@ -355,12 +355,12 @@ def misc_insights(
     logging.info("Generate tx_per, rx_per")
     tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)
     tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)
-    rx_ok = nts.read_stats("staPkt.rxOk", StatType.LINK)
-    rx_fail = nts.read_stats("staPkt.rxFail", StatType.LINK)
+    rx_ok = nts.read_stats("staPkt.rxOk", StatType.LINK, swap_dir=True)
+    rx_fail = nts.read_stats("staPkt.rxFail", StatType.LINK, swap_dir=True)
     tx_ba = nts.read_stats("staPkt.txBa", StatType.LINK)
-    rx_ba = nts.read_stats("staPkt.rxBa", StatType.LINK)
+    rx_ba = nts.read_stats("staPkt.rxBa", StatType.LINK, swap_dir=True)
     tx_ppdu = nts.read_stats("staPkt.txPpdu", StatType.LINK)
-    rx_ppdu = nts.read_stats("staPkt.rxPpdu", StatType.LINK)
+    rx_ppdu = nts.read_stats("staPkt.rxPpdu", StatType.LINK, swap_dir=True)
     tx_per = []
     rx_per = []
     counters = {}
@@ -409,9 +409,9 @@ def misc_insights(
     # path-loss asymmetry
     logging.info("Generate pathloss_avg, pathloss_asymmetry, mode of beam indices")
     tx_power_idx = nts.read_stats("staPkt.txPowerIndex", StatType.LINK)
-    srssi = nts.read_stats("phystatus.srssi", StatType.LINK)
+    srssi = nts.read_stats("phystatus.srssi", StatType.LINK, swap_dir=True)
     tbi = nts.read_stats("phyPeriodic.txBeamIdx", StatType.LINK)
-    rbi = nts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK)
+    rbi = nts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK, swap_dir=True)
     pathloss_avg = []
     pathloss_asymmetry = []
     tx_beam_idx = []
@@ -432,7 +432,7 @@ def misc_insights(
     nts.write_stats("rx_beam_idx", rx_beam_idx, StatType.LINK, write_interval)
 
     # Generate average and standard deviation on rssi, snr, tx power index
-    snr = nts.read_stats("phystatus.ssnrEst", StatType.LINK)
+    snr = nts.read_stats("phystatus.ssnrEst", StatType.LINK, swap_dir=True)
     stat_names = ["rssi", "snr", "txpwr"]
     raw_stats = [srssi, snr, tx_power_idx]
     for name, raw in zip(stat_names, raw_stats):
@@ -667,7 +667,7 @@ def generate_insights():
             )
 
 
-def link_health(links: List, network_info: Dict, iperf_stats: List) -> List:
+def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -> List:
 
     CONST_INTERVAL = 1
     nlts = NumpyLinkTimeSeries(links, CONST_INTERVAL, network_info)
@@ -677,18 +677,18 @@ def link_health(links: List, network_info: Dict, iperf_stats: List) -> List:
     mcs = nlts.read_stats("staPkt.mcs", StatType.LINK)
     tx_ok = nlts.read_stats("staPkt.txOk", StatType.LINK)
     tx_fail = nlts.read_stats("staPkt.txFail", StatType.LINK)
-    no_traffic = nlts.read_stats("latpcStats.noTrafficCountSF", StatType.LINK)
+    no_traffic = np.zeros(tx_fail.shape) # assume network test always has traffic
     tx_power_idx = nlts.read_stats("staPkt.txPowerIndex", StatType.LINK)
-    srssi = nlts.read_stats("phystatus.srssi", StatType.LINK)
-    snr = nlts.read_stats("phystatus.ssnrEst", StatType.LINK)
-    rx_ok = nlts.read_stats("staPkt.rxOk", StatType.LINK)
-    rx_fail = nlts.read_stats("staPkt.rxFail", StatType.LINK)
+    srssi = nlts.read_stats("phystatus.srssi", StatType.LINK, swap_dir=True)
+    snr = nlts.read_stats("phystatus.ssnrEst", StatType.LINK, swap_dir=True)
+    rx_ok = nlts.read_stats("staPkt.rxOk", StatType.LINK, swap_dir=True)
+    rx_fail = nlts.read_stats("staPkt.rxFail", StatType.LINK, swap_dir=True)
     tx_ba = nlts.read_stats("staPkt.txBa", StatType.LINK)
-    rx_ba = nlts.read_stats("staPkt.rxBa", StatType.LINK)
+    rx_ba = nlts.read_stats("staPkt.rxBa", StatType.LINK, swap_dir=True)
     tx_ppdu = nlts.read_stats("staPkt.txPpdu", StatType.LINK)
-    rx_ppdu = nlts.read_stats("staPkt.rxPpdu", StatType.LINK)
+    rx_ppdu = nlts.read_stats("staPkt.rxPpdu", StatType.LINK, swap_dir=True)
     tbi = nlts.read_stats("phyPeriodic.txBeamIdx", StatType.LINK)
-    rbi = nlts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK)
+    rbi = nlts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK, swap_dir=True)
     num_links = nlts._num_links
     num_dir = nlts.NUM_DIR
     output = []

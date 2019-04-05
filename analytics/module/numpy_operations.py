@@ -17,6 +17,7 @@ class LinkHealth(IntEnum):
     MARGINAL = 2
     WARNING = 3
     UNKNOWN = 4
+    DOWN = 5
 
 
 def is_valid(arr: np.ndarray) -> np.ndarray:
@@ -272,7 +273,7 @@ def get_link_health_1d(
         mcs = mcs[traffic_interval]
 
     mcs_p90 = np.nanpercentile(mcs, 10, interpolation="lower")
-    availability, _ = get_link_availability_and_flaps_1d(
+    _, flaps = get_link_availability_and_flaps_1d(
         mgmt_link_up, link_available, interval
     )
     tx_per = get_per_1d(mgmt_link_up, tx_ok, tx_fail, interval)
@@ -280,44 +281,45 @@ def get_link_health_1d(
     if is_traffic:
         if (
             (
-                (link_length < 100 and mcs_p90 == 12)
+                (link_length < 100 and mcs_p90 == 11)
                 or (link_length >= 100 and mcs_p90 >= 9)
             )
-            and availability > 0.99
             and tx_per < 0.005
         ):
             link_health = LinkHealth.EXCELLENT
         elif (
             (
-                (link_length < 100 and mcs_p90 >= 11)
-                or (link_length >= 100 and mcs_p90 >= 9)
+                (link_length < 100 and mcs_p90 >= 9)
+                or (link_length >= 100 and mcs_p90 >= 7)
             )
-            and availability > 0.97
             and tx_per < 0.01
         ):
             link_health = LinkHealth.HEALTHY
         elif (
             (
-                (link_length < 100 and mcs_p90 >= 9)
-                or (link_length >= 100 and mcs_p90 >= 7)
+                (link_length < 100 and mcs_p90 >= 7)
+                or (link_length >= 100 and mcs_p90 >= 4)
             )
-            and availability > 0.90
             and tx_per < 0.02
         ):
             link_health = LinkHealth.MARGINAL
-        elif np.isnan(link_length + mcs_p90 + availability + tx_per):
+        elif np.isnan(link_length + mcs_p90 + flaps + tx_per):
             link_health = LinkHealth.UNKNOWN
+        elif flaps:
+            link_health = LinkHealth.DOWN
         else:
             link_health = LinkHealth.WARNING
     else:
-        if tx_per < 0.05 and mcs_p90 >= 9 and availability > 0.99:
+        if tx_per < 0.05 and mcs_p90 >= 9:
             link_health = LinkHealth.EXCELLENT
-        elif tx_per < 0.10 and mcs_p90 >= 8 and availability > 0.97:
+        elif tx_per < 0.10 and mcs_p90 >= 8:
             link_health = LinkHealth.HEALTHY
-        elif tx_per < 0.20 and mcs_p90 >= 4 and availability > 0.90:
+        elif tx_per < 0.20 and mcs_p90 >= 4:
             link_health = LinkHealth.MARGINAL
-        elif np.isnan(link_length + mcs_p90 + availability + tx_per):
+        elif np.isnan(link_length + mcs_p90 + flaps + tx_per):
             link_health = LinkHealth.UNKNOWN
+        elif flaps:
+            link_health = LinkHealth.DOWN
         else:
             link_health = LinkHealth.WARNING
 

@@ -13,7 +13,7 @@ from api.models import Tests, TestStatus, TrafficDirection
 from api.network_test import base
 from api.network_test.test_network import IperfObj, PingObj, TestNetwork
 from module.beringei_time_series import TimeSeries
-from module.insights import link_health
+from module.insights import get_test_links_metrics
 
 
 _log = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ class RunParallelTestPlan(Thread):
                     self._get_time_series_lists()
                 )
                 self.run_test_get_stats._write_analytics_stats_to_db(
-                    link_health(
+                    get_test_links_metrics(
                         links=links_time_series_list,
                         network_info=self.parameters["network_info"],
                         iperf_stats=iperf_time_series_list,
