@@ -29,6 +29,7 @@ setup(
         "PyMySQL==0.9.2",
         "requests==2.19.1",
         "mysqlclient==1.3.13",
+        "tabulate==0.8.3",
     ],
     # TODO: Add unit tests
     # test_suite="analytics.tests.base",
