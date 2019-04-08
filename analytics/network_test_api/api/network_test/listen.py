@@ -219,8 +219,6 @@ class RecvFromCtrl(base.Base):
                 if link_db_obj is not None:
                     with transaction.atomic():
                         link_db_obj.status = TestStatus.FINISHED.value
-                        link_db_obj.origin_node = link["iperf_object"].src_node_name
-                        link_db_obj.peer_node = link["iperf_object"].dst_node_name
                         link_db_obj.iperf_pushed_throughput = link[
                             "iperf_object"
                         ].bitrate
@@ -258,8 +256,6 @@ class RecvFromCtrl(base.Base):
                 link_db_obj = TestResult.objects.filter(id=link["id"]).first()
                 if link_db_obj is not None and stats:
                     with transaction.atomic():
-                        link_db_obj.origin_node = link["ping_object"].src_node_name
-                        link_db_obj.peer_node = link["ping_object"].dst_node_name
                         link_db_obj.ping_max_latency = stats["max"]
                         link_db_obj.ping_min_latency = stats["min"]
                         link_db_obj.ping_avg_latency = stats["mean"]

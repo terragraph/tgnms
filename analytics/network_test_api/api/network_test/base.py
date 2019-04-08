@@ -288,6 +288,8 @@ def _create_db_test_records(
                 test_run_execution=test_run_db_obj,
                 status=TestStatus.RUNNING.value,
                 link_name=link["iperf_object"].link_name,
+                origin_node=link["iperf_object"].src_node_name,
+                peer_node=link["iperf_object"].dst_node_name,
             )
             link["id"] = link_id.id
         return test_run_db_obj
