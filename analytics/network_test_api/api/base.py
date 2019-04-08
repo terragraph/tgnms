@@ -46,8 +46,10 @@ def validate_multi_hop_parameters(
 ) -> Dict[str, Any]:
 
     # validate traffic_direction parameter
-    traffic_direction = received_json_data.get(
-        "traffic_direction", TrafficDirection.BIDIRECTIONAL.value
+    traffic_direction = int(
+        received_json_data.get(
+            "traffic_direction", TrafficDirection.BIDIRECTIONAL.value
+        )
     )
     valid_traffic_directions = [direction.value for direction in TrafficDirection]
     if (
