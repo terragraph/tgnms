@@ -17,7 +17,6 @@ class LinkHealth(IntEnum):
     MARGINAL = 2
     WARNING = 3
     UNKNOWN = 4
-    DOWN = 5
 
 
 def is_valid(arr: np.ndarray) -> np.ndarray:
@@ -281,7 +280,7 @@ def get_link_health_1d(
     if is_traffic:
         if (
             (
-                (link_length < 100 and mcs_p90 == 11)
+                (link_length < 100 and mcs_p90 >= 11)
                 or (link_length >= 100 and mcs_p90 >= 9)
             )
             and tx_per < 0.005
@@ -306,7 +305,7 @@ def get_link_health_1d(
         elif np.isnan(link_length + mcs_p90 + flaps + tx_per):
             link_health = LinkHealth.UNKNOWN
         elif flaps:
-            link_health = LinkHealth.DOWN
+            link_health = LinkHealth.UNKNOWN
         else:
             link_health = LinkHealth.WARNING
     else:
@@ -319,7 +318,7 @@ def get_link_health_1d(
         elif np.isnan(link_length + mcs_p90 + flaps + tx_per):
             link_health = LinkHealth.UNKNOWN
         elif flaps:
-            link_health = LinkHealth.DOWN
+            link_health = LinkHealth.UNKNOWN
         else:
             link_health = LinkHealth.WARNING
 
