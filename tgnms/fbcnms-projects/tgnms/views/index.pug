@@ -1,0 +1,22 @@
+doctype html
+html
+  head
+    title Terragraph NMS
+    meta(charset="utf-8")
+    meta(http-equiv="x-ua-compatible" content="ie=edge")
+    meta(name="description", content="Terragraph Network Management System")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    link(rel="stylesheet", href="/static/css/nms.css")
+    script(id="config-json", type="text").
+      !{configJson}
+    script.
+      var CONFIG = JSON.parse(document.getElementById("config-json").innerText);
+    style.
+      .root {
+        height: 100%,
+        margin: 0px;
+      }
+
+  body
+    div(id="root")
+    script(src='/map.js')

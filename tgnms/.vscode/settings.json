@@ -1,0 +1,7 @@
+{
+    "javascript.validate.enable": false,
+    "eslint.autoFixOnSave": true,
+    "jest.pathToJest": "yarn run test",
+    "flow.useBundledFlow": false,
+    "flow.useLSP": false,
+}

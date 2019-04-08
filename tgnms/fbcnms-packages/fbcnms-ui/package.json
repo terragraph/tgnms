@@ -1,0 +1,31 @@
+{
+  "name": "@fbcnms/ui",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "@material-ui/core": "^3.9.1",
+    "@material-ui/icons": "^3.0.2",
+    "@material-ui/lab": "^3.0.0-alpha.30",
+    "@material-ui/styles": "^3.0.0-alpha.7",
+    "notistack": "^0.4.1",
+    "react": "^16.8.1",
+    "react-dom": "^16.8.1",
+    "relay-runtime": "^3.0.0",
+    "react-perfect-scrollbar": "^1.4.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-flow": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/runtime": "^7.3.4",
+    "@storybook/addon-actions": "^5.0.1",
+    "@storybook/addon-links": "^5.0.1",
+    "@storybook/addons": "^5.0.1",
+    "@storybook/react": "^5.0.1"
+  },
+  "scripts": {
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
+  }
+}
