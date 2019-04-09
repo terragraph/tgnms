@@ -1,6 +1,7 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 'use strict';
@@ -10,14 +11,14 @@ import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 
+import type {StructuredBatchType} from './NetworkUpgrade';
+
 type Props = {
-  batch: Object,
+  batch: StructuredBatchType,
 };
 
-type State = {};
-
-class BatchUpgradeTableEntry extends React.Component<Props, State> {
-  shouldComponentUpdate(nextProps, _nextState) {
+class BatchUpgradeTableEntry extends React.Component<Props> {
+  shouldComponentUpdate(nextProps: Props) {
     return !isEqual(this.props.batch, nextProps.batch);
   }
 

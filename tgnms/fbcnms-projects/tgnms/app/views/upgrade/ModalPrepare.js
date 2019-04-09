@@ -37,7 +37,7 @@ import {
 } from '../../../thrift/gen-nodejs/Controller_types';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {Image} from '../../constants/UpgradeConstants';
+import type {UpgradeImageType} from '../../../shared/types/Controller';
 import type {Version} from '../../helpers/VersionHelper';
 
 const styles = theme => ({
@@ -96,11 +96,11 @@ type State = {
   isParallel: boolean,
   maxConnections: number,
   retryLimit: number,
-  selectedImage: ?Image,
+  selectedImage: ?UpgradeImageType,
   showAdvanced: boolean,
   skipFailure: boolean,
   timeout: number,
-  upgradeImages: Array<Image>,
+  upgradeImages: Array<UpgradeImageType>,
   uploadLimit: number,
 };
 
@@ -126,7 +126,7 @@ class ModalPrepare extends React.Component<Props, State> {
     clearInterval(this._intervalID);
   };
 
-  shouldComponentUpdate = (prevProps, prevState) => {
+  shouldComponentUpdate = (_prevProps, prevState) => {
     const {isOpen} = this.state;
 
     // Don't re-render the component if the upgradeImages list is updated while

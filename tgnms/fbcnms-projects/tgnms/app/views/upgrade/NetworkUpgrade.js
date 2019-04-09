@@ -1,6 +1,7 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 'use strict';
@@ -15,6 +16,25 @@ import {UpgradeStatusToString} from '../../constants/UpgradeConstants';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
+export type StructuredNodeType = {|
+  name: string,
+  alive: boolean,
+  siteName: string,
+  popNode: boolean,
+  upgradeStatus: ?string,
+  upgradeStatusReason: ?string,
+  version: ?string,
+  nextVersion: ?string,
+|};
+
+export type StructuredBatchType = {|
+  name: string,
+  upgradeStatus: ?string,
+  upgradeReqId: ?string,
+  version: ?string,
+  nextVersion: ?string,
+|};
+
 const styles = theme => ({
   root: {
     flexGrow: 1,
@@ -27,10 +47,8 @@ type Props = {
   classes: Object,
 };
 
-type State = {};
-
-class NetworkUpgrade extends React.Component<Props, State> {
-  structureNodeData = (nodes, statusReports) => {
+class NetworkUpgrade extends React.Component<Props> {
+  structureNodeData = (nodes, statusReports): Array<StructuredNodeType> => {
     // For the given list of nodes, populate fields needed in NodeUpgradeTable
     return nodes.map(node => {
       const statusReport = statusReports?.[node.mac_addr];
@@ -49,7 +67,7 @@ class NetworkUpgrade extends React.Component<Props, State> {
     });
   };
 
-  structureBatchData = (nodes, statusReports) => {
+  structureBatchData = (nodes, statusReports): Array<StructuredBatchType> => {
     // For the given list of nodes, populate fields needed in BatchUpgradeTable
     return nodes.map(node => {
       const statusReport = statusReports?.[node.mac_addr];

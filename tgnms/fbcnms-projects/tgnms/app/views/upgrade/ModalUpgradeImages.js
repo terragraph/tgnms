@@ -45,7 +45,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {Image} from '../../constants/UpgradeConstants';
+import type {UpgradeImageType} from '../../../shared/types/Controller';
 
 const styles = theme => ({
   dialogTitle: {
@@ -84,8 +84,8 @@ type Props = {
 type State = {
   isOpen: boolean,
   menuAnchorEl: ?Object,
-  menuImage: ?Image,
-  upgradeImages: Array<Image>,
+  menuImage: ?UpgradeImageType,
+  upgradeImages: Array<UpgradeImageType>,
   uploadProgress: number,
   uploadStatus: string,
 };
@@ -115,7 +115,7 @@ class ModalUpgradeImages extends React.Component<Props, State> {
     clearInterval(this._intervalID);
   };
 
-  shouldComponentUpdate = (prevProps, prevState) => {
+  shouldComponentUpdate = (_prevProps, prevState) => {
     const {isOpen} = this.state;
 
     // Don't re-render the component if the upgradeImages list is updated while

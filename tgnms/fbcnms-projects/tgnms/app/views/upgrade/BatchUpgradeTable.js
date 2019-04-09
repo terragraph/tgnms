@@ -1,6 +1,7 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 'use strict';
@@ -20,6 +21,8 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {StructuredBatchType} from './NetworkUpgrade';
 
 const styles = theme => ({
   root: {
@@ -56,12 +59,12 @@ const columns = [
 
 type Props = {
   classes: Object,
-  data: Array<Object>,
+  data: Array<StructuredBatchType>,
   title: string,
 };
 
 type State = {
-  order: string,
+  order: $Values<typeof TableOrder>,
   orderBy: string,
 };
 

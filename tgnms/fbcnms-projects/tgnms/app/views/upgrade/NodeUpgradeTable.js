@@ -1,6 +1,7 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 'use strict';
@@ -28,6 +29,8 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {StructuredNodeType} from './NetworkUpgrade';
 
 const styles = theme => ({
   root: {
@@ -76,28 +79,43 @@ const columns = [
 type Props = {
   classes: Object,
   controllerVersion: string,
-  data: Array<Object>,
+  data: Array<StructuredNodeType>,
   networkName: string,
 };
 
 type State = {
-  filteredData: Array<Object>,
-  filters: Object,
-  order: string,
+  filteredData: Array<StructuredNodeType>,
+  filters: {[string]: ?any},
+  order: $Values<typeof TableOrder>,
   orderBy: string,
   selected: Array<string>,
 };
 
 class NodeUpgradeTable extends React.Component<Props, State> {
   state = {
-    filteredData: this.props.data,
+    filteredData: [],
     filters: {},
     order: TableOrder.ASCENDING,
     orderBy: columns[0].id,
     selected: [],
   };
 
-  getExcludedNodes = () => {
+  static getDerivedStateFromProps(props, state) {
+    const {filters} = state;
+
+    return {
+      filteredData: props.data.filter(node => {
+        for (const key in filters) {
+          if (node[key] !== filters[key]) {
+            return false;
+          }
+        }
+        return true;
+      }),
+    };
+  }
+
+  getExcludedNodes = (): Array<string> => {
     const selectedNames = new Set(this.state.selected);
 
     return this.props.data
@@ -156,32 +174,23 @@ class NodeUpgradeTable extends React.Component<Props, State> {
     return this.state.selected.indexOf(name) !== -1;
   };
 
-  handleSelectFilter = colId => event => {
+  handleSelectFilter = colID => event => {
     const {filters} = this.state;
 
     if (event.target.value === null) {
-      delete filters[colId];
+      delete filters[colID];
     } else {
-      filters[colId] = event.target.value;
+      filters[colID] = event.target.value;
     }
 
-    const filteredData = this.props.data.filter(node => {
-      for (const key in filters) {
-        if (node[key] !== filters[key]) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    this.setState({filters, filteredData});
+    this.setState({filters});
   };
 
-  getColumnFilterOptions = colId => {
+  getColumnFilterOptions = colID => {
     // Remove duplicate options and entries where data is unavailable
     const deduped = this.props.data.reduce((accumulator, node) => {
-      if (node[colId] && accumulator.indexOf(node[colId]) === -1) {
-        accumulator.push(node[colId]);
+      if (node[colID] && accumulator.indexOf(node[colID]) === -1) {
+        accumulator.push(node[colID]);
       }
       return accumulator;
     }, []);
@@ -292,7 +301,7 @@ class NodeUpgradeTable extends React.Component<Props, State> {
                   </TableCell>
                 </TableRow>
               ) : (
-                orderBy(
+                orderBy<StructuredNodeType>(
                   filteredData,
                   [this.state.orderBy],
                   [this.state.order],

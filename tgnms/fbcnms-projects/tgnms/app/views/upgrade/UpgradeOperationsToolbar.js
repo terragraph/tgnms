@@ -1,6 +1,7 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 'use strict';
@@ -10,6 +11,8 @@ import ModalAbort from './ModalAbort';
 import React from 'react';
 import Toolbar from '@material-ui/core/Toolbar';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {UpgradeGroupReqType} from '../../../shared/types/Controller';
 
 const styles = theme => ({
   root: {
@@ -22,14 +25,12 @@ const styles = theme => ({
 
 type Props = {
   classes: Object,
-  currentRequest: Object,
-  pendingRequests: Array<Object>,
+  currentRequest: ?UpgradeGroupReqType,
+  pendingRequests: Array<UpgradeGroupReqType>,
   networkName: string,
 };
 
-type State = {};
-
-class UpgradeOperationsToolbar extends React.Component<Props, State> {
+class UpgradeOperationsToolbar extends React.Component<Props> {
   render() {
     const {classes, currentRequest, pendingRequests, networkName} = this.props;
     const allRequests = currentRequest

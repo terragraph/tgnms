@@ -1,16 +1,17 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 'use strict';
 
 import React from 'react';
 
-export const TableOrder = {
+export const TableOrder = Object.freeze({
   ASCENDING: 'asc',
   DESCENDING: 'desc',
-};
+});
 
 export function renderStatusColor(cell: boolean) {
   return (

@@ -7,7 +7,11 @@
 'use strict';
 
 import React from 'react';
-import type {TopologyType, LinkType} from '../shared/types/Topology';
+import type {LinkType, TopologyType} from '../shared/types/Topology';
+import type {
+  StatusDumpType,
+  UpgradeStateDumpType,
+} from '../shared/types/Controller';
 
 export type NetworkContextType = {|
   networkName: string,
@@ -62,6 +66,8 @@ export type NetworkConfig = {
     name: string,
     location: Location,
   },
+  status_dump: StatusDumpType,
+  upgrade_state: UpgradeStateDumpType,
   topology: TopologyType,
   offline_whitelist: {
     links: Map<string>,

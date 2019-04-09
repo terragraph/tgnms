@@ -124,6 +124,9 @@ struct Link {
     6: i64 linkup_attempts  # modified by controller
     7: optional GolayIdx golay_idx # link specific golay index
     8: optional i64 control_superframe # control superframe for the link
+    9: string a_node_mac
+    10: string z_node_mac
+    11: optional bool is_backup_cn_link
 }
 
 struct Config {
