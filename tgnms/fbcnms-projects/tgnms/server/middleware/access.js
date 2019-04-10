@@ -6,39 +6,17 @@
  */
 'use strict';
 
+import type {Permission} from '../../shared/auth/Permissions';
+import {isAuthorized} from '../../shared/auth/Permissions';
+
 import {URL} from 'url';
 import {LOGIN_ENABLED, CLIENT_ROOT_URL} from '../config';
 import openRoutes from '../openRoutes';
-import {USER, SUPERUSER} from '../user/accessRoles';
 import {ensureAccessToken, isExpectedError} from '../user/oidc';
 
 const logger = require('../log')(module);
 
-// Validator functions to check the permissions of a given request
-const validators = {
-  [USER]: req => {
-    return req.isAuthenticated();
-  },
-  [SUPERUSER]: req => {
-    return (
-      req.isAuthenticated() &&
-      req.user &&
-      req.user.roles &&
-      req.user.roles.includes('superuser')
-    );
-  },
-};
-
-// Redirects if the request doesn't meet the specified level
-const redirects = {
-  [USER]: '/user/login',
-  [SUPERUSER]: '/',
-};
-
-export default function(level: USER | SUPERUSER) {
-  if (!validators[level]) {
-    throw new Error(`Access: invalid level: ${level}`);
-  }
+export default function(permissions: void | Permission | Array<Permission>) {
   return function access(req: any, res: any, next: any) {
     if (!LOGIN_ENABLED || isOpenRoute(req)) {
       return next();
@@ -46,12 +24,20 @@ export default function(level: USER | SUPERUSER) {
 
     return ensureAccessToken(req)
       .then(() => {
-        const hasPermission = validators[level](req);
-        if (hasPermission) {
-          return next();
+        const isAuthenticated = req.isAuthenticated();
+        if (isAuthenticated) {
+          // the user only needs to be logged in to access this route
+          if (typeof permissions === 'undefined') {
+            return next();
+          }
+          // the user needs specific roles to access this route
+          if (isAuthorized(req.user, permissions)) {
+            return next();
+          }
         }
+
         logger.info('user not authorized. redirecting');
-        return authRedirect(req, res, redirects[level]);
+        return authRedirect(req, res, '/user/login');
       })
       .catch(error => {
         // expected errors - show a message to the user
@@ -60,7 +46,7 @@ export default function(level: USER | SUPERUSER) {
           return authRedirect(
             req,
             res,
-            redirects[level],
+            '/user/login',
             error ? error.message : 'Auth error',
           );
         }

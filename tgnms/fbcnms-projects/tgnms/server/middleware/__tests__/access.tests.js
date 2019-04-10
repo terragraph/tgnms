@@ -9,7 +9,7 @@
  */
 
 import access from '../access';
-import {USER, SUPERUSER} from '../../user/accessRoles';
+import {Permissions} from '../../../shared/auth/Permissions';
 import openRoutes from '../../openRoutes';
 jest.mock('../../user/oidc');
 jest.mock('../../config', () => ({
@@ -17,10 +17,6 @@ jest.mock('../../config', () => ({
   CLIENT_ROOT_URL: 'https://example.tgnms.com',
 }));
 const ensureAccessTokenMock: any = require('../../user/oidc').ensureAccessToken;
-
-test('empty access call throws error', () => {
-  expect(() => access()({}, {})).toThrow();
-});
 
 test('redirects if access token check fails', done => {
   ensureAccessTokenMock.mockImplementationOnce(() => Promise.reject());
@@ -33,7 +29,7 @@ test('redirects if access token check fails', done => {
       done();
     }),
   };
-  access(SUPERUSER)(mockRequest, mockResponse, () => {
+  access()(mockRequest, mockResponse, () => {
     throw new Error('Next should not be called here');
   });
 });
@@ -52,12 +48,12 @@ test('returns 401 error and json if request was specified as ajax', done => {
       done();
     }),
   };
-  access(SUPERUSER)(mockRequest, mockResponse, () => {
+  access()(mockRequest, mockResponse, () => {
     throw new Error('Next should not be called here');
   });
 });
 
-test('if SUPERUSER is specified, redirects for authenticated user without superuser role', done => {
+test('If a permission is specified, redirects for authenticated user without the corresponding role', done => {
   ensureAccessTokenMock.mockImplementationOnce(() => Promise.resolve());
   const mockRequest = {
     originalUrl: '/',
@@ -66,6 +62,7 @@ test('if SUPERUSER is specified, redirects for authenticated user without superu
     },
     isAuthenticated: jest.fn(() => true),
   };
+
   const mockResponse = {
     redirect: jest.fn(redirectUrl => {
       expect(mockRequest.isAuthenticated).toHaveBeenCalled();
@@ -73,34 +70,35 @@ test('if SUPERUSER is specified, redirects for authenticated user without superu
       done();
     }),
   };
-  access(SUPERUSER)(mockRequest, mockResponse, () => {
+
+  access('NODE_READ')(mockRequest, mockResponse, () => {
     throw new Error('Next should not be called here');
   });
 });
 
-test('if SUPERUSER is specified, allows user with superuser role', done => {
+test('if a permission is specified, allows user with corresponding role', done => {
   ensureAccessTokenMock.mockImplementationOnce(() => Promise.resolve());
   const mockRequest = {
     originalUrl: '/',
     user: {
-      roles: ['superuser'],
+      roles: [Permissions.NODE_WRITE],
     },
     isAuthenticated: jest.fn(() => true),
   };
   const mockResponse = {
     redirect: jest.fn(() => {
-      throw new Error();
+      throw new Error('we should not redirect');
     }),
   };
 
-  access(SUPERUSER)(mockRequest, mockResponse, error => {
+  access('NODE_WRITE')(mockRequest, mockResponse, error => {
     expect(error).toBeFalsy();
     expect(mockResponse.redirect).not.toHaveBeenCalled();
     done();
   });
 });
 
-test('if USER is specified, allows any authenticated user', done => {
+test('if no roles / permissions are specified, allows any authenticated user', done => {
   ensureAccessTokenMock.mockImplementationOnce(() => Promise.resolve());
   const mockRequest = {
     originalUrl: '/',
@@ -113,7 +111,7 @@ test('if USER is specified, allows any authenticated user', done => {
     }),
   };
 
-  access(USER)(mockRequest, mockResponse, error => {
+  access()(mockRequest, mockResponse, error => {
     expect(error).toBeFalsy();
     expect(mockResponse.redirect).not.toHaveBeenCalled();
     done();
@@ -129,7 +127,7 @@ test('allows open routes for unauthenticated users', () => {
     openRoutes.map(
       openRoute =>
         new Promise(res => {
-          access(USER)(
+          access()(
             {originalUrl: openRoute, user: null, isAuthenticated: () => false},
             {},
             res,
@@ -148,7 +146,7 @@ test('allows open routes for authenticated users', () => {
     openRoutes.map(
       openRoute =>
         new Promise(res => {
-          access(USER)(
+          access()(
             {originalUrl: openRoute, user: {}, isAuthenticated: () => true},
             {},
             res,

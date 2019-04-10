@@ -29,7 +29,6 @@ const {
 } = require('../server/topology/model');
 
 const {sequelize} = require('../server/models');
-const {USER} = require('../server/user/accessRoles');
 const topologyPeriodic = require('../server/topology/periodic');
 const {runMigrations} = require('./runMigrations');
 const logger = require('../server/log')(module);
@@ -79,7 +78,7 @@ app.set('views', './views');
 app.set('view engine', 'pug');
 
 // Routes
-app.use(access(USER));
+app.use(access());
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
