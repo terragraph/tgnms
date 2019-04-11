@@ -176,7 +176,8 @@ class MapLayersPanel extends React.Component {
               );
             })}
           </Select>
-          {has(layerOverlays, ['legend', overlay.type]) &&
+          {overlay &&
+            has(layerOverlays, ['legend', overlay.type]) &&
             this.renderLegend(
               layerOverlays.legend[overlay.type],
               overlay,

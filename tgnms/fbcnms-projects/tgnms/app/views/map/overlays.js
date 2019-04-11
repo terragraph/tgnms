@@ -118,6 +118,10 @@ export class LinkMetricsOverlayStrategy implements OverlayStrategy {
   getData = (query: OverlayQuery) => {
     // link config for the metric (type, id, range, etc)
     const overlayDef = this.getOverlay(query.overlayId);
+    if (!overlayDef) {
+      return Promise.resolve([]);
+    }
+
     const metrics = Array.isArray(overlayDef.metrics)
       ? overlayDef.metrics
       : [overlayDef.id];
@@ -194,6 +198,9 @@ export class TestExecutionOverlayStrategy implements OverlayStrategy {
 
   getData = (query: OverlayQuery) => {
     const overlayDef = this.getOverlay(query.overlayId);
+    if (!overlayDef) {
+      return Promise.resolve([]);
+    }
     const metrics = Array.isArray(overlayDef.metrics)
       ? overlayDef.metrics
       : [overlayDef.id];

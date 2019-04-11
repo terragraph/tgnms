@@ -83,6 +83,11 @@ const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 30000;
 // Table size limits (in pixels)
 const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
+const defaultSelectedOverlays = {
+  link_lines: 'health',
+  site_icons: 'health',
+};
+
 class NetworkMap extends React.Component {
   overlayStrategy: OverlayStrategy;
 
@@ -98,10 +103,7 @@ class NetworkMap extends React.Component {
         site_name_popups: false,
         buildings_3d: false,
       },
-      selectedOverlays: {
-        link_lines: 'health',
-        site_icons: 'health',
-      },
+      selectedOverlays: {...defaultSelectedOverlays},
 
       // Map tables
       showTable: false,
@@ -247,11 +249,12 @@ class NetworkMap extends React.Component {
   };
 
   getOverlaysConfig = () => {
+    const overlayStrategy = this.getOverlayStrategy();
     return [
       {
         layerId: 'link_lines',
-        overlays: this.getOverlayStrategy().getOverlays(),
-        changeOverlayRange: this.getOverlayStrategy().changeOverlayRange,
+        overlays: overlayStrategy.getOverlays(),
+        changeOverlayRange: overlayStrategy.changeOverlayRange,
         legend: LinkOverlayColors,
       },
       {
@@ -260,7 +263,6 @@ class NetworkMap extends React.Component {
           {name: 'Health', type: 'health', id: 'health'},
           {name: 'Polarity', type: 'polarity', id: 'polarity'},
         ],
-        changeOverlayRange: this.getOverlayStrategy().changeOverlayRange,
         legend: SiteOverlayColors,
       },
     ];
@@ -559,7 +561,10 @@ class NetworkMap extends React.Component {
 
     // if the strategy has changed, load the new data
     if (newStrategy !== currentStrategy) {
-      return this.fetchOverlayData();
+      // eslint-disable-next-line react/no-did-update-set-state
+      this.setState({selectedOverlays: {...defaultSelectedOverlays}}, () => {
+        this.fetchOverlayData();
+      });
     }
   }
 
@@ -586,9 +591,13 @@ class NetworkMap extends React.Component {
   };
 
   getCurrentLinkOverlay = () => {
-    return this.getOverlayStrategy().getOverlay(
+    const overlay = this.getOverlayStrategy().getOverlay(
       this.state.selectedOverlays.link_lines,
     );
+    if (!overlay) {
+      return {};
+    }
+    return overlay;
   };
 
   getOverlayStrategy = (): OverlayStrategy => this.overlayStrategy;
