@@ -37,6 +37,7 @@ type Props = {|
     divider: string,
     resultRow: string,
     loadingWrapper: string,
+    healthCell: string,
   },
   createTestUrl: CreateTestUrl,
 |} & ContextRouter;
@@ -64,6 +65,9 @@ const styles = theme => ({
   loadingWrapper: {textAlign: 'center', marginTop: theme.spacing.unit * 4},
   header: {
     marginBottom: theme.spacing.unit * 2,
+  },
+  healthCell: {
+    flexDirection: 'row',
   },
 });
 
@@ -95,8 +99,22 @@ export default withStyles(styles)(
         sort: true,
         sortFunc: sortByHealth,
         render: (_, link: LinkTestResult) => {
-          const health = getWorstLinkHealth(link);
-          return <HealthIndicator health={health} />;
+          if (!(link && link.results)) {
+            return null;
+          }
+          return (
+            <div className={this.props.classes.healthCell}>
+              {link.results.map(result => (
+                <HealthIndicator
+                  health={
+                    typeof result.health === 'number'
+                      ? result.health
+                      : HEALTH_CODES.UNKNOWN
+                  }
+                />
+              ))}
+            </div>
+          );
         },
       },
     ];

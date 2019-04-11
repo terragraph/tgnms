@@ -201,10 +201,7 @@ function TestResultDetails({result}: {|result: TestResult|}) {
         ]}
       />
 
-      <MetricGroup
-        header="Mcs"
-        metrics={[[result.mcs_avg, 'p90'], [result.mcs_p90, 'avg']]}
-      />
+      <MetricGroup header="MCS" metrics={[[result.mcs_p90, 'p90']]} />
 
       <MetricGroup
         header="Packets"
