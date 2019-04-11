@@ -74,12 +74,12 @@ function LinkTestResultDetails({link}: {link: ?LinkTestResult}) {
       <Grid container item xs={12} className={classes.detailsContainer}>
         {resultA && (
           <Grid container item direction="column" justify="flex-start" xs={6}>
-            <TestResultDetails result={resultA} peerResult={resultZ || {}} />
+            <TestResultDetails result={resultA} />
           </Grid>
         )}
         {resultZ && (
           <Grid container item direction="column" justify="flex-start" xs={6}>
-            <TestResultDetails result={resultZ} peerResult={resultA || {}} />
+            <TestResultDetails result={resultZ} />
           </Grid>
         )}
       </Grid>
@@ -109,13 +109,7 @@ const useDetailStyles = makeStyles(theme => ({
   },
 }));
 
-function TestResultDetails({
-  result,
-  peerResult,
-}: {|
-  result: TestResult,
-  peerResult: TestResult,
-|}) {
+function TestResultDetails({result}: {|result: TestResult|}) {
   const classes = useDetailStyles();
   return (
     <>
@@ -141,10 +135,12 @@ function TestResultDetails({
       <MetricGroup
         header={'Summary Stats'}
         metrics={[
-          [peerResult.mcs_p90, 'mcs p90'],
-          [peerResult.snr_avg, 'snr avg'],
-          [peerResult.txpwr_avg, 'tx power'],
-          [peerResult.pathloss_avg, 'path loss'],
+          [result.mcs_p90, 'mcs p90'],
+          // this is reported by the receiver
+          [result.snr_avg, 'snr avg'],
+          [result.txpwr_avg, 'tx power'],
+          [result.pathloss_avg, 'path loss'],
+          [result.tx_per, 'PER'],
         ]}
       />
 
@@ -156,10 +152,10 @@ function TestResultDetails({
           </>
         }
         metrics={[
-          [peerResult.snr_avg, 'snr avg'],
-          [peerResult.snr_std, 'snr ±'],
-          [peerResult.rssi_avg, 'rssi avg'],
-          [peerResult.rssi_std, 'rssi ±'],
+          [result.snr_avg, 'snr avg'],
+          [result.snr_std, 'snr ±'],
+          [result.rssi_avg, 'rssi avg'],
+          [result.rssi_std, 'rssi ±'],
         ]}
       />
 
