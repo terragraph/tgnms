@@ -7,6 +7,7 @@
 'use strict';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {MCS_DATARATE_TABLE} from '../../constants/NetworkConstants';
+import {HEALTH_DEFS} from '../../constants/HealthConstants';
 import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
 import axios from 'axios';
 
@@ -143,6 +144,13 @@ const TEST_EXECUTION_OVERLAYS: {[string]: Overlay} = {
     range: [0, 1, 2, 3, 4],
     bounds: [0, 4],
     colorRange: NETWORK_TEST_HEALTH_COLOR_RANGE,
+    formatText: (_link, health: number) => {
+      const healthDef = HEALTH_DEFS[health];
+      if (!healthDef) {
+        return 'unknown';
+      }
+      return healthDef.name;
+    },
   },
   mcs_avg: {
     name: 'MCS',

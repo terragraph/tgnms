@@ -13,6 +13,7 @@ import lightGreen from '@material-ui/core/colors/lightGreen';
 import orange from '@material-ui/core/colors/orange';
 import purple from '@material-ui/core/colors/purple';
 import red from '@material-ui/core/colors/red';
+import {HEALTH_CODES, HEALTH_DEFS} from './HealthConstants';
 
 export const LinkOverlayColors = {
   health: {
@@ -68,9 +69,10 @@ export const GOLAY_COLORS = [
 ];
 
 export const NETWORK_TEST_HEALTH_COLOR_RANGE = [
-  'rgb(76, 175, 80)', // perfect
-  'rgb(103, 200, 255)', // excellent,
-  'rgb(255, 193, 7)', // marginal
-  'rgb(244, 67, 54)', //warning
-  'rgb(33,33,33)', //not ignited / unknown
+  HEALTH_DEFS[HEALTH_CODES.EXCELLENT].color,
+  HEALTH_DEFS[HEALTH_CODES.HEALTHY].color,
+  HEALTH_DEFS[HEALTH_CODES.MARGINAL].color,
+  HEALTH_DEFS[HEALTH_CODES.WARNING].color,
+  HEALTH_DEFS[HEALTH_CODES.UNKNOWN].color,
+  HEALTH_DEFS[HEALTH_CODES.DOWN].color,
 ];

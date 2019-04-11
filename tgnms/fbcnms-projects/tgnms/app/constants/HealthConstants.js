@@ -7,11 +7,12 @@
 'use strict';
 
 export const HEALTH_CODES = {
-  PERFECT: 0,
-  EXCELLENT: 1,
+  EXCELLENT: 0,
+  HEALTHY: 1,
   MARGINAL: 2,
   WARNING: 3,
   UNKNOWN: 4,
+  DOWN: 5,
 };
 
 export type HealthDef = {
@@ -20,14 +21,14 @@ export type HealthDef = {
 };
 
 export const HEALTH_DEFS: {[code: number]: HealthDef} = {
-  [HEALTH_CODES.PERFECT]: {
-    code: HEALTH_CODES.PERFECT,
-    name: 'perfect',
-    color: 'rgb(76, 175, 80)',
-  },
   [HEALTH_CODES.EXCELLENT]: {
     code: HEALTH_CODES.EXCELLENT,
     name: 'excellent',
+    color: 'rgb(76, 175, 80)',
+  },
+  [HEALTH_CODES.HEALTHY]: {
+    code: HEALTH_CODES.HEALTHY,
+    name: 'healthy',
     color: 'rgb(103, 200, 255)',
   },
   [HEALTH_CODES.MARGINAL]: {
@@ -38,12 +39,17 @@ export const HEALTH_DEFS: {[code: number]: HealthDef} = {
   [HEALTH_CODES.WARNING]: {
     code: HEALTH_CODES.WARNING,
     name: 'warning',
-    color: 'rgb(244, 67, 54)',
+    color: 'rgb(244, 137, 54)',
   },
   [HEALTH_CODES.UNKNOWN]: {
     code: HEALTH_CODES.UNKNOWN,
     name: 'unknown',
     color: 'rgb(33,33,33)',
+  },
+  [HEALTH_CODES.DOWN]: {
+    code: HEALTH_CODES.DOWN,
+    name: 'down',
+    color: 'rgb(244, 67, 54)',
   },
 };
 

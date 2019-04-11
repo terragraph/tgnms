@@ -38,6 +38,7 @@ type Props = {|
     resultRow: string,
     loadingWrapper: string,
     healthCell: string,
+    histogram: string,
   },
   createTestUrl: CreateTestUrl,
 |} & ContextRouter;
@@ -68,6 +69,10 @@ const styles = theme => ({
   },
   healthCell: {
     flexDirection: 'row',
+  },
+  histogram: {
+    width: '100%',
+    height: 300,
   },
 });
 
@@ -106,6 +111,7 @@ export default withStyles(styles)(
             <div className={this.props.classes.healthCell}>
               {link.results.map(result => (
                 <HealthIndicator
+                  key={result.id}
                   health={
                     typeof result.health === 'number'
                       ? result.health
@@ -150,7 +156,10 @@ export default withStyles(styles)(
                 )}
                 {!this.state.loading && testResults && (
                   <>
-                    <HealthHistogram testResults={testResults} />
+                    <HealthHistogram
+                      className={classes.histogram}
+                      testResults={testResults}
+                    />
                     <div className={classes.resultsTable}>
                       <Typography
                         variant="subtitle2"

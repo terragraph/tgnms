@@ -17,18 +17,20 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 const Plot = createPlotlyComponent(Plotly);
 
 const HEALTH_AXIS = [
-  HEALTH_DEFS[HEALTH_CODES.PERFECT].name,
   HEALTH_DEFS[HEALTH_CODES.EXCELLENT].name,
+  HEALTH_DEFS[HEALTH_CODES.HEALTHY].name,
   HEALTH_DEFS[HEALTH_CODES.MARGINAL].name,
   HEALTH_DEFS[HEALTH_CODES.WARNING].name,
   HEALTH_DEFS[HEALTH_CODES.UNKNOWN].name,
+  HEALTH_DEFS[HEALTH_CODES.DOWN].name,
 ];
 
 type Props = {|
   testResults: Array<LinkTestResult>,
+  className: string,
 |};
 
-export default function HealthHistogram({testResults}: Props) {
+export default function HealthHistogram({testResults, className = ''}: Props) {
   /**
    * testResults is an array of pairs of test results(one for each direction).
    * flatten it to get each test result
@@ -40,6 +42,7 @@ export default function HealthHistogram({testResults}: Props) {
 
   return (
     <Plot
+      className={className}
       data={[
         {
           type: 'bar',
@@ -54,10 +57,14 @@ export default function HealthHistogram({testResults}: Props) {
         displaylogo: false,
         displayModeBar: false,
       }}
+      useResizeHandler={true}
       layout={{
-        height: 250,
-        width: 400,
+        autosize: true,
         title: 'Link Health',
+        margin: {
+          l: 20,
+          r: 20,
+        },
         yaxis: {
           range: [0, flattened.length],
         },
