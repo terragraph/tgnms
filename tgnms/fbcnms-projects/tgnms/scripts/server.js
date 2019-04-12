@@ -151,9 +151,35 @@ app.get('*', (req, res) => {
     'ISSUES_URL',
     'NETWORKTEST_HOST',
     'LOGIN_ENABLED',
+    'TILE_STYLE',
   ];
+  // validate ENVs
+  const validateEnv = (key, value) => {
+    // verify tile style url format
+    if (key === 'TILE_STYLE') {
+      const tileStyleList = value.split(',');
+      if (tileStyleList === 0) {
+        logger.error('Tile style URL ENV invalid, using default tiles');
+        return false;
+      }
+      let validStyleList = true;
+      tileStyleList.forEach(tileStyle => {
+        const tileNameAndStyle = tileStyle.split('=');
+        if (tileNameAndStyle.length !== 2) {
+          logger.error(
+            'Invalid tile style: "' +
+              tileStyle +
+              '", expecting format <NAME>=<STYLE URL>',
+          );
+          validStyleList = false;
+        }
+      });
+      return validStyleList;
+    }
+    return true;
+  };
   envKeys.forEach(key => {
-    if (process.env.hasOwnProperty(key)) {
+    if (process.env.hasOwnProperty(key) && validateEnv(key, process.env[key])) {
       configObj.env[key] = process.env[key];
     }
   });
@@ -176,7 +202,6 @@ app.get('*', (req, res) => {
     await reloadInstanceConfig();
     // Refresh all topologies
     await refreshTopologies();
-    console.log('Fetched all topologies');
   } catch (error) {
     logger.error('Unable to load initial network list:', error);
   }

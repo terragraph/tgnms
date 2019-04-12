@@ -60,7 +60,7 @@ const FIT_BOUND_OPTIONS = {padding: 32, maxZoom: 18, animate: false};
 
 // All supported map styles:
 // https://www.mapbox.com/api-documentation/#styles
-const MapBoxStyles = [
+const DefaultMapBoxStyles = [
   {name: 'Streets', endpoint: 'streets-v10'},
   {name: 'Outdoors', endpoint: 'outdoors-v10'},
   {name: 'Light', endpoint: 'light-v9'},
@@ -93,6 +93,9 @@ class NetworkMap extends React.Component {
 
   constructor(props) {
     super(props);
+    // construct styles list
+    this._mapBoxStyles = this.mapBoxStylesList();
+
     this.state = {
       // Map config
       mapRef: null, // reference to Map class
@@ -116,7 +119,7 @@ class NetworkMap extends React.Component {
       linkOverlayMetrics: {},
 
       // Selected map style (from MapBoxStyles)
-      selectedMapStyle: MapBoxStyles[0].endpoint,
+      selectedMapStyle: this._mapBoxStyles[0].endpoint,
 
       // Planned site location ({latitude, longitude} or null)
       plannedSite: null,
@@ -165,7 +168,6 @@ class NetworkMap extends React.Component {
         render: this.render3dBuildings.bind(this),
       },
     ];
-
     this.updateOverlayStrategy();
     // layers' overlays config
     //   id - unique string identifier
@@ -185,6 +187,25 @@ class NetworkMap extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this._refreshLinkMetricOverlayTimer);
+  }
+
+  mapBoxStylesList() {
+    // use default styles if no override specified
+    if (!window.CONFIG.env.hasOwnProperty('TILE_STYLE')) {
+      return DefaultMapBoxStyles.map(({name, endpoint}) => ({
+        name,
+        endpoint: getMapBoxStyleUrl(endpoint),
+      }));
+    }
+    // override list of styles if env specified
+    const {TILE_STYLE} = window.CONFIG.env;
+    // parse style format
+    // <Display Name>=<Tile URL>,...
+    const tileStyleUrls = TILE_STYLE.split(',');
+    return tileStyleUrls.map(tileStyle => {
+      const [name, endpoint] = tileStyle.split('=');
+      return {name, endpoint};
+    });
   }
 
   handleTableResize = height => {
@@ -457,7 +478,7 @@ class NetworkMap extends React.Component {
             <MapBoxGL
               fitBounds={mapBounds}
               fitBoundsOptions={FIT_BOUND_OPTIONS}
-              style={getMapBoxStyleUrl(selectedMapStyle)}
+              style={selectedMapStyle}
               onStyleLoad={map => this.setState({mapRef: map})}
               containerStyle={{width: '100%', height: 'inherit'}}>
               <TgMapboxGeocoder
@@ -494,7 +515,7 @@ class NetworkMap extends React.Component {
               mapLayersProps={{
                 layersConfig: this._layersConfig,
                 overlaysConfig: this.getOverlaysConfig(),
-                mapStylesConfig: MapBoxStyles,
+                mapStylesConfig: this._mapBoxStyles,
                 selectedLayers: this.state.selectedLayers,
                 selectedOverlays: this.state.selectedOverlays,
                 selectedMapStyle: this.state.selectedMapStyle,
