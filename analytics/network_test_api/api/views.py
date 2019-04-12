@@ -2,8 +2,8 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import json
-import queue
 import time
+from queue import Queue
 
 from api import base
 from api.models import TestRunExecution, Tests, TestStatus, TrafficDirection
@@ -120,7 +120,7 @@ def start_test(request: WSGIRequest) -> HttpResponse:
                     "speed_test_pop_to_node_dict": speed_test_pop_to_node_dict,
                 }
                 # Run the test plan
-                test_run_db_queue = queue.Queue()
+                test_run_db_queue: Queue = Queue()
                 if test_code == Tests.PARALLEL_TEST.value:
                     run_tp = run_parallel_test_plan.RunParallelTestPlan(
                         network_parameters=network_parameters,

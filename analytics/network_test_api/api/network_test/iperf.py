@@ -7,6 +7,50 @@ from terragraph_thrift.Controller import ttypes as ctrl_types
 from zmq.sugar.socket import Socket
 
 
+class IperfObj:
+    def __init__(
+        self,
+        link_name: str,
+        src_node_name: str,
+        dst_node_name: str,
+        src_node_id: str,
+        dst_node_id: str,
+        bitrate: int,
+        time_sec: int,
+        proto: str,
+        interval_sec: int,
+        window_size: int,
+        mss: int,
+        no_delay: bool,
+        omit_sec: int,
+        verbose: bool,
+        json: bool,
+        buffer_length: int,
+        format: int,
+        use_link_local: bool,
+    ) -> None:
+        self.link_name = link_name
+        self.src_node_name = src_node_name
+        self.dst_node_name = dst_node_name
+        self.src_node_id = src_node_id
+        self.dst_node_id = dst_node_id
+        self.bitrate = bitrate
+        self.time_sec = time_sec
+        self.proto = proto
+        self.interval_sec = interval_sec
+        self.window_size = window_size
+        self.mss = mss
+        self.no_delay = no_delay
+        self.omit_sec = omit_sec
+        self.verbose = verbose
+        self.json = json
+        self.buffer_length = buffer_length
+        self.format = format
+        self.use_link_local = use_link_local
+        self.request_sent = False
+        self.end_time = None
+
+
 class RunIperf(base.Base):
     def __init__(self, _ctrl_sock: Socket, zmq_identifier: str) -> None:
         super().__init__(_ctrl_sock, zmq_identifier)

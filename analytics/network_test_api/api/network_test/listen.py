@@ -3,14 +3,16 @@
 
 import json
 import logging
-import queue
 import time
+from queue import Queue
 from threading import Thread, currentThread
-from typing import Any, Dict
+from typing import Dict, List, Optional, Union
 
 import zmq
+from api.alias import ParametersType, IperfPingStatsType
 from api.models import TestResult, TestRunExecution, TestStatus
-from api.network_test import base, iperf_ping_analyze, run_iperf, run_ping
+from api.network_test import iperf, iperf_ping_analyze, ping
+from api.network_test.base import Base
 from django.db import transaction
 from terragraph_thrift.Controller import ttypes as ctrl_types
 from zmq.sugar.socket import Socket
@@ -20,7 +22,7 @@ _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-class RecvFromCtrl(base.Base):
+class RecvFromCtrl(Base):
     """
         * ctrl_sock: ZMQ Socket handle used to communicate with the controller
         * zmq_identifier: Identifier associated with the ZMQ Socket
@@ -38,25 +40,25 @@ class RecvFromCtrl(base.Base):
         zmq_identifier: str,
         expected_number_of_responses: int,
         recv_timeout: int,
-        parameters: Dict[str, Any],
-        received_output_queue: Any,
+        parameters: ParametersType,
+        received_output_queue: Queue,
     ) -> None:
         super().__init__(_ctrl_sock, zmq_identifier)
-        self.ctrl_sock = _ctrl_sock
-        self.zmq_identifier = zmq_identifier
-        self.recv_timeout = time.time() + recv_timeout
-        self.expected_number_of_responses = expected_number_of_responses
-        self.parameters = parameters
-        self.received_output_queue = received_output_queue
-        self.number_of_responses = 0
-        self.start_iperf_ids = []
-        self.start_ping_ids = []
-        self.parsed_iperf_data = ""
-        self.parsed_iperf_client_data = ""
-        self.parsed_iperf_server_data = ""
-        self.parsed_ping_data = ""
-        self.test_aborted = False
-        self.test_aborted_queue = queue.Queue()
+        self.ctrl_sock: Socket = _ctrl_sock
+        self.zmq_identifier: str = zmq_identifier
+        self.recv_timeout: int = time.time() + recv_timeout
+        self.expected_number_of_responses: int = expected_number_of_responses
+        self.parameters: ParametersType = parameters
+        self.received_output_queue: Queue = received_output_queue
+        self.number_of_responses: int = 0
+        self.start_iperf_ids: List = []
+        self.start_ping_ids: List = []
+        self.parsed_iperf_data: str = ""
+        self.parsed_iperf_client_data: str = ""
+        self.parsed_iperf_server_data: str = ""
+        self.parsed_ping_data: str = ""
+        self.test_aborted: bool = False
+        self.test_aborted_queue: Queue = Queue()
 
     def _get_recv_obj(self, msg_type: int, actual_sender_app: str) -> object:
         msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES.get(msg_type, "UNKNOWN")
@@ -183,7 +185,9 @@ class RecvFromCtrl(base.Base):
         else:
             return ping_output
 
-    def _parse_iperf_output(self, iperf_output: Dict[str, Any]) -> Any:
+    def _parse_iperf_output(
+        self, iperf_output: str
+    ) -> Union[Dict[str, Union[str, Dict]], str]:
         try:
             parsed_iperf_output_dict = json.loads(iperf_output)
         except json.decoder.JSONDecodeError:
@@ -200,7 +204,7 @@ class RecvFromCtrl(base.Base):
         else:
             return parsed_iperf_output_dict
 
-    def _get_link(self, source_node: str, destination_node: str) -> Any:
+    def _get_link(self, source_node: str, destination_node: str) -> Optional[Dict]:
         return self.parameters["test_links_dict"].get(
             (source_node, destination_node), None
         )
@@ -209,7 +213,7 @@ class RecvFromCtrl(base.Base):
         self,
         source_node: str,
         destination_node: str,
-        stats: Dict[str, Any],
+        stats: IperfPingStatsType,
         is_iperf: bool,
     ) -> None:
         if is_iperf:
@@ -263,8 +267,8 @@ class RecvFromCtrl(base.Base):
                         link_db_obj.save()
 
     def _stop_iperf_ping(self) -> None:
-        self.iperf_obj = run_iperf.RunIperf(self.ctrl_sock, self.zmq_identifier)
-        self.ping_obj = run_ping.RunPing(self.ctrl_sock, self.zmq_identifier)
+        self.iperf_obj = iperf.RunIperf(self.ctrl_sock, self.zmq_identifier)
+        self.ping_obj = ping.RunPing(self.ctrl_sock, self.zmq_identifier)
         # send stop iperf requests to the Ctrl
         for iperf_id in self.start_iperf_ids:
             self.iperf_obj._stop_iperf(iperf_id)
@@ -358,8 +362,8 @@ class Listen(Thread):
         zmq_identifier: str,
         expt_num_of_resp: int,
         duration: int,
-        parameters: Dict[str, Any],
-        received_output_queue: Any,
+        parameters: ParametersType,
+        received_output_queue: Queue,
     ) -> None:
         Thread.__init__(self)
         self.socket = socket
@@ -384,9 +388,9 @@ class Listen(Thread):
 class CheckAbortStatus(Thread):
     def __init__(
         self,
-        test_aborted_queue: Any,
+        test_aborted_queue: Queue,
         recv_timeout: int,
-        parameters: Dict[str, Any],
+        parameters: ParametersType,
         listen_thread: Listen,
     ) -> None:
         Thread.__init__(self)
@@ -394,7 +398,7 @@ class CheckAbortStatus(Thread):
         self.recv_timeout = recv_timeout
         self.parameters = parameters
         self.listen_thread = listen_thread
-        self.db_fail_count = 0
+        self.db_fail_count: int = 0
 
     def run(self) -> None:
         # check if test is aborted in db

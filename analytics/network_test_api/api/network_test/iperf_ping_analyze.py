@@ -3,11 +3,11 @@
 
 import re
 from statistics import mean, stdev
-from typing import Any, Dict, List
+from typing import Dict, List, Optional, Union
 
 
 def process_iperf_response_bidirectional(
-    response: Dict[str, Any], expected_num_of_intervals: int
+    response: Dict[str, Union[str, Dict]], expected_num_of_intervals: int
 ) -> Dict[str, List[int]]:
     iperf_stats = {}
     iperf_throughput_data = []
@@ -48,7 +48,7 @@ def process_iperf_response_bidirectional(
     return iperf_stats
 
 
-def get_all_stats(input_list: List[int]) -> Dict[str, Any]:
+def get_all_stats(input_list: List[int]) -> Dict[str, Optional[Union[int, float]]]:
     detail_dict = {}
 
     try:
@@ -67,8 +67,8 @@ def get_all_stats(input_list: List[int]) -> Dict[str, Any]:
 
 
 def parse_and_pack_iperf_data(
-    input_data: Dict[str, Any], expected_num_of_intervals: int
-) -> Dict[str, Dict[str, Any]]:
+    input_data: Dict[str, Union[str, Dict]], expected_num_of_intervals: int
+) -> Dict[str, Dict[str, Optional[Union[int, float]]]]:
     return_dict = {}
     # Parse the iperf output to get the throughput values
     # jitter, link errors for each second

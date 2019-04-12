@@ -3,14 +3,17 @@
 
 import asyncio
 import time
+from queue import Queue
 from threading import Thread
-from typing import Any, Dict
+from typing import Dict, Optional, Union
 
+from api.alias import ParametersType, TestLinksDictType
 from api.models import TestResult, TestRunExecution, Tests
-from api.network_test import connect_to_ctrl, listen, run_iperf, run_ping
+from api.network_test import connect_to_ctrl, iperf, listen, ping
 from django.db import transaction
 from django.utils import timezone
 from module.routing import get_routes_for_nodes
+from zmq.sugar.socket import Socket
 
 
 class TestNetwork(Thread):
@@ -23,32 +26,38 @@ class TestNetwork(Thread):
         * test_links_dict: dictionary of links on which iPerf/ping is to be started.
     """
 
-    def __init__(self, parameters: Dict[str, Any], received_output_queue: Any) -> None:
+    def __init__(
+        self, parameters: ParametersType, received_output_queue: Queue
+    ) -> None:
         Thread.__init__(self)
-        self.parameters = parameters
-        self.received_output_queue = received_output_queue
-        self.controller_addr = parameters["controller_addr"]
-        self.controller_port = parameters["controller_port"]
-        self.test_links_dict = parameters["test_links_dict"]
-        self.session_duration = parameters["session_duration"]
-        self.topology = parameters["topology"]
-        self.recv_timeout = 0
-        self.number_of_iperf_object = 0
-        self.number_of_ping_object = 0
-        self.expected_number_of_responses = 0
-        self.socket = None
-        self.zmq_identifier = None
-        self.iperf_obj = None
-        self.ping_obj = None
-        self.num_sent_req = 0
-        self.test_start_time = time.time()
-        self.current_second = 0
-        self.polling_delay = 5
+        self.parameters: ParametersType = parameters
+        self.received_output_queue: Queue = received_output_queue
+        self.controller_addr: str = parameters["controller_addr"]
+        self.controller_port: int = parameters["controller_port"]
+        self.test_links_dict: TestLinksDictType = parameters["test_links_dict"]
+        self.session_duration: int = parameters["session_duration"]
+        self.topology: Dict = parameters["topology"]
+        self.recv_timeout: int = 0
+        self.number_of_iperf_object: int = 0
+        self.number_of_ping_object: int = 0
+        self.expected_number_of_responses: int = 0
+        self.socket: Optional[Socket] = None
+        self.zmq_identifier: Optional[str] = None
+        self.iperf_obj: Optional[iperf.RunIperf] = None
+        self.ping_obj: Optional[ping.RunPing] = None
+        self.num_sent_req: int = 0
+        self.test_start_time: int = time.time()
+        self.current_second: int = 0
+        self.polling_delay: int = 5
 
     def run(self) -> None:
         self._test_network()
 
-    def _myget(self, link_dict: Dict[str, Any], obj: str) -> int:
+    def _myget(
+        self,
+        link_dict: Dict[str, Union[str, int, bool, iperf.IperfObj, ping.PingObj, None]],
+        obj: str,
+    ) -> int:
         try:
             if obj == "iperf_object":
                 return link_dict[obj].time_sec
@@ -109,8 +118,8 @@ class TestNetwork(Thread):
             self._my_exit(False, error_msg=ex)
 
         # send iperf and ping requests to the Ctrl
-        self.iperf_obj = run_iperf.RunIperf(self.socket, self.zmq_identifier)
-        self.ping_obj = run_ping.RunPing(self.socket, self.zmq_identifier)
+        self.iperf_obj = iperf.RunIperf(self.socket, self.zmq_identifier)
+        self.ping_obj = ping.RunPing(self.socket, self.zmq_identifier)
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in self.topology["nodes"]}
         asyncio.set_event_loop(asyncio.new_event_loop())
         while (
@@ -214,79 +223,3 @@ class TestNetwork(Thread):
                     with transaction.atomic():
                         link_db_obj.route_changed_count = link["route_changed_count"]
                         link_db_obj.save()
-
-
-class IperfObj:
-    def __init__(
-        self,
-        link_name: str,
-        src_node_name: str,
-        dst_node_name: str,
-        src_node_id: str,
-        dst_node_id: str,
-        bitrate: int,
-        time_sec: int,
-        proto: str,
-        interval_sec: int,
-        window_size: int,
-        mss: int,
-        no_delay: bool,
-        omit_sec: int,
-        verbose: bool,
-        json: bool,
-        buffer_length: int,
-        format: int,
-        use_link_local: bool,
-    ) -> None:
-        self.link_name = link_name
-        self.src_node_name = src_node_name
-        self.dst_node_name = dst_node_name
-        self.src_node_id = src_node_id
-        self.dst_node_id = dst_node_id
-        self.bitrate = bitrate
-        self.time_sec = time_sec
-        self.proto = proto
-        self.interval_sec = interval_sec
-        self.window_size = window_size
-        self.mss = mss
-        self.no_delay = no_delay
-        self.omit_sec = omit_sec
-        self.verbose = verbose
-        self.json = json
-        self.buffer_length = buffer_length
-        self.format = format
-        self.use_link_local = use_link_local
-        self.request_sent = False
-        self.end_time = None
-
-
-class PingObj:
-    def __init__(
-        self,
-        link_name: str,
-        src_node_name: str,
-        dst_node_name: str,
-        src_node_id: str,
-        dst_node_id: str,
-        count: int,
-        interval: int,
-        packet_size: int,
-        verbose: bool,
-        deadline: int,
-        timeout: int,
-        use_link_local: bool,
-    ) -> None:
-        self.link_name = link_name
-        self.src_node_name = src_node_name
-        self.dst_node_name = dst_node_name
-        self.src_node_id = src_node_id
-        self.dst_node_id = dst_node_id
-        self.count = count
-        self.interval = interval
-        self.packet_size = packet_size
-        self.verbose = verbose
-        self.deadline = deadline
-        self.timeout = timeout
-        self.use_link_local = use_link_local
-        self.request_sent = False
-        self.end_time = None

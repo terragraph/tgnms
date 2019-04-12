@@ -2,16 +2,24 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-import queue
 import random
 import time
 from collections import defaultdict
+from queue import Queue
 from threading import Thread
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
+from api.alias import (
+    NetworkParametersType,
+    ParametersType,
+    TestLinksDictType,
+    TopologyType,
+)
 from api.models import Tests, TestStatus, TrafficDirection
 from api.network_test import base
-from api.network_test.test_network import IperfObj, PingObj, TestNetwork
+from api.network_test.iperf import IperfObj
+from api.network_test.ping import PingObj
+from api.network_test.test_network import TestNetwork
 from module.beringei_time_series import TimeSeries
 from module.insights import get_test_links_metrics
 
@@ -38,20 +46,22 @@ class RunParallelTestPlan(Thread):
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
     """
 
-    def __init__(self, network_parameters: Dict[str, Any], db_queue: Any) -> None:
+    def __init__(
+        self, network_parameters: NetworkParametersType, db_queue: Queue
+    ) -> None:
         Thread.__init__(self)
-        self.db_queue = db_queue
-        self.network_parameters = network_parameters
-        self.direction = TrafficDirection.BIDIRECTIONAL.value
-        self.status_error = False
-        self.parameters = {}
-        self.run_test_get_stats = None
-        self.start_time = time.time()
-        self.end_time = time.time() + network_parameters["session_duration"]
-        self.test_status = None
-        self.received_output_queue = queue.Queue()
-        self.topology_sector_info = defaultdict(int)
-        self.interval_sec = 1
+        self.db_queue: Queue = db_queue
+        self.network_parameters: NetworkParametersType = network_parameters
+        self.direction: int = TrafficDirection.BIDIRECTIONAL.value
+        self.status_error: bool = False
+        self.parameters: ParametersType = {}
+        self.run_test_get_stats: Optional[base.RunTestGetStats] = None
+        self.start_time: int = time.time()
+        self.end_time: int = time.time() + network_parameters["session_duration"]
+        self.test_status: Optional[int] = None
+        self.received_output_queue: Queue = Queue()
+        self.topology_sector_info: Dict = defaultdict(int)
+        self.interval_sec: int = 1
 
     def run(self) -> None:
 
@@ -138,8 +148,8 @@ class RunParallelTestPlan(Thread):
                 )
 
     def _get_time_series_lists(self) -> Tuple[List[TimeSeries], List[TimeSeries]]:
-        links_time_series = []
-        iperf_time_series = []
+        links_time_series: List = []
+        iperf_time_series: List = []
 
         for src_node_id, dst_node_id in self.parameters["test_links_dict"]:
             # get link
@@ -184,9 +194,7 @@ class RunParallelTestPlan(Thread):
         except ZeroDivisionError:
             return test_push_rate
 
-    def _parallel_test(
-        self, topology: Dict[str, Any]
-    ) -> Dict[Tuple[str, str], Dict[str, Any]]:
+    def _parallel_test(self, topology: TopologyType) -> TestLinksDictType:
         """
         Test Name: Short Term Parallel Link Health
         Test Objective:  Verify that all links are healthy in the possible
@@ -194,7 +202,7 @@ class RunParallelTestPlan(Thread):
         """
         node_name_to_mac = {n["name"]: n["mac_addr"] for n in topology["nodes"]}
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in topology["nodes"]}
-        test_links_dict = {}
+        test_links_dict: Dict = {}
         random.shuffle(topology["links"])
         for link in topology["links"]:
             if link["link_type"] == Tests.WIRELESS.value:

@@ -3,9 +3,16 @@
 
 import logging
 import sys
+from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple
 
 import zmq
+from api.alias import (
+    NetworkParametersType,
+    ParametersType,
+    RcvdStatsType,
+    TestLinksDictType,
+)
 from api.models import TestResult, TestRunExecution, TestStatus, TrafficDirection
 from django.db import transaction
 from django.utils import timezone
@@ -24,9 +31,9 @@ logging.basicConfig(level=logging.INFO)
 
 class Base:
     def __init__(self, _ctrl_sock: Socket, zmq_identifier: str) -> None:
-        self._ctrl_sock = _ctrl_sock
-        self._TRAFFIC_APP_CTRL_ID = "ctrl-app-TRAFFIC_APP"
-        self._MYID = zmq_identifier
+        self._ctrl_sock: Socket = _ctrl_sock
+        self._TRAFFIC_APP_CTRL_ID: str = "ctrl-app-TRAFFIC_APP"
+        self._MYID: str = zmq_identifier
 
     def _deserialize(self, in_byte_array: object, out_thrift_struct: object) -> None:
         deserialize(
@@ -99,8 +106,8 @@ class RunTestGetStats:
         test_name: str,
         test_nw_thread_obj: object,
         topology_name: str,
-        parameters: Dict[str, Any],
-        received_output_queue: Any,
+        parameters: ParametersType,
+        received_output_queue: Queue,
         start_time: int,
         session_duration: int,
     ) -> None:
@@ -140,7 +147,7 @@ class RunTestGetStats:
                     self._db_stats_wrapper(rcvd_src_node, rcvd_dest_node, rcvd_stats)
 
     def _db_stats_wrapper(
-        self, rcvd_src_node: str, rcvd_dest_node: str, rcvd_stats: Dict[str, Any]
+        self, rcvd_src_node: str, rcvd_dest_node: str, rcvd_stats: RcvdStatsType
     ) -> None:
         _log.info("\nWriting Analytics stats to the db:")
         link = self._get_link(rcvd_src_node, rcvd_dest_node)
@@ -222,7 +229,7 @@ class RunTestGetStats:
                         setattr(link_db_obj, stats.name, stats.values[0])
                         link_db_obj.save()
 
-    def _get_link(self, source_node: str, destination_node: str) -> Any:
+    def _get_link(self, source_node: str, destination_node: str) -> Optional[Dict]:
         return self.parameters["test_links_dict"].get(
             (source_node, destination_node), None
         )
@@ -260,9 +267,9 @@ class RunTestGetStats:
 
 
 def _create_db_test_records(
-    network_parameters: Dict[str, Any],
-    test_links_dict: Dict[Tuple[str, str], Dict[str, Any]],
-    db_queue: Any,
+    network_parameters: NetworkParametersType,
+    test_links_dict: TestLinksDictType,
+    db_queue: Queue,
 ) -> TestRunExecution:
     with transaction.atomic():
         test_run_db_obj = TestRunExecution.objects.create(
@@ -311,12 +318,12 @@ def _get_mac_list(
 
 
 def _get_parameters(
-    network_parameters: Dict[str, Any],
+    network_parameters: NetworkParametersType,
     test_run_db_obj: TestRunExecution,
-    test_links_dict: Dict[Tuple[str, str], Dict[str, Any]],
+    test_links_dict: TestLinksDictType,
     interval_sec: int,
     network_hop_info: Optional[List[RoutesForNode]] = None,
-):
+) -> ParametersType:
     return {
         "controller_addr": network_parameters["controller_addr"],
         "controller_port": network_parameters["controller_port"],

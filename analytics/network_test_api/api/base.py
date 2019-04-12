@@ -3,11 +3,19 @@
 
 import json
 import logging
-from typing import Any, Dict, Optional
+from queue import Queue
+from typing import Dict, Optional
 
+from api.alias import (
+    ParsedNetworkInfoType,
+    ParsedReceivedJsonDataType,
+    ReceivedJsonDataType,
+    ValidatedMultiHopParametersType,
+)
 from api.models import Tests, TrafficDirection
 from django.http import HttpResponse
 from module.topology_handler import fetch_network_info
+from terragraph_thrift.network_test.ttypes import Help
 from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
 from thrift.transport import TTransport
 
@@ -16,7 +24,9 @@ _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def parse_received_json_data(received_json_data: Dict[str, Any]) -> Dict[str, Any]:
+def parse_received_json_data(
+    received_json_data: ReceivedJsonDataType
+) -> ParsedReceivedJsonDataType:
 
     test_code = float(received_json_data["test_code"])
     topology_id = int(received_json_data["topology_id"])
@@ -42,8 +52,8 @@ def parse_received_json_data(received_json_data: Dict[str, Any]) -> Dict[str, An
 
 
 def validate_multi_hop_parameters(
-    received_json_data: Dict[str, Any], test_code: float
-) -> Dict[str, Any]:
+    received_json_data: ReceivedJsonDataType, test_code: float
+) -> ValidatedMultiHopParametersType:
 
     # validate traffic_direction parameter
     traffic_direction = int(
@@ -93,7 +103,7 @@ def validate_multi_hop_parameters(
     }
 
 
-def fetch_and_parse_network_info(topology_id: int) -> Dict[str, Any]:
+def fetch_and_parse_network_info(topology_id: int) -> ParsedNetworkInfoType:
 
     # fetch Controller info and Topology
     try:
@@ -147,8 +157,8 @@ def fetch_and_parse_network_info(topology_id: int) -> Dict[str, Any]:
 
 
 def validate_speed_test_pop_to_node_dict(
-    speed_test_pop_to_node_dict: Dict[str, str], topology: Dict[str, Any]
-) -> Dict[str, Any]:
+    speed_test_pop_to_node_dict: Dict[str, str], topology: Dict[str, Dict]
+) -> Dict[str, Optional[HttpResponse]]:
 
     try:
         if speed_test_pop_to_node_dict:
@@ -195,7 +205,7 @@ def generate_http_response(
     )
 
 
-def get_test_run_db_obj_id(test_run_db_queue: Any) -> None:
+def get_test_run_db_obj_id(test_run_db_queue: Queue) -> None:
     try:
         return test_run_db_queue.get(block=True, timeout=10)
     except Exception as e:
@@ -203,7 +213,7 @@ def get_test_run_db_obj_id(test_run_db_queue: Any) -> None:
         return None
 
 
-def serialize_to_json(obj: object) -> str:
+def serialize_to_json(obj: Help) -> str:
     trans = TTransport.TMemoryBuffer()
     prot = TSimpleJSONProtocolFactory().getProtocol(trans)
     obj.write(prot)

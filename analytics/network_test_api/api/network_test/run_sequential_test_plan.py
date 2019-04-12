@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import logging
-import queue
 import random
 import time
+from queue import Queue
 from threading import Thread
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
+from api.alias import (
+    NetworkParametersType,
+    ParametersType,
+    TestLinksDictType,
+    TopologyType,
+)
 from api.models import Tests, TrafficDirection
 from api.network_test import base
-from api.network_test.test_network import IperfObj, PingObj, TestNetwork
+from api.network_test.iperf import IperfObj
+from api.network_test.ping import PingObj
+from api.network_test.test_network import TestNetwork
 
 
 class RunSequentialTestPlan(Thread):
@@ -31,18 +38,18 @@ class RunSequentialTestPlan(Thread):
         * protocol {TCP/UDP}: iPerf traffic protocol. Specified by User (UI)
     """
 
-    def __init__(self, network_parameters: Dict[str, Any], db_queue: Any) -> None:
+    def __init__(
+        self, network_parameters: NetworkParametersType, db_queue: Queue
+    ) -> None:
         Thread.__init__(self)
-        self.db_queue = db_queue
-        self.network_parameters = network_parameters
-        self.direction = TrafficDirection.BIDIRECTIONAL.value
-        self.parameters = {}
-        self.test_run_obj = None
-        self.start_time = time.time()
-        self.received_output = {}
-        self.received_output_queue = queue.Queue()
-        self.links = []
-        self.interval_sec = 1
+        self.db_queue: Queue = db_queue
+        self.network_parameters: NetworkParametersType = network_parameters
+        self.direction: int = TrafficDirection.BIDIRECTIONAL.value
+        self.parameters: ParametersType = {}
+        self.start_time: int = time.time()
+        self.received_output_queue: Queue = Queue()
+        self.links: List = []
+        self.interval_sec: int = 1
 
     def run(self) -> None:
 
@@ -79,16 +86,14 @@ class RunSequentialTestPlan(Thread):
         )
         run_test_get_stats.start()
 
-    def _sequential_test(
-        self, topology: Dict[str, Any]
-    ) -> Dict[Tuple[str, str], Dict[str, Any]]:
+    def _sequential_test(self, topology: TopologyType) -> TestLinksDictType:
         """
         Test Name: Short Term Sequential Link Health
         Test Objective:  Verify link health in the absence of self interference
         """
         node_name_to_mac = {n["name"]: n["mac_addr"] for n in topology["nodes"]}
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in topology["nodes"]}
-        test_links_dict = {}
+        test_links_dict: Dict = {}
         start_delay = 0
         random.shuffle(topology["links"])
         for link in topology["links"]:

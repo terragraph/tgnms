@@ -2,15 +2,23 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import logging
-import queue
 import random
 import time
+from queue import Queue
 from threading import Thread
-from typing import Any, Dict, List, Tuple
+from typing import List, Optional
 
+from api.alias import (
+    NetworkParametersType,
+    ParametersType,
+    PopToNodeLinksType,
+    TestLinksDictType,
+    TopologyType,
+)
 from api.network_test import base
-from api.network_test.test_network import IperfObj, PingObj, TestNetwork
+from api.network_test.iperf import IperfObj
+from api.network_test.ping import PingObj
+from api.network_test.test_network import TestNetwork
 from module.routing import RoutesForNode, get_routes_for_nodes
 
 
@@ -40,17 +48,18 @@ class RunMultiHopTestPlan(Thread):
         * direction: one of: bidirectional, POP -> node, node -> POP
 """
 
-    def __init__(self, network_parameters: Dict[str, Any], db_queue: Any) -> None:
+    def __init__(
+        self, network_parameters: NetworkParametersType, db_queue: Queue
+    ) -> None:
         Thread.__init__(self)
-        self.db_queue = db_queue
-        self.network_parameters = network_parameters
-        self.parameters = {}
-        self.start_time = time.time()
-        self.received_output = {}
-        self.received_output_queue = queue.Queue()
-        self.links = []
-        self.network_hop_info = None
-        self.interval_sec = 1
+        self.db_queue: Queue = db_queue
+        self.network_parameters: NetworkParametersType = network_parameters
+        self.parameters: ParametersType = {}
+        self.start_time: int = time.time()
+        self.received_output_queue: Queue = Queue()
+        self.links: List = []
+        self.network_hop_info: Optional[List[RoutesForNode]] = None
+        self.interval_sec: int = 1
 
     def run(self) -> None:
 
@@ -103,7 +112,7 @@ class RunMultiHopTestPlan(Thread):
 
     def _get_pop_to_node_links(
         self, network_hop_info: List[RoutesForNode]
-    ) -> List[Dict[str, Any]]:
+    ) -> PopToNodeLinksType:
         pop_to_node_links = []
         parallel_sessions_count = 0
         start_delay = 0
@@ -139,8 +148,8 @@ class RunMultiHopTestPlan(Thread):
         return pop_to_node_links
 
     def _multi_hop_test(
-        self, topology: Dict[str, Any], pop_to_node_links: List[Dict[str, Any]]
-    ) -> Dict[Tuple[str, str], Dict[str, Any]]:
+        self, topology: TopologyType, pop_to_node_links: PopToNodeLinksType
+    ) -> TestLinksDictType:
         """
         Test Name: Multi-hop Network Health
         Test Objective: Verify that all multi-hop routes are healthy
