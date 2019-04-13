@@ -511,51 +511,66 @@ def generate_insights():
     # adjust current time if sensitive
     OFFSET_30S_DB = 90
     OFFSET_1S_DB = 10
-    if current_time % 30 == 0:
-        # Runs every 30s
-        try:
-            with open(PathStore.PIPELINE_CONFIG_FILE) as local_file:
-                pipeline_config = json.load(local_file)
-        except Exception:
-            logging.error("Cannot find the configuration file")
-            return None
 
+    try:
+        with open(PathStore.PIPELINE_CONFIG_FILE) as local_file:
+            pipeline_config = json.load(local_file)
+    except Exception:
+        logging.error("Cannot find or parse the configuration file")
+        return None
+
+    try:
+        hf_period = pipeline_config["insights_pipelines_hf"]["period"]
+        lf_period = pipeline_config["insights_pipelines_lf"]["period"]
+        nw_period = pipeline_config["network_watchdog"]["period"]
+    except Exception:
+        logging.error("Problem reading period configuration -- returning")
+        return
+
+    if current_time % nw_period == 0:
         try:
-            enable_30s = pipeline_config["insights_pipelines_30s"]["enabled"]
-            wps_enabled = (
-                pipeline_config["insights_pipelines_30s"]["write_power_status"][
-                    "enabled"
-                ]
-                and enable_30s
-            )
-            mi_enabled = (
-                pipeline_config["insights_pipelines_30s"]["misc_insights"]["enabled"]
-                and enable_30s
-            )
-            ui_enabled = (
-                pipeline_config["insights_pipelines_30s"]["uptime_insights"]["enabled"]
-                and enable_30s
-            )
-            lhi_enabled = (
-                pipeline_config["insights_pipelines_30s"]["link_health_insights"][
-                    "enabled"
-                ]
-                and enable_30s
-            )
-            dif_enabled = (
-                pipeline_config["insights_pipelines_30s"]["detect_ignition_failure"][
-                    "enabled"
-                ]
-                and enable_30s
-            )
-            dif_links_white_list = pipeline_config["insights_pipelines_30s"][
+            dif_enabled = pipeline_config["network_watchdog"][
                 "detect_ignition_failure"
-            ]["minion_restart_links_white_list"]
-            dif_links_black_list = pipeline_config["insights_pipelines_30s"][
-                "detect_ignition_failure"
-            ]["minion_restart_links_black_list"]
+            ]["enabled"]
+            links_white_list = pipeline_config["network_watchdog"][
+                "minion_restart_links_white_list"
+            ]
+            links_black_list = pipeline_config["network_watchdog"][
+                "minion_restart_links_black_list"
+            ]
         except Exception:
-            logging.error("Problem reading configuration file -- returning")
+            logging.error("Problem reading watchdog configuration -- returning")
+            return
+
+        if dif_enabled:
+            logging.debug("detect_ignition_failure running")
+            lu_att = detect_ignition_failure(
+                current_time=current_time - OFFSET_30S_DB,
+                window=240,
+                read_interval=30,
+                write_interval=30,
+                network_info=network_info,
+                lu_att=lu_att,
+                restart_minion_white_list=links_white_list,
+                restart_minion_black_list=links_black_list,
+            )
+
+    if current_time % hf_period == 0:
+        try:
+            wps_enabled = pipeline_config["insights_pipelines_hf"][
+                "write_power_status"
+            ]["enabled"]
+            mi_enabled = pipeline_config["insights_pipelines_hf"]["misc_insights"][
+                "enabled"
+            ]
+            ui_enabled = pipeline_config["insights_pipelines_hf"]["uptime_insights"][
+                "enabled"
+            ]
+            lhi_enabled = pipeline_config["insights_pipelines_hf"][
+                "link_health_insights"
+            ]["enabled"]
+        except Exception:
+            logging.error("Problem reading HF configuration -- returning")
             return
 
         if wps_enabled:
@@ -590,47 +605,23 @@ def generate_insights():
                 write_interval=30,
                 network_info=network_info,
             )
-        if dif_enabled:
-            logging.debug("detect_ignition_failure running")
-            lu_att = detect_ignition_failure(
-                current_time=current_time - OFFSET_30S_DB,
-                window=240,
-                read_interval=30,
-                write_interval=30,
-                network_info=network_info,
-                lu_att=lu_att,
-                restart_minion_white_list=dif_links_white_list,
-                restart_minion_black_list=dif_links_black_list,
-            )
 
-    if current_time % 900 == 0:
-        # Runs every 15min
+    if current_time % lf_period == 0:
         try:
-            enable_900s = pipeline_config["insights_pipelines_900s"]["enabled"]
-            wps_enabled = (
-                pipeline_config["insights_pipelines_900s"]["write_power_status"][
-                    "enabled"
-                ]
-                and enable_900s
-            )
-            mi_enabled = (
-                pipeline_config["insights_pipelines_900s"]["misc_insights"]["enabled"]
-                and enable_900s
-            )
-            ui_enabled = (
-                pipeline_config["insights_pipelines_900s"]["uptime_insights"][
-                    "enabled"
-                ]
-                and enable_900s
-            )
-            lhi_enabled = (
-                pipeline_config["insights_pipelines_900s"]["link_health_insights"][
-                    "enabled"
-                ]
-                and enable_900s
-            )
+            wps_enabled = pipeline_config["insights_pipelines_lf"][
+                "write_power_status"
+            ]["enabled"]
+            mi_enabled = pipeline_config["insights_pipelines_lf"]["misc_insights"][
+                "enabled"
+            ]
+            ui_enabled = pipeline_config["insights_pipelines_lf"]["uptime_insights"][
+                "enabled"
+            ]
+            lhi_enabled = pipeline_config["insights_pipelines_lf"][
+                "link_health_insights"
+            ]["enabled"]
         except Exception:
-            logging.error("Problem reading configuration file -- returning")
+            logging.error("Problem reading LF configuration -- returning")
             return
 
         if wps_enabled:
@@ -677,7 +668,7 @@ def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -
     mcs = nlts.read_stats("staPkt.mcs", StatType.LINK)
     tx_ok = nlts.read_stats("staPkt.txOk", StatType.LINK)
     tx_fail = nlts.read_stats("staPkt.txFail", StatType.LINK)
-    no_traffic = np.zeros(tx_fail.shape) # assume network test always has traffic
+    no_traffic = np.zeros(tx_fail.shape)  # assume network test always has traffic
     tx_power_idx = nlts.read_stats("staPkt.txPowerIndex", StatType.LINK)
     srssi = nlts.read_stats("phystatus.srssi", StatType.LINK, swap_dir=True)
     snr = nlts.read_stats("phystatus.ssnrEst", StatType.LINK, swap_dir=True)
