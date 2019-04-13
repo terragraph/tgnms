@@ -205,6 +205,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./docker_volumes/logs:/analytics/logs
+      - ./docker_volumes/analytics/config:/analytics/config
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "cd /usr/local/analytics/module; python run_pipeline.py"]
