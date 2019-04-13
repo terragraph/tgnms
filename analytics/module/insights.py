@@ -514,44 +514,44 @@ def generate_insights():
     if current_time % 30 == 0:
         # Runs every 30s
         try:
-            with open(PathStore.ANALYTICS_CONFIG_FILE) as local_file:
-                analytics_config = json.load(local_file)
+            with open(PathStore.PIPELINE_CONFIG_FILE) as local_file:
+                pipeline_config = json.load(local_file)
         except Exception:
             logging.error("Cannot find the configuration file")
             return None
 
         try:
-            enable_30s = analytics_config["insights_pipelines_30s"]["enabled"]
+            enable_30s = pipeline_config["insights_pipelines_30s"]["enabled"]
             wps_enabled = (
-                analytics_config["insights_pipelines_30s"]["write_power_status"][
+                pipeline_config["insights_pipelines_30s"]["write_power_status"][
                     "enabled"
                 ]
                 and enable_30s
             )
             mi_enabled = (
-                analytics_config["insights_pipelines_30s"]["misc_insights"]["enabled"]
+                pipeline_config["insights_pipelines_30s"]["misc_insights"]["enabled"]
                 and enable_30s
             )
             ui_enabled = (
-                analytics_config["insights_pipelines_30s"]["uptime_insights"]["enabled"]
+                pipeline_config["insights_pipelines_30s"]["uptime_insights"]["enabled"]
                 and enable_30s
             )
             lhi_enabled = (
-                analytics_config["insights_pipelines_30s"]["link_health_insights"][
+                pipeline_config["insights_pipelines_30s"]["link_health_insights"][
                     "enabled"
                 ]
                 and enable_30s
             )
             dif_enabled = (
-                analytics_config["insights_pipelines_30s"]["detect_ignition_failure"][
+                pipeline_config["insights_pipelines_30s"]["detect_ignition_failure"][
                     "enabled"
                 ]
                 and enable_30s
             )
-            dif_links_white_list = analytics_config["insights_pipelines_30s"][
+            dif_links_white_list = pipeline_config["insights_pipelines_30s"][
                 "detect_ignition_failure"
             ]["minion_restart_links_white_list"]
-            dif_links_black_list = analytics_config["insights_pipelines_30s"][
+            dif_links_black_list = pipeline_config["insights_pipelines_30s"][
                 "detect_ignition_failure"
             ]["minion_restart_links_black_list"]
         except Exception:
@@ -606,25 +606,25 @@ def generate_insights():
     if current_time % 900 == 0:
         # Runs every 15min
         try:
-            enable_900s = analytics_config["insights_pipelines_900s"]["enabled"]
+            enable_900s = pipeline_config["insights_pipelines_900s"]["enabled"]
             wps_enabled = (
-                analytics_config["insights_pipelines_900s"]["write_power_status"][
+                pipeline_config["insights_pipelines_900s"]["write_power_status"][
                     "enabled"
                 ]
                 and enable_900s
             )
             mi_enabled = (
-                analytics_config["insights_pipelines_900s"]["misc_insights"]["enabled"]
+                pipeline_config["insights_pipelines_900s"]["misc_insights"]["enabled"]
                 and enable_900s
             )
             ui_enabled = (
-                analytics_config["insights_pipelines_900s"]["uptime_insights"][
+                pipeline_config["insights_pipelines_900s"]["uptime_insights"][
                     "enabled"
                 ]
                 and enable_900s
             )
             lhi_enabled = (
-                analytics_config["insights_pipelines_900s"]["link_health_insights"][
+                pipeline_config["insights_pipelines_900s"]["link_health_insights"][
                     "enabled"
                 ]
                 and enable_900s

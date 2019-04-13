@@ -16,3 +16,4 @@ class PathStore(object):
     ANALYTICS_CONFIG_FILE = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "AnalyticsConfig.json")
     )
+    PIPELINE_CONFIG_FILE = "/analytics/config/PipelineConfig.json"
