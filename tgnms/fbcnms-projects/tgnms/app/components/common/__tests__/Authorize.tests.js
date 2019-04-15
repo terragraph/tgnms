@@ -10,8 +10,8 @@
 import React from 'react';
 import {render, cleanup} from 'react-testing-library';
 import 'jest-dom/extend-expect';
-import type {User} from '../../../../shared/auth/User';
 import {Permissions} from '../../../../shared/auth/Permissions';
+import {initWindowConfig, setTestUser} from '../../../tests/testHelpers';
 
 import Authorize from '../Authorize';
 
@@ -84,17 +84,3 @@ test('If user has all of the required roles, allow', () => {
   );
   expect(getByText('should be visible')).toBeInTheDocument();
 });
-
-// TGNMS renders json into the dom and loads it into window.CONFIG
-function initWindowConfig(config) {
-  if (!window) {
-    throw new Error(
-      'window is undefined. Ensure that the current jest environment is jsdom',
-    );
-  }
-  window.CONFIG = config;
-}
-
-function setTestUser(user: User) {
-  window.CONFIG.user = user;
-}

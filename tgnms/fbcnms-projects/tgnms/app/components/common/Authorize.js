@@ -1,4 +1,5 @@
 /**
+ * Show / hide individual components based on user permissions.
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
