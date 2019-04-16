@@ -21,6 +21,7 @@ export type TestExecution = {|
   user_id: number,
   topology_id: number,
   topology_name: string,
+  protocol: string,
   // associations
   test_results: ?Array<TestResult>,
 |};
@@ -59,6 +60,9 @@ export default function(sequelize: any, DataTypes: any) {
       },
       topology_name: {
         type: DataTypes.STRING(256),
+      },
+      protocol: {
+        type: DataTypes.ENUM(['TCP', 'UDP']),
       },
     },
     {

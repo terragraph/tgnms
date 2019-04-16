@@ -18,6 +18,7 @@ export type TestExecution = {|
   topology_id: number,
   topology_name: string,
   test_results: ?Array<TestResult>,
+  protocol: $Values<typeof PROTOCOL>,
 |};
 
 export const TEST_STATUS = {
@@ -31,4 +32,9 @@ export const TEST_TYPE = {
   '8.2': 'sequential link test',
   '8.3': 'parallel link test',
   '8.9': 'multi-hop test',
+};
+
+export const PROTOCOL = {
+  TCP: 'TCP',
+  UDP: 'UDP',
 };

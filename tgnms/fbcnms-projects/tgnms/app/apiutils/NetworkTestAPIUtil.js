@@ -47,16 +47,20 @@ export const getExecutionsByNetworkName = ({
   networkName,
   afterDate = '',
   testType = '',
+  protocol = '',
 }: {
   networkName: string,
   afterDate?: string,
   testType?: string,
+  protocol?: string,
 }): Promise<TablePage<TestExecutionDto>> => {
   return axios
     .get<any, TablePage<TestExecutionDto>>(
       `/network_test/executions?network=${networkName}&afterDate=${encodeURIComponent(
         afterDate,
-      )}&testType=${encodeURIComponent(testType || '')}`,
+      )}&testType=${encodeURIComponent(
+        testType || '',
+      )}&protocol=${encodeURIComponent(protocol || '')}`,
     )
     .then(({data}) =>
       Object.assign(data, {

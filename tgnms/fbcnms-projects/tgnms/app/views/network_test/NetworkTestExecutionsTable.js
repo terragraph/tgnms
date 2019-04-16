@@ -19,8 +19,8 @@ import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 import CustomTable from '../../components/common/CustomTable';
+import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
-import FormLabel from '@material-ui/core/FormLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
@@ -40,7 +40,11 @@ import {formatNumber} from '../../helpers/StringHelpers';
 import AbortNetworkTestButton from './AbortNetworkTestButton';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
 
-import {TEST_STATUS, TEST_TYPE} from '../../../shared/dto/TestExecution';
+import {
+  TEST_STATUS,
+  TEST_TYPE,
+  PROTOCOL,
+} from '../../../shared/dto/TestExecution';
 
 const styles = theme => ({
   root: {
@@ -94,6 +98,11 @@ class NetworkTestExecutionsTable extends React.PureComponent<
   overscanRowCount = 10;
   columns = [
     {
+      key: 'id',
+      label: '#',
+      width: 40,
+    },
+    {
       key: 'status',
       label: 'Status',
       width: 60,
@@ -122,6 +131,12 @@ class NetworkTestExecutionsTable extends React.PureComponent<
         const end = new Date(row.end_date_utc);
         return end > start && end.toLocaleString();
       },
+      sort: true,
+    },
+    {
+      key: 'protocol',
+      label: 'Protcol',
+      width: 100,
       sort: true,
     },
     {
@@ -287,6 +302,7 @@ class NetworkTestExecutionsTable extends React.PureComponent<
 type Options = {|
   afterDate: string,
   testType?: ?$Keys<typeof TEST_TYPE>,
+  protocol?: $Values<typeof PROTOCOL>,
 |};
 
 const useStyles = makeStyles(theme => ({
@@ -301,10 +317,10 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing.unit,
     minWidth: 150,
   },
-  testTypeSelect: {
+  testOptionSelect: {
     textTransform: 'capitalize',
   },
-  testTypeItem: {
+  testOptionItem: {
     textTransform: 'capitalize',
   },
 }));
@@ -324,6 +340,7 @@ function TableOptions({
       quarter: now.subtract(90, 'days').format(),
       year: now.subtract(1, 'year').format(),
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moment().dayOfYear()]); // only recompute when the day changes
 
   const [options, setOptions] = React.useState<Options>({
@@ -339,6 +356,7 @@ function TableOptions({
       return;
     }
     onOptionsUpdate(options);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   const onUpdate = React.useCallback(
@@ -354,9 +372,7 @@ function TableOptions({
 
   return (
     <div className={classes.root}>
-      <FormLabel component="legend" className={classes.legend}>
-        Filters
-      </FormLabel>
+      <Typography variant="srOnly">Filters</Typography>
       <FormGroup row>
         <FormControl className={classes.formControl}>
           <InputLabel htmlFor="afterDate">Since</InputLabel>
@@ -376,14 +392,14 @@ function TableOptions({
         <FormControl className={classes.formControl}>
           <InputLabel htmlFor="testType">Type</InputLabel>
           <Select
-            className={classes.testTypeSelect}
+            className={classes.testOptionSelect}
             value={options.testType || ''}
             onChange={onUpdate}
             inputProps={{
               id: 'testType',
               name: 'testType',
               classes: {
-                selectMenu: classNames.testTypeSelect,
+                selectMenu: classNames.testOptionSelect,
               },
             }}>
             <MenuItem value={''} selected>
@@ -393,8 +409,34 @@ function TableOptions({
               <MenuItem
                 key={type}
                 value={type}
-                className={classes.testTypeItem}>
+                className={classes.testOptionItem}>
                 {TEST_TYPE[type]}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl className={classes.formControl}>
+          <InputLabel htmlFor="protocol">Protocol</InputLabel>
+          <Select
+            className={classes.testOptionSelect}
+            value={options.protocol || ''}
+            onChange={onUpdate}
+            inputProps={{
+              id: 'protocol',
+              name: 'protocol',
+              classes: {
+                selectMenu: classNames.testOptionSelect,
+              },
+            }}>
+            <MenuItem value={''} selected>
+              Any
+            </MenuItem>
+            {Object.keys(PROTOCOL).map(key => (
+              <MenuItem
+                key={PROTOCOL[key]}
+                value={PROTOCOL[key]}
+                className={classes.testOptionItem}>
+                {PROTOCOL[key]}
               </MenuItem>
             ))}
           </Select>
@@ -513,7 +555,7 @@ function useTestStatusProgress({
         clearInterval(interval);
       }
     };
-  }, [status]);
+  }, [status, expected_end_date_utc, expectedElapsedMs]);
   return percentage;
 }
 

@@ -17,6 +17,7 @@ type RecentTestExecutionsRequest = {
   networkName?: ?string,
   afterDate?: ?string,
   testType?: ?string,
+  protocol?: ?string,
 };
 
 const service = {
@@ -63,6 +64,9 @@ const service = {
     }
     if (typeof request.testType === 'string' && request.testType !== '') {
       query.where.test_code = request.testType;
+    }
+    if (typeof request.protocol === 'string' && request.protocol !== '') {
+      query.where.protocol = request.protocol;
     }
     return (api_testrunexecution
       .findAll(query)
@@ -178,6 +182,7 @@ function mapTestExecutionToDto(model: TestExecution): TestExecutionDto {
     user_id: model.user_id,
     topology_id: model.topology_id,
     topology_name: model.topology_name,
+    protocol: model.protocol,
     test_results: model.test_results
       ? model.test_results.map(mapTestResultToDto)
       : null,

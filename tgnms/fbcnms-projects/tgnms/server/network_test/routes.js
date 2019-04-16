@@ -39,12 +39,13 @@ router.post('/stop', (req, res) => {
 });
 
 router.get('/executions', (req, res) => {
-  const {network, afterDate, testType} = req.query;
+  const {network, afterDate, testType, protocol} = req.query;
   return networkTestService
     .getRecentTestExecutions({
       networkName: network,
       afterDate,
       testType,
+      protocol,
     })
     .then(executions => res.status(200).send(executions))
     .catch(createErrorHandler(res));
