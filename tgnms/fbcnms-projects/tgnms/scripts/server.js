@@ -30,7 +30,7 @@ const {
 
 const {sequelize} = require('../server/models');
 const topologyPeriodic = require('../server/topology/periodic');
-const {runMigrations} = require('./runMigrations');
+const {runMigrations, runSeeders} = require('./initDatabase');
 const logger = require('../server/log')(module);
 
 import access from '../server/middleware/access';
@@ -194,8 +194,10 @@ app.get('*', (req, res) => {
   try {
     // Run DB migrations
     await runMigrations();
+    // Seed initial data
+    await runSeeders();
   } catch (error) {
-    logger.error('Unable to run migrations:', error);
+    logger.error('Unable to run migrations/seeds:', error);
   }
   try {
     // Load network list
