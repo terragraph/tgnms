@@ -245,4 +245,26 @@ CREATE TABLE IF NOT EXISTS `ts_key` (
   KEY `key` (`key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `scan_response_rate` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `network_name` varchar(255),
+  `scan_type` tinyint,
+  `scan_mode` tinyint,
+  `scan_sub_type` tinyint,
+  `n_scans` int,
+  `n_valid_scans` int,
+  `n_invalid_scans` int,
+  `n_incomplete_scans` int,
+  `start_time` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `end_time` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `total_tx_resp` int,
+  `invalid_tx_resp` int,
+  `tx_errors` json,
+  `total_rx_resp` int,
+  `invalid_rx_resp` int,
+  `rx_errors` json,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`network_name`) REFERENCES topology(`name`)
+) ENGINE=InnoDB;
+
 SELECT 'Done initializing DB.' AS '';
