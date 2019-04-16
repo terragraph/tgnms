@@ -140,7 +140,7 @@ function TestResultDetails({result}: {|result: TestResult|}) {
           [result.snr_avg, 'snr avg'],
           [result.txpwr_avg, 'tx power'],
           [result.pathloss_avg, 'path loss'],
-          [result.tx_per, 'PER'],
+          [convertToExp(result.tx_per), 'PER'],
         ]}
       />
 
@@ -208,8 +208,8 @@ function TestResultDetails({result}: {|result: TestResult|}) {
         metrics={[
           [result.num_tx_packets, 'tx'],
           [result.num_rx_packets, 'rx'],
-          [result.tx_per, 'tx per'],
-          [result.rx_per, 'rx per'],
+          [convertToExp(result.tx_per), 'tx per'],
+          [convertToExp(result.rx_per), 'rx per'],
           [result.tx_ba, 'tx ba'],
           [result.rx_ba, 'rx ba'],
         ]}
@@ -377,6 +377,13 @@ function renderVal(
   }
   if (typeof val === 'number') {
     return format ? format(val) : StringHelpers.formatNumber(val, 2);
+  }
+  return 'N/A';
+}
+
+function convertToExp(val: number): string {
+  if (typeof val === 'number') {
+    return val.toExponential(1);
   }
   return 'N/A';
 }
