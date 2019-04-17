@@ -20,7 +20,6 @@ setup(
     package_data={"module": ["AnalyticsConfig.json"], "tests": ["auto_test.sh"]},
     include_package_data=True,
     install_requires=[
-        "aiohttp==3.4.4",
         "click==7.0",
         "django==2.1.1",
         "jupyter==1.0.0",

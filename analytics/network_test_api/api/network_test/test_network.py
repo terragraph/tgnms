@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import asyncio
 import time
 from queue import Queue
 from threading import Thread
@@ -121,7 +120,7 @@ class TestNetwork(Thread):
         self.iperf_obj = iperf.RunIperf(self.socket, self.zmq_identifier)
         self.ping_obj = ping.RunPing(self.socket, self.zmq_identifier)
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in self.topology["nodes"]}
-        asyncio.set_event_loop(asyncio.new_event_loop())
+
         while (
             self.num_sent_req <= len(self.test_links_dict)
             and time.time() < (self.test_start_time + self.recv_timeout)
@@ -194,18 +193,18 @@ class TestNetwork(Thread):
                                     network_info=self.parameters["network_info"][
                                         self.parameters["topology_id"]
                                     ],
-                                    node_filter_set={
+                                    node_filter_list=[
                                         node_mac_to_name[link["dst_node_id"]]
-                                    },
+                                    ],
                                 )
                             else:
                                 current_route = get_routes_for_nodes(
                                     network_info=self.parameters["network_info"][
                                         self.parameters["topology_id"]
                                     ],
-                                    node_filter_set={
+                                    node_filter_list=[
                                         node_mac_to_name[link["dst_node_id"]]
-                                    },
+                                    ],
                                 )
                                 if not (current_route == link["route"]):
                                     link["route_changed_count"] += 1

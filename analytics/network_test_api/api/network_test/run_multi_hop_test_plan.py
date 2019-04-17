@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import asyncio
 import random
 import time
 from queue import Queue
@@ -64,7 +63,6 @@ class RunMultiHopTestPlan(Thread):
     def run(self) -> None:
 
         # Get Network Hop information
-        asyncio.set_event_loop(asyncio.new_event_loop())
         self.network_hop_info = get_routes_for_nodes(
             self.network_parameters["network_info"][
                 self.network_parameters["topology_id"]

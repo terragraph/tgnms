@@ -4,13 +4,11 @@
     topology scans and targeted network testing.
 """
 
-import asyncio
-import itertools
+import json
 import logging
-import sys
-from aiohttp import ClientSession
-from typing import List, Optional, Set
+from typing import List, Optional
 
+import requests
 from facebook.gorilla.Topology.ttypes import LinkType
 
 
@@ -43,6 +41,16 @@ class RouteToPop(object):
             )
         return False
 
+    def __lt__(self, other: object) -> bool:
+        if isinstance(other, RouteToPop):
+            return (self.pop_name, self.num_p2mp_hops, self.ecmp, self.path) < (
+                other.pop_name,
+                other.num_p2mp_hops,
+                other.ecmp,
+                other.path,
+            )
+        raise NotImplementedError
+
 
 class RoutesForNode(object):
     """
@@ -65,7 +73,7 @@ class RoutesForNode(object):
             return (
                 self.name == other.name
                 and self.num_hops == other.num_hops
-                and self.routes == other.routes
+                and sorted(self.routes) == sorted(other.routes)
             )
         return False
 
@@ -78,46 +86,22 @@ class RoutesForNode(object):
         return [route for route in self.routes if not route.ecmp]
 
 
-async def _fetch(url, src, dst, session):
-    """
-    NOT to be used standalone. _fetch is a module level function used ONLY for
-    implementing get_routes_for_nodes.
-    """
+def fetch_default_routes(hostname: str, port: str, nodes: List[str]) -> Optional[dict]:
+    url = "http://[{}]:{}/api/getDefaultRoutes".format(hostname, port)
+    resp = requests.post(url, data=json.dumps({"nodes": nodes}))
 
-    async with session.post(url, json={"srcNode": src, "dstNode": dst}) as resp:
-        if resp.status == 200:
-            body = await resp.json(encoding="utf-8")
-            return body.get("routes")
-        else:
-            logging.error(
-                "getRoutes request with params: {{srcNode: {}, dstNode: {}}} failed: '{}' ({})".format(
-                    src, dst, resp.reason, resp.status
-                )
-            )
-            return None
+    if resp.status_code == 200:
+        body = resp.json(encoding="utf-8")
+        return body.get("defaultRoutes")
 
-
-async def _run(hostname, port, node_names, pop_node_names):
-    """
-    NOT to be used standalone. _run is a module level function used ONLY for
-    implementing get_routes_for_nodes.
-    """
-
-    url = "http://[{}]:{}/api/getRoutes".format(hostname, port)
-    tasks = []
-
-    # Fetch all responses within one ClientSession, keep connection alive for
-    # all requests
-    async with ClientSession() as session:
-        for src, dst in itertools.product(node_names, pop_node_names):
-            task = asyncio.ensure_future(_fetch(url, src, dst, session))
-            tasks.append(task)
-
-        return await asyncio.gather(*tasks)
+    logging.error(
+        "getDefaultRoutes failed: {} '{}'".format(resp.status_code, resp.reason)
+    )
+    return None
 
 
 def get_routes_for_nodes(
-    network_info: dict, node_filter_set: Optional[Set[str]] = None
+    network_info: dict, node_filter_list: Optional[List[str]] = None
 ) -> List[RoutesForNode]:
     """
     Query the E2E controller and get a list of multihop routing info on the
@@ -125,103 +109,68 @@ def get_routes_for_nodes(
 
     Args:
         network_info: dict of network info from api/getTopology
-        node_filter_set: an optional subset of node names that allows the user
-                         to control for which nodes to compute RoutesForNodes.
+        node_filter_list: an optional sublist of node names that allows the user
+                          to control for which nodes to compute RoutesForNodes.
 
     Return:
         return_list: list of RoutesForNode objects corresponding to the nodes in
-                     network_info (optionally filtered by node_filter_set)
+                     network_info (optionally filtered by node_filter_list)
     """
 
     topology = network_info["topology"]
-    nodes = set()  # type: Set[str]
-    pop_nodes = set()  # type: Set[str]
 
-    if node_filter_set:
-        nodes = node_filter_set
-        pop_nodes = {node["name"] for node in topology["nodes"] if node["pop_node"]}
-    else:
-        for node in topology["nodes"]:
-            if node["pop_node"]:
-                pop_nodes.add(node["name"])
-            else:
-                nodes.add(node["name"])
-
-    if not pop_nodes:
-        logging.error("Couldn't find any PoP nodes in {}".format(topology["name"]))
-        return []
-
-    # PoP nodes are trivial and can be handled separately. PoPs have 0 hop count
-    # and an empty route list
-    return_list = [
-        RoutesForNode(name, 0, [])
-        for name in pop_nodes
-        if not node_filter_set or name in node_filter_set
-    ]
-
-    # Fetch route data from the controller asynchronously to reduce wait time
-    output = asyncio.get_event_loop().run_until_complete(
-        _run(network_info["api_ip"], network_info["api_port"], nodes, pop_nodes)
+    return_list = []
+    output = fetch_default_routes(
+        network_info["api_ip"],
+        network_info["api_port"],
+        node_filter_list or [node["name"] for node in topology["nodes"]],
     )
+
+    if not output:
+        return return_list
 
     wireless_link_set = {
         (link["a_node_name"], link["z_node_name"])
         for link in topology["links"]
-        if link["link_type"] == LinkType().WIRELESS
+        if link["link_type"] == LinkType.WIRELESS
     }
 
-    for i, node_name in enumerate(nodes):
-        r4n = RoutesForNode(node_name, sys.maxsize, [])
+    for node, default_route_list in output.items():
+        # Skip if the node has no default routes (offline)
+        if not default_route_list:
+            continue
 
-        for j, pop_node_name in enumerate(pop_nodes):
-            routes = output[i * len(pop_nodes) + j]
-            if not routes:
-                continue
+        # "num_hops" is the same for every route in default_route_list, so we
+        # just compute it once using the first route in the list
+        num_hops = 0
+        for src, dst in zip(default_route_list[0], default_route_list[0][1:]):
+            hop = tuple(sorted((src, dst)))
+            if hop in wireless_link_set:
+                num_hops += 1
 
-            for route in routes:
-                # Skip if the route has multiple PoPs
-                if len(pop_nodes.intersection(route)) > 1:
-                    continue
+        r4n = RoutesForNode(name=node, num_hops=num_hops, routes=[])
 
-                # Count the number of wireless hops/P2MP hops and record each
-                # wireless hop in the path
-                num_hops = 0
-                num_p2mp_hops = 0
+        for route in default_route_list:
+            pop_name = route[-1]
+            num_p2mp_hops = 0
 
-                for src, dst in zip(route, route[1:]):
-                    hop = tuple(sorted((src, dst)))
-                    if hop in wireless_link_set:
-                        num_hops += 1
-                        num_p2mp_hops += (
-                            1
-                            if any(
-                                src in link and link != hop
-                                for link in wireless_link_set
-                            )
-                            else 0
-                        )
+            for src, dst in zip(route, route[1:]):
+                hop = tuple(sorted((src, dst)))
+                if hop in wireless_link_set and any(
+                    src in link and link != hop for link in wireless_link_set
+                ):
+                    num_p2mp_hops += 1
 
-                if num_hops < r4n.num_hops:
-                    # Shorter multihop route found
-                    r2p = RouteToPop(pop_node_name, num_p2mp_hops, False, route)
-                    r4n.num_hops = num_hops
-                    r4n.routes = [r2p]
-                elif num_hops == r4n.num_hops:
-                    # Add to the list of existing routes if current route has an
-                    # equal hop count. Set ecmp to True if there is already an
-                    # existing route to the same PoP
-                    ecmp = False
-                    for r2p in r4n.routes:
-                        if r2p.pop_name == pop_node_name:
-                            ecmp = True
-                            r2p.ecmp = True
+            ecmp = False
+            for r2p in r4n.routes:
+                # Set "ecmp" to True if there is already an existing route
+                # to the same PoP
+                if r2p.pop_name == pop_name:
+                    ecmp = True
+                    r2p.ecmp = True
 
-                    r4n.routes.append(
-                        RouteToPop(pop_node_name, num_p2mp_hops, ecmp, route)
-                    )
+            r4n.routes.append(RouteToPop(pop_name, num_p2mp_hops, ecmp, route))
 
-        # Only add to the return list if at least one valid route was found
-        if r4n.routes:
-            return_list.append(r4n)
+        return_list.append(r4n)
 
     return return_list
