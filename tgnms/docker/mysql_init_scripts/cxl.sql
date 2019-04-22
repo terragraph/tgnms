@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS `ts_key` (
 
 CREATE TABLE IF NOT EXISTS `scan_response_rate` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `network_name` varchar(255),
+  `network_id` int(11),
   `scan_type` tinyint,
   `scan_mode` tinyint,
   `scan_sub_type` tinyint,
@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS `scan_response_rate` (
   `invalid_rx_resp` int,
   `rx_errors` json,
   PRIMARY KEY (`id`),
-  FOREIGN KEY (`network_name`) REFERENCES topology(`name`)
+  FOREIGN KEY (`network_id`) REFERENCES topology(`id`)
 ) ENGINE=InnoDB;
 
 SELECT 'Done initializing DB.' AS '';
