@@ -12,7 +12,16 @@ import {isAuthorized} from '../../shared/auth/Permissions';
 import {URL} from 'url';
 import {LOGIN_ENABLED, CLIENT_ROOT_URL} from '../config';
 import openRoutes from '../openRoutes';
-import {ensureAccessToken, isExpectedError} from '../user/oidc';
+import {isExpectedError} from '../user/errors';
+import ensureAccessToken from '../user/ensureAccessToken';
+import User from '../user/User';
+import {getClient} from '../user/oidc';
+
+const ensureTokenParams = {
+  resolveClient: async _req => getClient(),
+  resolveUserFromTokenSet: async (_req, tokenSet) =>
+    User.fromTokenSet(tokenSet),
+};
 
 const logger = require('../log')(module);
 
@@ -22,7 +31,7 @@ export default function(permissions: void | Permission | Array<Permission>) {
       return next();
     }
 
-    return ensureAccessToken(req)
+    return ensureAccessToken(req, ensureTokenParams)
       .then(() => {
         const isAuthenticated = req.isAuthenticated();
         if (isAuthenticated) {

@@ -6,7 +6,7 @@
  */
 
 import {TokenSet} from 'openid-client';
-import type {OpenidUserInfoClaims} from './oidc';
+import type {OpenidUserInfoClaims} from './oidcTypes';
 import type {User as UserDto} from '../../shared/auth/User';
 
 /**

@@ -11,12 +11,13 @@
 import access from '../access';
 import {Permissions} from '../../../shared/auth/Permissions';
 import openRoutes from '../../openRoutes';
-jest.mock('../../user/oidc');
+jest.mock('../../user/ensureAccessToken');
 jest.mock('../../config', () => ({
   LOGIN_ENABLED: true,
   CLIENT_ROOT_URL: 'https://example.tgnms.com',
 }));
-const ensureAccessTokenMock: any = require('../../user/oidc').ensureAccessToken;
+const ensureAccessTokenMock: any = require('../../user/ensureAccessToken')
+  .default;
 
 test('redirects if access token check fails', done => {
   ensureAccessTokenMock.mockImplementationOnce(() => Promise.reject());

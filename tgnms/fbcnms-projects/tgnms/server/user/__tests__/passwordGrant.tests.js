@@ -7,7 +7,7 @@
 
 jest.mock('openid-client');
 
-import {PasswordGrantStrategy} from '../oidc';
+import PasswordGrantStrategy from '../PasswordGrantStrategy';
 
 test('throws an error if missing params', () => {
   // $FlowFixMe - breaking flow on purpose here

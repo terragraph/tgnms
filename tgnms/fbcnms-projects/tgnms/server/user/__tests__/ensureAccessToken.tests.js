@@ -16,11 +16,15 @@ jest.mock('openid-client');
  */
 import {TokenSet} from 'openid-client';
 const Client = jest.genMockFromModule('openid-client/lib/client');
-import {
-  ensureAccessToken,
-  __TESTSONLY_setOidcClient,
-  isExpectedError,
-} from '../oidc';
+import {__TESTSONLY_setOidcClient, getClient} from '../oidc';
+import ensureAccessToken from '../ensureAccessToken';
+import {isExpectedError} from '../errors';
+import User from '../User';
+
+const accessTokenParams = {
+  resolveClient: async () => getClient(),
+  resolveUserFromTokenSet: async () => User.fromTokenSet,
+};
 
 beforeEach(() => {
   TokenSet.mockClear();
@@ -28,7 +32,7 @@ beforeEach(() => {
 });
 test('rejects with error if there is no login session', () => {
   const mockRequest = {};
-  ensureAccessToken(mockRequest).catch(error => {
+  ensureAccessToken(mockRequest, accessTokenParams).catch(error => {
     expect(error).toBeInstanceOf(Error);
   });
 });
@@ -42,7 +46,7 @@ test('if tokenset is not expired, resolves with the token', () => {
       },
     },
   };
-  return ensureAccessToken(mockRequest).then(tokenSet => {
+  return ensureAccessToken(mockRequest, accessTokenParams).then(tokenSet => {
     expect(tokenSet.expired).toHaveBeenCalled();
   });
 });
@@ -74,7 +78,7 @@ test('if token set is expired, retrieves a new one using refresh token', () => {
     }),
   };
 
-  return ensureAccessToken(mockRequest).then(() => {
+  return ensureAccessToken(mockRequest, accessTokenParams).then(() => {
     expect(mockExpired).toHaveBeenCalled();
     expect(clientMock.refresh).toHaveBeenCalled();
     // passport's logIn function means that auth was successful
@@ -94,7 +98,7 @@ test('if the refresh token is expired, returns an expected error', () => {
     }),
   };
 
-  return ensureAccessToken(mockRequest).catch(error => {
+  return ensureAccessToken(mockRequest, accessTokenParams).catch(error => {
     expect(isExpectedError(error.name)).toBe(true);
     expect(mockRequest.logIn).not.toHaveBeenCalled();
   });

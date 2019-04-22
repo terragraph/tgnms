@@ -9,7 +9,9 @@ import passport from 'passport';
 const logger = require('../log')(module);
 import {LOGIN_ENABLED, CLIENT_ROOT_URL} from '../config';
 import {Strategy as OpenidStrategy} from 'openid-client';
-import {initOidcClient, PasswordGrantStrategy, StubStrategy} from './oidc';
+import {initOidcClient} from './oidc';
+import PasswordGrantStrategy from './PasswordGrantStrategy';
+import StubStrategy from './StubStrategy';
 import ApplicationUser from './User';
 
 passport.serializeUser((user: ApplicationUser, done) => {

@@ -9,10 +9,10 @@ import type {
   OpenidClient,
   TokenSet as OpenidTokenSet,
   OpenidUserInfoClaims,
-} from '../oidc';
+} from '../oidcTypes';
 const Client = jest.genMockFromModule('openid-client/lib/client');
 const TokenSet = jest.genMockFromModule('openid-client/lib/token_set');
-import {PasswordGrantStrategy} from '../oidc';
+import PasswordGrantStrategy from '../PasswordGrantStrategy';
 
 let client: OpenidClient;
 let tokenSet: OpenidTokenSet;
