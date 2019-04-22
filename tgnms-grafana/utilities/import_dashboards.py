@@ -35,8 +35,8 @@ def import_dashboards(cli_opts):
         try:
             parsed_db = json.loads(dashboard_file)
             # Grafana wants new dashboards to have uid=id=null
-            parsed_db["uid"] = "null"
-            parsed_db["id"] = "null"
+            parsed_db["uid"] = None
+            parsed_db["id"] = None
             parsed_db["version"] = 0
         except Exception:
             logging.error("Unable to parse {}".format(dashboard_file))
