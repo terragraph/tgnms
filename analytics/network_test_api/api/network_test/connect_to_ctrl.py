@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
+from logger import Logger
 import random
 import sys
 from typing import Optional, Tuple
@@ -10,8 +11,7 @@ import zmq
 from zmq.sugar.socket import Socket
 
 
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+_log = Logger(__name__, logging.INFO).get_logger()
 
 
 class ConnectToController:

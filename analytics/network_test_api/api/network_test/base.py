@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
+from logger import Logger
 import sys
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple
@@ -25,8 +26,7 @@ from thrift.TSerialization import deserialize, serialize
 from zmq.sugar.socket import Socket
 
 
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+_log = Logger(__name__, logging.INFO).get_logger()
 
 
 class Base:
@@ -51,7 +51,7 @@ class Base:
         type: str,
         minion: Optional[str] = "",
     ) -> None:
-        _log.info("\nSending {} request...".format(type))
+        _log.info("Sending {} request...".format(type))
         msg_type_str = ctrl_types.MessageType._VALUES_TO_NAMES.get(msg_type, "UNKNOWN")
 
         # prepare message
@@ -83,20 +83,20 @@ class Base:
                 pass
             test_run_obj.save()
         except Exception as ex:
-            _log.error("\nWrite to db failed: {}".format(ex))
+            _log.error("Write to db failed: {}".format(ex))
             success = False
 
         # close ZMQ Socket
-        _log.warning("\nClosing Socket.")
+        _log.warning("Closing Socket.")
         self._ctrl_sock.close()
 
         if not operation:
             operation = type(self).__name__
         if success:
-            _log.warning("\n{} succeeded. {}\n".format(operation, error_msg))
+            _log.warning("{} succeeded. {}".format(operation, error_msg))
             sys.exit(0)
         else:
-            _log.error("\n{} failed. {}\n".format(operation, error_msg))
+            _log.error("{} failed. {}".format(operation, error_msg))
             sys.exit(1)
 
 
@@ -149,7 +149,7 @@ class RunTestGetStats:
     def _db_stats_wrapper(
         self, rcvd_src_node: str, rcvd_dest_node: str, rcvd_stats: RcvdStatsType
     ) -> None:
-        _log.info("\nWriting Analytics stats to the db:")
+        _log.info("Writing Analytics stats to the db:")
         link = self._get_link(rcvd_src_node, rcvd_dest_node)
         link_start_time = self.start_time + link["start_delay"]
         link_end_time = link_start_time + self.session_duration
@@ -249,7 +249,7 @@ class RunTestGetStats:
                     )
                 return test_run_obj
         except Exception as ex:
-            _log.error("\nError setting end_date of the test: {}".format(ex))
+            _log.error("Error setting end_date of the test: {}".format(ex))
 
     def _log_test_end_time_for_link(
         self, source_node: str, destination_node: str

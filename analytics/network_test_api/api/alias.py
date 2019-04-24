@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from django.http import HttpResponse

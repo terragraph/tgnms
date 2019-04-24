@@ -3,6 +3,7 @@
 
 import json
 import logging
+from logger import Logger
 import time
 from queue import Queue
 from threading import Thread, currentThread
@@ -18,8 +19,7 @@ from terragraph_thrift.Controller import ttypes as ctrl_types
 from zmq.sugar.socket import Socket
 
 
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+_log = Logger(__name__, logging.INFO).get_logger()
 
 
 class RecvFromCtrl(Base):
@@ -87,7 +87,7 @@ class RecvFromCtrl(Base):
 
     def _process_output(self, msg_type: int, msg_data: object) -> None:
         if msg_type == ctrl_types.MessageType.PING_OUTPUT:
-            _log.info("\nReceived output:\n{}".format(msg_data.output))
+            _log.debug("Received output:\n{}".format(msg_data.output))
             source_node = msg_data.startPing.pingConfig.srcNodeId
             destination_node = msg_data.startPing.pingConfig.dstNodeId
             # remove start_ping_id for the link from the list
@@ -111,8 +111,8 @@ class RecvFromCtrl(Base):
             }
             self.received_output_queue.put(received_output_dict)
         elif msg_type == ctrl_types.MessageType.IPERF_OUTPUT:
-            _log.info(
-                "\nReceived output from {}:\n{}".format(
+            _log.debug(
+                "Received output from {}:\n{}".format(
                     "server" if msg_data.isServer else "client", msg_data.output
                 )
             )

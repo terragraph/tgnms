@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import logging
 import time
+from datetime import datetime
 from queue import Queue
 from threading import Thread
 from typing import Dict, Optional, Union
@@ -9,10 +11,13 @@ from typing import Dict, Optional, Union
 from api.alias import ParametersType, TestLinksDictType
 from api.models import TestResult, TestRunExecution, Tests
 from api.network_test import connect_to_ctrl, iperf, listen, ping
-from django.db import transaction
 from django.utils import timezone
+from logger import Logger
 from module.routing import get_routes_for_nodes
 from zmq.sugar.socket import Socket
+
+
+_log = Logger(__name__, logging.INFO).get_logger()
 
 
 class TestNetwork(Thread):
@@ -121,63 +126,85 @@ class TestNetwork(Thread):
         self.ping_obj = ping.RunPing(self.socket, self.zmq_identifier)
         node_mac_to_name = {n["mac_addr"]: n["name"] for n in self.topology["nodes"]}
 
+        # loop over all links, it issues iperf/ping when it's
+        # time and checks route integrity (checks for changes in routing)
+        # over the duration of the multi-hop test
+        _log.info("Starting primary while loop")
         while (
             self.num_sent_req <= len(self.test_links_dict)
             and time.time() < (self.test_start_time + self.recv_timeout)
             and self.listen_obj.is_alive()
         ):
-            for link in self.test_links_dict.values():
-                if (
-                    time.time() >= (self.test_start_time + link["start_delay"])
-                    and not link["iperf_object"].request_sent
-                    and not link["ping_object"].request_sent
-                ):
-                    # mark test start time for link
-                    with transaction.atomic():
-                        link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                        link_db_obj.start_date_utc = timezone.now()
-                        link_db_obj.save()
-                    if link.get("iperf_object"):
-                        if not link["iperf_object"].request_sent:
-                            self.iperf_obj._config_iperf(
-                                link["iperf_object"].src_node_id,
-                                link["iperf_object"].dst_node_id,
-                                link["iperf_object"].bitrate,
-                                link["iperf_object"].time_sec,
-                                link["iperf_object"].proto,
-                                link["iperf_object"].interval_sec,
-                                link["iperf_object"].window_size,
-                                link["iperf_object"].mss,
-                                link["iperf_object"].no_delay,
-                                link["iperf_object"].omit_sec,
-                                link["iperf_object"].verbose,
-                                link["iperf_object"].json,
-                                link["iperf_object"].buffer_length,
-                                link["iperf_object"].format,
-                                link["iperf_object"].use_link_local,
+            if self.num_sent_req < len(self.test_links_dict):
+                start_date_utc: Dict[int, datetime] = {}
+                # for loop issues iperf/ping commands for group of paths
+                # at the current time
+                for link in self.test_links_dict.values():
+                    if (
+                        time.time() >= (self.test_start_time + link["start_delay"])
+                        and not link["iperf_object"].request_sent
+                        and not link["ping_object"].request_sent
+                    ):
+                        _log.info(
+                            "Begin scheduling iperf/ping {} of {}".format(
+                                self.num_sent_req, len(self.test_links_dict) - 1
                             )
-                            link["iperf_object"].request_sent = True
-                            link["iperf_object"].end_time = (
-                                time.time() + self.session_duration
-                            )
-                    if link.get("ping_object"):
-                        if not link["ping_object"].request_sent:
-                            self.ping_obj._config_ping(
-                                link["ping_object"].src_node_id,
-                                link["ping_object"].dst_node_id,
-                                link["ping_object"].count,
-                                link["ping_object"].interval,
-                                link["ping_object"].packet_size,
-                                link["ping_object"].verbose,
-                                link["ping_object"].deadline,
-                                link["ping_object"].timeout,
-                                link["ping_object"].use_link_local,
-                            )
-                            link["ping_object"].request_sent = True
-                            link["ping_object"].end_time = (
-                                time.time() + self.session_duration
-                            )
-                    self.num_sent_req += 1
+                        )
+                        # mark test start time for link for writing to db
+                        start_date_utc[link["id"]] = timezone.now()
+
+                        if link.get("iperf_object"):
+                            if not link["iperf_object"].request_sent:
+                                self.iperf_obj._config_iperf(
+                                    link["iperf_object"].src_node_id,
+                                    link["iperf_object"].dst_node_id,
+                                    link["iperf_object"].bitrate,
+                                    link["iperf_object"].time_sec,
+                                    link["iperf_object"].proto,
+                                    link["iperf_object"].interval_sec,
+                                    link["iperf_object"].window_size,
+                                    link["iperf_object"].mss,
+                                    link["iperf_object"].no_delay,
+                                    link["iperf_object"].omit_sec,
+                                    link["iperf_object"].verbose,
+                                    link["iperf_object"].json,
+                                    link["iperf_object"].buffer_length,
+                                    link["iperf_object"].format,
+                                    link["iperf_object"].use_link_local,
+                                )
+                                link["iperf_object"].request_sent = True
+                                link["iperf_object"].end_time = (
+                                    time.time() + self.session_duration
+                                )
+                        if link.get("ping_object"):
+                            if not link["ping_object"].request_sent:
+                                self.ping_obj._config_ping(
+                                    link["ping_object"].src_node_id,
+                                    link["ping_object"].dst_node_id,
+                                    link["ping_object"].count,
+                                    link["ping_object"].interval,
+                                    link["ping_object"].packet_size,
+                                    link["ping_object"].verbose,
+                                    link["ping_object"].deadline,
+                                    link["ping_object"].timeout,
+                                    link["ping_object"].use_link_local,
+                                )
+                                link["ping_object"].request_sent = True
+                                link["ping_object"].end_time = (
+                                    time.time() + self.session_duration
+                                )
+                        self.num_sent_req += 1
+
+                # update database with start times
+                for key, value in start_date_utc.items():
+                    TestResult.objects.filter(id=key).update(start_date_utc=value)
+
+            # multi-hop test requires continuous checking of the route
+            # if this isn't the multi-hop test, then break out of the loop
+            # after all iperf/ping sessions are scheduled
+            elif self.parameters["test_code"] != Tests.MULTI_HOP_TEST.value:
+                break
+
             # poll for route integrity in every polling_delay seconds
             if self.parameters["test_code"] == Tests.MULTI_HOP_TEST.value:
                 if not (self.current_second % self.polling_delay):
@@ -217,8 +244,6 @@ class TestNetwork(Thread):
         # write route_changed_count of all links to db
         if self.parameters["test_code"] == Tests.MULTI_HOP_TEST.value:
             for link in self.test_links_dict.values():
-                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                if link_db_obj is not None:
-                    with transaction.atomic():
-                        link_db_obj.route_changed_count = link["route_changed_count"]
-                        link_db_obj.save()
+                TestResult.objects.filter(id=link["id"]).update(
+                    route_changed_count=link["route_changed_count"]
+                )

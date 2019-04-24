@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
+from logger import Logger
 import random
 import time
 from collections import defaultdict
@@ -24,8 +25,7 @@ from module.beringei_time_series import TimeSeries
 from module.insights import get_test_links_metrics
 
 
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+_log = Logger(__name__, logging.INFO).get_logger()
 
 
 class RunParallelTestPlan(Thread):

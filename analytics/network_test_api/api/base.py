@@ -3,6 +3,7 @@
 
 import json
 import logging
+from logger import Logger
 from queue import Queue
 from typing import Dict, Optional
 
@@ -20,8 +21,7 @@ from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
 from thrift.transport import TTransport
 
 
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+_log = Logger(__name__, logging.INFO).get_logger()
 
 
 def parse_received_json_data(
