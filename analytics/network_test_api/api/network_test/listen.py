@@ -3,18 +3,18 @@
 
 import json
 import logging
-from logger import Logger
 import time
 from queue import Queue
 from threading import Thread, currentThread
 from typing import Dict, List, Optional, Union
 
 import zmq
-from api.alias import ParametersType, IperfPingStatsType
+from api.alias import IperfPingStatsType, ParametersType
 from api.models import TestResult, TestRunExecution, TestStatus
 from api.network_test import iperf, iperf_ping_analyze, ping
 from api.network_test.base import Base
 from django.db import transaction
+from logger import Logger
 from terragraph_thrift.Controller import ttypes as ctrl_types
 from zmq.sugar.socket import Socket
 
@@ -169,15 +169,14 @@ class RecvFromCtrl(Base):
             pass
         link = self._get_link(source_node, destination_node)
         if link is not None:
-            link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-            if link_db_obj is not None:
-                with transaction.atomic():
-                    if not iperf_data.isServer:
-                        link_db_obj.iperf_client_blob = iperf_data.output
-                    else:
-                        link_db_obj.iperf_server_blob = iperf_data.output
-                    link_db_obj.status = TestStatus.FAILED.value
-                    link_db_obj.save()
+            if iperf_data.isServer:
+                TestResult.objects.filter(id=link["id"]).update(
+                    iperf_server_blob=iperf_data.output, status=TestStatus.FAILED.value
+                )
+            else:
+                TestResult.objects.filter(id=link["id"]).update(
+                    iperf_client_blob=iperf_data.output, status=TestStatus.FAILED.value
+                )
 
     def _strip_ping_output(self, ping_output: str) -> str:
         if "Address unreachable" in ping_output:
@@ -219,52 +218,38 @@ class RecvFromCtrl(Base):
         if is_iperf:
             link = self._get_link(source_node, destination_node)
             if link is not None and stats:
-                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                if link_db_obj is not None:
-                    with transaction.atomic():
-                        link_db_obj.status = TestStatus.FINISHED.value
-                        link_db_obj.iperf_pushed_throughput = link[
-                            "iperf_object"
-                        ].bitrate
-                        link_db_obj.iperf_throughput_min = stats["throughput"]["min"]
-                        link_db_obj.iperf_throughput_max = stats["throughput"]["max"]
-                        link_db_obj.iperf_throughput_mean = stats["throughput"]["mean"]
-                        link_db_obj.iperf_throughput_std = stats["throughput"]["std"]
-                        link_db_obj.iperf_link_error_min = stats["link_errors"]["min"]
-                        link_db_obj.iperf_link_error_max = stats["link_errors"]["max"]
-                        link_db_obj.iperf_link_error_mean = stats["link_errors"]["mean"]
-                        link_db_obj.iperf_link_error_std = stats["link_errors"]["std"]
-                        link_db_obj.iperf_jitter_min = stats["jitter"]["min"]
-                        link_db_obj.iperf_jitter_max = stats["jitter"]["max"]
-                        link_db_obj.iperf_jitter_mean = stats["jitter"]["mean"]
-                        link_db_obj.iperf_jitter_std = stats["jitter"]["std"]
-                        link_db_obj.iperf_lost_datagram_min = stats["lost_datagram"][
-                            "min"
-                        ]
-                        link_db_obj.iperf_lost_datagram_max = stats["lost_datagram"][
-                            "max"
-                        ]
-                        link_db_obj.iperf_lost_datagram_mean = stats["lost_datagram"][
-                            "mean"
-                        ]
-                        link_db_obj.iperf_lost_datagram_std = stats["lost_datagram"][
-                            "std"
-                        ]
-                        link_db_obj.iperf_udp_flag = link["iperf_object"].proto == "UDP"
-                        link_db_obj.iperf_client_blob = self.parsed_iperf_client_data
-                        link_db_obj.iperf_server_blob = self.parsed_iperf_server_data
-                        link_db_obj.save()
+                TestResult.objects.filter(id=link["id"]).update(
+                    status=TestStatus.FINISHED.value,
+                    iperf_pushed_throughput=link["iperf_object"].bitrate,
+                    iperf_throughput_min=stats["throughput"]["min"],
+                    iperf_throughput_max=stats["throughput"]["max"],
+                    iperf_throughput_mean=stats["throughput"]["mean"],
+                    iperf_throughput_std=stats["throughput"]["std"],
+                    iperf_link_error_min=stats["link_errors"]["min"],
+                    iperf_link_error_max=stats["link_errors"]["max"],
+                    iperf_link_error_mean=stats["link_errors"]["mean"],
+                    iperf_link_error_std=stats["link_errors"]["std"],
+                    iperf_jitter_min=stats["jitter"]["min"],
+                    iperf_jitter_max=stats["jitter"]["max"],
+                    iperf_jitter_mean=stats["jitter"]["mean"],
+                    iperf_jitter_std=stats["jitter"]["std"],
+                    iperf_lost_datagram_min=stats["lost_datagram"]["min"],
+                    iperf_lost_datagram_max=stats["lost_datagram"]["max"],
+                    iperf_lost_datagram_mean=stats["lost_datagram"]["mean"],
+                    iperf_lost_datagram_std=stats["lost_datagram"]["std"],
+                    iperf_udp_flag=link["iperf_object"].proto == "UDP",
+                    # iperf_client_blob=self.parsed_iperf_client_data,
+                    # iperf_server_blob=self.parsed_iperf_server_data,
+                )
         else:
             link = self._get_link(source_node, destination_node)
             if link is not None:
-                link_db_obj = TestResult.objects.filter(id=link["id"]).first()
-                if link_db_obj is not None and stats:
-                    with transaction.atomic():
-                        link_db_obj.ping_max_latency = stats["max"]
-                        link_db_obj.ping_min_latency = stats["min"]
-                        link_db_obj.ping_avg_latency = stats["mean"]
-                        link_db_obj.ping_output_blob = self.parsed_ping_data
-                        link_db_obj.save()
+                TestResult.objects.filter(id=link["id"]).update(
+                    ping_max_latency=stats["max"],
+                    ping_min_latency=stats["min"],
+                    ping_avg_latency=stats["mean"],
+                    # ping_output_blob=self.parsed_ping_data,
+                )
 
     def _stop_iperf_ping(self) -> None:
         self.iperf_obj = iperf.RunIperf(self.ctrl_sock, self.zmq_identifier)
@@ -288,9 +273,10 @@ class RecvFromCtrl(Base):
         test_aborted_obj.start()
 
         # start listening on Socket
+        zmq_queue_not_empty: bool = True
         while (
             (self.number_of_responses != self.expected_number_of_responses)
-            and (time.time() < self.recv_timeout)
+            and (time.time() < self.recv_timeout or zmq_queue_not_empty)
             and not self.test_aborted
         ):
             if self.test_aborted_queue.empty():
@@ -304,7 +290,15 @@ class RecvFromCtrl(Base):
                     )
                     ser_msg = self._ctrl_sock.recv(flags=zmq.NOBLOCK)
                     self.number_of_responses += 1
+                    zmq_queue_not_empty = True
+                    _log.info(
+                        "ZMQ message received, number received so far {}".format(
+                            self.number_of_responses
+                        )
+                    )
                 except zmq.Again:
+                    zmq_queue_not_empty = False
+                    time.sleep(1)
                     continue
                 except Exception as ex:
                     _log.error("\nError receiving response: {}".format(ex))
