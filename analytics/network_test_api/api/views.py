@@ -226,7 +226,7 @@ def help(request: WSGIRequest) -> HttpResponse:
     session_duration = network_ttypes.Parameter(
         label="Single iPerf Session Duration",
         key="session_duration",
-        value="60",
+        value="300",
         meta=session_duration_meta,
     )
 
@@ -374,8 +374,8 @@ def help(request: WSGIRequest) -> HttpResponse:
     )
 
     supported_test_plans = [
-        sequential_test_plan,
         parallel_test_plan,
+        sequential_test_plan,
         multi_hop_test_plan,
     ]
     stop_test_info = network_ttypes.StopTest(url_ext=stop_test_url_ext)
