@@ -162,6 +162,7 @@ class RecvFromCtrl(Base):
     def _log_failed_iperf_to_mysql(
         self, source_node: str, destination_node: str, iperf_data: object
     ) -> None:
+        _log.info("Failed iperf on link {} -> {}".format(source_node, destination_node))
         # remove start_iperf_id for the failed link from the list
         try:
             self.start_iperf_ids.remove(iperf_data.startIperf.id)
@@ -191,7 +192,15 @@ class RecvFromCtrl(Base):
             parsed_iperf_output_dict = json.loads(iperf_output)
         except json.decoder.JSONDecodeError:
             # Remove first line of iperf_output
-            end_of_first_line_index = iperf_output.index("\n")
+            try:
+                end_of_first_line_index = iperf_output.index("\n")
+            except ValueError:
+                _log.info(
+                    "ValueError parsing iperf output (no newline): {}".format(
+                        iperf_output
+                    )
+                )
+                return ""
             iperf_output = iperf_output[end_of_first_line_index + 1 :]
             parsed_iperf_output_dict = json.loads(iperf_output)
         if parsed_iperf_output_dict.get("error"):
