@@ -7,8 +7,10 @@
 'use strict';
 import type {TablePage} from '../../shared/dto/TablePage';
 import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
+import {TEST_STATUS} from '../../shared/dto/TestResult';
 import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
 import axios, {CancelToken} from 'axios';
+import {HEALTH_CODES} from '../constants/HealthConstants';
 
 export const getTestResults = ({executionId}: {executionId: string}) => {
   return axios
@@ -115,6 +117,22 @@ function deserializeTestResult(serialized: any): TestResultDto {
   return Object.assign({}, serialized, {
     start_date_utc: new Date(serialized.start_date_utc),
     end_date_utc: new Date(serialized.end_date_utc),
+    /**
+     * even though the test has not completed, the network test backend
+     * will still mark the health as excellent. This means that aborted / failed
+     * will show as green. This takes that into account without backend changes.
+     * A getter is used instead of a normal property to make it apparent why the
+     * health is different from the db value.
+     * Modification happens at this layer so that all the callsites which
+     * depend on health won't have to change.
+     */
+    // $FlowFixMe - getter makes it more apparent that health is overridden
+    get health() {
+      if (serialized.status !== TEST_STATUS.FINISHED) {
+        return HEALTH_CODES.UNKNOWN;
+      }
+      return serialized.health;
+    },
   });
 }
 

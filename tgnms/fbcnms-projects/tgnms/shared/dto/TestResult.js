@@ -85,3 +85,10 @@ export type TestResult = {|
   route_changed_count: number,
   test_execution: ?TestExecution,
 |};
+
+export const TEST_STATUS = {
+  RUNNING: 1,
+  FINISHED: 2,
+  ABORTED: 3,
+  FAILED: 4,
+};

@@ -126,7 +126,7 @@ export default withStyles(styles)(
     ];
 
     rowHeight = 50;
-    headerHeight = 40;
+    headerHeight = 80;
     overscanRowCount = 10;
 
     componentDidMount() {
