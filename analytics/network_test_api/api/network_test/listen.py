@@ -227,38 +227,53 @@ class RecvFromCtrl(Base):
         if is_iperf:
             link = self._get_link(source_node, destination_node)
             if link is not None and stats:
-                TestResult.objects.filter(id=link["id"]).update(
-                    status=TestStatus.FINISHED.value,
-                    iperf_pushed_throughput=link["iperf_object"].bitrate,
-                    iperf_throughput_min=stats["throughput"]["min"],
-                    iperf_throughput_max=stats["throughput"]["max"],
-                    iperf_throughput_mean=stats["throughput"]["mean"],
-                    iperf_throughput_std=stats["throughput"]["std"],
-                    iperf_link_error_min=stats["link_errors"]["min"],
-                    iperf_link_error_max=stats["link_errors"]["max"],
-                    iperf_link_error_mean=stats["link_errors"]["mean"],
-                    iperf_link_error_std=stats["link_errors"]["std"],
-                    iperf_jitter_min=stats["jitter"]["min"],
-                    iperf_jitter_max=stats["jitter"]["max"],
-                    iperf_jitter_mean=stats["jitter"]["mean"],
-                    iperf_jitter_std=stats["jitter"]["std"],
-                    iperf_lost_datagram_min=stats["lost_datagram"]["min"],
-                    iperf_lost_datagram_max=stats["lost_datagram"]["max"],
-                    iperf_lost_datagram_mean=stats["lost_datagram"]["mean"],
-                    iperf_lost_datagram_std=stats["lost_datagram"]["std"],
-                    iperf_udp_flag=link["iperf_object"].proto == "UDP",
-                    # iperf_client_blob=self.parsed_iperf_client_data,
-                    # iperf_server_blob=self.parsed_iperf_server_data,
-                )
+                try:
+                    TestResult.objects.filter(id=link["id"]).update(
+                        status=TestStatus.FINISHED.value,
+                        iperf_pushed_throughput=link["iperf_object"].bitrate,
+                        iperf_throughput_min=stats["throughput"]["min"],
+                        iperf_throughput_max=stats["throughput"]["max"],
+                        iperf_throughput_mean=stats["throughput"]["mean"],
+                        iperf_throughput_std=stats["throughput"]["std"],
+                        iperf_link_error_min=stats["link_errors"]["min"],
+                        iperf_link_error_max=stats["link_errors"]["max"],
+                        iperf_link_error_mean=stats["link_errors"]["mean"],
+                        iperf_link_error_std=stats["link_errors"]["std"],
+                        iperf_jitter_min=stats["jitter"]["min"],
+                        iperf_jitter_max=stats["jitter"]["max"],
+                        iperf_jitter_mean=stats["jitter"]["mean"],
+                        iperf_jitter_std=stats["jitter"]["std"],
+                        iperf_lost_datagram_min=stats["lost_datagram"]["min"],
+                        iperf_lost_datagram_max=stats["lost_datagram"]["max"],
+                        iperf_lost_datagram_mean=stats["lost_datagram"]["mean"],
+                        iperf_lost_datagram_std=stats["lost_datagram"]["std"],
+                        iperf_udp_flag=link["iperf_object"].proto == "UDP",
+                        iperf_client_blob=self.parsed_iperf_client_data,
+                        iperf_server_blob=self.parsed_iperf_server_data,
+                    )
+                except Exception as ex:
+                    _log.error("Error writing iperf results: {}".format(ex))
+                    TestResult.objects.filter(id=link["id"]).update(
+                        iperf_client_blob=self.parsed_iperf_client_data,
+                        iperf_server_blob=self.parsed_iperf_server_data,
+                        status=TestStatus.FAILED.value,
+                    )
         else:
             link = self._get_link(source_node, destination_node)
             if link is not None:
-                TestResult.objects.filter(id=link["id"]).update(
-                    ping_max_latency=stats["max"],
-                    ping_min_latency=stats["min"],
-                    ping_avg_latency=stats["mean"],
-                    # ping_output_blob=self.parsed_ping_data,
-                )
+                try:
+                    TestResult.objects.filter(id=link["id"]).update(
+                        ping_max_latency=stats["max"],
+                        ping_min_latency=stats["min"],
+                        ping_avg_latency=stats["mean"],
+                        ping_output_blob=self.parsed_ping_data,
+                    )
+                except Exception as ex:
+                    _log.error("Error writing ping results: {}".format(ex))
+                    TestResult.objects.filter(id=link["id"]).update(
+                        ping_output_blob=self.parsed_ping_data,
+                        status=TestStatus.FAILED.value,
+                    )
 
     def _stop_iperf_ping(self) -> None:
         self.iperf_obj = iperf.RunIperf(self.ctrl_sock, self.zmq_identifier)
