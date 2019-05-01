@@ -47,8 +47,12 @@ class TimeSeries(object):
         self.times = times
         self.values = values
         self.name = name
-        self.src_mac = src_mac
-        self.peer_mac = peer_mac
+        self.src_mac = None
+        if src_mac:
+            self.src_mac = src_mac.lower()
+        self.peer_mac = None
+        if peer_mac:
+            self.peer_mac = peer_mac.lower()
         self.topology = topology
 
 

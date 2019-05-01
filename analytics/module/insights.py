@@ -686,6 +686,8 @@ def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -
     rx_ppdu = nlts.read_stats("staPkt.rxPpdu", StatType.LINK, swap_dir=True)
     tbi = nlts.read_stats("phyPeriodic.txBeamIdx", StatType.LINK)
     rbi = nlts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK, swap_dir=True)
+    # irr = nlts.tsl_to_arr(iperf_stats, stats_name="iperf_requested_rate")
+    iar = nlts.tsl_to_arr(iperf_stats, stats_name="iperf_actual_rate")
     num_links = nlts._num_links
     num_dir = nlts.NUM_DIR
     output = []
@@ -706,6 +708,10 @@ def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -
                 link_length[li, di, 0],
                 CONST_INTERVAL,
             )
+            # network test use end_time for iperf_stats, hence time index = -1
+            if np.isnan(iar[li, di, -1]) or iar[li, di, -1] == 0:
+                health[li, di, 0] = npo.LinkHealth.UNKNOWN
+
             tx_per[li, di, 0] = npo.get_per_1d(
                 mgmt_link_up[li, di, :],
                 tx_ok[li, di, :],

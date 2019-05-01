@@ -357,7 +357,8 @@ class NumpyLinkTimeSeries(object):
                 self._duration = min(self._duration, duration)
             # set the indices for link, direction, time
             if (ts.src_mac, ts.peer_mac) in self._link_macs_to_idx:
-                logging.error("ignoring duplicate entry for macs")
+                # this can happen for parallel tests,
+                # where both directions are specified by input links list
                 continue
             self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)] = (
                 self._num_links,
@@ -400,17 +401,41 @@ class NumpyLinkTimeSeries(object):
             self._num_links += 1
         self._num_times = int((self._duration / self._interval) + 1)
 
+        # create write_mask,
+        # depending upon input, write either specific or both directions
+        self._write_mask = np.zeros((self._num_links, self.NUM_DIR, 1), dtype=bool)
+        for ts in links:
+            l_idx, d_idx, _ = self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)]
+            self._write_mask[l_idx, d_idx, 0] = True
+
     def _t2i(self, t, start_time):
         return int((t - start_time) / self._interval)
+
+    def tsl_to_arr(self, tsl: List[bts.TimeSeries], stats_name: str = "") -> np.ndarray:
+        data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
+        done_links: List[Tuple] = []
+        for ts in tsl:
+            if stats_name and ts.name != stats_name:
+                continue
+            link_macs = (ts.src_mac, ts.peer_mac)
+            if link_macs not in done_links:
+                done_links.append(link_macs)
+            else:
+                logging.error("Ignoring duplicate timeseries")
+                continue
+            l_idx, d_idx, tm = self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)]
+            t_idx = [self._t2i(t, tm) for t in ts.times]
+            data[l_idx, d_idx, t_idx] = ts.values
+        return data
 
     def read_stats(
         self, name: str, stat_type: StatType, swap_dir: bool = False
     ) -> np.ndarray:
         data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
         if stat_type == StatType.LINK:
-            done_links: List[Tuple] = []
+            tsl = []
             for k, v in self._map_query.items():
-                tsl = bts.read_time_series_list(
+                tsl.extend(bts.read_time_series_list(
                     name,
                     v["src_macs"],
                     v["peer_macs"],
@@ -418,17 +443,8 @@ class NumpyLinkTimeSeries(object):
                     k + self._duration,
                     self._interval,
                     self._topology["name"],
-                )
-                for ts in tsl:
-                    link_macs = (ts.src_mac, ts.peer_mac)
-                    if link_macs not in done_links:
-                        done_links.append(link_macs)
-                    else:
-                        logging.error("Ignoring duplicate timeseries")
-                        continue
-                    idx = self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)]
-                    t_idx = [self._t2i(t, idx[2]) for t in ts.times]
-                    data[idx[0], idx[1], t_idx] = ts.values
+                ))
+            data = self.tsl_to_arr(tsl)
         elif stat_type == StatType.NODE:
             for k, v in self._map_query.items():
                 done_nodes: List[str] = []
@@ -448,10 +464,9 @@ class NumpyLinkTimeSeries(object):
                         logging.error("Ignoring duplicate timeseries")
                         continue
                     for peer_mac in self._src_to_peers[ts.src_mac]:
-                        link_macs = (ts.src_mac, peer_mac)
-                        idx = self._link_macs_to_idx[(ts.src_mac, peer_mac)]
-                        t_idx = [self._t2i(t, idx[2]) for t in ts.times]
-                        data[idx[0], idx[1], t_idx] = ts.values
+                        l_idx, d_idx, tm = self._link_macs_to_idx[(ts.src_mac, peer_mac)]
+                        t_idx = [self._t2i(t, tm) for t in ts.times]
+                        data[l_idx, d_idx, t_idx] = ts.values
         else:
             # network stats read is not relevant
             pass
@@ -470,6 +485,8 @@ class NumpyLinkTimeSeries(object):
         assert np_ts.shape[self.DIR_AXIS] == self.NUM_DIR
         for l_idx in range(self._num_links):
             for d_idx in range(self.NUM_DIR):
+                if not self._write_mask[l_idx, d_idx, 0]:
+                    continue
                 valids = npo.is_valid(np_ts[l_idx, d_idx, :])
                 values = np_ts[l_idx, d_idx, valids]
                 if len(values):
@@ -500,9 +517,10 @@ class NumpyLinkTimeSeries(object):
         mac_to_site = {n["mac_addr"]: n["site_name"] for n in t["nodes"]}
         site_name_to_coordinate = {s["name"]: s["location"] for s in t["sites"]}
         for link_mac, idx in self._link_macs_to_idx.items():
+            l_idx, d_idx, _ = idx
             src_coo = site_name_to_coordinate[mac_to_site[link_mac[0]]]
             peer_coo = site_name_to_coordinate[mac_to_site[link_mac[1]]]
-            data[idx[0], idx[1], 0] = approx_distance(src_coo, peer_coo)
+            data[l_idx, d_idx, 0] = approx_distance(src_coo, peer_coo)
         return data
 
     def get_consts(self) -> Dict[Any, Any]:
