@@ -9,6 +9,7 @@ from enum import IntEnum
 from typing import List, Tuple
 
 import numpy as np
+np.warnings.filterwarnings("ignore")
 
 
 class LinkHealth(IntEnum):

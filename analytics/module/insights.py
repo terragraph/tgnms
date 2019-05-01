@@ -13,6 +13,8 @@ from module.path_store import PathStore
 from module.topology_handler import fetch_network_info, restart_minion
 from module.visibility import write_power_status
 
+np.warnings.filterwarnings('ignore')
+
 
 def get_link_counters_1d(
     mgmt_link_up,

@@ -62,4 +62,4 @@ def show_uniques(array: np.ndarray):
     valids = npo.is_valid(values)
     values = np.concatenate(([np.nan], values[valids]))
     counts = np.concatenate(([num_nans], counts[valids]))
-    print(tabulate([values, counts]))
+    print(tabulate(np.stack([values, counts], axis = 1)))
