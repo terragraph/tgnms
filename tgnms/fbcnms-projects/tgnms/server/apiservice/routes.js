@@ -4,15 +4,14 @@
  * @format
  */
 
-const {API_REQUEST_TIMEOUT} = require('../config');
-const axios = require('axios');
 const express = require('express');
-const {formatApiServiceBaseUrl, getNetworkState} = require('../topology/model');
+const {getNetworkState} = require('../topology/model');
 const {HAPeerType} = require('../high_availability/model');
+import apiServiceClient from './apiServiceClient';
 const router = express.Router();
 
-function formatApiActiveControllerAddress(req, _res) {
-  const networkState = getNetworkState(req.params.topology);
+function getApiActiveControllerAddress({topology}) {
+  const networkState = getNetworkState(topology);
   let controllerConfig = networkState.primary;
   if (
     networkState.hasOwnProperty('active') &&
@@ -21,29 +20,37 @@ function formatApiActiveControllerAddress(req, _res) {
     controllerConfig = networkState.backup;
   }
   const {api_ip, api_port} = controllerConfig;
-  return formatApiServiceBaseUrl(api_ip, api_port);
+  return {api_ip, api_port};
 }
 
-router.use('/:topology/', (req, res) => {
-  const apiAddr = formatApiActiveControllerAddress(req, res) + req.url;
-  axios
-    .request({
+router.use('/:topology/api/:apiMethod', (req, res) => {
+  const {topology, apiMethod} = req.params;
+  const {api_ip, api_port} = getApiActiveControllerAddress({
+    topology,
+  });
+  const accessToken =
+    req.user &&
+    typeof req.user.getAccessToken === 'function' &&
+    req.user.getAccessToken();
+  return apiServiceClient
+    .userRequest({
+      host: api_ip,
+      port: api_port,
       data: req.body,
-      method: req.method,
-      timeout: API_REQUEST_TIMEOUT,
-      url: apiAddr,
+      apiMethod,
+      accessToken,
     })
-    .then(resp => {
-      res.status(resp.status).send(resp.data);
+    .then(response => {
+      res.status(response.status).send(response.data);
     })
-    .catch(err => {
-      if (err.code === 'ECONNABORTED') {
+    .catch(error => {
+      if (error.code === 'ECONNABORTED') {
         // connection timed out
         res.status(500).send({message: 'Connection timed out to API service'});
       } else {
         res
-          .status(err.response.status)
-          .send({message: err.response.statusText});
+          .status(error.response.status)
+          .send({message: error.response.statusText});
       }
     });
 });

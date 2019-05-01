@@ -4,12 +4,9 @@
  * @format
  */
 
-const {BERINGEI_QUERY_URL} = require('../config');
+const {BERINGEI_QUERY_URL, LOGIN_ENABLED} = require('../config');
 const EventSource = require('eventsource');
-import axios from 'axios';
-//const dataJson = require('../metrics/dataJson');
-const {PROXY_ENABLED} = require('../config');
-const isIp = require('is-ip');
+import apiServiceClient from '../apiservice/apiServiceClient';
 
 import {approxDistance, computeAngle} from './helpers';
 
@@ -81,14 +78,7 @@ function getNetworkConfig(networkName) {
   return null;
 }
 
-function formatApiServiceBaseUrl(host, port) {
-  if (PROXY_ENABLED && isIp.v6(host)) {
-    // special case, proxy doesn't handle ipv6 addresses correctly
-    return `http://[[${host}]]:${port}`;
-  }
-  return isIp.v6(host) ? `http://[${host}]:${port}` : `http://${host}:${port}`;
-}
-
+// DEPRECATED - use apiServiceClient.backgroundRequest directly instead
 async function apiServiceRequest(
   networkName,
   isPrimaryController,
@@ -98,48 +88,16 @@ async function apiServiceRequest(
   data,
   config,
 ) {
-  if (!host) {
-    return null;
-  }
-  const baseUrl = formatApiServiceBaseUrl(host, port);
-  const postData = data || {};
-  const configData = config || {timeout: 1000};
-  const request = {
+  const result = await apiServiceClient.backgroundRequest({
     networkName,
     isPrimaryController,
     host,
     port,
     apiMethod,
-    postData,
-    configData,
-  };
-  // All apiservice requests are POST, and expect at least an empty dict.
-  return new Promise((resolve, _reject) => {
-    const startTimer = new Date();
-    const url = `${baseUrl}/api/${apiMethod}`;
-    axios
-      .post(url, postData, configData)
-      .then(response => {
-        const endTimer = new Date();
-        const responseTime = endTimer - startTimer;
-        const success = true;
-        resolve({request, success, responseTime, data: response.data});
-      })
-      .catch(error => {
-        if (error.response) {
-          logger.error(
-            'received status %s for url %s',
-            error.response.status,
-            url,
-          );
-        }
-        const endTimer = new Date();
-        const responseTime = endTimer - startTimer;
-        const success = false;
-        const data = error.response ? error.response.data : null;
-        resolve({request, success, responseTime, data});
-      });
+    data,
+    config,
   });
+  return result;
 }
 
 // fetch list of networks
@@ -283,161 +241,175 @@ function refreshTopologies(selectedNetwork = null) {
   if (!Object.keys(networkInstanceConfig).length) {
     return;
   }
-  const apiHighAvailabilityCalls = {
-    getHighAvailabilityState: {
-      stateKey: 'high_availability',
-      callback: updateControllerState.bind(this),
-    },
-  };
-  // fetch from api service for all topologies
-  const apiCallsPerNetwork = {
-    getTopology: {
-      stateKey: 'topology',
-      filterResult: updateSiteOverrides.bind(this),
-      onSuccess: updateTopologyState.bind(this),
-    },
-    getCtrlStatusDump: {
-      stateKey: 'status_dump',
-      onSuccess: updateControllerVersion.bind(this),
-    },
-    getIgnitionState: {
-      stateKey: 'ignition_state',
-    },
-    getUpgradeState: {
-      stateKey: 'upgrade_state',
-    },
-    getAutoNodeOverridesConfig: {
-      stateKey: 'config_auto_overrides',
-    },
-    getNodeOverridesConfig: {
-      stateKey: 'config_node_overrides',
-      onSuccess: updateConfigParams.bind(this),
-    },
-  };
-  const haPromiseList = [];
-  const startTime = new Date();
-  Object.keys(networkInstanceConfig).forEach(networkName => {
-    // restrict to selectedNetwork if set
-    if (selectedNetwork !== null && selectedNetwork !== networkName) {
-      return;
-    }
-    const networkConfig = networkInstanceConfig[networkName];
-    // get the high availability state from every defined primary/backup
-    // controller to determine where to send the remaining API calls
-    Object.keys(apiHighAvailabilityCalls).forEach(apiRequestName => {
-      haPromiseList.push(
-        apiServiceRequest(
-          networkConfig.name,
-          true,
-          networkConfig.primary.api_ip,
-          networkConfig.primary.api_port,
-          apiRequestName,
-        ),
-      );
-      if (networkConfig.backup && networkConfig.backup.api_ip) {
+
+  return cacheBackgroundCredentials().then(() => {
+    const apiHighAvailabilityCalls = {
+      getHighAvailabilityState: {
+        stateKey: 'high_availability',
+        callback: updateControllerState.bind(this),
+      },
+    };
+    // fetch from api service for all topologies
+    const apiCallsPerNetwork = {
+      getTopology: {
+        stateKey: 'topology',
+        filterResult: updateSiteOverrides.bind(this),
+        onSuccess: updateTopologyState.bind(this),
+      },
+      getCtrlStatusDump: {
+        stateKey: 'status_dump',
+        onSuccess: updateControllerVersion.bind(this),
+      },
+      getIgnitionState: {
+        stateKey: 'ignition_state',
+      },
+      getUpgradeState: {
+        stateKey: 'upgrade_state',
+      },
+      getAutoNodeOverridesConfig: {
+        stateKey: 'config_auto_overrides',
+      },
+      getNodeOverridesConfig: {
+        stateKey: 'config_node_overrides',
+        onSuccess: updateConfigParams.bind(this),
+      },
+    };
+    const haPromiseList = [];
+    const startTime = new Date();
+    Object.keys(networkInstanceConfig).forEach(networkName => {
+      // restrict to selectedNetwork if set
+      if (selectedNetwork !== null && selectedNetwork !== networkName) {
+        return;
+      }
+      const networkConfig = networkInstanceConfig[networkName];
+      // get the high availability state from every defined primary/backup
+      // controller to determine where to send the remaining API calls
+      Object.keys(apiHighAvailabilityCalls).forEach(apiRequestName => {
         haPromiseList.push(
           apiServiceRequest(
             networkConfig.name,
-            false,
-            networkConfig.backup.api_ip,
-            networkConfig.backup.api_port,
+            true,
+            networkConfig.primary.api_ip,
+            networkConfig.primary.api_port,
             apiRequestName,
           ),
         );
-      }
-    });
-  });
-  // No networks/requests to make
-  if (haPromiseList.length === 0) {
-    return;
-  }
-  Promise.all(haPromiseList)
-    .then(haResults => {
-      // determine active controller to make subsequent requests
-      const haStatusByNetwork = {};
-      haResults.forEach(({request, success, responseTime, data}) => {
-        const apiCallMeta = apiHighAvailabilityCalls[request.apiMethod];
-        const {isPrimaryController, networkName} = request;
-        if (!haStatusByNetwork.hasOwnProperty(networkName)) {
-          haStatusByNetwork[networkName] = {};
-        }
-        // store HA state by controller role
-        if (!networkState[networkName].hasOwnProperty(apiCallMeta.stateKey)) {
-          networkState[networkName][apiCallMeta.stateKey] = {};
-        }
-        networkState[networkName][apiCallMeta.stateKey][
-          isPrimaryController ? 'primary' : 'backup'
-        ] = data;
-        // record HA status of each network
-        haStatusByNetwork[networkName][
-          isPrimaryController ? 'primary' : 'backup'
-        ] = data;
-        // perform call-back on success
-        if (apiCallMeta.hasOwnProperty('callback')) {
-          apiCallMeta.callback(request, success, responseTime, data);
-        }
-      });
-      const networkPromiseList = [];
-      // determine active controller
-      Object.keys(haStatusByNetwork).forEach(networkName => {
-        const haStatus = haStatusByNetwork[networkName];
-        const activeController = determineActiveController(
-          _.get(haStatus, ['primary', 'state'], null), // primary
-          _.get(haStatus, ['backup', 'state'], null), // backup
-        );
-        // use the online state of the active controller
-        const controllerOnline =
-          networkInstanceConfig[networkName][
-            activeController.active === HAPeerType.BACKUP ? 'backup' : 'primary'
-          ].controller_online;
-        networkState[networkName].controller_online = controllerOnline;
-        networkInstanceConfig[networkName].controller_online = controllerOnline;
-        const networkConfig = networkInstanceConfig[networkName];
-        // perform API call for active controller or primary controller if
-        // neither is online
-        Object.keys(apiCallsPerNetwork).forEach(apiRequestName => {
-          const {api_port, api_ip} =
-            activeController.active === HAPeerType.BACKUP
-              ? networkConfig.backup
-              : networkConfig.primary;
-          networkPromiseList.push(
+        if (networkConfig.backup && networkConfig.backup.api_ip) {
+          haPromiseList.push(
             apiServiceRequest(
               networkConfig.name,
-              activeController.active === HAPeerType.PRIMARY,
-              api_ip,
-              api_port,
+              false,
+              networkConfig.backup.api_ip,
+              networkConfig.backup.api_port,
               apiRequestName,
             ),
           );
-        });
-      });
-      return Promise.all(networkPromiseList);
-    })
-    .then(networkResults => {
-      logger.debug(
-        'API promises completed in ' + (new Date() - startTime) + 'ms',
-      );
-      networkResults.forEach(({request, success, responseTime, data}) => {
-        const apiCallMeta = apiCallsPerNetwork[request.apiMethod];
-        const {networkName} = request;
-        // filter results before applying
-        const filterData = apiCallMeta.hasOwnProperty('filterResult')
-          ? apiCallMeta.filterResult(request, success, responseTime, data)
-          : data;
-        if (success) {
-          // determine field to use for state storage
-          networkState[networkName][apiCallMeta.stateKey] = filterData;
-          if (apiCallMeta.hasOwnProperty('onSuccess')) {
-            apiCallMeta.onSuccess(request, success, responseTime, filterData);
-          }
         }
       });
-    })
-    .catch(error => {
-      logger.error('Error getting HA status:', error.message);
     });
-  // determine HA state once primary + backup have been queried
-  updateActiveController();
+    // No networks/requests to make
+    if (haPromiseList.length === 0) {
+      return;
+    }
+    Promise.all(haPromiseList)
+      .then(haResults => {
+        // determine active controller to make subsequent requests
+        const haStatusByNetwork = {};
+        haResults.forEach(({request, success, responseTime, data}) => {
+          const apiCallMeta = apiHighAvailabilityCalls[request.apiMethod];
+          const {isPrimaryController, networkName} = request;
+          if (!haStatusByNetwork.hasOwnProperty(networkName)) {
+            haStatusByNetwork[networkName] = {};
+          }
+          // store HA state by controller role
+          if (!networkState[networkName].hasOwnProperty(apiCallMeta.stateKey)) {
+            networkState[networkName][apiCallMeta.stateKey] = {};
+          }
+          networkState[networkName][apiCallMeta.stateKey][
+            isPrimaryController ? 'primary' : 'backup'
+          ] = data;
+          // record HA status of each network
+          haStatusByNetwork[networkName][
+            isPrimaryController ? 'primary' : 'backup'
+          ] = data;
+          // perform call-back on success
+          if (apiCallMeta.hasOwnProperty('callback')) {
+            apiCallMeta.callback(request, success, responseTime, data);
+          }
+        });
+        const networkPromiseList = [];
+        // determine active controller
+        Object.keys(haStatusByNetwork).forEach(networkName => {
+          const haStatus = haStatusByNetwork[networkName];
+          const activeController = determineActiveController(
+            _.get(haStatus, ['primary', 'state'], null), // primary
+            _.get(haStatus, ['backup', 'state'], null), // backup
+          );
+          // use the online state of the active controller
+          const controllerOnline =
+            networkInstanceConfig[networkName][
+              activeController.active === HAPeerType.BACKUP
+                ? 'backup'
+                : 'primary'
+            ].controller_online;
+          networkState[networkName].controller_online = controllerOnline;
+          networkInstanceConfig[
+            networkName
+          ].controller_online = controllerOnline;
+          const networkConfig = networkInstanceConfig[networkName];
+          // perform API call for active controller or primary controller if
+          // neither is online
+          Object.keys(apiCallsPerNetwork).forEach(apiRequestName => {
+            const {api_port, api_ip} =
+              activeController.active === HAPeerType.BACKUP
+                ? networkConfig.backup
+                : networkConfig.primary;
+            networkPromiseList.push(
+              apiServiceRequest(
+                networkConfig.name,
+                activeController.active === HAPeerType.PRIMARY,
+                api_ip,
+                api_port,
+                apiRequestName,
+              ),
+            );
+          });
+        });
+        return Promise.all(networkPromiseList);
+      })
+      .then(networkResults => {
+        logger.debug(
+          'API promises completed in ' + (new Date() - startTime) + 'ms',
+        );
+        networkResults.forEach(({request, success, responseTime, data}) => {
+          const apiCallMeta = apiCallsPerNetwork[request.apiMethod];
+          const {networkName} = request;
+          // filter results before applying
+          const filterData = apiCallMeta.hasOwnProperty('filterResult')
+            ? apiCallMeta.filterResult(request, success, responseTime, data)
+            : data;
+          if (success) {
+            // determine field to use for state storage
+            networkState[networkName][apiCallMeta.stateKey] = filterData;
+            if (apiCallMeta.hasOwnProperty('onSuccess')) {
+              apiCallMeta.onSuccess(request, success, responseTime, filterData);
+            }
+          }
+        });
+      })
+      .catch(error => {
+        logger.error('Error getting HA status:', error.message);
+      });
+    // determine HA state once primary + backup have been queried
+    updateActiveController();
+  });
+}
+
+function cacheBackgroundCredentials() {
+  if (!LOGIN_ENABLED) {
+    return Promise.resolve();
+  }
+  return apiServiceClient.loadServiceCredentials();
 }
 
 function updateInitialCoordinates(networkName) {
@@ -808,26 +780,10 @@ function updateConfigParams(request, _success, _responseTime, _data) {
   }
 }
 
-// get the address of the active controller
-function getAPIServiceHost(controllerConfig) {
-  const {ip, port} = controllerConfig;
-  if (!controllerConfig) {
-    return null;
-  }
-
-  if (PROXY_ENABLED && isIp.v6(ip)) {
-    // special case, proxy doesn't handle ipv6 addresses correctly
-    return `http://[[${ip}]]:${port}`;
-  }
-  return isIp.v6(ip) ? `http://[${ip}]:${port}` : `http://${ip}:${port}`;
-}
-
 module.exports = {
   addRequester,
-  formatApiServiceBaseUrl,
   getAllTopologyNames,
   getAllNetworkConfigs,
-  getAPIServiceHost,
   getNetworkConfig,
   getNetworkLinkHealth,
   getNetworkNodeHealth,

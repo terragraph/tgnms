@@ -94,7 +94,7 @@ export type TokenSet = {
 
 type GrantRequestOptions = {
   grant_type: string,
-  username: string,
-  password: string,
-  scope: string,
+  username?: string,
+  password?: string,
+  scope?: string,
 };

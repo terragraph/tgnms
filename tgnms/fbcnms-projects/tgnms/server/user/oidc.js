@@ -18,7 +18,8 @@ const {
 } = require('../config');
 import getOidcClient from './oidcClient';
 
-let openidClient: OpenidClient;
+let _DEPRECATED_oidcclient: OpenidClient;
+const clientAwaiter = makeClientAwaiter();
 export function initOidcClient(): Promise<OpenidClient> {
   /**
    * https://www.npmjs.com/package/openid-client#proxy-settings
@@ -43,13 +44,56 @@ export function initOidcClient(): Promise<OpenidClient> {
     issuerUrl: issuerUrl.toString(),
     clientId: KEYCLOAK_CLIENT_ID,
     clientSecret: KEYCLOAK_CLIENT_SECRET,
-  }).then(client => (openidClient = client));
+  }).then(client => {
+    _DEPRECATED_oidcclient = client;
+    clientAwaiter.resolveClient(client);
+    return client;
+  });
 }
 
-export function getClient() {
-  return openidClient;
+export function __TESTSONLY_getOidcClient() {
+  return _DEPRECATED_oidcclient;
+}
+
+export async function awaitClient(): Promise<OpenidClient> {
+  const client = await clientAwaiter.awaitClient();
+  return client;
+}
+
+/**
+ * Allows multiple functions to request the singleton instance of client without
+ * making multiple discovery requests. Once the client has been resolved, this
+ * notifies all requesters.
+ **/
+function makeClientAwaiter() {
+  const awaiters = [];
+  let cachedClient: OpenidClient;
+  return {
+    /**
+     * wait for a singleton openid client instance to be resolved
+     **/
+    awaitClient: (): Promise<OpenidClient> => {
+      if (cachedClient) {
+        return Promise.resolve(cachedClient);
+      }
+      return new Promise(res => {
+        awaiters.push(client => {
+          res(client);
+        });
+      });
+    },
+    /**
+     * Notifies functions waiting for an instance of openid client
+     **/
+    resolveClient: client => {
+      cachedClient = client;
+      awaiters.forEach(awaiter => {
+        awaiter(client);
+      });
+    },
+  };
 }
 
 export function __TESTSONLY_setOidcClient(client: OpenidClient) {
-  openidClient = client;
+  clientAwaiter.resolveClient(client);
 }

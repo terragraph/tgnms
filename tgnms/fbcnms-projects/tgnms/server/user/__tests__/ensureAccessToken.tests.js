@@ -16,13 +16,13 @@ jest.mock('openid-client');
  */
 import {TokenSet} from 'openid-client';
 const Client = jest.genMockFromModule('openid-client/lib/client');
-import {__TESTSONLY_setOidcClient, getClient} from '../oidc';
+import {__TESTSONLY_setOidcClient, awaitClient} from '../oidc';
 import ensureAccessToken from '../ensureAccessToken';
 import {isExpectedError} from '../errors';
 import User from '../User';
 
 const accessTokenParams = {
-  resolveClient: async () => getClient(),
+  resolveClient: awaitClient,
   resolveUserFromTokenSet: async () => User.fromTokenSet,
 };
 

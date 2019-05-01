@@ -12,7 +12,7 @@ import _ from 'lodash';
 import passport from 'passport';
 import {SALT_GEN_ROUNDS} from '../config';
 import {USER, SUPERUSER} from './accessRoles';
-import {getClient} from './oidc';
+import {awaitClient} from './oidc';
 import access from '../middleware/access';
 import {User} from '../models';
 import * as ssr from '../ssr';
@@ -78,16 +78,18 @@ router.get(
 );
 
 router.get('/userinfo', (req, res) => {
-  const client = getClient();
-  if (!client) {
-    return res.status(500).send({message: 'OIDC Client not initialized'});
-  }
-  const accessToken =
-    req.user &&
-    typeof req.user.getAccessToken === 'function' &&
-    req.user.getAccessToken();
-  return client
-    .userinfo(accessToken)
+  return awaitClient()
+    .then(client => {
+      if (!client) {
+        return res.status(500).send({message: 'OIDC Client not initialized'});
+      }
+      // If login is disabled, there will be no user
+      const accessToken =
+        req.user &&
+        typeof req.user.getAccessToken === 'function' &&
+        req.user.getAccessToken();
+      return client.userinfo(accessToken);
+    })
     .then(userInfo => {
       res.send(userInfo);
     })

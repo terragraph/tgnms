@@ -15,10 +15,10 @@ import openRoutes from '../openRoutes';
 import {isExpectedError} from '../user/errors';
 import ensureAccessToken from '../user/ensureAccessToken';
 import User from '../user/User';
-import {getClient} from '../user/oidc';
+import {awaitClient} from '../user/oidc';
 
 const ensureTokenParams = {
-  resolveClient: async _req => getClient(),
+  resolveClient: awaitClient,
   resolveUserFromTokenSet: async (_req, tokenSet) =>
     User.fromTokenSet(tokenSet),
 };
