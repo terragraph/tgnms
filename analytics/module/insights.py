@@ -66,23 +66,27 @@ def link_health_insights(
     num_dir = nts.NUM_DIR
 
     health = []
+    traffic = []
     for ti in range(k["num_topologies"]):
         num_links = k[ti]["num_links"]
         health.append(npo.nan_arr((num_links, num_dir, 1)))
+        traffic.append(npo.nan_arr((num_links, num_dir, 1)))
         for li in range(num_links):
             for di in range(num_dir):
-                health[-1][li, di, 0] = npo.get_link_health_1d(
+                hlt, trf = npo.get_link_health_and_traffic_1d(
                     mgmt_link_up[ti][li, di, :],
                     tx_ok[ti][li, di, :],
                     tx_fail[ti][li, di, :],
                     no_traffic[ti][li, di, :],
                     link_available[ti][li, di, :],
                     mcs[ti][li, di, :],
-                    link_length[ti][li, di, :],
+                    link_length[ti][li, di, 0],
                     read_interval,
                 )
-
+                health[-1][li, di, 0] = hlt
+                traffic[-1][li, di, 0] = trf
     nts.write_stats("health", health, StatType.LINK, write_interval)
+    nts.write_stats("traffic", traffic, StatType.LINK, write_interval)
 
 
 def uptime_insights(
@@ -690,14 +694,14 @@ def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -
     counters = {}
     for li in range(num_links):
         for di in range(num_dir):
-            health[li, di, 0] = npo.get_link_health_1d(
+            health[li, di, 0], _ = npo.get_link_health_and_traffic_1d(
                 mgmt_link_up[li, di, :],
                 tx_ok[li, di, :],
                 tx_fail[li, di, :],
                 no_traffic[li, di, :],
                 link_available[li, di, :],
                 mcs[li, di, :],
-                link_length[li, di, :],
+                link_length[li, di, 0],
                 CONST_INTERVAL,
             )
             tx_per[li, di, 0] = npo.get_per_1d(

@@ -8,8 +8,6 @@ import module.numpy_operations as npo
 import numpy as np
 
 
-
-
 class NumpyOperationsTest(unittest.TestCase):
     def test_get_link_availability_and_flaps_1d(self):
         slope = 30000 / 25.6
@@ -120,7 +118,7 @@ class NumpyOperationsTest(unittest.TestCase):
         np.testing.assert_array_equal(obs_pl, exp_pl)
         np.testing.assert_array_equal(obs_asm, exp_asm)
 
-    def test_get_largest_traffic_interval_1d(self):
+    def test_get_traffic_mask_1d(self):
 
         # acronyms:
         # mgmt_link_up: lu
@@ -134,55 +132,55 @@ class NumpyOperationsTest(unittest.TestCase):
         nt = np.array([np.nan, np.nan, np.nan])
         i = 1
         exp_ti = np.array([False, False, False])
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # all valid data
-        lu = np.array([1000, 1039, 1078])
-        nt = np.array([100, 100, 100])
+        lu = np.array([1000, 1039, 1078, 1117])
+        nt = np.array([100, 100, 100, 100])
         i = 1
-        exp_ti = np.array([True, True, True])
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        exp_ti = np.array([False, True, True, True])
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # no traffic scenario
-        lu = np.array([1000, 1039, 1078])
-        nt = np.array([100, 100, 101])
+        lu = np.array([1000, 1039, 1078, 1117])
+        nt = np.array([100, 100, 100, 101])
         i = 1
-        exp_ti = np.array([True, True, False])
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        exp_ti = np.array([False, True, True, False])
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # link reset scenario
-        lu = np.array([0, 39, 78])
-        nt = np.array([100, 100, 100])
+        lu = np.array([0, 39, 78, 117])
+        nt = np.array([100, 100, 100, 100])
         i = 1
-        exp_ti = np.array([False, True, True])
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        exp_ti = np.array([False, False, True, True])
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # favor recent interval
         lu = np.array([1000, 1039, 39, 78, 117])
         nt = np.array([0, 0, 0, 0, 0])
         i = 1
-        exp_ti = np.array([False, False, True, True, True])
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        exp_ti = np.array([False, True, False, True, True])
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # largest interval
         lu = np.array([1000, 1039, 0, 39, 78, 117, 0, 39])
         nt = np.array([0, 0, 0, 0, 0, 0, 0, 0])
         i = 1
-        exp_ti = np.array([False, False, False, True, True, True, False, False])
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        exp_ti = np.array([False, True, False, False, True, True, False, False])
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # largest interval, with holes
-        lu = np.array([100, 1039, 0, 39, 78, 117, np.nan, 39])
+        lu = np.array([1000, 1039, 0, 39, 78, 117, np.nan, 39])
         nt = np.array([0, np.nan, 0, 0, 0, 0, 0, 0])
         i = 1
-        exp_ti = np.array([False, False, False, True, True, True, False, False])
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        exp_ti = np.array([False, False, False, False, True, True, False, False])
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # misc
@@ -190,9 +188,9 @@ class NumpyOperationsTest(unittest.TestCase):
         nt = np.array([0, 10, np.nan, 30, 40, 40, 40, np.nan, np.nan, 40]) * 1.0
         i = 1
         exp_ti = np.array(
-            [False, False, False, False, True, True, True, True, True, True]
+            [False, False, False, False, False, True, True, True, True, True]
         )
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
         # misc but different interval
@@ -200,9 +198,9 @@ class NumpyOperationsTest(unittest.TestCase):
         nt = np.array([0, 10, np.nan, 30, 40, 40, 40, np.nan, np.nan, 40]) * 1.0
         i = 39
         exp_ti = np.array(
-            [False, False, False, False, True, True, True, True, True, True]
+            [False, False, False, False, False, True, True, True, True, True]
         )
-        obs_ti = npo.get_largest_traffic_interval_1d(lu, nt, i)
+        obs_ti = npo.get_traffic_mask_1d(lu, nt, i)
         np.testing.assert_array_equal(obs_ti, exp_ti)
 
     def test_get_per_1d(self):

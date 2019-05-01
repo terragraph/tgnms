@@ -171,8 +171,11 @@ def pathloss_asymmetry_nd(
     )
 
 
-# outputs bool array, with at-most one coninuous TRUEs for largest traffic interval
-def get_largest_traffic_interval_1d(
+# mcs_A -- no traffic -- mcs_B -- traffic -- mcs_C -- traffic -- mcs_D
+# mcs reading at point C and D would be guaranteed elevated by link adaptation
+# where as mcs reading at point A and B doesn't have known traffic before it
+# so return [False, False, False, True]
+def get_traffic_mask_1d(
     mgmt_link_up: np.ndarray, no_traffic: np.ndarray, interval: int
 ) -> np.ndarray:
     lu = mgmt_link_up
@@ -181,40 +184,20 @@ def get_largest_traffic_interval_1d(
     assert len(nt) == num_points
     t = np.arange(num_points)
     v = np.logical_and(is_valid(lu), is_valid(nt))
+    traffic_mask = np.zeros(no_traffic.shape, dtype=bool)
     if v.sum() < 2:
-        traffic_interval = nan_arr(no_traffic.shape)
-        traffic_interval[:] = False
-        return traffic_interval
-    lu = lu[v]
-    nt = nt[v]
-    t = t[v]
-    dnt = diff_1d(nt)
-    dt = diff_1d(t)
-    is_link_up = lu[1:] > np.ceil(dt * interval / BWGD_SEC)
+        return traffic_mask
+    dnt = diff_1d(nt[v])
+    dt = diff_1d(t[v])
+    is_link_up = lu[v][1:] > np.ceil(dt * interval / BWGD_SEC)
     # assume traffic when the no_traffic counter doesn't increase entire interval
     is_traffic = np.logical_and(dnt == 0, is_link_up)
-    # get indices and length of largest continuous interval with traffic
-    max_interval_length = 0
-    max_start_idx = 0
-    interval_length = 0
-    start_idx = 0
-    for idx, is_tr in enumerate(is_traffic):
-        if is_tr:
-            if interval_length == 0:
-                start_idx = idx
-            interval_length += dt[idx]
-        if not is_tr or idx == len(is_traffic) - 1:
-            # prefer recent intervals
-            if interval_length > 0 and interval_length >= max_interval_length:
-                max_start_idx = start_idx
-                max_interval_length = interval_length
-            interval_length = 0
-    # represent as bool array
-    traffic_interval = np.zeros(no_traffic.shape, dtype=bool)
-    traffic_interval[
-        t[max_start_idx] : t[max_start_idx] + max_interval_length + 1
-    ] = True
-    return traffic_interval
+    idx = 1
+    for traffic, duration in zip(is_traffic, dt):
+        for _ in range(duration):
+            traffic_mask[idx] = traffic
+            idx += 1
+    return traffic_mask
 
 
 # calculates the average PER over the interval
@@ -250,31 +233,28 @@ def detect_up_then_down_1d(mgmt_link_up: np.ndarray, interval: int) -> int:
     return int(nz >= 1 and zr >= (60 / interval))
 
 
-def get_link_health_1d(
+def get_link_health_and_traffic_1d(
     mgmt_link_up: np.ndarray,
     tx_ok: np.ndarray,
     tx_fail: np.ndarray,
     no_traffic: np.ndarray,
     link_available: np.ndarray,
     mcs: np.ndarray,
-    link_length: np.ndarray,
+    link_length: np.float64,
     interval: int,
-) -> int:
-    traffic_interval = get_largest_traffic_interval_1d(
-        mgmt_link_up, no_traffic, interval
-    )
-    is_traffic = traffic_interval.sum() >= (60 / interval)
+) -> Tuple[int, np.float64]:
+    traffic_mask = get_traffic_mask_1d(mgmt_link_up, no_traffic, interval)
+    is_traffic = traffic_mask.sum() >= (60 / interval)
+
     if is_traffic:
-        mgmt_link_up = mgmt_link_up[traffic_interval]
-        tx_ok = tx_ok[traffic_interval]
-        tx_fail = tx_fail[traffic_interval]
-        link_available = link_available[traffic_interval]
-        mcs = mcs[traffic_interval]
+        mcs = mcs[traffic_mask]
 
     mcs_p90 = np.nanpercentile(mcs, 10, interpolation="lower")
     _, flaps = get_link_availability_and_flaps_1d(
         mgmt_link_up, link_available, interval
     )
+    # We can take tx_per over traffic_mask,
+    # but this should be really good approximation, with/without traffic
     tx_per = get_per_1d(mgmt_link_up, tx_ok, tx_fail, interval)
 
     if is_traffic:
@@ -322,4 +302,4 @@ def get_link_health_1d(
         else:
             link_health = LinkHealth.WARNING
 
-    return link_health
+    return link_health, traffic_mask.sum() / len(traffic_mask)
