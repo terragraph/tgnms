@@ -33,7 +33,7 @@ test('If login is disabled, allow all', () => {
     },
   });
   const {getByText} = render(
-    <Authorize permissions={['NODE_READ', 'NODE_WRITE']}>
+    <Authorize permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}>
       <span>should be visible</span>
     </Authorize>,
   );
@@ -48,26 +48,26 @@ test('If user has no roles, disallow', () => {
     roles: [],
   });
   const {queryByText} = render(
-    <Authorize permissions={['NODE_READ', 'NODE_WRITE']}>
+    <Authorize permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}>
       <span>should not be visible</span>
     </Authorize>,
   );
 
   expect(queryByText('should not be visible')).not.toBeInTheDocument();
 });
-test('If user has some of the required roles, disallow', () => {
+test('If user has some of the required roles, allow', () => {
   setTestUser({
     id: '1234',
     name: 'test',
     email: '',
-    roles: [Permissions.NODE_READ],
+    roles: [Permissions.TOPOLOGY_READ],
   });
   const {queryByText} = render(
-    <Authorize permissions={['NODE_READ', 'NODE_WRITE']}>
-      <span>should not be visible</span>
+    <Authorize permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}>
+      <span>should be visible</span>
     </Authorize>,
   );
-  expect(queryByText('should not be visible')).not.toBeInTheDocument();
+  expect(queryByText('should be visible')).toBeInTheDocument();
 });
 
 test('If user has all of the required roles, allow', () => {
@@ -75,10 +75,10 @@ test('If user has all of the required roles, allow', () => {
     id: '1234',
     name: 'test',
     email: '',
-    roles: [Permissions.NODE_READ, Permissions.NODE_WRITE],
+    roles: [Permissions.TOPOLOGY_READ, Permissions.TOPOLOGY_WRITE],
   });
   const {getByText} = render(
-    <Authorize permissions={['NODE_READ', 'NODE_WRITE']}>
+    <Authorize permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}>
       <span>should be visible</span>
     </Authorize>,
   );

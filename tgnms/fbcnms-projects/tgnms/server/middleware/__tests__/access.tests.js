@@ -72,7 +72,7 @@ test('If a permission is specified, redirects for authenticated user without the
     }),
   };
 
-  access('NODE_READ')(mockRequest, mockResponse, () => {
+  access('TOPOLOGY_READ')(mockRequest, mockResponse, () => {
     throw new Error('Next should not be called here');
   });
 });
@@ -82,7 +82,7 @@ test('if a permission is specified, allows user with corresponding role', done =
   const mockRequest = {
     originalUrl: '/',
     user: {
-      roles: [Permissions.NODE_WRITE],
+      roles: [Permissions.TOPOLOGY_READ],
     },
     isAuthenticated: jest.fn(() => true),
   };
@@ -92,7 +92,7 @@ test('if a permission is specified, allows user with corresponding role', done =
     }),
   };
 
-  access('NODE_WRITE')(mockRequest, mockResponse, error => {
+  access('TOPOLOGY_READ')(mockRequest, mockResponse, error => {
     expect(error).toBeFalsy();
     expect(mockResponse.redirect).not.toHaveBeenCalled();
     done();

@@ -37,7 +37,7 @@ test('If login is disabled, show protected route', () => {
     <>
       <AuthorizedRoute
         path="/testpath"
-        permissions={['NODE_READ', 'NODE_WRITE']}
+        permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         render={() => <span>should be visible</span>}
       />
       <Route path="/" render={() => <span>should also be visible</span>} />
@@ -65,7 +65,7 @@ test('If user has no roles, redirect', () => {
     <>
       <AuthorizedRoute
         path="/testpath"
-        permissions={['NODE_READ', 'NODE_WRITE']}
+        permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         render={() => <span>should NOT be visible</span>}
         __testRedirect={mockRedirect}
       />
@@ -76,27 +76,27 @@ test('If user has no roles, redirect', () => {
   expect(mockRedirect).toHaveBeenCalled();
 });
 
-test('If user has some of the required roles, redirect', () => {
+test('If user has some of the required roles, allow', () => {
   const mockRedirect = jest.fn();
   setTestUser({
     id: '1234',
     name: 'test',
     email: '',
-    roles: [Permissions['NODE_WRITE']],
+    roles: [Permissions['TOPOLOGY_WRITE']],
   });
   const {queryByText} = renderWithRouter(
     <>
       <AuthorizedRoute
         path="/testpath"
-        permissions={['NODE_READ', 'NODE_WRITE']}
-        render={() => <span>should NOT be visible</span>}
+        permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
+        render={() => <span>should be visible</span>}
         __testRedirect={mockRedirect}
       />
     </>,
     {route: '/testpath'},
   );
-  expect(queryByText('should NOT be visible')).not.toBeInTheDocument();
-  expect(mockRedirect).toHaveBeenCalled();
+  expect(queryByText('should be visible')).toBeInTheDocument();
+  expect(mockRedirect).not.toHaveBeenCalled();
 });
 
 test('If user has all of the required roles, show protected route', () => {
@@ -105,13 +105,13 @@ test('If user has all of the required roles, show protected route', () => {
     id: '1234',
     name: 'test',
     email: '',
-    roles: [Permissions['NODE_WRITE'], Permissions['NODE_READ']],
+    roles: [Permissions['TOPOLOGY_WRITE'], Permissions['TOPOLOGY_READ']],
   });
   const {queryByText} = renderWithRouter(
     <>
       <AuthorizedRoute
         path="/testpath"
-        permissions={['NODE_READ', 'NODE_WRITE']}
+        permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         render={() => <span>should be visible</span>}
         __testRedirect={mockRedirect}
       />
