@@ -87,7 +87,7 @@ class CliOptions:
     "--grafana_ip", "-c", default="[::1]", type=str, help="Grafana IP (default=[::1])"
 )
 @click.option(
-    "--grafana_port", "-p", default=3000, type=int, help="Grafana port (defaul=3000)"
+    "--grafana_port", "-p", default=3000, type=int, help="Grafana port (default=3000)"
 )
 @click.option(
     "--auth_user",
