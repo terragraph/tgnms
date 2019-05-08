@@ -271,7 +271,7 @@ services:
       - "31338:31338/udp"
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "until nc -z bqs 8086; do sleep 1; done && beringei/tools/ping_service/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -bqs_ip bqs -bqs_port 8086"]
+    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/ping_service/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS}"]
     logging:
       driver: "json-file"
       options:
@@ -279,7 +279,6 @@ services:
         max-file: "10"
     depends_on:
       - ipv6
-      - bqs
       - db
 
   prometheus:

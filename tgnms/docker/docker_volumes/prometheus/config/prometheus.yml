@@ -33,3 +33,15 @@ scrape_configs:
     scrape_timeout: 1s
     static_configs:
             - targets: ['bqs:8086']
+
+  - job_name: 'udp_ping_client_30s'
+    metrics_path: /metrics/30s
+    static_configs:
+            - targets: ['udp_ping_client:3047']
+
+  - job_name: 'udp_ping_client_1s'
+    metrics_path: /metrics/1s
+    scrape_interval: 1s
+    scrape_timeout: 1s
+    static_configs:
+            - targets: ['udp_ping_client:3047']
