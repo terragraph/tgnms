@@ -54,17 +54,30 @@ inline uint32_t getTimestamp() {
 void addToHistograms(
     const uint32_t rtt,
     const folly::IPAddress& address,
+    const std::string& network,
     std::shared_ptr<
         std::unordered_map<folly::IPAddress, facebook::gorilla::Histogram>>
-        hostHistograms) {
-  auto histogramsIt = hostHistograms->find(address);
-  if (histogramsIt == hostHistograms->end()) {
+        hostHistograms,
+    std::shared_ptr<
+        std::unordered_map<std::string, facebook::gorilla::Histogram>>
+        networkHistograms) {
+  auto hostIt = hostHistograms->find(address);
+  if (hostIt == hostHistograms->end()) {
     facebook::gorilla::Histogram histogram(
         FLAGS_bucket_size, FLAGS_bucket_min, FLAGS_bucket_max);
     auto result = hostHistograms->emplace(address, std::move(histogram));
-    histogramsIt = result.first;
+    hostIt = result.first;
   }
-  histogramsIt->second.addValue(rtt);
+  hostIt->second.addValue(rtt);
+
+  auto networkIt = networkHistograms->find(network);
+  if (networkIt == networkHistograms->end()) {
+    facebook::gorilla::Histogram histogram(
+        FLAGS_bucket_size, FLAGS_bucket_min, FLAGS_bucket_max);
+    auto result = networkHistograms->emplace(network, std::move(histogram));
+    networkIt = result.first;
+  }
+  networkIt->second.addValue(rtt);
 }
 
 // The following two methods are used for checksum computations
@@ -477,7 +490,9 @@ UdpReceiver::UdpReceiver(
       recvQueues_(recvQueues),
       ipToTargetMap_(ipToTargetMap),
       hostHistograms_(
-          std::make_shared<std::unordered_map<folly::IPAddress, Histogram>>()) {
+          std::make_shared<std::unordered_map<folly::IPAddress, Histogram>>()),
+      networkHistograms_(
+          std::make_shared<std::unordered_map<std::string, Histogram>>()) {
   // Wipe out the message header first
   memset(&msg_, 0, sizeof(msg_));
 
@@ -545,21 +560,21 @@ void UdpReceiver::summarizeResults(int qos) {
   CHECK(!evb_.isRunning());
 
   uint32_t now = system_clock::to_time_t(system_clock::now());
-  for (const auto& histogramIt : *hostHistograms_) {
+  for (const auto& hostIt : *hostHistograms_) {
     auto result = std::make_shared<thrift::TestResult>();
     result->timestamp_s = now;
     result->metadata.tos = qos;
 
     try {
-      const auto& target = ipToTargetMap_.at(histogramIt.first);
+      const auto& target = ipToTargetMap_.at(hostIt.first);
       result->metadata.dst = target;
     } catch (const std::out_of_range& e) {
       // We received some packets that were not in the test plan
-      VLOG(1) << "Received unexpected packet from " << histogramIt.first;
+      VLOG(1) << "Received unexpected packet from " << hostIt.first;
       continue;
     }
 
-    const auto& histogram = histogramIt.second;
+    const auto& histogram = hostIt.second;
     result->metrics.num_recv = histogram.getTotalCount();
 
     // The result metrics are in ms
@@ -568,12 +583,33 @@ void UdpReceiver::summarizeResults(int qos) {
         (double)histogram.getPercentileEstimate(0.75) / 1000;
     result->metrics.rtt_p90 =
         (double)histogram.getPercentileEstimate(0.9) / 1000;
-    results_.push_back(std::move(result));
+    results_.hostResults.push_back(std::move(result));
   }
   hostHistograms_->clear();
 
+  for (const auto& networkIt : *networkHistograms_) {
+    auto result = std::make_shared<thrift::TestResult>();
+    result->timestamp_s = now;
+    result->metadata.tos = qos;
+    result->metadata.dst.network = networkIt.first;
+
+    const auto& histogram = networkIt.second;
+    result->metrics.num_recv = histogram.getTotalCount();
+
+    // The result metrics are in ms
+    result->metrics.rtt_avg = histogram.getAverage() / 1000;
+    result->metrics.rtt_p75 =
+        (double)histogram.getPercentileEstimate(0.75) / 1000;
+    result->metrics.rtt_p90 =
+        (double)histogram.getPercentileEstimate(0.9) / 1000;
+    results_.networkResults.push_back(std::move(result));
+  }
+  networkHistograms_->clear();
+
   LOG(INFO) << "Receiver done summarizing results";
-  LOG(INFO) << "Built partial results host size " << results_.size();
+
+  LOG(INFO) << "Built partial results host size " << results_.hostResults.size()
+            << " and network size " << results_.networkResults.size();
 }
 
 void UdpReceiver::consumeMessage(ReceiveProbe&& message) noexcept {
@@ -582,7 +618,12 @@ void UdpReceiver::consumeMessage(ReceiveProbe&& message) noexcept {
   auto targetIt = ipToTargetMap_.find(address);
 
   if (targetIt != ipToTargetMap_.end()) {
-    addToHistograms(rtt, address, hostHistograms_);
+    addToHistograms(
+        rtt,
+        address,
+        targetIt->second.network,
+        hostHistograms_,
+        networkHistograms_);
   } else {
     FB_LOG_EVERY_MS(ERROR, 100)
         << "Received unexpected packet from " << address;
@@ -675,20 +716,20 @@ void UdpReceiver::onMessageAvailable(size_t len) noexcept {
       adjPinger,
       adjTarget);
 
-  std::string siteName;
+  std::string networkName;
   try {
-    siteName = ipToTargetMap_.at(addr.getIPAddress()).site;
+    networkName = ipToTargetMap_.at(addr.getIPAddress()).network;
   } catch (const std::out_of_range& e) {
     FB_LOG_EVERY_MS(ERROR, 500)
         << "Response from unknown IP address " << addr.getIPAddress();
     return;
   }
 
-  auto it = siteNameToQueueId_.find(siteName);
+  auto it = networkNameToQueueId_.find(networkName);
   int queueId;
-  if (it == siteNameToQueueId_.end()) {
-    queueId = hasher_(siteName) % recvQueues_.size();
-    siteNameToQueueId_.emplace(std::move(siteName), queueId);
+  if (it == networkNameToQueueId_.end()) {
+    queueId = hasher_(networkName) % recvQueues_.size();
+    networkNameToQueueId_.emplace(std::move(networkName), queueId);
   } else {
     queueId = it->second;
   }
@@ -811,9 +852,14 @@ UdpTestResults UdpPinger::run(
 
   // Probes we send (and expect to receive) per host
   std::unordered_map<std::string, int> hostProbeCount;
+  // Probes we send (and expect to receive) per network
+  std::unordered_map<std::string, int> networkProbeCount;
+
   std::unordered_map<std::string, thrift::Target> hostToTargetMap;
   for (const auto& testPlan : testPlans) {
     hostProbeCount.emplace(testPlan.target.name, testPlan.numPackets);
+    networkProbeCount[testPlan.target.network] += testPlan.numPackets;
+
     hostToTargetMap.emplace(testPlan.target.name, testPlan.target);
   }
 
@@ -855,13 +901,33 @@ UdpTestResults UdpPinger::run(
 
   for (auto& receiver : receivers) {
     auto& partialResults = receiver->getResults();
-    LOG(INFO) << "Got partial results host size " << partialResults.size();
-    results.insert(results.end(), partialResults.begin(), partialResults.end());
+    LOG(INFO) << "Got partial results host size "
+              << partialResults.hostResults.size() << " network size "
+              << partialResults.networkResults.size();
+
+    results.hostResults.insert(
+        results.hostResults.end(),
+        partialResults.hostResults.begin(),
+        partialResults.hostResults.end());
+
+    results.networkResults.insert(
+        results.networkResults.end(),
+        partialResults.networkResults.begin(),
+        partialResults.networkResults.end());
   }
 
-  for (auto& result : results) {
+  for (auto& result : results.hostResults) {
     result->metrics.num_xmit = hostProbeCount.at(result->metadata.dst.name);
     hostProbeCount.erase(result->metadata.dst.name);
+
+    result->metrics.loss_ratio =
+        1 - (double)result->metrics.num_recv / result->metrics.num_xmit;
+  }
+
+  for (auto& result : results.networkResults) {
+    result->metrics.num_xmit =
+        networkProbeCount.at(result->metadata.dst.network);
+    networkProbeCount.erase(result->metadata.dst.network);
 
     result->metrics.loss_ratio =
         1 - (double)result->metrics.num_recv / result->metrics.num_xmit;
@@ -871,7 +937,9 @@ UdpTestResults UdpPinger::run(
   uint32_t now = system_clock::to_time_t(system_clock::now());
 
   // hostProbeCount now only contains the records for the hosts that never
-  // responded at all
+  // responded at all. As the hosts which didn't respond do not have a result,
+  // they would not be submitted to hostResults (raw). Iterate over the non
+  // responders now in order to create results for them
   for (const auto& hostProbeIt : hostProbeCount) {
     auto result = std::make_shared<thrift::TestResult>();
     result->timestamp_s = now;
@@ -883,7 +951,20 @@ UdpTestResults UdpPinger::run(
     result->metadata.dead = true;
 
     VLOG(1) << "Tagged host '" << result->metadata.dst.name << "' as dead";
-    results.push_back(std::move(result));
+    results.hostResults.push_back(std::move(result));
+  }
+
+  // networkProbeCount now only contains the records for networks that never
+  // responded at all. Iterate over them to create results.
+  for (const auto& networkProbeIt : networkProbeCount) {
+    auto result = std::make_shared<thrift::TestResult>();
+    result->timestamp_s = now;
+    result->metrics.num_xmit = networkProbeIt.second;
+    result->metrics.loss_ratio = 1;
+    result->metadata.dst.network = networkProbeIt.first;
+
+    VLOG(1) << "Tagged network '" << networkProbeIt.first << "' as offline";
+    results.networkResults.push_back(std::move(result));
   }
 
   return results;

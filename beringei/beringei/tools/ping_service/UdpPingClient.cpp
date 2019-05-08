@@ -158,7 +158,7 @@ void getTestPlans(
             testPlan.target.mac = node.mac_addr;
             testPlan.target.name = node.name;
             testPlan.target.site = node.site_name;
-            testPlan.target.topology = topology.name;
+            testPlan.target.network = topology.name;
             testPlan.target.is_cn = node.node_type == query::NodeType::CN;
             testPlan.target.is_pop = node.pop_node;
             testPlan.numPackets = FLAGS_num_packets;
@@ -192,7 +192,9 @@ UdpTestResults ping(
     results = pinger.run(*lockedTestPlans, 0);
     lockedTestPlans.unlock();  // lockedTestPlans -> NULL
 
-    LOG(INFO) << "Finished with " << results.size() << " host results";
+    LOG(INFO) << "Finished with " << results.hostResults.size()
+              << " host results and " << results.networkResults.size()
+              << " network results";
   }
 
   return results;
@@ -204,15 +206,15 @@ void writeResults(const UdpTestResults& results) {
                  .count();
 
   std::unordered_map<
-      std::string /* topology name */,
+      std::string /* network name */,
       std::vector<Metric> /* metrics list */>
       metricsMap;
 
-  for (const auto& result : results) {
-    auto topologyName = result->metadata.dst.topology;
+  for (const auto& result : results.hostResults) {
+    auto networkName = result->metadata.dst.network;
 
     std::vector<std::string> labels;
-    labels.emplace_back(PrometheusUtils::formatNetworkLabel(topologyName));
+    labels.emplace_back(PrometheusUtils::formatNetworkLabel(networkName));
     labels.emplace_back(
         folly::sformat("{}=\"{}\"", PrometheusConsts::LABEL_DATA_INTERVAL, 1));
     labels.emplace_back(folly::sformat(
@@ -236,7 +238,28 @@ void writeResults(const UdpTestResults& results) {
         PrometheusConsts::LABEL_SITE_NAME,
         PrometheusUtils::formatPrometheusKeyName(result->metadata.dst.site)));
 
-    auto& currMetrics = metricsMap[topologyName];
+    auto& currMetrics = metricsMap[networkName];
+    currMetrics.emplace_back(
+        Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
+
+    if (result->metrics.num_recv > 0) {
+      currMetrics.insert(
+          currMetrics.end(),
+          {Metric("pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
+           Metric("pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
+           Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75)});
+    }
+  }
+
+  for (const auto& result : results.networkResults) {
+    auto networkName = result->metadata.dst.network;
+
+    std::vector<std::string> labels;
+    labels.emplace_back(PrometheusUtils::formatNetworkLabel(networkName));
+    labels.emplace_back(
+        folly::sformat("{}=\"{}\"", PrometheusConsts::LABEL_DATA_INTERVAL, 1));
+
+    auto& currMetrics = metricsMap[networkName];
     currMetrics.emplace_back(
         Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
 

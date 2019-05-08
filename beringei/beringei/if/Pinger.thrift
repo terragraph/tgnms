@@ -14,7 +14,7 @@ struct Target {
   2: string mac;
   3: string name;
   4: string site;
-  5: string topology;
+  5: string network;
   6: bool is_pop;
   7: bool is_cn;
 }

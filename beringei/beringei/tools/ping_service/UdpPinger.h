@@ -26,8 +26,6 @@
 namespace facebook {
 namespace gorilla {
 
-typedef std::vector<std::shared_ptr<thrift::TestResult>> UdpTestResults;
-
 struct UdpHeader {
   uint16_t srcPort{0};
   uint16_t dstPort{0};
@@ -44,6 +42,11 @@ struct UdpTestPlan {
 
   // Number of packets that have been sent
   int packetsSent{0};
+};
+
+struct UdpTestResults {
+  std::vector<std::shared_ptr<thrift::TestResult>> hostResults;
+  std::vector<std::shared_ptr<thrift::TestResult>> networkResults;
 };
 
 struct ReceiveProbe {
@@ -225,12 +228,16 @@ class UdpReceiver final : public AsyncUdpSocket::ReadCallback {
       folly::DelayedDestruction::Destructor>
       receivingConsumer_;
 
-  // Caches the site name to queue id
-  std::unordered_map<std::string, int> siteNameToQueueId_;
+  // Caches the network name to queue id
+  std::unordered_map<std::string, int> networkNameToQueueId_;
 
-  // Histograms that for storing per-host statistics
+  // Histogram for storing per-host statistics
   std::shared_ptr<std::unordered_map<folly::IPAddress, Histogram>>
       hostHistograms_;
+
+  // Histogram for storing per-network statistics
+  std::shared_ptr<std::unordered_map<std::string, Histogram>>
+      networkHistograms_;
 
   // The results of the tests for this receiver
   UdpTestResults results_;
