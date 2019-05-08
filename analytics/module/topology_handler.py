@@ -22,7 +22,7 @@ def fetch_network_info(
     use_primary_controller is True for Primary Controller info; False for Backup
         Controller info.
     networks.keys() are same as topology id
-    networks[id].keys() includes "e2e_ip", "e2e_port", "topology", etc.
+    networks[id].keys() includes "api_ip", "api_port", "topology", etc.
     networks[id]["topology"].keys() includes "nodes", "links", "sites", etc.
     """
     networks = {}
