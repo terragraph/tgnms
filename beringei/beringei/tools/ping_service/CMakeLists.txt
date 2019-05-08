@@ -22,5 +22,6 @@ target_link_libraries(
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${LIBGLOG_LIBRARIES}
+    ${PROXYGEN_LIBRARIES}
     Threads::Threads
 )

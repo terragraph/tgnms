@@ -15,6 +15,8 @@ struct Target {
   3: string name;
   4: string site;
   5: string topology;
+  6: bool is_pop;
+  7: bool is_cn;
 }
 
 struct Config {
@@ -35,17 +37,16 @@ struct Metadata {
 }
 
 struct Metrics {
-  1: i32 numRecv;
-  2: i32 numXmit;
-  3: double avg;
-  4: double rttP75;
-  5: double rttP90;
-  6: double pctBelowMaxRtt;
-  7: double lossRatio;
+  1: i32 num_recv;
+  2: i32 num_xmit;
+  3: double rtt_avg;
+  4: double rtt_p75;
+  5: double rtt_p90;
+  6: double loss_ratio;
 }
 
 struct TestResult {
-  1: double timestamp;
+  1: double timestamp_s;
   2: Metadata metadata;
   3: Metrics metrics;
 }

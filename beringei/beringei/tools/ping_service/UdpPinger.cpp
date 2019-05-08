@@ -547,28 +547,27 @@ void UdpReceiver::summarizeResults(int qos) {
   uint32_t now = system_clock::to_time_t(system_clock::now());
   for (const auto& histogramIt : *hostHistograms_) {
     auto result = std::make_shared<thrift::TestResult>();
-    result->timestamp = now;
+    result->timestamp_s = now;
     result->metadata.tos = qos;
 
     try {
       const auto& target = ipToTargetMap_.at(histogramIt.first);
       result->metadata.dst = target;
     } catch (const std::out_of_range& e) {
-      // We receive some packets that were not in our test plan
+      // We received some packets that were not in the test plan
       VLOG(1) << "Received unexpected packet from " << histogramIt.first;
       continue;
     }
 
     const auto& histogram = histogramIt.second;
-    result->metrics.numRecv = histogram.getTotalCount();
+    result->metrics.num_recv = histogram.getTotalCount();
 
     // The result metrics are in ms
-    result->metrics.rttP75 =
+    result->metrics.rtt_avg = histogram.getAverage() / 1000;
+    result->metrics.rtt_p75 =
         (double)histogram.getPercentileEstimate(0.75) / 1000;
-    result->metrics.rttP90 =
+    result->metrics.rtt_p90 =
         (double)histogram.getPercentileEstimate(0.9) / 1000;
-    result->metrics.avg = histogram.getAverage() / 1000;
-    result->metrics.pctBelowMaxRtt = histogram.computePctBelowMax();
     results_.push_back(std::move(result));
   }
   hostHistograms_->clear();
@@ -710,7 +709,7 @@ UdpPinger::UdpPinger(const thrift::Config& config, folly::IPAddress srcIp)
 
 UdpTestResults UdpPinger::run(
     const std::vector<UdpTestPlan>& testPlans,
-    int qos) {
+    int qos) const {
   auto numSenders = (int)config_.num_sender_threads;
   auto numReceivers = (int)config_.num_receiver_threads;
 
@@ -775,7 +774,7 @@ UdpTestResults UdpPinger::run(
       folly::IPAddress ip(testPlan.target.ip);
       ipToTargetMap.emplace(std::move(ip), testPlan.target);
     } catch (const folly::IPAddressFormatException& e) {
-      LOG(ERROR) << testPlan.target.ip << ":" << folly::exceptionStr(e);
+      LOG(ERROR) << testPlan.target.ip << " isn't an IP address";
     }
   }
 
@@ -784,7 +783,7 @@ UdpTestResults UdpPinger::run(
   std::vector<std::shared_ptr<folly::NotificationQueue<ReceiveProbe>>>
       recvQueues;
 
-  // We create all queues together since every receiver needs to know them all
+  // Create all queues together since every receiver needs to know them all
   for (int i = 0; i < numReceivers; ++i) {
     recvQueues.emplace_back(
         std::make_shared<folly::NotificationQueue<ReceiveProbe>>());
@@ -821,7 +820,7 @@ UdpTestResults UdpPinger::run(
   // Submit test plans to senders
   std::hash<std::string> hasher;
   for (const auto& testPlan : testPlans) {
-    auto queueNum = hasher(testPlan.target.ip) % numSenders;
+    auto queueNum = hasher(testPlan.target.site) % numSenders;
     auto result =
         sendingQueues[queueNum]->tryPutMessageNoThrow(std::move(testPlan));
     if (!result) {
@@ -861,11 +860,11 @@ UdpTestResults UdpPinger::run(
   }
 
   for (auto& result : results) {
-    result->metrics.numXmit = hostProbeCount.at(result->metadata.dst.name);
+    result->metrics.num_xmit = hostProbeCount.at(result->metadata.dst.name);
     hostProbeCount.erase(result->metadata.dst.name);
 
-    result->metrics.lossRatio =
-        1 - (float)result->metrics.numRecv / result->metrics.numXmit;
+    result->metrics.loss_ratio =
+        1 - (double)result->metrics.num_recv / result->metrics.num_xmit;
   }
 
   // Output empty results
@@ -875,9 +874,9 @@ UdpTestResults UdpPinger::run(
   // responded at all
   for (const auto& hostProbeIt : hostProbeCount) {
     auto result = std::make_shared<thrift::TestResult>();
-    result->timestamp = now;
-    result->metrics.numXmit = hostProbeIt.second;
-    result->metrics.lossRatio = 1;
+    result->timestamp_s = now;
+    result->metrics.num_xmit = hostProbeIt.second;
+    result->metrics.loss_ratio = 1;
     const auto& target = hostToTargetMap[hostProbeIt.first];
     result->metadata.dst = target;
     result->metadata.tos = qos;

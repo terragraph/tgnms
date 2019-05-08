@@ -71,11 +71,6 @@ class Histogram : public folly::Histogram<uint32_t> {
     return count_;
   }
 
-  // Computes the percentage of datum that are below the histogram max
-  double computePctBelowMax(void) const {
-    return 1 - float(getBucketByIndex(getNumBuckets() - 1).count) / count_;
-  }
-
  private:
   double average_ = 0;
   uint64_t count_ = 0;
@@ -272,7 +267,7 @@ class UdpReceiver final : public AsyncUdpSocket::ReadCallback {
 class UdpPinger {
  public:
   UdpPinger(const thrift::Config& config, folly::IPAddress srcIp);
-  UdpTestResults run(const std::vector<UdpTestPlan>& testPlans, int qos);
+  UdpTestResults run(const std::vector<UdpTestPlan>& testPlans, int qos) const;
 
  private:
   // The global configuration object
