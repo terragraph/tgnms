@@ -25,6 +25,9 @@ enum EventCategory {
   SYSTEM = 1200,
   FIRMWARE = 1300,
   ZMQ = 1400,
+  LOGTAIL = 1500,
+  HIGH_AVAILABILITY = 1600,
+  AUTO_OPTIMIZER = 1700,
 }
 
 enum EventSubcategory {
@@ -67,11 +70,12 @@ enum EventLevel {
 }
 
 struct Event {
-  1: string source; // zmq identity, process, or filename of the Event creator.
-  2: i64 timestamp; // unix time in seconds
-  3: string reason; // human readable explanation/description
-  4: string details; // json formated string of extra details
+  1: string source;  // The source program (ZMQ identity, process name, etc.)
+  2: i64 timestamp;  // The event creation time (UNIX time in seconds)
+  3: string reason;  // The event description, in plain English
+  4: string details;  // Supplemental information, as a JSON string (optional)
   5: EventCategory category;
   6: EventSubcategory subcategory;
   7: EventLevel level;
+  8: optional string entity;  // The entity this event is associated with (MAC)
 }
