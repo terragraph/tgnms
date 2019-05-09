@@ -51,11 +51,20 @@ router.get('/executions', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.get('/executions/:id/results', (req, res) => {
+router.get('/results', (req, res) => {
+  const query = {};
+  if (typeof req.query.executionId === 'string') {
+    query.executionId = req.query.executionId;
+  }
+  if (typeof req.query.metrics === 'string') {
+    query.metrics =
+      req.query.metrics.trim() !== '' ? req.query.metrics.split(',') : [];
+  }
+  if (typeof req.query.results === 'string') {
+    query.results = req.query.results.split(',');
+  }
   return networkTestService
-    .getTestResults({
-      executionId: req.params.id,
-    })
+    .getTestResults(query)
     .then(results => res.status(200).send(results))
     .catch(createErrorHandler(res));
 });

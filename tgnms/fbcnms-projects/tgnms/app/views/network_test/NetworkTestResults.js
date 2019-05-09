@@ -183,15 +183,21 @@ export default withStyles(styles)(
           />
           <Route
             path={`${this.getBaseUrl()}/details/:linkName`}
-            render={({match}) => (
-              <TestResultsPanel
-                heading={match.params.linkName}
-                getBackUrl={this.getBackUrl}>
-                <LinkTestResultDetails
-                  link={this.getLinkResultById(match.params.linkName)}
-                />
-              </TestResultsPanel>
-            )}
+            render={({match}) => {
+              const link = this.getLinkResultById(match.params.linkName);
+              if (!link) {
+                return <Loading />;
+              }
+              return (
+                <TestResultsPanel
+                  heading={match.params.linkName}
+                  getBackUrl={this.getBackUrl}>
+                  <LinkTestResultDetails
+                    testResultIds={link.results.map(x => x.id.toString())}
+                  />
+                </TestResultsPanel>
+              );
+            }}
           />
         </>
       );
@@ -204,6 +210,7 @@ export default withStyles(styles)(
         return testApi
           .getTestResults({
             executionId,
+            metrics: ['health', 'status'],
           })
           .then(results => {
             /**

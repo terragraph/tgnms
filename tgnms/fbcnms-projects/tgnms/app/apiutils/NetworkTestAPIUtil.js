@@ -12,11 +12,27 @@ import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecu
 import axios, {CancelToken} from 'axios';
 import {HEALTH_CODES} from '../constants/HealthConstants';
 
-export const getTestResults = ({executionId}: {executionId: string}) => {
+export const getTestResults = ({
+  executionId,
+  results,
+  metrics,
+}: {
+  executionId?: string,
+  results?: Array<string>,
+  metrics?: Array<$Keys<TestResultDto>>,
+}) => {
+  const url = new URL('/network_test/results', window.location);
+  if (typeof executionId !== 'undefined') {
+    url.searchParams.append('executionId', executionId);
+  }
+  if (typeof metrics !== 'undefined') {
+    url.searchParams.append('metrics', metrics.join(','));
+  }
+  if (typeof results !== 'undefined') {
+    url.searchParams.append('results', results.join(','));
+  }
   return axios
-    .get<null, Array<TestResultDto>>(
-      `/network_test/executions/${executionId}/results`,
-    )
+    .get<null, Array<TestResultDto>>(url.toString())
     .then(response => response.data.map<TestResultDto>(deserializeTestResult));
 };
 
@@ -56,14 +72,13 @@ export const getExecutionsByNetworkName = ({
   testType?: string,
   protocol?: string,
 }): Promise<TablePage<TestExecutionDto>> => {
+  const url = new URL('/network_test/executions', window.location);
+  url.searchParams.append('network', networkName);
+  url.searchParams.append('afterDate', afterDate);
+  url.searchParams.append('testType', testType || '');
+  url.searchParams.append('protocol', protocol || '');
   return axios
-    .get<any, TablePage<TestExecutionDto>>(
-      `/network_test/executions?network=${networkName}&afterDate=${encodeURIComponent(
-        afterDate,
-      )}&testType=${encodeURIComponent(
-        testType || '',
-      )}&protocol=${encodeURIComponent(protocol || '')}`,
-    )
+    .get<any, TablePage<TestExecutionDto>>(url.toString())
     .then(({data}) =>
       Object.assign(data, {
         rows: data.rows && data.rows.map(row => deserializeTestExecution(row)),
@@ -80,8 +95,16 @@ export const getTestExecution = ({
   includeTestResults?: boolean,
   cancelToken: CancelToken,
 }) => {
+  const url = new URL(
+    `/network_test/executions/${executionId}`,
+    window.location,
+  );
+  url.searchParams.append(
+    'includeTestResults',
+    (!!includeTestResults).toString(),
+  );
   return axios<null, TestExecutionDto>({
-    url: `/network_test/executions/${executionId}?includeTestResults=${(!!includeTestResults).toString()}`,
+    url: url.toString(),
     cancelToken: cancelToken,
   }).then(response => deserializeTestExecution(response.data));
 };

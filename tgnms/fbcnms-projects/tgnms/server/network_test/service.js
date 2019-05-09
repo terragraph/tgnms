@@ -20,6 +20,21 @@ type RecentTestExecutionsRequest = {
   protocol?: ?string,
 };
 
+// testresult columns to include by default
+const defaultResultAttributes: Array<$Keys<TestResultDto>> = [
+  'id',
+  'link_name',
+  'origin_node',
+  'peer_node',
+];
+
+// testresult columns to exclude
+const defaultResultExcludes: Array<$Keys<TestResultDto>> = [
+  'iperf_client_blob',
+  'iperf_server_blob',
+  'ping_output_blob',
+];
+
 const service = {
   getTestExecution: function({
     executionId,
@@ -34,6 +49,9 @@ const service = {
         {
           model: api_testresult,
           as: 'test_results',
+          attributes: {
+            exclude: defaultResultExcludes,
+          },
         },
       ];
     }
@@ -66,7 +84,7 @@ const service = {
       query.where.test_code = request.testType;
     }
     if (typeof request.protocol === 'string' && request.protocol !== '') {
-      query.where.protocol = request.protocol;
+      query.where.protocol = request.protocol.toUpperCase();
     }
     return (api_testrunexecution
       .findAll(query)
@@ -84,18 +102,46 @@ const service = {
         return Promise.reject(error);
       }): Promise<TablePage<TestExecutionDto>>);
   },
-
+  /**
+   * Queries test results table.
+   * If executionId is passed, the results are scoped to the execution id.
+   * If ids is passed, only the specified results are returned.
+   *
+   * If metrics is passed, only the default columns, and the columns provided,
+   * are returned in the result.If metrics is not passed, all columns are
+   * returned. This can create huge responses on large networks.
+   */
   getTestResults: function({
     executionId,
+    results,
+    metrics,
   }: {
-    executionId: number,
+    executionId?: number,
+    results?: Array<string>,
+    metrics?: Array<string>,
   }): Promise<Array<TestResultDto>> {
+    const query: any = {
+      where: {},
+      attributes: {
+        // these are huge and not displayed in the ui, ignore by default
+        exclude: defaultResultExcludes,
+      },
+    };
+    if (typeof executionId !== 'undefined') {
+      query.where.test_run_execution_id = executionId;
+    }
+    if (typeof results !== 'undefined') {
+      query.where.id = {
+        // $FlowFixMe symbols dont work in flow
+        [Sequelize.Op.in]: results,
+      };
+    }
+    if (typeof metrics !== 'undefined') {
+      // if metrics is provided, only show those columns plus defaults
+      query.attributes = defaultResultAttributes.concat(metrics);
+    }
     return (api_testresult
-      .findAll({
-        where: {
-          test_run_execution_id: executionId,
-        },
-      })
+      .findAll(query)
       .then((rows: Array<TestResult>) =>
         rows.map(result => mapTestResultToDto(result)),
       ): Promise<Array<TestResultDto>>);
@@ -108,14 +154,15 @@ const service = {
     executionId: string,
     metrics: Array<$Keys<TestResult>>,
   }) {
-    const attributes: Array<$Keys<TestResult>> = [
-      'link_name',
-      'origin_node',
-      'peer_node',
-    ].concat(metrics);
+    const attributes: Array<$Keys<TestResult>> = defaultResultAttributes.concat(
+      metrics,
+    );
     return (api_testresult
       .findAll({
-        attributes: attributes,
+        attributes: {
+          include: attributes,
+          exclude: defaultResultExcludes,
+        },
         where: {
           test_run_execution_id: executionId,
         },

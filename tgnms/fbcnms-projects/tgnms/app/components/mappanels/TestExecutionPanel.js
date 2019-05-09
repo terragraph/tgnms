@@ -152,7 +152,7 @@ function LinkTestResult({
       linkName: linkName,
       results: linkResults,
     };
-  }, [linkName]);
+  }, [execution, linkName]);
 
   if (!testResult) {
     return (
@@ -165,13 +165,13 @@ function LinkTestResult({
       </Paper>
     );
   }
-
+  const testResultIds = testResult.results.map(result => result.id.toString());
   return (
     <>
       <Typography variant="body2" align="center">
         {linkName}
       </Typography>
-      <LinkTestResultDetails link={testResult} />
+      <LinkTestResultDetails testResultIds={testResultIds} />
     </>
   );
 }

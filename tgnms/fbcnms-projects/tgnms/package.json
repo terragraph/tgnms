@@ -11,9 +11,9 @@
     "jscs": "jscs .",
     "precommit": "./node_modules/.bin/lint-staged",
     "thrift-to-flow": "thrift2flow --path $(pwd)/shared/types/ thrift/*.thrift && mv thrift/*.js shared/types/",
-    "test":"(cd ../../ && yarn run test)",
-    "test:app":"(cd ../../ && yarn run test app)",
-    "test:server":"(cd ../../ && yarn run test server)"
+    "test": "(cd ../../ && yarn run test)",
+    "test:app": "(cd ../../ && yarn run test app)",
+    "test:server": "(cd ../../ && yarn run test server)"
   },
   "dependencies": {
     "@fbcnms/babel-register": "^0.1.0",
@@ -86,6 +86,7 @@
     "prop-types": "^15.5.8",
     "react-dev-utils": "^5.0.1",
     "react-testing-library": "^6.1.2",
+    "supertest": "^4.0.2",
     "sweetalert2": "7.28.4",
     "thrift2flow": "^0.6.0",
     "url-loader": "1.1.2",
