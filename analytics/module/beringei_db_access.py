@@ -5,16 +5,15 @@
    key_id between analytics and Beringei database.
 """
 
-import os
-import requests
 import json
 import logging
+import os
 
-from thrift.TSerialization import serialize, deserialize
-from thrift.protocol import TBinaryProtocol
-
+import requests
 from facebook.gorilla.beringei_data.ttypes import RawQueryReturn
 from module.path_store import PathStore
+from thrift.protocol import TBinaryProtocol
+from thrift.TSerialization import deserialize, serialize
 
 
 class BeringeiDbAccess(object):
@@ -50,13 +49,17 @@ class BeringeiDbAccess(object):
             instance._bqs_config = analytics_config["BQS"]
             return instance
 
-    def _post_http_request_to_beringei_query_server(self, request_body, request_path):
+    def _post_http_request_to_beringei_query_server(
+        self, request_body, request_path, is_binary=True
+    ):
         """Serialize and post http message to Beringei query server.
 
         Args:
         request_path: path of the http request post, used by BQS to find the
                       right end-point. Currently support "raw_query",
-                      "binary_stats_writer", "binary_stats_typeahead".
+                      "binary_stats_writer", "binary_stats_typeahead",
+                      "events_writer".
+        events_writer request_body is a text json so no need to serialize
 
         Return: The message response from BQS on success;
                 On error, raise exception.
@@ -66,6 +69,7 @@ class BeringeiDbAccess(object):
             "binary_stats_writer",
             "binary_stats_typeahead",
             "unified_stats_writer",
+            "events_writer",
         ]:
             raise ValueError("Unknown http path")
 
@@ -91,13 +95,19 @@ class BeringeiDbAccess(object):
         logging.debug("url to send: {}".format(url_to_post))
 
         # Serialize the query request by binary protocol
-        request_body_bytes = serialize(
-            request_body, protocol_factory=TBinaryProtocol.TBinaryProtocolFactory()
-        )
+        if is_binary:
+            request_body_rq = serialize(
+                request_body, protocol_factory=TBinaryProtocol.TBinaryProtocolFactory()
+            )
+        else:
+            request_body_rq = request_body
 
         # Post the http requests and get response
         try:
-            response = requests.post(url_to_post, data=request_body_bytes, timeout=60)
+            response = requests.post(url_to_post, data=request_body_rq, timeout=60)
+            logging.info(
+                "BQS post response status code: {}".format(response.status_code)
+            )
         except OSError:
             raise ValueError("Cannot send to the server")
 
@@ -194,7 +204,7 @@ class BeringeiDbAccess(object):
 
         return query_returns
 
-    def write_beringei_db(self, stats_to_write):
+    def write_bqs(self, stats_to_write, request_path="binary_stats_writer"):
         """Send query to Beringei Query Server to write to Beringei DB.
 
         Args:
@@ -205,12 +215,12 @@ class BeringeiDbAccess(object):
         """
 
         try:
-            self._post_http_request_to_beringei_query_server(
-                stats_to_write, "binary_stats_writer"
+            return self._post_http_request_to_beringei_query_server(
+                request_body=stats_to_write, request_path=request_path, is_binary=False
             )
         except ValueError as err:
             logging.error(err.args)
-            raise ValueError("Fail to write to Beringei database")
+            raise ValueError("Fail to post to BQS")
 
     def write_node_and_agg_stats_beringei_db(self, stats_to_write):
         """Send query to Beringei Query Server to write network wide aggregate stats to

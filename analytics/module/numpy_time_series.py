@@ -159,6 +159,15 @@ class NumpyTimeSeries(object):
             node_names_list.append(names_per_link)
         return node_names_list
 
+    def get_node_macs_per_link(self) -> List[str]:
+        node_macs_list = []
+        for _, t in enumerate(self._tmap):
+            macs_per_link = []
+            for li in range(t["num_links"]):
+                macs_per_link.append(t["link_idx_to_macs"][li, 0])
+            node_macs_list.append(macs_per_link)
+        return node_macs_list
+
     def t2i(self, t: int) -> int:
         return self._times_to_idx[floor(t / self._read_interval) * self._read_interval]
 

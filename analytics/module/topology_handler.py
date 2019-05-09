@@ -67,12 +67,7 @@ def fetch_network_info(
     return networks
 
 
-def restart_minion(
-    api_ip: str,
-    api_port: int,
-    node_list: Tuple,
-    delay_sec: int,
-) -> int:
+def restart_minion(api_ip: str, api_port: int, node_list: Tuple, delay_sec: int) -> int:
     """Restart minion for the given list of node names.
 
     Return:

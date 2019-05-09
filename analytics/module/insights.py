@@ -8,12 +8,14 @@ from typing import Dict, List
 import module.numpy_operations as npo
 import numpy as np
 from facebook.gorilla.Topology.ttypes import LinkType
+from module.event_writer import EventWriter
 from module.numpy_time_series import NumpyLinkTimeSeries, NumpyTimeSeries, StatType
 from module.path_store import PathStore
 from module.topology_handler import fetch_network_info, restart_minion
 from module.visibility import write_power_status
 
-np.warnings.filterwarnings('ignore')
+
+np.warnings.filterwarnings("ignore")
 
 
 def get_link_counters_1d(
@@ -182,6 +184,7 @@ def detect_ignition_failure(
     end_time = current_time
     start_time = current_time - window
     nts = NumpyTimeSeries(start_time, end_time, read_interval, network_info)
+    evnt = EventWriter()
     k = nts.get_consts()
     logging.info(
         "detect_ignition_failure, start_time={}, end_time={}, num_topologies={}".format(
@@ -192,6 +195,7 @@ def detect_ignition_failure(
     mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
     nts_link_names = nts.get_link_names()
     nts_node_names = nts.get_node_names_per_link()
+    nts_node_macs = nts.get_node_macs_per_link()
     num_dir = nts.NUM_DIR
 
     failure_detected = False
@@ -268,15 +272,38 @@ def detect_ignition_failure(
                         # it loses contact with the firmware for >15mn or if no
                         # RF link forms within 15mn; the 15mn timer here is a
                         # back-off timer to prevent fast, back-to-back restarts
+                        logging.info(
+                            "Restarting minion on node {}".format(
+                                nts_node_names[ti][li]
+                            )
+                        )
                         restart_minion(
                             n["api_ip"], n["api_port"], nts_node_names[ti][li], 1
                         )
+                        for i in range(num_dir):
+                            evnt.create_event_auto_optimizer(
+                                source_mac=nts_node_macs[ti][li][i],
+                                link_name=link_name,
+                                restart_minion_flag=True,
+                                node_name=nts_node_names[ti][li][i],
+                                topology_name=topo_name,
+                            )
+
                         _last_up_down[topo_name][link_name] = current_time
                         logging.error(
                             "Minion restart event {}::{} at time {}".format(
                                 topo_name, link_name, current_time
                             )
                         )
+                    else:
+                        for i in range(num_dir):
+                            evnt.create_event_auto_optimizer(
+                                source_mac=nts_node_macs[ti][li][i],
+                                link_name=link_name,
+                                restart_minion_flag=False,
+                                node_name=nts_node_names[ti][li][i],
+                                topology_name=topo_name,
+                            )
                 logging.info(
                     "Link ignition failure event detected {}::{}".format(
                         topo_name, link_name
