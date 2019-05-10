@@ -404,6 +404,7 @@ class NetworkMap extends React.Component {
     const {nearbyNodes, routes} = this.state;
     const {linkMap, selectedElement} = context;
     const {
+      controller_version,
       ignition_state,
       topology,
       topologyConfig,
@@ -425,6 +426,7 @@ class NetworkMap extends React.Component {
         onLinkMouseLeave={this.onFeatureMouseLeave}
         topology={topology}
         topologyConfig={topologyConfig}
+        ctrlVersion={controller_version}
         selectedLinks={selectedLinks}
         onSelectLinkChange={linkName =>
           context.setSelected(TopologyElementType.LINK, linkName)

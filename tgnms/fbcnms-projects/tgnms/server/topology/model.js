@@ -715,38 +715,40 @@ function runNowAndWatchForTopologyUpdate() {
 
 function setConfigParamsFromOverrides(topologyName, overrides) {
   Object.keys(overrides).forEach(nodeName => {
-    const config = overrides[nodeName];
-    if (config.hasOwnProperty('radioParamsOverride')) {
-      Object.keys(config.radioParamsOverride).forEach(macAddress => {
-        const radioConfig = config.radioParamsOverride[macAddress];
+    const nodeConfig = overrides[nodeName];
+    const topologyConfig = networkState[topologyName].topologyConfig;
+    if (nodeConfig.hasOwnProperty('radioParamsOverride')) {
+      Object.keys(nodeConfig.radioParamsOverride).forEach(macAddress => {
+        const radioConfig = nodeConfig.radioParamsOverride[macAddress];
         if (radioConfig.fwParams && radioConfig.fwParams.polarity) {
-          networkState[topologyName].topologyConfig.polarity[macAddress] =
-            radioConfig.fwParams.polarity;
+          topologyConfig.polarity[macAddress] = radioConfig.fwParams.polarity;
         }
       });
     }
 
-    networkState[topologyName].topologyConfig.golay[nodeName] = {};
-    networkState[topologyName].topologyConfig.controlSuperframe[nodeName] = {};
-    if (config.hasOwnProperty('linkParamsOverride')) {
-      Object.keys(config.linkParamsOverride).forEach(macAddress => {
-        const LinkConfig = config.linkParamsOverride[macAddress];
+    if (!topologyConfig.golay[nodeName]) {
+      topologyConfig.golay[nodeName] = {};
+    }
+    if (!topologyConfig.controlSuperframe[nodeName]) {
+      topologyConfig.controlSuperframe[nodeName] = {};
+    }
+
+    if (nodeConfig.hasOwnProperty('linkParamsOverride')) {
+      Object.keys(nodeConfig.linkParamsOverride).forEach(macAddress => {
+        const LinkConfig = nodeConfig.linkParamsOverride[macAddress];
         if (
           LinkConfig.fwParams &&
           LinkConfig.fwParams.rxGolayIdx &&
           LinkConfig.fwParams.txGolayIdx
         ) {
-          networkState[topologyName].topologyConfig.golay[nodeName][
-            macAddress
-          ] = {
+          topologyConfig.golay[nodeName][macAddress] = {
             rxGolayIdx: LinkConfig.fwParams.rxGolayIdx,
             txGolayIdx: LinkConfig.fwParams.txGolayIdx,
           };
         }
         if (LinkConfig.fwParams && LinkConfig.fwParams.controlSuperframe) {
-          networkState[topologyName].topologyConfig.controlSuperframe[nodeName][
-            macAddress
-          ] = LinkConfig.fwParams.controlSuperframe;
+          topologyConfig.controlSuperframe[nodeName][macAddress] =
+            LinkConfig.fwParams.controlSuperframe;
         }
       });
     }
