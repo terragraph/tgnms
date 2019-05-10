@@ -58,7 +58,7 @@ module.exports = {
           // Process JS with Babel.
           {
             test: /\.(js|jsx|mjs)$/,
-            include: [paths.appSrc, paths.sharedSrc],
+            include: [paths.appSrc, paths.sharedSrc, paths.sharedPackages],
             loader: require.resolve('babel-loader'),
             options: {
               configFile: '../../babel.config.js',

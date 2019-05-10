@@ -79,9 +79,10 @@ module.exports = {
           // Process JS with Babel.
           {
             test: /\.(js|jsx|mjs)$/,
-            include: [paths.appSrc, paths.sharedSrc],
+            include: [paths.appSrc, paths.sharedSrc, paths.sharedPackages],
             loader: require.resolve('babel-loader'),
             options: {
+              configFile: '../../babel.config.js',
               // This is a feature of `babel-loader` for webpack (not Babel
               // itself).  It enables caching results in
               // ./node_modules/.cache/babel-loader/ directory for faster

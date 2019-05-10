@@ -20,4 +20,5 @@ module.exports = {
   appSrc: resolveApp('app'),
   distPath: resolveApp('dist'),
   sharedSrc: resolveApp('shared'),
+  sharedPackages: resolveApp('../../fbcnms-packages'),
 };
