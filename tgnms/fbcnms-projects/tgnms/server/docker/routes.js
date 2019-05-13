@@ -45,7 +45,7 @@ function formatDockerUrl(host, port) {
 }
 
 export const dockerApiReq = async (httpMethod, hostId, apiMethod, res) => {
-  DockerHosts.findById(hostId).then(hostEntry => {
+  DockerHosts.findByPk(hostId).then(hostEntry => {
     const dockerUrl = formatDockerUrl(
       hostEntry.dataValues.host,
       hostEntry.dataValues.port,
@@ -101,7 +101,7 @@ router.post(
       maxContentLength: 1024 * 1024 * 1024 /* 1 GB */,
     };
     try {
-      DockerHosts.findById(req.params.id).then(hostEntry => {
+      DockerHosts.findByPk(req.params.id).then(hostEntry => {
         const dockerUrl = formatDockerUrl(
           hostEntry.dataValues.host,
           hostEntry.dataValues.port,

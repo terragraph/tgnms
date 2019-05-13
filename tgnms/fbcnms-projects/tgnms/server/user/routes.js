@@ -151,7 +151,7 @@ router.put('/:id', access(SUPERUSER), async (req, res) => {
     const {id} = req.params;
     const {body} = req;
 
-    const user = await User.findById(id);
+    const user = await User.findByPk(id);
     // Check if user exists
     if (!user) {
       throw new Error('User does not exist!');
