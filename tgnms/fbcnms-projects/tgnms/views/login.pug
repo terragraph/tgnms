@@ -6,9 +6,9 @@ html
     meta(http-equiv="x-ua-compatible" content="ie=edge")
     meta(name="description", content="Terragraph Network Management System")
     meta(name="viewport", content="width=device-width, initial-scale=1")
-    link(rel="stylesheet", href="/static/css/nms-login.css")
     //-these stylesheets are removed by clientside js to prevent collisions
     style(type="text/css" id="server-side-styles") !{ssrStyles}
   body
     div(id="login-root") !{ssrRoot}
-    script(src='/login.js')
+    script(src=staticDist("vendor.js"))
+    script(src=staticDist("login.js"))

@@ -8,7 +8,7 @@
 import 'babel-polyfill';
 import ReactDOM from 'react-dom';
 import React from 'react';
-import LoginForm from './LoginForm';
+import LoginForm from './views/login/LoginForm';
 
 ReactDOM.hydrate(<LoginForm />, document.getElementById('login-root'), () => {
   ssrCleanup();

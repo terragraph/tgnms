@@ -9,7 +9,8 @@
 // list, then it is considered an open route
 export default [
   '/favicon.ico',
-  '/login.js',
+  '/static/dist/vendor',
+  '/static/dist/login',
   '/static/css',
   '/static/fonts',
   '/static/images',

@@ -21,6 +21,7 @@ const passport = require('passport');
 const path = require('path');
 const session = require('express-session');
 const webpack = require('webpack');
+const staticDist = require('fbcnms-webpack-config/staticDist').default;
 
 const {
   refreshTopologies,
@@ -128,14 +129,6 @@ if (devMode) {
   });
   app.use(middleware);
   app.use(webpackHotMiddleware(compiler));
-} else {
-  // serve js from dist/ in prod mode
-  app.get('/map.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/map.js'));
-  });
-  app.get('/login.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/login.js'));
-  });
 }
 
 // Catch All
@@ -186,6 +179,7 @@ app.get('*', (req, res) => {
   configObj.env.NODELOGS_ENABLED = NODELOGS_ENABLED;
 
   res.render('index', {
+    staticDist: staticDist,
     configJson: JSON.stringify(configObj),
   });
 });

@@ -18,6 +18,7 @@ import {User} from '../models';
 import * as ssr from '../ssr';
 import ReactLoginForm from '../../app/views/login/LoginForm';
 const logger = require('../log')(module);
+import staticDist from 'fbcnms-webpack-config/staticDist';
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.get('/login', (req, res) => {
     errorMessage: errorMessage,
   });
   return res.render('login', {
+    staticDist,
     ssrRoot: app,
     ssrStyles: styleSheets,
   });
