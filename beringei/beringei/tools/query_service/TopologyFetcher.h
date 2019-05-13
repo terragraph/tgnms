@@ -23,9 +23,7 @@ namespace gorilla {
 
 class TopologyFetcher {
  public:
-  explicit TopologyFetcher(
-      TACacheMap& typeaheadCache,
-      std::shared_ptr<ApiServiceClient> apiServiceClient);
+  explicit TopologyFetcher(TACacheMap& typeaheadCache);
 
   // run eventbase
   void start();
@@ -35,7 +33,6 @@ class TopologyFetcher {
 
  private:
   folly::EventBase eb_;
-  std::shared_ptr<ApiServiceClient> apiServiceClient_;
   TACacheMap& typeaheadCache_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};

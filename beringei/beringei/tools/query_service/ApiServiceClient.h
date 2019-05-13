@@ -12,8 +12,9 @@
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 #include <curl/curl.h>
+#include <folly/Format.h>
 #include <folly/String.h>
-#include <folly/io/async/AsyncTimeout.h>
+#include <folly/Optional.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -50,26 +51,29 @@ class ApiServiceClient {
   ApiServiceClient();
 
   template <class T>
-  T fetchApiService(
+  static folly::Optional<T> fetchApiService(
       const std::string& ipAddress,
       int port,
       const std::string& endpoint,
       const std::string& postData) {
     T returnStruct;
     try {
-      CURL* curl;
-      CURLcode res;
-      curl = curl_easy_init();
+      CURL* curl = curl_easy_init();
       if (!curl) {
         throw std::runtime_error("Unable to initialize CURL");
       }
 
       std::string url = folly::sformat(
-          "http://{}:{}/{}", formatAddress(ipAddress), port, endpoint);
+          "http://{}:{}/{}",
+          ApiServiceClient::formatAddress(ipAddress),
+          port,
+          endpoint);
+
       VLOG(1) << "API service fetch to " << url << " with post data "
               << postData << " (TCP/IP address:port is " << ipAddress << ":"
               << port << ")";
-      // we can't verify the peer with our current image/lack of certs
+
+      // We can't verify the peer with our current image/lack of certs
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
@@ -79,21 +83,15 @@ class ApiServiceClient {
       curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1L /* 1 second */);
 
-      // read data from request
+      // Read data from request
       struct HTTPDataStruct dataChunk;
       dataChunk.data = (char*)malloc(1);
       dataChunk.size = 0;
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curlWriteCb);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&dataChunk);
-      res = curl_easy_perform(curl);
+      CURLcode res = curl_easy_perform(curl);
 
-      if (res == CURLE_OK) {
-        long response_code;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        // response code 204 is a success
-      }
-
-      // cleanup
+      // Cleanup
       curl_easy_cleanup(curl);
       returnStruct = SimpleJSONSerializer::deserialize<T>(folly::StringPiece(
           reinterpret_cast<const char*>(dataChunk.data), dataChunk.size));
@@ -102,16 +100,19 @@ class ApiServiceClient {
       if (res != CURLE_OK) {
         LOG(WARNING) << "CURL error for endpoint " << url << ": "
                      << curl_easy_strerror(res);
+        return folly::none;
       }
     } catch (const std::exception& e) {
       LOG(ERROR) << "Error reading from API service: "
                  << folly::exceptionStr(e);
+      return folly::none;
     }
+
     return returnStruct;
   }
 
  private:
-  std::string formatAddress(const std::string& address);
+  static std::string formatAddress(const std::string& address);
 };
 } // namespace gorilla
 } // namespace facebook

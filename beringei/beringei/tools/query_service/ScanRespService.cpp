@@ -50,9 +50,7 @@ using namespace facebook::terragraph::thrift;
 namespace facebook {
 namespace gorilla {
 
-ScanRespService::ScanRespService(
-    std::shared_ptr<ApiServiceClient> apiServiceClient)
-    : apiServiceClient_(apiServiceClient) {
+ScanRespService::ScanRespService() {
   // stats reporting time period
   timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
   timer_->scheduleTimeout(FLAGS_scan_poll_period_short * 1000);
@@ -99,13 +97,21 @@ void ScanRespService::timerCb() {
     if (!topology.name.empty() && !topology.nodes.empty() &&
         !topology.links.empty()) {
       const auto idRange = getScanRespIdRange(topology.name);
-      ScanStatus scanStatus = apiServiceClient_->fetchApiService<ScanStatus>(
+      auto maybeScanStatus = ApiServiceClient::fetchApiService<ScanStatus>(
           topologyConfig.second->primary_controller.ip,
           topologyConfig.second->primary_controller.api_port,
           "api/getScanStatus",
-          folly::toJson(idRange));
+          folly::toJson(idRange) /* post data */);
+
+      if (!maybeScanStatus.hasValue()) {
+        LOG(INFO) << "Failed to fetch scan status for " << topology.name;
+        continue;
+      }
+
+      const auto& scanStatus = *maybeScanStatus;
       VLOG(2) << "Received " << scanStatus.scans.size()
               << " scan responses from " << topology.name;
+
       // if we read the max number of scans on any topology, use the shorter
       // poll period, otherwise, use the longer poll period
       if ((scanStatus.scans.size() == FLAGS_max_num_scans_req) ||

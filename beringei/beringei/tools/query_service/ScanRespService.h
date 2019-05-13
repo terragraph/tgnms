@@ -21,7 +21,7 @@ namespace gorilla {
 
 class ScanRespService {
  public:
-  explicit ScanRespService(std::shared_ptr<ApiServiceClient> apiServiceClient);
+  explicit ScanRespService();
 
   // run eventbase
   void start();
@@ -46,9 +46,6 @@ class ScanRespService {
       std::string /* topology name */,
       int64_t /* last BWGD at startup time */>
       lastBwgdAtStartup_;
-
-  // from queryservicefactory
-  std::shared_ptr<ApiServiceClient> apiServiceClient_;
 
   int writeData(
       const terragraph::thrift::ScanStatus& scanStatus,

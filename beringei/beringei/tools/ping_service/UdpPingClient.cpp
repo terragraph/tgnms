@@ -15,6 +15,7 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -42,7 +43,7 @@
 using namespace facebook::gorilla;
 using facebook::terragraph::thrift::StatusDump;
 
-DEFINE_int32(topology_refresh_interval_s, 30, "Topology refresh interval");
+DEFINE_int32(topology_refresh_interval_s, 60, "Topology refresh interval");
 DEFINE_int32(ping_interval_s, 3, "Interval at which pings are sent");
 DEFINE_int32(num_packets, 20, "Number of packets to send per ping interval");
 DEFINE_int32(num_sender_threads, 2, "Number of sender threads");
@@ -87,6 +88,16 @@ class RequestHandlerFactory : public proxygen::RequestHandlerFactory {
   TACacheMap& typeaheadCache_;
 };
 
+struct AggrUdpPingStat {
+  thrift::Target target;
+  int count{0};
+  int noFullLossCount{0};
+  double rttAvgSum{0};
+  double rttP75Sum{0};
+  double rttP90Sum{0};
+  double lossRatioSum{0};
+};
+
 std::string getAddressFromInterface() {
   struct ifaddrs *ifaddr, *ifa;
   if (getifaddrs(&ifaddr) == -1) {
@@ -123,74 +134,131 @@ void getTestPlans(
   timer->scheduleTimeout(FLAGS_topology_refresh_interval_s * 1000);
 
   auto mySqlClient = MySqlClient::getInstance();
+  if (!mySqlClient) {
+    LOG(ERROR) << "Failed to get MySqlInstance";
+    return;
+  }
+
   mySqlClient->refreshTopologies();
-  mySqlClient->refreshAll();
 
-  std::vector<UdpTestPlan> newTestPlans;
-  auto apiServiceClient = std::make_unique<ApiServiceClient>();
-
+  std::vector<std::thread> workerThreads;
+  folly::Synchronized<std::vector<UdpTestPlan>> newTestPlans;
   for (const auto& topologyConfig : mySqlClient->getTopologyConfigs()) {
-    auto statusReports =
-        apiServiceClient
-            ->fetchApiService<StatusDump>(
-                topologyConfig.second->primary_controller.ip,
-                topologyConfig.second->primary_controller.api_port,
-                "api/getCtrlStatusDump",
-                "{}")
-            .statusReports;
+    workerThreads.push_back(std::thread([&]() {
+      auto maybeStatusDump = ApiServiceClient::fetchApiService<StatusDump>(
+          topologyConfig.second->primary_controller.ip,
+          topologyConfig.second->primary_controller.api_port,
+          "api/getCtrlStatusDump",
+          "{}");
 
-    auto topology = apiServiceClient->fetchApiService<query::Topology>(
-        topologyConfig.second->primary_controller.ip,
-        topologyConfig.second->primary_controller.api_port,
-        "api/getTopology",
-        "{}");
+      if (!maybeStatusDump.hasValue()) {
+        VLOG(2) << "Failed to fetch status dump for "
+                << topologyConfig.second->name;
+        return;
+      }
 
-    for (const auto& node : topology.nodes) {
-      auto statusReportIt = statusReports.find(node.mac_addr);
-      if (statusReportIt != statusReports.end()) {
-        std::string ipStr = statusReportIt->second.ipv6Address;
-        try {
-          auto ipAddr = folly::IPAddress(ipStr);
+      auto maybeTopology = ApiServiceClient::fetchApiService<query::Topology>(
+          topologyConfig.second->primary_controller.ip,
+          topologyConfig.second->primary_controller.api_port,
+          "api/getTopology",
+          "{}");
 
-          if (ipAddr.isV6()) {
-            UdpTestPlan testPlan;
-            testPlan.target.ip = ipStr;
-            testPlan.target.mac = node.mac_addr;
-            testPlan.target.name = node.name;
-            testPlan.target.site = node.site_name;
-            testPlan.target.network = topology.name;
-            testPlan.target.is_cn = node.node_type == query::NodeType::CN;
-            testPlan.target.is_pop = node.pop_node;
-            testPlan.numPackets = FLAGS_num_packets;
-            newTestPlans.push_back(std::move(testPlan));
-          } else {
-            VLOG(5) << "Skipping IPv4 address " << ipStr;
-          }
-        } catch (const folly::IPAddressFormatException& e) {
-          if (!ipStr.empty()) {
-            LOG(WARNING) << ipStr << " isn't an IP address";
+      if (!maybeTopology.hasValue()) {
+        VLOG(2) << "Failed to fetch topology for "
+                << topologyConfig.second->name;
+        return;
+      }
+
+      const auto& statusDump = *maybeStatusDump;
+      const auto& topology = *maybeTopology;
+      auto lockedNewTestPlans = newTestPlans.wlock();
+
+      for (const auto& node : topology.nodes) {
+        auto statusReportIt = statusDump.statusReports.find(node.mac_addr);
+        if (statusReportIt != statusDump.statusReports.end()) {
+          std::string ipStr = statusReportIt->second.ipv6Address;
+          try {
+            auto ipAddr = folly::IPAddress(ipStr);
+
+            if (ipAddr.isV6()) {
+              UdpTestPlan testPlan;
+              testPlan.target.ip = ipStr;
+              testPlan.target.mac = node.mac_addr;
+              testPlan.target.name = node.name;
+              testPlan.target.site = node.site_name;
+              testPlan.target.network = topology.name;
+              testPlan.target.is_cn = node.node_type == query::NodeType::CN;
+              testPlan.target.is_pop = node.pop_node;
+              testPlan.numPackets = FLAGS_num_packets;
+              lockedNewTestPlans->push_back(std::move(testPlan));
+            } else {
+              VLOG(5) << "Skipping IPv4 address " << ipStr;
+            }
+          } catch (const folly::IPAddressFormatException& e) {
+            if (!ipStr.empty()) {
+              LOG(WARNING) << ipStr << " isn't an IP address";
+            }
           }
         }
       }
-    }
+    }));
   }
 
-  testPlans.wlock()->swap(newTestPlans);
+  for (auto& thread : workerThreads) {
+    thread.join();
+  }
+
+  if (newTestPlans.rlock()->empty()) {
+    LOG(INFO) << "Working with a stale copy of test plans";
+  } else {
+    testPlans.swap(newTestPlans);
+  }
+}
+
+std::vector<std::string> getMetricLabels(
+    const thrift::Target& target,
+    int dataInterval) {
+  std::vector<std::string> labels = {
+      PrometheusUtils::formatNetworkLabel(target.network),
+      folly::sformat(
+          "{}=\"{}\"", PrometheusConsts::LABEL_DATA_INTERVAL, dataInterval)};
+
+  if (!target.name.empty()) {
+    labels.insert(
+        labels.end(),
+        {folly::sformat(
+             "{}=\"{}\"", PrometheusConsts::LABEL_NODE_MAC, target.mac),
+         folly::sformat(
+             "{}=\"{}\"",
+             PrometheusConsts::LABEL_NODE_NAME,
+             PrometheusUtils::formatPrometheusKeyName(target.name)),
+         folly::sformat(
+             "{}=\"{}\"",
+             PrometheusConsts::LABEL_NODE_IS_POP,
+             target.is_pop ? "true" : "false"),
+         folly::sformat(
+             "{}=\"{}\"",
+             PrometheusConsts::LABEL_NODE_IS_CN,
+             target.is_cn ? "true" : "false"),
+         folly::sformat(
+             "{}=\"{}\"",
+             PrometheusConsts::LABEL_SITE_NAME,
+             PrometheusUtils::formatPrometheusKeyName(target.site))});
+  }
+
+  return labels;
 }
 
 UdpTestResults ping(
     const std::shared_ptr<folly::AsyncTimeout>& timer,
-    folly::Synchronized<std::vector<UdpTestPlan>>& testPlans,
+    const std::vector<UdpTestPlan>& testPlans,
     const UdpPinger& pinger) {
   timer->scheduleTimeout(FLAGS_ping_interval_s * 1000);
 
   UdpTestResults results;
-  auto lockedTestPlans = testPlans.rlock();
-  if (!lockedTestPlans->empty()) {
-    // Start the pinger
-    LOG(INFO) << "Pinging " << lockedTestPlans->size() << " targets";
-    results = pinger.run(*lockedTestPlans, 0);
-    lockedTestPlans.unlock();  // lockedTestPlans -> NULL
+  if (!testPlans.empty()) {
+    LOG(INFO) << "Pinging " << testPlans.size() << " targets";
+    results = pinger.run(testPlans, 0);
 
     LOG(INFO) << "Finished with " << results.hostResults.size()
               << " host results and " << results.networkResults.size()
@@ -211,34 +279,9 @@ void writeResults(const UdpTestResults& results) {
       metricsMap;
 
   for (const auto& result : results.hostResults) {
-    auto networkName = result->metadata.dst.network;
+    std::vector<std::string> labels = getMetricLabels(result->metadata.dst, 1);
 
-    std::vector<std::string> labels;
-    labels.emplace_back(PrometheusUtils::formatNetworkLabel(networkName));
-    labels.emplace_back(
-        folly::sformat("{}=\"{}\"", PrometheusConsts::LABEL_DATA_INTERVAL, 1));
-    labels.emplace_back(folly::sformat(
-        "{}=\"{}\"",
-        PrometheusConsts::LABEL_NODE_MAC,
-        result->metadata.dst.mac));
-    labels.emplace_back(folly::sformat(
-        "{}=\"{}\"",
-        PrometheusConsts::LABEL_NODE_NAME,
-        PrometheusUtils::formatPrometheusKeyName(result->metadata.dst.name)));
-    labels.emplace_back(folly::sformat(
-        "{}=\"{}\"",
-        PrometheusConsts::LABEL_NODE_IS_POP,
-        result->metadata.dst.is_pop ? "true" : "false"));
-    labels.emplace_back(folly::sformat(
-        "{}=\"{}\"",
-        PrometheusConsts::LABEL_NODE_IS_CN,
-        result->metadata.dst.is_cn ? "true" : "false"));
-    labels.emplace_back(folly::sformat(
-        "{}=\"{}\"",
-        PrometheusConsts::LABEL_SITE_NAME,
-        PrometheusUtils::formatPrometheusKeyName(result->metadata.dst.site)));
-
-    auto& currMetrics = metricsMap[networkName];
+    auto& currMetrics = metricsMap[result->metadata.dst.network];
     currMetrics.emplace_back(
         Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
 
@@ -252,14 +295,9 @@ void writeResults(const UdpTestResults& results) {
   }
 
   for (const auto& result : results.networkResults) {
-    auto networkName = result->metadata.dst.network;
+    std::vector<std::string> labels = getMetricLabels(result->metadata.dst, 1);
 
-    std::vector<std::string> labels;
-    labels.emplace_back(PrometheusUtils::formatNetworkLabel(networkName));
-    labels.emplace_back(
-        folly::sformat("{}=\"{}\"", PrometheusConsts::LABEL_DATA_INTERVAL, 1));
-
-    auto& currMetrics = metricsMap[networkName];
+    auto& currMetrics = metricsMap[result->metadata.dst.network];
     currMetrics.emplace_back(
         Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
 
@@ -275,7 +313,144 @@ void writeResults(const UdpTestResults& results) {
   auto prometheusInstance = PrometheusUtils::getInstance();
   for (const auto& metricsMapIt : metricsMap) {
     prometheusInstance->writeMetrics(
-        metricsMapIt.first, "udp_ping_client", 1, metricsMapIt.second);
+        metricsMapIt.first, "udp_ping_client_1s", 1, metricsMapIt.second);
+  }
+}
+
+void writeAggrResults(
+    const std::shared_ptr<folly::AsyncTimeout>& timer,
+    const std::vector<UdpTestResults>& aggrResults) {
+  timer->scheduleTimeout(FLAGS_topology_refresh_interval_s * 1000);
+
+  auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                 std::chrono::system_clock::now().time_since_epoch())
+                 .count();
+
+  std::unordered_map<
+      std::string /* network name */,
+      std::unordered_map<std::string /* host name */, AggrUdpPingStat>>
+      aggrUdpPingStatMap;
+
+  std::unordered_map<std::string /* network name */, AggrUdpPingStat>
+      aggrNetworkUdpPingStatMap;
+
+  // Build the aggregate ping stat maps
+  for (const auto& result : aggrResults) {
+    for (const auto& hostResult : result.hostResults) {
+      const std::string& networkName = hostResult->metadata.dst.network;
+      const std::string& hostName = hostResult->metadata.dst.name;
+
+      auto& aggrUdpPingStat = aggrUdpPingStatMap[networkName][hostName];
+      aggrUdpPingStat.target = hostResult->metadata.dst;
+      aggrUdpPingStat.count++;
+      aggrUdpPingStat.lossRatioSum += hostResult->metrics.loss_ratio;
+
+      if (hostResult->metrics.num_recv > 0) {
+        aggrUdpPingStat.noFullLossCount++;
+        aggrUdpPingStat.rttAvgSum += hostResult->metrics.rtt_avg;
+        aggrUdpPingStat.rttP90Sum += hostResult->metrics.rtt_p90;
+        aggrUdpPingStat.rttP75Sum += hostResult->metrics.rtt_p75;
+      }
+    }
+
+    for (const auto& networkResult : result.networkResults) {
+      const std::string& networkName = networkResult->metadata.dst.network;
+
+      auto& aggrUdpPingStat = aggrNetworkUdpPingStatMap[networkName];
+      aggrUdpPingStat.target = networkResult->metadata.dst;
+      aggrUdpPingStat.count++;
+      aggrUdpPingStat.lossRatioSum += networkResult->metrics.loss_ratio;
+
+      if (networkResult->metrics.num_recv > 0) {
+        aggrUdpPingStat.noFullLossCount++;
+        aggrUdpPingStat.rttAvgSum += networkResult->metrics.rtt_avg;
+        aggrUdpPingStat.rttP90Sum += networkResult->metrics.rtt_p90;
+        aggrUdpPingStat.rttP75Sum += networkResult->metrics.rtt_p75;
+      }
+    }
+  }
+
+  std::unordered_map<
+      std::string /* network name */,
+      std::vector<Metric> /* metrics list */>
+      metricsMap;
+
+  for (const auto& aggrUdpPingStatIt : aggrUdpPingStatMap) {
+    const std::string& networkName = aggrUdpPingStatIt.first;
+    for (const auto& nestedAggrUdpPingStatIt : aggrUdpPingStatIt.second) {
+      const auto& aggrUdpPingStat = nestedAggrUdpPingStatIt.second;
+
+      std::vector<std::string> labels =
+          getMetricLabels(aggrUdpPingStat.target, 30);
+
+      auto& currMetrics = metricsMap[networkName];
+      currMetrics.emplace_back(Metric(
+          "pinger_lossRatio",
+          now,
+          labels,
+          aggrUdpPingStat.lossRatioSum / aggrUdpPingStat.count));
+
+      if (aggrUdpPingStat.noFullLossCount > 0) {
+        currMetrics.insert(
+            currMetrics.end(),
+            {Metric(
+                 "pinger_rtt_avg",
+                 now,
+                 labels,
+                 aggrUdpPingStat.rttAvgSum / aggrUdpPingStat.noFullLossCount),
+             Metric(
+                 "pinger_rtt_p90",
+                 now,
+                 labels,
+                 aggrUdpPingStat.rttP90Sum / aggrUdpPingStat.noFullLossCount),
+             Metric(
+                 "pinger_rtt_p75",
+                 now,
+                 labels,
+                 aggrUdpPingStat.rttP75Sum / aggrUdpPingStat.noFullLossCount)});
+      }
+    }
+  }
+
+  for (const auto& aggrNetworkUdpPingStatIt : aggrNetworkUdpPingStatMap) {
+    const std::string& networkName = aggrNetworkUdpPingStatIt.first;
+    const auto& aggrUdpPingStat = aggrNetworkUdpPingStatIt.second;
+
+    std::vector<std::string> labels =
+        getMetricLabels(aggrUdpPingStat.target, 30);
+
+    auto& currMetrics = metricsMap[networkName];
+    currMetrics.emplace_back(Metric(
+        "pinger_lossRatio",
+        now,
+        labels,
+        aggrUdpPingStat.lossRatioSum / aggrUdpPingStat.count));
+
+    if (aggrUdpPingStat.noFullLossCount > 0) {
+      currMetrics.insert(
+          currMetrics.end(),
+          {Metric(
+               "pinger_rtt_avg",
+               now,
+               labels,
+               aggrUdpPingStat.rttAvgSum / aggrUdpPingStat.noFullLossCount),
+           Metric(
+               "pinger_rtt_p90",
+               now,
+               labels,
+               aggrUdpPingStat.rttP90Sum / aggrUdpPingStat.noFullLossCount),
+           Metric(
+               "pinger_rtt_p75",
+               now,
+               labels,
+               aggrUdpPingStat.rttP75Sum / aggrUdpPingStat.noFullLossCount)});
+    }
+  }
+
+  auto prometheusInstance = PrometheusUtils::getInstance();
+  for (const auto& metricsMapIt : metricsMap) {
+    prometheusInstance->writeMetrics(
+        metricsMapIt.first, "udp_ping_client_30s", 30, metricsMapIt.second);
   }
 }
 
@@ -338,6 +513,7 @@ int main(int argc, char* argv[]) {
 
   UdpPinger pinger(config, srcIp);
   folly::Synchronized<std::vector<UdpTestPlan>> testPlans;
+  folly::Synchronized<std::vector<UdpTestResults>> aggrResults;
 
   // Start the topology refresh timer
   std::shared_ptr<folly::AsyncTimeout> topologyRefreshTimer =
@@ -349,10 +525,20 @@ int main(int argc, char* argv[]) {
   // Start the pinger timer
   std::shared_ptr<folly::AsyncTimeout> udpPingTimer =
       folly::AsyncTimeout::make(eb, [&]() noexcept {
-        auto results = ping(udpPingTimer, testPlans, pinger);
+        UdpTestResults results = ping(udpPingTimer, testPlans.copy(), pinger);
+        aggrResults.wlock()->push_back(results);
         writeResults(results);
       });
   udpPingTimer->scheduleTimeout(1000);
+
+  // Start the aggregate result timer
+  std::shared_ptr<folly::AsyncTimeout> aggrResultsTimer =
+      folly::AsyncTimeout::make(eb, [&]() noexcept {
+        std::vector<UdpTestResults> aggrResultsCopy;
+        aggrResults.swap(aggrResultsCopy);
+        writeAggrResults(aggrResultsTimer, aggrResultsCopy);
+      });
+  aggrResultsTimer->scheduleTimeout(30 * 1000);
 
   eb.loopForever();
   return 0;

@@ -27,11 +27,8 @@ using apache::thrift::SimpleJSONSerializer;
 namespace facebook {
 namespace gorilla {
 
-TopologyFetcher::TopologyFetcher(
-    TACacheMap& typeaheadCache,
-    std::shared_ptr<ApiServiceClient> apiServiceClient)
-    : typeaheadCache_(typeaheadCache),
-      apiServiceClient_(apiServiceClient) {
+TopologyFetcher::TopologyFetcher(TACacheMap& typeaheadCache)
+    : typeaheadCache_(typeaheadCache) {
   // refresh topology time period
   timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { refreshTopologyCache(); });
   // first run
@@ -81,16 +78,17 @@ void TopologyFetcher::refreshTopologyCache() {
   auto topologyInstance = TopologyStore::getInstance();
   // fetch cached topologies
   for (auto topologyConfig : mySqlClient->getTopologyConfigs()) {
-    const std::string postData = "{}";
-    auto topology = apiServiceClient_->fetchApiService<query::Topology>(
+    auto maybeTopology = ApiServiceClient::fetchApiService<query::Topology>(
         topologyConfig.second->primary_controller.ip,
         topologyConfig.second->primary_controller.api_port,
         "api/getTopology",
-        postData);
-    if (topology.nodes.empty()) {
+        "{}" /* post data */);
+    if (!maybeTopology.hasValue() || maybeTopology->nodes.empty()) {
       LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
+      auto& topology = *maybeTopology;
       topologyConfig.second->topology = topology;
+
       // TODO: we never remove old topologies - after some amount of time
       //   over which a topology was never "added" we should remove it
       //   like 1 day
