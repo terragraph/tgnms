@@ -79,10 +79,8 @@ int main(int argc, char* argv[]) {
   std::thread httpThread([server]() { server->start(); });
 
   LOG(INFO) << "Starting Topology Update Service";
-  auto apiServiceClient = std::make_shared<ApiServiceClient>();
   // create timer thread
-  auto topologyFetch =
-      std::make_shared<TopologyFetcher>(typeaheadCache, apiServiceClient);
+  auto topologyFetch = std::make_shared<TopologyFetcher>(typeaheadCache);
   std::thread topologyFetchThread(
       [&topologyFetch]() { topologyFetch->start(); });
 
@@ -101,7 +99,7 @@ int main(int argc, char* argv[]) {
   if (FLAGS_enable_scans) {
     LOG(INFO) << "Starting Scan Response Service";
     // create timer thread
-    auto scanRespService = std::make_shared<ScanRespService>(apiServiceClient);
+    auto scanRespService = std::make_shared<ScanRespService>();
     std::thread scanThread([&scanRespService]() { scanRespService->start(); });
     scanThread.join();
   } else {
