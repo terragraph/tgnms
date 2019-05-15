@@ -1,5 +1,5 @@
 # Pull base image.
-FROM ubuntu:17.10
+FROM ubuntu:18.04
 
 ENV WORKDIR /usr/local/beringei
 ENV RUN_CMD ./beringei/service/beringei_main \
@@ -24,7 +24,8 @@ CMD ["bash"]
 WORKDIR $WORKDIR
 RUN $WORKDIR/setup_ubuntu.sh
 
-RUN apt-get install -y libmysqlclient20 libmysqlclient-dev libmysql++3v5 libmysqlcppconn7v5 libmysqlcppconn-dev libboost-all-dev libcap-dev libdouble-conversion-dev libevent-dev libgflags2.2 libgoogle-glog-dev libjemalloc-dev libkrb5-dev liblz4-dev liblzma-dev libnuma-dev libsasl2-dev libsnappy-dev libssl-dev zlib1g-dev libcurl4-openssl-dev netcat tzdata vim mysql-client
+RUN apt-get install -y libmysqlclient20 libmysqlclient-dev libmysql++3v5 libmysqlcppconn7v5 libmysqlcppconn-dev libboost-all-dev libcap-dev libdouble-conversion-dev libevent-dev libgflags2.2 libgoogle-glog-dev libjemalloc-dev libkrb5-dev liblz4-dev liblzma-dev libnuma-dev libsasl2-dev libsnappy-dev zlib1g-dev netcat vim mysql-client
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 
 RUN mkdir -p /usr/local/mysql/lib
 RUN ln -s /usr/lib/libmysqlpp.so* /usr/local/mysql/lib

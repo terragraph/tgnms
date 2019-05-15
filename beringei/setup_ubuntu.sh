@@ -3,6 +3,8 @@ set -e
 
 FB_VERSION="2017.07.10.00"
 ZSTD_VERSION="1.1.1"
+CMAKE_VERSION="3.14.4"
+CURL_VERSION="7.64.1"
 
 echo "This script configures ubuntu with everything needed to run beringei."
 echo "It requires that you run it as root. sudo works great for that."
@@ -16,7 +18,6 @@ apt install --yes \
     binutils-dev \
     bison \
     clang-format-3.9 \
-    cmake \
     flex \
     g++ \
     git \
@@ -34,7 +35,7 @@ apt install --yes \
     libnuma-dev \
     libsasl2-dev \
     libsnappy-dev \
-    libssl-dev \
+    libssl1.0-dev \
     libtool \
     make \
     pkg-config \
@@ -58,6 +59,8 @@ export CPPFLAGS="-I/usr/local/facebook/include"
 
 cd /tmp
 
+wget -O /tmp/cmake-${CMAKE_VERSION}.tar.gz https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}.tar.gz
+wget -O /tmp/curl-${CURL_VERSION}.tar.gz https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz
 wget -O /tmp/folly-${FB_VERSION}.tar.gz https://github.com/facebook/folly/archive/v${FB_VERSION}.tar.gz
 wget -O /tmp/wangle-${FB_VERSION}.tar.gz https://github.com/facebook/wangle/archive/v${FB_VERSION}.tar.gz
 wget -O /tmp/fbthrift-${FB_VERSION}.tar.gz https://github.com/facebook/fbthrift/archive/v${FB_VERSION}.tar.gz
@@ -65,6 +68,8 @@ wget -O /tmp/proxygen-${FB_VERSION}.tar.gz https://github.com/facebook/proxygen/
 wget -O /tmp/mstch-master.tar.gz https://github.com/no1msd/mstch/archive/master.tar.gz
 wget -O /tmp/zstd-${ZSTD_VERSION}.tar.gz https://github.com/facebook/zstd/archive/v${ZSTD_VERSION}.tar.gz
 
+tar xzvf cmake-${CMAKE_VERSION}.tar.gz
+tar xzvf curl-${CURL_VERSION}.tar.gz
 tar xzvf folly-${FB_VERSION}.tar.gz
 tar xzvf wangle-${FB_VERSION}.tar.gz
 tar xzvf fbthrift-${FB_VERSION}.tar.gz
@@ -74,6 +79,16 @@ tar xzvf zstd-${ZSTD_VERSION}.tar.gz
 
 PROC=`cat /proc/cpuinfo | grep processor | wc -l`
 echo ${PROC}
+
+pushd cmake-${CMAKE_VERSION}
+./configure --prefix=/usr
+make -j ${PROC} install
+popd
+
+pushd curl-${CURL_VERSION}
+./configure
+make -j ${PROC} install
+popd
 
 pushd mstch-master
 cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/local/facebook-${FB_VERSION} .
