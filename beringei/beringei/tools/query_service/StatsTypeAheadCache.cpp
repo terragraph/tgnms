@@ -30,17 +30,7 @@ namespace gorilla {
 /**
  * Hold the type-ahead meta-data for a topology
  */
-StatsTypeAheadCache::StatsTypeAheadCache() {
-  // node metrics
-  // minion_uptime,
-  // link metrics
-  linkMetricKeyNames_ = {
-      "snr",        "rssi",      "mcs",         "per",         "fw_uptime",
-      "tx_power",   "rx_bytes",  "tx_bytes",    "rx_pps",      "tx_pps",
-      "tx_fail",    "tx_ok",     "rx_errors",   "tx_errors",   "rx_dropped",
-      "tx_dropped", "rx_frame",  "rx_overruns", "tx_overruns", "tx_collisions",
-      "speed",      "link_avail"};
-}
+StatsTypeAheadCache::StatsTypeAheadCache() { }
 
 folly::Optional<stats::KeyMetaData> StatsTypeAheadCache::getKeyDataByNodeKey(
     const std::string& nodeMac,
@@ -146,7 +136,7 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
       keyToMetricIds_[key.first].push_back(key.second);
     }
   }
-
+  LinkMetricMap allLinkMetrics = mySqlClient->getLinkMetrics();
   for (auto& link : request.links) {
     // skip wired links
     if (link.link_type != query::LinkType::WIRELESS) {
@@ -154,8 +144,9 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
     }
     auto aNode = nodesByName_[link.a_node_name];
     auto zNode = nodesByName_[link.z_node_name];
-    for (auto& metricName : linkMetricKeyNames_) {
-      folly::dynamic linkMetrics = getLinkMetrics(metricName, aNode, zNode);
+    for (const auto& linkMetric : allLinkMetrics) {
+      folly::dynamic linkMetrics =
+          createLinkMetric(aNode, zNode, linkMetric.second);
       if (!linkMetrics.count("keys")) {
         continue;
       }
@@ -175,10 +166,10 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
         }
         auto keyData = nodeMacToKeyList_[mac][keyName];
         // insert key / short name references
-        nameToMetricIds_[metricName].push_back(keyData->keyId);
+        nameToMetricIds_[linkMetric.first].push_back(keyData->keyId);
         // push key data for link metric
         keyData->linkName = link.name;
-        keyData->shortName = metricName;
+        keyData->shortName = linkMetric.first;
         keyData->linkDirection =
             (stats::LinkDirection)(key["linkDirection"].asInt());
         // update the unit
@@ -194,229 +185,27 @@ void StatsTypeAheadCache::fetchMetricNames(query::Topology& request) {
 folly::dynamic StatsTypeAheadCache::createLinkMetric(
     const query::Node& aNode,
     const query::Node& zNode,
-    const std::string& title,
-    const std::string& description,
-    const std::string& keyName,
-    const stats::KeyUnit& keyUnit,
-    const std::string& keyPrefix) {
-  return folly::dynamic::object("title", title)("description", description)(
-      "scale", NULL)(
-      "keys",
-      folly::dynamic::array(
-          folly::dynamic::object(
-              "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
-              "unit", (int)keyUnit)(
-              "keyName", keyPrefix + "." + zNode.mac_addr + "." + keyName)(
-              "linkDirection", (int)stats::LinkDirection::LINK_A),
-          folly::dynamic::object(
-              "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
-              "unit", (int)keyUnit)(
-              "keyName", keyPrefix + "." + aNode.mac_addr + "." + keyName)(
-              "linkDirection", (int)stats::LinkDirection::LINK_Z)));
-}
+    const stats::LinkMetric& linkMetric) {
 
-folly::dynamic StatsTypeAheadCache::createLinkMetricAsymmetric(
-    const query::Node& aNode,
-    const query::Node& zNode,
-    const std::string& title,
-    const std::string& description,
-    const std::string& keyNameA,
-    const std::string& keyNameZ,
-    const stats::KeyUnit& keyUnit,
-    const std::string& keyPrefix) {
-  return folly::dynamic::object("title", title)("description", description)(
-      "scale", NULL)(
-      "keys",
-      folly::dynamic::array(
-          folly::dynamic::object(
-              "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
-              "unit", (int)keyUnit)(
-              "keyName", keyPrefix + "." + zNode.mac_addr + "." + keyNameA)(
-              "linkDirection", (int)stats::LinkDirection::LINK_A),
-          folly::dynamic::object(
-              "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
-              "unit", (int)keyUnit)(
-              "keyName", keyPrefix + "." + aNode.mac_addr + "." + keyNameZ)(
-              "linkDirection", (int)stats::LinkDirection::LINK_Z)));
-}
-
-folly::dynamic StatsTypeAheadCache::getLinkMetrics(
-    const std::string& metricName,
-    const query::Node& aNode,
-    const query::Node& zNode) {
   if (aNode.mac_addr.empty() || zNode.mac_addr.empty()) {
     VLOG(1) << "Empty MAC for link " << aNode.name << " <-> " << zNode.name;
     return folly::dynamic::object();
   }
-  if (metricName == "rssi") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "RSSI",
-        "Received Signal Strength Indicator",
-        "phystatus.srssi");
-  } else if (
-      metricName == "snr" || metricName == "alive_snr" ||
-      metricName == "alive_perc") {
-    return createLinkMetric(
-        aNode, zNode, "SnR", "Signal to Noise Ratio", "phystatus.ssnrEst");
-  } else if (metricName == "mcs") {
-    return createLinkMetric(aNode, zNode, "MCS", "MCS Index", "staPkt.mcs");
-  } else if (metricName == "per") {
-    return createLinkMetric(
-        aNode, zNode, "PER", "Packet Error Rate", "staPkt.perE6");
-  } else if (metricName == "fw_uptime") {
-    // mgmtLinkUp added in M25
-    return createLinkMetric(
-        aNode, zNode, "FW Uptime", "Mgmt Link Up Count", "staPkt.mgmtLinkUp");
-  } else if (metricName == "link_avail") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "FW Available Time",
-        "Mgmt Link Available Count",
-        "staPkt.linkAvailable");
-  } else if (metricName == "rx_ok") {
-    return createLinkMetric(
-        aNode, zNode, "RX Packets", "Received packets", "staPkt.rxOk");
-  } else if (metricName == "tx_ok") {
-    return createLinkMetric(
-        aNode, zNode, "txOk", "successful MPDUs", "staPkt.txOk");
-  } else if (metricName == "tx_fail") {
-    return createLinkMetric(
-        aNode, zNode, "txFail", "failed MPDUs", "staPkt.txFail");
-  } else if (metricName == "tx_bytes") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "TX bps",
-        "Transferred bits/second",
-        "tx_bytes",
-        stats::KeyUnit::BYTES_PER_SEC,
-        "link");
-  } else if (metricName == "rx_bytes") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "RX bps",
-        "Received bits/second",
-        "rx_bytes",
-        stats::KeyUnit::BYTES_PER_SEC,
-        "link");
-  } else if (metricName == "tx_errors") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "TX errors",
-        "Transmit errors/second",
-        "tx_errors",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "rx_errors") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "RX errors",
-        "Receive errors/second",
-        "rx_errors",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "tx_dropped") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "TX dropped",
-        "Transmit dropped/second",
-        "tx_dropped",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "rx_dropped") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "RX dropped",
-        "Receive dropped/second",
-        "rx_dropped",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "tx_pps") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "TX pps",
-        "Transmit packets/second",
-        "tx_packets",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "rx_pps") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "RX pps",
-        "Receive packets/second",
-        "rx_packets",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "tx_power") {
-    return createLinkMetric(
-        aNode, zNode, "TX Power", "Transmit Power", "staPkt.txPowerIndex");
-  } else if (metricName == "rx_frame") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "RX Frame",
-        "RX Frame",
-        "rx_frame",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "rx_overruns") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "RX Overruns",
-        "RX Overruns",
-        "rx_overruns",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "tx_overruns") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "TX Overruns",
-        "TX Overruns",
-        "tx_overruns",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "tx_collisions") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "TX Collisions",
-        "TX Collisions",
-        "tx_collisions",
-        stats::KeyUnit::NONE,
-        "link");
-  } else if (metricName == "speed") {
-    return createLinkMetric(
-        aNode,
-        zNode,
-        "Speed",
-        "Speed (mbps)",
-        "speed",
-        stats::KeyUnit::BYTES_PER_SEC,
-        "link");
-  } else if (metricName == "link_status") {
-    // TODO - reported by controller (zero-mac)
-    return folly::dynamic::object("title", "Link status")(
-        "description", "Link status reported by controller")("scale", NULL)(
-        "keys",
-        folly::dynamic::array(folly::dynamic::object(
-            "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
-            "keyName",
-            "e2e_controller.link_status.WIRELESS." + aNode.mac_addr + "." +
-                zNode.mac_addr)("titleAppend", " (A)")));
-  }
-  return folly::dynamic::object();
+  return folly::dynamic::object("title", linkMetric.shortName)(
+      "description", linkMetric.description)(
+      "scale", NULL)(
+      "keys",
+      folly::dynamic::array(
+          folly::dynamic::object(
+              "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
+              "keyName", linkMetric.keyPrefix + "." + zNode.mac_addr + "." +
+                         linkMetric.keyName)(
+              "linkDirection", (int)stats::LinkDirection::LINK_A),
+          folly::dynamic::object(
+              "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
+              "keyName", linkMetric.keyPrefix + "." + aNode.mac_addr + "." +
+                         linkMetric.keyName)(
+              "linkDirection", (int)stats::LinkDirection::LINK_Z)));
 }
 
 // type-ahead search

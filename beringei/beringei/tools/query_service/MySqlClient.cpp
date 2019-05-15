@@ -68,6 +68,7 @@ void MySqlClient::refreshAll() noexcept {
   // building its index
   refreshNodes();
   refreshStatKeys();
+  refreshLinkMetrics();
 }
 
 std::vector<std::shared_ptr<query::MySqlNodeData>> MySqlClient::getNodes() {
@@ -119,6 +120,11 @@ MySqlClient::getNodesWithKeys(const std::unordered_set<std::string>& nodeMacs) {
 std::map<int64_t, std::shared_ptr<query::TopologyConfig>>
 MySqlClient::getTopologyConfigs() {
   return topologyIdMap_.copy();
+}
+
+LinkMetricMap
+MySqlClient::getLinkMetrics() {
+  return linkMetrics_.copy();
 }
 
 void MySqlClient::refreshTopologies() noexcept {
@@ -338,6 +344,52 @@ void MySqlClient::refreshStatKeys() noexcept {
     }
   } catch (sql::SQLException& e) {
     LOG(ERROR) << "refreshStatKeys ERR: " << e.what();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
+  }
+}
+
+void MySqlClient::refreshLinkMetrics() noexcept {
+  try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return;
+    }
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
+    std::unique_ptr<sql::ResultSet> res(
+        stmt->executeQuery("SELECT `id`, `key_name`, `key_prefix`, `name`, "
+                           "`description` FROM `link_metric`"));
+
+    LOG(INFO) << "refreshLinkMetrics: Number of link metrics: "
+              << res->rowsCount();
+    // reset link metrics list
+    LinkMetricMap linkMetricMapTmp{};
+    while (res->next()) {
+      int64_t keyId = res->getInt("id");
+      std::string name = res->getString("name");
+      std::string keyName = res->getString("key_name");
+      std::string keyPrefix = res->getString("key_prefix");
+      std::string description = res->getString("description");
+
+      std::transform(
+          name.begin(), name.end(), name.begin(), ::tolower);
+      std::transform(
+          keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
+      std::transform(
+          keyPrefix.begin(), keyPrefix.end(), keyPrefix.begin(), ::tolower);
+
+      // add link metric to temp map
+      stats::LinkMetric linkMetric;
+      linkMetric.shortName = name;
+      linkMetric.keyName = keyName;
+      linkMetric.keyPrefix = keyPrefix;
+      linkMetric.description = description;
+      linkMetricMapTmp[name] = linkMetric;
+    }
+    // update link metrics map
+    linkMetrics_.wlock()->swap(linkMetricMapTmp);
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "refreshLinkMetrics ERR: " << e.what();
     LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
   }
 }

@@ -212,3 +212,22 @@ struct OutputFormatEvents {
   2: i64 endTime,
   3: map<string /* key name */, EventList> events,
 }
+
+/**
+ * @apiDefine LinkMetric
+ * @apiParam {String} [shortName]
+ *           The short or common name e.g. "fw_uptime"
+ * @apiParam {String} [keyName]
+             The raw key name published by the node.
+ *           For firmware the key is assumed to be in the format
+ *           <keyPrefix>.<node MAC address>.<keyName>
+ *           e.g. tgf.00:11:22:33:44:55.staPkt.mgmtLinkUp
+ * @apiParam {String} keyPrefix See keyName
+ * @apiParam {String} description Human readable
+ */
+struct LinkMetric {
+  1: string shortName,
+  10: string keyName,
+  11: string keyPrefix,
+  20: string description,
+}

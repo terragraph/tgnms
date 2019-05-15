@@ -37,25 +37,7 @@ class StatsTypeAheadCache {
   folly::dynamic createLinkMetric(
       const query::Node& aNode,
       const query::Node& zNode,
-      const std::string& title,
-      const std::string& description,
-      const std::string& keyName,
-      const stats::KeyUnit& keyUnit = stats::KeyUnit::NONE,
-      const std::string& keyPrefix = "tgf");
-  folly::dynamic createLinkMetricAsymmetric(
-      const query::Node& aNode,
-      const query::Node& zNode,
-      const std::string& title,
-      const std::string& description,
-      const std::string& keyNameA,
-      const std::string& keyNameZ,
-      const stats::KeyUnit& keyUnit = stats::KeyUnit::NONE,
-      const std::string& keyPrefix = "tgf");
-
-  folly::dynamic getLinkMetrics(
-      const std::string& metricName,
-      const query::Node& aNode,
-      const query::Node& zNode);
+      const stats::LinkMetric& linkMetric);
 
   folly::Optional<stats::KeyMetaData> getKeyDataByNodeKey(
       const std::string& nodeMac,
@@ -80,7 +62,6 @@ class StatsTypeAheadCache {
       const std::string& topologyName);
 
  private:
-  std::vector<std::string> linkMetricKeyNames_{};
   std::unordered_set<std::string> macNodes_{};
   std::map<std::string /* node name */, query::Node> nodesByName_{};
   // --- Metrics per node --- //

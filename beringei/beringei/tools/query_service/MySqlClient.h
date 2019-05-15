@@ -22,6 +22,8 @@
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/scans_types_custom_protocol.h"
+#include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
+
 #include "mysql_connection.h"
 #include "mysql_driver.h"
 
@@ -44,6 +46,8 @@ typedef std::unordered_map<int64_t, std::unordered_map<std::string, int64_t>>
     NodeKeyMap;
 typedef std::unordered_map<int64_t, std::unordered_map<std::string, int64_t>>
     NodeCategoryMap;
+typedef std::unordered_map<std::string /* metric name */, stats::LinkMetric>
+    LinkMetricMap;
 
 class MySqlClient {
  public:
@@ -73,6 +77,8 @@ class MySqlClient {
   std::map<int64_t, std::shared_ptr<query::TopologyConfig>>
   getTopologyConfigs();
 
+  LinkMetricMap getLinkMetrics();
+
   void addAggKeys(
       const int64_t topologyId,
       const std::vector<std::string>& keyNames) noexcept;
@@ -86,6 +92,8 @@ class MySqlClient {
   void refreshTopologies() noexcept;
 
   void refreshStatKeys() noexcept;
+
+  void refreshLinkMetrics() noexcept;
 
   bool addOrUpdateNodes(
       const std::unordered_map<std::string, query::MySqlNodeData>&
@@ -121,6 +129,8 @@ class MySqlClient {
   folly::Synchronized<NodeKeyMap> nodeKeyIds_{};
   folly::Synchronized<NodeCategoryMap> nodeCategoryIds_{};
   folly::Synchronized<NameToNodeIdMap> nodeNameToNodeId_{};
+  folly::Synchronized<LinkMetricMap> linkMetrics_{};
+
   // duplicate node -> mac mappings
   folly::Synchronized<std::map<std::string, std::set<std::string>>>
       duplicateNodes_;
