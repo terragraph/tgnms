@@ -6,6 +6,8 @@ echo "It requires that you run it as root. sudo works great for that."
 
 APACHE_THRIFT_VERSION="0.11.0"
 
+# Install g++ and libsnappy
+apt-get install -y g++ libsnappy-dev
 # Install Apache Thrift
 cd /tmp
 wget -O /tmp/apache-thrift-${APACHE_THRIFT_VERSION}.tar.gz https://github.com/apache/thrift/archive/${APACHE_THRIFT_VERSION}.tar.gz

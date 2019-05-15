@@ -16,6 +16,7 @@ setup(
         "network_test_api/api/migrations",
         "network_test_api/api/network_test",
         "network_test_api/nmsapi",
+        "network_scan",
     ],
     package_data={"module": ["AnalyticsConfig.json"], "tests": ["auto_test.sh"]},
     include_package_data=True,
@@ -29,6 +30,7 @@ setup(
         "requests==2.19.1",
         "mysqlclient==1.3.13",
         "tabulate==0.8.3",
+        "python-snappy==0.5.4"
     ],
     # TODO: Add unit tests
     # test_suite="analytics.tests.base",
