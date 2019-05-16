@@ -5,7 +5,8 @@
  */
 'use strict';
 
-import 'babel-polyfill';
+import '@fbcnms/babel-register/polyfill';
+
 import ReactDOM from 'react-dom';
 import React from 'react';
 import LoginForm from './views/login/LoginForm';

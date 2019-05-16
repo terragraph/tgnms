@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import 'babel-polyfill';
+import '@fbcnms/babel-register/polyfill';
 import './common/axiosConfig';
 
 import {BrowserRouter} from 'react-router-dom';
