@@ -11,6 +11,7 @@ import {
   DEFAULT_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
   NetworkConfigMode,
+  SELECTED_NODE_QUERY_PARAM,
 } from '../../constants/ConfigConstants';
 import ConfigRoot from './ConfigRoot';
 import {
@@ -53,34 +54,40 @@ type State = {
 };
 
 class NetworkConfig extends React.Component<Props, State> {
-  state = {
-    // === Base layers ===
-    // Map of software version to base config
-    baseConfigs: null,
-    // Map of hardware model to base config
-    hardwareBaseConfigs: null,
+  constructor(props) {
+    super(props);
+    const {networkConfig} = this.props;
 
-    // === Override layers ===
-    // Automatic node overrides layer (read-only for NMS)
-    autoOverridesConfig: null,
-    // Network overrides layer
-    networkOverridesConfig: null,
-    // Node overrides layer
-    nodeOverridesConfig: null,
+    this.state = {
+      // === Base layers ===
+      // Map of software version to base config
+      baseConfigs: null,
+      // Map of hardware model to base config
+      hardwareBaseConfigs: null,
 
-    // Config metadata structures
-    configMetadata: null,
+      // === Override layers ===
+      // Automatic node overrides layer (read-only for NMS)
+      autoOverridesConfig: null,
+      // Network overrides layer
+      networkOverridesConfig: null,
+      // Node overrides layer
+      nodeOverridesConfig: null,
 
-    // Currently selected node (in NODE view)
-    // Data structure is defined in getTopologyNodeList() in ConfigHelpers
-    selectedNodeInfo: null,
+      // Config metadata structures
+      configMetadata: null,
 
-    // Currently selected image version / hardware type
-    selectedImage: DEFAULT_BASE_KEY,
-    selectedHardwareType: DEFAULT_HARDWARE_BASE_KEY,
-  };
+      // Currently selected node (in NODE view)
+      // Data structure is defined in getTopologyNodeList() in ConfigHelpers
+      selectedNodeInfo: this.getNodeFromQueryString(networkConfig) || null,
+
+      // Currently selected image version / hardware type
+      selectedImage: DEFAULT_BASE_KEY,
+      selectedHardwareType: DEFAULT_HARDWARE_BASE_KEY,
+    };
+  }
 
   componentDidMount() {
+    this.refreshNodeupdateBundleStatus();
     // Refresh nodeupdate bundle status periodically
     // Only do this for the selected node (for now due to nodeupdate's API)
     this.refreshNodeupdateStatusInterval = setInterval(
@@ -125,6 +132,16 @@ class NetworkConfig extends React.Component<Props, State> {
       );
     }
   };
+
+  getNodeFromQueryString(networkConfig) {
+    const values = new URL(window.location).searchParams;
+    const name = values.get(SELECTED_NODE_QUERY_PARAM);
+    if (!name) {
+      return null;
+    }
+    const nodes = getTopologyNodeList(networkConfig, null);
+    return nodes.find(node => node.name === name) || null;
+  }
 
   getSidebarProps = editMode => {
     // Get ConfigSidebar properties
@@ -306,7 +323,9 @@ class NetworkConfig extends React.Component<Props, State> {
     }
     this.setState({selectedNodeInfo: node}, () => {
       callback && callback();
-
+      this.props.history.replace({
+        search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
+      });
       // Refresh nodeupdate bundle status immediately
       this.refreshNodeupdateBundleStatus();
     });
@@ -330,13 +349,16 @@ class NetworkConfig extends React.Component<Props, State> {
 
   render() {
     const {networkConfig, networkName} = this.props;
+    const {selectedNodeInfo} = this.state;
 
     return (
       <ConfigRoot
         networkName={networkName}
         networkConfig={networkConfig}
         editModes={NetworkConfigMode}
-        initialEditMode={NetworkConfigMode.NETWORK}
+        initialEditMode={
+          selectedNodeInfo ? NetworkConfigMode.NODE : NetworkConfigMode.NETWORK
+        }
         setParentState={this.setState.bind(this)}
         getSidebarProps={this.getSidebarProps}
         getRequests={this.getRequests}

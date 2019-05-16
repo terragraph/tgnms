@@ -35,10 +35,13 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import RouterIcon from '@material-ui/icons/Router';
+import {SELECTED_NODE_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import {supportsTopologyScan} from '../../helpers/TgFeatures';
 import Typography from '@material-ui/core/Typography';
+import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -164,7 +167,7 @@ class NodeDetailsPanel extends React.Component {
 
   renderActions() {
     // Render actions
-    const {ctrlVersion} = this.props;
+    const {ctrlVersion, history, networkName, node} = this.props;
     const actionItems = [
       {
         heading: 'Commands',
@@ -188,6 +191,15 @@ class NodeDetailsPanel extends React.Component {
       {
         heading: 'Topology',
         actions: [
+          {
+            label: 'Node Configuration',
+            icon: <RouterIcon />,
+            func: () =>
+              history.push({
+                pathname: '/node_config/' + networkName,
+                search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
+              }),
+          },
           {
             label: 'Show Routes',
             icon: getShowRoutesIcon(),
@@ -515,4 +527,4 @@ NodeDetailsPanel.propTypes = {
   onUpdateRoutes: PropTypes.func,
 };
 
-export default withStyles(styles)(NodeDetailsPanel);
+export default withStyles(styles)(withRouter(NodeDetailsPanel));
