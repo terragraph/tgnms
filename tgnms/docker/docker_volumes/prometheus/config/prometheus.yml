@@ -20,7 +20,7 @@ scrape_configs:
     # scheme defaults to 'http'.
     # honor_labels: true
     static_configs:
-            - targets: ['cadvisor:8080']
+            - targets: ['localhost:9090', 'cadvisor:8080']
 
   - job_name: 'bqs_30s'
     metrics_path: /metrics/30s
