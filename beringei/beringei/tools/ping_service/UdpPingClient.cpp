@@ -7,7 +7,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sys/types.h>
@@ -23,7 +22,6 @@
 #include <folly/IPAddress.h>
 #include <folly/Synchronized.h>
 #include <folly/init/Init.h>
-#include <folly/io/async/AsyncTimeout.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <proxygen/httpserver/HTTPServer.h>
@@ -58,7 +56,7 @@ DEFINE_string(src_ip, "", "The IP source address to use in probe");
 DEFINE_string(src_if, "eth0", "The interface to use if src_ip is not defined");
 DEFINE_string(http_ip, "::", "IP/Hostname to bind HTTP server to");
 DEFINE_int32(http_port, 3047, "Port to listen on with HTTP protocol");
-DEFINE_int32(num_http_threads, 2, "Number of threads to listen on");
+DEFINE_int32(num_http_threads, 2, "Number of HTTP server threads to listen on");
 
 class RequestHandlerFactory : public proxygen::RequestHandlerFactory {
  public:
@@ -73,7 +71,7 @@ class RequestHandlerFactory : public proxygen::RequestHandlerFactory {
       proxygen::RequestHandler* /* unused */,
       proxygen::HTTPMessage* httpMessage) noexcept {
     auto path = httpMessage->getPath();
-    LOG(INFO) << "Received a request for path: " << path;
+    LOG(INFO) << "Received a request for " << path;
 
     if (path == "/metrics/30s") {
       return new PrometheusMetricsHandler(typeaheadCache_, 30);
@@ -128,91 +126,71 @@ std::string getAddressFromInterface() {
   return "";
 }
 
-void getTestPlans(
-    const std::shared_ptr<folly::AsyncTimeout>& timer,
-    folly::Synchronized<std::vector<UdpTestPlan>>& testPlans) {
-  timer->scheduleTimeout(FLAGS_topology_refresh_interval_s * 1000);
+std::vector<UdpTestPlan> getTestPlans() {
+  std::vector<UdpTestPlan> testPlans;
 
   auto mySqlClient = MySqlClient::getInstance();
   if (!mySqlClient) {
-    LOG(ERROR) << "Failed to get MySqlInstance";
-    return;
+    return testPlans;
   }
 
   mySqlClient->refreshTopologies();
 
-  std::vector<std::thread> workerThreads;
-  folly::Synchronized<std::vector<UdpTestPlan>> newTestPlans;
   for (const auto& topologyConfig : mySqlClient->getTopologyConfigs()) {
-    workerThreads.push_back(std::thread([&]() {
-      auto maybeStatusDump = ApiServiceClient::fetchApiService<StatusDump>(
-          topologyConfig.second->primary_controller.ip,
-          topologyConfig.second->primary_controller.api_port,
-          "api/getCtrlStatusDump",
-          "{}");
+    auto statusDump = ApiServiceClient::fetchApiService<StatusDump>(
+        topologyConfig.second->primary_controller.ip,
+        topologyConfig.second->primary_controller.api_port,
+        "api/getCtrlStatusDump",
+        "{}");
 
-      if (!maybeStatusDump.hasValue()) {
-        VLOG(2) << "Failed to fetch status dump for "
-                << topologyConfig.second->name;
-        return;
-      }
+    if (!statusDump) {
+      VLOG(2) << "Failed to fetch status dump for "
+              << topologyConfig.second->name;
+      continue;
+    }
 
-      auto maybeTopology = ApiServiceClient::fetchApiService<query::Topology>(
-          topologyConfig.second->primary_controller.ip,
-          topologyConfig.second->primary_controller.api_port,
-          "api/getTopology",
-          "{}");
+    auto topology = ApiServiceClient::fetchApiService<query::Topology>(
+        topologyConfig.second->primary_controller.ip,
+        topologyConfig.second->primary_controller.api_port,
+        "api/getTopology",
+        "{}");
 
-      if (!maybeTopology.hasValue()) {
-        VLOG(2) << "Failed to fetch topology for "
-                << topologyConfig.second->name;
-        return;
-      }
+    if (!topology) {
+      VLOG(2) << "Failed to fetch topology for " << topologyConfig.second->name;
+      continue;
+    }
 
-      const auto& statusDump = *maybeStatusDump;
-      const auto& topology = *maybeTopology;
-      auto lockedNewTestPlans = newTestPlans.wlock();
+    for (const auto& node : topology->nodes) {
+      auto statusReportIt = statusDump->statusReports.find(node.mac_addr);
+      if (statusReportIt != statusDump->statusReports.end()) {
+        std::string ipStr = statusReportIt->second.ipv6Address;
+        try {
+          auto ipAddr = folly::IPAddress(ipStr);
 
-      for (const auto& node : topology.nodes) {
-        auto statusReportIt = statusDump.statusReports.find(node.mac_addr);
-        if (statusReportIt != statusDump.statusReports.end()) {
-          std::string ipStr = statusReportIt->second.ipv6Address;
-          try {
-            auto ipAddr = folly::IPAddress(ipStr);
-
-            if (ipAddr.isV6()) {
-              UdpTestPlan testPlan;
-              testPlan.target.ip = ipStr;
-              testPlan.target.mac = node.mac_addr;
-              testPlan.target.name = node.name;
-              testPlan.target.site = node.site_name;
-              testPlan.target.network = topology.name;
-              testPlan.target.is_cn = node.node_type == query::NodeType::CN;
-              testPlan.target.is_pop = node.pop_node;
-              testPlan.numPackets = FLAGS_num_packets;
-              lockedNewTestPlans->push_back(std::move(testPlan));
-            } else {
-              VLOG(5) << "Skipping IPv4 address " << ipStr;
-            }
-          } catch (const folly::IPAddressFormatException& e) {
-            if (!ipStr.empty()) {
-              LOG(WARNING) << ipStr << " isn't an IP address";
-            }
+          if (ipAddr.isV6()) {
+            UdpTestPlan testPlan;
+            testPlan.target.ip = ipStr;
+            testPlan.target.mac = node.mac_addr;
+            testPlan.target.name = node.name;
+            testPlan.target.site = node.site_name;
+            testPlan.target.network = topology->name;
+            testPlan.target.is_cn = node.node_type == query::NodeType::CN;
+            testPlan.target.is_pop = node.pop_node;
+            testPlan.numPackets = FLAGS_num_packets;
+            testPlans.push_back(std::move(testPlan));
+          } else {
+            VLOG(5) << "Skipping IPv4 address " << ipStr;
+          }
+        } catch (const folly::IPAddressFormatException& e) {
+          if (!ipStr.empty()) {
+            LOG(WARNING) << ipStr << " isn't an IP address";
           }
         }
       }
-    }));
+    }
   }
 
-  for (auto& thread : workerThreads) {
-    thread.join();
-  }
-
-  if (newTestPlans.rlock()->empty()) {
-    LOG(INFO) << "Working with a stale copy of test plans";
-  } else {
-    testPlans.swap(newTestPlans);
-  }
+  return testPlans;
 }
 
 std::vector<std::string> getMetricLabels(
@@ -250,11 +228,8 @@ std::vector<std::string> getMetricLabels(
 }
 
 UdpTestResults ping(
-    const std::shared_ptr<folly::AsyncTimeout>& timer,
     const std::vector<UdpTestPlan>& testPlans,
     const UdpPinger& pinger) {
-  timer->scheduleTimeout(FLAGS_ping_interval_s * 1000);
-
   UdpTestResults results;
   if (!testPlans.empty()) {
     LOG(INFO) << "Pinging " << testPlans.size() << " targets";
@@ -317,11 +292,7 @@ void writeResults(const UdpTestResults& results) {
   }
 }
 
-void writeAggrResults(
-    const std::shared_ptr<folly::AsyncTimeout>& timer,
-    const std::vector<UdpTestResults>& aggrResults) {
-  timer->scheduleTimeout(FLAGS_topology_refresh_interval_s * 1000);
-
+void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
   auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
                  std::chrono::system_clock::now().time_since_epoch())
                  .count();
@@ -456,9 +427,8 @@ void writeAggrResults(
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
-  folly::EventBase eb;
 
-  LOG(INFO) << "Attemping to bind to port " << FLAGS_http_port;
+  LOG(INFO) << "Attemping to bind HTTP server to port " << FLAGS_http_port;
 
   std::vector<proxygen::HTTPServer::IPConfig> httpIps = {
       {folly::SocketAddress(FLAGS_http_ip, FLAGS_http_port, true),
@@ -515,31 +485,66 @@ int main(int argc, char* argv[]) {
   folly::Synchronized<std::vector<UdpTestPlan>> testPlans;
   folly::Synchronized<std::vector<UdpTestResults>> aggrResults;
 
-  // Start the topology refresh timer
-  std::shared_ptr<folly::AsyncTimeout> topologyRefreshTimer =
-      folly::AsyncTimeout::make(eb, [&]() noexcept {
-        getTestPlans(topologyRefreshTimer, testPlans);
-      });
-  topologyRefreshTimer->scheduleTimeout(0);
+  auto topologyRefreshTimer = std::thread([&]() noexcept {
+    while (true) {
+      std::vector<UdpTestPlan> newTestPlans = getTestPlans();
+      if (newTestPlans.empty()) {
+        LOG(INFO) << "Working with a stale copy of test plans";
+      } else {
+        testPlans.swap(newTestPlans);
+      }
 
-  // Start the pinger timer
-  std::shared_ptr<folly::AsyncTimeout> udpPingTimer =
-      folly::AsyncTimeout::make(eb, [&]() noexcept {
-        UdpTestResults results = ping(udpPingTimer, testPlans.copy(), pinger);
-        aggrResults.wlock()->push_back(results);
-        writeResults(results);
-      });
-  udpPingTimer->scheduleTimeout(1000);
+      auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::system_clock::now().time_since_epoch())
+                     .count();
 
-  // Start the aggregate result timer
-  std::shared_ptr<folly::AsyncTimeout> aggrResultsTimer =
-      folly::AsyncTimeout::make(eb, [&]() noexcept {
-        std::vector<UdpTestResults> aggrResultsCopy;
-        aggrResults.swap(aggrResultsCopy);
-        writeAggrResults(aggrResultsTimer, aggrResultsCopy);
-      });
-  aggrResultsTimer->scheduleTimeout(30 * 1000);
+      auto nextRunTime =
+          (long(now / (FLAGS_topology_refresh_interval_s * 1000)) *
+           FLAGS_topology_refresh_interval_s * 1000) +
+          FLAGS_topology_refresh_interval_s * 1000;
 
-  eb.loopForever();
+      std::this_thread::sleep_for(std::chrono::milliseconds(nextRunTime - now));
+    }
+  });
+
+  auto udpPingTimer = std::thread([&]() noexcept {
+    while (true) {
+      UdpTestResults results = ping(testPlans.copy(), pinger);
+      aggrResults.wlock()->push_back(results);
+      writeResults(results);
+
+      auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::system_clock::now().time_since_epoch())
+                     .count();
+
+      auto nextRunTime = (long(now / (FLAGS_ping_interval_s * 1000)) *
+                          FLAGS_ping_interval_s * 1000) +
+          FLAGS_ping_interval_s * 1000;
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(nextRunTime - now));
+    }
+  });
+
+  auto aggrResultsTimer = std::thread([&]() noexcept {
+    std::this_thread::sleep_for(std::chrono::seconds(30));
+    while (true) {
+      std::vector<UdpTestResults> aggrResultsCopy;
+      aggrResults.swap(aggrResultsCopy);
+      writeAggrResults(aggrResultsCopy);
+
+      auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::system_clock::now().time_since_epoch())
+                     .count();
+
+      auto nextRunTime = (long(now / 30000) * 30000) + 30000;
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(nextRunTime - now));
+    }
+  });
+
+  topologyRefreshTimer.join();
+  udpPingTimer.join();
+  aggrResultsTimer.join();
+
   return 0;
 }

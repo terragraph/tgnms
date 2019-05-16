@@ -9,6 +9,7 @@
 
 #include "UdpPinger.h"
 
+#include <arpa/inet.h>
 #include <linux/filter.h>
 #include <pthread.h>
 #include <sys/socket.h>
@@ -174,7 +175,7 @@ int createRawSocket(int qos, int bufferSize) {
   }
 
   if (bufferSize) {
-    LOG(INFO) << "Setting raw socket buffer to " << bufferSize;
+    VLOG(3) << "Setting raw socket buffer to " << bufferSize;
     if (::setsockopt(
             sock_fd, SOL_SOCKET, SO_SNDBUF, &bufferSize, sizeof(bufferSize)) <
         0) {
@@ -187,7 +188,7 @@ int createRawSocket(int qos, int bufferSize) {
     optlen = sizeof(optval);
     ::getsockopt(sock_fd, SOL_SOCKET, SO_SNDBUF, &optval, &optlen);
 
-    LOG(INFO) << "Raw socket: getsockopt SO_SNDBUF returned '" << optval << "'";
+    VLOG(3) << "Raw socket: getsockopt SO_SNDBUF returned '" << optval << "'";
   }
 
   return sock_fd;
@@ -570,7 +571,7 @@ void UdpReceiver::summarizeResults(int qos) {
       result->metadata.dst = target;
     } catch (const std::out_of_range& e) {
       // We received some packets that were not in the test plan
-      VLOG(1) << "Received unexpected packet from " << hostIt.first;
+      VLOG(2) << "Received unexpected packet from " << hostIt.first;
       continue;
     }
 
@@ -859,16 +860,15 @@ UdpTestResults UdpPinger::run(
   for (const auto& testPlan : testPlans) {
     hostProbeCount.emplace(testPlan.target.name, testPlan.numPackets);
     networkProbeCount[testPlan.target.network] += testPlan.numPackets;
-
     hostToTargetMap.emplace(testPlan.target.name, testPlan.target);
   }
 
   // Submit test plans to senders
   std::hash<std::string> hasher;
   for (const auto& testPlan : testPlans) {
-    auto queueNum = hasher(testPlan.target.site) % numSenders;
+    auto queueId = hasher(testPlan.target.site) % numSenders;
     auto result =
-        sendingQueues[queueNum]->tryPutMessageNoThrow(std::move(testPlan));
+        sendingQueues[queueId]->tryPutMessageNoThrow(std::move(testPlan));
     if (!result) {
       LOG(ERROR) << "Cannot enqueue test plan";
     }
@@ -950,7 +950,7 @@ UdpTestResults UdpPinger::run(
     result->metadata.tos = qos;
     result->metadata.dead = true;
 
-    VLOG(1) << "Tagged host '" << result->metadata.dst.name << "' as dead";
+    VLOG(2) << "Tagged host '" << result->metadata.dst.name << "' as dead";
     results.hostResults.push_back(std::move(result));
   }
 
@@ -963,7 +963,7 @@ UdpTestResults UdpPinger::run(
     result->metrics.loss_ratio = 1;
     result->metadata.dst.network = networkProbeIt.first;
 
-    VLOG(1) << "Tagged network '" << networkProbeIt.first << "' as offline";
+    VLOG(2) << "Tagged network '" << networkProbeIt.first << "' as offline";
     results.networkResults.push_back(std::move(result));
   }
 

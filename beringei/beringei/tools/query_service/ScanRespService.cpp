@@ -97,31 +97,30 @@ void ScanRespService::timerCb() {
     if (!topology.name.empty() && !topology.nodes.empty() &&
         !topology.links.empty()) {
       const auto idRange = getScanRespIdRange(topology.name);
-      auto maybeScanStatus = ApiServiceClient::fetchApiService<ScanStatus>(
+      auto scanStatus = ApiServiceClient::fetchApiService<ScanStatus>(
           topologyConfig.second->primary_controller.ip,
           topologyConfig.second->primary_controller.api_port,
           "api/getScanStatus",
           folly::toJson(idRange) /* post data */);
 
-      if (!maybeScanStatus.hasValue()) {
+      if (!scanStatus) {
         LOG(INFO) << "Failed to fetch scan status for " << topology.name;
         continue;
       }
 
-      const auto& scanStatus = *maybeScanStatus;
-      VLOG(2) << "Received " << scanStatus.scans.size()
+      VLOG(2) << "Received " << scanStatus->scans.size()
               << " scan responses from " << topology.name;
 
       // if we read the max number of scans on any topology, use the shorter
       // poll period, otherwise, use the longer poll period
-      if ((scanStatus.scans.size() == FLAGS_max_num_scans_req) ||
-          (idRange["respIdFrom"] == 0 && scanStatus.scans.size() == 1)) {
+      if ((scanStatus->scans.size() == FLAGS_max_num_scans_req) ||
+          (idRange["respIdFrom"] == 0 && scanStatus->scans.size() == 1)) {
         scanPollPeriod = FLAGS_scan_poll_period_short;
       }
 
       int errCode;
       try {
-        errCode = writeData(scanStatus, topology.name);
+        errCode = writeData(*scanStatus, topology.name);
       } catch (const std::exception& ex) {
         LOG(ERROR) << "Error writing scan response to mySQL: "
                    << folly::exceptionStr(ex);
@@ -129,7 +128,7 @@ void ScanRespService::timerCb() {
       if (errCode < 0) {
         LOG(ERROR) << "writeData returned an error code = " << errCode;
       } else {
-        setNewScanRespId(scanStatus, topology.name);
+        setNewScanRespId(*scanStatus, topology.name);
       }
     }
   }

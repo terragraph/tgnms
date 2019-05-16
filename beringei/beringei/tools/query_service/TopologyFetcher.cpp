@@ -78,27 +78,29 @@ void TopologyFetcher::refreshTopologyCache() {
   auto topologyInstance = TopologyStore::getInstance();
   // fetch cached topologies
   for (auto topologyConfig : mySqlClient->getTopologyConfigs()) {
-    auto maybeTopology = ApiServiceClient::fetchApiService<query::Topology>(
+    auto topology = ApiServiceClient::fetchApiService<query::Topology>(
         topologyConfig.second->primary_controller.ip,
         topologyConfig.second->primary_controller.api_port,
         "api/getTopology",
         "{}" /* post data */);
-    if (!maybeTopology.hasValue() || maybeTopology->nodes.empty()) {
+    if (!topology) {
+      LOG(INFO) << "Failed to fetch topology for "
+                << topologyConfig.second->name;
+    } else if (topology->nodes.empty()) {
       LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
-      auto& topology = *maybeTopology;
-      topologyConfig.second->topology = topology;
+      topologyConfig.second->topology = *topology;
 
       // TODO: we never remove old topologies - after some amount of time
       //   over which a topology was never "added" we should remove it
       //   like 1 day
       topologyInstance->addTopology(topologyConfig.second);
-      LOG(INFO) << "Topology refreshed for: " << topology.name;
+      LOG(INFO) << "Topology refreshed for: " << topology->name;
       // load stats type-ahead cache?
-      updateTypeaheadCache(topology);
+      updateTypeaheadCache(*topology);
 
       // update mysql with nodes from topology
-      updateDbNodesTable(topology);
+      updateDbNodesTable(*topology);
     }
     // TODO: delete old topologies
   }
