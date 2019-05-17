@@ -7,7 +7,7 @@ RUN apt-get update
 RUN apt-get -y upgrade
 
 # Install prerequisites and needed packages
-RUN apt-get install -y wget nano libtool libboost-all-dev automake bison flex g++ libevent-dev libssl-dev libtool make pkg-config iputils-ping mysql-client libmysqlclient-dev netcat
+RUN apt-get install -y wget nano libtool libboost-all-dev automake bison flex g++ libevent-dev libssl-dev libtool make pkg-config iputils-ping mysql-client libmysqlclient-dev netcat libsnappy-dev
 
 # Set apt-get to be noninteractive
 ENV DEBIAN_FRONTEND noninteractive
