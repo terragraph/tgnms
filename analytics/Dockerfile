@@ -29,12 +29,6 @@ WORKDIR $WORKDIR
 RUN chmod +x ./setup_analytics_env.sh
 RUN ./setup_analytics_env.sh
 
-
-# Remove un-needed building depends
-RUN apt-get purge -y --auto-remove bison flex g++
-RUN apt-get clean
-RUN rm -rf /tmp/*
-
 # Generate the Analytics API
 RUN chmod +x interface/generate_analytics_api.sh
 RUN interface/generate_analytics_api.sh
@@ -42,6 +36,11 @@ RUN interface/generate_analytics_api.sh
 # Install out modules into python3's module dir so we don't need sys.path hacks
 # Also will install python dependencies defined in setup.py
 RUN python3 setup.py install
+
+# Remove un-needed building depends
+RUN apt-get purge -y --auto-remove bison flex g++
+RUN apt-get clean
+RUN rm -rf /tmp/*
 
 # Define default command
 CMD ["bash"]
