@@ -68,6 +68,13 @@ export const GOLAY_COLORS = [
   'hsl(280,50%,50%)',
 ];
 
+// colors per control superframe
+export const SUPERFRAME_COLORS = {
+  0: 'hsl(170,50%,50%)',
+  1: 'hsl(30,50%,50%)',
+  255: 'hsl(200,50%,50%)',
+};
+
 export const NETWORK_TEST_HEALTH_COLOR_RANGE = [
   HEALTH_DEFS[HEALTH_CODES.EXCELLENT].color,
   HEALTH_DEFS[HEALTH_CODES.HEALTHY].color,

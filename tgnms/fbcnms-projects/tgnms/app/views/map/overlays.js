@@ -44,6 +44,11 @@ const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
   health: {name: 'Health', type: 'health', id: 'health'},
   golay_tx: {name: 'Golay (TX)', type: 'golay', id: 'golay_tx'},
   golay_rx: {name: 'Golay (RX)', type: 'golay', id: 'golay_rx'},
+  control_superframe: {
+    name: 'Control Superframe',
+    type: 'superframe',
+    id: 'control_superframe',
+  },
   snr: {
     name: 'SNR',
     type: 'metric',

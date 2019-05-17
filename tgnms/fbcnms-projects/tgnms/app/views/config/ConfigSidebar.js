@@ -6,7 +6,6 @@
 'use strict';
 
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
-import BuildIcon from '@material-ui/icons/Build';
 import Button from '@material-ui/core/Button';
 import CheckIcon from '@material-ui/icons/Check';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
@@ -220,6 +219,69 @@ class ConfigSidebar extends React.Component<Props, State> {
     );
   };
 
+  handleGolayOptCommand = () => {
+    // Trigger Golay optimization
+    const {networkName, onConfigRefresh, onUpdateSnackbar} = this.props;
+
+    const data = {};
+    apiServiceRequestWithConfirmation(
+      networkName,
+      'triggerGolayOptimization',
+      data,
+      {
+        title: 'Optimize Golay Allocation',
+        desc: 'Do you want to re-assign Golay values across the network?',
+        checkbox: 'Clear user-assigned Golays',
+        processInput: (data, value) => {
+          return {...data, clearUserConfig: !!value};
+        },
+        onResultsOverride: value => {
+          if (value.success) {
+            onConfigRefresh(networkName, false);
+            onUpdateSnackbar('Golay optimization was successful.', 'success');
+          } else {
+            onUpdateSnackbar('Golay optimization failed.', 'error');
+          }
+        },
+      },
+    );
+  };
+
+  handleControlSuperframeOptCommand = () => {
+    // Trigger control superframe optimization
+    const {networkName, onConfigRefresh, onUpdateSnackbar} = this.props;
+
+    const data = {};
+    apiServiceRequestWithConfirmation(
+      networkName,
+      'triggerControlSuperframeOptimization',
+      data,
+      {
+        title: 'Optimize Control Superframe Allocation',
+        desc:
+          'Do you want to re-assign control superframe values across the network?',
+        checkbox: 'Clear user-assigned values',
+        processInput: (data, value) => {
+          return {...data, clearUserConfig: !!value};
+        },
+        onResultsOverride: value => {
+          if (value.success) {
+            onConfigRefresh(networkName, false);
+            onUpdateSnackbar(
+              'Control superframe optimization was successful.',
+              'success',
+            );
+          } else {
+            onUpdateSnackbar(
+              'Control superframe optimization failed.',
+              'error',
+            );
+          }
+        },
+      },
+    );
+  };
+
   handleCloseFullNodeConfigModal = () => {
     // Close the "Full Node Configuration" modal
     this.setState({showFullNodeConfigModal: false});
@@ -248,19 +310,26 @@ class ConfigSidebar extends React.Component<Props, State> {
     const {classes, networkConfig} = this.props;
     const ctrlVersion = networkConfig.controller_version;
 
-    const actionItems = [];
+    const actions = [];
     if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M31)) {
-      actionItems.push({
-        heading: 'Actions',
-        actions: [
-          {
-            label: 'Optimize Polarity Allocation',
-            icon: <BuildIcon />,
-            func: () => this.handlePolarityOptCommand(),
-          },
-        ],
+      actions.push({
+        label: 'Optimize Polarity Allocation',
+        func: () => this.handlePolarityOptCommand(),
       });
     }
+    if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M38)) {
+      actions.push({
+        label: 'Optimize Golay Allocation',
+        func: () => this.handleGolayOptCommand(),
+      });
+    }
+    if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M37)) {
+      actions.push({
+        label: 'Optimize Control Superframe Allocation',
+        func: () => this.handleControlSuperframeOptCommand(),
+      });
+    }
+    const actionItems = [{heading: 'Actions', actions}];
     return actionItems.length
       ? createActionsMenu(
           {actionItems, buttonClassName: classes.actionsButton},

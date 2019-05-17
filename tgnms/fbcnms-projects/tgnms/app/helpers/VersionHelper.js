@@ -12,6 +12,8 @@ export const CtrlVerType = {
   M29: {major: 29, minor: -1},
   M30: {major: 30, minor: -1},
   M31: {major: 31, minor: -1},
+  M37: {major: 37, minor: -1},
+  M38: {major: 38, minor: -1},
 };
 
 /**

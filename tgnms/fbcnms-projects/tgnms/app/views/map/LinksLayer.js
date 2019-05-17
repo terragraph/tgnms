@@ -24,9 +24,10 @@ import {scaleLinear} from 'd3-scale';
 import {interpolateHcl} from 'd3-interpolate';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {get} from 'lodash-es';
-import {getLinkGolay} from '../../helpers/TgFeatures';
+import {getLinkGolay, getLinkControlSuperframe} from '../../helpers/TgFeatures';
 import {
   GOLAY_COLORS,
+  SUPERFRAME_COLORS,
   LinkOverlayColors,
   METRIC_COLOR_RANGE,
 } from '../../constants/LayerConstants';
@@ -178,6 +179,12 @@ class LinksLayer extends React.Component<Props> {
         return LinkOverlayColors.metric.missing.color;
       }
       return GOLAY_COLORS[values];
+    }
+    if (overlay.type === 'superframe') {
+      if (values !== undefined && SUPERFRAME_COLORS.hasOwnProperty(values)) {
+        return SUPERFRAME_COLORS[values];
+      }
+      return LinkOverlayColors.metric.missing.color;
     }
     if (routes.links && Object.keys(routes.links).length !== 0) {
       if (routes.links.hasOwnProperty(link.name)) {
@@ -512,10 +519,16 @@ class LinksLayer extends React.Component<Props> {
         onMouseLeave: onLinkMouseLeave,
         onClick: this.handleLinkClick(link),
       };
-      if (overlay.type === 'golay') {
+      if (overlay.type === 'golay' || overlay.type === 'superframe') {
         const {ctrlVersion, topologyConfig} = this.props;
-        const golayValues = getLinkGolay(ctrlVersion, link, topologyConfig);
-        const value = this.getGolayValue(overlay, golayValues);
+        let value = null;
+        if (overlay.type === 'golay') {
+          const golayValues = getLinkGolay(ctrlVersion, link, topologyConfig);
+          value = this.getGolayValue(overlay, golayValues);
+        } else {
+          value = getLinkControlSuperframe(ctrlVersion, link, topologyConfig);
+        }
+
         const linkColor = this.getLinkColor(link, value);
         features.push(
           <Feature

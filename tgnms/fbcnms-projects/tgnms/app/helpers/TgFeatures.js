@@ -72,6 +72,45 @@ export function getLinkGolay(
 }
 
 /**
+ * Get link control superframe
+ * Prior to RELEASE_M31, control superframe was part of the link's topology
+ * structure.
+ * Starting from RELEASE_M31, control superframe is part of the node's
+ * configuration.
+ */
+export function getLinkControlSuperframe(
+  ctrlVersion: string,
+  link: Object,
+  topologyConfig: Object,
+) {
+  let linkControlSuperframe = {};
+  if (ctrlVerBefore(ctrlVersion, CtrlVerType.M31)) {
+    if (link.control_superframe) {
+      linkControlSuperframe = link.control_superframe;
+    }
+  } else if (topologyConfig.controlSuperframe) {
+    if (
+      topologyConfig.controlSuperframe.hasOwnProperty(link.a_node_name) &&
+      topologyConfig.controlSuperframe[link.a_node_name].hasOwnProperty(
+        link.z_node_mac,
+      )
+    ) {
+      linkControlSuperframe =
+        topologyConfig.controlSuperframe[link.a_node_name][link.z_node_mac];
+    } else if (
+      topologyConfig.controlSuperframe.hasOwnProperty(link.z_node_name) &&
+      topologyConfig.controlSuperframe[link.a_node_name].hasOwnProperty(
+        link.a_node_mac,
+      )
+    ) {
+      linkControlSuperframe =
+        topologyConfig.controlSuperframe[link.z_node_name][link.a_node_mac];
+    }
+  }
+  return linkControlSuperframe;
+}
+
+/**
  * Check if the Node structure has a 'wlan_mac_addrs' field.
  * This was added in RELEASE_M29.
  */

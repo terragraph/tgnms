@@ -59,7 +59,7 @@ export function createActionsMenu(options, state, setState) {
                 setState({actionsAnchorEl: null});
                 func();
               }}>
-              <ListItemIcon>{icon}</ListItemIcon>
+              {icon && <ListItemIcon>{icon}</ListItemIcon>}
               <ListItemText primary={label} />
             </MenuItem>
           )),

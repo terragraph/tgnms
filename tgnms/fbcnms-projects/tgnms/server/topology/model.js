@@ -738,15 +738,18 @@ function setConfigParamsFromOverrides(topologyName, overrides) {
         const LinkConfig = nodeConfig.linkParamsOverride[macAddress];
         if (
           LinkConfig.fwParams &&
-          LinkConfig.fwParams.rxGolayIdx &&
-          LinkConfig.fwParams.txGolayIdx
+          LinkConfig.fwParams.hasOwnProperty('rxGolayIdx') &&
+          LinkConfig.fwParams.hasOwnProperty('txGolayIdx')
         ) {
           topologyConfig.golay[nodeName][macAddress] = {
             rxGolayIdx: LinkConfig.fwParams.rxGolayIdx,
             txGolayIdx: LinkConfig.fwParams.txGolayIdx,
           };
         }
-        if (LinkConfig.fwParams && LinkConfig.fwParams.controlSuperframe) {
+        if (
+          LinkConfig.fwParams &&
+          LinkConfig.fwParams.hasOwnProperty('controlSuperframe')
+        ) {
           topologyConfig.controlSuperframe[nodeName][macAddress] =
             LinkConfig.fwParams.controlSuperframe;
         }
