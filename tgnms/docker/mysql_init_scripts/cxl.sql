@@ -109,7 +109,7 @@ DELIMITER ;
 
 CREATE TABLE IF NOT EXISTS `agg_key` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `topology_id` int(11) NOT NULL COMMENT 'References topologies.id',
+  `topology_id` int(11) NOT NULL COMMENT 'References topology.id',
   `key` varchar(100) NOT NULL COMMENT 'Metric/key name',
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_name` (`topology_id`,`key`),
@@ -169,6 +169,10 @@ DROP TABLE IF EXISTS scan_results;
 
 DROP TABLE IF EXISTS event_categories;
 DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS topologies;
+DROP TABLE IF EXISTS controller_news;
+DROP TABLE IF EXISTS topology_news;
+
 
 CREATE TABLE IF NOT EXISTS `rx_scan_results` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -222,16 +226,14 @@ CREATE TABLE IF NOT EXISTS `sys_logs` (
   KEY `source_id` (`source_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS `topologies` (
+CREATE TABLE IF NOT EXISTS `topology` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
-  `initial_latitude` double NOT NULL,
-  `initial_longitude` double NOT NULL,
-  `initial_zoom_level` double NOT NULL,
-  `e2e_ip` varchar(100) NOT NULL,
-  `e2e_port` int(11) NOT NULL,
-  `api_ip` varchar(100) NOT NULL,
-  `api_port` int(11) NOT NULL,
+  `primary_controller` int(11) NOT NULL,
+  `backup_controller` int(11),
+  `site_overrides` json,
+  `wireless_controller` int(11),
+  `offline_whitelist` json,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
