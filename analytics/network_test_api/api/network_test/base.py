@@ -2,7 +2,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-from logger import Logger
 import sys
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple
@@ -12,11 +11,19 @@ from api.alias import (
     NetworkParametersType,
     ParametersType,
     RcvdStatsType,
+    ScheduleParametersType,
     TestLinksDictType,
 )
-from api.models import TestResult, TestRunExecution, TestStatus, TrafficDirection
+from api.models import (
+    TestResult,
+    TestRunExecution,
+    TestSchedule,
+    TestStatus,
+    TrafficDirection,
+)
 from django.db import transaction
 from django.utils import timezone
+from logger import Logger
 from module.beringei_time_series import TimeSeries
 from module.insights import get_test_links_metrics
 from module.routing import RoutesForNode
@@ -266,29 +273,15 @@ class RunTestGetStats:
 # functions common across tests #
 
 
+# add entries in TestResult
 def _create_db_test_records(
-    network_parameters: NetworkParametersType,
-    test_links_dict: TestLinksDictType,
-    db_queue: Queue,
+    test_links_dict: TestLinksDictType, db_queue: Queue, id: int
 ) -> TestRunExecution:
     with transaction.atomic():
-        test_run_db_obj = TestRunExecution.objects.create(
-            status=TestStatus.RUNNING.value,
-            test_code=network_parameters["test_code"],
-            topology_id=network_parameters["topology_id"],
-            topology_name=network_parameters["topology_name"],
-            session_duration=network_parameters["session_duration"],
-            test_push_rate=network_parameters["test_push_rate"],
-            protocol=network_parameters["protocol"],
-            traffic_direction=network_parameters["direction"],
-            multi_hop_parallel_sessions=network_parameters[
-                "multi_hop_parallel_sessions"
-            ],
-            multi_hop_session_iteration_count=network_parameters[
-                "multi_hop_session_iteration_count"
-            ],
-            pop_to_node_link=network_parameters["speed_test_pop_to_node_dict"],
-        )
+        test_run_db_obj = TestRunExecution.objects.filter(id=id)
+        for obj in test_run_db_obj:
+            obj.status = TestStatus.RUNNING.value
+            obj.save()
         db_queue.put(test_run_db_obj.id)
         for link in test_links_dict.values():
             link_id = TestResult.objects.create(

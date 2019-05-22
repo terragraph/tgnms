@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import json
 import logging
-from logger import Logger
 from queue import Queue
-from typing import Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from api.alias import (
     ParsedNetworkInfoType,
     ParsedReceivedJsonDataType,
+    ParsedSchedulerDataType,
     ReceivedJsonDataType,
     ValidatedMultiHopParametersType,
 )
 from api.models import Tests, TrafficDirection
-from django.http import HttpResponse
+from flask import jsonify
+from logger import Logger
 from module.topology_handler import fetch_network_info
 from terragraph_thrift.network_test.ttypes import Help
 from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
@@ -22,36 +22,55 @@ from thrift.transport import TTransport
 
 
 _log = Logger(__name__, logging.INFO).get_logger()
+DEFAULT_ACCESS_ORIGIN = {"Access-Control-Allow-Origin": "*"}
 
 
 def parse_received_json_data(
     received_json_data: ReceivedJsonDataType
-) -> ParsedReceivedJsonDataType:
+) -> Tuple[
+    ParsedReceivedJsonDataType, ParsedSchedulerDataType, ValidatedMultiHopParametersType
+]:
 
-    test_code = float(received_json_data["test_code"])
-    topology_id = int(received_json_data["topology_id"])
-    session_duration = int(received_json_data["session_duration"])
-    test_push_rate = int(received_json_data["test_push_rate"])
-    protocol = str(received_json_data["protocol"])
-
+    protocol = str(received_json_data.get("protocol", "UDP"))
     # verify that the traffic protocol is valid
     if protocol not in ["UDP", "TCP"]:
         return {
             "error": generate_http_response(
-                error=True, msg="Incorrect Protocol. Please choose between UDP and TCP"
+                error=True,
+                msg="Incorrect Protocol. Please " "choose between UDP and TCP",
             )
         }
 
-    return {
+    test_code = float(received_json_data.get("test_code", 0))
+    parsed_json_data: ParsedReceivedJsonDataType = {
         "test_code": test_code,
-        "topology_id": topology_id,
-        "session_duration": session_duration,
-        "test_push_rate": test_push_rate,
+        "topology_id": int(received_json_data.get("topology_id", 0)),
+        "session_duration": int(received_json_data.get("session_duration", 0)),
+        "test_push_rate": int(received_json_data.get("test_push_rate", 0)),
         "protocol": protocol,
     }
 
+    parsed_scheduler_data: ParsedSchedulerDataType = {
+        "cron_minute": str(received_json_data.get("cron_minute", "*")),
+        "cron_hour": str(received_json_data.get("cron_hour", "*")),
+        "cron_day_of_month": str(received_json_data.get("cron_day_of_month", "*")),
+        "cron_month": str(received_json_data.get("cron_month", "*")),
+        "cron_day_of_week": str(received_json_data.get("cron_day_of_week", "*")),
+        "priority": int(received_json_data.get("priority", 1)),
+        "asap": bool(int(received_json_data.get("asap", 1))),
+    }
 
-def validate_multi_hop_parameters(
+    # parse and validate multi-hop test parameters
+    multi_hop_parameters: ValidatedMultiHopParametersType = _validate_multi_hop_parameters(
+        received_json_data, test_code
+    )
+    if multi_hop_parameters.get("error"):
+        return multi_hop_parameters["error"]
+
+    return parsed_json_data, parsed_scheduler_data, multi_hop_parameters
+
+
+def _validate_multi_hop_parameters(
     received_json_data: ReceivedJsonDataType, test_code: float
 ) -> ValidatedMultiHopParametersType:
 
@@ -158,7 +177,7 @@ def fetch_and_parse_network_info(topology_id: int) -> ParsedNetworkInfoType:
 
 def validate_speed_test_pop_to_node_dict(
     speed_test_pop_to_node_dict: Dict[str, str], topology: Dict[str, Dict]
-) -> Dict[str, Optional[HttpResponse]]:
+) -> Dict[str, Any]:
 
     try:
         if speed_test_pop_to_node_dict:
@@ -192,17 +211,12 @@ def validate_speed_test_pop_to_node_dict(
     return {"error": False}
 
 
-def generate_http_response(
-    error: bool, msg: str, id: Optional[int] = None
-) -> HttpResponse:
-    return HttpResponse(
-        json.dumps(
-            {"error": error, "msg": msg, "id": id}
-            if id
-            else {"error": error, "msg": msg}
-        ),
-        content_type="application/json",
-    )
+def generate_http_response(error: bool, msg: str, id: Optional[int] = None) -> Tuple[str,int,Dict]:
+    if id:
+        dt = {"error": error, "msg": msg, "id": id}
+    else:
+        dt = {"error": error, "msg": msg}
+    return jsonify(dt), 200, DEFAULT_ACCESS_ORIGIN
 
 
 def get_test_run_db_obj_id(test_run_db_queue: Queue) -> None:
@@ -218,15 +232,3 @@ def serialize_to_json(obj: Help) -> str:
     prot = TSimpleJSONProtocolFactory().getProtocol(trans)
     obj.write(prot)
     return trans.getvalue().decode("utf-8")
-
-
-# TODO: fix deserialize logic
-# def deserialize_json(data):
-#     factory = TSimpleJSONProtocolFactory()
-#     return Serializer.deserialize(factory, data, network_ttypes.StartTest())
-
-# def _deserialize_json(encoded_json):
-#     dt = network_ttypes.StartTest()
-#     dt.read(encoded_json)
-#     return dt
-#     return network_ttypes.StartTest().readFromJson(encoded_json)

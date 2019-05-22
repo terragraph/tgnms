@@ -31,6 +31,7 @@ setup(
         "mysqlclient==1.3.13",
         "tabulate==0.8.3",
         "python-snappy==0.5.4"
+        "flask>=1.0.2",
     ],
     # TODO: Add unit tests
     # test_suite="analytics.tests.base",

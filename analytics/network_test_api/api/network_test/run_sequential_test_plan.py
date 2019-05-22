@@ -4,7 +4,6 @@
 import random
 import time
 from queue import Queue
-from threading import Thread
 from typing import Dict, List
 
 from api.alias import (
@@ -20,7 +19,7 @@ from api.network_test.ping import PingObj
 from api.network_test.test_network import TestNetwork
 
 
-class RunSequentialTestPlan(Thread):
+class RunSequentialTestPlan():
     """
         * controller_addr: IP address of the E2E Controller
         * controller_port: Port address of the E2E Controller
@@ -41,7 +40,6 @@ class RunSequentialTestPlan(Thread):
     def __init__(
         self, network_parameters: NetworkParametersType, db_queue: Queue
     ) -> None:
-        Thread.__init__(self)
         self.db_queue: Queue = db_queue
         self.network_parameters: NetworkParametersType = network_parameters
         self.direction: int = TrafficDirection.BIDIRECTIONAL.value

@@ -4,7 +4,6 @@
 import random
 import time
 from queue import Queue
-from threading import Thread
 from typing import List, Optional
 
 from api.alias import (
@@ -21,7 +20,7 @@ from api.network_test.test_network import TestNetwork
 from module.routing import RoutesForNode, get_routes_for_nodes
 
 
-class RunMultiHopTestPlan(Thread):
+class RunMultiHopTestPlan():
     """
         * controller_addr: IP address of the E2E Controller
         * controller_port: Port address of the E2E Controller
@@ -50,7 +49,6 @@ class RunMultiHopTestPlan(Thread):
     def __init__(
         self, network_parameters: NetworkParametersType, db_queue: Queue
     ) -> None:
-        Thread.__init__(self)
         self.db_queue: Queue = db_queue
         self.network_parameters: NetworkParametersType = network_parameters
         self.parameters: ParametersType = {}

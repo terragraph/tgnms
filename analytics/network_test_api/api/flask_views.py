@@ -2,25 +2,102 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import json
-import time
-from queue import Queue
+import logging
+from threading import Event
+from typing import Dict, Tuple
 
 from api import base
 from api.models import TestRunExecution, Tests, TestStatus, TrafficDirection
-from api.network_test import (
-    run_multi_hop_test_plan,
-    run_parallel_test_plan,
-    run_sequential_test_plan,
-)
-from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
+from api.network_test import scheduler
+from api.network_test.mysql_helper import MySqlHelper, read_test_schedule_topology_ids
+from flask import Flask, jsonify, request
+from logger import Logger
 from module.mysql_db_access import MySqlDbAccess
 from terragraph_thrift.network_test import ttypes as network_ttypes
 
 
-@csrf_exempt
-def start_test(request: WSGIRequest) -> HttpResponse:
+app = Flask("Network Test")
+sched_event: Dict = {}
+mysql_helper: Dict = {}
+
+_log = Logger(__name__, logging.DEBUG).get_logger()
+
+
+def flask_view(host: str, port: int) -> None:
+    global sched_event
+    global mysql_helper
+
+    # start scheduler thread for existing scheduled jobs
+    # this allows schedule to survive restart
+    tsobjs = read_test_schedule_topology_ids()
+    if tsobjs:
+        for tsobj in tsobjs:
+            topology_id = tsobj["test_run_execution__topology_id"]
+            _log.debug(
+                "There are {} scheduled jobs for topology id {}".format(
+                    tsobj["tid_count"], topology_id
+                )
+            )
+            mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
+            parsed_network_info = base.fetch_and_parse_network_info(topology_id)
+            if parsed_network_info.get("error"):
+                _log.error(
+                    "fetch_and_parse_network_info returned error {}".format(
+                        parsed_network_info["error"]
+                    )
+                )
+                continue
+            topology_name = parsed_network_info["topology_name"]
+
+            _log.info("Starting scheduler thread for {} ...".format(topology_name))
+            mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
+            sched_event[topology_id]: Event = Event()
+            scheduler_obj = scheduler.Scheduler(
+                sched_event=sched_event[topology_id],
+                thread_id=topology_id,
+                thread_name=topology_name,
+                mysql_helper=mysql_helper[topology_id],
+            )
+            scheduler_obj.start()
+
+    app.run(host=host, port=port)
+
+
+@app.route("/")
+def hello() -> Tuple[str,int,Dict]:
+    return base.generate_http_response(error=False, msg="Success")
+
+
+# end-point for test only - creates test scheduler thread if not already
+# created and sends it an event
+@app.route("/api/test_scheduler/", methods=["GET"])
+def test_scheduler() -> Tuple[str,int,Dict]:
+    global sched_event
+    global mysql_helper
+
+    topology_id = 0
+    topology_name = "test scheduler thread"
+    if topology_id not in sched_event:
+        _log.info("Starting test scheduler and test plan threads")
+        mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
+        sched_event[topology_id]: Event = Event()
+        scheduler_obj = scheduler.Scheduler(
+            sched_event=sched_event[topology_id],
+            thread_id=topology_id,
+            thread_name=topology_name,
+            mysql_helper=mysql_helper[topology_id],
+        )
+        scheduler_obj.start()
+    else:
+        _log.info("Test scheduler and test plan threads already started")
+
+    _log.info("Sending event to test scheduler thread")
+    sched_event[topology_id].set()
+    return base.generate_http_response(error=False, msg="testing scheduler!")
+
+
+@app.route("/api/start_test/", methods=["POST"])
+def start_test() -> Tuple[str,int,Dict]:
     """
     This function returns json object which have 'error' and 'msg' key.
     If the test is already running or any exception occurred then the
@@ -28,150 +105,93 @@ def start_test(request: WSGIRequest) -> HttpResponse:
     reason. otherwise, The error is false and the msg will return test
     run execution id
     """
+    global sched_event
+    global mysql_helper
+
     try:
-        received_json_data = json.loads(request.body.decode("utf-8"))
+        if not request.method == "POST":
+            return jsonify({"err": "wrong method"}), 400, base.DEFAULT_ACCESS_ORIGIN
+        received_json_data = request.get_json(force=True)
     except Exception:
         return base.generate_http_response(
             error=True, msg="Invalid Content-Type, please format the request as JSON."
         )
 
     # parse received_json_data
-    parsed_json_data = base.parse_received_json_data(received_json_data)
+    parsed_json_data, parsed_scheduler_data, multi_hop_parameters = base.parse_received_json_data(
+        received_json_data
+    )
+
     if parsed_json_data.get("error"):
         return parsed_json_data["error"]
-    test_code = parsed_json_data["test_code"]
     topology_id = parsed_json_data["topology_id"]
-    session_duration = parsed_json_data["session_duration"]
-    test_push_rate = parsed_json_data["test_push_rate"]
-    protocol = parsed_json_data["protocol"]
 
-    # parse and validate multi-hop test parameters
-    multi_hop_parameters = base.validate_multi_hop_parameters(
-        received_json_data, test_code
-    )
-    if multi_hop_parameters.get("error"):
-        return multi_hop_parameters["error"]
-    traffic_direction = multi_hop_parameters["traffic_direction"]
-    multi_hop_parallel_sessions = multi_hop_parameters["multi_hop_parallel_sessions"]
-    multi_hop_session_iteration_count = multi_hop_parameters[
-        "multi_hop_session_iteration_count"
-    ]
-    speed_test_pop_to_node_dict = multi_hop_parameters["speed_test_pop_to_node_dict"]
+    err = scheduler.validate_schedule_parameters(parsed_scheduler_data)
+    if err:
+        return err
 
-    # fetch Controller info and Topology
+    # don't allow another ASAP job to be scheduled if there are queued tests.
+    # this prevents a user from piling on ASAP tests without knowing.
+    if parsed_scheduler_data["asap"] and (topology_id in mysql_helper):
+        tsp = mysql_helper[topology_id].read_test_schedule(asap=1)
+        if tsp:
+            _log.info(
+                "There is already an ASAP test scheduled for topology id {}. "
+                "Returning ...".format(topology_id)
+            )
+            return base.generate_http_response(
+                error=True, msg="There is already an ASAP test scheduled."
+            )
+
     parsed_network_info = base.fetch_and_parse_network_info(topology_id)
     if parsed_network_info.get("error"):
         return parsed_network_info["error"]
-    network_info = parsed_network_info["network_info"]
-    topology = parsed_network_info["topology"]
     topology_name = parsed_network_info["topology_name"]
-    controller_addr = parsed_network_info["controller_addr"]
-    controller_port = parsed_network_info["controller_port"]
 
-    # verify that speed_test_pop_to_node_dict is valid
-    validated_speed_test_pop_to_node_dict = base.validate_speed_test_pop_to_node_dict(
-        speed_test_pop_to_node_dict, topology
-    )
-    if validated_speed_test_pop_to_node_dict.get("error"):
-        return validated_speed_test_pop_to_node_dict["error"]
-
-    if not test_code:
-        return base.generate_http_response(error=True, msg="Test Code is required")
+    # start the scheduler thread if not already started
+    # there is one scheduler thread per network
+    if topology_id not in sched_event:
+        _log.info("Starting scheduler thread for {} ...".format(topology_name))
+        mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
+        sched_event[topology_id]: Event = Event()
+        scheduler_obj = scheduler.Scheduler(
+            sched_event=sched_event[topology_id],
+            thread_id=topology_id,
+            thread_name=topology_name,
+            mysql_helper=mysql_helper[topology_id],
+        )
+        scheduler_obj.start()
     else:
-        try:
-            # Check if any stale tests are still running
-            test_run_list = TestRunExecution.objects.filter(
-                status__in=[TestStatus.RUNNING.value]
+        _log.debug(
+            "Scheduler and test plan thread for {} already started".format(
+                topology_name
             )
-            if test_run_list.count() >= 1:
-                for obj in test_run_list:
-                    if time.time() > obj.expected_end_time:
-                        obj.status = TestStatus.ABORTED.value
-                        obj.save()
+        )
 
-            # Check if we are already running the test.
-            # If so, ignore this request and return appropriate error
-            test_run_list = TestRunExecution.objects.filter(
-                status__in=[TestStatus.RUNNING.value]
-            )
-            if test_run_list.count() >= 1:
-                return base.generate_http_response(
-                    error=True,
-                    msg=(
-                        "There is a test running on the network. "
-                        + "Please wait until it finishes."
-                    ),
-                )
-            else:
-                network_parameters = {
-                    "controller_addr": controller_addr,
-                    "controller_port": controller_port,
-                    "network_info": network_info,
-                    "test_code": test_code,
-                    "topology_id": topology_id,
-                    "topology_name": topology_name,
-                    "topology": topology,
-                    "session_duration": session_duration,
-                    "test_push_rate": test_push_rate,
-                    "protocol": protocol,
-                    "multi_hop_parallel_sessions": multi_hop_parallel_sessions,
-                    "multi_hop_session_iteration_count": multi_hop_session_iteration_count,
-                    "direction": traffic_direction,
-                    "speed_test_pop_to_node_dict": speed_test_pop_to_node_dict,
-                }
-                # Run the test plan
-                test_run_db_queue: Queue = Queue()
-                if test_code == Tests.PARALLEL_TEST.value:
-                    run_tp = run_parallel_test_plan.RunParallelTestPlan(
-                        network_parameters=network_parameters,
-                        db_queue=test_run_db_queue,
-                    )
-                    run_tp.start()
-                    test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
-                    return base.generate_http_response(
-                        error=False,
-                        msg="Started Parallel Link Health Test.",
-                        id=test_run_db_obj_id,
-                    )
-                elif test_code == Tests.SEQUENTIAL_TEST.value:
-                    run_tp = run_sequential_test_plan.RunSequentialTestPlan(
-                        network_parameters=network_parameters,
-                        db_queue=test_run_db_queue,
-                    )
-                    run_tp.start()
-                    test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
-                    return base.generate_http_response(
-                        error=False,
-                        msg="Started Sequential Link Health Test.",
-                        id=test_run_db_obj_id,
-                    )
-                elif test_code == Tests.MULTI_HOP_TEST.value:
-                    run_tp = run_multi_hop_test_plan.RunMultiHopTestPlan(
-                        network_parameters=network_parameters,
-                        db_queue=test_run_db_queue,
-                    )
-                    run_tp.start()
-                    test_run_db_obj_id = base.get_test_run_db_obj_id(test_run_db_queue)
-                    msg = (
-                        "Started Speed Test."
-                        if speed_test_pop_to_node_dict
-                        else "Started Multi-hop Test."
-                    )
-                    return base.generate_http_response(
-                        error=False, msg=msg, id=test_run_db_obj_id
-                    )
-                else:
-                    return base.generate_http_response(
-                        error=True, msg="Incorrect test_code.", id=test_run_db_obj_id
-                    )
-        except Exception as e:
-            return base.generate_http_response(error=True, msg=str(e))
+    if topology_id not in mysql_helper:
+        _log.critical("MySqlHelper not setup for topology_id {}".format(topology_id))
+    else:
+        tre_id = mysql_helper[topology_id].create_test_run_execution_test_schedule(
+            parsed_json_data=parsed_json_data,
+            multi_hop_parameters=multi_hop_parameters,
+            parsed_network_info=parsed_network_info,
+            parsed_scheduler_data=parsed_scheduler_data,
+        )
+
+    # send event to scheduler - tells scheduler to read the db and
+    # schedule the test
+    _log.info("Sending event to Scheduler for {}".format(topology_name))
+    sched_event[topology_id].set()
+
+    return base.generate_http_response(error=False, msg="Scheduled test", id=tre_id)
 
 
-@csrf_exempt
-def stop_test(request: WSGIRequest) -> HttpResponse:
+# !!!! TODO - this needs a topology id
+@app.route("/api/stop_test/", methods=["GET"])
+def stop_test() -> Tuple[str,int,Dict]:
     """
-    This function returns json object which have 'error' and 'msg' key.
+    This function returns json object which have 'error' and 'msg' key along
+    with 'id' of the stopped test.
     """
     msg = ""
     try:
@@ -181,6 +201,7 @@ def stop_test(request: WSGIRequest) -> HttpResponse:
         )
         if test_run_list.count() >= 1:
             for obj in test_run_list:
+                _log.debug("Aborting test {}".format(obj.id))
                 obj.status = TestStatus.ABORTED.value
                 obj.save()
                 msg += "Test run execution stopped."
@@ -193,8 +214,8 @@ def stop_test(request: WSGIRequest) -> HttpResponse:
         return base.generate_http_response(error=True, msg=str(e))
 
 
-@csrf_exempt
-def help(request: WSGIRequest) -> HttpResponse:
+@app.route("/api/help/", methods=["GET"])
+def help() -> Tuple[str,int,Dict]:
     """
     This function returns json object which has the Network Test API information
     """
@@ -226,7 +247,7 @@ def help(request: WSGIRequest) -> HttpResponse:
     session_duration = network_ttypes.Parameter(
         label="Single iPerf Session Duration",
         key="session_duration",
-        value="300",
+        value="60",
         meta=session_duration_meta,
     )
 
@@ -374,8 +395,8 @@ def help(request: WSGIRequest) -> HttpResponse:
     )
 
     supported_test_plans = [
-        parallel_test_plan,
         sequential_test_plan,
+        parallel_test_plan,
         multi_hop_test_plan,
     ]
     stop_test_info = network_ttypes.StopTest(url_ext=stop_test_url_ext)
@@ -384,6 +405,6 @@ def help(request: WSGIRequest) -> HttpResponse:
         start_test=supported_test_plans, stop_test=stop_test_info
     )
 
-    return HttpResponse(
-        base.serialize_to_json(context_data), content_type="application/json"
-    )
+    resp: str = base.serialize_to_json(context_data)
+
+    return resp, 200, base.DEFAULT_ACCESS_ORIGIN

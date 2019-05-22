@@ -2,12 +2,10 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-from logger import Logger
 import random
 import time
 from collections import defaultdict
 from queue import Queue
-from threading import Thread
 from typing import Dict, List, Optional, Tuple
 
 from api.alias import (
@@ -21,6 +19,7 @@ from api.network_test import base
 from api.network_test.iperf import IperfObj
 from api.network_test.ping import PingObj
 from api.network_test.test_network import TestNetwork
+from logger import Logger
 from module.beringei_time_series import TimeSeries
 from module.insights import get_test_links_metrics
 
@@ -28,7 +27,7 @@ from module.insights import get_test_links_metrics
 _log = Logger(__name__, logging.INFO).get_logger()
 
 
-class RunParallelTestPlan(Thread):
+class RunParallelTestPlan:
     """
         * controller_addr: IP address of the E2E Controller
         * controller_port: Port address of the E2E Controller
@@ -49,7 +48,6 @@ class RunParallelTestPlan(Thread):
     def __init__(
         self, network_parameters: NetworkParametersType, db_queue: Queue
     ) -> None:
-        Thread.__init__(self)
         self.db_queue: Queue = db_queue
         self.network_parameters: NetworkParametersType = network_parameters
         self.direction: int = TrafficDirection.BIDIRECTIONAL.value

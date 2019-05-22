@@ -29,6 +29,8 @@ class TestStatus(enum.Enum):
     FINISHED = 2
     ABORTED = 3
     FAILED = 4
+    SCHEDULED = 5
+    QUEUED = 6
 
 
 class TestRunExecution(models.Model):
@@ -135,3 +137,17 @@ class TestResult(models.Model):
     iperf_server_blob = models.TextField(null=True, blank=True)
     is_ecmp = models.BooleanField(default=False)
     route_changed_count = models.IntegerField(default=0)
+
+
+class TestSchedule(models.Model):
+    test_run_execution = models.ForeignKey(
+        TestRunExecution, on_delete=models.CASCADE, null=True
+    )
+    cron_minute = models.CharField(default="*", max_length=120)
+    cron_hour = models.CharField(default="*", max_length=120)
+    cron_day_of_month = models.CharField(default="*", max_length=120)
+    cron_month = models.CharField(default="*", max_length=120)
+    cron_day_of_week = models.CharField(default="*", max_length=120)
+    priority = models.IntegerField(null=True)
+    asap = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
