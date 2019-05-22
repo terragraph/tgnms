@@ -16,7 +16,7 @@ from api.network_test.mysql_helper import MySqlHelper
 from logger import Logger
 
 
-_log = Logger(__name__, logging.INFO).get_logger()
+_log = Logger(__name__, logging.DEBUG).get_logger()
 
 
 def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None:
@@ -29,9 +29,14 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
     """
 
     # read from the db
-    test_description = mysql_helper.read_test_run_execution(
-        id=test_run_execution_id
-    )
+    try:
+        test_description = mysql_helper.read_test_run_execution(
+            id=test_run_execution_id
+        )[test_run_execution_id]
+    except Exception as e:
+        _log.error("Unexpected error reading test_run_execution {}".format(e))
+        return
+
     if not test_description:
         _log.error(
             "No test defined in TestRunExecution with id {}".format(
@@ -51,18 +56,19 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
     protocol = parsed_json_data["protocol"]
 
     traffic_direction = multi_hop_parameters["traffic_direction"]
-    multi_hop_parallel_sessions = multi_hop_parameters[
-        "multi_hop_parallel_sessions"
-    ]
+    multi_hop_parallel_sessions = multi_hop_parameters["multi_hop_parallel_sessions"]
     multi_hop_session_iteration_count = multi_hop_parameters[
         "multi_hop_session_iteration_count"
     ]
-    speed_test_pop_to_node_dict = multi_hop_parameters[
-        "speed_test_pop_to_node_dict"
-    ]
+    speed_test_pop_to_node_dict = multi_hop_parameters["speed_test_pop_to_node_dict"]
 
     # fetch Controller info and Topology
+    _log.debug(
+        "Calling fetch_and_parse_network_info with "
+        "topology_id = {}".format(topology_id)
+    )
     parsed_network_info = base.fetch_and_parse_network_info(topology_id)
+    _log.debug("Returned from calling fetch_and_parse_network_info")
     if parsed_network_info.get("error"):
         _log.error(
             "Unexpected error returned from fetching network info {}".format(
@@ -95,9 +101,17 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
         return
     else:
         try:
-            num_stale_tests = (
-                mysql_helper.abort_test_run_execution_stale_aborted()
+            test_run_dict = mysql_helper.read_test_run_execution(
+                status=TestStatus.RUNNING.value
             )
+            for id, test_run in test_run_dict.items():
+                if not test_run["expected_end_time"] or (
+                    time.time() > test_run["expected_end_time"]
+                ):
+                    mysql_helper.update_test_run_execution(
+                        id=id, status=TestStatus.ABORTED.value
+                    )
+            num_stale_tests = len(test_run_dict)
             if num_stale_tests > 0:
                 _log.info(
                     "Deleted {} stale running tests on {}".format(
@@ -108,9 +122,7 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
                 _log.debug("No stale tests running")
 
             # check for running tests - should be impossible
-            tre = mysql_helper.read_test_run_execution(
-                status=TestStatus.RUNNING.value
-            )
+            tre = mysql_helper.read_test_run_execution(status=TestStatus.RUNNING.value)
             if tre:
                 _log.error("Attempt to run test while test is running")
                 return
@@ -138,18 +150,21 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
 
                 if test_code == Tests.PARALLEL_TEST.value:
                     run_tp = run_parallel_test_plan.RunParallelTestPlan(
+                        test_run_execution_id=test_run_execution_id,
                         network_parameters=network_parameters,
                         db_queue=test_run_db_queue,
                     )
                     run_tp.run()
                 elif test_code == Tests.SEQUENTIAL_TEST.value:
                     run_tp = run_sequential_test_plan.RunSequentialTestPlan(
+                        test_run_execution_id=test_run_execution_id,
                         network_parameters=network_parameters,
                         db_queue=test_run_db_queue,
                     )
                     run_tp.run()
                 elif test_code == Tests.MULTI_HOP_TEST.value:
                     run_tp = run_multi_hop_test_plan.RunMultiHopTestPlan(
+                        test_run_execution_id=test_run_execution_id,
                         network_parameters=network_parameters,
                         db_queue=test_run_db_queue,
                     )
@@ -162,13 +177,11 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
                         )
                     )
                     mysql_helper.update_test_run_execution(
-                        test_run_execution_id,
-                        status=TestStatus.RUNNING.value,
+                        test_run_execution_id, status=TestStatus.RUNNING.value
                     )
                     time.sleep(session_duration)
                     mysql_helper.update_test_run_execution(
-                        test_run_execution_id,
-                        status=TestStatus.FINISHED.value,
+                        test_run_execution_id, status=TestStatus.FINISHED.value
                     )
         except Exception as e:
             _log.error("Exception running test {}".format(e))

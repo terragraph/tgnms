@@ -3,7 +3,7 @@
 
 import logging
 from queue import Queue
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 from api.alias import (
     ParsedNetworkInfoType,
@@ -21,7 +21,7 @@ from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
 from thrift.transport import TTransport
 
 
-_log = Logger(__name__, logging.INFO).get_logger()
+_log = Logger(__name__, logging.DEBUG).get_logger()
 DEFAULT_ACCESS_ORIGIN = {"Access-Control-Allow-Origin": "*"}
 
 
@@ -31,15 +31,19 @@ def parse_received_json_data(
     ParsedReceivedJsonDataType, ParsedSchedulerDataType, ValidatedMultiHopParametersType
 ]:
 
-    protocol = str(received_json_data.get("protocol", "UDP"))
+    protocol = str(received_json_data.get("protocol", "UDP")).upper()
     # verify that the traffic protocol is valid
     if protocol not in ["UDP", "TCP"]:
-        return {
-            "error": generate_http_response(
-                error=True,
-                msg="Incorrect Protocol. Please " "choose between UDP and TCP",
-            )
-        }
+        return (
+            {
+                "error": {
+                    "error": True,
+                    "msg": "Incorrect Protocol. Please choose between UDP and TCP",
+                }
+            },
+            {},
+            {},
+        )
 
     test_code = float(received_json_data.get("test_code", 0))
     parsed_json_data: ParsedReceivedJsonDataType = {
@@ -65,7 +69,7 @@ def parse_received_json_data(
         received_json_data, test_code
     )
     if multi_hop_parameters.get("error"):
-        return multi_hop_parameters["error"]
+        return multi_hop_parameters["error"], {}, {}
 
     return parsed_json_data, parsed_scheduler_data, multi_hop_parameters
 
@@ -86,12 +90,12 @@ def _validate_multi_hop_parameters(
         and test_code == Tests.MULTI_HOP_TEST.value
     ):
         return {
-            "error": generate_http_response(
-                error=True,
-                msg="Invalid traffic direction. Options: {}".format(
-                    str(valid_traffic_directions)
+            "error": {
+                "error": True,
+                "msg": "Invalid traffic direction. Options: {}".format(
+                    valid_traffic_directions
                 ),
-            )
+            }
         }
 
     # validate multi_hop_parallel_sessions parameter
@@ -101,9 +105,10 @@ def _validate_multi_hop_parameters(
     )
     if multi_hop_parallel_sessions and multi_hop_parallel_sessions < 1:
         return {
-            "error": generate_http_response(
-                error=True, msg="multi_hop_parallel_sessions has to be greater than 0."
-            )
+            "error": {
+                "error": True,
+                "msg": "multi_hop_parallel_sessions has to be greater than 0.",
+            }
         }
 
     # validate multi_hop_session_iteration_count parameter
@@ -127,43 +132,48 @@ def fetch_and_parse_network_info(topology_id: int) -> ParsedNetworkInfoType:
     # fetch Controller info and Topology
     try:
         network_info = fetch_network_info(topology_id)
+        _log.debug(
+            "fetch_network_info returned with {} results".format(len(network_info))
+        )
         topology = network_info[topology_id]["topology"]
         topology_name = network_info[topology_id]["topology"]["name"]
         controller_addr = network_info[topology_id]["e2e_ip"]
         controller_port = network_info[topology_id]["e2e_port"]
-    except Exception:
+    except Exception as e:
+        _log.error("Error fetching topology {}".format(e))
         return {
-            "error": generate_http_response(
-                error=True,
-                msg=(
+            "error": {
+                "error": True,
+                "msg": (
                     "Cannot find the configuration file. Please verify that "
                     + "the Topologies have been correctly added to the DB"
                 ),
-            )
+            }
         }
 
     # verify that Topology is not None
     if not topology:
+        _log.error("Topology is empty")
         return {
-            "error": generate_http_response(
-                error=True,
-                msg=(
+            "error": {
+                "error": True,
+                "msg": (
                     "Topology not found. "
                     + "Please verify that it is correctly set in E2E Config."
                 ),
-            )
+            }
         }
 
     # verify that Controller info is not None
     if not controller_addr or not controller_port:
         return {
-            "error": generate_http_response(
-                error=True,
-                msg=(
+            "error": {
+                "error": True,
+                "msg": (
                     "Controller IP/Port not found. "
                     + "Please verify that it is correctly set in the DB"
                 ),
-            )
+            }
         }
 
     return {
@@ -177,7 +187,7 @@ def fetch_and_parse_network_info(topology_id: int) -> ParsedNetworkInfoType:
 
 def validate_speed_test_pop_to_node_dict(
     speed_test_pop_to_node_dict: Dict[str, str], topology: Dict[str, Dict]
-) -> Dict[str, Any]:
+) -> Dict[str, Union[Dict, bool]]:
 
     try:
         if speed_test_pop_to_node_dict:
@@ -186,37 +196,29 @@ def validate_speed_test_pop_to_node_dict(
                 for node in topology["nodes"]
             ):
                 return {
-                    "error": generate_http_response(
-                        error=True,
-                        msg="Speed test POP name does not belong in the Topology.",
-                    )
+                    "error": {
+                        "error": True,
+                        "msg": "Speed test POP name does not belong in the Topology.",
+                    }
                 }
             if not any(
                 node["name"] == speed_test_pop_to_node_dict["node"]
                 for node in topology["nodes"]
             ):
                 return {
-                    "error": generate_http_response(
-                        error=True,
-                        msg="Speed test Node name does not belong in the Topology.",
-                    )
+                    "error": {
+                        "error": True,
+                        "msg": "Speed test Node name does not belong in the Topology.",
+                    }
                 }
     except KeyError as err:
         return {
-            "error": generate_http_response(
-                error=True,
-                msg="KeyError in parsing pop_to_node_link. Error: {}".format(err),
-            )
+            "error": {
+                "error": True,
+                "msg": "KeyError in parsing pop_to_node_link. Error: {}".format(err),
+            }
         }
     return {"error": False}
-
-
-def generate_http_response(error: bool, msg: str, id: Optional[int] = None) -> Tuple[str,int,Dict]:
-    if id:
-        dt = {"error": error, "msg": msg, "id": id}
-    else:
-        dt = {"error": error, "msg": msg}
-    return jsonify(dt), 200, DEFAULT_ACCESS_ORIGIN
 
 
 def get_test_run_db_obj_id(test_run_db_queue: Queue) -> None:

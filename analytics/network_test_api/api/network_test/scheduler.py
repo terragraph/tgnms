@@ -116,36 +116,39 @@ class Scheduler(Thread):
     # otherwise, delete only test schedule row
     def _delete_stale_tests(self, test_schedule_id: int, stale_time: int) -> None:
         # read test_run_execution JOIN test schedule tables
-        ts_obj = self.mysql_helper.join_test_schedule_test_run_execution(
-            test_schedule_id
-        )
-        ts_id = ts_obj.id
-        tre_id = ts_obj.test_run_execution.id
-        _log.debug(
-            "Reading TestSchedule and TestRunExecution JOIN; ts_id {}, tre_id {}".format(
-                ts_id, tre_id
+        try:
+            ts_dct = self.mysql_helper.join_test_schedule_test_run_execution(
+                id=test_schedule_id
+            )[test_schedule_id]
+            ts_id = ts_dct["id"]
+            tre_id = ts_dct["test_run_execution"]["id"]
+            _log.debug(
+                "Reading TestSchedule and TestRunExecution JOIN; ts_id {}, tre_id {}".format(
+                    ts_id, tre_id
+                )
             )
-        )
 
-        tm = datetime.now()
-        unix_time_now = time.mktime(tm.timetuple())
-        dbtime = ts_obj.created_at
-        unix_time_db = time.mktime(dbtime.timetuple())
-        if unix_time_now - unix_time_db > stale_time:
-            if ts_obj.test_run_execution.status == TestStatus.SCHEDULED.value:
-                _log.info(
-                    "Deleting stale test run execution id {}, test schedule id {}".format(
-                        tre_id, ts_id
+            tm = datetime.now()
+            unix_time_now = time.mktime(tm.timetuple())
+            dbtime = ts_dct["created_at"]
+            unix_time_db = time.mktime(dbtime.timetuple())
+            if unix_time_now - unix_time_db > stale_time:
+                if ts_dct["test_run_execution"]["status"] == TestStatus.SCHEDULED.value:
+                    _log.info(
+                        "Deleting stale test run execution id {}, test schedule id {}".format(
+                            tre_id, ts_id
+                        )
                     )
-                )
-                # deletes TestRunExecution row and all foreign associated rows
-                self.mysql_helper.delete_test_run_execution_row(id=tre_id)
-            else:
-                _log.info(
-                    "Deleting schedule id {} (test is running or ran)".format(ts_id)
-                )
-                # only delete row of TestSchedule
-                self.mysql_helper.delete_test_schedule_row(id=ts_id)
+                    # deletes TestRunExecution row and all foreign associated rows
+                    self.mysql_helper.delete_test_run_execution(id=tre_id)
+                else:
+                    _log.info(
+                        "Deleting schedule id {} (test is running or ran)".format(ts_id)
+                    )
+                    # only delete row of TestSchedule
+                    self.mysql_helper.delete_test_schedule(id=ts_id)
+        except Exception as e:
+            _log.error("Error accessing the joined tables {}".format(e))
 
     # function just for printing
     def _print_queue(self) -> None:
@@ -226,32 +229,35 @@ class Scheduler(Thread):
         )
 
         # delete row from schedule if it is ASAP
-        tsps = self.mysql_helper.read_test_schedule(id=test_schedule_id)
-        if not tsps:
-            # should never happen - indicates error with logic
-            _log.critical(
-                "Test schedule id not present in table {}".format(test_schedule_id),
-            )
-            return
-
-        elif tsps[test_schedule_id]["asap"]:
-            _log.info("Deleting ASAP test schedule with id {}".format(test_schedule_id))
-            self.mysql_helper.delete_test_schedule_row(id=test_schedule_id)
-            self.mysql_helper.update_test_run_execution(
-                id=test_run_execution_id, status=TestStatus.QUEUED.value
-            )
-        else:
-            # make a copy of the test_run_execution row; if test is not ASAP
-            # then it will be scheduled again
-            tre = self.mysql_helper.read_test_run_execution(id=test_run_execution_id)
-            tre["status"] = TestStatus.QUEUED.value
-            tre.pop("id")  # need to delete id to prevent duplicate id error
-            test_run_execution_id = self.mysql_helper.create_test_run_execution(**tre)
-            _log.info(
-                "Created new test run execution row; id = {}".format(
-                    test_run_execution_id
+        try:
+            tsps = self.mysql_helper.read_test_schedule(id=test_schedule_id)
+            if tsps[test_schedule_id]["asap"]:
+                _log.info(
+                    "Deleting ASAP test schedule with id {}".format(test_schedule_id)
                 )
-            )
+                self.mysql_helper.delete_test_schedule(id=test_schedule_id)
+                self.mysql_helper.update_test_run_execution(
+                    id=test_run_execution_id, status=TestStatus.QUEUED.value
+                )
+            else:
+                # make a copy of the test_run_execution row; if test is not ASAP
+                # then it will be scheduled again
+                tre = self.mysql_helper.read_test_run_execution(
+                    id=test_run_execution_id
+                )[test_run_execution_id]
+                tre["status"] = TestStatus.QUEUED.value
+                tre.pop("id")  # need to delete id to prevent duplicate id error
+                test_run_execution_id = self.mysql_helper.create_test_run_execution(
+                    **tre
+                )
+                _log.info(
+                    "Created new test run execution row; id = {}".format(
+                        test_run_execution_id
+                    )
+                )
+        except KeyError as e:
+            _log.critical("KeyError when reading mysql {}", format(e))
+            return
 
         _log.debug(
             "Running test with test run execution id {}".format(test_run_execution_id)
@@ -289,7 +295,7 @@ class Scheduler(Thread):
     # function returns a list of integers representing the days, hours, ...
     # for days of week, 0 = monday, 6 = sunday
     # this does not support words for months (e.g. "august")
-    def _decode_cron_entry(self, cron_field: str, dow: bool=False) -> list:
+    def _decode_cron_entry(self, cron_field: str, dow: bool = False) -> list:
         if cron_field is "*":
             return ["*"]
 
@@ -539,53 +545,54 @@ class Scheduler(Thread):
 
         return unix_time
 
+
 # does a regex check of the cron fields and range check for priority
 # regex checks are not perfect, doesn't check for, e.g. 59-34
-def validate_schedule_parameters(tsp: Dict) -> Optional[Tuple[str,int,Dict]]:
+def validate_schedule_parameters(tsp: Dict) -> Optional[Tuple[str, int, Dict]]:
     # check validity
     if not _validate_cron_minute(tsp["cron_minute"]):
         _log.error("Invalid cron minute {}".format(tsp["cron_minute"]))
-        return base.generate_http_response(
-            error=True,
-            msg="Invalid cron_minute - must be *, (0-59), "
+        return {
+            "error": True,
+            "msg": "Invalid cron_minute - must be *, (0-59), "
             "or comma/hyphen separated list of (0-59)",
-        )
+        }
 
     if not _validate_cron_hour(tsp["cron_hour"]):
         _log.error("Invalid cron hour {}".format(tsp["cron_hour"]))
-        return base.generate_http_response(
-            error=True,
-            msg="Invalid cron_hour - must be *, (0-23), "
+        return {
+            "error": True,
+            "msg": "Invalid cron_hour - must be *, (0-23), "
             "or comma/hyphen separated list of (0-23)",
-        )
+        }
 
     if not _validate_cron_day_of_week(tsp["cron_day_of_week"]):
         _log.error("Invalid cron day of week {}".format(tsp["cron_day_of_week"]))
-        return base.generate_http_response(
-            error=True,
-            msg="Invalid cron_day_of_week - valid entries are "
+        return {
+            "error": True,
+            "msg": "Invalid cron_day_of_week - valid entries are "
             "integer (0-6) or full or 3-letter day "
             "or comma/hyphen separated list of valid entries or *",
-        )
+        }
 
     if not _validate_cron_day_of_month(tsp["cron_day_of_month"]):
         _log.error("Invalid cron day of month {}".format(tsp["cron_day_of_month"]))
-        return base.generate_http_response(
-            error=True,
-            msg="Invalid cron_day_of_month - must be *, (1-31), "
+        return {
+            "error": True,
+            "msg": "Invalid cron_day_of_month - must be *, (1-31), "
             "or comma/hyphen separated list of (1-31)",
-        )
+        }
 
     if not _validate_cron_month(tsp["cron_month"]):
         _log.error("Invalid cron month {}".format(tsp["cron_month"]))
-        return base.generate_http_response(
-            error=True,
-            msg="Invalid cron_month - must be *, (1-12) "
+        return {
+            "error": True,
+            "msg": "Invalid cron_month - must be *, (1-12) "
             "or comma/hyphen separated list of (1-12)",
-        )
+        }
 
     if not tsp["asap"] and tsp["priority"] < 1:
-        return base.generate_http_response(error=True, msg="Priority must be >= 1")
+        return {"error": True, "msg": "Priority must be >= 1"}
 
     return None
 

@@ -6,6 +6,15 @@
 namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.network_test
 
+// DELETE means completely delete the scheduled row
+// SUSPEND means keep the row but don't include it in the schedule
+// ENABLE enables if a row is SUSPENDed
+enum ModifyInstruction {
+  DELETE = 100
+  SUSPEND = 200
+  ENABLE = 300
+}
+
 // label: Name of the Parameter inside Drop Down
 // value: Value of the Parameter inside Drop Down
 struct DropDown {
@@ -65,8 +74,22 @@ struct StartTest {
 }
 
 // url_ext: URL extension associated with Start Test
+// topology_id: id associated with this network
 struct StopTest {
   1: optional string url_ext;
+  2: i32 topology_id;
+}
+
+
+// delete or suspend a schedule row or all rows
+// if test_schedule_id is present, then instruction applies only to this row
+// elif topology_id is present, instruction applies to all tests for this network
+// instruction is whether to delete, disable, or enable the specified test(s)
+struct ModifyScheduleRow {
+  1: optional string url_ext;
+  2: optional i32 test_scheduled_id;
+  3: optional i32 topology_id;
+  4: Parameter instruction;
 }
 
 // start_test: List of Help information about different tests that
@@ -75,4 +98,5 @@ struct StopTest {
 struct Help {
   1: list<StartTest> start_test;
   2: StopTest stop_test;
+  3: ModifyScheduleRow modify_sched;
 }

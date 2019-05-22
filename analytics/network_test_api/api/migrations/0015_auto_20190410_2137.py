@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('cron_day_of_week', models.CharField(default='', max_length=120)),
                 ('priority', models.IntegerField(null=True)),
                 ('asap', models.BooleanField(default=True)),
-                ('created_at' = models.DateTimeField(auto_now_add=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.AlterField(

@@ -33,7 +33,7 @@ from thrift.TSerialization import deserialize, serialize
 from zmq.sugar.socket import Socket
 
 
-_log = Logger(__name__, logging.INFO).get_logger()
+_log = Logger(__name__, logging.DEBUG).get_logger()
 
 
 class Base:
@@ -278,10 +278,15 @@ def _create_db_test_records(
     test_links_dict: TestLinksDictType, db_queue: Queue, id: int
 ) -> TestRunExecution:
     with transaction.atomic():
-        test_run_db_obj = TestRunExecution.objects.filter(id=id)
-        for obj in test_run_db_obj:
-            obj.status = TestStatus.RUNNING.value
-            obj.save()
+        try:
+            test_run_db_obj = TestRunExecution.objects.get(id=id)
+        except TestRunExecution.DoesNotExist:
+            _log.critical(
+                "Unexpected error, TestRunExecution id {} does not exist".format(id)
+            )
+            return None
+        test_run_db_obj.status = TestStatus.RUNNING.value
+        test_run_db_obj.save()
         db_queue.put(test_run_db_obj.id)
         for link in test_links_dict.values():
             link_id = TestResult.objects.create(

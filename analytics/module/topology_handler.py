@@ -35,6 +35,7 @@ def fetch_network_info(
             os.environ["NO_PROXY"] = target_domain
             url = "http://[{}]:{}/".format(cfg["api_ip"], cfg["api_port"])
             url += "api/getTopology"
+            logging.debug("Fetching topology from url {}".format(url))
             response = requests.post(url, data="{}", timeout=1)
             topology_string = response.content.decode("utf-8")
             topology_reply = json.loads(topology_string)

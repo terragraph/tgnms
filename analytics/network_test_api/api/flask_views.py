@@ -4,12 +4,12 @@
 import json
 import logging
 from threading import Event
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 from api import base
-from api.models import TestRunExecution, Tests, TestStatus, TrafficDirection
+from api.models import Tests, TestStatus, TrafficDirection
 from api.network_test import scheduler
-from api.network_test.mysql_helper import MySqlHelper, read_test_schedule_topology_ids
+from api.network_test.mysql_helper import MySqlHelper
 from flask import Flask, jsonify, request
 from logger import Logger
 from module.mysql_db_access import MySqlDbAccess
@@ -29,7 +29,7 @@ def flask_view(host: str, port: int) -> None:
 
     # start scheduler thread for existing scheduled jobs
     # this allows schedule to survive restart
-    tsobjs = read_test_schedule_topology_ids()
+    tsobjs = MySqlHelper().read_test_schedule_topology_ids()
     if tsobjs:
         for tsobj in tsobjs:
             topology_id = tsobj["test_run_execution__topology_id"]
@@ -38,7 +38,6 @@ def flask_view(host: str, port: int) -> None:
                     tsobj["tid_count"], topology_id
                 )
             )
-            mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
             parsed_network_info = base.fetch_and_parse_network_info(topology_id)
             if parsed_network_info.get("error"):
                 _log.error(
@@ -50,7 +49,9 @@ def flask_view(host: str, port: int) -> None:
             topology_name = parsed_network_info["topology_name"]
 
             _log.info("Starting scheduler thread for {} ...".format(topology_name))
-            mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
+            mysql_helper[topology_id]: MySqlHelper = MySqlHelper(
+                topology_id, topology_name
+            )
             sched_event[topology_id]: Event = Event()
             scheduler_obj = scheduler.Scheduler(
                 sched_event=sched_event[topology_id],
@@ -64,14 +65,14 @@ def flask_view(host: str, port: int) -> None:
 
 
 @app.route("/")
-def hello() -> Tuple[str,int,Dict]:
-    return base.generate_http_response(error=False, msg="Success")
+def hello() -> Tuple[str, int, Dict]:
+    return generate_flask_http_response({"error": False, "msg": "Success"})
 
 
 # end-point for test only - creates test scheduler thread if not already
 # created and sends it an event
 @app.route("/api/test_scheduler/", methods=["GET"])
-def test_scheduler() -> Tuple[str,int,Dict]:
+def test_scheduler() -> Tuple[str, int, Dict]:
     global sched_event
     global mysql_helper
 
@@ -79,7 +80,7 @@ def test_scheduler() -> Tuple[str,int,Dict]:
     topology_name = "test scheduler thread"
     if topology_id not in sched_event:
         _log.info("Starting test scheduler and test plan threads")
-        mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
+        mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id, topology_name)
         sched_event[topology_id]: Event = Event()
         scheduler_obj = scheduler.Scheduler(
             sched_event=sched_event[topology_id],
@@ -93,11 +94,11 @@ def test_scheduler() -> Tuple[str,int,Dict]:
 
     _log.info("Sending event to test scheduler thread")
     sched_event[topology_id].set()
-    return base.generate_http_response(error=False, msg="testing scheduler!")
+    return generate_flask_http_response({"error": False, "msg": "testing scheduler!"})
 
 
 @app.route("/api/start_test/", methods=["POST"])
-def start_test() -> Tuple[str,int,Dict]:
+def start_test() -> Tuple[str, int, Dict]:
     """
     This function returns json object which have 'error' and 'msg' key.
     If the test is already running or any exception occurred then the
@@ -110,11 +111,15 @@ def start_test() -> Tuple[str,int,Dict]:
 
     try:
         if not request.method == "POST":
-            return jsonify({"err": "wrong method"}), 400, base.DEFAULT_ACCESS_ORIGIN
+            dt = {"error": True, "msg": "RESTful API expecting POST"}
+            return generate_flask_http_response(dt=dt, status_code=400)
         received_json_data = request.get_json(force=True)
     except Exception:
-        return base.generate_http_response(
-            error=True, msg="Invalid Content-Type, please format the request as JSON."
+        return generate_flask_http_response(
+            {
+                "error": True,
+                "msg": "Invalid Content-Type, please format the request as JSON.",
+            }
         )
 
     # parse received_json_data
@@ -123,12 +128,12 @@ def start_test() -> Tuple[str,int,Dict]:
     )
 
     if parsed_json_data.get("error"):
-        return parsed_json_data["error"]
+        return generate_flask_http_response(parsed_json_data["error"])
     topology_id = parsed_json_data["topology_id"]
 
     err = scheduler.validate_schedule_parameters(parsed_scheduler_data)
     if err:
-        return err
+        return generate_flask_http_response(err)
 
     # don't allow another ASAP job to be scheduled if there are queued tests.
     # this prevents a user from piling on ASAP tests without knowing.
@@ -139,20 +144,20 @@ def start_test() -> Tuple[str,int,Dict]:
                 "There is already an ASAP test scheduled for topology id {}. "
                 "Returning ...".format(topology_id)
             )
-            return base.generate_http_response(
-                error=True, msg="There is already an ASAP test scheduled."
+            return generate_flask_http_response(
+                {"error": True, "msg": "There is already an ASAP test scheduled."}
             )
 
     parsed_network_info = base.fetch_and_parse_network_info(topology_id)
     if parsed_network_info.get("error"):
-        return parsed_network_info["error"]
+        return generate_flask_http_response(parsed_network_info["error"])
     topology_name = parsed_network_info["topology_name"]
 
     # start the scheduler thread if not already started
     # there is one scheduler thread per network
     if topology_id not in sched_event:
         _log.info("Starting scheduler thread for {} ...".format(topology_name))
-        mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id)
+        mysql_helper[topology_id]: MySqlHelper = MySqlHelper(topology_id, topology_name)
         sched_event[topology_id]: Event = Event()
         scheduler_obj = scheduler.Scheduler(
             sched_event=sched_event[topology_id],
@@ -183,44 +188,196 @@ def start_test() -> Tuple[str,int,Dict]:
     _log.info("Sending event to Scheduler for {}".format(topology_name))
     sched_event[topology_id].set()
 
-    return base.generate_http_response(error=False, msg="Scheduled test", id=tre_id)
+    return generate_flask_http_response(
+        {"error": False, "msg": "Scheduled test", "id": tre_id}
+    )
 
 
-# !!!! TODO - this needs a topology id
-@app.route("/api/stop_test/", methods=["GET"])
-def stop_test() -> Tuple[str,int,Dict]:
+@app.route("/api/stop_test/", methods=["POST"])
+def stop_test() -> Tuple[str, int, Dict]:
     """
     This function returns json object which have 'error' and 'msg' key along
     with 'id' of the stopped test.
     """
-    msg = ""
+    global mysql_helper
     try:
-        # Check if we are already running the test.
-        test_run_list = TestRunExecution.objects.filter(
-            status__in=[TestStatus.RUNNING.value]
+        if not request.method == "POST":
+            dt = {"error": True, "msg": "RESTful API expecting POST"}
+            return generate_flask_http_response(dt=dt, status_code=400)
+        received_json_data = request.get_json(force=True)
+    except Exception:
+        return generate_flask_http_response(
+            {
+                "error": True,
+                "msg": "Invalid Content-Type, please format the request as JSON.",
+            }
         )
-        if test_run_list.count() >= 1:
-            for obj in test_run_list:
-                _log.debug("Aborting test {}".format(obj.id))
-                obj.status = TestStatus.ABORTED.value
-                obj.save()
-                msg += "Test run execution stopped."
-            return base.generate_http_response(error=False, msg=msg, id=obj.id)
+
+    topology_name = str(received_json_data.get("topology_name"))
+    _log.debug("Input received topology name is {}".format(topology_name))
+    topology_id = None
+    # find topology_name
+    for tid, msq in mysql_helper.items():
+        if msq.topology_name == topology_name:
+            topology_id = tid
+
+    if topology_id not in mysql_helper:
+        return generate_flask_http_response(
+            {"error": True, "msg": "Attempt to stop test for inactive topology."}
+        )
+
+    try:
+        tsp = next(
+            iter(
+                mysql_helper[topology_id]
+                .read_test_run_execution(status=TestStatus.RUNNING.value)
+                .values()
+            )
+        )
+        if tsp:
+            mysql_helper[topology_id].update_test_run_execution(
+                id=tsp["id"], status=TestStatus.ABORTED.value
+            )
+            return generate_flask_http_response(
+                {"error": False, "msg": "Test run execution stopped.", "id": tsp["id"]}
+            )
         else:
-            return base.generate_http_response(
-                error=True, msg="No test is currently running"
+            return generate_flask_http_response(
+                {"error": True, "msg": "No test is currently running"}
             )
     except Exception as e:
-        return base.generate_http_response(error=True, msg=str(e))
+        _log.error("Unexpected error in stop_test {}".format(e))
+        return generate_flask_http_response({"error": True, "msg": e})
+
+
+@app.route("/api/modify_sched/", methods=["POST"])
+def modify_sched():
+    """
+    This function removes an item from the schedule.
+    FOR NOW, ONLY SUPPORT DELETE
+    """
+    global mysql_helper
+
+    try:
+        if not request.method == "POST":
+            dt = {"error": True, "msg": "RESTful API expecting POST"}
+            return generate_flask_http_response(dt=dt, status_code=400)
+        received_json_data = request.get_json(force=True)
+    except Exception:
+        return generate_flask_http_response(
+            {
+                "error": True,
+                "msg": "Invalid Content-Type, please format the request as JSON.",
+            }
+        )
+
+    try:
+        instruction = int(received_json_data["instruction"]["value"])
+    except KeyError:
+        instruction = network_ttypes.ModifyInstruction.DELETE
+
+    if instruction is not network_ttypes.ModifyInstruction.DELETE:
+        return generate_flask_http_response(
+            {"error": True, "msg": "Sorry, only DELETE is supported now."}
+        )
+
+    test_schedule_id = received_json_data.get("test_schedule_id")
+    topology_id = received_json_data.get("topology_id")
+    if not test_schedule_id and not topology_id:
+        return generate_flask_http_response(
+            {
+                "error": True,
+                "msg": "Parameters test_schedule_id or topology_id are required.",
+            }
+        )
+    else:
+        try:
+            if topology_id:
+                topology_id = int(topology_id)
+            else:
+                test_schedule_id = int(test_schedule_id)
+        except ValueError as e:
+            return generate_flask_http_response(
+                {
+                    "error": True,
+                    "msg": "Parameters test_schedule_id and "
+                    "topology_id must be integers. {}".format(e),
+                }
+            )
+    if test_schedule_id:
+        try:
+            jn_dcts = MySqlHelper().join_test_schedule_test_run_execution(
+                id=test_schedule_id
+            )
+            for _, jn_dct in jn_dcts.items():
+                tre_id = jn_dct["test_run_execution"]["id"]
+                if jn_dct["test_run_execution"]["status"] != TestStatus.SCHEDULED.value:
+                    return generate_flask_http_response(
+                        {
+                            "error": True,
+                            "msg": "Unexpected error; test run execution {} "
+                            "is not SCHEDULED.".format(tre_id),
+                        }
+                    )
+                _log.info("Deleting entry with test run execution id {}".format(tre_id))
+                MySqlHelper().delete_test_run_execution(id=tre_id)
+            return generate_flask_http_response(
+                {
+                    "error": False,
+                    "msg": "Test schedule entry deleted.",
+                    "id": test_schedule_id,
+                }
+            )
+        except Exception as e:
+            _log.error("Unexpected error in modify_sched {}".format(e))
+            return generate_flask_http_response({"error": True, "msg": e})
+
+    elif topology_id:
+        if topology_id not in mysql_helper:
+            return generate_flask_http_response(
+                {
+                    "error": True,
+                    "msg": "No running thread for the topology.",
+                    "id": topology_id,
+                }
+            )
+        try:
+            jn_dcts = mysql_helper[topology_id].join_test_schedule_test_run_execution()
+            for _, jn_dct in jn_dcts.items():
+                tre_id = jn_dct["test_run_execution"]["id"]
+                if jn_dct["test_run_execution"]["status"] != TestStatus.SCHEDULED.value:
+                    return generate_flask_http_response(
+                        {
+                            "error": True,
+                            "msg": "Unexpected error; test run execution {} "
+                            "is not SCHEDULED.".format(tre_id),
+                        }
+                    )
+                _log.info("Deleting entry with test run execution id {}".format(tre_id))
+                mysql_helper[topology_id].delete_test_run_execution(id=tre_id)
+            return generate_flask_http_response(
+                {
+                    "error": False,
+                    "msg": "Test schedule entries deleted.",
+                    "id": topology_id,
+                }
+            )
+        except Exception as e:
+            _log.error("Unexpected error in modify_sched {}".format(e))
+            return generate_flask_http_response({"error": True, "msg": e})
 
 
 @app.route("/api/help/", methods=["GET"])
-def help() -> Tuple[str,int,Dict]:
+def help() -> Tuple[str, int, Dict]:
     """
     This function returns json object which has the Network Test API information
     """
+    if not request.method == "GET":
+        dt = {"error": True, "msg": "RESTful API expecting GET"}
+        return generate_flask_http_response(dt=dt, status_code=400)
     start_test_url_ext = "/api/start_test/"
     stop_test_url_ext = "/api/stop_test/"
+    modify_sched_url_ext = "/api/modify_sched/"
 
     # thrift help info for topology_id
     api_services = MySqlDbAccess().read_api_service_setting(use_primary_controller=True)
@@ -247,7 +404,7 @@ def help() -> Tuple[str,int,Dict]:
     session_duration = network_ttypes.Parameter(
         label="Single iPerf Session Duration",
         key="session_duration",
-        value="60",
+        value="300",
         meta=session_duration_meta,
     )
 
@@ -303,6 +460,7 @@ def help() -> Tuple[str,int,Dict]:
     )
 
     # thrift help info for multi_hop_parallel_sessions
+    zero = network_ttypes.DropDown(label="0", value="0")
     one = network_ttypes.DropDown(label="1", value="1")
     two = network_ttypes.DropDown(label="2", value="2")
     three = network_ttypes.DropDown(label="3", value="3")
@@ -352,6 +510,48 @@ def help() -> Tuple[str,int,Dict]:
         label="Speed Test", key="pop_to_node_link", value="", meta=pop_to_node_link_meta
     )
 
+    # scheduler parameters
+    cron_meta = network_ttypes.Meta(ui_type="string", unit="", type="str")
+    asap_dropdown = [zero, one]
+    asap_meta = network_ttypes.Meta(
+        dropdown=asap_dropdown, ui_type="dropdown", unit="", type="int"
+    )
+    priority_dropdown = [one, two, three]
+    priority_meta = network_ttypes.Meta(
+        dropdown=priority_dropdown, ui_type="dropdown", unit="", type="int"
+    )
+    cron_minute = network_ttypes.Parameter(
+        label="minute", key="cron_minute", value="*", meta=cron_meta
+    )
+    cron_hour = network_ttypes.Parameter(
+        label="hour", key="cron_hour", value="*", meta=cron_meta
+    )
+    cron_day_of_month = network_ttypes.Parameter(
+        label="day of month", key="cron_day_of_month", value="*", meta=cron_meta
+    )
+    cron_month = network_ttypes.Parameter(
+        label="month", key="cron_month", value="*", meta=cron_meta
+    )
+    cron_day_of_week = network_ttypes.Parameter(
+        label="day of week", key="cron_day_of_week", value="*", meta=cron_meta
+    )
+    sched_asap = network_ttypes.Parameter(
+        label="start ASAP", key="asap", value="1", meta=asap_meta
+    )
+    sched_priority = network_ttypes.Parameter(
+        label="priority", key="priority", value="1", meta=priority_meta
+    )
+
+    sched_params = [
+        cron_minute,
+        cron_hour,
+        cron_day_of_month,
+        cron_month,
+        cron_day_of_week,
+        sched_asap,
+        sched_priority,
+    ]
+
     sequential_test_plan_parameters = [
         topology_id,
         session_duration,
@@ -374,6 +574,9 @@ def help() -> Tuple[str,int,Dict]:
         multi_hop_session_iteration_count,
         pop_to_node_link,
     ]
+    sequential_test_plan_parameters.extend(sched_params)
+    parallel_test_plan_parameters.extend(sched_params)
+    multi_hop_test_plan_parameters.extend(sched_params)
 
     sequential_test_plan = network_ttypes.StartTest(
         label="Sequential Link Test",
@@ -395,16 +598,51 @@ def help() -> Tuple[str,int,Dict]:
     )
 
     supported_test_plans = [
-        sequential_test_plan,
         parallel_test_plan,
+        sequential_test_plan,
         multi_hop_test_plan,
     ]
-    stop_test_info = network_ttypes.StopTest(url_ext=stop_test_url_ext)
+
+    stop_test_info = network_ttypes.StopTest(url_ext=stop_test_url_ext, topology_id=0)
+
+    suspend = network_ttypes.DropDown(
+        label="Suspend", value=str(network_ttypes.ModifyInstruction.SUSPEND)
+    )
+    enable = network_ttypes.DropDown(
+        label="Enable", value=str(network_ttypes.ModifyInstruction.ENABLE)
+    )
+    delete = network_ttypes.DropDown(
+        label="Delete", value=str(network_ttypes.ModifyInstruction.DELETE)
+    )
+    modify_dropdown = [suspend, enable, delete]
+    modify_meta = network_ttypes.Meta(
+        dropdown=modify_dropdown, ui_type="dropdown", unit="", type="str"
+    )
+    modify_parameter = network_ttypes.Parameter(
+        label="Action",
+        key="instruction",
+        value=str(network_ttypes.ModifyInstruction.SUSPEND),
+        meta=modify_meta,
+    )
+
+    modify_sched_info = network_ttypes.ModifyScheduleRow(
+        url_ext=modify_sched_url_ext,
+        topology_id=0,
+        test_scheduled_id=0,
+        instruction=modify_parameter,
+    )
 
     context_data = network_ttypes.Help(
-        start_test=supported_test_plans, stop_test=stop_test_info
+        start_test=supported_test_plans,
+        stop_test=stop_test_info,
+        modify_sched=modify_sched_info,
     )
 
     resp: str = base.serialize_to_json(context_data)
+    return generate_flask_http_response(json.loads(resp))
 
-    return resp, 200, base.DEFAULT_ACCESS_ORIGIN
+
+def generate_flask_http_response(
+    dt: dict, status_code: Optional[int] = 200
+) -> Tuple[str, int, dict]:
+    return jsonify(dt), status_code, base.DEFAULT_ACCESS_ORIGIN

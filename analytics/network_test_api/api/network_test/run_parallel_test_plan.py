@@ -46,7 +46,10 @@ class RunParallelTestPlan:
     """
 
     def __init__(
-        self, network_parameters: NetworkParametersType, db_queue: Queue
+        self,
+        test_run_execution_id: int,
+        network_parameters: NetworkParametersType,
+        db_queue: Queue,
     ) -> None:
         self.db_queue: Queue = db_queue
         self.network_parameters: NetworkParametersType = network_parameters
@@ -60,6 +63,7 @@ class RunParallelTestPlan:
         self.received_output_queue: Queue = Queue()
         self.topology_sector_info: Dict = defaultdict(int)
         self.interval_sec: int = 1
+        self.test_run_execution_id = test_run_execution_id
 
     def run(self) -> None:
 
@@ -71,7 +75,7 @@ class RunParallelTestPlan:
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
-            network_parameters=self.network_parameters,
+            id=self.test_run_execution_id,
             test_links_dict=test_links_dict,
             db_queue=self.db_queue,
         )
@@ -127,7 +131,7 @@ class RunParallelTestPlan:
             self.status_error = True
         if not self.status_error:
             if self.test_status == TestStatus.ABORTED.value:
-                _log.error(
+                _log.info(
                     "\nTest Aborted by User."
                     + "\nSkipping writing Analytics stats to the db.\n"
                 )

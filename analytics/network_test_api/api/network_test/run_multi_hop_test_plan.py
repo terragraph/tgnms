@@ -20,7 +20,7 @@ from api.network_test.test_network import TestNetwork
 from module.routing import RoutesForNode, get_routes_for_nodes
 
 
-class RunMultiHopTestPlan():
+class RunMultiHopTestPlan:
     """
         * controller_addr: IP address of the E2E Controller
         * controller_port: Port address of the E2E Controller
@@ -47,7 +47,10 @@ class RunMultiHopTestPlan():
 """
 
     def __init__(
-        self, network_parameters: NetworkParametersType, db_queue: Queue
+        self,
+        test_run_execution_id: int,
+        network_parameters: NetworkParametersType,
+        db_queue: Queue,
     ) -> None:
         self.db_queue: Queue = db_queue
         self.network_parameters: NetworkParametersType = network_parameters
@@ -57,6 +60,7 @@ class RunMultiHopTestPlan():
         self.links: List = []
         self.network_hop_info: Optional[List[RoutesForNode]] = None
         self.interval_sec: int = 1
+        self.test_run_execution_id = test_run_execution_id
 
     def run(self) -> None:
 
@@ -77,7 +81,7 @@ class RunMultiHopTestPlan():
 
         # Create the single hop test iperf records
         test_run_db_obj = base._create_db_test_records(
-            network_parameters=self.network_parameters,
+            id=self.test_run_execution_id,
             test_links_dict=test_links_dict,
             db_queue=self.db_queue,
         )

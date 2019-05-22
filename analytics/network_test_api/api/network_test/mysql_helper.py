@@ -30,21 +30,25 @@ class MySqlHelper:
         the django ORM.
     """
 
-    def __init__(self, topology_id: int) -> None:
+    def __init__(self, topology_id: int = 0, topology_name: str = "") -> None:
         self.topology_id = topology_id
+        self.topology_name = topology_name
 
     # read test_schedule rows with variable filter input
     def read_test_schedule(self, **kwargs) -> List[Dict]:
-        ts_obj = TestSchedule.objects.filter(
-            **kwargs, test_run_execution__topology_id=self.topology_id
-        )
+        if self.topology_id:
+            ts_obj = TestSchedule.objects.filter(
+                **kwargs, test_run_execution__topology_id=self.topology_id
+            )
+        else:
+            ts_obj = TestSchedule.objects.filter(**kwargs)
         ts_dict = {}
         for obj in ts_obj:
             ts_dict[obj.id] = model_to_dict(obj)
         return ts_dict
 
-    def delete_test_run_execution_row(self, id) -> None:
-        tre = TestRunExecution.objects.filter(id=id).first()
+    def delete_test_run_execution(self, **kwargs) -> None:
+        tre = TestRunExecution.objects.filter(**kwargs)
         if tre:
             # this deletes from all foreign tables too
             tre.delete()
@@ -52,56 +56,34 @@ class MySqlHelper:
     def update_test_run_execution(self, id, **kwargs) -> None:
         TestRunExecution.objects.filter(id=id).update(**kwargs)
 
-    def delete_test_schedule_row(self, id) -> None:
-        ts = TestSchedule.objects.filter(id=id).first()
+    def delete_test_schedule(self, **kwargs) -> None:
+        ts = TestSchedule.objects.filter(**kwargs)
         if ts:
             ts.delete()
 
-    def delete_test_schedule_if_asap(self, test_run_execution_id) -> bool:
-        ts = TestSchedule.objects.filter(
-            test_run_execution_id=test_run_execution_id
-        ).first()
-        if not ts:
-            logging.error(
-                "Test run execution id not present in table {}",
-                format(test_run_execution_id),
-            )
-            return False
-        elif ts.asap:
-            ts.delete()
-            return True
-        else:
-            return True
-
-    def read_test_run_execution(self, **kwargs) -> Optional[Dict]:
-        tre = TestRunExecution.objects.filter(
-            **kwargs, topology_id=self.topology_id
-        ).first()
-        return model_to_dict(tre) if tre else None
-
-    # look for tests left in running state (possibly because process
-    # restarted or ended unexpectedly)
-    def abort_test_run_execution_stale_aborted(self) -> int:
-        # Check if any stale tests are still running
-        num_stale_tests = 0
-        test_run_list = TestRunExecution.objects.filter(
-            status__in=[TestStatus.RUNNING.value], topology_id=self.topology_id
-        )
-        if test_run_list.count() >= 1:
-            for obj in test_run_list:
-                if not obj.expected_end_time or (time.time() > obj.expected_end_time):
-                    obj.status = TestStatus.ABORTED.value
-                    obj.save()
-                    num_stale_tests += 1
-        return num_stale_tests
+    def read_test_run_execution(self, **kwargs) -> List[Dict]:
+        tre_dict = {}
+        tre = TestRunExecution.objects.filter(**kwargs, topology_id=self.topology_id)
+        for obj in tre:
+            tre_dict[obj.id] = model_to_dict(obj)
+        return tre_dict
 
     # single JOIN query of TestSchedule and TestRunExecution
-    def join_test_schedule_test_run_execution(self, test_schedule_id: int) -> TestSchedule:
-        return(
-            TestSchedule.objects.filter(id=test_schedule_id)
-            .select_related("test_run_execution")
-            .first()
+    def join_test_schedule_test_run_execution(self, **kwargs) -> Dict:
+        join_obj = TestSchedule.objects.filter(**kwargs).select_related(
+            "test_run_execution"
         )
+        join_dct = {}
+        for obj in join_obj:
+            join_dct[obj.id] = model_to_dict(obj)
+            # model_to_dict doesn't decode auto_now_add fields so need to
+            # do it manually
+            join_dct[obj.id]["created_at"] = obj.created_at
+            join_dct[obj.id]["test_run_execution"] = {}
+            join_dct[obj.id]["test_run_execution"] = model_to_dict(
+                obj.test_run_execution
+            )
+        return join_dct
 
     def create_test_run_execution(self, **kwargs) -> int:
         tre_obj = TestRunExecution.objects.create(**kwargs)
@@ -154,10 +136,9 @@ class MySqlHelper:
 
             return test_run_db_obj.id
 
-
-# returns dict with {"test_run_execution__topology_id" : <id>, "tid_count": <#>}
-# the count is only for information
-def read_test_schedule_topology_ids() -> TestSchedule:
-    return TestSchedule.objects.values("test_run_execution__topology_id").annotate(
-        tid_count=Count("test_run_execution__topology_id")
-    )
+    # returns dict with {"test_run_execution__topology_id" : <id>, "tid_count": <#>}
+    # the count is only for information
+    def read_test_schedule_topology_ids(self) -> TestSchedule:
+        return TestSchedule.objects.values("test_run_execution__topology_id").annotate(
+            tid_count=Count("test_run_execution__topology_id")
+        )
