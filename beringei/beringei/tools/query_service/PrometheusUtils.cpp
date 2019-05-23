@@ -247,6 +247,11 @@ void PrometheusUtils::writeMetrics(
     auto locked = nodeMetricsByInterval_.wlock();
     auto intervalIt = locked->find(intervalSec);
     if (intervalIt != locked->end()) {
+      if (intervalIt->second.size() >= FLAGS_prometheus_metrics_queue_size) {
+        LOG(ERROR) << "Metrics queue full for interval: " << intervalSec
+                   << ", dropping request.";
+        return;
+      }
       intervalIt->second.emplace_back(aggValues);
     }
   }
