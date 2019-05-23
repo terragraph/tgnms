@@ -30,7 +30,7 @@ setup(
         "requests==2.19.1",
         "mysqlclient==1.3.13",
         "tabulate==0.8.3",
-        "python-snappy==0.5.4"
+        "python-snappy==0.5.4",
         "flask>=1.0.2",
     ],
     # TODO: Add unit tests
