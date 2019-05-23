@@ -5,6 +5,11 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+# set ASAN=1 to build with ASAN enabled
+if("$ENV{ASAN}" STREQUAL "1")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -DASAN=ON")
+endif()
+
 set(UDP_PING_CLIENT_SRCS
     UdpPingClient.cpp
     AsyncUdpSocket.cpp
