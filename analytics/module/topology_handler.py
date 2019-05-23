@@ -39,6 +39,14 @@ def fetch_network_info(
             response = requests.post(url, data="{}", timeout=1)
             topology_string = response.content.decode("utf-8")
             topology_reply = json.loads(topology_string)
+            has_wlink = False
+            for l in topology_reply["links"]:
+                if l["link_type"] == LinkType.WIRELESS:
+                    has_wlink = True
+                    break
+            if not has_wlink:
+                logging.debug("Ignore {}, no wireless links".format(topology_reply["name"]))
+                continue
             cfg["topology"] = topology_reply
             networks[cfg["id"]] = cfg
         except Exception as e:
