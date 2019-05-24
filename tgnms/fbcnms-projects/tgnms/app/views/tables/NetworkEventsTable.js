@@ -9,9 +9,9 @@ import axios from 'axios';
 import CustomTable from '../../components/common/CustomTable';
 import Divider from '@material-ui/core/Divider';
 import {
-  EventCategory,
-  EventLevel,
-} from '../../../thrift/gen-nodejs/Event_types';
+  EventCategoryValueMap,
+  EventLevelValueMap,
+} from '../../../shared/types/Event';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -185,7 +185,7 @@ class NetworkEventsTable extends React.Component<Props, State> {
                 <MenuItem value="">
                   <em>All</em>
                 </MenuItem>
-                {Object.keys(EventLevel).map(level => {
+                {Object.keys(EventLevelValueMap).map(level => {
                   return (
                     <MenuItem key={level} value={level}>
                       {level}
@@ -206,7 +206,7 @@ class NetworkEventsTable extends React.Component<Props, State> {
                 <MenuItem value="">
                   <em>All</em>
                 </MenuItem>
-                {Object.keys(EventCategory).map(category => {
+                {Object.keys(EventCategoryValueMap).map(category => {
                   return (
                     <MenuItem key={category} value={category}>
                       {category}
