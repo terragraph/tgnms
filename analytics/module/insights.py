@@ -692,7 +692,6 @@ def generate_insights():
 
 
 def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -> List:
-
     CONST_INTERVAL = 1
     nlts = NumpyLinkTimeSeries(links, CONST_INTERVAL, network_info)
     link_length = nlts.get_link_length()
@@ -711,13 +710,46 @@ def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -
     rx_ba = nlts.read_stats("staPkt.rxBa", StatType.LINK, swap_dir=True)
     tx_ppdu = nlts.read_stats("staPkt.txPpdu", StatType.LINK)
     rx_ppdu = nlts.read_stats("staPkt.rxPpdu", StatType.LINK, swap_dir=True)
-    tbi = nlts.read_stats("phyPeriodic.txBeamIdx", StatType.LINK)
-    rbi = nlts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK, swap_dir=True)
-    # irr = nlts.tsl_to_arr(iperf_stats, stats_name="iperf_requested_rate")
+
     iar = nlts.tsl_to_arr(iperf_stats, stats_name="iperf_actual_rate")
     num_links = nlts._num_links
     num_dir = nlts.NUM_DIR
     output = []
+
+    # generate indicators of self health
+    total_inputs = 0
+    missing_inputs = 0
+    inputs = [
+        mgmt_link_up,
+        link_available,
+        mcs,
+        tx_power_idx,
+        srssi,
+        tx_ok,
+        tx_fail,
+        snr,
+        rx_ok,
+        rx_fail,
+        tx_ba,
+        rx_ba,
+        tx_ppdu,
+        rx_ppdu,
+    ]
+    for index, input in enumerate(inputs):
+        ti = len(input.flatten())
+        mi = np.isnan(input).sum()
+        total_inputs += ti
+        missing_inputs += mi
+        if ti == mi:
+            logging.error("missing all stats for {}".format(index))
+    missing_inputs_percent = missing_inputs * 100 / total_inputs
+    msg = "missing stats, {}% of {} inputs".format(
+        float(np.round(missing_inputs_percent, 2)), int(total_inputs)
+    )
+    if missing_inputs_percent > 25:
+        logging.error(msg)
+    else:
+        logging.info(msg)
 
     health = npo.nan_arr((num_links, num_dir, 1))
     tx_per = npo.nan_arr((num_links, num_dir, 1))
@@ -775,11 +807,7 @@ def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -
 
     pathloss, _ = npo.pathloss_asymmetry_nd(tx_power_idx, srssi, nlts.DIR_AXIS)
     pathloss_avg = np.nanmean(pathloss, axis=nlts.TIME_AXIS, keepdims=True)
-    tx_beam_idx = np.apply_along_axis(npo.mode_int_1d, nlts.TIME_AXIS, tbi)
-    rx_beam_idx = np.apply_along_axis(npo.mode_int_1d, nlts.TIME_AXIS, rbi)
     output.extend(nlts.write_stats("pathloss_avg", pathloss_avg, CONST_INTERVAL))
-    output.extend(nlts.write_stats("tx_beam_idx", tx_beam_idx, CONST_INTERVAL))
-    output.extend(nlts.write_stats("rx_beam_idx", rx_beam_idx, CONST_INTERVAL))
 
     mcs_p90 = np.nanpercentile(
         mcs, 10, axis=nlts.TIME_AXIS, interpolation="lower", keepdims=True
