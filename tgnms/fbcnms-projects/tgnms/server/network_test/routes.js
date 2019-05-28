@@ -33,7 +33,11 @@ router.post('/start', (req, res) => {
 });
 
 router.post('/stop', (req, res) => {
-  return createRequest({uri: `${NETWORKTEST_HOST}/api/stop_test/`})
+  return createRequest({
+    uri: `${NETWORKTEST_HOST}/api/stop_test/`,
+    method: 'POST',
+    json: req.body,
+  })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res));
 });

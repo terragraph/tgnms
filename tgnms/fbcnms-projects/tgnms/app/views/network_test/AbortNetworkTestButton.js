@@ -13,6 +13,7 @@ import ProgressButton from '../../components/common/ProgressButton';
 
 type Props = {
   onTestAborted: (Error | empty) => any,
+  networkName: ?string,
 };
 
 type State = {loading: boolean};
@@ -36,7 +37,7 @@ class AbortNetworkTestButton extends React.Component<Props, State> {
   sendAbortTestRequest = () => {
     this.setLoading(true);
     return testApi
-      .stopTest()
+      .stopTest(this.props.networkName)
       .then(response => {
         this.setLoading(false);
         this.props.onTestAborted(response.data);

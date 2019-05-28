@@ -31,6 +31,7 @@ import CheckIcon from '@material-ui/icons/Check';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import CancelIcon from '@material-ui/icons/Cancel';
+import AccessTimeIcon from '@material-ui/icons/AlarmOn';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import MapIcon from '@material-ui/icons/Map';
 import moment from 'moment';
@@ -150,6 +151,7 @@ class NetworkTestExecutionsTable extends React.PureComponent<
               <AbortNetworkTestButton
                 runningTest={row}
                 onTestAborted={this.handleTestAborted}
+                networkName={this.props.networkName}
               />
             )}
             {row.status === TEST_STATUS.FINISHED && (
@@ -481,6 +483,10 @@ const statusMap = {
   [TEST_STATUS.FAILED]: {
     text: 'Failed',
     component: props => <ErrorOutlineIcon color="error" {...props} />,
+  },
+  [TEST_STATUS.SCHEDULED]: {
+    text: 'Scheduled',
+    component: props => <AccessTimeIcon color="primary" {...props} />,
   },
 };
 

@@ -57,8 +57,10 @@ export const startTest = (formData: StartNetworkTestFormData) => {
   return axios.post<any, any>('/network_test/start', startTestRequest);
 };
 
-export const stopTest = () => {
-  return axios.post<any, any>('/network_test/stop');
+export const stopTest = (networkName: ?string) => {
+  return axios.post<any, any>('/network_test/stop', {
+    topology_name: networkName,
+  });
 };
 
 export const getExecutionsByNetworkName = ({
