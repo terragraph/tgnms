@@ -49,8 +49,9 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
       },
     },
     {
-      timestamps: false,
+      doNotCreateTable: true,
       freezeTableName: true,
+      timestamps: false,
     },
   );
   return EventLog;

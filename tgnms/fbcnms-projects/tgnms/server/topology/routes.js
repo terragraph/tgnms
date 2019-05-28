@@ -148,17 +148,17 @@ router.post('/create', async (req, res, _next) => {
       return;
     }
 
-    const network = await createNetwork(networkConfig.name);
-    if (networkConfig.primary) {
-      const primaryController = await createController(
-        networkConfig.primary.api_ip,
-        networkConfig.primary.e2e_ip,
-        networkConfig.primary.api_port,
-        networkConfig.primary.e2e_port,
-      );
-      network.primary_controller = primaryController.id;
-      await network.save();
+    if (!networkConfig.primary) {
+      res.status(400).json({msg: 'Missing primary controller data'});
+      return;
     }
+    const primaryController = await createController(
+      networkConfig.primary.api_ip,
+      networkConfig.primary.e2e_ip,
+      networkConfig.primary.api_port,
+      networkConfig.primary.e2e_port,
+    );
+    const network = await createNetwork(networkConfig.name, primaryController);
     if (networkConfig.backup) {
       const backupController = await createController(
         networkConfig.backup.api_ip,

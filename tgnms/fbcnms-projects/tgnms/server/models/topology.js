@@ -22,7 +22,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
         unique: true,
       },
       primary_controller: {
-        allowNull: true,
+        allowNull: false,
         type: DataTypes.INTEGER,
       },
       backup_controller: {
@@ -44,6 +44,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
       },
     },
     {
+      doNotCreateTable: true,
       freezeTableName: true,
       timestamps: false,
     },

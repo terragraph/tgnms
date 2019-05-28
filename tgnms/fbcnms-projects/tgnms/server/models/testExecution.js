@@ -66,13 +66,13 @@ export default function(sequelize: any, DataTypes: any) {
       },
     },
     {
-      timestamps: false,
-      freezeTableName: true,
       /**
        * this table is managed by network test, so nms should not create or
        * migrate it.
        */
       doNotCreateTable: true,
+      freezeTableName: true,
+      timestamps: false,
     },
   );
   TestExecution.associate = function(models) {

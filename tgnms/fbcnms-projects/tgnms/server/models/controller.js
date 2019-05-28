@@ -34,6 +34,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
       },
     },
     {
+      doNotCreateTable: true,
       freezeTableName: true,
       timestamps: false,
     },

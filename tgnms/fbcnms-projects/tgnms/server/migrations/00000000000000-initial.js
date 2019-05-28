@@ -82,7 +82,7 @@ module.exports = {
             unique: true,
           },
           primary_controller: {
-            allowNull: true,
+            allowNull: false,
             type: DataTypes.INTEGER,
           },
           backup_controller: {
@@ -129,7 +129,30 @@ module.exports = {
           timestamps: false,
         },
       ),
-    ]);
+    ]).then(() =>
+      Promise.all([
+        queryInterface.addConstraint('topology', ['primary_controller'], {
+          type: 'foreign key',
+          name: 'topology_primary_controller',
+          references: {
+            table: 'controller',
+            field: 'id',
+          },
+          onDelete: 'cascade',
+          onUpdate: 'cascade',
+        }),
+        queryInterface.addConstraint('topology', ['backup_controller'], {
+          type: 'foreign key',
+          name: 'topology_backup_controller',
+          references: {
+            table: 'controller',
+            field: 'id',
+          },
+          onDelete: 'cascade',
+          onUpdate: 'cascade',
+        }),
+      ]),
+    );
   },
 
   down: (_queryInterface, _DataTypes) => {

@@ -28,7 +28,7 @@ export async function testNetworkDb() {
       17077,
     );
     console.log('Creating network');
-    const network = await createNetwork('test network');
+    const network = await createNetwork('test network', primaryController);
     network.primary_controller = primaryController.id;
     console.log('Assigning primary controller to network');
     network.save();
@@ -132,11 +132,14 @@ export function getNetworkList(): Promise<Array<Topology>> {
   });
 }
 
-export function createNetwork(networkName: string): Promise<Topology> {
+export function createNetwork(
+  networkName: string,
+  primaryController: Controller,
+): Promise<Topology> {
   // create new network with just the name set
   return new Promise<Topology>((resolve, reject) => {
     return topology
-      .create({name: networkName})
+      .create({name: networkName, primary_controller: primaryController.id})
       .then(network => resolve(network))
       .catch(_err => reject());
   });

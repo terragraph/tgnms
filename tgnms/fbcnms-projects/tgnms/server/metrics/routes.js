@@ -11,7 +11,6 @@ import {
 const {BERINGEI_QUERY_URL} = require('../config');
 const {getAnalyzerData} = require('../topology/analyzer_data');
 // new json writer
-const dataJson = require('./dataJson');
 const express = require('express');
 const request = require('request');
 const logger = require('../log')(module);
@@ -112,11 +111,6 @@ router.post('/stats_ta', (req, res, _next) => {
       res.send(body).end();
     },
   );
-});
-
-router.post('/scan_results', (req, res) => {
-  const topologyName = req.query.topology;
-  dataJson.readScanResults(topologyName, res, req.body);
 });
 
 // raw stats data

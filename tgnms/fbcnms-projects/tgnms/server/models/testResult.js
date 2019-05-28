@@ -319,13 +319,13 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
       },
     },
     {
-      timestamps: false,
-      freezeTableName: true,
       /**
        * this table is managed by network test, so nms should not create or
        * migrate it.
        */
       doNotCreateTable: true,
+      freezeTableName: true,
+      timestamps: false,
     },
   );
 
