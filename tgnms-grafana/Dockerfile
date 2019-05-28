@@ -20,3 +20,6 @@ USER root
 RUN apt-get install -y python3-pip
 RUN pip3 install --upgrade pip setuptools
 RUN pip3 install .
+
+# install extra visualization plugins
+RUN grafana-cli plugins install grafana-piechart-panel
