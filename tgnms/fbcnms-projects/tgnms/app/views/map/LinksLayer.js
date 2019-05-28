@@ -31,6 +31,7 @@ import {
   LinkOverlayColors,
   METRIC_COLOR_RANGE,
 } from '../../constants/LayerConstants';
+import {HEALTH_CODES} from '../../constants/HealthConstants';
 import LinkOverlayContext from '../../LinkOverlayContext';
 import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import {
@@ -172,7 +173,17 @@ class LinksLayer extends React.Component<Props> {
     const {igCandidates} = ignitionState;
 
     if (overlay.type === 'metric') {
-      return this.getMetricLinkColor(link, values);
+      const clr = this.getMetricLinkColor(link, values);
+      if (overlay.id === 'link_health') {
+        if (values && clr) {
+          values.forEach(function(value, index) {
+            if (value === HEALTH_CODES.UNKNOWN) {
+              clr[index] = LinkOverlayColors.metric.missing.color;
+            }
+          });
+        }
+      }
+      return clr;
     }
     if (overlay.type === 'golay') {
       if (values === undefined) {
@@ -195,17 +206,17 @@ class LinksLayer extends React.Component<Props> {
     }
     // Link lines not based on metrics (i.e. health)
     if (link.is_alive) {
-      return LinkOverlayColors.health.healthy.color;
+      return LinkOverlayColors.ignition_status.link_up.color;
     } else if (igCandidates.find(({linkName}) => linkName === link.name)) {
-      return LinkOverlayColors.health.igniting.color;
+      return LinkOverlayColors.ignition_status.igniting.color;
     } else if (
       // link is offline on purpose
       !link.is_alive &&
       !hasLinkEverGoneOnline(link, offlineWhitelist)
     ) {
-      return LinkOverlayColors.health.unknown.color;
+      return LinkOverlayColors.ignition_status.unknown.color;
     } else {
-      return LinkOverlayColors.health.unhealthy.color;
+      return LinkOverlayColors.ignition_status.link_down.color;
     }
   }
 
@@ -237,11 +248,16 @@ class LinksLayer extends React.Component<Props> {
   }
 
   getMetricText(link, metricValues: Array<number>): Array<string | number> {
+    const {overlay} = this.props;
     return metricValues.map(value => {
       if (typeof this.props.overlay.formatText === 'function') {
         return this.props.overlay.formatText(link, value);
       }
-      if (value === null || typeof value === 'undefined') {
+      if (
+        value === null ||
+        typeof value === 'undefined' ||
+        overlay.id === 'link_health'
+      ) {
         return '';
       }
       return value;

@@ -84,7 +84,7 @@ const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 30000;
 const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
 const defaultSelectedOverlays = {
-  link_lines: 'health',
+  link_lines: 'ignition_status',
   site_icons: 'health',
 };
 

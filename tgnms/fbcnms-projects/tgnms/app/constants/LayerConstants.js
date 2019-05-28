@@ -16,9 +16,9 @@ import red from '@material-ui/core/colors/red';
 import {HEALTH_CODES, HEALTH_DEFS} from './HealthConstants';
 
 export const LinkOverlayColors = {
-  health: {
-    healthy: {color: green[800]},
-    unhealthy: {color: red[600]},
+  ignition_status: {
+    link_up: {color: green[800]},
+    link_down: {color: red[600]},
     igniting: {color: purple[500]},
     unknown: {color: grey[500]},
   },
