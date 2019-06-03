@@ -133,6 +133,12 @@ class AddNodePanel extends React.Component {
             // Send /editNode request only if successful
             onResultsOverride: ({success, msg}, successSwal, failureSwal) => {
               if (success) {
+                // don't post to /editNode if no changes
+                if (!this.nodeFormChanged()) {
+                  successSwal(msg);
+                  onClose();
+                  return;
+                }
                 const data = {
                   nodeName: initialParams.name,
                   newNode: node,
@@ -153,7 +159,7 @@ class AddNodePanel extends React.Component {
             },
           },
         );
-      } else {
+      } else if (this.nodeFormChanged()) {
         // Only send /editNode request
         const data = {
           nodeName: initialParams.name,
@@ -377,6 +383,27 @@ class AddNodePanel extends React.Component {
       />
     );
   }
+
+  // checks if any of the "editNode" params have changed from initial values
+  nodeFormChanged = () => {
+    const keysToCheck = new Set([
+      'name',
+      'is_primary',
+      'wlan_mac_addrs',
+      'pop_node',
+      'site_name',
+      'ant_azimuth',
+    ]);
+    for (const key of Object.keys(this.state)) {
+      if (
+        keysToCheck.has(key) &&
+        this.state[key] !== this.props.initialParams[key]
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
 }
 
 AddNodePanel.propTypes = {
