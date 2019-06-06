@@ -95,6 +95,48 @@ BEGIN
 END $$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS Adjust_Agg_Key_Auto;
+DELIMITER $$
+CREATE PROCEDURE Adjust_Agg_Key_Auto ()
+BEGIN
+  DECLARE incr_val INT  DEFAULT 0;
+  SET incr_val = (SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'cxl' AND TABLE_NAME = 'agg_key');
+  IF incr_val < 1000000000  then
+        ALTER TABLE `agg_key` AUTO_INCREMENT=1000000000;
+  end if ;
+END; $$
+DELIMITER ;
+
+CREATE TABLE IF NOT EXISTS `agg_key` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `topology_id` int(11) NOT NULL COMMENT 'References topology.id',
+  `key` varchar(100) NOT NULL COMMENT 'Metric/key name',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key_name` (`topology_id`,`key`),
+  KEY `topology_id` (`topology_id`)
+) ENGINE=InnoDB
+/* ts_key uses the same key space, separate by 1B until we have
+ * key prefixes
+ */
+AUTO_INCREMENT=1000000000
+DEFAULT CHARSET=latin1;
+
+/* for reasons unknown, on initial startup, AUTO_INCREMENT value in the
+   CREATE TABLE is not set properly; this function sets is again */
+CALL Adjust_Agg_Key_Auto;
+
+CREATE TABLE IF NOT EXISTS `nodes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `node` varchar(100) NOT NULL,
+  `mac` varchar(100) DEFAULT NULL,
+  `network` varchar(100) DEFAULT NULL,
+  `site` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `mac` (`mac`),
+  KEY `node` (`node`),
+  KEY `site` (`site`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+
 /* scan_results table is no longer used, replaced by tx_scan_results and
    rx_scan_results - added July 2018 */
 DROP TABLE IF EXISTS scan_results;
@@ -155,6 +197,16 @@ CREATE TABLE IF NOT EXISTS `topology` (
   `backup_controller` int(11),
   `site_overrides` json,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `ts_key` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `node_id` int(11) NOT NULL,
+  `key` varchar(100) NOT NULL DEFAULT '',
+  PRIMARY KEY (`node_id`,`key`),
+  KEY `id` (`id`),
+  KEY `node_id` (`node_id`),
+  KEY `key` (`key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `scan_response_rate` (
