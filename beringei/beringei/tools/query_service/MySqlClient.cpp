@@ -630,8 +630,8 @@ int MySqlClient::writeTxScanResponse(
         "(`token`, `combined_status`, `tx_node_id`, `start_bwgd`, "
         "`scan_type`, `network`,`scan_sub_type`, `scan_mode`, "
         "`apply_flag`, `status`, `tx_power`, `resp_id`, `tx_node_name`, "
-        "`scan_resp`, `n_responses_waiting`) VALUES "
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "`scan_resp`, `n_responses_waiting`, `group_id`) VALUES "
+        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     std::unique_ptr<sql::PreparedStatement> prep_stmt(
         connection->prepareStatement(query));
     prep_stmt->setInt(1, scanResponse.token);
@@ -655,6 +655,7 @@ int MySqlClient::writeTxScanResponse(
       prep_stmt->setString(14, scanResponse.scanResp);
     }
     prep_stmt->setInt(15, scanResponse.nResponsesWaiting);
+    prep_stmt->setInt(16, scanResponse.groupId);
 
     prep_stmt->execute();
     return MySqlOk;

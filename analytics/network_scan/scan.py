@@ -21,6 +21,7 @@ class Scan(object):
 
     def __init__(self, scan_resp):
         self.token = scan_resp['token']
+        self.group_id = scan_resp['group_id']
         self.tx_node_name = scan_resp['tx_node_name']
         self.timestamp = scan_resp['timestamp']
         self.tx_power = scan_resp['tx_power']
