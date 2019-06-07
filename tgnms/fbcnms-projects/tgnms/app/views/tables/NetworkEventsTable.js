@@ -134,12 +134,7 @@ class NetworkEventsTable extends React.Component<Props, State> {
     {key: 'reason', label: 'Description', width: 300},
     {filter: true, key: 'source', label: 'Source', sort: true, width: 200},
     {key: 'category', label: 'Category', sort: true, width: 100},
-    {
-      key: 'subcategory',
-      label: 'Subcategory',
-      sort: true,
-      width: 100,
-    },
+    {key: 'eventId', label: 'Event ID', sort: true, width: 100},
   ];
 
   handleChange = event => {

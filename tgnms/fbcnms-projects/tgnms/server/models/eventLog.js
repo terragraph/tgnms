@@ -40,7 +40,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
       category: {
         type: DataTypes.STRING(100),
       },
-      subcategory: {
+      eventId: {
         type: DataTypes.STRING(100),
         allowNull: true,
       },
