@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS `tx_scan_results` (
 CALL Add_Modify_Column('tx_scan_results','combined_status','int'); /* added July 2018 */
 CALL Add_Modify_Column('tx_scan_results','token','int unsigned');  /* added July 2018 */
 CALL Add_Modify_Column('tx_scan_results', 'n_responses_waiting', 'int unsigned'); /* added March 2019 */
+CALL Add_Modify_Column('tx_scan_results', 'group_id', 'int unsigned'); /* added June 2019 */
 
 CREATE TABLE IF NOT EXISTS `topology` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -211,6 +212,7 @@ CREATE TABLE IF NOT EXISTS `ts_key` (
 
 CREATE TABLE IF NOT EXISTS `scan_response_rate` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `scan_group_id` int,
   `network_id` int(11),
   `scan_type` tinyint,
   `scan_mode` tinyint,
