@@ -35,6 +35,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import SyncIcon from '@material-ui/icons/Sync';
 import RouterIcon from '@material-ui/icons/Router';
 import {SELECTED_NODE_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {shortenVersionString} from '../../helpers/VersionHelper';
@@ -102,7 +103,7 @@ class NodeDetailsPanel extends React.Component {
     return alivePerc;
   }
 
-  onRebootNode() {
+  onRebootNode = () => {
     // Reboot this node
     const {node, networkName} = this.props;
 
@@ -115,17 +116,29 @@ class NodeDetailsPanel extends React.Component {
         return {...data, force: !!value};
       },
     });
-  }
+  };
 
-  onSearchNearby() {
+  onRestartMinion = () => {
+    // Reboot this node
+    const {node, networkName} = this.props;
+    const data = {nodes: [node.name], secondsToRestart: 2};
+    apiServiceRequestWithConfirmation(networkName, 'restartMinion', data, {
+      desc: `Do you want to restart minion on node <strong>${
+        node.name
+      }</strong>?`,
+      descType: 'html',
+    });
+  };
+
+  onSearchNearby = () => {
     // Show the "Search Nearby" panel
     const {node, nearbyNodes, onUpdateNearbyNodes} = this.props;
     if (!nearbyNodes.hasOwnProperty(node.name)) {
       onUpdateNearbyNodes({...nearbyNodes, [node.name]: null});
     }
-  }
+  };
 
-  onDeleteNode() {
+  onDeleteNode = () => {
     // Delete this node
     const {node, networkName} = this.props;
 
@@ -139,9 +152,9 @@ class NodeDetailsPanel extends React.Component {
         return {...data, force: !!value};
       },
     });
-  }
+  };
 
-  onEditNode() {
+  onEditNode = () => {
     // Edit this node
     const {node, onClose, onEdit} = this.props;
 
@@ -153,9 +166,9 @@ class NodeDetailsPanel extends React.Component {
       wlan_mac_addrs: node.wlan_mac_addrs ? node.wlan_mac_addrs.join(',') : '',
     });
     onClose();
-  }
+  };
 
-  onShowRoutesToPop() {
+  onShowRoutesToPop = () => {
     // Show Routes from this node
     const {node, onUpdateRoutes} = this.props;
     onUpdateRoutes({
@@ -163,7 +176,7 @@ class NodeDetailsPanel extends React.Component {
       links: {},
       nodes: new Set(),
     });
-  }
+  };
 
   renderActions() {
     // Render actions
@@ -175,14 +188,19 @@ class NodeDetailsPanel extends React.Component {
           {
             label: 'Reboot Node',
             icon: <RefreshIcon />,
-            func: () => this.onRebootNode(),
+            func: this.onRebootNode,
+          },
+          {
+            label: 'Restart Minion',
+            icon: <SyncIcon />,
+            func: this.onRestartMinion,
           },
           ...(supportsTopologyScan(ctrlVersion)
             ? [
                 {
                   label: 'Search Nearby',
                   icon: getSearchNearbyIcon(),
-                  func: () => this.onSearchNearby(),
+                  func: this.onSearchNearby,
                 },
               ]
             : []),
@@ -203,17 +221,17 @@ class NodeDetailsPanel extends React.Component {
           {
             label: 'Show Routes',
             icon: getShowRoutesIcon(),
-            func: () => this.onShowRoutesToPop(),
+            func: this.onShowRoutesToPop,
           },
           {
             label: 'Edit Node',
             icon: getEditIcon(),
-            func: () => this.onEditNode(),
+            func: this.onEditNode,
           },
           {
             label: 'Delete Node',
             icon: <DeleteIcon />,
-            func: () => this.onDeleteNode(),
+            func: this.onDeleteNode,
           },
         ],
       },
