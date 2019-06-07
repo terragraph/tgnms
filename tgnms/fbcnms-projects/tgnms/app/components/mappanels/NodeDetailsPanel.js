@@ -15,6 +15,7 @@ import {
   getSiteIcon,
   getShowRoutesIcon,
 } from '../../helpers/MapPanelHelpers';
+import {getNodePolarities} from '../../helpers/TgFeatures';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
@@ -26,6 +27,8 @@ import {
   hasNodeEverGoneOnline,
 } from '../../helpers/NetworkHelpers';
 import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {PolarityTypeValueMap as PolarityType} from '../../../shared/types/Topology';
+import {SiteOverlayColors} from '../../constants/LayerConstants';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -79,6 +82,29 @@ const styles = theme => ({
     padding: '4px 0 2px 16px',
   },
 });
+
+const POLARITY_UI = {
+  [PolarityType.ODD]: {
+    color: SiteOverlayColors.polarity.odd.color,
+    text: 'Odd',
+  },
+  [PolarityType.EVEN]: {
+    color: SiteOverlayColors.polarity.even.color,
+    text: 'Even',
+  },
+  [PolarityType.HYBRID_ODD]: {
+    color: SiteOverlayColors.polarity.hybrid_odd.color,
+    text: 'Hybrid Odd',
+  },
+  [PolarityType.HYBRID_EVEN]: {
+    color: SiteOverlayColors.polarity.hybrid_even.color,
+    text: 'Hybrid Even',
+  },
+  unknown: {
+    color: SiteOverlayColors.polarity.unknown.color,
+    text: 'Unknown',
+  },
+};
 
 class NodeDetailsPanel extends React.Component {
   state = {};
@@ -480,7 +506,10 @@ class NodeDetailsPanel extends React.Component {
             {renderAvailabilityWithColor(formatNumber(availability))}
           </Typography>
         </div>
-
+        <div>
+          <Typography variant="subtitle2">Polarity</Typography>
+          {this.renderPolarity()}
+        </div>
         {statusReport && statusReport.version
           ? this.renderSoftwareVersion(statusReport.version)
           : null}
@@ -521,6 +550,34 @@ class NodeDetailsPanel extends React.Component {
       />
     );
   }
+
+  renderPolarity = () => {
+    const {ctrlVersion, classes, node, networkConfig} = this.props;
+    const mac2Polarity = getNodePolarities(
+      ctrlVersion,
+      node,
+      networkConfig.topologyConfig,
+    );
+
+    return (
+      <div className={classes.indented}>
+        {Object.keys(mac2Polarity).map(macAddr => {
+          const polarity = mac2Polarity[macAddr];
+          const {color, text} = POLARITY_UI[polarity]
+            ? POLARITY_UI[polarity]
+            : POLARITY_UI.unknown;
+          return (
+            <div className={classes.spaceBetween} key={macAddr}>
+              <Typography>{macAddr}</Typography>
+              <Typography>
+                <span style={{color: color}}>{text}</span>
+              </Typography>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 }
 
 NodeDetailsPanel.propTypes = {
