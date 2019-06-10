@@ -14,7 +14,7 @@ import React from 'react';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-
+import {withTranslation} from 'react-i18next';
 // Pick a network if no network is requested in URL
 // This will choose any alive controller, otherwise redirect to /config
 function getDefaultNetworkName(networkList) {
@@ -155,5 +155,5 @@ class NetworkListBase extends React.Component<Props, State> {
 }
 
 export default withStyles(styles, {withTheme: true})(
-  withRouter(NetworkListBase),
+  withRouter(withTranslation()(NetworkListBase)),
 );

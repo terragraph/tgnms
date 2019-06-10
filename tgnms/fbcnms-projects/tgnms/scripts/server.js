@@ -33,7 +33,7 @@ const {sequelize} = require('../server/models');
 const topologyPeriodic = require('../server/topology/periodic');
 const {runMigrations, runSeeders} = require('./initDatabase');
 const logger = require('../server/log')(module);
-
+import {i18nextInstance} from '../server/translations/service';
 import access from '../server/middleware/access';
 
 const devMode = process.env.NODE_ENV !== 'production';
@@ -93,12 +93,13 @@ app.use('/topology', require('../server/topology/routes'));
 app.use('/user', require('../server/user/routes'));
 app.use('/network_test', require('../server/network_test/routes'));
 app.use('/nodelogs', require('../server/nodelogs/routes'));
+app.use('/translations', require('../server/translations/routes'));
 
 // First-time stuff
 topologyPeriodic.startPeriodicTasks();
 
 // Check if nodelogs directory exists
-const {NODELOG_DIR} = require('../server/config');
+const {NODELOG_DIR, TRANSLATIONS_DEFAULT_LOCALE} = require('../server/config');
 let NODELOGS_ENABLED = false;
 try {
   NODELOGS_ENABLED = fs.statSync(NODELOG_DIR).isDirectory();
@@ -134,8 +135,20 @@ if (devMode) {
 
 // Catch All
 app.get('*', (req, res) => {
+  const requestedLanguage = i18nextInstance.services.languageDetector.detect(
+    req,
+    res,
+  );
   // construct config JSON to inject
-  const configObj = {...getAllNetworkConfigs(), env: {}, user: req.user};
+  const configObj = {
+    ...getAllNetworkConfigs(),
+    env: {},
+    user: req.user,
+    i18n: {
+      locale: requestedLanguage || TRANSLATIONS_DEFAULT_LOCALE,
+      fallbackLocale: TRANSLATIONS_DEFAULT_LOCALE,
+    },
+  };
 
   // define which env keys to add to config
   const envKeys = [
@@ -179,6 +192,7 @@ app.get('*', (req, res) => {
     }
   });
   configObj.env.NODELOGS_ENABLED = NODELOGS_ENABLED;
+  configObj.env.SAVE_MISSING_TRANSLATIONS = devMode;
 
   res.render('index', {
     staticDist: staticDist,

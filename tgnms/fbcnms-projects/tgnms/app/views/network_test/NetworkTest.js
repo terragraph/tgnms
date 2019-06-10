@@ -13,13 +13,12 @@ import React from 'react';
 import {Route} from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 import CustomSnackbar, {Variant} from '../../components/common/CustomSnackbar';
-
 import {StartNetworkTestModal} from './StartNetworkTest';
 import NetworkTestExecutionsTable from './NetworkTestExecutionsTable';
 import NetworkTestResults from './NetworkTestResults';
+import Text from '@fbcnms/i18n/Text';
 
 const styles = theme => ({
   root: {
@@ -104,12 +103,13 @@ class NetworkTest extends React.PureComponent<Props, State> {
                   </Grid>
                   <Grid item xs={12} md={8}>
                     <Paper className={classes.recentTests}>
-                      <Typography
+                      <Text
                         variant="h6"
                         component="h2"
-                        className={classes.header}>
+                        className={classes.header}
+                        i18nKey="recent_tests">
                         Recent Tests
-                      </Typography>
+                      </Text>
                       <Grid
                         className={classes.executionsTableWrapper}
                         container>

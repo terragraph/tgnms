@@ -4,10 +4,10 @@
  * @format
  */
 'use strict';
-import {ValidationResult} from '../../shared/validation';
 const express = require('express');
 const request = require('request');
 const logger = require('../log')(module);
+import {createErrorHandler} from '../helpers/apiHelpers';
 
 const {NETWORKTEST_HOST} = require('../config');
 const networkTestService = require('./service');
@@ -115,20 +115,6 @@ function createRequest(options) {
       return reject(err);
     }
   });
-}
-
-function createErrorHandler(res) {
-  return error => {
-    //only return an error message if it's an expected error
-    if (error instanceof ValidationResult || error.expected === true) {
-      return res.status(400).send({
-        message: error.message,
-        ...error,
-      });
-    }
-    logger.error(error);
-    return res.status(500).send({});
-  };
 }
 
 module.exports = router;

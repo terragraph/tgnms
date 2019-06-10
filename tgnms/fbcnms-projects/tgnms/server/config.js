@@ -59,6 +59,10 @@ const NODEUPDATE_AUTH_TOKEN = process.env.NODEUPDATE_AUTH_TOKEN || '';
 //   $NODELOG_DIR/<mac_addr>/yyyy-mm-dd_terragraph_<name>_logs.log<.lz4>
 const NODELOG_DIR = process.env.NODELOG_DIR || '/nodelogs';
 
+const TRANSLATIONS_DEFAULT_LOCALE =
+  process.env.TRANSLATIONS_DEFAULT_LOCALE || 'en_US';
+const DEVELOPMENT = process.env.NODE_ENV !== 'production';
+
 module.exports = {
   API_REQUEST_TIMEOUT,
   BERINGEI_QUERY_URL,
@@ -86,4 +90,6 @@ module.exports = {
   KEYCLOAK_REALM,
   KEYCLOAK_CLIENT_ID,
   KEYCLOAK_CLIENT_SECRET,
+  TRANSLATIONS_DEFAULT_LOCALE,
+  DEVELOPMENT,
 };

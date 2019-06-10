@@ -11,17 +11,10 @@ const tail = require('tail');
 const readline = require('readline');
 const express = require('express');
 const router = express.Router();
+import {safePathJoin} from '../helpers/apiHelpers';
 
 // Return the last N lines when tailing a log file
 const N_LAST_LINES = 100;
-
-function safePathJoin(parent, unsafePath) {
-  // Safely join a path (preventing directory traversal via '../')
-  return path.join(
-    parent,
-    path.normalize(unsafePath).replace(/^(\.\.[\/\\])+/, ''),
-  );
-}
 
 function getLineIndicesInFile(filePath) {
   // Return an array of byte indices of lines (LF) in a file
