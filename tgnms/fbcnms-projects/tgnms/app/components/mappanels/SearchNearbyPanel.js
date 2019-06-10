@@ -448,11 +448,11 @@ class SearchNearbyPanel extends React.Component {
     return (
       <>
         {errorMsg ? (
-          <Typography className={classes.errorText} variant="subheading">
+          <Typography className={classes.errorText} variant="subtitle1">
             Error: {errorMsg}
           </Typography>
         ) : (
-          <Typography variant="subheading">
+          <Typography variant="subtitle1">
             Found {responderCount} {responderCount === 1 ? 'node' : 'nodes'}{' '}
             nearby.
           </Typography>

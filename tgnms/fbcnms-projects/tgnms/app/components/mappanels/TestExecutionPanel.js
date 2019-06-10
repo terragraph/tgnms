@@ -168,7 +168,7 @@ function LinkTestResult({
   const testResultIds = testResult.results.map(result => result.id.toString());
   return (
     <>
-      <Typography variant="body2" align="center">
+      <Typography variant="body1" align="center">
         {linkName}
       </Typography>
       <LinkTestResultDetails testResultIds={testResultIds} />

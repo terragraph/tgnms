@@ -181,7 +181,7 @@ class ShowRoutePanel extends React.Component {
     // Render header text
     return (
       <>
-        <Typography variant="subheading">Show routes to PoP node:</Typography>
+        <Typography variant="subtitle1">Show routes to PoP node:</Typography>
       </>
     );
   }
