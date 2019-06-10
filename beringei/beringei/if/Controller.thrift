@@ -1783,6 +1783,7 @@ struct StartScan {
   16: optional i16 nullAngle;
   17: optional i16 cbfBeamIdx;
   18: optional bool setConfig; // 0 - One-time scan, 1 - update config
+  19: optional i64 applyBwgdIdx;
 }
 
 /**
@@ -1916,6 +1917,9 @@ struct ScanData {
   13: optional list<string> auxRxNodes;
   14: optional i16 nullAngle;
   15: optional i16 cbfBeamIdx;
+  16: optional i64 applyBwgdIdx;
+  17: optional list<string> rxNodes;
+  18: optional i32 groupId;
 }
 
 /**
