@@ -16,6 +16,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import PlotlyGraph from './PlotlyGraph.js';
 import React from 'react';
 import {
+  GRAPH_LINE_NAME_MAX_LENGTH,
   STATS_DS_INTERVAL_SEC,
   STATS_GRAPH_AGG_OPTS,
   STATS_MAX_DPS,
@@ -29,6 +30,7 @@ import {
   GraphAggregation,
   RestrictorType,
 } from '../../../thrift/gen-nodejs/Stats_types';
+import moment from 'moment';
 
 const styles = theme => ({
   root: {
@@ -51,7 +53,7 @@ type Props = {
   networkConfig: Object,
 };
 
-class NetworkStats extends React.Component<Props, State> {
+class NetworkStatsBeringei extends React.Component<Props, State> {
   // TODO - graph options should be saved in their own context
   state = {
     // data source interval
@@ -121,9 +123,53 @@ class NetworkStats extends React.Component<Props, State> {
     });
   };
 
+  plotlyDataFormatter(oldGraphData, graphData) {
+    if (graphData && graphData.points && graphData.points[0]) {
+      let traces = [];
+      // If there is already plotly data (lines are already on the graph),
+      // then refresh the trace's x and y data, otherwise make new traces
+      if (oldGraphData && oldGraphData.length !== 0) {
+        traces = oldGraphData.map(trace => ({
+          ...trace,
+          x: [],
+          y: [],
+        }));
+      } else {
+        // Create the correct number of trace (line) objects
+        for (let i = 0; i < graphData.points[0].length - 1; i++) {
+          traces.push({
+            mode: 'line',
+            name: graphData.columns[i + 1].substr(
+              0,
+              GRAPH_LINE_NAME_MAX_LENGTH,
+            ),
+            type: 'scatter',
+            x: [], // Will contain the timestamp
+            y: [], // Will contain the data
+          });
+        }
+      }
+
+      // Populate the x and y data for each of the traces from the points
+      graphData.points.forEach(point => {
+        point[0] = new Date(point[0]);
+        for (let i = 1; i < point.length; i++) {
+          const trace = traces[i - 1];
+          trace.x.push(point[0]); // Push the timestamp contained at point[0]
+          trace.y.push(point[i]); // Push the data
+        }
+      });
+      return traces;
+    }
+  }
+
   renderGraphs() {
     // create a graph for each key name
     const {networkConfig} = this.props;
+    const endTs = moment().unix();
+    const startTs = moment()
+      .subtract(this.state.minAgo, 'minutes')
+      .unix();
     return this.state.keysSelected.map((graphKey, pos) => {
       const graphOpts = {
         aggregation: this.state.graphAggType,
@@ -134,6 +180,7 @@ class NetworkStats extends React.Component<Props, State> {
           .maxDataPoints /* restrict individual points to 100 */,
         dsIntervalSec: this.state.dsIntervalSec,
         topologyName: networkConfig.topology.name,
+        minAgo: this.state.minAgo,
       };
       if (this.state.linksSelected.length) {
         graphOpts.restrictors = [
@@ -143,13 +190,16 @@ class NetworkStats extends React.Component<Props, State> {
           },
         ];
       }
-      graphOpts.minAgo = this.state.minAgo;
       return (
         <PlotlyGraph
           key={'graph-' + pos}
           containerId="statsBoxDiv"
+          endTsMs={endTs * 1000}
+          startTsMs={startTs * 1000}
           title={graphKey.label}
+          queryUrl={'/metrics/multi_chart'}
           options={graphOpts}
+          dataFormatter={this.plotlyDataFormatter}
         />
       );
     });
@@ -238,4 +288,6 @@ class NetworkStats extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(styles, {withTheme: true})(withRouter(NetworkStats));
+export default withStyles(styles, {withTheme: true})(
+  withRouter(NetworkStatsBeringei),
+);

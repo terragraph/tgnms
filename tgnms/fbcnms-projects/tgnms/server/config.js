@@ -39,6 +39,12 @@ const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET;
 const CLIENT_ROOT_URL = process.env.CLIENT_ROOT_URL;
 
 const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086';
+const PROMETHEUS_URL = process.env.PROMETHEUS || 'http://prometheus:9090';
+// default data source interval to use
+const DS_INTERVAL_SEC = 30;
+// allow prometheus or beringei as the stats backend
+const STATS_BACKEND =
+  process.env.STATS_BACKEND === 'prometheus' ? 'prometheus' : 'beringei';
 
 // fix to a stable docker api version (https://docs.docker.com/engine/api/v1.37/)
 const DOCKER_API_VERSION = '1.37';
@@ -56,6 +62,9 @@ const NODELOG_DIR = process.env.NODELOG_DIR || '/nodelogs';
 module.exports = {
   API_REQUEST_TIMEOUT,
   BERINGEI_QUERY_URL,
+  PROMETHEUS_URL,
+  DS_INTERVAL_SEC,
+  STATS_BACKEND,
   DEFAULT_API_SERVICE_PORT: '8080',
   DOCKER_API_VERSION,
   LOGIN_ENABLED,

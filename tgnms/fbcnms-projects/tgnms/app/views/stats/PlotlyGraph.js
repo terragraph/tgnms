@@ -7,7 +7,6 @@
 
 import axios from 'axios';
 import equals from 'equals';
-import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 
@@ -25,8 +24,6 @@ const GRAPH_HEIGHT = 400;
 const GRAPH_GAP_WIDTH = 20;
 // refresh interval (ms)
 const GRAPH_REFRESH_INTERVAL_SEC = 10;
-// maximum name length to prevent legend taking over the graph
-const GRAPH_LINE_NAME_MAX_LENGTH = 40;
 
 export default class PlotlyGraph extends React.Component {
   constructor(props, context) {
@@ -102,16 +99,9 @@ export default class PlotlyGraph extends React.Component {
   }
 
   refreshData() {
-    if (!this.props.options.keyNames.length) {
-      this.setState({
-        data: null,
-        indicator: 'NO_DATA',
-      });
-    }
+    const {options, queryUrl} = this.props;
     axios
-      .post('/metrics/multi_chart/', this.props.options, {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      })
+      .post(queryUrl, options)
       .then(resp => {
         if (!resp.data) {
           this.setState({
@@ -121,7 +111,10 @@ export default class PlotlyGraph extends React.Component {
         } else {
           // process data to fit format for Plotly
           const graphData = resp.data;
-          const traces = this.plotDataFormatter(graphData);
+          const traces = this.props.dataFormatter(
+            this.state.plotlyData /* old data */,
+            graphData /* new data */,
+          );
 
           this.setState({
             data: graphData,
@@ -138,48 +131,6 @@ export default class PlotlyGraph extends React.Component {
           indicator: 'FAILED',
         });
       });
-  }
-
-  // Format the response data for Plotly graphs
-  plotDataFormatter(graphData) {
-    if (graphData && graphData.points && graphData.points[0]) {
-      let traces = [];
-
-      // If there is already plotly data (lines are already on the graph),
-      // then refresh the trace's x and y data, otherwise make new traces
-      if (this.state.plotlyData && this.state.plotlyData.length !== 0) {
-        traces = this.state.plotlyData.map(trace => ({
-          ...trace,
-          x: [],
-          y: [],
-        }));
-      } else {
-        // Create the correct number of trace (line) objects
-        for (let i = 0; i < graphData.points[0].length - 1; i++) {
-          traces.push({
-            mode: 'line',
-            name: graphData.columns[i + 1].substr(
-              0,
-              GRAPH_LINE_NAME_MAX_LENGTH,
-            ),
-            type: 'scatter',
-            x: [], // Will contain the timestamp
-            y: [], // Will contain the data
-          });
-        }
-      }
-
-      // Populate the x and y data for each of the traces from the points
-      graphData.points.forEach(point => {
-        point[0] = new Date(point[0]);
-        for (let i = 1; i < point.length; i++) {
-          const trace = traces[i - 1];
-          trace.x.push(point[0]); // Push the timestamp contained at point[0]
-          trace.y.push(point[i]); // Push the data
-        }
-      });
-      return traces;
-    }
   }
 
   onGraphRelayout(layoutData) {
@@ -200,20 +151,9 @@ export default class PlotlyGraph extends React.Component {
 
   render() {
     const {xaxisStart, xaxisEnd} = this.state;
-    // Format time range based on if minAgo is specified or not
-    const {title, containerId} = this.props;
-    let {startTsSec, endTsSec, minAgo} = this.props.options;
-    if (minAgo) {
-      endTsSec = moment().toDate();
-      startTsSec = moment()
-        .subtract(minAgo, 'minutes')
-        .toDate();
-    } else {
-      startTsSec *= 1000;
-      endTsSec *= 1000;
-    }
+    const {containerId, endTsMs, startTsMs, title} = this.props;
+    // Format time
     // Format height and width of graph
-
     let width = MIN_GRAPH_WIDTH;
     if (document.getElementById(containerId) !== null) {
       const containerWidth = document.getElementById(containerId).offsetWidth;
@@ -226,7 +166,6 @@ export default class PlotlyGraph extends React.Component {
         width = MIN_GRAPH_WIDTH;
       }
     }
-
     return (
       <div className="dashboard-plotly-wrapper" style={{display: 'inline'}}>
         <Plot
@@ -242,7 +181,7 @@ export default class PlotlyGraph extends React.Component {
               //orientation: 'h',
             },
             xaxis: {
-              range: [xaxisStart || startTsSec, xaxisEnd || endTsSec],
+              range: [xaxisStart || startTsMs, xaxisEnd || endTsMs],
             },
           }}
           config={{
@@ -269,7 +208,11 @@ export default class PlotlyGraph extends React.Component {
 }
 
 PlotlyGraph.propTypes = {
+  dataFormatter: PropTypes.func.isRequired,
+  startTsMs: PropTypes.number.isRequired,
+  endTsMs: PropTypes.number.isRequired,
   containerId: PropTypes.string.isRequired,
+  queryUrl: PropTypes.string.isRequired,
   options: PropTypes.object.isRequired,
   title: PropTypes.string.isRequired,
 };

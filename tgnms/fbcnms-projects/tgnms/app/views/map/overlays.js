@@ -138,16 +138,15 @@ export class LinkMetricsOverlayStrategy implements OverlayStrategy {
     if (!overlayDef) {
       return Promise.resolve([]);
     }
-
-    const metrics = Array.isArray(overlayDef.metrics)
-      ? overlayDef.metrics
-      : [overlayDef.id];
+    const metricName = Array.isArray(overlayDef.metrics)
+      ? overlayDef.metrics[0]
+      : overlayDef.id;
 
     //TODO: share flow types with backend here
     return axios
-      .post<{}, {}>(`/metrics/overlay/linkStat/${query.networkName}`, {
-        metrics,
-      })
+      .get<{}, {}>(
+        `/metrics/overlay/linkStat/${query.networkName}/${metricName}`,
+      )
       .then(response => response.data);
   };
 }

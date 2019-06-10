@@ -7,6 +7,9 @@
 
 import {GraphAggregation} from '../../thrift/gen-nodejs/Stats_types';
 
+// maximum name length to prevent legend taking over the graph
+export const GRAPH_LINE_NAME_MAX_LENGTH = 40;
+
 export const STATS_TIME_PICKER_OPTS = [
   {
     label: '30 Minutes',

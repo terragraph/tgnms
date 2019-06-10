@@ -85,6 +85,7 @@ app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
 app.use('/dashboards', require('../server/dashboard/routes'));
 app.use('/docker', require('../server/docker/routes'));
+app.use('/events', require('../server/events/routes'));
 app.use('/map', require('../server/map/routes'));
 app.use('/metrics', require('../server/metrics/routes'));
 app.use('/nodeupdateservice', require('../server/nodeupdateservice/routes'));
@@ -145,6 +146,7 @@ app.get('*', (req, res) => {
     'NETWORKTEST_HOST',
     'LOGIN_ENABLED',
     'TILE_STYLE',
+    'STATS_BACKEND',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

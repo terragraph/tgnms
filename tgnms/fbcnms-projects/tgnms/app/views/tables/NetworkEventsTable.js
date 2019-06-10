@@ -85,7 +85,7 @@ class NetworkEventsTable extends React.Component<Props, State> {
   getEvents() {
     const {context} = this.props;
     const {networkConfig} = context;
-    const uri = `/metrics/events`;
+    const uri = `/events/query`;
     const query = {
       topologyName: networkConfig.topology.name,
       maxResults: this.state.maxResults,
