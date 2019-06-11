@@ -23,6 +23,7 @@ from thrift.transport import TTransport
 
 _log = Logger(__name__, logging.DEBUG).get_logger()
 DEFAULT_ACCESS_ORIGIN = {"Access-Control-Allow-Origin": "*"}
+DEFAULT_PARALLEL_SESSIONS = 3
 
 
 def parse_received_json_data(
@@ -99,25 +100,34 @@ def _validate_multi_hop_parameters(
         }
 
     # validate multi_hop_parallel_sessions parameter
-    multi_hop_parallel_sessions = received_json_data.get(
-        "multi_hop_parallel_sessions",
-        3 if test_code == Tests.MULTI_HOP_TEST.value else None,
-    )
-    if multi_hop_parallel_sessions and multi_hop_parallel_sessions < 1:
+    try:
+        multi_hop_parallel_sessions = int(
+            received_json_data.get(
+                "multi_hop_parallel_sessions", DEFAULT_PARALLEL_SESSIONS
+            )
+        )
+        if test_code == Tests.MULTI_HOP_TEST.value and multi_hop_parallel_sessions < 1:
+            return {
+                "error": {
+                    "error": True,
+                    "msg": "multi_hop_parallel_sessions has to be greater than 0.",
+                }
+            }
+
+        # validate multi_hop_session_iteration_count parameter
+        multi_hop_session_iteration_count = int(
+            received_json_data.get("multi_hop_session_iteration_count", 0)
+        )
+    except Exception as e:
         return {
             "error": {
                 "error": True,
-                "msg": "multi_hop_parallel_sessions has to be greater than 0.",
+                "msg": "multi_hop configuration error {}".format(e),
             }
         }
 
-    # validate multi_hop_session_iteration_count parameter
-    multi_hop_session_iteration_count = received_json_data.get(
-        "multi_hop_session_iteration_count", None
-    )
-
     # validate pop_to_node_link parameter
-    speed_test_pop_to_node_dict = received_json_data.get("pop_to_node_link", None)
+    speed_test_pop_to_node_dict = received_json_data.get("pop_to_node_link", {})
 
     return {
         "traffic_direction": traffic_direction,

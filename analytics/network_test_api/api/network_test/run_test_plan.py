@@ -3,6 +3,7 @@
 
 import logging
 import time
+import json
 from queue import Queue
 
 from api import base
@@ -43,6 +44,28 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
                 test_run_execution_id
             )
         )
+        return
+
+    # this is a hack to handle that pop_to_node_link is stored as text instead
+    # of json - if Django adds support for JSONfield or we no longer use
+    # Django - remove this
+    try:
+        if test_description["pop_to_node_link"]:
+            # string is stored using single quotes but json requires double
+            # quotes
+            ts_temp = str(test_description["pop_to_node_link"].replace("'", '"'))
+            test_description["pop_to_node_link"] = json.loads(ts_temp)
+        else:
+            test_description["pop_to_node_link"] = {}
+    except JSONDecodeError as e:
+        _log.error(
+            "Error decoding pop_to_node_link json {}: {}".format(
+                test_description["pop_to_node_link"], e
+            )
+        )
+        return
+    except Exception as e:
+        _log.error("Unknown exception decoding pop_to_node_link {}".format(e))
         return
 
     parsed_json_data, __, multi_hop_parameters = base.parse_received_json_data(
