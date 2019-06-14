@@ -25,16 +25,16 @@
   "insights_pipelines_lf" : {
     "period" : 900,
     "write_power_status" : {
-      "enabled" : true
+      "enabled" : false
     },
     "misc_insights" : {
-      "enabled" : true
+      "enabled" : false
     },
     "uptime_insights" : {
-      "enabled" : true
+      "enabled" : false
     },
     "link_health_insights" : {
-      "enabled" : true
+      "enabled" : false
     }
   }
 }
