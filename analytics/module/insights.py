@@ -61,12 +61,12 @@ def link_health_insights(
     k = nts.get_consts()
     logging.info("process link health")
     link_length = nts.get_link_length()
-    mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
-    link_available = nts.read_stats("staPkt.linkAvailable", StatType.LINK)
-    mcs = nts.read_stats("staPkt.mcs", StatType.LINK)
-    tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)
-    tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)
-    no_traffic = nts.read_stats("latpcStats.noTrafficCountSF", StatType.LINK)
+    mgmt_link_up = nts.read_stats("fw_uptime", StatType.LINK)
+    link_available = nts.read_stats("link_avail", StatType.LINK)
+    mcs = nts.read_stats("mcs", StatType.LINK)
+    tx_ok = nts.read_stats("tx_ok", StatType.LINK)
+    tx_fail = nts.read_stats("tx_fail", StatType.LINK)
+    no_traffic = nts.read_stats("la_tpc_no_traffic", StatType.LINK)
     num_dir = nts.NUM_DIR
 
     health = []
@@ -192,7 +192,7 @@ def detect_ignition_failure(
         )
     )
 
-    mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
+    mgmt_link_up = nts.read_stats("fw_uptime", StatType.LINK)
     nts_link_names = nts.get_link_names()
     nts_node_names = nts.get_node_names_per_link()
     nts_node_macs = nts.get_node_macs_per_link()
@@ -343,8 +343,8 @@ def misc_insights(
 
     # link availability and flaps
     logging.info("Generate availability, flaps")
-    mgmt_link_up = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
-    link_available = nts.read_stats("staPkt.linkAvailable", StatType.LINK)
+    mgmt_link_up = nts.read_stats("fw_uptime", StatType.LINK)
+    link_available = nts.read_stats("link_avail", StatType.LINK)
     availability = []
     flaps = []
     for ti in range(k["num_topologies"]):
@@ -371,7 +371,7 @@ def misc_insights(
 
     # P90 and average mcs
     logging.info("Generate mcs_p90, mcs_avg")
-    mcs = nts.read_stats("staPkt.mcs", StatType.LINK)
+    mcs = nts.read_stats("mcs", StatType.LINK)
     mcs_p90 = []
     mcs_avg = []
     for ti in range(k["num_topologies"]):
@@ -386,14 +386,14 @@ def misc_insights(
 
     # PER
     logging.info("Generate tx_per, rx_per")
-    tx_ok = nts.read_stats("staPkt.txOk", StatType.LINK)
-    tx_fail = nts.read_stats("staPkt.txFail", StatType.LINK)
-    rx_ok = nts.read_stats("staPkt.rxOk", StatType.LINK, swap_dir=True)
-    rx_fail = nts.read_stats("staPkt.rxFail", StatType.LINK, swap_dir=True)
-    tx_ba = nts.read_stats("staPkt.txBa", StatType.LINK)
-    rx_ba = nts.read_stats("staPkt.rxBa", StatType.LINK, swap_dir=True)
-    tx_ppdu = nts.read_stats("staPkt.txPpdu", StatType.LINK)
-    rx_ppdu = nts.read_stats("staPkt.rxPpdu", StatType.LINK, swap_dir=True)
+    tx_ok = nts.read_stats("tx_ok", StatType.LINK)
+    tx_fail = nts.read_stats("tx_fail", StatType.LINK)
+    rx_ok = nts.read_stats("rx_ok", StatType.LINK, swap_dir=True)
+    rx_fail = nts.read_stats("rx_fail", StatType.LINK, swap_dir=True)
+    tx_ba = nts.read_stats("tx_ba", StatType.LINK)
+    rx_ba = nts.read_stats("rx_ba", StatType.LINK, swap_dir=True)
+    tx_ppdu = nts.read_stats("tx_ppdu", StatType.LINK)
+    rx_ppdu = nts.read_stats("rx_ppdu", StatType.LINK, swap_dir=True)
     tx_per = []
     rx_per = []
     counters = {}
@@ -441,10 +441,10 @@ def misc_insights(
 
     # path-loss asymmetry
     logging.info("Generate pathloss_avg, pathloss_asymmetry, mode of beam indices")
-    tx_power_idx = nts.read_stats("staPkt.txPowerIndex", StatType.LINK)
-    srssi = nts.read_stats("phystatus.srssi", StatType.LINK, swap_dir=True)
-    tbi = nts.read_stats("phyPeriodic.txBeamIdx", StatType.LINK)
-    rbi = nts.read_stats("phyPeriodic.rxBeamIdx", StatType.LINK, swap_dir=True)
+    tx_power_idx = nts.read_stats("tx_power", StatType.LINK)
+    srssi = nts.read_stats("rssi", StatType.LINK, swap_dir=True)
+    tbi = nts.read_stats("tx_beam_idx", StatType.LINK)
+    rbi = nts.read_stats("rx_beam_idx", StatType.LINK, swap_dir=True)
     pathloss_avg = []
     pathloss_asymmetry = []
     tx_beam_idx = []
@@ -465,7 +465,7 @@ def misc_insights(
     nts.write_stats("rx_beam_idx", rx_beam_idx, StatType.LINK, write_interval)
 
     # Generate average and standard deviation on rssi, snr, tx power index
-    snr = nts.read_stats("phystatus.ssnrEst", StatType.LINK, swap_dir=True)
+    snr = nts.read_stats("snr", StatType.LINK, swap_dir=True)
     stat_names = ["rssi", "snr", "txpwr"]
     raw_stats = [srssi, snr, tx_power_idx]
     for name, raw in zip(stat_names, raw_stats):
@@ -480,18 +480,39 @@ def misc_insights(
     # generate indicators of self health
     total_inputs = []
     missing_inputs_percent = []
+    missing_inputs_percent_perinput = []
     total_outputs = []
     missing_outputs_percent = []
-    inputs = [mgmt_link_up, link_available, mcs, tx_power_idx, srssi, tx_ok, tx_fail]
+
+    inputs = {
+        "fw_uptime": mgmt_link_up,
+        "link_avail": link_available,
+        "mcs": mcs,
+        "tx_power": tx_power_idx,
+        "rssi": srssi,
+        "tx_ok": tx_ok,
+        "tx_fail": tx_fail,
+    }
     outputs = [availability, flaps, mcs_p90, pathloss_avg, pathloss_asymmetry, tx_per]
+    topologies = [n["topology"] for _, n in network_info.items()]
     for ti in range(k["num_topologies"]):
         total_inputs.append(np.zeros((1, 1, 1)))
+        missing_inputs_percent_perinput.append({})
         missing_inputs_percent.append(np.zeros((1, 1, 1)))
         total_outputs.append(np.zeros((1, 1, 1)))
         missing_outputs_percent.append(np.zeros((1, 1, 1)))
-        for input in inputs:
-            total_inputs[ti][0] += len(input[ti].flatten())
-            missing_inputs_percent[ti][0] += np.isnan(input[ti]).sum()
+        for stat_name, stat_arr in inputs.items():
+            len_stat_arr = len(stat_arr[ti].flatten())
+            total_inputs[ti][0] += len_stat_arr
+            missing_inputs_percent_perinput[ti][stat_name] = np.isnan(
+                stat_arr[ti]
+            ).sum()
+            missing_inputs_percent[ti][0] += missing_inputs_percent_perinput[ti][
+                stat_name
+            ]
+            missing_inputs_percent_perinput[ti][stat_name] = (
+                missing_inputs_percent_perinput[ti][stat_name] * 100 / len_stat_arr
+            )
         for output in outputs:
             total_outputs[ti][0] += len(output[ti].flatten())
             missing_outputs_percent[ti][0] += np.isnan(output[ti]).sum()
@@ -501,14 +522,31 @@ def misc_insights(
         missing_outputs_percent[ti][0] = (
             missing_outputs_percent[ti][0] * 100 / total_outputs[ti][0]
         )
+        topology_name = topologies[ti]["name"]
         logging.info(
-            "missing stats, {}% of {} inputs, {}% of {} outputs".format(
+            "{}: missing stats, {}% of {} inputs, {}% of {} outputs".format(
+                topology_name,
                 float(np.round(missing_inputs_percent[ti], 2)),
                 int(total_inputs[ti]),
                 float(np.round(missing_outputs_percent[ti], 2)),
                 int(total_outputs[ti]),
             )
         )
+        if missing_inputs_percent[ti] < 100:
+            # check if we're missing >80% for any one stat
+            for stat_name in inputs:
+                if missing_inputs_percent_perinput[ti][stat_name] >= 80:
+                    logging.info(
+                        "  missing {}% of {}".format(
+                            float(
+                                np.round(
+                                    missing_inputs_percent_perinput[ti][stat_name], 2
+                                )
+                            ),
+                            stat_name,
+                        )
+                    )
+
     nts.write_stats(
         "insights.total_inputs", total_inputs, StatType.NETWORK, write_interval
     )
@@ -691,25 +729,26 @@ def generate_insights():
             )
 
 
+# used by network test
 def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -> List:
     CONST_INTERVAL = 1
     nlts = NumpyLinkTimeSeries(links, CONST_INTERVAL, network_info)
     link_length = nlts.get_link_length()
-    mgmt_link_up = nlts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
-    link_available = nlts.read_stats("staPkt.linkAvailable", StatType.LINK)
-    mcs = nlts.read_stats("staPkt.mcs", StatType.LINK)
-    tx_ok = nlts.read_stats("staPkt.txOk", StatType.LINK)
-    tx_fail = nlts.read_stats("staPkt.txFail", StatType.LINK)
+    mgmt_link_up = nlts.read_stats("fw_uptime", StatType.LINK)
+    link_available = nlts.read_stats("link_avail", StatType.LINK)
+    mcs = nlts.read_stats("mcs", StatType.LINK)
+    tx_ok = nlts.read_stats("tx_ok", StatType.LINK)
+    tx_fail = nlts.read_stats("tx_fail", StatType.LINK)
     no_traffic = np.zeros(tx_fail.shape)  # assume network test always has traffic
-    tx_power_idx = nlts.read_stats("staPkt.txPowerIndex", StatType.LINK)
-    srssi = nlts.read_stats("phystatus.srssi", StatType.LINK, swap_dir=True)
-    snr = nlts.read_stats("phystatus.ssnrEst", StatType.LINK, swap_dir=True)
-    rx_ok = nlts.read_stats("staPkt.rxOk", StatType.LINK, swap_dir=True)
-    rx_fail = nlts.read_stats("staPkt.rxFail", StatType.LINK, swap_dir=True)
-    tx_ba = nlts.read_stats("staPkt.txBa", StatType.LINK)
-    rx_ba = nlts.read_stats("staPkt.rxBa", StatType.LINK, swap_dir=True)
-    tx_ppdu = nlts.read_stats("staPkt.txPpdu", StatType.LINK)
-    rx_ppdu = nlts.read_stats("staPkt.rxPpdu", StatType.LINK, swap_dir=True)
+    tx_power_idx = nlts.read_stats("tx_power", StatType.LINK)
+    srssi = nlts.read_stats("rssi", StatType.LINK, swap_dir=True)
+    snr = nlts.read_stats("snr", StatType.LINK, swap_dir=True)
+    rx_ok = nlts.read_stats("rx_ok", StatType.LINK, swap_dir=True)
+    rx_fail = nlts.read_stats("rx_fail", StatType.LINK, swap_dir=True)
+    tx_ba = nlts.read_stats("tx_ba", StatType.LINK)
+    rx_ba = nlts.read_stats("rx_ba", StatType.LINK, swap_dir=True)
+    tx_ppdu = nlts.read_stats("tx_ppdu", StatType.LINK)
+    rx_ppdu = nlts.read_stats("rx_ppdu", StatType.LINK, swap_dir=True)
 
     iar = nlts.tsl_to_arr(iperf_stats, stats_name="iperf_actual_rate")
     num_links = nlts._num_links

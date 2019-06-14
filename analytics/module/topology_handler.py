@@ -45,13 +45,18 @@ def fetch_network_info(
                     has_wlink = True
                     break
             if not has_wlink:
-                logging.debug("Ignore {}, no wireless links".format(topology_reply["name"]))
+                logging.debug(
+                    "Ignore {}, no wireless links".format(topology_reply["name"])
+                )
                 continue
             cfg["topology"] = topology_reply
             networks[cfg["id"]] = cfg
+        except requests.exceptions.Timeout as e:
+            logging.warning("HTTP timeout fetching topology {}".format(e))
+        except requests.exceptions.ConnectionError as e:
+            logging.warning("HTTP connection failure {}".format(e))
         except Exception as e:
-            logging.error("Exception happened while fetching network info")
-            logging.warning("Exception: {}".format(e))
+            logging.error("Unexpected exception fetching topology {}".format(e))
     # remove nodes, links with mac_addr == "", this is proxy for future nodes
     topologies = [n["topology"] for _, n in networks.items()]
     for t in topologies:

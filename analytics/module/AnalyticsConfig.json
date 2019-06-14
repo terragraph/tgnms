@@ -7,6 +7,10 @@
   "MYSQL": {
     "hostname": "db"
   },
+  "PROMETHEUS": {
+    "hostname": "prometheus",
+    "port": 9090
+  },
   "periodic_jobs": {
     "max_run_time_in_s": 432000,
     "period_in_s": 180,

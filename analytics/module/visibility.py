@@ -68,7 +68,7 @@ def write_power_status(
         # If the link between the initiator and responder is up, then the power
         # status is LINK_ALIVE
         nlts = NumpyLinkTimeSeries(bts_read_list, read_interval, {id: info})
-        stats = nlts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
+        stats = nlts.read_stats("fw_uptime", StatType.LINK, entire_network=False)
         responder_link_alive = ~np.logical_or(
             np.isnan(stats).all(axis=nlts.TIME_AXIS)[:, 0],
             np.count_nonzero(stats, axis=nlts.TIME_AXIS)[:, 0] == 0,
@@ -88,7 +88,9 @@ def write_power_status(
         # If no timestamp stats are available on the initiator node, then the
         # power status is INIT_UNREACHABLE
         nlts = NumpyLinkTimeSeries(bts_read_list, read_interval, {id: info})
-        stats = nlts.read_stats("miscSys.tsf", StatType.NODE)
+        stats = nlts.read_stats(
+            "tgf.00:00:00:00:00:00.miscSys.tsf", StatType.NODE, entire_network=False
+        )
         initiator_unreachable = np.isnan(stats).all(axis=nlts.TIME_AXIS)[:, 0]
         bts_write_list.extend(
             [
@@ -107,7 +109,9 @@ def write_power_status(
         # If the initiator is reachable, but there are no beamforming training
         # request stats available, then the power status is NO_ASSOC_REQS
         nlts = NumpyLinkTimeSeries(bts_read_list, read_interval, {id: info})
-        stats = nlts.read_stats("mgmtTx.bfTrainingReq", StatType.LINK)
+        stats = nlts.read_stats(
+            "mgmttx_bftrainingreq", StatType.LINK, entire_network=False
+        )
         e2e_error = np.logical_or(
             np.isnan(stats).all(axis=nlts.TIME_AXIS)[:, 0],
             np.count_nonzero(stats, axis=nlts.TIME_AXIS)[:, 0] == 0,
@@ -130,7 +134,9 @@ def write_power_status(
         # received any beamforming training responses, then the power status is
         # RESP_UNREACHABLE
         nlts = NumpyLinkTimeSeries(bts_read_list, read_interval, {id: info})
-        stats = nlts.read_stats("mgmtRx.bfTrainingRsp", StatType.LINK)
+        stats = nlts.read_stats(
+            "mgmtrx_bftrainingreq", StatType.LINK, entire_network=False
+        )
         responder_unreachable = np.logical_or(
             np.isnan(stats).all(axis=nlts.TIME_AXIS)[:, 0],
             np.count_nonzero(stats, axis=nlts.TIME_AXIS)[:, 0] == 0,

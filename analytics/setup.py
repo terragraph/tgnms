@@ -32,6 +32,7 @@ setup(
         "tabulate==0.8.3",
         "python-snappy==0.5.4",
         "flask>=1.0.2",
+        "aiohttp>=3.5.4",
     ],
     # TODO: Add unit tests
     # test_suite="analytics.tests.base",

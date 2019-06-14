@@ -8,16 +8,19 @@ StatType.LINK:    num_links x num_dirs x num_times
 StatType.NODE:    num_nodes x        1 x num_times
 StatType.NETWORK:         1 x        1 x num_times
 """
+import asyncio
 import logging
 from enum import Enum
 from math import ceil, cos, fabs, floor, pi, sqrt
 from typing import Any, Dict, List, Optional, Tuple
 
+# BTS used for writes, Prometheus used for reads (temporary)
 import module.beringei_time_series as bts
 import module.numpy_operations as npo
 import numpy as np
 from facebook.gorilla.Topology.ttypes import LinkType
 from module.topology_handler import fetch_network_info
+from module.prometheus_time_series import PrometheusReader
 
 
 def approx_distance(l1: Dict[str, float], l2: Dict[str, float]) -> float:
@@ -72,17 +75,17 @@ class NumpyTimeSeries(object):
         self._read_interval = read_interval
         self._start_time = ceil(start_time / read_interval) * read_interval
         self._end_time = floor(end_time / read_interval) * read_interval
-        self._times_to_idx = {
-            t: i
-            for i, t in enumerate(
-                range(self._start_time, self._end_time + 1, read_interval)
-            )
-        }
-        self._num_times = len(self._times_to_idx)
+
         # process topologies
         if not network_info:
             network_info = fetch_network_info()
         self._topologies = [n["topology"] for _, n in network_info.items()]
+        self._pdb = PrometheusReader(self._topologies)
+        self._num_times = self._pdb.get_array_len(
+            start_time=self._start_time,
+            end_time=self._end_time,
+            read_interval=read_interval,
+        )
         self._tmap = []
         for t in self._topologies:
             # for node stats
@@ -97,6 +100,7 @@ class NumpyTimeSeries(object):
             # for link stats
             node_name_to_mac = {n["name"]: n["mac_addr"] for n in t["nodes"]}
             link_macs_to_idx = {}
+            link_names_to_idx = {}
             link_idx_to_macs = {}
             link_idx_to_link_names = []
             link_idx_to_node_names = []
@@ -122,6 +126,8 @@ class NumpyTimeSeries(object):
                     src_to_peers[z_node_mac].append(a_node_mac)
                     src_macs.extend([a_node_mac, z_node_mac])
                     peer_macs.extend([z_node_mac, a_node_mac])
+                    link_names_to_idx[(l["name"], a_node_mac)] = (num_links, 0)
+                    link_names_to_idx[(l["name"], z_node_mac)] = (num_links, 1)
                     num_links += 1
             self._tmap.append(
                 {
@@ -138,6 +144,7 @@ class NumpyTimeSeries(object):
                     "src_to_peers": src_to_peers,
                     "src_macs": src_macs,
                     "peer_macs": peer_macs,
+                    "link_names_to_idx": link_names_to_idx,
                 }
             )
 
@@ -168,50 +175,70 @@ class NumpyTimeSeries(object):
             node_macs_list.append(macs_per_link)
         return node_macs_list
 
-    def t2i(self, t: int) -> int:
-        return self._times_to_idx[floor(t / self._read_interval) * self._read_interval]
-
     def read_stats(
-        self, name: str, stat_type: StatType, swap_dir: bool = False
+        self,
+        name: str,
+        stat_type: StatType,
+        swap_dir: bool = False,
+        entire_network: bool = False,
     ) -> List[np.ndarray]:
         np_time_series_list = []
-        for t in self._tmap:
-            if stat_type == StatType.LINK:
-                tsl = bts.read_time_series_list(
-                    name,
-                    t["src_macs"],
-                    t["peer_macs"],
-                    self._start_time,
-                    self._end_time,
-                    self._read_interval,
-                    t["name"],
-                )
-                data = npo.nan_arr((t["num_links"], self.NUM_DIR, self._num_times))
-                for ts in tsl:
-                    t_idx = [self.t2i(x) for x in ts.times]
-                    l_idx = t["link_macs_to_idx"][(ts.src_mac, ts.peer_mac)]
-                    data[l_idx[0], l_idx[1], t_idx] = ts.values
-            elif stat_type == StatType.NODE:
-                tsl = bts.read_time_series_list(
-                    name,
-                    t["node_macs"],
-                    [],
-                    self._start_time,
-                    self._end_time,
-                    self._read_interval,
-                    t["name"],
-                )
-                data = npo.nan_arr((t["num_nodes"], 1, self._num_times))
-                for ts in tsl:
-                    t_idx = [self.t2i(x) for x in ts.times]
-                    n_idx = t["node_mac_to_idx"][ts.src_mac]
-                    data[n_idx, 0, t_idx] = ts.values
-            else:
-                # network stats read is not supported
-                data = npo.nan_arr((1, 1, self._num_times))
-            if swap_dir:
-                data[...] = data[:, [1, 0], :]
-            np_time_series_list.append(data)
+        try:
+            loop = asyncio.get_event_loop()
+            for t in self._tmap:
+                if stat_type == StatType.LINK:
+                    tsl = loop.run_until_complete(
+                        self._pdb.read_time_series_list(
+                            key_name=name,
+                            start_time=self._start_time,
+                            end_time=self._end_time,
+                            read_interval=self._read_interval,
+                            write_interval=self._read_interval,
+                            topology_name=t["name"],
+                            entire_network=True,
+                        )
+                    )
+                    data = npo.nan_arr((t["num_links"], self.NUM_DIR, self._num_times))
+                    for ts in tsl:
+                        t_idx = self._pdb.get_bucket_indices_numpy(
+                            times=ts.times,
+                            start_time=self._start_time,
+                            read_interval=self._read_interval,
+                        )
+                        l_idx, d_idx = t["link_names_to_idx"][
+                            (ts.link_name, ts.src_mac)
+                        ]
+                        data[l_idx, d_idx, t_idx] = np.array(ts.values)
+                elif stat_type == StatType.NODE:
+                    tsl = loop.run_until_complete(
+                        self._pdb.read_time_series_list(
+                            key_name=name,
+                            start_time=self._start_time,
+                            end_time=self._end_time,
+                            read_interval=self._read_interval,
+                            write_interval=self._read_interval,
+                            topology_name=t["name"],
+                            entire_network=True,
+                        )
+                    )
+                    data = npo.nan_arr((t["num_nodes"], 1, self._num_times))
+                    for ts in tsl:
+                        t_idx = self._pdb.get_bucket_indices_numpy(
+                            times=ts.times,
+                            start_time=self._start_time,
+                            read_interval=self._read_interval,
+                        )
+                        n_idx = t["node_mac_to_idx"][ts.src_mac]
+                        data[n_idx, 0, t_idx] = np.array(ts.values)
+                else:
+                    # network stats read is not supported
+                    data = npo.nan_arr((1, 1, self._num_times))
+                if swap_dir:
+                    data[...] = data[:, [1, 0], :]
+                np_time_series_list.append(data)
+        except Exception as e:
+            logging.error("Error reading link stats {}".format(e))
+
         return np_time_series_list
 
     def write_stats(
@@ -304,7 +331,6 @@ class NumpyTimeSeries(object):
                     lengths.append(approx_distance(al, zl))
             lengths = np.array(lengths)
             lengths = np.stack([lengths] * self.NUM_DIR, axis=self.DIR_AXIS)
-            # lengths = np.stack([lengths] * self._num_times, axis=self.TIME_AXIS)
             lengths = np.expand_dims(lengths, axis=self.TIME_AXIS)
             np_time_series_list.append(lengths)
         return np_time_series_list
@@ -343,6 +369,12 @@ class NumpyLinkTimeSeries(object):
         self, links: List[bts.TimeSeries], interval: int, network_info: Dict
     ) -> None:
         self._topology = [n["topology"] for _, n in network_info.items()][0]
+        link_macs_to_name = {}
+        for l in self._topology["links"]:
+            if l["link_type"] == LinkType.WIRELESS:
+                link_macs_to_name[(l["a_node_mac"], l["z_node_mac"])] = l["name"]
+                link_macs_to_name[(l["z_node_mac"], l["a_node_mac"])] = l["name"]
+
         self._interval = interval
         # map from start_time -> {src_macs, peer_macs}
         self._map_query: Dict[int, Dict] = {}
@@ -352,8 +384,11 @@ class NumpyLinkTimeSeries(object):
         self._idx_to_link_info: Dict[Tuple, Tuple] = {}
         # src_mac -> [peer_mac, ...]
         self._src_to_peers: Dict[str, List[str]] = {}
+        self._link_names_to_idx: Dict[Tuple, Tuple] = {}
         self._num_links = 0
         self._duration = 0
+
+        self._pdb = PrometheusReader([self._topology])
         for ts in links:
             # set the duration
             start_time = ceil(ts.times[0] / self._interval) * self._interval
@@ -389,6 +424,17 @@ class NumpyLinkTimeSeries(object):
                 ts.src_mac,
                 start_time,
             )
+            link_name = link_macs_to_name[(ts.src_mac, ts.peer_mac)]
+            self._link_names_to_idx[(link_name, ts.src_mac)] = (
+                self._num_links,
+                0,
+                start_time,
+            )
+            self._link_names_to_idx[(link_name, ts.peer_mac)] = (
+                self._num_links,
+                1,
+                start_time,
+            )
             # group queries
             assert (not ts.topology) or (
                 ts.topology == self._topology["name"]
@@ -408,7 +454,9 @@ class NumpyLinkTimeSeries(object):
             self._src_to_peers[ts.src_mac].append(ts.peer_mac)
             self._src_to_peers[ts.peer_mac].append(ts.src_mac)
             self._num_links += 1
-        self._num_times = int((self._duration / self._interval) + 1)
+        self._num_times = self._pdb.get_array_len(
+            start_time=0, end_time=self._duration, read_interval=self._interval
+        )
 
         # create write_mask,
         # depending upon input, write either specific or both directions
@@ -416,9 +464,6 @@ class NumpyLinkTimeSeries(object):
         for ts in links:
             l_idx, d_idx, _ = self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)]
             self._write_mask[l_idx, d_idx, 0] = True
-
-    def _t2i(self, t, start_time):
-        return int((t - start_time) / self._interval)
 
     def tsl_to_arr(self, tsl: List[bts.TimeSeries], stats_name: str = "") -> np.ndarray:
         data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
@@ -432,40 +477,80 @@ class NumpyLinkTimeSeries(object):
             else:
                 logging.error("Ignoring duplicate timeseries")
                 continue
-            l_idx, d_idx, tm = self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)]
-            t_idx = [self._t2i(t, tm) for t in ts.times]
-            data[l_idx, d_idx, t_idx] = ts.values
+            if (ts.link_name, ts.src_mac) not in self._link_names_to_idx:
+                logging.critical(
+                    "Unexpected {} is not in _link_names_to_idx".format(
+                        (ts.link_name, ts.src_mac)
+                    )
+                )
+            else:
+                l_idx, d_idx, tm = self._link_names_to_idx[(ts.link_name, ts.src_mac)]
+                t_idx = self._pdb.get_bucket_indices_numpy(
+                    times=ts.times, start_time=tm, read_interval=self._interval
+                )
+                data[l_idx, d_idx, t_idx] = np.array(ts.values)
         return data
 
     def read_stats(
-        self, name: str, stat_type: StatType, swap_dir: bool = False
+        self,
+        name: str,
+        stat_type: StatType,
+        swap_dir: bool = False,
+        entire_network: bool = True,
     ) -> np.ndarray:
         data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
+        loop = asyncio.get_event_loop()
+        tasks = []
         if stat_type == StatType.LINK:
             tsl = []
             for k, v in self._map_query.items():
-                tsl.extend(bts.read_time_series_list(
-                    name,
-                    v["src_macs"],
-                    v["peer_macs"],
-                    k,
-                    k + self._duration,
-                    self._interval,
-                    self._topology["name"],
-                ))
-            data = self.tsl_to_arr(tsl)
+                tasks.append(
+                    loop.create_task(
+                        self._pdb.read_time_series_list(
+                            key_name=name,
+                            src_macs=v["src_macs"],
+                            start_time=k,
+                            end_time=k + self._duration,
+                            write_interval=self._interval,
+                            read_interval=self._interval,
+                            topology_name=self._topology["name"],
+                            entire_network=entire_network,
+                        )
+                    )
+                )
+            try:
+                tsl = [
+                    item
+                    for sublist in loop.run_until_complete(asyncio.gather(*tasks))
+                    for item in sublist
+                ]
+                data = self.tsl_to_arr(tsl)
+            except Exception as e:
+                logging.error("Unexpected error in async loop {}".format(e))
+
         elif stat_type == StatType.NODE:
             for k, v in self._map_query.items():
-                done_nodes: List[str] = []
-                tsl = bts.read_time_series_list(
-                    name,
-                    list(set(v["src_macs"] + v["peer_macs"])),
-                    [],
-                    k,
-                    k + self._duration,
-                    self._interval,
-                    self._topology["name"],
+                tasks.append(
+                    loop.create_task(
+                        self._pdb.read_time_series_list(
+                            key_name=name,
+                            src_macs=list(set(v["src_macs"] + v["peer_macs"])),
+                            start_time=k,
+                            end_time=k + self._duration,
+                            read_interval=self._interval,
+                            write_interval=self._interval,
+                            topology_name=self._topology["name"],
+                            entire_network=entire_network,
+                        )
+                    )
                 )
+            try:
+                tsl = [
+                    item
+                    for sublist in loop.run_until_complete(asyncio.gather(*tasks))
+                    for item in sublist
+                ]
+                done_nodes: List[str] = []
                 for ts in tsl:
                     if ts.src_mac not in done_nodes:
                         done_nodes.append(ts.src_mac)
@@ -473,9 +558,15 @@ class NumpyLinkTimeSeries(object):
                         logging.error("Ignoring duplicate timeseries")
                         continue
                     for peer_mac in self._src_to_peers[ts.src_mac]:
-                        l_idx, d_idx, tm = self._link_macs_to_idx[(ts.src_mac, peer_mac)]
-                        t_idx = [self._t2i(t, tm) for t in ts.times]
-                        data[l_idx, d_idx, t_idx] = ts.values
+                        l_idx, d_idx, tm = self._link_macs_to_idx[
+                            (ts.src_mac, peer_mac)
+                        ]
+                        t_idx = self._pdb.get_bucket_indices_numpy(
+                            times=ts.times, start_time=tm, read_interval=self._interval
+                        )
+                        data[l_idx, d_idx, t_idx] = np.array(ts.values)
+            except Exception as e:
+                logging.error("Unexpected error in async loop {}".format(e))
         else:
             # network stats read is not relevant
             pass

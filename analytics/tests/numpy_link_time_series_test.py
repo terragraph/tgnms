@@ -56,8 +56,8 @@ class NumpyLinkTimeSeriesTest(unittest.TestCase):
         nlts = NumpyLinkTimeSeries(bts_links, interval, ni)
         nts = NumpyTimeSeries(min_start_time, max_end_time, interval, ni)
         # use staPkt.mgmtLinkUp to exercise read_stats()
-        all_link_stats = nts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)[0]
-        some_link_stats = nlts.read_stats("staPkt.mgmtLinkUp", StatType.LINK)
+        all_link_stats = nts.read_stats("fw_uptime", StatType.LINK)[0]
+        some_link_stats = nlts.read_stats("fw_uptime", StatType.LINK)
         self.assertEqual(
             all_link_stats.shape, (num_all_links, 2, num_links * samp_per_link)
         )
@@ -91,9 +91,9 @@ class NumpyLinkTimeSeriesTest(unittest.TestCase):
             self.assertEqual(a, b)
 
         # use miscSys.numFrameTimer to test read_stats on StatType.NODE
-        all_node_stats = nts.read_stats("miscSys.numFrameTimer", StatType.NODE)
+        all_node_stats = nts.read_stats("tgf.00:00:00:00:00:00.miscSys.numFrameTimer", StatType.NODE)
         all_link_stats = nts.reshape_node_to_link(all_node_stats)[0]
-        some_link_stats = nlts.read_stats("miscSys.numFrameTimer", StatType.NODE)
+        some_link_stats = nlts.read_stats("tgf.00:00:00:00:00:00.miscSys.numFrameTimer", StatType.NODE)
         self.assertEqual(
             all_link_stats.shape, (num_all_links, 2, num_links * samp_per_link)
         )

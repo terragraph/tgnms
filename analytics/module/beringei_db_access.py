@@ -105,7 +105,7 @@ class BeringeiDbAccess(object):
         # Post the http requests and get response
         try:
             response = requests.post(url_to_post, data=request_body_rq, timeout=60)
-            logging.info(
+            logging.debug(
                 "BQS post response status code: {}".format(response.status_code)
             )
         except OSError:
