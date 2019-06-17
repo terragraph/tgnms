@@ -39,11 +39,21 @@ const styles = theme => ({
   },
 });
 
+// these params need to be hidden if start asap is true
+const scheduleParams = new Set([
+  'cron_minute',
+  'cron_hour',
+  'cron_day_of_month',
+  'cron_month',
+  'cron_day_of_week',
+  'priority',
+]);
+
 type Props = {
   loadTestExecutions: () => any,
   showNotification: UINotification => any,
-  onTestStarted?: () => any,
-  onTestStartFailed?: () => any,
+  onTestScheduled?: () => any,
+  onTestScheduleFailed?: () => any,
   className: string,
   networkName: string,
   /**
@@ -54,22 +64,22 @@ type Props = {
 
 type State = {|
   // the list of test types and their parameters
-  networkTestSchema: ?testApi.StartNetworkTestSchema,
+  networkTestSchema: ?testApi.ScheduleNetworkTestSchema,
   // a reference to the selected test definition for easier parameter lookups
   selectedTest: ?testApi.NetworkTestDefinition,
-  formData: testApi.StartNetworkTestFormData,
+  formData: testApi.ScheduleNetworkTestFormData,
   loadingFailed: boolean,
 |};
 
-const StartNetworkTest = withStyles(styles)(
-  class StartNetworkTest extends React.PureComponent<
+const ScheduleNetworkTest = withStyles(styles)(
+  class ScheduleNetworkTest extends React.PureComponent<
     Props & WithStyles,
     State,
   > {
     static defaultProps = {
       className: '',
-      onTestStarted: () => {},
-      onTestStartFailed: () => {},
+      onTestScheduled: () => {},
+      onTestScheduleFailed: () => {},
       stopTestTimerOnUnmount: true,
     };
 
@@ -126,16 +136,27 @@ const StartNetworkTest = withStyles(styles)(
                 </Select>
               </FormControl>
               {this.state.selectedTest &&
-                this.state.selectedTest.parameters
-                  .filter(hideTopologyId)
-                  .map(param => (
+                this.state.selectedTest.parameters.map(param => {
+                  // this is implicit
+                  if (param.id === 'topology_id') {
+                    return null;
+                  }
+                  // don't show schedule related params if not scheduling
+                  if (
+                    runTestAsap(this.state.formData) &&
+                    scheduleParams.has(param.id)
+                  ) {
+                    return null;
+                  }
+                  return (
                     <NetworkTestParameterFactory
                       key={param.label}
                       parameter={param}
                       value={this.getArgumentValue(param.id)}
                       onChange={this.handleArgumentChange}
                     />
-                  ))}
+                  );
+                })}
             </>
           ) : null}
         </form>
@@ -231,28 +252,28 @@ const StartNetworkTest = withStyles(styles)(
 
     handleFormSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
       e.preventDefault();
-      this.startTest();
+      this.scheduleTest();
     };
 
-    startTest = () => {
+    scheduleTest = () => {
       const {formData} = this.state;
 
       return testApi
         .startTest(formData)
         .then(response => {
           if (response.data && response.data.error === true) {
-            return this.startTestFailed(
-              (response.data && response.data.msg) || 'Starting test failed',
+            return this.scheduleTestFailed(
+              (response.data && response.data.msg) || 'Scheduling test failed',
             );
           }
           setTimeout(this.loadTestExecutions, 1000);
-          this.props.onTestStarted && this.props.onTestStarted();
+          this.props.onTestScheduled && this.props.onTestScheduled();
           this.props.showNotification({
-            message: 'Test started',
+            message: runTestAsap(formData) ? 'Test started' : 'Test scheduled',
           });
         })
         .catch(_err => {
-          return this.startTestFailed('Starting test failed');
+          return this.scheduleTestFailed('Scheduling test failed');
         });
     };
 
@@ -272,13 +293,13 @@ const StartNetworkTest = withStyles(styles)(
       });
     };
 
-    startTestFailed = message => {
+    scheduleTestFailed = message => {
       this.props.showNotification({
         message: message,
         variant: 'error',
-        onRetry: this.startTest,
+        onRetry: this.scheduleTest,
       });
-      this.props.onTestStartFailed && this.props.onTestStartFailed();
+      this.props.onTestScheduleFailed && this.props.onTestScheduleFailed();
     };
 
     loadTestExecutions = () => {
@@ -296,38 +317,39 @@ const useModalStyles = makeStyles(theme => ({
   },
 }));
 
-export function StartNetworkTestModal(props: Props) {
+export function ScheduleNetworkTestModal(props: Props) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const startTestRef = React.useRef();
+  const scheduleTestRef = React.useRef();
   const classes = useModalStyles();
   return (
     <>
       <Button onClick={() => setIsOpen(true)} variant="outlined">
-        Start Network Test
+        Schedule Network Test
       </Button>
       <MaterialModal
         className={classes.root}
         open={isOpen}
         onClose={() => setIsOpen(false)}
         modalContent={
-          <StartNetworkTest
+          <ScheduleNetworkTest
             {...props}
-            innerRef={startTestRef}
-            onTestStarted={() => setIsOpen(false)}
-            onTestStartFailed={() => setIsOpen(false)}
+            innerRef={scheduleTestRef}
+            onTestScheduled={() => setIsOpen(false)}
+            onTestScheduleFailed={() => setIsOpen(false)}
             stopTestTimerOnUnmount={false}
           />
         }
-        modalTitle="Start Network Test"
+        modalTitle="Schedule Network Test"
         modalActions={
           <>
             <Button
               className={classes.button}
               onClick={() =>
-                startTestRef.current && startTestRef.current.startTest()
+                scheduleTestRef.current &&
+                scheduleTestRef.current.scheduleTest()
               }
               variant="outlined">
-              Start Test
+              Schedule Test
             </Button>
             <Button
               className={classes.button}
@@ -342,8 +364,9 @@ export function StartNetworkTestModal(props: Props) {
   );
 }
 
-function hideTopologyId(param) {
-  return param.id !== 'topology_id';
+function runTestAsap(formData: testApi.ScheduleNetworkTestFormData) {
+  const startAsap = parseInt(formData.arguments['asap'].value) !== 0;
+  return startAsap;
 }
 
-export default StartNetworkTest;
+export default ScheduleNetworkTest;

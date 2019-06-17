@@ -22,6 +22,11 @@ export type TestExecution = {|
   topology_id: number,
   topology_name: string,
   protocol: string,
+  multi_hop_parallel_sessions: number,
+  multi_hop_session_iteration_count: number,
+  session_duration: number,
+  test_push_rate: number,
+  traffic_direction: number,
   // associations
   test_results: ?Array<TestResult>,
 |};
@@ -52,6 +57,21 @@ export default function(sequelize: any, DataTypes: any) {
         allowNull: false,
         type: DataTypes.STRING(120),
       },
+      multi_hop_parallel_sessions: {
+        type: DataTypes.INTEGER,
+      },
+      multi_hop_session_iteration_count: {
+        type: DataTypes.INTEGER,
+      },
+      session_duration: {
+        type: DataTypes.INTEGER,
+      },
+      test_push_rate: {
+        type: DataTypes.INTEGER,
+      },
+      traffic_direction: {
+        type: DataTypes.INTEGER,
+      },
       user_id: {
         type: DataTypes.INTEGER,
       },
@@ -78,6 +98,10 @@ export default function(sequelize: any, DataTypes: any) {
   TestExecution.associate = function(models) {
     models.api_testrunexecution.hasMany(models.api_testresult, {
       as: 'test_results',
+      foreignKey: 'test_run_execution_id',
+    });
+    models.api_testrunexecution.hasMany(models.api_testschedule, {
+      as: 'test_schedules',
       foreignKey: 'test_run_execution_id',
     });
   };

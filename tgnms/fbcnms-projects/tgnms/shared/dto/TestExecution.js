@@ -17,6 +17,11 @@ export type TestExecution = {|
   user_id: number,
   topology_id: number,
   topology_name: string,
+  multi_hop_parallel_sessions: number,
+  multi_hop_session_iteration_count: number,
+  session_duration: number,
+  test_push_rate: number,
+  traffic_direction: number,
   test_results: ?Array<TestResult>,
   protocol: $Values<typeof PROTOCOL>,
 |};

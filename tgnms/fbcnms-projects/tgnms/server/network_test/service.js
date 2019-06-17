@@ -7,11 +7,19 @@
 'use strict';
 import type {TestExecution} from '../models/testExecution';
 import type {TestResult} from '../models/testResult';
+import type {TestSchedule} from '../models/testSchedule';
 import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
 import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
+import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
 import type {TablePage} from '../../shared/dto/TablePage';
 import Sequelize from 'sequelize';
-const {api_testrunexecution, api_testresult} = require('../models');
+import {TEST_STATUS} from '../../shared/dto/TestExecution';
+const {
+  sequelize,
+  api_testrunexecution,
+  api_testresult,
+  api_testschedule,
+} = require('../models');
 
 type RecentTestExecutionsRequest = {
   networkName?: ?string,
@@ -69,6 +77,12 @@ const service = {
       limit: limit,
       order: [['id', 'DESC']],
       where: {},
+    };
+    // // do this outside of object literal because flow
+    query.where.status = {
+      // dont show scheduled executions in the recents table
+      // $FlowFixMe flow doesn't support symbols
+      [Sequelize.Op.ne]: TEST_STATUS.SCHEDULED,
     };
     if (typeof request.networkName === 'string' && request.networkName !== '') {
       query.where.topology_name = request.networkName;
@@ -193,7 +207,49 @@ const service = {
         ),
       ): Promise<Array<TestResultDto>>);
   },
+  getTestSchedule: async function({networkName}: {networkName: string}) {
+    if (!networkName || networkName.trim() === '') {
+      throw new Error('invalid network name');
+    }
+
+    const query =
+      'SELECT schedule.* , execution.test_code as test_code ' +
+      `FROM api_testschedule as schedule
+      JOIN api_testrunexecution as execution
+        ON execution.id = schedule.test_run_execution_id
+      WHERE execution.id in (
+        SELECT id
+        FROM api_testrunexecution
+        WHERE topology_name = :topology_name
+      )`;
+
+    const rawResult = await sequelize.query(query, {
+      replacements: {
+        topology_name: networkName.trim(),
+      },
+      // type is for row mappings
+      type: sequelize.QueryTypes.RAW,
+      model: api_testschedule,
+    });
+    if (!rawResult) {
+      return [];
+    }
+
+    const [rows] = rawResult;
+    return rows.map(mapTestScheduleToDto);
+  },
 };
+
+/**
+
+
+SELECT schedule.* FROM api_testschedule as schedule
+WHERE schedule.test_run_execution_id IN
+(
+    SELECT id FROM test_run_execution_id WHERE topology_name = $topology_name
+)
+
+**/
 
 function isDatabaseError(error: Error) {
   return error.name === 'SequelizeDatabaseError';
@@ -230,9 +286,34 @@ function mapTestExecutionToDto(model: TestExecution): TestExecutionDto {
     topology_id: model.topology_id,
     topology_name: model.topology_name,
     protocol: model.protocol,
+    multi_hop_parallel_sessions: model.multi_hop_parallel_sessions,
+    multi_hop_session_iteration_count: model.multi_hop_session_iteration_count,
+    session_duration: model.session_duration,
+    test_push_rate: model.test_push_rate,
+    traffic_direction: model.traffic_direction,
     test_results: model.test_results
       ? model.test_results.map(mapTestResultToDto)
       : null,
+  };
+}
+
+function mapTestScheduleToDto(
+  model: TestSchedule & TestExecution,
+): TestScheduleDto {
+  return {
+    id: model.id,
+    cron_minute: model.cron_minute,
+    cron_hour: model.cron_hour,
+    cron_day_of_month: model.cron_day_of_month,
+    cron_month: model.cron_month,
+    cron_day_of_week: model.cron_day_of_week,
+    priority: model.priority,
+    asap: model.asap,
+    test_run_execution_id: model.test_run_execution_id,
+    test_execution: model.test_execution
+      ? mapTestExecutionToDto(model.test_execution)
+      : null,
+    test_code: model.test_code,
   };
 }
 

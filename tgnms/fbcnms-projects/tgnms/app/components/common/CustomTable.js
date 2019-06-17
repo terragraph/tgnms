@@ -279,7 +279,7 @@ class CustomTable extends React.Component {
         style={newStyles}
         className={classNames}
         onClick={() => {
-          onRowSelect(displayedData[rowIndex]);
+          onRowSelect && onRowSelect(displayedData[rowIndex]);
         }}
         onMouseOver={() => {
           this.setState({hoveredRowIndex: rowIndex});

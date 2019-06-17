@@ -8,8 +8,7 @@
 
 import type {TestExecution} from '../../../shared/dto/TestExecution';
 import type {Element} from '../../NetworkContext';
-import React, {useState, useEffect, useMemo} from 'react';
-import axios from 'axios';
+import React, {useMemo} from 'react';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import LoadingBox from '../common/LoadingBox';
 import Grid from '@material-ui/core/Grid';
@@ -21,7 +20,7 @@ import {TEST_TYPE} from '../../../shared/dto/TestExecution';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import type {LinkTestResult as LinkTestResultType} from '../../views/network_test/LinkTestResultDetails';
 import LinkTestResultDetails from '../../views/network_test/LinkTestResultDetails';
-import * as api from '../../apiutils/NetworkTestAPIUtil';
+import {useLoadTestExecution} from '../../views/network_test/hooks';
 
 type Props = {
   testId: ?string,
@@ -67,31 +66,7 @@ const useSummaryStyles = makeStyles(_theme => ({
 function TestExecutionSummary(props: Props) {
   const {testId, selectedElement} = props;
   const classes = useSummaryStyles();
-  const [loading, setLoading] = useState(true);
-  const [execution, setExecution] = useState<?TestExecution>(null);
-
-  useEffect(() => {
-    if (!testId) {
-      return;
-    }
-    setLoading(true);
-    const cancelSource = axios.CancelToken.source();
-    api
-      .getTestExecution({
-        executionId: testId,
-        includeTestResults: true,
-        cancelToken: cancelSource.token,
-      })
-      .then(execution => {
-        setLoading(false);
-        setExecution(execution);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-
-    return () => cancelSource.cancel();
-  }, [testId]);
+  const {loading, execution} = useLoadTestExecution({executionId: testId});
 
   if (loading || !execution) {
     return <LoadingBox fullScreen={false} />;

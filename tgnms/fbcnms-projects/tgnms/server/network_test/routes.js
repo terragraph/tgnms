@@ -83,6 +83,40 @@ router.get('/executions/:id', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.get('/schedule/:networkName', (req, res) => {
+  const {networkName} = req.params;
+  return networkTestService
+    .getTestSchedule({
+      networkName,
+    })
+    .then(results => res.status(200).send(results))
+    .catch(createErrorHandler(res));
+});
+
+// test schedule api uses op codes for the modify_sched api
+const TEST_SCHEDULE_INSTRUCTIONS = {
+  DELETE: 100,
+  SUSPEND: 200,
+  ENABLE: 300,
+};
+
+router.delete('/schedule/:scheduleId', (req, res) => {
+  const {scheduleId} = req.params;
+
+  return createRequest({
+    uri: `${NETWORKTEST_HOST}/api/modify_sched/`,
+    method: 'POST',
+    json: {
+      instruction: {
+        value: TEST_SCHEDULE_INSTRUCTIONS.DELETE,
+      },
+      test_schedule_id: scheduleId,
+    },
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res));
+});
+
 router.post('/executions/:id/overlay', (req, res) => {
   return networkTestService
     .getTestOverlay({

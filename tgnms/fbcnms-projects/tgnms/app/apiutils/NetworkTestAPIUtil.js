@@ -9,6 +9,7 @@ import type {TablePage} from '../../shared/dto/TablePage';
 import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
 import {TEST_STATUS} from '../../shared/dto/TestResult';
 import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
+import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
 import axios, {CancelToken} from 'axios';
 import {HEALTH_CODES} from '../constants/HealthConstants';
 
@@ -41,12 +42,14 @@ export const getTestResults = ({
  */
 export const getTestOptions = () => {
   return axios.get('/network_test/options').then(response => {
-    const tests: StartNetworkTestSchema = formatHelpApiResponse(response.data);
+    const tests: ScheduleNetworkTestSchema = formatHelpApiResponse(
+      response.data,
+    );
     return tests;
   });
 };
 
-export const startTest = (formData: StartNetworkTestFormData) => {
+export const startTest = (formData: ScheduleNetworkTestFormData) => {
   const startTestRequest = Object.keys(formData.arguments).reduce(
     (request, key) => {
       request[key] = formData.arguments[key].value;
@@ -111,7 +114,38 @@ export const getTestExecution = ({
   }).then(response => deserializeTestExecution(response.data));
 };
 
-function formatHelpApiResponse(data: any): StartNetworkTestSchema {
+export const getTestSchedule = ({
+  networkName,
+  cancelToken,
+}: {
+  networkName: string,
+  cancelToken?: CancelToken,
+}) => {
+  const url = new URL(`/network_test/schedule/${networkName}`, window.location);
+  return axios({
+    url: url.toString(),
+    cancelToken: cancelToken || axios.CancelToken.source().token,
+  }).then(
+    response => response.data && response.data.map(deserializeTestSchedule),
+  );
+};
+
+export const deleteTestSchedule = ({
+  scheduleId,
+  cancelToken,
+}: {
+  scheduleId: number,
+  cancelToken: CancelToken,
+}) => {
+  const url = new URL(`/network_test/schedule/${scheduleId}`, window.location);
+  return axios<null, null>({
+    url: url.toString(),
+    method: 'DELETE',
+    cancelToken: cancelToken,
+  });
+};
+
+function formatHelpApiResponse(data: any): ScheduleNetworkTestSchema {
   return Object.freeze({
     test_types: data.start_test.map((testType, _index) => {
       return {
@@ -161,7 +195,15 @@ function deserializeTestResult(serialized: any): TestResultDto {
   });
 }
 
-export type StartNetworkTestSchema = {|
+function deserializeTestSchedule(serialized: any): TestScheduleDto {
+  return Object.assign({}, serialized, {
+    test_execution: serialized.test_execution
+      ? deserializeTestExecution(serialized.test_execution)
+      : null,
+  });
+}
+
+export type ScheduleNetworkTestSchema = {|
   test_types: Array<NetworkTestDefinition>,
 |};
 
@@ -191,7 +233,7 @@ type NetworkTestParameterType = 'int' | 'float' | 'str';
 
 type NetworkTestUiTypeHint = 'range' | 'dropdown' | 'input';
 
-export type StartNetworkTestFormData = {
+export type ScheduleNetworkTestFormData = {
   testType: string,
   arguments: {
     [string]: NetworkTestArgument,

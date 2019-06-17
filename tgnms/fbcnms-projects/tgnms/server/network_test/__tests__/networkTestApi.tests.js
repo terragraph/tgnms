@@ -10,8 +10,14 @@
  */
 import express from 'express';
 import request from 'supertest';
-import {api_testresult, api_testrunexecution} from '../../models';
-
+import {
+  api_testresult,
+  api_testrunexecution,
+  api_testschedule,
+} from '../../models';
+import {TEST_STATUS} from '../../../shared/dto/TestResult';
+const requestMock = require('request');
+jest.mock('request');
 jest.mock('../../sequelize-config', () => {
   process.env.NODE_ENV = 'test';
   return {
@@ -80,7 +86,8 @@ describe('/results - get test results (one per link direction)', () => {
     const app = setupApp();
     await api_testrunexecution.create({
       id: 2,
-      test_code: '8.1',
+      test_code: '8.3',
+      status: TEST_STATUS.FINISHED,
     });
     await api_testresult.bulkCreate([
       {
@@ -110,7 +117,8 @@ describe('/results - get test results (one per link direction)', () => {
     const app = setupApp();
     await api_testrunexecution.create({
       id: 2,
-      test_code: '8.1',
+      test_code: '8.3',
+      status: TEST_STATUS.FINISHED,
     });
     await api_testresult.bulkCreate([
       {
@@ -133,7 +141,8 @@ describe('/results - get test results (one per link direction)', () => {
     const app = setupApp();
     await api_testrunexecution.create({
       id: 2,
-      test_code: '8.1',
+      test_code: '8.3',
+      status: TEST_STATUS.FINISHED,
     });
     await api_testresult.bulkCreate([
       {
@@ -163,13 +172,15 @@ describe('/executions - get recent test executions', () => {
     await api_testrunexecution.bulkCreate([
       {
         id: 2,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
+        status: TEST_STATUS.FINISHED,
       },
       {
         id: 3,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'not this one',
+        status: TEST_STATUS.FINISHED,
       },
     ]);
     const response = await request(app)
@@ -186,20 +197,22 @@ describe('/executions - get recent test executions', () => {
     await api_testrunexecution.bulkCreate([
       {
         id: 2,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
+        status: TEST_STATUS.FINISHED,
       },
       {
         id: 3,
         test_code: '8.2',
         topology_name: 'fbtest',
+        status: TEST_STATUS.FINISHED,
       },
     ]);
     const response = await request(app)
-      .get('/network_test/executions?network=fbtest&testType=8.1')
+      .get('/network_test/executions?network=fbtest&testType=8.3')
       .expect(200);
     expect(response.body.rows.length).toBe(1);
-    expect(response.body.rows[0].test_code).toBe('8.1');
+    expect(response.body.rows[0].test_code).toBe('8.3');
     expect(response.body.rows[0].topology_name).toBe('fbtest');
   });
 
@@ -208,15 +221,17 @@ describe('/executions - get recent test executions', () => {
     await api_testrunexecution.bulkCreate([
       {
         id: 2,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
         protocol: 'UDP',
+        status: TEST_STATUS.FINISHED,
       },
       {
         id: 3,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
         protocol: 'TCP',
+        status: TEST_STATUS.FINISHED,
       },
     ]);
     const response = await request(app)
@@ -224,7 +239,7 @@ describe('/executions - get recent test executions', () => {
       .get('/network_test/executions?network=fbtest&protocol=tcp')
       .expect(200);
     expect(response.body.rows.length).toBe(1);
-    expect(response.body.rows[0].test_code).toBe('8.1');
+    expect(response.body.rows[0].test_code).toBe('8.3');
     expect(response.body.rows[0].topology_name).toBe('fbtest');
     expect(response.body.rows[0].protocol).toBe('TCP');
   });
@@ -234,15 +249,17 @@ describe('/executions - get recent test executions', () => {
     await api_testrunexecution.bulkCreate([
       {
         id: 2,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
         start_date_utc: '2019-01-01T00:00:00Z',
+        status: TEST_STATUS.FINISHED,
       },
       {
         id: 3,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
         start_date_utc: '2019-05-05T00:00:00.000Z',
+        status: TEST_STATUS.FINISHED,
       },
     ]);
     const response = await request(app)
@@ -262,18 +279,21 @@ describe('/executions - get recent test executions', () => {
     await api_testrunexecution.bulkCreate([
       {
         id: 2,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
+        status: TEST_STATUS.FINISHED,
       },
       {
         id: 3,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
+        status: TEST_STATUS.FINISHED,
       },
       {
         id: 4,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
+        status: TEST_STATUS.FINISHED,
       },
     ]);
     const response = await request(app)
@@ -291,17 +311,17 @@ describe('/executions/:id - get a single execution by id', () => {
     await api_testrunexecution.bulkCreate([
       {
         id: 2,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
       },
       {
         id: 3,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
       },
       {
         id: 4,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
       },
     ]);
@@ -317,7 +337,7 @@ describe('/executions/:id - get a single execution by id', () => {
     await api_testrunexecution.bulkCreate([
       {
         id: 1,
-        test_code: '8.1',
+        test_code: '8.3',
         topology_name: 'fbtest',
       },
     ]);
@@ -340,6 +360,84 @@ describe('/executions/:id - get a single execution by id', () => {
     expect(response.body.id).toBe(1);
     expect(response.body.test_results.length).toBe(2);
     expect(response.body.test_results[0]).toMatchObject({id: 1, status: 1});
+  });
+});
+
+describe('/schedule/:networkName - get the schedule for a network', () => {
+  test('returns all scheduled tests for a given network', async () => {
+    const app = setupApp();
+    const executionId = 2;
+    await api_testrunexecution.bulkCreate([
+      {
+        id: executionId,
+        test_code: '8.3',
+        topology_name: 'fbtest',
+      },
+      {
+        id: 1,
+        test_code: '8.3',
+        topology_name: 'fbtest',
+      },
+    ]);
+    await api_testschedule.bulkCreate([
+      {
+        id: 1,
+        cron_minute: '*',
+        cron_hour: '*',
+        cron_day_of_month: '*',
+        cron_month: '*',
+        cron_day_of_week: '*',
+        priority: 0,
+        asap: 0,
+        test_run_execution_id: executionId,
+      },
+      {
+        id: 2,
+        cron_minute: '*',
+        cron_hour: '*',
+        cron_day_of_month: '*',
+        cron_month: '*',
+        cron_day_of_week: '*',
+        priority: 0,
+        asap: 0,
+        test_run_execution_id: executionId,
+      },
+      {
+        id: 3,
+        cron_minute: '*',
+        cron_hour: '*',
+        cron_day_of_month: '*',
+        cron_month: '*',
+        cron_day_of_week: '*',
+        priority: 0,
+        asap: 0,
+        test_run_execution_id: executionId,
+      },
+    ]);
+
+    const response = await request(app)
+      .get('/network_test/schedule/fbtest')
+      .expect(200);
+    expect(response.body[0].id === 1);
+    expect(response.body[0].cron_minute === '*');
+  });
+});
+
+describe('DELETE /schedule/:scheduleId', () => {
+  test('makes modify_sched request to network test api', async () => {
+    requestMock.mockImplementationOnce((input, done) => {
+      done(null, {
+        statusCode: 200,
+        body: {
+          error: false,
+          id: 1,
+        },
+      });
+    });
+    const app = setupApp();
+    await request(app)
+      .delete('/network_test/schedule/1')
+      .expect(200);
   });
 });
 

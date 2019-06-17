@@ -33,12 +33,14 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AccessTimeIcon from '@material-ui/icons/AlarmOn';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import HelpIcon from '@material-ui/icons/Help';
 import MapIcon from '@material-ui/icons/Map';
 import moment from 'moment';
 import LoadingBox from '../../components/common/LoadingBox';
 import {createTestMapLink} from '../../helpers/NetworkTestHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
 import AbortNetworkTestButton from './AbortNetworkTestButton';
+import TestTypeCell from './TestTypeCell';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
 
 import {
@@ -101,7 +103,7 @@ class NetworkTestExecutionsTable extends React.PureComponent<
     {
       key: 'id',
       label: '#',
-      width: 40,
+      width: 60,
     },
     {
       key: 'status',
@@ -488,6 +490,10 @@ const statusMap = {
     text: 'Scheduled',
     component: props => <AccessTimeIcon color="primary" {...props} />,
   },
+  unknown: {
+    text: 'Unknown status code',
+    component: props => <HelpIcon {...props} />,
+  },
 };
 
 const useStatusStyles = makeStyles(_theme => ({
@@ -521,7 +527,9 @@ function TestStatusCell({
     );
   }
 
-  const {text, component} = statusMap[status];
+  const {text, component} = statusMap[status]
+    ? statusMap[status]
+    : statusMap.unknown;
   return (
     <Tooltip title={text} placement="top">
       {React.createElement(component, {
@@ -563,25 +571,6 @@ function useTestStatusProgress({
     };
   }, [status, expected_end_date_utc, expectedElapsedMs]);
   return percentage;
-}
-
-const useTestTypeStyles = makeStyles({
-  cell: {
-    textTransform: 'capitalize',
-  },
-});
-
-function TestTypeCell({test_code}) {
-  const classes = useTestTypeStyles();
-  let testTypeText = TEST_TYPE[test_code];
-  if (typeof testTypeText !== 'string') {
-    testTypeText = test_code;
-  }
-  return (
-    <span className={classes.cell} title={`Test Code: ${test_code}`}>
-      {testTypeText}
-    </span>
-  );
 }
 
 export default withRouter(withStyles(styles)(NetworkTestExecutionsTable));
