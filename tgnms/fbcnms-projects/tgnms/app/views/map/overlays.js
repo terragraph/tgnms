@@ -130,6 +130,11 @@ export class LinkMetricsOverlayStrategy implements OverlayStrategy {
     }
   };
 
+  getDefaultOverlays = () => ({
+    link_lines: 'ignition_status',
+    site_icons: 'health',
+  });
+
   getOverlay = (id: $Keys<typeof LINK_METRIC_OVERLAYS>) => this.overlayMap[id];
 
   getData = (query: OverlayQuery) => {
@@ -218,6 +223,11 @@ export class TestExecutionOverlayStrategy implements OverlayStrategy {
 
   getOverlay = (id: $Keys<typeof TEST_EXECUTION_OVERLAYS>) =>
     this.overlayMap[id];
+
+  getDefaultOverlays = () => ({
+    link_lines: 'health',
+    site_icons: 'health',
+  });
 
   getData = (query: OverlayQuery) => {
     const overlayDef = this.getOverlay(query.overlayId);

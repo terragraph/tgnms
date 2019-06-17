@@ -83,11 +83,6 @@ const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 30000;
 // Table size limits (in pixels)
 const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
-const defaultSelectedOverlays = {
-  link_lines: 'ignition_status',
-  site_icons: 'health',
-};
-
 class NetworkMap extends React.Component {
   overlayStrategy: OverlayStrategy;
 
@@ -95,7 +90,7 @@ class NetworkMap extends React.Component {
     super(props);
     // construct styles list
     this._mapBoxStyles = this.mapBoxStylesList();
-
+    const overlayStrategy = this.updateOverlayStrategy();
     this.state = {
       // Map config
       mapRef: null, // reference to Map class
@@ -106,7 +101,7 @@ class NetworkMap extends React.Component {
         site_name_popups: false,
         buildings_3d: false,
       },
-      selectedOverlays: {...defaultSelectedOverlays},
+      selectedOverlays: overlayStrategy.getDefaultOverlays(),
 
       // Map tables
       showTable: false,
@@ -168,10 +163,6 @@ class NetworkMap extends React.Component {
         render: this.render3dBuildings.bind(this),
       },
     ];
-    this.updateOverlayStrategy();
-    // layers' overlays config
-    //   id - unique string identifier
-    //   type - maps to color config
   }
 
   componentDidMount() {
@@ -585,9 +576,12 @@ class NetworkMap extends React.Component {
     // if the strategy has changed, load the new data
     if (newStrategy !== currentStrategy) {
       // eslint-disable-next-line react/no-did-update-set-state
-      this.setState({selectedOverlays: {...defaultSelectedOverlays}}, () => {
-        this.fetchOverlayData();
-      });
+      this.setState(
+        {selectedOverlays: newStrategy.getDefaultOverlays()},
+        () => {
+          this.fetchOverlayData();
+        },
+      );
     }
   }
 
