@@ -13,11 +13,11 @@ RUN apt-get install -y wget nano libtool libboost-all-dev automake bison flex g+
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 
-# Install python3
-RUN apt-get install -y python3-pip python3-dev python3-tk\
+# Install python3.7
+RUN apt-get install -y python3.7 python3-pip python3.7-dev python3-tk \
     && cd /usr/local/bin \
-    && ln -s /usr/bin/python3 python \
-    && pip3 install --upgrade pip
+    && ln -s /usr/bin/python3.7 python \
+    && python -m pip install --upgrade pip
 
 # Copy Analytics source files into docker container
 RUN mkdir -p $WORKDIR
@@ -35,10 +35,10 @@ RUN interface/generate_analytics_api.sh
 
 # Install out modules into python3's module dir so we don't need sys.path hacks
 # Also will install python dependencies defined in setup.py
-RUN python3 setup.py install
+RUN python setup.py install
 
 # Remove un-needed building depends
-RUN apt-get purge -y --auto-remove bison flex g++
+RUN apt-get purge -y --auto-remove bison flex g++ python3.7-dev
 RUN apt-get clean
 RUN rm -rf /tmp/*
 
