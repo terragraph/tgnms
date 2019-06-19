@@ -6,13 +6,18 @@
  */
 
 import * as fs from 'fs';
-import {TRANSLATIONS_DEFAULT_LOCALE} from '../config';
+import {TRANSLATIONS_DEFAULT_LOCALE, LOCALES_DIR} from '../config';
 
-import {i18nBuilder, makeLocaleDirectory} from '@fbcnms/i18n';
+import {
+  i18nBuilder,
+  initFsBackendOptions,
+  makeLocaleDirectory,
+} from '@fbcnms/i18n';
 
 export const i18nextInstance = i18nBuilder({
   preload: [TRANSLATIONS_DEFAULT_LOCALE],
   fallbackLng: TRANSLATIONS_DEFAULT_LOCALE,
+  backend: initFsBackendOptions({localesDir: LOCALES_DIR}),
 });
 
 /**

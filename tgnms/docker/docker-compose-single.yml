@@ -65,6 +65,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./docker_volumes/logs:/nodelogs
+      - ./docker_volumes/locales:/locales
     ports:
       - "80"
     networks:
