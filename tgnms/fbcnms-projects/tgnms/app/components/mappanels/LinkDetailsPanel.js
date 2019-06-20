@@ -31,12 +31,15 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import PropTypes from 'prop-types';
 import React from 'react';
+import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import SyncIcon from '@material-ui/icons/Sync';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import Typography from '@material-ui/core/Typography';
+import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
+import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 
 const styles = theme => ({
   iconCentered: {
@@ -115,6 +118,16 @@ class LinkDetailsPanel extends React.Component {
     });
   }
 
+  onShowStats() {
+    // Take user to the stats page with pre-populated link
+    const {link, history, networkName} = this.props;
+
+    history.push({
+      pathname: '/stats/' + networkName,
+      search: `?${STATS_LINK_QUERY_PARAM}=${link.name}`,
+    });
+  }
+
   onDeleteLink() {
     // Delete this link
     const {link, networkName} = this.props;
@@ -170,6 +183,11 @@ class LinkDetailsPanel extends React.Component {
       {
         heading: 'Topology',
         actions: [
+          {
+            label: 'Show Stats',
+            icon: <StatsIcon />,
+            func: () => this.onShowStats(),
+          },
           {
             label: 'Delete Link',
             icon: <DeleteIcon />,
@@ -351,4 +369,4 @@ LinkDetailsPanel.propTypes = {
   onPin: PropTypes.func.isRequired,
 };
 
-export default withStyles(styles)(LinkDetailsPanel);
+export default withStyles(styles)(withRouter(LinkDetailsPanel));

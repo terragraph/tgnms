@@ -14,6 +14,7 @@ import MaterialReactSelect from '../../components/common/MaterialReactSelect';
 import MaterialSelect from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import PlotlyGraph from './PlotlyGraph.js';
+import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import React from 'react';
 import {
   GRAPH_LINE_NAME_MAX_LENGTH,
@@ -54,26 +55,39 @@ type Props = {
 };
 
 class NetworkStatsBeringei extends React.Component<Props, State> {
-  // TODO - graph options should be saved in their own context
-  state = {
-    // data source interval
-    dsIntervalSec: 30,
-    // graph aggregation type
-    graphAggType: GraphAggregation.TOP_AVG,
-    // type-ahead for key names selected
-    keysSelected: [],
-    // type-ahead for selected links
-    linksSelected: [],
-    // max data points
-    maxDataPoints: 100,
-    // max results to return per graph
-    maxResults: 5,
-    // simple minutes ago, won't have to adjust the start/end time displayed
-    minAgo: 60,
-  };
-
   constructor(props) {
     super(props);
+
+    // TODO - graph options should be saved in their own context
+    this.state = {
+      // data source interval
+      dsIntervalSec: 30,
+      // graph aggregation type
+      graphAggType: GraphAggregation.TOP_AVG,
+      // type-ahead for key names selected
+      keysSelected: [],
+      // type-ahead for selected links
+      linksSelected: this.getLinkFromQueryString(),
+      // max data points
+      maxDataPoints: 100,
+      // max results to return per graph
+      maxResults: 5,
+      // simple minutes ago, won't have to adjust the start/end time displayed
+      minAgo: 60,
+    };
+  }
+
+  getLinkFromQueryString() {
+    const values = new URL(window.location).searchParams;
+    const linkName = values.get(STATS_LINK_QUERY_PARAM);
+    if (linkName) {
+      return [
+        {
+          label: linkName,
+        },
+      ];
+    }
+    return [];
   }
 
   formatKeyOptions(keyOptions, selectedOptions) {

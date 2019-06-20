@@ -55,3 +55,5 @@ export const DEFAULT_HARDWARE_BASE_KEY = 'MVL_ARMADA39X_P';
 
 /** Query param in url for selected node. */
 export const SELECTED_NODE_QUERY_PARAM = 'node';
+
+export const STATS_LINK_QUERY_PARAM = 'linkName';
