@@ -17,6 +17,6 @@ make -j $(nproc --all)
 make install
 # Install Apache Thrift python3 lib
 pushd lib/py
-python3 setup.py install
+python setup.py install
 popd
 popd
