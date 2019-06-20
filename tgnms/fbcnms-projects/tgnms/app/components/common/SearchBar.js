@@ -7,7 +7,7 @@
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ClearIcon from '@material-ui/icons/Clear';
-import {debounce} from 'lodash-es';
+import {debounce} from 'lodash';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';

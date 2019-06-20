@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';

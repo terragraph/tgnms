@@ -13,7 +13,7 @@ import {
   formParseInt,
 } from '../../helpers/FormHelpers';
 import {ConfigBaseTypes} from '../../constants/ConfigConstants';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import {shallowEqual, validateField} from '../../helpers/ConfigHelpers';

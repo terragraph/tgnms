@@ -15,7 +15,7 @@ import {
   isPlainObject,
   merge,
   set,
-} from 'lodash-es';
+} from 'lodash';
 import {isNodeAlive} from './NetworkHelpers';
 import {NodeType} from '../../thrift/gen-nodejs/Topology_types';
 

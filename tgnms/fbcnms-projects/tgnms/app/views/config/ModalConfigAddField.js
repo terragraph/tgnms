@@ -14,7 +14,7 @@ import {
 import ConfigFormInput from './ConfigFormInput';
 import ConfigMetadataBlock from './ConfigMetadataBlock';
 import {createTextInput, createSelectInput} from '../../helpers/FormHelpers';
-import {debounce, difference, isPlainObject} from 'lodash-es';
+import {debounce, difference, isPlainObject} from 'lodash';
 import {getFieldMetadata, validateField} from '../../helpers/ConfigHelpers';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';

@@ -7,7 +7,7 @@
 
 import {CONFIG_FIELD_DELIMITER} from '../../constants/ConfigConstants';
 import ConfigTableEntry from './ConfigTableEntry';
-import {isEqual, orderBy} from 'lodash-es';
+import {isEqual, orderBy} from 'lodash';
 import React from 'react';
 import SearchBar from '../../components/common/SearchBar';
 import Table from '@material-ui/core/Table';

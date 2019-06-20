@@ -23,7 +23,7 @@ import type {
 import {scaleLinear} from 'd3-scale';
 import {interpolateHcl} from 'd3-interpolate';
 import {Feature, Layer} from 'react-mapbox-gl';
-import {get} from 'lodash-es';
+import {get} from 'lodash';
 import {getLinkGolay, getLinkControlSuperframe} from '../../helpers/TgFeatures';
 import {
   GOLAY_COLORS,

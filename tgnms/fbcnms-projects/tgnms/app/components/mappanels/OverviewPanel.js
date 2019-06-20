@@ -13,7 +13,7 @@ import {
   getNodeIcon,
   getSiteIcon,
 } from '../../helpers/MapPanelHelpers';
-import {has} from 'lodash-es';
+import {has} from 'lodash';
 import IconButton from '@material-ui/core/IconButton';
 import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import ListIcon from '@material-ui/icons/List';

@@ -7,7 +7,7 @@
 'use strict';
 
 import Checkbox from '@material-ui/core/Checkbox';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import React from 'react';
 import {renderStatusColor} from '../../helpers/TableHelpers';
 import TableCell from '@material-ui/core/TableCell';

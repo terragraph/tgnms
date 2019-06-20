@@ -18,7 +18,7 @@ import {
   sendTopologyEditRequest,
 } from '../../helpers/MapPanelHelpers';
 import InfoIcon from '@material-ui/icons/Info';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';

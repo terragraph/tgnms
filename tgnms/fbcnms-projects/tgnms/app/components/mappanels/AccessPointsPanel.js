@@ -15,7 +15,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {sortBy} from 'lodash-es';
+import {sortBy} from 'lodash';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';

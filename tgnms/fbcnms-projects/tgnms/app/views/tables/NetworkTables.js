@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import type {ContextRouter} from 'react-router-dom';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
 import NetworkContext from '../../NetworkContext.js';

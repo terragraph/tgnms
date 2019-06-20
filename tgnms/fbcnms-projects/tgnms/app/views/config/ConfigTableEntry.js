@@ -16,7 +16,7 @@ import ConfigMetadataBlock from './ConfigMetadataBlock';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import {getNodeIcon} from '../../helpers/MapPanelHelpers';
-import {isEqual, truncate} from 'lodash-es';
+import {isEqual, truncate} from 'lodash';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';

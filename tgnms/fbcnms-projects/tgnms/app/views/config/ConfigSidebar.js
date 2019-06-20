@@ -13,7 +13,7 @@ import {createActionsMenu} from '../../helpers/MapPanelHelpers';
 import {createSelectInput} from '../../helpers/FormHelpers';
 import {CtrlVerType, ctrlVerBefore} from '../../helpers/VersionHelper';
 import {NetworkConfigMode} from '../../constants/ConfigConstants';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';

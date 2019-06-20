@@ -7,7 +7,7 @@
 
 import PropTypes from 'prop-types';
 import React from 'react';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 
 // load the basic bundle of plotly to avoid bundle bloat
 // includes scatter, pie, and bar

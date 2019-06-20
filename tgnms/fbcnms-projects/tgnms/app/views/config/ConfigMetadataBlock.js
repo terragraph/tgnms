@@ -8,7 +8,7 @@
 import classNames from 'classnames';
 import {ConfigConstraint} from '../../constants/ConfigConstants';
 import {isPunctuation, toSentenceCase} from '../../helpers/StringHelpers';
-import {isString} from 'lodash-es';
+import {isString} from 'lodash';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';

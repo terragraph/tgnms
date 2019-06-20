@@ -26,7 +26,7 @@ import {
   sendTopologyBuilderRequest,
   sendTopologyEditRequest,
 } from '../../helpers/MapPanelHelpers';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import MenuItem from '@material-ui/core/MenuItem';
 import {
   NodeType,

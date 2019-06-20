@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import {NodeStatusType} from '../../thrift/gen-nodejs/Topology_types';
 import React from 'react';
 import SignalWifi0BarIcon from '@material-ui/icons/SignalWifi0Bar';

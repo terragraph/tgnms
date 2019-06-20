@@ -13,7 +13,7 @@ import {
   processConfigs,
   stringifyConfig,
 } from '../../helpers/ConfigHelpers';
-import {cloneDeep, isEqual, set, unset} from 'lodash-es';
+import {cloneDeep, isEqual, set, unset} from 'lodash';
 import {ConfigLayer} from '../../constants/ConfigConstants';
 import ConfigSidebar from './ConfigSidebar';
 import ConfigTable from './ConfigTable';

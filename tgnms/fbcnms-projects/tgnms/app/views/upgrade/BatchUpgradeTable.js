@@ -7,7 +7,7 @@
 'use strict';
 
 import BatchUpgradeTableEntry from './BatchUpgradeTableEntry';
-import {isEmpty, orderBy} from 'lodash-es';
+import {isEmpty, orderBy} from 'lodash';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';

@@ -11,7 +11,7 @@ import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
-import {has} from 'lodash-es';
+import {has} from 'lodash';
 import MapLayersPanelConfigButton from './MapLayersPanelConfigButton';
 import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
 import MenuItem from '@material-ui/core/MenuItem';

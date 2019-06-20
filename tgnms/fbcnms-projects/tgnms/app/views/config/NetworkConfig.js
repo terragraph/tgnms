@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import {cloneDeep, get, merge} from 'lodash-es';
+import {cloneDeep, get, merge} from 'lodash';
 import {
   ConfigLayer,
   DEFAULT_BASE_KEY,

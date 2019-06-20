@@ -18,7 +18,7 @@ import {
   getLinkIcon,
   getNodeIcon,
 } from '../../helpers/MapPanelHelpers';
-import {get} from 'lodash-es';
+import {get} from 'lodash';
 import IgnitionStatePanel from '../../components/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '../../components/mappanels/LinkDetailsPanel';
 import ListItemIcon from '@material-ui/core/ListItemIcon';

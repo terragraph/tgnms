@@ -7,7 +7,7 @@
 
 import {apiServiceRequest, getErrorTextFromE2EAck} from './ServiceAPIUtil';
 import {cleanupObject, sortConfig} from '../helpers/ConfigHelpers';
-import {isPlainObject} from 'lodash-es';
+import {isPlainObject} from 'lodash';
 import {nodeupdateServerRequest} from './NodeupdateAPIUtil';
 
 // Generic success handler

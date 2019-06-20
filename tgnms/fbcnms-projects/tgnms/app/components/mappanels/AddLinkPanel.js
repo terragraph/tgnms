@@ -11,7 +11,7 @@ import {
   createReactSelectInput,
 } from '../../helpers/FormHelpers';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 import MenuItem from '@material-ui/core/MenuItem';
 import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import PropTypes from 'prop-types';

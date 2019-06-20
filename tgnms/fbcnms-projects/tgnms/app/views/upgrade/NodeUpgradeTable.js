@@ -8,7 +8,7 @@
 
 import Checkbox from '@material-ui/core/Checkbox';
 import {getVersion} from '../../helpers/VersionHelper';
-import {isEmpty, orderBy} from 'lodash-es';
+import {isEmpty, orderBy} from 'lodash';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalCommit from './ModalCommit';
 import ModalPrepare from './ModalPrepare';
