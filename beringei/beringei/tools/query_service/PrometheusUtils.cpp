@@ -234,8 +234,6 @@ void PrometheusUtils::formatStatsRequestAsPrometheusMetrics(
 }
 
 void PrometheusUtils::writeMetrics(
-    const std::string& topologyName,
-    const std::string& jobName, /* unique identifier */
     const int intervalSec,
     const std::vector<Metric>& aggValues) {
   if (!FLAGS_prometheus_metrics_queue_enabled) {

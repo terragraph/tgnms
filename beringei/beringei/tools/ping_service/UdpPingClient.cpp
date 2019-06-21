@@ -248,21 +248,16 @@ void writeResults(const UdpTestResults& results) {
                  std::chrono::system_clock::now().time_since_epoch())
                  .count();
 
-  std::unordered_map<
-      std::string /* network name */,
-      std::vector<Metric> /* metrics list */>
-      metricsMap;
-
+  std::vector<Metric> metrics;
   for (const auto& result : results.hostResults) {
     std::vector<std::string> labels = getMetricLabels(result->metadata.dst, 1);
 
-    auto& currMetrics = metricsMap[result->metadata.dst.network];
-    currMetrics.emplace_back(
+    metrics.emplace_back(
         Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
 
     if (result->metrics.num_recv > 0) {
-      currMetrics.insert(
-          currMetrics.end(),
+      metrics.insert(
+          metrics.end(),
           {Metric("pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
            Metric("pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
            Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75)});
@@ -272,24 +267,19 @@ void writeResults(const UdpTestResults& results) {
   for (const auto& result : results.networkResults) {
     std::vector<std::string> labels = getMetricLabels(result->metadata.dst, 1);
 
-    auto& currMetrics = metricsMap[result->metadata.dst.network];
-    currMetrics.emplace_back(
+    metrics.emplace_back(
         Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
 
     if (result->metrics.num_recv > 0) {
-      currMetrics.insert(
-          currMetrics.end(),
+      metrics.insert(
+          metrics.end(),
           {Metric("pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
            Metric("pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
            Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75)});
     }
   }
 
-  auto prometheusInstance = PrometheusUtils::getInstance();
-  for (const auto& metricsMapIt : metricsMap) {
-    prometheusInstance->writeMetrics(
-        metricsMapIt.first, "udp_ping_client_1s", 1, metricsMapIt.second);
-  }
+  PrometheusUtils::getInstance()->writeMetrics(1 /* interval in s */, metrics);
 }
 
 void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
@@ -297,21 +287,12 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
                  std::chrono::system_clock::now().time_since_epoch())
                  .count();
 
-  std::unordered_map<
-      std::string /* network name */,
-      std::unordered_map<std::string /* host name */, AggrUdpPingStat>>
+  std::unordered_map<std::string /* host or network name */, AggrUdpPingStat>
       aggrUdpPingStatMap;
 
-  std::unordered_map<std::string /* network name */, AggrUdpPingStat>
-      aggrNetworkUdpPingStatMap;
-
-  // Build the aggregate ping stat maps
   for (const auto& result : aggrResults) {
     for (const auto& hostResult : result.hostResults) {
-      const std::string& networkName = hostResult->metadata.dst.network;
-      const std::string& hostName = hostResult->metadata.dst.name;
-
-      auto& aggrUdpPingStat = aggrUdpPingStatMap[networkName][hostName];
+      auto& aggrUdpPingStat = aggrUdpPingStatMap[hostResult->metadata.dst.name];
       aggrUdpPingStat.target = hostResult->metadata.dst;
       aggrUdpPingStat.count++;
       aggrUdpPingStat.lossRatioSum += hostResult->metrics.loss_ratio;
@@ -325,9 +306,8 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
     }
 
     for (const auto& networkResult : result.networkResults) {
-      const std::string& networkName = networkResult->metadata.dst.network;
-
-      auto& aggrUdpPingStat = aggrNetworkUdpPingStatMap[networkName];
+      auto& aggrUdpPingStat =
+          aggrUdpPingStatMap[networkResult->metadata.dst.network];
       aggrUdpPingStat.target = networkResult->metadata.dst;
       aggrUdpPingStat.count++;
       aggrUdpPingStat.lossRatioSum += networkResult->metrics.loss_ratio;
@@ -341,65 +321,21 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
     }
   }
 
-  std::unordered_map<
-      std::string /* network name */,
-      std::vector<Metric> /* metrics list */>
-      metricsMap;
-
+  std::vector<Metric> metrics;
   for (const auto& aggrUdpPingStatIt : aggrUdpPingStatMap) {
-    const std::string& networkName = aggrUdpPingStatIt.first;
-    for (const auto& nestedAggrUdpPingStatIt : aggrUdpPingStatIt.second) {
-      const auto& aggrUdpPingStat = nestedAggrUdpPingStatIt.second;
-
-      std::vector<std::string> labels =
-          getMetricLabels(aggrUdpPingStat.target, 30);
-
-      auto& currMetrics = metricsMap[networkName];
-      currMetrics.emplace_back(Metric(
-          "pinger_lossRatio",
-          now,
-          labels,
-          aggrUdpPingStat.lossRatioSum / aggrUdpPingStat.count));
-
-      if (aggrUdpPingStat.noFullLossCount > 0) {
-        currMetrics.insert(
-            currMetrics.end(),
-            {Metric(
-                 "pinger_rtt_avg",
-                 now,
-                 labels,
-                 aggrUdpPingStat.rttAvgSum / aggrUdpPingStat.noFullLossCount),
-             Metric(
-                 "pinger_rtt_p90",
-                 now,
-                 labels,
-                 aggrUdpPingStat.rttP90Sum / aggrUdpPingStat.noFullLossCount),
-             Metric(
-                 "pinger_rtt_p75",
-                 now,
-                 labels,
-                 aggrUdpPingStat.rttP75Sum / aggrUdpPingStat.noFullLossCount)});
-      }
-    }
-  }
-
-  for (const auto& aggrNetworkUdpPingStatIt : aggrNetworkUdpPingStatMap) {
-    const std::string& networkName = aggrNetworkUdpPingStatIt.first;
-    const auto& aggrUdpPingStat = aggrNetworkUdpPingStatIt.second;
-
+    const auto& aggrUdpPingStat = aggrUdpPingStatIt.second;
     std::vector<std::string> labels =
         getMetricLabels(aggrUdpPingStat.target, 30);
 
-    auto& currMetrics = metricsMap[networkName];
-    currMetrics.emplace_back(Metric(
+    metrics.emplace_back(Metric(
         "pinger_lossRatio",
         now,
         labels,
         aggrUdpPingStat.lossRatioSum / aggrUdpPingStat.count));
 
     if (aggrUdpPingStat.noFullLossCount > 0) {
-      currMetrics.insert(
-          currMetrics.end(),
+      metrics.insert(
+          metrics.end(),
           {Metric(
                "pinger_rtt_avg",
                now,
@@ -418,11 +354,7 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
     }
   }
 
-  auto prometheusInstance = PrometheusUtils::getInstance();
-  for (const auto& metricsMapIt : metricsMap) {
-    prometheusInstance->writeMetrics(
-        metricsMapIt.first, "udp_ping_client_30s", 30, metricsMapIt.second);
-  }
+  PrometheusUtils::getInstance()->writeMetrics(30 /* interval in s */, metrics);
 }
 
 int main(int argc, char* argv[]) {

@@ -53,8 +53,6 @@ class PrometheusUtils {
       TACacheMap& typeaheadCache,
       const query::StatsWriteRequest& request);
   void writeMetrics(
-      const std::string& topologyName,
-      const std::string& jobName, /* unique identifier */
       const int intervalSec,
       const std::vector<Metric>& aggValues);
   static std::string formatNetworkLabel(const std::string& topologyName);

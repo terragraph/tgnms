@@ -102,10 +102,7 @@ void AggregatorService::doPeriodicWork() {
     createDataPoints(bDataPoints, aggValues, topologyConfig.second);
     // write metrics to prometheus (per network)
     auto prometheusInstance = PrometheusUtils::getInstance();
-    prometheusInstance->writeMetrics(topology.name,
-                                     "aggregator_service",
-                                     30,
-                                     aggValues);
+    prometheusInstance->writeMetrics(30 /* interval in s */, aggValues);
   }
   // store metrics to beringei
   storeAggregateMetrics(bDataPoints);
