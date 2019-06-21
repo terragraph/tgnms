@@ -13,6 +13,7 @@ const paths = require('fbcnms-webpack-config/paths');
 
 const config = webpackConfig.createDevWebpackConfig({
   extraPaths: [paths.resolveApp('shared')],
+  hot: true,
 });
 
 module.exports = config;

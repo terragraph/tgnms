@@ -19,9 +19,11 @@ const express = require('express');
 const fs = require('fs');
 const passport = require('passport');
 const path = require('path');
+const paths = require('fbcnms-webpack-config/paths');
 const session = require('express-session');
-const webpack = require('webpack');
 const staticDist = require('fbcnms-webpack-config/staticDist').default;
+const webpackSmartMiddleware = require('@fbcnms/express-middleware/webpackSmartMiddleware')
+  .default;
 
 const {
   refreshTopologies,
@@ -110,28 +112,13 @@ if (!NODELOGS_ENABLED) {
   );
 }
 
-if (devMode) {
-  // serve developer, non-minified build
-  const config = require('../config/webpack.config.js');
-  const compiler = webpack(config);
-  const webpackMiddleware = require('webpack-dev-middleware');
-  const webpackHotMiddleware = require('webpack-hot-middleware');
-  const middleware = webpackMiddleware(compiler, {
-    publicPath: config.output.publicPath,
-    contentBase: 'src',
-    logger,
-    stats: {
-      colors: true,
-      hash: false,
-      timings: true,
-      chunks: false,
-      chunkModules: false,
-      modules: false,
-    },
-  });
-  app.use(middleware);
-  app.use(webpackHotMiddleware(compiler));
-}
+app.use(
+  webpackSmartMiddleware({
+    devMode,
+    devWebpackConfig: require('../config/webpack.config.js'),
+    distPath: paths.distPath,
+  }),
+);
 
 // Catch All
 app.get('*', (req, res) => {
