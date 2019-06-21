@@ -12,6 +12,7 @@ import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecu
 import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
 import axios, {CancelToken} from 'axios';
 import {HEALTH_CODES} from '../constants/HealthConstants';
+import {TEST_TYPE_CODES} from '../../shared/dto/TestExecution';
 
 export const getTestResults = ({
   executionId,
@@ -58,6 +59,14 @@ export const startTest = (formData: ScheduleNetworkTestFormData) => {
     {test_code: parseFloat(formData.testType)},
   );
   return axios.post<any, any>('/network_test/start', startTestRequest);
+};
+
+export const startSpeedTest = (request: any) => {
+  return axios.post<any, any>('/network_test/start', {
+    test_code: parseFloat(TEST_TYPE_CODES.MULTI_HOP),
+    asap: 1,
+    ...request,
+  });
 };
 
 export const stopTest = (networkName: ?string) => {

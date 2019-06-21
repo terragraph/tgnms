@@ -12,6 +12,7 @@ import type {
   StatusDumpType,
   UpgradeStateDumpType,
 } from '../shared/types/Controller';
+import {TopologyElementType} from './constants/NetworkConstants';
 
 export type NetworkContextType = {|
   networkName: string,
@@ -35,7 +36,7 @@ export type NetworkContextType = {|
   // Topology elements
   selectedElement: ?Element,
   pinnedElements: Array<Element>,
-  setSelected: () => void,
+  setSelected: ($Values<typeof TopologyElementType>, string) => void,
   removeElement: () => void,
   togglePin: () => void,
   toggleExpanded: () => void,

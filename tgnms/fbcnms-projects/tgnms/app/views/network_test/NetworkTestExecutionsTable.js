@@ -27,21 +27,16 @@ import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Tooltip from '@material-ui/core/Tooltip';
-import CheckIcon from '@material-ui/icons/Check';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import CancelIcon from '@material-ui/icons/Cancel';
-import AccessTimeIcon from '@material-ui/icons/AlarmOn';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import HelpIcon from '@material-ui/icons/Help';
 import MapIcon from '@material-ui/icons/Map';
 import moment from 'moment';
 import LoadingBox from '../../components/common/LoadingBox';
 import {createTestMapLink} from '../../helpers/NetworkTestHelpers';
-import {formatNumber} from '../../helpers/StringHelpers';
 import AbortNetworkTestButton from './AbortNetworkTestButton';
-import TestTypeCell from './TestTypeCell';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import TestStatus, {
+  getStatusDef,
+} from '../../components/network_test/TestStatus';
 
 import {
   TEST_STATUS,
@@ -292,7 +287,9 @@ class NetworkTestExecutionsTable extends React.PureComponent<
 
   pollForInProgressTests = (tests: Array<TestExecution>) => {
     const inProgress = tests.filter(
-      test => test.status === TEST_STATUS.RUNNING,
+      test =>
+        test.status === TEST_STATUS.RUNNING ||
+        test.status === TEST_STATUS.QUEUED,
     );
     if (inProgress.length > 0) {
       this.testPollingTimer = setTimeout(() => {
@@ -469,108 +466,40 @@ function TestLink({
   );
 }
 
-/**
- * Map from a status to an icon / tooltip text. RUNNING is not included here
- * because it's a special case
- */
-const statusMap = {
-  [TEST_STATUS.FINISHED]: {
-    text: 'Finished',
-    component: props => <CheckIcon color="primary" {...props} />,
-  },
-  [TEST_STATUS.ABORTED]: {
-    text: 'Aborted',
-    component: props => <CancelIcon {...props} />,
-  },
-  [TEST_STATUS.FAILED]: {
-    text: 'Failed',
-    component: props => <ErrorOutlineIcon color="error" {...props} />,
-  },
-  [TEST_STATUS.SCHEDULED]: {
-    text: 'Scheduled',
-    component: props => <AccessTimeIcon color="primary" {...props} />,
-  },
-  unknown: {
-    text: 'Unknown status code',
-    component: props => <HelpIcon {...props} />,
-  },
-};
-
 const useStatusStyles = makeStyles(_theme => ({
-  running: {
+  [TEST_STATUS.RUNNING]: {
     width: 30,
     flexGrow: 1,
   },
 }));
 
-function TestStatusCell({
-  expected_end_date_utc,
-  start_date_utc,
-  status,
-}: TestExecution) {
+function TestStatusCell(props: TestExecution) {
   const classes = useStatusStyles();
-  const percentage = useTestStatusProgress({
-    expected_end_date_utc,
-    start_date_utc,
-    status,
-  });
-
-  if (status === TEST_STATUS.RUNNING) {
-    return (
-      <Tooltip
-        title={`Test Running. ${formatNumber(percentage, 0)}% complete`}
-        placement="top">
-        <div className={classes.running}>
-          <LinearProgress variant="determinate" value={percentage} />
-        </div>
-      </Tooltip>
-    );
-  }
-
-  const {text, component} = statusMap[status]
-    ? statusMap[status]
-    : statusMap.unknown;
+  const {text} = getStatusDef(props.status);
   return (
     <Tooltip title={text} placement="top">
-      {React.createElement(component, {
-        'aria-label': text,
-      })}
+      <TestStatus className={classes[props.status] || ''} execution={props} />
     </Tooltip>
   );
 }
 
-function useTestStatusProgress({
-  start_date_utc,
-  expected_end_date_utc,
-  status,
-}: {
-  start_date_utc: Date,
-  expected_end_date_utc: Date,
-  status: number,
-}) {
-  const expectedElapsedMs =
-    expected_end_date_utc.getTime() - start_date_utc.getTime();
-  const [percentage, setPercentage] = React.useState(0);
+const useTestTypeStyles = makeStyles({
+  cell: {
+    textTransform: 'capitalize',
+  },
+});
 
-  React.useEffect(() => {
-    let interval: ?IntervalID = null;
-    if (status === TEST_STATUS.RUNNING) {
-      interval = setInterval(() => {
-        const timeLeft = expected_end_date_utc.getTime() - new Date().getTime();
-        const pct = ((expectedElapsedMs - timeLeft) / expectedElapsedMs) * 100;
-        setPercentage(Math.min(pct, 100));
-        if (pct > 100) {
-          clearInterval(interval);
-        }
-      }, 500);
-    }
-    return () => {
-      if (interval !== null) {
-        clearInterval(interval);
-      }
-    };
-  }, [status, expected_end_date_utc, expectedElapsedMs]);
-  return percentage;
+function TestTypeCell({test_code}) {
+  const classes = useTestTypeStyles();
+  let testTypeText = TEST_TYPE[test_code];
+  if (typeof testTypeText !== 'string') {
+    testTypeText = test_code;
+  }
+  return (
+    <span className={classes.cell} title={`Test Code: ${test_code}`}>
+      {testTypeText}
+    </span>
+  );
 }
 
 export default withRouter(withStyles(styles)(NetworkTestExecutionsTable));

@@ -13,6 +13,8 @@ import {
 } from '../../constants/LayerConstants';
 import LinksLayer from './LinksLayer';
 import LinkOverlayContext from '../../LinkOverlayContext';
+import RouteContext from '../../RouteContext';
+import type {Route as NodeRoute} from '../../RouteContext';
 import NetworkContext from '../../NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
@@ -26,11 +28,15 @@ import {withRouter, Route} from 'react-router-dom';
 import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
+import RoutesLayer from './RoutesLayer';
 import TableControl from './TableControl';
 import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {withStyles} from '@material-ui/core/styles';
-import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
+import {
+  getTestOverlayId,
+  getSpeedTestId,
+} from '../../helpers/NetworkTestHelpers';
 
 const styles = theme => ({
   appBarSpacer: theme.mixins.toolbar,
@@ -100,6 +106,7 @@ class NetworkMap extends React.Component {
         link_lines: true,
         site_name_popups: false,
         buildings_3d: false,
+        routes: false,
       },
       selectedOverlays: overlayStrategy.getDefaultOverlays(),
 
@@ -132,6 +139,11 @@ class NetworkMap extends React.Component {
         nodes: new Set(),
       },
 
+      routesOverlay: {
+        selectedNode: null,
+        routeData: {},
+      },
+
       // Sites that should not be rendered on the map (e.g. while editing)
       hiddenSites: new Set(),
     };
@@ -161,6 +173,11 @@ class NetworkMap extends React.Component {
         layerId: 'buildings_3d',
         name: '3D Buildings',
         render: this.render3dBuildings.bind(this),
+      },
+      {
+        layerId: 'routes',
+        name: 'Routes',
+        render: this.renderRoutes.bind(this),
       },
     ];
   }
@@ -324,6 +341,29 @@ class NetworkMap extends React.Component {
     }
   };
 
+  setNodeRoutes = (nodeName: string, routes: Array<NodeRoute>) => {
+    if (nodeName === null) {
+      return this.setState({
+        selectedLayers: {
+          ...this.state.selectedLayers,
+          routes: false,
+        },
+      });
+    }
+    this.setState({
+      selectedLayers: {
+        ...this.state.selectedLayers,
+        routes: true,
+      },
+      routesOverlay: {
+        selectedNode: nodeName,
+        routeData: Object.assign({}, this.state.routesOverlay.routeData, {
+          [nodeName]: routes,
+        }),
+      },
+    });
+  };
+
   render3dBuildings(_context) {
     return <BuildingsLayer key="3d-buildings-layer" />;
   }
@@ -434,6 +474,10 @@ class NetworkMap extends React.Component {
     );
   }
 
+  renderRoutes(_context) {
+    return <RoutesLayer key="routes-layer" />;
+  }
+
   renderMapLayers(context) {
     const mapLayers = [];
     this._layersConfig.forEach(({layerId, render}) => {
@@ -466,103 +510,110 @@ class NetworkMap extends React.Component {
         value={{
           metricData: linkOverlayMetrics,
         }}>
-        <div className={classes.container}>
-          <div className={classes.topContainer}>
-            <MapBoxGL
-              fitBounds={mapBounds}
-              fitBoundsOptions={FIT_BOUND_OPTIONS}
-              style={selectedMapStyle}
-              onStyleLoad={map => this.setState({mapRef: map})}
-              containerStyle={{width: '100%', height: 'inherit'}}>
-              <TgMapboxGeocoder
-                accessToken={MAPBOX_ACCESS_TOKEN}
+        <RouteContext.Provider
+          value={{
+            ...this.state.routesOverlay,
+            setNodeRoutes: this.setNodeRoutes,
+          }}>
+          <div className={classes.container}>
+            <div className={classes.topContainer}>
+              <MapBoxGL
+                fitBounds={mapBounds}
+                fitBoundsOptions={FIT_BOUND_OPTIONS}
+                style={selectedMapStyle}
+                onStyleLoad={map => this.setState({mapRef: map})}
+                containerStyle={{width: '100%', height: 'inherit'}}>
+                <TgMapboxGeocoder
+                  accessToken={MAPBOX_ACCESS_TOKEN}
+                  mapRef={mapRef}
+                  onSelectFeature={this.onGeocoderEvent}
+                  onSelectTopologyElement={context.setSelected}
+                  nodeMap={context.nodeMap}
+                  linkMap={context.linkMap}
+                  siteMap={context.siteMap}
+                  statusReports={
+                    context.networkConfig?.status_dump?.statusReports
+                  }
+                />
+                <ZoomControl />
+                <RotationControl style={{top: 80}} />
+                <Route
+                  path={`${this.props.match.url}/:tableName?`}
+                  render={routerProps => (
+                    <TableControl
+                      style={{left: 10, bottom: 10}}
+                      baseUrl={this.props.match.url}
+                      onToggleTable={this.onToggleTable}
+                      {...routerProps}
+                    />
+                  )}
+                />
+                {this.renderMapLayers(context)}
+              </MapBoxGL>
+              <NetworkDrawer
+                bottomOffset={showTable ? tableHeight : 0}
+                context={context}
                 mapRef={mapRef}
-                onSelectFeature={this.onGeocoderEvent}
-                onSelectTopologyElement={context.setSelected}
-                nodeMap={context.nodeMap}
-                linkMap={context.linkMap}
-                siteMap={context.siteMap}
-                statusReports={
-                  context.networkConfig?.status_dump?.statusReports
-                }
+                mapLayersProps={{
+                  layersConfig: this._layersConfig,
+                  overlaysConfig: this.getOverlaysConfig(),
+                  mapStylesConfig: this._mapBoxStyles,
+                  selectedLayers: this.state.selectedLayers,
+                  selectedOverlays: this.state.selectedOverlays,
+                  selectedMapStyle: this.state.selectedMapStyle,
+                  onLayerSelectChange: selectedLayers =>
+                    this.setState({selectedLayers}),
+                  onOverlaySelectChange: this.selectOverlays,
+                  onMapStyleSelectChange: selectedMapStyle =>
+                    this.setState({selectedMapStyle}),
+                  overlayLoading: this.state.overlayLoading,
+                }}
+                plannedSiteProps={{
+                  plannedSite: this.state.plannedSite,
+                  onUpdatePlannedSite: plannedSite =>
+                    this.setState({plannedSite}),
+                  hideSite: this.hideSite,
+                  unhideSite: this.unhideSite,
+                }}
+                searchNearbyProps={{
+                  nearbyNodes: this.state.nearbyNodes,
+                  onUpdateNearbyNodes: nearbyNodes =>
+                    this.setState({nearbyNodes}),
+                }}
+                routesProps={{
+                  routes: this.state.routes,
+                  onUpdateRoutes: routes => {
+                    this.setState({routes});
+                  },
+                }}
+                networkTestId={getTestOverlayId(this.props.location)}
+                speedTestId={getSpeedTestId(this.props.location)}
+                onNetworkTestPanelClosed={this.exitTestOverlayMode}
               />
-              <ZoomControl />
-              <RotationControl style={{top: 80}} />
-              <Route
-                path={`${this.props.match.url}/:tableName?`}
-                render={routerProps => (
-                  <TableControl
-                    style={{left: 10, bottom: 10}}
-                    baseUrl={this.props.match.url}
-                    onToggleTable={this.onToggleTable}
-                    {...routerProps}
+              )}
+            </div>
+            {showTable && (
+              <div style={{height: tableHeight}}>
+                <div className={classes.draggerContainer}>
+                  <Dragger
+                    direction="vertical"
+                    minSize={TABLE_LIMITS.minHeight}
+                    maxSize={TABLE_LIMITS.maxHeight}
+                    onResize={this.handleTableResize}
                   />
-                )}
-              />
-              {this.renderMapLayers(context)}
-            </MapBoxGL>
-            <NetworkDrawer
-              bottomOffset={showTable ? tableHeight : 0}
-              context={context}
-              mapRef={mapRef}
-              mapLayersProps={{
-                layersConfig: this._layersConfig,
-                overlaysConfig: this.getOverlaysConfig(),
-                mapStylesConfig: this._mapBoxStyles,
-                selectedLayers: this.state.selectedLayers,
-                selectedOverlays: this.state.selectedOverlays,
-                selectedMapStyle: this.state.selectedMapStyle,
-                onLayerSelectChange: selectedLayers =>
-                  this.setState({selectedLayers}),
-                onOverlaySelectChange: this.selectOverlays,
-                onMapStyleSelectChange: selectedMapStyle =>
-                  this.setState({selectedMapStyle}),
-                overlayLoading: this.state.overlayLoading,
-              }}
-              plannedSiteProps={{
-                plannedSite: this.state.plannedSite,
-                onUpdatePlannedSite: plannedSite =>
-                  this.setState({plannedSite}),
-                hideSite: this.hideSite,
-                unhideSite: this.unhideSite,
-              }}
-              searchNearbyProps={{
-                nearbyNodes: this.state.nearbyNodes,
-                onUpdateNearbyNodes: nearbyNodes =>
-                  this.setState({nearbyNodes}),
-              }}
-              routesProps={{
-                routes: this.state.routes,
-                onUpdateRoutes: routes => {
-                  this.setState({routes});
-                },
-              }}
-              networkTestId={getTestOverlayId(this.props.location)}
-              onNetworkTestPanelClosed={this.exitTestOverlayMode}
-            />
-            )}
-          </div>
-          {showTable && (
-            <div style={{height: tableHeight}}>
-              <div className={classes.draggerContainer}>
-                <Dragger
-                  direction="vertical"
-                  minSize={TABLE_LIMITS.minHeight}
-                  maxSize={TABLE_LIMITS.maxHeight}
-                  onResize={this.handleTableResize}
+                </div>
+                <NetworkTables
+                  selectedElement={context.selectedElement}
+                  // fixes this component's usage of withRouter
+                  match={this.props.match}
+                  location={this.props.location}
+                  history={this.props.history}
+                  isEmbedded={true}
                 />
               </div>
-              <NetworkTables
-                selectedElement={context.selectedElement}
-                // fixes this component's usage of withRouter
-                match={this.props.match}
-                location={this.props.location}
-                history={this.props.history}
-                isEmbedded={true}
-              />
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </RouteContext.Provider>
       </LinkOverlayContext.Provider>
     );
   };

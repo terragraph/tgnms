@@ -36,6 +36,7 @@ import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import TestExecutionPanel from '../../components/mappanels/TestExecutionPanel';
+import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
 import {UpgradeReqType} from '../../../thrift/gen-nodejs/Controller_types';
 import {withStyles} from '@material-ui/core/styles';
@@ -143,7 +144,8 @@ class NetworkDrawer extends React.Component {
           this.state.addSitePanelExpanded ||
           this.state.ignitionStatePanelExpanded ||
           this.state.accessPointsPanelExpanded ||
-          this.state.upgradeProgressPanelExpanded;
+          this.state.upgradeProgressPanelExpanded ||
+          this.isSpeedTestMode();
         if (!isAnyPanelExpanded) {
           this.setState({
             overviewPanelExpanded: true,
@@ -284,6 +286,10 @@ class NetworkDrawer extends React.Component {
       typeof this.props.networkTestId === 'string' &&
       this.props.networkTestId.trim() !== ''
     );
+  };
+
+  isSpeedTestMode = () => {
+    return typeof this.props.speedTestId === 'string';
   };
 
   getUnexpandPanelsState() {
@@ -717,6 +723,13 @@ class NetworkDrawer extends React.Component {
               testId={this.props.networkTestId}
               selectedElement={selectedElement}
               onClose={this.props.onNetworkTestPanelClosed}
+            />
+          )}
+          {this.isSpeedTestMode() && (
+            <SpeedTestPanel
+              selectedElement={selectedElement}
+              expanded={this.isSpeedTestMode()}
+              testId={this.props.speedTestId}
             />
           )}
 

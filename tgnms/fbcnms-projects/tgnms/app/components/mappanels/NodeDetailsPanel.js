@@ -44,9 +44,11 @@ import {SELECTED_NODE_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import {supportsTopologyScan} from '../../helpers/TgFeatures';
+import TimerIcon from '@material-ui/icons/Timer';
 import Typography from '@material-ui/core/Typography';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
+import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
 
 const styles = theme => ({
   iconCentered: {
@@ -258,6 +260,16 @@ class NodeDetailsPanel extends React.Component {
             label: 'Delete Node',
             icon: <DeleteIcon />,
             func: this.onDeleteNode,
+          },
+        ],
+      },
+      {
+        heading: 'Tests',
+        actions: [
+          {
+            label: 'Speed Test',
+            icon: <TimerIcon />,
+            func: () => setUrlSearchParam(this.props.history, 'speedTest', ''),
           },
         ],
       },

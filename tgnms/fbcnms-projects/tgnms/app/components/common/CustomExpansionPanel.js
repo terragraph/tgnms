@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 'use strict';
 
@@ -15,7 +16,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import LockIcon from '@material-ui/icons/Lock';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
 import PropTypes from 'prop-types';
-import React from 'react';
+import * as React from 'react';
 import {withStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -94,7 +95,22 @@ const styles = theme => ({
   },
 });
 
-class CustomExpansionPanel extends React.Component {
+export type Props = {
+  classes: {[string]: string},
+  className?: string,
+  title?: string,
+  details: React.Node,
+  expanded: boolean,
+  titleIcon?: React.Node,
+  onChange?: () => any,
+  onClose?: () => any,
+  onPin?: () => any,
+  pinned?: boolean,
+  showLoadingBar?: boolean,
+  showTitleCopyTooltip?: boolean,
+};
+
+class CustomExpansionPanel extends React.Component<Props> {
   render() {
     const {
       classes,
@@ -114,7 +130,7 @@ class CustomExpansionPanel extends React.Component {
     // A 'close' button can take the place of the chevron
     const closeButtonProps = onClose
       ? {
-          classes: {expandIcon: classes.closeIconButton},
+          classes: {expandIcon: classes.closeIconButton, root: ''},
           expandIcon: <CloseIcon classes={{root: classes.closeIcon}} />,
           IconButtonProps: {
             'aria-label': 'Close',
@@ -168,7 +184,7 @@ class CustomExpansionPanel extends React.Component {
           <div className={classes.spaceBetween}>
             <ExpansionPanelSummaryTooltip
               title={title}
-              enabled={showTitleCopyTooltip}>
+              enabled={showTitleCopyTooltip === true}>
               <Typography className={classes.panelHeading} variant="h6">
                 {titleIcon || null}
                 {title}
@@ -200,6 +216,17 @@ CustomExpansionPanel.propTypes = {
   showTitleCopyTooltip: PropTypes.bool,
 };
 
+type SummaryProps = {
+  title: string,
+  children: React.Element<any>,
+  enabled: boolean,
+  classes: {[string]: string},
+};
+
+type SummaryState = {
+  copySuccessful: boolean,
+};
+
 const ExpansionPanelSummaryTooltip = withStyles({
   copyButton: {
     cursor: 'pointer',
@@ -212,17 +239,14 @@ const ExpansionPanelSummaryTooltip = withStyles({
     width: 0,
   },
 })(
-  class ExpansionPanelSummaryTooltip extends React.Component {
-    selectionRef = React.createRef();
+  class ExpansionPanelSummaryTooltip extends React.Component<
+    SummaryProps,
+    SummaryState,
+  > {
+    selectionRef = React.createRef<HTMLTextAreaElement>();
 
     state = {
       copySuccessful: false,
-    };
-
-    static propTypes = {
-      title: PropTypes.string.isRequired,
-      children: PropTypes.node.isRequired,
-      enabled: PropTypes.bool,
     };
 
     render() {
@@ -262,8 +286,10 @@ const ExpansionPanelSummaryTooltip = withStyles({
 
     handleCopyButtonClick = e => {
       e.stopPropagation();
-      this.selectionRef.current.select();
-      this.setState({copySuccessful: document.execCommand('copy')});
+      if (this.selectionRef.current) {
+        this.selectionRef.current.select();
+        this.setState({copySuccessful: document.execCommand('copy')});
+      }
     };
   },
 );

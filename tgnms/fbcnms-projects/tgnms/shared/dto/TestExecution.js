@@ -32,12 +32,19 @@ export const TEST_STATUS = {
   ABORTED: 3,
   FAILED: 4,
   SCHEDULED: 5,
+  QUEUED: 6,
+};
+
+export const TEST_TYPE_CODES = {
+  SEQUENTIAL_LINK: '8.2',
+  PARALLEL_LINK: '8.3',
+  MULTI_HOP: '8.9',
 };
 
 export const TEST_TYPE = {
-  '8.2': 'sequential link test',
-  '8.3': 'parallel link test',
-  '8.9': 'multi-hop test',
+  [TEST_TYPE_CODES.SEQUENTIAL_LINK]: 'sequential link test',
+  [TEST_TYPE_CODES.PARALLEL_LINK]: 'parallel link test',
+  [TEST_TYPE_CODES.MULTI_HOP]: 'multi-hop test',
 };
 
 export const PROTOCOL = {

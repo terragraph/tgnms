@@ -18,8 +18,7 @@ import * as StringHelpers from '../../helpers/StringHelpers';
 import HelpTooltip from '../../components/common/HelpTooltip';
 import HealthIndicator from './HealthIndicator';
 import {getHealthDef} from '../../constants/HealthConstants';
-import * as api from '../../apiutils/NetworkTestAPIUtil';
-import axios from 'axios';
+import {useLoadTestResults} from '../../hooks/NetworkTestHooks';
 
 const MEGABITS = Math.pow(1000, 2);
 //tests are run twice for each link, one for each direction
@@ -95,34 +94,6 @@ function LinkTestResultDetails({
       </Grid>
     </Grid>
   );
-}
-
-function useLoadTestResults({links = []}: {links?: Array<string>}) {
-  const [loading, setLoading] = React.useState(true);
-  const [results, setResults] = React.useState(null);
-
-  React.useEffect(() => {
-    setLoading(true);
-    if (!links || links.length === 0) {
-      return;
-    }
-    const cancelSource = axios.CancelToken.source();
-    api
-      .getTestResults({
-        results: links,
-        cancelToken: cancelSource.token,
-      })
-      .then(results => {
-        setResults(results);
-        setLoading(false);
-      });
-    return () => cancelSource.cancel();
-  }, /*eslint-disable react-hooks/exhaustive-deps*/ [...links]);
-  /*eslint-enable react-hooks/exhaustive-deps*/
-  return {
-    loading,
-    results,
-  };
 }
 
 const useDetailStyles = makeStyles(theme => ({

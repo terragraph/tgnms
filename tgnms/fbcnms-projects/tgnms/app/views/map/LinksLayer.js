@@ -30,6 +30,16 @@ import {
   SUPERFRAME_COLORS,
   LinkOverlayColors,
   METRIC_COLOR_RANGE,
+  LINE_PAINT,
+  LINE_BACKUP_CN_PAINT,
+  LINE_WIRED_INTERSITE_PAINT,
+  LINE_LAYOUT,
+  LinkRenderType,
+  LINE_CASING_PAINT,
+  LINE_TEXT_PAINT,
+  LINE_TEXT_LAYOUT,
+  SEARCH_NEARBY_LINE_PAINT,
+  SEARCH_NEARBY_FILL_PAINT,
 } from '../../constants/LayerConstants';
 import {HEALTH_CODES} from '../../constants/HealthConstants';
 import LinkOverlayContext from '../../LinkOverlayContext';
@@ -48,67 +58,6 @@ import {
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = _theme => ({});
-
-// === Topology link Lines ===
-const LINE_PAINT = {
-  'line-color': ['get', 'linkColor'],
-  'line-width': 8,
-};
-const LINE_BACKUP_CN_PAINT = {...LINE_PAINT, 'line-dasharray': [0.05, 1.5]};
-const LINE_WIRED_INTERSITE_PAINT = {
-  ...LINE_PAINT,
-  'line-dasharray': [0.02, 1.5],
-};
-const LINE_LAYOUT = {
-  'line-join': 'round',
-  'line-cap': 'round',
-};
-const LinkRenderType = {
-  HIDDEN: null,
-  NORMAL: 'link-normal',
-  BACKUP_CN: 'link-backup-cn',
-  WIRED_INTERSITE: 'link-wired-intersite',
-};
-
-// === Selected link casing ===
-const LINE_CASING_PAINT = {
-  'line-gap-width': LINE_PAINT['line-width'],
-  'line-color': '#0077ff',
-  'line-width': 4,
-  'line-opacity': 0.6,
-};
-
-// === Link overlay text (e.g. for link metrics) ===
-const LINE_TEXT_PAINT = {
-  'text-color': '#fff',
-  'text-halo-color': '#444',
-  'text-halo-width': 1,
-  'text-halo-blur': 1,
-};
-const LINE_TEXT_LAYOUT = {
-  'text-field': '{text}',
-  'text-size': 14,
-  'text-anchor': 'center',
-  'text-allow-overlap': true,
-  'text-ignore-placement': true,
-  // Place the text on the line...
-  // TODO use 'line-center' (mapbox-gl-js >= 0.47.0)
-  'symbol-placement': 'line',
-  // TODO weird behavior... should be very high (~10000) to avoid duplication,
-  // but text won't always appear on the line without a low value (~100)
-  'symbol-spacing': 80,
-};
-
-// === "Search Nearby" links ===
-const SEARCH_NEARBY_LINE_PAINT = {
-  'line-color': '#aec6cf',
-  'line-width': 3,
-  'line-dasharray': [1, 2],
-};
-const SEARCH_NEARBY_FILL_PAINT = {
-  'fill-color': '#aec6cf',
-  'fill-opacity': 0.3,
-};
 
 type Props = {
   overlay: Overlay,

@@ -55,6 +55,9 @@ const styles = theme => ({
   },
   singleValue: {
     fontSize: 16,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   placeholder: {
     position: 'absolute',

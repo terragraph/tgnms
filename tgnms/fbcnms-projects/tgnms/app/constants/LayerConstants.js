@@ -83,3 +83,104 @@ export const NETWORK_TEST_HEALTH_COLOR_RANGE = [
   HEALTH_DEFS[HEALTH_CODES.UNKNOWN].color,
   HEALTH_DEFS[HEALTH_CODES.DOWN].color,
 ];
+
+// === SITES ===
+// === Base paint (for all site types) ===
+export const POSITION_CIRCLE_PAINT = {
+  'circle-blur': 0.15,
+  'circle-color': ['get', 'siteColor'],
+  'circle-radius': ['get', 'circleRadius'],
+  'circle-stroke-color': ['get', 'strokeColor'],
+  'circle-stroke-opacity': 0.6,
+  'circle-stroke-width': ['get', 'strokeWidth'],
+};
+export const CIRCLE_RADIUS = 10;
+export const INNER_CIRCLE_RADIUS = 5;
+
+// === Inner circle paint (for special site types) ===
+// TODO - Make a legend for this
+export const POP_SITE_COLOR = 'blue';
+export const CN_SITE_COLOR = 'pink';
+
+// === Selected site paint ===
+export const SELECTED_CIRCLE_STROKE_COLOR = '#0077ff';
+export const SELECTED_CIRCLE_STROKE_WIDTH = 5;
+
+// === Planned site paint ===
+export const PLANNED_SITE_COLOR = '#fff';
+export const PLANNED_SITE_STROKE_COLOR = '#000';
+
+// === "Search Nearby" site paint ===
+export const SEARCH_NEARBY_SITE_COLOR = '#eee';
+export const SEARCH_NEARBY_STROKE_COLOR = '#aec6cf';
+export const SEARCH_NEARBY_STROKE_WIDTH = 5;
+
+// === LINK LINES ===
+// each link render type gets 2 mapboxgl layers
+export const LinkRenderType = {
+  HIDDEN: null,
+  NORMAL: 'link-normal',
+  BACKUP_CN: 'link-backup-cn',
+  WIRED_INTERSITE: 'link-wired-intersite',
+};
+
+export const LINE_PAINT = {
+  'line-color': ['get', 'linkColor'],
+  'line-width': 8,
+};
+
+export const LINE_BACKUP_CN_PAINT = {
+  ...LINE_PAINT,
+  'line-dasharray': [0.05, 1.5],
+};
+
+export const LINE_WIRED_INTERSITE_PAINT = {
+  ...LINE_PAINT,
+  'line-dasharray': [0.02, 1.5],
+};
+
+export const LINE_LAYOUT = {
+  'line-join': 'round',
+  'line-cap': 'round',
+};
+
+// === Selected link casing ===
+export const LINE_CASING_PAINT = {
+  'line-gap-width': LINE_PAINT['line-width'],
+  'line-color': '#0077ff',
+  'line-width': 4,
+  'line-opacity': 0.6,
+};
+
+// === Link overlay text (e.g. for link metrics) ===
+export const LINE_TEXT_PAINT = {
+  'text-color': '#fff',
+  'text-halo-color': '#444',
+  'text-halo-width': 1,
+  'text-halo-blur': 1,
+};
+
+export const LINE_TEXT_LAYOUT = {
+  'text-field': '{text}',
+  'text-size': 14,
+  'text-anchor': 'center',
+  'text-allow-overlap': true,
+  'text-ignore-placement': true,
+  // Place the text on the line...
+  // TODO use 'line-center' (mapbox-gl-js >= 0.47.0)
+  'symbol-placement': 'line',
+  // TODO weird behavior... should be very high (~10000) to avoid duplication,
+  // but text won't always appear on the line without a low value (~100)
+  'symbol-spacing': 80,
+};
+
+// === "Search Nearby" links ===
+export const SEARCH_NEARBY_LINE_PAINT = {
+  'line-color': '#aec6cf',
+  'line-width': 3,
+  'line-dasharray': [1, 2],
+};
+export const SEARCH_NEARBY_FILL_PAINT = {
+  'fill-color': '#aec6cf',
+  'fill-opacity': 0.3,
+};
