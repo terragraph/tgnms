@@ -93,6 +93,7 @@ struct AggrUdpPingStat {
   double rttAvgSum{0};
   double rttP75Sum{0};
   double rttP90Sum{0};
+  double rttCurrMax{0};
   double lossRatioSum{0};
 };
 
@@ -260,7 +261,8 @@ void writeResults(const UdpTestResults& results) {
           metrics.end(),
           {Metric("pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
            Metric("pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
-           Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75)});
+           Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75),
+           Metric("pinger_rtt_max", now, labels, result->metrics.rtt_max)});
     }
   }
 
@@ -275,7 +277,8 @@ void writeResults(const UdpTestResults& results) {
           metrics.end(),
           {Metric("pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
            Metric("pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
-           Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75)});
+           Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75),
+           Metric("pinger_rtt_max", now, labels, result->metrics.rtt_max)});
     }
   }
 
@@ -302,6 +305,10 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
         aggrUdpPingStat.rttAvgSum += hostResult->metrics.rtt_avg;
         aggrUdpPingStat.rttP90Sum += hostResult->metrics.rtt_p90;
         aggrUdpPingStat.rttP75Sum += hostResult->metrics.rtt_p75;
+
+        if (hostResult->metrics.rtt_max > aggrUdpPingStat.rttCurrMax) {
+          aggrUdpPingStat.rttCurrMax = hostResult->metrics.rtt_max;
+        }
       }
     }
 
@@ -317,6 +324,10 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
         aggrUdpPingStat.rttAvgSum += networkResult->metrics.rtt_avg;
         aggrUdpPingStat.rttP90Sum += networkResult->metrics.rtt_p90;
         aggrUdpPingStat.rttP75Sum += networkResult->metrics.rtt_p75;
+
+        if (networkResult->metrics.rtt_max > aggrUdpPingStat.rttCurrMax) {
+          aggrUdpPingStat.rttCurrMax = networkResult->metrics.rtt_max;
+        }
       }
     }
   }
@@ -350,7 +361,8 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
                "pinger_rtt_p75",
                now,
                labels,
-               aggrUdpPingStat.rttP75Sum / aggrUdpPingStat.noFullLossCount)});
+               aggrUdpPingStat.rttP75Sum / aggrUdpPingStat.noFullLossCount),
+           Metric("pinger_rtt_max", now, labels, aggrUdpPingStat.rttCurrMax)});
     }
   }
 

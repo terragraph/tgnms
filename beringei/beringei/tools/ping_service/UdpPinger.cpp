@@ -584,6 +584,7 @@ void UdpReceiver::summarizeResults(int qos) {
         (double)histogram.getPercentileEstimate(0.75) / 1000;
     result->metrics.rtt_p90 =
         (double)histogram.getPercentileEstimate(0.9) / 1000;
+    result->metrics.rtt_max = (double)histogram.getMaxSample() / 1000;
     results_.hostResults.push_back(std::move(result));
   }
   hostHistograms_->clear();
@@ -603,6 +604,7 @@ void UdpReceiver::summarizeResults(int qos) {
         (double)histogram.getPercentileEstimate(0.75) / 1000;
     result->metrics.rtt_p90 =
         (double)histogram.getPercentileEstimate(0.9) / 1000;
+    result->metrics.rtt_max = (double)histogram.getMaxSample() / 1000;
     results_.networkResults.push_back(std::move(result));
   }
   networkHistograms_->clear();

@@ -43,6 +43,7 @@ struct Metrics {
   4: double rtt_p75;
   5: double rtt_p90;
   6: double loss_ratio;
+  7: double rtt_max;
 }
 
 struct TestResult {

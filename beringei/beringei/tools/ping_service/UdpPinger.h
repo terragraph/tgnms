@@ -64,19 +64,27 @@ class Histogram : public folly::Histogram<uint32_t> {
     average_ =
         average_ * ((float)count_ / (count_ + 1)) + (float)value / (count_ + 1);
     ++count_;
+    if (value > maxSample_) {
+      maxSample_ = value;
+    }
   }
 
-  double getAverage(void) const {
+  double getAverage() const {
     return average_;
   }
 
-  uint64_t getTotalCount(void) const {
+  uint64_t getTotalCount() const {
     return count_;
   }
 
+  uint32_t getMaxSample() const {
+    return maxSample_;
+  }
+
  private:
-  double average_ = 0;
-  uint64_t count_ = 0;
+  double average_{0};
+  uint64_t count_{0};
+  uint32_t maxSample_{0};
 };
 
 class UdpSender {
