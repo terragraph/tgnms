@@ -24,7 +24,7 @@ function getDefaultNetworkName(networkList) {
   const network = Object.values(networkList).find(cfg => cfg.controller_online);
   return network ? network.name : null;
 }
-const defaultNetworkName = getDefaultNetworkName(window.CONFIG);
+const defaultNetworkName = getDefaultNetworkName(window.CONFIG.networks);
 
 const styles = theme => ({
   appBarSpacer: {

@@ -8,7 +8,6 @@
 import AppBar from '@material-ui/core/AppBar';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BarChartIcon from '@material-ui/icons/BarChart';
-import BugReportIcon from '@material-ui/icons/BugReport';
 import BuildIcon from '@material-ui/icons/Build';
 import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -20,13 +19,16 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import {NETWORK_TEST_ENABLED} from '../../constants/FeatureFlags';
+import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import InfoIcon from '@material-ui/icons/Info';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import MapIcon from '@material-ui/icons/Map';
+import MaterialModal from '../../components/common/MaterialModal';
 import Menu from '@material-ui/core/Menu';
 import MenuIcon from '@material-ui/icons/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -38,14 +40,15 @@ import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import SettingsIcon from '@material-ui/icons/Settings';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import TableChartIcon from '@material-ui/icons/TableChart';
+import Text from '@fbcnms/i18n/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
-import {withStyles} from '@material-ui/core/styles';
 import {withRouter} from 'react-router-dom';
+import {withStyles} from '@material-ui/core/styles';
+import {withTranslation} from 'react-i18next';
 
 const DRAWER_WIDTH = 240;
-const {ISSUES_URL, V1_URL} = window.CONFIG.env;
+const {ISSUES_URL} = window.CONFIG.env;
 
 type IndexProps = ContextRouter &
   WithStyles & {
@@ -66,6 +69,9 @@ const styles = theme => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
+  },
+  button: {
+    marginRight: '5px',
   },
   drawerListItem: {
     '@media (min-width: 600px)': {
@@ -116,6 +122,7 @@ const styles = theme => ({
     position: 'relative',
     zIndex: 1,
     height: '100%',
+    padding: '10px',
   },
   toolbar: {
     alignItems: 'center',
@@ -168,6 +175,50 @@ const VIEWS = [
   },
 ];
 
+const BuildInformationModal = props => (
+  <MaterialModal
+    open={props.buildInformationOpen}
+    onClose={props.toggleBuildModal}
+    modalTitle={props.t('about', 'About')}
+    modalContent={
+      <Grid container spacing={8}>
+        <Grid item xs={4}>
+          {props.t('version', 'Version')}
+        </Grid>
+        <Grid item xs={8}>
+          {props.version}-{props.commitHash}
+        </Grid>
+        <Grid item xs={4}>
+          {props.t('date', 'Date')}
+        </Grid>
+        <Grid item xs={8}>
+          {props.commitDate}
+        </Grid>
+      </Grid>
+    }
+    modalActions={
+      <>
+        {ISSUES_URL ? (
+          <Button
+            className={props.classes.button}
+            href={ISSUES_URL}
+            target="_blank"
+            onClick={props.toggleBuildModal}
+            variant="outlined">
+            {props.t('submit_bug', 'Submit Bug')}
+          </Button>
+        ) : null}
+        <Button
+          className={props.classes.button}
+          onClick={props.toggleBuildModal}
+          variant="outlined">
+          {props.t('close', 'Close')}
+        </Button>
+      </>
+    }
+  />
+);
+
 class MaterialTopBar extends React.Component<IndexProps, State> {
   constructor(props) {
     super(props);
@@ -176,6 +227,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
       drawerOpen: false,
       accountMenuAnchor: null,
       networksMenuAnchor: null,
+      buildInformationOpen: false,
     };
   }
 
@@ -188,6 +240,12 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
     // Render the view selection drawer
     const {classes} = this.props;
     const {drawerOpen} = this.state;
+    const {version} = window.CONFIG;
+    // TODO - remove, build force
+    const {COMMIT_DATE, COMMIT_HASH} = window.CONFIG.env;
+    const toggleBuildModal = () => {
+      this.setState({buildInformationOpen: !this.state.buildInformationOpen});
+    };
 
     return (
       <Drawer
@@ -219,7 +277,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             return (
               <Tooltip
                 key={viewOpts.name}
-                title={viewOpts.name}
+                title={this.props.t(viewOpts.name, viewOpts.name)}
                 placement="right"
                 disableHoverListener={drawerOpen}
                 disableFocusListener={true}
@@ -232,30 +290,42 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
                   disabled={networkName === null && !networklessView}
                   button>
                   <ListItemIcon>{viewOpts.icon}</ListItemIcon>
-                  <ListItemText primary={viewOpts.name} />
+                  <ListItemText
+                    primary={this.props.t(viewOpts.name, viewOpts.name)}
+                  />
                 </ListItem>
               </Tooltip>
             );
           })}
-
-          {ISSUES_URL ? (
+          {COMMIT_DATE && COMMIT_HASH ? (
             <>
               <Divider />
               <Tooltip
-                title="Report Bug"
+                title={this.props.t('about', 'About')}
                 placement="right"
                 disableHoverListener={drawerOpen}
                 disableFocusListener={true}
-                disableTouchListener={true}>
-                <a className={classes.anchor} href={ISSUES_URL} target="_blank">
-                  <ListItem classes={{root: classes.drawerListItem}} button>
-                    <ListItemIcon>
-                      <BugReportIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Report Bug" />
-                  </ListItem>
-                </a>
+                disableTouchListener={false}>
+                <ListItem
+                  classes={{root: classes.drawerListItem}}
+                  disabled={false}
+                  onClick={toggleBuildModal}
+                  button>
+                  <ListItemIcon>
+                    <InfoIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={this.props.t('about', 'About')} />
+                </ListItem>
               </Tooltip>
+              <BuildInformationModal
+                classes={classes}
+                t={this.props.t}
+                buildInformationOpen={this.state.buildInformationOpen}
+                toggleBuildModal={toggleBuildModal}
+                version={version}
+                commitDate={COMMIT_DATE}
+                commitHash={COMMIT_HASH}
+              />
             </>
           ) : null}
         </List>
@@ -290,7 +360,9 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
               }
             />
           ) : null}
-          {networkName !== null ? networkName : 'Not Selected'}
+          {networkName !== null
+            ? networkName
+            : this.props.t('not_selected', 'Not Selected')}
           <ArrowDropDownIcon />
         </Button>
         <Menu
@@ -301,7 +373,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
           MenuListProps={{
             subheader: (
               <ListSubheader component="div">
-                <strong>Network</strong>
+                <strong>{this.props.t('network', 'Network')}</strong>
               </ListSubheader>
             ),
           }}
@@ -327,7 +399,9 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
               </MenuItem>
             ))
           ) : (
-            <MenuItem disabled>No networks defined.</MenuItem>
+            <MenuItem disabled>
+              {this.props.t('no_networks_defined', 'No networks defined.')}
+            </MenuItem>
           )}
         </Menu>
       </div>
@@ -381,25 +455,14 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
           <Toolbar disableGutters={true}>
             <IconButton
               color="inherit"
-              aria-label="Open drawer"
+              aria-label={this.props.t('open_drawer', 'Open drawer')}
               onClick={this.onDrawerToggle}
               className={classes.drawerMenuButton}>
               {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
             </IconButton>
-            <Typography variant="h6" color="inherit" noWrap>
+            <Text i18nKey="terragraph_nms" variant="h6" color="inherit" noWrap>
               Terragraph NMS
-            </Typography>
-            <div className={classes.toolbarButtonContainer}>
-              {V1_URL ? (
-                <Button
-                  className={classes.v1Button}
-                  color="inherit"
-                  href={V1_URL}
-                  target="_blank">
-                  Go back to NMS V1
-                </Button>
-              ) : null}
-            </div>
+            </Text>
 
             <div className={classes.grow} />
 
@@ -416,5 +479,5 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
 MaterialTopBar.propTypes = {};
 
 export default withStyles(styles, {withTheme: true})(
-  withRouter(MaterialTopBar),
+  withRouter(withTranslation()(MaterialTopBar)),
 );

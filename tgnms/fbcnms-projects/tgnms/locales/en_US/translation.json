@@ -1,0 +1,20 @@
+{
+  "open_drawer": "Open drawer",
+  "_t": "Mon Jun 24 2019 10:31:11 GMT-0700 (Pacific Daylight Time)",
+  "network": "Network",
+  "Map": "Map",
+  "no_networks_defined": "No networks defined.",
+  "Tables": "Tables",
+  "Stats": "Stats",
+  "Upgrade": "Upgrade",
+  "E2E Config": "E2E Config",
+  "Node Config": "Node Config",
+  "NMS Config": "NMS Config",
+  "about": "About",
+  "terragraph_nms": "Terragraph NMS",
+  "version": "Version",
+  "date": "Date",
+  "close": "Close",
+  "not_selected": "Not Selected",
+  "submit_bug": "Submit Bug"
+}

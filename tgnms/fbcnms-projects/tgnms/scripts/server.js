@@ -128,25 +128,27 @@ app.get('*', (req, res) => {
   );
   // construct config JSON to inject
   const configObj = {
-    ...getAllNetworkConfigs(),
     env: {},
-    user: req.user,
     i18n: {
       locale: requestedLanguage || TRANSLATIONS_DEFAULT_LOCALE,
       fallbackLocale: TRANSLATIONS_DEFAULT_LOCALE,
     },
+    networks: getAllNetworkConfigs(),
+    user: req.user,
+    version: process.env.npm_package_version,
   };
 
   // define which env keys to add to config
   const envKeys = [
     'GRAFANA_URL',
     'MAPBOX_ACCESS_TOKEN',
-    'V1_URL',
     'ISSUES_URL',
     'NETWORKTEST_HOST',
     'LOGIN_ENABLED',
     'TILE_STYLE',
     'STATS_BACKEND',
+    'COMMIT_DATE',
+    'COMMIT_HASH',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

@@ -8,6 +8,12 @@ WORKDIR /app
 COPY package.json yarn.lock babel.config.js ./
 COPY fbcnms-projects/tgnms/package.json fbcnms-projects/tgnms/
 
+# Use circleci build information
+ARG COMMIT_DATE
+RUN echo "COMMIT_DATE=$COMMIT_DATE" >> fbcnms-projects/tgnms/.env
+ARG COMMIT_HASH
+RUN echo "COMMIT_HASH=$COMMIT_HASH" >> fbcnms-projects/tgnms/.env
+
 # Install dependencies
 COPY fbcnms-packages fbcnms-packages
 RUN yarn install --frozen-lockfile && yarn cache clean
@@ -27,6 +33,9 @@ RUN apk add bash curl grep tzdata vim
 
 # Copy builder app directory
 COPY --from=builder /app /app
+
+# Update the working directory for the new image
+WORKDIR /app/fbcnms-projects/tgnms
 
 # Start app
 CMD yarn start
