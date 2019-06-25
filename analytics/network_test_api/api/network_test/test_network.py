@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import logging
 import time
 from datetime import datetime
@@ -55,7 +56,14 @@ class TestNetwork(Thread):
         self.polling_delay: int = 5
 
     def run(self) -> None:
-        self._test_network()
+        # create a new event loop for every thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)  # not required for default policy
+
+        try:
+            self._test_network()
+        finally:
+            loop.close()
 
     def _myget(
         self,

@@ -102,12 +102,7 @@ class RunSequentialTestPlan:
             if link["link_type"] == Tests.WIRELESS.value:
                 a_node_mac = node_name_to_mac[link["a_node_name"]]
                 z_node_mac = node_name_to_mac[link["z_node_name"]]
-                link_name = (
-                    "link-"
-                    + node_mac_to_name[a_node_mac]
-                    + "-"
-                    + node_mac_to_name[z_node_mac]
-                )
+                link_name = link["name"]
                 mac_list = base._get_mac_list(self.direction, a_node_mac, z_node_mac)
                 for mac_addr in mac_list:
                     link_dict = {}
@@ -152,6 +147,10 @@ class RunSequentialTestPlan:
                     link_dict["ping_object"] = ping_object
                     link_dict["start_delay"] = start_delay
                     link_dict["id"] = None
+                    link_dict["link_name"] = link_name
+                    link_dict["link_direction"] = (
+                        "A" if a_node_mac == mac_addr["src_node_mac"] else "Z"
+                    )
                     # each link is identified using the link_tuple
                     link_tuple = (mac_addr["src_node_mac"], mac_addr["dst_node_mac"])
                     # map link info to corresponding link_tuple

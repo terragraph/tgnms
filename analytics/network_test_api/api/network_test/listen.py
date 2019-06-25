@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import json
 import logging
 import time
@@ -205,6 +206,7 @@ class RecvFromCtrl(Base):
             parsed_iperf_output_dict = json.loads(iperf_output)
         if parsed_iperf_output_dict.get("error"):
             if "error" in parsed_iperf_output_dict["error"]:
+                _log.error("Error in IPERF output {}".format(parsed_iperf_output_dict))
                 self.expected_number_of_responses -= 1
                 return ""
             else:
@@ -392,15 +394,22 @@ class Listen(Thread):
         self.received_output_queue = received_output_queue
 
     def run(self) -> None:
-        listen_obj = RecvFromCtrl(
-            self.socket,
-            self.zmq_identifier,
-            self.expt_num_of_resp,
-            self.duration,
-            self.parameters,
-            self.received_output_queue,
-        )
-        listen_obj._listen_on_socket()
+        # create a new event loop for every thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)  # not required for default policy
+
+        try:
+            listen_obj = RecvFromCtrl(
+                self.socket,
+                self.zmq_identifier,
+                self.expt_num_of_resp,
+                self.duration,
+                self.parameters,
+                self.received_output_queue,
+            )
+            listen_obj._listen_on_socket()
+        finally:
+            loop.close()
 
 
 class CheckAbortStatus(Thread):

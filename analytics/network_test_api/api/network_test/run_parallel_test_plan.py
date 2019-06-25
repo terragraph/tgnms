@@ -20,7 +20,7 @@ from api.network_test.iperf import IperfObj
 from api.network_test.ping import PingObj
 from api.network_test.test_network import TestNetwork
 from logger import Logger
-from module.beringei_time_series import TimeSeries
+from module.prometheus_time_series import TimeSeries
 from module.insights import get_test_links_metrics
 
 
@@ -210,12 +210,7 @@ class RunParallelTestPlan:
             if link["link_type"] == Tests.WIRELESS.value:
                 a_node_mac = node_name_to_mac[link["a_node_name"]]
                 z_node_mac = node_name_to_mac[link["z_node_name"]]
-                link_name = (
-                    "link-"
-                    + node_mac_to_name[a_node_mac]
-                    + "-"
-                    + node_mac_to_name[z_node_mac]
-                )
+                link_name = link["name"]
                 bitrate = self._get_bitrate(
                     self.network_parameters["test_push_rate"], a_node_mac, z_node_mac
                 )
@@ -264,6 +259,10 @@ class RunParallelTestPlan:
                     link_dict["start_delay"] = 0
                     link_dict["id"] = None
                     link_dict["iperf_throughput_mean"] = None
+                    link_dict["link_name"] = link_name
+                    link_dict["link_direction"] = (
+                        "A" if a_node_mac == mac_addr["src_node_mac"] else "Z"
+                    )
                     # each link is identified using the link_tuple
                     link_tuple = (mac_addr["src_node_mac"], mac_addr["dst_node_mac"])
                     # map link info to corresponding link_tuple

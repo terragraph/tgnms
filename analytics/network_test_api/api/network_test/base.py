@@ -24,7 +24,7 @@ from api.models import (
 from django.db import transaction
 from django.utils import timezone
 from logger import Logger
-from module.beringei_time_series import TimeSeries
+from module.prometheus_time_series import TimeSeries
 from module.insights import get_test_links_metrics
 from module.routing import RoutesForNode
 from terragraph_thrift.Controller import ttypes as ctrl_types
@@ -199,6 +199,7 @@ class RunTestGetStats:
                     values=[0, 0],
                     src_mac=link["src_node_id"],
                     peer_mac=link["dst_node_id"],
+                    link_name=link["link_name"],
                 )
             ]
 
@@ -212,6 +213,7 @@ class RunTestGetStats:
                     values=[link["iperf_object"].bitrate],
                     src_mac=link["src_node_id"],
                     peer_mac=link["dst_node_id"],
+                    link_name=link["link_name"],
                 ),
                 # add entry for iperf_actual_rate
                 TimeSeries(
@@ -221,12 +223,13 @@ class RunTestGetStats:
                     values=[iperf_throughput_mean],
                     src_mac=link["src_node_id"],
                     peer_mac=link["dst_node_id"],
+                    link_name=link["link_name"],
                 ),
             ]
         return links_time_series_list, iperf_time_series_list
 
     def _write_analytics_stats_to_db(self, analytics_stats: List[TimeSeries]) -> None:
-        # analytics_stats is list of Beringei TimeSeries objects
+        # analytics_stats is list of Prometheus TimeSeries objects
         for stats in analytics_stats:
             link = self._get_link(stats.src_mac, stats.peer_mac)
             if link is not None:

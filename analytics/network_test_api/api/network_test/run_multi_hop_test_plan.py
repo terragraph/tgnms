@@ -223,6 +223,8 @@ class RunMultiHopTestPlan:
                 link_dict["id"] = None
                 link_dict["route"] = None
                 link_dict["route_changed_count"] = 0
+                link_dict["link_name"] = link_name
+                link_dict["direction"] = "does not apply"
 
                 # each link is identified using the link_tuple
                 link_tuple = (mac_addr["src_node_mac"], mac_addr["dst_node_mac"])

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import calendar
 import logging
 import re
@@ -83,6 +84,16 @@ class Scheduler(Thread):
     def run(self) -> None:
         _log.info("Starting scheduler thread {}".format(self.thread_name))
 
+        # create a new event loop for every thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)  # not required for default policy
+
+        try:
+            self._main_scheduler_loop()
+        finally:
+            loop.close()
+
+    def _main_scheduler_loop(self) -> None:
         # remove stale tests if they are more than 1 minute old; if it is
         # less than 1 minute old, assume that the intention is to run it now
         tsps = self.mysql_helper.read_test_schedule(asap=1)

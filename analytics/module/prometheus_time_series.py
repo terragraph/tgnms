@@ -35,21 +35,30 @@ class TimeSeries(object):
         if isinstance(other, TimeSeries):
             return (
                 self.values == other.values
+                and self.times == other.times
                 and self.name == other.name
                 and self.src_mac == other.src_mac
+                and self.peer_mac == other.peer_mac
                 and self.topology == other.topology
+                and self.link_name == other.link_name
+                and self.link_direction == other.link_direction
             )
         return False
 
     def __repr__(self):
-        return "values={}, name={}, src_mac={}, topology={}".format(
-            self.values, self.name, self.src_mac, self.topology
+        return "name={}, src_mac={}, topology={}, peer_mac={}, link_name={}, link_direction={}".format(
+            self.name,
+            self.src_mac,
+            self.topology,
+            self.peer_mac,
+            self.link_name,
+            self.link_direction,
         )
 
     def __init__(
         self,
-        values: np.ndarray,
-        times: np.ndarray,
+        values: List,
+        times: List,
         name: str,
         topology: str,
         src_mac: Optional[str] = None,
@@ -283,12 +292,14 @@ class PrometheusReader:
             entire_network=entire_network,
             src_macs=src_macs,
         )
+
         data, timestamp = await asyncio.gather(
             self._json_get("query_range", payload_data),
             self._json_get("query_range", payload_timestamp),
         )
 
         if not data or not timestamp:
+            logging.error("Prometheus read {} returned nothing".format(key_name))
             return []
 
         try:
@@ -312,6 +323,9 @@ class PrometheusReader:
         try:
             time_series_list = []
             for data_metric in data["data"]["result"]:
+                # data["data"]["result"] is a list of "metrics" (e.g. snr)
+                # data_metric["metric"] is a dict with __name__, linkName ...
+                # data_metric["values"] is a list of tuples (ts, value)
                 data_metric_metric = data_metric["metric"]
                 # find the corresponding timestamp
                 index = self._get_index_from_hash(data_metric_metric, ts_hash)
@@ -350,6 +364,13 @@ class PrometheusReader:
                             )
                         )
                         continue
+
+                if not data_lst or not ts_lst:
+                    logging.error(
+                        "No Prometheus time series values for link {}".format(
+                            data_metric_metric["linkName"]
+                        )
+                    )
 
                 time_series = TimeSeries(
                     values=data_lst,

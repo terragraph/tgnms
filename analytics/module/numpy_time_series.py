@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # BTS used for writes, Prometheus used for reads (temporary)
 import module.beringei_time_series as bts
+import module.prometheus_time_series as pts
 import module.numpy_operations as npo
 import numpy as np
 from facebook.gorilla.Topology.ttypes import LinkType
@@ -366,7 +367,7 @@ class NumpyLinkTimeSeries(object):
     TIME_AXIS = 2
 
     def __init__(
-        self, links: List[bts.TimeSeries], interval: int, network_info: Dict
+        self, links: List[pts.TimeSeries], interval: int, network_info: Dict
     ) -> None:
         self._topology = [n["topology"] for _, n in network_info.items()][0]
         link_macs_to_name = {}
@@ -387,6 +388,7 @@ class NumpyLinkTimeSeries(object):
         self._link_names_to_idx: Dict[Tuple, Tuple] = {}
         self._num_links = 0
         self._duration = 0
+        self.idx_to_link_name_dir: Dict[Tuple] = {}
 
         self._pdb = PrometheusReader([self._topology])
         for ts in links:
@@ -424,6 +426,7 @@ class NumpyLinkTimeSeries(object):
                 ts.src_mac,
                 start_time,
             )
+            self.idx_to_link_name_dir[self._num_links] = ts.link_name
             link_name = link_macs_to_name[(ts.src_mac, ts.peer_mac)]
             self._link_names_to_idx[(link_name, ts.src_mac)] = (
                 self._num_links,
@@ -465,20 +468,20 @@ class NumpyLinkTimeSeries(object):
             l_idx, d_idx, _ = self._link_macs_to_idx[(ts.src_mac, ts.peer_mac)]
             self._write_mask[l_idx, d_idx, 0] = True
 
-    def tsl_to_arr(self, tsl: List[bts.TimeSeries], stats_name: str = "") -> np.ndarray:
+    def tsl_to_arr(self, tsl: List[pts.TimeSeries], stats_name: str = "") -> np.ndarray:
         data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
         done_links: List[Tuple] = []
         for ts in tsl:
             if stats_name and ts.name != stats_name:
                 continue
-            link_macs = (ts.src_mac, ts.peer_mac)
-            if link_macs not in done_links:
-                done_links.append(link_macs)
+            link_params = (ts.src_mac, ts.link_name)
+            if link_params not in done_links:
+                done_links.append(link_params)
             else:
                 logging.error("Ignoring duplicate timeseries")
                 continue
             if (ts.link_name, ts.src_mac) not in self._link_names_to_idx:
-                logging.critical(
+                logging.error(
                     "Unexpected {} is not in _link_names_to_idx".format(
                         (ts.link_name, ts.src_mac)
                     )
@@ -498,11 +501,12 @@ class NumpyLinkTimeSeries(object):
         swap_dir: bool = False,
         entire_network: bool = True,
     ) -> np.ndarray:
-        data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
         loop = asyncio.get_event_loop()
         tasks = []
         if stat_type == StatType.LINK:
             tsl = []
+            if len(self._map_query.keys()) > 1:
+                entire_network = False
             for k, v in self._map_query.items():
                 tasks.append(
                     loop.create_task(
@@ -529,6 +533,7 @@ class NumpyLinkTimeSeries(object):
                 logging.error("Unexpected error in async loop {}".format(e))
 
         elif stat_type == StatType.NODE:
+            data = npo.nan_arr((self._num_links, self.NUM_DIR, self._num_times))
             for k, v in self._map_query.items():
                 tasks.append(
                     loop.create_task(

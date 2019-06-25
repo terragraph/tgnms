@@ -13,6 +13,7 @@ from module.numpy_time_series import NumpyLinkTimeSeries, NumpyTimeSeries, StatT
 from module.path_store import PathStore
 from module.topology_handler import fetch_network_info, restart_minion
 from module.visibility import write_power_status
+from module.prometheus_time_series import TimeSeries
 
 
 np.warnings.filterwarnings("ignore")
@@ -730,7 +731,9 @@ def generate_insights():
 
 
 # used by network test
-def get_test_links_metrics(links: List, network_info: Dict, iperf_stats: List) -> List:
+def get_test_links_metrics(
+    links: List[TimeSeries], network_info: Dict, iperf_stats: List[TimeSeries]
+) -> List:
     CONST_INTERVAL = 1
     nlts = NumpyLinkTimeSeries(links, CONST_INTERVAL, network_info)
     link_length = nlts.get_link_length()
