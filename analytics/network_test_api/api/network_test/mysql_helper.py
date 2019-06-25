@@ -3,6 +3,7 @@
 
 
 import logging
+import json
 import time
 from typing import Dict, List, Union, Optional
 
@@ -120,7 +121,9 @@ class MySqlHelper:
                 multi_hop_session_iteration_count=multi_hop_parameters[
                     "multi_hop_session_iteration_count"
                 ],
-                pop_to_node_link=multi_hop_parameters["speed_test_pop_to_node_dict"],
+                pop_to_node_link=json.dumps(
+                    multi_hop_parameters["speed_test_pop_to_node_dict"]
+                ),
             )
             # django automatically fills in "created_at" field (see model)
             TestSchedule.objects.create(

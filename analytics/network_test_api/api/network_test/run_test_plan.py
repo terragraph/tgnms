@@ -51,10 +51,9 @@ def run_test_plan(test_run_execution_id: int, mysql_helper: MySqlHelper) -> None
     # Django - remove this
     try:
         if test_description["pop_to_node_link"]:
-            # string is stored using single quotes but json requires double
-            # quotes
-            ts_temp = str(test_description["pop_to_node_link"].replace("'", '"'))
-            test_description["pop_to_node_link"] = json.loads(ts_temp)
+            test_description["pop_to_node_link"] = json.loads(
+                str(test_description["pop_to_node_link"])
+            )
         else:
             test_description["pop_to_node_link"] = {}
     except JSONDecodeError as e:
