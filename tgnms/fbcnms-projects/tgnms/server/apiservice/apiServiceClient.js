@@ -201,8 +201,13 @@ export class ApiServiceClient {
       throw new Error('Invalid refresh token');
     }
     const client = await awaitClient();
-    const refreshed = await client.refresh(refreshToken);
-    return refreshed;
+    try {
+      const refreshed = await client.refresh(refreshToken);
+      return refreshed;
+    } catch (error) {
+      // could not refresh service credentials, refresh token may have expired
+      return await this._requestServiceCredentials();
+    }
   };
 }
 

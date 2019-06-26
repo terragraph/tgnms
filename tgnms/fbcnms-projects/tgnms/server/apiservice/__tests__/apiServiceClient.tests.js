@@ -73,6 +73,39 @@ describe('Background Requests', () => {
     expect(oidcMock.refresh).toHaveBeenCalledWith(fakeRefreshToken);
   });
 
+  test('with expired refresh token, requests new service credentials', async () => {
+    const serviceClient = new ApiServiceClient();
+    const oidcMock = await awaitClient();
+
+    const mockExpiredToken = new TokenSet();
+    mockExpiredToken.expired.mockReturnValueOnce(true);
+    mockExpiredToken.access_token = '<<test token>>';
+    mockExpiredToken.refresh_token = '<<test token>>';
+
+    const mockNewToken = new TokenSet();
+    mockNewToken.expired.mockReturnValueOnce(false);
+    mockNewToken.access_token = '<<test token>>';
+    mockNewToken.refresh_token = '<<test token>>';
+
+    // using refresh token should fail
+    oidcMock.refresh.mockRejectedValueOnce(new Error('refresh expired'));
+    oidcMock.grant.mockResolvedValueOnce(mockNewToken);
+
+    serviceClient.serviceCredentials = mockExpiredToken;
+
+    const result = await serviceClient.backgroundRequest(
+      fakeBackgroundRequest(),
+    );
+    expect(oidcMock.grant).toHaveBeenCalledWith({
+      grant_type: 'client_credentials',
+    });
+    expect(result.success).toBe(true);
+    expect(axiosMock.post.mock.calls[0][2]).toBeDefined();
+    expect(axiosMock.post.mock.calls[0][2].headers.Authorization).toBe(
+      `Bearer <<test token>>`,
+    );
+  });
+
   test('with valid service credentials, does not attempt to refresh or request a grant', async () => {
     const oidcMock = await awaitClient();
     const mockToken = new TokenSet();
