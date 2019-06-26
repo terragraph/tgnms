@@ -37,7 +37,9 @@ import * as testApi from '../../apiutils/NetworkTestAPIUtil';
 import TestStatus, {
   getStatusDef,
 } from '../../components/network_test/TestStatus';
-
+import ExportIcon from '@material-ui/icons/GetApp';
+import Menu from '@material-ui/core/Menu';
+import RootRef from '@material-ui/core/RootRef';
 import {
   TEST_STATUS,
   TEST_TYPE,
@@ -140,7 +142,7 @@ class NetworkTestExecutionsTable extends React.PureComponent<
     {
       key: 'actions',
       label: 'Actions',
-      width: 150,
+      width: 190,
       render: (_val, row: TestExecution) => {
         return (
           <span>
@@ -168,6 +170,10 @@ class NetworkTestExecutionsTable extends React.PureComponent<
                     <MapIcon />
                   </TestLink>
                 )}
+                <TestResultExport
+                  rowId={row.id.toString()}
+                  showNotification={this.props.showNotification}
+                />
               </>
             )}
           </span>
@@ -298,6 +304,81 @@ class NetworkTestExecutionsTable extends React.PureComponent<
       }, 5000);
     }
   };
+}
+
+function TestResultExport({rowId, showNotification}): React.Node {
+  const anchorRef = React.useRef(null);
+  const [exportMenuToggle, setExportMenu] = React.useState(false);
+
+  const exportTestResults = (executionId: string, exportType: string) => {
+    return testApi
+      .getTestResults({
+        executionId,
+      })
+      .then(results => {
+        let blob = null;
+        let fileName = '';
+        if (exportType === 'csv') {
+          const replaceNull = (key, value) => (value === null ? '' : value);
+          const fields = Object.keys(results[0]);
+          let csvData = results.map(row => {
+            return fields
+              .map(fieldName => {
+                return JSON.stringify(row[fieldName], replaceNull);
+              })
+              .join(',');
+          });
+          csvData.unshift(fields.join(','));
+          csvData = csvData.join('\r\n');
+          blob = new Blob([csvData], {type: 'octet/stream'});
+          fileName = `network_test_results_${executionId}.csv`;
+        } else if (exportType === 'json') {
+          fileName = `network_test_results_${executionId}.json`;
+          blob = new Blob([JSON.stringify(results)], {
+            type: 'octet/stream',
+          });
+        }
+
+        const anchor = document.createElement('a');
+        window.document.body.appendChild(anchor);
+        anchor.style.display = 'none';
+        const url = window.URL.createObjectURL(blob);
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(_ => {
+        showNotification({
+          message: 'Unable to fetch file right now.',
+          variant: 'error',
+        });
+      })
+      .finally(_ => {
+        setExportMenu(false);
+      });
+  };
+
+  return (
+    <>
+      <RootRef rootRef={anchorRef}>
+        <IconButton aria-haspopup="true" onClick={() => setExportMenu(true)}>
+          <ExportIcon />
+        </IconButton>
+      </RootRef>
+      <Menu
+        keepMounted
+        autoFocus={false}
+        open={exportMenuToggle}
+        onClose={() => setExportMenu(false)}
+        anchorEl={anchorRef.current}>
+        <MenuItem onClick={_ => exportTestResults(rowId, 'csv')}>CSV</MenuItem>
+        <MenuItem onClick={_ => exportTestResults(rowId, 'json')}>
+          JSON
+        </MenuItem>
+      </Menu>
+    </>
+  );
 }
 
 type Options = {|
