@@ -7,7 +7,7 @@
 import React from 'react';
 import 'jest-dom/extend-expect';
 import {Route} from 'react-router-dom';
-import {cleanup} from 'react-testing-library';
+import {cleanup} from '@testing-library/react';
 import {
   renderWithRouter,
   setTestUser,

@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import {render, cleanup} from 'react-testing-library';
+import {render, cleanup} from '@testing-library/react';
 import 'jest-dom/extend-expect';
 import {Permissions} from '../../../../shared/auth/Permissions';
 import {initWindowConfig, setTestUser} from '../../../tests/testHelpers';

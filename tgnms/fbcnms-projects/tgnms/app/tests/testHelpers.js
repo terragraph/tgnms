@@ -7,7 +7,7 @@
  */
 import * as React from 'react';
 import {Router} from 'react-router-dom';
-import {render} from 'react-testing-library';
+import {render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import type {User} from '../../shared/auth/User';
 
