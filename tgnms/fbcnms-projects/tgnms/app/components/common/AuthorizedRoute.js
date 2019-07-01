@@ -55,6 +55,7 @@ export default function AuthorizedRoute(props: Props) {
     renderProps.children = authorized ? children : redirect;
   }
 
+  // $FlowFixMe uncovered by move to flow 0.102.0
   return <Route {...routeProps} {...renderProps} />;
 }
 

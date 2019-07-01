@@ -481,7 +481,7 @@ function TableOptions({
               id: 'testType',
               name: 'testType',
               classes: {
-                selectMenu: classNames.testOptionSelect,
+                selectMenu: classes.testOptionSelect,
               },
             }}>
             <MenuItem value={''} selected>
@@ -507,7 +507,7 @@ function TableOptions({
               id: 'protocol',
               name: 'protocol',
               classes: {
-                selectMenu: classNames.testOptionSelect,
+                selectMenu: classes.testOptionSelect,
               },
             }}>
             <MenuItem value={''} selected>

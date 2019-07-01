@@ -34,6 +34,7 @@ beforeEach(async () => {
 
 describe('Background Requests', () => {
   test('with no service credentials cached, requests service access token', async () => {
+    // $FlowFixMe uncovered by move to flow 0.102.0
     const oidcMock = await awaitClient();
     oidcMock.grant.mockReturnValueOnce(new TokenSet());
 
@@ -55,6 +56,7 @@ describe('Background Requests', () => {
 
   test('with expired service credentials cached, refreshes access token', async () => {
     // setup mocks
+    // $FlowFixMe uncovered by move to flow 0.102.0
     const oidcMock = await awaitClient();
     const expiredTokenMock = new TokenSet();
     const fakeRefreshToken = Symbol();
@@ -75,6 +77,7 @@ describe('Background Requests', () => {
 
   test('with expired refresh token, requests new service credentials', async () => {
     const serviceClient = new ApiServiceClient();
+    // $FlowFixMe uncovered by move to flow 0.102.0
     const oidcMock = await awaitClient();
 
     const mockExpiredToken = new TokenSet();

@@ -14,7 +14,8 @@ const Client = jest.genMockFromModule('openid-client/lib/client');
 const TokenSet = jest.genMockFromModule('openid-client/lib/token_set');
 import PasswordGrantStrategy from '../PasswordGrantStrategy';
 
-let client: OpenidClient;
+type AddJestTypes = <K, V>(K, V) => V & JestMockFn<*, *>;
+let client: $ObjMapi<OpenidClient, AddJestTypes>;
 let tokenSet: OpenidTokenSet;
 beforeEach(() => {
   client = new Client();
