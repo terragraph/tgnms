@@ -153,13 +153,6 @@
         registry_url: https://secure.cxl-terragraph.com:443/v2
         reauthorize: yes
 
-    - name: log into nms registry
-      docker_login:
-        username: tg_deploy
-        password: 9SFRyl5CNyf9BK8u6Q
-        registry_url: facebookconnectivity-tg-docker.jfrog.io
-        reauthorize: yes
-
     - name: docker network prune -f
       command: docker network prune -f
 

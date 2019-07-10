@@ -57,7 +57,7 @@ services:
       - db
 
   nms:
-    image: facebookconnectivity-tg-docker.jfrog.io/tgnms:latest
+    image: secure.cxl-terragraph.com:443/nmsv2:stable
     env_file:
       - ./env/mysql.env
       - ./env/nms.env
