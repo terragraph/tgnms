@@ -35,6 +35,7 @@ import type {CancelToken} from 'axios';
 import * as api from '../../apiutils/NetworkTestAPIUtil';
 import TestTypeCell, {convertTestCodeToString} from './TestTypeCell';
 import {useLoadTestExecution} from './hooks';
+import FriendlyText from '../../components/common/FriendlyText';
 
 type Props = {} & ContextRouter;
 
@@ -306,15 +307,16 @@ function ConfirmDeleteSchedule({onConfirm}) {
 }
 
 function cronColumn(name: $Keys<TestSchedule>, overrides: Object = {}) {
-  // convert cron_day_of_week to Day Of Week
-  const friendlyName = name
-    .split('_')
-    .slice(1)
-    .map(word => word[0].toUpperCase() + word.slice(1))
-    .join(' ');
   return {
     key: name,
-    label: friendlyName,
+    label: (
+      <FriendlyText
+        text={name}
+        disableTypography
+        separator="_"
+        stripPrefix="cron"
+      />
+    ),
     width: 100,
     ...overrides,
   };

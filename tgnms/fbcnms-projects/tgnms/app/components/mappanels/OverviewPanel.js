@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import {BinaryStarFsmState} from '../../../thrift/gen-nodejs/Controller_types';
+import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import {formatNumber, toTitleCase} from '../../helpers/StringHelpers';
 import {
@@ -15,6 +15,8 @@ import {
 } from '../../helpers/MapPanelHelpers';
 import {has} from 'lodash';
 import IconButton from '@material-ui/core/IconButton';
+import FriendlyText from '../common/FriendlyText';
+import {invert} from 'lodash';
 import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import ListIcon from '@material-ui/icons/List';
 import PropTypes from 'prop-types';
@@ -72,20 +74,10 @@ const styles = theme => ({
   },
 });
 
+const BINARY_STAR_FSM_INVERTED = invert(BinaryStarFsmStateValueMap);
+
 class OverviewPanel extends React.Component {
   state = {};
-
-  getHighAvailabilityStateString(state) {
-    // Return the High Availability state as a string
-    // ex. 'STATE_ACTIVE' -> 'Active'
-    if (!state) {
-      return 'Unknown';
-    }
-    return Object.keys(BinaryStarFsmState)
-      .find(key => BinaryStarFsmState[key] === state)
-      .split('_')
-      .map(token => token[0].toUpperCase() + token.substr(1).toLowerCase())[1];
-  }
 
   renderSoftwareVersions() {
     // Render information about software versions
@@ -410,15 +402,6 @@ class OverviewPanel extends React.Component {
     const {high_availability, primary, backup} = networkConfig;
 
     const highAvailabilityEnabled = high_availability.primary?.state !== 0;
-    let haPrimaryState, haBackupState;
-    if (highAvailabilityEnabled) {
-      haPrimaryState = this.getHighAvailabilityStateString(
-        high_availability.primary?.state,
-      );
-      haBackupState = this.getHighAvailabilityStateString(
-        high_availability.backup?.state,
-      );
-    }
     const haOfflineText = (
       <>
         {' \u2014 '}
@@ -456,7 +439,12 @@ class OverviewPanel extends React.Component {
                   </Typography>
                 </span>
                 <Typography>
-                  <em>{haPrimaryState}</em>
+                  <em>
+                    {high_availability.primary &&
+                      high_availability.primary.state && (
+                        <HAState state={high_availability.primary.state} />
+                      )}
+                  </em>
                 </Typography>
               </div>
               <Typography gutterBottom>{primary.api_ip}</Typography>
@@ -468,7 +456,12 @@ class OverviewPanel extends React.Component {
                     : null}
                 </Typography>
                 <Typography>
-                  <em>{haBackupState}</em>
+                  <em>
+                    {high_availability.backup &&
+                      high_availability.backup.state && (
+                        <HAState state={high_availability.backup.state} />
+                      )}
+                  </em>
                 </Typography>
               </div>
               {backup.api_ip ? (
@@ -516,6 +509,21 @@ class OverviewPanel extends React.Component {
       />
     );
   }
+}
+
+function HAState({state}: {state: $Values<BinaryStarFsmStateValueMap>}) {
+  if (!state) {
+    return 'Unknown';
+  }
+
+  return (
+    <FriendlyText
+      disableTypography
+      text={BINARY_STAR_FSM_INVERTED[state]}
+      separator="_"
+      stripPrefix="STATE"
+    />
+  );
 }
 
 OverviewPanel.propTypes = {
