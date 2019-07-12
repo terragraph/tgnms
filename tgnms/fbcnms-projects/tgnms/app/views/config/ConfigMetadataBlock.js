@@ -23,6 +23,9 @@ const styles = theme => ({
   red: {
     color: 'red',
   },
+  grey: {
+    color: 'grey',
+  },
 });
 
 type Props = {
@@ -35,7 +38,7 @@ class ConfigMetadataBlock extends React.Component<Props, State> {
   renderDescription(metadata) {
     // Render the config field description
     const {classes, textClassName} = this.props;
-    const {desc, deprecated} = metadata;
+    const {desc, deprecated, readOnly} = metadata;
 
     const description = desc
       ? desc + (isPunctuation(desc.slice(-1)) ? '' : '.')
@@ -49,6 +52,17 @@ class ConfigMetadataBlock extends React.Component<Props, State> {
               variant="subtitle2"
               className={classNames(textClassName, classes.bold, classes.red)}>
               This field is deprecated!
+            </Typography>
+            <div className={classes.sectionSpacer} />
+          </>
+        ) : null}
+
+        {readOnly ? (
+          <>
+            <Typography
+              variant="subtitle2"
+              className={classNames(textClassName, classes.bold, classes.grey)}>
+              This field cannot be modified by users.
             </Typography>
             <div className={classes.sectionSpacer} />
           </>

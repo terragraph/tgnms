@@ -431,7 +431,7 @@ class ConfigTableEntry extends React.Component<Props, State> {
       colSpan,
     } = this.props;
     const {localInputValue} = this.state;
-    const {type, deprecated} = metadata;
+    const {type, deprecated, readOnly} = metadata;
     const fieldName = field.join(CONFIG_FIELD_DELIMITER);
 
     // Get the config value
@@ -499,7 +499,7 @@ class ConfigTableEntry extends React.Component<Props, State> {
             {type ? toTitleCase(type) : '?'}
           </TableCell>
           <TableCell classes={{root: classes.wrap}} {...mainTdProps}>
-            {isSelected && !deprecated ? (
+            {isSelected && !deprecated && !readOnly ? (
               <div onClick={ev => ev.stopPropagation()} role="none">
                 <ConfigFormInput
                   metadata={metadata}
@@ -535,7 +535,7 @@ class ConfigTableEntry extends React.Component<Props, State> {
             </TableCell>
             <TableCell {...detailsTdProps}>
               <div {...detailsTdDivProps}>
-                {!deprecated ? this.renderInputActions() : null}
+                {!deprecated && !readOnly ? this.renderInputActions() : null}
               </div>
             </TableCell>
           </TableRow>

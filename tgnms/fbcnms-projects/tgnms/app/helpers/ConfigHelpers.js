@@ -391,6 +391,9 @@ export const getMetadata = (metadata, fieldName) => {
     if (metadata.desc && !fieldMetadata.desc && metadata.type === 'MAP') {
       fieldMetadata.desc = metadata.desc;
     }
+    if (metadata.readOnly) {
+      fieldMetadata.readOnly = metadata.readOnly;
+    }
   }
 
   return fieldMetadata;
