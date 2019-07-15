@@ -1,6 +1,6 @@
 {
   "open_drawer": "Open drawer",
-  "_t": "Mon Jun 24 2019 10:31:11 GMT-0700 (Pacific Daylight Time)",
+  "_t": "Mon Jul 08 2019 10:11:30 GMT-0700 (Pacific Daylight Time)",
   "network": "Network",
   "Map": "Map",
   "no_networks_defined": "No networks defined.",
@@ -16,5 +16,7 @@
   "date": "Date",
   "close": "Close",
   "not_selected": "Not Selected",
-  "submit_bug": "Submit Bug"
+  "submit_bug": "Submit Bug",
+  "Logs": "Logs",
+  "Network Tests": "Network Tests"
 }

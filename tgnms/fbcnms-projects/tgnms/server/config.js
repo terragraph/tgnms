@@ -64,6 +64,11 @@ const TRANSLATIONS_DEFAULT_LOCALE =
 const LOCALES_DIR = process.env.LOCALES_DIR || './locales';
 const DEVELOPMENT = process.env.NODE_ENV !== 'production';
 
+// comma separated list of kafka hosts
+// structure:
+//   'kafka-host1:9092,kafka-host2:9092'
+const KAFKA_HOSTS = process.env.KAFKA_HOSTS;
+
 module.exports = {
   API_REQUEST_TIMEOUT,
   BERINGEI_QUERY_URL,
@@ -94,4 +99,5 @@ module.exports = {
   TRANSLATIONS_DEFAULT_LOCALE,
   LOCALES_DIR,
   DEVELOPMENT,
+  KAFKA_HOSTS,
 };

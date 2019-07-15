@@ -144,7 +144,7 @@ export const EventLevelValueMap = {
 
 export type EventType = {|
   source: string,
-  timestamp: Buffer,
+  timestamp: number,
   reason: string,
   details: string,
   category: EventCategoryType,

@@ -96,6 +96,7 @@ app.use('/user', require('../server/user/routes'));
 app.use('/network_test', require('../server/network_test/routes'));
 app.use('/nodelogs', require('../server/nodelogs/routes'));
 app.use('/translations', require('../server/translations/routes'));
+app.use('/websockets', require('../server/websockets/routes'));
 
 // First-time stuff
 topologyPeriodic.startPeriodicTasks();
