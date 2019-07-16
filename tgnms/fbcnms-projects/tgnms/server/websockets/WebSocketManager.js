@@ -11,12 +11,12 @@
  *
  */
 const logger = require('../log')(module);
-import type {WebSocketCommand} from '../../shared/dto/WebSockets';
 import {
-  WebSocketMessage,
-  WEB_SOCKET_COMMAND_TYPE,
   WEBSOCKET_READYSTATE,
+  WEB_SOCKET_COMMAND_TYPE,
+  WebSocketMessage,
 } from '../../shared/dto/WebSockets';
+import type {WebSocketCommand} from '../../shared/dto/WebSockets';
 
 export default class WebSocketManager {
   // maps from a group name to a set of websockets.

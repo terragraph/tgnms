@@ -5,8 +5,8 @@
  * @flow
  */
 
-import WebSocketManager from '../WebSocketManager';
 import EventEmitter from 'events';
+import WebSocketManager from '../WebSocketManager';
 jest.useFakeTimers();
 let manager: WebSocketManager;
 beforeEach(() => {

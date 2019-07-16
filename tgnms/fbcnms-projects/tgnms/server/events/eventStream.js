@@ -4,9 +4,9 @@
  * @format
  */
 const logger = require('../log')(module);
+import uuidv1 from 'uuid/v1';
 import {ConsumerGroup} from 'kafka-node';
 import {KAFKA_HOSTS} from '../config';
-import uuidv1 from 'uuid/v1';
 
 let consumerGroup: ConsumerGroup;
 initConsumerGroup();

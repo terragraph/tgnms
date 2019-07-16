@@ -5,9 +5,9 @@
  */
 
 const {BERINGEI_QUERY_URL} = require('../config');
+import websocketService from '../websockets/service';
 import {subscribe} from './eventStream';
 import type {KafkaMessage} from './KafkaTypes';
-import websocketService from '../websockets/service';
 
 const express = require('express');
 const request = require('request');
