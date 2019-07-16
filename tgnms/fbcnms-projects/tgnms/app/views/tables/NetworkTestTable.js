@@ -37,7 +37,7 @@ export default function NetworkTestTable({match, location}: Props) {
       // can't use an absolute url in react-router
       return `${url.pathname}${url.search}`;
     },
-    [location.pathname, location.search],
+    [location.search, networkName],
   );
   return (
     <NetworkTestExecutionsTable
