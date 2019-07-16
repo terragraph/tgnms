@@ -22,9 +22,8 @@ const path = require('path');
 const paths = require('fbcnms-webpack-config/paths');
 const session = require('express-session');
 const staticDist = require('fbcnms-webpack-config/staticDist').default;
-const webpackSmartMiddleware = require('@fbcnms/express-middleware/webpackSmartMiddleware')
-  .default;
 
+const webpackSmartMiddleware = configureWebpackSmartMiddleware();
 const {
   refreshTopologies,
   getAllNetworkConfigs,
@@ -222,3 +221,21 @@ app.get('*', (req, res) => {
     logger.info('=========> LISTENING ON PORT %s', port);
   });
 })();
+
+function configureWebpackSmartMiddleware() {
+  /*
+   * webpackSmartMiddleware uses fbcnms/logging to output build logs. By default
+   * fbcnms/logging will use json output format instead of shell, so build
+   * output will be uncolored and hard to read. In order to change this
+   * default, configure() needs to be called before webpackSmartMiddleware is
+   * imported.
+   */
+  const fbcLog = require('@fbcnms/logging');
+  fbcLog.configure({
+    LOG_FORMAT: process.env.NODE_ENV === 'development' ? 'shell' : 'json',
+    LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+  });
+  const webpackSmartMiddleware = require('@fbcnms/express-middleware/webpackSmartMiddleware')
+    .default;
+  return webpackSmartMiddleware;
+}
