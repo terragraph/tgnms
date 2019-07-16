@@ -6,8 +6,8 @@
  */
 'use strict';
 
-import classNames from 'classnames';
 import React from 'react';
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {

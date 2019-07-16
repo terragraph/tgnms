@@ -5,10 +5,10 @@
  */
 
 const express = require('express');
-import {getLocaleHandler, addMissingKeysHandler} from '@fbcnms/i18n';
+import {addMissingKeysHandler, getLocaleHandler} from '@fbcnms/i18n';
 const router = express.Router();
-import {i18nextInstance, saveTranslationFile} from './service';
 import {createErrorHandler} from '../helpers/apiHelpers';
+import {i18nextInstance, saveTranslationFile} from './service';
 
 /**
  * UI posts missing translation keys to the backend - this is how we handle

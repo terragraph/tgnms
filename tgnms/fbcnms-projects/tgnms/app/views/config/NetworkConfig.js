@@ -5,7 +5,8 @@
  */
 'use strict';
 
-import {cloneDeep, get, merge} from 'lodash';
+import ConfigRoot from './ConfigRoot';
+import React from 'react';
 import {
   ConfigLayer,
   DEFAULT_BASE_KEY,
@@ -13,15 +14,15 @@ import {
   NetworkConfigMode,
   SELECTED_NODE_QUERY_PARAM,
 } from '../../constants/ConfigConstants';
-import ConfigRoot from './ConfigRoot';
+import {cloneDeep, get, merge} from 'lodash';
 import {
-  getBaseConfig,
-  getHardwareBaseConfig,
   getAutoOverridesConfig,
+  getBaseConfig,
+  getConfigBundleStatus,
+  getConfigMetadata,
+  getHardwareBaseConfig,
   getNetworkOverridesConfig,
   getNodeOverridesConfig,
-  getConfigMetadata,
-  getConfigBundleStatus,
   setNetworkOverridesConfig,
   setNodeOverridesConfig,
 } from '../../apiutils/ConfigAPIUtil';
@@ -29,7 +30,6 @@ import {
   getNodeVersions,
   getTopologyNodeList,
 } from '../../helpers/ConfigHelpers';
-import React from 'react';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

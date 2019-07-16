@@ -35,8 +35,8 @@ const {sequelize} = require('../server/models');
 const topologyPeriodic = require('../server/topology/periodic');
 const {runMigrations, runSeeders} = require('./initDatabase');
 const logger = require('../server/log')(module);
-import {i18nextInstance} from '../server/translations/service';
 import access from '../server/middleware/access';
+import {i18nextInstance} from '../server/translations/service';
 
 const devMode = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? process.env.PORT : 80;

@@ -4,17 +4,17 @@
  * @format
  * @flow
  */
-import React from 'react';
 import 'jest-dom/extend-expect';
+import AuthorizedRoute from '../AuthorizedRoute';
+import React from 'react';
+import {Permissions} from '../../../../shared/auth/Permissions';
 import {Route} from 'react-router-dom';
 import {cleanup} from '@testing-library/react';
 import {
+  initWindowConfig,
   renderWithRouter,
   setTestUser,
-  initWindowConfig,
 } from '../../../tests/testHelpers';
-import {Permissions} from '../../../../shared/auth/Permissions';
-import AuthorizedRoute from '../AuthorizedRoute';
 
 beforeEach(() => {
   initWindowConfig({

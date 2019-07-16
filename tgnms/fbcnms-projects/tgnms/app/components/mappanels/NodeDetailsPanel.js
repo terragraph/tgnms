@@ -5,6 +5,27 @@
  */
 'use strict';
 
+import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import DeleteIcon from '@material-ui/icons/Delete';
+import Divider from '@material-ui/core/Divider';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import PropTypes from 'prop-types';
+import React from 'react';
+import RefreshIcon from '@material-ui/icons/Refresh';
+import RouterIcon from '@material-ui/icons/Router';
+import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
+import SyncIcon from '@material-ui/icons/Sync';
+import TimerIcon from '@material-ui/icons/Timer';
+import Typography from '@material-ui/core/Typography';
+import moment from 'moment';
+import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {PolarityTypeValueMap as PolarityType} from '../../../shared/types/Topology';
+import {SELECTED_NODE_QUERY_PARAM} from '../../constants/ConfigConstants';
+import {SiteOverlayColors} from '../../constants/LayerConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {
   createActionsMenu,
@@ -12,43 +33,22 @@ import {
   getLinkIcon,
   getNodeIcon,
   getSearchNearbyIcon,
-  getSiteIcon,
   getShowRoutesIcon,
+  getSiteIcon,
 } from '../../helpers/MapPanelHelpers';
-import {getNodePolarities} from '../../helpers/TgFeatures';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Divider from '@material-ui/core/Divider';
 import {formatNumber} from '../../helpers/StringHelpers';
+import {getNodePolarities} from '../../helpers/TgFeatures';
 import {
+  hasNodeEverGoneOnline,
   isNodeAlive,
   renderAvailabilityWithColor,
   renderStatusWithColor,
-  hasNodeEverGoneOnline,
 } from '../../helpers/NetworkHelpers';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
-import {PolarityTypeValueMap as PolarityType} from '../../../shared/types/Topology';
-import {SiteOverlayColors} from '../../constants/LayerConstants';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import moment from 'moment';
-import PropTypes from 'prop-types';
-import React from 'react';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import SyncIcon from '@material-ui/icons/Sync';
-import RouterIcon from '@material-ui/icons/Router';
-import {SELECTED_NODE_QUERY_PARAM} from '../../constants/ConfigConstants';
+import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
-import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import {supportsTopologyScan} from '../../helpers/TgFeatures';
-import TimerIcon from '@material-ui/icons/Timer';
-import Typography from '@material-ui/core/Typography';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
 
 const styles = theme => ({
   iconCentered: {

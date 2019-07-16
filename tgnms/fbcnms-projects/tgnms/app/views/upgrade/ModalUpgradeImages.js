@@ -6,20 +6,10 @@
  */
 'use strict';
 
-import {
-  apiServiceRequest,
-  apiServiceRequestWithConfirmation,
-  getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
 import AddIcon from '@material-ui/icons/Add';
 import Avatar from '@material-ui/core/Avatar';
-import axios from 'axios';
 import Button from '@material-ui/core/Button';
-import classNames from 'classnames';
-import copy from 'copy-to-clipboard';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
-import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
-import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import LinkIcon from '@material-ui/icons/Link';
@@ -35,14 +25,24 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
+import classNames from 'classnames';
+import copy from 'copy-to-clipboard';
+import swal from 'sweetalert2';
 import {
   REVERT_UPGRADE_IMAGE_STATUS,
   UPGRADE_IMAGE_REFRESH_INTERVAL,
   UploadStatus,
 } from '../../constants/UpgradeConstants';
-import swal from 'sweetalert2';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
+import {
+  apiServiceRequest,
+  apiServiceRequestWithConfirmation,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
+import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
+import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {UpgradeImageType} from '../../../shared/types/Controller';

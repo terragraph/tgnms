@@ -5,8 +5,8 @@
  * @flow
  */
 'use strict';
-import type {Location, RouterHistory} from 'react-router-dom';
 import {generatePath} from 'react-router';
+import type {Location, RouterHistory} from 'react-router-dom';
 
 /**
  * Gets the currently selected test execution from the query string.

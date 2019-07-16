@@ -7,20 +7,20 @@
 
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
-import {DebounceInput} from 'react-debounce-input';
-import classnames from 'classnames';
 import React from 'react';
-import scrollbarSize from 'dom-helpers/util/scrollbarSize';
 import Typography from '@material-ui/core/Typography';
 import UnfoldMoreIcon from '@material-ui/icons/UnfoldMore';
-import {withStyles} from '@material-ui/core/styles';
+import classnames from 'classnames';
+import scrollbarSize from 'dom-helpers/util/scrollbarSize';
 import {
-  accessibilityOverscanIndicesGetter,
   AutoSizer,
   Grid,
   ScrollSync,
   SortDirection,
+  accessibilityOverscanIndicesGetter,
 } from 'react-virtualized';
+import {DebounceInput} from 'react-debounce-input';
+import {withStyles} from '@material-ui/core/styles';
 
 const borderThickness = 1;
 const paddingLeftRight = 25;

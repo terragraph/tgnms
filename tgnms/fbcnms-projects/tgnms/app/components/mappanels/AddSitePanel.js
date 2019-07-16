@@ -6,22 +6,22 @@
 'use strict';
 
 import Button from '@material-ui/core/Button';
+import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import InfoIcon from '@material-ui/icons/Info';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Typography from '@material-ui/core/Typography';
 import {
-  createTextInput,
   createNumericInput,
+  createTextInput,
   formParseFloat,
 } from '../../helpers/FormHelpers';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import {
   getEditIcon,
   sendTopologyBuilderRequest,
   sendTopologyEditRequest,
 } from '../../helpers/MapPanelHelpers';
-import InfoIcon from '@material-ui/icons/Info';
 import {isEqual} from 'lodash';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

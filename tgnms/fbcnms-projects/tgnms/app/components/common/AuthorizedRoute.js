@@ -7,11 +7,11 @@
  * @flow
  */
 
-import type {Permission} from '../../../shared/auth/Permissions';
 import * as React from 'react';
-import {Route} from 'react-router-dom';
 import {Permissions} from '../../../shared/auth/Permissions';
+import {Route} from 'react-router-dom';
 import {isAuthorized} from '../../helpers/UserHelpers';
+import type {Permission} from '../../../shared/auth/Permissions';
 
 export type Props = {
   permissions: Permission | Array<Permission>,

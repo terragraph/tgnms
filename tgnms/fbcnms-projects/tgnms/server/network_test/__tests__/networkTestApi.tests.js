@@ -10,12 +10,12 @@
  */
 import express from 'express';
 import request from 'supertest';
+import {TEST_STATUS} from '../../../shared/dto/TestResult';
 import {
   api_testresult,
   api_testrunexecution,
   api_testschedule,
 } from '../../models';
-import {TEST_STATUS} from '../../../shared/dto/TestResult';
 const requestMock = require('request');
 jest.mock('request');
 jest.mock('../../sequelize-config', () => {

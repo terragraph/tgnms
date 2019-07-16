@@ -6,7 +6,7 @@
  */
 
 import * as fs from 'fs';
-import {TRANSLATIONS_DEFAULT_LOCALE, LOCALES_DIR} from '../config';
+import {LOCALES_DIR, TRANSLATIONS_DEFAULT_LOCALE} from '../config';
 
 import {
   i18nBuilder,

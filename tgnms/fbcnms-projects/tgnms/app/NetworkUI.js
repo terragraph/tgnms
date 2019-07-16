@@ -5,10 +5,10 @@
  */
 'use strict';
 
-import axios from 'axios';
 import E2EConfig from './views/config/E2EConfig';
 import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
+import NetworkConfig from './views/config/NetworkConfig';
 import NetworkContext from './NetworkContext';
 import NetworkDashboards from './views/dashboards/NetworkDashboards';
 import NetworkListContext from './NetworkListContext';
@@ -16,11 +16,11 @@ import NetworkMap from './views/map/NetworkMap';
 import NetworkStatsBeringei from './views/stats/NetworkStatsBeringei';
 import NetworkStatsPrometheus from './views/stats/NetworkStatsPrometheus';
 import NetworkTables from './views/tables/NetworkTables';
-import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
-import NetworkConfig from './views/config/NetworkConfig';
 import NetworkTest from './views/network_test/NetworkTest';
+import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
 import NodeLogs from './views/logs/NodeLogs';
 import React from 'react';
+import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {TopologyElementType} from './constants/NetworkConstants.js';
 import {withRouter} from 'react-router-dom';

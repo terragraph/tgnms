@@ -6,8 +6,8 @@
 'use strict';
 
 import Button from '@material-ui/core/Button';
-import moment from 'moment';
 import React from 'react';
+import moment from 'moment';
 
 const SECONDS_HOUR = 60 * 60;
 const SECONDS_DAY = SECONDS_HOUR * 24;

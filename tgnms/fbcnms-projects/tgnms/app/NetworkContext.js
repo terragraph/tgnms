@@ -7,12 +7,12 @@
 'use strict';
 
 import React from 'react';
+import {TopologyElementType} from './constants/NetworkConstants';
 import type {LinkType, TopologyType} from '../shared/types/Topology';
 import type {
   StatusDumpType,
   UpgradeStateDumpType,
 } from '../shared/types/Controller';
-import {TopologyElementType} from './constants/NetworkConstants';
 
 export type NetworkContextType = {|
   networkName: string,

@@ -7,9 +7,9 @@
 
 'use strict';
 import * as React from 'react';
-import {makeStyles} from '@material-ui/styles';
-import Tooltip from '@material-ui/core/Tooltip';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import Tooltip from '@material-ui/core/Tooltip';
+import {makeStyles} from '@material-ui/styles';
 
 type Props = {|
   message: string,

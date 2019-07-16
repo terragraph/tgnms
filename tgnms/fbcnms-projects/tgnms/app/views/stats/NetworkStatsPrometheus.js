@@ -5,7 +5,6 @@
  */
 'use strict';
 
-import axios from 'axios';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -14,14 +13,15 @@ import MaterialSelect from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import PlotlyGraph from './PlotlyGraph.js';
 import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
+import moment from 'moment';
 import {
   GRAPH_LINE_NAME_MAX_LENGTH,
   STATS_TIME_PICKER_OPTS,
 } from '../../constants/StatsConstants.js';
-import Typography from '@material-ui/core/Typography';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import moment from 'moment';
 
 const styles = theme => ({
   root: {

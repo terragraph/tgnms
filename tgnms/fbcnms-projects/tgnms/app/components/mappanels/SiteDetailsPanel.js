@@ -5,6 +5,22 @@
  */
 'use strict';
 
+import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import DeleteIcon from '@material-ui/icons/Delete';
+import Divider from '@material-ui/core/Divider';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import PropTypes from 'prop-types';
+import React from 'react';
+import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
+import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import geolib from 'geolib';
+import moment from 'moment';
+import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {
   createActionsMenu,
@@ -12,27 +28,11 @@ import {
   getNodeIcon,
   getSiteIcon,
 } from '../../helpers/MapPanelHelpers';
-import classNames from 'classnames';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Divider from '@material-ui/core/Divider';
 import {formatNumber} from '../../helpers/StringHelpers';
-import geolib from 'geolib';
 import {
   isNodeAlive,
   renderAvailabilityWithColor,
 } from '../../helpers/NetworkHelpers';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import moment from 'moment';
-import PropTypes from 'prop-types';
-import React from 'react';
-import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
-import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

@@ -7,7 +7,6 @@
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ClearIcon from '@material-ui/icons/Clear';
-import {debounce} from 'lodash';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -15,6 +14,7 @@ import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
+import {debounce} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

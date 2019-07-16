@@ -13,12 +13,6 @@ import AddSitePanel from '../../components/mappanels/AddSitePanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
 import Fab from '@material-ui/core/Fab';
-import {
-  getAddSiteIcon,
-  getLinkIcon,
-  getNodeIcon,
-} from '../../helpers/MapPanelHelpers';
-import {get} from 'lodash';
 import IgnitionStatePanel from '../../components/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '../../components/mappanels/LinkDetailsPanel';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -34,11 +28,17 @@ import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import ShowRoutePanel from '../../components/mappanels/ShowRoutePanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
-import TestExecutionPanel from '../../components/mappanels/TestExecutionPanel';
 import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
+import TestExecutionPanel from '../../components/mappanels/TestExecutionPanel';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
+import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqType} from '../../../thrift/gen-nodejs/Controller_types';
+import {get} from 'lodash';
+import {
+  getAddSiteIcon,
+  getLinkIcon,
+  getNodeIcon,
+} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 export const NetworkDrawerConstants = {

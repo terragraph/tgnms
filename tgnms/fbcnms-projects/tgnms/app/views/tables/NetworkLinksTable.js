@@ -5,26 +5,26 @@
  */
 'use strict';
 
-import {availabilityColor} from '../../helpers/NetworkHelpers';
-import {renderDashboardLink} from './FbInternal';
 import Checkbox from '@material-ui/core/Checkbox';
 import CustomTable from '../../components/common/CustomTable';
 import Divider from '@material-ui/core/Divider';
-import {formatNumber} from '../../helpers/StringHelpers';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
-import {NodeType, LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import NetworkContext from '../../NetworkContext';
 import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import ReactPlotlyEventChart from './ReactPlotlyEventChart';
-import {renderStatusColor} from '../../helpers/TableHelpers';
+import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import {SortDirection} from 'react-virtualized';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {availabilityColor} from '../../helpers/NetworkHelpers';
+import {formatNumber} from '../../helpers/StringHelpers';
+import {renderDashboardLink} from './FbInternal';
+import {renderStatusColor} from '../../helpers/TableHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 // Invalid analyzer value, ignore any fields that have this value.

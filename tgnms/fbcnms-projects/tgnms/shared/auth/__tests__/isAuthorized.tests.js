@@ -5,7 +5,7 @@
  * @flow
  */
 
-import {isAuthorized, Permissions} from '../Permissions';
+import {Permissions, isAuthorized} from '../Permissions';
 import type {User} from '../User';
 
 test('users with any of the required roles are authorized', () => {

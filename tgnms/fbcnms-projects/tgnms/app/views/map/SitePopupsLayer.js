@@ -5,9 +5,9 @@
  */
 'use strict';
 
-import {Popup} from 'react-mapbox-gl';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {Popup} from 'react-mapbox-gl';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {};

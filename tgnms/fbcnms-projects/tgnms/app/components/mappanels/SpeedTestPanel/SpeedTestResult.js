@@ -4,19 +4,19 @@
  * @format
  * @flow
  */
-import React from 'react';
-import {Link} from 'react-router-dom';
+import * as StringHelpers from '../../../helpers/StringHelpers';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import {makeStyles} from '@material-ui/styles';
+import LoadingBox from '../../common/LoadingBox';
 import NetworkContext from '../../../NetworkContext';
+import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import {Link} from 'react-router-dom';
+import {makeStyles} from '@material-ui/styles';
+import {makeTestResultLink} from '../../../helpers/NetworkTestHelpers';
 import {useLoadTestExecution} from '../../../hooks/NetworkTestHooks';
 import {useNetworkRoutes} from '../../../hooks/MapHooks';
-import LoadingBox from '../../common/LoadingBox';
 import type {TestResult} from '../../../../shared/dto/TestResult';
-import * as StringHelpers from '../../../helpers/StringHelpers';
-import {makeTestResultLink} from '../../../helpers/NetworkTestHelpers';
 
 const MEGABITS = Math.pow(1000, 2);
 

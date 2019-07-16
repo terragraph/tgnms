@@ -9,16 +9,16 @@
  */
 'use strict';
 
-import React from 'react';
 import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
-import Typography from '@material-ui/core/Typography';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import Divider from '@material-ui/core/Divider';
 import FormControl from '@material-ui/core/FormControl';
 import Paper from '@material-ui/core/Paper';
+import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import withStyles from '@material-ui/core/styles/withStyles';
+import Typography from '@material-ui/core/Typography';
 import red from '@material-ui/core/colors/red';
+import withStyles from '@material-ui/core/styles/withStyles';
 
 /**
  * NOTE: if you see an error like:

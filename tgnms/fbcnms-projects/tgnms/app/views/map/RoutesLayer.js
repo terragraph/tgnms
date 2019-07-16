@@ -6,23 +6,23 @@
  */
 
 import * as React from 'react';
-import {Feature, Layer} from 'react-mapbox-gl';
+import NetworkContext from '../../NetworkContext';
+import RouteContext from '../../RouteContext';
 import {
   // links
-  LinkRenderType,
-  LINE_LAYOUT,
-  LINE_TEXT_PAINT,
-  LINE_TEXT_LAYOUT,
-  LINE_CASING_PAINT,
-  // sites
-  POSITION_CIRCLE_PAINT,
   CIRCLE_RADIUS,
+  LINE_CASING_PAINT,
+  LINE_LAYOUT,
+  LINE_TEXT_LAYOUT,
+  LINE_TEXT_PAINT,
+  // sites
+  LinkRenderType,
+  POSITION_CIRCLE_PAINT,
   SELECTED_CIRCLE_STROKE_WIDTH,
 } from '../../constants/LayerConstants';
-import NetworkContext from '../../NetworkContext';
-import type {Node} from '../../NetworkContext';
-import RouteContext from '../../RouteContext';
+import {Feature, Layer} from 'react-mapbox-gl';
 import {TopologyElementType} from '../../constants/NetworkConstants';
+import type {Node} from '../../NetworkContext';
 
 const ROUTE_LINE_PAINT = {
   ...LINE_CASING_PAINT,

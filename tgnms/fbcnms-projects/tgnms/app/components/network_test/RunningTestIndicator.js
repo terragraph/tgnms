@@ -7,12 +7,12 @@
 'use strict';
 
 import * as React from 'react';
-import type {TestExecution} from '../../../shared/dto/TestExecution';
-import Tooltip from '@material-ui/core/Tooltip';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import {formatNumber} from '../../helpers/StringHelpers';
+import Tooltip from '@material-ui/core/Tooltip';
 import {TEST_STATUS} from '../../../shared/dto/TestExecution';
+import {formatNumber} from '../../helpers/StringHelpers';
 import {makeStyles} from '@material-ui/styles';
+import type {TestExecution} from '../../../shared/dto/TestExecution';
 
 const useStyles = makeStyles(_theme => ({
   defaultClassName: {width: 100, flexGrow: 1},

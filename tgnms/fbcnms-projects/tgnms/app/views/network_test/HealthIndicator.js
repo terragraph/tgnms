@@ -7,8 +7,8 @@
 'use strict';
 
 import React from 'react';
-import {getHealthDef} from '../../constants/HealthConstants';
 import StatusIndicator from '../../components/common/StatusIndicator';
+import {getHealthDef} from '../../constants/HealthConstants';
 
 export default function HealthIndicator({
   health,

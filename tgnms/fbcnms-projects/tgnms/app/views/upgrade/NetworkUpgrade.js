@@ -7,12 +7,12 @@
 'use strict';
 
 import BatchUpgradeTable from './BatchUpgradeTable';
-import {isNodeAlive} from '../../helpers/NetworkHelpers';
 import NetworkContext from '../../NetworkContext';
 import NodeUpgradeTable from './NodeUpgradeTable';
 import React from 'react';
 import UpgradeOperationsToolbar from './UpgradeOperationsToolbar';
 import {UpgradeStatusToString} from '../../constants/UpgradeConstants';
+import {isNodeAlive} from '../../helpers/NetworkHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

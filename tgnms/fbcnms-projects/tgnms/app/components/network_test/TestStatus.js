@@ -7,13 +7,13 @@
 'use strict';
 
 import * as React from 'react';
-import type {TestExecution} from '../../../shared/dto/TestExecution';
+import AccessTimeIcon from '@material-ui/icons/AlarmOn';
+import CancelIcon from '@material-ui/icons/Cancel';
 import CheckIcon from '@material-ui/icons/Check';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import CancelIcon from '@material-ui/icons/Cancel';
-import AccessTimeIcon from '@material-ui/icons/AlarmOn';
-import {TEST_STATUS} from '../../../shared/dto/TestExecution';
 import RunningTestIndicator from './RunningTestIndicator';
+import {TEST_STATUS} from '../../../shared/dto/TestExecution';
+import type {TestExecution} from '../../../shared/dto/TestExecution';
 
 type TestStatusProps = {|execution: TestExecution, className: string|};
 export default function TestStatus(props: TestStatusProps) {

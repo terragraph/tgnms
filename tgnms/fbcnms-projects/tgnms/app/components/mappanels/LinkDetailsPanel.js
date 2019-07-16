@@ -5,25 +5,10 @@
  */
 'use strict';
 
-import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import BuildIcon from '@material-ui/icons/Build';
-import {
-  createActionsMenu,
-  getLinkIcon,
-  getNodeIcon,
-} from '../../helpers/MapPanelHelpers';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
-import {formatNumber} from '../../helpers/StringHelpers';
-import {
-  isNodeAlive,
-  renderAvailabilityWithColor,
-  renderStatusWithColor,
-  hasLinkEverGoneOnline,
-} from '../../helpers/NetworkHelpers';
-import {LinkActionType} from '../../../thrift/gen-nodejs/Controller_types';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -33,13 +18,28 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
-import SyncIcon from '@material-ui/icons/Sync';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
-import {toTitleCase} from '../../helpers/StringHelpers';
+import SyncIcon from '@material-ui/icons/Sync';
 import Typography from '@material-ui/core/Typography';
+import {LinkActionType} from '../../../thrift/gen-nodejs/Controller_types';
+import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
+import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
+import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
+import {
+  createActionsMenu,
+  getLinkIcon,
+  getNodeIcon,
+} from '../../helpers/MapPanelHelpers';
+import {formatNumber} from '../../helpers/StringHelpers';
+import {
+  hasLinkEverGoneOnline,
+  isNodeAlive,
+  renderAvailabilityWithColor,
+  renderStatusWithColor,
+} from '../../helpers/NetworkHelpers';
+import {toTitleCase} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 
 const styles = theme => ({
   iconCentered: {

@@ -7,13 +7,13 @@
  * Customizes NetworkTestExecutionsTable to be used outside of NetworkTestView
  */
 'use strict';
-import React, {useCallback} from 'react';
-import type {ContextRouter} from 'react-router-dom';
 import NetworkTestExecutionsTable from '../network_test/NetworkTestExecutionsTable';
+import React, {useCallback} from 'react';
 import {
-  getTestOverlayId,
   createTestMapLink,
+  getTestOverlayId,
 } from '../../helpers/NetworkTestHelpers';
+import type {ContextRouter} from 'react-router-dom';
 
 type Props = {
   ...ContextRouter,

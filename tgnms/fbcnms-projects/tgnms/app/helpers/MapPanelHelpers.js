@@ -6,7 +6,6 @@
 'use strict';
 
 import AddLocationIcon from '@material-ui/icons/AddLocation';
-import {apiServiceRequestWithConfirmation} from '../apiutils/ServiceAPIUtil';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import EditIcon from '@material-ui/icons/Edit';
 import List from '@material-ui/core/List';
@@ -21,6 +20,7 @@ import NearMeIcon from '@material-ui/icons/NearMe';
 import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import TimelineIcon from '@material-ui/icons/Timeline';
+import {apiServiceRequestWithConfirmation} from '../apiutils/ServiceAPIUtil';
 
 /** Creates a menu with the given action items. */
 export function createActionsMenu(options, state, setState) {

@@ -5,17 +5,17 @@
  */
 'use strict';
 
-import type {UINotification} from '../../components/common/CustomSnackbar';
-import axios from 'axios';
-import {createReactSelectInput} from '../../helpers/FormHelpers';
 import CustomSnackbar from '../../components/common/CustomSnackbar';
 import InfoIcon from '@material-ui/icons/Info';
 import LoadingBox from '../../components/common/LoadingBox';
 import NetworkContext from '../../NetworkContext';
-import React from 'react';
 import Paper from '@material-ui/core/Paper';
+import React from 'react';
 import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
+import {createReactSelectInput} from '../../helpers/FormHelpers';
 import {withStyles} from '@material-ui/core/styles';
+import type {UINotification} from '../../components/common/CustomSnackbar';
 
 const styles = theme => ({
   root: {

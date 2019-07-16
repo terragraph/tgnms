@@ -4,10 +4,10 @@
  * @format
  */
 
-import React from 'react';
-import FriendlyText from '../FriendlyText';
-import {render, cleanup} from '@testing-library/react';
 import 'jest-dom/extend-expect';
+import FriendlyText from '../FriendlyText';
+import React from 'react';
+import {cleanup, render} from '@testing-library/react';
 
 afterEach(cleanup);
 

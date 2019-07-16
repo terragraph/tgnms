@@ -5,15 +5,15 @@
  */
 'use strict';
 
-import {availabilityColor, isNodeAlive} from '../../helpers/NetworkHelpers';
 import CustomTable from '../../components/common/CustomTable';
-import {NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import NetworkContext from '../../NetworkContext.js';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {renderStatusColor} from '../../helpers/TableHelpers';
+import {NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import {SortDirection} from 'react-virtualized';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {availabilityColor, isNodeAlive} from '../../helpers/NetworkHelpers';
+import {renderStatusColor} from '../../helpers/TableHelpers';
 
 // TODO add logic when selecting nodes
 export default class NetworkNodesTable extends React.Component {

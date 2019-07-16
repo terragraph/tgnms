@@ -7,44 +7,44 @@
 'use strict';
 
 import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core/styles';
-import type {TestExecution} from '../../../shared/dto/TestExecution';
-import type {TablePage} from '../../../shared/dto/TablePage';
-import type {UINotification} from '../../components/common/CustomSnackbar';
 import type {CreateTestUrl} from './NetworkTest';
+import type {TablePage} from '../../../shared/dto/TablePage';
+import type {TestExecution} from '../../../shared/dto/TestExecution';
+import type {UINotification} from '../../components/common/CustomSnackbar';
+import type {WithStyles} from '@material-ui/core/styles';
 
 import * as React from 'react';
-import {Link, withRouter} from 'react-router-dom';
-import classNames from 'classnames';
-import {withStyles} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
-import CustomTable from '../../components/common/CustomTable';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Tooltip from '@material-ui/core/Tooltip';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import MapIcon from '@material-ui/icons/Map';
-import moment from 'moment';
-import LoadingBox from '../../components/common/LoadingBox';
-import {createTestMapLink} from '../../helpers/NetworkTestHelpers';
-import AbortNetworkTestButton from './AbortNetworkTestButton';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import AbortNetworkTestButton from './AbortNetworkTestButton';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import CustomTable from '../../components/common/CustomTable';
+import ExportIcon from '@material-ui/icons/GetApp';
+import FormControl from '@material-ui/core/FormControl';
+import FormGroup from '@material-ui/core/FormGroup';
+import IconButton from '@material-ui/core/IconButton';
+import InputLabel from '@material-ui/core/InputLabel';
+import LoadingBox from '../../components/common/LoadingBox';
+import MapIcon from '@material-ui/icons/Map';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import RootRef from '@material-ui/core/RootRef';
+import Select from '@material-ui/core/Select';
 import TestStatus, {
   getStatusDef,
 } from '../../components/network_test/TestStatus';
-import ExportIcon from '@material-ui/icons/GetApp';
-import Menu from '@material-ui/core/Menu';
-import RootRef from '@material-ui/core/RootRef';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import moment from 'moment';
+import {Link, withRouter} from 'react-router-dom';
 import {
+  PROTOCOL,
   TEST_STATUS,
   TEST_TYPE,
-  PROTOCOL,
 } from '../../../shared/dto/TestExecution';
+import {createTestMapLink} from '../../helpers/NetworkTestHelpers';
+import {makeStyles} from '@material-ui/styles';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {

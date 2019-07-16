@@ -5,11 +5,11 @@
  * @flow
  */
 'use strict';
-import {formatNumber} from '../../helpers/StringHelpers';
-import {MCS_DATARATE_TABLE} from '../../constants/NetworkConstants';
-import {HEALTH_DEFS} from '../../constants/HealthConstants';
-import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
 import axios from 'axios';
+import {HEALTH_DEFS} from '../../constants/HealthConstants';
+import {MCS_DATARATE_TABLE} from '../../constants/NetworkConstants';
+import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
+import {formatNumber} from '../../helpers/StringHelpers';
 
 const MEGABITS = Math.pow(1000, 2);
 export type OverlayQuery = {

@@ -6,8 +6,8 @@
  */
 'use strict';
 
-import {invert} from 'lodash';
 import {UpgradeStatusTypeValueMap} from '../../shared/types/Controller';
+import {invert} from 'lodash';
 
 export const REVERT_UPGRADE_IMAGE_STATUS = 5000;
 export const UPGRADE_IMAGE_REFRESH_INTERVAL = 10000;

@@ -6,20 +6,20 @@
 'use strict';
 
 import Button from '@material-ui/core/Button';
+import MaterialModal from '../../components/common/MaterialModal';
+import MenuItem from '@material-ui/core/MenuItem';
+import NetworkListContext from '../../NetworkListContext';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import isIp from 'is-ip';
 import {
   createNumericInput,
   createSelectInput,
   createTextInput,
   formParseInt,
 } from '../../helpers/FormHelpers';
-import isIp from 'is-ip';
-import MaterialModal from '../../components/common/MaterialModal';
-import MenuItem from '@material-ui/core/MenuItem';
-import NetworkListContext from '../../NetworkListContext';
-import PropTypes from 'prop-types';
-import React from 'react';
 import {toTitleCase} from '../../helpers/StringHelpers';
-import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

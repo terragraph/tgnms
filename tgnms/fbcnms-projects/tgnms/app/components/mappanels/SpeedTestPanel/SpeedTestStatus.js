@@ -11,8 +11,8 @@ import * as axios from 'axios';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
-import {getStatusDef} from '../../network_test/TestStatus';
 import {TEST_STATUS} from '../../../../shared/dto/TestExecution';
+import {getStatusDef} from '../../network_test/TestStatus';
 import type {TestExecution} from '../../../../shared/dto/TestExecution';
 
 // test statuses which require us to poll

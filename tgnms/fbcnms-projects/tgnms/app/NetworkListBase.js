@@ -5,12 +5,12 @@
  */
 'use strict';
 
-import axios from 'axios';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';
 import NetworkListContext from './NetworkListContext';
 import NetworkUI from './NetworkUI';
 import NmsConfig from './views/nms_config/NmsConfig';
 import React from 'react';
+import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';

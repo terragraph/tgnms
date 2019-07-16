@@ -5,15 +5,9 @@
  */
 'use strict';
 
-import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import Button from '@material-ui/core/Button';
 import CheckIcon from '@material-ui/icons/Check';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import {createActionsMenu} from '../../helpers/MapPanelHelpers';
-import {createSelectInput} from '../../helpers/FormHelpers';
-import {CtrlVerType, ctrlVerBefore} from '../../helpers/VersionHelper';
-import {NetworkConfigMode} from '../../constants/ConfigConstants';
-import {isEqual} from 'lodash';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
@@ -22,12 +16,18 @@ import MenuItem from '@material-ui/core/MenuItem';
 import ModalConfigGet from './ModalConfigGet';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import {shallowEqual} from '../../helpers/ConfigHelpers';
 import StatusIndicator, {
   StatusIndicatorColor,
 } from '../../components/common/StatusIndicator';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import {CtrlVerType, ctrlVerBefore} from '../../helpers/VersionHelper';
+import {NetworkConfigMode} from '../../constants/ConfigConstants';
+import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
+import {createActionsMenu} from '../../helpers/MapPanelHelpers';
+import {createSelectInput} from '../../helpers/FormHelpers';
+import {isEqual} from 'lodash';
+import {shallowEqual} from '../../helpers/ConfigHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

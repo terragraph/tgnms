@@ -8,18 +8,10 @@
 import AddIcon from '@material-ui/icons/Add';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-import {
-  cleanupObject,
-  processConfigs,
-  stringifyConfig,
-} from '../../helpers/ConfigHelpers';
-import {cloneDeep, isEqual, set, unset} from 'lodash';
-import {ConfigLayer} from '../../constants/ConfigConstants';
 import ConfigSidebar from './ConfigSidebar';
 import ConfigTable from './ConfigTable';
 import CustomSnackbar from '../../components/common/CustomSnackbar';
 import Fab from '@material-ui/core/Fab';
-import {isPunctuation} from '../../helpers/StringHelpers';
 import LoadingBox from '../../components/common/LoadingBox';
 import ModalConfigAddField from './ModalConfigAddField';
 import ModalConfigSubmit from './ModalConfigSubmit';
@@ -27,6 +19,14 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import {ConfigLayer} from '../../constants/ConfigConstants';
+import {
+  cleanupObject,
+  processConfigs,
+  stringifyConfig,
+} from '../../helpers/ConfigHelpers';
+import {cloneDeep, isEqual, set, unset} from 'lodash';
+import {isPunctuation} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

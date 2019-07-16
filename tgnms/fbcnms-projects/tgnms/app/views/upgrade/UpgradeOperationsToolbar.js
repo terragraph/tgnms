@@ -6,8 +6,8 @@
  */
 'use strict';
 
-import ModalUpgradeImages from './ModalUpgradeImages';
 import ModalAbort from './ModalAbort';
+import ModalUpgradeImages from './ModalUpgradeImages';
 import React from 'react';
 import Toolbar from '@material-ui/core/Toolbar';
 import {withStyles} from '@material-ui/core/styles';

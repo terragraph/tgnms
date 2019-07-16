@@ -16,9 +16,9 @@ import type {
 } from './oidcTypes';
 
 import {
+  ERROR_MESSAGES,
   getOidcErrorMessage,
   isSocketTimeoutError,
-  ERROR_MESSAGES,
 } from './errors';
 import {Strategy} from 'passport-strategy';
 

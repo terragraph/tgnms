@@ -5,8 +5,8 @@
  * @flow
  */
 import * as React from 'react';
-import axios from 'axios';
 import * as api from '../apiutils/NetworkTestAPIUtil';
+import axios from 'axios';
 import type {TestExecution} from '../../shared/dto/TestExecution';
 
 export function useLoadTestResults({links = []}: {links?: Array<string>}) {

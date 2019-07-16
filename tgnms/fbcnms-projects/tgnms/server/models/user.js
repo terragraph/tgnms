@@ -6,7 +6,7 @@
 'use strict';
 
 import _ from 'lodash';
-import {USER, SUPERUSER} from '../user/accessRoles';
+import {SUPERUSER, USER} from '../user/accessRoles';
 
 export default function(sequelize, DataTypes) {
   const User = sequelize.define(

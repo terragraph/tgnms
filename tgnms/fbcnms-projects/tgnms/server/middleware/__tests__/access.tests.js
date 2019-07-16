@@ -9,8 +9,8 @@
  */
 
 import access from '../access';
-import {Permissions} from '../../../shared/auth/Permissions';
 import openRoutes from '../../openRoutes';
+import {Permissions} from '../../../shared/auth/Permissions';
 jest.mock('../../user/ensureAccessToken');
 jest.mock('../../config', () => ({
   LOGIN_ENABLED: true,

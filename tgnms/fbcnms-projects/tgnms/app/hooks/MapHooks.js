@@ -7,8 +7,8 @@
 import * as React from 'react';
 import NetworkContext from '../NetworkContext';
 import RouteContext from '../RouteContext';
-import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
 import axios from 'axios';
+import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
 
 /**
  * Loads the routes for the specified nodes and updates the routes map layer

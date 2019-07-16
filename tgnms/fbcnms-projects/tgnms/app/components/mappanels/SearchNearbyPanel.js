@@ -5,6 +5,27 @@
  */
 'use strict';
 
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Collapse from '@material-ui/core/Collapse';
+import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import Divider from '@material-ui/core/Divider';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import IconButton from '@material-ui/core/IconButton';
+import LinearScaleIcon from '@material-ui/icons/LinearScale';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import moment from 'moment';
+import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
@@ -14,34 +35,13 @@ import {
   renderSnrWithColor,
   renderSnrWithIcon,
 } from '../../helpers/NetworkHelpers';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Collapse from '@material-ui/core/Collapse';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import Divider from '@material-ui/core/Divider';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {
-  getLinkIcon,
   getAddSiteIcon,
+  getLinkIcon,
   getNodeIcon,
   getSearchNearbyIcon,
 } from '../../helpers/MapPanelHelpers';
-import IconButton from '@material-ui/core/IconButton';
-import LinearScaleIcon from '@material-ui/icons/LinearScale';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import moment from 'moment';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

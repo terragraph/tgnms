@@ -5,10 +5,10 @@
  * @flow
  */
 'use strict';
-import type {TestResult} from '../../../shared/dto/TestResult';
-import type {LinkTestResult} from './LinkTestResultDetails';
-import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
 import {HEALTH_CODES, HEALTH_DEFS} from '../../constants/HealthConstants';
+import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
+import type {LinkTestResult} from './LinkTestResultDetails';
+import type {TestResult} from '../../../shared/dto/TestResult';
 
 import * as React from 'react';
 

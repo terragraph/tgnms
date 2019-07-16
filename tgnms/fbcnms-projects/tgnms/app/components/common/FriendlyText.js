@@ -10,8 +10,8 @@
 
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
-import type {TypographyProps} from '@material-ui/core/Typography/Typography';
 import {makeStyles} from '@material-ui/styles';
+import type {TypographyProps} from '@material-ui/core/Typography/Typography';
 
 export type Props = {|
   text: string,

@@ -7,24 +7,24 @@
 
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import {createSelectInput} from '../../helpers/FormHelpers';
+import MaterialModal from '../../components/common/MaterialModal';
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import copy from 'copy-to-clipboard';
 import {
   DEFAULT_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
 } from '../../constants/ConfigConstants';
-import copy from 'copy-to-clipboard';
+import {createSelectInput} from '../../helpers/FormHelpers';
 import {
   getBaseConfig,
-  getHardwareBaseConfig,
   getFullNodeConfig,
+  getHardwareBaseConfig,
   sendConfigBundleToNode,
 } from '../../apiutils/ConfigAPIUtil';
-import MaterialModal from '../../components/common/MaterialModal';
-import MenuItem from '@material-ui/core/MenuItem';
-import React from 'react';
 import {stringifyConfig} from '../../helpers/ConfigHelpers';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

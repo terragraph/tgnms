@@ -6,10 +6,10 @@
  */
 'use strict';
 
-import {isEqual} from 'lodash';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
+import {isEqual} from 'lodash';
 
 import type {StructuredBatchType} from './NetworkUpgrade';
 

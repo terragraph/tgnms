@@ -7,8 +7,8 @@
 
 const {URL} = require('url');
 const httpClient = require('./oidcHttpAgent');
-import type {OpenidClient} from './oidcTypes';
 import {Issuer as OpenidIssuer} from 'openid-client';
+import type {OpenidClient} from './oidcTypes';
 const {
   KEYCLOAK_HTTP_PROXY,
   KEYCLOAK_HOST,

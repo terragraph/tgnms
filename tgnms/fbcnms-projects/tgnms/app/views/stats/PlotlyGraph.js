@@ -5,10 +5,10 @@
  */
 'use strict';
 
-import axios from 'axios';
-import equals from 'equals';
 import PropTypes from 'prop-types';
 import React from 'react';
+import axios from 'axios';
+import equals from 'equals';
 
 // load the basic bundle of plotly to avoid bundle bloat
 // includes scatter, pie, and bar

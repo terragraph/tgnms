@@ -6,55 +6,55 @@
  */
 
 'use strict';
-import type {Overlay} from './overlays';
 import type {
-  IgnitionState,
-  SiteMap,
   Element,
-  Node,
+  IgnitionState,
   Location,
+  Node,
+  SiteMap,
   TopologyConfig,
 } from '../../NetworkContext';
 import type {
-  TopologyType,
   LinkType as Link,
+  TopologyType,
 } from '../../../shared/types/Topology';
+import type {Overlay} from './overlays';
 
-import {scaleLinear} from 'd3-scale';
-import {interpolateHcl} from 'd3-interpolate';
-import {Feature, Layer} from 'react-mapbox-gl';
-import {get} from 'lodash';
-import {getLinkGolay, getLinkControlSuperframe} from '../../helpers/TgFeatures';
-import {
-  GOLAY_COLORS,
-  SUPERFRAME_COLORS,
-  LinkOverlayColors,
-  METRIC_COLOR_RANGE,
-  LINE_PAINT,
-  LINE_BACKUP_CN_PAINT,
-  LINE_WIRED_INTERSITE_PAINT,
-  LINE_LAYOUT,
-  LinkRenderType,
-  LINE_CASING_PAINT,
-  LINE_TEXT_PAINT,
-  LINE_TEXT_LAYOUT,
-  SEARCH_NEARBY_LINE_PAINT,
-  SEARCH_NEARBY_FILL_PAINT,
-} from '../../constants/LayerConstants';
-import {HEALTH_CODES} from '../../constants/HealthConstants';
 import LinkOverlayContext from '../../LinkOverlayContext';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
-import {
-  mapboxShouldAcceptClick,
-  hasLinkEverGoneOnline,
-} from '../../helpers/NetworkHelpers';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {Feature, Layer} from 'react-mapbox-gl';
+import {
+  GOLAY_COLORS,
+  LINE_BACKUP_CN_PAINT,
+  LINE_CASING_PAINT,
+  LINE_LAYOUT,
+  LINE_PAINT,
+  LINE_TEXT_LAYOUT,
+  LINE_TEXT_PAINT,
+  LINE_WIRED_INTERSITE_PAINT,
+  LinkOverlayColors,
+  LinkRenderType,
+  METRIC_COLOR_RANGE,
+  SEARCH_NEARBY_FILL_PAINT,
+  SEARCH_NEARBY_LINE_PAINT,
+  SUPERFRAME_COLORS,
+} from '../../constants/LayerConstants';
+import {HEALTH_CODES} from '../../constants/HealthConstants';
+import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import {
   SCAN_MAX_COVERAGE_ANGLE,
   SCAN_MAX_RX_DISTANCE,
   SNR_THRESHOLD_MCS9,
 } from '../../constants/NetworkConstants';
+import {get} from 'lodash';
+import {getLinkControlSuperframe, getLinkGolay} from '../../helpers/TgFeatures';
+import {
+  hasLinkEverGoneOnline,
+  mapboxShouldAcceptClick,
+} from '../../helpers/NetworkHelpers';
+import {interpolateHcl} from 'd3-interpolate';
+import {scaleLinear} from 'd3-scale';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = _theme => ({});

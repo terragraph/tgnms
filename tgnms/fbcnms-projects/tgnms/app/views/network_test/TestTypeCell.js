@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 
-import {makeStyles} from '@material-ui/styles';
 import {
   TEST_TYPE,
 } from '../../../shared/dto/TestExecution';
+import {makeStyles} from '@material-ui/styles';
 
 const useTestTypeStyles = makeStyles({
   cell: {

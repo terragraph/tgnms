@@ -5,8 +5,18 @@
  */
 'use strict';
 
-import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import FriendlyText from '../common/FriendlyText';
+import IconButton from '@material-ui/core/IconButton';
+import ListIcon from '@material-ui/icons/List';
+import PersonIcon from '@material-ui/icons/Person';
+import PropTypes from 'prop-types';
+import React from 'react';
+import SettingsIcon from '@material-ui/icons/Settings';
+import Typography from '@material-ui/core/Typography';
+import WifiIcon from '@material-ui/icons/Wifi';
+import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
+import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import {formatNumber, toTitleCase} from '../../helpers/StringHelpers';
 import {
   getLinkIcon,
@@ -14,23 +24,13 @@ import {
   getSiteIcon,
 } from '../../helpers/MapPanelHelpers';
 import {has} from 'lodash';
-import IconButton from '@material-ui/core/IconButton';
-import FriendlyText from '../common/FriendlyText';
 import {invert} from 'lodash';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
-import ListIcon from '@material-ui/icons/List';
-import PropTypes from 'prop-types';
-import React from 'react';
 import {
   isNodeAlive,
   renderAvailabilityWithColor,
   renderStatusWithColor,
 } from '../../helpers/NetworkHelpers';
-import PersonIcon from '@material-ui/icons/Person';
-import SettingsIcon from '@material-ui/icons/Settings';
 import {shortenVersionString} from '../../helpers/VersionHelper';
-import Typography from '@material-ui/core/Typography';
-import WifiIcon from '@material-ui/icons/Wifi';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

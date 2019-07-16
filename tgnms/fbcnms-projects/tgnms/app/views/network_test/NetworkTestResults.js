@@ -5,27 +5,27 @@
  * @flow
  */
 'use strict';
-import type {ContextRouter} from 'react-router-dom';
-import type {UINotification} from '../../components/common/CustomSnackbar';
-import type {CreateTestUrl} from './NetworkTest';
-import type {LinkTestResult} from './LinkTestResultDetails';
 import * as React from 'react';
-import {Link, Route} from 'react-router-dom';
+import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import CustomTable from '../../components/common/CustomTable';
+import Divider from '@material-ui/core/Divider';
+import Grid from '@material-ui/core/Grid';
+import HealthHistogram from './HealthHistogram';
+import HealthIndicator from './HealthIndicator';
+import IconButton from '@material-ui/core/IconButton';
+import LinkTestResultDetails from './LinkTestResultDetails';
+import Loading from '@material-ui/core/CircularProgress';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import Loading from '@material-ui/core/CircularProgress';
-import Grid from '@material-ui/core/Grid';
-import CustomTable from '../../components/common/CustomTable';
-import {withStyles} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
-import * as testApi from '../../apiutils/NetworkTestAPIUtil';
-import HealthIndicator from './HealthIndicator';
-import LinkTestResultDetails from './LinkTestResultDetails';
-import HealthHistogram from './HealthHistogram';
 import {HEALTH_CODES} from '../../constants/HealthConstants';
+import {Link, Route} from 'react-router-dom';
+import {makeStyles} from '@material-ui/styles';
+import {withStyles} from '@material-ui/core/styles';
+import type {ContextRouter} from 'react-router-dom';
+import type {CreateTestUrl} from './NetworkTest';
+import type {LinkTestResult} from './LinkTestResultDetails';
+import type {UINotification} from '../../components/common/CustomSnackbar';
 
 type Props = {|
   className: string,

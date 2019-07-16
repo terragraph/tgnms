@@ -5,8 +5,8 @@
  */
 'use strict';
 
-import {Layer} from 'react-mapbox-gl';
 import React from 'react';
+import {Layer} from 'react-mapbox-gl';
 import {withStyles} from '@material-ui/core/styles';
 
 /** Copied from: http://alex3165.github.io/react-mapbox-gl/demos -> "3d-map" */

@@ -6,10 +6,10 @@
 'use strict';
 
 import Button from '@material-ui/core/Button';
-import classNames from 'classnames';
-import {diffJson} from 'diff';
 import MaterialModal from '../../components/common/MaterialModal';
 import React from 'react';
+import classNames from 'classnames';
+import {diffJson} from 'diff';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

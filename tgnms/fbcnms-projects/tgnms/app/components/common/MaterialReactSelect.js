@@ -8,8 +8,6 @@
 import AsyncSelect from 'react-select/lib/Async';
 import CancelIcon from '@material-ui/icons/Cancel';
 import Chip from '@material-ui/core/Chip';
-import classNames from 'classnames';
-import {emphasize} from '@material-ui/core/styles/colorManipulator';
 import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
@@ -17,6 +15,8 @@ import React from 'react';
 import Select from 'react-select';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {emphasize} from '@material-ui/core/styles/colorManipulator';
 import {withStyles} from '@material-ui/core/styles';
 
 /* Copied from: https://material-ui.com/demos/autocomplete/#react-select */

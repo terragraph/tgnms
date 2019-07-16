@@ -5,17 +5,17 @@
  */
 'use strict';
 
-import axios from 'axios';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import MaterialReactSelect from '../../components/common/MaterialReactSelect';
 import MaterialSelect from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import PlotlyGraph from './PlotlyGraph.js';
-import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
+import moment from 'moment';
 import {
   GRAPH_LINE_NAME_MAX_LENGTH,
   STATS_DS_INTERVAL_SEC,
@@ -24,14 +24,14 @@ import {
   STATS_MAX_RESULTS,
   STATS_TIME_PICKER_OPTS,
 } from '../../constants/StatsConstants.js';
-import Typography from '@material-ui/core/Typography';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
 import {
   GraphAggregation,
   RestrictorType,
 } from '../../../thrift/gen-nodejs/Stats_types';
-import moment from 'moment';
+import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
+import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
+import {withRouter} from 'react-router-dom';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {

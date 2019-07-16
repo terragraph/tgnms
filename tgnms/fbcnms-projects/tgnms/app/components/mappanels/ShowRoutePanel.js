@@ -5,16 +5,16 @@
  */
 'use strict';
 
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import {getShowRoutesIcon} from '../../helpers/MapPanelHelpers';
 import FormGroup from '@material-ui/core/FormGroup';
 import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
+import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
+import {getShowRoutesIcon} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

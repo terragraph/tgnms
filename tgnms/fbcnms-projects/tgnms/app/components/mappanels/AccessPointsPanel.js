@@ -7,17 +7,17 @@
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import Divider from '@material-ui/core/Divider';
-import {formatNumber, toTitleCase} from '../../helpers/StringHelpers';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {sortBy} from 'lodash';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import Typography from '@material-ui/core/Typography';
+import moment from 'moment';
+import {formatNumber, toTitleCase} from '../../helpers/StringHelpers';
+import {sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

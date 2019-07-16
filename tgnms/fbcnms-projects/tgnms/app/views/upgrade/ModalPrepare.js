@@ -6,20 +6,9 @@
  */
 'use strict';
 
-import {
-  apiServiceRequest,
-  getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
 import Collapse from '@material-ui/core/Collapse';
-import {
-  createCheckboxGroupInput,
-  createNumericInput,
-  formParseInt,
-} from '../../helpers/FormHelpers';
-import {ctrlVerAfter, shortenVersionString} from '../../helpers/VersionHelper';
-import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -28,13 +17,24 @@ import MaterialModal from '../../components/common/MaterialModal';
 import MaterialReactSelect from '../../components/common/MaterialReactSelect';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
-import swal from 'sweetalert2';
 import Typography from '@material-ui/core/Typography';
+import swal from 'sweetalert2';
 import {UPGRADE_IMAGE_REFRESH_INTERVAL} from '../../constants/UpgradeConstants';
 import {
   UpgradeGroupType,
   UpgradeReqType,
 } from '../../../thrift/gen-nodejs/Controller_types';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
+import {
+  createCheckboxGroupInput,
+  createNumericInput,
+  formParseInt,
+} from '../../helpers/FormHelpers';
+import {ctrlVerAfter, shortenVersionString} from '../../helpers/VersionHelper';
+import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {UpgradeImageType} from '../../../shared/types/Controller';

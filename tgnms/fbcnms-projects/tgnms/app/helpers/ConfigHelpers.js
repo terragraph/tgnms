@@ -6,6 +6,7 @@
 'use strict';
 
 import {ConfigLayer} from '../constants/ConfigConstants.js';
+import {NodeType} from '../../thrift/gen-nodejs/Topology_types';
 import {
   cloneDeep,
   forOwn,
@@ -17,7 +18,6 @@ import {
   set,
 } from 'lodash';
 import {isNodeAlive} from './NetworkHelpers';
-import {NodeType} from '../../thrift/gen-nodejs/Topology_types';
 
 /**
  * Process a list of config layers with metadata, and return a data structure

@@ -5,13 +5,8 @@
  */
 'use strict';
 
-import axios from 'axios';
 import CustomTable from '../../components/common/CustomTable';
 import Divider from '@material-ui/core/Divider';
-import {
-  EventCategoryValueMap,
-  EventLevelValueMap,
-} from '../../../shared/types/Event';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -19,12 +14,17 @@ import InputLabel from '@material-ui/core/InputLabel';
 import LoadingBox from '../../components/common/LoadingBox';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalEventInfo from './ModalEventInfo';
-import moment from 'moment';
 import NetworkContext from '../../NetworkContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-import {SortDirection} from 'react-virtualized';
 import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
+import moment from 'moment';
+import {
+  EventCategoryValueMap,
+  EventLevelValueMap,
+} from '../../../shared/types/Event';
+import {SortDirection} from 'react-virtualized';
 import {withStyles} from '@material-ui/core/styles';
 
 // TODO refactor into component

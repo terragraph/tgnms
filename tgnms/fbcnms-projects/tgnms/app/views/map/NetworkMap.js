@@ -7,36 +7,36 @@
 
 import BuildingsLayer from './BuildingsLayer';
 import Dragger from '../../components/common/Dragger';
-import {
-  LinkOverlayColors,
-  SiteOverlayColors,
-} from '../../constants/LayerConstants';
-import LinksLayer from './LinksLayer';
 import LinkOverlayContext from '../../LinkOverlayContext';
-import RouteContext from '../../RouteContext';
-import type {Route as NodeRoute} from '../../RouteContext';
+import LinksLayer from './LinksLayer';
 import NetworkContext from '../../NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
-import type {OverlayStrategy} from './overlays';
+import React from 'react';
+import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
+import RouteContext from '../../RouteContext';
+import RoutesLayer from './RoutesLayer';
+import SitePopupsLayer from './SitePopupsLayer';
+import SitesLayer from './SitesLayer';
+import TableControl from './TableControl';
+import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
 import {
   LinkMetricsOverlayStrategy,
   TestExecutionOverlayStrategy,
 } from './overlays';
-import React from 'react';
-import {withRouter, Route} from 'react-router-dom';
-import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
-import SitePopupsLayer from './SitePopupsLayer';
-import SitesLayer from './SitesLayer';
-import RoutesLayer from './RoutesLayer';
-import TableControl from './TableControl';
-import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
-import {withStyles} from '@material-ui/core/styles';
 import {
-  getTestOverlayId,
+  LinkOverlayColors,
+  SiteOverlayColors,
+} from '../../constants/LayerConstants';
+import {Route, withRouter} from 'react-router-dom';
+import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {
   getSpeedTestId,
+  getTestOverlayId,
 } from '../../helpers/NetworkTestHelpers';
+import {withStyles} from '@material-ui/core/styles';
+import type {Route as NodeRoute} from '../../RouteContext';
+import type {OverlayStrategy} from './overlays';
 
 const styles = theme => ({
   appBarSpacer: theme.mixins.toolbar,

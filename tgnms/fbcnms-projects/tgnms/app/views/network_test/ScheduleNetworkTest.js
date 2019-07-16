@@ -6,22 +6,22 @@
  */
 'use strict';
 
-import type {WithStyles} from '@material-ui/core/styles';
 import type {UINotification} from '../../components/common/CustomSnackbar';
+import type {WithStyles} from '@material-ui/core/styles';
 
 import React from 'react';
 
+import * as testApi from '../../apiutils/NetworkTestAPIUtil';
 import Button from '@material-ui/core/Button';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
-import {withStyles} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
-import MaterialModal from '../../components/common/MaterialModal';
 import LoadingBox from '../../components/common/LoadingBox';
+import MaterialModal from '../../components/common/MaterialModal';
+import MenuItem from '@material-ui/core/MenuItem';
 import NetworkTestParameterFactory from './NetworkTestParameterFactory';
-import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import Select from '@material-ui/core/Select';
+import {makeStyles} from '@material-ui/styles';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {

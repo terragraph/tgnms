@@ -6,18 +6,18 @@
 'use strict';
 
 import Button from '@material-ui/core/Button';
-import {
-  createSelectInput,
-  createReactSelectInput,
-} from '../../helpers/FormHelpers';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import {isEqual} from 'lodash';
 import MenuItem from '@material-ui/core/MenuItem';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import swal from 'sweetalert2';
+import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {
+  createReactSelectInput,
+  createSelectInput,
+} from '../../helpers/FormHelpers';
+import {isEqual} from 'lodash';
+import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 

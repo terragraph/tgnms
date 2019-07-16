@@ -8,13 +8,13 @@
 'use strict';
 
 import * as React from 'react';
-import {renderToString} from 'react-dom/server';
+import {JssProvider, SheetsRegistry} from 'react-jss';
 import {
   MuiThemeProvider,
-  createMuiTheme,
   createGenerateClassName,
+  createMuiTheme,
 } from '@material-ui/core/styles';
-import {JssProvider, SheetsRegistry} from 'react-jss';
+import {renderToString} from 'react-dom/server';
 
 export function render(
   RootComponent: React.ComponentType<any>,

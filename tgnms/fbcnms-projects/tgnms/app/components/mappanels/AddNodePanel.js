@@ -5,36 +5,36 @@
  */
 'use strict';
 
+import Button from '@material-ui/core/Button';
+import Collapse from '@material-ui/core/Collapse';
+import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Switch from '@material-ui/core/Switch';
+import {
+  NodeType,
+  PolarityType,
+} from '../../../thrift/gen-nodejs/Topology_types';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
 } from '../../apiutils/ServiceAPIUtil';
-import Button from '@material-ui/core/Button';
-import Collapse from '@material-ui/core/Collapse';
 import {
-  createTextInput,
   createNumericInput,
-  createSelectInput,
   createReactSelectInput,
+  createSelectInput,
+  createTextInput,
   formParseFloat,
   formParseInt,
 } from '../../helpers/FormHelpers';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import {
   getEditIcon,
   sendTopologyBuilderRequest,
   sendTopologyEditRequest,
 } from '../../helpers/MapPanelHelpers';
 import {isEqual} from 'lodash';
-import MenuItem from '@material-ui/core/MenuItem';
-import {
-  NodeType,
-  PolarityType,
-} from '../../../thrift/gen-nodejs/Topology_types';
-import PropTypes from 'prop-types';
-import React from 'react';
-import Switch from '@material-ui/core/Switch';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {useNodeWlanMacs} from '../../helpers/TgFeatures';
 import {withStyles} from '@material-ui/core/styles';

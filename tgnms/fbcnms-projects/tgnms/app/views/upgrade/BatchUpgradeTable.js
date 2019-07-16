@@ -7,19 +7,19 @@
 'use strict';
 
 import BatchUpgradeTableEntry from './BatchUpgradeTableEntry';
-import {isEmpty, orderBy} from 'lodash';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
-import {TableOrder} from '../../helpers/TableHelpers';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import {TableOrder} from '../../helpers/TableHelpers';
+import {isEmpty, orderBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {StructuredBatchType} from './NetworkUpgrade';

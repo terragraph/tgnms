@@ -5,7 +5,6 @@
  */
 'use strict';
 
-import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
@@ -14,6 +13,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

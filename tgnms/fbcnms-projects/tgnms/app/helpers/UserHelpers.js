@@ -5,9 +5,9 @@
  * @flow
  */
 
-import type {User} from '../../shared/auth/User';
-import type {Permission} from '../../shared/auth/Permissions';
 import {isAuthorized as isAuthorizedShared} from '../../shared/auth/Permissions';
+import type {Permission} from '../../shared/auth/Permissions';
+import type {User} from '../../shared/auth/User';
 
 export function getUser(): ?User {
   if (window.CONFIG && window.CONFIG.user) {

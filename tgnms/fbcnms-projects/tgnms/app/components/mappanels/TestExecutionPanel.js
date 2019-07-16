@@ -6,21 +6,21 @@
  */
 'use strict';
 
-import type {TestExecution} from '../../../shared/dto/TestExecution';
-import type {Element} from '../../NetworkContext';
-import React, {useMemo} from 'react';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import LoadingBox from '../common/LoadingBox';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
-import {makeStyles} from '@material-ui/styles';
+import Grid from '@material-ui/core/Grid';
+import LinkTestResultDetails from '../../views/network_test/LinkTestResultDetails';
+import LoadingBox from '../common/LoadingBox';
+import Paper from '@material-ui/core/Paper';
+import React, {useMemo} from 'react';
+import Typography from '@material-ui/core/Typography';
 import {TEST_TYPE} from '../../../shared/dto/TestExecution';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
-import type {LinkTestResult as LinkTestResultType} from '../../views/network_test/LinkTestResultDetails';
-import LinkTestResultDetails from '../../views/network_test/LinkTestResultDetails';
+import {makeStyles} from '@material-ui/styles';
 import {useLoadTestExecution} from '../../views/network_test/hooks';
+import type {Element} from '../../NetworkContext';
+import type {LinkTestResult as LinkTestResultType} from '../../views/network_test/LinkTestResultDetails';
+import type {TestExecution} from '../../../shared/dto/TestExecution';
 
 type Props = {
   testId: ?string,

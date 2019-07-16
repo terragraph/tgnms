@@ -6,21 +6,21 @@
  */
 'use strict';
 
-import type {Origin} from '@material-ui/core/Snackbar/Snackbar';
-import React from 'react';
-import amber from '@material-ui/core/colors/amber';
 import AutorenewIcon from '@material-ui/icons/Autorenew';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import classNames from 'classnames';
 import CloseIcon from '@material-ui/icons/Close';
 import ErrorIcon from '@material-ui/icons/Error';
-import green from '@material-ui/core/colors/green';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
+import React from 'react';
 import Snackbar from '@material-ui/core/Snackbar';
 import SnackbarContent from '@material-ui/core/SnackbarContent';
 import WarningIcon from '@material-ui/icons/Warning';
+import amber from '@material-ui/core/colors/amber';
+import classNames from 'classnames';
+import green from '@material-ui/core/colors/green';
 import {withStyles} from '@material-ui/core/styles';
+import type {Origin} from '@material-ui/core/Snackbar/Snackbar';
 
 /* Copied from: https://material-ui.com/demos/snackbars/#customized-snackbars */
 

@@ -10,7 +10,7 @@
 
 import type {OpenidClient} from './oidcTypes';
 
-import {createExpectedError, ERROR_KEYS, isSocketTimeoutError} from './errors';
+import {ERROR_KEYS, createExpectedError, isSocketTimeoutError} from './errors';
 import {TokenSet} from 'openid-client';
 
 const logger = require('../log')(module);

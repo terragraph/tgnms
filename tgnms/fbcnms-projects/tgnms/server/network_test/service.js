@@ -5,15 +5,15 @@
  * @flow
  */
 'use strict';
-import type {TestExecution} from '../models/testExecution';
-import type {TestResult} from '../models/testResult';
-import type {TestSchedule} from '../models/testSchedule';
-import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
-import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
-import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
-import type {TablePage} from '../../shared/dto/TablePage';
 import Sequelize from 'sequelize';
 import {TEST_STATUS} from '../../shared/dto/TestExecution';
+import type {TablePage} from '../../shared/dto/TablePage';
+import type {TestExecution} from '../models/testExecution';
+import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
+import type {TestResult} from '../models/testResult';
+import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
+import type {TestSchedule} from '../models/testSchedule';
+import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
 const {
   sequelize,
   api_testrunexecution,

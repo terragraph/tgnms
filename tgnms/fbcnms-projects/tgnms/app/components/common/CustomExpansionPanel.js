@@ -6,6 +6,7 @@
  */
 'use strict';
 
+import * as React from 'react';
 import CloseIcon from '@material-ui/icons/Close';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -16,10 +17,9 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import LockIcon from '@material-ui/icons/Lock';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
 import PropTypes from 'prop-types';
-import * as React from 'react';
-import {withStyles} from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   panelHeading: {

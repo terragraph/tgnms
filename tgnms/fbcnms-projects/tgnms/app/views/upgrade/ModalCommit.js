@@ -6,32 +6,32 @@
  */
 'use strict';
 
+import Button from '@material-ui/core/Button';
+import Chip from '@material-ui/core/Chip';
+import Collapse from '@material-ui/core/Collapse';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import InsetPaper from '../../components/common/InsetPaper';
+import MaterialModal from '../../components/common/MaterialModal';
+import React from 'react';
+import Switch from '@material-ui/core/Switch';
+import UpdateIcon from '@material-ui/icons/Update';
+import swal from 'sweetalert2';
+import {BatchingType} from '../../constants/UpgradeConstants';
+import {
+  UpgradeGroupType,
+  UpgradeReqType,
+} from '../../../thrift/gen-nodejs/Controller_types';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
 } from '../../apiutils/ServiceAPIUtil';
-import {BatchingType} from '../../constants/UpgradeConstants';
-import Button from '@material-ui/core/Button';
-import Collapse from '@material-ui/core/Collapse';
 import {
   createCheckboxGroupInput,
   createNumericInput,
   createRadioGroupInput,
   formParseInt,
 } from '../../helpers/FormHelpers';
-import Chip from '@material-ui/core/Chip';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import InsetPaper from '../../components/common/InsetPaper';
-import MaterialModal from '../../components/common/MaterialModal';
-import React from 'react';
-import swal from 'sweetalert2';
-import Switch from '@material-ui/core/Switch';
-import UpdateIcon from '@material-ui/icons/Update';
-import {
-  UpgradeGroupType,
-  UpgradeReqType,
-} from '../../../thrift/gen-nodejs/Controller_types';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

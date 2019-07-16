@@ -5,17 +5,17 @@
  * @flow
  */
 'use strict';
-import {StylesProvider} from '@material-ui/styles';
-import {JssProvider} from 'react-jss';
 import * as React from 'react';
-import {
-  MuiThemeProvider,
-  createMuiTheme,
-  createGenerateClassName,
-} from '@material-ui/core/styles';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import amber from '@material-ui/core/colors/amber';
 import green from '@material-ui/core/colors/green';
+import {JssProvider} from 'react-jss';
+import {
+  MuiThemeProvider,
+  createGenerateClassName,
+  createMuiTheme,
+} from '@material-ui/core/styles';
+import {StylesProvider} from '@material-ui/styles';
 
 // both styling solutions need to share the same classname generator
 const generateClassName = createGenerateClassName();

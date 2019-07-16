@@ -5,17 +5,17 @@
  */
 'use strict';
 
-import '@fbcnms/babel-register/polyfill';
 import './common/axiosConfig';
 import './common/i18n';
+import '@fbcnms/babel-register/polyfill';
 
-import {hot} from 'react-hot-loader';
-import {BrowserRouter} from 'react-router-dom';
-import NetworkListBase from './NetworkListBase';
-import ReactDOM from 'react-dom';
-import React, {Suspense} from 'react';
-import MaterialTheme from './MaterialTheme';
 import LoadingBox from './components/common/LoadingBox';
+import MaterialTheme from './MaterialTheme';
+import NetworkListBase from './NetworkListBase';
+import React, {Suspense} from 'react';
+import ReactDOM from 'react-dom';
+import {BrowserRouter} from 'react-router-dom';
+import {hot} from 'react-hot-loader';
 
 /* eslint-disable-next-line no-undef */
 const HotNetworkListBase = hot(module)(NetworkListBase);

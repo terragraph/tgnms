@@ -5,28 +5,28 @@
  * @flow
  */
 import * as React from 'react';
-import MaterialReactSelect from '../../common/MaterialReactSelect';
-import type {Element} from '../../../NetworkContext';
-import NetworkContext from '../../../NetworkContext';
-import RouteContext from '../../../RouteContext';
+import * as api from '../../../apiutils/NetworkTestAPIUtil';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
-import {TopologyElementType} from '../../../constants/NetworkConstants';
-import {makeStyles} from '@material-ui/styles';
-import Grid from '@material-ui/core/Grid';
+import EditIcon from '@material-ui/icons/Edit';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import LoadingBox from '../../common/LoadingBox';
+import MaterialReactSelect from '../../common/MaterialReactSelect';
+import NetworkContext from '../../../NetworkContext';
+import RouteContext from '../../../RouteContext';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import EditIcon from '@material-ui/icons/Edit';
-import FormGroup from '@material-ui/core/FormGroup';
-import {getTopologyNodeList} from '../../../helpers/ConfigHelpers';
-import LoadingBox from '../../common/LoadingBox';
 import swal from 'sweetalert2';
-import * as api from '../../../apiutils/NetworkTestAPIUtil';
+import {TopologyElementType} from '../../../constants/NetworkConstants';
+import {getTopologyNodeList} from '../../../helpers/ConfigHelpers';
+import {makeStyles} from '@material-ui/styles';
 import {useNetworkRoutes} from '../../../hooks/MapHooks';
+import type {Element} from '../../../NetworkContext';
 
 const useSpeedTestStyles = makeStyles(theme => ({
   actions: {

@@ -6,10 +6,6 @@
  */
 'use strict';
 
-import {
-  apiServiceRequest,
-  getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
 import InsetPaper from '../../components/common/InsetPaper';
@@ -21,6 +17,10 @@ import {
   UpgradeGroupType,
   UpgradeReqType,
 } from '../../../thrift/gen-nodejs/Controller_types';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

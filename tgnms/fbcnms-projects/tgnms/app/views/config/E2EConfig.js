@@ -5,18 +5,18 @@
  */
 'use strict';
 
-import {ConfigLayer, E2EConfigMode} from '../../constants/ConfigConstants';
 import ConfigRoot from './ConfigRoot';
+import React from 'react';
+import {ConfigLayer, E2EConfigMode} from '../../constants/ConfigConstants';
 import {constructConfigFromMetadata} from '../../helpers/ConfigHelpers';
 import {
   getAggregatorConfig,
   getAggregatorConfigMetadata,
   getControllerConfig,
   getControllerConfigMetadata,
-  setControllerConfig,
   setAggregatorConfig,
+  setControllerConfig,
 } from '../../apiutils/ConfigAPIUtil';
-import React from 'react';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

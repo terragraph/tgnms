@@ -8,9 +8,9 @@
  * @flow
  */
 
+import XHR from 'i18next-xhr-backend';
 import i18next from 'i18next';
 import {initReactI18next} from 'react-i18next';
-import XHR from 'i18next-xhr-backend';
 
 const backendOptions = {
   loadPath: '/translations/{{lng}}/{{ns}}.json',

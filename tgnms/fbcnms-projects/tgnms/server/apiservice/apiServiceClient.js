@@ -8,12 +8,12 @@
  * @flow
  * @format
  */
-import {LOGIN_ENABLED, API_REQUEST_TIMEOUT} from '../config';
+import {API_REQUEST_TIMEOUT, LOGIN_ENABLED} from '../config';
 const logger = require('../log')(module);
 import axios from 'axios';
+import {PROXY_ENABLED} from '../config';
 import {awaitClient} from '../user/oidc';
 import type {TokenSet} from '../user/oidcTypes';
-import {PROXY_ENABLED} from '../config';
 const isIp = require('is-ip');
 
 export type BackgroundRequest = {|

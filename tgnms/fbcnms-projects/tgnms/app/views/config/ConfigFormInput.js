@@ -5,6 +5,9 @@
  */
 'use strict';
 
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import {ConfigBaseTypes} from '../../constants/ConfigConstants';
 import {
   createNumericInput,
   createSelectInput,
@@ -12,10 +15,7 @@ import {
   formParseFloat,
   formParseInt,
 } from '../../helpers/FormHelpers';
-import {ConfigBaseTypes} from '../../constants/ConfigConstants';
 import {isEqual} from 'lodash';
-import MenuItem from '@material-ui/core/MenuItem';
-import React from 'react';
 import {shallowEqual, validateField} from '../../helpers/ConfigHelpers';
 import {withStyles} from '@material-ui/core/styles';
 

@@ -7,10 +7,10 @@
  * @flow
  */
 
-import React from 'react';
-import {render, cleanup} from '@testing-library/react';
 import 'jest-dom/extend-expect';
+import React from 'react';
 import {Permissions} from '../../../../shared/auth/Permissions';
+import {cleanup, render} from '@testing-library/react';
 import {initWindowConfig, setTestUser} from '../../../tests/testHelpers';
 
 import Authorize from '../Authorize';

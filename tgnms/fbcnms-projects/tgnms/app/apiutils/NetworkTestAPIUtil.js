@@ -5,14 +5,14 @@
  * @flow
  */
 'use strict';
-import type {TablePage} from '../../shared/dto/TablePage';
-import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
-import {TEST_STATUS} from '../../shared/dto/TestResult';
-import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
-import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
 import axios, {CancelToken} from 'axios';
 import {HEALTH_CODES} from '../constants/HealthConstants';
+import {TEST_STATUS} from '../../shared/dto/TestResult';
 import {TEST_TYPE_CODES} from '../../shared/dto/TestExecution';
+import type {TablePage} from '../../shared/dto/TablePage';
+import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
+import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
+import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
 
 export const getTestResults = ({
   executionId,

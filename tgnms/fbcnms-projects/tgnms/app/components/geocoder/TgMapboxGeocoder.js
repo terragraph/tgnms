@@ -5,19 +5,19 @@
  */
 'use strict';
 
-import {
-  getNodeIcon,
-  getLinkIcon,
-  getSiteIcon,
-} from '../../helpers/MapPanelHelpers';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MapboxGeocoder from './MapboxGeocoder';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {
+  getLinkIcon,
+  getNodeIcon,
+  getSiteIcon,
+} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {

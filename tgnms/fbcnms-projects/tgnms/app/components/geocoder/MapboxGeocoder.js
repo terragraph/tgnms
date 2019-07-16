@@ -5,7 +5,6 @@
  */
 'use strict';
 
-import axios from 'axios';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -13,6 +12,7 @@ import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 import React from 'react';
 import SearchBar from '../common/SearchBar';
+import axios from 'axios';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {

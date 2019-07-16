@@ -6,12 +6,12 @@
  */
 'use strict';
 
-import classNames from 'classnames';
 import * as React from 'react';
 import TableChartIcon from '@material-ui/icons/TableChart';
+import classNames from 'classnames';
+import {Link} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
-import {Link} from 'react-router-dom';
 
 /* Styling copied from: https://github.com/alex3165/react-mapbox-gl/blob/master/src/rotation-control.tsx */
 

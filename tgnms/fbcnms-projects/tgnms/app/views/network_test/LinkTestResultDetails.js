@@ -9,15 +9,15 @@ import type {TestResult} from '../../../shared/dto/TestResult';
 
 import * as React from 'react';
 
-import Typography from '@material-ui/core/Typography';
-import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import Loading from '@material-ui/core/CircularProgress';
-import Grid from '@material-ui/core/Grid';
-import {makeStyles} from '@material-ui/styles';
 import * as StringHelpers from '../../helpers/StringHelpers';
-import HelpTooltip from '../../components/common/HelpTooltip';
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
+import Grid from '@material-ui/core/Grid';
 import HealthIndicator from './HealthIndicator';
+import HelpTooltip from '../../components/common/HelpTooltip';
+import Loading from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
 import {getHealthDef} from '../../constants/HealthConstants';
+import {makeStyles} from '@material-ui/styles';
 import {useLoadTestResults} from '../../hooks/NetworkTestHooks';
 
 const MEGABITS = Math.pow(1000, 2);

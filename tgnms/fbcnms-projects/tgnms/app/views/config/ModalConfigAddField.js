@@ -7,15 +7,8 @@
 
 import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
-import {
-  ConfigBaseTypes,
-  CONFIG_FIELD_DELIMITER,
-} from '../../constants/ConfigConstants';
 import ConfigFormInput from './ConfigFormInput';
 import ConfigMetadataBlock from './ConfigMetadataBlock';
-import {createTextInput, createSelectInput} from '../../helpers/FormHelpers';
-import {debounce, difference, isPlainObject} from 'lodash';
-import {getFieldMetadata, validateField} from '../../helpers/ConfigHelpers';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -24,8 +17,15 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import React from 'react';
-import {toTitleCase} from '../../helpers/StringHelpers';
 import Typography from '@material-ui/core/Typography';
+import {
+  CONFIG_FIELD_DELIMITER,
+  ConfigBaseTypes,
+} from '../../constants/ConfigConstants';
+import {createSelectInput, createTextInput} from '../../helpers/FormHelpers';
+import {debounce, difference, isPlainObject} from 'lodash';
+import {getFieldMetadata, validateField} from '../../helpers/ConfigHelpers';
+import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

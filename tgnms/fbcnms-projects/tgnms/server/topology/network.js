@@ -5,14 +5,14 @@
  * @flow
  */
 
-import type {Topology} from '../models/topology';
+import {NodeStatusType} from '../../thrift/gen-nodejs/Topology_types';
 import type {Controller} from '../models/controller';
+import type {LinkType, NodeType} from '../../shared/types/Topology';
+import type {Topology} from '../models/topology';
 import type {
   WirelessController,
   WirelessControllerType,
 } from '../models/wirelessController';
-import type {NodeType, LinkType} from '../../shared/types/Topology';
-import {NodeStatusType} from '../../thrift/gen-nodejs/Topology_types';
 const {controller, topology, wireless_controller} = require('../models');
 import difference from 'lodash/difference';
 

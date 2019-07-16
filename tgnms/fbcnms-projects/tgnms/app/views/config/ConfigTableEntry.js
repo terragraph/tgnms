@@ -6,18 +6,10 @@
 'use strict';
 
 import AssistantIcon from '@material-ui/icons/Assistant';
-import classNames from 'classnames';
-import {
-  ConfigLayer,
-  CONFIG_FIELD_DELIMITER,
-} from '../../constants/ConfigConstants';
 import ConfigFormInput from './ConfigFormInput';
 import ConfigMetadataBlock from './ConfigMetadataBlock';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-import {getNodeIcon} from '../../helpers/MapPanelHelpers';
-import {isEqual, truncate} from 'lodash';
-import {toTitleCase} from '../../helpers/StringHelpers';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -26,13 +18,21 @@ import React from 'react';
 import RedoIcon from '@material-ui/icons/Redo';
 import SaveIcon from '@material-ui/icons/Save';
 import ScatterPlotIcon from '@material-ui/icons/ScatterPlot';
-import {shallowEqual, validateField} from '../../helpers/ConfigHelpers';
-import swal from 'sweetalert2';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import UndoIcon from '@material-ui/icons/Undo';
+import classNames from 'classnames';
+import swal from 'sweetalert2';
+import {
+  CONFIG_FIELD_DELIMITER,
+  ConfigLayer,
+} from '../../constants/ConfigConstants';
+import {getNodeIcon} from '../../helpers/MapPanelHelpers';
+import {isEqual, truncate} from 'lodash';
+import {shallowEqual, validateField} from '../../helpers/ConfigHelpers';
+import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

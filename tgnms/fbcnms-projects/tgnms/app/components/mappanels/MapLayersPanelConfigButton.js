@@ -10,8 +10,8 @@ import {withStyles} from '@material-ui/core/styles';
 import MaterialModal from '../common/MaterialModal';
 import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
 
-import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import Slider from 'rc-slider';
 
 const Range = Slider.createSliderWithTooltip(Slider.Range);
 

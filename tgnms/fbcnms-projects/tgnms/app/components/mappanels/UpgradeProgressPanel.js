@@ -7,7 +7,6 @@
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
-import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
 import InfoIcon from '@material-ui/icons/Info';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -17,6 +16,7 @@ import {
   UpgradeReqType,
   UpgradeStatusType,
 } from '../../../thrift/gen-nodejs/Controller_types';
+import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
 
 // Size of CircularProgress (in px)

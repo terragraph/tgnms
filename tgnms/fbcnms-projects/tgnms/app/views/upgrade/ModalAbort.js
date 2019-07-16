@@ -6,20 +6,20 @@
  */
 'use strict';
 
-import {
-  apiServiceRequest,
-  getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import MaterialModal from '../../components/common/MaterialModal';
 import React from 'react';
-import swal from 'sweetalert2';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import swal from 'sweetalert2';
+import {
+  apiServiceRequest,
+  getErrorTextFromE2EAck,
+} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

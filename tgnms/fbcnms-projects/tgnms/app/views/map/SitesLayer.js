@@ -5,20 +5,20 @@
  */
 'use strict';
 
+import PropTypes from 'prop-types';
+import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
-import {getNodePolarities} from '../../helpers/TgFeatures';
-import {
-  mapboxShouldAcceptClick,
-  hasNodeEverGoneOnline,
-} from '../../helpers/NetworkHelpers';
 import {
   NodeType,
   PolarityType,
 } from '../../../thrift/gen-nodejs/Topology_types';
-import {SiteOverlayColors} from '../../constants/LayerConstants';
 import {Popup} from 'react-mapbox-gl';
-import PropTypes from 'prop-types';
-import React from 'react';
+import {SiteOverlayColors} from '../../constants/LayerConstants';
+import {getNodePolarities} from '../../helpers/TgFeatures';
+import {
+  hasNodeEverGoneOnline,
+  mapboxShouldAcceptClick,
+} from '../../helpers/NetworkHelpers';
 import {isNodeAlive, renderSnrWithIcon} from '../../helpers/NetworkHelpers';
 import {withStyles} from '@material-ui/core/styles';
 

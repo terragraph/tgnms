@@ -6,20 +6,20 @@
  */
 'use strict';
 
-import {isEqual} from 'lodash';
-import type {ContextRouter} from 'react-router-dom';
-import {Link, Redirect, Route, Switch} from 'react-router-dom';
 import NetworkContext from '../../NetworkContext.js';
+import NetworkEventsTable from './NetworkEventsTable';
 import NetworkLinksTable from './NetworkLinksTable';
 import NetworkNodesTable from './NetworkNodesTable';
-import NetworkEventsTable from './NetworkEventsTable';
 import NetworkTestTable from './NetworkTestTable';
 import React from 'react';
-import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import Tabs from '@material-ui/core/Tabs';
+import {Link, Redirect, Route, Switch} from 'react-router-dom';
 import {NETWORK_TEST_ENABLED} from '../../constants/FeatureFlags';
+import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {isEqual} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
+import type {ContextRouter} from 'react-router-dom';
 
 const styles = theme => ({
   root: {

@@ -5,16 +5,16 @@
  */
 'use strict';
 
-import {isEqual} from 'lodash';
-import {NodeStatusType} from '../../thrift/gen-nodejs/Topology_types';
 import React from 'react';
 import SignalWifi0BarIcon from '@material-ui/icons/SignalWifi0Bar';
 import SignalWifi2BarIcon from '@material-ui/icons/SignalWifi2Bar';
 import SignalWifi4BarIcon from '@material-ui/icons/SignalWifi4Bar';
+import {NodeStatusType} from '../../thrift/gen-nodejs/Topology_types';
 import {
   SNR_THRESHOLD_MCS2,
   SNR_THRESHOLD_MCS9,
 } from '../constants/NetworkConstants';
+import {isEqual} from 'lodash';
 
 /** Returns whether a node is alive based on its status. */
 export function isNodeAlive(nodeStatus) {

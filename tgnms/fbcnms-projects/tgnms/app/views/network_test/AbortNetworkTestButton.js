@@ -6,8 +6,8 @@
  */
 'use strict';
 
-import React from 'react';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import React from 'react';
 
 import ProgressButton from '../../components/common/ProgressButton';
 

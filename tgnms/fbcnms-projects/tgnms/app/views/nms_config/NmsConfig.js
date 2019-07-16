@@ -5,15 +5,14 @@
  */
 'use strict';
 
-import axios from 'axios';
 import Button from '@material-ui/core/Button';
 import CustomSnackbar from '../../components/common/CustomSnackbar';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import ListSubheader from '@material-ui/core/ListSubheader';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import ListSubheader from '@material-ui/core/ListSubheader';
 import LoadingBox from '../../components/common/LoadingBox';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -24,7 +23,6 @@ import NetworkListContext from '../../NetworkListContext';
 import Paper from '@material-ui/core/Paper';
 import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd';
 import React from 'react';
-import {requestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import StatusIndicator, {
   StatusIndicatorColor,
 } from '../../components/common/StatusIndicator';
@@ -33,6 +31,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import axios from 'axios';
+import {requestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
