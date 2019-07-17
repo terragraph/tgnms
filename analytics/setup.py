@@ -6,7 +6,8 @@ from setuptools import setup
 
 setup(
     name="analytics",
-    version="2019.3.29",
+    version="2019.7.17",
+    python_requires=">=3.7",
     packages=[
         "link_insights",
         "module",
@@ -21,18 +22,20 @@ setup(
     package_data={"module": ["AnalyticsConfig.json"], "tests": ["auto_test.sh"]},
     include_package_data=True,
     install_requires=[
+        "aiohttp==3.5.4",
+        "aiomysql==0.0.20",
         "click==7.0",
         "django==2.1.1",
+        "flask==1.0.2",
         "jupyter==1.0.0",
         "matplotlib==2.2.2",
-        "numpy==1.14.5",
-        "PyMySQL==0.9.2",
-        "requests==2.19.1",
         "mysqlclient==1.3.13",
-        "tabulate==0.8.3",
+        "numpy==1.14.5",
+        "pymysql==0.9.2",
         "python-snappy==0.5.4",
-        "flask>=1.0.2",
-        "aiohttp>=3.5.4",
+        "requests==2.19.1",
+        "sqlalchemy==1.3.5",
+        "tabulate==0.8.3",
     ],
     # TODO: Add unit tests
     # test_suite="analytics.tests.base",
