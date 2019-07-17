@@ -22,6 +22,8 @@
     "@material-ui/core": "^3.9.1",
     "@material-ui/icons": "^3.0.2",
     "@material-ui/styles": "^3.0.0-alpha.7",
+    "@testing-library/react": "^8.0.2",
+    "@testing-library/react-hooks": "^1.0.4",
     "axios": "^0.18.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
