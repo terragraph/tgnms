@@ -111,11 +111,11 @@ const POLARITY_UI = {
 class NodeDetailsPanel extends React.Component {
   state = {};
 
-  getNodeLinks(node, links) {
+  getNodeLinks(node, links, linkType) {
     // Find all wireless links associated with this node
     return links.filter(
       link =>
-        link.link_type === LinkType.WIRELESS &&
+        link.link_type === linkType &&
         (link.a_node_name === node.name || link.z_node_name === node.name),
     );
   }
@@ -286,7 +286,11 @@ class NodeDetailsPanel extends React.Component {
   renderNodeLinksAndSite() {
     // Render node links and site
     const {classes, node, topology} = this.props;
-    const nodeLinks = this.getNodeLinks(node, topology.links);
+    const nodeLinks = this.getNodeLinks(
+      node,
+      topology.links,
+      LinkType.WIRELESS,
+    );
 
     return (
       <>
@@ -522,6 +526,10 @@ class NodeDetailsPanel extends React.Component {
           <Typography variant="subtitle2">Polarity</Typography>
           {this.renderPolarity()}
         </div>
+        <div>
+          <Typography variant="subtitle2">Ethernet Links</Typography>
+          {this.renderEthernetLinks()}
+        </div>
         {statusReport && statusReport.version
           ? this.renderSoftwareVersion(statusReport.version)
           : null}
@@ -581,6 +589,33 @@ class NodeDetailsPanel extends React.Component {
           return (
             <div className={classes.spaceBetween} key={macAddr}>
               <Typography>{macAddr}</Typography>
+              <Typography>
+                <span style={{color: color}}>{text}</span>
+              </Typography>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  renderEthernetLinks = () => {
+    const {classes, node, topology} = this.props;
+    const nodeLinks = this.getNodeLinks(
+      node,
+      topology.links,
+      LinkType.ETHERNET,
+    );
+
+    return (
+      <div className={classes.indented}>
+        {nodeLinks.map(link => {
+          const {color, text} = link.is_alive
+            ? {color: 'green', text: 'Online'}
+            : {color: 'red', text: 'Offline'};
+          return (
+            <div className={classes.spaceBetween} key={link.name}>
+              <Typography>{link.z_node_name}</Typography>
               <Typography>
                 <span style={{color: color}}>{text}</span>
               </Typography>
