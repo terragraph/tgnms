@@ -9,6 +9,15 @@ import BuildIcon from '@material-ui/icons/Build';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
+import {formatNumber} from '../../helpers/StringHelpers';
+import {
+  isNodeAlive,
+  renderAvailabilityWithColor,
+  renderStatusWithColor,
+  hasLinkEverGoneOnline,
+} from '../../helpers/NetworkHelpers';
+import {get} from 'lodash';
+import {LinkActionType} from '../../../thrift/gen-nodejs/Controller_types';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -21,7 +30,7 @@ import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
 import SyncIcon from '@material-ui/icons/Sync';
 import Typography from '@material-ui/core/Typography';
-import {LinkActionType} from '../../../thrift/gen-nodejs/Controller_types';
+import Text from '@fbcnms/i18n/Text';
 import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
@@ -30,13 +39,6 @@ import {
   getLinkIcon,
   getNodeIcon,
 } from '../../helpers/MapPanelHelpers';
-import {formatNumber} from '../../helpers/StringHelpers';
-import {
-  hasLinkEverGoneOnline,
-  isNodeAlive,
-  renderAvailabilityWithColor,
-  renderStatusWithColor,
-} from '../../helpers/NetworkHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -255,18 +257,26 @@ class LinkDetailsPanel extends React.Component {
       classes,
       link,
       networkLinkHealth,
+      networkLinkMetrics,
       ignitionEnabled,
       networkConfig,
     } = this.props;
     const availability = this.getAvailability(link, networkLinkHealth);
+    const linkAttempts = get(
+      networkLinkMetrics,
+      ['ignitionAttempts', link.name],
+      null,
+    );
+
     const linkType = Object.keys(LinkType).find(
       key => LinkType[key] === link.link_type,
     );
-
     return (
       <>
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Status</Typography>
+          <Text i18nKey="status" variant="subtitle2">
+            Status
+          </Text>
           <Typography>
             {renderStatusWithColor(
               link.is_alive,
@@ -279,7 +289,9 @@ class LinkDetailsPanel extends React.Component {
         </div>
         {link.link_type !== LinkType.WIRELESS ? (
           <div className={classes.spaceBetween}>
-            <Typography variant="subtitle2">Type</Typography>
+            <Text i18nKey="type" variant="subtitle2">
+              Type
+            </Text>
             <Typography>
               {linkType ? toTitleCase(linkType) : 'unknown'}
             </Typography>
@@ -287,34 +299,48 @@ class LinkDetailsPanel extends React.Component {
         ) : null}
         {link.is_backup_cn_link ? (
           <div className={classes.spaceBetween}>
-            <Typography variant="subtitle2">Role</Typography>
+            <Text i18nKey="role" variant="subtitle2">
+              Role
+            </Text>
             <Typography>Backup CN Link</Typography>
           </div>
         ) : null}
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Azimuth</Typography>
+          <Text i18nKey="azimuth" variant="subtitle2">
+            Azimuth
+          </Text>
           <Typography>{formatNumber(link._meta_.angle, 1)}&deg;</Typography>
         </div>
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Length</Typography>
+          <Text i18nKey="length" variant="subtitle2">
+            Length
+          </Text>
           <Typography>
             {formatNumber(link._meta_.distance, 1)} meters
           </Typography>
         </div>
         {!ignitionEnabled ? (
           <div className={classes.spaceBetween}>
-            <Typography variant="subtitle2">Link Ignition</Typography>
+            <Text i18nKey="link_ignition" variant="subtitle2">
+              Link Ignition
+            </Text>
             <Typography>
               {renderStatusWithColor(ignitionEnabled, 'Enabled', 'Disabled')}
             </Typography>
           </div>
         ) : null}
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Ignition Attempts</Typography>
-          <Typography>{formatNumber(link.linkup_attempts)}</Typography>
+          <Text i18nKey="ignition_attempts_1day" variant="subtitle2">
+            Ignition Attempts (1d)
+          </Text>
+          <Typography>
+            {linkAttempts ? formatNumber(Number.parseInt(linkAttempts)) : '-'}
+          </Typography>
         </div>
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Availability</Typography>
+          <Text i18nKey="availability" variant="subtitle2">
+            Availability
+          </Text>
           <Typography>
             {renderAvailabilityWithColor(formatNumber(availability))}
           </Typography>
@@ -363,6 +389,7 @@ LinkDetailsPanel.propTypes = {
   link: PropTypes.object.isRequired,
   nodeMap: PropTypes.object.isRequired,
   networkLinkHealth: PropTypes.object.isRequired,
+  networkLinkMetrics: PropTypes.object.isRequired,
   ignitionEnabled: PropTypes.bool.isRequired,
   onSelectNode: PropTypes.func.isRequired,
   pinned: PropTypes.bool.isRequired,

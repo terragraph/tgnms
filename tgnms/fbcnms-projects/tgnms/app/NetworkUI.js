@@ -7,6 +7,7 @@
 
 import E2EConfig from './views/config/E2EConfig';
 import Fade from '@material-ui/core/Fade';
+import {fetchLinkIgnitionAttempts} from './helpers/PrometheusHelpers';
 import LoadingBox from './components/common/LoadingBox';
 import NetworkConfig from './views/config/NetworkConfig';
 import NetworkContext from './NetworkContext';
@@ -116,6 +117,8 @@ class NetworkUI extends React.Component<Props, State> {
         networkNodeHealth: {},
         networkLinkHealth: {},
         networkAnalyzerData: {},
+        // fetched metrics to display
+        networkLinkIgnitionAttempts: {},
       });
       // fetch new network
       this.getCurrentNetworkStatus();
@@ -164,6 +167,15 @@ class NetworkUI extends React.Component<Props, State> {
             isReloading: false,
           });
         }
+      });
+
+    // fetch network-wide stats
+    fetchLinkIgnitionAttempts(networkName, '1d')
+      .then(linkMetricsResp => {
+        this.setState({networkLinkIgnitionAttempts: linkMetricsResp.data});
+      })
+      .catch(err => {
+        console.error('Unable to fetch link ignition attempts:', err);
       });
   };
 
@@ -362,6 +374,9 @@ class NetworkUI extends React.Component<Props, State> {
             networkLinkHealth: this.state.networkLinkHealth,
             networkNodeHealth: this.state.networkNodeHealth,
             networkAnalyzerData: this.state.networkAnalyzerData,
+            networkLinkMetrics: {
+              ignitionAttempts: this.state.networkLinkIgnitionAttempts,
+            },
 
             // Refresh data
             refreshNetworkConfig: this.refreshNetworkConfig,

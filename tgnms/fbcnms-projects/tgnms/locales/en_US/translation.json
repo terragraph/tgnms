@@ -1,6 +1,6 @@
 {
   "open_drawer": "Open drawer",
-  "_t": "Mon Jul 08 2019 10:11:30 GMT-0700 (Pacific Daylight Time)",
+  "_t": "Thu Jul 18 2019 14:04:12 GMT-0700 (Pacific Daylight Time)",
   "network": "Network",
   "Map": "Map",
   "no_networks_defined": "No networks defined.",
@@ -18,5 +18,10 @@
   "not_selected": "Not Selected",
   "submit_bug": "Submit Bug",
   "Logs": "Logs",
-  "Network Tests": "Network Tests"
+  "Network Tests": "Network Tests",
+  "status": "Status",
+  "azimuth": "Azimuth",
+  "length": "Length",
+  "ignition_attempts_1day": "Ignition Attempts (1d)",
+  "availability": "Availability"
 }

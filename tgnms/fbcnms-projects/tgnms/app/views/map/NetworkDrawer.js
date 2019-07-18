@@ -387,6 +387,7 @@ class NetworkDrawer extends React.Component {
       networkName,
       networkNodeHealth,
       networkLinkHealth,
+      networkLinkMetrics,
       nodeMap,
       linkMap,
       siteMap,
@@ -452,6 +453,7 @@ class NetworkDrawer extends React.Component {
             link={link}
             nodeMap={nodeMap}
             networkLinkHealth={networkLinkHealth}
+            networkLinkMetrics={networkLinkMetrics}
             networkConfig={networkConfig}
             ignitionEnabled={
               !(

@@ -12,6 +12,7 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
+import {get} from 'lodash';
 import NetworkContext from '../../NetworkContext';
 import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
@@ -134,7 +135,7 @@ class NetworkLinksTable extends React.Component {
     },
     {
       key: 'linkup_attempts',
-      label: 'Ignition Attempts',
+      label: 'Ignition Attempts (1d)',
       sort: true,
       width: 100,
     },
@@ -266,7 +267,7 @@ class NetworkLinksTable extends React.Component {
     {key: 'type', label: 'Type', width: 100},
     {
       key: 'linkup_attempts',
-      label: 'Ignition Attempts',
+      label: 'Ignition Attempts (1d)',
       sort: true,
       width: 100,
     },
@@ -354,6 +355,7 @@ class NetworkLinksTable extends React.Component {
       const link = context.linkMap[linkName];
       let alivePerc = null;
       let availPerc = null;
+      let linkupAttempts = null;
       if (
         context.networkLinkHealth &&
         context.networkLinkHealth.hasOwnProperty('events') &&
@@ -363,8 +365,6 @@ class NetworkLinksTable extends React.Component {
         alivePerc = linkHealth.linkAlive;
         availPerc = linkHealth.linkAvailForData || NaN;
       }
-
-      const linkupAttempts = link.linkup_attempts || 0;
       if (link.link_type === LinkType.ETHERNET && this.state.hideWired) {
         return;
       }
@@ -385,6 +385,12 @@ class NetworkLinksTable extends React.Component {
         // skip since it's DN to DN
         return;
       }
+      linkupAttempts = get(
+        context,
+        ['networkLinkMetrics', 'ignitionAttempts', link.name],
+        null,
+      );
+      linkupAttempts = linkupAttempts ? Number.parseInt(linkupAttempts) : '-';
       rows.push({
         a_node_name: link.a_node_name,
         alive: link.is_alive,
