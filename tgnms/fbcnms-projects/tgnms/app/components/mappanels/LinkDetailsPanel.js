@@ -9,15 +9,6 @@ import BuildIcon from '@material-ui/icons/Build';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
-import {formatNumber} from '../../helpers/StringHelpers';
-import {
-  isNodeAlive,
-  renderAvailabilityWithColor,
-  renderStatusWithColor,
-  hasLinkEverGoneOnline,
-} from '../../helpers/NetworkHelpers';
-import {get} from 'lodash';
-import {LinkActionType} from '../../../thrift/gen-nodejs/Controller_types';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -29,8 +20,9 @@ import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
 import SyncIcon from '@material-ui/icons/Sync';
-import Typography from '@material-ui/core/Typography';
 import Text from '@fbcnms/i18n/Text';
+import Typography from '@material-ui/core/Typography';
+import {LinkActionType} from '../../../thrift/gen-nodejs/Controller_types';
 import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
@@ -39,6 +31,14 @@ import {
   getLinkIcon,
   getNodeIcon,
 } from '../../helpers/MapPanelHelpers';
+import {formatNumber} from '../../helpers/StringHelpers';
+import {get} from 'lodash';
+import {
+  hasLinkEverGoneOnline,
+  isNodeAlive,
+  renderAvailabilityWithColor,
+  renderStatusWithColor,
+} from '../../helpers/NetworkHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';

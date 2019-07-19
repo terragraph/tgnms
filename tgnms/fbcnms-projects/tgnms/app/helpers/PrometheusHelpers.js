@@ -5,17 +5,16 @@
  */
 'use strict';
 
-import {promQueryByLinkLatestRequest} from '../apiutils/PrometheusAPIUtil';
 import {STATS_DEFAULT_INTERVAL_SEC} from '../constants/StatsConstants';
+import {promQueryByLinkLatestRequest} from '../apiutils/PrometheusAPIUtil';
 
 export function fetchLinkIgnitionAttempts(
   networkName: string,
   intervalString: string,
 ) {
-  return promQueryByLinkLatestRequest(
-    networkName,
-    'increase(link_attempts',
-    `[${intervalString}])`,
-    STATS_DEFAULT_INTERVAL_SEC,
-  );
+  return promQueryByLinkLatestRequest({
+    topologyName: networkName,
+    queryStart: 'increase(link_attempts',
+    queryEnd: `[${intervalString}])`,
+  });
 }

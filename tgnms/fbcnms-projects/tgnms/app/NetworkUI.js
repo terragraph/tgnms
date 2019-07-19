@@ -7,7 +7,6 @@
 
 import E2EConfig from './views/config/E2EConfig';
 import Fade from '@material-ui/core/Fade';
-import {fetchLinkIgnitionAttempts} from './helpers/PrometheusHelpers';
 import LoadingBox from './components/common/LoadingBox';
 import NetworkConfig from './views/config/NetworkConfig';
 import NetworkContext from './NetworkContext';
@@ -24,6 +23,7 @@ import React from 'react';
 import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {TopologyElementType} from './constants/NetworkConstants.js';
+import {fetchLinkIgnitionAttempts} from './helpers/PrometheusHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

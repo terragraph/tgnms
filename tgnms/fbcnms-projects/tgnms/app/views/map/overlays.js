@@ -90,10 +90,33 @@ const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
     range: [1, 5, 10, 100],
     bounds: [0, 100],
   },
-  link_utilization: {
-    name: 'Link Utilization',
+  link_utilization_mbps: {
+    name: 'Link Utilization (mbps)',
     type: 'metric',
-    id: 'link_utilization',
+    id: 'link_utilization_mbps',
+    metrics: ['tx_bytes', 'rx_bytes'],
+    // thresholds aren't scientific
+    range: [0.1, 250, 500, 2000],
+    bounds: [0, 2000],
+    units: 'mbps',
+    aggregate: (metricData: any) => {
+      if (metricData === null) {
+        return -1;
+      }
+      const {rx_bytes, tx_bytes} = metricData;
+      const totalTrafficBps =
+        ((Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8) /
+        1000.0;
+      return totalTrafficBps / 1000.0 / 1000.0;
+    },
+    formatText: (_link, value: number) => {
+      return value >= 0 ? `${formatNumber(value, 1)} mbps` : '';
+    },
+  },
+  link_utilization_mcs: {
+    name: 'Link Utilization (MCS rate)',
+    type: 'metric',
+    id: 'link_utilization_mcs',
     metrics: ['tx_bytes', 'rx_bytes', 'mcs'],
     range: [0.1, 1, 10, 100],
     bounds: [0, 100],
@@ -104,7 +127,10 @@ const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
       }
       const {rx_bytes, tx_bytes, mcs} = metricData;
       const mcsCapacityBits = MCS_DATARATE_TABLE[mcs];
-      return (8 * (rx_bytes + tx_bytes) * 100) / mcsCapacityBits;
+      const totalTrafficBps =
+        ((Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8) /
+        1000.0;
+      return (totalTrafficBps / mcsCapacityBits) * 100.0;
     },
     formatText: (_link, value: number) => {
       return value >= 0 ? `${formatNumber(value, 1)}%` : '';
@@ -144,7 +170,7 @@ export class LinkMetricsOverlayStrategy implements OverlayStrategy {
       return Promise.resolve([]);
     }
     const metricName = Array.isArray(overlayDef.metrics)
-      ? overlayDef.metrics[0]
+      ? overlayDef.metrics.join(',')
       : overlayDef.id;
 
     //TODO: share flow types with backend here

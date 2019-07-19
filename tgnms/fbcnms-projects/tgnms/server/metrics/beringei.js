@@ -18,11 +18,11 @@ const router = express.Router();
 
 // raw stats data
 router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
-  const {metricName, topologyName} = req.params;
-
+  const {topologyName} = req.params;
+  const metricName = req.params.metricName.split(',');
   const linkQuery = {
     aggregation: GraphAggregation.LATEST,
-    keyNames: [metricName],
+    keyNames: metricName,
     maxResults: 0 /* All results */,
     minAgo: 60 /* 1 hour */,
     outputFormat: StatsOutputFormat.RAW_LINK,

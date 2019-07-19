@@ -18,89 +18,108 @@ const moment = require('moment');
 const {getNetworkState} = require('../topology/model');
 
 /** Query latest data and group by link name (and direction) */
-export function queryLatestByLink(
-  topologyName,
-  promQuery,
-  res,
-  groupByLinkDirection = true,
-) {
-  request.post(
-    {
-      form: promQuery,
-      url: `${PROMETHEUS_URL}/api/v1/query`,
-    },
-    (err, httpResponse, _body) => {
-      if (err) {
-        logger.error('Error fetching from prometheus: %s', err);
-        res
-          .status(500)
-          .send('Error fetching data')
-          .end();
-        return;
-      }
-      // transform data into expected format
-      try {
-        const promResp = JSON.parse(httpResponse.body);
-        if (
-          promResp.data &&
-          promResp.data.result &&
-          typeof promResp.data.result === 'object'
-        ) {
-          const networkState = getNetworkState(topologyName);
-          if (
-            !networkState ||
-            !networkState.topology ||
-            !networkState.topology.links
-          ) {
-            logger.error('No topology for:', topologyName);
-            res.status(500).end();
-            return;
-          }
-          // loop over link names in topology, converting characters
-          // prometheus doesn't like
-          const linkList = {};
-          networkState.topology.links.forEach(link => {
-            // map prometheus-acceptable name to real name
-            linkList[formatPrometheusLabel(link.name)] = link.name;
-          });
-          const retMetricList = {};
-          promResp.data.result.forEach(promData => {
-            const {linkName, linkDirection, __name__} = promData.metric;
-            // match prometheus link names
-            if (!linkList.hasOwnProperty(linkName)) {
-              logger.debug(
-                'Unable to match prometheus link name in topology: ',
-                linkName,
-              );
-              return;
-            }
-            const realLinkName = linkList[linkName];
-            // return a mapping of linkName -> value if no grouping
-            if (!groupByLinkDirection) {
-              retMetricList[realLinkName] = promData.value[1];
-            } else {
-              // group by link name, link direction, and metric name
-              if (!retMetricList.hasOwnProperty(realLinkName)) {
-                retMetricList[realLinkName] = {};
-              }
-              if (!retMetricList[realLinkName].hasOwnProperty(linkDirection)) {
-                retMetricList[realLinkName][linkDirection] = {};
-              }
-              retMetricList[realLinkName][linkDirection][__name__] =
-                promData.value[1];
-            }
-          });
-          res.send(retMetricList).end();
-          return;
+function queryLatestByLink(
+  topologyName: string,
+  promQuery: string,
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    request.post(
+      {
+        form: {query: promQuery},
+        url: `${PROMETHEUS_URL}/api/v1/query`,
+      },
+      (err, httpResponse, _body) => {
+        if (err) {
+          return reject('Error fetching data');
         }
-        res.status(500).end();
+        // transform data
+        return resolve(httpResponse.body);
+      },
+    );
+  });
+}
+
+function flattenPrometheusResponse(httpResponse): Promise<any> {
+  return new Promise((resolve, reject) => {
+    if (typeof httpResponse === 'object') {
+      const promResults = [];
+      httpResponse.forEach(response => {
+        try {
+          const promResponse = JSON.parse(response);
+          if (promResponse.status !== 'success') {
+            return reject('Failed fetching from prometheus');
+          }
+          promResponse.data.result.forEach(result => promResults.push(result));
+        } catch (ex) {
+          return reject('Failed parsing prometheus response from JSON');
+        }
+      });
+      return resolve(promResults);
+    } else {
+      try {
+        const promResponse = JSON.parse(httpResponse);
+        if (promResponse.status !== 'success') {
+          return reject('Failed fetching from prometheus');
+        }
+        return resolve(promResponse.data.result);
       } catch (ex) {
-        logger.error('Failed to parse prometheus json:', httpResponse.body);
-        res.status(500).end();
+        return reject('Failed parsing prometheus response from JSON');
+      }
+    }
+  });
+}
+
+function groupByLink(
+  promRespList: object,
+  topologyName: string,
+  groupByLinkDirection: boolean = true,
+): Promise<any> {
+  // transform data into expected format
+  return new Promise((resolve, reject) => {
+    const networkState = getNetworkState(topologyName);
+    if (
+      !networkState ||
+      !networkState.topology ||
+      !networkState.topology.links
+    ) {
+      return reject('No topology cache');
+    }
+    // loop over link names in topology, converting characters
+    // prometheus doesn't like
+    const linkList = {};
+    networkState.topology.links.forEach(link => {
+      // map prometheus-acceptable name to real name
+      linkList[formatPrometheusLabel(link.name)] = link.name;
+    });
+    const retMetricList = {};
+    promRespList.forEach(promData => {
+      const {linkName, linkDirection, __name__} = promData.metric;
+      // match prometheus link names
+      if (!linkList.hasOwnProperty(linkName)) {
+        logger.debug(
+          'Unable to match prometheus link name in topology: ',
+          linkName,
+        );
         return;
       }
-    },
-  );
+      const realLinkName = linkList[linkName];
+      // return a mapping of linkName -> value if no grouping
+      if (!groupByLinkDirection) {
+        retMetricList[realLinkName] = promData.value[1];
+      } else {
+        // group by link name, link direction, and metric name
+        if (!retMetricList.hasOwnProperty(realLinkName)) {
+          retMetricList[realLinkName] = {};
+        }
+        if (!retMetricList[realLinkName].hasOwnProperty(linkDirection)) {
+          retMetricList[realLinkName][linkDirection] = {};
+        }
+        retMetricList[realLinkName][linkDirection][__name__] =
+          promData.value[1];
+      }
+    });
+    return resolve(retMetricList);
+  });
 }
 
 const router = express.Router();
@@ -108,11 +127,19 @@ const router = express.Router();
 // query for latest value for a single metric across the network
 router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
   const {metricName, topologyName} = req.params;
-
-  const promQuery = {
-    query: `${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
-  };
-  return queryLatestByLink(topologyName, promQuery, res);
+  const metricNameList = metricName.split(',');
+  // query all metrics, flatten results (if needed), then return a result set
+  Promise.all(
+    metricNameList.map(metricName =>
+      queryLatestByLink(
+        topologyName,
+        `${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
+      ),
+    ),
+  )
+    .then(flattenPrometheusResponse)
+    .then(result => groupByLink(result, topologyName))
+    .then(result => res.json(result).end());
 });
 
 // query for the latest data point only and format by link
@@ -120,15 +147,19 @@ router.post('/query/link/latest', (req, res) => {
   // split the query into parts to enforce network and intervalSec is set
   const {queryStart, topologyName, dsIntervalSec} = req.body;
   const queryEnd = req.body.queryEnd || '';
-  const promQuery = {
-    query: `${queryStart}{network="${topologyName}",intervalSec="${dsIntervalSec}"}${queryEnd}`,
-  };
-  return queryLatestByLink(
-    topologyName,
-    promQuery,
-    res,
-    false /* groupByLinkDirection */,
-  );
+  const promQuery = `${queryStart}{network="${topologyName}",intervalSec="${dsIntervalSec}"}${queryEnd}`;
+  queryLatestByLink(topologyName, promQuery)
+    .then(flattenPrometheusResponse)
+    .then(result =>
+      groupByLink(result, topologyName, false /* groupByLinkDirection */),
+    )
+    .then(result => res.json(result).end())
+    .catch(err =>
+      res
+        .status(500)
+        .send(err)
+        .end(),
+    );
 });
 
 router.post('/query', (req, res) => {
