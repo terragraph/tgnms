@@ -35,8 +35,11 @@ import {
   sendTopologyEditRequest,
 } from '../../helpers/MapPanelHelpers';
 import {isEqual} from 'lodash';
+import {
+  supportsUserSpecifiedPolairtyAndGolay,
+  useNodeWlanMacs,
+} from '../../helpers/TgFeatures';
 import {toTitleCase} from '../../helpers/StringHelpers';
-import {useNodeWlanMacs} from '../../helpers/TgFeatures';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -260,27 +263,31 @@ class AddNodePanel extends React.Component {
       },
     ];
     const advancedInputs = [
-      {
-        func: createSelectInput,
-        label: 'Polarity',
-        value: 'polarity',
-        required: false,
-        menuItems: polarityMenuItems,
-      },
-      {
-        func: createNumericInput,
-        label: 'Tx Golay Index',
-        value: 'txGolayIdx',
-        required: false,
-        step: 1,
-      },
-      {
-        func: createNumericInput,
-        label: 'Rx Golay Index',
-        value: 'rxGolayIdx',
-        required: false,
-        step: 1,
-      },
+      ...(supportsUserSpecifiedPolairtyAndGolay(ctrlVersion)
+        ? [
+            {
+              func: createSelectInput,
+              label: 'Polarity',
+              value: 'polarity',
+              required: false,
+              menuItems: polarityMenuItems,
+            },
+            {
+              func: createNumericInput,
+              label: 'Tx Golay Index',
+              value: 'txGolayIdx',
+              required: false,
+              step: 1,
+            },
+            {
+              func: createNumericInput,
+              label: 'Rx Golay Index',
+              value: 'rxGolayIdx',
+              required: false,
+              step: 1,
+            },
+          ]
+        : []),
       ...(useNodeWlanMacs(ctrlVersion)
         ? [
             {

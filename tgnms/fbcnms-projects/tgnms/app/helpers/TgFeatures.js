@@ -133,3 +133,12 @@ export function supportsTopologyScan(ctrlVersion) {
 export function supportsTopologyDiscovery(ctrlVersion) {
   return !ctrlVerBefore(ctrlVersion, CtrlVerType.M30);
 }
+
+/**
+ * Check if the node structure supports user-specified Polarity
+ * and Golay_idx. No longer supporting these fields starting
+ * RELEASE_M37.
+ */
+export function supportsUserSpecifiedPolairtyAndGolay(ctrlVersion) {
+  return ctrlVerBefore(ctrlVersion, CtrlVerType.M37);
+}
