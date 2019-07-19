@@ -31,6 +31,7 @@ setup(
         "matplotlib==2.2.2",
         "mysqlclient==1.3.13",
         "numpy==1.14.5",
+        "pandas==0.25.0",
         "pymysql==0.9.2",
         "python-snappy==0.5.4",
         "requests==2.19.1",
