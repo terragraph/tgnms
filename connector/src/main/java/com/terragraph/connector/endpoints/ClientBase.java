@@ -30,7 +30,11 @@ public abstract class ClientBase<T, E> implements Client<T> {
 	private long queueStartTs;
 
 	/** Constructor. */
-	public ClientBase(int minBatchSize, int maxQueueIntervalMs) {
+	public ClientBase(int minBatchSize, int maxQueueIntervalMs) throws IllegalArgumentException {
+		if (minBatchSize <= 0 || maxQueueIntervalMs <= 0) {
+			throw new IllegalArgumentException(
+				String.format("minBatchSize: %d, maxQueueIntervalMs: %d", minBatchSize, maxQueueIntervalMs));
+		}
 		this.minBatchSize = minBatchSize;
 		this.maxQueueIntervalMs = maxQueueIntervalMs;
 	}

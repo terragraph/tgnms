@@ -16,7 +16,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,34 +92,25 @@ public class TgMySqlManager implements Closeable {
 	}
 
 	/** Write the given list of events. */
-	public boolean writeEvents(
-		List<Event> events,
-		Map<String, String> macToTopologyMap,
-		Map<String, String> topologyNameMap
-	) {
+	public boolean writeEvents(List<Event> events) {
 		String sql =
 			"INSERT INTO `events` (" +
-				"`timestamp`, `topologyName`, `nodeId`, `entity`, `source`, " +
-				"`level`, `category`, `eventId`, `reason`, `details`" +
-			") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"`timestamp`, `topologyName`, `nodeId`, `nodeName`, `entity`, " +
+				"`source`, `level`, `category`, `eventId`, `reason`, `details`" +
+			") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		try (PreparedStatement stmt = connection.prepareStatement(sql)) {
 			for (Event event : events) {
-				String topologyName = null;
-				if (event.topologyName != null && topologyNameMap.containsKey(event.topologyName)) {
-					topologyName = topologyNameMap.get(event.topologyName);
-				} else if (event.nodeId != null && !event.nodeId.isEmpty()) {
-					topologyName = macToTopologyMap.get(event.nodeId);
-				}
 				stmt.setLong(1, event.timestamp);
-				stmt.setString(2, topologyName);
+				stmt.setString(2, event.topologyName);
 				stmt.setString(3, event.nodeId);
-				stmt.setString(4, event.entity);
-				stmt.setString(5, event.source);
-				stmt.setInt(6, event.level);
-				stmt.setInt(7, event.category);
-				stmt.setInt(8, event.eventId);
-				stmt.setString(9, event.reason);
-				stmt.setString(10, event.details);
+				stmt.setString(4,  event.nodeName);
+				stmt.setString(5, event.entity);
+				stmt.setString(6, event.source);
+				stmt.setInt(7, event.level);
+				stmt.setInt(8, event.category);
+				stmt.setInt(9, event.eventId);
+				stmt.setString(10, event.reason);
+				stmt.setString(11, event.details);
 				stmt.addBatch();
 			}
 			int[] res = stmt.executeBatch();

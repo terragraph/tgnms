@@ -19,4 +19,5 @@ public class Event {
 	public String nodeId;
 	public int eventId;
 	public String topologyName;
+	public String nodeName;
 }
