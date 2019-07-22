@@ -90,7 +90,7 @@ class NetworkStatsBeringei extends React.Component<Props, State> {
     return [];
   }
 
-  formatKeyOptions(keyOptions, selectedOptions) {
+  formatKeyOptions(searchTerm, keyOptions, selectedOptions) {
     const retKeys = [];
     if (typeof keyOptions === 'object') {
       // aggregate data for this key
@@ -107,6 +107,12 @@ class NetworkStatsBeringei extends React.Component<Props, State> {
         });
       });
     }
+    // Sort retKeys to show better results on top
+    retKeys.sort(
+      (a, b) =>
+        Math.abs(searchTerm.length - a.label.length) -
+        Math.abs(searchTerm.length - b.label.length),
+    );
     return retKeys;
   }
 
@@ -130,6 +136,7 @@ class NetworkStatsBeringei extends React.Component<Props, State> {
     axios.post('/metrics/stats_ta', taRequest).then(response => {
       cb(
         this.formatKeyOptions(
+          searchTerm,
           response.data,
           new Set(this.state.keysSelected.map(entry => entry.label)),
         ),
