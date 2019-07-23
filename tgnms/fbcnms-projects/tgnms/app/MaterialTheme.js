@@ -10,12 +10,8 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import amber from '@material-ui/core/colors/amber';
 import green from '@material-ui/core/colors/green';
 import {JssProvider} from 'react-jss';
-import {
-  MuiThemeProvider,
-  createGenerateClassName,
-  createMuiTheme,
-} from '@material-ui/core/styles';
-import {StylesProvider} from '@material-ui/styles';
+import {MuiThemeProvider, createMuiTheme} from '@material-ui/core/styles';
+import {StylesProvider, createGenerateClassName} from '@material-ui/styles';
 
 // both styling solutions need to share the same classname generator
 const generateClassName = createGenerateClassName();
@@ -24,7 +20,6 @@ const generateClassName = createGenerateClassName();
 const theme = createMuiTheme({
   typography: {
     htmlFontSize: 18,
-    useNextVariants: true,
   },
   palette: {
     success: {

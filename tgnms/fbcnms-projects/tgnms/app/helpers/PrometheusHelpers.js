@@ -5,7 +5,6 @@
  */
 'use strict';
 
-import {STATS_DEFAULT_INTERVAL_SEC} from '../constants/StatsConstants';
 import {promQueryByLinkLatestRequest} from '../apiutils/PrometheusAPIUtil';
 
 export function fetchLinkIgnitionAttempts(

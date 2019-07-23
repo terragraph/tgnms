@@ -24,11 +24,7 @@ export function render(
   const generateClassName = createGenerateClassName();
   const sheetsManager = new Map();
   //TODO: use the same theme as the app
-  const theme = createMuiTheme({
-    typography: {
-      useNextVariants: true,
-    },
-  });
+  const theme = createMuiTheme({});
   const app: string = renderToString(
     <JssProvider registry={sheets} generateClassName={generateClassName}>
       <MuiThemeProvider theme={theme} sheetsManager={sheetsManager}>
