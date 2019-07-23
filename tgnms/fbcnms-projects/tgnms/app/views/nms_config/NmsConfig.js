@@ -375,7 +375,7 @@ class NmsConfig extends React.Component {
             <ListItemIcon>
               <EditIcon />
             </ListItemIcon>
-            <ListItemText inset primary="Edit Network" />
+            <ListItemText primary="Edit Network" />
           </MenuItem>
           <MenuItem
             onClick={() => {
@@ -388,7 +388,7 @@ class NmsConfig extends React.Component {
             <ListItemIcon>
               <DeleteForeverIcon className={classes.deleteIcon} />
             </ListItemIcon>
-            <ListItemText inset primary="Delete Network" />
+            <ListItemText primary="Delete Network" />
           </MenuItem>
         </Menu>
 

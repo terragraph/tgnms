@@ -53,7 +53,8 @@ const styles = theme => ({
   closeIconButton: {
     padding: '6px',
     right: 18,
-
+    position: 'absolute',
+    top: '50%',
     // Disable rotation
     transform: 'translateY(-50%) !important',
     transition: 'none',
@@ -65,6 +66,7 @@ const styles = theme => ({
     display: 'flex',
     justifyContent: 'space-between',
     width: '100%',
+    paddingRight: theme.spacing(3),
   },
   progress: {
     position: 'absolute',

@@ -60,7 +60,7 @@ const styles = theme => {
     },
     bodyTypo: {
       fontWeight: theme.typography.fontWeightRegular,
-      ...theme.typography.body1,
+      ...theme.typography.body2,
     },
   };
 };

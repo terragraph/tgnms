@@ -18,9 +18,6 @@ const generateClassName = createGenerateClassName();
 
 // default theme
 const theme = createMuiTheme({
-  typography: {
-    htmlFontSize: 18,
-  },
   palette: {
     success: {
       light: green[100],

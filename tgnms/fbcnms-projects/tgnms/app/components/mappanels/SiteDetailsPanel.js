@@ -41,7 +41,8 @@ const styles = theme => ({
     paddingRight: theme.spacing(1),
   },
   listItemIcon: {
-    marginRight: 0,
+    marginRight: theme.spacing(1),
+    minWidth: 'unset',
   },
   sectionSpacer: {
     height: theme.spacing(1),
