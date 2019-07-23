@@ -16,10 +16,14 @@ import {TEST_STATUS} from '../../../shared/dto/TestExecution';
 import type {TestExecution} from '../../../shared/dto/TestExecution';
 
 type TestStatusProps = {|execution: TestExecution, className: string|};
-export default function TestStatus(props: TestStatusProps) {
+
+export default React.forwardRef<TestStatusProps, void>(function TestStatus(
+  props: TestStatusProps,
+  ref: any,
+) {
   const {text, icon: StatusIcon} = getStatusDef(props.execution.status);
-  return <StatusIcon title={text} {...props} />;
-}
+  return <StatusIcon title={text} {...props} ref={ref} />;
+});
 
 type StatusDef = {
   text: string,
@@ -31,27 +35,37 @@ type StatusDef = {
 const statusMap: {[number | string]: StatusDef} = {
   [TEST_STATUS.FINISHED]: {
     text: 'Finished',
-    icon: props => <CheckIcon color="primary" {...props} />,
+    icon: React.forwardRef((props, ref) => (
+      <CheckIcon color="primary" {...props} ref={ref} />
+    )),
   },
   [TEST_STATUS.ABORTED]: {
     text: 'Aborted',
-    icon: props => <CancelIcon {...props} />,
+    icon: React.forwardRef((props, ref) => <CancelIcon {...props} ref={ref} />),
   },
   [TEST_STATUS.FAILED]: {
     text: 'Failed',
-    icon: props => <ErrorOutlineIcon color="error" {...props} />,
+    icon: React.forwardRef((props, ref) => (
+      <ErrorOutlineIcon color="error" {...props} ref={ref} />
+    )),
   },
   [TEST_STATUS.SCHEDULED]: {
     text: 'Scheduled',
-    icon: props => <AccessTimeIcon color="primary" {...props} />,
+    icon: React.forwardRef((props, ref) => (
+      <AccessTimeIcon color="primary" {...props} ref={ref} />
+    )),
   },
   [TEST_STATUS.QUEUED]: {
     text: 'Queued',
-    icon: props => <AccessTimeIcon color="primary" {...props} />,
+    icon: React.forwardRef((props, ref) => (
+      <AccessTimeIcon color="primary" {...props} ref={ref} />
+    )),
   },
   [TEST_STATUS.RUNNING]: {
     text: 'Running',
-    icon: props => <RunningTestIndicator {...props} />,
+    icon: React.forwardRef((props, ref) => (
+      <RunningTestIndicator {...props} ref={ref} />
+    )),
   },
   unknown: {
     text: 'Unknown',

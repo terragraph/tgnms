@@ -538,9 +538,13 @@ function TestLink({
   title: string,
 }) {
   const stopPropagation = React.useCallback(e => e.stopPropagation(), []);
+  const renderLink = React.useMemo(
+    () => React.forwardRef((props, ref) => <Link {...props} innerRef={ref} />),
+    [],
+  );
   return (
     <Tooltip title={title} placement="top">
-      <IconButton component={Link} onClick={stopPropagation} to={to}>
+      <IconButton component={renderLink} onClick={stopPropagation} to={to}>
         {children}
       </IconButton>
     </Tooltip>

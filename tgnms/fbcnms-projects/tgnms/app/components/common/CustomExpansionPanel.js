@@ -20,6 +20,7 @@ import PropTypes from 'prop-types';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
+import type {ForwardRef} from './ForwardRef';
 
 const styles = theme => ({
   panelHeading: {
@@ -108,7 +109,7 @@ export type Props = {
   pinned?: boolean,
   showLoadingBar?: boolean,
   showTitleCopyTooltip?: boolean,
-};
+} & ForwardRef;
 
 class CustomExpansionPanel extends React.Component<Props> {
   render() {
@@ -176,7 +177,8 @@ class CustomExpansionPanel extends React.Component<Props> {
       <ExpansionPanel
         classes={className ? {root: className} : {}}
         expanded={expanded}
-        onChange={onChange}>
+        onChange={onChange}
+        ref={this.props.fwdRef}>
         <ExpansionPanelSummary
           classes={{root: classes.panelSummary}}
           {...closeButtonProps}>

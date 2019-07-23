@@ -47,6 +47,7 @@ import {
 import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import {supportsTopologyScan} from '../../helpers/TgFeatures';
+import {withForwardRef} from '../common/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -571,6 +572,7 @@ class NodeDetailsPanel extends React.Component {
         pinned={this.props.pinned}
         showLoadingBar={true}
         showTitleCopyTooltip={true}
+        fwdRef={this.props.fwdRef}
       />
     );
   }
@@ -653,4 +655,4 @@ NodeDetailsPanel.propTypes = {
   onUpdateRoutes: PropTypes.func,
 };
 
-export default withStyles(styles)(withRouter(NodeDetailsPanel));
+export default withForwardRef(withStyles(styles)(withRouter(NodeDetailsPanel)));

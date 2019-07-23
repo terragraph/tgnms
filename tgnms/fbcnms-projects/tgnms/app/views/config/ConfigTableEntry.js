@@ -456,7 +456,7 @@ class ConfigTableEntry extends React.Component<Props, State> {
         isSelected && classes.tdExpanded,
         hasOverride && classes.bold,
       ),
-      padding: 'dense',
+      size: 'small',
     };
     const detailsTdProps = {
       className: classNames(

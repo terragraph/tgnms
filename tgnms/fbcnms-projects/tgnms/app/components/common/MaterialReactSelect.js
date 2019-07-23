@@ -25,6 +25,7 @@ const styles = theme => ({
   input: {
     display: 'flex',
     padding: 0,
+    height: '100%',
   },
   valueContainer: {
     display: 'flex',

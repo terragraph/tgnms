@@ -5,6 +5,7 @@
  */
 'use strict';
 
+import * as React from 'react';
 import BuildIcon from '@material-ui/icons/Build';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -15,7 +16,6 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import PropTypes from 'prop-types';
-import React from 'react';
 import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
@@ -40,6 +40,7 @@ import {
   renderStatusWithColor,
 } from '../../helpers/NetworkHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
+import {withForwardRef} from '../common/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -363,8 +364,15 @@ class LinkDetailsPanel extends React.Component {
   }
 
   render() {
-    const {classes, expanded, onPanelChange, onClose, onPin, link} = this.props;
-
+    const {
+      classes,
+      expanded,
+      onPanelChange,
+      onClose,
+      onPin,
+      pinned,
+      link,
+    } = this.props;
     return (
       <CustomExpansionPanel
         title={link.name}
@@ -374,9 +382,10 @@ class LinkDetailsPanel extends React.Component {
         onChange={onPanelChange}
         onClose={onClose}
         onPin={onPin}
-        pinned={this.props.pinned}
+        pinned={pinned}
         showLoadingBar={true}
         showTitleCopyTooltip={true}
+        fwdRef={this.props.fwdRef}
       />
     );
   }
@@ -398,4 +407,4 @@ LinkDetailsPanel.propTypes = {
   onPin: PropTypes.func.isRequired,
 };
 
-export default withStyles(styles)(withRouter(LinkDetailsPanel));
+export default withForwardRef(withStyles(styles)(withRouter(LinkDetailsPanel)));

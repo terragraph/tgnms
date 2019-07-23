@@ -285,7 +285,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
                 <ListItem
                   classes={{root: classes.drawerListItem}}
                   to={toAddr}
-                  component={NavLink}
+                  component={this.renderNavLink}
                   activeClassName={classes.active}
                   disabled={networkName === null && !networklessView}
                   button>
@@ -383,7 +383,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             Object.entries(networkList).map(([networkName, network]) => (
               <MenuItem
                 key={networkName}
-                component={NavLink}
+                component={this.renderNavLink}
                 value={networkName}
                 to={listContext.changeNetworkName(networkName)}
                 activeClassName={classes.active}
@@ -474,6 +474,10 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
       </>
     );
   };
+
+  renderNavLink = React.forwardRef((props, ref) => {
+    return <NavLink {...props} innerRef={ref} />;
+  });
 }
 
 MaterialTopBar.propTypes = {};
