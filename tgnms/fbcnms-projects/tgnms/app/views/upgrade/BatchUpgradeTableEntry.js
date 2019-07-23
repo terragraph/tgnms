@@ -27,17 +27,15 @@ class BatchUpgradeTableEntry extends React.Component<Props> {
 
     return (
       <TableRow hover>
-        <TableCell component="th" scope="row" padding="dense">
+        <TableCell component="th" scope="row" size="small">
           {batch.name}
         </TableCell>
-        <TableCell padding="dense">
+        <TableCell size="small">
           {batch?.upgradeStatus || 'Not Available'}
         </TableCell>
-        <TableCell padding="dense">{batch?.upgradeReqId || 'N/A'}</TableCell>
-        <TableCell padding="dense">
-          {batch?.version || 'Not Available'}
-        </TableCell>
-        <TableCell padding="dense">{batch?.nextVersion || 'N/A'}</TableCell>
+        <TableCell size="small">{batch?.upgradeReqId || 'N/A'}</TableCell>
+        <TableCell size="small">{batch?.version || 'Not Available'}</TableCell>
+        <TableCell size="small">{batch?.nextVersion || 'N/A'}</TableCell>
       </TableRow>
     );
   }

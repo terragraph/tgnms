@@ -224,7 +224,7 @@ class NmsConfig extends React.Component {
     const {GREEN, RED} = StatusIndicatorColor;
 
     return (
-      <TableCell className={classes.noWrap} padding="dense">
+      <TableCell className={classes.noWrap} size="small">
         {api_ip ? (
           <span className={classes.flexRow}>
             <StatusIndicator color={controller_online ? GREEN : RED} />
@@ -294,7 +294,7 @@ class NmsConfig extends React.Component {
                   <TableCell
                     key={col}
                     className={classes.headerCell}
-                    padding="dense">
+                    size="small">
                     {col}
                   </TableCell>
                 ))}
@@ -316,7 +316,7 @@ class NmsConfig extends React.Component {
                           className={classes.noWrap}
                           component="th"
                           scope="row"
-                          padding="dense">
+                          size="small">
                           <IconButton
                             classes={{root: classes.menuIconButton}}
                             onClick={ev =>
@@ -333,7 +333,7 @@ class NmsConfig extends React.Component {
                         </TableCell>
                         {this.renderControllerRow(primary || {})}
                         {this.renderControllerRow(backup || {})}
-                        <TableCell padding="dense">
+                        <TableCell size="small">
                           {wireless_controller?.url || <em>not set</em>}
                         </TableCell>
                       </TableRow>

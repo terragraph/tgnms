@@ -40,15 +40,13 @@ class NodeUpgradeTableEntry extends React.Component<Props> {
         <TableCell component="th" scope="row" padding="none">
           {node.name}
         </TableCell>
-        <TableCell padding="dense">{renderStatusColor(node.alive)}</TableCell>
-        <TableCell padding="dense">{node.siteName}</TableCell>
-        <TableCell padding="dense">{renderStatusColor(node.popNode)}</TableCell>
-        <TableCell padding="dense">{node?.upgradeStatus || '-'}</TableCell>
-        <TableCell padding="dense">
-          {node?.upgradeStatusReason || '-'}
-        </TableCell>
-        <TableCell padding="dense">{node?.version || '-'}</TableCell>
-        <TableCell padding="dense">{node?.nextVersion || '-'}</TableCell>
+        <TableCell size="small">{renderStatusColor(node.alive)}</TableCell>
+        <TableCell size="small">{node.siteName}</TableCell>
+        <TableCell size="small">{renderStatusColor(node.popNode)}</TableCell>
+        <TableCell size="small">{node?.upgradeStatus || '-'}</TableCell>
+        <TableCell size="small">{node?.upgradeStatusReason || '-'}</TableCell>
+        <TableCell size="small">{node?.version || '-'}</TableCell>
+        <TableCell size="small">{node?.nextVersion || '-'}</TableCell>
       </TableRow>
     );
   }
