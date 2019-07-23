@@ -9,12 +9,8 @@ import * as React from 'react';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import amber from '@material-ui/core/colors/amber';
 import green from '@material-ui/core/colors/green';
-import {JssProvider} from 'react-jss';
-import {MuiThemeProvider, createMuiTheme} from '@material-ui/core/styles';
-import {StylesProvider, createGenerateClassName} from '@material-ui/styles';
-
-// both styling solutions need to share the same classname generator
-const generateClassName = createGenerateClassName();
+import {StylesProvider} from '@material-ui/styles';
+import {createMuiTheme} from '@material-ui/core/styles';
 
 // default theme
 const theme = createMuiTheme({
@@ -34,15 +30,9 @@ const theme = createMuiTheme({
 
 function MaterialTheme({children}: {children: React.Node}) {
   return (
-    <JssProvider generateClassName={generateClassName}>
-      <StylesProvider generateClassName={generateClassName}>
-        <MuiThemeProvider theme={theme}>
-          <MuiStylesThemeProvider theme={theme}>
-            {children}
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
-      </StylesProvider>
-    </JssProvider>
+    <StylesProvider>
+      <MuiStylesThemeProvider theme={theme}>{children}</MuiStylesThemeProvider>
+    </StylesProvider>
   );
 }
 
