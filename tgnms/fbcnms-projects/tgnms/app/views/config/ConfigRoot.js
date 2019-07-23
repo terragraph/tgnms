@@ -43,8 +43,8 @@ const styles = theme => ({
   buttonContainer: {
     // TODO - HACK! - position this properly...
     position: 'absolute',
-    right: theme.spacing.unit,
-    marginTop: theme.spacing.unit,
+    right: theme.spacing(),
+    marginTop: theme.spacing(),
   },
   tabContent: {
     display: 'flex',
@@ -53,7 +53,7 @@ const styles = theme => ({
 
     // TODO - HACK! - Figure out how to actually set the height to 100% screen
     height: `calc(100vh - ${
-      /* pad */ theme.spacing.unit +
+      /* pad */ theme.spacing() +
         /* appbar */ 64 +
         /* toolbar */ 48 +
         /* search bar */ 72
@@ -75,13 +75,13 @@ const styles = theme => ({
     fontFamily: 'monospace',
     height: '100%',
     border: 'none',
-    margin: theme.spacing.unit * 2,
+    margin: theme.spacing(2),
   },
   addButton: {
     position: 'fixed',
     bottom: 0,
     right: 0,
-    margin: theme.spacing.unit * 2,
+    margin: theme.spacing(2),
   },
 });
 

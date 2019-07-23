@@ -75,8 +75,8 @@ const styles = theme => ({
   },
   drawerListItem: {
     '@media (min-width: 600px)': {
-      paddingLeft: theme.spacing.unit * 3,
-      paddingRight: theme.spacing.unit * 3,
+      paddingLeft: theme.spacing(3),
+      paddingRight: theme.spacing(3),
     },
   },
   drawerMenuButton: {
@@ -98,9 +98,9 @@ const styles = theme => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    width: theme.spacing.unit * 7,
+    width: theme.spacing(7),
     [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 9,
+      width: theme.spacing(9),
     },
   },
   grow: {
@@ -110,10 +110,10 @@ const styles = theme => ({
     textDecoration: 'none',
   },
   networkMenuButton: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(),
   },
   nested: {
-    paddingLeft: theme.spacing.unit * 5,
+    paddingLeft: theme.spacing(5),
   },
   root: {
     display: 'flex',
@@ -132,7 +132,7 @@ const styles = theme => ({
     ...theme.mixins.toolbar,
   },
   toolbarButtonContainer: {
-    marginLeft: theme.spacing.unit * 2,
+    marginLeft: theme.spacing(2),
   },
   v1Button: {
     opacity: 0.8,

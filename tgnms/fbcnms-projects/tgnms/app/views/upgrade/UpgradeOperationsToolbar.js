@@ -19,7 +19,7 @@ const styles = theme => ({
     flexGrow: 1,
   },
   requestText: {
-    padding: theme.spacing.unit,
+    padding: theme.spacing(),
   },
 });
 

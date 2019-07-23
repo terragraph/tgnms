@@ -16,10 +16,10 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   detailsPre: {
-    padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 2}px 0`,
+    padding: `${theme.spacing(2)}px ${theme.spacing(2)}px 0`,
     margin: 0,
     whiteSpace: 'pre-wrap',
     wordWrap: 'break-word',

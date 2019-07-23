@@ -31,10 +31,10 @@ const styles = theme => ({
     flexFlow: 'column',
   },
   content: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
   },
   formControl: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
     minWidth: 120,
   },
 });

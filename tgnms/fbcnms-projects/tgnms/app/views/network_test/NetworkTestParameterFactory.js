@@ -25,7 +25,7 @@ import type {
 const styles = theme => ({
   field: {
     display: 'block',
-    marginBottom: theme.spacing.unit * 2,
+    marginBottom: theme.spacing(2),
     margin: '0 auto',
   },
   input: {

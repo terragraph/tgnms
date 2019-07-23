@@ -26,10 +26,10 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
   },
   recentTests: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
     display: 'flex',
     flexDirection: 'column',
     minHeight: '80vh',
@@ -37,7 +37,7 @@ const styles = theme => ({
     maxHeight: '80vh',
   },
   header: {
-    marginBottom: theme.spacing.unit * 4,
+    marginBottom: theme.spacing(4),
     flexGrow: 0,
     flexShrink: 0,
   },
@@ -53,7 +53,7 @@ const styles = theme => ({
     maxHeight: '80vh',
   },
   leftIcon: {
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(),
   },
 });
 

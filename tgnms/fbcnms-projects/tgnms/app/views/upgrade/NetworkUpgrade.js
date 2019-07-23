@@ -38,7 +38,7 @@ export type StructuredBatchType = {|
 const styles = theme => ({
   root: {
     flexGrow: 1,
-    padding: theme.spacing.unit,
+    padding: theme.spacing(),
     overflow: 'auto',
   },
 });

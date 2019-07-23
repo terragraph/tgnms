@@ -53,13 +53,13 @@ export default function TestExecutionPanel(props: Props & ExpansionPanelProps) {
   );
 }
 
-const useSummaryStyles = makeStyles(_theme => ({
+const useSummaryStyles = makeStyles(theme => ({
   header: {
     textTransform: 'capitalize',
   },
   resultDivider: {
-    marginTop: _theme.spacing.unit,
-    marginBottom: _theme.spacing.unit * 2,
+    marginTop: theme.spacing(),
+    marginBottom: theme.spacing(2),
   },
 }));
 
@@ -98,8 +98,8 @@ function isLinkSelected(element: Element) {
 
 const useResultStyles = makeStyles(theme => ({
   linkMissingAlert: {
-    marginTop: theme.spacing.unit,
-    padding: theme.spacing.unit,
+    marginTop: theme.spacing(),
+    padding: theme.spacing(),
     backgroundColor: theme.palette.grey[200],
   },
   linkName: {

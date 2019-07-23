@@ -32,7 +32,7 @@ const styles = theme => ({
     minWidth: 720,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   buttonProgress: {
     position: 'absolute',
@@ -45,10 +45,10 @@ const styles = theme => ({
     position: 'relative',
   },
   content: {
-    maxHeight: `calc(100% - ${theme.spacing.unit * 20}px)`,
+    maxHeight: `calc(100% - ${theme.spacing(2)}px)`,
     overflowY: 'auto',
     backgroundColor: '#f3f3f3',
-    padding: theme.spacing.unit,
+    padding: theme.spacing(),
     borderRadius: 4,
   },
   centered: {

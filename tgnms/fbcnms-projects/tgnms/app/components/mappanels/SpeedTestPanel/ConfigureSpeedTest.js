@@ -30,13 +30,13 @@ import type {Element} from '../../../NetworkContext';
 
 const useSpeedTestStyles = makeStyles(theme => ({
   actions: {
-    marginTop: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
   },
   errorMessage: {
-    marginTop: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
   },
   useNearestPop: {
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing(),
   },
 }));
 

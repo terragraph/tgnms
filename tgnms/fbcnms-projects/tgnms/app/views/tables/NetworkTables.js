@@ -32,9 +32,9 @@ const styles = theme => ({
   tabsRoot: {
     borderBottom: '1px solid #e8e8e8',
     flex: '0 1 auto',
-    marginBottom: theme.spacing.unit,
-    paddingTop: theme.spacing.unit,
-    paddingLeft: theme.spacing.unit,
+    marginBottom: theme.spacing(),
+    paddingTop: theme.spacing(),
+    paddingLeft: theme.spacing(),
   },
   tabsIndicator: {
     backgroundColor: '#1890ff',

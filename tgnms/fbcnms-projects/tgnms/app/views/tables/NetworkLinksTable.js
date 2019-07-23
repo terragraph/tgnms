@@ -34,11 +34,11 @@ const INVALID_VALUE = 255;
 const styles = theme => {
   return {
     button: {
-      marginLeft: theme.spacing.unit,
-      marginRight: theme.spacing.unit,
+      marginLeft: theme.spacing(),
+      marginRight: theme.spacing(),
     },
     tableOptions: {
-      padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`,
+      padding: `${theme.spacing()}px ${theme.spacing(2)}px`,
     },
     tableContainer: {},
   };

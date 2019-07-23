@@ -25,16 +25,16 @@ const styles = theme => ({
     flexGrow: 1,
   },
   searchContainer: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
   },
   tableContainer: {
     width: '100%',
     overflow: 'auto',
-    paddingBottom: theme.spacing.unit,
+    paddingBottom: theme.spacing(),
 
     // TODO - HACK! - Figure out how to actually set the height to 100% screen
     height: `calc(100vh - ${
-      /* pad */ theme.spacing.unit +
+      /* pad */ theme.spacing() +
         /* appbar */ 64 +
         /* toolbar */ 48 +
         /* search bar */ 72

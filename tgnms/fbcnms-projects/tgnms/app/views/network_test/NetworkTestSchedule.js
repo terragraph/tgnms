@@ -41,7 +41,7 @@ type Props = {} & ContextRouter;
 
 const useStyles = makeStyles(theme => ({
   schedule: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
     display: 'flex',
     flexDirection: 'column',
     minHeight: '80vh',

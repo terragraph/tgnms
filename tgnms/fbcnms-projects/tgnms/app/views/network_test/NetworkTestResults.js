@@ -57,15 +57,15 @@ const styles = theme => ({
     height: 400,
   },
   divider: {
-    marginBottom: theme.spacing.unit * 2,
-    marginTop: theme.spacing.unit * 2,
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(2),
   },
   resultRow: {
     cursor: 'pointer',
   },
-  loadingWrapper: {textAlign: 'center', marginTop: theme.spacing.unit * 4},
+  loadingWrapper: {textAlign: 'center', marginTop: theme.spacing(4)},
   header: {
-    marginBottom: theme.spacing.unit * 2,
+    marginBottom: theme.spacing(2),
   },
   healthCell: {
     flexDirection: 'row',
@@ -333,7 +333,7 @@ function getWorstLinkHealth(link: LinkTestResult) {
 
 const usePanelStyles = makeStyles(theme => ({
   panel: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
     flex: '1',
     height: '100%',
     minHeight: '100%',
@@ -341,18 +341,18 @@ const usePanelStyles = makeStyles(theme => ({
     flexDirection: 'column',
   },
   exitButton: {
-    marginLeft: -(theme.spacing.unit * 2),
-    marginTop: -(theme.spacing.unit * 2),
+    marginLeft: -theme.spacing(2),
+    marginTop: -theme.spacing(2),
     flexGrow: 0,
   },
   header: {
-    marginTop: -(theme.spacing.unit * 2),
+    marginTop: -theme.spacing(2),
     display: 'inline-block',
     verticalAlign: 'middle',
     flexGrow: 0,
   },
   divider: {
-    marginBottom: theme.spacing.unit * 2,
+    marginBottom: theme.spacing(2),
     flexGrow: 0,
   },
   contentWrapper: {

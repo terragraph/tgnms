@@ -24,10 +24,10 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   modalContent: {
-    paddingBottom: theme.spacing.unit,
+    paddingBottom: theme.spacing(),
   },
   formHeading: {
     fontSize: '1.05rem',

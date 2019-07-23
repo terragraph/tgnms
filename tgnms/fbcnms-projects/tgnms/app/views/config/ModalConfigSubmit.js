@@ -17,13 +17,13 @@ const styles = theme => ({
     minWidth: 720,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   content: {
-    maxHeight: `calc(100% - ${theme.spacing.unit * 9}px)`,
+    maxHeight: `calc(100% - ${theme.spacing(9)}px)`,
     overflowY: 'auto',
     backgroundColor: '#f3f3f3',
-    padding: theme.spacing.unit,
+    padding: theme.spacing(),
     borderRadius: 4,
   },
   added: {

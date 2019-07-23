@@ -29,18 +29,18 @@ const styles = theme => ({
     height: 20,
   },
   chipLabel: {
-    paddingLeft: theme.spacing.unit,
-    paddingRight: theme.spacing.unit,
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
   },
   select: {
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing(1),
   },
   loadingIndicator: {
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
     marginTop: -4,
   },
   formGroup: {
-    marginBottom: theme.spacing.unit * 2,
+    marginBottom: theme.spacing(2),
   },
 });
 

@@ -45,8 +45,8 @@ const styles = theme => ({
     flexGrow: 1,
   },
   bottomContainer: {
-    paddingTop: theme.spacing.unit,
-    paddingBottom: theme.spacing.unit,
+    paddingTop: theme.spacing(),
+    paddingBottom: theme.spacing(),
   },
   nodeListPaper: {
     overflowY: 'auto',
@@ -62,7 +62,7 @@ const styles = theme => ({
   nodeupdateIcon: {
     fontSize: 14,
     verticalAlign: 'text-top',
-    paddingLeft: theme.spacing.unit,
+    paddingLeft: theme.spacing(),
   },
   actionsButton: {
     textAlign: 'center',

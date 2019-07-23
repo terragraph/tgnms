@@ -29,58 +29,59 @@ const styles = theme => ({
   layout: {
     width: 'auto',
     display: 'block', // Fix IE 11 issue.
-    marginLeft: theme.spacing.unit * 3,
-    marginRight: theme.spacing.unit * 3,
-    [theme.breakpoints.up(400 + theme.spacing.unit * 3 * 2)]: {
+    marginLeft: theme.spacing(3),
+    marginRight: theme.spacing(3),
+    [theme.breakpoints.up(400 + theme.spacing(6))]: {
       width: 400,
       marginLeft: 'auto',
       marginRight: 'auto',
     },
-    marginTop: theme.spacing.unit * 4,
+    marginTop: theme.spacing(4),
   },
   paper: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 3}px ${theme
-      .spacing.unit * 3}px`,
+    padding: `${theme.spacing(2)}px ${theme.spacing(3)}px ${theme.spacing(
+      3,
+    )}px`,
   },
   avatar: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
     backgroundColor: theme.palette.secondary.main,
   },
   form: {
     width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing.unit,
+    marginTop: theme.spacing(),
     textAlign: 'center',
   },
   submit: {
-    marginTop: theme.spacing.unit * 3,
+    marginTop: theme.spacing(3),
   },
   textField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginLeft: theme.spacing(),
+    marginRight: theme.spacing(),
   },
   logo: {
     width: '75%',
-    marginTop: theme.spacing.unit * 4,
-    marginBottom: theme.spacing.unit,
+    marginTop: theme.spacing(4),
+    marginBottom: theme.spacing(),
   },
   errorAlert: {
-    marginTop: theme.spacing.unit,
-    padding: theme.spacing.unit,
+    marginTop: theme.spacing(),
+    padding: theme.spacing(),
     backgroundColor: red[100],
   },
   errorMessage: {
     color: theme.palette.error.dark,
   },
   divider: {
-    marginTop: theme.spacing.unit * 2,
-    marginBottom: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
   },
   altSigninText: {
-    marginTop: theme.spacing.unit * 2,
-    marginBottom: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
     color: theme.palette.text.secondary,
   },
 });

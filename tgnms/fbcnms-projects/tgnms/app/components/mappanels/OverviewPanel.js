@@ -35,7 +35,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   sectionSpacer: {
-    height: theme.spacing.unit,
+    height: theme.spacing(1),
   },
   spaceBetween: {
     display: 'flex',
@@ -44,10 +44,10 @@ const styles = theme => ({
   },
   iconCentered: {
     verticalAlign: 'middle',
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(1),
   },
   indented: {
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
     wordWrap: 'break-word',
     wordBreak: 'break-all',
   },
@@ -58,7 +58,7 @@ const styles = theme => ({
   tdRight: {
     whiteSpace: 'nowrap',
     width: '1%',
-    paddingLeft: theme.spacing.unit,
+    paddingLeft: theme.spacing(1),
   },
   vCenter: {
     display: 'flex',

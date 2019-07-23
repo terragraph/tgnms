@@ -24,9 +24,9 @@ export type Props = {
   testId: string,
 };
 
-const useStyles = makeStyles(_theme => ({
+const useStyles = makeStyles(theme => ({
   actions: {
-    marginTop: _theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
   },
 }));
 export default function SpeedTestResult(props: Props) {
@@ -82,7 +82,7 @@ export default function SpeedTestResult(props: Props) {
 
 const useResultStyles = makeStyles(theme => ({
   direction: {
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing(),
   },
   throughput: {
     fontWeight: 'bold',

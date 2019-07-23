@@ -33,7 +33,7 @@ const styles = theme => ({
     alignItems: 'center',
   },
   panelSummary: {
-    minHeight: theme.spacing.unit * 3 + 'px !important',
+    minHeight: theme.spacing(3) + 'px !important',
   },
   panelDetails: {
     padding: '0 24px 24px',

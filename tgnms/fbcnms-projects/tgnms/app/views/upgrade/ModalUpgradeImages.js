@@ -49,7 +49,7 @@ import type {UpgradeImageType} from '../../../shared/types/Controller';
 
 const styles = theme => ({
   dialogTitle: {
-    padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px 0`,
+    padding: `${theme.spacing()}px ${theme.spacing(2)}px 0`,
   },
   avatar: {
     fontSize: '1rem',
@@ -57,7 +57,7 @@ const styles = theme => ({
     backgroundColor: theme.palette.primary.light,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   centerText: {
     textAlign: 'center',
@@ -69,7 +69,7 @@ const styles = theme => ({
     display: 'none',
   },
   leftIcon: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(),
   },
   rightIcon: {
     float: 'right',

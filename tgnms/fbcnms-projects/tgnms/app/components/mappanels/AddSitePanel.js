@@ -31,7 +31,7 @@ const styles = theme => ({
   },
   iconCentered: {
     verticalAlign: 'middle',
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(),
   },
   infoText: {
     color: theme.palette.primary.light,

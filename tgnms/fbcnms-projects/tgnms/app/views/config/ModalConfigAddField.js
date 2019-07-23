@@ -30,7 +30,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   red: {
     color: 'red',
@@ -40,13 +40,13 @@ const styles = theme => ({
     zIndex: theme.zIndex.modal + 1,
   },
   autocompletePaper: {
-    maxHeight: 36 * 5 /* list items */ + theme.spacing.unit /* padding */,
+    maxHeight: 36 * 5 /* list items */ + theme.spacing() /* padding */,
     overflowY: 'auto',
-    marginTop: theme.spacing.unit,
+    marginTop: theme.spacing(),
   },
   metadataPaper: {
-    padding: theme.spacing.unit,
-    marginTop: theme.spacing.unit,
+    padding: theme.spacing(),
+    marginTop: theme.spacing(),
   },
 });
 

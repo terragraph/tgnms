@@ -389,14 +389,14 @@ type Options = {|
 
 const useStyles = makeStyles(theme => ({
   root: {
-    marginBottom: theme.spacing.unit * 2,
-    padding: theme.spacing.unit,
+    marginBottom: theme.spacing(2),
+    padding: theme.spacing(),
   },
   legend: {
-    marginBottom: theme.spacing.unit * 2,
+    marginBottom: theme.spacing(2),
   },
   formControl: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(),
     minWidth: 150,
   },
   testOptionSelect: {

@@ -36,7 +36,7 @@ const styles = theme => ({
   sidebarText: {
     fontStyle: 'italic',
     lineHeight: 1.2,
-    paddingTop: theme.spacing.unit,
+    paddingTop: theme.spacing(),
   },
   logsBody: {
     display: 'flex',
@@ -45,7 +45,7 @@ const styles = theme => ({
     overflow: 'auto',
   },
   logs: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   logsInfoContainer: {
     display: 'flex',
@@ -61,7 +61,7 @@ const styles = theme => ({
   },
   iconCentered: {
     verticalAlign: 'middle',
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(),
   },
 });
 

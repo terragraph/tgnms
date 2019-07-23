@@ -23,11 +23,11 @@ const styles = theme => ({
     borderBottom: `1px solid ${theme.palette.divider}`,
   },
   dialogContent: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
   },
   dialogActions: {
     borderTop: `1px solid ${theme.palette.divider}`,
-    padding: theme.spacing.unit,
+    padding: theme.spacing(1),
     margin: 0,
   },
 });

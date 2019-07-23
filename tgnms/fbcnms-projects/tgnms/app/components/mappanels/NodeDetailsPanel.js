@@ -53,13 +53,13 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = theme => ({
   iconCentered: {
     verticalAlign: 'middle',
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(1),
   },
   listItemIcon: {
     marginRight: 0,
   },
   sectionSpacer: {
-    height: theme.spacing.unit,
+    height: theme.spacing(1),
   },
   spaceBetween: {
     display: 'flex',
@@ -67,7 +67,7 @@ const styles = theme => ({
     width: '100%',
   },
   indented: {
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
     wordWrap: 'break-word',
     wordBreak: 'break-all',
   },
@@ -75,7 +75,7 @@ const styles = theme => ({
     textAlign: 'center',
     fontSize: '0.85rem',
     color: theme.palette.grey[700],
-    paddingTop: theme.spacing.unit,
+    paddingTop: theme.spacing(1),
   },
   bgpEntryWrapper: {
     paddingTop: 4,

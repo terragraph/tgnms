@@ -25,14 +25,14 @@ const PROGRESS_SIZE = 80;
 const styles = theme => ({
   iconCentered: {
     verticalAlign: 'middle',
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(1),
   },
   infoText: {
     color: theme.palette.grey[700],
     lineHeight: '1rem',
     display: 'flex',
     alignItems: 'center',
-    paddingBottom: theme.spacing.unit,
+    paddingBottom: theme.spacing(1),
   },
   progressWrapper: {
     position: 'relative',

@@ -47,10 +47,10 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = theme => ({
   iconCentered: {
     verticalAlign: 'middle',
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(1),
   },
   sectionSpacer: {
-    height: theme.spacing.unit,
+    height: theme.spacing(1),
   },
   spaceBetween: {
     display: 'flex',
@@ -64,8 +64,8 @@ const styles = theme => ({
     textAlign: 'center',
   },
   nearbyNodesListItem: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: theme.spacing.unit * 2,
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
   },
   nearbyNodesHeading: {
     textTransform: 'none',
@@ -75,7 +75,7 @@ const styles = theme => ({
     paddingRight: 0,
   },
   adjacentNodeListItem: {
-    paddingLeft: theme.spacing.unit * 4,
+    paddingLeft: theme.spacing(4),
     paddingTop: 2,
     paddingBottom: 2,
   },

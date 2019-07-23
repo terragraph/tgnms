@@ -37,7 +37,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   sectionSpacer: {
-    height: theme.spacing.unit,
+    height: theme.spacing(),
   },
   hidden: {
     display: 'none',
@@ -72,7 +72,7 @@ const styles = theme => ({
   },
   tr: {
     cursor: 'pointer',
-    height: theme.spacing.unit * 4,
+    height: theme.spacing(4),
   },
   tdField: {
     // TODO Find a better way to prevent table from overflowing (x)

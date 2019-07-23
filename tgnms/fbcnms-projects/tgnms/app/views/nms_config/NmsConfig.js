@@ -37,18 +37,18 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {
-    padding: theme.spacing.unit,
+    padding: theme.spacing(),
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   leftIcon: {
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(),
   },
   paper: {
     flexGrow: 1,
-    padding: theme.spacing.unit,
-    margin: theme.spacing.unit,
+    padding: theme.spacing(),
+    margin: theme.spacing(),
     overflowX: 'auto',
   },
   table: {

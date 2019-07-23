@@ -15,7 +15,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   sectionSpacer: {
-    height: theme.spacing.unit,
+    height: theme.spacing(),
   },
   bold: {
     fontWeight: 'bold',

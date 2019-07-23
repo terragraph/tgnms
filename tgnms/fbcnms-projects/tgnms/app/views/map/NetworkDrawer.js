@@ -50,12 +50,12 @@ const styles = theme => ({
   addButton: {
     position: 'fixed',
     right: 0,
-    margin: theme.spacing.unit * 2,
+    margin: theme.spacing(2),
   },
   appBarSpacer: theme.mixins.toolbar,
   content: {
     height: '100%',
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
     overflowX: 'hidden',
   },
   draggerContainer: {

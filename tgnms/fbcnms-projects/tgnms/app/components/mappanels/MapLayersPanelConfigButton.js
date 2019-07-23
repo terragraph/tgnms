@@ -21,13 +21,13 @@ const rangeReversed = range => {
 
 const styles = theme => ({
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   chip: {
     height: 20,
   },
   chipLabel: {
-    paddingHorizontal: theme.spacing.unit,
+    paddingHorizontal: theme.spacing(),
   },
 });
 

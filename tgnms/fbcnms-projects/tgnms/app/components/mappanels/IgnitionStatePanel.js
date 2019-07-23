@@ -18,7 +18,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   sectionSpacer: {
-    height: theme.spacing.unit,
+    height: theme.spacing(1),
   },
   centered: {
     textAlign: 'center',

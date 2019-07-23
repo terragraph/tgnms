@@ -35,8 +35,8 @@ import type {StructuredNodeType} from './NetworkUpgrade';
 const styles = theme => ({
   root: {
     flexGrow: 1,
-    padding: theme.spacing.unit,
-    margin: theme.spacing.unit,
+    padding: theme.spacing(),
+    margin: theme.spacing(),
   },
   centerText: {
     textAlign: 'center',

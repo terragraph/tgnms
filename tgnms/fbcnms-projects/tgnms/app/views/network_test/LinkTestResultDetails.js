@@ -29,14 +29,14 @@ export type LinkTestResult = {|
 
 const useLinkStyles = makeStyles(theme => ({
   link: {
-    paddingTop: theme.spacing.unit * 2,
+    paddingTop: theme.spacing(2),
   },
   linkName: {
     fontWeight: 'bold',
     textTransform: 'capitalize',
   },
   header: {
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing(),
   },
   runTimeText: {
     textAlign: 'center',
@@ -99,7 +99,7 @@ function LinkTestResultDetails({
 const useDetailStyles = makeStyles(theme => ({
   linkNameWrapper: {
     width: '100%',
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing(),
   },
   linkName: {
     textTransform: 'capitalize',
@@ -110,7 +110,7 @@ const useDetailStyles = makeStyles(theme => ({
     textOverflow: 'ellipsis',
   },
   linkHealth: {
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing(),
     textTransform: 'capitalize',
   },
   arrow: {
@@ -293,14 +293,14 @@ function TestResultDetails({result}: {|result: TestResult|}) {
 
 const useMetricStyles = makeStyles(theme => ({
   metric: {
-    marginBottom: theme.spacing.unit * 1,
+    marginBottom: theme.spacing(),
   },
   header: {
     width: '100%',
     textTransform: 'capitalize',
   },
   label: {
-    paddingLeft: theme.spacing.unit,
+    paddingLeft: theme.spacing(),
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap',

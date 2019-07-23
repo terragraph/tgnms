@@ -27,12 +27,12 @@ const styles = theme => ({
   root: {
     flexDirection: 'column',
     display: 'flex',
-    paddingTop: theme.spacing.unit * 2,
+    paddingTop: theme.spacing(2),
   },
   testSelectField: {
     display: 'block',
     margin: '0 auto',
-    marginBottom: theme.spacing.unit * 3,
+    marginBottom: theme.spacing(3),
   },
   testSelect: {
     minWidth: 300,
@@ -313,7 +313,7 @@ const useModalStyles = makeStyles(theme => ({
     minWidth: 400,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
 }));
 

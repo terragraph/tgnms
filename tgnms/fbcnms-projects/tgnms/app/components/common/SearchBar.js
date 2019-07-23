@@ -23,8 +23,8 @@ const styles = theme => ({
     height: 40,
   },
   input: {
-    marginLeft: theme.spacing.unit * 2,
-    marginRight: theme.spacing.unit,
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(1),
   },
   searchIconButton: {
     padding: 6,

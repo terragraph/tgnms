@@ -39,7 +39,7 @@ const styles = theme => ({
     flexGrow: 1,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
   },
   chip: {
     margin: 2,
@@ -51,7 +51,7 @@ const styles = theme => ({
     padding: 4,
   },
   rightIcon: {
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing(),
   },
 });
 

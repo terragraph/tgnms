@@ -20,10 +20,10 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = theme => ({
   iconCentered: {
     verticalAlign: 'middle',
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing(1),
   },
   sectionSpacer: {
-    height: theme.spacing.unit,
+    height: theme.spacing(1),
   },
   spaceBetween: {
     display: 'flex',
