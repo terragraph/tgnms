@@ -286,7 +286,7 @@ class NmsConfig extends React.Component {
           Create Network
         </Button>
 
-        <Paper className={classes.paper}>
+        <Paper className={classes.paper} elevation={2}>
           <Table className={classes.table}>
             <TableHead>
               <TableRow>

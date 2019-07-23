@@ -453,7 +453,7 @@ class ConfigRoot extends React.Component<Props, State> {
 
     return (
       <div className={classes.tabContent}>
-        <Paper className={classes.configOptions}>
+        <Paper className={classes.configOptions} elevation={2}>
           <ConfigSidebar
             {...sidebarProps}
             networkName={networkName}
@@ -468,7 +468,7 @@ class ConfigRoot extends React.Component<Props, State> {
             onUpdateSnackbar={this.updateSnackbar}
           />
         </Paper>
-        <Paper className={classes.configBody}>
+        <Paper className={classes.configBody} elevation={2}>
           {useRawJsonEditor ? (
             <textarea
               className={classes.jsonTextarea}

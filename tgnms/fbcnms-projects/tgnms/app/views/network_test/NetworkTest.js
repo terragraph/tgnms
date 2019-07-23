@@ -132,7 +132,7 @@ class NetworkTest extends React.PureComponent<Props, State> {
                         </Grid>
                       </Grid>
                       <Grid item xs={12} md={8}>
-                        <Paper className={classes.recentTests}>
+                        <Paper className={classes.recentTests} elevation={2}>
                           <Typography
                             variant="h6"
                             component="h2"

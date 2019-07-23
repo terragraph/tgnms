@@ -211,7 +211,7 @@ class NodeUpgradeTable extends React.Component<Props, State> {
     const nodeCount = filteredData.length;
 
     return (
-      <Paper className={classes.root}>
+      <Paper className={classes.root} elevation={2}>
         <Toolbar>
           {numSelected > 0 ? (
             <>

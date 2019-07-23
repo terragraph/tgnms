@@ -82,7 +82,7 @@ export default function NetworkTestSchedule(props: Props) {
         </Grid>
       </Grid>
       <Grid item xs={12}>
-        <Paper className={classes.schedule}>
+        <Paper className={classes.schedule} elevation={2}>
           <Typography variant="h6" component="h2">
             Test Schedule
           </Typography>

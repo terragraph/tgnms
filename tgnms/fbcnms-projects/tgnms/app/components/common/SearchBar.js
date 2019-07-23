@@ -95,7 +95,7 @@ class SearchBar extends React.Component {
     const {classes, value, isLoading, autoFocus} = this.props;
 
     return (
-      <Paper className={classes.inputPaper}>
+      <Paper className={classes.inputPaper} elevation={2}>
         <Input
           className={classes.input}
           onChange={this.handleInput}

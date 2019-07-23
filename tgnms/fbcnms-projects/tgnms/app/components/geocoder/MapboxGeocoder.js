@@ -172,7 +172,7 @@ class MapboxGeocoder extends React.Component {
         />
 
         {results.length > 0 ? (
-          <Paper className={classes.resultsPaper}>
+          <Paper className={classes.resultsPaper} elevation={2}>
             <List component="nav">
               {results.map(result => this.renderResult(result))}
             </List>

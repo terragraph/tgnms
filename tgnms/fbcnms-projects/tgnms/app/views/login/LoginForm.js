@@ -106,7 +106,7 @@ class LoginForm extends React.Component<Props> {
       <div>
         <CssBaseline />
         <main className={classes.layout}>
-          <Paper className={classes.paper}>
+          <Paper className={classes.paper} elevation={2}>
             <img
               className={classes.logo}
               src={'/static/images/terragraph_logo.svg'}

@@ -219,10 +219,12 @@ class NodeLogs extends React.Component<Props, State> {
 
     return (
       <div className={classes.root}>
-        <Paper className={classes.optionsSidebar}>
+        <Paper className={classes.optionsSidebar} elevation={2}>
           {this.renderForm(networkConfig)}
         </Paper>
-        <Paper className={classes.logsBody}>{this.renderLogs()}</Paper>
+        <Paper className={classes.logsBody} elevation={2}>
+          {this.renderLogs()}
+        </Paper>
 
         <CustomSnackbar
           {...notification}

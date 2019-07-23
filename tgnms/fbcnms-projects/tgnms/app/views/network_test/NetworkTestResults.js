@@ -372,7 +372,7 @@ function TestResultsPanel({
 }) {
   const classes = usePanelStyles();
   return (
-    <Paper className={classes.panel}>
+    <Paper className={classes.panel} elevation={2}>
       <Grid>
         <IconButton
           component={Link}
