@@ -47,7 +47,7 @@ import {
 import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import {supportsTopologyScan} from '../../helpers/TgFeatures';
-import {withForwardRef} from '../common/ForwardRef';
+import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

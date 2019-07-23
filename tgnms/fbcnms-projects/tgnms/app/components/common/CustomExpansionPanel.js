@@ -20,7 +20,7 @@ import PropTypes from 'prop-types';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
-import type {ForwardRef} from './ForwardRef';
+import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 
 const styles = theme => ({
   panelHeading: {
