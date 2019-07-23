@@ -71,7 +71,7 @@ export default function NetworkTestSchedule(props: Props) {
   );
   return (
     <>
-      <Grid xs={12} container item spacing={8}>
+      <Grid xs={12} container item spacing={1}>
         <Grid item>
           <Button
             component={Link}

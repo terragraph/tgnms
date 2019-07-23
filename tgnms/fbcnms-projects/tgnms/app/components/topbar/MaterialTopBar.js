@@ -181,7 +181,7 @@ const BuildInformationModal = props => (
     onClose={props.toggleBuildModal}
     modalTitle={props.t('about', 'About')}
     modalContent={
-      <Grid container spacing={8}>
+      <Grid container spacing={1}>
         <Grid item xs={4}>
           {props.t('version', 'Version')}
         </Grid>

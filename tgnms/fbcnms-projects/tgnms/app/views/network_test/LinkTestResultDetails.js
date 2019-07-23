@@ -58,7 +58,7 @@ function LinkTestResultDetails({
   const [resultA, resultZ] = results;
 
   return (
-    <Grid className={classes.link} container spacing={8}>
+    <Grid className={classes.link} container spacing={1}>
       <Grid
         className={classes.header}
         item

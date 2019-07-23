@@ -40,7 +40,7 @@ export default function SpeedTestResult(props: Props) {
   useNetworkRoutes({nodes: nodes || [], useNearestPop: false});
 
   return (
-    <Grid container spacing={16}>
+    <Grid container spacing={2}>
       {loading && (
         <Grid container item justify="center">
           <LoadingBox fullScreen={false} />
@@ -48,7 +48,7 @@ export default function SpeedTestResult(props: Props) {
       )}
       {!loading && execution && execution.test_results && (
         <>
-          <Grid container item spacing={8}>
+          <Grid container item spacing={1}>
             <Grid item xs={6}>
               <ResultSummary
                 direction="Download"
@@ -117,7 +117,7 @@ function ResultSummary({
           </Typography>
         </Grid>
       </Grid>
-      <Grid container item spacing={8} justify="center" alignItems="center">
+      <Grid container item spacing={1} justify="center" alignItems="center">
         <Grid item>
           <Typography variant="body2" color="textSecondary">
             {typeof result.ping_avg_latency === 'number'

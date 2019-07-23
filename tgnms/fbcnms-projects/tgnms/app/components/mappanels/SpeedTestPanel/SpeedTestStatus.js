@@ -56,7 +56,7 @@ function TestStatus(props: {execution: TestExecution}) {
   const {execution} = props;
   const {text, icon} = getStatusDef(execution.status);
   return (
-    <Grid container direction="column" alignItems="center" spacing={16}>
+    <Grid container direction="column" alignItems="center" spacing={2}>
       <Grid item>{React.createElement(icon, {execution})}</Grid>
       <Grid item>
         <Typography variant="body1">{text}</Typography>

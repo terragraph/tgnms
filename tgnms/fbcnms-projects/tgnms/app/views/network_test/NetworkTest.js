@@ -94,7 +94,7 @@ class NetworkTest extends React.PureComponent<Props, State> {
     return (
       <>
         <div className={classes.root}>
-          <Grid container spacing={16}>
+          <Grid container spacing={2}>
             <Switch>
               <Route
                 path={`${this.props.match.path}/schedule`}
@@ -106,7 +106,7 @@ class NetworkTest extends React.PureComponent<Props, State> {
                   const {executionId, networkName} = match.params;
                   return (
                     <>
-                      <Grid xs={12} container item spacing={8}>
+                      <Grid xs={12} container item spacing={1}>
                         <Grid item>
                           <ScheduleNetworkTestModal
                             className={classes.section}
