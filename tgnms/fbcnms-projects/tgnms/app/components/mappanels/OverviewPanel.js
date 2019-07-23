@@ -106,7 +106,7 @@ class OverviewPanel extends React.Component {
 
         <Typography variant="subtitle2">Controller</Typography>
         <div className={classes.indented}>
-          <Typography gutterBottom>
+          <Typography gutterBottom variant="body2">
             <em>
               {networkConfig.controller_version
                 ? shortenVersionString(networkConfig.controller_version)
@@ -126,7 +126,7 @@ class OverviewPanel extends React.Component {
                     return (
                       <tr key={version}>
                         <td>
-                          <Typography gutterBottom>
+                          <Typography gutterBottom variant="body2">
                             <em>{shortenVersionString(version)}</em>
                           </Typography>
                         </td>
@@ -287,7 +287,7 @@ class OverviewPanel extends React.Component {
 
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Availability</Typography>
-          <Typography>
+          <Typography variant="body2">
             {availability.wirelessLinksCount
               ? renderAvailabilityWithColor(
                   formatNumber(availability.alivePercAvg),
@@ -298,8 +298,8 @@ class OverviewPanel extends React.Component {
         <div className={classes.indented}>
           {availability.alivePercByNodeType.map(({nodeTypeName, alivePerc}) => (
             <div className={classes.spaceBetween} key={nodeTypeName}>
-              <Typography>By {nodeTypeName}</Typography>
-              <Typography>
+              <Typography variant="body2">By {nodeTypeName}</Typography>
+              <Typography variant="body2">
                 {renderAvailabilityWithColor(formatNumber(alivePerc))}
               </Typography>
             </div>
@@ -382,7 +382,7 @@ class OverviewPanel extends React.Component {
           </IconButton>
         </div>
         <div className={classes.indented}>
-          <Typography>
+          <Typography variant="body2">
             Network ignition is{' '}
             {renderStatusWithColor(
               ignitionEnabled,
@@ -425,7 +425,10 @@ class OverviewPanel extends React.Component {
         </div>
         <div className={classes.indented}>
           {networkConfig.hasOwnProperty('controller_error') ? (
-            <Typography className={classes.errorText} gutterBottom>
+            <Typography
+              className={classes.errorText}
+              gutterBottom
+              variant="body2">
               {networkConfig.controller_error}
             </Typography>
           ) : null}
@@ -438,7 +441,7 @@ class OverviewPanel extends React.Component {
                     {!primary.controller_online ? haOfflineText : null}
                   </Typography>
                 </span>
-                <Typography>
+                <Typography variant="body2">
                   <em>
                     {high_availability.primary &&
                       high_availability.primary.state && (
@@ -447,7 +450,9 @@ class OverviewPanel extends React.Component {
                   </em>
                 </Typography>
               </div>
-              <Typography gutterBottom>{primary.api_ip}</Typography>
+              <Typography gutterBottom variant="body2">
+                {primary.api_ip}
+              </Typography>
               <div className={classes.spaceBetween}>
                 <Typography variant="subtitle2">
                   Backup
@@ -455,7 +460,7 @@ class OverviewPanel extends React.Component {
                     ? haOfflineText
                     : null}
                 </Typography>
-                <Typography>
+                <Typography variant="body2">
                   <em>
                     {high_availability.backup &&
                       high_availability.backup.state && (
@@ -465,11 +470,15 @@ class OverviewPanel extends React.Component {
                 </Typography>
               </div>
               {backup.api_ip ? (
-                <Typography gutterBottom>{backup.api_ip}</Typography>
+                <Typography gutterBottom variant="body2">
+                  {backup.api_ip}
+                </Typography>
               ) : null}
             </>
           ) : (
-            <Typography gutterBottom>{primary.api_ip}</Typography>
+            <Typography gutterBottom variant="body2">
+              {primary.api_ip}
+            </Typography>
           )}
         </div>
         <div className={classes.spaceBetween}>

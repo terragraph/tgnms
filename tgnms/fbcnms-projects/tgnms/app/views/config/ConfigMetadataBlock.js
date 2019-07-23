@@ -73,7 +73,9 @@ class ConfigMetadataBlock extends React.Component<Props, State> {
           className={classNames(textClassName, classes.bold)}>
           Description
         </Typography>
-        <Typography className={textClassName}>{description}</Typography>
+        <Typography className={textClassName} variant="body2">
+          {description}
+        </Typography>
         <div className={classes.sectionSpacer} />
       </>
     );
@@ -104,7 +106,9 @@ class ConfigMetadataBlock extends React.Component<Props, State> {
           className={classNames(textClassName, classes.bold)}>
           Action
         </Typography>
-        <Typography className={textClassName}>{actionContent}</Typography>
+        <Typography className={textClassName} variant="body2">
+          {actionContent}
+        </Typography>
         <div className={classes.sectionSpacer} />
       </>
     );

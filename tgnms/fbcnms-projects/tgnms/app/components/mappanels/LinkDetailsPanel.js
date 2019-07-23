@@ -277,7 +277,7 @@ class LinkDetailsPanel extends React.Component {
           <Text i18nKey="status" variant="subtitle2">
             Status
           </Text>
-          <Typography>
+          <Typography variant="body2">
             {renderStatusWithColor(
               link.is_alive,
               undefined,
@@ -292,7 +292,7 @@ class LinkDetailsPanel extends React.Component {
             <Text i18nKey="type" variant="subtitle2">
               Type
             </Text>
-            <Typography>
+            <Typography variant="body2">
               {linkType ? toTitleCase(linkType) : 'unknown'}
             </Typography>
           </div>
@@ -302,20 +302,22 @@ class LinkDetailsPanel extends React.Component {
             <Text i18nKey="role" variant="subtitle2">
               Role
             </Text>
-            <Typography>Backup CN Link</Typography>
+            <Typography variant="body2">Backup CN Link</Typography>
           </div>
         ) : null}
         <div className={classes.spaceBetween}>
           <Text i18nKey="azimuth" variant="subtitle2">
             Azimuth
           </Text>
-          <Typography>{formatNumber(link._meta_.angle, 1)}&deg;</Typography>
+          <Typography variant="body2">
+            {formatNumber(link._meta_.angle, 1)}&deg;
+          </Typography>
         </div>
         <div className={classes.spaceBetween}>
           <Text i18nKey="length" variant="subtitle2">
             Length
           </Text>
-          <Typography>
+          <Typography variant="body2">
             {formatNumber(link._meta_.distance, 1)} meters
           </Typography>
         </div>
@@ -324,7 +326,7 @@ class LinkDetailsPanel extends React.Component {
             <Text i18nKey="link_ignition" variant="subtitle2">
               Link Ignition
             </Text>
-            <Typography>
+            <Typography variant="body2">
               {renderStatusWithColor(ignitionEnabled, 'Enabled', 'Disabled')}
             </Typography>
           </div>
@@ -333,7 +335,7 @@ class LinkDetailsPanel extends React.Component {
           <Text i18nKey="ignition_attempts_1day" variant="subtitle2">
             Ignition Attempts (1d)
           </Text>
-          <Typography>
+          <Typography variant="body2">
             {linkAttempts ? formatNumber(Number.parseInt(linkAttempts)) : '-'}
           </Typography>
         </div>
@@ -341,7 +343,7 @@ class LinkDetailsPanel extends React.Component {
           <Text i18nKey="availability" variant="subtitle2">
             Availability
           </Text>
-          <Typography>
+          <Typography variant="body2">
             {renderAvailabilityWithColor(formatNumber(availability))}
           </Typography>
         </div>

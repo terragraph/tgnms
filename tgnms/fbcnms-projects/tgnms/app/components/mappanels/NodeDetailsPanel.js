@@ -355,8 +355,8 @@ class NodeDetailsPanel extends React.Component {
             <Typography variant="subtitle2">{ip}</Typography>
             <div className={classes.indented}>
               <div className={classes.spaceBetween}>
-                <Typography>Status</Typography>
-                <Typography>
+                <Typography variant="body2">Status</Typography>
+                <Typography variant="body2">
                   {renderStatusWithColor(
                     info.online,
                     'Established',
@@ -365,18 +365,20 @@ class NodeDetailsPanel extends React.Component {
                 </Typography>
               </div>
               <div className={classes.spaceBetween}>
-                <Typography>ASN</Typography>
-                <Typography>{info.asn}</Typography>
+                <Typography variant="body2">ASN</Typography>
+                <Typography variant="body2">{info.asn}</Typography>
               </div>
               <div className={classes.spaceBetween}>
-                <Typography>{info.online ? 'Uptime' : 'Downtime'}</Typography>
-                <Typography>{info.upDownTime}</Typography>
+                <Typography variant="body2">
+                  {info.online ? 'Uptime' : 'Downtime'}
+                </Typography>
+                <Typography variant="body2">{info.upDownTime}</Typography>
               </div>
               <div className={classes.spaceBetween}>
-                <Typography>
+                <Typography variant="body2">
                   {isNaN(info.stateOrPfxRcd) ? 'State' : 'Received Prefixes'}
                 </Typography>
-                <Typography>{info.stateOrPfxRcd}</Typography>
+                <Typography variant="body2">{info.stateOrPfxRcd}</Typography>
               </div>
 
               {info.advertisedRoutes.length
@@ -402,8 +404,8 @@ class NodeDetailsPanel extends React.Component {
     return (
       <>
         <div className={classes.spaceBetween}>
-          <Typography>{title}</Typography>
-          <Typography>{formatNumber(routes.length)}</Typography>
+          <Typography variant="body2">{title}</Typography>
+          <Typography variant="body2">{formatNumber(routes.length)}</Typography>
         </div>
         <List dense disablePadding>
           {routes.map(({network, nextHop}) => (
@@ -429,7 +431,7 @@ class NodeDetailsPanel extends React.Component {
         <Typography variant="subtitle2" className={classes.sectionHeading}>
           Software Version
         </Typography>
-        <Typography gutterBottom>
+        <Typography gutterBottom variant="body2">
           <em>{shortenVersionString(version)}</em>
         </Typography>
       </>
@@ -466,7 +468,7 @@ class NodeDetailsPanel extends React.Component {
       <>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Status</Typography>
-          <Typography>
+          <Typography variant="body2">
             {renderStatusWithColor(
               isNodeAlive(node.status),
               undefined,
@@ -478,7 +480,7 @@ class NodeDetailsPanel extends React.Component {
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Node MAC</Typography>
-          <Typography>{node.mac_addr || 'none'}</Typography>
+          <Typography variant="body2">{node.mac_addr || 'none'}</Typography>
         </div>
         {node.hasOwnProperty('wlan_mac_addrs') && node.wlan_mac_addrs.length ? (
           <>
@@ -487,30 +489,32 @@ class NodeDetailsPanel extends React.Component {
                 <Typography variant="subtitle2">
                   {index === 0 ? 'Radio MACs' : ''}
                 </Typography>
-                <Typography>{mac}</Typography>
+                <Typography variant="body2">{mac}</Typography>
               </div>
             ))}
           </>
         ) : null}
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">IPv6</Typography>
-          <Typography>
+          <Typography variant="body2">
             {statusReport ? statusReport.ipv6Address : 'none'}
           </Typography>
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Node Type</Typography>
-          <Typography>{nodeType}</Typography>
+          <Typography variant="body2">{nodeType}</Typography>
         </div>
         {node.ant_azimuth > 0.0 ? (
           <div className={classes.spaceBetween}>
             <Typography variant="subtitle2">Azimuth</Typography>
-            <Typography>{formatNumber(node.ant_azimuth)}&deg;</Typography>
+            <Typography variant="body2">
+              {formatNumber(node.ant_azimuth)}&deg;
+            </Typography>
           </div>
         ) : null}
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Last Reported</Typography>
-          <Typography>
+          <Typography variant="body2">
             {statusReport
               ? moment(new Date(statusReport.timeStamp * 1000)).fromNow()
               : 'n/a'}
@@ -518,7 +522,7 @@ class NodeDetailsPanel extends React.Component {
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Availability</Typography>
-          <Typography>
+          <Typography variant="body2">
             {renderAvailabilityWithColor(formatNumber(availability))}
           </Typography>
         </div>
@@ -588,8 +592,8 @@ class NodeDetailsPanel extends React.Component {
             : POLARITY_UI.unknown;
           return (
             <div className={classes.spaceBetween} key={macAddr}>
-              <Typography>{macAddr}</Typography>
-              <Typography>
+              <Typography variant="body2">{macAddr}</Typography>
+              <Typography variant="body2">
                 <span style={{color: color}}>{text}</span>
               </Typography>
             </div>

@@ -178,7 +178,7 @@ class AddSitePanel extends React.Component {
 
     return (
       <div style={{width: '100%'}}>
-        <Typography className={classes.infoText}>
+        <Typography className={classes.infoText} variant="body2">
           <InfoIcon classes={{root: classes.iconCentered}} />
           Move this site by dragging the white circle marker on the map.
         </Typography>

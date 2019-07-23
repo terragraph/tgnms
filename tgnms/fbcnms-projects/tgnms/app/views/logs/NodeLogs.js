@@ -177,7 +177,7 @@ class NodeLogs extends React.Component<Props, State> {
         )}
 
         {macAddr && logFiles && nodeLogs !== null ? (
-          <Typography className={classes.sidebarText}>
+          <Typography className={classes.sidebarText} variant="body2">
             Viewing the most recent 100 log lines, and streaming new lines.
           </Typography>
         ) : null}
@@ -196,7 +196,7 @@ class NodeLogs extends React.Component<Props, State> {
       <pre className={classes.logs}>{nodeLogs.join('\n') + '\n\n'}</pre>
     ) : (
       <div className={classes.logsInfoContainer}>
-        <Typography className={classes.infoText}>
+        <Typography className={classes.infoText} variant="body2">
           <InfoIcon classes={{root: classes.iconCentered}} />
           Select a log file to view on the left.
         </Typography>

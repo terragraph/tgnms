@@ -236,21 +236,25 @@ function TestExecutionDialog({
       {loading && <LoadingBox fullScreen={false} />}
       {!loading && execution && (
         <DialogContent>
-          <Typography className={classes.capitalize}>
+          <Typography className={classes.capitalize} variant="body2">
             {convertTestCodeToString(execution.test_code)}
           </Typography>
-          <Typography>Protocol: {execution.protocol}</Typography>
-          <Typography>
+          <Typography variant="body2">
+            Protocol: {execution.protocol}
+          </Typography>
+          <Typography variant="body2">
             Session Duration: {execution.session_duration}s
           </Typography>
-          <Typography>Push Rate: {execution.test_push_rate}bits/sec</Typography>
+          <Typography variant="body2">
+            Push Rate: {execution.test_push_rate}bits/sec
+          </Typography>
           {execution.multi_hop_parallel_sessions != null && (
-            <Typography>
+            <Typography variant="body2">
               Parallel Multihop Sessions {execution.multi_hop_parallel_sessions}
             </Typography>
           )}
           {execution.multi_hop_session_iteration_count != null && (
-            <Typography>
+            <Typography variant="body2">
               Sequential Multihop Sessions{' '}
               {execution.multi_hop_session_iteration_count}
             </Typography>
@@ -259,7 +263,9 @@ function TestExecutionDialog({
           {/*TODO: show the rest of the parameters**/}
         </DialogContent>
       )}
-      {!loading && !execution && <Typography>An error has occurred</Typography>}
+      {!loading && !execution && (
+        <Typography variant="body2">An error has occurred</Typography>
+      )}
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
       </DialogActions>

@@ -431,7 +431,7 @@ class ConfigSidebar extends React.Component<Props, State> {
             Select Node
           </Typography>
           {renderedNodeList.length === 0 ? (
-            <Typography>No matching nodes.</Typography>
+            <Typography variant="body2">No matching nodes.</Typography>
           ) : null}
         </div>
         <Paper className={classes.nodeListPaper} elevation={1}>

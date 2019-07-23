@@ -89,7 +89,7 @@ class AccessPointsPanel extends React.Component {
       wirelessControllerStats,
     } = this.props;
     if (!wirelessController || !wirelessControllerStats) {
-      return <Typography>No data received.</Typography>;
+      return <Typography variant="body2">No data received.</Typography>;
     }
 
     // Associate WAPs with sites (by name)

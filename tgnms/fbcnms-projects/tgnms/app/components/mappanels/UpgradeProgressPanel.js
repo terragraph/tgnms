@@ -178,7 +178,7 @@ class UpgradeProgressPanel extends React.Component {
 
     return (
       <>
-        <Typography className={classes.infoText}>
+        <Typography className={classes.infoText} variant="body2">
           <InfoIcon classes={{root: classes.iconCentered}} />
           {mainText}
           {remainingBatches ? (
@@ -195,7 +195,7 @@ class UpgradeProgressPanel extends React.Component {
         <div className={classes.progressWrapper}>
           {nodesInUpgrade.length ? (
             <div className={classes.progressTextWrapper}>
-              <Typography className={classes.progressText}>
+              <Typography className={classes.progressText} variant="body2">
                 {numNodesCompleted} / {nodesInUpgrade.length}
               </Typography>
             </div>

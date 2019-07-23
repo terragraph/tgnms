@@ -400,17 +400,17 @@ class SiteDetailsPanel extends React.Component {
 
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Total Clients</Typography>
-          <Typography>{wapStats.clientCount}</Typography>
+          <Typography variant="body2">{wapStats.clientCount}</Typography>
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Last Seen</Typography>
-          <Typography>
+          <Typography variant="body2">
             {moment(new Date(wapStats.lastSeenTime)).fromNow()}
           </Typography>
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Uptime</Typography>
-          <Typography>
+          <Typography variant="body2">
             {moment.duration(wapStats.uptime, 'seconds').humanize()}
           </Typography>
         </div>
@@ -428,7 +428,7 @@ class SiteDetailsPanel extends React.Component {
       <>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Position</Typography>
-          <Typography>
+          <Typography variant="body2">
             {this.getPositionString(
               formatNumber(site.location.latitude, 4),
               formatNumber(site.location.longitude, 4),
@@ -437,11 +437,13 @@ class SiteDetailsPanel extends React.Component {
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Altitude</Typography>
-          <Typography>{formatNumber(site.location.altitude)} meters</Typography>
+          <Typography variant="body2">
+            {formatNumber(site.location.altitude)} meters
+          </Typography>
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Accuracy</Typography>
-          <Typography>
+          <Typography variant="body2">
             {isNaN(site.location.accuracy)
               ? 'unknown'
               : formatNumber(site.location.accuracy) + ' meters'}
@@ -449,7 +451,7 @@ class SiteDetailsPanel extends React.Component {
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Availability</Typography>
-          <Typography>
+          <Typography variant="body2">
             {renderAvailabilityWithColor(formatNumber(availability))}
           </Typography>
         </div>

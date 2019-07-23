@@ -458,7 +458,7 @@ class SearchNearbyPanel extends React.Component {
           </Typography>
         )}
         {lastResponseTime ? (
-          <Typography>
+          <Typography variant="body2">
             {'Refreshed ' + moment(lastResponseTime).fromNow() + '.'}
           </Typography>
         ) : null}

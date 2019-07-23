@@ -130,13 +130,13 @@ function TestResultDetails({result}: {|result: TestResult|}) {
       </Grid>
 
       <Grid className={classes.linkNameWrapper} item>
-        <Typography className={classes.linkName} align="center">
+        <Typography className={classes.linkName} align="center" variant="body2">
           {result.origin_node}
         </Typography>
-        <Typography className={classes.linkName} align="center">
+        <Typography className={classes.linkName} align="center" variant="body2">
           <ArrowForwardIcon className={classes.arrow} fontSize="small" />
         </Typography>
-        <Typography className={classes.linkName} align="center">
+        <Typography className={classes.linkName} align="center" variant="body2">
           {result.peer_node}
         </Typography>
       </Grid>
@@ -336,10 +336,12 @@ export function MetricGroup({
         {metrics.map(([val, label]) => (
           <React.Fragment key={label}>
             <Grid item xs={6}>
-              <Typography align="right">{renderVal(val, format)}</Typography>
+              <Typography align="right" variant="body2">
+                {renderVal(val, format)}
+              </Typography>
             </Grid>
             <Grid align="left" item xs={6}>
-              <Typography className={classes.label}>
+              <Typography className={classes.label} variant="body2">
                 {unit} ({label})
               </Typography>
             </Grid>
@@ -365,10 +367,12 @@ export function SingleMetric({name, value, format, label}: SingleMetricProps) {
         <Typography variant="subtitle2">{name}</Typography>
       </Grid>
       <Grid xs={3} item>
-        <Typography align="right">{renderVal(value, format)}</Typography>
+        <Typography align="right" variant="body2">
+          {renderVal(value, format)}
+        </Typography>
       </Grid>
       <Grid xs={3} item className={classes.label} align="left">
-        <Typography>{label}</Typography>
+        <Typography variant="body2">{label}</Typography>
       </Grid>
     </Grid>
   );
