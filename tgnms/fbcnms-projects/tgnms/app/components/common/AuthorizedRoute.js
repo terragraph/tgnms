@@ -16,7 +16,7 @@ import type {Permission} from '../../../shared/auth/Permissions';
 export type Props = {
   permissions: Permission | Array<Permission>,
   // use this to unit test whether a redirect occurs
-  __testRedirect?: () => any,
+  __testRedirect?: any,
   ...React.ElementConfig<typeof Route>,
 };
 
@@ -52,7 +52,6 @@ export default function AuthorizedRoute(props: Props) {
     renderProps.render = authorized ? render : redirect;
   }
   if (typeof children === 'function') {
-    // $FlowFixMe uncovered by move to flow 0.102.0
     renderProps.children = authorized ? children : redirect;
   }
 
