@@ -52,10 +52,10 @@ export default function AuthorizedRoute(props: Props) {
     renderProps.render = authorized ? render : redirect;
   }
   if (typeof children === 'function') {
+    // $FlowFixMe uncovered by move to flow 0.102.0
     renderProps.children = authorized ? children : redirect;
   }
 
-  // $FlowFixMe uncovered by move to flow 0.102.0
   return <Route {...routeProps} {...renderProps} />;
 }
 
