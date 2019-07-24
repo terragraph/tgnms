@@ -399,8 +399,8 @@ class ModalPrepare extends React.Component<Props, State> {
               {selectedImage &&
               ctrlVerAfter(selectedImage.name, this.props.controllerVersion) ? (
                 <Typography variant="subtitle2" className={classes.formWarning}>
-                  Time image you have chosen is newer than the current
-                  controller image
+                  The image you have chosen is newer than the current controller
+                  image
                 </Typography>
               ) : null}
 
