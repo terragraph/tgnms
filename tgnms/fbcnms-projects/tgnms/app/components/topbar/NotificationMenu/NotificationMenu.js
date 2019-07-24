@@ -25,6 +25,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import NetworkListContext from '../../../NetworkListContext';
 import NotificationDialog from './NotificationDialog';
 import Text from '@fbcnms/i18n/Text';
 import WarningIcon from '@material-ui/icons/Warning';
@@ -36,7 +37,7 @@ import {EventLevelValueMap} from '../../../../shared/types/Event';
 import {makeStyles} from '@material-ui/styles';
 import {useTranslation} from 'react-i18next';
 import {useWebSocketGroup} from '../../../WebSocketContext';
-import NetworkListContext from '../../../NetworkListContext';
+import type {EventType} from '../../../../shared/types/Event';
 
 import {NOTIFICATION_SOURCE} from './constants';
 import type {NotificationMenuItem} from './constants';
@@ -140,7 +141,7 @@ export default function NotificationMenu() {
         data-testid="notification-menu"
         MenuListProps={{
           /*
-           * fixes a nasty bug which causes the clear notifications button to
+           * fixes a bug which causes the clear notifications button to
            * push outside of the container
            */
           style: {
@@ -224,14 +225,29 @@ function useKafkaNotificationSource({addNotification}) {
   const networkListContext = React.useContext(NetworkListContext);
   useWebSocketGroup('events', ({payload}) => {
     try {
-      const kafkaValue = JSON.parse(payload.value);
+      const currentTopology = networkListContext.getNetworkName();
+      const kafkaValue: EventType = JSON.parse(payload.value);
+
+      /*
+       * Only show the notifications which originated from the current topology.
+       * Filtering is clientside only for now.
+       */
+      if (
+        kafkaValue.topologyName !== currentTopology &&
+        (typeof kafkaValue.topologyName === 'string' &&
+          kafkaValue.topologyName !== '')
+      ) {
+        return;
+      }
 
       const timeString =
         payload.timestamp && new Date(payload.timestamp).toLocaleTimeString();
       const notification = {
         key: payload.offset,
         primaryText: kafkaValue.reason,
-        secondaryText: `${kafkaValue.entity} • ${timeString}`,
+        secondaryText: `${kafkaValue.nodeName ||
+          kafkaValue.nodeId ||
+          'unknown'} • ${timeString}`,
         details: kafkaValue,
         source: NOTIFICATION_SOURCE.EVENTS_KAFKA,
         data: payload,

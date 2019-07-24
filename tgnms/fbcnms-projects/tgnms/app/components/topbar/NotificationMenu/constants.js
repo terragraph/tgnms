@@ -15,7 +15,7 @@ export type NotificationMenuItem = {
   key: string,
   primaryText: string | React.Node,
   secondaryText: string | React.Node,
-  details: string,
+  details: Object,
   source: $Values<typeof NOTIFICATION_SOURCE>,
   Icon: React.Element<any>,
   /*

@@ -147,9 +147,11 @@ export type EventType = {|
   timestamp: number,
   reason: string,
   details: string,
-  category: EventCategoryType,
-  level: EventLevelType,
+  category: $Values<typeof EventCategoryValueMap>,
+  level: $Values<typeof EventLevelValueMap>,
   entity?: string,
   nodeId?: string,
-  eventId: EventIdType
+  eventId: $Values<typeof EventIdValueMap>,
+  topologyName: string,
+  nodeName: string
 |};

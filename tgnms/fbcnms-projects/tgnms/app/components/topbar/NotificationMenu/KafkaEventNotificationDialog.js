@@ -80,6 +80,12 @@ export default function KafkaEventNotificationDialog({
       </Grid>
       <Grid item>
         <Text color="textSecondary" variant="subtitle2">
+          Node
+        </Text>
+        <Typography variant="body1">{eventValue.nodeName}</Typography>
+      </Grid>
+      <Grid item>
+        <Text color="textSecondary" variant="subtitle2">
           Message
         </Text>
         <Typography variant="body1">{eventValue.reason}</Typography>
