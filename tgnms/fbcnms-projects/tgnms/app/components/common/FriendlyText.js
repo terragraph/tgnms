@@ -7,18 +7,20 @@
  * WIRED_LINK_STATUS -> Wired Link Status
  * wired-link-status -> Wired Link Status
  */
+// flowlint inexact-spread:off
 
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 import type {TypographyProps} from '@material-ui/core/Typography/Typography';
 
-export type Props = {|
+export type Props = {
+  ...TypographyProps,
   text: string,
   separator: string,
   stripPrefix?: string,
   disableTypography?: boolean,
-|} & TypographyProps;
+};
 
 const useStyles = makeStyles(_theme => ({
   text: {

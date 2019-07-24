@@ -31,6 +31,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import NetworkListContext from '../../NetworkListContext';
+import NotificationMenu from './NotificationMenu/NotificationMenu';
 import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -40,7 +41,10 @@ import Text from '@fbcnms/i18n/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
-import {NETWORK_TEST_ENABLED} from '../../constants/FeatureFlags';
+import {
+  NETWORK_TEST_ENABLED,
+  NOTIFICATION_MENU_ENABLED,
+} from '../../constants/FeatureFlags';
 import {NavLink} from 'react-router-dom';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -465,7 +469,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             </Text>
 
             <div className={classes.grow} />
-
+            {NOTIFICATION_MENU_ENABLED && <NotificationMenu />}
             {this.renderNetworkMenu(networkName, listContext)}
           </Toolbar>
         </AppBar>

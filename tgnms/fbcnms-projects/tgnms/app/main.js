@@ -15,6 +15,7 @@ import NetworkListBase from './NetworkListBase';
 import React, {Suspense} from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
+import {WebSocketProvider} from './WebSocketContext';
 import {hot} from 'react-hot-loader';
 
 /* eslint-disable-next-line no-undef */
@@ -22,11 +23,13 @@ const HotNetworkListBase = hot(module)(NetworkListBase);
 
 ReactDOM.render(
   <BrowserRouter>
-    <MaterialTheme>
-      <Suspense fallback={<LoadingBox fullScreen={false} />}>
-        <HotNetworkListBase />
-      </Suspense>
-    </MaterialTheme>
+    <WebSocketProvider>
+      <MaterialTheme>
+        <Suspense fallback={<LoadingBox fullScreen={false} />}>
+          <HotNetworkListBase />
+        </Suspense>
+      </MaterialTheme>
+    </WebSocketProvider>
   </BrowserRouter>,
   document.getElementById('root'),
 );

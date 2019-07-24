@@ -149,6 +149,7 @@ app.get('*', (req, res) => {
     'STATS_BACKEND',
     'COMMIT_DATE',
     'COMMIT_HASH',
+    'NOTIFICATION_MENU_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {
