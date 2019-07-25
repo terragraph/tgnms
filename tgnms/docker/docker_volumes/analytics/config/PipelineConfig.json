@@ -1,40 +1,57 @@
 {
-  "network_watchdog" : {
-    "period" : 30,
-    "minion_restart_links_white_list" : {"topologyName" : []},
-    "minion_restart_links_black_list" : {"topologyName" : []},
-    "detect_ignition_failure" : {
-      "enabled" : true
-    }
+  "network_watchdog": {
+    "period": 30,
+    "jobs": [
+      {
+        "name": "detect_ignition_failure",
+        "enabled": false,
+        "params": {
+          "link_white_map": {},
+          "link_black_map": {}
+        }
+      }
+    ]
   },
-  "insights_pipelines_hf" : {
-    "period" : 300,
-    "write_power_status" : {
-      "enabled" : true
-    },
-    "misc_insights" : {
-      "enabled" : true
-    },
-    "uptime_insights" : {
-      "enabled" : true
-    },
-    "link_health_insights" : {
-      "enabled" : true
-    }
+  "lf_insights": {
+    "period": 900,
+    "jobs": [
+      {
+        "name": "write_power_status",
+        "enabled": false
+      },
+      {
+        "name": "misc_insights",
+        "enabled": false
+      },
+      {
+        "name": "uptime_insights",
+        "enabled": false
+      },
+      {
+        "name": "link_health_insights",
+        "enabled": false
+      }
+    ]
   },
-  "insights_pipelines_lf" : {
-    "period" : 900,
-    "write_power_status" : {
-      "enabled" : false
-    },
-    "misc_insights" : {
-      "enabled" : false
-    },
-    "uptime_insights" : {
-      "enabled" : false
-    },
-    "link_health_insights" : {
-      "enabled" : false
-    }
+  "hf_insights": {
+    "period": 300,
+    "jobs": [
+      {
+        "name": "write_power_status",
+        "enabled": false
+      },
+      {
+        "name": "misc_insights",
+        "enabled": false
+      },
+      {
+        "name": "uptime_insights",
+        "enabled": false
+      },
+      {
+        "name": "link_health_insights",
+        "enabled": false
+      }
+    ]
   }
 }

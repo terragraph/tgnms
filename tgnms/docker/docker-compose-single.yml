@@ -203,6 +203,7 @@ services:
     image: secure.cxl-terragraph.com:443/analytics:latest
     env_file:
       - ./env/mysql.env
+      - ./env/prometheus.env
     restart: unless-stopped
     volumes:
       - ./docker_volumes/logs:/analytics/logs
