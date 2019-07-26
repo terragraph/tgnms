@@ -15,9 +15,9 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
-import {NETWORK_TEST_ENABLED} from '../../constants/FeatureFlags';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {isEqual} from 'lodash';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
 
@@ -175,7 +175,7 @@ class NetworkTables extends React.Component<Props, State> {
             to={`${match.url}/${TABLE_TYPE.events}${location.search}`}
             value={TABLE_TYPE.events}
           />
-          {NETWORK_TEST_ENABLED && (
+          {isFeatureEnabled('NETWORK_TEST_ENABLED') && (
             <Tab
               classes={{root: classes.tabRoot, selected: classes.tabSelected}}
               disableRipple

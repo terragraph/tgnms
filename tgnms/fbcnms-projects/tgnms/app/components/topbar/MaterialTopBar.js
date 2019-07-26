@@ -41,18 +41,15 @@ import Text from '@fbcnms/i18n/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
-import {
-  NETWORK_TEST_ENABLED,
-  NOTIFICATION_MENU_ENABLED,
-} from '../../constants/FeatureFlags';
 import {NavLink} from 'react-router-dom';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import {withTranslation} from 'react-i18next';
 import type {ContextRouter} from 'react-router-dom';
 
 const DRAWER_WIDTH = 240;
-const {ISSUES_URL} = window.CONFIG.env;
+const ISSUES_URL = window?.CONFIG?.env?.ISSUES_URL;
 
 type IndexProps = ContextRouter &
   WithStyles & {
@@ -154,23 +151,35 @@ const VIEWS = [
     icon: <DashboardIcon />,
     viewName: 'dashboards',
     // hide dashboards if grafana URL is unknown
-    hideCondition: () => !window.CONFIG.env.hasOwnProperty('GRAFANA_URL'),
+    hideCondition: () => !isFeatureEnabled('GRAFANA_ENABLED'),
   },
   {
     name: 'Logs',
     icon: <CodeIcon />,
     viewName: 'logs',
-    hideCondition: () => !window.CONFIG.env.NODELOGS_ENABLED,
+    hideCondition: () => !isFeatureEnabled('NODELOGS_ENABLED'),
   },
-  {name: 'Upgrade', icon: <CloudUploadIcon />, viewName: 'upgrade'},
+  {
+    name: 'Upgrade',
+    icon: <CloudUploadIcon />,
+    viewName: 'upgrade',
+  },
   {
     name: 'Network Tests',
     icon: <NetworkCheckIcon />,
     viewName: 'network_test',
-    hideCondition: () => !NETWORK_TEST_ENABLED,
+    hideCondition: () => !isFeatureEnabled('NETWORK_TEST_ENABLED'),
   },
-  {name: 'Node Config', icon: <RouterIcon />, viewName: 'node_config'},
-  {name: 'E2E Config', icon: <BuildIcon />, viewName: 'e2e_config'},
+  {
+    name: 'Node Config',
+    icon: <RouterIcon />,
+    viewName: 'node_config',
+  },
+  {
+    name: 'E2E Config',
+    icon: <BuildIcon />,
+    viewName: 'e2e_config',
+  },
   {
     name: 'NMS Config',
     icon: <SettingsIcon />,
@@ -354,6 +363,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
           aria-haspopup="true"
           className={classes.networkMenuButton}
           onClick={this.openNetworksMenu}
+          data-testid="toggle-networks-menu"
           color="inherit">
           {networkName !== null && activeNetwork ? (
             <StatusIndicator
@@ -469,7 +479,9 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             </Text>
 
             <div className={classes.grow} />
-            {NOTIFICATION_MENU_ENABLED && <NotificationMenu />}
+            {isFeatureEnabled('NOTIFICATION_MENU_ENABLED') && (
+              <NotificationMenu />
+            )}
             {this.renderNetworkMenu(networkName, listContext)}
           </Toolbar>
         </AppBar>

@@ -11,13 +11,14 @@
 import XHR from 'i18next-xhr-backend';
 import i18next from 'i18next';
 import {initReactI18next} from 'react-i18next';
+import {isFeatureEnabled} from '../constants/FeatureFlags';
 
 const backendOptions = {
   loadPath: '/translations/{{lng}}/{{ns}}.json',
   addPath: '/translations/add/{{lng}}/{{ns}}',
 };
 
-const SAVE_MISSING_TRANSLATIONS = window.CONFIG.env.SAVE_MISSING_TRANSLATIONS;
+const SAVE_MISSING_TRANSLATIONS = isFeatureEnabled('SAVE_MISSING_TRANSLATIONS');
 
 const {locale, fallbackLocale} = getLanguage();
 i18next

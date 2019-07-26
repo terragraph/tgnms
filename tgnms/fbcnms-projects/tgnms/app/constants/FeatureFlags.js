@@ -3,8 +3,21 @@
  *
  * @format
  * @flow
+ *
+ * Should only be used to flag features on/off. Don't use this file for
+ * providing configuration values to the frontend.
  */
 
-export const NETWORK_TEST_ENABLED = !!window.CONFIG.env.NETWORKTEST_HOST;
-export const NOTIFICATION_MENU_ENABLED = !!window.CONFIG.env
-  .NOTIFICATION_MENU_ENABLED;
+export const FeatureFlags: {[string]: () => boolean} = {
+  NETWORK_TEST_ENABLED: () => !!window.CONFIG?.env?.NETWORKTEST_HOST,
+  NOTIFICATION_MENU_ENABLED: () =>
+    !!window.CONFIG?.env.NOTIFICATION_MENU_ENABLED,
+  LOGIN_ENABLED: () => window.CONFIG?.env?.LOGIN_ENABLED,
+  NODELOGS_ENABLED: () => window.CONFIG.env.NODELOGS_ENABLED,
+  SAVE_MISSING_TRANSLATIONS: () => window.CONFIG.env.SAVE_MISSING_TRANSLATIONS,
+  GRAFANA_ENABLED: () => window.CONFIG.env.hasOwnProperty('GRAFANA_URL'),
+};
+
+export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {
+  return FeatureFlags[flag]();
+}

@@ -6,6 +6,7 @@
  */
 
 import {isAuthorized as isAuthorizedShared} from '../../shared/auth/Permissions';
+import {isFeatureEnabled} from '../constants/FeatureFlags';
 import type {Permission} from '../../shared/auth/Permissions';
 import type {User} from '../../shared/auth/User';
 
@@ -20,7 +21,7 @@ export function getUser(): ?User {
  */
 export function isAuthorized(permissions: Permission | Array<Permission>) {
   // Maintain backward compatibility
-  if (!window.CONFIG.env.LOGIN_ENABLED) {
+  if (!isFeatureEnabled('LOGIN_ENABLED')) {
     return true;
   }
   return isAuthorizedShared(getUser(), permissions);
