@@ -37,6 +37,10 @@ WORKDIR $WORKDIR/build
 
 # Compile and install
 RUN cmake ..
-RUN make install
+RUN /bin/bash -c 'make install -j$(cat /proc/cpuinfo | grep processor | wc -l)'
+
+# Delete cmake files
+# TODO - just copy binaries/libs we need instead of selectively deleting
+RUN /bin/bash -c 'find . -name 'CMakeFiles' -type d|xargs rm -rf'
 
 RUN ./beringei/tools/beringei_configuration_generator --host_names localhost --file_path $WORKDIR/beringei.json
