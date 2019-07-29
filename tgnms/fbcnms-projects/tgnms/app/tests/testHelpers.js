@@ -6,15 +6,12 @@
  */
 import * as React from 'react';
 import MaterialTheme from '../MaterialTheme';
-import MockWebSocket from './mocks/MockWebSocket';
 import i18next from 'i18next';
 import {Router} from 'react-router-dom';
-import {WebSocketProvider} from '../WebSocketContext';
 import {createMemoryHistory} from 'history';
 import {initReactI18next} from 'react-i18next';
 import {render} from '@testing-library/react';
 import type {User} from '../../shared/auth/User';
-import type {WebSocketProviderProps} from '../WebSocketContext';
 
 /**
  * wraps a component with a router instance, pass {route:'/myroute'} to set the
@@ -47,24 +44,7 @@ export function setTestUser(user: User) {
   window.CONFIG.user = user;
 }
 
-export function TestApp({
-  children,
-  webSocketProviderProps,
-}: {
-  children: React.Element<any>,
-  webSocketProviderProps: WebSocketProviderProps,
-}) {
+export function TestApp({children}: {children: React.Element<any>}) {
   i18next.use(initReactI18next).init({});
-  return (
-    <MaterialTheme>
-      <WebSocketProvider
-        socketFactory={() => {
-          const socket: WebSocket = (new MockWebSocket(): any);
-          return socket;
-        }}
-        {...webSocketProviderProps || {}}>
-        {children}
-      </WebSocketProvider>
-    </MaterialTheme>
-  );
+  return <MaterialTheme>{children}</MaterialTheme>;
 }

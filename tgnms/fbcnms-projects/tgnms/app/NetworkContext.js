@@ -71,8 +71,8 @@ export type NetworkConfig = {
   upgrade_state: UpgradeStateDumpType,
   topology: TopologyType,
   offline_whitelist: {
-    links: Map<string>,
-    nodes: Map<string>,
+    links: Map<string, boolean>,
+    nodes: Map<string, boolean>,
   },
 };
 

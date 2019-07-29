@@ -109,6 +109,7 @@ class NetworkListBase extends React.Component<Props, State> {
   };
 
   //TODO: use this.props.match instead of manually parsing the url
+  //TODO: give this a better name
   changeNetworkName = networkName => {
     // Change the current network name
     const splitPath = this.props.location.pathname.split('/');

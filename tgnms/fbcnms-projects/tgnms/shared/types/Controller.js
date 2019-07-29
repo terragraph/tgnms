@@ -347,7 +347,7 @@ export type UpgradeStatusType = {|
   nextImage: ImageMetaType,
   reason: string,
   upgradeReqId: string,
-  whenToCommit: Buffer
+  whenToCommit: number
 |};
 
 export type UpgradeReqTypeType =
@@ -361,10 +361,10 @@ export const UpgradeReqTypeValueMap = {
 };
 
 export type UpgradeTorrentParamsType = {|
-  downloadTimeout: Buffer,
-  downloadLimit?: Buffer,
-  uploadLimit?: Buffer,
-  maxConnections?: Buffer
+  downloadTimeout: number,
+  downloadLimit?: number,
+  uploadLimit?: number,
+  maxConnections?: number
 |};
 
 export type UpgradeReqType = {|
@@ -372,8 +372,8 @@ export type UpgradeReqType = {|
   upgradeReqId: string,
   md5: string,
   imageUrl: string,
-  scheduleToCommit?: Buffer,
-  downloadAttempts?: Buffer,
+  scheduleToCommit?: number,
+  downloadAttempts?: number,
   torrentParams?: UpgradeTorrentParamsType
 |};
 
@@ -388,12 +388,12 @@ export type UpgradeGroupReqType = {|
   nodes: string[],
   excludeNodes: string[],
   urReq: UpgradeReqType,
-  timeout: Buffer,
+  timeout: number,
   skipFailure: boolean,
   version: string,
   skipLinks: string[],
-  limit: Buffer,
-  retryLimit: Buffer
+  limit: number,
+  retryLimit: number
 |};
 
 export type UpgradeStateReqType = {||};
@@ -408,7 +408,7 @@ export type UpgradeStateDumpType = {|
 export type UpgradeAbortReqType = {| abortAll: boolean, reqIds: string[] |};
 
 export type UpgradeCommitPlanReqType = {|
-  limit: Buffer,
+  limit: number,
   excludeNodes: string[]
 |};
 
@@ -510,7 +510,7 @@ export type GetCtrlConfigNetworkOverridesActionsReqType = {|
 export type GetCtrlConfigOverridesActionsRespType = {|
   overrides: string,
   id: string,
-  availableUntil: Buffer
+  availableUntil: number
 |};
 
 export type GetCtrlConfigActionsResultsReqType = {| id: string |};
@@ -525,8 +525,8 @@ export type GetCtrlConfigStateReqType = {||};
 
 export type NodeConfigStateType = {|
   isManaged: boolean,
-  lastStatusTime: Buffer,
-  lastConfigTime: Buffer,
+  lastStatusTime: number,
+  lastConfigTime: number,
   ctrlMd5: string,
   nodeMd5: string,
   swVersion: string
@@ -573,7 +573,7 @@ export type NodeParamsType = {|
 |};
 
 export type StatusReportType = {|
-  timeStamp: Buffer,
+  timeStamp: number,
   ipv6Address: string,
   version: string,
   ubootVersion: string,
@@ -588,7 +588,7 @@ export type StatusReportAckType = {||};
 export type GetStatusDumpType = {||};
 
 export type StatusDumpType = {|
-  timeStamp: Buffer,
+  timeStamp: number,
   statusReports: { [string]: StatusReportType },
   version?: string
 |};
@@ -649,8 +649,8 @@ export type GetIgnitionStateType = {||};
 
 export type IgnitionParamsType = {|
   enable?: boolean,
-  linkUpInterval?: Buffer,
-  linkUpDampenInterval?: Buffer,
+  linkUpInterval?: number,
+  linkUpDampenInterval?: number,
   linkAutoIgnite?: { [string]: boolean }
 |};
 
@@ -677,7 +677,7 @@ export type SetLinkStatusType = {|
   responderMac: string,
   responderNodeType?: Topology.NodeTypeType,
   golayIdx?: Topology.GolayIdxType,
-  controlSuperframe?: Buffer,
+  controlSuperframe?: number,
   responderNodePolarity?: Topology.PolarityTypeType
 |};
 
@@ -829,7 +829,7 @@ export type ScanReqType = {|
   token: number,
   scanType?: ScanTypeType,
   scanMode: ScanModeType,
-  startBwgdIdx: Buffer,
+  startBwgdIdx: number,
   bfScanInvertPolarity: boolean,
   txNodeMac?: string,
   rxNodeMac?: string,
@@ -846,14 +846,14 @@ export type ScanReqType = {|
 
 export type ScanRespType = {|
   token: number,
-  curSuperframeNum: Buffer,
+  curSuperframeNum: number,
   routeInfoList: RouteInfoType[],
   txPwrIndex?: number,
   status: ScanFwStatusType,
   role?: number,
   numSweeps?: number,
-  startSuperframeNum?: Buffer,
-  endSuperframeNum?: Buffer,
+  startSuperframeNum?: number,
+  endSuperframeNum?: number,
   azimuthBeam?: number,
   oldBeam?: number,
   newBeam?: number,
@@ -864,7 +864,7 @@ export type ScanRespType = {|
 export type StartScanType = {|
   scanType: ScanTypeType,
   scanMode: ScanModeType,
-  startTime: Buffer,
+  startTime: number,
   txNode?: string,
   rxNodes?: string[],
   beams?: BeamIndicesType[],
@@ -892,7 +892,7 @@ export type ResetScanStatusType = {| tokenFrom?: number, tokenTo?: number |};
 export type ScanDataType = {|
   responses: { [string]: ScanRespType },
   txNode: string,
-  startBwgdIdx: Buffer,
+  startBwgdIdx: number,
   type: ScanTypeType,
   subType: RTCalType,
   mode: ScanModeType,
@@ -956,11 +956,11 @@ export const IperfTransportProtocolValueMap = {
 };
 
 export type IperfOptionsType = {|
-  bitrate?: Buffer,
+  bitrate?: number,
   timeSec?: number,
   protocol?: IperfTransportProtocolType,
   intervalSec?: number,
-  windowSize?: Buffer,
+  windowSize?: number,
   mss?: number,
   noDelay?: boolean,
   omitSec?: number,
@@ -1024,7 +1024,7 @@ export const BinaryStarFsmEventValueMap = {
 
 export type BinaryStarType = {|
   state: BinaryStarFsmStateType,
-  peerExpiry: Buffer
+  peerExpiry: number
 |};
 
 export type BinaryStarGetAppDataType = {||};
@@ -1047,7 +1047,7 @@ export type BinaryStarGetStateType = {||};
 
 export type MessageType = {|
   mType: MessageTypeType,
-  value: Buffer,
+  value: number,
   compressed?: boolean,
   compressionFormat?: CompressionFormatType
 |};
@@ -1061,12 +1061,12 @@ export type HelloType = {||};
 
 export type E2EAckType = {| success: boolean, message: string |};
 
-export type BgpNeighborType = {| asn: Buffer, ipv6: string |};
+export type BgpNeighborType = {| asn: number, ipv6: string |};
 
 export type BgpNeighborsType = {| neighbors: BgpNeighborType[] |};
 
 export type BgpConfigType = {|
-  localAsn: Buffer,
+  localAsn: number,
   neighbors: BgpNeighborType[]
 |};
 
@@ -1078,8 +1078,8 @@ export type NetworkInfoType = {|
   bgpNeighbors: BgpNeighborsType,
   bgpConfig: BgpConfigType,
   dhcpNameServer: string,
-  dhcpRangeMin: Buffer,
-  dhcpRangeMax: Buffer,
+  dhcpRangeMin: number,
+  dhcpRangeMax: number,
   dhcpGlobalConfigAppend: string
 |};
 

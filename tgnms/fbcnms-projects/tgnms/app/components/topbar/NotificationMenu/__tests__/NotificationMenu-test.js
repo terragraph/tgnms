@@ -14,6 +14,7 @@ import NotificationMenu from '../NotificationMenu';
 import React from 'react';
 import {TestApp} from '../../../../tests/testHelpers';
 import {WebSocketMessage} from '../../../../../shared/dto/WebSockets';
+import {WebSocketProvider} from '../../../../WebSocketContext';
 import {
   act,
   cleanup,
@@ -216,16 +217,22 @@ test('show notifications with empty topologyName for backwards compatibility', (
 function TestWrapper({
   children,
   currentNetwork = defaultTestNetwork,
+  webSocketProviderProps,
   ...props
 }) {
   return (
     <TestApp {...props}>
-      <NetworkListContext.Provider
-        value={Object.assign(defaultContextValue, {
-          getNetworkName: () => currentNetwork,
-        })}>
-        {children}
-      </NetworkListContext.Provider>
+      <WebSocketProvider
+        socketFactory={() => new MockWebSocket()}
+        {...webSocketProviderProps || {}}>
+        >
+        <NetworkListContext.Provider
+          value={Object.assign(defaultContextValue, {
+            getNetworkName: () => currentNetwork,
+          })}>
+          {children}
+        </NetworkListContext.Provider>
+      </WebSocketProvider>
     </TestApp>
   );
 }
