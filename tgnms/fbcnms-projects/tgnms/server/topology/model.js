@@ -723,6 +723,21 @@ function setConfigParamsFromOverrides(topologyName, overrides) {
         if (radioConfig.fwParams && radioConfig.fwParams.polarity) {
           topologyConfig.polarity[macAddress] = radioConfig.fwParams.polarity;
         }
+        // Per node channel configuration (post M40)
+        if (radioConfig.fwParams && radioConfig.fwParams.channel) {
+          topologyConfig.channel[macAddress] = radioConfig.fwParams.channel;
+        } else {
+          // Topology level channel configuration (pre M40)
+          const networkState = getNetworkState(topologyName);
+          if (
+            networkState.topology &&
+            networkState.topology.config &&
+            networkState.topology.config.channel
+          ) {
+            topologyConfig.channel[macAddress] =
+              networkState.topology.config.channel;
+          }
+        }
       });
     }
 
@@ -772,6 +787,7 @@ function updateConfigParams(request, _success, _responseTime, _data) {
       polarity: {},
       golay: {},
       controlSuperframe: {},
+      channel: {},
     };
 
     setConfigParamsFromOverrides(

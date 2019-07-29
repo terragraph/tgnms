@@ -24,8 +24,9 @@ import LinkOverlayContext from '../../LinkOverlayContext';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
+import {HEALTH_CODES} from '../../constants/HealthConstants';
 import {
-  GOLAY_COLORS,
+  INDEX_COLORS,
   LINE_BACKUP_CN_PAINT,
   LINE_CASING_PAINT,
   LINE_LAYOUT,
@@ -40,7 +41,6 @@ import {
   SEARCH_NEARBY_LINE_PAINT,
   SUPERFRAME_COLORS,
 } from '../../constants/LayerConstants';
-import {HEALTH_CODES} from '../../constants/HealthConstants';
 import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
 import {
   SCAN_MAX_COVERAGE_ANGLE,
@@ -48,7 +48,11 @@ import {
   SNR_THRESHOLD_MCS9,
 } from '../../constants/NetworkConstants';
 import {get} from 'lodash';
-import {getLinkControlSuperframe, getLinkGolay} from '../../helpers/TgFeatures';
+import {
+  getLinkChannel,
+  getLinkControlSuperframe,
+  getLinkGolay,
+} from '../../helpers/TgFeatures';
 import {
   hasLinkEverGoneOnline,
   mapboxShouldAcceptClick,
@@ -138,7 +142,13 @@ class LinksLayer extends React.Component<Props> {
       if (values === undefined) {
         return LinkOverlayColors.metric.missing.color;
       }
-      return GOLAY_COLORS[values];
+      return INDEX_COLORS[values];
+    }
+    if (overlay.type === 'channel') {
+      if (values === undefined) {
+        return LinkOverlayColors.metric.missing.color;
+      }
+      return INDEX_COLORS[values];
     }
     if (overlay.type === 'superframe') {
       if (values !== undefined && SUPERFRAME_COLORS.hasOwnProperty(values)) {
@@ -484,12 +494,18 @@ class LinksLayer extends React.Component<Props> {
         onMouseLeave: onLinkMouseLeave,
         onClick: this.handleLinkClick(link),
       };
-      if (overlay.type === 'golay' || overlay.type === 'superframe') {
+      if (
+        overlay.type === 'golay' ||
+        overlay.type === 'superframe' ||
+        overlay.type === 'channel'
+      ) {
         const {ctrlVersion, topologyConfig} = this.props;
         let value = null;
         if (overlay.type === 'golay') {
           const golayValues = getLinkGolay(ctrlVersion, link, topologyConfig);
           value = this.getGolayValue(overlay, golayValues);
+        } else if (overlay.type === 'channel') {
+          value = getLinkChannel(ctrlVersion, link, topologyConfig);
         } else {
           value = getLinkControlSuperframe(ctrlVersion, link, topologyConfig);
         }

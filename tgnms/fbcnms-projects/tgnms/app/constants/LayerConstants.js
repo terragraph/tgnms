@@ -56,8 +56,10 @@ export const METRIC_COLOR_RANGE = [
   LinkOverlayColors.metric.poor.color,
 ];
 
-// colors per golay index
-export const GOLAY_COLORS = [
+// Colors used for link overlays of
+// attributes with discrete values that
+// do not have a "best to worst" relationship
+export const INDEX_COLORS = [
   'hsl(0,50%,50%)',
   'hsl(170,50%,50%)',
   'hsl(30,50%,50%)',

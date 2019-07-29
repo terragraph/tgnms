@@ -136,6 +136,11 @@ const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
       return value >= 0 ? `${formatNumber(value, 1)}%` : '';
     },
   },
+  channel: {
+    name: 'Channel',
+    type: 'channel',
+    id: 'channel',
+  },
 };
 
 // Realtime metrics of the running network

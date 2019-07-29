@@ -683,9 +683,9 @@ Config.prototype.read = function(input) {
 Config.prototype.write = function(output) {
   output.writeStructBegin('Config');
   if (this.channel !== null && this.channel !== undefined) {
-    output.writeFieldBegin('channel', Thrift.Type.BYTE, 1);
-    output.writeByte(this.channel);
-    output.writeFieldEnd();
+      output.writeFieldBegin('channel', Thrift.Type.BYTE, 1);
+      output.writeByte(this.channel);
+      output.writeFieldEnd();
   }
   output.writeFieldStop();
   output.writeStructEnd();
@@ -864,4 +864,3 @@ Topology.prototype.write = function(output) {
   output.writeStructEnd();
   return;
 };
-

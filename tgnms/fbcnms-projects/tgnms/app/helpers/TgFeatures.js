@@ -72,6 +72,27 @@ export function getLinkGolay(
 }
 
 /**
+ * Get link channel
+ * Prior to M40, channel was configured at the topology level.
+ * Starting from release M40, channel is part of the node's configuration.
+ */
+export function getLinkChannel(link: Object, topologyConfig: Object) {
+  let linkChannel = {};
+  if (
+    topologyConfig.channel &&
+    topologyConfig.channel.hasOwnProperty(link.a_node_mac)
+  ) {
+    linkChannel = topologyConfig.channel[link.a_node_mac];
+  } else if (
+    topologyConfig.channel &&
+    topologyConfig.channel.hasOwnProperty(link.z_node_mac)
+  ) {
+    linkChannel = topologyConfig.channel[link.z_node_mac];
+  }
+  return linkChannel;
+}
+
+/**
  * Get link control superframe
  * Prior to RELEASE_M31, control superframe was part of the link's topology
  * structure.
