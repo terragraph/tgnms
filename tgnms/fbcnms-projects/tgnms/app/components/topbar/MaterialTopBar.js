@@ -40,6 +40,7 @@ import TableChartIcon from '@material-ui/icons/TableChart';
 import Text from '@fbcnms/i18n/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
+import UserMenu from './UserMenu';
 import classNames from 'classnames';
 import {NavLink} from 'react-router-dom';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
@@ -479,6 +480,8 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             </Text>
 
             <div className={classes.grow} />
+
+            {isFeatureEnabled('LOGIN_ENABLED') && <UserMenu />}
             {isFeatureEnabled('NOTIFICATION_MENU_ENABLED') && (
               <NotificationMenu />
             )}

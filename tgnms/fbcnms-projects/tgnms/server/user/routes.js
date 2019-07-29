@@ -100,7 +100,7 @@ router.get('/userinfo', (req, res) => {
     });
 });
 
-router.get('/logout', (req, res) => {
+router.post('/logout', (req, res) => {
   if (req.isAuthenticated()) {
     req.logout();
   }

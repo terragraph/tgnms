@@ -1,6 +1,6 @@
 {
   "Notification Menu Toggle": "Notification Menu Toggle",
-  "_t": "Wed Jul 24 2019 08:59:37 GMT-0700 (Pacific Daylight Time)",
+  "_t": "Mon Jul 29 2019 10:26:13 GMT-0700 (Pacific Daylight Time)",
   "open_drawer": "Open drawer",
   "network": "Network",
   "no_networks_defined": "No networks defined.",
@@ -35,5 +35,10 @@
   "Details": "Details",
   "not_selected": "Not Selected",
   "Show Details": "Show Details",
-  "Node": "Node"
+  "Node": "Node",
+  "User Menu": "User Menu",
+  "User Menu Toggle": "User Menu Toggle",
+  "Logout": "Logout",
+  "Dashboards": "Dashboards",
+  "Log Out": "Log Out"
 }

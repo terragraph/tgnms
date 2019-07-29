@@ -31,7 +31,7 @@ export function renderWithRouter(
 }
 
 // TGNMS renders json into the dom and loads it into window.CONFIG
-export function initWindowConfig(config: any) {
+export function initWindowConfig(config: any = {}) {
   if (!window) {
     throw new Error(
       'window is undefined. Ensure that the current jest environment is jsdom',
@@ -40,7 +40,7 @@ export function initWindowConfig(config: any) {
   window.CONFIG = config;
 }
 
-export function setTestUser(user: User) {
+export function setTestUser(user: $Shape<User>) {
   window.CONFIG.user = user;
 }
 
