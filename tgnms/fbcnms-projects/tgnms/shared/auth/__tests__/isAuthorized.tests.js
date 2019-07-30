@@ -93,6 +93,13 @@ test('users with ALL_WRITE role may perform ANY action', () => {
   });
 });
 
+test('roles are case insensitive', () => {
+  const user = mockUser({
+    roles: ['tg_config_read'],
+  });
+  expect(isAuthorized(user, ['CONFIG_READ'])).toBe(true);
+});
+
 function mockUser(merge = {}): User {
   return {
     id: 'testid',

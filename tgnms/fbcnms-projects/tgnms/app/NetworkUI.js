@@ -5,6 +5,7 @@
  */
 'use strict';
 
+import AuthorizedRoute from './components/common/AuthorizedRoute';
 import E2EConfig from './views/config/E2EConfig';
 import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
@@ -438,8 +439,13 @@ class NetworkUI extends React.Component<Props, State> {
                 />
               )}
             />
-            <Route path={`/upgrade/:networkName`} component={NetworkUpgrade} />
-            <Route
+            <AuthorizedRoute
+              permissions={['UPGRADE_READ', 'UPGRADE_WRITE']}
+              path={`/upgrade/:networkName`}
+              component={NetworkUpgrade}
+            />
+            <AuthorizedRoute
+              permissions={['CONFIG_READ', 'CONFIG_WRITE']}
               path={`/node_config/:networkName`}
               render={() => (
                 <NetworkConfig
@@ -448,8 +454,9 @@ class NetworkUI extends React.Component<Props, State> {
                 />
               )}
             />
-            <Route
+            <AuthorizedRoute
               path={`/e2e_config/:networkName`}
+              permissions={['CONFIG_READ', 'CONFIG_WRITE']}
               render={() => (
                 <E2EConfig
                   networkName={networkName}

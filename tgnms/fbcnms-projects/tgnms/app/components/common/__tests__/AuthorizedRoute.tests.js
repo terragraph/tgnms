@@ -15,6 +15,7 @@ import {
   renderWithRouter,
   setTestUser,
 } from '../../../tests/testHelpers';
+import {withStyles} from '@material-ui/core';
 
 beforeEach(() => {
   initWindowConfig({
@@ -121,3 +122,60 @@ test('If user has all of the required roles, show protected route', () => {
   expect(queryByText('should be visible')).toBeInTheDocument();
   expect(mockRedirect).not.toHaveBeenCalled();
 });
+
+test('works with Route component prop', () => {
+  const mockRedirect = jest.fn();
+  setTestUser({
+    id: '1234',
+    name: 'test',
+    email: '',
+    roles: [Permissions['TOPOLOGY_WRITE'], Permissions['TOPOLOGY_READ']],
+  });
+  const {queryByText} = renderWithRouter(
+    <>
+      <AuthorizedRoute
+        path="/testpath"
+        permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
+        component={MockComponent}
+        __testRedirect={mockRedirect}
+      />
+    </>,
+    {route: '/testpath'},
+  );
+  expect(queryByText('should be visible')).toBeInTheDocument();
+  expect(mockRedirect).not.toHaveBeenCalled();
+});
+
+test('works with Route component prop (withStyles)', () => {
+  // test for a fix when using the component prop with the withStyles HOC
+  const mockRedirect = jest.fn();
+  setTestUser({
+    id: '1234',
+    name: 'test',
+    email: '',
+    roles: [Permissions['TOPOLOGY_WRITE'], Permissions['TOPOLOGY_READ']],
+  });
+  const {queryByText} = renderWithRouter(
+    <>
+      <AuthorizedRoute
+        path="/testpath"
+        permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
+        component={StyledComponent}
+        __testRedirect={mockRedirect}
+      />
+    </>,
+    {route: '/testpath'},
+  );
+  expect(queryByText('should be visible')).toBeInTheDocument();
+  expect(mockRedirect).not.toHaveBeenCalled();
+});
+
+class MockComponent extends React.Component<{}> {
+  render() {
+    return <span>should be visible</span>;
+  }
+}
+
+const StyledComponent = withStyles(() => ({root: {backgroundColor: 'blue'}}))(
+  MockComponent,
+);

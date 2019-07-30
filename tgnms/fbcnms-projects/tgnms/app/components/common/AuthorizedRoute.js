@@ -45,13 +45,13 @@ export default function AuthorizedRoute(props: Props) {
 
   const renderProps = {};
   // Keep the same api as Route but wrap with authorization
-  if (typeof component === 'function') {
+  if (typeof component !== 'undefined') {
     renderProps.component = authorized ? component : redirect;
   }
-  if (typeof render === 'function') {
+  if (typeof render !== 'undefined') {
     renderProps.render = authorized ? render : redirect;
   }
-  if (typeof children === 'function') {
+  if (typeof children !== 'undefined') {
     renderProps.children = authorized ? children : redirect;
   }
 

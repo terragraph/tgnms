@@ -5,6 +5,7 @@
  */
 'use strict';
 
+import AuthorizedRoute from './components/common/AuthorizedRoute';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';
 import NetworkListContext from './NetworkListContext';
 import NetworkUI from './NetworkUI';
@@ -140,7 +141,11 @@ class NetworkListBase extends React.Component<Props, State> {
           <main className={classes.main}>
             <div className={classes.appBarSpacer} />
             <Switch>
-              <Route path={CONFIG_URL} component={NmsConfig} />
+              <AuthorizedRoute
+                path={CONFIG_URL}
+                component={NmsConfig}
+                permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
+              />
               <Route path="/:viewName/:networkName" component={NetworkUI} />
               <Redirect
                 to={

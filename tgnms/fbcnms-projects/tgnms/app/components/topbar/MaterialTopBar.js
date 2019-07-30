@@ -43,6 +43,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import UserMenu from './UserMenu';
 import classNames from 'classnames';
 import {NavLink} from 'react-router-dom';
+import {isAuthorized} from '../../helpers/UserHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -164,6 +165,7 @@ const VIEWS = [
     name: 'Upgrade',
     icon: <CloudUploadIcon />,
     viewName: 'upgrade',
+    hideCondition: () => !isAuthorized(['UPGRADE_READ', 'UPGRADE_WRITE']),
   },
   {
     name: 'Network Tests',
@@ -175,17 +177,20 @@ const VIEWS = [
     name: 'Node Config',
     icon: <RouterIcon />,
     viewName: 'node_config',
+    hideCondition: () => !isAuthorized(['CONFIG_READ', 'CONFIG_WRITE']),
   },
   {
     name: 'E2E Config',
     icon: <BuildIcon />,
     viewName: 'e2e_config',
+    hideCondition: () => !isAuthorized(['CONFIG_READ', 'CONFIG_WRITE']),
   },
   {
     name: 'NMS Config',
     icon: <SettingsIcon />,
     viewName: 'config',
     noNetworkName: false,
+    hideCondition: () => !isAuthorized(['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']),
   },
 ];
 

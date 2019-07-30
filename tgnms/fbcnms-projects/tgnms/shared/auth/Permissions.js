@@ -21,6 +21,7 @@ export const Permissions = {
   ALL_READ: 'TG_ALL_READ',
   ALL_WRITE: 'TG_ALL_WRITE',
 
+  // Api service permissions
   IGNITION_READ: 'TG_IGNITION_READ',
   IGNITION_WRITE: 'TG_IGNITION_WRITE',
 
@@ -41,6 +42,10 @@ export const Permissions = {
 
   UPGRADE_READ: 'TG_UPGRADE_READ',
   UPGRADE_WRITE: 'TG_UPGRADE_WRITE',
+
+  // NMS permissions
+  NMS_CONFIG_READ: 'TG_NMS_CONFIG_READ',
+  NMS_CONFIG_WRITE: 'TG_NMS_CONFIG_WRITE',
 };
 
 const TG_PREFIX = 'TG';
@@ -68,7 +73,9 @@ export function isAuthorized(
 
   // quick lookup for the simple role cases
   const roleSet = new Set(
-    user.roles.filter(role => role.startsWith(TG_PREFIX)),
+    user.roles
+      .map(x => x.toUpperCase())
+      .filter(role => role.startsWith(TG_PREFIX)),
   );
 
   return permissions.some(permission => {
