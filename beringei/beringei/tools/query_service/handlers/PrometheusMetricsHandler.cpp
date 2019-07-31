@@ -27,10 +27,8 @@ using namespace proxygen;
 namespace facebook {
 namespace gorilla {
 
-PrometheusMetricsHandler::PrometheusMetricsHandler(
-    TACacheMap& typeaheadCache,
-    const int metricInterval)
-    : typeaheadCache_(typeaheadCache), metricInterval_(metricInterval) {}
+PrometheusMetricsHandler::PrometheusMetricsHandler(const int metricInterval)
+    : metricInterval_(metricInterval) {}
 
 void PrometheusMetricsHandler::onRequest(
     std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -50,7 +48,7 @@ void PrometheusMetricsHandler::onEOM() noexcept {
   auto prometheusInstance = PrometheusUtils::getInstance();
   // grab all metrics
   std::vector<std::string> metrics =
-      prometheusInstance->pollMetrics(typeaheadCache_, metricInterval_);
+      prometheusInstance->pollMetrics(metricInterval_);
   std::string response = folly::join("\n", metrics) + "\n";
   ResponseBuilder(downstream_)
       .status(200, "OK")

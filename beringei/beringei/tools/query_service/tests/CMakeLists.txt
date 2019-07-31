@@ -21,8 +21,8 @@ add_executable(
 target_link_libraries(
     beringei_query_service_core_test_bin
     beringei_core
-    beringei_query_lib
-    beringei_query_service_test_util
+    query_lib
+    query_service_test_util
     ${FOLLY_LIBRARIES}
     ${GTEST_HARNESS_LIBS}
     ${LIBGLOG_LIBRARY}

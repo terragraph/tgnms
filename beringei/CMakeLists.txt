@@ -41,6 +41,8 @@ find_package(Glog REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Wangle REQUIRED)
 find_package(Proxygen REQUIRED)
+find_package(RdKafka REQUIRED)
+find_package(CppKafka REQUIRED)
 
 include(CheckFunctionExists)
 include(BeringeiCompilerOptions)

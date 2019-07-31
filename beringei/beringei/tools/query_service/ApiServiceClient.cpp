@@ -22,7 +22,8 @@ std::string ApiServiceClient::formatAddress(const std::string& address) {
     if (ipAddr.isV6()) {
       return folly::sformat("[{}]", address);
     }
-  } catch (const folly::IPAddressFormatException& ex) {}
+  } catch (const folly::IPAddressFormatException& ex) {
+  }
   return address;
 }
 

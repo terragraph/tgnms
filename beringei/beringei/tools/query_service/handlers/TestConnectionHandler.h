@@ -32,5 +32,5 @@ class TestConnectionHandler : public proxygen::RequestHandler {
 
   void onError(proxygen::ProxygenError err) noexcept override;
 };
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

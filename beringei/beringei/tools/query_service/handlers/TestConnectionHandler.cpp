@@ -46,5 +46,5 @@ void TestConnectionHandler::onError(ProxygenError /* unused */) noexcept {
   // Proxygen does not delete the handler.
   delete this;
 }
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

@@ -22,18 +22,18 @@ namespace gorilla {
 class ScanRespService {
  public:
   explicit ScanRespService();
-
-  // run eventbase
-  void start();
+  ~ScanRespService();
 
  private:
+  folly::EventBase eb_;
+  std::thread ebThread_;
+  std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
+
   enum StatusEvent {
     TX_ERROR = 0,
     RX_ERROR = 1,
     INCOMPLETE_RESPONSE = 2,
   };
-  folly::EventBase eb_;
-  std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
 
   // keep track of the latest scan respId
   std::unordered_map<

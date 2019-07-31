@@ -19,10 +19,10 @@
 #include "beringei/if/gen-cpp2/Controller_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Event_types.h"
 #include "beringei/if/gen-cpp2/Event_types_custom_protocol.h"
+#include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/scans_types_custom_protocol.h"
-#include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 
 #include "mysql_connection.h"
 #include "mysql_driver.h"
@@ -36,18 +36,16 @@
 namespace facebook {
 namespace gorilla {
 
-typedef std::unordered_map<std::string, std::shared_ptr<query::MySqlNodeData>>
-    MacToNodeMap;
-typedef std::unordered_map<std::string, std::shared_ptr<query::MySqlNodeData>>
-    NameToNodeIdMap;
-typedef std::unordered_map<int64_t, std::shared_ptr<query::MySqlNodeData>>
-    NodeIdToNodeMap;
 typedef std::unordered_map<int64_t, std::unordered_map<std::string, int64_t>>
     NodeKeyMap;
 typedef std::unordered_map<int64_t, std::unordered_map<std::string, int64_t>>
     NodeCategoryMap;
 typedef std::unordered_map<std::string /* metric name */, stats::LinkMetric>
     LinkMetricMap;
+typedef std::unordered_map<
+    std::string /* link name */,
+    std::unordered_map<stats::LinkDirection, stats::EventDescription>>
+    LinkStateMap;
 
 class MySqlClient {
  public:
@@ -64,76 +62,41 @@ class MySqlClient {
 
   void refreshAll() noexcept;
 
-  std::vector<std::shared_ptr<query::MySqlNodeData>> getNodes();
-
-  std::vector<std::shared_ptr<query::MySqlNodeData>> getNodesWithKeys();
-
-  std::vector<std::shared_ptr<query::MySqlNodeData>> getNodes(
-      const std::unordered_set<std::string>& nodeMacs);
-
-  std::vector<std::shared_ptr<query::MySqlNodeData>> getNodesWithKeys(
-      const std::unordered_set<std::string>& nodeMacs);
-
   std::map<int64_t, std::shared_ptr<query::TopologyConfig>>
   getTopologyConfigs();
 
   LinkMetricMap getLinkMetrics();
 
-  void addAggKeys(
-      const int64_t topologyId,
-      const std::vector<std::string>& keyNames) noexcept;
-
-  void refreshAggregateKeys(
-      std::map<int64_t, std::shared_ptr<query::TopologyConfig>>&
-          topologyIdMap) noexcept;
-
-  void refreshNodes() noexcept;
-
   void refreshTopologies() noexcept;
 
-  void refreshStatKeys() noexcept;
-
   void refreshLinkMetrics() noexcept;
-
-  bool addOrUpdateNodes(
-      const std::unordered_map<std::string, query::MySqlNodeData>&
-          newNodes) noexcept;
-
-  void addStatKeys(
-      const std::unordered_map<int64_t, std::unordered_set<std::string>>&
-          nodeKeys) noexcept;
-
-  folly::Optional<int64_t> getNodeId(const std::string& macAddr) const;
-  folly::Optional<int64_t> getNodeIdFromNodeName(
-      const std::string& macAddr) const;
-
-  folly::Optional<int64_t> getKeyId(
-      const int64_t nodeId,
-      const std::string& keyName) const;
 
   bool writeScanResponses(
       const std::vector<scans::MySqlScanResp>& mySqlScanResponses) noexcept;
   int64_t refreshScanResponse(std::string& network) noexcept;
+
   int64_t getLastBwgd(const std::string& network) noexcept;
 
-  void addEvents(const query::NodeEvents& nodeEvents, const std::string& topologyName);
+  void addEvents(
+      const query::NodeEvents& nodeEvents,
+      const std::string& topologyName);
   folly::dynamic getEvents(const query::EventsQueryRequest& request);
 
+  // link health state
+  folly::Optional<LinkStateMap> refreshLatestLinkState() noexcept;
+  void updateLinkState(const long keyId, const time_t endTs) noexcept;
+  void addLinkState(
+      const std::string& topologyName,
+      const std::string& linkName,
+      const stats::LinkDirection& linkDir,
+      const stats::LinkStateType& linkState,
+      const time_t startTs,
+      const time_t endTs) noexcept;
+
  private:
-  folly::Synchronized<std::vector<std::shared_ptr<query::MySqlNodeData>>>
-      nodes_{};
   folly::Synchronized<std::map<int64_t, std::shared_ptr<query::TopologyConfig>>>
       topologyIdMap_{};
-  folly::Synchronized<MacToNodeMap> macAddrToNode_{};
-  folly::Synchronized<NodeIdToNodeMap> nodeIdToNode_{};
-  folly::Synchronized<NodeKeyMap> nodeKeyIds_{};
-  folly::Synchronized<NodeCategoryMap> nodeCategoryIds_{};
-  folly::Synchronized<NameToNodeIdMap> nodeNameToNodeId_{};
   folly::Synchronized<LinkMetricMap> linkMetrics_{};
-
-  // duplicate node -> mac mappings
-  folly::Synchronized<std::map<std::string, std::set<std::string>>>
-      duplicateNodes_;
 
   bool writeRxScanResponse(
       const scans::MySqlScanRxResp& scanResponse,

@@ -8,10 +8,13 @@
  */
 
 #pragma once
+
 #include "../MySqlClient.h"
-#include <folly/dynamic.h>
+
 #include <folly/Memory.h>
+#include <folly/dynamic.h>
 #include <proxygen/httpserver/RequestHandler.h>
+
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 namespace facebook {
@@ -39,5 +42,5 @@ class EventsHandler : public proxygen::RequestHandler {
   bool fetchEvents_;
 };
 
-}
-} // facebook::gorilla
+} // namespace gorilla
+} // namespace facebook

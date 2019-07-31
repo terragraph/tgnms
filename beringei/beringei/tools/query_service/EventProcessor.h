@@ -12,7 +12,6 @@
 #include <unordered_map>
 
 #include <folly/dynamic.h>
-#include "beringei/client/BeringeiClient.h"
 #include "beringei/if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 
@@ -23,7 +22,8 @@ class EventProcessor {
  public:
   explicit EventProcessor();
 
-  static std::pair<int* /* intervalStatus */, int /* missingIntervals */>  computeIntervalStatus(
+  static std::pair<int* /* intervalStatus */, int /* missingIntervals */>
+  computeIntervalStatus(
       const double* timeSeries,
       const int32_t numDataPoints,
       const int32_t timeInterval,

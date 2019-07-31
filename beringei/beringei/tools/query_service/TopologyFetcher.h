@@ -10,7 +10,6 @@
 #pragma once
 
 #include "ApiServiceClient.h"
-#include "StatsTypeAheadCache.h"
 
 #include "beringei/if/gen-cpp2/Topology_types_custom_protocol.h"
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
@@ -23,20 +22,15 @@ namespace gorilla {
 
 class TopologyFetcher {
  public:
-  explicit TopologyFetcher(TACacheMap& typeaheadCache);
-
-  // run eventbase
-  void start();
+  explicit TopologyFetcher();
+  ~TopologyFetcher();
   void refreshTopologyCache();
-  // requests topology from an api_service endpoint
-  void updateTypeaheadCache(query::Topology& topology);
 
  private:
   folly::EventBase eb_;
-  TACacheMap& typeaheadCache_;
+  std::thread ebThread_;
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
-  void updateDbNodesTable(query::Topology& topology);
 };
 } // namespace gorilla
 } // namespace facebook

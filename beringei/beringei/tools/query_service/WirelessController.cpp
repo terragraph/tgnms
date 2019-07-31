@@ -9,36 +9,10 @@
 
 #include "WirelessController.h"
 
-#include <curl/curl.h>
 #include <folly/Conv.h>
 #include <folly/String.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
-
-#include "beringei/client/BeringeiClient.h"
-
-extern "C" {
-struct HTTPDataStruct {
-  char* data;
-  size_t size;
-};
-
-static size_t
-curlWriteCb(void* content, size_t size, size_t nmemb, void* userp) {
-  size_t realSize = size * nmemb;
-  struct HTTPDataStruct* httpData = (struct HTTPDataStruct*)userp;
-  httpData->data =
-      (char*)realloc(httpData->data, httpData->size + realSize + 1);
-  if (httpData->data == nullptr) {
-    printf("Unable to allocate memory (realloc failed)\n");
-    return 0;
-  }
-  memcpy(&(httpData->data[httpData->size]), content, realSize);
-  httpData->size += realSize;
-  httpData->data[httpData->size] = 0;
-  return realSize;
-}
-}
 
 namespace facebook {
 namespace gorilla {
@@ -48,9 +22,8 @@ folly::dynamic WirelessController::ruckusControllerStats(
   // return
   folly::dynamic apStats = folly::dynamic::object;
   // login and get a new session id
-  folly::dynamic loginObj =
-      folly::dynamic::object("username", controller.username)(
-          "password", controller.password);
+  folly::dynamic loginObj = folly::dynamic::object(
+      "username", controller.username)("password", controller.password);
   struct CurlResponse loginResp = WirelessController::ruckusControllerRequest(
       controller, "session", "", folly::toJson(loginObj));
   VLOG(1) << "Header: " << loginResp.header << ", body: " << loginResp.body;
@@ -95,7 +68,7 @@ folly::dynamic WirelessController::ruckusControllerStats(
     // ensure all entries are found
     auto apListHasMoreIt = apListObj.find("hasMore");
     hasMore = apListHasMoreIt != apListObj.items().end() &&
-              apListHasMoreIt->second.asBool();
+        apListHasMoreIt->second.asBool();
     apListIndex += apListSize;
     auto apListObjIt = apListObj.find("list");
     if (apListObjIt != apListObj.items().end()) {
@@ -121,8 +94,7 @@ folly::dynamic WirelessController::ruckusControllerStats(
           std::string administrativeState(
               apDetailsObj["administrativeState"].asString());
           std::string ipAddr(apDetailsObj["externalIp"].asString());
-          VLOG(2) << "AP: " << apName
-                  << ", MAC: " << macAddr
+          VLOG(2) << "AP: " << apName << ", MAC: " << macAddr
                   << ", uptime: " << apUptime
                   << ", reg state: " << registrationState
                   << ", client count: " << clientCount
@@ -146,7 +118,6 @@ struct CurlResponse WirelessController::ruckusControllerRequest(
     const std::string& uri,
     const std::string& sessionCookie,
     const std::string& postData) {
-
   struct CurlResponse curlResponse;
   // construct login request
   struct curl_slist* headerList = NULL;
@@ -160,10 +131,7 @@ struct CurlResponse WirelessController::ruckusControllerRequest(
       throw std::runtime_error("Unable to initialize CURL");
     }
     // we have to forward the v4 address right now since no local v6
-    std::string endpoint(folly::sformat(
-        "{}/{}",
-        controller.url,
-        uri));
+    std::string endpoint(folly::sformat("{}/{}", controller.url, uri));
     // we can't verify the peer with our current image/lack of certs
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);

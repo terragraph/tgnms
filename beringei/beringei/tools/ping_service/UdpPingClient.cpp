@@ -30,6 +30,7 @@
 #include "../query_service/ApiServiceClient.h"
 #include "../query_service/MySqlClient.h"
 #include "../query_service/PrometheusUtils.h"
+#include "../query_service/StatsUtils.h"
 #include "../query_service/consts/PrometheusConsts.h"
 #include "../query_service/handlers/NotFoundHandler.h"
 #include "../query_service/handlers/PrometheusMetricsHandler.h"
@@ -60,8 +61,7 @@ DEFINE_int32(num_http_threads, 1, "Number of HTTP server threads to listen on");
 
 class RequestHandlerFactory : public proxygen::RequestHandlerFactory {
  public:
-  RequestHandlerFactory(TACacheMap& typeaheadCache)
-      : typeaheadCache_(typeaheadCache) {}
+  RequestHandlerFactory() {}
 
   void onServerStart(folly::EventBase* evb) noexcept {}
 
@@ -74,16 +74,13 @@ class RequestHandlerFactory : public proxygen::RequestHandlerFactory {
     LOG(INFO) << "Received a request for " << path;
 
     if (path == "/metrics/30s") {
-      return new PrometheusMetricsHandler(typeaheadCache_, 30);
+      return new PrometheusMetricsHandler(30);
     } else if (path == "/metrics/1s") {
-      return new PrometheusMetricsHandler(typeaheadCache_, 1);
+      return new PrometheusMetricsHandler(1);
     } else {
       return new NotFoundHandler();
     }
   }
-
- private:
-  TACacheMap& typeaheadCache_;
 };
 
 struct AggrUdpPingStat {
@@ -245,9 +242,7 @@ UdpTestResults ping(
 }
 
 void writeResults(const UdpTestResults& results) {
-  auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                 std::chrono::system_clock::now().time_since_epoch())
-                 .count();
+  auto now = StatsUtils::getTimeInMs();
 
   std::vector<Metric> metrics;
   for (const auto& result : results.hostResults) {
@@ -282,13 +277,20 @@ void writeResults(const UdpTestResults& results) {
     }
   }
 
-  PrometheusUtils::getInstance()->writeMetrics(1 /* interval in s */, metrics);
+  auto prometheusInstance = PrometheusUtils::getInstance();
+  const int reportIntervalSec = 1;
+  // ensure metric queue isn't full before writing to it
+  if (prometheusInstance->isQueueFull(reportIntervalSec)) {
+    LOG(ERROR) << "Prometheus queue full, dropping metrics.";
+    return;
+  }
+  PrometheusUtils::getInstance()->enqueueMetrics(
+      30 /* interval in s */, metrics);
 }
 
 void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
-  auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                 std::chrono::system_clock::now().time_since_epoch())
-                 .count();
+  auto now = StatsUtils::getTimeInMs();
+  const int dataInterval = 30;
 
   std::unordered_map<std::string /* host or network name */, AggrUdpPingStat>
       aggrUdpPingStatMap;
@@ -336,7 +338,7 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
   for (const auto& aggrUdpPingStatIt : aggrUdpPingStatMap) {
     const auto& aggrUdpPingStat = aggrUdpPingStatIt.second;
     std::vector<std::string> labels =
-        getMetricLabels(aggrUdpPingStat.target, 30);
+        getMetricLabels(aggrUdpPingStat.target, dataInterval);
 
     metrics.emplace_back(Metric(
         "pinger_lossRatio",
@@ -365,8 +367,12 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
            Metric("pinger_rtt_max", now, labels, aggrUdpPingStat.rttCurrMax)});
     }
   }
-
-  PrometheusUtils::getInstance()->writeMetrics(30 /* interval in s */, metrics);
+  auto prometheusInstance = PrometheusUtils::getInstance();
+  if (prometheusInstance->isQueueFull(dataInterval)) {
+    LOG(ERROR) << "Prometheus queue full, dropping metrics.";
+    return;
+  }
+  prometheusInstance->enqueueMetrics(dataInterval, metrics);
 }
 
 int main(int argc, char* argv[]) {
@@ -382,16 +388,13 @@ int main(int argc, char* argv[]) {
   // Initialize curl thread un-safe operations
   curl_global_init(CURL_GLOBAL_ALL);
 
-  // Initialize type-ahead
-  TACacheMap typeaheadCache;
-
   proxygen::HTTPServerOptions options;
   options.threads = static_cast<size_t>(FLAGS_num_http_threads);
   options.idleTimeout = std::chrono::milliseconds(60000);
   options.shutdownOn = {SIGINT, SIGTERM};
   options.enableContentCompression = false;
   options.handlerFactories = proxygen::RequestHandlerChain()
-                                 .addThen<RequestHandlerFactory>(typeaheadCache)
+                                 .addThen<RequestHandlerFactory>()
                                  .build();
 
   LOG(INFO) << "Starting UDP ping client HTTP server on port "
@@ -438,9 +441,7 @@ int main(int argc, char* argv[]) {
         testPlans.swap(newTestPlans);
       }
 
-      auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                     std::chrono::system_clock::now().time_since_epoch())
-                     .count();
+      auto now = StatsUtils::getTimeInMs();
 
       auto nextRunTime =
           (long(now / (FLAGS_topology_refresh_interval_s * 1000)) *
@@ -457,9 +458,7 @@ int main(int argc, char* argv[]) {
       aggrResults.wlock()->push_back(results);
       writeResults(results);
 
-      auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                     std::chrono::system_clock::now().time_since_epoch())
-                     .count();
+      auto now = StatsUtils::getTimeInMs();
 
       auto nextRunTime = (long(now / (FLAGS_ping_interval_s * 1000)) *
                           FLAGS_ping_interval_s * 1000) +

@@ -80,7 +80,6 @@ enum LinkDirection {
 }
 
 struct KeyMetaData {
-  1: i64 keyId,
   2: string keyName,
   // short name if one is associated
   3: optional string shortName,
@@ -193,10 +192,11 @@ enum LinkStateType {
 
 // output formats
 struct EventDescription {
-  1: i64 startTime,
-  2: i64 endTime,
-  3: string description,
-  4: optional LinkStateType linkState,
+  1: i64 dbId,
+  10: i64 startTime,
+  11: i64 endTime,
+  20: optional string description,
+  21: optional LinkStateType linkState,
 }
 
 struct EventList {

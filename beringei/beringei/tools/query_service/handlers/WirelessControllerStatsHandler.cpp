@@ -48,8 +48,8 @@ void WirelessControllerStatsHandler::onEOM() noexcept {
   try {
     req = SimpleJSONSerializer::deserialize<
         query::WirelessControllerStatsRequest>(body);
-  } catch (const std::exception &) {
-    LOG(INFO) << "Error deserializing WirelessControllerStatsRequest";
+  } catch (const std::exception&) {
+    LOG(ERROR) << "Error deserializing WirelessControllerStatsRequest";
     ResponseBuilder(downstream_)
         .status(500, "Error")
         .body("Failed de-serializing WirelessControllerStatsRequest")
@@ -63,8 +63,9 @@ void WirelessControllerStatsHandler::onEOM() noexcept {
         topologyConfig->wireless_controller.type != "ruckus") {
       ResponseBuilder(downstream_)
           .status(412, "Error")
-          .body("No wireless controller defined or unable to support "
-                "wireless controller type")
+          .body(
+              "No wireless controller defined or unable to support "
+              "wireless controller type")
           .sendWithEOM();
       return;
     }

@@ -8,8 +8,6 @@
  */
 #pragma once
 
-#include "StatsTypeAheadCache.h"
-
 #include <folly/Memory.h>
 #include <folly/Portability.h>
 #include <folly/io/async/EventBaseManager.h>
@@ -23,7 +21,7 @@ namespace gorilla {
 // Request handler factory that figures out the right handler based on the uri
 class QueryServiceFactory : public proxygen::RequestHandlerFactory {
  public:
-  explicit QueryServiceFactory(TACacheMap& typeaheadCache);
+  explicit QueryServiceFactory();
 
   void onServerStart(folly::EventBase* evb) noexcept override;
 
@@ -35,8 +33,6 @@ class QueryServiceFactory : public proxygen::RequestHandlerFactory {
 
  private:
   folly::EventBase* eb_;
-  // topology name -> type-ahead cache
-  TACacheMap& typeaheadCache_;
 };
 
 } // namespace gorilla

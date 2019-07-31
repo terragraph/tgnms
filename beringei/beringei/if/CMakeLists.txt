@@ -18,6 +18,7 @@ set(
     beringei_grafana.thrift
     beringei_query.thrift
     beringei.thrift
+    Aggregator.thrift
     BWAllocation.thrift
     Controller.thrift
     IpPrefix.thrift

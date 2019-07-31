@@ -9,37 +9,15 @@
 
 #pragma once
 
+#include "CurlUtil.h"
+
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
-#include <curl/curl.h>
 #include <folly/Format.h>
-#include <folly/String.h>
 #include <folly/Optional.h>
+#include <folly/String.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-
-extern "C" {
-struct HTTPDataStruct {
-  char* data;
-  size_t size;
-};
-
-static size_t
-curlWriteCb(void* content, size_t size, size_t nmemb, void* userp) {
-  size_t realSize = size * nmemb;
-  struct HTTPDataStruct* httpData = (struct HTTPDataStruct*)userp;
-  httpData->data =
-      (char*)realloc(httpData->data, httpData->size + realSize + 1);
-  if (httpData->data == nullptr) {
-    printf("Unable to allocate memory (realloc failed)\n");
-    return 0;
-  }
-  memcpy(&(httpData->data[httpData->size]), content, realSize);
-  httpData->size += realSize;
-  httpData->data[httpData->size] = 0;
-  return realSize;
-}
-}
 
 using apache::thrift::SimpleJSONSerializer;
 

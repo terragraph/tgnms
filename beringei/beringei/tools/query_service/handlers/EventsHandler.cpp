@@ -13,8 +13,8 @@
 #include <cppconn/prepared_statement.h>
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
-#include <folly/DynamicConverter.h>
 #include <folly/Conv.h>
+#include <folly/DynamicConverter.h>
 #include <folly/io/IOBuf.h>
 #include <proxygen/httpserver/ResponseBuilder.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
@@ -27,8 +27,7 @@ namespace facebook {
 namespace gorilla {
 
 EventsHandler::EventsHandler(bool fetchEvents)
-    : RequestHandler(),
-      fetchEvents_(fetchEvents) {}
+    : RequestHandler(), fetchEvents_(fetchEvents) {}
 
 void EventsHandler::onRequest(
     std::unique_ptr<HTTPMessage> /* unused */) noexcept {
@@ -51,11 +50,11 @@ void EventsHandler::onEOM() noexcept {
     auto mySqlClient = MySqlClient::getInstance();
     std::string responseJson;
     try {
-      request = SimpleJSONSerializer::deserialize<query::EventsQueryRequest>(body);
+      request =
+          SimpleJSONSerializer::deserialize<query::EventsQueryRequest>(body);
       LOG(INFO) << "Getting events from topology: " << request.topologyName;
-    }
-    catch (const std::exception &) {
-      LOG(INFO) << "Error deserializing EventsQueryRequest";
+    } catch (const std::exception&) {
+      LOG(ERROR) << "Error deserializing EventsQueryRequest";
       ResponseBuilder(downstream_)
           .status(500, "OK")
           .header("Content-Type", "application/json")
@@ -65,9 +64,8 @@ void EventsHandler::onEOM() noexcept {
     }
     try {
       responseJson = folly::toJson(mySqlClient->getEvents(request));
-    }
-    catch (const std::runtime_error &ex) {
-      LOG(ERROR) << "Failed executing beringei query: " << ex.what();
+    } catch (const std::runtime_error& ex) {
+      LOG(ERROR) << "Failed executing query: " << ex.what();
     }
     ResponseBuilder(downstream_)
         .status(200, "OK")
@@ -78,10 +76,10 @@ void EventsHandler::onEOM() noexcept {
     query::EventsWriteRequest request;
     auto mySqlClient = MySqlClient::getInstance();
     try {
-      request = SimpleJSONSerializer::deserialize<query::EventsWriteRequest>(body);
-    }
-    catch (const std::exception &ex) {
-      LOG(INFO) << "Error deserializing events write request: " << ex.what();
+      request =
+          SimpleJSONSerializer::deserialize<query::EventsWriteRequest>(body);
+    } catch (const std::exception& ex) {
+      LOG(ERROR) << "Error deserializing events write request: " << ex.what();
       ResponseBuilder(downstream_)
           .status(500, "OK")
           .header("Content-Type", "application/json")
@@ -105,7 +103,9 @@ void EventsHandler::onEOM() noexcept {
 
 void EventsHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {}
 
-void EventsHandler::requestComplete() noexcept { delete this; }
+void EventsHandler::requestComplete() noexcept {
+  delete this;
+}
 
 void EventsHandler::onError(ProxygenError /* unused */) noexcept {
   LOG(ERROR) << "Proxygen reported error";

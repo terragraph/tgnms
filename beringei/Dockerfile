@@ -2,15 +2,6 @@
 FROM ubuntu:18.04
 
 ENV WORKDIR /usr/local/beringei
-ENV RUN_CMD ./beringei/service/beringei_main \
-              -beringei_configuration_path $WORKDIR/beringei.json \
-              -create_directories \
-              -sleep_between_bucket_finalization_secs 60 \
-              -allowed_timestamp_behind 300 \
-              -bucket_size 600 \
-              -buckets 144 \
-              -logtostderr \
-              -v=2
 
 RUN apt-get update
 RUN apt-get -y upgrade
@@ -42,5 +33,3 @@ RUN /bin/bash -c 'make install -j$(cat /proc/cpuinfo | grep processor | wc -l)'
 # Delete cmake files
 # TODO - just copy binaries/libs we need instead of selectively deleting
 RUN /bin/bash -c 'find . -name 'CMakeFiles' -type d|xargs rm -rf'
-
-RUN ./beringei/tools/beringei_configuration_generator --host_names localhost --file_path $WORKDIR/beringei.json

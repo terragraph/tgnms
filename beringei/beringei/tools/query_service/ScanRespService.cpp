@@ -15,6 +15,7 @@
 
 #include <curl/curl.h>
 #include <folly/String.h>
+#include <folly/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/json.h>
 #include <snappy.h>
@@ -51,9 +52,16 @@ namespace facebook {
 namespace gorilla {
 
 ScanRespService::ScanRespService() {
-  // stats reporting time period
+  ebThread_ = std::thread([this]() {
+    folly::setThreadName("Scan Response Service");
+    this->eb_.loopForever();
+  });
   timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { timerCb(); });
-  timer_->scheduleTimeout(FLAGS_scan_poll_period_short * 1000);
+  eb_.runInEventBaseThread([&]() { timerCb(); });
+}
+
+ScanRespService::~ScanRespService() {
+  ebThread_.join();
 }
 
 folly::dynamic ScanRespService::getScanRespIdRange(
@@ -88,7 +96,6 @@ folly::dynamic ScanRespService::getScanRespIdRange(
 void ScanRespService::timerCb() {
   VLOG(2) << "Timer running; fetching scan response";
   int scanPollPeriod = FLAGS_scan_poll_period_long;
-
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
   for (const auto& topologyConfig : topologyList) {
@@ -184,7 +191,6 @@ int ScanRespService::writeData(
     const ScanStatus& scanStatus,
     const std::string& topologyName) {
   std::vector<scans::MySqlScanResp> mySqlScanResponses;
-  auto mySqlClient = MySqlClient::getInstance();
   // loop over scans: {token: ScanData}
   for (const std::pair<int, ScanData>& scan : scanStatus.scans) {
     int respId = scan.second.respId;
@@ -226,16 +232,12 @@ int ScanRespService::writeData(
     // loop over scan responses within a scan {nodeName:: ScanResp}
     for (const std::pair<std::string, ScanResp>& responses :
          scan.second.responses) {
-      auto nodeId = mySqlClient->getNodeIdFromNodeName(responses.first);
-      if (!nodeId) {
-        LOG(ERROR) << "Error no node ID corresponding to " << responses.first;
-        continue;
-      }
       // check if this is the tx or an rx node
       if (responses.first.compare(txNodeName) == 0) {
         // this is the tx node
         hasTxResponse = true;
-        mySqlScanTxResponse.txNodeId = *nodeId;
+        // node id deprecated - rely on mac addr
+        mySqlScanTxResponse.txNodeId = 0;
         mySqlScanTxResponse.status = responses.second.status;
         mySqlScanTxResponse.txPower = responses.second.txPwrIndex;
         mySqlScanTxResponse.combinedStatus =
@@ -333,7 +335,8 @@ int ScanRespService::writeData(
         }
 
         mySqlScanRxResponse.status = responses.second.status;
-        mySqlScanRxResponse.rxNodeId = *nodeId;
+        // node id deprecated - rely on mac addr
+        mySqlScanRxResponse.rxNodeId = 0;
         mySqlScanRxResponse.rxNodeName = responses.first;
         // new_beam_flag indicates if the beam changed
         mySqlScanRxResponse.newBeamFlag = scan.second.apply &&
@@ -350,14 +353,7 @@ int ScanRespService::writeData(
     if (!hasTxResponse) {
       // If no tx response was present in the scan data, add a placeholder for
       // error tracking purposes
-      auto nodeId = mySqlClient->getNodeIdFromNodeName(txNodeName);
-      if (!nodeId) {
-        LOG(ERROR) << "Error no node ID corresponding to expected tx node "
-                   << txNodeName << " for scan " << respId;
-        mySqlScanTxResponse.txNodeId = 0;
-      } else {
-        mySqlScanTxResponse.txNodeId = *nodeId;
-      }
+      mySqlScanTxResponse.txNodeId = 0; // node id deprecated - rely on mac addr
       mySqlScanTxResponse.txNodeName = txNodeName;
       mySqlScanTxResponse.scanResp = "";
       mySqlScanTxResponse.combinedStatus = 1 << TX_ERROR;
@@ -371,12 +367,9 @@ int ScanRespService::writeData(
       mySqlScanResponses.push_back(mySqlScanResponse);
     }
   }
+  auto mySqlClient = MySqlClient::getInstance();
   bool success = mySqlClient->writeScanResponses(mySqlScanResponses);
   return success ? 0 : -1;
-}
-
-void ScanRespService::start() {
-  eb_.loopForever();
 }
 
 } // namespace gorilla

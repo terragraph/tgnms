@@ -10,12 +10,14 @@
 #include "TopologyFetcher.h"
 
 #include "ApiServiceClient.h"
+#include "MetricCache.h"
 #include "MySqlClient.h"
 #include "TopologyStore.h"
 
 #include <curl/curl.h>
 #include <folly/IPAddress.h>
 #include <folly/String.h>
+#include <folly/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -27,45 +29,19 @@ using apache::thrift::SimpleJSONSerializer;
 namespace facebook {
 namespace gorilla {
 
-TopologyFetcher::TopologyFetcher(TACacheMap& typeaheadCache)
-    : typeaheadCache_(typeaheadCache) {
-  // refresh topology time period
-  timer_ = folly::AsyncTimeout::make(eb_, [&]() noexcept { refreshTopologyCache(); });
-  // first run
-  refreshTopologyCache();
-  timer_->scheduleTimeout(FLAGS_topology_refresh_interval * 1000);
+TopologyFetcher::TopologyFetcher() {
+  // refresh topology periodically
+  ebThread_ = std::thread([this]() {
+    folly::setThreadName("Topology Fetcher");
+    this->eb_.loopForever();
+  });
+  timer_ = folly::AsyncTimeout::make(
+      eb_, [&]() noexcept { refreshTopologyCache(); });
+  eb_.runInEventBaseThread([&]() { refreshTopologyCache(); });
 }
 
-// for each node in the topology, check if it is currently in the list of
-// nodes, if it isn't, add it to the list and update the database
-void TopologyFetcher::updateDbNodesTable(query::Topology& topology) {
-  std::unordered_map<std::string, query::MySqlNodeData> newOrUpdatedNodes;
-
-  // update the nodes table with retrieved information
-  auto mySqlClient = MySqlClient::getInstance();
-  for (const auto& node : topology.nodes) {
-    if (node.mac_addr.empty()) {
-      continue;
-    }
-    auto nodeId = mySqlClient->getNodeId(node.mac_addr);
-    query::MySqlNodeData newNode;
-    if (!nodeId) {
-      LOG(INFO) << "Unknown node: " << node.name;
-    }
-    newNode.mac = node.mac_addr;
-    newNode.node = node.name;
-    newNode.site = node.site_name;
-    newNode.network = topology.name;
-    newOrUpdatedNodes[newNode.mac] = newNode;
-  }
-  if (!newOrUpdatedNodes.empty()) {
-    bool changed = mySqlClient->addOrUpdateNodes(newOrUpdatedNodes);
-    LOG(INFO) << "Ran addOrUpdateNodes/addStatKeys, "
-              << (changed ? "refreshing cache" : "no changes");
-    if (changed) {
-      mySqlClient->refreshAll();
-    }
-  }
+TopologyFetcher::~TopologyFetcher() {
+  ebThread_.join();
 }
 
 void TopologyFetcher::refreshTopologyCache() {
@@ -90,47 +66,18 @@ void TopologyFetcher::refreshTopologyCache() {
       LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
       topologyConfig.second->topology = *topology;
-
-      // TODO: we never remove old topologies - after some amount of time
+      // update metric cache for network
+      auto metricCache = MetricCache::getInstance();
+      metricCache->updateMetricNames(*topology);
+      // TODO: (pmccutcheon) T44660952 we never remove old topologies - after
+      // some amount of time
       //   over which a topology was never "added" we should remove it
       //   like 1 day
       topologyInstance->addTopology(topologyConfig.second);
       LOG(INFO) << "Topology refreshed for: " << topology->name;
-      // load stats type-ahead cache?
-      updateTypeaheadCache(*topology);
-
-      // update mysql with nodes from topology
-      updateDbNodesTable(*topology);
     }
     // TODO: delete old topologies
   }
-}
-
-void TopologyFetcher::updateTypeaheadCache(query::Topology& topology) {
-  try {
-    // insert cache handler
-    auto mySqlClient = MySqlClient::getInstance();
-    auto taCache = std::make_shared<StatsTypeAheadCache>();
-    taCache->fetchMetricNames(topology);
-    LOG(INFO) << "Type-ahead cache loaded for: " << topology.name;
-    // re-insert into the map
-    {
-      auto locked = typeaheadCache_.wlock();
-      auto taCacheIt = locked->find(topology.name);
-      if (taCacheIt != locked->end()) {
-        taCacheIt->second.swap(taCache);
-      } else {
-        locked->insert(std::make_pair(topology.name, taCache));
-      }
-    }
-  } catch (const std::exception& ex) {
-    LOG(ERROR) << "Unable to update stats typeahead cache for: "
-               << topology.name;
-  }
-}
-
-void TopologyFetcher::start() {
-  eb_.loopForever();
 }
 
 } // namespace gorilla

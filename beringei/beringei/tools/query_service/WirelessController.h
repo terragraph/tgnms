@@ -7,6 +7,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#include "CurlUtil.h"
+
 #include <folly/dynamic.h>
 
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
@@ -15,12 +17,6 @@
 
 namespace facebook {
 namespace gorilla {
-
-struct CurlResponse {
-  long responseCode;
-  std::string header;
-  std::string body;
-};
 
 class WirelessController {
  public:

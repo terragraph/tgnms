@@ -12,16 +12,12 @@
 #include <proxygen/httpserver/RequestHandler.h>
 #include "beringei/if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
-#include "../StatsTypeAheadCache.h"
-
 namespace facebook {
 namespace gorilla {
 
 class PrometheusMetricsHandler : public proxygen::RequestHandler {
  public:
-  explicit PrometheusMetricsHandler(
-      TACacheMap& typeaheadCache,
-      const int metricInterval);
+  explicit PrometheusMetricsHandler(const int metricInterval);
 
   void onRequest(
       std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -38,7 +34,6 @@ class PrometheusMetricsHandler : public proxygen::RequestHandler {
 
  private:
   std::unique_ptr<folly::IOBuf> body_;
-  TACacheMap& typeaheadCache_;
   const int metricInterval_{30};
 };
 } // namespace gorilla

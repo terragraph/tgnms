@@ -10,6 +10,7 @@ if("$ENV{ASAN}" STREQUAL "1")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -DASAN=ON")
 endif()
 
+
 set(UDP_PING_CLIENT_SRCS
     UdpPingClient.cpp
     AsyncUdpSocket.cpp
@@ -22,7 +23,7 @@ set(UDP_PING_CLIENT_SRCS
 add_executable(udp_ping_client ${UDP_PING_CLIENT_SRCS})
 target_link_libraries(
     udp_ping_client
-    beringei_query_lib
+    query_lib
     ${FBTHRIFT_LIBRARIES}
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
