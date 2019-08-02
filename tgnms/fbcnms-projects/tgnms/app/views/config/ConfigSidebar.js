@@ -282,6 +282,34 @@ class ConfigSidebar extends React.Component<Props, State> {
     );
   };
 
+  handleChannelOptCommand = () => {
+    // Trigger channel optimization
+    const {networkName, onConfigRefresh, onUpdateSnackbar} = this.props;
+
+    const data = {};
+    apiServiceRequestWithConfirmation(
+      networkName,
+      'triggerChannelOptimization',
+      data,
+      {
+        title: 'Optimize Channel Allocation',
+        desc: 'Do you want to re-assign channel values across the network?',
+        checkbox: 'Clear user-assigned channels',
+        processInput: (data, value) => {
+          return {...data, clearUserChannelConfig: !!value};
+        },
+        onResultsOverride: value => {
+          if (value.success) {
+            onConfigRefresh(networkName, false);
+            onUpdateSnackbar('Channel optimization was successful.', 'success');
+          } else {
+            onUpdateSnackbar('Channel optimization failed.', 'error');
+          }
+        },
+      },
+    );
+  };
+
   handleCloseFullNodeConfigModal = () => {
     // Close the "Full Node Configuration" modal
     this.setState({showFullNodeConfigModal: false});
@@ -327,6 +355,12 @@ class ConfigSidebar extends React.Component<Props, State> {
       actions.push({
         label: 'Optimize Control Superframe Allocation',
         func: () => this.handleControlSuperframeOptCommand(),
+      });
+    }
+    if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M43)) {
+      actions.push({
+        label: 'Optimize Channel Allocation',
+        func: () => this.handleChannelOptCommand(),
       });
     }
     const actionItems = [{heading: 'Actions', actions}];
