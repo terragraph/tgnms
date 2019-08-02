@@ -505,7 +505,7 @@ class LinksLayer extends React.Component<Props> {
           const golayValues = getLinkGolay(ctrlVersion, link, topologyConfig);
           value = this.getGolayValue(overlay, golayValues);
         } else if (overlay.type === 'channel') {
-          value = getLinkChannel(ctrlVersion, link, topologyConfig);
+          value = getLinkChannel(link, topologyConfig);
         } else {
           value = getLinkControlSuperframe(ctrlVersion, link, topologyConfig);
         }
