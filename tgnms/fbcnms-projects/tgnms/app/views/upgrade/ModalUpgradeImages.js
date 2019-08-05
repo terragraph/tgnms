@@ -7,22 +7,17 @@
 'use strict';
 
 import AddIcon from '@material-ui/icons/Add';
-import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import LinkIcon from '@material-ui/icons/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import MaterialModal from '../../components/common/MaterialModal';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import ModalImageList from './ModalImageList';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -42,7 +37,7 @@ import {
   getErrorTextFromE2EAck,
 } from '../../apiutils/ServiceAPIUtil';
 import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
-import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
+
 import {withStyles} from '@material-ui/core/styles';
 
 import type {UpgradeImageType} from '../../../shared/types/Controller';
@@ -76,19 +71,19 @@ const styles = theme => ({
   },
 });
 
-type Props = {
-  classes: Object,
+type Props = {|
+  classes: {[key: string]: string},
   networkName: string,
-};
+|};
 
-type State = {
+type State = {|
   isOpen: boolean,
-  menuAnchorEl: ?Object,
+  menuAnchorEl: ?HTMLAnchorElement,
   menuImage: ?UpgradeImageType,
   upgradeImages: Array<UpgradeImageType>,
   uploadProgress: number,
   uploadStatus: string,
-};
+|};
 
 class ModalUpgradeImages extends React.Component<Props, State> {
   _intervalID: IntervalID = setInterval(
@@ -216,6 +211,16 @@ class ModalUpgradeImages extends React.Component<Props, State> {
     this.setState({menuAnchorEl: null, menuImage: null});
   }
 
+  handleAnchorClick = (
+    menuAnchorEl: HTMLAnchorElement,
+    menuImage: UpgradeImageType,
+  ) => {
+    this.setState({
+      menuAnchorEl,
+      menuImage,
+    });
+  };
+
   renderUploadProgressBar = () => {
     const {classes} = this.props;
     const {uploadProgress, uploadStatus} = this.state;
@@ -262,49 +267,6 @@ class ModalUpgradeImages extends React.Component<Props, State> {
     }
   };
 
-  renderImageRow(image) {
-    // Render a list-item row for the given image
-    const {classes} = this.props;
-    const versionNumber = getVersionNumber(getVersion(image.name));
-
-    return (
-      <React.Fragment key={image.name}>
-        <ListItem>
-          <ListItemAvatar>
-            <Avatar className={classes.avatar}>{versionNumber}</Avatar>
-          </ListItemAvatar>
-          <ListItemText
-            primary={image.name}
-            secondary={
-              <>
-                <span>
-                  <strong>MD5:</strong> {image.md5}
-                </span>
-                <br />
-                {image.hardwareBoardIds && image.hardwareBoardIds.length > 0 ? (
-                  <span>
-                    <strong>Boards:</strong> {image.hardwareBoardIds.join(', ')}
-                  </span>
-                ) : null}
-              </>
-            }
-          />
-          <ListItemSecondaryAction>
-            <IconButton
-              onClick={ev =>
-                this.setState({
-                  menuAnchorEl: ev.currentTarget,
-                  menuImage: image,
-                })
-              }>
-              <MoreVertIcon />
-            </IconButton>
-          </ListItemSecondaryAction>
-        </ListItem>
-      </React.Fragment>
-    );
-  }
-
   render() {
     const {classes} = this.props;
     const {menuAnchorEl, isOpen, upgradeImages} = this.state;
@@ -329,9 +291,10 @@ class ModalUpgradeImages extends React.Component<Props, State> {
               </Typography>
             ) : (
               <>
-                <List>
-                  {upgradeImages.map(image => this.renderImageRow(image))}
-                </List>
+                <ModalImageList
+                  upgradeImages={upgradeImages}
+                  onClick={this.handleAnchorClick}
+                />
                 <Menu
                   anchorEl={menuAnchorEl}
                   open={Boolean(menuAnchorEl)}
