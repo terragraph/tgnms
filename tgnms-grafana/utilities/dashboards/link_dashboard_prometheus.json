@@ -15,8 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 8,
-  "iteration": 1554304345160,
+  "iteration": 1565020317018,
   "links": [],
   "panels": [
     {
@@ -610,6 +609,10 @@
         {
           "alias": "mgmtlinkup-linkavailable",
           "yaxis": 2
+        },
+        {
+          "alias": "delta(mgmtlinkup, linkavailable)",
+          "yaxis": 2
         }
       ],
       "stack": false,
@@ -628,7 +631,7 @@
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
-          "legendFormat": "mgmtlinkup-linkavailable",
+          "legendFormat": "delta(mgmtlinkup, linkavailable)",
           "refId": "B"
         }
       ],
@@ -718,6 +721,10 @@
         {
           "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
           "yaxis": 2
+        },
+        {
+          "alias": "delta(mgmtlinkup,linkavailable)",
+          "yaxis": 2
         }
       ],
       "stack": false,
@@ -736,7 +743,7 @@
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
-          "legendFormat": "mgmtlinkup-linkavailable",
+          "legendFormat": "delta(mgmtlinkup,linkavailable)",
           "refId": "B"
         }
       ],
@@ -1290,7 +1297,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1298,7 +1305,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -1400,7 +1407,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1408,7 +1415,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -1510,7 +1517,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1518,7 +1525,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -1620,7 +1627,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1628,7 +1635,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -1730,7 +1737,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1738,7 +1745,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -1840,7 +1847,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -1848,7 +1855,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -2136,8 +2143,17 @@
           "hide": false,
           "instant": false,
           "intervalFactor": 1,
-          "legendFormat": "",
+          "legendFormat": "e2e_minion_uptime",
           "refId": "B"
+        },
+        {
+          "expr": "uptime{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "uptime",
+          "refId": "A"
         }
       ],
       "thresholds": [],
@@ -2238,8 +2254,17 @@
           "hide": false,
           "instant": false,
           "intervalFactor": 1,
-          "legendFormat": "",
+          "legendFormat": "e2e_minion_uptime",
           "refId": "B"
+        },
+        {
+          "expr": "uptime{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "uptime",
+          "refId": "A"
         }
       ],
       "thresholds": [],
@@ -2284,7 +2309,7 @@
       }
     }
   ],
-  "refresh": "30s",
+  "refresh": false,
   "schemaVersion": 18,
   "style": "dark",
   "tags": [],
@@ -2305,7 +2330,7 @@
         "name": "network",
         "options": [],
         "query": "label_values(network)",
-        "refresh": 2,
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -2318,20 +2343,19 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "link_2933_PRI_1_4034_SEC_1",
           "value": "link_2933_PRI_1_4034_SEC_1"
         },
         "datasource": "Prometheus",
-        "definition": "label_values({network=\"$network\"}, linkName)",
+        "definition": "label_values(snr{network=\"$network\"}, linkName)",
         "hide": 0,
         "includeAll": false,
         "label": "select link name",
         "multi": false,
         "name": "link_name",
         "options": [],
-        "query": "label_values({network=\"$network\"}, linkName)",
-        "refresh": 2,
+        "query": "label_values(snr{network=\"$network\"}, linkName)",
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -2348,15 +2372,15 @@
           "value": "2933_PRI_1"
         },
         "datasource": "Prometheus",
-        "definition": "label_values({network=\"$network\",linkName=\"$link_name\"}, nodeName)",
+        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\"}, nodeName)",
         "hide": 0,
         "includeAll": false,
         "label": "select nodeA",
         "multi": false,
         "name": "nodeA_name",
         "options": [],
-        "query": "label_values({network=\"$network\",linkName=\"$link_name\"}, nodeName)",
-        "refresh": 2,
+        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\"}, nodeName)",
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -2373,15 +2397,15 @@
           "value": "4034_SEC_1"
         },
         "datasource": "Prometheus",
-        "definition": "label_values({network=\"$network\",linkName=\"$link_name\",nodeName!=\"$nodeA_name\"}, nodeName)",
+        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName!=\"$nodeA_name\"}, nodeName)",
         "hide": 0,
         "includeAll": false,
         "label": "nodeZ (no select)",
         "multi": false,
         "name": "nodeZ_name",
         "options": [],
-        "query": "label_values({network=\"$network\",linkName=\"$link_name\",nodeName!=\"$nodeA_name\"}, nodeName)",
-        "refresh": 2,
+        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName!=\"$nodeA_name\"}, nodeName)",
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -2398,15 +2422,15 @@
           "value": "2c:dc:ad:ff:ff:18"
         },
         "datasource": "Prometheus",
-        "definition": "label_values({network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
+        "definition": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
         "hide": 0,
         "includeAll": false,
         "label": "nodeA (no select)",
         "multi": false,
         "name": "nodeA",
         "options": [],
-        "query": "label_values({network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
-        "refresh": 2,
+        "query": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -2423,15 +2447,15 @@
           "value": "b8:9f:09:61:d5:67"
         },
         "datasource": "Prometheus",
-        "definition": "label_values({network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
+        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
         "hide": 0,
         "includeAll": false,
         "label": "nodeZ (no select)",
         "multi": false,
         "name": "nodeZ",
         "options": [],
-        "query": "label_values({network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
-        "refresh": 2,
+        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -2506,6 +2530,6 @@
   },
   "timezone": "",
   "title": "Link Dashboard Prometheus",
-  "uid": "9PhIktjmk",
-  "version": 11
+  "uid": "link_prom",
+  "version": 20
 }
