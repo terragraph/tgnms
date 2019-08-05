@@ -11,31 +11,11 @@
 import express from 'express';
 import request from 'supertest';
 import {TEST_STATUS} from '../../../shared/dto/TestResult';
-import {
-  api_testresult,
-  api_testrunexecution,
-  api_testschedule,
-} from '../../models';
-const requestMock = require('request');
+import {mockDatabase} from '../../tests/testHelpers';
 jest.mock('request');
-jest.mock('../../sequelize-config', () => {
-  process.env.NODE_ENV = 'test';
-  return {
-    [process.env.NODE_ENV]: {
-      username: null,
-      password: null,
-      database: 'db',
-      dialect: 'sqlite',
-      logging: false,
-    },
-  };
-});
+const requestMock = require('request');
 
-beforeEach(async () => {
-  const {sequelize} = require('../../models');
-  // running sync instead of migrations because of weird foreign key issues
-  await sequelize.sync({force: true});
-});
+const {api_testresult, api_testrunexecution, api_testschedule} = mockDatabase();
 
 describe('/results - get test results (one per link direction)', () => {
   test('?results: single id returns one result', async () => {
