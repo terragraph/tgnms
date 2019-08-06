@@ -7,30 +7,12 @@
  */
 'use strict';
 
+jest.mock('../../models');
 import {getLinkMetrics, getLinkMetricsByName} from '../metrics';
 import {link_metric} from '../../models';
 
-jest.mock('../../sequelize-config', () => {
-  process.env.NODE_ENV = 'test';
-  return {
-    [process.env.NODE_ENV]: {
-      username: null,
-      password: null,
-      database: 'db',
-      dialect: 'sqlite',
-      logging: false,
-    },
-  };
-});
-
-beforeEach(async () => {
-  const {sequelize} = require('../../models');
-  // running sync instead of migrations because of weird foreign key issues
-  await sequelize.sync({force: true});
-});
-
 test('getLinkMetricsTest', async () => {
-  link_metric.create({
+  await link_metric.create({
     id: 1,
     key_name: 'tx_bytes',
     key_prefix: '',
@@ -44,7 +26,7 @@ test('getLinkMetricsTest', async () => {
 });
 
 test('getLinkMetricsByNameTest', async () => {
-  link_metric.bulkCreate([
+  await link_metric.bulkCreate([
     {
       id: 1,
       key_name: 'tx_bytes',

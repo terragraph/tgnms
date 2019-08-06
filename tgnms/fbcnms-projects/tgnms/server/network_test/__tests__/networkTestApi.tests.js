@@ -11,11 +11,15 @@
 import express from 'express';
 import request from 'supertest';
 import {TEST_STATUS} from '../../../shared/dto/TestResult';
-import {mockDatabase} from '../../tests/testHelpers';
 jest.mock('request');
 const requestMock = require('request');
 
-const {api_testresult, api_testrunexecution, api_testschedule} = mockDatabase();
+jest.mock('../../models');
+import {
+  api_testresult,
+  api_testrunexecution,
+  api_testschedule,
+} from '../../models';
 
 describe('/results - get test results (one per link direction)', () => {
   test('?results: single id returns one result', async () => {
