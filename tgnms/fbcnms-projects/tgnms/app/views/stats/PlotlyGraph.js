@@ -23,7 +23,7 @@ const GRAPH_HEIGHT = 400;
 // margin between graphs to ensure they land inline on the same line
 const GRAPH_GAP_WIDTH = 20;
 // refresh interval (ms)
-const GRAPH_REFRESH_INTERVAL_SEC = 10;
+const GRAPH_REFRESH_INTERVAL_MS = 10000;
 
 export default class PlotlyGraph extends React.Component {
   constructor(props, context) {
@@ -48,7 +48,7 @@ export default class PlotlyGraph extends React.Component {
     // schedule fixed interval refresh
     this.timer = setInterval(
       () => this.refreshData(),
-      GRAPH_REFRESH_INTERVAL_SEC * 1000,
+      GRAPH_REFRESH_INTERVAL_MS,
     );
     window.addEventListener('resize', () =>
       this.windowResizeListener.bind(this),
@@ -100,8 +100,9 @@ export default class PlotlyGraph extends React.Component {
 
   refreshData() {
     const {options, queryUrl} = this.props;
+
     axios
-      .post(queryUrl, options)
+      .get(queryUrl, {params: options})
       .then(resp => {
         if (!resp.data) {
           this.setState({

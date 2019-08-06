@@ -16,6 +16,8 @@ export const FeatureFlags: {[string]: () => boolean} = {
   NODELOGS_ENABLED: () => window.CONFIG.env.NODELOGS_ENABLED,
   SAVE_MISSING_TRANSLATIONS: () => window.CONFIG.env.SAVE_MISSING_TRANSLATIONS,
   GRAFANA_ENABLED: () => window.CONFIG.env.hasOwnProperty('GRAFANA_URL'),
+  SERVICE_AVAILABILITY_ENABLED: () =>
+    window.CONFIG.env.SERVICE_AVAILABILITY_ENABLED === 'true',
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {

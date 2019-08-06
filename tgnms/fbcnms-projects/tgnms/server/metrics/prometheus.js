@@ -1,213 +1,214 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
-const {DS_INTERVAL_SEC, PROMETHEUS_URL} = require('../config');
-const {
-  formatPrometheusLabel,
-  getLinkMetricList,
-  getLinkMetricsByName,
-} = require('./metrics');
-// new json writer
+'use strict';
+
+import {DS_INTERVAL_SEC, PROMETHEUS_URL} from '../config';
+import {createErrorHandler} from '../helpers/apiHelpers';
+import {getLinkMetrics, getLinkMetricsByName} from './metrics';
+
 const express = require('express');
-const request = require('request');
+const {getNetworkState} = require('../topology/model');
 const logger = require('../log')(module);
 const moment = require('moment');
-
-const {getNetworkState} = require('../topology/model');
-
-/** Query latest data and group by link name (and direction) */
-function queryLatestByLink(
-  topologyName: string,
-  promQuery: string,
-): Promise<any> {
-  return new Promise((resolve, reject) => {
-    request.post(
-      {
-        form: {query: promQuery},
-        url: `${PROMETHEUS_URL}/api/v1/query`,
-      },
-      (err, httpResponse, _body) => {
-        if (err) {
-          return reject('Error fetching data');
-        }
-        // transform data
-        return resolve(httpResponse.body);
-      },
-    );
-  });
-}
-
-function flattenPrometheusResponse(httpResponse): Promise<any> {
-  return new Promise((resolve, reject) => {
-    if (typeof httpResponse === 'object') {
-      const promResults = [];
-      httpResponse.forEach(response => {
-        try {
-          const promResponse = JSON.parse(response);
-          if (promResponse.status !== 'success') {
-            return reject('Failed fetching from prometheus');
-          }
-          promResponse.data.result.forEach(result => promResults.push(result));
-        } catch (ex) {
-          return reject('Failed parsing prometheus response from JSON');
-        }
-      });
-      return resolve(promResults);
-    } else {
-      try {
-        const promResponse = JSON.parse(httpResponse);
-        if (promResponse.status !== 'success') {
-          return reject('Failed fetching from prometheus');
-        }
-        return resolve(promResponse.data.result);
-      } catch (ex) {
-        return reject('Failed parsing prometheus response from JSON');
-      }
-    }
-  });
-}
-
-function groupByLink(
-  promRespList: object,
-  topologyName: string,
-  groupByLinkDirection: boolean = true,
-): Promise<any> {
-  // transform data into expected format
-  return new Promise((resolve, reject) => {
-    const networkState = getNetworkState(topologyName);
-    if (
-      !networkState ||
-      !networkState.topology ||
-      !networkState.topology.links
-    ) {
-      return reject('No topology cache');
-    }
-    // loop over link names in topology, converting characters
-    // prometheus doesn't like
-    const linkList = {};
-    networkState.topology.links.forEach(link => {
-      // map prometheus-acceptable name to real name
-      linkList[formatPrometheusLabel(link.name)] = link.name;
-    });
-    const retMetricList = {};
-    promRespList.forEach(promData => {
-      const {linkName, linkDirection, __name__} = promData.metric;
-      // match prometheus link names
-      if (!linkList.hasOwnProperty(linkName)) {
-        logger.debug(
-          'Unable to match prometheus link name in topology: ',
-          linkName,
-        );
-        return;
-      }
-      const realLinkName = linkList[linkName];
-      // return a mapping of linkName -> value if no grouping
-      if (!groupByLinkDirection) {
-        retMetricList[realLinkName] = promData.value[1];
-      } else {
-        // group by link name, link direction, and metric name
-        if (!retMetricList.hasOwnProperty(realLinkName)) {
-          retMetricList[realLinkName] = {};
-        }
-        if (!retMetricList[realLinkName].hasOwnProperty(linkDirection)) {
-          retMetricList[realLinkName][linkDirection] = {};
-        }
-        retMetricList[realLinkName][linkDirection][__name__] =
-          promData.value[1];
-      }
-    });
-    return resolve(retMetricList);
-  });
-}
+const request = require('request');
+const _ = require('lodash');
 
 const router = express.Router();
 
-// query for latest value for a single metric across the network
-router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
-  const {metricName, topologyName} = req.params;
-  const metricNameList = metricName.split(',');
-  // query all metrics, flatten results (if needed), then return a result set
+/** Query raw stats given a "start" and "end" timestamp */
+router.get('/query/raw', (req, res) => {
+  query(req.query)
+    .then(response => res.status(200).send(response))
+    .catch(createErrorHandler(res));
+});
+
+/** Query raw stats given a relative time (e.g. 5 minutes ago) */
+router.get('/query/raw/since', (req, res) => {
+  const end = moment().unix();
+  const start = moment()
+    .subtract(req.query.value, req.query.units)
+    .unix();
+
+  const data = {
+    query: req.query.query,
+    start: start,
+    end: end,
+    step: req.query.step,
+  };
+
+  query(data)
+    .then(response => res.status(200).send(response))
+    .catch(createErrorHandler(res));
+});
+
+/** Query the latest stat */
+router.get('/query/raw/latest', (req, res) => {
+  queryLatest(req.query)
+    .then(response => res.status(200).send(response))
+    .catch(createErrorHandler(res));
+});
+
+/** Get list of friendly metric names */
+router.get('/list', (req, res) => {
+  getLinkMetrics()
+    .then(linkMetrics => res.json(linkMetrics))
+    .catch(createErrorHandler(res));
+});
+
+/** Get list of friendly metric names that are "like" searchTerm */
+router.get('/search/:searchTerm', (req, res) => {
+  getLinkMetricsByName(req.params.searchTerm)
+    .then(linkMetrics => res.json(linkMetrics))
+    .catch(createErrorHandler(res));
+});
+
+/** Query for latest value for a single metric across the network */
+router.get('/overlay/linkStat/:topologyName/:metricNames', (req, res) => {
+  const {metricNames, topologyName} = req.params;
+  const metricNameList = metricNames.split(',');
+
+  // Query all metrics, flatten results (if needed), and return a result set
   Promise.all(
-    metricNameList.map(metricName =>
-      queryLatestByLink(
-        topologyName,
-        `${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
-      ),
-    ),
+    metricNameList.map(metricName => {
+      return queryLatest({
+        query: `${metricName}{network="${topologyName}", intervalSec="${DS_INTERVAL_SEC}"}`,
+      });
+    }),
   )
     .then(flattenPrometheusResponse)
     .then(result => groupByLink(result, topologyName))
-    .then(result => res.json(result).end());
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
 });
 
-// query for the latest data point only and format by link
-router.post('/query/link/latest', (req, res) => {
-  // split the query into parts to enforce network and intervalSec is set
-  const {queryStart, topologyName, dsIntervalSec} = req.body;
-  const queryEnd = req.body.queryEnd || '';
-  const promQuery = `${queryStart}{network="${topologyName}",intervalSec="${dsIntervalSec}"}${queryEnd}`;
-  queryLatestByLink(topologyName, promQuery)
+/** Query for the latest data point only and format by link */
+router.get('/query/link/latest', (req, res) => {
+  const {query, topologyName} = req.query;
+
+  queryLatest({query: query})
     .then(flattenPrometheusResponse)
-    .then(result =>
-      groupByLink(result, topologyName, false /* groupByLinkDirection */),
-    )
-    .then(result => res.json(result).end())
-    .catch(err =>
-      res
-        .status(500)
-        .send(err)
-        .end(),
-    );
+    .then(result => {
+      return groupByLink(
+        result,
+        topologyName,
+        false /* groupByLinkDirection */,
+      );
+    })
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
 });
 
-router.post('/query', (req, res) => {
-  const {metricName, topologyName, dsIntervalSec, minAgo} = req.body;
-  const startTsSec = moment()
-    .subtract(minAgo, 'minutes')
-    .unix();
-  const endTsSec = moment().unix();
-  const promReq = {
-    query: `${metricName}{network="${topologyName}",intervalSec="${dsIntervalSec}"}`,
-    start: startTsSec,
-    end: endTsSec,
-    step: dsIntervalSec,
-  };
-  request.post(
-    {
-      form: promReq,
-      url: `${PROMETHEUS_URL}/api/v1/query_range`,
-    },
-    (err, httpResponse, _body) => {
-      if (err) {
-        res.status(500).end();
-        return;
-      }
-      try {
-        const parsed = JSON.parse(httpResponse.body);
-        res.send(parsed).end();
-      } catch (ex) {
-        logger.error('Failed to parse prometheus json:', httpResponse.body);
-        res.status(500).end();
-        return;
-      }
-    },
-  );
-});
+/**
+ * Utility functions
+ */
 
-router.get('/list', (req, res) => {
-  // get list of friendly metric names
-  getLinkMetricList().then(metricList => {
-    res.json(metricList).end();
+function query(data: Object) {
+  return createPrometheusRequest({
+    uri: `${PROMETHEUS_URL}/api/v1/query_range`,
+    method: 'GET',
+    qs: data,
   });
-});
+}
 
-router.get('/search/:searchTerm', (req, res) => {
-  // get list of friendly metric names
-  getLinkMetricsByName(req.params.searchTerm).then(metricList => {
-    res.json(metricList).end();
+function queryLatest(data: Object) {
+  return createPrometheusRequest({
+    uri: `${PROMETHEUS_URL}/api/v1/query`,
+    method: 'GET',
+    qs: data,
   });
-});
+}
+
+function createPrometheusRequest(options: {[string]: any}) {
+  return new Promise((resolve, reject) => {
+    try {
+      return request(options, (err, response) => {
+        if (err) {
+          return reject(err);
+        }
+
+        const parsed = JSON.parse(response.body);
+        if (parsed.status === 'error') {
+          logger.error('Prometheus response returned an error: ', parsed.error);
+          return reject(parsed);
+        }
+
+        return resolve(parsed);
+      });
+    } catch (err) {
+      return reject(err);
+    }
+  });
+}
+
+function formatPrometheusLabel(metricName: string): string {
+  return metricName.replace(/[\.\-\/\[\]]/g, '_');
+}
+
+/**
+ * Functions for transforming Prometheus results server-side
+ */
+
+function flattenPrometheusResponse(
+  response: Array<Object> | Object,
+): Array<Object> {
+  if (Array.isArray(response)) {
+    return _.flatMap(response, resp => resp.data.result);
+  } else {
+    return response.data.result;
+  }
+}
+
+function groupByLink(
+  prometheusResponseList: Array<Object>,
+  topologyName: string,
+  groupByLinkDirection: boolean = true,
+): {[string]: {[string]: {[string]: any}}} {
+  const metrics = {};
+
+  const networkState = getNetworkState(topologyName);
+  if (!networkState?.topology?.links) {
+    logger.info('No topology cache');
+    return metrics;
+  }
+
+  // Map Prometheus-acceptable name to real name
+  const linkMap = {};
+  networkState.topology.links.forEach(link => {
+    linkMap[formatPrometheusLabel(link.name)] = link.name;
+  });
+
+  prometheusResponseList.forEach(data => {
+    const {__name__, linkName, linkDirection} = data.metric;
+
+    if (!linkMap.hasOwnProperty(linkName)) {
+      logger.debug(
+        'Unable to match Prometheus link name in topology: ',
+        linkName,
+      );
+      return;
+    }
+
+    const realLinkName = linkMap[linkName];
+    if (!groupByLinkDirection) {
+      metrics[realLinkName] = data.value[1];
+    } else {
+      if (!metrics.hasOwnProperty(realLinkName)) {
+        metrics[realLinkName] = {};
+      }
+
+      if (!metrics[realLinkName].hasOwnProperty(linkDirection)) {
+        metrics[realLinkName][linkDirection] = {};
+      }
+
+      metrics[realLinkName][linkDirection][__name__] = data.value[1];
+    }
+  });
+
+  return metrics;
+}
 
 module.exports = router;

@@ -24,7 +24,7 @@ import React from 'react';
 import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {TopologyElementType} from './constants/NetworkConstants.js';
-import {fetchLinkIgnitionAttempts} from './helpers/PrometheusHelpers';
+import {createQuery, increase} from './apiutils/PrometheusAPIUtil';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -170,8 +170,19 @@ class NetworkUI extends React.Component<Props, State> {
         }
       });
 
-    // fetch network-wide stats
-    fetchLinkIgnitionAttempts(networkName, '1d')
+    axios
+      .get('/metrics/query/link/latest', {
+        params: {
+          query: increase(
+            createQuery('link_attempts', {
+              topologyName: networkName,
+              intervalSec: 30,
+            }),
+            '1d',
+          ),
+          topologyName: networkName,
+        },
+      })
       .then(linkMetricsResp => {
         this.setState({networkLinkIgnitionAttempts: linkMetricsResp.data});
       })

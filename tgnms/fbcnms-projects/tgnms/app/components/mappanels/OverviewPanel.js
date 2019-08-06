@@ -17,7 +17,17 @@ import Typography from '@material-ui/core/Typography';
 import WifiIcon from '@material-ui/icons/Wifi';
 import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
 import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
-import {formatNumber, toTitleCase} from '../../helpers/StringHelpers';
+import {
+  avg,
+  avgOverTime,
+  createQuery,
+  queryLatest,
+} from '../../apiutils/PrometheusAPIUtil';
+import {
+  formatNumber,
+  formatNumberFixed,
+  toTitleCase,
+} from '../../helpers/StringHelpers';
 import {
   getLinkIcon,
   getNodeIcon,
@@ -25,6 +35,7 @@ import {
 } from '../../helpers/MapPanelHelpers';
 import {has} from 'lodash';
 import {invert} from 'lodash';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {
   isNodeAlive,
   renderAvailabilityWithColor,
@@ -75,9 +86,70 @@ const styles = theme => ({
 });
 
 const BINARY_STAR_FSM_INVERTED = invert(BinaryStarFsmStateValueMap);
+const FETCH_SERVICE_AVAILABILITY_INTERVAL_MS = 5000;
 
 class OverviewPanel extends React.Component {
-  state = {};
+  state = {cnAvailability: null, dnAvailability: null, allAvailability: null};
+
+  componentDidMount() {
+    if (isFeatureEnabled('SERVICE_AVAILABILITY_ENABLED')) {
+      this.fetchServiceAvailability();
+
+      this._serviceAvailabilityInterval = setInterval(
+        this.fetchServiceAvailability,
+        FETCH_SERVICE_AVAILABILITY_INTERVAL_MS,
+      );
+    }
+  }
+
+  componentWillUnmount() {
+    if (isFeatureEnabled('SERVICE_AVAILABILITY_ENABLED')) {
+      // Clear timers
+      clearInterval(this._serviceAvailabilityInterval);
+    }
+  }
+
+  fetchServiceAvailability = () => {
+    const metricName = 'pinger_lossRatio';
+    const topologyName = this.props.networkConfig.topology.name;
+    const intervalSec = 1;
+
+    const cnQuery = avg(
+      avgOverTime(
+        createQuery(metricName, {topologyName, intervalSec, cn: 'true'}),
+        '24h',
+      ),
+    );
+
+    const dnQuery = avg(
+      avgOverTime(
+        createQuery(metricName, {topologyName, intervalSec, cn: 'false'}),
+        '24h',
+      ),
+    );
+
+    const allQuery = avg(
+      avgOverTime(createQuery(metricName, {topologyName, intervalSec}), '24h'),
+    );
+
+    Promise.all([
+      queryLatest(cnQuery),
+      queryLatest(dnQuery),
+      queryLatest(allQuery),
+    ]).then(results => {
+      this.setState(this.computeServiceAvailability(results));
+    });
+  };
+
+  computeServiceAvailability(results) {
+    const [cnData, dnData, allData] = results;
+
+    return {
+      cnAvailability: 100 * (1 - cnData.data.data.result?.[0]?.value?.[1]),
+      dnAvailability: 100 * (1 - dnData.data.data.result?.[0]?.value?.[1]),
+      allAvailability: 100 * (1 - allData.data.data.result?.[0]?.value?.[1]),
+    };
+  }
 
   renderSoftwareVersions() {
     // Render information about software versions
@@ -235,6 +307,58 @@ class OverviewPanel extends React.Component {
     return {alivePercAvg, alivePercByNodeType, wirelessLinksCount};
   }
 
+  renderLinkAvailability() {
+    const {networkConfig, networkLinkHealth} = this.props;
+    const {topology} = networkConfig;
+    const availability = this.computeAvailability(topology, networkLinkHealth);
+
+    if (!availability.wirelessLinksCount) {
+      return null;
+    } else {
+      return availability.alivePercByNodeType.map(
+        ({nodeTypeName, alivePerc}, i) => {
+          return (
+            <React.Fragment key={nodeTypeName}>
+              {nodeTypeName}{' '}
+              {renderAvailabilityWithColor(formatNumberFixed(alivePerc))}
+              {i < availability.alivePercByNodeType.length - 1 ? ' • ' : null}
+            </React.Fragment>
+          );
+        },
+      );
+    }
+  }
+
+  renderServiceAvailability() {
+    const {cnAvailability, dnAvailability} = this.state;
+    const arr = [];
+
+    if (!isNaN(cnAvailability)) {
+      arr.push({
+        nodeTypeName: 'CN',
+        span: renderAvailabilityWithColor(formatNumberFixed(cnAvailability)),
+      });
+    }
+
+    if (!isNaN(dnAvailability)) {
+      arr.push({
+        nodeTypeName: 'DN',
+        span: renderAvailabilityWithColor(formatNumberFixed(dnAvailability)),
+      });
+    }
+
+    return arr.length === 0
+      ? null
+      : arr.map((avail, i) => {
+          return (
+            <React.Fragment key={avail.nodeTypeName}>
+              {avail.nodeTypeName} {avail.span}
+              {i < arr.length - 1 ? ' • ' : null}
+            </React.Fragment>
+          );
+        });
+  }
+
   renderNetworkStatus() {
     // Render information about network status
     const {
@@ -250,6 +374,7 @@ class OverviewPanel extends React.Component {
       wireless_controller_stats,
     } = networkConfig;
     const {igParams} = networkConfig.ignition_state;
+    const {allAvailability} = this.state;
 
     // Compute data
     const linksOnline = topology.links.filter(
@@ -286,25 +411,44 @@ class OverviewPanel extends React.Component {
         </Typography>
 
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Availability</Typography>
-          <Typography variant="body2">
+          <Typography variant="subtitle2">Link Availability</Typography>
+          <Typography variant="body2" style={{color: 'grey'}}>
             {availability.wirelessLinksCount
               ? renderAvailabilityWithColor(
                   formatNumber(availability.alivePercAvg),
                 )
-              : 'No Data'}
+              : 'N/A'}
           </Typography>
         </div>
+
         <div className={classes.indented}>
-          {availability.alivePercByNodeType.map(({nodeTypeName, alivePerc}) => (
-            <div className={classes.spaceBetween} key={nodeTypeName}>
-              <Typography variant="body2">By {nodeTypeName}</Typography>
+          <div className={classes.spaceBetween}>
+            <Typography variant="body2">
+              {this.renderLinkAvailability()}
+            </Typography>
+          </div>
+        </div>
+
+        {isFeatureEnabled('SERVICE_AVAILABILITY_ENABLED') ? (
+          <>
+            <div className={classes.sectionSpacer} />
+
+            <div className={classes.spaceBetween}>
+              <Typography variant="subtitle2">Service Availability</Typography>
               <Typography variant="body2">
-                {renderAvailabilityWithColor(formatNumber(alivePerc))}
+                {renderAvailabilityWithColor(formatNumber(allAvailability))}
               </Typography>
             </div>
-          ))}
-        </div>
+
+            <div className={classes.indented}>
+              <div className={classes.spaceBetween}>
+                <Typography variant="body2">
+                  {this.renderServiceAvailability()}
+                </Typography>
+              </div>
+            </div>
+          </>
+        ) : null}
 
         <div className={classes.sectionSpacer} />
 

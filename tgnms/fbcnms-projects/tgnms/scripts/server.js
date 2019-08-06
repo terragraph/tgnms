@@ -150,6 +150,7 @@ app.get('*', (req, res) => {
     'COMMIT_DATE',
     'COMMIT_HASH',
     'NOTIFICATION_MENU_ENABLED',
+    'SERVICE_AVAILABILITY_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

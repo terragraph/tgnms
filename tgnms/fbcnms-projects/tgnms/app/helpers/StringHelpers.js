@@ -42,3 +42,11 @@ export function formatNumber(i, maximumFractionDigits = 3) {
     maximumFractionDigits,
   });
 }
+
+/** Format the given number with an exact number of fraction digits */
+export function formatNumberFixed(i, fractionDigits = 3) {
+  return parseFloat(i).toLocaleString(navigator.language, {
+    maximumFractionDigits: fractionDigits,
+    minimumFractionDigits: fractionDigits,
+  });
+}

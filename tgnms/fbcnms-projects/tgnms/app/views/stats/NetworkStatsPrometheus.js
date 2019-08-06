@@ -20,6 +20,7 @@ import {
   GRAPH_LINE_NAME_MAX_LENGTH,
   STATS_TIME_PICKER_OPTS,
 } from '../../constants/StatsConstants.js';
+import {createQuery} from '../../apiutils/PrometheusAPIUtil';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -148,11 +149,15 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
       .unix();
     return this.state.keysSelected.map((graphKey, pos) => {
       const graphOpts = {
-        metricName: graphKey.value,
-        dsIntervalSec: this.state.dsIntervalSec,
-        topologyName: networkConfig.topology.name,
-        minAgo: this.state.minAgo,
+        query: createQuery(graphKey.value, {
+          topologyName: networkConfig.topology.name,
+          intervalSec: this.state.dsIntervalSec,
+        }),
+        value: this.state.minAgo,
+        units: 'minutes',
+        step: this.state.dsIntervalSec,
       };
+
       return (
         <PlotlyGraph
           key={'graph-' + pos}
@@ -160,7 +165,7 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
           endTsMs={endTs * 1000}
           startTsMs={startTs * 1000}
           title={graphKey.value}
-          queryUrl={'/metrics/query'}
+          queryUrl={'/metrics/query/raw/since'}
           options={graphOpts}
           dataFormatter={this.plotlyDataFormatter}
         />

@@ -24,7 +24,7 @@ export function createErrorHandler(res) {
       });
     }
     logger.error(error);
-    return res.status(500).send({});
+    return res.status(500).end();
   };
 }
 
