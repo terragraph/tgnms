@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {
+  LinkType,
   NodeType,
   PolarityType,
 } from '../../../thrift/gen-nodejs/Topology_types';
@@ -102,16 +103,21 @@ class SitesLayer extends React.Component {
     }
   }
 
-  getSiteHealthColor(siteNodes) {
+  getSiteHealthColor(siteNodes, siteWiredLinks) {
     const {offlineWhitelist} = this.props;
-    const healthyCount = siteNodes.filter(node => isNodeAlive(node.status))
+    const healthyNodeCount = siteNodes.filter(node => isNodeAlive(node.status))
+      .length;
+    const healthyLinkCount = siteWiredLinks.filter(link => link.is_alive)
       .length;
 
     if (siteNodes.length === 0) {
       return SiteOverlayColors.health.empty.color;
-    } else if (healthyCount === siteNodes.length) {
+    } else if (
+      healthyNodeCount === siteNodes.length &&
+      healthyLinkCount === siteWiredLinks.length
+    ) {
       return SiteOverlayColors.health.healthy.color;
-    } else if (healthyCount === 0) {
+    } else if (healthyNodeCount === 0) {
       if (
         !siteNodes.some(node => hasNodeEverGoneOnline(node, offlineWhitelist))
       ) {
@@ -125,7 +131,7 @@ class SitesLayer extends React.Component {
   }
 
   getSiteColor(site) {
-    const {overlay, nodeMap, siteToNodesMap, routes} = this.props;
+    const {overlay, nodeMap, siteToNodesMap, routes, topology} = this.props;
     const siteNodes = [...siteToNodesMap[site.name]].map(
       nodeName => nodeMap[nodeName],
     );
@@ -148,7 +154,15 @@ class SitesLayer extends React.Component {
         break;
       default:
         // use 'health' as default overlay
-        siteColor = this.getSiteHealthColor(siteNodes);
+        // get wired intrasite links to help calculate site health
+        const siteNodeSet = new Set(siteNodes.map(node => node.name));
+        const siteWiredLinks = topology.links.filter(
+          link =>
+            link.link_type === LinkType.ETHERNET &&
+            siteNodeSet.has(link.a_node_name) &&
+            siteNodeSet.has(link.z_node_name),
+        );
+        siteColor = this.getSiteHealthColor(siteNodes, siteWiredLinks);
         break;
     }
     return siteColor;
