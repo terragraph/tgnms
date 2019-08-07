@@ -213,12 +213,12 @@ export function updateOnlineWhitelist(
       if (
         !network.offline_whitelist ||
         difference(
-          Object.keys(offline_whitelist.nodes),
           Object.keys(newWhitelist.nodes),
+          Object.keys(offline_whitelist.nodes),
         ).length > 0 ||
         difference(
-          Object.keys(offline_whitelist.links),
           Object.keys(newWhitelist.links),
+          Object.keys(offline_whitelist.links),
         ).length > 0
       ) {
         network.offline_whitelist = newWhitelist;

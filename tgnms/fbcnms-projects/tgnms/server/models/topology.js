@@ -71,7 +71,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
 export type TopologyAttributes = {|
   id: number,
   name: string,
-  primary_controller: ?number,
+  primary_controller: number,
   backup_controller: ?number,
   site_overrides: ?string,
   wireless_controller: ?number,
