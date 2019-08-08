@@ -8,7 +8,7 @@
 
 export type Version = {|major: number, minor: number|};
 
-export const CtrlVerType = {
+export const CtrlVerType: {[string]: Version} = {
   M29: {major: 29, minor: -1},
   M30: {major: 30, minor: -1},
   M31: {major: 31, minor: -1},
