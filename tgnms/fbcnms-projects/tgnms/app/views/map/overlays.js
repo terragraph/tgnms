@@ -46,13 +46,17 @@ const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
     type: 'ignition_status',
     id: 'ignition_status',
   },
-  link_health: {
-    name: 'Health',
-    type: 'metric',
-    id: 'link_health',
-    range: [0, 1, 2, 3, 4],
-    bounds: [0, 4],
-  },
+  ...(window.CONFIG.env.STATS_BACKEND === 'prometheus'
+    ? {}
+    : {
+        link_health: {
+          name: 'Health',
+          type: 'metric',
+          id: 'link_health',
+          range: [0, 1, 2, 3, 4],
+          bounds: [0, 4],
+        },
+      }),
   golay_tx: {name: 'Golay (TX)', type: 'golay', id: 'golay_tx'},
   golay_rx: {name: 'Golay (RX)', type: 'golay', id: 'golay_rx'},
   control_superframe: {
