@@ -13,6 +13,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
+import ModalClearNodeAutoConfig from './ModalClearNodeAutoConfig';
 import ModalConfigGet from './ModalConfigGet';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -126,12 +127,14 @@ type State = {
   nodeFilter: string,
   useMetadataBase: boolean,
   showFullNodeConfigModal: boolean,
+  showClearNodeAutoConfigModal: boolean,
 };
 
 class ConfigSidebar extends React.Component<Props, State> {
   state = {
     nodeFilter: nodeFilterOptions[0].label,
     showFullNodeConfigModal: false,
+    showClearNodeAutoConfigModal: false,
   };
 
   static getDerivedStateFromProps(nextProps, _prevState) {
@@ -310,6 +313,14 @@ class ConfigSidebar extends React.Component<Props, State> {
     );
   };
 
+  handleCloseClearNodeAutoConfigModal = () => {
+    this.setState({showClearNodeAutoConfigModal: false});
+  };
+
+  handleClearNodeAutoConfig() {
+    this.setState({showClearNodeAutoConfigModal: true});
+  }
+
   handleCloseFullNodeConfigModal = () => {
     // Close the "Full Node Configuration" modal
     this.setState({showFullNodeConfigModal: false});
@@ -363,6 +374,12 @@ class ConfigSidebar extends React.Component<Props, State> {
         func: () => this.handleChannelOptCommand(),
       });
     }
+    if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M41)) {
+      actions.push({
+        label: 'Clear Node Auto Configuration',
+        func: () => this.handleClearNodeAutoConfig(),
+      });
+    }
     const actionItems = [{heading: 'Actions', actions}];
     return actionItems.length
       ? createActionsMenu(
@@ -380,10 +397,13 @@ class ConfigSidebar extends React.Component<Props, State> {
       useRawJsonEditor,
       baseConfigs,
       hardwareBaseConfigs,
+      networkName,
       onSelectImage,
       onSelectHardwareType,
+      topologyNodeList,
     } = this.props;
 
+    const {showClearNodeAutoConfigModal} = this.state;
     const inputs = useRawJsonEditor
       ? []
       : [
@@ -422,6 +442,12 @@ class ConfigSidebar extends React.Component<Props, State> {
         <div className={classes.bottomContainer}>
           {this.renderNetworkActions()}
         </div>
+        <ModalClearNodeAutoConfig
+          isOpen={showClearNodeAutoConfigModal}
+          onClose={this.handleCloseClearNodeAutoConfigModal}
+          networkName={networkName}
+          nodes={topologyNodeList}
+        />
       </>
     );
   };
