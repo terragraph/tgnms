@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import _ from 'lodash';
 import {SUPERUSER, USER} from '../user/accessRoles';

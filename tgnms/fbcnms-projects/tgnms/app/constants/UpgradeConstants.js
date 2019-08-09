@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import {UpgradeStatusTypeValueMap} from '../../shared/types/Controller';
 import {invert} from 'lodash';

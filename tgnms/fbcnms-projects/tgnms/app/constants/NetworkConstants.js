@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 export const TopologyElementType = {
   NODE: 'node',

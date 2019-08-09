@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import axios from 'axios';
 

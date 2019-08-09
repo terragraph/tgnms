@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 /** Computes the line-of-sight distance between two locations.
     Approximation tested for:

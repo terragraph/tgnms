@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';

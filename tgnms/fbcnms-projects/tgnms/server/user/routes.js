@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import * as ssr from '../ssr';
 import ReactLoginForm from '../../app/views/login/LoginForm';

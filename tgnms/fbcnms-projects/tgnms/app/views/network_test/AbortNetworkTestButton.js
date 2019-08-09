@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
 import React from 'react';

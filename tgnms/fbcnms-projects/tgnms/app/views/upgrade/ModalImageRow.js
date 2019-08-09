@@ -4,7 +4,6 @@
  * @flow strict-local
  * @format
  */
-'use strict';
 
 import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';

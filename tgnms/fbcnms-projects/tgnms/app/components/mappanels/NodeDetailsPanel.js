@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';

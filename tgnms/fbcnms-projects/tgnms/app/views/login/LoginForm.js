@@ -7,7 +7,6 @@
  *
  * NOTE: This is serverside rendered
  */
-'use strict';
 
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';

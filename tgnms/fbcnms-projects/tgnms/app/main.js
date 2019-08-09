@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import './common/axiosConfig';
 import './common/i18n';

@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 export type Version = {|major: number, minor: number|};
 

@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import type {TestExecution} from './TestExecution';
 

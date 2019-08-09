@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import axios, {CancelToken} from 'axios';
 import {HEALTH_CODES} from '../constants/HealthConstants';
 import {TEST_STATUS} from '../../shared/dto/TestResult';

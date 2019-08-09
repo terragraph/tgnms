@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';

@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import CustomTable from '../../components/common/CustomTable';
 import NetworkContext from '../../NetworkContext.js';

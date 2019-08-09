@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import React from 'react';
 import type {NetworkConfig} from './NetworkContext';

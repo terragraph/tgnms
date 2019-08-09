@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import MenuItem from '@material-ui/core/MenuItem';

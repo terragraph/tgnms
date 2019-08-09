@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import type {ContextRouter} from 'react-router-dom';
 import type {CreateTestUrl} from './NetworkTest';

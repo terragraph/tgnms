@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import ModalAbort from './ModalAbort';
 import ModalUpgradeImages from './ModalUpgradeImages';

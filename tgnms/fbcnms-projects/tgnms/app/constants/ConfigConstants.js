@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 /** Config layers for nodes. */
 export const NetworkConfigMode = Object.freeze({

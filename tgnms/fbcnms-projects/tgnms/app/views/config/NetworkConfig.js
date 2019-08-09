@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import ConfigRoot from './ConfigRoot';
 import React from 'react';

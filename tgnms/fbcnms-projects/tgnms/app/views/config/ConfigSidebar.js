@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import Button from '@material-ui/core/Button';
 import CheckIcon from '@material-ui/icons/Check';

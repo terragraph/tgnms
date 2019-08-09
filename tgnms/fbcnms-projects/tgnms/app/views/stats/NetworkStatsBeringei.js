@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';

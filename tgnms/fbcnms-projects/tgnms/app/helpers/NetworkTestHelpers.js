@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import {generatePath} from 'react-router';
 import type {Location, RouterHistory} from 'react-router-dom';
 

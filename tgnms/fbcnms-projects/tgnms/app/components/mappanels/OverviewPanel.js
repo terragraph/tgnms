@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import FriendlyText from '../common/FriendlyText';

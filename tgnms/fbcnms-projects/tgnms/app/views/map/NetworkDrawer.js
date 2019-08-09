@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
 import AddIcon from '@material-ui/icons/Add';

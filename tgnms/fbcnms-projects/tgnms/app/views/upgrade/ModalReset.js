@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';

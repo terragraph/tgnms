@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import * as React from 'react';
 import AccessTimeIcon from '@material-ui/icons/AlarmOn';

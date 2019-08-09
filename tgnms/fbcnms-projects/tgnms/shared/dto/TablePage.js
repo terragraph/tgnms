@@ -6,7 +6,7 @@
  *
  * Represents a paginated view into a database table
  */
-'use strict';
+
 export type TablePage<T> = {
   rows: Array<T>,
 

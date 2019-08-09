@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import type {UINotification} from '../../components/common/CustomSnackbar';
 import type {WithStyles} from '@material-ui/core/styles';

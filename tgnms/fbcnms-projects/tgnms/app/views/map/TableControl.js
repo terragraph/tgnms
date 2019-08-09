@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import * as React from 'react';
 import TableChartIcon from '@material-ui/icons/TableChart';

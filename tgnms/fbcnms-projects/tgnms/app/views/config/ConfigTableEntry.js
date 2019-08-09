@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AssistantIcon from '@material-ui/icons/Assistant';
 import ConfigFormInput from './ConfigFormInput';

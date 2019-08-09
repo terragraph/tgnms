@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import BatchUpgradeTable from './BatchUpgradeTable';
 import NetworkContext from '../../NetworkContext';

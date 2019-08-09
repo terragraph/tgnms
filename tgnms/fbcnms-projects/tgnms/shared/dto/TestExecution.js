@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import type {TestResult} from './TestResult';
 
 export type TestExecution = {|

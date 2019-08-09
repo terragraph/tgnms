@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import AutorenewIcon from '@material-ui/icons/Autorenew';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';

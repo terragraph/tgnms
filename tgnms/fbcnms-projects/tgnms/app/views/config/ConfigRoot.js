@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AddIcon from '@material-ui/icons/Add';
 import AppBar from '@material-ui/core/AppBar';

@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import '@fbcnms/babel-register/polyfill';
 

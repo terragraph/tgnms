@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import * as React from 'react';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';

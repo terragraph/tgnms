@@ -5,7 +5,6 @@
  * @flow
  */
 
-'use strict';
 import * as React from 'react';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import Tooltip from '@material-ui/core/Tooltip';

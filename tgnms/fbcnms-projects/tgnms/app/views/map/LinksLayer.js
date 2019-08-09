@@ -5,7 +5,6 @@
  * @flow
  */
 
-'use strict';
 import type {
   Element,
   IgnitionState,

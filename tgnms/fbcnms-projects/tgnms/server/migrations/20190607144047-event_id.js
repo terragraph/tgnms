@@ -4,8 +4,6 @@
  * @format
  */
 
-'use strict';
-
 module.exports = {
   up: (queryInterface, DataTypes) => {
     return Promise.all([

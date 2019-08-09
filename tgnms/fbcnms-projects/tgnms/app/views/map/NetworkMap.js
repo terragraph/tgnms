@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import BuildingsLayer from './BuildingsLayer';
 import Dragger from '../../components/common/Dragger';

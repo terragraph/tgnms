@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import type {ContextRouter} from 'react-router-dom';
 import type {UINotification} from '../../components/common/CustomSnackbar';
 import type {WithStyles} from '@material-ui/core/styles';

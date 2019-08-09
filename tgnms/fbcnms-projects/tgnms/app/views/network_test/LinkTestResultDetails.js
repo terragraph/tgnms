@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import type {TestResult} from '../../../shared/dto/TestResult';
 
 import * as React from 'react';

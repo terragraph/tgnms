@@ -5,7 +5,6 @@
  * @flow
  *
  */
-'use strict';
 
 jest.mock('../../models');
 import {getLinkMetrics, getLinkMetricsByName} from '../metrics';

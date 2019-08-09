@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AppBar from '@material-ui/core/AppBar';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';

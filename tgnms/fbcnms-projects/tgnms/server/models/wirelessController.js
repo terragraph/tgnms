@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
 
 export default function(sequelize: Sequelize, DataTypes: DataTypesType) {

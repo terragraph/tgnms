@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import * as React from 'react';
 import BuildIcon from '@material-ui/icons/Build';

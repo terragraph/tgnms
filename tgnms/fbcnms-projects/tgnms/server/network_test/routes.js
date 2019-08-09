@@ -3,7 +3,7 @@
  *
  * @format
  */
-'use strict';
+
 const express = require('express');
 const request = require('request');
 const logger = require('../log')(module);

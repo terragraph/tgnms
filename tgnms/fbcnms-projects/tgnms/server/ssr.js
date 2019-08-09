@@ -5,7 +5,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import * as React from 'react';
 import {MuiThemeProvider, createMuiTheme} from '@material-ui/core/styles';

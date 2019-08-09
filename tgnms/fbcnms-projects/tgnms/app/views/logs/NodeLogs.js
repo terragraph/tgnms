@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import CustomSnackbar from '../../components/common/CustomSnackbar';
 import InfoIcon from '@material-ui/icons/Info';

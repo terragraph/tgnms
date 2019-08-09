@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button';

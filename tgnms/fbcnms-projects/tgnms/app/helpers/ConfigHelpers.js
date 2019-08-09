@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import {ConfigLayer} from '../constants/ConfigConstants.js';
 import {NodeType} from '../../thrift/gen-nodejs/Topology_types';

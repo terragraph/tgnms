@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import {CtrlVerType, ctrlVerBefore} from './VersionHelper';
 

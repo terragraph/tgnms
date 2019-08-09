@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import Button from '@material-ui/core/Button';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';

@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import Divider from '@material-ui/core/Divider';

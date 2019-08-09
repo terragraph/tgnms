@@ -6,7 +6,7 @@
  *
  * Customizes NetworkTestExecutionsTable to be used outside of NetworkTestView
  */
-'use strict';
+
 import NetworkTestExecutionsTable from '../network_test/NetworkTestExecutionsTable';
 import React, {useCallback} from 'react';
 import {

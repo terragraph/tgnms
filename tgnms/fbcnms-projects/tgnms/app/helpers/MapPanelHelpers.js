@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AddLocationIcon from '@material-ui/icons/AddLocation';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';

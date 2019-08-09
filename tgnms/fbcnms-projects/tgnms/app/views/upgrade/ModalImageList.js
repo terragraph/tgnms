@@ -5,8 +5,6 @@
  * @format
  */
 
-'use strict';
-
 import List from '@material-ui/core/List';
 import ModalImageRow from './ModalImageRow';
 import React from 'react';

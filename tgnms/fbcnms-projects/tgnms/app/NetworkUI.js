@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import E2EConfig from './views/config/E2EConfig';

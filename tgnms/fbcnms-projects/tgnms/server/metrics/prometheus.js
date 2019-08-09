@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import {DS_INTERVAL_SEC, PROMETHEUS_URL} from '../config';
 import {createErrorHandler} from '../helpers/apiHelpers';

@@ -4,7 +4,6 @@
  * @flow
  * @format
  */
-'use strict';
 
 import BatchUpgradeTableEntry from './BatchUpgradeTableEntry';
 import Paper from '@material-ui/core/Paper';

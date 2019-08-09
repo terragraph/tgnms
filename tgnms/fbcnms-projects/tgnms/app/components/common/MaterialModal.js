@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';

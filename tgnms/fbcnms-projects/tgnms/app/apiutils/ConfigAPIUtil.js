@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import {apiServiceRequest, getErrorTextFromE2EAck} from './ServiceAPIUtil';
 import {cleanupObject, sortConfig} from '../helpers/ConfigHelpers';

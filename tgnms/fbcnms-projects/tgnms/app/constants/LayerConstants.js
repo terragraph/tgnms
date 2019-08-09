@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import blue from '@material-ui/core/colors/blue';
 import brown from '@material-ui/core/colors/brown';

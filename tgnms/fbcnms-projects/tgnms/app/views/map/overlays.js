@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import axios from 'axios';
 import {HEALTH_DEFS} from '../../constants/HealthConstants';
 import {MCS_DATARATE_TABLE} from '../../constants/NetworkConstants';

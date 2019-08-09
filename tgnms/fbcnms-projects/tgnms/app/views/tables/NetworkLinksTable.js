@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import CustomTable from '../../components/common/CustomTable';

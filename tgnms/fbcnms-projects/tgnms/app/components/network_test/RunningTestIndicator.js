@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import * as React from 'react';
 import LinearProgress from '@material-ui/core/LinearProgress';

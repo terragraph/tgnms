@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import {isAuthorized} from '../../shared/auth/Permissions';
 import type {Permission} from '../../shared/auth/Permissions';

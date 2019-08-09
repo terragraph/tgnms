@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import ConfigTableEntry from './ConfigTableEntry';
 import React from 'react';

@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 // NOTE: Prefix-based routes, meaning if a url starts with a string from this
 // list, then it is considered an open route

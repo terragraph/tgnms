@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AsyncSelect from 'react-select/lib/Async';
 import CancelIcon from '@material-ui/icons/Cancel';

@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import React from 'react';
 import SignalWifi0BarIcon from '@material-ui/icons/SignalWifi0Bar';

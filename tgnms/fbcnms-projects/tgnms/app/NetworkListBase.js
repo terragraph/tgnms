@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';

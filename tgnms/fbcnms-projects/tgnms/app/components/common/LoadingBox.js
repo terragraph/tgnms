@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import React from 'react';

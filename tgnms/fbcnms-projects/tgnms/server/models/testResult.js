@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import type {TestExecution} from './testExecution';
 
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';

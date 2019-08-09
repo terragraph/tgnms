@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 export const HEALTH_CODES = {
   EXCELLENT: 0,

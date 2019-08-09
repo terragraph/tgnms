@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 export class ValidationResult {
   errors: Array<ValidationError>;
   hasErrors = () =>

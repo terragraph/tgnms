@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import {HEALTH_CODES, HEALTH_DEFS} from '../../constants/HealthConstants';
 import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
 import type {LinkTestResult} from './LinkTestResultDetails';

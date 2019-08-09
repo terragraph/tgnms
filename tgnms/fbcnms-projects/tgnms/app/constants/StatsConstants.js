@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 import {GraphAggregation} from '../../thrift/gen-nodejs/Stats_types';
 

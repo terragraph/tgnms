@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import * as React from 'react';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import amber from '@material-ui/core/colors/amber';

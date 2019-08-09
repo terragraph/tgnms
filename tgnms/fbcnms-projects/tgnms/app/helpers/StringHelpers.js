@@ -3,7 +3,6 @@
  *
  * @format
  */
-'use strict';
 
 /** Convert the string to title case, ex. "BEEP_BOOP" -> "Beep Boop" */
 export function toTitleCase(str) {

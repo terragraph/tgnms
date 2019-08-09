@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-'use strict';
+
 import Sequelize from 'sequelize';
 import {TEST_STATUS} from '../../shared/dto/TestExecution';
 import type {TablePage} from '../../shared/dto/TablePage';

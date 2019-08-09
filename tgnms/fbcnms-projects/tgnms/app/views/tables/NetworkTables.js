@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-'use strict';
 
 import NetworkContext from '../../NetworkContext.js';
 import NetworkEventsTable from './NetworkEventsTable';
