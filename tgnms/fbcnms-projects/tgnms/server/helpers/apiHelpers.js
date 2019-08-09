@@ -3,9 +3,13 @@
  *
  * @format
  */
-const path = require('path');
+
+const request = require('request');
 const logger = require('../log')(module);
+const path = require('path');
 import {ValidationResult} from '../../shared/validation';
+
+const {API_REQUEST_TIMEOUT} = require('../config');
 
 /**
  * Handles different types of http error scenarios and logging -
@@ -37,4 +41,31 @@ export function safePathJoin(parent, unsafePath) {
     parent,
     path.normalize(unsafePath).replace(/^(\.\.[\/\\])+/, ''),
   );
+}
+
+/**
+ * Creates a request (default GET) with the options provided and logs it
+ */
+export function createRequest(options) {
+  const requestOptions = typeof options === 'string' ? {uri: options} : options;
+  logger.info(
+    `Network request: ${
+      requestOptions.method ? requestOptions.method : 'GET'
+    } ${requestOptions.uri}`,
+  );
+  return new Promise((resolve, reject) => {
+    try {
+      return request(
+        Object.assign({timeout: API_REQUEST_TIMEOUT}, requestOptions),
+        (err, response, body) => {
+          if (err) {
+            return reject(err, body);
+          }
+          return resolve(response);
+        },
+      );
+    } catch (err) {
+      return reject(err);
+    }
+  });
 }

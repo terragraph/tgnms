@@ -5,9 +5,7 @@
  */
 
 const express = require('express');
-const request = require('request');
-const logger = require('../log')(module);
-import {createErrorHandler} from '../helpers/apiHelpers';
+import {createErrorHandler, createRequest} from '../helpers/apiHelpers';
 
 const {NETWORKTEST_HOST} = require('../config');
 const networkTestService = require('./service');
@@ -126,29 +124,5 @@ router.post('/executions/:id/overlay', (req, res) => {
     .then(results => res.status(200).send(results))
     .catch(createErrorHandler(res));
 });
-
-function createRequest(options) {
-  const requestOptions = typeof options === 'string' ? {uri: options} : options;
-  logger.info(
-    `Network test request: ${
-      requestOptions.method ? requestOptions.method : 'GET'
-    } ${requestOptions.uri}`,
-  );
-  return new Promise((resolve, reject) => {
-    try {
-      return request(
-        Object.assign({timeout: 2000}, requestOptions),
-        (err, response) => {
-          if (err) {
-            return reject(err);
-          }
-          return resolve(response);
-        },
-      );
-    } catch (err) {
-      return reject(err);
-    }
-  });
-}
 
 module.exports = router;

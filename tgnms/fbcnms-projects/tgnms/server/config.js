@@ -54,6 +54,13 @@ const NODEUPDATE_SERVER_URL =
   process.env.NODEUPDATE_SERVER_URL || 'https://nodeupdate.terragraph.link';
 const NODEUPDATE_AUTH_TOKEN = process.env.NODEUPDATE_AUTH_TOKEN || '';
 
+// URL and auth token for Terragraph's software portal
+const SOFTWARE_PORTAL_URL =
+  process.env.SOFOTWARE_PORTAL_URL || 'https://sw.terragraph.link';
+const SOFTWARE_PORTAL_API_TOKEN =
+  process.env.SOFTWARE_PORTAL_API_TOKEN || 'K__AjuA9ii_Mwq7FYV00PWS-e6Y';
+const SOFTWARE_PORTAL_API_ID = process.env.SOFTWARE_PORTAL_API_ID || 'tgdev';
+
 // Directory containing all node logs
 // Structure:
 //   $NODELOG_DIR/<mac_addr>/yyyy-mm-dd_terragraph_<name>_logs.log<.lz4>
@@ -87,6 +94,9 @@ module.exports = {
   NODELOG_DIR,
   NODEUPDATE_SERVER_URL,
   NODEUPDATE_AUTH_TOKEN,
+  SOFTWARE_PORTAL_URL,
+  SOFTWARE_PORTAL_API_TOKEN,
+  SOFTWARE_PORTAL_API_ID,
   PROXY_ENABLED,
   SALT_GEN_ROUNDS: 10,
   NETWORKTEST_HOST,

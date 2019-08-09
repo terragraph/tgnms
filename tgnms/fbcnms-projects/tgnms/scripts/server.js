@@ -151,6 +151,7 @@ app.get('*', (req, res) => {
     'COMMIT_HASH',
     'NOTIFICATION_MENU_ENABLED',
     'SERVICE_AVAILABILITY_ENABLED',
+    'SOFTWARE_PORTAL_URL',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {
