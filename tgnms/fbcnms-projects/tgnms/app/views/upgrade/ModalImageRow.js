@@ -15,12 +15,14 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import React from 'react';
 import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
-import type {UpgradeImageType} from '../../../shared/types/Controller';
+import type {ChecksumType} from './ModalImageList';
+import type {SoftwareImageType} from './ModalUpgradeImages';
 
 type Props = {|
   classes: {[key: string]: string},
-  image: UpgradeImageType,
-  onClick: (HTMLAnchorElement, UpgradeImageType) => void,
+  checksumType: ChecksumType,
+  image: SoftwareImageType,
+  onClick: (HTMLAnchorElement, SoftwareImageType) => void,
 |};
 
 const styles = theme => ({
@@ -29,15 +31,26 @@ const styles = theme => ({
     padding: 2,
     backgroundColor: theme.palette.primary.light,
   },
+  checksumText: {
+    width: '90%',
+    display: 'inline-block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
 });
 const ModelImageRow = (props: Props) => {
   // Render a list-item row for the given image
-  const {classes, image} = props;
-  const versionNumber = getVersionNumber(getVersion(image.name));
+  const {classes, image, checksumType} = props;
+  const versionNumber =
+    image.versionNumber != null
+      ? image.versionNumber
+      : getVersionNumber(getVersion(image.name));
 
   const handleClick = (event: SyntheticEvent<HTMLAnchorElement>) => {
     props.onClick(event.currentTarget, image);
   };
+
+  const checksum = checksumType === 'MD5' ? image.md5 : image.sha1;
 
   return (
     <React.Fragment key={image.name}>
@@ -49,8 +62,8 @@ const ModelImageRow = (props: Props) => {
           primary={image.name}
           secondary={
             <>
-              <span>
-                <strong>MD5:</strong> {image.md5}
+              <span className={classes.checksumText}>
+                <strong>{`${checksumType}:`}</strong> {checksum}
               </span>
               <br />
               {image.hardwareBoardIds && image.hardwareBoardIds.length > 0 ? (
@@ -61,11 +74,13 @@ const ModelImageRow = (props: Props) => {
             </>
           }
         />
-        <ListItemSecondaryAction>
-          <IconButton onClick={handleClick}>
-            <MoreVertIcon />
-          </IconButton>
-        </ListItemSecondaryAction>
+        {!!image.magnetUri ? (
+          <ListItemSecondaryAction>
+            <IconButton onClick={handleClick}>
+              <MoreVertIcon />
+            </IconButton>
+          </ListItemSecondaryAction>
+        ) : null}
       </ListItem>
     </React.Fragment>
   );

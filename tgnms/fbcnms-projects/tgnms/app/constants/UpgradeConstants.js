@@ -25,3 +25,5 @@ export const UploadStatus = {
   SUCCESS: 'SUCCESS',
   FAILURE: 'FAILURE',
 };
+
+export const SOFTWARE_PORTAL_SUITE = 'tg_firmware_rev5';

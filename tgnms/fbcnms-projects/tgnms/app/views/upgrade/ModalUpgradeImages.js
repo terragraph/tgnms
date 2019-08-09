@@ -8,6 +8,7 @@
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import LinkIcon from '@material-ui/icons/Link';
@@ -27,6 +28,7 @@ import copy from 'copy-to-clipboard';
 import swal from 'sweetalert2';
 import {
   REVERT_UPGRADE_IMAGE_STATUS,
+  SOFTWARE_PORTAL_SUITE,
   UPGRADE_IMAGE_REFRESH_INTERVAL,
   UploadStatus,
 } from '../../constants/UpgradeConstants';
@@ -35,11 +37,20 @@ import {
   apiServiceRequestWithConfirmation,
   getErrorTextFromE2EAck,
 } from '../../apiutils/ServiceAPIUtil';
-import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
+import {
+  fetchSoftwarePortalImages,
+  fetchUpgradeImages,
+} from '../../helpers/UpgradeHelpers';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 
 import {withStyles} from '@material-ui/core/styles';
 
 import type {UpgradeImageType} from '../../../shared/types/Controller';
+
+export type SoftwareImageType = UpgradeImageType & {
+  versionNumber?: string,
+  sha1?: string,
+};
 
 const styles = theme => ({
   dialogTitle: {
@@ -68,6 +79,9 @@ const styles = theme => ({
   rightIcon: {
     float: 'right',
   },
+  softwareImageHeader: {
+    paddingTop: '12px',
+  },
 });
 
 type Props = {|
@@ -78,8 +92,9 @@ type Props = {|
 type State = {|
   isOpen: boolean,
   menuAnchorEl: ?HTMLAnchorElement,
-  menuImage: ?UpgradeImageType,
-  upgradeImages: Array<UpgradeImageType>,
+  menuImage: ?SoftwareImageType,
+  upgradeImages: Array<SoftwareImageType>,
+  softwarePortalImages: Array<SoftwareImageType>,
   uploadProgress: number,
   uploadStatus: string,
 |};
@@ -97,6 +112,7 @@ class ModalUpgradeImages extends React.Component<Props, State> {
 
     // upgrade images properties
     upgradeImages: [],
+    softwarePortalImages: [],
     uploadProgress: 0,
     uploadStatus: UploadStatus.NONE,
   };
@@ -121,6 +137,11 @@ class ModalUpgradeImages extends React.Component<Props, State> {
     fetchUpgradeImages(this.props.networkName, images =>
       this.setState({upgradeImages: images}),
     );
+    if (isFeatureEnabled('SOFTWARE_PORTAL_ENABLED')) {
+      fetchSoftwarePortalImages({suite: SOFTWARE_PORTAL_SUITE}, images => {
+        this.setState({softwarePortalImages: images});
+      });
+    }
   };
 
   handleUploadImage = async event => {
@@ -212,7 +233,7 @@ class ModalUpgradeImages extends React.Component<Props, State> {
 
   handleAnchorClick = (
     menuAnchorEl: HTMLAnchorElement,
-    menuImage: UpgradeImageType,
+    menuImage: SoftwareImageType,
   ) => {
     this.setState({
       menuAnchorEl,
@@ -268,7 +289,12 @@ class ModalUpgradeImages extends React.Component<Props, State> {
 
   render() {
     const {classes} = this.props;
-    const {menuAnchorEl, isOpen, upgradeImages} = this.state;
+    const {
+      menuAnchorEl,
+      isOpen,
+      upgradeImages,
+      softwarePortalImages,
+    } = this.state;
 
     return (
       <div>
@@ -290,10 +316,28 @@ class ModalUpgradeImages extends React.Component<Props, State> {
               </Typography>
             ) : (
               <>
+                <Typography variant="subtitle1">Uploaded Images</Typography>
                 <ModalImageList
                   upgradeImages={upgradeImages}
+                  checksumType="MD5"
                   onClick={this.handleAnchorClick}
                 />
+                {isFeatureEnabled('SOFTWARE_PORTAL_ENABLED') ? (
+                  <>
+                    <Divider />
+                    <Typography
+                      className={classes.softwareImageHeader}
+                      variant="subtitle1">
+                      Software Portal Images
+                    </Typography>
+                    <ModalImageList
+                      upgradeImages={softwarePortalImages}
+                      checksumType="SHA1"
+                      onClick={this.handleAnchorClick}
+                    />
+                  </>
+                ) : null}
+
                 <Menu
                   anchorEl={menuAnchorEl}
                   open={Boolean(menuAnchorEl)}

@@ -18,6 +18,8 @@ export const FeatureFlags: {[string]: () => boolean} = {
   GRAFANA_ENABLED: () => window.CONFIG.env.hasOwnProperty('GRAFANA_URL'),
   SERVICE_AVAILABILITY_ENABLED: () =>
     window.CONFIG.env.SERVICE_AVAILABILITY_ENABLED === 'true',
+  SOFTWARE_PORTAL_ENABLED: () =>
+    window.CONFIG.env.hasOwnProperty('SOFTWARE_PORTAL_URL'),
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {
