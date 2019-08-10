@@ -72,7 +72,7 @@ type State = {|
 
 const ScheduleNetworkTest = withStyles(styles)(
   class ScheduleNetworkTest extends React.PureComponent<
-    Props & WithStyles,
+    Props & WithStyles<typeof styles>,
     State,
   > {
     static defaultProps = {

@@ -53,7 +53,7 @@ const DRAWER_WIDTH = 240;
 const ISSUES_URL = window?.CONFIG?.env?.ISSUES_URL;
 
 type IndexProps = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     networks: Array<string>,
     user: SessionUser,
   };

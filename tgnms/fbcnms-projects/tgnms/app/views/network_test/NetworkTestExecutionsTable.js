@@ -84,7 +84,7 @@ type State = {|
 |};
 
 class NetworkTestExecutionsTable extends React.PureComponent<
-  Props & WithStyles & ContextRouter,
+  Props & WithStyles<typeof styles> & ContextRouter,
   State,
 > {
   state = {
