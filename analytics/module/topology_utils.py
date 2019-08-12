@@ -31,6 +31,8 @@ class NetworkInfo:
     name: str
     api_ip: str
     api_port: int
+    e2e_ip: str
+    e2e_port: int
     nodes: List[Dict]
     links: List[Dict]
     sites: List[Dict]
@@ -92,6 +94,8 @@ async def fetch_network_info(topology_id: Optional[int] = None) -> List[NetworkI
                 name=api_result["name"],
                 api_ip=sql_result["api_ip"],
                 api_port=sql_result["api_port"],
+                e2e_ip=sql_result["e2e_ip"],
+                e2e_port=sql_result["e2e_port"],
                 nodes=api_result["nodes"],
                 links=api_result["links"],
                 sites=api_result["sites"],
@@ -103,8 +107,7 @@ async def fetch_network_info(topology_id: Optional[int] = None) -> List[NetworkI
         # Remove nodes and links with empty MAC addresses
         network.nodes[:] = [node for node in network.nodes if node["mac_addr"]]
         network.links[:] = [
-            link for link in network.links
-            if link["a_node_mac"] and link["z_node_mac"]
+            link for link in network.links if link["a_node_mac"] and link["z_node_mac"]
         ]
 
     return networks
