@@ -621,8 +621,8 @@ class NodeDetailsPanel extends React.Component {
             : {color: 'red', text: 'Offline'};
           return (
             <div className={classes.spaceBetween} key={link.name}>
-              <Typography>{link.z_node_name}</Typography>
-              <Typography>
+              <Typography variant="body2">{link.z_node_name}</Typography>
+              <Typography variant="body2">
                 <span style={{color: color}}>{text}</span>
               </Typography>
             </div>
