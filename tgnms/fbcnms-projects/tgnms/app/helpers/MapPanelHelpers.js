@@ -51,17 +51,22 @@ export function createActionsMenu(options, state, setState) {
             style={{lineHeight: '2rem', outline: 'none'}}>
             {heading}
           </ListSubheader>,
-          ...actions.map(({label, icon, func}) => (
-            <MenuItem
-              key={label}
-              onClick={() => {
-                setState({actionsAnchorEl: null});
-                func();
-              }}>
-              {icon && <ListItemIcon>{icon}</ListItemIcon>}
-              <ListItemText primary={label} />
-            </MenuItem>
-          )),
+          ...actions.map(({label, icon, func, component}) => {
+            return (
+              <MenuItem
+                key={label}
+                onClick={() => {
+                  setState({actionsAnchorEl: null});
+                  if (func) {
+                    func();
+                  }
+                }}
+                {...(component ? {component} : {})}>
+                {icon && <ListItemIcon>{icon}</ListItemIcon>}
+                <ListItemText primary={label} />
+              </MenuItem>
+            );
+          }),
         ])}
       </Menu>
     </>

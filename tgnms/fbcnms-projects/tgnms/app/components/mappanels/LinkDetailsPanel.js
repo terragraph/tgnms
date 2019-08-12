@@ -9,11 +9,13 @@ import BuildIcon from '@material-ui/icons/Build';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
+import GrafanaLink, {GrafanaDashboardUUID} from '../common/GrafanaLink';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import PropTypes from 'prop-types';
 import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
@@ -151,7 +153,7 @@ class LinkDetailsPanel extends React.Component {
 
   renderActions() {
     // Render actions
-    const {link} = this.props;
+    const {link, networkName} = this.props;
 
     const actionItems = [
       ...(link.link_type === LinkType.WIRELESS
@@ -190,6 +192,22 @@ class LinkDetailsPanel extends React.Component {
             label: 'Show Stats',
             icon: <StatsIcon />,
             func: () => this.onShowStats(),
+          },
+          {
+            label: 'View in Grafana',
+            icon: <OpenInNewIcon />,
+            component: props => (
+              <GrafanaLink
+                {...props}
+                dashboard={GrafanaDashboardUUID.link}
+                vars={{
+                  'var-network': networkName,
+                }}
+                prometheusVars={{
+                  'var-link_name': link.name,
+                }}
+              />
+            ),
           },
           {
             label: 'Delete Link',
