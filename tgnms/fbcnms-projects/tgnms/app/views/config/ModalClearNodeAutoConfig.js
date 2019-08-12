@@ -7,11 +7,11 @@
 'use strict';
 
 import Button from '@material-ui/core/Button';
+import InputLabel from '@material-ui/core/InputLabel';
 import MaterialModal from '../../components/common/MaterialModal';
 import MaterialReactSelect from '../../components/common/MaterialReactSelect';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import swal from 'sweetalert2';
 import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
@@ -59,23 +59,23 @@ class ModalClearNodeAutoConfig extends React.Component<Props, State> {
 
     return (
       <>
-        <Typography color="textSecondary" id="nodesSelectedWraper">
+        <InputLabel color="textSecondary" htmlFor="nodesSelected">
           Nodes:
-          <MaterialReactSelect
-            id="nodesSelected"
-            key="nodesSelected"
-            defaultOptions
-            cacheOptions={false}
-            data-testid="toggle-node-menu"
-            getOptionValue={option => option.label}
-            options={nodeOptions}
-            isMulti
-            onChange={value => {
-              this.setState({nodesSelected: value});
-            }}
-            value={this.state.nodesSelected}
-          />
-        </Typography>
+        </InputLabel>
+        <MaterialReactSelect
+          id="nodesSelected"
+          key="nodesSelected"
+          defaultOptions
+          cacheOptions={false}
+          data-testid="toggle-node-menu"
+          getOptionValue={option => option.label}
+          options={nodeOptions}
+          isMulti
+          onChange={value => {
+            this.setState({nodesSelected: value});
+          }}
+          value={this.state.nodesSelected}
+        />
         <TextField
           id="nodePath"
           key="nodePath"
