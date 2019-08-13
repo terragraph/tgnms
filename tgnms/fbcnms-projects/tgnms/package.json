@@ -79,7 +79,8 @@
     "umzug": "^2.1.0",
     "uuid": "^3.3.2",
     "webpack-parallel-uglify-plugin": "^1.1.0",
-    "winston": "^3.0.0"
+    "winston": "^3.0.0",
+    "xml2js": "^0.4.19"
   },
   "devDependencies": {
     "@testing-library/react": "^8.0.2",

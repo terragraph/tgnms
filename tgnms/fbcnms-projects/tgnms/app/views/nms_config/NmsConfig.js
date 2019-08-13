@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button';
 import CustomSnackbar from '../../components/common/CustomSnackbar';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import EditIcon from '@material-ui/icons/Edit';
+import FileDownloadIcon from '@material-ui/icons/CloudDownload';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -149,6 +150,34 @@ class NmsConfig extends React.Component {
       });
   };
 
+  onKMLSiteExport = networkName => {
+    axios
+      .get(`/export/${networkName}/sites`)
+      .then(response => {
+        const downloadLink = document.createElement('a');
+        const data =
+          'data:text/plain;charset=utf-8,' + encodeURIComponent(response.data);
+        downloadLink.href = data;
+        downloadLink.download = `${networkName}_sites.kml`;
+        downloadLink.target = '_blank';
+        try {
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+        } catch (error) {
+          return Promise.reject(error);
+        } finally {
+          document.body.removeChild(downloadLink);
+        }
+      })
+      .catch(err => {
+        const errorText =
+          err.response && err.response.data && err.response.data.msg
+            ? err.response.data.msg
+            : 'Unable to export sites.';
+        this.updateSnackbar(errorText, 'error');
+      });
+  };
+
   onDeleteNetwork = (id, waitForNetworkListRefresh, onResolve, onReject) => {
     // Delete a network
     axios
@@ -186,6 +215,11 @@ class NmsConfig extends React.Component {
   handleEditNetwork(networkConfig, _waitForNetworkListRefresh) {
     // Open the modal to edit a network
     this.setState({modalProps: {open: true, type: 'EDIT', networkConfig}});
+  }
+
+  handleKMLSiteExport(networkConfig) {
+    // Download sites as KML file
+    this.onKMLSiteExport(networkConfig.name);
   }
 
   handleDeleteNetwork(networkConfig, waitForNetworkListRefresh) {
@@ -375,6 +409,15 @@ class NmsConfig extends React.Component {
               <EditIcon />
             </ListItemIcon>
             <ListItemText primary="Edit Network" />
+          </MenuItem>
+          <MenuItem
+            onClick={() =>
+              this.handleKMLSiteExport(networkList[menuNetworkName])
+            }>
+            <ListItemIcon>
+              <FileDownloadIcon />
+            </ListItemIcon>
+            <ListItemText primary="KML Site Export" />
           </MenuItem>
           <MenuItem
             onClick={() => {
