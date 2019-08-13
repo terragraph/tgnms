@@ -154,7 +154,8 @@ class CustomExpansionPanel extends React.Component<Props> {
         onClick={event => {
           event.stopPropagation();
           onPin();
-        }}>
+        }}
+        title={pinned ? 'Unpin from network drawer' : 'Pin to network drawer'}>
         {pinned ? (
           <LockIcon classes={{root: classes.panelIcon}} />
         ) : (
@@ -281,7 +282,8 @@ const ExpansionPanelSummaryTooltip = withStyles({
           enterDelay={500}
           leaveDelay={this.state.copySuccessful ? 200 : 1000}
           interactive
-          onClose={() => this.setState({copySuccessful: false})}>
+          onClose={() => this.setState({copySuccessful: false})}
+          placement="top-start">
           {children}
         </Tooltip>
       );
