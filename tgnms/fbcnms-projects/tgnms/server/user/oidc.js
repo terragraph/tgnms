@@ -31,7 +31,12 @@ export function initOidcClient(): Promise<OpenidClient> {
   };
   OpenidIssuer.httpClient = httpClient();
 
-  if (!KEYCLOAK_HOST || !KEYCLOAK_REALM) {
+  if (
+    !KEYCLOAK_HOST ||
+    !KEYCLOAK_REALM ||
+    !KEYCLOAK_CLIENT_ID ||
+    !KEYCLOAK_CLIENT_SECRET
+  ) {
     throw new Error(
       'missing required environment variable KEYCLOAK_HOST, KEYCLOAK_REALM ',
     );

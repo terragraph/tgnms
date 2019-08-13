@@ -2,15 +2,16 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 require('dotenv').config();
 
-const API_REQUEST_TIMEOUT = process.env.API_REQUEST_TIMEOUT || 5000;
+const API_REQUEST_TIMEOUT = envInt(process.env.API_REQUEST_TIMEOUT, 5000);
 
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 // NOTE: Login is disabled by default until its deployed publicly
-const LOGIN_ENABLED = process.env.LOGIN_ENABLED || false;
+const LOGIN_ENABLED = envBool(process.env.LOGIN_ENABLED, false);
 
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
 const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
@@ -75,6 +76,40 @@ const DEVELOPMENT = process.env.NODE_ENV !== 'production';
 // structure:
 //   'kafka-host1:9092,kafka-host2:9092'
 const KAFKA_HOSTS = process.env.KAFKA_HOSTS;
+
+function envBool(envVar: ?string, defaultValue: boolean) {
+  if (typeof envVar === 'undefined') {
+    return defaultValue;
+  }
+  // empty env vars like ENABLE_X are still considered true
+  if (envVar === 'true' || envVar === '') {
+    return true;
+  }
+  if (envVar === 'false') {
+    return false;
+  }
+  console.error(
+    `Invalid environment variable. Expected: boolean string, Actual: ${envVar ||
+      'undefined'}`,
+  );
+  return defaultValue;
+}
+
+function envInt(envVar: ?string, defaultValue: number) {
+  if (typeof envVar === 'undefined') {
+    return defaultValue;
+  }
+  const parsed = parseInt(envVar);
+  if (isNaN(parsed)) {
+    console.error(
+      `Invalid environment variable. Expected: integer, Actual: ${envVar ||
+        'undefined'}`,
+    );
+    return defaultValue;
+  }
+
+  return parsed;
+}
 
 module.exports = {
   API_REQUEST_TIMEOUT,

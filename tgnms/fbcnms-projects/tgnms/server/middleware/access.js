@@ -89,7 +89,12 @@ function authRedirect(
   );
 
   try {
-    const redirectUrl = new URL(redirectPath, CLIENT_ROOT_URL);
+    const baseUrl = CLIENT_ROOT_URL || '';
+    /*
+     * This will throw if CLIENT_ROOT_URL is bad, but after the catch
+     * the redirect will still behave as expected.
+     */
+    const redirectUrl = new URL(redirectPath, baseUrl);
     redirectUrl.searchParams.set('returnUrl', req.originalUrl);
     if (errorMessage) {
       redirectUrl.searchParams.set('errorMessage', errorMessage);
