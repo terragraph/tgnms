@@ -40,7 +40,10 @@ import {
   SEARCH_NEARBY_LINE_PAINT,
   SUPERFRAME_COLORS,
 } from '../../constants/LayerConstants';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {
+  LinkTypeValueMap as LinkType,
+  NodeTypeValueMap as NodeType,
+} from '../../../shared/types/Topology';
 import {
   SCAN_MAX_COVERAGE_ANGLE,
   SCAN_MAX_RX_DISTANCE,

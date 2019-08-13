@@ -15,7 +15,10 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import Typography from '@material-ui/core/Typography';
 import WifiIcon from '@material-ui/icons/Wifi';
 import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {
+  LinkTypeValueMap as LinkType,
+  NodeTypeValueMap as NodeType,
+} from '../../../shared/types/Topology';
 import {
   avg,
   avgOverTime,

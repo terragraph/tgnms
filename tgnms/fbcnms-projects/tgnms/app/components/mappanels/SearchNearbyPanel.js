@@ -24,7 +24,7 @@ import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
+import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,

@@ -17,7 +17,10 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import ReactPlotlyEventChart from './ReactPlotlyEventChart';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {
+  LinkTypeValueMap as LinkType,
+  NodeTypeValueMap as NodeType,
+} from '../../../shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {availabilityColor} from '../../helpers/NetworkHelpers';

@@ -7,9 +7,9 @@
 const {BERINGEI_QUERY_URL} = require('../config');
 const _ = require('lodash');
 import {
-  GraphAggregation,
-  StatsOutputFormat,
-} from '../../thrift/gen-nodejs/Stats_types';
+  GraphAggregationValueMap as GraphAggregation,
+  StatsOutputFormatValueMap as StatsOutputFormat,
+} from '../../shared/types/Stats';
 const request = require('request');
 const logger = require('../log')(module);
 

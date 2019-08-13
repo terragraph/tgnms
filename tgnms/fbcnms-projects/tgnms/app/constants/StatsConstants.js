@@ -4,7 +4,7 @@
  * @format
  */
 
-import {GraphAggregation} from '../../thrift/gen-nodejs/Stats_types';
+import {GraphAggregationValueMap as GraphAggregation} from '../../shared/types/Stats';
 
 // maximum name length to prevent legend taking over the graph
 export const GRAPH_LINE_NAME_MAX_LENGTH = 40;

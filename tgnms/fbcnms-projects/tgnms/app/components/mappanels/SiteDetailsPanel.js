@@ -19,7 +19,7 @@ import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import geolib from 'geolib';
 import moment from 'moment';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
+import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {
   createActionsMenu,

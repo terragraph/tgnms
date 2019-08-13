@@ -21,8 +21,11 @@ import SyncIcon from '@material-ui/icons/Sync';
 import TimerIcon from '@material-ui/icons/Timer';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
-import {PolarityTypeValueMap as PolarityType} from '../../../shared/types/Topology';
+import {
+  LinkTypeValueMap as LinkType,
+  NodeTypeValueMap as NodeType,
+  PolarityTypeValueMap as PolarityType,
+} from '../../../shared/types/Topology';
 import {SELECTED_NODE_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {SiteOverlayColors} from '../../constants/LayerConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';

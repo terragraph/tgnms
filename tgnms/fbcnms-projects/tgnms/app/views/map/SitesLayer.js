@@ -8,10 +8,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {
-  LinkType,
-  NodeType,
-  PolarityType,
-} from '../../../thrift/gen-nodejs/Topology_types';
+  LinkTypeValueMap as LinkType,
+  NodeTypeValueMap as NodeType,
+  PolarityTypeValueMap as PolarityType,
+} from '../../../shared/types/Topology';
 import {Popup} from 'react-mapbox-gl';
 import {SiteOverlayColors} from '../../constants/LayerConstants';
 import {getNodePolarities} from '../../helpers/TgFeatures';

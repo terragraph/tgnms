@@ -23,8 +23,8 @@ import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
 import SyncIcon from '@material-ui/icons/Sync';
 import Text from '@fbcnms/i18n/Text';
 import Typography from '@material-ui/core/Typography';
-import {LinkActionType} from '../../../thrift/gen-nodejs/Controller_types';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
+import {LinkActionTypeValueMap as LinkActionType} from '../../../shared/types/Controller';
+import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {

@@ -13,9 +13,9 @@ import React from 'react';
 import RestoreIcon from '@material-ui/icons/Restore';
 import swal from 'sweetalert2';
 import {
-  UpgradeGroupType,
-  UpgradeReqType,
-} from '../../../thrift/gen-nodejs/Controller_types';
+  UpgradeGroupTypeValueMap as UpgradeGroupType,
+  UpgradeReqTypeValueMap as UpgradeReqType,
+} from '../../../shared/types/Controller';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,

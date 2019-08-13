@@ -31,7 +31,7 @@ import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
 import TestExecutionPanel from '../../components/mappanels/TestExecutionPanel';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
-import {UpgradeReqType} from '../../../thrift/gen-nodejs/Controller_types';
+import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
 import {
   getAddSiteIcon,

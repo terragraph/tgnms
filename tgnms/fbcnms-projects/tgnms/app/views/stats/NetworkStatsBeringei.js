@@ -24,10 +24,10 @@ import {
   STATS_TIME_PICKER_OPTS,
 } from '../../constants/StatsConstants.js';
 import {
-  GraphAggregation,
-  RestrictorType,
-} from '../../../thrift/gen-nodejs/Stats_types';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
+  GraphAggregationValueMap as GraphAggregation,
+  RestrictorTypeValueMap as RestrictorType,
+} from '../../../shared/types/Stats';
+import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';

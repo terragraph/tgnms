@@ -4,9 +4,7 @@
  * @format
  */
 
-const {
-  BinaryStarFsmState,
-} = require('../../thrift/gen-nodejs/Controller_types');
+import {BinaryStarFsmStateValueMap as BinaryStarFsmState} from '../../shared/types/Controller';
 
 const HAPeerType = {
   PRIMARY: 'PRIMARY',

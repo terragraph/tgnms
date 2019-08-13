@@ -18,9 +18,9 @@ import UpdateIcon from '@material-ui/icons/Update';
 import swal from 'sweetalert2';
 import {BatchingType} from '../../constants/UpgradeConstants';
 import {
-  UpgradeGroupType,
-  UpgradeReqType,
-} from '../../../thrift/gen-nodejs/Controller_types';
+  UpgradeGroupTypeValueMap as UpgradeGroupType,
+  UpgradeReqTypeValueMap as UpgradeReqType,
+} from '../../../shared/types/Controller';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,

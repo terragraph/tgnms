@@ -13,9 +13,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import {
-  NodeType,
-  PolarityType,
-} from '../../../thrift/gen-nodejs/Topology_types';
+  NodeTypeValueMap as NodeType,
+  PolarityTypeValueMap as PolarityType,
+} from '../../../shared/types/Topology';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,

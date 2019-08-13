@@ -10,7 +10,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
 import React from 'react';
 import swal from 'sweetalert2';
-import {LinkType, NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {
+  LinkTypeValueMap as LinkType,
+  NodeTypeValueMap as NodeType,
+} from '../../../shared/types/Topology';
 import {
   createReactSelectInput,
   createSelectInput,

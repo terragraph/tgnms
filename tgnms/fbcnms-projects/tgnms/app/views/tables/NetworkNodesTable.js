@@ -8,7 +8,7 @@ import CustomTable from '../../components/common/CustomTable';
 import NetworkContext from '../../NetworkContext.js';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {NodeType} from '../../../thrift/gen-nodejs/Topology_types';
+import {NodeTypeValueMap as NodeType} from '../../../shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {availabilityColor, isNodeAlive} from '../../helpers/NetworkHelpers';

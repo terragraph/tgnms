@@ -16,9 +16,9 @@ const {
   determineActiveController,
 } = require('../high_availability/model');
 import {
-  GraphAggregation,
-  StatsOutputFormat,
-} from '../../thrift/gen-nodejs/Stats_types';
+  GraphAggregationValueMap as GraphAggregation,
+  StatsOutputFormatValueMap as StatsOutputFormat,
+} from '../../shared/types/Stats';
 
 import {getNetworkList, updateOnlineWhitelist} from './network';
 const _ = require('lodash');

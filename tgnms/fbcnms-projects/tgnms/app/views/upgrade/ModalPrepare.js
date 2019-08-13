@@ -20,9 +20,9 @@ import Typography from '@material-ui/core/Typography';
 import swal from 'sweetalert2';
 import {UPGRADE_IMAGE_REFRESH_INTERVAL} from '../../constants/UpgradeConstants';
 import {
-  UpgradeGroupType,
-  UpgradeReqType,
-} from '../../../thrift/gen-nodejs/Controller_types';
+  UpgradeGroupTypeValueMap as UpgradeGroupType,
+  UpgradeReqTypeValueMap as UpgradeReqType,
+} from '../../../shared/types/Controller';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,

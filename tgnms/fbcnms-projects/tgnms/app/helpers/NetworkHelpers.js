@@ -8,7 +8,7 @@ import React from 'react';
 import SignalWifi0BarIcon from '@material-ui/icons/SignalWifi0Bar';
 import SignalWifi2BarIcon from '@material-ui/icons/SignalWifi2Bar';
 import SignalWifi4BarIcon from '@material-ui/icons/SignalWifi4Bar';
-import {NodeStatusType} from '../../thrift/gen-nodejs/Topology_types';
+import {NodeStatusTypeValueMap as NodeStatusType} from '../../shared/types/Topology';
 import {
   SNR_THRESHOLD_MCS2,
   SNR_THRESHOLD_MCS9,

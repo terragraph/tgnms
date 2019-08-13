@@ -5,7 +5,7 @@
  * @flow
  */
 
-import {NodeStatusType} from '../../thrift/gen-nodejs/Topology_types';
+import {NodeStatusTypeValueMap as NodeStatusType} from '../../shared/types/Topology';
 import type {Controller} from '../models/controller';
 import type {LinkType, NodeType} from '../../shared/types/Topology';
 import type {Topology} from '../models/topology';

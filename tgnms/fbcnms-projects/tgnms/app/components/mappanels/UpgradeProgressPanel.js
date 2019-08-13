@@ -11,10 +11,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {
-  UpgradeGroupType,
-  UpgradeReqType,
-  UpgradeStatusType,
-} from '../../../thrift/gen-nodejs/Controller_types';
+  UpgradeGroupTypeValueMap as UpgradeGroupType,
+  UpgradeReqTypeValueMap as UpgradeReqType,
+  UpgradeStatusTypeValueMap as UpgradeStatusType,
+} from '../../../shared/types/Controller';
 import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
 

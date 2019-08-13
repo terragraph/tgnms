@@ -10,8 +10,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MapboxGeocoder from './MapboxGeocoder';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {LinkType} from '../../../thrift/gen-nodejs/Topology_types';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
+import {TopologyElementType} from '../../constants/NetworkConstants';
 import {
   getLinkIcon,
   getNodeIcon,

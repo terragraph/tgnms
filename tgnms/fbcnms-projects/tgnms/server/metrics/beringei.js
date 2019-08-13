@@ -4,9 +4,9 @@
  * @format
  */
 import {
-  GraphAggregation,
-  StatsOutputFormat,
-} from '../../thrift/gen-nodejs/Stats_types';
+  GraphAggregationValueMap as GraphAggregation,
+  StatsOutputFormatValueMap as StatsOutputFormat,
+} from '../../shared/types/Stats';
 
 const {BERINGEI_QUERY_URL} = require('../config');
 const {getAnalyzerData} = require('../topology/analyzer_data');

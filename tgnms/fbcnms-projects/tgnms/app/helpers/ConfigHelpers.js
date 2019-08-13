@@ -5,7 +5,7 @@
  */
 
 import {ConfigLayer} from '../constants/ConfigConstants.js';
-import {NodeType} from '../../thrift/gen-nodejs/Topology_types';
+import {NodeTypeValueMap as NodeType} from '../../shared/types/Topology';
 import {
   cloneDeep,
   forOwn,
