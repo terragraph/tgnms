@@ -19,9 +19,9 @@ from typing import Dict, List, Optional
 from sqlalchemy.sql import join, select
 
 from facebook.gorilla.Topology.ttypes import LinkType
-from module.mysql_connection_pool import get_shared_pool
 from module.http_client import HTTPClient
 from module.models import Controller, Topology
+from module.mysql_connection_pool import get_shared_pool
 
 
 @dataclasses.dataclass
@@ -55,7 +55,9 @@ async def fetch_network_info(topology_id: Optional[int] = None) -> List[NetworkI
     """
 
     # Construct a MySQL query to fetch API service setting configurations
-    query = select([Controller.api_ip, Controller.api_port]).select_from(
+    query = select(
+        [Controller.api_ip, Controller.api_port, Controller.e2e_ip, Controller.e2e_port]
+    ).select_from(
         join(Controller, Topology, Controller.id == Topology.primary_controller)
     )
 
