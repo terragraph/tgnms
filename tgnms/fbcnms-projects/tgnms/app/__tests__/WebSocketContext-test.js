@@ -18,8 +18,8 @@ import {
   useDurableWebSocket,
   useWebSocketGroup,
 } from '../WebSocketContext';
-import {act, cleanup} from '@testing-library/react';
-import {renderHook} from '@testing-library/react-hooks';
+import {act, renderHook} from '@testing-library/react-hooks';
+import {cleanup} from '@testing-library/react';
 
 jest.useFakeTimers();
 beforeEach(() => {
