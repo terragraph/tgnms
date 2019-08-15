@@ -622,9 +622,11 @@ class NodeDetailsPanel extends React.Component {
           const {color, text} = link.is_alive
             ? {color: 'green', text: 'Online'}
             : {color: 'red', text: 'Offline'};
+          const remoteNodeName =
+            node.name == link.a_node_name ? link.z_node_name : link.a_node_name;
           return (
             <div className={classes.spaceBetween} key={link.name}>
-              <Typography variant="body2">{link.z_node_name}</Typography>
+              <Typography variant="body2">{remoteNodeName}</Typography>
               <Typography variant="body2">
                 <span style={{color: color}}>{text}</span>
               </Typography>
