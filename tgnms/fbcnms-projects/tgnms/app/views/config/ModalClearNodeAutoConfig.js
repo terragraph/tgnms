@@ -79,8 +79,7 @@ class ModalClearNodeAutoConfig extends React.Component<Props, State> {
         <TextField
           id="nodePath"
           key="nodePath"
-          label="JSON Path"
-          placeholder="Enter a valid JSON path."
+          label="Config Path"
           margin="dense"
           fullWidth
           onChange={ev => {
