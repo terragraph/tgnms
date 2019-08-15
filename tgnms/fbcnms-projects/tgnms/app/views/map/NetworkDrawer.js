@@ -2,8 +2,10 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
+import * as React from 'react';
 import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
 import AddIcon from '@material-ui/icons/Add';
 import AddLinkPanel from '../../components/mappanels/AddLinkPanel';
@@ -21,8 +23,6 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
-import PropTypes from 'prop-types';
-import React from 'react';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import ShowRoutePanel from '../../components/mappanels/ShowRoutePanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
@@ -39,6 +39,10 @@ import {
   getNodeIcon,
 } from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
+import type {Element, NetworkContextType} from '../../NetworkContext';
+import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
+import type {NearbyNodes, PlannedSite, Routes} from './NetworkMapTypes';
+import type {Theme, WithStyles} from '@material-ui/core';
 
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,
@@ -69,7 +73,80 @@ const styles = theme => ({
   },
 });
 
-class NetworkDrawer extends React.Component {
+type Props = {
+  context: NetworkContextType,
+  speedTestId: ?string,
+  networkTestId: ?string,
+  onNetworkTestPanelClosed: () => {},
+  bottomOffset: number,
+  mapRef: any, // This is not a React.Ref!
+  plannedSiteProps: {
+    plannedSite: PlannedSite,
+    onUpdatePlannedSite: (site: ?$Shape<PlannedSite>) => {},
+    hideSite: string => {},
+    unhideSite: string => {},
+  },
+  routesProps: Routes,
+  searchNearbyProps: {|
+    nearbyNodes: NearbyNodes,
+    onUpdateNearbyNodes: NearbyNodes => {},
+  |},
+  mapLayersProps: MapLayersProps,
+};
+
+const FormType = {
+  EDIT: 'EDIT',
+  CREATE: 'CREATE',
+};
+
+type State = {
+  // Topology builder menu
+  addButtonAnchorEl: ?HTMLElement,
+
+  // Panels
+  // -> expanded?
+  overviewPanelExpanded: boolean,
+  mapLayersPanelExpanded: boolean,
+  addNodePanelExpanded: boolean,
+  addLinkPanelExpanded: boolean,
+  addSitePanelExpanded: boolean,
+  ignitionStatePanelExpanded: boolean,
+  accessPointsPanelExpanded: boolean,
+  upgradeProgressPanelExpanded: boolean,
+  // -> visible?
+  showAddNodePanel: boolean,
+  showAddLinkPanel: boolean,
+  showAddSitePanel: boolean,
+  showIgnitionStatePanel: boolean,
+  showAccessPointsPanel: boolean,
+  // -> initial params?
+  addNodeParams: {
+    name?: string,
+  },
+  addLinkParams: {},
+  addSiteParams: {
+    name?: string,
+  },
+  addNodeFormType: $Values<typeof FormType>,
+  addSiteFormType: $Values<typeof FormType>,
+  // -> closing?
+  closingNodes: {},
+  closingLinks: {},
+  closingSites: {},
+  closingSearchNearby: {},
+  closingShowRoute: {},
+
+  // State variable for resizable drawer
+  width: number,
+
+  // Current site being edited
+  editingSite: ?string,
+};
+
+class NetworkDrawer extends React.Component<
+  Props & WithStyles<typeof styles> & {theme: Theme},
+  State,
+> {
   constructor(props) {
     super(props);
 
@@ -137,7 +214,7 @@ class NetworkDrawer extends React.Component {
       if (!hasTopologyElements && prevHadTopologyElements) {
         const isAnyPanelExpanded =
           this.state.overviewPanelExpanded ||
-          this.state.maplayersPanelExpanded ||
+          this.state.mapLayersPanelExpanded ||
           this.state.addNodePanelExpanded ||
           this.state.addLinkPanelExpanded ||
           this.state.addSitePanelExpanded ||
@@ -210,21 +287,21 @@ class NetworkDrawer extends React.Component {
     const {addSiteFormType, editingSite} = this.state;
 
     // If there's already a planned site...
-    if (plannedSite && addSiteFormType === 'EDIT' && editingSite) {
+    if (plannedSite && addSiteFormType === FormType.EDIT && editingSite) {
       // Stop editing the previous site
       unhideSite(editingSite);
       this.setState({editingSite: null});
     }
 
     // Set initial position to the center of the map, or the provided location
-    let initialPosition;
+    let initialPosition = {latitude: 0, longitude: 0};
     if (location) {
       const {latitude, longitude} = location;
       initialPosition = {latitude, longitude};
     } else if (mapRef) {
       const {lat, lng} = mapRef.getCenter();
       initialPosition = {latitude: lat, longitude: lng};
-    } else {
+    } else if (context.networkConfig.bounds) {
       // Use networkConfig if map reference isn't set (shouldn't happen...)
       const [[minLng, minLat], [maxLng, maxLat]] = context.networkConfig.bounds;
       const latitude = minLat + (maxLat - minLat) / 2;
@@ -237,7 +314,7 @@ class NetworkDrawer extends React.Component {
         altitude: 0,
         accuracy: 40000000,
       },
-      addSiteFormType: 'CREATE',
+      addSiteFormType: FormType.CREATE,
     });
     onUpdatePlannedSite(initialPosition);
   };
@@ -272,7 +349,7 @@ class NetworkDrawer extends React.Component {
     this.setState({
       showAddSitePanel: true,
       addSiteParams: params,
-      addSiteFormType: 'EDIT',
+      addSiteFormType: FormType.EDIT,
       addSitePanelExpanded: true,
       editingSite: name,
     });
@@ -332,7 +409,7 @@ class NetworkDrawer extends React.Component {
                 addNodePanelExpanded: true,
                 showAddNodePanel: true,
                 addNodeParams: {},
-                addNodeFormType: 'CREATE',
+                addNodeFormType: FormType.CREATE,
               });
               this.onCloseAddButtonMenu();
             }}>
@@ -430,7 +507,7 @@ class NetworkDrawer extends React.Component {
                 addNodePanelExpanded: true,
                 showAddNodePanel: true,
                 addNodeParams: params,
-                addNodeFormType: 'EDIT',
+                addNodeFormType: FormType.EDIT,
               })
             }
             {...searchNearbyProps}
@@ -560,7 +637,7 @@ class NetworkDrawer extends React.Component {
               addNodePanelExpanded: true,
               showAddNodePanel: true,
               addNodeParams: params,
-              addNodeFormType: 'CREATE',
+              addNodeFormType: FormType.CREATE,
             })
           }
           onAddLink={params =>
@@ -639,7 +716,7 @@ class NetworkDrawer extends React.Component {
     };
 
     // Build list of topology elements
-    const topologyElements = [];
+    const topologyElements: Array<Element> = [];
     if (selectedElement) {
       topologyElements.push(selectedElement);
     }
@@ -751,7 +828,7 @@ class NetworkDrawer extends React.Component {
               onClose={() => {
                 // If editing a node and nothing else is selected,
                 // re-select the node onClose
-                if (addNodeFormType === 'EDIT' && !selectedElement) {
+                if (addNodeFormType === FormType.EDIT && !selectedElement) {
                   context.setSelected(
                     TopologyElementType.NODE,
                     this.state.addNodeParams.name,
@@ -796,7 +873,7 @@ class NetworkDrawer extends React.Component {
 
                 // If editing a site and nothing else is selected,
                 // re-select the site onClose
-                if (addSiteFormType === 'EDIT' && !selectedElement) {
+                if (addSiteFormType === FormType.EDIT && !selectedElement) {
                   context.setSelected(
                     TopologyElementType.SITE,
                     this.state.addSiteParams.name,
@@ -871,16 +948,5 @@ class NetworkDrawer extends React.Component {
     );
   }
 }
-
-NetworkDrawer.propTypes = {
-  classes: PropTypes.object.isRequired,
-  bottomOffset: PropTypes.number.isRequired,
-  context: PropTypes.object.isRequired,
-  mapRef: PropTypes.object,
-  mapLayersProps: PropTypes.object.isRequired,
-  plannedSiteProps: PropTypes.object.isRequired,
-  searchNearbyProps: PropTypes.object.isRequired,
-  routesProps: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles, {withTheme: true})(NetworkDrawer);

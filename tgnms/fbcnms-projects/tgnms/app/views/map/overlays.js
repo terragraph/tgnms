@@ -37,6 +37,10 @@ export interface OverlayStrategy {
   getData: (query: OverlayQuery) => Promise<any>;
 }
 
+export type ChangeOverlayRange = {
+  (id: string, newRange: Array<number>): void,
+};
+
 const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
   //{name: 'Performance Health', id: 'perf_health'},
   //{name: 'Availability', id: 'availability'},

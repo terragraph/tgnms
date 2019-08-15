@@ -90,7 +90,7 @@ const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
 class NetworkMap extends React.Component {
   overlayStrategy: OverlayStrategy;
-
+  _layersConfig: Array<MapLayerConfig>;
   constructor(props) {
     super(props);
     // construct styles list

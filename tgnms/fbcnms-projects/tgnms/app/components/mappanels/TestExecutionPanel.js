@@ -23,7 +23,7 @@ import type {TestExecution} from '../../../shared/dto/TestExecution';
 
 type Props = {
   testId: ?string,
-  selectedElement: Element,
+  selectedElement: ?Element,
 };
 
 type ExpansionPanelProps = {
@@ -80,7 +80,7 @@ function TestExecutionSummary(props: Props) {
         {new Date(execution.start_date_utc).toLocaleString()}
       </Typography>
       <Divider className={classes.resultDivider} />
-      {isLinkSelected(selectedElement) ? (
+      {selectedElement && isLinkSelected(selectedElement) ? (
         <LinkTestResult linkName={selectedElement.name} execution={execution} />
       ) : (
         <Typography variant="subtitle2">
@@ -92,7 +92,7 @@ function TestExecutionSummary(props: Props) {
 }
 
 function isLinkSelected(element: Element) {
-  return element && element.type === TopologyElementType.LINK;
+  return element.type === TopologyElementType.LINK;
 }
 
 const useResultStyles = makeStyles(theme => ({

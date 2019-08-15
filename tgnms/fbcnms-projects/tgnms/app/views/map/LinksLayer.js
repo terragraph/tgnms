@@ -8,7 +8,6 @@
 import type {
   Element,
   IgnitionState,
-  Location,
   Node,
   SiteMap,
   TopologyConfig,
@@ -17,6 +16,7 @@ import type {
   LinkType as Link,
   TopologyType,
 } from '../../../shared/types/Topology';
+import type {NearbyNodes, TopologyScanInfo} from './NetworkMapTypes';
 import type {Overlay} from './overlays';
 
 import LinkOverlayContext from '../../LinkOverlayContext';
@@ -78,9 +78,7 @@ type Props = {
   topologyConfig: TopologyConfig,
   selectedLinks: Array<Element>,
   selectedNodeName: string,
-  nearbyNodes: {
-    [string]: Array<TopologyScanInfo>,
-  },
+  nearbyNodes: NearbyNodes,
   ctrlVersion: string,
   nodeMap: {
     [string]: Node,
@@ -91,14 +89,6 @@ type Props = {
   offlineWhitelist: {
     links: {[string]: boolean},
     nodes: {[string]: boolean},
-  },
-};
-
-type TopologyScanInfo = {
-  bestSnr: number,
-  responderInfo: {
-    pos: Location,
-    addr: string,
   },
 };
 

@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Chip from '@material-ui/core/Chip';
@@ -12,13 +13,16 @@ import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import MapLayersPanelConfigButton from './MapLayersPanelConfigButton';
 import MenuItem from '@material-ui/core/MenuItem';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
 import {has} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
+import type {
+  MapLayerConfig,
+  OverlayConfig,
+} from '../../views/map/NetworkMapTypes';
 
 const styles = theme => ({
   formContainer: {
@@ -43,7 +47,36 @@ const styles = theme => ({
   },
 });
 
-class MapLayersPanel extends React.Component {
+export type Props = {
+  selectedLayers: SelectedLayers,
+  onLayerSelectChange: SelectedLayers => {},
+  layersConfig: Array<MapLayerConfig>,
+  // overlays
+  overlaysConfig: Array<OverlayConfig<any>>,
+  overlayLoading: {
+    [string]: boolean,
+  },
+  selectedOverlays: SelectedOverlays,
+  onOverlaySelectChange: SelectedOverlays => {},
+  // map styles
+  selectedMapStyle: string,
+  mapStylesConfig: Array<{endpoint: string, name: string}>,
+  onMapStyleSelectChange: string => any,
+
+  // TODO extract to customexpansionpanel
+  expanded: boolean,
+  onPanelChange: () => any,
+};
+
+type SelectedOverlays = {[string]: string};
+type SelectedLayers = {[string]: boolean};
+
+type State = {};
+
+class MapLayersPanel extends React.Component<
+  Props & {classes: {[string]: string}},
+  State,
+> {
   state = {};
 
   handleOverlaySelectionChange = layerId => event => {
@@ -145,7 +178,7 @@ class MapLayersPanel extends React.Component {
       const overlays = layerOverlays.overlays;
       const changeOverlayRange = layerOverlays.changeOverlayRange;
       const legendName = layersConfig.find(layer => layer.layerId === layerId)
-        .name;
+        ?.name;
 
       // map overlay id -> type to render legend keys
       const overlay = layerOverlays.overlays.find(
@@ -234,27 +267,5 @@ class MapLayersPanel extends React.Component {
     );
   }
 }
-
-MapLayersPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-
-  // Layer selection
-  layersConfig: PropTypes.array.isRequired,
-  selectedLayers: PropTypes.object.isRequired,
-  onLayerSelectChange: PropTypes.func.isRequired,
-
-  // Overlay selection
-  overlaysConfig: PropTypes.array.isRequired,
-  selectedOverlays: PropTypes.object.isRequired,
-  onOverlaySelectChange: PropTypes.func.isRequired,
-  overlayLoading: PropTypes.object.isRequired,
-
-  // Map style selection
-  mapStylesConfig: PropTypes.array.isRequired,
-  selectedMapStyle: PropTypes.string.isRequired,
-  onMapStyleSelectChange: PropTypes.func.isRequired,
-};
 
 export default withStyles(styles)(MapLayersPanel);
