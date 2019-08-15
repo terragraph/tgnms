@@ -367,7 +367,7 @@ class ConfigSidebar extends React.Component<Props, State> {
         func: () => this.handleControlSuperframeOptCommand(),
       });
     }
-    if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M43)) {
+    if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M42)) {
       actions.push({
         label: 'Optimize Channel Allocation',
         func: () => this.handleChannelOptCommand(),
