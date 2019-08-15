@@ -13,6 +13,8 @@ import {initReactI18next} from 'react-i18next';
 import {render} from '@testing-library/react';
 import type {User} from '../../shared/auth/User';
 
+export {mockNetworkConfig} from './data/NetworkConfig';
+
 /**
  * wraps a component with a router instance, pass {route:'/myroute'} to set the
  * current url

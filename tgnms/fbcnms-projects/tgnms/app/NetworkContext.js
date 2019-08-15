@@ -19,6 +19,7 @@ export type NetworkContextType = {|
   networkLinkHealth: NetworkHealth,
   networkNodeHealth: NetworkHealth,
   networkAnalyzerData: {},
+  networkLinkMetrics: {},
 
   // Refresh data
   refreshNetworkConfig: () => void,
@@ -35,14 +36,18 @@ export type NetworkContextType = {|
   // Topology elements
   selectedElement: ?Element,
   pinnedElements: Array<Element>,
-  setSelected: ($Values<typeof TopologyElementType>, string) => void,
-  removeElement: () => void,
-  togglePin: () => void,
-  toggleExpanded: () => void,
+  setSelected: ($Values<typeof TopologyElementType>, ?string) => void,
+  removeElement: ($Values<typeof TopologyElementType>, string) => void,
+  togglePin: ToggleTopologyElement,
+  toggleExpanded: ToggleTopologyElement,
 |};
 
+export type ToggleTopologyElement = {
+  ($Values<typeof TopologyElementType>, string, boolean): any,
+};
+
 export type NetworkConfig = {
-  bounds?: Array<[Coordinate, Coordinate]>,
+  bounds?: [Coordinate, Coordinate],
   config_auto_overrides?: {
     overrides: string,
   },
@@ -73,9 +78,24 @@ export type NetworkConfig = {
     links: Map<string, boolean>,
     nodes: Map<string, boolean>,
   },
+  wireless_controller: WirelessController,
+  wireless_controller_stats: {|[string]: WirelessControllerStats|},
+  controller_error: ?string,
 };
 
-type Coordinate = Array<[number, number]>;
+export type WirelessController = {
+  id: number,
+  type: 'ruckus',
+  url: string,
+  username: string,
+  password: string,
+};
+
+export type WirelessControllerStats = {
+  clientCount: number,
+};
+
+type Coordinate = [number, number];
 
 export type Location = {|
   accuracy: number,
@@ -103,11 +123,11 @@ export type IgnitionCandidate = {|
 |};
 
 export type E2EController = {|
+  api_ip: string,
   api_port: number,
   controller_online: boolean,
   e2e_port: number,
   id: number,
-  ip: string,
 |};
 
 export type NetworkHealth = {
@@ -191,6 +211,7 @@ const NetworkContext = React.createContext<NetworkContextType>({
   removeElement: () => {},
   togglePin: () => {},
   toggleExpanded: () => {},
+  networkLinkMetrics: {},
 });
 
 export default NetworkContext;

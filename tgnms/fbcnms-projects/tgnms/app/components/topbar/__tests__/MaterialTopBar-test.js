@@ -12,10 +12,10 @@ import NetworkListContext from '../../../NetworkListContext';
 import {
   TestApp,
   initWindowConfig,
+  mockNetworkConfig,
   renderWithRouter,
 } from '../../../tests/testHelpers';
 import {cleanup, fireEvent} from '@testing-library/react';
-import type {NetworkConfig} from '../../../NetworkContext';
 import type {NetworkListContextType} from '../../../NetworkListContext';
 
 beforeEach(() => {
@@ -150,96 +150,3 @@ describe('Network Menu', () => {
     expect(getByText('Network B')).toBeInTheDocument();
   });
 });
-
-// big giant mock network config to make flow happy
-function mockNetworkConfig(
-  overrides?: $Shape<NetworkConfig>,
-): $Shape<NetworkConfig> {
-  const mockCtrl = {
-    api_port: 8080,
-    controller_online: true,
-    e2e_port: 8080,
-    id: 1,
-    ip: '::',
-  };
-  const mockLocation = {
-    accuracy: 0,
-    altitude: 0,
-    latitude: 0,
-    longitude: 0,
-  };
-  const config: $Shape<NetworkConfig> = {
-    controller_online: true,
-    controller_version: '',
-    id: 1,
-    high_availability: {
-      primary: {
-        peerExpiry: 1000,
-        state: 0,
-      },
-    },
-    ignition_state: {
-      igCandidates: [],
-      igParams: {
-        enable: true,
-        linkAutoIgnite: {},
-        linkUpDampenInterval: 0,
-        linkUpInterval: 0,
-      },
-      lastIgCandidates: [],
-    },
-    backup: mockCtrl,
-    primary: mockCtrl,
-    query_service_online: true,
-    site_overrides: {
-      name: '',
-      location: mockLocation,
-    },
-    status_dump: {
-      statusReports: {},
-      timeStamp: 0,
-    },
-    upgrade_state: {
-      curBatch: [],
-      pendingBatches: [],
-      curReq: {
-        ugType: 'NODES',
-        nodes: [],
-        excludeNodes: [],
-        urReq: {
-          urType: 'PREPARE_UPGRADE',
-          upgradeReqId: '',
-          md5: '',
-          imageUrl: '',
-          scheduleToCommit: 0,
-          downloadAttempts: 0,
-          torrentParams: {
-            downloadTimeout: 0,
-          },
-        },
-        timeout: 0,
-        skipFailure: true,
-        version: '',
-        skipLinks: [],
-        limit: 0,
-        retryLimit: 0,
-      },
-      pendingReqs: [],
-    },
-    topology: {
-      name: '',
-      nodes: [],
-      links: [],
-      sites: [],
-      config: {channel: 0},
-    },
-    offline_whitelist: {
-      links: new Map(),
-      nodes: new Map(),
-    },
-  };
-  if (typeof overrides === 'object') {
-    Object.assign(config, overrides);
-  }
-  return config;
-}
