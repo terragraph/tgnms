@@ -8,6 +8,7 @@ import AuthorizedRoute from './components/common/AuthorizedRoute';
 import E2EConfig from './views/config/E2EConfig';
 import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
+import MessageLoadingBox from './components/common/MessageLoadingBox';
 import NetworkConfig from './views/config/NetworkConfig';
 import NetworkContext from './NetworkContext';
 import NetworkDashboards from './views/dashboards/NetworkDashboards';
@@ -157,6 +158,11 @@ class NetworkUI extends React.Component<Props, State> {
     axios
       .get('/topology/get/' + networkName)
       .then(response => {
+        if (this.state.invalidTopologyRedirect) {
+          this.setState({
+            invalidTopologyRedirect: false,
+          });
+        }
         this.processNetworkConfig(response.data, networkName);
       })
       .catch(error => {
@@ -495,16 +501,18 @@ class NetworkUI extends React.Component<Props, State> {
 
   renderContext = context => {
     if (this.state.invalidTopologyRedirect) {
-      return <Redirect push to="/" />;
+      return (
+        <MessageLoadingBox text="Error connecting to network. Attempting to reconnect." />
+      );
+    } else {
+      return context.networkList &&
+        this.state.networkConfig &&
+        this.state.networkConfig.topology ? (
+        this.renderRoutes()
+      ) : (
+        <LoadingBox />
+      );
     }
-
-    return context.networkList &&
-      this.state.networkConfig &&
-      this.state.networkConfig.topology ? (
-      this.renderRoutes()
-    ) : (
-      <LoadingBox />
-    );
   };
 }
 
