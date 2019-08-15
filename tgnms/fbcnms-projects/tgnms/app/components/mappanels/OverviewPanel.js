@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
@@ -9,7 +10,6 @@ import FriendlyText from '../common/FriendlyText';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import PersonIcon from '@material-ui/icons/Person';
-import PropTypes from 'prop-types';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Typography from '@material-ui/core/Typography';
@@ -35,8 +35,7 @@ import {
   getNodeIcon,
   getSiteIcon,
 } from '../../helpers/MapPanelHelpers';
-import {has} from 'lodash';
-import {invert} from 'lodash';
+import {has, invert} from 'lodash';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {
   isNodeAlive,
@@ -45,6 +44,12 @@ import {
 } from '../../helpers/NetworkHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
+import type {
+  ControllerHAState,
+  NetworkConfig,
+  NetworkHealth,
+  WirelessControllerStats,
+} from '../../NetworkContext';
 
 const styles = theme => ({
   sectionSpacer: {
@@ -90,7 +95,24 @@ const styles = theme => ({
 const BINARY_STAR_FSM_INVERTED = invert(BinaryStarFsmStateValueMap);
 const FETCH_SERVICE_AVAILABILITY_INTERVAL_MS = 5000;
 
-class OverviewPanel extends React.Component {
+type Props = {
+  networkConfig: NetworkConfig,
+  networkLinkHealth: NetworkHealth,
+  expanded: boolean,
+  onPanelChange: () => void,
+  onViewIgnitionState: () => void,
+  onViewAccessPointList: () => void,
+  classes: {[string]: string},
+};
+
+type State = {
+  cnAvailability: ?number,
+  dnAvailability: ?number,
+  allAvailability: ?number,
+};
+
+class OverviewPanel extends React.Component<Props, State> {
+  _serviceAvailabilityInterval: IntervalID;
   state = {cnAvailability: null, dnAvailability: null, allAvailability: null};
 
   componentDidMount() {
@@ -227,7 +249,7 @@ class OverviewPanel extends React.Component {
     const linkHealth = networkLinkHealth.events || {};
 
     // Count each node type
-    const nodeTypes = {};
+    const nodeTypes: {[number]: number} = {};
     const nodeToNodeType = {};
     topology.nodes.forEach(node => {
       if (!nodeTypes.hasOwnProperty(node.node_type)) {
@@ -282,7 +304,7 @@ class OverviewPanel extends React.Component {
     }
 
     // Calculate per-type availability
-    const alivePercByNodeType = Object.keys(nodeTypes).map(nodeType => {
+    const alivePercByNodeType = Object.keys(nodeTypes).map((nodeType: any) => {
       let nodeTypeName = '(Unknown)';
       if (nodeType == NodeType.CN) {
         nodeTypeName = 'CN';
@@ -394,8 +416,10 @@ class OverviewPanel extends React.Component {
     let totalWirelessAps = 0;
     let totalWirelessClients = 0;
     if (wireless_controller && wireless_controller_stats) {
-      Object.values(wireless_controller_stats).forEach(wapStats => {
+      Object.values(wireless_controller_stats).forEach((val: any) => {
         totalWirelessAps++;
+        // cast because flow can't handle object.values
+        const wapStats: WirelessControllerStats = val;
         totalWirelessClients += wapStats.clientCount;
       });
     }
@@ -608,10 +632,11 @@ class OverviewPanel extends React.Component {
                 </Typography>
                 <Typography variant="body2">
                   <em>
-                    {high_availability.backup &&
+                    {(high_availability.backup &&
                       high_availability.backup.state && (
                         <HAState state={high_availability.backup.state} />
-                      )}
+                      )) ||
+                      null}
                   </em>
                 </Typography>
               </div>
@@ -666,7 +691,7 @@ class OverviewPanel extends React.Component {
   }
 }
 
-function HAState({state}: {state: $Values<BinaryStarFsmStateValueMap>}) {
+function HAState({state}: {state: ControllerHAState}) {
   if (!state) {
     return 'Unknown';
   }
@@ -680,15 +705,5 @@ function HAState({state}: {state: $Values<BinaryStarFsmStateValueMap>}) {
     />
   );
 }
-
-OverviewPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  networkConfig: PropTypes.object.isRequired,
-  networkLinkHealth: PropTypes.object.isRequired,
-  onViewIgnitionState: PropTypes.func.isRequired,
-  onViewAccessPointList: PropTypes.func.isRequired,
-};
 
 export default withStyles(styles)(OverviewPanel);

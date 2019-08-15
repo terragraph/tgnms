@@ -42,7 +42,7 @@ export const NodeStatusTypeValueMap = {
 
 export type NodeType = {|
   name: string,
-  node_type: NodeTypeType,
+  node_type: $Values<typeof NodeTypeValueMap>,
   is_primary: boolean,
   mac_addr: string,
   pop_node: boolean,

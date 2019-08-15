@@ -9,6 +9,7 @@ jest.mock('../../models');
 import {
   LinkTypeValueMap,
   NodeStatusTypeValueMap,
+  NodeTypeValueMap,
 } from '../../../shared/types/Topology';
 import {controller, topology} from '../../models';
 import type {LinkType, NodeType} from '../../../shared/types/Topology';
@@ -173,7 +174,7 @@ async function seedTopology(overrides?: $Shape<TopologyAttributes>) {
 function mockNode(overrides?: $Shape<NodeType>): NodeType {
   return {
     name: 'node-1',
-    node_type: 'DN',
+    node_type: NodeTypeValueMap.DN,
     is_primary: true,
     mac_addr: 'ff:aa:bb:cc:dd',
     pop_node: false,

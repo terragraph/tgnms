@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import {BinaryStarFsmStateValueMap} from '../shared/types/Controller';
 import {TopologyElementType} from './constants/NetworkConstants';
 import type {LinkType, TopologyType} from '../shared/types/Topology';
 import type {
@@ -60,7 +61,11 @@ export type NetworkConfig = {
   high_availability: {
     primary: {
       peerExpiry: number,
-      state: number,
+      state: ControllerHAState,
+    },
+    backup: {
+      peerExpiry: number,
+      state: ControllerHAState,
     },
   },
   ignition_state: IgnitionState,
@@ -129,6 +134,8 @@ export type E2EController = {|
   e2e_port: number,
   id: number,
 |};
+
+export type ControllerHAState = $Values<typeof BinaryStarFsmStateValueMap>;
 
 export type NetworkHealth = {
   startTime: number,
