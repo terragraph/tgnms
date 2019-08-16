@@ -6,18 +6,18 @@
  */
 
 import 'jest-dom/extend-expect';
-import MessageLoadingBox from '../MessageLoadingBox';
+import LoadingBox from '../LoadingBox';
 import React from 'react';
 import {cleanup, render} from '@testing-library/react';
 
 afterEach(cleanup);
 
-const defaultProps = {
-  fullScreen: true,
-  text: 'testing text',
-};
+test('renders without text', () => {
+  const {getByTestId} = render(<LoadingBox />);
+  expect(getByTestId('loading-box')).toBeInTheDocument();
+});
 
-test('renders without crashing', () => {
-  const {getByText} = render(<MessageLoadingBox {...defaultProps} />);
+test('renders with text', () => {
+  const {getByText} = render(<LoadingBox text="testing text" />);
   expect(getByText('testing text')).toBeInTheDocument();
 });

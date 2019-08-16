@@ -6,8 +6,9 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
 
 const styles = {
   root: {
@@ -15,30 +16,35 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  container: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '20px',
+  },
 };
+
+const useStyles = makeStyles(styles);
 
 type Props = {
-  classes: {
-    [$Keys<typeof styles>]: string,
-  },
-  fullScreen: boolean,
+  fullScreen?: boolean,
+  text?: string,
 };
 
-class LoadingBox extends React.Component<Props> {
-  static defaultProps = {
-    fullScreen: true,
-  };
-
-  render() {
-    const {classes, fullScreen} = this.props;
-    return (
-      <div
-        className={classes.root}
-        style={{height: fullScreen ? '100vh' : '100%'}}>
-        <CircularProgress />
-      </div>
-    );
-  }
+export default function LoadingBox(props: Props) {
+  const classes = useStyles(props);
+  const fullScreen = props.fullScreen ? props.fullScreen : true;
+  return (
+    <div
+      className={classes.root}
+      data-testid={'loading-box'}
+      style={{height: fullScreen ? '100vh' : '100%'}}>
+      <Grid cols={1}>
+        <Grid item>{props.text}</Grid>
+        <Grid item className={classes.container}>
+          <CircularProgress />
+        </Grid>
+      </Grid>
+    </div>
+  );
 }
-
-export default withStyles(styles)(LoadingBox);
