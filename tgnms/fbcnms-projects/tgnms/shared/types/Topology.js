@@ -22,7 +22,7 @@ export const LinkTypeValueMap = {
   ETHERNET: 2
 };
 
-export type GolayIdxType = {| txGolayIdx: Buffer, rxGolayIdx: Buffer |};
+export type GolayIdxType = {| txGolayIdx: number, rxGolayIdx: number |};
 
 export type LocationType = {|
   latitude: number,
@@ -71,10 +71,10 @@ export type LinkType = {|
 
 export type ConfigType = {| channel: number |};
 
-export type TopologyType = {|
+export type TopologyType = {
   name: string,
   nodes: NodeType[],
   links: LinkType[],
   sites: SiteType[],
   config: ConfigType
-|};
+};

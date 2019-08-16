@@ -13,7 +13,8 @@ import {initReactI18next} from 'react-i18next';
 import {render} from '@testing-library/react';
 import type {User} from '../../shared/auth/User';
 
-export {mockNetworkConfig} from './data/NetworkConfig';
+// exports things like mockNetworkConfig and mockTopology
+export * from './data/NetworkConfig';
 
 /**
  * wraps a component with a router instance, pass {route:'/myroute'} to set the
@@ -33,7 +34,7 @@ export function renderWithRouter(
 }
 
 // TGNMS renders json into the dom and loads it into window.CONFIG
-export function initWindowConfig(config: any = {}) {
+export function initWindowConfig(config: any = {env: {}}) {
   if (!window) {
     throw new Error(
       'window is undefined. Ensure that the current jest environment is jsdom',

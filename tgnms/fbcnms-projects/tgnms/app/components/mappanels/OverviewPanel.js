@@ -247,7 +247,6 @@ class OverviewPanel extends React.Component<Props, State> {
   computeAvailability(topology, networkLinkHealth) {
     // Compute link availability percentages
     const linkHealth = networkLinkHealth.events || {};
-
     // Count each node type
     const nodeTypes: {[number]: number} = {};
     const nodeToNodeType = {};
@@ -273,7 +272,6 @@ class OverviewPanel extends React.Component<Props, State> {
       if (!link.a_node_mac || !link.z_node_mac) {
         return;
       }
-
       // Read the availability metric
       let alivePerc = NaN;
       if (linkHealth.hasOwnProperty(link.name)) {
@@ -423,7 +421,6 @@ class OverviewPanel extends React.Component<Props, State> {
         totalWirelessClients += wapStats.clientCount;
       });
     }
-
     // Ignition state
     const ignitionEnabled = igParams.enable;
     const anyLinkIgnitionOff = Object.values(igParams.linkAutoIgnite).includes(
@@ -589,7 +586,10 @@ class OverviewPanel extends React.Component<Props, State> {
           <Typography variant="subtitle2" gutterBottom>
             Controller
           </Typography>
-          <Typography variant="subtitle2" gutterBottom>
+          <Typography
+            variant="subtitle2"
+            gutterBottom
+            data-testid="controller-status">
             {renderStatusWithColor(networkConfig.controller_online)}
           </Typography>
         </div>
@@ -656,7 +656,10 @@ class OverviewPanel extends React.Component<Props, State> {
           <Typography variant="subtitle2" gutterBottom>
             Query Service
           </Typography>
-          <Typography variant="subtitle2" gutterBottom>
+          <Typography
+            variant="subtitle2"
+            gutterBottom
+            data-testid="queryservice-status">
             {renderStatusWithColor(networkConfig.query_service_online)}
           </Typography>
         </div>
