@@ -2,11 +2,11 @@
 set -e
 
 SRC_DIR=$(dirname "$0")
-SRC_DIR+="/beringei/if"
+SRC_DIR+="/../if"
 DST_DIR=$(dirname "$0")
 
 # order to generate compiled thrift files
-THRIFT_FILES="beringei_data.thrift beringei_query.thrift Topology.thrift scans.thrift Controller.thrift BWAllocation.thrift IpPrefix.thrift Lsdb.thrift Event.thrift NetworkTest.thrift"
+THRIFT_FILES="beringei_query.thrift Topology.thrift scans.thrift Controller.thrift BWAllocation.thrift IpPrefix.thrift Lsdb.thrift Event.thrift NetworkTest.thrift"
 
 for file in $THRIFT_FILES
 do
