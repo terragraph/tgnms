@@ -46,6 +46,7 @@ const DS_INTERVAL_SEC = 30;
 // allow prometheus or beringei as the stats backend
 const STATS_BACKEND =
   process.env.STATS_BACKEND === 'prometheus' ? 'prometheus' : 'beringei';
+const GRAFANA_URL = process.env.GRAFANA_URL || '/grafana';
 
 // fix to a stable docker api version (https://docs.docker.com/engine/api/v1.37/)
 const DOCKER_API_VERSION = '1.37';
@@ -117,6 +118,7 @@ module.exports = {
   PROMETHEUS_URL,
   DS_INTERVAL_SEC,
   STATS_BACKEND,
+  GRAFANA_URL,
   DEFAULT_API_SERVICE_PORT: '8080',
   DOCKER_API_VERSION,
   LOGIN_ENABLED,

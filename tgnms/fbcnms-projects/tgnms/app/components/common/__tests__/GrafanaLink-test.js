@@ -11,6 +11,7 @@ import React from 'react';
 import {cleanup, render} from '@testing-library/react';
 
 import {initWindowConfig} from '../../../tests/testHelpers';
+import {mockConsole} from '../../../../shared/tests/testHelpers';
 
 const GRAFANA_URL = 'http://grafana:9009/grafana';
 
@@ -22,6 +23,26 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
+
+test('missing config does not crash', () => {
+  initWindowConfig({
+    env: {},
+  });
+  mockConsole();
+  expect(() =>
+    render(<GrafanaLink dashboard="">link</GrafanaLink>),
+  ).not.toThrow();
+});
+
+test('invalid url does not crash', () => {
+  initWindowConfig({
+    env: {GRAFANA_URL: '/grafana'},
+  });
+  mockConsole();
+  expect(() =>
+    render(<GrafanaLink dashboard="">link</GrafanaLink>),
+  ).not.toThrow();
+});
 
 test('gets baseurl from config', () => {
   const {getByText} = render(<GrafanaLink dashboard="">link</GrafanaLink>);

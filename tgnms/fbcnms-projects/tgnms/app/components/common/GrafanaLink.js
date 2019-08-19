@@ -52,7 +52,12 @@ export default function GrafanaLink({
 }: Props) {
   const grafanaBaseUrl = window.CONFIG.env.GRAFANA_URL;
   const href = React.useMemo(() => {
-    const baseUrl = new URL(grafanaBaseUrl);
+    let baseUrl: URL;
+    try {
+      baseUrl = new URL(grafanaBaseUrl);
+    } catch (err) {
+      baseUrl = new URL('/grafana', window.location.origin);
+    }
     if (dashboard && dashboard.trim() !== '') {
       baseUrl.pathname += `/d/${dashboard}`;
     }

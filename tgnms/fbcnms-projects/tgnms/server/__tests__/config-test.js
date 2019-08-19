@@ -7,6 +7,7 @@
 
 // this static import is only for flow, don't use it in tests
 import * as __config from '../config';
+import {mockConsole} from '../../shared/tests/testHelpers';
 describe('NMS Server config', () => {
   /**
    * config.js reads from process.env when it's imported. Since imports are
@@ -79,19 +80,4 @@ describe('NMS Server config', () => {
  */
 function setEnv(key: $Keys<typeof __config>, val: string) {
   process.env[key] = val;
-}
-
-/*
- * Mocks out console commands to keep test output clean
- * and to allow us to assert if they were called.
- *
- * IMPORTANT:
- * If you are debugging and adding console commands, you cannot call this
- * function in your test. If you want to spy on these commands, but still
- * see their output, use jest.spyOn.
- */
-function mockConsole() {
-  const mock = {warn: jest.fn(), error: jest.fn(), log: jest.fn()};
-  global.console = mock;
-  return mock;
 }
