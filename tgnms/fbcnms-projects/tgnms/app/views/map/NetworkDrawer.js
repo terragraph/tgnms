@@ -414,7 +414,7 @@ class NetworkDrawer extends React.Component<
               this.onCloseAddButtonMenu();
             }}>
             <ListItemIcon>{getNodeIcon()}</ListItemIcon>
-            <ListItemText inset primary="Add Node" />
+            <ListItemText primary="Add Node" />
           </MenuItem>
           <MenuItem
             onClick={() => {
@@ -426,7 +426,7 @@ class NetworkDrawer extends React.Component<
               this.onCloseAddButtonMenu();
             }}>
             <ListItemIcon>{getLinkIcon()}</ListItemIcon>
-            <ListItemText inset primary="Add Link" />
+            <ListItemText primary="Add Link" />
           </MenuItem>
           <MenuItem
             onClick={() => {
@@ -441,7 +441,7 @@ class NetworkDrawer extends React.Component<
               this.onCloseAddButtonMenu();
             }}>
             <ListItemIcon>{getAddSiteIcon()}</ListItemIcon>
-            <ListItemText inset primary="Add Planned Site" />
+            <ListItemText primary="Add Planned Site" />
           </MenuItem>
         </Menu>
       </div>
