@@ -70,9 +70,13 @@ const styles = theme => ({
     justifyContent: 'space-between',
     width: '100%',
   },
+  wrapped: {
+    overlayWrap: 'break-word',
+    wordBreak: 'break-word',
+  },
   indented: {
     marginLeft: theme.spacing(1),
-    wordWrap: 'break-word',
+    overlayWrap: 'break-word',
     wordBreak: 'break-all',
   },
   sectionHeading: {
@@ -312,6 +316,7 @@ class NodeDetailsPanel extends React.Component {
                 {getLinkIcon()}
               </ListItemIcon>
               <ListItemText
+                classes={{root: classes.wrapped}}
                 primary={link.name}
                 primaryTypographyProps={{variant: 'subtitle2'}}
                 secondary={link.is_backup_cn_link ? 'Backup CN Link' : null}
@@ -336,6 +341,7 @@ class NodeDetailsPanel extends React.Component {
               {getSiteIcon()}
             </ListItemIcon>
             <ListItemText
+              classes={{root: classes.wrapped}}
               primary={node.site_name}
               primaryTypographyProps={{variant: 'subtitle2'}}
             />

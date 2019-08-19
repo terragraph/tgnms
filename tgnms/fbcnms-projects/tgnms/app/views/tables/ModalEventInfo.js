@@ -21,7 +21,7 @@ const styles = theme => ({
     padding: `${theme.spacing(2)}px ${theme.spacing(2)}px 0`,
     margin: 0,
     whiteSpace: 'pre-wrap',
-    wordWrap: 'break-word',
+    overlayWrap: 'break-word',
   },
 });
 

@@ -66,7 +66,7 @@ const styles = theme => ({
   },
   indented: {
     marginLeft: theme.spacing(1),
-    wordWrap: 'break-word',
+    overlayWrap: 'break-word',
     wordBreak: 'break-all',
   },
   errorText: {

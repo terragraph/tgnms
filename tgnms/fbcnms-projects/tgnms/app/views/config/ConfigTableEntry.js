@@ -51,7 +51,7 @@ const styles = theme => ({
     color: 'red',
   },
   wrap: {
-    wordWrap: 'break-word',
+    overlayWrap: 'break-word',
     wordBreak: 'break-all',
   },
   noWrap: {
@@ -76,7 +76,7 @@ const styles = theme => ({
   tdField: {
     // TODO Find a better way to prevent table from overflowing (x)
     maxWidth: '25vw',
-    wordWrap: 'break-word',
+    overlayWrap: 'break-word',
   },
   tdExpanded: {
     borderBottom: 'none',
