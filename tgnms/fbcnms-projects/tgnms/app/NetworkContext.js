@@ -8,7 +8,12 @@
 import React from 'react';
 import {BinaryStarFsmStateValueMap} from '../shared/types/Controller';
 import {TopologyElementType} from './constants/NetworkConstants';
-import type {LinkType, TopologyType} from '../shared/types/Topology';
+import type {
+  LinkType,
+  LocationType,
+  NodeType,
+  TopologyType,
+} from '../shared/types/Topology';
 import type {
   StatusDumpType,
   UpgradeStateDumpType,
@@ -27,7 +32,7 @@ export type NetworkContextType = {|
 
   // Topology maps
   nodeMap: {
-    [string]: Node,
+    [string]: NodeType,
   },
   linkMap: {[string]: LinkType},
   siteMap: SiteMap,
@@ -74,11 +79,12 @@ export type NetworkConfig = {
   query_service_online: boolean,
   site_overrides: {
     name: string,
-    location: Location,
+    location: LocationType,
   },
   status_dump: StatusDumpType,
   upgrade_state: UpgradeStateDumpType,
   topology: TopologyType,
+  topologyConfig: TopologyConfig,
   offline_whitelist: {
     links: Map<string, boolean>,
     nodes: Map<string, boolean>,
@@ -101,13 +107,6 @@ export type WirelessControllerStats = {
 };
 
 type Coordinate = [number, number];
-
-export type Location = {|
-  accuracy: number,
-  altitude: number,
-  latitude: number,
-  longitude: number,
-|};
 
 export type IgnitionState = {|
   igCandidates: Array<IgnitionCandidate>,
@@ -156,27 +155,6 @@ export type HealthEvent = {|
   endTime: number,
 |};
 
-export type Node = {|
-  ant_azimuth: number,
-  ant_elevation: number,
-  golay_idx: {
-    rxGolayIdx: number,
-    txGolayIdx: number,
-  },
-  has_cpe: boolean,
-  is_primary: boolean,
-  mac_addr: string,
-  name: string,
-  node_type: number,
-  polarity: number,
-  pop_node: boolean,
-  prefix: string,
-  secondary_mac_addrs: Array<string>,
-  site_name: string,
-  status: number,
-  wlan_mac_addrs: Array<string>,
-|};
-
 export type Element = {|
   expanded: boolean,
   name: string,
@@ -188,7 +166,7 @@ export type SiteMap = {
 };
 
 export type Site = {|
-  location: Location,
+  location: LocationType,
   name: string,
 |};
 

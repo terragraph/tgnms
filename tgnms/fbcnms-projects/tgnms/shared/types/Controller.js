@@ -580,7 +580,27 @@ export type StatusReportType = {|
   status: Topology.NodeStatusTypeType,
   upgradeStatus: UpgradeStatusType,
   configMd5: string,
-  nodeIsPrimary?: boolean
+  nodeIsPrimary?: boolean,
+  bgpStatus: BgpStatusMap
+|};
+
+export type BgpStatusMap = {|
+  [ipAddress:string]: BgpInfo
+|};
+
+export type BgpInfo = {|
+  ipv6Address:string,
+  online:boolean,
+  asn:number,
+  upDownTime:string,
+  stateOrPfxRcd:string,
+  advertisedRoutes:Array<BgpRouteInfo>,
+  receivedRoutes:Array<BgpRouteInfo>,
+|};
+
+export type BgpRouteInfo = {|
+  network:string,
+  nextHop:string
 |};
 
 export type StatusReportAckType = {||};

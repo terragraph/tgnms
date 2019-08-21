@@ -6,35 +6,7 @@
  */
 import * as React from 'react';
 import type {ChangeOverlayRange, Overlay} from './overlays';
-import type {Location, NetworkContextType} from '../../NetworkContext';
-import type {NodeType} from '../../../shared/types/Topology';
-
-export type PlannedSite = {
-  name: string,
-  ...$Shape<Location>,
-};
-
-export type Routes = {|
-  node: ?NodeType,
-  links: {[string]: number},
-  nodes: Set<NodeType>,
-  onUpdateRoutes: ($Shape<Routes>) => {},
-  routes: {
-    node: string,
-  },
-|};
-
-export type NearbyNodes = {
-  [string]: Array<TopologyScanInfo>,
-};
-
-export type TopologyScanInfo = {
-  bestSnr: number,
-  responderInfo: {
-    pos: Location,
-    addr: string,
-  },
-};
+import type {NetworkContextType} from '../../NetworkContext';
 
 export type MapLayerConfig = {
   layerId: string,

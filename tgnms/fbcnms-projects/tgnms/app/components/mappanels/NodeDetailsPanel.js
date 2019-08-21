@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
@@ -45,6 +46,7 @@ import {
   renderAvailabilityWithColor,
   renderStatusWithColor,
 } from '../../helpers/NetworkHelpers';
+import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import {supportsTopologyScan} from '../../helpers/TgFeatures';
@@ -52,7 +54,24 @@ import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
-const styles = theme => ({
+import type {
+  BgpInfo,
+  BgpRouteInfo,
+  BgpStatusMap,
+  StatusReportType,
+} from '../../../shared/types/Controller';
+import type {ContextRouter} from 'react-router-dom';
+import type {EditNodeParams, NearbyNodes, Routes} from './MapPanelTypes';
+import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
+import type {
+  LinkType as Link,
+  NodeType as Node,
+  TopologyType,
+} from '../../../shared/types/Topology';
+import type {NetworkConfig, NetworkHealth} from '../../NetworkContext';
+import type {Theme, WithStyles} from '@material-ui/core/styles';
+
+const styles = (theme: Theme) => ({
   iconCentered: {
     verticalAlign: 'middle',
     paddingRight: theme.spacing(1),
@@ -115,10 +134,43 @@ const POLARITY_UI = {
   },
 };
 
-class NodeDetailsPanel extends React.Component {
+type Props = {
+  networkName: string,
+  topology: TopologyType,
+  networkConfig: NetworkConfig,
+  ctrlVersion: string,
+  nearbyNodes: NearbyNodes,
+  statusReport?: ?StatusReportType,
+  onUpdateNearbyNodes: NearbyNodes => any,
+  onClose: () => any,
+  networkNodeHealth: NetworkHealth,
+  onEdit: EditNodeParams => any,
+  onSelectLink: string => any,
+  onSelectSite: string => any,
+  expanded: boolean,
+  pinned: boolean,
+  onPanelChange: () => any,
+  onPin: () => any,
+  ...ContextRouter,
+  /*
+   * There are major issues with usages of the Routes type. For now, we must
+   * override the type of node by removing the nullable node property and
+   * specifying a non-nullable one below.
+   */
+  ...$Diff<Routes, {node: ?Node}>,
+  node: Node,
+} & WithStyles<typeof styles> &
+  ForwardRef;
+type State = {};
+
+class NodeDetailsPanel extends React.Component<Props, State> {
   state = {};
 
-  getNodeLinks(node, links, linkType) {
+  getNodeLinks(
+    node: Node,
+    links: Array<Link>,
+    linkType: $Values<typeof LinkType>,
+  ) {
     // Find all wireless links associated with this node
     return links.filter(
       link =>
@@ -127,7 +179,7 @@ class NodeDetailsPanel extends React.Component {
     );
   }
 
-  getAvailability(node, networkNodeHealth) {
+  getAvailability(node: Node, networkNodeHealth: NetworkHealth) {
     // Get node availability percentage
     const nodeHealth = networkNodeHealth.events || {};
 
@@ -193,18 +245,20 @@ class NodeDetailsPanel extends React.Component {
     // Edit this node
     const {node, onClose, onEdit} = this.props;
 
-    // Format the data according to AddNodePanel state structure
-    // (Not all parameters are editable, but send them all anyway)
-    onEdit({
+    const params: EditNodeParams = {
       ...node,
       ...(node.golay_idx || {txGolayIdx: null, rxGolayIdx: null}),
       wlan_mac_addrs: node.wlan_mac_addrs ? node.wlan_mac_addrs.join(',') : '',
-    });
+    };
+    // Format the data according to AddNodePanel state structure
+    // (Not all parameters are editable, but send them all anyway)
+    onEdit(params);
     onClose();
   };
 
   onShowRoutesToPop = () => {
     // Show Routes from this node
+    // $FlowFixMe figure out if we can change this to a node
     const {node, onUpdateRoutes} = this.props;
     onUpdateRoutes({
       node: node.name,
@@ -292,7 +346,7 @@ class NodeDetailsPanel extends React.Component {
 
   renderNodeLinksAndSite() {
     // Render node links and site
-    const {classes, node, topology} = this.props;
+    const {classes, node, topology, onSelectLink, onSelectSite} = this.props;
     const nodeLinks = this.getNodeLinks(
       node,
       topology.links,
@@ -310,7 +364,7 @@ class NodeDetailsPanel extends React.Component {
               button
               dense
               key={link.name}
-              onClick={() => this.props.onSelectLink(link.name)}>
+              onClick={() => onSelectLink(link.name)}>
               <ListItemIcon classes={{root: classes.listItemIcon}}>
                 {getLinkIcon()}
               </ListItemIcon>
@@ -332,10 +386,7 @@ class NodeDetailsPanel extends React.Component {
             </ListItem>
           ))}
 
-          <ListItem
-            button
-            dense
-            onClick={() => this.props.onSelectSite(node.site_name)}>
+          <ListItem button dense onClick={() => onSelectSite(node.site_name)}>
             <ListItemIcon classes={{root: classes.listItemIcon}}>
               {getSiteIcon()}
             </ListItemIcon>
@@ -350,7 +401,7 @@ class NodeDetailsPanel extends React.Component {
     );
   }
 
-  renderBgpStatus(bgpStatus) {
+  renderBgpStatus(bgpStatus: BgpStatusMap) {
     // Render BGP neighbor status
     const {classes} = this.props;
     return (
@@ -358,8 +409,7 @@ class NodeDetailsPanel extends React.Component {
         <Typography variant="subtitle2" className={classes.sectionHeading}>
           BGP Neighbors
         </Typography>
-
-        {Object.entries(bgpStatus).map(([ip, info]) => (
+        {objectEntriesTypesafe<string, BgpInfo>(bgpStatus).map(([ip, info]) => (
           <div key={ip} className={classes.bgpEntryWrapper}>
             <Typography variant="subtitle2">{ip}</Typography>
             <div className={classes.indented}>
@@ -406,7 +456,7 @@ class NodeDetailsPanel extends React.Component {
     );
   }
 
-  renderBgpRoutes(routes, title) {
+  renderBgpRoutes(routes: Array<BgpRouteInfo>, title) {
     // Render the routes list for a BGP neighbor
     const {classes} = this.props;
 
@@ -431,7 +481,7 @@ class NodeDetailsPanel extends React.Component {
     );
   }
 
-  renderSoftwareVersion(version) {
+  renderSoftwareVersion(version: string) {
     // Render the node's software version
     const {classes} = this.props;
 

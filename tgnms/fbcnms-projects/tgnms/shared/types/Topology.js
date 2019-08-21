@@ -52,7 +52,8 @@ export type NodeType = {|
   site_name: string,
   ant_azimuth: number,
   ant_elevation: number,
-  has_cpe?: boolean
+  has_cpe?: boolean,
+  wlan_mac_addrs: Array<string>
 |};
 
 export type LinkType = {|

@@ -22,7 +22,7 @@ import {
 } from '../../constants/LayerConstants';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {TopologyElementType} from '../../constants/NetworkConstants';
-import type {Node} from '../../NetworkContext';
+import type {NodeType as Node} from '../../../shared/types/Topology';
 
 const ROUTE_LINE_PAINT = {
   ...LINE_CASING_PAINT,

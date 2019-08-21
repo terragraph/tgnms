@@ -39,9 +39,14 @@ import {
   getNodeIcon,
 } from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
+import type {
+  EditNodeParams,
+  NearbyNodes,
+  PlannedSite,
+  Routes,
+} from '../../components/mappanels/MapPanelTypes';
 import type {Element, NetworkContextType} from '../../NetworkContext';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
-import type {NearbyNodes, PlannedSite, Routes} from './NetworkMapTypes';
 import type {Theme, WithStyles} from '@material-ui/core';
 
 export const NetworkDrawerConstants = {
@@ -120,9 +125,7 @@ type State = {
   showIgnitionStatePanel: boolean,
   showAccessPointsPanel: boolean,
   // -> initial params?
-  addNodeParams: {
-    name?: string,
-  },
+  addNodeParams: $Shape<EditNodeParams>,
   addLinkParams: {},
   addSiteParams: {
     name?: string,
@@ -475,6 +478,8 @@ class NetworkDrawer extends React.Component<
 
     if (type === TopologyElementType.NODE) {
       const node = nodeMap[name];
+      // hack to get around issues with flow
+      const {node: _, ...routesPropsWithoutNode} = routesProps;
       return (
         <Slide
           {...slideProps}
@@ -487,7 +492,6 @@ class NetworkDrawer extends React.Component<
             ctrlVersion={controller_version}
             networkConfig={networkConfig}
             topology={topology}
-            node={node}
             statusReport={
               node ? status_dump.statusReports[node.mac_addr] : null
             }
@@ -511,7 +515,8 @@ class NetworkDrawer extends React.Component<
               })
             }
             {...searchNearbyProps}
-            {...routesProps}
+            {...routesPropsWithoutNode}
+            node={node}
           />
         </Slide>
       );

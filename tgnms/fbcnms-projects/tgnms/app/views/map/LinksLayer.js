@@ -8,19 +8,17 @@
 import type {
   Element,
   IgnitionState,
-  Node,
   SiteMap,
   TopologyConfig,
 } from '../../NetworkContext';
 import type {
   LinkType as Link,
+  NodeType as Node,
   TopologyType,
 } from '../../../shared/types/Topology';
-import type {NearbyNodes, TopologyScanInfo} from './NetworkMapTypes';
 import type {Overlay} from './overlays';
 
 import LinkOverlayContext from '../../LinkOverlayContext';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {HEALTH_CODES} from '../../constants/HealthConstants';
@@ -60,8 +58,16 @@ import {
   mapboxShouldAcceptClick,
 } from '../../helpers/NetworkHelpers';
 import {interpolateHcl} from 'd3-interpolate';
+import {
+  objectEntriesTypesafe,
+  objectValuesTypesafe,
+} from '../../helpers/ObjectHelpers';
 import {scaleLinear} from 'd3-scale';
 import {withStyles} from '@material-ui/core/styles';
+import type {
+  NearbyNodes,
+  TopologyScanInfo,
+} from '../../components/mappanels/MapPanelTypes';
 
 const styles = _theme => ({});
 
@@ -684,29 +690,5 @@ class LinksLayer extends React.Component<Props> {
     );
   };
 }
-
-function objectEntriesTypesafe<T, K>(object): Array<[T, K]> {
-  return ((Object.entries(object): any): Array<[T, K]>);
-}
-
-function objectValuesTypesafe<T>(object): Array<T> {
-  return ((Object.values(object): any): Array<T>);
-}
-
-LinksLayer.propTypes = {
-  onLinkMouseEnter: PropTypes.func,
-  onLinkMouseLeave: PropTypes.func,
-  topology: PropTypes.object.isRequired,
-  topologyConfig: PropTypes.object.isRequired,
-  selectedLinks: PropTypes.object.isRequired, // {linkName: thrift::Link}
-  onSelectLinkChange: PropTypes.func.isRequired,
-  selectedNodeName: PropTypes.string,
-  nodeMap: PropTypes.object.isRequired,
-  siteMap: PropTypes.object.isRequired,
-  overlay: PropTypes.object.isRequired,
-  ignitionState: PropTypes.object.isRequired,
-  nearbyNodes: PropTypes.object,
-  routes: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles)(LinksLayer);
