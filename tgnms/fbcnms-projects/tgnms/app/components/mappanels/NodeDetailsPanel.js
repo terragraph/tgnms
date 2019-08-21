@@ -12,7 +12,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import PropTypes from 'prop-types';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import RouterIcon from '@material-ui/icons/Router';
@@ -536,14 +535,8 @@ class NodeDetailsPanel extends React.Component {
             {renderAvailabilityWithColor(formatNumber(availability))}
           </Typography>
         </div>
-        <div>
-          <Typography variant="subtitle2">Polarity</Typography>
-          {this.renderPolarity()}
-        </div>
-        <div>
-          <Typography variant="subtitle2">Ethernet Links</Typography>
-          {this.renderEthernetLinks()}
-        </div>
+        {this.renderPolarity()}
+        {this.renderEthernetLinks()}
         {statusReport && statusReport.version
           ? this.renderSoftwareVersion(statusReport.version)
           : null}
@@ -594,22 +587,29 @@ class NodeDetailsPanel extends React.Component {
       networkConfig.topologyConfig,
     );
 
+    const macAddresses = Object.keys(mac2Polarity);
+    if (macAddresses.length < 1) {
+      return null;
+    }
     return (
-      <div className={classes.indented}>
-        {Object.keys(mac2Polarity).map(macAddr => {
-          const polarity = mac2Polarity[macAddr];
-          const {color, text} = POLARITY_UI[polarity]
-            ? POLARITY_UI[polarity]
-            : POLARITY_UI.unknown;
-          return (
-            <div className={classes.spaceBetween} key={macAddr}>
-              <Typography variant="body2">{macAddr}</Typography>
-              <Typography variant="body2">
-                <span style={{color: color}}>{text}</span>
-              </Typography>
-            </div>
-          );
-        })}
+      <div>
+        <Typography variant="subtitle2">Polarity</Typography>
+        <div className={classes.indented}>
+          {macAddresses.map(macAddr => {
+            const polarity = mac2Polarity[macAddr];
+            const {color, text} = POLARITY_UI[polarity]
+              ? POLARITY_UI[polarity]
+              : POLARITY_UI.unknown;
+            return (
+              <div className={classes.spaceBetween} key={macAddr}>
+                <Typography variant="body2">{macAddr}</Typography>
+                <Typography variant="body2">
+                  <span style={{color: color}}>{text}</span>
+                </Typography>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -621,49 +621,34 @@ class NodeDetailsPanel extends React.Component {
       topology.links,
       LinkType.ETHERNET,
     );
-
+    if (nodeLinks.length < 1) {
+      return null;
+    }
     return (
-      <div className={classes.indented}>
-        {nodeLinks.map(link => {
-          const {color, text} = link.is_alive
-            ? {color: 'green', text: 'Online'}
-            : {color: 'red', text: 'Offline'};
-          const remoteNodeName =
-            node.name == link.a_node_name ? link.z_node_name : link.a_node_name;
-          return (
-            <div className={classes.spaceBetween} key={link.name}>
-              <Typography variant="body2">{remoteNodeName}</Typography>
-              <Typography variant="body2">
-                <span style={{color: color}}>{text}</span>
-              </Typography>
-            </div>
-          );
-        })}
+      <div>
+        <Typography variant="subtitle2">Ethernet Links</Typography>
+        <div className={classes.indented}>
+          {nodeLinks.map(link => {
+            const {color, text} = link.is_alive
+              ? {color: 'green', text: 'Online'}
+              : {color: 'red', text: 'Offline'};
+            const remoteNodeName =
+              node.name == link.a_node_name
+                ? link.z_node_name
+                : link.a_node_name;
+            return (
+              <div className={classes.spaceBetween} key={link.name}>
+                <Typography variant="body2">{remoteNodeName}</Typography>
+                <Typography variant="body2">
+                  <span style={{color: color}}>{text}</span>
+                </Typography>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
 }
-
-NodeDetailsPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  networkName: PropTypes.string.isRequired,
-  topology: PropTypes.object.isRequired,
-  ctrlVersion: PropTypes.string,
-  node: PropTypes.object.isRequired,
-  statusReport: PropTypes.object,
-  networkNodeHealth: PropTypes.object.isRequired,
-  onSelectLink: PropTypes.func.isRequired,
-  onSelectSite: PropTypes.func.isRequired,
-  pinned: PropTypes.bool.isRequired,
-  onPin: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
-  nearbyNodes: PropTypes.object,
-  onUpdateNearbyNodes: PropTypes.func,
-  routes: PropTypes.object,
-  onUpdateRoutes: PropTypes.func,
-};
 
 export default withForwardRef(withStyles(styles)(withRouter(NodeDetailsPanel)));

@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import {CtrlVerType, ctrlVerBefore} from './VersionHelper';
@@ -134,7 +135,7 @@ export function getLinkControlSuperframe(
  * Check if the Node structure has a 'wlan_mac_addrs' field.
  * This was added in RELEASE_M29.
  */
-export function useNodeWlanMacs(ctrlVersion) {
+export function useNodeWlanMacs(ctrlVersion: string) {
   return !ctrlVerBefore(ctrlVersion, CtrlVerType.M29);
 }
 
@@ -142,7 +143,7 @@ export function useNodeWlanMacs(ctrlVersion) {
  * Check if the single-node topology scan feature is supported.
  * This was added in RELEASE_M29.
  */
-export function supportsTopologyScan(ctrlVersion) {
+export function supportsTopologyScan(ctrlVersion: string) {
   return !ctrlVerBefore(ctrlVersion, CtrlVerType.M29);
 }
 
@@ -150,7 +151,7 @@ export function supportsTopologyScan(ctrlVersion) {
  * Check if the network-wide topology scan feature is supported.
  * This was added in RELEASE_M30.
  */
-export function supportsTopologyDiscovery(ctrlVersion) {
+export function supportsTopologyDiscovery(ctrlVersion: string) {
   return !ctrlVerBefore(ctrlVersion, CtrlVerType.M30);
 }
 
@@ -159,6 +160,6 @@ export function supportsTopologyDiscovery(ctrlVersion) {
  * and Golay_idx. No longer supporting these fields starting
  * RELEASE_M37.
  */
-export function supportsUserSpecifiedPolairtyAndGolay(ctrlVersion) {
+export function supportsUserSpecifiedPolairtyAndGolay(ctrlVersion: string) {
   return ctrlVerBefore(ctrlVersion, CtrlVerType.M37);
 }

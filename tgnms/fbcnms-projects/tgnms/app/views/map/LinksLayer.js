@@ -113,7 +113,7 @@ type TopologyLayer = {
 };
 
 class LinksLayer extends React.Component<Props> {
-  getLinkColor(link, values: Array<number> | void) {
+  getLinkColor(link, values: Array<number> | Object | void) {
     const {overlay, ignitionState, routes, offlineWhitelist} = this.props;
     const {igCandidates} = ignitionState;
 
