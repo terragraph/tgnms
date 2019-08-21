@@ -687,7 +687,10 @@ class NodeDetailsPanel extends React.Component<Props, State> {
                 ? link.z_node_name
                 : link.a_node_name;
             return (
-              <div className={classes.spaceBetween} key={link.name}>
+              <div
+                className={classes.spaceBetween}
+                key={link.name}
+                data-testid={remoteNodeName}>
                 <Typography variant="body2">{remoteNodeName}</Typography>
                 <Typography variant="body2">
                   <span style={{color: color}}>{text}</span>
