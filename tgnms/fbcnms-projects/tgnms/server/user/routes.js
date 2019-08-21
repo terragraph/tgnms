@@ -52,18 +52,24 @@ router.post('/login', (req, res, next) => {
       if (err) {
         return next(err);
       }
-      if (req.body.returnUrl) {
-        try {
-          const returnUrl = new URL(
-            req.body.returnUrl,
-            process.env.CLIENT_ROOT_URL,
-          );
-          return res.redirect(returnUrl);
-        } catch (err) {
-          logger.error(err);
+      /**
+       * force session save - express-session's change detection
+       * is prone to race conditions
+       */
+      req.session.save(() => {
+        if (req.body.returnUrl) {
+          try {
+            const returnUrl = new URL(
+              req.body.returnUrl,
+              process.env.CLIENT_ROOT_URL,
+            );
+            return res.redirect(returnUrl);
+          } catch (err) {
+            logger.error(err);
+          }
         }
-      }
-      return res.redirect('/');
+        return res.redirect('/');
+      });
     });
   })(req, res, next);
 });
