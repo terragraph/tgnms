@@ -6,11 +6,14 @@
  */
 import * as React from 'react';
 import MaterialTheme from '../MaterialTheme';
+import NetworkContext from '../NetworkContext';
 import i18next from 'i18next';
 import {Router} from 'react-router-dom';
 import {createMemoryHistory} from 'history';
 import {initReactI18next} from 'react-i18next';
+import {mockNetworkContext} from './data/NetworkContext';
 import {render} from '@testing-library/react';
+import type {NetworkContextType} from '../NetworkContext';
 import type {User} from '../../shared/auth/User';
 
 // exports things like mockNetworkConfig and mockTopology
@@ -50,4 +53,18 @@ export function setTestUser(user: $Shape<User>) {
 export function TestApp({children}: {children: React.Element<any>}) {
   i18next.use(initReactI18next).init({});
   return <MaterialTheme>{children}</MaterialTheme>;
+}
+
+export function NetworkContextWrapper({
+  children,
+  contextValue,
+}: {
+  children: React.Node,
+  contextValue?: $Shape<NetworkContextType>,
+}) {
+  return (
+    <NetworkContext.Provider value={mockNetworkContext(contextValue)}>
+      {children}
+    </NetworkContext.Provider>
+  );
 }
