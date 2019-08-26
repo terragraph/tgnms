@@ -581,7 +581,8 @@ export type StatusReportType = {|
   upgradeStatus: UpgradeStatusType,
   configMd5: string,
   nodeIsPrimary?: boolean,
-  bgpStatus: BgpStatusMap
+  bgpStatus: BgpStatusMap,
+  hardwareBoardId?: ?string,
 |};
 
 export type BgpStatusMap = {|

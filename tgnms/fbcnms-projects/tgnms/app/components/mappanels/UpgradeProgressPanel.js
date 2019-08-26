@@ -2,12 +2,12 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import InfoIcon from '@material-ui/icons/Info';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {
@@ -17,6 +17,15 @@ import {
 } from '../../../shared/types/Controller';
 import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {
+  NodeType as Node,
+  TopologyType,
+} from '../../../shared/types/Topology';
+import type {
+  StatusReportType,
+  UpgradeStateDumpType,
+} from '../../../shared/types/Controller';
 
 // Size of CircularProgress (in px)
 const PROGRESS_SIZE = 80;
@@ -54,9 +63,17 @@ const styles = theme => ({
   },
 });
 
-class UpgradeProgressPanel extends React.Component {
-  state = {};
+type Props = {
+  classes: {[string]: string},
+  expanded: boolean,
+  onPanelChange: () => any,
+  topology: TopologyType,
+  nodeMap: {[string]: Node},
+  upgradeStateDump: UpgradeStateDumpType,
+  statusReports: {[string]: StatusReportType},
+};
 
+class UpgradeProgressPanel extends React.Component<Props> {
   getNodesInUpgrade(topology, upgradeGroupReq) {
     // Return all nodes in the given upgrade request
     if (upgradeGroupReq.ugType === UpgradeGroupType.NODES) {
@@ -83,21 +100,29 @@ class UpgradeProgressPanel extends React.Component {
 
   isPrepared(statusReport, upgradeGroupReq) {
     // Return whether the given node is prepared
-    const {upgradeStatus} = statusReport;
-    return (
-      upgradeStatus.usType === UpgradeStatusType.FLASHED &&
-      upgradeStatus.nextImage.md5 === upgradeGroupReq.urReq.md5
-    );
+    if (statusReport) {
+      const {upgradeStatus} = statusReport;
+      return (
+        upgradeStatus.usType === UpgradeStatusType.FLASHED &&
+        upgradeStatus.nextImage.md5 === upgradeGroupReq.urReq.md5
+      );
+    } else {
+      return false;
+    }
   }
 
   isCommitted(statusReport, upgradeGroupReq) {
     // Return whether the given node is committed
-    const {upgradeStatus} = statusReport;
-    return (
-      upgradeStatus.usType === UpgradeStatusType.NONE &&
-      (!upgradeGroupReq.version ||
-        upgradeGroupReq.version.trim() === statusReport.version.trim())
-    );
+    if (statusReport) {
+      const {upgradeStatus} = statusReport;
+      return (
+        upgradeStatus.usType === UpgradeStatusType.NONE &&
+        (!upgradeGroupReq.version ||
+          upgradeGroupReq.version.trim() === statusReport.version.trim())
+      );
+    } else {
+      return false;
+    }
   }
 
   getUpgradeVersion(upgradeGroupReq, nodes, nodeMap, statusReports) {
@@ -168,7 +193,10 @@ class UpgradeProgressPanel extends React.Component {
     const nodesInUpgrade = this.getNodesInUpgrade(topology, curReq);
     const numNodesCompleted = nodesInUpgrade.filter(name => {
       const statusReport = this.getStatusReport(name, nodeMap, statusReports);
-      return statusReport && isUpgradeCompleteFunc(statusReport, curReq);
+      const isUpgradeComplete = isUpgradeCompleteFunc
+        ? isUpgradeCompleteFunc(statusReport, curReq)
+        : false;
+      return statusReport && isUpgradeComplete;
     }).length;
     const progressPercent =
       nodesInUpgrade.length === 0
@@ -233,15 +261,5 @@ class UpgradeProgressPanel extends React.Component {
     );
   }
 }
-
-UpgradeProgressPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  topology: PropTypes.object,
-  nodeMap: PropTypes.object,
-  upgradeStateDump: PropTypes.object,
-  statusReports: PropTypes.object,
-};
 
 export default withStyles(styles)(UpgradeProgressPanel);

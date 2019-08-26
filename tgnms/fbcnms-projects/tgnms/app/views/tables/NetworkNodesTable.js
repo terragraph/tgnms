@@ -2,20 +2,52 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CustomTable from '../../components/common/CustomTable';
-import NetworkContext from '../../NetworkContext.js';
-import PropTypes from 'prop-types';
+import NetworkContext from '../../NetworkContext';
 import React from 'react';
 import {NodeTypeValueMap as NodeType} from '../../../shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {TopologyElementType} from '../../constants/NetworkConstants';
 import {availabilityColor, isNodeAlive} from '../../helpers/NetworkHelpers';
 import {renderStatusColor} from '../../helpers/TableHelpers';
 
+import type {NetworkConfig, NetworkContextType} from '../../NetworkContext';
+import type {NetworkHealth} from '../../NetworkContext';
+
+type NetworkNodeRowType = {
+  name: string,
+  mac_addr: string,
+  node_type: string,
+  alive: boolean,
+  site_name: string,
+  pop_node: boolean,
+  ipv6: ?string,
+  version: ?string,
+  availability: number,
+  minion_restarts: number,
+  events: Array<any>,
+  uboot_version: ?string,
+  hw_board_id: ?string,
+};
+
+type Props = {
+  context: NetworkContextType,
+};
+
+type State = {
+  selectedNodes: Array<string>,
+  selectedSite: ?string,
+  sortBy: string,
+  sortDirection: $Values<typeof SortDirection>,
+  nodeHealth: NetworkHealth,
+  showEventsChart: boolean,
+};
+
 // TODO add logic when selecting nodes
-export default class NetworkNodesTable extends React.Component {
+export default class NetworkNodesTable extends React.Component<Props, State> {
   state = {
     // Selected elements (derived from NetworkContext)
     selectedNodes: [],
@@ -30,7 +62,7 @@ export default class NetworkNodesTable extends React.Component {
     showEventsChart: false,
   };
 
-  static getDerivedStateFromProps(nextProps, _prevState) {
+  static getDerivedStateFromProps(nextProps: Props, _prevState: State) {
     // Update selected rows
     const {selectedElement, siteToNodesMap} = nextProps.context;
 
@@ -39,7 +71,9 @@ export default class NetworkNodesTable extends React.Component {
         return {selectedNodes: [selectedElement.name]};
       } else if (selectedElement.type === TopologyElementType.SITE) {
         return {
-          selectedNodes: [...siteToNodesMap[selectedElement.name]],
+          selectedNodes: Array.from<string>(
+            siteToNodesMap[selectedElement.name],
+          ),
           selectedSite: selectedElement.name,
         };
       }
@@ -127,29 +161,13 @@ export default class NetworkNodesTable extends React.Component {
   headerHeight = 80;
   overscanRowCount = 10;
 
-  _trimVersionString(v) {
+  _trimVersionString(v: string) {
     const releasePrefix = 'RELEASE_ ';
     const index = v.indexOf(releasePrefix);
     return index >= 0 ? v.substring(index) : v;
   }
 
-  getTableRows(
-    networkConfig,
-  ): Array<{
-    name: string,
-    mac_addr: string,
-    node_type: string,
-    alive: boolean,
-    site_name: string,
-    pop_node: boolean,
-    ipv6: string,
-    version: string,
-    availability: number,
-    minion_restarts: number,
-    events: array,
-    uboot_version: string,
-    hw_board_id: string,
-  }> {
+  getTableRows(networkConfig: NetworkConfig): Array<NetworkNodeRowType> {
     const {topology, status_dump} = networkConfig;
     const rows = [];
     topology.nodes.forEach(node => {
@@ -203,13 +221,17 @@ export default class NetworkNodesTable extends React.Component {
     return rows;
   }
 
-  tableOnRowSelect = row => {
+  tableOnRowSelect = (row: NetworkNodeRowType) => {
     // Select a row
     const {context} = this.props;
     context.setSelected(TopologyElementType.NODE, row.name);
   };
 
-  siteSortFunc(a, b, order) {
+  siteSortFunc(
+    a: NetworkNodeRowType,
+    b: NetworkNodeRowType,
+    order: $Values<typeof SortDirection>,
+  ) {
     // order is desc or asc
     const {selectedSite} = this.state;
     if (selectedSite) {
@@ -238,7 +260,10 @@ export default class NetworkNodesTable extends React.Component {
     }
   }
 
-  tableOnSortChange = (sortBy, sortDirection) => {
+  tableOnSortChange = (
+    sortBy: string,
+    sortDirection: $Values<typeof SortDirection>,
+  ) => {
     this.setState({
       sortBy,
       sortDirection,
@@ -246,13 +271,13 @@ export default class NetworkNodesTable extends React.Component {
     });
   };
 
-  renderNodeAvailability(cell, _row) {
+  renderNodeAvailability(cell: number, _row: NetworkNodeRowType) {
     const cellColor = availabilityColor(cell);
     const cellText = Math.round(cell * 100) / 100;
     return <span style={{color: cellColor}}>{'' + cellText}</span>;
   }
 
-  renderNullable(cell, _row) {
+  renderNullable(cell: number, _row: NetworkNodeRowType) {
     if (cell === null) {
       return <span style={{fontStyle: 'italic'}}>Not Available</span>;
     } else {
@@ -286,7 +311,3 @@ export default class NetworkNodesTable extends React.Component {
     );
   }
 }
-
-NetworkNodesTable.propTypes = {
-  context: PropTypes.object.isRequired,
-};
