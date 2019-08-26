@@ -1,0 +1,613 @@
+<div class="card mt-3" >
+  <div class="card-body" id="tests-running-status">
+    Nothing is running now.
+    <!--{zh}没有测试在跑。-->
+    <!--{jp}何も動いていない。-->
+  </div>
+</div>
+<div class="card mt-3">
+  <div class="card-header text-center">
+    Test Scheduler
+    <!--{zh}测试安排-->
+    <!--{jp}テスト配置-->
+  </div>
+  <div class="card-body">
+    <form>
+      <p class="form-row">
+        Current scheduled tests:
+        <!--{zh}目前的安排-->
+        <!--{jp}現在の配置--></p>
+      <div class="form-row mb-3" id="tests-current-schedule"></div>
+      <div class="form-row mb-3">
+        <button type="button" onclick="getCurrentSchedule(this);"
+          class="col btn btn-outline-primary">
+          Get Current Schedules
+          <!--{zh}获取当前安排-->
+          <!--{jp}現在の手配を得る--></button>
+      </div>
+      <p class="form-row">
+        Add/edit the schedule:
+        <!--{zh}添加/编辑-->
+        <!--{jp}追加/編集--></p>
+      <div class="form-row">
+        <div class="form-group col-3">
+          <label for="tests-schedule-hour">
+            Hour
+            <!--{zh}小时-->
+            <!--{jp}時間--></label>
+          <input type="number" min="0" max="23" name="hour" placeholder="0-23" class="form-control" id="tests-schedule-hour">
+        </div>
+        <div class="form-group col-3">
+          <label for="tests-schedule-minute">
+            Minute
+            <!--{zh}分钟-->
+            <!--{jp}分--></label>
+          <input type="number" min="0" max="59" name="minute" placeholder="0-59" class="form-control" id="tests-schedule-minute">
+        </div>
+        <div class="form-group col-6">
+          <label for="tests-schedule-email">
+            Email(s) optional
+            <!--{zh}Email(s) 可选-->
+            <!--{jp}Email(s) オプショナル--></label>
+          <input type="email" placeholder="email@1,email@2" class="form-control" id="tests-schedule-email">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-3">
+          <label for="tests-schedule-priority">
+            Priority
+            <!--{zh}优先级-->
+            <!--{jp}優先度--></label>
+          <input type="number" min="0" max="100" name="priority" placeholder="0-100" class="form-control" id="tests-schedule-priority">
+        </div>
+        <div class="form-group col-9">
+          <label for="tests-test-type">
+            Choose test type
+            <!--{zh}选择测试种类-->
+            <!--{jp}テストタイプの選択--></label>
+          <select class="form-control" id="tests-test-type">
+            <option value="select">
+              Select
+              <!--{zh}选项-->
+              <!--{jp}選択する--></option>
+            <option value="iperf-p2p">
+              Link Throughput (p2p)
+              <!--{zh}链路吞吐量-->
+              <!--{jp}リンクスループット--></option>
+            <option value="ping-p2p">
+              Link Latency (p2p)
+              <!--{zh}链路延迟-->
+              <!--{jp}リンク遅延--></option>
+            <option value="imscan">
+              Full IM Scan (directional beams)
+              <!--{zh}全局无线连接扫描 (定向的波束)-->
+              <!--{jp}ワイヤレス接続のスキャン (指向性ビーム)--></option>
+            <option value="imscan-relative">
+              Fast IM Scan (current beams)
+              <!--{zh}快速无线连接扫描 (正在使用的链路波束)-->
+              <!--{jp}ワイヤレス接続のスキャン (電流ビーム)--></option>
+            <option value="multihop">
+              Multihop
+              <!--{zh}多跳-->
+              <!--{jp}マルチホップ--></option>
+          </select>
+        </div>
+        <div class="form-group col-3 choose-test-type choose-iperf-p2p choose-multihop" style="display:none">
+          <label for="tests-schedule-duration">Duration (s)</label>
+          <input type="number" min="0" max="3600" name="duration" placeholder="0-3600" class="form-control" id="tests-schedule-duration">
+        </div>
+        <div class="form-group col-3 choose-test-type choose-iperf-p2p choose-multihop" style="display:none">
+          <label for="tests-schedule-rate">Rate (Mbps)</label>
+          <input type="number" min="0" max="1024" name="rate" placeholder="0-1024" class="form-control" id="tests-schedule-rate">
+        </div>
+        <div class="form-group col-3 choose-test-type choose-multihop" style="display:none">
+          <label for="tests-schedule-sessions">Sessions</label>
+          <input type="number" min="0" max="1000" name="sessions" placeholder="0-1000" class="form-control" id="tests-schedule-sessions">
+        </div>
+        <div class="form-group col-3 choose-test-type choose-iperf-p2p choose-multihop" style="display:none">
+          <label for="tests-schedule-type">Type</label>
+          <select class="form-control" id="tests-schedule-type">
+            <option value="udp">udp</option>
+            <option value="tcp">tcp</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-6 choose-test-type choose-multihop" style="display:none">
+          <label for="tests-schedule-option">Test/Analysis Option</label>
+          <select class="form-control" id="tests-schedule-option">
+            <option value="cn_only">CN only</option>
+            <option value="dn_site">DN (one node per DN site)</option>
+            <option value="no_option">no option</option>
+          </select>
+        </div>
+        <div class="form-group col-6 choose-test-type choose-multihop" style="display:none">
+          <label for="tests-schedule-tcp-congest">TCP congestion control</label>
+          <select class="form-control" id="tests-schedule-tcp-congest">
+            <option value="reno">reno</option>
+            <option value="westwood">westwood</option>
+            <option value="cubic">cubic</option>
+            <option value="htcp">htcp</option>
+            <option value="vegas">vegas</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-4 choose-test-type choose-iperf-p2p choose-multihop" style="display:none">
+          <label for="tests-schedule-method">Traffic Method</label>
+          <select class="form-control" id="tests-schedule-method">
+            <option value="parallel">parallel</option>
+            <option value="sequential">sequential</option>
+          </select>
+        </div>
+        <div class="form-group col-5 choose-test-type choose-multihop" style="display:none">
+          <label for="tests-schedule-direction">Traffic Direction</label>
+          <select class="form-control" id="tests-schedule-direction">
+            <option value="northbound">northbound</option>
+            <option value="southbound">southbound</option>
+            <option value="bidirection">bi-direction</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-6 choose-test-type choose-iperf-p2p" style="display:none">
+          <label style="font-size: 1.1em"><input id="tests-schedule-power" type="checkbox" value="" style="margin-right:10px">Fix power=21</label>
+        </div>
+        <div class="form-group col-10 choose-test-type choose-imscan choose-imscan-relative" style="display:none">
+          <label style="font-size: 1.1em"><input id="tests-imscan-polarity" type="checkbox" value="" style="margin-right:10px">Interference analysis w.o. polarity</label>
+        </div>
+      </div>
+      <button type="button" onclick="setSchedule(this);"
+        class="col btn btn-outline-primary">
+        Add/Change
+        <!--{zh}添加/改变-->
+        <!--{jp}追加/変更--></button>
+    </form>
+  </div>
+</div>
+<div class="card mt-3" id="manual-probing">
+  <div class="card-header text-center">
+    Manual Probing (Default)
+    <!--{zh}手动测试-->
+    <!--{jp}手動テスト-->
+  </div>
+  <div class="card-body">
+    <form>
+      <div class="form-row">
+        <div class="form-group col-9">
+          <label for="manual-tests-test-type">
+            Choose test type
+            <!--{zh}选择测试种类-->
+            <!--{jp}テストタイプの選択--></label>
+          <select class="form-control" id="manual-tests-test-type">
+            <option value="select">
+              Select
+              <!--{zh}选项-->
+              <!--{jp}選択する--></option>
+            <option value="manual-iperf-p2p">
+              Link Throughput (p2p)
+              <!--{zh}链路吞吐量-->
+              <!--{jp}リンクスループット--></option>
+            <option value="manual-ping-p2p">
+              Link Latency (p2p)
+              <!--{zh}链路延迟-->
+              <!--{jp}リンク遅延--></option>
+            <option value="manual-imscan">
+              Full IM Scan (directional beams)
+              <!--{zh}全局无线连接扫描 (定向的波束)-->
+              <!--{jp}ワイヤレス接続のスキャン (指向性ビーム)--></option>
+            <option value="manual-imscan-relative">
+              Fast IM Scan (current beams)
+              <!--{zh}快速无线连接扫描 (正在使用的链路波束)-->
+              <!--{jp}ワイヤレス接続のスキャン (電流ビーム)--></option>
+            <option value="manual-multihop">
+              Multihop
+              <!--{zh}多跳-->
+              <!--{jp}マルチホップ--></option>
+          </select>
+        </div>
+      </div>
+     <div class="form-row">
+        <div class="form-group col-3 choose-manual-test-type choose-manual-iperf-p2p choose-manual-multihop" style="display:none">
+          <label for="tests-manual-duration">Duration (s)</label>
+          <input type="number" min="0" max="3600" name="duration" placeholder="0-3600" class="form-control" id="tests-manual-duration">
+        </div>
+        <div class="form-group col-3 choose-manual-test-type choose-manual-iperf-p2p choose-manual-multihop" style="display:none">
+          <label for="tests-manual-rate">Rate (Mbps)</label>
+          <input type="number" min="0" max="1024" name="rate" placeholder="0-1024" class="form-control" id="tests-manual-rate">
+        </div>
+        <div class="form-group col-3 choose-manual-test-type choose-manual-multihop" style="display:none">
+          <label for="tests-manual-sessions">Sessions</label>
+          <input type="number" min="0" max="1000" name="sessions" placeholder="0-1000" class="form-control" id="tests-manual-sessions">
+        </div>
+        <div class="form-group col-3 choose-manual-test-type choose-manual-iperf-p2p choose-manual-multihop" style="display:none">
+          <label for="tests-manual-type">Type</label>
+          <select class="form-control" id="tests-manual-type">
+            <option value="udp">udp</option>
+            <option value="tcp">tcp</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-6 choose-manual-test-type choose-manual-multihop" style="display:none">
+          <label for="tests-manual-option-manual">Test/Analysis Option</label>
+          <select class="form-control" id="tests-manual-option">
+            <option value="cn_only">CN only</option>
+            <option value="dn_site">DN (one node per DN site)</option>
+            <option value="no_option">no option</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-4 choose-manual-test-type choose-manual-iperf-p2p choose-manual-multihop" style="display:none">
+          <label for="tests-manual-method">Traffic Method</label>
+          <select class="form-control" id="tests-manual-method">
+            <option value="parallel">parallel</option>
+            <option value="sequential">sequential</option>
+          </select>
+        </div>
+        <div class="form-group col-5 choose-manual-test-type choose-manual-multihop" style="display:none">
+          <label for="manual-tests-schedule-direction">Traffic Direction</label>
+          <select class="form-control" id="manual-tests-schedule-direction">
+            <option value="northbound">northbound</option>
+            <option value="southbound">southbound</option>
+            <option value="bidirection">bi-direction</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-6 choose-manual-test-type choose-manual-iperf-p2p" style="display:none">
+          <label style="font-size: 1.1em"><input id="manual-tests-schedule-power" type="checkbox" value="" style="margin-right:10px">Fix power=21</label>
+        </div>
+        <div class="form-group col-10 choose-manual-test-typ choose-manual-imscan choose-manual-imscan-relative" style="display:none">
+          <label style="font-size: 1.1em"><input id="manual-tests-imscan-polarity" type="checkbox" value="" style="margin-right:10px">Interference analysis w.o. polarity</label>
+        </div>
+      </div>
+      <button type="button" onclick="manualTesting(this);"
+        class="col btn btn-outline-primary">
+        Start
+        <!--{zh}开始-->
+        <!--{jp}開始--></button>
+    </form>
+  </div>
+</div>
+<script>
+$("select#tests-test-type").on("change", function(value){
+  var select_value = $(this).val();
+  $(".choose-test-type").hide();
+  $(".choose-" + select_value).show();
+});
+
+// displays right options for test types under manual testing
+$("select#manual-tests-test-type").on("change", function(value){
+  var select_value = $(this).val();
+  $(".choose-manual-test-type").hide();
+  $(".choose-" + select_value).show();
+});
+
+// handle to suspend test
+$('#tests-running-status').on('click', 'button', function() {
+  if(confirm("Are you sure you want to suspend this test?")) {
+    $.ajax({
+      type: 'POST',
+      url: apiServerIP + ':' + apiServerPort + '/test_suspend',
+      dataType: 'json',
+      async: true,
+      success: function(response) {
+        console.log(response.status);
+        if (response.status == "success") {
+          updateTestRunningStatus(
+            "Previous test " + response.test_type + " is suspended.");
+        }
+      },
+      error: function () {
+        console.error('ERROR to suspend test!');
+      },
+    });
+  }
+});
+// update #tests-running-status with words
+function updateTestRunningStatus(words) {
+  $('#tests-running-status').html(words);
+}
+// start manual testing
+function manualTesting(elm) {
+  // filling necessary variables for sending requests to backend
+  var testtype = $('#manual-tests-test-type').val();
+  var postFix = "manual-"
+  testtype = testtype.substring(postFix.length, testtype.length);
+  var duration = $('#tests-manual-duration').val();
+  var rate = $('#tests-manual-rate').val();
+  if (testtype == "multihop" || testtype == "iperf-p2p" || testtype == "ping-p2p") {
+    if (duration == "") {
+      alert("Invalid input for traffic duration");
+    } else if (rate == "") {
+      alert("Invalid input for traffic rate");
+      return;
+    }
+  }
+  if (rate.endsWith('M')) {
+    rate = rate.slice(0, -1);
+  }
+  var power = $('#manual-tests-schedule-power').is(":checked");
+  var polarity = $('#manual-tests-imscan-polarity').is(":checked");
+  var sessions = $('#tests-manual-sessions').val();
+  var direction = $('#manual-tests-schedule-direction').val();
+  var option = $('#tests-manual-option-manual').val();
+  var type = $('#tests-manual-type').val();
+  var method = $('#tests-manual-method').val();
+  var oriContent = $(elm).html();
+  $(elm).prop("disabled", true);
+  showProgress($(elm), 30);
+  // derive
+  $.ajax({
+    type: 'POST',
+    url: apiServerIP + ':' + apiServerPort + '/perform_test',
+    dataType: 'json',
+    data: JSON.stringify({
+      'testType': testtype,
+      'duration': duration, 'rate': rate + 'M',
+      'method': method, 'type': type,
+      'option': option,
+      'power': power,
+      'interference_polarity': polarity,
+      'sessions': sessions, 'direction': direction}),
+    async: true,
+    success: function(response) {
+      // show that the test is running in the section above Test Scheduler
+      updateTestRunningStatus(
+        testtype + " is running.<br>" +
+        "<button type='button' class='mt-3 btn btn-secondary'>" +
+        "Suspend Test</button>"
+      );
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+    },
+    error: function (e) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      console.error('ERROR to set states!' + e.text);
+    },
+  });
+}
+// set new schedule
+function setSchedule(elm) {
+  // validate inputs
+  var hour = $('#tests-schedule-hour').val();
+  var minute = $('#tests-schedule-minute').val();
+  if (hour == "" || minute == "") {
+    alert("invalid input");
+    return;
+  }
+  var ptr = ~~((3600 * Number(hour) + 60 * Number(minute)) /
+               apiServerStateStep);
+  var email = $('#tests-schedule-email').val();
+  var priority = $('#tests-schedule-priority').val();
+  var testtype = $('#tests-test-type').val();
+  var duration = $('#tests-schedule-duration').val();
+  var rate = $('#tests-schedule-rate').val();
+  if (testtype == "multihop" || testtype == "iperf-p2p" || testtype == "ping-p2p") {
+    if (duration == "") {
+      alert("Invalid input for traffic duration");
+    } else if (rate == "") {
+      alert("Invalid input for traffic rate");
+      return;
+    }
+  }
+  // need to get rid of trailing `M` in `rate=100M`
+  if (rate.endsWith('M')) {
+    rate = rate.slice(0, -1);
+  }
+  var power = $('#tests-schedule-power').is(":checked");
+  var polarity = $('#tests-imscan-polarity').is(":checked");
+  var sessions = $('#tests-schedule-sessions').val();
+  var direction = $('#tests-schedule-direction').val();
+  var option = $('#tests-schedule-option').val();
+  var tcp_congest_ctrl = $('#tests-schedule-tcp-congest').val();
+  var type = $('#tests-schedule-type').val();
+  var method = $('#tests-schedule-method').val();
+  if (email != "" && !email.includes("@")) {
+    alert("invalid email");
+    return;
+  }
+  // backup to show progress bar
+  var oriContent = $(elm).html();
+  $(elm).prop("disabled", true);
+  showProgress($(elm), 30);
+  // derive
+  $.ajax({
+    type: 'POST',
+    url: apiServerIP + ':' + apiServerPort + '/set_states',
+    dataType: 'json',
+    data: JSON.stringify({
+      'test_type': testtype, 'email': email,
+      'priority': priority, 'ptr': ptr,
+      'duration': duration, 'rate': rate + 'M',
+      'method': method, 'type': type,
+      'option': option,
+      'tcpcongestctrl': tcp_congest_ctrl,
+      'power': power,
+      'interference_polarity': polarity,
+      'sessions': sessions, 'direction': direction}),
+    async: true,
+    success: function(response) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      alert(response.status + "; state sets to: " + response.states[0]);
+    },
+    error: function (e) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      console.error('ERROR to set states!' + e.text);
+    },
+  });
+}
+// update the selected schedule to view
+function updateSpecificSchedule(elm) {
+  var testtype = $(elm).attr('test-name');
+  var hour = $(elm).attr('test-hour');
+  var minute = $(elm).attr('test-minute');
+  var priority = $(elm).attr('test-priority');
+  var config = JSON.parse($(elm).attr('test-config'));
+
+  var duration = $(elm).attr('test-duration');
+  var rate = $(elm).attr('test-rate');
+  var method = $(elm).attr('test-method');
+  var type = $(elm).attr('test-type');
+  // need to get rid of trailing `M` in `rate=100M`
+  if (rate.endsWith('M')) {
+    rate = rate.slice(0, -1);
+  }
+  var power = $(elm).attr('test-power');
+  var polarity = $(elm).attr('test-polarity');
+  var sessions = $(elm).attr('test-sessions');
+  var direction = $(elm).attr('test-direction');
+  var option = $(elm).attr('test-option');
+  var tcp_congest_ctrl = $(elm).attr('test-tcp-congest-ctrl');
+
+  $('#tests-test-type').val(testtype).change();
+  $('#tests-schedule-hour').val(hour);
+  $('#tests-schedule-minute').val(minute);
+  $('#tests-schedule-priority').val(priority);
+
+  $('#tests-schedule-duration').val(duration);
+  $('#tests-schedule-rate').val(rate);
+  $('#tests-schedule-power').prop('checked', power == 'true');
+  $('#tests-imscan-polarity').prop('checked', polarity == 'true');
+  $('#tests-schedule-sessions').val(sessions);
+  $('#tests-schedule-direction').val(direction);
+  $('#tests-schedule-option').val(option);
+  $('#tests-schedule-tcp-congest').val(tcp_congest_ctrl);
+  $('#tests-schedule-method').val(method);
+  $('#tests-schedule-type').val(type);
+
+  if (config.email != null) $('#tests-schedule-email').val(config.email);
+}
+// delete scheduled test
+function deleteScheduledTest(elm) {
+  // Get the necessary values for sending request to backend
+  var type = $(elm).attr('test-name');
+  var priority = $(elm).attr('test-priority');
+  var duration = $(elm).attr('test-duration');
+  var hour = $(elm).attr('test-hour');
+  var minute = $(elm).attr('test-minute');
+  var ptr = ~~((3600 * Number(hour) + 60 * Number(minute)) /
+               apiServerStateStep);
+  var rate = $(elm).attr('test-rate');
+  if (rate.endsWith('M')) {
+    rate = rate.slice(0, -1);
+  }
+  var method = $(elm).attr('test-method');
+  var testtype = "";
+  var option = $(elm).attr('test-option');
+  var power = $(elm).attr('test-power');
+  var polarity = $(elm).attr('test-polarity');
+  var sessions = $(elm).attr('test-sessions');
+  var direction = $(elm).attr('test-direction');
+  if (confirm("Are you sure you want to cancel this test?")) {
+    $.ajax({
+      type: 'POST',
+      url: apiServerIP + ':' + apiServerPort + '/set_states',
+      dataType: 'json',
+      data: JSON.stringify({
+        'test_type': testtype,
+        'priority': priority, 'ptr': ptr,
+        'duration': duration, 'rate': rate + 'M',
+        'method': method, 'type': type,
+        'option': option,
+        'power': power,
+        'interference_polarity': polarity,
+        'sessions': sessions, 'direction': direction}),
+      async: true,
+      success: function(response) {
+        // When request succeeds, display a message on the screen
+        alert("Success! Test canceled");
+      },
+      error: function (e) {
+        $(elm).prop("disabled", false);
+        console.error('ERROR occured when canceling scheduled test!' + e.text);
+        alert("Failed to cancel the test");
+      },
+    });
+  }
+}
+// get current states
+function getCurrentSchedule(elm) {
+  var oriContent = $(elm).html();
+  $(elm).prop("disabled", true);
+  showProgress($(elm), 30);
+  $.ajax({
+    type: 'POST',
+    url: apiServerIP + ':' + apiServerPort + '/get_states',
+    dataType: 'json',
+    data: JSON.stringify({'every': '60'}),
+    async: true,
+    success: function(response) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      $('#tests-current-schedule').html('');
+      counter = 0;
+      for (let i in response.states) {
+        // When getting current test schedules, no need to display mannual tests
+        if (response.states[i][0] == '')
+          continue;
+        counter++;
+        let hour = ~~(i * 60 / 3600);
+        let minute = ~~(((i * 60) % 3600) / 60);
+        $('#tests-current-schedule').append(
+          "<div class='btn-group'>"  +
+          // The width here sepcifies the size of the test button. Can Modify it
+          // to align the cancel buttons after adding new test.
+          "<button type='button' style='width:260px;'" +
+          "onclick=\"updateSpecificSchedule(this);\"" +
+          "test-name='" + response.states[i][0] + "'" +
+          "test-hour='" + hour + "'" +
+          "test-minute='" + minute + "'" +
+          "test-priority='" + response.states[i][2] + "'" +
+          "test-config='" + JSON.stringify(response.states[i][1]) + "'" +
+          "test-duration='" + response.states[i][1]["duration"] + "'" +
+          "test-method='" + response.states[i][1]["method"] + "'" +
+          "test-option='" + response.states[i][1]["option"] + "'" +
+          "test-tcp-congest-ctrl='" + response.states[i][1]["tcpcongestctrl"] + "'" +
+          "test-type='" + response.states[i][1]["type"] + "'" +
+          "test-rate='" + response.states[i][1]["rate"] + "'" +
+          "test-power='" + response.states[i][1]["power"] + "'" +
+          "test-polarity='" + response.states[i][1]["interference_polarity"] + "'" +
+          "test-sessions='" + response.states[i][1]["sessions"] + "'" +
+          "test-direction='" + response.states[i][1]["direction"] + "'" +
+          "class='list-group-item list-group-item-action'>" +
+          "Test: " + response.states[i][0] + " at " +
+          ("0" + hour).slice(-2) + ":" + ("0" + minute).slice(-2) +
+          " daily</button>" +
+          // Add the button for deleting scheduled test and assign values to
+          // varaibles necessary for sending delete test request
+          "<button type='button' " +
+          "onclick=\"deleteScheduledTest(this);\"" +
+          "class='btn btn-outline-primary'" +
+          "test-hour='" + hour + "'" +
+          "test-minute='" + minute + "'" +
+          "test-priority='" + response.states[i][2] + "'" +
+          "test-duration='" + response.states[i][1]["duration"] + "'" +
+          "test-method='" + response.states[i][1]["method"] + "'" +
+          "test-option='" + response.states[i][1]["option"] + "'" +
+          "test-type='" + response.states[i][1]["type"] + "'" +
+          "test-rate='" + response.states[i][1]["rate"] + "'" +
+          "test-power='" + response.states[i][1]["power"] + "'" +
+          "test-polarity='" + response.states[i][1]["interference_polarity"] + "'" +
+          "test-sessions='" + response.states[i][1]["sessions"] + "'" +
+          "test-direction='" + response.states[i][1]["direction"] + "'>" +
+          "Cancel</button>" + "</div>" + "<br>"
+        );
+      };
+      if (counter == 0) {
+        $('#tests-current-schedule').html('Nothing scheduled');
+      }
+    },
+    error: function () {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      console.error('ERROR to suspend test!');
+    },
+  });
+}
+</script>

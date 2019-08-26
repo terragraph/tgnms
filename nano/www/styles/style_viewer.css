@@ -1,0 +1,60 @@
+/**
+ ** General
+ **/
+
+html,body { height: 100%; }
+
+/**
+ ** Navigation Bar
+ **/
+
+#navigation { height: 80px }
+.navbar { height: 45px; padding: 0 }
+.navbar-brand, .navbar-text { margin: 0; padding: 0 }
+.navbar-text { line-height: 45px; padding: 0 5px }
+.brandname { margin: 0 10px }
+.navbar-sub { height: 35px; padding: 0 }
+.navbar-sub .navbar-text { line-height: 35px }
+
+
+/**
+ ** Container
+ **/
+
+#container {
+  max-width: 100%;
+  height: calc(100% - 80px);
+  margin: auto
+}
+.info_details {
+  width: 400px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.9);
+  text-align:left
+}
+.container { padding: 0; margin: 0; text-align: center }
+.row { padding: 0; margin: 0 }
+.row div { padding: 2px 5px }
+.node_content, .site_content { padding: 5px 5px 5px 40px; margin: 0 }
+
+.legend {
+  background: white;
+  line-height: 1.5em;
+  padding: 5px 5px 5px 5px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 5px;
+  font-size: 120%;
+}
+
+.clear { clear:both }
+
+
+/**
+ ** Narrow screen
+ **/
+@media only screen and (max-width: 768px) {
+ #navigation { height: auto }
+ .navbar, .navbar-sub { height: auto }
+ .info_details { width: 100% }
+}

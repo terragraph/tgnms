@@ -1,0 +1,26 @@
+{
+  "evt": {
+    "//": "EVT tests",
+    "do_it": false,
+    "//": "pop ip address",
+    "pop_ip": "2001:4c48:18:421::1",
+    "//": "Specify tests type (supporting one: TPE-1 or TPE-2)",
+    "type": "TPE-1",
+    "//": "Specify evt duration",
+    "duration": 100,
+    "//": "File path for analysis (only required when analyzing indepdently)",
+    "fp": "",
+    "//": "Specify email list, set to null to disable emailing results",
+    "emails": ["fsun@fb.com"],
+    "//": "Specify an alpha for LSN EVT throughput test",
+    "alpha": 0.2,
+    "//": "Eenable to set to run on node",
+    "no_cpe": false,
+    "//": "Number of cpes under test",
+    "cpeno": 200,
+    "//": "Rate per cpe",
+    "cpe_rate": 0,
+    "//": "Number of iperf process",
+    "iperf_process": 4
+  }
+}

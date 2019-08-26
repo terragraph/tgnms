@@ -1,0 +1,21 @@
+version: '2'
+services:
+    mongo:
+        image: mongo
+        restart: always
+        ports: 
+          - "27017:27017"
+    nano_api_server:
+        network_mode: host
+        build:
+          context: . 
+          dockerfile: ./api_server/Dockerfile
+        env_file: api_config
+    ngnix:
+        build: 
+          context: .
+          dockerfile: ./nginx/Dockerfile
+        ports: 
+          - "80:80"
+
+

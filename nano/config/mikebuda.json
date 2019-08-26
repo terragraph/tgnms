@@ -1,0 +1,214 @@
+{
+  "//": "Network analyzer url",
+  "network_analyzer_url": "http://[2001:4c48:18:6::3]",
+  "//": "Network name where Network Analyzer is running for",
+  "network_name": "mikebuda",
+  "//": "Wheather we need to patch threading to suppress multithreading errors",
+  "gevent_monkey_patch_thread": true,
+  "//": "Location of Network Analyzer running at (vm/devserver)",
+  "run_location": "vm",
+  "//": "Controller login information",
+  "controller": {
+    "ip": "2001:4c48:18::3",
+    "api_ip": "[2001:4c48:18::3]",
+    "api_port": 8080,
+    "username": "root",
+    "password": null,
+    "authkey_fp": "/root/.ssh/mikebuda"
+  },
+  "//": "Default information to log onto each node",
+  "node": {
+    "username": "root",
+    "password": null,
+    "authkey_fp": "/.usethisssh/somethinguseful"
+  },
+  "//": "Server login information",
+  "server": {
+    "ip": "2001:4c48:18:6::3",
+    "username": "root",
+    "password": null,
+    "authkey_fp": "/root/.ssh/mikebuda"
+  },
+  "//": "Enable Variable traffic loading based on DOF in P2MP configuration",
+  "variable_traffic_loading": false,
+  "//": "Specify global email list, set to null to disable emailing results",
+  "global_email_lists": ["fsun@fb.com", "nishitay@fb.com"],
+  "//": "Set to true to enable specific emailing list per test",
+  "//": "This will ignore the global email list",
+  "enable_per_test_emailing": true,
+  "//": "Specific weather station API information",
+  "weather": {
+    "domain": {
+      "ipv6": "tgcpenms.dev.telekom.hu",
+      "ipv4": "v4.tgcpenms.dev.telekom.hu"
+    },
+    "endpoint": "/api/getWSData",
+    "station": {"primary": "ws_mikebuda.02", "secondary": "ws_mikebuda.02"},
+    "//": "weather-driven test precip rate threshold (mm)",
+    "precip_rate_threshold": 0.5
+  },
+  "//": "Specific weather information from public website",
+  "public_weather": {
+    "enable": false,
+    "station_list": [
+      [
+        "https://www.wunderground.com/personal-weather-station/dashboard?ID=IJNSZSZO2#history",
+        "mtz02"
+      ],
+      [
+        "https://www.wunderground.com/personal-weather-station/dashboard?ID=ITSZEG2#history",
+        "mtg2"
+      ],
+      [
+        "https://www.wunderground.com/personal-weather-station/dashboard?ID=ILL24#history",
+        "mtl24"
+      ]
+    ]
+  },
+  "//": "Specify tests to perform",
+  "tests": {
+    "//": "PHY layer tests",
+    "alignment": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": [
+        "fsun@fb.com",
+        "nishitay@fb.com",
+        "ahmedghelmy@fb.com",
+        "mahakar@fb.com",
+        "aoladapo@fb.com",
+        "dlampie@fb.com"
+      ]
+    },
+    "im_scan": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": [
+        "fsun@fb.com",
+        "nishitay@fb.com",
+        "ahmedghelmy@fb.com",
+        "dunn@fb.com"
+      ]
+    },
+    "monitoring_r2d2": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "fetching_fw_config": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "//": "Network layer tests",
+    "ping_p2p": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "ping_sa": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "iperf_p2p": {
+      "//": "Specify iPerf layer (link or network)",
+      "layer": "network",
+      "//": "Specify iperf data rate",
+      "rate": "100M",
+      "//": "Specify iperf duration",
+      "duration": 300,
+      "//": "Specify a list of tx to test; set to null to test all",
+      "tx": null,
+      "//": "Fix power during the test; set to null to disable",
+      "fixpower": null,
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": [
+        "fsun@fb.com",
+        "nishitay@fb.com",
+        "ahmedghelmy@fb.com",
+        "mahakar@fb.com",
+        "aoladapo@fb.com",
+        "dlampie@fb.com"
+      ]
+    },
+    "iperf_p2mp": {
+      "//": "Specify iPerf layer (link or network)",
+      "layer": "network",
+      "//": "Specify iperf data rate",
+      "rate": "100M",
+      "//": "Config traffic direction for p2mp: BIDIRECTIONAL=1, DN_TO_PEER = 2, PEER_TO_DN = 3",
+      "direction": 1,
+      "//": "Specify iperf duration",
+      "duration": 500,
+      "//": "Specify a list of tx to test; set to null to test all",
+      "tx": null,
+      "//": "Fix power during the test; set to null to disable",
+      "fixpower": null,
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com", "ahmedghelmy@fb.com",
+        "mahakar@fb.com", "aoladapo@fb.com", "dlampie@fb.com"]
+    },
+    "iperf_multihop": {
+      "//": "Multihop iPerf tests",
+      "do_it": false,
+      "//": "Server location: pop or vm",
+      "server_location": "pop",
+      "//": "Specify tests types (in a list, supporting tcp/udp)",
+      "type": ["tcp"],
+      "//": "Specify iperf data rate",
+      "rate": "500M",
+      "//": "Specify TCP congestion control algorithm, default: reno, options: westwood, cubic, htcp, vegas",
+      "congest_ctrl_algo": "reno",
+      "//": "Config traffic direction for multihop: southbound, northbound or bidirection",
+      "direction": "southbound",
+      "//": "test/analysis option: dn_site/cn_only",
+      "option": "cn_only",
+      "//": "Specify iperf duration",
+      "duration": 120,
+      "//": "Specify a list of sectors to test for triplet based multihop tests",
+      "sector": null,
+      "//": "Limit iperf multihop sessions that run sequentially",
+      "sessions": "20",
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": [
+        "fsun@fb.com",
+        "nishitay@fb.com",
+        "dlampie@fb.com",
+        "mahakar@fb.com"
+      ]
+    }
+  },
+  "//": "If doing analysis, whether do it immediately after each test",
+  "perform_analysis_immediate": true,
+  "//": "Analysis configs (feed in configs in tests as data source)",
+  "analysis": {
+    "//": "Whether run analysis on data from database or from local filepath",
+    "//": "currently not implemented yet",
+    "data_from_database": false,
+    "//": "Run box alignment analysis",
+    "box_alignment": true,
+    "//": "Run reciprocal analysis based on IM scans",
+    "reciprocal_im": true,
+    "//": "Run interference analysis base on IM scans",
+    "interference": true,
+    "//": "Run monitoring analysis",
+    "monitoring": true,
+    "//": "Run iperf p2p analysis",
+    "iperf_p2p": true,
+    "//": "Run ping p2p analysis",
+    "ping_p2p": true,
+    "//": "Run multihop analysis",
+    "multihop": true,
+    "//": "Run sector availability analysis",
+    "sector_availability": true,
+    "//": "Run connectivity graph analysis based on IM scans",
+    "connectivity": true,
+    "//": "If run connectivity graph analysis, what is the target snr",
+    "connectivity_target_snr": 12
+  },
+  "custom": {
+    "create_dashboard_link": false,
+    "format_unilink_status_link_test": {
+      "THRESH_IPERF_MCS_EXCEL_S": 11,
+      "THRESH_IPERF_MCS_OKAY_S": 9,
+      "THRESH_IPERF_MCS_WARN_S": 8
+    },
+    "fetch_iband_ips": true,
+    "rootfs": true
+  }
+}

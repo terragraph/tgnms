@@ -1,0 +1,38 @@
+/**
+ ** General
+ **/
+
+body { padding: 0; margin: 0 }
+html, body, #map {
+  height: 100%;
+  font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif
+}
+
+
+
+/**
+ ** Container
+ **/
+
+/* .info_details {
+  width: 400px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.9);
+  text-align: center
+} */
+.container { padding: 0; margin: 0 }
+.row { padding: 0; margin: 0 }
+.row div { padding: 2px 5px }
+/* .node_content, .site_content { padding: 5px 5px 5px 40px; margin: 0 } */
+
+.legend {
+  background: white;
+  line-height: 1.5em;
+  padding: 5px 5px 5px 5px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 5px;
+  font-size: 120%;
+}
+
+.clear { clear:both }
