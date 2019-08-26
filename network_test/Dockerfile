@@ -1,0 +1,49 @@
+# Pull base image
+FROM ubuntu:18.04
+
+ENV WORKDIR /usr/local/nms/
+
+RUN apt-get update
+RUN apt-get -y upgrade
+
+# Install prerequisites and needed packages
+RUN apt-get install -y wget nano libtool libboost-all-dev automake bison flex g++ libevent-dev libssl-dev libtool make pkg-config iputils-ping mysql-client libmysqlclient-dev netcat libsnappy-dev
+
+# Set apt-get to be noninteractive
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+
+# Install python3.7
+RUN apt-get install -y python3.7 python3-pip python3.7-dev python3-tk \
+    && cd /usr/local/bin \
+    && ln -s /usr/bin/python3.7 python \
+    && python -m pip install --upgrade pip
+
+# Copy Analytics source files into docker container
+RUN mkdir -p $WORKDIR
+COPY ./network_test $WORKDIR/network_test
+COPY ./if $WORKDIR/if
+COPY ./analytics $WORKDIR/analytics
+
+WORKDIR $WORKDIR
+
+# Install the needed packages
+RUN chmod +x ./network_test/setup_analytics_env.sh
+RUN ./network_test/setup_analytics_env.sh
+
+# Generate the Analytics API
+RUN chmod +x ./network_test/interface/generate_analytics_api.sh
+RUN ./network_test/interface/generate_analytics_api.sh
+
+# Install out modules into python3's module dir so we don't need sys.path hacks
+# Also will install python dependencies defined in setup.py
+RUN pip install ./analytics
+RUN pip install ./network_test
+
+# Remove un-needed building depends
+RUN apt-get purge -y --auto-remove bison flex g++ python3.7-dev
+RUN apt-get clean
+RUN rm -rf /tmp/*
+
+# Define default command
+CMD ["bash"]

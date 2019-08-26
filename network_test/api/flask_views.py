@@ -379,6 +379,8 @@ def help() -> Tuple[str, int, Dict]:
     stop_test_url_ext = "/api/stop_test/"
     modify_sched_url_ext = "/api/modify_sched/"
 
+    _log.error("DEBUG: here!!")
+
     # thrift help info for topology_id
     api_services = MySqlDbAccess().read_api_service_setting(use_primary_controller=True)
     try:

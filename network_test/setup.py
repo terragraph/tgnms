@@ -5,8 +5,8 @@ from setuptools import find_packages, setup
 
 
 setup(
-    name="analytics",
-    version="2019.7.17",
+    name="network-test",
+    version="2019.8.21",
     python_requires=">=3.7",
     packages=find_packages(),
     package_data={"module": ["AnalyticsConfig.json"], "tests": ["auto_test.sh"]},
@@ -15,7 +15,8 @@ setup(
         "aiohttp==3.5.4",
         "aiomysql==0.0.20",
         "click==7.0",
-        "django==2.1.1",
+        "croniter==0.3.30",
+        "django==2.1.2",
         "flask==1.0.2",
         "jupyter==1.0.0",
         "matplotlib==2.2.2",
