@@ -34,7 +34,7 @@ export type NetworkContextType = {|
   nodeMap: {
     [string]: NodeType,
   },
-  linkMap: {[string]: LinkType},
+  linkMap: {[string]: LinkType & LinkMeta},
   siteMap: SiteMap,
   siteToNodesMap: {
     [string]: Set<string>,
@@ -154,6 +154,15 @@ export type HealthEvent = {|
   startTime: number,
   endTime: number,
 |};
+
+//nms and thrift have different definitions.
+//server decorates the thrift definition with NMS specific functionality
+export type LinkMeta = {
+  _meta_: {
+    angle: number,
+    distance: number,
+  },
+};
 
 export type Element = {|
   expanded: boolean,

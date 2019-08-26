@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import * as React from 'react';
@@ -16,7 +17,6 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import PropTypes from 'prop-types';
 import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
@@ -45,6 +45,18 @@ import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
+import type {
+  LinkType as Link,
+  NodeType as Node,
+} from '../../../shared/types/Topology';
+import type {
+  LinkMeta,
+  NetworkConfig,
+  NetworkHealth,
+} from '../../NetworkContext';
+import type {RouterHistory} from 'react-router-dom';
+
 const styles = theme => ({
   iconCentered: {
     verticalAlign: 'middle',
@@ -64,7 +76,27 @@ const styles = theme => ({
   },
 });
 
-class LinkDetailsPanel extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  expanded: boolean,
+  history: RouterHistory,
+  ignitionEnabled: boolean,
+  link: Link & LinkMeta,
+  networkName: string,
+  nodeMap: {[string]: Node},
+  networkConfig: NetworkConfig,
+  networkLinkHealth: NetworkHealth,
+  networkLinkMetrics: {},
+  onClose: () => any,
+  onPanelChange: () => any,
+  onPin: () => any,
+  onSelectNode: string => any,
+  pinned: boolean,
+} & ForwardRef;
+
+type State = {};
+
+class LinkDetailsPanel extends React.Component<Props, State> {
   state = {};
 
   getAvailability(link, networkLinkHealth) {
@@ -385,6 +417,7 @@ class LinkDetailsPanel extends React.Component {
     const {
       classes,
       expanded,
+      fwdRef,
       onPanelChange,
       onClose,
       onPin,
@@ -403,26 +436,10 @@ class LinkDetailsPanel extends React.Component {
         pinned={pinned}
         showLoadingBar={true}
         showTitleCopyTooltip={true}
-        fwdRef={this.props.fwdRef}
+        fwdRef={fwdRef}
       />
     );
   }
 }
-
-LinkDetailsPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  networkName: PropTypes.string.isRequired,
-  link: PropTypes.object.isRequired,
-  nodeMap: PropTypes.object.isRequired,
-  networkLinkHealth: PropTypes.object.isRequired,
-  networkLinkMetrics: PropTypes.object.isRequired,
-  ignitionEnabled: PropTypes.bool.isRequired,
-  onSelectNode: PropTypes.func.isRequired,
-  pinned: PropTypes.bool.isRequired,
-  onPin: PropTypes.func.isRequired,
-};
 
 export default withForwardRef(withStyles(styles)(withRouter(LinkDetailsPanel)));

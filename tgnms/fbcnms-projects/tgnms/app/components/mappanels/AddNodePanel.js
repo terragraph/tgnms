@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
@@ -9,11 +10,10 @@ import Collapse from '@material-ui/core/Collapse';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import {
-  NodeTypeValueMap as NodeType,
+  NodeTypeValueMap,
   PolarityTypeValueMap as PolarityType,
 } from '../../../shared/types/Topology';
 import {
@@ -41,6 +41,23 @@ import {
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {EditNodeParams} from './MapPanelTypes';
+
+import type {
+  PolarityTypeType,
+  TopologyType,
+} from '../../../shared/types/Topology';
+
+type InputType = {
+  _editable?: boolean,
+  func: (InputType, State, Object) => any,
+  helperText?: string,
+  label: string,
+  menuItems?: Array<Object>,
+  required: boolean,
+  value: string,
+};
+
 const styles = theme => ({
   button: {
     margin: '8px 4px',
@@ -57,7 +74,29 @@ const FormType = Object.freeze({
   EDIT: 'EDIT',
 });
 
-class AddNodePanel extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  className?: string,
+  ctrlVersion: string,
+  expanded: boolean,
+  formType: string,
+  initialParams: Object,
+  networkName: string,
+  onPanelChange: () => any,
+  onClose: () => any,
+  topology: TopologyType,
+};
+
+type State = {
+  ...$Exact<EditNodeParams>,
+  // EditNodeParams is used other places in the code where wlan_mac_addrs
+  // is exepcted to be an array so we redefine for this file
+  wlan_mac_addrs: string,
+  showAdvanced: boolean,
+  node_polarity: PolarityTypeType,
+};
+
+class AddNodePanel extends React.Component<Props, State> {
   constructor(props) {
     super(props);
 
@@ -67,6 +106,7 @@ class AddNodePanel extends React.Component {
       // Node properties
       name: '',
       is_primary: null,
+      node_polarity: null,
       node_type: null,
       mac_addr: '',
       wlan_mac_addrs: '',
@@ -77,7 +117,7 @@ class AddNodePanel extends React.Component {
       txGolayIdx: null,
       rxGolayIdx: null,
 
-      ...this.props.initialParams,
+      ...props.initialParams,
     };
   }
 
@@ -187,11 +227,13 @@ class AddNodePanel extends React.Component {
       label: site.name,
       value: site.name,
     }));
-    const nodeTypeMenuItems = Object.keys(NodeType).map(nodeTypeName => (
-      <MenuItem key={nodeTypeName} value={NodeType[nodeTypeName]}>
-        {nodeTypeName}
-      </MenuItem>
-    ));
+    const nodeTypeMenuItems = Object.keys(NodeTypeValueMap).map(
+      nodeTypeName => (
+        <MenuItem key={nodeTypeName} value={NodeTypeValueMap[nodeTypeName]}>
+          {nodeTypeName}
+        </MenuItem>
+      ),
+    );
     const popMenuItems = [
       <MenuItem key="yes" value={true}>
         Yes
@@ -215,7 +257,7 @@ class AddNodePanel extends React.Component {
     ));
 
     // Create inputs
-    const inputs = [
+    const inputs: Array<InputType> = [
       {
         func: createTextInput,
         label: 'Node Name',
@@ -261,7 +303,7 @@ class AddNodePanel extends React.Component {
         _editable: true,
       },
     ];
-    const advancedInputs = [
+    const advancedInputs: Array<InputType> = [
       ...(supportsUserSpecifiedPolairtyAndGolay(ctrlVersion)
         ? [
             {
@@ -411,18 +453,5 @@ class AddNodePanel extends React.Component {
     return false;
   };
 }
-
-AddNodePanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  className: PropTypes.string,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  formType: PropTypes.oneOf(Object.keys(FormType)),
-  initialParams: PropTypes.object,
-  ctrlVersion: PropTypes.string,
-  networkName: PropTypes.string.isRequired,
-  topology: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles)(AddNodePanel);

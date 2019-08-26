@@ -2,16 +2,16 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import MenuItem from '@material-ui/core/MenuItem';
-import PropTypes from 'prop-types';
 import React from 'react';
 import swal from 'sweetalert2';
 import {
-  LinkTypeValueMap as LinkType,
+  LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
 } from '../../../shared/types/Topology';
 import {
@@ -23,6 +23,8 @@ import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {LinkType, TopologyType} from '../../../shared/types/Topology';
+
 const styles = {
   button: {
     margin: '8px 4px',
@@ -30,7 +32,28 @@ const styles = {
   },
 };
 
-class AddLinkPanel extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  className?: string,
+  expanded: boolean,
+  onPanelChange: () => any,
+  onClose: () => any,
+  initialParams: {},
+  networkName: string,
+  topology: TopologyType,
+};
+
+type State = {
+  linkNode1: string,
+  linkNode1Mac: string,
+  linkNode2: string,
+  linkNode2Mac: string,
+  link_type: number,
+  is_backup_cn_link?: boolean,
+  initialParams: {},
+};
+
+class AddLinkPanel extends React.Component<Props, State> {
   constructor(props) {
     super(props);
 
@@ -42,8 +65,7 @@ class AddLinkPanel extends React.Component {
       linkNode2Mac: null,
       link_type: null,
       is_backup_cn_link: null,
-
-      ...this.props.initialParams,
+      ...props.initialParams,
     };
   }
 
@@ -51,6 +73,7 @@ class AddLinkPanel extends React.Component {
     // Update state if initial values were added
     // TODO Do this somewhere else?
     if (
+      this.props.initialParams &&
       Object.keys(this.props.initialParams).length > 0 &&
       !isEqual(this.props.initialParams, prevProps.initialParams)
     ) {
@@ -90,13 +113,14 @@ class AddLinkPanel extends React.Component {
       z_node_mac = linkNode1Mac;
     }
 
-    const link = {
+    const link: $Shape<LinkType> = {
       a_node_name,
       z_node_name,
       link_type,
       a_node_mac,
       z_node_mac,
     };
+
     if (this.enableBackupCnOption() && this.state.is_backup_cn_link !== null) {
       link.is_backup_cn_link = this.state.is_backup_cn_link;
     }
@@ -112,17 +136,17 @@ class AddLinkPanel extends React.Component {
     if (
       !this.state.linkNode1 ||
       !this.state.linkNode2 ||
-      this.state.link_type !== LinkType.WIRELESS
+      this.state.link_type !== LinkTypeValueMap.WIRELESS
     ) {
       return false;
     }
 
     const linkNode1Type = this.props.topology.nodes.find(
       node => node.name === this.state.linkNode1,
-    ).node_type;
+    )?.node_type;
     const linkNode2Type = this.props.topology.nodes.find(
       node => node.name === this.state.linkNode2,
-    ).node_type;
+    )?.node_type;
     return (
       (linkNode1Type === NodeType.DN && linkNode2Type === NodeType.CN) ||
       (linkNode1Type === NodeType.CN && linkNode2Type === NodeType.DN)
@@ -139,11 +163,13 @@ class AddLinkPanel extends React.Component {
       label: node.name,
       value: node.name,
     }));
-    const linkTypeMenuItems = Object.keys(LinkType).map(linkTypeName => (
-      <MenuItem key={linkTypeName} value={LinkType[linkTypeName]}>
-        {toTitleCase(linkTypeName)}
-      </MenuItem>
-    ));
+    const linkTypeMenuItems = Object.keys(LinkTypeValueMap).map(
+      linkTypeName => (
+        <MenuItem key={linkTypeName} value={LinkTypeValueMap[linkTypeName]}>
+          {toTitleCase(linkTypeName)}
+        </MenuItem>
+      ),
+    );
     const backupCnLinkMenuItems = [
       <MenuItem key="yes" value={true}>
         Yes
@@ -274,8 +300,7 @@ class AddLinkPanel extends React.Component {
 
   setDefaultWlanMacAddr = (nodeStateKey, macStateKey) => {
     const macAddrs = this.getWlanMacAddrs(nodeStateKey);
-    const defaultMacAddr =
-      macAddrs && macAddrs.length && macAddrs.length > 0 ? macAddrs[0] : '';
+    const defaultMacAddr = macAddrs && macAddrs.length > 0 ? macAddrs[0] : '';
     this.setState({
       ...this.state,
       ...{
@@ -284,16 +309,5 @@ class AddLinkPanel extends React.Component {
     });
   };
 }
-
-AddLinkPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  className: PropTypes.string,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  initialParams: PropTypes.object,
-  networkName: PropTypes.string.isRequired,
-  topology: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles)(AddLinkPanel);
