@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import AuthorizedRoute from './components/common/AuthorizedRoute';
@@ -26,6 +27,15 @@ import {TopologyElementType} from './constants/NetworkConstants.js';
 import {createQuery, increase} from './apiutils/PrometheusAPIUtil';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
+import type {ContextRouter} from 'react-router-dom';
+import type {
+  LinkMeta,
+  NetworkConfig as NetworkConfigType,
+  NetworkHealth,
+  SiteMap,
+} from './NetworkContext';
+
+import type {LinkType, NodeType as Node} from '../shared/types/Topology';
 
 const styles = _theme => ({
   content: {
@@ -52,6 +62,27 @@ const REFRESH_INTERVAL = window.CONFIG.refresh_interval
 const STATS_DS =
   window.CONFIG.env.STATS_BACKEND === 'prometheus' ? 'prometheus' : 'beringei';
 
+type Props = {
+  classes: {[string]: string},
+  ...ContextRouter,
+};
+
+type State = {
+  invalidTopologyRedirect: boolean,
+  isReloading: boolean,
+  linkMap: {[string]: LinkType & LinkMeta},
+  networkConfig: NetworkConfigType,
+  networkNodeHealth: NetworkHealth,
+  networkLinkHealth: NetworkHealth,
+  networkAnalyzerData: Object,
+  networkLinkIgnitionAttempts: Object,
+  nodeMap: {[string]: Node},
+  pinnedElements: Array<TopologyElementType>,
+  siteMap: SiteMap,
+  siteToNodesMap: {[string]: Set<string>},
+  selectedElement: TopologyElementType,
+};
+
 class NetworkUI extends React.Component<Props, State> {
   state = {
     // Used to trigger a redirect when the network is invalid
@@ -76,7 +107,10 @@ class NetworkUI extends React.Component<Props, State> {
     networkNodeHealth: {},
     networkLinkHealth: {},
     networkAnalyzerData: {},
+    networkLinkIgnitionAttempts: {},
   };
+
+  _refreshNetworkInterval = null;
 
   constructor(props) {
     super(props);
@@ -106,7 +140,7 @@ class NetworkUI extends React.Component<Props, State> {
     if (networkName !== prevNetworkName) {
       // clear the network config when network name changes
       this.setState({
-        networkConfig: {},
+        networkConfig: ({}: NetworkConfig),
         isReloading: false,
         nodeMap: {},
         linkMap: {},
@@ -114,8 +148,8 @@ class NetworkUI extends React.Component<Props, State> {
         siteToNodesMap: {},
         selectedElement: null,
         pinnedElements: [],
-        networkNodeHealth: {},
-        networkLinkHealth: {},
+        networkNodeHealth: ({}: NetworkHealth),
+        networkLinkHealth: ({}: NetworkHealth),
         networkAnalyzerData: {},
         // fetched metrics to display
         networkLinkIgnitionAttempts: {},
@@ -380,7 +414,9 @@ class NetworkUI extends React.Component<Props, State> {
 
   renderRoutes = () => {
     const {classes, match} = this.props;
-    const {networkName} = match.params;
+    const networkName = match.params.networkName
+      ? match.params.networkName
+      : '';
     return (
       <div className={classes.content}>
         <NetworkContext.Provider
@@ -410,7 +446,6 @@ class NetworkUI extends React.Component<Props, State> {
             removeElement: this.removeElement,
             togglePin: this.togglePin,
             toggleExpanded: this.toggleExpanded,
-            offline_whitelist: this.state.offline_whitelist,
           }}>
           {this.renderReloadingOverlay()}
           <Switch>
