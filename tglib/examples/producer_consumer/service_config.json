@@ -1,0 +1,18 @@
+{
+  "num_consumers": 10,
+  "pipelines": {
+    "test_pipeline": {
+      "period": 300,
+      "jobs": [
+        {
+          "name": "add_x",
+          "enabled": true,
+          "params": {
+            "metric_name": "foo",
+            "x": 5
+          }
+        }
+      ]
+    }
+  }
+}

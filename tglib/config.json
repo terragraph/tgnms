@@ -1,0 +1,17 @@
+{
+  "kafka": {
+    "bootstrap_servers": ["kafka:9096"]
+  },
+  "mysql": {
+    "host": "db",
+    "port": 3306,
+    "user": "nms",
+    "password": "o0Oe8G0UrBrT"
+  },
+  "prometheus": {
+    "host": "prometheus",
+    "port": 9090,
+    "max_queue_size": 100,
+    "intervals": [30]
+  }
+}
