@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
@@ -12,7 +13,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import PropTypes from 'prop-types';
 import React from 'react';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import Typography from '@material-ui/core/Typography';
@@ -32,7 +32,15 @@ import {
   isNodeAlive,
   renderAvailabilityWithColor,
 } from '../../helpers/NetworkHelpers';
+import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {NetworkHealth} from '../../NetworkContext';
+import type {
+  NodeType as Node,
+  SiteType,
+  TopologyType,
+} from '../../../shared/types/Topology';
 
 const styles = theme => ({
   iconCentered: {
@@ -79,7 +87,30 @@ const styles = theme => ({
   },
 });
 
-class SiteDetailsPanel extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  networkName: string,
+  topology: TopologyType,
+  siteMap: {[string]: SiteType},
+  siteNodes: Set<string>,
+  nodeMap: {[string]: Node},
+  networkLinkHealth: NetworkHealth,
+  wapStats?: Object,
+  onSelectNode: string => any,
+  onEdit: any => any,
+  expanded: boolean,
+  onPanelChange: () => any,
+  onClose: () => any,
+  onPin: () => any,
+  pinned: boolean,
+  site: SiteType,
+};
+
+type State = {
+  highlightedSiteNode: ?string,
+};
+
+class SiteDetailsPanel extends React.Component<Props, State> {
   state = {
     highlightedSiteNode: null,
   };
@@ -160,9 +191,9 @@ class SiteDetailsPanel extends React.Component {
 
       // Node has links - loop through all of its sectors...
       const sectorAngles = {};
-      const radioMacs = [
-        ...new Set([node.mac_addr, ...(node.wlan_mac_addrs || [])]),
-      ];
+      const radioMacs = Array.from(
+        new Set([node.mac_addr, ...(node.wlan_mac_addrs || [])]),
+      );
       [...radioMacs].forEach(macAddr => {
         // Find all links with this sector
         const sectorLinks = nodeLinks.filter(
@@ -268,7 +299,7 @@ class SiteDetailsPanel extends React.Component {
         {this.renderSectorOrientation(siteLinks)}
 
         <List component="nav">
-          {[...siteNodes].map(node => (
+          {Array.from(siteNodes).map(node => (
             <ListItem
               button
               dense
@@ -326,30 +357,41 @@ class SiteDetailsPanel extends React.Component {
     let minY = SVG_WIDTH;
     let maxY = 0;
     const paths = [].concat(
-      ...Object.entries(angleMap).map(([nodeName, sectorAngles]) =>
-        Object.entries(sectorAngles).map(([macAddr, angle]) => {
-          const p1 = this.angleToPathCoords(angle - HALF_ARC_ANGLE, SVG_WIDTH);
-          const p2 = this.angleToPathCoords(
-            angle + HALF_ARC_ANGLE,
-            SVG_WIDTH,
-            true,
-          );
-          minY = Math.min(Math.min(p1.y, p2.y), minY);
-          maxY = Math.max(Math.max(p1.y, p2.y), maxY);
-          return (
-            <path
-              key={macAddr}
-              className={classNames(
-                classes.trianglePath,
-                nodeName === highlightedSiteNode && classes.trianglePathActive,
-              )}
-              d={`M${SVG_WIDTH / 2} ${SVG_WIDTH / 2} ${p1.path} ${p2.path} Z`}
-              onClick={() => this.props.onSelectNode(nodeName)}
-              onMouseOver={() => this.setState({highlightedSiteNode: nodeName})}
-              onMouseOut={() => this.setState({highlightedSiteNode: null})}
-            />
-          );
-        }),
+      objectEntriesTypesafe<string, {[string]: number}>(angleMap).map(
+        ([nodeName, sectorAngles]) =>
+          objectEntriesTypesafe<string, number>(sectorAngles).map(
+            ([macAddr, angle]) => {
+              const p1 = this.angleToPathCoords(
+                angle - HALF_ARC_ANGLE,
+                SVG_WIDTH,
+              );
+              const p2 = this.angleToPathCoords(
+                angle + HALF_ARC_ANGLE,
+                SVG_WIDTH,
+                true,
+              );
+              minY = Math.min(Math.min(p1.y, p2.y), minY);
+              maxY = Math.max(Math.max(p1.y, p2.y), maxY);
+              return (
+                <path
+                  key={macAddr}
+                  className={classNames(
+                    classes.trianglePath,
+                    nodeName === highlightedSiteNode &&
+                      classes.trianglePathActive,
+                  )}
+                  d={`M${SVG_WIDTH / 2} ${SVG_WIDTH / 2} ${p1.path} ${
+                    p2.path
+                  } Z`}
+                  onClick={() => this.props.onSelectNode(nodeName)}
+                  onMouseOver={() =>
+                    this.setState({highlightedSiteNode: nodeName})
+                  }
+                  onMouseOut={() => this.setState({highlightedSiteNode: null})}
+                />
+              );
+            },
+          ),
       ),
     );
 
@@ -471,7 +513,15 @@ class SiteDetailsPanel extends React.Component {
   }
 
   render() {
-    const {classes, expanded, onPanelChange, onClose, onPin, site} = this.props;
+    const {
+      classes,
+      expanded,
+      onPanelChange,
+      onClose,
+      onPin,
+      pinned,
+      site,
+    } = this.props;
 
     return (
       <CustomExpansionPanel
@@ -482,31 +532,12 @@ class SiteDetailsPanel extends React.Component {
         onChange={onPanelChange}
         onClose={onClose}
         onPin={onPin}
-        pinned={this.props.pinned}
+        pinned={pinned}
         showLoadingBar={true}
         showTitleCopyTooltip={true}
       />
     );
   }
 }
-
-SiteDetailsPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  networkName: PropTypes.string.isRequired,
-  topology: PropTypes.object.isRequired,
-  site: PropTypes.object.isRequired,
-  siteNodes: PropTypes.object.isRequired,
-  nodeMap: PropTypes.object.isRequired,
-  siteMap: PropTypes.object.isRequired,
-  networkLinkHealth: PropTypes.object.isRequired,
-  wapStats: PropTypes.object,
-  onSelectNode: PropTypes.func.isRequired,
-  pinned: PropTypes.bool.isRequired,
-  onPin: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
-};
 
 export default withStyles(styles)(SiteDetailsPanel);
