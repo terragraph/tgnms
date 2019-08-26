@@ -14,6 +14,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import React from 'react';
+import SiteDetailsNodeIcon from '../mappanels/SiteDetailsNodeIcon';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
@@ -24,7 +25,6 @@ import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {
   createActionsMenu,
   getEditIcon,
-  getNodeIcon,
   getSiteIcon,
 } from '../../helpers/MapPanelHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
@@ -309,7 +309,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
               onMouseOut={() => this.setState({highlightedSiteNode: null})}
               selected={node === highlightedSiteNode}>
               <ListItemIcon classes={{root: classes.listItemIcon}}>
-                {getNodeIcon()}
+                <SiteDetailsNodeIcon selectedNode={nodeMap[node]} />
               </ListItemIcon>
               <ListItemText
                 primary={node}
