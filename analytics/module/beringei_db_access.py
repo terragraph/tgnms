@@ -10,7 +10,6 @@ import logging
 import os
 
 import requests
-from facebook.gorilla.beringei_data.ttypes import RawQueryReturn
 from module.path_store import PathStore
 from thrift.protocol import TBinaryProtocol
 from thrift.TSerialization import deserialize, serialize
@@ -165,44 +164,6 @@ class BeringeiDbAccess(object):
                     return returned_key["keyId"]
 
         raise ValueError("Cannot find matched key_id")
-
-    def read_beringei_db(self, query_request_to_send):
-        """Send query to Beringei Query Server to query from Beringei DB.
-
-        Args:
-        query_request_to_send: list of query to send,
-                               it is of type RawReadQueryRequest.
-
-        Return:
-        query_returns: query read result on success.
-                       On error, raise exception.
-        """
-
-        try:
-            response = self._post_http_request_to_beringei_query_server(
-                query_request_to_send, "raw_query"
-            )
-        except ValueError as err:
-            logging.error(err.args)
-            raise ValueError("Fail to read from Beringei database")
-
-        # response.content should be of binary bytes stream of RawQueryReturn
-        output = RawQueryReturn()
-        try:
-            query_returns = deserialize(
-                output,
-                response.content,
-                protocol_factory=TBinaryProtocol.TBinaryProtocolFactory(),
-            )
-        except Exception as ex:
-            logging.error(
-                "During return deserialization, a type {0} exception occurred.".format(
-                    type(ex).__name__
-                )
-            )
-            raise ValueError("Fail to read Beringei database")
-
-        return query_returns
 
     def write_bqs(self, stats_to_write, request_path="binary_stats_writer"):
         """Send query to Beringei Query Server to write to Beringei DB.

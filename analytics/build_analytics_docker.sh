@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-echo "This script will copy the used the interface file from ../beringei/beringei/if to ./interface"
+echo "This script will copy thrift files in ./if to analytics/if"
 
 # Copy all thrift files from beringei/if
-mkdir -p interface/beringei/if
-cp -r ../beringei/beringei/if/ ./interface/beringei/
+mkdir -p if
+cp -a ../if/ .
 
 docker build -t analytics -f Dockerfile .
