@@ -71,7 +71,7 @@ class EventClient(BaseClient, AIOKafkaProducer):
     @property
     async def health(self) -> Tuple[bool, str]:
         if not self._started:
-            raise ClientStoppedError()
+            raise ClientStoppedError(self.class_name)
 
         try:
             await self.partitions_for("events")

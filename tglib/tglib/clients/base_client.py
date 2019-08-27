@@ -2,13 +2,13 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import abc
-from typing import Tuple
+from typing import Dict, Tuple
 
 from tglib.exceptions import ClientMultipleInitializationError, ClientUninitializedError
 
 
 class ABCMetaSingleton(abc.ABCMeta):
-    _instances = {}
+    _instances: Dict = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:

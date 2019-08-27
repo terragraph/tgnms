@@ -61,7 +61,7 @@ class KafkaConsumer(BaseClient, AIOKafkaConsumer):
     @property
     async def health(self) -> Tuple[bool, str]:
         if not self._started:
-            raise ClientStoppedError()
+            raise ClientStoppedError(self.class_name)
 
         try:
             await self.topics()
@@ -115,7 +115,7 @@ class KafkaProducer(BaseClient, AIOKafkaProducer):
     @property
     async def health(self) -> Tuple[bool, str]:
         if not self._started:
-            raise ClientStoppedError()
+            raise ClientStoppedError(self.class_name)
 
         try:
             # This is a hack -- need a better way to assess AIOKafkaProducer
