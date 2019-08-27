@@ -32,8 +32,8 @@ RUN chmod +x ./network_test/setup_analytics_env.sh
 RUN ./network_test/setup_analytics_env.sh
 
 # Generate the Analytics API
-RUN chmod +x ./network_test/interface/generate_analytics_api.sh
-RUN ./network_test/interface/generate_analytics_api.sh
+RUN chmod +x ./network_test/network_test/interface/generate_analytics_api.sh
+RUN ./network_test/network_test/interface/generate_analytics_api.sh
 
 # Install out modules into python3's module dir so we don't need sys.path hacks
 # Also will install python dependencies defined in setup.py

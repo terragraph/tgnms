@@ -2,7 +2,7 @@
 set -e
 
 SRC_DIR=$(dirname "$0")
-SRC_DIR+="/../../if"
+SRC_DIR+="/../../../if"
 DST_DIR=$(dirname "$0")
 
 echo SRC_DIR is $SRC_DIR and DST_DIR is $DST_DIR
