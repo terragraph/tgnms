@@ -39,6 +39,8 @@ export default function SiteDetailsNodeIcon(props: Props) {
 
   if (
     selectedNode &&
+    context.networkConfig.status_dump &&
+    context.networkConfig.status_dump.statusReports[selectedNode.mac_addr] &&
     context.networkConfig.status_dump.statusReports[selectedNode.mac_addr]
       .bgpStatus
   ) {

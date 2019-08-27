@@ -24,6 +24,14 @@ test('renders without BGP', () => {
   expect(queryByTestId('bgpStatusIcon')).not.toBeInTheDocument();
 });
 
+test('renders without BGP and with a selected node', () => {
+  const {queryByTestId} = render(
+    <SiteDetailsNodeIcon selectedNode={mockNode({mac_addr: 'test'})} />,
+  );
+  expect(queryByTestId('routerIcon')).toBeInTheDocument();
+  expect(queryByTestId('bgpStatusIcon')).not.toBeInTheDocument();
+});
+
 test('renders with BGP', () => {
   const {getByTestId} = renderWithRouter(
     <TestApp>
