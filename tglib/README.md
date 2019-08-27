@@ -7,7 +7,6 @@ Out of the box, `tglib` provides clients to access all first-class Terragraph
 services and datastores including:
 
 * API Service
-* Events
 * Kafka
 * MySQL
 * Prometheus
