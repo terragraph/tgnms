@@ -1,0 +1,58 @@
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
+     integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
+     crossorigin=""/>
+  <style type="text/css">
+    #container {max-width: 100%; height: 100%; margin: auto;}
+    .clear {clear:both}
+    .link_content {padding: 0; margin: 0; text-align: center}
+    .link_content > li {
+      width: 33%; display: block; float: left; overflow: hidden;
+      padding: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <input type="button" id="btnMapIt" value="Refresh Results" class="btn"/>
+  <input type="button" id="btnMapItTimer" value="Refresh Results every 10s" class="btn"/>
+  <input type="button" id="btnMapItRemove" value="Remove Results" class="btn"/>
+  <div id="container"></div>
+  <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+     integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+     crossorigin=""></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script>
+    var link_btn = document.getElementById("btnLinkTest");
+    var multihop_btn = document.getElementById("btnMultiHopTest");
+    var remove_btn = document.getElementById("btnMapItRemove");
+
+    remove_btn.addEventListener('click', updateResultBtn);
+    function updateResultBtn() {
+      if (remove_btn.value === 'Remove Results') {
+        remove_btn.value = 'Removed';
+      } else {
+        remove_btn.value = 'Remove Results';
+      }
+    }
+    link_btn.addEventListener('click', updateLinkBtn);
+    function updateLinkBtn() {
+      if (link_btn.value === 'Start Link Test') {
+        link_btn.value = 'Link Test Running';
+      } else {
+        link_btn.value = 'Start Link Test';
+      }
+    }
+    multihop_btn.addEventListener('click', updateMultihopBtn);
+    function updateMultihopBtn() {
+      if (multihop_btn.value === 'Start Multi-hop Test') {
+        multihop_btn.value = 'Multi-hop Test Running';
+      } else {
+        multihop_btn.value = 'Start Multi-hop Test';
+      }
+    }
+  </script>
+HOOK_ADDITIONAL_JS
+</body>
+</html>

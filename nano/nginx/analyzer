@@ -1,0 +1,10 @@
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  # auth_basic "Network Analyzer System";
+  # auth_basic_user_file /etc/apache2/.htpasswd;
+
+  location / {
+        root /var/www2/;
+        index index.html;
+  }

@@ -1,0 +1,95 @@
+html,body { height: 100%; }
+.legend {background: white; line-height: 1.5em; padding: 5px 5px 5px 5px;
+  border: 1px solid rgba(0,0,0,0.2); border-radius: 5px; font-size: 120%;}
+.legendButton {position: absolute; top: 150px; left: 100px;}
+#navwrapper {height: 80px;}
+#container {max-width: 100%; height: calc(100% - 80px);  margin: auto;}
+.clear {clear:both}
+.info_details {
+  overflow-y: scroll; height: 100%; overflow-x: scroll; width: 100%;}
+.link_content {padding: 0; margin: 0; text-align: center}
+.link_content > li {
+  width: 33%; display: block; float: left; overflow: hidden;
+  padding: 0.1px 0;
+}
+.multihop_content {padding: 0; margin: 0; text-align: center}
+.multihop_content > li {
+  width: 50%; display: block; float: left; overflow: hidden;
+  padding: 1px 0;
+}
+.ignition_content {padding: 0; margin: 0; text-align: center}
+.ignition_content > li {
+  width: 50%; display: block; float: left; overflow: hidden;
+  padding: 1px 0;
+}
+.navbar {
+  height: 45px;
+  margin-bottom: 0px;
+}
+.navbar_narrow {
+  height: 35px;
+  margin-bottom: 0px;
+}
+.logo {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+.brandname {
+  color: #ffffff;
+  font-family: 'Raleway',sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 36px;
+}
+.nav-item {
+  margin-right:5px;
+}
+.time {
+  width: 135px;
+  height: 33px;
+  border: 0px solid #707377;
+  border-radius: 4px;
+  background-color: #707377;
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  margin-right:5px;
+}
+#start_time{
+ right: 230px;
+}
+#test_type{
+ width: 180px;
+}
+#end_time{
+ width: 150px;
+}
+.btn-outline-secondary {
+  margin-left: 1px;
+}
+.dropdown-submenu {
+  position: relative;
+  }
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+}
+.link_test_dropdown {
+  width: 300px;
+  padding: 5px;
+  z-index: 9999;
+}
+.multihop_test_dropdown {
+  width: 300px;
+  padding: 5px;
+  z-index: 9999;
+}
+@media only screen and (max-width: 768px) {
+  #navwrapper { height: auto }
+  .navbar, .navbar_narrow { height: auto }
+}

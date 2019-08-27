@@ -1,0 +1,129 @@
+<html>
+<head>
+  <title>Network Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
+     integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
+     crossorigin=""/>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/styles/analyzer.css" />
+</head>
+<body>
+<nav class="navbar navbar-expand-md py-0 navbar-dark bg-dark">
+  <a class="navbar-brand">
+    <img class="logo" src="5g-3.png" width="80" height="45" alt="">
+    <span class="brandname">extra &nbsp;&nbsp;&nbsp;&nbsp;Previous Test Analysis</span>
+  </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse"
+    data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02"
+    aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item dropdown py-0">
+        <a class="btn btn-secondary dropdown-toggle" href="#" role="button"
+        id="navbarDropdown" data-toggle="dropdown" aria-haspopup="true"
+        aria-expanded="false"> Test History
+        </a>
+        <ul class="dropdown-menu">
+          <li class="dropdown-item dropdown-submenu" id="linkTestHistory">
+            <a class="dropdown-toggle" href="#" role="button"
+              data-toggle="dropdown" style="color: black;">Link healthiness</a>
+              <ul class="dropdown-menu" style="width: 250px;">
+                <div id="linkTestDropdown"
+                  style="overflow-y: scroll; height: 150px;">
+                </div>
+              </ul>
+          </li>
+          <li class="dropdown-item dropdown-submenu" id="multihopTestHistory">
+            <a class="dropdown-toggle" href="#" role="button"
+              data-toggle="dropdown" style="color: black;">Multihop</a>
+            <ul class="dropdown-menu" style="width: 290px;">
+              <div id="multihopTestDropdown"
+                style="overflow-y: scroll; height: 150px;">
+              </div>
+            </ul>
+          </li>
+          <li class="dropdown-item dropdown-submenu" id="ignitionTestHistory">
+            <a class="dropdown-toggle" href="#" role="button"
+              data-toggle="dropdown" style="color: black;">Ignition</a>
+            <ul class="dropdown-menu" style="width: 250px;">
+              <div id="ignitionTestDropdown"
+                style="overflow-y: scroll; height: 150px;">
+              </div>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>
+<nav class="navbar navbar-expand-md py-0 navbar-light"
+  style="background-color: #edeeef">
+  <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse"
+    data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown"
+    aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavDropdown">
+  </div>
+</nav>
+
+<div id="container"></div>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+  crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+  integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+  crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+  integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+  crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+  integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+  crossorigin=""></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="siteJsonData.js"></script>
+<script src="nodeJsonData.js"></script>
+<script src="linkJsonData.js"></script>
+<script src="linkJsonDataudp.js"></script>
+<script src="nodeJsonDataMultihop.js"></script>
+<script src="linkJsonDataIgnition.js"></script>
+<script src="/test_history/scripts/leafletConfig.js"></script>
+<script src="/test_history/scripts/legendRelated.js"></script>
+<script src="/test_history/scripts/testHistory.js"></script>
+<script src="/test_history/scripts/statusParam.js"></script>
+<script src="/test_history/scripts/initialLayers.js"></script>
+<script>
+genDropdownItem("linkTestDropdown", "link_test_");
+genDropdownItem("multihopTestDropdown", "multihop_test_");
+genDropdownItem("ignitionTestDropdown", "ignition_test_");
+// operation during run-time
+$(document).ready(function () {
+  $(".dropdown .dropdown-submenu").hover(
+    function () {
+      $('>.dropdown-menu', this).stop(true, true).fadeIn("fast");
+      let testType;
+      if (this.id === "linkTestHistory") {
+        testType = "Link healthiness";
+      } else if (this.id === "multihopTestHistory") {
+        testType = "Multihop";
+      } else if (this.id === "ignitionTestHistory") {
+        testType = "Ignition";
+      }
+      fetchTestHistory(testType);
+      setTimeout(function() {$(this).addClass('open');}, 10000);
+    },
+    function () {
+      $('>.dropdown-menu', this).stop(true, true).fadeOut("fast");
+      $(this).removeClass('open');
+    }
+  );
+  loadHistoryBtnOperation("Link healthiness");
+  loadHistoryBtnOperation("Multihop");
+  loadHistoryBtnOperation("Ignition");
+});
+</script>
+</body>
+</html>

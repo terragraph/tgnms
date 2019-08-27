@@ -1,0 +1,24 @@
+{
+    "test_init": {
+       "time_out": "900",
+       "repeat_count": 1,
+       "topology_file": "e2e_topology.json",
+       "test_setup": "SJC",
+       "controller_info": {
+           "ip": "2001:470:f0:3e8::e2e",
+           "username": "e2e_user",
+           "password": "hill portage slinky"
+       }
+    },
+    "networkValidation": {
+      "timeout": "900",
+      "validations": []
+    },
+    "tests": [
+       {
+          "test_type": "ignition_test",
+          "no_of_ignitions": 1,
+          "hold_time": 60
+       }
+    ]
+}

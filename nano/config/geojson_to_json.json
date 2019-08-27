@@ -1,0 +1,11 @@
+{
+    "geojson_multihop_udp": "analysis_multihop",
+    "geojson_multihop_tcp": "analysis_multihop",
+    "geojson_multihop_tcp_cubic": "analysis_multihop",
+    "geojson_multihop_tcp_reno": "analysis_multihop",
+    "geojson_multihop_tcp_vegas": "analysis_multihop",
+    "geojson_multihop_tcp_westwood": "analysis_multihop",
+    "geojson_iperf_p2p_tcp": "analysis_iperf",
+    "geojson_iperf_p2p_udp": "analysis_iperf",
+    "geojson_weather_iperf_p2p_udp": "analysis_iperf"
+}
