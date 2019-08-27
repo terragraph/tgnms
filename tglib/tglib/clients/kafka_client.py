@@ -7,8 +7,8 @@ from typing import Dict, Optional, Tuple
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from kafka.errors import KafkaError
 
-from tglib.clients.base_client import BaseClient
-from tglib.exceptions import (
+from .base_client import BaseClient
+from ..exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,

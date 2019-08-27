@@ -7,8 +7,8 @@ from typing import Dict, Optional, Tuple, cast
 import aiohttp
 import pymysql
 
-from tglib.clients.base_client import BaseClient
-from tglib.exceptions import (
+from .base_client import BaseClient
+from ..exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,

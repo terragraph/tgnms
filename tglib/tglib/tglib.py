@@ -11,13 +11,13 @@ from typing import Callable, Optional, Set, cast
 
 from aiohttp import web
 
-from tglib.clients.api_service_client import APIServiceClient
-from tglib.clients.event_client import EventClient
-from tglib.clients.kafka_client import KafkaConsumer, KafkaProducer
-from tglib.clients.mysql_client import MySQLClient
-from tglib.clients.prometheus_client import PrometheusClient
-from tglib.exceptions import ClientError, ConfigError, DuplicateRouteError
-from tglib.routes import routes
+from .clients.api_service_client import APIServiceClient
+from .clients.event_client import EventClient
+from .clients.kafka_client import KafkaConsumer, KafkaProducer
+from .clients.mysql_client import MySQLClient
+from .clients.prometheus_client import PrometheusClient
+from .exceptions import ClientError, ConfigError, DuplicateRouteError
+from .routes import routes
 
 
 lock = asyncio.Lock()

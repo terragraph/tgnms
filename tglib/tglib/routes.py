@@ -8,7 +8,7 @@ import logging
 from aiohttp import web
 
 from tglib import __version__
-from tglib.clients.prometheus_client import PrometheusClient
+from .clients.prometheus_client import PrometheusClient
 
 
 routes = web.RouteTableDef()

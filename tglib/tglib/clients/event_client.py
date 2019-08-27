@@ -16,14 +16,14 @@ from gen_py.facebook.terragraph.thrift.Event.ttypes import (
     EventId,
     EventLevel,
 )
-from tglib.clients.base_client import BaseClient
-from tglib.exceptions import (
+from .base_client import BaseClient
+from ..exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,
     ConfigError,
 )
-from tglib.utils.serialization import thrift2bytes, thrift2json
+from ..utils.serialization import thrift2bytes, thrift2json
 
 
 class EventClient(BaseClient, AIOKafkaProducer):

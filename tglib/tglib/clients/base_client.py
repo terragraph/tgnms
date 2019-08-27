@@ -4,7 +4,7 @@
 import abc
 from typing import Dict, Tuple
 
-from tglib.exceptions import ClientMultipleInitializationError, ClientUninitializedError
+from ..exceptions import ClientMultipleInitializationError, ClientUninitializedError
 
 
 class ABCMetaSingleton(abc.ABCMeta):
