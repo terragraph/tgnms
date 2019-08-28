@@ -21,9 +21,10 @@ RUN apt-get install -y python3.7 python3-pip python3.7-dev python3-tk \
 
 # Copy Analytics source files into docker container
 RUN mkdir -p $WORKDIR
-COPY ./network_test $WORKDIR/network_test
-COPY ./if $WORKDIR/if
-COPY ./analytics $WORKDIR/analytics
+COPY network_test $WORKDIR/network_test
+COPY if $WORKDIR/if
+COPY analytics $WORKDIR/analytics
+RUN ls -altrh $WORKDIR
 
 WORKDIR $WORKDIR
 

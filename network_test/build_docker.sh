@@ -2,8 +2,8 @@
 set -e
 
 echo "This script will build the network_test image"
-echo "Assume it is run from the network_test directory"
+echo "Assume it is run from the nms directory"
+echo "usage (e.g.):"
+echo "'./network_test/build_docker.sh secure.cxl-terragraph.com:443/analytics:latest'"
 
-cd ..
-
-docker build -t network-test -f network_test/Dockerfile .
+docker build -t $1 -f network_test/Dockerfile .
