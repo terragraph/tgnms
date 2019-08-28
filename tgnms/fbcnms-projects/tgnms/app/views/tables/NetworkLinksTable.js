@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Checkbox from '@material-ui/core/Checkbox';
@@ -12,13 +13,12 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import NetworkContext from '../../NetworkContext';
-import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import ReactPlotlyEventChart from './ReactPlotlyEventChart';
 import {
-  LinkTypeValueMap as LinkType,
+  LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
 } from '../../../shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
@@ -29,6 +29,8 @@ import {get} from 'lodash';
 import {renderDashboardLink} from './FbInternal';
 import {renderStatusColor} from '../../helpers/TableHelpers';
 import {withStyles} from '@material-ui/core/styles';
+import type {LinkType} from '../../../shared/types/Topology';
+import type {NetworkContextType} from '../../NetworkContext';
 
 // Invalid analyzer value, ignore any fields that have this value.
 const INVALID_VALUE = 255;
@@ -52,7 +54,23 @@ const LinkTable = {
   ANALYZER: 'ANALYZER',
 };
 
-class NetworkLinksTable extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  context: NetworkContextType,
+};
+
+type State = {
+  selectedLink: ?LinkType,
+  topLink: ?LinkType,
+  keepTopLink: boolean,
+  hideDnToDnLinks: boolean,
+  hideWired: boolean,
+  sortBy: string,
+  sortDirection: $Values<typeof SortDirection>,
+  linkTable: $Values<typeof LinkTable>,
+};
+
+class NetworkLinksTable extends React.Component<Props, State> {
   state = {
     // Selected element (derived from NetworkContext)
     selectedLink: null,
@@ -367,7 +385,10 @@ class NetworkLinksTable extends React.Component {
         alivePerc = linkHealth.linkAlive;
         availPerc = linkHealth.linkAvailForData || NaN;
       }
-      if (link.link_type === LinkType.ETHERNET && this.state.hideWired) {
+      if (
+        link.link_type === LinkTypeValueMap.ETHERNET &&
+        this.state.hideWired
+      ) {
         return;
       }
       // check if either side of the node is a CN
@@ -401,7 +422,8 @@ class NetworkLinksTable extends React.Component {
         distance: link._meta_.distance,
         linkup_attempts: linkupAttempts,
         name: link.name,
-        type: link.link_type === LinkType.WIRELESS ? 'Wireless' : 'Wired',
+        type:
+          link.link_type === LinkTypeValueMap.WIRELESS ? 'Wireless' : 'Wired',
         z_node_name: link.z_node_name,
       });
     });
@@ -445,7 +467,7 @@ class NetworkLinksTable extends React.Component {
       const analyzerLinkZ = analyzerLink.hasOwnProperty('Z')
         ? analyzerLink.Z
         : analyzerLink;
-      if (link.link_type == LinkType.ETHERNET && this.state.hideWired) {
+      if (link.link_type == LinkTypeValueMap.ETHERNET && this.state.hideWired) {
         return;
       }
       // check if either side of the node is a CN
@@ -761,9 +783,5 @@ class NetworkLinksTable extends React.Component {
     );
   };
 }
-
-NetworkLinksTable.propTypes = {
-  context: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles, {withTheme: true})(NetworkLinksTable);

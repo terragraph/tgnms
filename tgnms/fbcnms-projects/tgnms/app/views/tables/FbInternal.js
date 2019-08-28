@@ -2,11 +2,14 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
 import React from 'react';
 import moment from 'moment';
+import type {LinkType} from '../../../shared/types/Topology';
+import type {NetworkContextType} from '../../NetworkContext';
 
 const SECONDS_HOUR = 60 * 60;
 const SECONDS_DAY = SECONDS_HOUR * 24;
@@ -75,8 +78,8 @@ function renderScubaLink(a_node_name, z_node_name, startTms, endTms, context) {
   }
 
   // Convert from ms to sec
-  const endTs = (endTms / 1000.0).toFixed(0);
-  const startTs = (startTms / 1000.0).toFixed(0);
+  const endTs = Math.floor(endTms / 1000.0);
+  const startTs = Math.floor(startTms / 1000.0);
 
   const url =
     'https://our.intern.facebook.com/intern/network/terragraph/link_log/?';
@@ -103,7 +106,7 @@ function renderScubaLink(a_node_name, z_node_name, startTms, endTms, context) {
   // num
   const total_sample_num = endTs - startTs;
   // more than 3700 samples gets slow for Scuba fetch
-  const sampling_ratio = Math.ceil(total_sample_num / 3700).toFixed(0);
+  const sampling_ratio = Math.ceil(total_sample_num / 3700);
   // assume 1 sample/second
   const sample_num = (total_sample_num / sampling_ratio).toFixed(0);
   const sample = '&sample=' + sample_num;
@@ -130,7 +133,12 @@ function renderScubaLink(a_node_name, z_node_name, startTms, endTms, context) {
 // this creates a link to a Scuba dashboard showing the last one hour of
 // PHY statistics; the link will only work when connected to the FB
 // corporate network
-export function renderDashboardLink(cell, row, style, additionalParams) {
+export function renderDashboardLink(
+  cell: string,
+  row: $Shape<LinkType>,
+  style: {[string]: string},
+  additionalParams: {context: NetworkContextType},
+) {
   const {classes} = this.props;
   const {context} = additionalParams;
 
