@@ -18,6 +18,7 @@ from .clients.mysql_client import MySQLClient
 from .clients.prometheus_client import PrometheusClient
 from .exceptions import ClientError, ConfigError, DuplicateRouteError
 from .routes import routes
+from .utils.dict import deep_update
 
 
 lock = asyncio.Lock()
@@ -48,7 +49,11 @@ def init(
 
     try:
         with open("./config.json") as f1, open("./service_config.json") as f2:
-            config = {**json.load(f1), **json.load(f2)}
+            config = json.load(f1)
+            service_config = json.load(f2)
+
+            if "overrides" in service_config:
+                deep_update(config, service_config["overrides"])
     except OSError as e:
         raise ConfigError("Failed to load configuration files") from e
 

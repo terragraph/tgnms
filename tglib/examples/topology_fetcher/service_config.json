@@ -1,6 +1,8 @@
 {
-  "mysql": {
-    "db": "topology_fetcher_db"
+  "overrides": {
+    "mysql": {
+      "db": "topology_fetcher_db"
+    }
   },
   "topology_fetch_interval_s": 30,
   "controller_name": "Tower X"

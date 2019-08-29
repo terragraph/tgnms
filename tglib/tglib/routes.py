@@ -9,6 +9,7 @@ from aiohttp import web
 
 from tglib import __version__
 from .clients.prometheus_client import PrometheusClient
+from .utils.dict import deep_update
 
 
 routes = web.RouteTableDef()
@@ -64,7 +65,7 @@ async def handle_get_config(request: web.Request) -> web.Response:
         raise web.HTTPInternalServerError(text="Failed to load config file")
 
 
-@routes.post("/config")
+@routes.post("/config/set")
 async def handle_set_config(request: web.Request) -> web.Response:
     """Completely overwrite the current configuration settings."""
     body = await request.json()
@@ -78,7 +79,36 @@ async def handle_set_config(request: web.Request) -> web.Response:
 
     try:
         with open("./service_config.json", "w") as f:
-            f.write(json.dumps(config))
+            json.dump(config, f)
+
+        # Trigger the shutdown event
+        request.app["shutdown_event"].set()
+        return web.Response(text="Successfully overwrote config")
+    except OSError:
+        raise web.HTTPInternalServerError(text="Failed to overwrite config")
+
+
+@routes.post("/config/update")
+async def handle_update_config(request: web.Request) -> web.Response:
+    """Update the current configuration settings."""
+    body = await request.json()
+
+    if "overrides" not in body:
+        raise web.HTTPBadRequest(text="Missing required 'overrides' param")
+
+    overrides = body["overrides"]
+    if not isinstance(config, dict):
+        raise web.HTTPBadRequest(text="Invalid value for 'overrides': Not object")
+
+    try:
+        with open("./service_config.json", "r+") as f:
+            config = json.load(f)
+            deep_update(config, overrides)
+
+            # Write new config at the beginning of the file; truncate what's left
+            f.seek(0)
+            json.dump(config, f)
+            f.truncate()
 
         # Trigger the shutdown event
         request.app["shutdown_event"].set()

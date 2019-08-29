@@ -48,6 +48,7 @@ ptr_params = {
     "test_suite_timeout": 300,
     "required_coverage": {
         "tglib/clients/prometheus_client.py": 85,
+        "tglib/utils/dict.py": 100,
         "TOTAL": 35,
     },
     "run_flake8": True,

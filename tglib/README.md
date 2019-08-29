@@ -24,7 +24,13 @@ The first is a `lambda` function wrapper to the entry point for your application
 logic. The second parameter is a set of `Clients` that your service needs in
 order to execute the application logic. The final parameter is an optional
 `aiohttp.web.RouteTableDef` for defining additional endpoints to add to the HTTP
-server. See the `./examples` directory for basic usages of the framework.
+server. See the `tglib/examples` directory for basic usages of the framework.
+
+### Configuration
+All per-service configuration should be supplied in the form of a JSON
+configuration file in the service's top level directory. Overrides to the base
+`tglib` configurations defined in `tglib/config.json` should be specified in an
+object behind the reserved key `"overrides"`.
 
 ### Synchronization
 To protect critical sections in application code, such as concurrent database

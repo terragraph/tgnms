@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
+import copy
 from typing import Dict, Optional, Tuple, cast
 
 import aiohttp
@@ -21,11 +22,14 @@ class APIServiceClient(BaseClient):
         if "mysql" not in config:
             raise ConfigError("Missing required 'mysql' key")
 
-        mysql_params = config["mysql"]
-        if not isinstance(mysql_params, dict):
+        if not isinstance(config["mysql"], dict):
             raise ConfigError("Config value for 'mysql' is not object")
 
-        required_params = ["host", "port", "user", "password"]
+        # Make a deep copy to avoid altering 'config' for other clients
+        mysql_params = copy.deepcopy(config["mysql"])
+        mysql_params["db"] = "cxl"
+
+        required_params = ["host", "port", "user", "password", "db"]
         if not all(param in mysql_params for param in required_params):
             raise ConfigError(
                 f"Missing one or more required 'mysql' params: {required_params}"
@@ -33,7 +37,7 @@ class APIServiceClient(BaseClient):
 
         try:
             connection = pymysql.connect(
-                db="cxl", cursorclass=pymysql.cursors.DictCursor, **mysql_params
+                cursorclass=pymysql.cursors.DictCursor, **mysql_params
             )
 
             with connection.cursor() as cursor:
