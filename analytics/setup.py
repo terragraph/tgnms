@@ -15,6 +15,7 @@ setup(
         "aiohttp==3.5.4",
         "aiomysql==0.0.20",
         "click==7.0",
+        "croniter==0.3.30",
         "django==2.1.1",
         "flask==1.0.2",
         "jupyter==1.0.0",
