@@ -99,7 +99,7 @@ class SearchBar extends React.Component {
           className={classes.input}
           onChange={this.handleInput}
           onBlur={this.handleBlur}
-          value={value}
+          value={value ? value : ''}
           placeholder="Search"
           fullWidth
           disableUnderline
