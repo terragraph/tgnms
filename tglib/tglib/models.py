@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-"""Provide MySQL table schema definitions.
-
-Attributes:
-    Controller
-    Topology
-"""
-
 from sqlalchemy import JSON, Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
