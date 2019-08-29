@@ -8,6 +8,7 @@
  */
 
 namespace cpp2 facebook.gorilla.thrift
+namespace py terragraph_thrift.Pinger
 
 struct Target {
   1: string ip;

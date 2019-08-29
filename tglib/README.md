@@ -1,5 +1,5 @@
 # tglib - Terragraph Library
-`tglib` is a python3.7 framework built using `asyncio`. At its core, `tglib`
+`tglib` is a Python 3.7 framework built using `asyncio`. At its core, `tglib`
 provides a simple and standardized way to write applications that can be safely
 deployed as microservices in the Terragraph Docker Swarm.
 
@@ -24,12 +24,12 @@ The first is a `lambda` function wrapper to the entry point for your application
 logic. The second parameter is a set of `Clients` that your service needs in
 order to execute the application logic. The final parameter is an optional
 `aiohttp.web.RouteTableDef` for defining additional endpoints to add to the HTTP
-server. See the `tglib/examples` directory for basic usages of the framework.
+server. See the `./examples` directory for basic usages of the framework.
 
 ### Configuration
 All per-service configuration should be supplied in the form of a JSON
 configuration file in the service's top level directory. Overrides to the base
-`tglib` configurations defined in `tglib/config.json` should be specified in an
+`tglib` configurations (defined in `./config.json`) should be specified in an
 object behind the reserved key `"overrides"`.
 
 ### Synchronization
@@ -71,11 +71,13 @@ from `prometheus`. If the operation is successful, then the client is deemed to
 be healthy, otherwise it is in an unhealthy state.
 
 ### Thrift
-All thrift files needed to run the `tglib` framework are located in the `./if`
-directory. During development, it may be necessary to regenerate the thrift
-definitions. This can be done by running the custom command below.
+Raw thrift files are copied into the `./tgif` directory and compiled into Python
+during the creation of the `tglib` Docker image. During development, it may be
+necessary to regenerate the Python thrift definitions. This can be done by
+running the following commands.
 ```Bash
 $ python setup.py build_thrift
+$ pip install .
 ```
 
 ### Python Test Runner

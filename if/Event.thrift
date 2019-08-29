@@ -7,8 +7,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-namespace cpp2 facebook.gorilla.query
-namespace py facebook.gorilla.Event
+namespace py terragraph_thrift.Event
+namespace cpp2 facebook.terragraph.thrift
 
 enum EventCategory {
   IGNITION = 100,
@@ -27,39 +27,81 @@ enum EventCategory {
   ZMQ = 1400,
   LOGTAIL = 1500,
   HIGH_AVAILABILITY = 1600,
-  AUTO_OPTIMIZER = 1700,
 }
 
-enum EventSubcategory {
-  // == GENERAL === //
-  LINK = 10,
-  NODE = 11,
-  TOPOLOGY = 12,
+enum EventId {
+  // === IGNITION === //
+  SET_LINK_STATUS = 101,
+  MINION_SET_LINK_STATUS = 102,
+  DRIVER_LINK_STATUS = 103,
+
   // === TOPOLOGY === //
-  ADD_NODE = 200,
-  DEL_NODE = 201,
-  EDIT_NODE = 202,
-  ADD_LINK = 203,
-  DEL_LINK = 204,
-  EDIT_LINK = 205,
-  ADD_SITE = 206,
-  DEL_SITE = 207,
-  EDIT_SITE = 208,
+  TOPOLOGY_NAME_MODIFIED = 201,
+  TOPOLOGY_NODE_ADDED = 202,
+  TOPOLOGY_NODE_MODIFIED = 203,
+  TOPOLOGY_NODE_REMOVED = 204,
+  TOPOLOGY_LINK_ADDED = 205,
+  TOPOLOGY_LINK_MODIFIED = 206,
+  TOPOLOGY_LINK_REMOVED = 207,
+  TOPOLOGY_SITE_ADDED = 208,
+  TOPOLOGY_SITE_MODIFIED = 209,
+  TOPOLOGY_SITE_REMOVED = 210,
+
   // === UPGRADE === //
-  IMAGE = 300,
-  PREPARE = 301,
-  COMMIT = 302,
-  TIMEOUT = 303,
+  UPGRADE_PREPARE = 301,
+  UPGRADE_COMMIT = 302,
+  UPGRADE_INFO = 303,
+  UPGRADE_IMAGE_INFO = 304,
+
+  // === SCAN === //
+  SCAN_REQ = 401,
+  SCAN_RESP = 402,
+  SCAN_COMPLETE = 403,
+
+  // === CONFIG === //
+  CONFIG_MODIFIED = 501,
+  SET_CONFIG = 502,
+  MINION_SET_CONFIG = 503,
+  CONFIG_POLARITY_INFO = 504,
+  CONFIG_GOLAY_INFO = 505,
+  CONFIG_CONTROL_SUPERFRAME_INFO = 506,
+  CONFIG_CHANNEL_INFO = 507,
+
+  // === TRAFFIC === //
+  IPERF_INFO = 601,
+  PING_INFO = 602,
+
+  // === STATUS === //
+  NODE_STATUS = 701,
+  LINK_STATUS = 702,
+  GPS_SYNC = 703,
+  NODE_INFO = 704,
+  UNKNOWN_NODE = 705,
+  REBOOT_NODE_REQ = 706,
+  RESTART_MINION_REQ = 707,
+  WIRED_LINK_STATUS = 708,
+  MARVELL_SWITCH_STATUS = 709,
+  NODE_PARAMS = 710,
+
+  // === DRIVER === //
+  DRIVER_NODE_INIT = 801,
+  DRIVER_DEVICE_STATUS = 802,
+
+  // === OPENR === //
+  OPENR_KVSTORE_MODIFIED = 1001,
+  OPENR_LINK_MONITOR_MODIFIED = 1002,
+
   // == WATCHDOG == //
-  REPAIR_FW_RESTART = 1000,
-  REPAIR_NO_FW_RESTART = 1001,
-  REBOOT = 1002,
-  // === SYSTEM === //
-  IO = 1200,
-  CMD = 1201,
-  PARSE = 1202,
-  // === FIRMWARE === //
-  NETLINK = 1300,
+  WDOG_REPAIR_FW_RESTART = 1101,
+  WDOG_REPAIR_NO_FW_RESTART = 1102,
+  WDOG_REBOOT = 1103,
+
+  // === LOGTAIL === //
+  LOG_BASED_EVENT = 1501,
+
+  // === HIGH_AVAILABILITY === //
+  HIGH_AVAILABILITY_STATE_CHANGE = 1601,
+  PEER_VERSION_MISMATCH = 1602,
 }
 
 enum EventLevel {
@@ -75,7 +117,11 @@ struct Event {
   3: string reason;  // The event description, in plain English
   4: string details;  // Supplemental information, as a JSON string (optional)
   5: EventCategory category;
-  6: EventSubcategory subcategory;
+  // 6 deprecated
   7: EventLevel level;
-  8: optional string entity;  // The entity this event is associated with (MAC)
+  8: optional string entity;  // The entity this event is associated with
+  9: optional string nodeId;  // The associated node ID (MAC)
+  10: EventId eventId;  // The event ID, for directly associated events
+  11: optional string topologyName;  // The topology name
+  12: optional string nodeName;  // The associated node name (if applicable)
 }

@@ -6,8 +6,8 @@ from typing import Dict, Optional, Tuple
 import pymysql
 from aiomysql.sa import Engine, SAConnection, create_engine
 
-from .base_client import BaseClient
-from ..exceptions import (
+from tglib.clients.base_client import BaseClient
+from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,

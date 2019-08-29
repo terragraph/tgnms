@@ -8,8 +8,8 @@ from typing import Any, Dict, List, Optional, Pattern, Tuple, Union, cast
 
 import aiohttp
 
-from .base_client import BaseClient
-from ..exceptions import (
+from tglib.clients.base_client import BaseClient
+from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,

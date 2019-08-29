@@ -16,12 +16,12 @@ class BuildThriftCommand(distutils.cmd.Command):
 
     description = "Build thrift type definitions"
     user_options = [
-        ("path=", None, "path to thrift files"),
+        ("path=", None, "path to thrift files")
     ]
 
     def initialize_options(self):
         """Set default values for options."""
-        self.path = "./if"
+        self.path = "./tgif"
 
     def finalize_options(self):
         """Post-process options."""
@@ -33,13 +33,23 @@ class BuildThriftCommand(distutils.cmd.Command):
             if not file.endswith(".thrift"):
                 continue
 
-            command = ["/usr/local/bin/thrift", "--gen", "py"]
-            command.append(f"{self.path}/{file}")
+            # Remove 'namespace cpp2' line
+            file = f"{self.path}/{file}"
+            with open(file, "r+") as f:
+                lines = f.readlines()
+
+                f.seek(0)
+                for line in lines:
+                    if not line.startswith("namespace cpp2"):
+                        f.write(line)
+
+                f.truncate()
+
+            # Run the thrift command
+            command = ["/usr/local/bin/thrift", "--gen", "py", "-out", self.path]
+            command.append(file)
             self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
             subprocess.check_call(command)
-
-        # Rename folder to get rid of dash
-        os.rename("gen-py", "gen_py")
 
 
 ptr_params = {
@@ -60,7 +70,7 @@ ptr_params = {
 setup(
     name="tglib",
     version=__version__,
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=[
         "aiohttp==3.5.4",
@@ -69,11 +79,8 @@ setup(
         "asynctest==0.13.0",
         "pymysql==0.9.2",
         "sqlalchemy==1.3.5",
-        "thrift==0.11.0",
     ],
     extras_require={"ci": ["ptr"]},
-    cmdclass={
-        "build_thrift": BuildThriftCommand,
-    },
+    cmdclass={"build_thrift": BuildThriftCommand},
     test_suite=ptr_params["test_suite"],
 )

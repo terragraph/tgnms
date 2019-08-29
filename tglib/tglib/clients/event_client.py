@@ -10,20 +10,20 @@ from typing import Dict, Optional, Tuple
 from aiokafka import AIOKafkaProducer
 from kafka.errors import KafkaError
 
-from gen_py.facebook.terragraph.thrift.Event.ttypes import (
+from tgif.terragraph_thrift.Event.ttypes import (
     Event,
     EventCategory,
     EventId,
     EventLevel,
 )
-from .base_client import BaseClient
-from ..exceptions import (
+from tglib.clients.base_client import BaseClient
+from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,
     ConfigError,
 )
-from ..utils.serialization import thrift2bytes, thrift2json
+from tglib.utils.serialization import thrift2bytes, thrift2json
 
 
 class EventClient(BaseClient, AIOKafkaProducer):
