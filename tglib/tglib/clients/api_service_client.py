@@ -50,7 +50,7 @@ class APIServiceClient(BaseClient):
                 results = cursor.fetchall()
 
                 self._controllers = {
-                    result["name"]: f'[{result["api_ip"]}]:{result["api_port"]}'
+                    result["name"]: f'{result["api_ip"]}:{result["api_port"]}'
                     for result in results
                 }
         except pymysql.MySQLError as e:
