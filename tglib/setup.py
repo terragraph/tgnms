@@ -79,6 +79,7 @@ setup(
         "asynctest==0.13.0",
         "pymysql==0.9.2",
         "sqlalchemy==1.3.5",
+        "thrift==0.11.0",
     ],
     extras_require={"ci": ["ptr"]},
     cmdclass={"build_thrift": BuildThriftCommand},
