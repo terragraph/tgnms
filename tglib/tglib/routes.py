@@ -97,7 +97,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
         raise web.HTTPBadRequest(text="Missing required 'overrides' param")
 
     overrides = body["overrides"]
-    if not isinstance(config, dict):
+    if not isinstance(overrides, dict):
         raise web.HTTPBadRequest(text="Invalid value for 'overrides': Not object")
 
     try:
