@@ -11,7 +11,6 @@ import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
 import NetworkConfig from './views/config/NetworkConfig';
 import NetworkContext from './NetworkContext';
-import NetworkDashboards from './views/dashboards/NetworkDashboards';
 import NetworkListContext from './NetworkListContext';
 import NetworkMap from './views/map/NetworkMap';
 import NetworkStatsBeringei from './views/stats/NetworkStatsBeringei';
@@ -471,10 +470,6 @@ class NetworkUI extends React.Component<Props, State> {
                   />
                 )
               }
-            />
-            <Route
-              path={`/dashboards/:networkName`}
-              render={() => <NetworkDashboards networkName={networkName} />}
             />
             <Route
               path={`/logs/:networkName`}

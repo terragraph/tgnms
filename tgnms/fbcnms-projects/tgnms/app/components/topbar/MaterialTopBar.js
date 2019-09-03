@@ -12,7 +12,6 @@ import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import CodeIcon from '@material-ui/icons/Code';
-import DashboardIcon from '@material-ui/icons/Dashboard';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import Grid from '@material-ui/core/Grid';
@@ -147,13 +146,6 @@ const VIEWS = [
   {name: 'Map', icon: <MapIcon />, viewName: 'map'},
   {name: 'Tables', icon: <TableChartIcon />, viewName: 'tables'},
   {name: 'Stats', icon: <BarChartIcon />, viewName: 'stats'},
-  {
-    name: 'Dashboards',
-    icon: <DashboardIcon />,
-    viewName: 'dashboards',
-    // hide dashboards if grafana URL is unknown
-    hideCondition: () => !isFeatureEnabled('GRAFANA_ENABLED'),
-  },
   {
     name: 'Logs',
     icon: <CodeIcon />,

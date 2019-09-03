@@ -34,26 +34,6 @@ test('renders without crashing', () => {
 });
 
 describe('Drawer feature flags', () => {
-  test('GRAFANA_URL shows/hides Dashboards', () => {
-    let result = renderWithRouter(
-      <TestApp>
-        <MaterialTopBar />
-      </TestApp>,
-    );
-    expect(result.queryByText('Dashboards')).not.toBeInTheDocument();
-    initWindowConfig({
-      env: {
-        GRAFANA_URL: 'example.com',
-      },
-    });
-    result = renderWithRouter(
-      <TestApp>
-        <MaterialTopBar />
-      </TestApp>,
-    );
-    expect(result.queryByText('Dashboards')).toBeInTheDocument();
-  });
-
   test('NOTIFICATION_MENU_ENABLED shows/hides NotificationMenu', () => {
     let result = renderWithRouter(
       <TestApp>
