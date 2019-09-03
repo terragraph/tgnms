@@ -10,13 +10,13 @@ import BuildIcon from '@material-ui/icons/Build';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
+import GrafanaIcon from '../common/GrafanaIcon';
 import GrafanaLink, {GrafanaDashboardUUID} from '../common/GrafanaLink';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
@@ -227,7 +227,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
           },
           {
             label: 'View in Grafana',
-            icon: <OpenInNewIcon />,
+            icon: <GrafanaIcon />,
             component: props => (
               <GrafanaLink
                 {...props}

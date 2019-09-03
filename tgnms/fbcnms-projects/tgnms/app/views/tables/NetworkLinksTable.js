@@ -26,7 +26,7 @@ import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {availabilityColor} from '../../helpers/NetworkHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {get} from 'lodash';
-import {renderDashboardLink} from './FbInternal';
+import {renderDashboardLinks, renderGrafanaLink} from './FbInternal';
 import {renderStatusColor} from '../../helpers/TableHelpers';
 import {withStyles} from '@material-ui/core/styles';
 import type {LinkType} from '../../../shared/types/Topology';
@@ -41,10 +41,13 @@ const styles = theme => {
       marginLeft: theme.spacing(),
       marginRight: theme.spacing(),
     },
+    cell: {
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+    },
     tableOptions: {
       padding: `${theme.spacing()}px ${theme.spacing(2)}px`,
     },
-    tableContainer: {},
   };
 };
 
@@ -120,10 +123,10 @@ class NetworkLinksTable extends React.Component<Props, State> {
       isKey: true,
       key: 'name',
       label: 'Name',
-      render: this.renderLinkName.bind(this),
+      render: renderGrafanaLink.bind(this),
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
-      width: 300,
+      width: 350,
     },
     {
       key: 'alive',
@@ -174,7 +177,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
       isKey: true,
       key: 'name',
       label: 'Name',
-      render: renderDashboardLink.bind(this),
+      render: renderDashboardLinks.bind(this),
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
       width: 350,
@@ -264,9 +267,10 @@ class NetworkLinksTable extends React.Component<Props, State> {
       isKey: true,
       key: 'name',
       label: 'Name',
+      render: renderGrafanaLink.bind(this),
       sort: true,
       sortFunc: this.linkSortFunc.bind(this),
-      width: 300,
+      width: 350,
     },
     {filter: true, key: 'a_node_name', label: 'A-Node', width: 180},
     {filter: true, key: 'z_node_name', label: 'Z-Node', width: 180},
@@ -535,10 +539,6 @@ class NetworkLinksTable extends React.Component<Props, State> {
       context.setSelected(TopologyElementType.LINK, row.name),
     );
   };
-
-  renderLinkName(cell, _row) {
-    return <span>{cell}</span>;
-  }
 
   renderAlivePerc(cell, row) {
     let cellColor = 'red';
