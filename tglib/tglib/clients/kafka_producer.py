@@ -23,7 +23,7 @@ from tglib.exceptions import (
     ClientStoppedError,
     ConfigError,
 )
-from tglib.utils.serialization import thrift2bytes, thrift2json
+from tglib.utils.serialization import thrift2json
 
 
 class KafkaProducer(BaseClient, AIOKafkaProducer):
@@ -129,7 +129,7 @@ class KafkaProducer(BaseClient, AIOKafkaProducer):
         event.topologyName = topology_name
         event.nodeName = node_name
 
-        bytes = thrift2bytes(event)
+        bytes = thrift2json(event)
         await self.send("events", bytes)
         return True
 
@@ -180,7 +180,7 @@ class KafkaProducer(BaseClient, AIOKafkaProducer):
             category,
             level,
             event_id,
-            thrift2json(details),
+            thrift2json(details).decode(),
             entity,
             node_id,
             topology_name,
