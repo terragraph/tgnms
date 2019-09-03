@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -10,7 +11,6 @@ import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Paper from '@material-ui/core/Paper';
-import PropTypes from 'prop-types';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
 import {debounce} from 'lodash';
@@ -41,13 +41,23 @@ const styles = theme => ({
   },
 });
 
-class SearchBar extends React.Component {
-  constructor(props) {
-    super(props);
+type Props = {
+  classes: {[string]: string},
+  value: string,
+  isLoading?: boolean,
+  autoFocus?: boolean,
+  onChange?: any => void,
+  onClearInput?: () => void,
+  onSearch?: string => void,
+  debounceMs?: number,
+};
 
+class SearchBar extends React.Component<Props> {
+  constructor(props: Props) {
+    super(props);
     // Debounce search callbacks (if needed)
     const {debounceMs} = props;
-    if (debounceMs && debounceMs > 0) {
+    if (debounceMs !== undefined && debounceMs > 0) {
       this.handleSearch = debounce(this.handleSearch, debounceMs);
     }
   }
@@ -128,16 +138,5 @@ class SearchBar extends React.Component {
     );
   }
 }
-
-SearchBar.propTypes = {
-  classes: PropTypes.object.isRequired,
-  value: PropTypes.string,
-  isLoading: PropTypes.bool,
-  autoFocus: PropTypes.bool,
-  onChange: PropTypes.func, // function(event) => void
-  onClearInput: PropTypes.func, // function(void) => void
-  onSearch: PropTypes.func, // function(string) => void
-  debounceMs: PropTypes.number, // debounce searches at this interval
-};
 
 export default withStyles(styles)(SearchBar);

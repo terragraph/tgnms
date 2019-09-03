@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
@@ -30,6 +31,8 @@ import {isEqual} from 'lodash';
 import {shallowEqual} from '../../helpers/ConfigHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
+import type {NetworkConfig} from '../../NetworkContext';
+import type {NodeType} from '../../../shared/types/Topology';
 
 const styles = theme => ({
   header: {
@@ -98,25 +101,25 @@ const e2eConfigBaseOptions = Object.freeze([
 ]);
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   editMode: string, // NetworkConfigMode or E2EConfigMode
   useRawJsonEditor: boolean,
   networkName: string,
-  networkConfig: Object,
-  onChangeEditorType: Function, // bool => void
-  selectedNodeInfo: ?object,
-  onSelectNode: Function, // nodeInfo{} => void
+  networkConfig: NetworkConfig,
+  onChangeEditorType: boolean => any,
+  selectedNodeInfo: ?Object,
+  onSelectNode: NodeType => any,
   baseConfigs: ?Object,
   selectedImage: ?string,
-  onSelectImage: Function, // string => void
+  onSelectImage: string => void,
   hardwareBaseConfigs: ?Object,
   selectedHardwareType: ?string,
-  onSelectHardwareType: Function, // string => void
+  onSelectHardwareType: string => void,
   topologyNodeList: ?Array<Object>,
   useMetadataBase: boolean,
-  onSetConfigBase: Function, // bool => void
-  onConfigRefresh: Function, // (string, bool) => void
-  onUpdateSnackbar: Function, // (string, string) => void
+  onSetConfigBase: boolean => void,
+  onConfigRefresh: (string, boolean) => void,
+  onUpdateSnackbar: (string, string) => void,
 };
 
 type State = {
@@ -131,7 +134,11 @@ type State = {
 
 class ConfigSidebar extends React.Component<Props, State> {
   state = {
+    useRawJsonEditor: false,
+    selectedImage: '',
+    selectedHardwareType: '',
     nodeFilter: nodeFilterOptions[0].label,
+    useMetadataBase: false,
     showFullNodeConfigModal: false,
     showClearNodeAutoConfigModal: false,
   };
@@ -162,6 +169,9 @@ class ConfigSidebar extends React.Component<Props, State> {
   filterTopologyNodes = nodeFilter => {
     // Filters the topology nodes using the given filter option string
     const {topologyNodeList} = this.props;
+    if (!topologyNodeList) {
+      return [];
+    }
 
     const filterOption = nodeFilterOptions.find(
       option => nodeFilter === option.label,
@@ -445,7 +455,7 @@ class ConfigSidebar extends React.Component<Props, State> {
           isOpen={showClearNodeAutoConfigModal}
           onClose={this.handleCloseClearNodeAutoConfigModal}
           networkName={networkName}
-          nodes={topologyNodeList}
+          nodes={topologyNodeList ? topologyNodeList : []}
         />
       </>
     );
