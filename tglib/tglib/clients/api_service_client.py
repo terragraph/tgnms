@@ -6,6 +6,8 @@ import copy
 from typing import Dict, Optional, Tuple, cast
 
 import aiohttp
+import ipaddress
+import logging
 import pymysql
 
 from tglib.clients.base_client import BaseClient
@@ -24,6 +26,9 @@ class APIServiceClient(BaseClient):
 
         if not isinstance(config["mysql"], dict):
             raise ConfigError("Config value for 'mysql' is not object")
+
+        # timeout is for HTTP get/post
+        self.timeout = 1
 
         # Make a deep copy to avoid altering 'config' for other clients
         mysql_params = copy.deepcopy(config["mysql"])
@@ -49,10 +54,14 @@ class APIServiceClient(BaseClient):
                 cursor.execute(query)
                 results = cursor.fetchall()
 
-                self._controllers = {
-                    result["name"]: f'{result["api_ip"]}:{result["api_port"]}'
-                    for result in results
-                }
+                self._controllers = {}
+                for result in results:
+                    try:
+                        ip = f"[{ipaddress.IPv6Address(result['api_ip'])}]"
+                    except ipaddress.AddressValueError:
+                        ip = result["api_ip"]
+                    self._controllers[result["name"]] = f"{ip}:{result['api_port']}"
+
         except pymysql.MySQLError as e:
             raise ClientRuntimeError(self.class_name) from e
         finally:
@@ -102,7 +111,10 @@ class APIServiceClient(BaseClient):
 
         try:
             url = f"http://{self._controllers[topology_name]}/api/{endpoint}"
-            async with self._session.post(url, json=params) as resp:
+            logging.debug(f"Requesting from API service {url}")
+            async with self._session.post(
+                url, json=params, timeout=self.timeout
+            ) as resp:
                 if resp.status == 200:
                     return cast(Dict, await resp.json())
 
