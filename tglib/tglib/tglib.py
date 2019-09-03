@@ -12,8 +12,8 @@ from typing import Callable, Optional, Set, cast
 from aiohttp import web
 
 from tglib.clients.api_service_client import APIServiceClient
-from tglib.clients.event_client import EventClient
-from tglib.clients.kafka_client import KafkaConsumer, KafkaProducer
+from tglib.clients.kafka_consumer import KafkaConsumer
+from tglib.clients.kafka_producer import KafkaProducer
 from tglib.clients.mysql_client import MySQLClient
 from tglib.clients.prometheus_client import PrometheusClient
 from tglib.exceptions import ClientError, ConfigError, DuplicateRouteError
@@ -28,11 +28,10 @@ class Client(enum.Enum):
     """Enumerate client options."""
 
     API_SERVICE_CLIENT = 0
-    EVENT_CLIENT = 1
-    KAFKA_CONSUMER = 2
-    KAFKA_PRODUCER = 3
-    MYSQL_CLIENT = 4
-    PROMETHEUS_CLIENT = 5
+    KAFKA_CONSUMER = 1
+    KAFKA_PRODUCER = 2
+    MYSQL_CLIENT = 3
+    PROMETHEUS_CLIENT = 4
 
 
 def init(
@@ -85,8 +84,6 @@ def init(
     app["clients"] = []
     if Client.API_SERVICE_CLIENT in clients:
         app["clients"].append(APIServiceClient(config))
-    if Client.EVENT_CLIENT in clients:
-        app["clients"].append(EventClient(config))
     if Client.KAFKA_CONSUMER in clients:
         app["clients"].append(KafkaConsumer(config))
     if Client.KAFKA_PRODUCER in clients:

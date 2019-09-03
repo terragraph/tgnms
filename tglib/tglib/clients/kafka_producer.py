@@ -26,8 +26,8 @@ from tglib.exceptions import (
 from tglib.utils.serialization import thrift2bytes, thrift2json
 
 
-class EventClient(BaseClient, AIOKafkaProducer):
-    def __init__(self, config: Dict):
+class KafkaProducer(BaseClient, AIOKafkaProducer):
+    def __init__(self, config: Dict) -> None:
         if "kafka" not in config:
             raise ConfigError("Missing required 'kafka' key")
 
@@ -74,10 +74,11 @@ class EventClient(BaseClient, AIOKafkaProducer):
             raise ClientStoppedError(self.class_name)
 
         try:
-            await self.partitions_for("events")
+            # This is a hack -- need a better way to assess connection health
+            await self.partitions_for("stats")
             return True, self.class_name
         except KafkaError:
-            return False, f"{self.class_name}: Could not fetch 'events' partitions"
+            return False, f"{self.class_name}: Could not fetch 'stats' partitions"
 
     async def log_event(
         self,

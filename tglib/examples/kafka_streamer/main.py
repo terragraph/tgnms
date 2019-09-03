@@ -17,7 +17,7 @@ import logging
 import sys
 from typing import Dict
 
-from tglib.clients.kafka_client import KafkaConsumer
+from tglib.clients.kafka_consumer import KafkaConsumer
 from tglib.tglib import Client, init
 
 
