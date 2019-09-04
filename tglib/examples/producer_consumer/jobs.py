@@ -24,7 +24,7 @@ async def add_x(start_time: int, metric_name: str, x: int) -> None:
                 time=start_time,
                 labels=metric,
                 value=value + x,
-            ),
+            )
         )
 
     client.write_metrics(interval_sec=30, metrics=metrics)

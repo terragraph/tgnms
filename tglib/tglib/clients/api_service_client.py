@@ -54,7 +54,7 @@ class APIServiceClient(BaseClient):
                 cursor.execute(query)
                 results = cursor.fetchall()
 
-                self._controllers = {}
+                self._controllers: Dict = {}
                 for result in results:
                     try:
                         ip = f"[{ipaddress.IPv6Address(result['api_ip'])}]"

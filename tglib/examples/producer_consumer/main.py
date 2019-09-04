@@ -86,8 +86,7 @@ async def main(config: Dict) -> None:
 
     # Create producer coroutines
     producers = [
-        produce(q, name, pipeline)
-        for name, pipeline in config["pipelines"].items()
+        produce(q, name, pipeline) for name, pipeline in config["pipelines"].items()
     ]
 
     # Create 10 consumer coroutines

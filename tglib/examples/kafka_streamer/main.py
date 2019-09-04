@@ -29,8 +29,7 @@ async def main(config: Dict) -> None:
     async for msg in consumer:
         print(
             "{}:{:d}:{:d}: key={} value={} timestamp_ms={}".format(
-                msg.topic, msg.partition, msg.offset,
-                msg.key, msg.value, msg.timestamp,
+                msg.topic, msg.partition, msg.offset, msg.key, msg.value, msg.timestamp
             )
         )
 
