@@ -8,6 +8,7 @@
 import Button from '@material-ui/core/Button';
 import CheckIcon from '@material-ui/icons/Check';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import Input from '@material-ui/core/Input';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
@@ -70,6 +71,12 @@ const styles = theme => ({
   actionsButton: {
     textAlign: 'center',
   },
+  nodeConfigSearch: {
+    border: '1px solid lightGray',
+    fontSize: 12,
+    height: theme.spacing(3),
+    padding: theme.spacing(),
+  },
 });
 
 // Editor type
@@ -128,6 +135,7 @@ type State = {
   selectedHardwareType: string,
   nodeFilter: string,
   useMetadataBase: boolean,
+  searchFilter: string,
   showFullNodeConfigModal: boolean,
   showClearNodeAutoConfigModal: boolean,
 };
@@ -139,6 +147,7 @@ class ConfigSidebar extends React.Component<Props, State> {
     selectedHardwareType: '',
     nodeFilter: nodeFilterOptions[0].label,
     useMetadataBase: false,
+    searchFilter: '',
     showFullNodeConfigModal: false,
     showClearNodeAutoConfigModal: false,
   };
@@ -169,16 +178,23 @@ class ConfigSidebar extends React.Component<Props, State> {
   filterTopologyNodes = nodeFilter => {
     // Filters the topology nodes using the given filter option string
     const {topologyNodeList} = this.props;
-    if (!topologyNodeList) {
-      return [];
-    }
+    const {searchFilter} = this.state;
 
     const filterOption = nodeFilterOptions.find(
       option => nodeFilter === option.label,
     );
-    return filterOption
-      ? topologyNodeList.filter(filterOption.filter)
-      : topologyNodeList;
+    let filteredTopologyNodeList = topologyNodeList || [];
+    if (filterOption) {
+      filteredTopologyNodeList = filteredTopologyNodeList.filter(
+        filterOption.filter,
+      );
+    }
+    if (searchFilter) {
+      filteredTopologyNodeList = filteredTopologyNodeList.filter(node =>
+        node.name.includes(searchFilter),
+      );
+    }
+    return filteredTopologyNodeList;
   };
 
   handleChangeFilterOption = newNodeFilter => {
@@ -335,6 +351,11 @@ class ConfigSidebar extends React.Component<Props, State> {
     this.setState({showFullNodeConfigModal: false});
   };
 
+  handleInput = e => {
+    // Filters nodes based on input value
+    this.setState({searchFilter: e.target.value});
+  };
+
   renderNodeupdateIcon = nodeInfo => {
     // Render the nodeupdate bundle state icon (if applicable) for a node entry
     const {classes} = this.props;
@@ -470,7 +491,7 @@ class ConfigSidebar extends React.Component<Props, State> {
       selectedNodeInfo,
       onSelectNode,
     } = this.props;
-    const {nodeFilter, showFullNodeConfigModal} = this.state;
+    const {nodeFilter, searchFilter, showFullNodeConfigModal} = this.state;
     const renderedNodeList = this.filterTopologyNodes(nodeFilter);
 
     const inputs = [
@@ -499,12 +520,22 @@ class ConfigSidebar extends React.Component<Props, State> {
           <Typography variant="caption" gutterBottom>
             Select Node
           </Typography>
-          {renderedNodeList.length === 0 ? (
-            <Typography variant="body2">No matching nodes.</Typography>
-          ) : null}
+          <Input
+            className={classes.nodeConfigSearch}
+            value={searchFilter}
+            onChange={this.handleInput}
+            placeholder="Filter"
+            fullWidth
+            disableUnderline
+          />
         </div>
         <Paper className={classes.nodeListPaper} elevation={1}>
           <List component="nav">
+            {renderedNodeList.length === 0 ? (
+              <ListItem>
+                <Typography variant="body2">No matching nodes.</Typography>
+              </ListItem>
+            ) : null}
             {renderedNodeList.map(node => {
               const isSelected =
                 selectedNodeInfo && selectedNodeInfo.name === node.name;

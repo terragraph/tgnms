@@ -323,7 +323,7 @@ class NetworkConfig extends React.Component<Props, State> {
     this.setState({selectedNodeInfo: node}, () => {
       callback && callback();
       this.props.history.replace({
-        search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
+        search: `?${SELECTED_NODE_QUERY_PARAM}=${node ? node.name : ''}`,
       });
       // Refresh nodeupdate bundle status immediately
       this.refreshNodeupdateBundleStatus();
