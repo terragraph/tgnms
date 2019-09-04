@@ -32,16 +32,6 @@ configuration file in the service's top level directory. Overrides to the base
 `tglib` configurations (defined in `./config.json`) should be specified in an
 object behind the reserved key `"overrides"`.
 
-### Synchronization
-To protect critical sections in application code, such as concurrent database
-writes, import the `lock` and use it as such.
-```Python
-from tglib.tglib import lock
-
-async with lock:
-  """critical section"""
-```
-
 ## Development
 `tglib` uses semantic versioning (_major_._minor_._patch_) to define the version
 scheme.

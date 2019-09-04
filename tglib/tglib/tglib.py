@@ -21,9 +21,6 @@ from tglib.routes import routes
 from tglib.utils.dict import deep_update
 
 
-lock = asyncio.Lock()
-
-
 class Client(enum.Enum):
     """Enumerate client options."""
 
@@ -100,7 +97,6 @@ def init(
 
 async def start_background_tasks(app: web.Application) -> None:
     """Start the clients and create the main_wrapper and shutdown_listener tasks."""
-
     try:
         tasks = [client.start() for client in app["clients"]]
         await asyncio.gather(*tasks)
@@ -149,10 +145,8 @@ async def main_wrapper(app: web.Application) -> None:
 async def shutdown_listener(app: web.Application) -> None:
     """Wait for the shutdown_event notification to kill the process."""
     await app["shutdown_event"].wait()
+    logging.info("Shutting down!")
 
-    async with lock:
-        logging.info("Shutting down!")
-
-        # Sleep for 1 second before terminating
-        await asyncio.sleep(1)
-        os.kill(os.getpid(), signal.SIGTERM)
+    # Sleep for 1 second before terminating
+    await asyncio.sleep(1)
+    os.kill(os.getpid(), signal.SIGTERM)
