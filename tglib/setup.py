@@ -44,7 +44,7 @@ class BuildThriftCommand(distutils.cmd.Command):
                 f.truncate()
 
             # Run the thrift command
-            command = ["/usr/local/bin/thrift", "--gen", "py", "-out", self.path]
+            command = ["/usr/local/bin/thrift", "--gen", "py", "-out", "."]
             command.append(file)
             self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
             subprocess.check_call(command)
@@ -75,7 +75,7 @@ setup(
         "aiokafka>=0.5.2,<1.0",
         "aiomysql>=0.0.20,<1.0",
         "asynctest>=0.13.0,<1.0",
-        "pymysql>=0.9.2,<1.0",
+        "pymysql==0.9.2",
         "sqlalchemy>=1.3.5,<2.0",
         # Fix thrift to version pulled in Dockerfile
         "thrift==0.11.0",

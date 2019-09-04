@@ -10,12 +10,7 @@ from typing import Dict, Optional, Tuple
 from aiokafka import AIOKafkaProducer
 from kafka.errors import KafkaError
 
-from tgif.terragraph_thrift.Event.ttypes import (
-    Event,
-    EventCategory,
-    EventId,
-    EventLevel,
-)
+from terragraph_thrift.Event.ttypes import Event, EventCategory, EventId, EventLevel
 from tglib.clients.base_client import BaseClient
 from tglib.exceptions import (
     ClientRestartError,
