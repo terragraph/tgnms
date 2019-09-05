@@ -14,7 +14,6 @@ from aiohttp import web
 from tglib.clients.api_service_client import APIServiceClient
 from tglib.clients.kafka_consumer import KafkaConsumer
 from tglib.clients.kafka_producer import KafkaProducer
-from tglib.clients.event_client import EventClient
 from tglib.clients.mongodb_client import MongoDBClient
 from tglib.clients.mysql_client import MySQLClient
 from tglib.clients.prometheus_client import PrometheusClient
