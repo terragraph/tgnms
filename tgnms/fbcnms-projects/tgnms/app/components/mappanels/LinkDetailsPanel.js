@@ -19,6 +19,7 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
+import StatusText from '../common/StatusText';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
 import SyncIcon from '@material-ui/icons/Sync';
 import Text from '@fbcnms/i18n/Text';
@@ -38,7 +39,6 @@ import {
   hasLinkEverGoneOnline,
   isNodeAlive,
   renderAvailabilityWithColor,
-  renderStatusWithColor,
 } from '../../helpers/NetworkHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
@@ -329,13 +329,14 @@ class LinkDetailsPanel extends React.Component<Props, State> {
             Status
           </Text>
           <Typography variant="body2">
-            {renderStatusWithColor(
-              link.is_alive,
-              undefined,
-              hasLinkEverGoneOnline(link, networkConfig.offline_whitelist)
-                ? undefined
-                : 'Offline (never seen)',
-            )}
+            <StatusText
+              status={link.is_alive}
+              falseText={
+                hasLinkEverGoneOnline(link, networkConfig.offline_whitelist)
+                  ? undefined
+                  : 'Offline (never seen)'
+              }
+            />
           </Typography>
         </div>
         {link.link_type !== LinkType.WIRELESS ? (
@@ -378,7 +379,11 @@ class LinkDetailsPanel extends React.Component<Props, State> {
               Link Ignition
             </Text>
             <Typography variant="body2">
-              {renderStatusWithColor(ignitionEnabled, 'Enabled', 'Disabled')}
+              <StatusText
+                status={ignitionEnabled}
+                trueText="Enabled"
+                falseText="Disabled"
+              />
             </Typography>
           </div>
         ) : null}

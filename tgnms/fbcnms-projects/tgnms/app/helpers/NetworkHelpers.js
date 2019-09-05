@@ -74,19 +74,6 @@ export function renderAvailabilityWithColor(livenessPercentString) {
   );
 }
 
-/** Returns the status as a colored span. */
-export function renderStatusWithColor(
-  onlineStatus,
-  trueText = 'Online',
-  falseText = 'Offline',
-) {
-  return (
-    <span style={{color: onlineStatus ? 'green' : 'red'}}>
-      {onlineStatus ? trueText : falseText}
-    </span>
-  );
-}
-
 /** Returns the SNR as a colored span. */
 export function renderSnrWithColor(snr) {
   const color =

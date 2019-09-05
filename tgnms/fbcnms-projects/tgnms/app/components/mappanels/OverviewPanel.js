@@ -12,6 +12,7 @@ import ListIcon from '@material-ui/icons/List';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import StatusText from '../common/StatusText';
 import Typography from '@material-ui/core/Typography';
 import WifiIcon from '@material-ui/icons/Wifi';
 import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
@@ -40,7 +41,6 @@ import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {
   isNodeAlive,
   renderAvailabilityWithColor,
-  renderStatusWithColor,
 } from '../../helpers/NetworkHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
@@ -551,11 +551,11 @@ class OverviewPanel extends React.Component<Props, State> {
         <div className={classes.indented}>
           <Typography variant="body2">
             Network ignition is{' '}
-            {renderStatusWithColor(
-              ignitionEnabled,
-              anyLinkIgnitionOff ? 'partially enabled' : 'enabled',
-              'disabled',
-            )}
+            <StatusText
+              status={ignitionEnabled}
+              trueText={anyLinkIgnitionOff ? 'partially enabled' : 'enabled'}
+              falseText="disabled"
+            />
             .
           </Typography>
         </div>
@@ -590,7 +590,7 @@ class OverviewPanel extends React.Component<Props, State> {
             variant="subtitle2"
             gutterBottom
             data-testid="controller-status">
-            {renderStatusWithColor(networkConfig.controller_online)}
+            <StatusText status={networkConfig.controller_online} />
           </Typography>
         </div>
         <div className={classes.indented}>
@@ -660,7 +660,7 @@ class OverviewPanel extends React.Component<Props, State> {
             variant="subtitle2"
             gutterBottom
             data-testid="queryservice-status">
-            {renderStatusWithColor(networkConfig.query_service_online)}
+            <StatusText status={networkConfig.query_service_online} />
           </Typography>
         </div>
       </>

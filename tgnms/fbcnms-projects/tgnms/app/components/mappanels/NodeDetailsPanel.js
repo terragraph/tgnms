@@ -17,6 +17,7 @@ import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import RouterIcon from '@material-ui/icons/Router';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
+import StatusText from '../common/StatusText';
 import SyncIcon from '@material-ui/icons/Sync';
 import TimerIcon from '@material-ui/icons/Timer';
 import Typography from '@material-ui/core/Typography';
@@ -44,7 +45,6 @@ import {
   hasNodeEverGoneOnline,
   isNodeAlive,
   renderAvailabilityWithColor,
-  renderStatusWithColor,
 } from '../../helpers/NetworkHelpers';
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
@@ -417,11 +417,11 @@ class NodeDetailsPanel extends React.Component<Props, State> {
               <div className={classes.spaceBetween}>
                 <Typography variant="body2">Status</Typography>
                 <Typography variant="body2">
-                  {renderStatusWithColor(
-                    info.online,
-                    'Established',
-                    'Disconnected',
-                  )}
+                  <StatusText
+                    status={info.online}
+                    trueText="Established"
+                    falseText="Disconnected"
+                  />
                 </Typography>
               </div>
               <div className={classes.spaceBetween}>
@@ -529,13 +529,14 @@ class NodeDetailsPanel extends React.Component<Props, State> {
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Status</Typography>
           <Typography variant="body2">
-            {renderStatusWithColor(
-              isNodeAlive(node.status),
-              undefined,
-              hasNodeEverGoneOnline(node, networkConfig.offline_whitelist)
-                ? undefined
-                : 'Offline (never seen)',
-            )}
+            <StatusText
+              status={isNodeAlive(node.status)}
+              falseText={
+                hasNodeEverGoneOnline(node, networkConfig.offline_whitelist)
+                  ? undefined
+                  : 'Offline (never seen)'
+              }
+            />
           </Typography>
         </div>
         <div className={classes.spaceBetween}>
@@ -680,9 +681,6 @@ class NodeDetailsPanel extends React.Component<Props, State> {
         <Typography variant="subtitle2">Ethernet Links</Typography>
         <div className={classes.indented}>
           {nodeLinks.map(link => {
-            const {color, text} = link.is_alive
-              ? {color: 'green', text: 'Online'}
-              : {color: 'red', text: 'Offline'};
             const remoteNodeName =
               node.name == link.a_node_name
                 ? link.z_node_name
@@ -694,7 +692,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
                 data-testid={remoteNodeName}>
                 <Typography variant="body2">{remoteNodeName}</Typography>
                 <Typography variant="body2">
-                  <span style={{color: color}}>{text}</span>
+                  <StatusText status={link.is_alive} />
                 </Typography>
               </div>
             );
