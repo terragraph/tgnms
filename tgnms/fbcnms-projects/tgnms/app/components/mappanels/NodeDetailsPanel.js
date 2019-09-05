@@ -243,12 +243,13 @@ class NodeDetailsPanel extends React.Component<Props, State> {
 
   onEditNode = () => {
     // Edit this node
-    const {node, onClose, onEdit} = this.props;
+    const {onClose, onEdit} = this.props;
+    const {wlan_mac_addrs, ...node} = this.props.node;
 
     const params: EditNodeParams = {
       ...node,
       ...(node.golay_idx || {txGolayIdx: null, rxGolayIdx: null}),
-      wlan_mac_addrs: node.wlan_mac_addrs ? node.wlan_mac_addrs.join(',') : '',
+      wlan_mac_addrs: wlan_mac_addrs ? wlan_mac_addrs.join(',') : '',
     };
     // Format the data according to AddNodePanel state structure
     // (Not all parameters are editable, but send them all anyway)
