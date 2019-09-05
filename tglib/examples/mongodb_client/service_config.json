@@ -1,0 +1,7 @@
+{
+  "overrides": {
+    "mongodb": {
+      "db": "test_db",
+    }
+  }
+}

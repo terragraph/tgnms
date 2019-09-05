@@ -2,6 +2,10 @@
   "kafka": {
     "bootstrap_servers": ["kafka:9096"]
   },
+  "mongodb": {
+    "host": "mongodb",
+    "port": 27017
+  },
   "mysql": {
     "host": "db",
     "port": 3306,
