@@ -12,6 +12,7 @@ const API_REQUEST_TIMEOUT = envInt(process.env.API_REQUEST_TIMEOUT, 5000);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 // NOTE: Login is disabled by default until its deployed publicly
 const LOGIN_ENABLED = envBool(process.env.LOGIN_ENABLED, false);
+const SSO_ENABLED = envBool(process.env.SSO_ENABLED, false);
 
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
 const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
@@ -122,6 +123,7 @@ module.exports = {
   DEFAULT_API_SERVICE_PORT: '8080',
   DOCKER_API_VERSION,
   LOGIN_ENABLED,
+  SSO_ENABLED,
   LOG_LEVEL,
   MYSQL_DB,
   MYSQL_HOST,

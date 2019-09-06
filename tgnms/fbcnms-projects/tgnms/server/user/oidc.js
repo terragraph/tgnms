@@ -8,6 +8,7 @@
 const {URL} = require('url');
 const httpClient = require('./oidcHttpAgent');
 import {Issuer as OpenidIssuer} from 'openid-client';
+import {trimEnd} from 'lodash';
 import type {OpenidClient} from './oidcTypes';
 const {
   KEYCLOAK_HTTP_PROXY,
@@ -41,9 +42,9 @@ export function initOidcClient(): Promise<OpenidClient> {
       'missing required environment variable KEYCLOAK_HOST, KEYCLOAK_REALM ',
     );
   }
-
   const issuerUrl = new URL(KEYCLOAK_HOST);
-  issuerUrl.pathname = `/auth/realms/${KEYCLOAK_REALM}`;
+  const newPathname = `/auth/realms/${KEYCLOAK_REALM}`;
+  issuerUrl.pathname = trimEnd(issuerUrl.pathname, '/') + newPathname;
 
   return getOidcClient({
     issuerUrl: issuerUrl.toString(),

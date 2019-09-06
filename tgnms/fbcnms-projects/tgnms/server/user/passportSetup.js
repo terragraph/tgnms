@@ -10,7 +10,7 @@ const logger = require('../log')(module);
 import ApplicationUser from './User';
 import PasswordGrantStrategy from './PasswordGrantStrategy';
 import StubStrategy from './StubStrategy';
-import {CLIENT_ROOT_URL, LOGIN_ENABLED} from '../config';
+import {CLIENT_ROOT_URL, LOGIN_ENABLED, SSO_ENABLED} from '../config';
 import {Strategy as OpenidStrategy} from 'openid-client';
 import {initOidcClient} from './oidc';
 
@@ -34,16 +34,8 @@ passport.deserializeUser((req, serializedTokenSet, done) => {
 if (LOGIN_ENABLED) {
   passport.use('openid_passwordflow', new StubStrategy());
   passport.use('openid_authcodeflow', new StubStrategy());
-  if (!CLIENT_ROOT_URL) {
-    throw new Error(
-      `Missing required environment variable: CLIENT_ROOT_URL - example: https://tgnms.com`,
-    );
-  }
   initOidcClient().then(client => {
     logger.info('configuring openid auth strategies');
-
-    const redirectUri = new URL(CLIENT_ROOT_URL);
-    redirectUri.pathname = '/user/login/openid/callback';
 
     passport.use(
       'openid_passwordflow',
@@ -54,20 +46,32 @@ if (LOGIN_ENABLED) {
         handleOidcResponse,
       ),
     );
-
-    passport.use(
-      'openid_authcodeflow',
-      new OpenidStrategy(
-        {
-          client,
-          passReqToCallback: true,
-          params: {
-            redirect_uri: redirectUri.toString(),
-          },
-        },
-        handleOidcResponse,
-      ),
-    );
+    if (SSO_ENABLED) {
+      try {
+        if (!CLIENT_ROOT_URL) {
+          throw new Error(
+            `Missing required environment variable: CLIENT_ROOT_URL - example: https://tgnms.com`,
+          );
+        }
+        const redirectUri = new URL(CLIENT_ROOT_URL);
+        redirectUri.pathname = '/user/login/openid/callback';
+        passport.use(
+          'openid_authcodeflow',
+          new OpenidStrategy(
+            {
+              client,
+              passReqToCallback: true,
+              params: {
+                redirect_uri: redirectUri.toString(),
+              },
+            },
+            handleOidcResponse,
+          ),
+        );
+      } catch (err) {
+        logger.error(err);
+      }
+    }
   });
 }
 

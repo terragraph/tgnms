@@ -64,11 +64,28 @@ BEGIN
 END; $$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS Create_Keycloak_User ;
+DELIMITER $$
+CREATE PROCEDURE Create_Keycloak_User ()
+BEGIN
+  DECLARE usr VARCHAR(100)  DEFAULT "";
+  SET usr = (SELECT CURRENT_USER);
+  IF usr LIKE 'root%'  then
+     SELECT 'Creating keycloak user account.' AS '';
+     CREATE DATABASE IF NOT EXISTS `keycloak`;
+     CREATE USER IF NOT EXISTS 'keycloak' IDENTIFIED BY '8^ib0L5lvSF9gC5a';
+     GRANT ALL PRIVILEGES ON keycloak.* TO 'keycloak'@'%';
+     FLUSH PRIVILEGES;
+  end if ;
+END; $$
+DELIMITER ;
+
 /* create new users only if current user is root */
 call Create_Nms_User();
 call Create_Grafana_Database();
 call Create_Grafana_Reader();
 call Create_Network_Test();
+call Create_Keycloak_User();
 
 /* procedure to_add a column if it doesn't exist or modify it if it does */
 DROP PROCEDURE IF EXISTS Add_Modify_Column;
