@@ -82,6 +82,7 @@ app.set('view engine', 'pug');
 // Routes
 app.use(access());
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
+app.use('/api/v1', require('../server/api/v1/routes'));
 app.use('/apiservice', require('../server/apiservice/routes'));
 app.use('/controller', require('../server/controller/routes'));
 app.use('/dashboards', require('../server/dashboard/routes'));
