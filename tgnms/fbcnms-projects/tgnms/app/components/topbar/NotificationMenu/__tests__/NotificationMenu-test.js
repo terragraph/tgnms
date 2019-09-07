@@ -224,7 +224,7 @@ function TestWrapper({
     <TestApp {...props}>
       <WebSocketProvider
         socketFactory={() => new MockWebSocket()}
-        {...webSocketProviderProps || {}}>
+        {...(webSocketProviderProps || {})}>
         >
         <NetworkListContext.Provider
           value={Object.assign(defaultContextValue, {

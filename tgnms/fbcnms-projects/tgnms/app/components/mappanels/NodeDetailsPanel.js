@@ -210,9 +210,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     const {node, networkName} = this.props;
     const data = {nodes: [node.name], secondsToRestart: 2};
     apiServiceRequestWithConfirmation(networkName, 'restartMinion', data, {
-      desc: `Do you want to restart minion on node <strong>${
-        node.name
-      }</strong>?`,
+      desc: `Do you want to restart minion on node <strong>${node.name}</strong>?`,
       descType: 'html',
     });
   };

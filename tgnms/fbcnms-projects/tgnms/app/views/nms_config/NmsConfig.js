@@ -235,9 +235,7 @@ class NmsConfig extends React.Component {
       });
 
     requestWithConfirmation(makeRequest, {
-      desc: `The network <strong>${
-        networkConfig.name
-      }</strong> will be permanently deleted.`,
+      desc: `The network <strong>${networkConfig.name}</strong> will be permanently deleted.`,
       descType: 'html',
       onResultsOverride: () => {},
     });

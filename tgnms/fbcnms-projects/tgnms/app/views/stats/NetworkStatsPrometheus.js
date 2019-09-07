@@ -117,9 +117,7 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
       } else {
         // Create the correct number of trace (line) objects
         graphData.data.result.forEach(data => {
-          const labelName = `${data.metric.linkName} (${
-            data.metric.linkDirection
-          })`;
+          const labelName = `${data.metric.linkName} (${data.metric.linkDirection})`;
           traces.push({
             mode: 'line',
             type: 'scatter',

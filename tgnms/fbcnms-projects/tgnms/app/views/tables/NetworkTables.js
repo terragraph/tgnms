@@ -187,9 +187,7 @@ class NetworkTables extends React.Component<Props, State> {
         </Tabs>
         <Switch>
           <Route
-            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${
-              TABLE_TYPE.links
-            }|${TABLE_TYPE.events}|${TABLE_TYPE.tests})`}
+            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.events}|${TABLE_TYPE.tests})`}
             component={this.renderNetworkTable}
           />
           <Redirect exact from={`${match.path}/:table`} to="/404" />
