@@ -19,7 +19,7 @@ class BuildThriftCommand(distutils.cmd.Command):
 
     def initialize_options(self):
         """Set default values for options."""
-        self.path = "./tgif"
+        self.path = "./if"
 
     def finalize_options(self):
         """Post-process options."""
@@ -79,7 +79,7 @@ setup(
         "pymongo>=3.9.0,<4.0",
         "pymysql==0.9.2",
         "sqlalchemy>=1.3.5,<2.0",
-        # Fix thrift to version pulled in Dockerfile
+        # Pin thrift to version pulled in Dockerfile
         "thrift==0.11.0",
     ],
     extras_require={"ci": ["ptr"]},

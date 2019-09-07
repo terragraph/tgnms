@@ -8,7 +8,7 @@ COPY --from=thrift /usr/local/bin/thrift /usr/local/bin
 # Install tglib
 WORKDIR /usr/local/tglib
 COPY ./tglib .
-COPY ./if ./tgif
+COPY ./if ./if
 RUN python setup.py build_thrift && pip install .
 
 # Define default command
