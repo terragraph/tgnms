@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from motor.motor_asyncio import (
     AsyncIOMotorClient,
@@ -10,7 +10,7 @@ from motor.motor_asyncio import (
 )
 from pymongo.errors import PyMongoError
 
-from tglib.clients.base_client import BaseClient
+from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
@@ -42,7 +42,7 @@ class MongoDBClient(BaseClient):
 
     async def start(self) -> None:
         if self._motor_client is not None:
-            raise ClientRestartError(self.class_name)
+            raise ClientRestartError()
 
         self._motor_client = AsyncIOMotorClient(**self._mongodb_params)
         self._db = self._motor_client[self._db_name]
@@ -50,31 +50,38 @@ class MongoDBClient(BaseClient):
     async def stop(self) -> None:
         self._motor_client = None
 
-    @property
-    async def health(self) -> Tuple[bool, str]:
+    async def health_check(self) -> HealthCheckResult:
         if self._motor_client is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         try:
             server_info = await self._motor_client.server_info()
         except PyMongoError as e:
-            return False, f"{self.class_name}: Could not fetch MongoDB server info"
+            return HealthCheckResult(
+                client="MongoDBClient",
+                healthy=False,
+                msg="Could not fetch MongoDB server info",
+            )
 
         if "version" in server_info:
-            return True, self.class_name
+            return HealthCheckResult(client="MongoDBClient", healthy=True)
         else:
-            return False, f"{self.class_name}: MongoDB server info is malformed"
+            return HealthCheckResult(
+                client="MongoDBClient",
+                healthy=False,
+                msg="MongoDB server info is malformed",
+            )
 
     def get_db(self) -> AsyncIOMotorDatabase:
         """Return the db object to perform db operations."""
         if self._motor_client is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         return self._db
 
     async def get_session(self) -> AsyncIOMotorClientSession:
         """Return a session to organize atomic db operations."""
         if self._motor_client is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         return await self._motor_client.start_session()

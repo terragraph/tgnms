@@ -43,12 +43,12 @@ class PrometheusClientTests(asynctest.TestCase):
 
         host = self.config["prometheus"]["host"]
         port = self.config["prometheus"]["port"]
-        health = await self.client.health
+        health = await self.client.health_check()
 
         self.client._session.get.assert_called_with(
             f"http://{host}:{port}/api/v1/status/config"
         )
-        self.assertTrue(health[0])
+        self.assertTrue(health.healthy)
 
     async def test_client_unhealthy(self) -> None:
         self.client._session.get.return_value.__aenter__.return_value.json = (
@@ -58,12 +58,12 @@ class PrometheusClientTests(asynctest.TestCase):
 
         host = self.config["prometheus"]["host"]
         port = self.config["prometheus"]["port"]
-        health = await self.client.health
+        health = await self.client.health_check()
 
         self.client._session.get.assert_called_with(
             f"http://{host}:{port}/api/v1/status/config"
         )
-        self.assertFalse(health[0])
+        self.assertFalse(health.healthy)
 
     def test_normalize(self) -> None:
         strings = {

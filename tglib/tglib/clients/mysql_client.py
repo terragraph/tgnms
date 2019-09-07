@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 import pymysql
 from aiomysql.sa import Engine, SAConnection, create_engine
 
-from tglib.clients.base_client import BaseClient
+from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
@@ -35,34 +35,35 @@ class MySQLClient(BaseClient):
 
     async def start(self) -> None:
         if self._engine is not None:
-            raise ClientRestartError(self.class_name)
+            raise ClientRestartError()
 
         try:
             self._engine = await create_engine(**self._mysql_params)
         except pymysql.OperationalError as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
 
     async def stop(self) -> None:
         if self._engine is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         self._engine.close()
         await self._engine.wait_closed()
         self._engine = None
 
-    @property
-    async def health(self) -> Tuple[bool, str]:
+    async def health_check(self) -> HealthCheckResult:
         if self._engine is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         if self._engine.freesize > 0:
-            return True, self.class_name
+            return HealthCheckResult(client="MySQLClient", healthy=True)
         else:
-            return False, f"{self.class_name}: No connections available"
+            return HealthCheckResult(
+                client="MySQLClient", healthy=False, msg="No connections available"
+            )
 
     def lease(self) -> SAConnection:
         """Return a connection from the engine. Use with async context manager."""
         if self._engine is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         return self._engine.acquire()

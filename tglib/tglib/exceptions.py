@@ -54,28 +54,25 @@ class ClientMultipleInitializationError(ClientError):
 class ClientRestartError(ClientError):
     """Raised if a client is started while already running."""
 
-    def __init__(self, client: str, msg: Optional[str] = None):
+    def __init__(self, msg: Optional[str] = None):
         if msg is None:
-            msg = f"Cannot start {client} more than once"
+            msg = "Cannot start client more than once"
         super().__init__(msg)
-        self.client = client
 
 
 class ClientStoppedError(ClientError):
     """Raised if the client is consumed when not running."""
 
-    def __init__(self, client: str, msg: Optional[str] = None):
+    def __init__(self, msg: Optional[str] = None):
         if msg is None:
-            msg = f"{client} is not currently running"
+            msg = "Client is not currently running"
         super().__init__(msg)
-        self.client = client
 
 
 class ClientRuntimeError(ClientError):
     """Raised if client behavior fails for any other reason after initialization."""
 
-    def __init__(self, client: str, msg: Optional[str] = None):
+    def __init__(self, msg: Optional[str] = None):
         if msg is None:
-            msg = f"An unknown issue with {client} occurred at runtime"
+            msg = "An unknown issue with the client occurred at runtime"
         super().__init__(msg)
-        self.client = client

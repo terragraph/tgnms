@@ -7,7 +7,7 @@ from typing import Dict, Tuple
 from aiokafka import AIOKafkaConsumer
 from kafka.errors import KafkaError
 
-from tglib.clients.base_client import BaseClient
+from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
@@ -40,31 +40,32 @@ class KafkaConsumer(BaseClient, AIOKafkaConsumer):
 
     async def start(self) -> None:
         if self._started:
-            raise ClientRestartError(self.class_name)
+            raise ClientRestartError()
 
         self._started = True
         try:
             await AIOKafkaConsumer.start(self)
         except KafkaError as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
 
     async def stop(self) -> None:
         if not self._started:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         self._started = False
         try:
             await AIOKafkaConsumer.stop(self)
         except KafkaError as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
 
-    @property
-    async def health(self) -> Tuple[bool, str]:
+    async def health_check(self) -> HealthCheckResult:
         if not self._started:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         try:
             await self.topics()
-            return True, self.class_name
+            return HealthCheckResult(client="KafkaConsumer", healthy=True)
         except KafkaError:
-            return False, f"{self.class_name}: Could not fetch topics list"
+            return HealthCheckResult(
+                client="KafkaConsumer", healthy=False, msg="Could not fetch topics list"
+            )

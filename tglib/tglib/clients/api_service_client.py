@@ -3,14 +3,14 @@
 
 import asyncio
 import copy
-from typing import Dict, Optional, Tuple, cast
-
-import aiohttp
 import ipaddress
 import logging
+from typing import Dict, Optional, cast
+
+import aiohttp
 import pymysql
 
-from tglib.clients.base_client import BaseClient
+from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
@@ -63,7 +63,7 @@ class APIServiceClient(BaseClient):
                     self._controllers[result["name"]] = f"{ip}:{result['api_port']}"
 
         except pymysql.MySQLError as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
         finally:
             connection.close()
 
@@ -71,21 +71,20 @@ class APIServiceClient(BaseClient):
 
     async def start(self) -> None:
         if self._session is not None:
-            raise ClientRestartError(self.class_name)
+            raise ClientRestartError()
 
         self._session = aiohttp.ClientSession()
 
     async def stop(self) -> None:
         if self._session is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         await self._session.close()
         self._session = None
 
-    @property
-    async def health(self) -> Tuple[bool, str]:
+    async def health_check(self) -> HealthCheckResult:
         if self._session is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         tasks = [
             self.make_api_request(name, "getTopology")
@@ -94,32 +93,36 @@ class APIServiceClient(BaseClient):
 
         try:
             await asyncio.gather(*tasks)
-            return True, self.class_name
+            return HealthCheckResult(client="APIServiceClient", healthy=True)
         except ClientRuntimeError as e:
-            return False, f"{self.class_name}: {str(e)}"
+            return HealthCheckResult(
+                client="APIServiceClient", healthy=False, msg=f"{str(e)}"
+            )
 
     async def make_api_request(
         self, topology_name: str, endpoint: str, params: Optional[Dict] = {}
     ) -> Dict:
         """Make a request to API service for a given a specific topology, endpoint, and params."""
         if self._session is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         if topology_name not in self._controllers:
-            msg = f"{topology_name} does not exist"
-            raise ClientRuntimeError(client=self.class_name, msg=msg)
+            raise ClientRuntimeError(msg=f"{topology_name} does not exist")
 
         try:
             url = f"http://{self._controllers[topology_name]}/api/{endpoint}"
             logging.debug(f"Requesting from API service {url}")
+
             async with self._session.post(
                 url, json=params, timeout=self.timeout
             ) as resp:
                 if resp.status == 200:
                     return cast(Dict, await resp.json())
 
-                msg = f"API service request to {topology_name} failed: {resp.reason} ({resp.status})"
-                raise ClientRuntimeError(client=self.class_name, msg=msg)
+                raise ClientRuntimeError(
+                    msg=f"Request to {topology_name} failed: {resp.reason} ({resp.status})"
+                )
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            msg = f"API service for {topology_name} is unavailable"
-            raise ClientRuntimeError(client=self.class_name, msg=msg) from e
+            raise ClientRuntimeError(
+                msg=f"API service for {topology_name} is unavailable"
+            ) from e

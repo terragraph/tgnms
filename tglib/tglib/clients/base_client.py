@@ -2,9 +2,17 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import abc
-from typing import Dict, Tuple
+import dataclasses
+from typing import Dict, Optional
 
 from tglib.exceptions import ClientMultipleInitializationError, ClientUninitializedError
+
+
+@dataclasses.dataclass
+class HealthCheckResult:
+    client: str
+    healthy: bool
+    msg: Optional[str] = None
 
 
 class ABCMetaSingleton(abc.ABCMeta):
@@ -37,12 +45,7 @@ class BaseClient(metaclass=ABCMetaSingleton):
         """Cleanly stop the resources for the client."""
         pass
 
-    @abc.abstractproperty
-    async def health(self) -> Tuple[bool, str]:
+    @abc.abstractmethod
+    async def health_check(self) -> HealthCheckResult:
         """Evaluate the health of the client."""
         pass
-
-    @property
-    def class_name(self) -> str:
-        """Return the class name of the client."""
-        return self.__class__.__name__

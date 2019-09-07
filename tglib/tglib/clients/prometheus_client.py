@@ -4,11 +4,11 @@
 import asyncio
 import dataclasses
 import logging
-from typing import Any, Dict, List, Optional, Pattern, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Pattern, Union, cast
 
 import aiohttp
 
-from tglib.clients.base_client import BaseClient
+from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
@@ -52,31 +52,36 @@ class PrometheusClient(BaseClient):
 
     async def start(self) -> None:
         if self._session is not None:
-            raise ClientRestartError(self.class_name)
+            raise ClientRestartError()
 
         self._session = aiohttp.ClientSession()
 
     async def stop(self) -> None:
         if self._session is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         await self._session.close()
         self._session = None
 
-    @property
-    async def health(self) -> Tuple[bool, str]:
+    async def health_check(self) -> HealthCheckResult:
         if self._session is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         url = f"http://{self._host}:{self._port}/api/v1/status/config"
         try:
             async with self._session.get(url) as resp:
                 if resp.status == 200:
-                    return True, self.class_name
+                    return HealthCheckResult(client="PrometheusClient", healthy=True)
 
-                return False, f"{self.class_name}: {resp.reason} ({resp.status})"
+                return HealthCheckResult(
+                    client="PrometheusClient",
+                    healthy=False,
+                    msg=f"{resp.reason} ({resp.status})",
+                )
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            return False, f"{self.class_name}: {str(e)}"
+            return HealthCheckResult(
+                client="PrometheusClient", healthy=False, msg=f"{str(e)}"
+            )
 
     def normalize(self, string: str) -> str:
         """Remove invalid characters in order to be Prometheus compliant."""
@@ -104,7 +109,7 @@ class PrometheusClient(BaseClient):
     async def query_range(self, query: str, start: int, end: int, step: str) -> Dict:
         """Return the data for the given query and range."""
         if self._session is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         if start > end:
             raise ValueError("Start time cannot be after end time")
@@ -116,12 +121,12 @@ class PrometheusClient(BaseClient):
             async with self._session.get(url, params=params) as resp:
                 return cast(Dict, await resp.json())
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
 
     async def query_latest(self, query: str) -> Dict:
         """Return the latest datum for the given query."""
         if self._session is None:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         url = f"http://{self._host}:{self._port}/api/v1/query"
         params = {"query": query}
@@ -130,7 +135,7 @@ class PrometheusClient(BaseClient):
             async with self._session.get(url, params=params) as resp:
                 return cast(Dict, await resp.json())
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
 
     async def query_range_ts(self, query: str, start: int, end: int, step: str) -> Dict:
         """Return timestamp emissions corresponding to the query and range."""

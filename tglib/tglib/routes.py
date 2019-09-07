@@ -24,9 +24,13 @@ async def handle_get_status(request: web.Request) -> web.Response:
 @routes.get("/health")
 async def handle_health_check(request: web.Request) -> web.Response:
     """Check if any core application dependencies are unhealthy."""
-    tasks = [client.health for client in request.app["clients"]]
-    health_list = await asyncio.gather(*tasks)
-    failed = [msg for health, msg in health_list if not health]
+    tasks = [client.health_check() for client in request.app["clients"]]
+    health_check_results = await asyncio.gather(*tasks)
+    failed = [
+        f"{result.client}: {result.msg}"
+        for result in health_check_results
+        if not result.healthy
+    ]
 
     if failed:
         msg = "\n".join(failed)

@@ -44,8 +44,7 @@ scheme.
 
 ### Clients
 All client classes must inherit from `BaseClient`, an abstract base class, and
-override the `start` and `stop` asynchronous functions, and the asynchronous
-`health` property.
+override the `start`, `stop`, and `health_check` asynchronous functions.
 
 #### Start
 Defines how the client creates the underlying resources in order to process
@@ -54,7 +53,7 @@ any IO.
 #### Stop
 Defines how to cleanly destroy any resources created in the `start` function.
 
-#### Health
+#### Health Check
 Defines how to assess the client's ability to perform its core functionality.
 For example, `PrometheusClient` tries to fetch the Prometheus configuration
 from `prometheus`. If the operation is successful, then the client is deemed to

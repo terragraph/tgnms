@@ -5,13 +5,13 @@ import asyncio
 import json
 import logging
 import time
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from aiokafka import AIOKafkaProducer
 from kafka.errors import KafkaError
 
 from terragraph_thrift.Event.ttypes import Event, EventCategory, EventId, EventLevel
-from tglib.clients.base_client import BaseClient
+from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
     ClientRestartError,
     ClientRuntimeError,
@@ -45,35 +45,38 @@ class KafkaProducer(BaseClient, AIOKafkaProducer):
 
     async def start(self) -> None:
         if self._started:
-            raise ClientRestartError(self.class_name)
+            raise ClientRestartError()
 
         self._started = True
         try:
             await AIOKafkaProducer.start(self)
         except KafkaError as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
 
     async def stop(self) -> None:
         if not self._started:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         self._started = False
         try:
             await AIOKafkaProducer.stop(self)
         except KafkaError as e:
-            raise ClientRuntimeError(self.class_name) from e
+            raise ClientRuntimeError() from e
 
-    @property
-    async def health(self) -> Tuple[bool, str]:
+    async def health_check(self) -> HealthCheckResult:
         if not self._started:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         try:
             # This is a hack -- need a better way to assess connection health
             await self.partitions_for("stats")
-            return True, self.class_name
+            return HealthCheckResult(client="KafkaProducer", healthy=True)
         except KafkaError:
-            return False, f"{self.class_name}: Could not fetch 'stats' partitions"
+            return HealthCheckResult(
+                client="KafkaConsumer",
+                healthy=False,
+                msg="Could not fetch 'stats' partitions",
+            )
 
     async def log_event(
         self,
@@ -90,7 +93,7 @@ class KafkaProducer(BaseClient, AIOKafkaProducer):
     ) -> bool:
         """Log an event to the Kafka events topic."""
         if not self._started:
-            raise ClientStoppedError(self.class_name)
+            raise ClientStoppedError()
 
         if category not in EventCategory._VALUES_TO_NAMES:
             logging.error(f"Invalid EventCategory: {category}")
