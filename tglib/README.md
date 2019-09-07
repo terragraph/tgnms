@@ -29,7 +29,7 @@ server. See the `./examples` directory for basic usages of the framework.
 ### Configuration
 All per-service configuration should be supplied in the form of a JSON
 configuration file in the service's top level directory. Overrides to the base
-`tglib` configurations (defined in `./config.json`) should be specified in an
+`tglib` configurations (mounted as `./config.json`) should be specified in an
 object behind the reserved key `"overrides"`.
 
 ## Development
