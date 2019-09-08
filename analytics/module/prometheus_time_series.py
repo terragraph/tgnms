@@ -17,6 +17,7 @@ from module.path_store import PathStore
 from asyncio import TimeoutError
 from json.decoder import JSONDecodeError
 from facebook.gorilla.Topology.ttypes import LinkType
+from tglib.clients.prometheus_client import PrometheusClient
 
 
 def replace_invalid_chars(key_name):
@@ -87,18 +88,11 @@ class TimeSeries(object):
 
 class PrometheusReader:
     def __init__(self, topologies: List[Dict], timeout: Optional[int] = 30):
-        try:
-            with open(PathStore.ANALYTICS_CONFIG_FILE) as local_file:
-                analytics_config = load(local_file)
-        except Exception:
-            logging.error("Cannot find the configuration file")
-            return
+        client = PrometheusClient.get_instance()
 
-        if "PROMETHEUS" not in analytics_config:
-            logging.error("Cannot find PROMETHEUS config in the configurations")
-            return
-        else:
-            self.prometheus_config = analytics_config["PROMETHEUS"]
+        # this is a horrendous hack - but all of this will be replaced with
+        # prometheus_client - so don't worry
+        self.prometheus_config = {"hostname": client._host, "port": client._port}
 
         # prometheus does not support certain characters so key names change
         # this is a map from the link names in the topology to the link names

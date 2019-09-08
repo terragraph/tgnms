@@ -13,7 +13,6 @@ from api.alias import (
     ValidatedMultiHopParametersType,
 )
 from api.models import Tests, TrafficDirection
-from flask import jsonify
 from logger import Logger
 from module.topology_handler import fetch_network_info
 from terragraph_thrift.network_test.ttypes import Help

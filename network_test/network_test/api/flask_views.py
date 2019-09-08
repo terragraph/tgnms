@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import json
 import logging
 from threading import Event
@@ -10,20 +11,21 @@ from api import base
 from api.models import Tests, TestStatus, TrafficDirection
 from api.network_test import scheduler
 from api.network_test.mysql_helper import MySqlHelper
-from flask import Flask, jsonify, request
+from aiohttp import web
 from logger import Logger
 from module.mysql_db_access import MySqlDbAccess
 from terragraph_thrift.network_test import ttypes as network_ttypes
 
 
-app = Flask("Network Test")
 sched_event: Dict = {}
 mysql_helper: Dict = {}
 
 _log = Logger(__name__, logging.DEBUG).get_logger()
 
+networktest_routes = web.RouteTableDef()
 
-def flask_view(host: str, port: int) -> None:
+
+def flask_view() -> None:
     global sched_event
     global mysql_helper
 
@@ -61,18 +63,11 @@ def flask_view(host: str, port: int) -> None:
             )
             scheduler_obj.start()
 
-    app.run(host=host, port=port)
-
-
-@app.route("/")
-def hello() -> Tuple[str, int, Dict]:
-    return generate_flask_http_response({"error": False, "msg": "Success"})
-
 
 # end-point for test only - creates test scheduler thread if not already
 # created and sends it an event
-@app.route("/api/test_scheduler/", methods=["GET"])
-def test_scheduler() -> Tuple[str, int, Dict]:
+@networktest_routes.get("/api/test_scheduler/")
+async def test_scheduler(request: web.Request) -> web.Response:
     global sched_event
     global mysql_helper
 
@@ -94,11 +89,11 @@ def test_scheduler() -> Tuple[str, int, Dict]:
 
     _log.info("Sending event to test scheduler thread")
     sched_event[topology_id].set()
-    return generate_flask_http_response({"error": False, "msg": "testing scheduler!"})
+    return web.json_response({"error": False, "msg": "testing scheduler!"})
 
 
-@app.route("/api/start_test/", methods=["POST"])
-def start_test() -> Tuple[str, int, Dict]:
+@networktest_routes.post("/api/start_test/")
+async def start_test(request: web.Request) -> web.Response:
     """
     This function returns json object which have 'error' and 'msg' key.
     If the test is already running or any exception occurred then the
@@ -109,18 +104,7 @@ def start_test() -> Tuple[str, int, Dict]:
     global sched_event
     global mysql_helper
 
-    try:
-        if not request.method == "POST":
-            dt = {"error": True, "msg": "RESTful API expecting POST"}
-            return generate_flask_http_response(dt=dt, status_code=400)
-        received_json_data = request.get_json(force=True)
-    except Exception:
-        return generate_flask_http_response(
-            {
-                "error": True,
-                "msg": "Invalid Content-Type, please format the request as JSON.",
-            }
-        )
+    received_json_data = await request.json()
 
     # parse received_json_data
     parsed_json_data, parsed_scheduler_data, multi_hop_parameters = base.parse_received_json_data(
@@ -128,12 +112,12 @@ def start_test() -> Tuple[str, int, Dict]:
     )
 
     if parsed_json_data.get("error"):
-        return generate_flask_http_response(parsed_json_data["error"])
+        return web.json_response(parsed_json_data["error"])
     topology_id = parsed_json_data["topology_id"]
 
     err = scheduler.validate_schedule_parameters(parsed_scheduler_data)
     if err:
-        return generate_flask_http_response(err)
+        return web.json_response(err)
 
     # don't allow another ASAP job to be scheduled if there are queued tests.
     # this prevents a user from piling on ASAP tests without knowing.
@@ -144,13 +128,13 @@ def start_test() -> Tuple[str, int, Dict]:
                 "There is already an ASAP test scheduled for topology id {}. "
                 "Returning ...".format(topology_id)
             )
-            return generate_flask_http_response(
+            return web.json_response(
                 {"error": True, "msg": "There is already an ASAP test scheduled."}
             )
 
     parsed_network_info = base.fetch_and_parse_network_info(topology_id)
     if parsed_network_info.get("error"):
-        return generate_flask_http_response(parsed_network_info["error"])
+        return web.json_response(parsed_network_info["error"])
     topology_name = parsed_network_info["topology_name"]
 
     # start the scheduler thread if not already started
@@ -188,30 +172,17 @@ def start_test() -> Tuple[str, int, Dict]:
     _log.info("Sending event to Scheduler for {}".format(topology_name))
     sched_event[topology_id].set()
 
-    return generate_flask_http_response(
-        {"error": False, "msg": "Scheduled test", "id": tre_id}
-    )
+    return web.json_response({"error": False, "msg": "Scheduled test", "id": tre_id})
 
 
-@app.route("/api/stop_test/", methods=["POST"])
-def stop_test() -> Tuple[str, int, Dict]:
+@networktest_routes.post("/api/stop_test/")
+async def stop_test(request: web.Request) -> web.Response:
     """
     This function returns json object which have 'error' and 'msg' key along
     with 'id' of the stopped test.
     """
     global mysql_helper
-    try:
-        if not request.method == "POST":
-            dt = {"error": True, "msg": "RESTful API expecting POST"}
-            return generate_flask_http_response(dt=dt, status_code=400)
-        received_json_data = request.get_json(force=True)
-    except Exception:
-        return generate_flask_http_response(
-            {
-                "error": True,
-                "msg": "Invalid Content-Type, please format the request as JSON.",
-            }
-        )
+    received_json_data = await request.json()
 
     topology_name = str(received_json_data.get("topology_name"))
     _log.debug("Input received topology name is {}".format(topology_name))
@@ -222,7 +193,7 @@ def stop_test() -> Tuple[str, int, Dict]:
             topology_id = tid
 
     if topology_id not in mysql_helper:
-        return generate_flask_http_response(
+        return web.json_response(
             {"error": True, "msg": "Attempt to stop test for inactive topology."}
         )
 
@@ -238,38 +209,27 @@ def stop_test() -> Tuple[str, int, Dict]:
             mysql_helper[topology_id].update_test_run_execution(
                 id=tsp["id"], status=TestStatus.ABORTED.value
             )
-            return generate_flask_http_response(
+            return web.json_response(
                 {"error": False, "msg": "Test run execution stopped.", "id": tsp["id"]}
             )
         else:
-            return generate_flask_http_response(
+            return web.json_response(
                 {"error": True, "msg": "No test is currently running"}
             )
     except Exception as e:
         _log.error("Unexpected error in stop_test {}".format(e))
-        return generate_flask_http_response({"error": True, "msg": e})
+        return web.json_response({"error": True, "msg": e})
 
 
-@app.route("/api/modify_sched/", methods=["POST"])
-def modify_sched():
+@networktest_routes.post("/api/modify_sched/")
+async def modify_sched(request: web.Request) -> web.Response:
     """
     This function removes an item from the schedule.
     FOR NOW, ONLY SUPPORT DELETE
     """
     global mysql_helper
 
-    try:
-        if not request.method == "POST":
-            dt = {"error": True, "msg": "RESTful API expecting POST"}
-            return generate_flask_http_response(dt=dt, status_code=400)
-        received_json_data = request.get_json(force=True)
-    except Exception:
-        return generate_flask_http_response(
-            {
-                "error": True,
-                "msg": "Invalid Content-Type, please format the request as JSON.",
-            }
-        )
+    received_json_data = await request.json()
 
     try:
         instruction = int(received_json_data["instruction"]["value"])
@@ -277,14 +237,14 @@ def modify_sched():
         instruction = network_ttypes.ModifyInstruction.DELETE
 
     if instruction is not network_ttypes.ModifyInstruction.DELETE:
-        return generate_flask_http_response(
+        return web.json_response(
             {"error": True, "msg": "Sorry, only DELETE is supported now."}
         )
 
     test_schedule_id = received_json_data.get("test_schedule_id")
     topology_id = received_json_data.get("topology_id")
     if not test_schedule_id and not topology_id:
-        return generate_flask_http_response(
+        return web.json_response(
             {
                 "error": True,
                 "msg": "Parameters test_schedule_id or topology_id are required.",
@@ -297,7 +257,7 @@ def modify_sched():
             else:
                 test_schedule_id = int(test_schedule_id)
         except ValueError as e:
-            return generate_flask_http_response(
+            return web.json_response(
                 {
                     "error": True,
                     "msg": "Parameters test_schedule_id and "
@@ -312,7 +272,7 @@ def modify_sched():
             for _, jn_dct in jn_dcts.items():
                 tre_id = jn_dct["test_run_execution"]["id"]
                 if jn_dct["test_run_execution"]["status"] != TestStatus.SCHEDULED.value:
-                    return generate_flask_http_response(
+                    return web.json_response(
                         {
                             "error": True,
                             "msg": "Unexpected error; test run execution {} "
@@ -321,7 +281,7 @@ def modify_sched():
                     )
                 _log.info("Deleting entry with test run execution id {}".format(tre_id))
                 MySqlHelper().delete_test_run_execution(id=tre_id)
-            return generate_flask_http_response(
+            return web.json_response(
                 {
                     "error": False,
                     "msg": "Test schedule entry deleted.",
@@ -330,11 +290,11 @@ def modify_sched():
             )
         except Exception as e:
             _log.error("Unexpected error in modify_sched {}".format(e))
-            return generate_flask_http_response({"error": True, "msg": e})
+            return web.json_response({"error": True, "msg": e})
 
     elif topology_id:
         if topology_id not in mysql_helper:
-            return generate_flask_http_response(
+            return web.json_response(
                 {
                     "error": True,
                     "msg": "No running thread for the topology.",
@@ -346,7 +306,7 @@ def modify_sched():
             for _, jn_dct in jn_dcts.items():
                 tre_id = jn_dct["test_run_execution"]["id"]
                 if jn_dct["test_run_execution"]["status"] != TestStatus.SCHEDULED.value:
-                    return generate_flask_http_response(
+                    return web.json_response(
                         {
                             "error": True,
                             "msg": "Unexpected error; test run execution {} "
@@ -355,7 +315,7 @@ def modify_sched():
                     )
                 _log.info("Deleting entry with test run execution id {}".format(tre_id))
                 mysql_helper[topology_id].delete_test_run_execution(id=tre_id)
-            return generate_flask_http_response(
+            return web.json_response(
                 {
                     "error": False,
                     "msg": "Test schedule entries deleted.",
@@ -364,17 +324,14 @@ def modify_sched():
             )
         except Exception as e:
             _log.error("Unexpected error in modify_sched {}".format(e))
-            return generate_flask_http_response({"error": True, "msg": e})
+            return web.json_response({"error": True, "msg": e})
 
 
-@app.route("/api/help/", methods=["GET"])
-def help() -> Tuple[str, int, Dict]:
+@networktest_routes.get("/api/help/")
+async def help(request: web.Request) -> web.Response:
     """
     This function returns json object which has the Network Test API information
     """
-    if not request.method == "GET":
-        dt = {"error": True, "msg": "RESTful API expecting GET"}
-        return generate_flask_http_response(dt=dt, status_code=400)
     start_test_url_ext = "/api/start_test/"
     stop_test_url_ext = "/api/stop_test/"
     modify_sched_url_ext = "/api/modify_sched/"
@@ -639,10 +596,4 @@ def help() -> Tuple[str, int, Dict]:
     )
 
     resp: str = base.serialize_to_json(context_data)
-    return generate_flask_http_response(json.loads(resp))
-
-
-def generate_flask_http_response(
-    dt: dict, status_code: Optional[int] = 200
-) -> Tuple[str, int, dict]:
-    return jsonify(dt), status_code, base.DEFAULT_ACCESS_ORIGIN
+    return web.json_response(json.loads(resp))

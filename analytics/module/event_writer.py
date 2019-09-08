@@ -9,14 +9,14 @@ import logging
 import os
 import time
 
-import requests
 from facebook.gorilla.beringei_query.ttypes import EventsWriteRequest, NodeEvents
-from facebook.gorilla.Event.ttypes import Event, EventCategory, EventLevel
+from terragraph_thrift.Event.ttypes import Event, EventCategory, EventLevel
 from facebook.gorilla.Topology.ttypes import Topology
 from module.beringei_db_access import BeringeiDbAccess
 from module.path_store import PathStore
 from thrift.protocol.TJSONProtocol import TSimpleJSONProtocolFactory
 from thrift.transport import TTransport
+from tglib.utils.serialization import thrift2json
 
 
 class EventWriter:
@@ -91,7 +91,7 @@ class EventWriter:
         node_events = NodeEvents(mac=source_mac, name=node_name, events=[event])
         bqs = EventsWriteRequest(topology=topo, agents=[node_events])
         try:
-            event_des = self._serialize_to_json(bqs)
+            event_des = thrift2json(bqs).decode()
         except Exception as e:
             logging.error("Exception happened while serializing thrift")
             logging.warning("Exception: {}".format(e))
@@ -112,9 +112,3 @@ class EventWriter:
             logging.error("Exception happened while writing BQS")
             logging.warning("Exception: {}".format(e))
             return "Failure to write BQS"
-
-    def _serialize_to_json(self, obj: Event) -> str:
-        trans = TTransport.TMemoryBuffer()
-        prot = TSimpleJSONProtocolFactory().getProtocol(trans)
-        obj.write(prot)
-        return trans.getvalue().decode("utf-8")
