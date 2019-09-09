@@ -145,7 +145,7 @@ class ConfigMetadataBlock extends React.Component<Props, State> {
             ? v
             : JSON.stringify(Array.isArray(v) && v.length === 1 ? v[0] : v);
           return (
-            <Typography key={k} className={textClassName}>
+            <Typography key={k} className={textClassName} variant="body2">
               <em>{label}:</em> <tt>{values}</tt>
             </Typography>
           );

@@ -89,12 +89,12 @@ const styles = (theme: Theme) => ({
     width: '100%',
   },
   wrapped: {
-    overlayWrap: 'break-word',
+    overflowWrap: 'break-word',
     wordBreak: 'break-word',
   },
   indented: {
     marginLeft: theme.spacing(1),
-    overlayWrap: 'break-word',
+    overflowWrap: 'break-word',
     wordBreak: 'break-all',
   },
   sectionHeading: {

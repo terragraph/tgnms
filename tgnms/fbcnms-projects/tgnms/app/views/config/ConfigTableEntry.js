@@ -51,7 +51,7 @@ const styles = theme => ({
     color: 'red',
   },
   wrap: {
-    overlayWrap: 'break-word',
+    overflowWrap: 'break-word',
     wordBreak: 'break-all',
   },
   noWrap: {
@@ -76,7 +76,7 @@ const styles = theme => ({
   tdField: {
     // TODO Find a better way to prevent table from overflowing (x)
     maxWidth: '25vw',
-    overlayWrap: 'break-word',
+    overflowWrap: 'break-word',
   },
   tdExpanded: {
     borderBottom: 'none',
@@ -85,6 +85,7 @@ const styles = theme => ({
     height: 'auto',
   },
   detailsTd: {
+    maxWidth: 0, // TODO I have no idea why this works, but it improves spacing
     verticalAlign: 'top',
     transition: theme.transitions.create(['padding', 'opacity'], {
       easing: theme.transitions.easing.easeInOut,
@@ -108,6 +109,7 @@ const styles = theme => ({
     maxHeight: 0,
   },
   detailsText: {
+    wordBreak: 'break-word',
     transition: theme.transitions.create('line-height', {
       easing: theme.transitions.easing.easeInOut,
       duration: theme.transitions.duration.shorter,
@@ -347,6 +349,7 @@ class ConfigTableEntry extends React.Component<Props, State> {
         {renderedLayers.map(layer => (
           <Typography
             key={layer.id}
+            variant="body2"
             className={this.textClasses(
               layer.id === deletedOverrideLayerId && classes.strikethrough,
             )}>

@@ -31,7 +31,7 @@ const styles = theme => ({
     flexBasis: '33.33%',
     flexShrink: 0,
     alignItems: 'center',
-    overlayWrap: 'break-word',
+    overflowWrap: 'break-word',
     wordBreak: 'break-word',
   },
   panelSummary: {
