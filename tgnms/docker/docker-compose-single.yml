@@ -56,6 +56,23 @@ services:
       - ipv6
       - db
 
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    networks:
+      - terragraph_net
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./docker_volumes/logs:/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    depends_on:
+      - ipv6
+
   nms:
     image: secure.cxl-terragraph.com:443/nmsv2:stable
     env_file:
