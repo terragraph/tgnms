@@ -417,6 +417,25 @@ services:
       - prometheus
       - keycloak
 
+  topology_service:
+    image: topology_service:latest
+    restart: always
+    volumes:
+      - ./docker_volumes/logs:/nano/topology_service/logs
+      - ./docker_volumes/topology_service/service_config.json:/usr/local/nano/topology_service/service_config.json
+      - ./docker_volumes/tglib/config.json:/usr/local/nano/topology_service/config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "cd /usr/local/nano/topology_service && python topology_service/main.py"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    depends_on:
+      - ipv6
+      - mongodb
+
 networks:
   terragraph_net:
     external: true
