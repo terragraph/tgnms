@@ -270,7 +270,7 @@ services:
     env_file:
       - ./env/keycloak.env
     volumes:
-      - ./docker_volumes/keycloak/tgnms-realm.json:/tmp/tgnms-realm.json
+      - ./docker_volumes/keycloak/realms/tgnms.json:/tmp/tgnms-realm.json
     command: ["-b", "::", "-c=standalone.xml"]
     networks:
       - terragraph_net
@@ -402,6 +402,7 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     networks:
       - terragraph_net
     volumes:

@@ -87,10 +87,13 @@
         - terragraph
         - terragraph/env
         - terragraph/docker_volumes
+        - terragraph/docker_volumes/analytics
         - terragraph/docker_volumes/beringei
         - terragraph/docker_volumes/beringei/beringei_1s
         - terragraph/docker_volumes/beringei/beringei_30s
         - terragraph/docker_volumes/beringei/beringei_900s
+        - terragraph/docker_volumes/keycloak
+        - terragraph/docker_volumes/keycloak/realms
         - terragraph/docker_volumes/logs
         - terragraph/docker_volumes/mysql_db
         - terragraph/docker_volumes/nginx
@@ -102,6 +105,7 @@
         - terragraph/docker_volumes/prometheus
         - terragraph/docker_volumes/prometheus/config
         - terragraph/mysql_init_scripts
+        - terragraph/scripts
 
     - name: copy scripts and config files
       template:
@@ -118,18 +122,31 @@
         - src: docker-compose-single.yml
           dest: terragraph/docker-compose.yml
 
+    - name: copy certificate and keycloak scripts
+      template:
+        src: "scripts/{{ item }}"
+        dest: "terragraph/scripts/{{ item }}"
+        owner: "{{ docker_user }}"
+        mode: 0755
+        force: no
+      with_items:
+        - ca-certificate-gen.sh
+        - certificate-gen.sh
+        - generate-keycloak-client.sh
+        - self-signed-cert-setup.sh
+
     - name: copy docker_volume contents
       template:
-        src: "{{ item }}"
-        owner: "{{ docker_user }}"
         src: "docker_volumes/{{ item }}"
         dest: "terragraph/docker_volumes/{{ item }}"
         owner: "{{ docker_user }}"
         mode: 0644
         force: no
       with_items:
+        - keycloak/realms/tgnms.json
         - nginx/conf.d/default.conf
         - nginx/services.d/jupyter.conf
+        - nginx/services.d/keycloak.conf
         - nginx/services.d/grafana.conf
         - nginx/services.d/nms.conf
         - nginx/services.d/prometheus.conf
