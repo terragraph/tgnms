@@ -16,14 +16,14 @@ const express = require('express');
 
 const router = express.Router();
 
-router.get('/network', (req, res) => {
+router.get('/networks', (req, res) => {
   const configs = getAllNetworkConfigs();
   return res.json(
     Object.keys(configs).map(name => new NetworkDto(configs[name])),
   );
 });
 
-router.get('/network/:name', (req, res) => {
+router.get('/networks/:name', (req, res) => {
   const {name} = req.params;
 
   const config = getNetworkConfig(name);
