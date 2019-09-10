@@ -60,7 +60,7 @@ from `prometheus`. If the operation is successful, then the client is deemed to
 be healthy, otherwise it is in an unhealthy state.
 
 ### Thrift
-Raw thrift files are copied into the `./tgif` directory and compiled into Python
+Raw thrift files are copied into the `./if` directory and compiled into Python
 during the creation of the `tglib` Docker image. During development, it may be
 necessary to regenerate the Python thrift definitions. This can be done by
 running the following commands.
