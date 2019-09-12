@@ -359,11 +359,15 @@ class NetworkLinksTable extends React.Component<Props, State> {
   }
 
   formatAnalyzerValue(obj, propertyName) {
-    return obj.hasOwnProperty(propertyName)
-      ? obj[propertyName] === INVALID_VALUE
-        ? '-'
-        : obj[propertyName]
-      : '-';
+    if (
+      obj.hasOwnProperty(propertyName) &&
+      obj[propertyName] !== INVALID_VALUE
+    ) {
+      return typeof obj !== 'number'
+        ? Number.parseFloat(obj[propertyName])
+        : obj[propertyName];
+    }
+    return '-';
   }
 
   getTableRows(
@@ -499,7 +503,10 @@ class NetworkLinksTable extends React.Component<Props, State> {
         z_node_name: link.z_node_name,
         alive: link.is_alive,
         alive_perc: alivePerc,
-        fw_restarts: analyzerLinkA.flaps,
+        fw_restarts:
+          typeof analyzerLinkA.flaps !== 'number'
+            ? Number.parseInt(analyzerLinkA.flaps)
+            : analyzerLinkA.flaps,
         uptime: analyzerLinkA.uptime,
         mcs: this.formatAnalyzerValue(analyzerLinkA, 'avg_mcs'),
         // snr is the receive signal strength which needs to come from the

@@ -101,6 +101,50 @@ router.get('/query/link/latest', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+// raw stats data
+router.get('/link_analyzer/:topologyName', (req, res, _next) => {
+  const topologyName = req.params.topologyName;
+  const timeWindow = '[1h]';
+  // the outer subquery requires slightly different syntax
+  // [<range>:[<resolution>]]
+  const timeWindowSubquery = '[1h:]';
+  const prometheusQueryList = ['snr', 'mcs', 'tx_power'].map(metricName => ({
+    metricName: `avg_${metricName}`,
+    prometheusQuery: `avg_over_time(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+  }));
+  prometheusQueryList.push({
+    metricName: 'flaps',
+    prometheusQuery: `resets(fw_uptime{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+  });
+  prometheusQueryList.push({
+    metricName: 'avg_per',
+    prometheusQuery: `avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) / (avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}))`,
+  });
+  prometheusQueryList.push({
+    metricName: 'avg_tput',
+    prometheusQuery: `avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery})`,
+  });
+  // TODO - add availability once published as a stat
+
+  Promise.all(
+    prometheusQueryList.map(({prometheusQuery}) => {
+      return queryLatest({
+        query: prometheusQuery,
+      });
+    }),
+  )
+    .then(response =>
+      mapMetricName(
+        response,
+        prometheusQueryList.map(({metricName}) => metricName),
+      ),
+    )
+    .then(flattenPrometheusResponse)
+    .then(result => groupByLink(result, topologyName, true))
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
 /**
  * Utility functions
  */
@@ -155,6 +199,27 @@ function formatPrometheusLabel(metricName: string): string {
 /**
  * Functions for transforming Prometheus results server-side
  */
+
+// add __name__ to response list
+// this is necessary when a prometheus function/operator is called
+function mapMetricName(
+  response: Array<Object> | Object,
+  metricNameMapping: Array<string>,
+): Array<Object> {
+  if (response.length !== metricNameMapping.length) {
+    console.error(
+      'Invalid call to addMetricName. Response length must equal metric name mapping length.',
+    );
+    return response;
+  }
+  return response.map((data, idx) => {
+    data.data.result = data.data.result.map(metricMeta => {
+      metricMeta.metric['__name__'] = metricNameMapping[idx];
+      return metricMeta;
+    });
+    return data;
+  });
+}
 
 function flattenPrometheusResponse(
   response: Array<Object> | Object,
