@@ -205,7 +205,7 @@ function getCorrespondingJsonName(geoJsonName) {
 ** get tesh history time based on collection name
 ** then write results to div recognized by id
 **/
-function getTestHistoryTime(geoJsonName, updateDivId) {
+function getTestHistoryTime(geoJsonName, updateDivId, fetchJsonName = false) {
   if ($(updateDivId).is(':visible')) return;
   var thisQueryT = (new Date()).getTime() / 1000;
   if (thisQueryT - ($(updateDivId).attr('prev-query') || 1) < 300) {
@@ -222,7 +222,7 @@ function getTestHistoryTime(geoJsonName, updateDivId) {
     async: true,
     success: function(response) {
       $(updateDivId).html('');
-      if (geoJsonName != "geojson_overview_labels") {
+      if (fetchJsonName === true) {
         json_name = getCorrespondingJsonName(geoJsonName);
       }
       for (i = 1; i <= queryLimit; i++) {
@@ -231,7 +231,7 @@ function getTestHistoryTime(geoJsonName, updateDivId) {
           // When it's a data history request for Overview, only GeoJson
           // download button needs to be displaced. Otherwise, both GeoJson and
           // Json download buttons should be displayed
-          if (geoJsonName != "geojson_overview_labels") {
+          if (fetchJsonName === true) {
             $(updateDivId).append(
               // Create the button for displaying data
               "<div class='btn-group'>"  + "<button type='button'" +

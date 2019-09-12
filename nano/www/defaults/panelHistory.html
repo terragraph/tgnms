@@ -267,42 +267,90 @@ $("#get-interference-max-history").click(function () {
   );
 });
 $("#get-link-thrpt-history").click(function () {
-  getTestHistoryTime("geojson_iperf_p2p_udp", "#link-thrpt-history");
+  getTestHistoryTime(
+    "geojson_iperf_p2p_udp",
+    "#link-thrpt-history",
+    true
+  );
 });
 $("#get-link-thrpt-tcp-history").click(function () {
-  getTestHistoryTime("geojson_iperf_p2p_tcp", "#link-thrpt-tcp-history");
+  getTestHistoryTime(
+    "geojson_iperf_p2p_tcp",
+    "#link-thrpt-tcp-history",
+    true
+  );
 });
 $("#get-link-thrpt-weather-udp-history").click(function () {
-  getTestHistoryTime("geojson_weather_iperf_p2p_udp", "#link-thrpt-weather-udp-history");
+  getTestHistoryTime(
+    "geojson_weather_iperf_p2p_udp",
+    "#link-thrpt-weather-udp-history",
+    true
+  );
 });
 $("#get-multihop-udp-history").click(function () {
-  getTestHistoryTime("geojson_multihop_udp", "#multihop-udp-history");
+  getTestHistoryTime(
+    "geojson_multihop_udp",
+    "#multihop-udp-history",
+    true
+  );
 });
 $("#get-multihop-tcp-history").click(function () {
-  getTestHistoryTime("geojson_multihop_tcp", "#multihop-tcp-history");
+  getTestHistoryTime(
+    "geojson_multihop_tcp",
+    "#multihop-tcp-history",
+    true
+  );
 });
 $("#get-multihop-tcp-reno-history").click(function () {
-  getTestHistoryTime("geojson_multihop_tcp_reno", "#multihop-tcp-reno-history");
+  getTestHistoryTime(
+    "geojson_multihop_tcp_reno",
+    "#multihop-tcp-reno-history",
+    true
+  );
 });
 $("#get-multihop-tcp-cubic-history").click(function () {
-  getTestHistoryTime("geojson_multihop_tcp_cubic", "#multihop-tcp-cubic-history");
+  getTestHistoryTime(
+    "geojson_multihop_tcp_cubic",
+    "#multihop-tcp-cubic-history",
+    true
+  );
 });
 $("#get-multihop-tcp-westwood-history").click(function () {
-  getTestHistoryTime("geojson_multihop_tcp_westwood", "#multihop-tcp-westwood-history");
+  getTestHistoryTime(
+    "geojson_multihop_tcp_westwood",
+    "#multihop-tcp-westwood-history",
+    true
+  );
 });
 $("#get-multihop-tcp-vegas-history").click(function () {
-  getTestHistoryTime("geojson_multihop_tcp_vegas", "#multihop-tcp-vegas-history");
+  getTestHistoryTime(
+    "geojson_multihop_tcp_vegas",
+    "#multihop-tcp-vegas-history",
+    true
+  );
 });
 $("#get-topology-link-history").click(function () {
-  getTestHistoryTime("geojson_topology_link", "#topology-link-history");
+  getTestHistoryTime(
+    "geojson_topology_link",
+    "#topology-link-history"
+  );
 });
 $("#get-topology-node-history").click(function () {
-  getTestHistoryTime("geojson_topology_node", "#topology-node-history");
+  getTestHistoryTime(
+    "geojson_topology_node",
+    "#topology-node-history"
+  );
 });
 $("#get-topology-site-history").click(function () {
-  getTestHistoryTime("geojson_topology_site", "#topology-site-history");
+  getTestHistoryTime(
+    "geojson_topology_site",
+    "#topology-site-history"
+  );
 });
 $("#get-overview-history").click(function () {
-  getTestHistoryTime("geojson_overview_labels", "#overview-history");
+  getTestHistoryTime(
+    "geojson_overview_labels",
+    "#overview-history"
+  );
 });
 </script>
