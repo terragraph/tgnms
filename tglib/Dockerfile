@@ -9,7 +9,7 @@ COPY --from=thrift /usr/local/bin/thrift /usr/local/bin
 WORKDIR /usr/local/tglib
 COPY ./tglib .
 COPY ./if ./if
-RUN python setup.py build_thrift && pip install .
+RUN python setup.py build_thrift && pip install -e .[ci]
 
 # Define default command
 CMD ["bash"]
