@@ -7,4 +7,4 @@ COPY ./ ./network_analyzer
 WORKDIR /network_analyzer/api_server
 RUN pip install -r requirements.txt
 ENV PYTHONPATH "${PYTONPATH}:/network_analyzer"
-CMD python start_api_server.py $NETWORK_NAME -p $PORT --time-gap $TIME_GAP --topo-update-interval $TOPO_UPDATE_INTERVAL --get-default-routes $DEFAULT_ROUTE_INTERVAL
+CMD python start_api_server.py $NETWORK_NAME -p $PORT --time-gap $TIME_GAP --get-default-routes $DEFAULT_ROUTE_INTERVAL

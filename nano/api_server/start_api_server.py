@@ -29,16 +29,6 @@ def main():
         ),
     )
     parser.add_argument(
-        "--topo-update-interval",
-        dest="topo_update_interval",
-        action="store",
-        type=int,
-        help=(
-            "specify the time gap (seconds) between every topology update; "
-            "recommended value is 15 mins (900 seconds)"
-        ),
-    )
-    parser.add_argument(
         "--get-default-routes",
         dest="get_default_routes",
         action="store",
@@ -125,7 +115,6 @@ def _configure_api_server(api_args, target_args):
     app.config["fp"] = api_args["folder_path"]
     app.config["network_name"] = api_args["name"].lower()
     app.config["tmp_folder"] = api_args["tmp_folder"]
-    app.config["topo_update_interval"] = api_args["topo_update_interval"]
     app.config["get_default_routes"] = api_args["get_default_routes"]
     app.config["weather_info_fetch_interval"] = api_args["weather_info_fetch_interval"]
 

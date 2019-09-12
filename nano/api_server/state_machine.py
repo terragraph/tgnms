@@ -7,10 +7,6 @@ from base import app
 from modules.util_mongo_db import LOCAL_ZONE, get_current_datetime
 from perform_single_test import perform_single_test
 from services.default_routes_service import get_default_routes
-from services.topology_service import (
-    perform_topology_fetch,
-    prepare_args_for_topology_fetch,
-)
 from services.weather_service import perform_weather_fetch
 
 
@@ -23,13 +19,6 @@ def state_machine_backend(event):
     currentT = currentT.astimezone(LOCAL_ZONE)
     ptr = (currentT.hour * 3600 + currentT.minute * 60) // app.config["time_gap"]
     app.logger.debug("initial ptr={}".format(ptr))
-
-    # prepare most of the args once for topology update and weather driven test
-    topology_args = (
-        prepare_args_for_topology_fetch()
-        if app.config["topo_update_interval"]
-        else None
-    )
 
     while 1:
         app.logger.debug(
@@ -53,14 +42,6 @@ def state_machine_backend(event):
                 ptr,
             ),
         )
-
-        # if topo_update_interval is configured, start topology fetch service
-        if app.config["topo_update_interval"]:
-            topology_proc = Thread(
-                target=perform_topology_fetch,
-                args=(ptr, topology_args, app.config["topo_update_interval"]),
-            )
-            topology_proc.start()
 
         # if get_default_routes is configured, start get default routes service
         if app.config["get_default_routes"]:

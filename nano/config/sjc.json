@@ -19,7 +19,6 @@
     "query_limit": 150,
     "//": "Time gap (seconds) between every state-machine check",
     "time_gap": 10,
-    "topo_update_interval": 600,
     "//": "Time gap (seconds) between every API visit to fetch default route for all nodes",
     "get_default_routes": 900
   },
