@@ -1,6 +1,6 @@
 #!/bin/bash
 
-required_version="0.11.0"
+required_version="0.12.0"
 curr_version=$(thrift -version 2>&1)
 if [ $? != 0 ]; then
     echo "Not using the correct thrift version (apache thrift $required_version), bailing"

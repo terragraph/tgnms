@@ -4,7 +4,12 @@
  * @format
  */
 
-const {BERINGEI_QUERY_URL, LOGIN_ENABLED} = require('../config');
+const {
+  BERINGEI_QUERY_URL,
+  LINK_HEALTH_TIME_WINDOW_HOURS,
+  LOGIN_ENABLED,
+  STATS_BACKEND,
+} = require('../config');
 const EventSource = require('eventsource');
 import apiServiceClient from '../apiservice/apiServiceClient';
 
@@ -19,11 +24,13 @@ import {
   GraphAggregationValueMap as GraphAggregation,
   StatsOutputFormatValueMap as StatsOutputFormat,
 } from '../../shared/types/Stats';
+import {LinkStateType} from '../../thrift/gen-nodejs/Stats_types';
 
-import {getNetworkList, updateOnlineWhitelist} from './network';
+import {getLinkEvents, getNetworkList, updateOnlineWhitelist} from './network';
 const _ = require('lodash');
 const request = require('request');
 const logger = require('../log')(module);
+import moment from 'moment';
 
 const networkLinkHealth = {};
 const networkNodeHealth = {};
@@ -531,6 +538,102 @@ function refreshWirelessControllerCache(topologyName) {
 }
 
 function refreshNetworkHealth(topologyName) {
+  if (STATS_BACKEND === 'prometheus') {
+    cacheNetworkHealthFromDb(topologyName, LINK_HEALTH_TIME_WINDOW_HOURS);
+  } else {
+    cacheNetworkHealthFromBeringei(topologyName);
+  }
+}
+async function cacheNetworkHealthFromDb(topologyName, timeWindowHours) {
+  networkLinkHealth[topologyName] = await fetchNetworkHealthFromDb(
+    topologyName,
+    timeWindowHours,
+  );
+}
+
+async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
+  const eventsByLink = {};
+  // TODO - account for missing gaps at the end
+  const windowSeconds = timeWindowHours * 60 * 60;
+  // don't show the last 60s
+  const curTs = new Date().getTime() / 1000 - 60;
+  const minStartTs = curTs - 60 * 60 * timeWindowHours;
+  return await getLinkEvents(topologyName, timeWindowHours).then(resp => {
+    resp.forEach(linkEvent => {
+      const {linkName, linkDirection, eventType, startTs, endTs} = linkEvent;
+      // adjust time from DB
+      // TODO - find a better way, maybe timestamp instead of datetime in mysql?
+      let startTime = new Date(startTs).getTime() / 1000;
+      let endTime = new Date(endTs).getTime() / 1000;
+      if (linkDirection !== 'A') {
+        // only use A direction for testing
+        // TODO - use both somehow
+        return;
+      }
+      if (!eventsByLink.hasOwnProperty(linkName)) {
+        eventsByLink[linkName] = {};
+      }
+      if (!eventsByLink[linkName].hasOwnProperty('events')) {
+        eventsByLink[linkName] = {
+          events: [],
+          linkAlive: 0,
+          linkAvailForData: 0,
+        };
+      }
+      // ensure time window boundaries
+      if (startTime < minStartTs) {
+        startTime = minStartTs;
+      }
+      if (endTime > curTs) {
+        endTime = curTs;
+      }
+      // TODO - decimals
+      const timeWindow = Number.parseInt((endTime - startTime) / 60);
+      // format time in HH:MM:SS
+      const startTimeStr = moment.unix(startTime).format('LTS');
+      const endTimeStr = moment.unix(endTime).format('LTS');
+      eventsByLink[linkName].events.push({
+        description: `${timeWindow} min between ${startTimeStr} <-> ${endTimeStr}`,
+        linkState: LinkStateType[eventType] || LinkStateType['LINK_UP'],
+        startTime,
+        endTime,
+      });
+    });
+
+    // calculate availability
+    Object.keys(eventsByLink).forEach(linkName => {
+      const linkEvents = eventsByLink[linkName];
+      const availSeconds = linkEvents.events.reduce(
+        (accumulator, {startTime, endTime}) =>
+          accumulator + (endTime - startTime),
+        0,
+      );
+      const dataDownSeconds = linkEvents.events
+        .filter(event => event.linkState === LinkStateType['LINK_UP_DATADOWN'])
+        .reduce(
+          (accumulator, {startTime, endTime}) =>
+            accumulator + (endTime - startTime),
+          0,
+        );
+      const alivePerc =
+        Number.parseInt((availSeconds / windowSeconds) * 10000.0) / 100.0;
+      // remove LINK_UP_DATADOWN seconds from available %
+      const availPerc =
+        Number.parseInt(
+          ((availSeconds - dataDownSeconds) / windowSeconds) * 10000.0,
+        ) / 100.0;
+      linkEvents.linkAlive = alivePerc;
+      linkEvents.linkAvailForData = availPerc;
+    });
+    return {
+      events: eventsByLink,
+      startTime: minStartTs,
+      endTime: curTs,
+    };
+  });
+}
+
+function cacheNetworkHealthFromBeringei(topologyName) {
   if (!networkInstanceConfig.hasOwnProperty(topologyName)) {
     logger.error('network_health: Unknown topology %s', topologyName);
     return;
@@ -803,6 +906,7 @@ function updateConfigParams(request, _success, _responseTime, _data) {
 
 module.exports = {
   addRequester,
+  fetchNetworkHealthFromDb,
   getAllTopologyNames,
   getAllNetworkConfigs,
   getNetworkConfig,

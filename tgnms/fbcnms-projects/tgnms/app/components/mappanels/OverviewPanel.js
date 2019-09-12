@@ -5,14 +5,19 @@
  * @flow
  */
 
+import Button from '@material-ui/core/Button';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import FriendlyText from '../common/FriendlyText';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
+import MaterialModal from '../common/MaterialModal';
+import NetworkContext from '../../NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
+import PropTypes from 'prop-types';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import StatusText from '../common/StatusText';
+import Text from '@fbcnms/i18n/Text';
 import Typography from '@material-ui/core/Typography';
 import WifiIcon from '@material-ui/icons/Wifi';
 import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
@@ -44,6 +49,7 @@ import {
 } from '../../helpers/NetworkHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
+import {withTranslation} from 'react-i18next';
 import type {
   ControllerHAState,
   NetworkConfig,
@@ -52,6 +58,13 @@ import type {
 } from '../../NetworkContext';
 
 const styles = theme => ({
+  button: {
+    margin: theme.spacing(1),
+  },
+  buttonSelected: {
+    margin: theme.spacing(1),
+    backgroundColor: theme.palette.grey[300],
+  },
   sectionSpacer: {
     height: theme.spacing(1),
   },
@@ -103,17 +116,38 @@ type Props = {
   onViewIgnitionState: () => void,
   onViewAccessPointList: () => void,
   classes: {[string]: string},
+  t: (string, string) => string,
 };
 
 type State = {
   cnAvailability: ?number,
   dnAvailability: ?number,
   allAvailability: ?number,
+  availabilityConfigOpen: ?boolean,
 };
+
+const TIME_WINDOWS = [
+  {hours: 1, title: '1 hr'},
+  {hours: 6, title: '6 hrs'},
+  {hours: 24, title: '1 day'},
+  {hours: 24 * 2, title: '2 days'},
+  {hours: 24 * 7, title: '1 week'},
+];
+
+// allow switching between stats backends
+const STATS_DS =
+  window?.CONFIG?.env?.STATS_BACKEND === 'prometheus'
+    ? 'prometheus'
+    : 'beringei';
 
 class OverviewPanel extends React.Component<Props, State> {
   _serviceAvailabilityInterval: IntervalID;
-  state = {cnAvailability: null, dnAvailability: null, allAvailability: null};
+  state = {
+    cnAvailability: null,
+    dnAvailability: null,
+    allAvailability: null,
+    availabilityConfigOpen: false,
+  };
 
   componentDidMount() {
     if (isFeatureEnabled('SERVICE_AVAILABILITY_ENABLED')) {
@@ -196,11 +230,13 @@ class OverviewPanel extends React.Component<Props, State> {
 
     return (
       <>
-        <Typography variant="h6" gutterBottom>
+        <Text i18nKey="software_versions" variant="h6" gutterBottom>
           Software Versions
-        </Typography>
+        </Text>
 
-        <Typography variant="subtitle2">Controller</Typography>
+        <Text i18nKey="controller" variant="subtitle2">
+          Controller
+        </Text>
         <div className={classes.indented}>
           <Typography gutterBottom variant="body2">
             <em>
@@ -213,7 +249,9 @@ class OverviewPanel extends React.Component<Props, State> {
 
         {totalReported ? (
           <>
-            <Typography variant="subtitle2">Nodes</Typography>
+            <Text i18nKey="nodes" variant="subtitle2">
+              Nodes
+            </Text>
             <div className={classes.indented}>
               <table>
                 <tbody>
@@ -381,7 +419,67 @@ class OverviewPanel extends React.Component<Props, State> {
         });
   }
 
-  renderNetworkStatus() {
+  handleCloseAvailabilityConfig = () => {
+    this.setState({availabilityConfigOpen: !this.state.availabilityConfigOpen});
+  };
+
+  renderAvailabilityConfig = context => {
+    const {availabilityConfigOpen} = this.state;
+    const {classes} = this.props;
+
+    return (
+      <span>
+        <IconButton
+          classes={{root: classes.rightIconButton}}
+          onClick={() => {
+            this.setState({availabilityConfigOpen: !availabilityConfigOpen});
+          }}>
+          <SettingsIcon classes={{root: classes.rightIcon}} />
+        </IconButton>
+        <MaterialModal
+          modalTitle={this.props.t(
+            'availability_config',
+            'Availability Config',
+          )}
+          modalContent={
+            <div>
+              <Text i18nKey="time_window">Time Window</Text>
+              {TIME_WINDOWS.map(({hours, title}) => (
+                <Button
+                  className={
+                    hours === context.networkHealthTimeWindowHrs
+                      ? classes.buttonSelected
+                      : classes.button
+                  }
+                  key={hours}
+                  variant="outlined"
+                  onClick={() => {
+                    context.setAvailabilityWindow(hours);
+                    this.handleCloseAvailabilityConfig();
+                  }}>
+                  {this.props.t('' + title, '' + title)}
+                </Button>
+              ))}
+            </div>
+          }
+          open={availabilityConfigOpen}
+          onClose={this.handleCloseAvailabilityConfig}
+          modalActions={
+            <div>
+              <Button
+                className={classes.button}
+                variant="outlined"
+                onClick={this.handleCloseAvailabilityConfig}>
+                <Text i18nKey="close">Close</Text>
+              </Button>
+            </div>
+          }
+        />
+      </span>
+    );
+  };
+
+  renderNetworkStatus(context) {
     // Render information about network status
     const {
       classes,
@@ -429,19 +527,27 @@ class OverviewPanel extends React.Component<Props, State> {
 
     return (
       <>
-        <Typography variant="h6" gutterBottom>
+        <Text i18nKey="network" variant="h6" gutterBottom>
           Network
-        </Typography>
+        </Text>
 
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Link Availability</Typography>
+          <Typography variant="subtitle2">
+            {this.props.t('link_availability', 'Link Availability')} (
+            {TIME_WINDOWS.filter(
+              ({hours}) => hours === context.networkHealthTimeWindowHrs,
+            ).map(({title}) => title)}
+            )
+          </Typography>
           <Typography variant="body2" style={{color: 'grey'}}>
             {availability.wirelessLinksCount
               ? renderAvailabilityWithColor(
                   formatNumber(availability.alivePercAvg),
                 )
-              : 'N/A'}
+              : '-'}
           </Typography>
+
+          {STATS_DS === 'prometheus' && this.renderAvailabilityConfig(context)}
         </div>
 
         <div className={classes.indented}>
@@ -455,14 +561,14 @@ class OverviewPanel extends React.Component<Props, State> {
         {isFeatureEnabled('SERVICE_AVAILABILITY_ENABLED') ? (
           <>
             <div className={classes.sectionSpacer} />
-
             <div className={classes.spaceBetween}>
-              <Typography variant="subtitle2">Service Availability</Typography>
+              <Text i18nKey="service_availability" variant="subtitle2">
+                Service Availability
+              </Text>
               <Typography variant="body2">
                 {renderAvailabilityWithColor(formatNumber(allAvailability))}
               </Typography>
             </div>
-
             <div className={classes.indented}>
               <div className={classes.spaceBetween}>
                 <Typography variant="body2">
@@ -475,11 +581,13 @@ class OverviewPanel extends React.Component<Props, State> {
 
         <div className={classes.sectionSpacer} />
 
-        <Typography variant="subtitle2">Topology</Typography>
+        <Text i18nKey="topology" variant="subtitle2">
+          Topology
+        </Text>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">
             {getNodeIcon({classes: {root: classes.iconCentered}})}
-            Sectors Online
+            {this.props.t('sectors_online', 'Sectors Online')}
           </Typography>
           <Typography className={classes.vCenter}>
             {formatNumber(sectorsOnline)} /{' '}
@@ -489,7 +597,7 @@ class OverviewPanel extends React.Component<Props, State> {
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">
             {getLinkIcon({classes: {root: classes.iconCentered}})}
-            RF Links Online
+            {this.props.t('rf_links_online', 'RF Links Online')}
           </Typography>
           <Typography className={classes.vCenter}>
             {formatNumber(linksOnline)} / {formatNumber(linksWireless)}
@@ -498,7 +606,7 @@ class OverviewPanel extends React.Component<Props, State> {
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">
             {getSiteIcon({classes: {root: classes.iconCentered}})}
-            Total Sites
+            {this.props.t('total_sites', 'Total Sites')}
           </Typography>
           <Typography className={classes.vCenter}>
             {formatNumber(topology.sites.length)}
@@ -510,7 +618,9 @@ class OverviewPanel extends React.Component<Props, State> {
             <div className={classes.sectionSpacer} />
 
             <div className={classes.spaceBetween}>
-              <Typography variant="subtitle2">Access Points</Typography>
+              <Text i18nKey="access_points" variant="subtitle2">
+                Access Points
+              </Text>
               <IconButton
                 classes={{root: classes.rightIconButton}}
                 onClick={onViewAccessPointList}>
@@ -529,7 +639,7 @@ class OverviewPanel extends React.Component<Props, State> {
             <div className={classes.spaceBetween}>
               <Typography variant="subtitle2">
                 {<PersonIcon classes={{root: classes.iconCentered}} />}
-                Total Clients
+                {this.props.t('total_clients', 'Total Clients')}
               </Typography>
               <Typography className={classes.vCenter}>
                 {formatNumber(totalWirelessClients)}
@@ -541,7 +651,9 @@ class OverviewPanel extends React.Component<Props, State> {
         <div className={classes.sectionSpacer} />
 
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Ignition State</Typography>
+          <Text i18nKey="ignition_state" variant="subtitle2">
+            Ignition State
+          </Text>
           <IconButton
             classes={{root: classes.rightIconButton}}
             onClick={onViewIgnitionState}>
@@ -572,20 +684,22 @@ class OverviewPanel extends React.Component<Props, State> {
     const haOfflineText = (
       <>
         {' \u2014 '}
-        <span className={classes.errorText}>Offline</span>
+        <span className={classes.errorText}>
+          {this.props.t('offline', 'Offline')}
+        </span>
       </>
     );
 
     return (
       <>
-        <Typography variant="h6" gutterBottom>
+        <Text i18nKey="services" variant="h6" gutterBottom>
           Services
-        </Typography>
+        </Text>
 
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2" gutterBottom>
+          <Text i18nKey="controller" variant="subtitle2" gutterBottom>
             Controller
-          </Typography>
+          </Text>
           <Typography
             variant="subtitle2"
             gutterBottom
@@ -607,7 +721,7 @@ class OverviewPanel extends React.Component<Props, State> {
               <div className={classes.spaceBetween}>
                 <span>
                   <Typography variant="subtitle2">
-                    Primary
+                    {this.props.t('primary', 'Primary')}
                     {!primary.controller_online ? haOfflineText : null}
                   </Typography>
                 </span>
@@ -625,7 +739,7 @@ class OverviewPanel extends React.Component<Props, State> {
               </Typography>
               <div className={classes.spaceBetween}>
                 <Typography variant="subtitle2">
-                  Backup
+                  {this.props.t('backup', 'Backup')}
                   {!backup.controller_online && backup.api_ip
                     ? haOfflineText
                     : null}
@@ -653,9 +767,9 @@ class OverviewPanel extends React.Component<Props, State> {
           )}
         </div>
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2" gutterBottom>
+          <Text i18nKey="query_service" variant="subtitle2" gutterBottom>
             Query Service
-          </Typography>
+          </Text>
           <Typography
             variant="subtitle2"
             gutterBottom
@@ -667,11 +781,11 @@ class OverviewPanel extends React.Component<Props, State> {
     );
   }
 
-  renderOverview() {
+  renderOverview(context) {
     const {classes} = this.props;
     return (
       <div style={{width: '100%'}}>
-        {this.renderNetworkStatus()}
+        {this.renderNetworkStatus(context)}
         <div className={classes.sectionSpacer} />
         {this.renderServices()}
         <div className={classes.sectionSpacer} />
@@ -681,17 +795,23 @@ class OverviewPanel extends React.Component<Props, State> {
   }
 
   render() {
+    return (
+      <NetworkContext.Consumer>{this.renderContext}</NetworkContext.Consumer>
+    );
+  }
+
+  renderContext = context => {
     const {expanded, onPanelChange} = this.props;
 
     return (
       <CustomExpansionPanel
-        title="Overview"
-        details={this.renderOverview()}
+        title={this.props.t('overview', 'Overview')}
+        details={this.renderOverview(context)}
         expanded={expanded}
         onChange={onPanelChange}
       />
     );
-  }
+  };
 }
 
 function HAState({state}: {state: ControllerHAState}) {
@@ -709,4 +829,15 @@ function HAState({state}: {state: ControllerHAState}) {
   );
 }
 
-export default withStyles(styles)(OverviewPanel);
+OverviewPanel.propTypes = {
+  classes: PropTypes.object.isRequired,
+  expanded: PropTypes.bool.isRequired,
+  onPanelChange: PropTypes.func.isRequired,
+  networkConfig: PropTypes.object.isRequired,
+  networkLinkHealth: PropTypes.object.isRequired,
+  onViewIgnitionState: PropTypes.func.isRequired,
+  onViewAccessPointList: PropTypes.func.isRequired,
+  t: PropTypes.func.isRequired,
+};
+
+export default withStyles(styles)(withTranslation()(OverviewPanel));

@@ -64,6 +64,9 @@ const SOFTWARE_PORTAL_API_TOKEN =
   process.env.SOFTWARE_PORTAL_API_TOKEN || 'K__AjuA9ii_Mwq7FYV00PWS-e6Y';
 const SOFTWARE_PORTAL_API_ID = process.env.SOFTWARE_PORTAL_API_ID || 'tgdev';
 
+// Default time window to cache link health for
+const LINK_HEALTH_TIME_WINDOW_HOURS = 24;
+
 // Directory containing all node logs
 // Structure:
 //   $NODELOG_DIR/<mac_addr>/yyyy-mm-dd_terragraph_<name>_logs.log<.lz4>
@@ -122,6 +125,7 @@ module.exports = {
   GRAFANA_URL,
   DEFAULT_API_SERVICE_PORT: '8080',
   DOCKER_API_VERSION,
+  LINK_HEALTH_TIME_WINDOW_HOURS,
   LOGIN_ENABLED,
   SSO_ENABLED,
   LOG_LEVEL,

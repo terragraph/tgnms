@@ -128,8 +128,13 @@ function createPrometheusRequest(options: {[string]: any}) {
         if (err) {
           return reject(err);
         }
-
-        const parsed = JSON.parse(response.body);
+        let parsed = {};
+        try {
+          parsed = JSON.parse(response.body);
+        } catch (err) {
+          logger.error('Unable to parse response as JSON:', response.body);
+          return reject({});
+        }
         if (parsed.status === 'error') {
           logger.error('Prometheus response returned an error: ', parsed.error);
           return reject(parsed);

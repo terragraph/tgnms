@@ -22,6 +22,11 @@ import type {
 export type NetworkContextType = {|
   networkName: string,
   networkConfig: NetworkConfig,
+
+  // time window of network health metrics in hours
+  networkHealthTimeWindowHrs: number,
+  setAvailabilityWindow: number => void,
+
   networkLinkHealth: NetworkHealth,
   networkNodeHealth: NetworkHealth,
   networkAnalyzerData: {},
@@ -185,6 +190,7 @@ export type TopologyConfig = {||};
 const NetworkContext = React.createContext<NetworkContextType>({
   networkName: '',
   networkConfig: {},
+  networkHealthTimeWindowHrs: 24,
   networkLinkHealth: {},
   networkNodeHealth: {},
   networkAnalyzerData: {},
@@ -206,6 +212,7 @@ const NetworkContext = React.createContext<NetworkContextType>({
   togglePin: () => {},
   toggleExpanded: () => {},
   networkLinkMetrics: {},
+  setAvailabilityWindow: () => {},
 });
 
 export default NetworkContext;

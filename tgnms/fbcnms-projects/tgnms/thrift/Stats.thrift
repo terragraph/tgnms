@@ -63,6 +63,12 @@ struct TypeaheadRequest {
    * ]
    */
   10: list<QueryRestrictor> restrictors,
+  /**
+  * When searching for keynames for the purpose of displaying them for
+  * plotting on a dashboard, there is no need to return multiple keyIds
+  * for the same keyName
+  */
+  11: optional bool noDuplicateKeyNames = false,
   // output debug data to console for this request
   1000: optional bool debugLogToConsole = false,
 }
@@ -73,7 +79,6 @@ enum LinkDirection {
 }
 
 struct KeyMetaData {
-  1: i64 keyId,
   2: string keyName,
   // short name if one is associated
   3: optional string shortName,
@@ -85,6 +90,7 @@ struct KeyMetaData {
   // link details
   30: optional string linkName,
   31: optional LinkDirection linkDirection,
+  32: optional string topologyName,
 
   100: KeyUnit unit,
 }
@@ -175,20 +181,52 @@ struct QueryRequest {
   1000: optional bool debugLogToConsole = false,
 }
 
+// type of restriction to apply
+enum LinkStateType {
+  LINK_DOWN_OR_NOT_AVAIL = 0,
+  LINK_UP = 1,
+  LINK_UP_DATADOWN = 2,
+  LINK_UP_AVAIL_UNKNOWN = 3,
+}
+
 // output formats
 struct EventDescription {
-  1: i64 startTime,
-  2: i64 endTime,
-  3: string description,
+  1: i64 dbId,
+  10: i64 startTime,
+  11: i64 endTime,
+  20: optional string description,
+  21: optional LinkStateType linkState,
 }
 
 struct EventList {
-  1: double alive,
+  // percentage - link is in LINK_UP or LINK_UP_DATADOWN (heartbeats going)
+  1: double linkAlive,
   2: list<EventDescription> events,
+  // percentage - link is in LINK_UP - capable of passing data packets
+  3: optional double linkAvailForData,
 }
 
 struct OutputFormatEvents {
   1: i64 startTime,
   2: i64 endTime,
   3: map<string /* key name */, EventList> events,
+}
+
+/**
+ * @apiDefine LinkMetric
+ * @apiParam {String} [shortName]
+ *           The short or common name e.g. "fw_uptime"
+ * @apiParam {String} [keyName]
+             The raw key name published by the node.
+ *           For firmware the key is assumed to be in the format
+ *           <keyPrefix>.<node MAC address>.<keyName>
+ *           e.g. tgf.00:11:22:33:44:55.staPkt.mgmtLinkUp
+ * @apiParam {String} keyPrefix See keyName
+ * @apiParam {String} description Human readable
+ */
+struct LinkMetric {
+  1: string shortName,
+  10: string keyName,
+  11: string keyPrefix,
+  20: string description,
 }

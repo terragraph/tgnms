@@ -5,16 +5,25 @@
  * @flow
  */
 
+import Sequelize from 'sequelize';
+import difference from 'lodash/difference';
+import moment from 'moment';
 import {NodeStatusTypeValueMap as NodeStatusType} from '../../shared/types/Topology';
+
+const {
+  controller,
+  link_event,
+  topology,
+  wireless_controller,
+} = require('../models');
 import type {Controller} from '../models/controller';
+import type {LinkEvent} from '../models/linkEvents';
 import type {LinkType, NodeType} from '../../shared/types/Topology';
 import type {Topology} from '../models/topology';
 import type {
   WirelessController,
   WirelessControllerType,
 } from '../models/wirelessController';
-const {controller, topology, wireless_controller} = require('../models');
-import difference from 'lodash/difference';
 
 export async function testNetworkDb() {
   try {
@@ -222,7 +231,7 @@ export function updateOnlineWhitelist(
         ).length > 0
       ) {
         network.offline_whitelist = newWhitelist;
-        // $FlowFixMe
+        // $FlowFixMe flow
         return network.save().then(saved => {
           return saved.offline_whitelist;
         });
@@ -230,4 +239,41 @@ export function updateOnlineWhitelist(
 
       return Promise.resolve(network.offline_whitelist);
     });
+}
+
+export function getLinkEvents(
+  topologyName: string,
+  intervalHours: number,
+): Promise<Array<LinkEvent>> {
+  return new Promise<Array<LinkEvent>>((resolve, _reject) => {
+    return link_event
+      .findAll({
+        // attributes: [
+        //   'linkName',
+        //   'linkDirection',
+        //   'eventType',
+        //   [
+        //     Sequelize.fn('UNIX_TIMESTAMP', Sequelize.col('startTs')),
+        //     'startTime',
+        //   ],
+        //   [Sequelize.fn('UNIX_TIMESTAMP', Sequelize.col('endTs')), 'endTime'],
+        // ],
+        where: {
+          topologyName,
+          // endTs: {
+          //   // $FlowFixMe flow doesn't like sequelize
+          //   [Sequelize.Op.gte]: Sequelize.literal(
+          //     `DATE_SUB(NOW(), INTERVAL ${intervalHours} HOUR)`,
+          //   ),
+          // },
+          endTs: {
+            // $FlowFixMe flow doesn't like sequelize
+            [Sequelize.Op.gte]: moment()
+              .subtract(intervalHours, 'hours')
+              .toDate(),
+          },
+        },
+      })
+      .then(events => resolve(events));
+  });
 }

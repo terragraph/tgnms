@@ -6,6 +6,7 @@
 
 const {
   addRequester,
+  fetchNetworkHealthFromDb,
   getAllNetworkConfigs,
   getNetworkLinkHealth,
   getNetworkNodeHealth,
@@ -13,6 +14,7 @@ const {
   reloadInstanceConfig,
   removeRequester,
 } = require('./model');
+const {LINK_HEALTH_TIME_WINDOW_HOURS, STATS_BACKEND} = require('../config');
 
 const {
   createController,
@@ -26,16 +28,30 @@ const logger = require('../log')(module);
 
 const router = express.Router();
 
-router.get('/link_health/:topologyName', (req, res, _next) => {
-  const {topologyName} = req.params;
-  const networkLinkHealth = getNetworkLinkHealth(topologyName);
-  if (networkLinkHealth) {
-    res.json(networkLinkHealth);
-  } else {
-    logger.debug('No link health cache found for %s', topologyName);
-    res.status(404).json({msg: 'No cache'});
-  }
-});
+router.get(
+  '/link_health/:topologyName/:timeWindowHours',
+  async (req, res, _next) => {
+    const {topologyName} = req.params;
+    const timeWindowHours = Number.parseInt(req.params.timeWindowHours);
+    let networkLinkHealth = false;
+    // use cache if using default interval
+    if (timeWindowHours === LINK_HEALTH_TIME_WINDOW_HOURS) {
+      networkLinkHealth = getNetworkLinkHealth(topologyName);
+    } else if (STATS_BACKEND === 'prometheus') {
+      // query for non-default health window
+      networkLinkHealth = await fetchNetworkHealthFromDb(
+        topologyName,
+        timeWindowHours,
+      );
+    }
+    if (networkLinkHealth) {
+      res.json(networkLinkHealth);
+    } else {
+      logger.debug('No link health cache found for %s', topologyName);
+      res.status(404).json({msg: 'No cache'});
+    }
+  },
+);
 
 router.get('/node_health/:topologyName', (req, res, _next) => {
   const {topologyName} = req.params;

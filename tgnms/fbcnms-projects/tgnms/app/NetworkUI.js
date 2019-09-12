@@ -75,6 +75,7 @@ type State = {
   networkLinkHealth: NetworkHealth,
   networkAnalyzerData: Object,
   networkLinkIgnitionAttempts: Object,
+  networkHealthTimeWindowHrs: number,
   nodeMap: {[string]: Node},
   pinnedElements: Array<TopologyElementType>,
   siteMap: SiteMap,
@@ -107,6 +108,9 @@ class NetworkUI extends React.Component<Props, State> {
     networkLinkHealth: {},
     networkAnalyzerData: {},
     networkLinkIgnitionAttempts: {},
+
+    // Availability time window
+    networkHealthTimeWindowHrs: 24,
   };
 
   _refreshNetworkInterval = null;
@@ -127,7 +131,7 @@ class NetworkUI extends React.Component<Props, State> {
     clearInterval(this._refreshNetworkInterval);
   }
 
-  componentDidUpdate(prevProps: Props, _prevState: State) {
+  componentDidUpdate(prevProps: Props, prevState: State) {
     const {params} = this.props.match;
     const prevParams = prevProps.match.params;
     const networkName = params.hasOwnProperty('networkName')
@@ -157,6 +161,17 @@ class NetworkUI extends React.Component<Props, State> {
       this.getCurrentNetworkStatus();
       // reset topology fetch timer and re-schedule topology get
       this.getCurrentNetworkStatusPeriodic();
+    }
+    // check if availability time window changed
+    if (
+      prevState.networkHealthTimeWindowHrs !==
+        this.state.networkHealthTimeWindowHrs &&
+      networkName
+    ) {
+      this.updateNetworkHealth(
+        networkName,
+        this.state.networkHealthTimeWindowHrs,
+      );
     }
   }
 
@@ -240,7 +255,10 @@ class NetworkUI extends React.Component<Props, State> {
     });
 
     // Refresh network health
-    this.updateNetworkHealth(networkName);
+    this.updateNetworkHealth(
+      networkName,
+      this.state.networkHealthTimeWindowHrs,
+    );
     this.updateNetworkAnalyzer(networkName);
   };
 
@@ -292,12 +310,14 @@ class NetworkUI extends React.Component<Props, State> {
     return false;
   };
 
-  updateNetworkHealth = networkName => {
+  updateNetworkHealth = (networkName: string, timeWindowHours: number) => {
     // Refresh network node/link health
-    axios.get('/topology/link_health/' + networkName).then(response => {
-      this.setState({networkLinkHealth: response.data || {}});
-    });
-    axios.get('/topology/node_health/' + networkName).then(response => {
+    axios
+      .get(`/topology/link_health/${networkName}/${timeWindowHours}`)
+      .then(response => {
+        this.setState({networkLinkHealth: response.data || {}});
+      });
+    axios.get(`/topology/node_health/${networkName}`).then(response => {
       this.setState({networkNodeHealth: response.data || {}});
     });
   };
@@ -394,6 +414,13 @@ class NetworkUI extends React.Component<Props, State> {
     }
   };
 
+  setAvailabilityWindow = networkHealthTimeWindowHrs => {
+    this.setState({
+      networkHealthTimeWindowHrs,
+      networkLinkHealth: ({}: NetworkHealth),
+    });
+  };
+
   renderReloadingOverlay = () => {
     // Render a semi-transparent overlay that blocks the whole webpage while
     // waiting for a data reload
@@ -422,6 +449,7 @@ class NetworkUI extends React.Component<Props, State> {
           value={{
             networkName,
             networkConfig: this.state.networkConfig,
+            networkHealthTimeWindowHrs: this.state.networkHealthTimeWindowHrs,
             networkLinkHealth: this.state.networkLinkHealth,
             networkNodeHealth: this.state.networkNodeHealth,
             networkAnalyzerData: this.state.networkAnalyzerData,
@@ -445,6 +473,7 @@ class NetworkUI extends React.Component<Props, State> {
             removeElement: this.removeElement,
             togglePin: this.togglePin,
             toggleExpanded: this.toggleExpanded,
+            setAvailabilityWindow: this.setAvailabilityWindow,
           }}>
           {this.renderReloadingOverlay()}
           <Switch>

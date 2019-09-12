@@ -20,7 +20,7 @@ export function getLinkMetricsByName(
   return link_metric.findAll({
     where: {
       name: {
-        // $FlowFixMe
+        // $FlowFixMe flow doesn't like sequelize
         [Sequelize.Op.like]: `%${searchTerm}%`,
       },
     },
