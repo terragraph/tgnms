@@ -1,4 +1,10 @@
 {
+  "apiservice": {
+    "nms": {
+      "host": "nms",
+      "port": 8080
+    }
+  },
   "kafka": {
     "bootstrap_servers": ["kafka:9096"]
   },
@@ -8,9 +14,7 @@
   },
   "mysql": {
     "host": "db",
-    "port": 3306,
-    "user": "nms",
-    "password": "o0Oe8G0UrBrT"
+    "port": 3306
   },
   "prometheus": {
     "host": "prometheus",
