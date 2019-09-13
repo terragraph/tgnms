@@ -5,6 +5,7 @@
 import * as Lsdb from "./Lsdb";
 import * as BWAllocation from "./BWAllocation";
 import * as Topology from "./Topology";
+import * as NodeConfig from './NodeConfig'
 
 export type MessageTypeType =
   | "GET_STATUS_DUMP"
@@ -542,7 +543,55 @@ export type GetCtrlConfigMetadataRespType = {| metadata: string |};
 
 export type MinionConfigChangedType = {||};
 
-export type ControllerConfigType = {| flags: { [string]: string } |};
+export type ControllerConfigType = {|
+    flags: { [string]: string },
+    scanParams:ScanParams,
+    prefixAllocParams: PrefixAllocParams,
+    ignitionParams: IgnitionParams,
+    statsAgentParams: NodeConfig.StatsAgentParamsType,
+    topologyParams: TopologyParams,
+  |};
+
+  export type IgnitionParams ={
+     enable?:boolean,
+     linkUpInterval?:number,
+     linkUpDampenInterval?:number,
+     linkAutoIgnite:{[string]:boolean},
+  }
+
+  export type ScanParams ={
+    scanSchedule: ScanSchedule,
+    cbfConfigJson: string,
+    centralLaTpcConfig: CentralLaTpcConfig,
+  }
+
+  export type PrefixAllocParams ={
+    seedPrefix:string;
+    allocPrefixLen:number;
+  }
+
+  export type TopologyParams ={
+    enabledChannels:string;
+  }
+
+  export type ScanSchedule ={
+    imScanTimeoutSec?:number;
+    combinedScanTimeoutSec?:number;
+    pbfEnable:boolean;
+    rtcalEnable:boolean;
+    cbfEnable:boolean;
+    imEnable:boolean;
+  }
+
+  export type CentralLaTpcConfig ={
+     maxMcsAutoEnable:bool,
+     maxMcsLow:number,
+     maxMcsHigh :number,
+     maxMcsInrLimit :number,
+     maxMcsInrAlpha:number,
+     maxMcsTxPowerMin:number,
+     maxMcsTxPowerMax :number,
+  }
 
 export type GetCtrlControllerConfigReqType = {||};
 

@@ -44,3 +44,12 @@ export type NodeAirtimeType = {| linkAirtimes: LinkAirtimeType[] |};
 export type NetworkAirtimeType = {|
   nodeAirtimeMap: { [string]: NodeAirtimeType }
 |};
+
+export type AirtimeConfigType = {
+  txIdeal: number, // Ideal TX airtime fraction to link. Unit: 1/100%.
+  txMin: number, // Min TX airtime fraction to link. Unit: 1/100%.
+  txMax: number, // Max TX airtime fraction to link. Unit: 1/100%.
+  rxIdeal: number, // Ideal RX airtime fraction from link. Unit: 1/100%.
+  rxMin: number, // Min RX airtime fraction from link. Unit: 1/100%.
+  rxMax: number, // Max RX airtime fraction from link. Unit: 1/100%.
+};

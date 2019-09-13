@@ -115,7 +115,22 @@ export type AggrPingType = {| clientTs: Buffer |};
 
 export type AggrPongType = {| clientTs: Buffer |};
 
-export type AggregatorConfigType = {| flags: { [string]: string } |};
+export type AggregatorConfigType = {|
+  flags: { [string]: string },
+  dataEndpoints: {[string]: AggrDataEndpoint},
+|};
+
+export type AggrDataEndpoint = {
+  host: string,
+  statsWriterSuffix: string,
+  logsWriterSuffix: string,
+  highFreqStatsWriterSuffix: string,
+  eventsWriterSuffix: string,
+  statsEnabled: boolean,
+  eventsEnabled: boolean,
+  logsEnabled: boolean,
+  highFreqStatsEnabled: boolean,
+};
 
 export type AggrGetConfigReqType = {||};
 
