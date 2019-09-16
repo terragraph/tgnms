@@ -4,34 +4,13 @@
  * @format
  * @flow
  *
- * // WARNING: These are API contract tests!
- * If these tests break, ensure that you have not introduced
- * api breaking changes.
  */
 import moment from 'moment';
-import {fetchNetworkHealthFromDb} from '../model';
+const {fetchNetworkHealthFromDb} = require('../model');
 import {link_event} from '../../models';
 
 jest.mock('request');
-jest.mock('../../sequelize-config', () => {
-  process.env.NODE_ENV = 'test';
-  process.env.STATS_BACKEND = 'prometheus';
-  return {
-    [process.env.NODE_ENV]: {
-      username: null,
-      password: null,
-      database: 'db',
-      dialect: 'sqlite',
-      logging: false,
-    },
-  };
-});
-
-beforeEach(async () => {
-  const {sequelize} = require('../../models');
-  // running sync instead of migrations because of weird foreign key issues
-  await sequelize.sync({force: true});
-});
+jest.mock('../../models');
 
 describe('basic db tests', () => {
   test('link up both directions', async () => {
