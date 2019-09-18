@@ -41,7 +41,7 @@ import io.grpc.internal.FakeClock;
 
 @TestMethodOrder(OrderAnnotation.class)
 @ExtendWith(DefaultTestWatcher.class)
-class AlarmsServiceTest {
+class AlarmServiceTest {
 	@BeforeEach
 	void setup(TestInfo testInfo) {
 		DefaultTestWatcher.printTestName(testInfo);
@@ -84,17 +84,18 @@ class AlarmsServiceTest {
 
 		// Add rules to a service instance and save
 		AlarmService service1 = new AlarmService();
+		service1.setAlarmRulesFile(f);
 		service1.addAlarmRule(
 			new AlarmRule("alarm-LINK", "Link status alarm", Event.EventId.LINK_STATUS.getId(), AlarmSeverity.MINOR)
 		);
 		service1.addAlarmRule(
 			new AlarmRule("alarm-NODE", "Node status alarm", Event.EventId.NODE_STATUS.getId(), AlarmSeverity.MAJOR)
 		);
-		service1.saveAlarmRules(f);
 
 		// Load rules in another service instance
 		AlarmService service2 = new AlarmService();
-		service2.loadAlarmRules(f);
+		service2.setAlarmRulesFile(f);
+		service2.loadAlarmRules();
 
 		// Check equality
 		Collection<AlarmRule> rules1 = service1.getAlarmRules();

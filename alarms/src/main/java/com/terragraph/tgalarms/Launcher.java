@@ -6,7 +6,6 @@
 package com.terragraph.tgalarms;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,13 +76,8 @@ public class Launcher implements Runnable {
 	private void runImpl() throws Exception {
 		// Instantiate service and load rules
 		AlarmService service = new AlarmService();
-		service.loadAlarmRules(alarmRulesFile);
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			// Save alarm rules on exit
-			try {
-				service.saveAlarmRules(alarmRulesFile);
-			} catch (IOException e) {}
-		}));
+		service.setAlarmRulesFile(alarmRulesFile);
+		service.loadAlarmRules();
 
 		// Create Kafka pipe
 		if (!kafkaBootstrapServers.isEmpty()) {

@@ -55,6 +55,9 @@ public class AlarmService {
 	/** All defined alarm rules, keyed by name. */
 	private Map<String /* name */, AlarmRule> alarmRules = new HashMap<>();
 
+	/** The alarm rules file (if any). */
+	private File alarmRulesFile;
+
 	/** Scheduled alarms (for delayed RAISE/CLEAR rules). */
 	private Map<String /* rule name */, Map<String /* entity */, PendingAlarmAction>> pendingAlarmsActions =
 		new HashMap<>();
@@ -288,10 +291,15 @@ public class AlarmService {
 
 	/** Add a new alarm rule. */
 	public synchronized boolean addAlarmRule(AlarmRule rule) {
+		if (rule.getName() == null || rule.getName().trim().isEmpty()) {
+			return false;
+		}
 		if (alarmRules.putIfAbsent(rule.getName(), rule) != null) {
 			return false;
 		}
 		logger.info("Added alarm rule: {}", rule);
+
+		trySaveAlarmRules();
 		return true;
 	}
 
@@ -323,28 +331,51 @@ public class AlarmService {
 			entities.forEach(entity -> cancelPendingAlarmAction(rule, entity));
 		}
 
+		trySaveAlarmRules();
 		return true;
 	}
 
-	/** Load alarm rules from the given file (in JSON format), or the default rules if the file does not exist. */
-	public synchronized void loadAlarmRules(File f) throws FileNotFoundException, IOException {
-		if (f.isFile()) {
-	        try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-	            this.alarmRules = new Gson().fromJson(reader, new TypeToken<Map<String, AlarmRule>>(){}.getType());
+	/** Set a backing file for alarm rules. All rule modifications will be saved to this file. */
+	public synchronized void setAlarmRulesFile(File f) {
+		this.alarmRulesFile = f;
+	}
+
+	/** Load alarm rules (in JSON format), or the default rules if the file does not exist. */
+	public synchronized void loadAlarmRules() throws FileNotFoundException, IOException {
+		if (alarmRulesFile == null) {
+			throw new NullPointerException("Alarm rules file is not set");
+		}
+		if (alarmRulesFile.isFile()) {
+	        try (BufferedReader reader = new BufferedReader(new FileReader(alarmRulesFile))) {
+				this.alarmRules = new Gson().fromJson(reader, new TypeToken<HashMap<String, AlarmRule>>(){}.getType());
 	            logger.info("Loaded {} alarm rules.", alarmRules.size());
 	        }
 		} else {
 			this.alarmRules = Arrays.stream(DefaultAlarmRules.get())
 				.collect(Collectors.toMap(AlarmRule::getName, Function.identity()));
-			saveAlarmRules(f);
+			trySaveAlarmRules();
             logger.info("Using default alarm rules.", alarmRules.size());
 		}
 	}
 
-	/** Save alarm rules to the given file (in JSON format). */
-	public void saveAlarmRules(File f) throws IOException {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
+	/** Save alarm rules (in JSON format). */
+	public void saveAlarmRules() throws IOException {
+		if (alarmRulesFile == null) {
+			throw new NullPointerException("Alarm rules file is not set");
+		}
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(alarmRulesFile))) {
 			writer.append(new GsonBuilder().setPrettyPrinting().create().toJson(alarmRules));
+		}
+	}
+
+	/** Attempt to save alarm rules to disk (if a file is specified). */
+	private void trySaveAlarmRules() {
+		if (alarmRulesFile != null) {
+			try {
+				saveAlarmRules();
+			} catch (IOException e) {
+				logger.error("Failed to write alarm rules file", e);
+			}
 		}
 	}
 

@@ -36,6 +36,12 @@ public class AlarmServer {
 	private final Gson gson = new Gson();
 
 	/** Initialize the web server. */
+	public AlarmServer(AlarmService service, int port)
+		throws FileNotFoundException, IOException {
+		this(service, port, false);
+	}
+
+	/** Initialize the web server. */
 	public AlarmServer(AlarmService service, int port, boolean enableEventsWriterEndpoint)
 		throws FileNotFoundException, IOException {
 		this.alarmService = service;
@@ -49,7 +55,7 @@ public class AlarmServer {
 		Spark.get("/alarms", this::listAlarms);
 		Spark.get("/rules", this::listRules);
 		Spark.post("/add_rule", this::addRule);
-		Spark.get("/del_rule", this::delRule);
+		Spark.post("/del_rule", this::delRule);
 		if (enableEventsWriterEndpoint) {
 			Spark.post("/events_writer", this::recvEvents);
 		}
@@ -84,7 +90,7 @@ public class AlarmServer {
 		// Parse request
 		try {
 			AlarmRule rule = gson.fromJson(request.body(), AlarmRule.class);
-			if (alarmService.addAlarmRule(rule)) {
+			if (rule != null && alarmService.addAlarmRule(rule)) {
 				response.status(200);
 			} else {
 				response.status(400);

@@ -41,7 +41,7 @@ can be disabled by setting the flag `--disable-http-server`.
 >
 > Add a new alarm rule.
 
-> `GET /del_rule` - with query parameter `?name=rule_name`
+> `POST /del_rule` - with POST data `name=rule_name` (application/x-www-form-urlencoded)
 >
 > Delete an existing alarm rule.
 
