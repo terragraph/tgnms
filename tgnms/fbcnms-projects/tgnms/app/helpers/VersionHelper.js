@@ -15,6 +15,7 @@ export const CtrlVerType: {[string]: Version} = {
   M38: {major: 38, minor: -1},
   M41: {major: 41, minor: -1},
   M42: {major: 42, minor: -1},
+  M43: {major: 43, minor: -1},
 };
 
 /**

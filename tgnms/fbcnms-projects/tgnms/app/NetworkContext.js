@@ -184,7 +184,7 @@ export type Site = {|
   name: string,
 |};
 
-export type TopologyConfig = {||};
+export type TopologyConfig = {};
 
 // store topology data
 const NetworkContext = React.createContext<NetworkContextType>({

@@ -22,6 +22,7 @@ import SyncIcon from '@material-ui/icons/Sync';
 import TimerIcon from '@material-ui/icons/Timer';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
+import {CtrlVerType, ctrlVerBefore} from '../../helpers/VersionHelper';
 import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap as NodeType,
@@ -541,18 +542,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
           <Typography variant="subtitle2">Node MAC</Typography>
           <Typography variant="body2">{node.mac_addr || 'none'}</Typography>
         </div>
-        {node.hasOwnProperty('wlan_mac_addrs') && node.wlan_mac_addrs.length ? (
-          <>
-            {node.wlan_mac_addrs.map((mac, index) => (
-              <div key={mac} className={classes.spaceBetween}>
-                <Typography variant="subtitle2">
-                  {index === 0 ? 'Radio MACs' : ''}
-                </Typography>
-                <Typography variant="body2">{mac}</Typography>
-              </div>
-            ))}
-          </>
-        ) : null}
+        {this.renderRadioMacs()}
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">IPv6</Typography>
           <Typography variant="body2">
@@ -628,6 +618,41 @@ class NodeDetailsPanel extends React.Component<Props, State> {
       />
     );
   }
+
+  renderRadioMacs = () => {
+    const {classes, ctrlVersion, node, networkConfig} = this.props;
+    const statusReport = networkConfig.status_dump.statusReports[node.mac_addr];
+    if (!node.hasOwnProperty('wlan_mac_addrs') || !node.wlan_mac_addrs.length) {
+      return null;
+    }
+    return (
+      <div>
+        <Typography variant="subtitle2">Radio MACs</Typography>
+        <div className={classes.indented}>
+          {node.wlan_mac_addrs.map(mac => {
+            return (
+              <div className={classes.spaceBetween} key={mac} data-testid={mac}>
+                <Typography variant="body2">{mac}</Typography>
+                {!ctrlVerBefore(ctrlVersion, CtrlVerType.M43) ? (
+                  <Typography variant="body2">
+                    <StatusText
+                      status={
+                        statusReport &&
+                        statusReport.radioStatus &&
+                        statusReport.radioStatus[mac]
+                          ? statusReport.radioStatus[mac].initialized
+                          : null
+                      }
+                    />
+                  </Typography>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   renderPolarity = () => {
     const {ctrlVersion, classes, node, networkConfig} = this.props;

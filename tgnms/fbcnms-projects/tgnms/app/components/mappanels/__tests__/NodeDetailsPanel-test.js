@@ -171,6 +171,107 @@ describe('Ethernet Links', () => {
   }
 });
 
+describe('Radio MACs', () => {
+  test('if there are no radio macs, the section is not shown', () => {
+    const {queryByText} = renderWithRouter(
+      <TestApp>
+        <NodeDetailsPanel {...commonProps} />
+      </TestApp>,
+    );
+    expect(queryByText('Radio MACs')).not.toBeInTheDocument();
+  });
+
+  test('there are radio macs, hardware is before v43, radio macs are shown without status', () => {
+    const {networkConfig, node} = radioProps();
+    const {getByText} = renderWithRouter(
+      <TestApp>
+        <NodeDetailsPanel
+          {...commonProps}
+          ctrlVersion="0"
+          networkConfig={networkConfig}
+          node={node}
+        />
+      </TestApp>,
+    );
+    expect(getByText('Radio MACs')).toBeInTheDocument();
+    expect(getByText('radioMacTestOnline')).toBeInTheDocument();
+    expect(getByText('radioMacTestOffline')).toBeInTheDocument();
+    expect(getByText('radioMacTestUnknown')).toBeInTheDocument();
+  });
+
+  test('there are radio macs, hardware is after v43, so radio macs with status are shown', () => {
+    const {networkConfig, node} = radioProps();
+    const {getByTestId} = renderWithRouter(
+      <TestApp>
+        <NodeDetailsPanel
+          {...commonProps}
+          ctrlVersion="Facebook Terragraph Release RELEASE_M43_PRE-77-g4044506c6-ljoswiak (ljoswiak@devvm1074 Tue Sep  3 22:01:21 UTC 201"
+          networkConfig={networkConfig}
+          node={node}
+        />
+      </TestApp>,
+    );
+
+    const onlineGroup = getByTestId('radioMacTestOnline');
+    const offlineGroup = getByTestId('radioMacTestOffline');
+    const unknownGroup = getByTestId('radioMacTestUnknown');
+    expect(queries.getByText(onlineGroup, 'Online').textContent).toBe('Online');
+    expect(queries.getByText(offlineGroup, 'Offline').textContent).toBe(
+      'Offline',
+    );
+    expect(queries.getByText(unknownGroup, 'Unknown').textContent).toBe(
+      'Unknown',
+    );
+  });
+
+  function radioProps() {
+    const networkConfig = mockNetworkConfig({
+      topologyConfig: {polarity: {}},
+      status_dump: {
+        statusReports: {
+          nodeMacAddrTest: {
+            timeStamp: 0,
+            ipv6Address: '',
+            version: '',
+            ubootVersion: '',
+            status: 'ONLINE',
+            upgradeStatus: {
+              usType: 'NONE',
+              nextImage: {md5: '', version: ''},
+              reason: '',
+              upgradeReqId: '',
+              whenToCommit: 0,
+            },
+            configMd5: '',
+            bgpStatus: {},
+            radioStatus: {
+              radioMacTestOnline: {initialized: true, gpsSync: true},
+              radioMacTestOffline: {initialized: false, gpsSync: true},
+            },
+          },
+        },
+        timeStamp: 0,
+      },
+    });
+
+    const node = mockNode({
+      name: 'node1',
+      site_name: 'site1',
+      wlan_mac_addrs: [
+        'radioMacTestOnline',
+        'radioMacTestOffline',
+        'radioMacTestUnknown',
+      ],
+      mac_addr: 'nodeMacAddrTest',
+    });
+
+    return {
+      networkConfig,
+      node,
+    };
+  }
+});
+
 describe('Actions', () => {
   describe('Edit Node', () => {
     test('clicking Edit Node calls onEdit and onClose', () => {

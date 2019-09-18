@@ -603,6 +603,11 @@ export type GetCtrlControllerConfigMetadataType = {||};
 
 export type GetCtrlControllerConfigMetadataRespType = {| metadata: string |};
 
+export type RadioStatus= {|
+  initialized: boolean,
+  gpsSync: boolean,
+|};
+
 export type RebootReqType = {|
   nodes: string[],
   force: boolean,
@@ -632,6 +637,7 @@ export type StatusReportType = {|
   nodeIsPrimary?: boolean,
   bgpStatus: BgpStatusMap,
   hardwareBoardId?: ?string,
+  radioStatus?: ?{[string]: RadioStatus}
 |};
 
 export type BgpStatusMap = {|
