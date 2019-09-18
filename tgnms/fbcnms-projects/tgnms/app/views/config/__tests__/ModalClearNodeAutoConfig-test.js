@@ -8,7 +8,7 @@
 import 'jest-dom/extend-expect';
 import ModalClearNodeAutoConfig from '../ModalClearNodeAutoConfig';
 import React from 'react';
-import {apiServiceRequest} from '../../../apiutils/ServiceAPIUtil';
+
 import {
   cleanup,
   fireEvent,
@@ -17,6 +17,9 @@ import {
 } from '@testing-library/react';
 
 jest.mock('../../../apiutils/ServiceAPIUtil');
+const apiServiceRequestMock: any = require('../../../apiutils/ServiceAPIUtil')
+  .apiServiceRequest;
+
 afterEach(cleanup);
 
 const defaultProps = {
@@ -41,7 +44,7 @@ test('closes', () => {
 });
 
 test('submit calls success modal on successful api call', async () => {
-  apiServiceRequest.mockImplementationOnce(() => Promise.resolve());
+  apiServiceRequestMock.mockImplementationOnce(() => Promise.resolve());
   const {getByText} = render(<ModalClearNodeAutoConfig {...defaultProps} />);
   const inputPath = document.getElementById('nodePath');
   fireEvent.change(inputPath, {target: {value: '*'}});
@@ -51,7 +54,7 @@ test('submit calls success modal on successful api call', async () => {
 });
 
 test('submit calls fail modal on failed api call', async () => {
-  apiServiceRequest.mockImplementationOnce(() => Promise.reject());
+  apiServiceRequestMock.mockImplementationOnce(() => Promise.reject());
   const {getByText} = render(<ModalClearNodeAutoConfig {...defaultProps} />);
   const inputPath = document.getElementById('nodePath');
   fireEvent.change(inputPath, {target: {value: '*'}});
