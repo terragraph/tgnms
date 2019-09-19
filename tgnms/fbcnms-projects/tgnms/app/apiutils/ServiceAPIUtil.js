@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import axios from 'axios';
@@ -10,6 +11,25 @@ import swal from 'sweetalert2';
 type AxiosE2EAck = {
   message: string, // from thrift::E2EAck
   statusText: string, // from axios
+};
+
+type apiRequestOptions = {
+  checkbox?: string,
+  choices?: {[string]: string},
+  title?: string,
+  desc?: string,
+  descType?: string,
+  getSuccessStr?: string => any,
+  successType?: string,
+  getFailureStr?: string => any,
+  failureType?: string,
+  processInput?: ({}, string) => any, //first input is many formats
+  onResultsOverride?: (
+    {success: boolean},
+    ?(string) => any,
+    ?(string) => any,
+  ) => any,
+  onSuccess?: () => any,
 };
 
 /** Make an API service request. */
@@ -57,10 +77,10 @@ export const getErrorTextFromE2EAck = (error: ?AxiosE2EAck) => {
  * Make an API service request with confirmation and response alerts (via swal).
  */
 export function apiServiceRequestWithConfirmation(
-  networkName,
-  endpoint,
-  data,
-  options,
+  networkName: string,
+  endpoint: string,
+  data: {}, //data input is recieved in many different formats
+  options: apiRequestOptions,
 ) {
   const makeRequest = requestData =>
     new Promise((resolve, _reject) => {
@@ -77,7 +97,11 @@ export function apiServiceRequestWithConfirmation(
 /**
  * Make a request with confirmation and response alerts (via swal).
  */
-export function requestWithConfirmation(makeRequest, options, data) {
+export function requestWithConfirmation(
+  makeRequest: ({}) => any, //input is data or formatted data
+  options: apiRequestOptions,
+  data: {}, //data input is recieved in many different formats
+) {
   const {
     // Checkbox option text (if applicable)
     checkbox,

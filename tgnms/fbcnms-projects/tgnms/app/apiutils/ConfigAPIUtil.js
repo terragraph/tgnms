@@ -2,12 +2,19 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import {apiServiceRequest, getErrorTextFromE2EAck} from './ServiceAPIUtil';
 import {cleanupObject, sortConfig} from '../helpers/ConfigHelpers';
 import {isPlainObject} from 'lodash';
 import {nodeupdateServerRequest} from './NodeupdateAPIUtil';
+
+import type {AggregatorConfigType} from '../../shared/types/Aggregator';
+import type {ControllerConfigType} from '../../shared/types/Controller';
+import type {NodeConfigType} from '../../shared/types/NodeConfig';
+
+import type {NodeConfigStatusType} from '../helpers/ConfigHelpers';
 
 // Generic success handler
 const onSuccess = (response, key, onResolve, processResults) => {
@@ -27,12 +34,19 @@ const onError = (err, onReject) => {
 };
 
 // Sort and clean a config object
-const processConfig = obj => {
+const processConfig = (
+  obj: $Shape<NodeConfigType> | {[string]: $Shape<NodeConfigType>},
+) => {
   return sortConfig(cleanupObject(obj)) || {};
 };
 
 // Get base config
-export const getBaseConfig = (networkName, data, onResolve, onReject) => {
+export const getBaseConfig = (
+  networkName: string,
+  data: {swVersions: Array<string>},
+  onResolve: (?{[string]: $Shape<NodeConfigType>}) => any,
+  onReject: string => any,
+) => {
   apiServiceRequest(networkName, 'getBaseConfig', data)
     .then(response =>
       onSuccess(response, 'config', onResolve, cfg => {
@@ -51,10 +65,10 @@ export const getBaseConfig = (networkName, data, onResolve, onReject) => {
 
 // Get hardware base config
 export const getHardwareBaseConfig = (
-  networkName,
-  data,
-  onResolve,
-  onReject,
+  networkName: string,
+  data: {hwBoardIds: [], swVersions: []},
+  onResolve: (?{[string]: {[string]: $Shape<NodeConfigType>}}) => any,
+  onReject: string => any,
 ) => {
   apiServiceRequest(networkName, 'getHardwareBaseConfig', data)
     .then(response => onSuccess(response, 'config', onResolve, sortConfig))
@@ -62,7 +76,11 @@ export const getHardwareBaseConfig = (
 };
 
 // Get auto node overrides
-export const getAutoOverridesConfig = (networkName, onResolve, onReject) => {
+export const getAutoOverridesConfig = (
+  networkName: string,
+  onResolve: (?{[string]: $Shape<NodeConfigType>}) => any,
+  onReject: string => any,
+) => {
   const data = {nodes: []};
   apiServiceRequest(networkName, 'getAutoNodeOverridesConfig', data)
     .then(response =>
@@ -72,7 +90,11 @@ export const getAutoOverridesConfig = (networkName, onResolve, onReject) => {
 };
 
 // Get network overrides
-export const getNetworkOverridesConfig = (networkName, onResolve, onReject) => {
+export const getNetworkOverridesConfig = (
+  networkName: string,
+  onResolve: (?$Shape<NodeConfigType>) => any,
+  onReject: string => any,
+) => {
   return apiServiceRequest(networkName, 'getNetworkOverridesConfig')
     .then(response =>
       onSuccess(response, 'overrides', onResolve, processConfig),
@@ -81,7 +103,11 @@ export const getNetworkOverridesConfig = (networkName, onResolve, onReject) => {
 };
 
 // Get node overrides
-export const getNodeOverridesConfig = (networkName, onResolve, onReject) => {
+export const getNodeOverridesConfig = (
+  networkName: string,
+  onResolve: (?{[string]: $Shape<NodeConfigType>}) => any,
+  onReject: string => any,
+) => {
   const data = {nodes: []};
   apiServiceRequest(networkName, 'getNodeOverridesConfig', data)
     .then(response =>
@@ -91,28 +117,45 @@ export const getNodeOverridesConfig = (networkName, onResolve, onReject) => {
 };
 
 // Get full node config
-export const getFullNodeConfig = (networkName, data, onResolve, onReject) => {
+export const getFullNodeConfig = (
+  networkName: string,
+  data: {nodeNames: [], configPaths: []},
+  onResolve: (?{[string]: $Shape<NodeConfigType>}) => any,
+  onReject: string => any,
+) => {
   apiServiceRequest(networkName, 'getNodeConfig', data)
     .then(response => onSuccess(response, 'config', onResolve, sortConfig))
     .catch(err => onReject && onReject(getErrorTextFromE2EAck(err)));
 };
 
 // Get controller config
-export const getControllerConfig = (networkName, onResolve, onReject) => {
+export const getControllerConfig = (
+  networkName: string,
+  onResolve: (?$Shape<ControllerConfigType>) => any,
+  onReject: string => any,
+) => {
   return apiServiceRequest(networkName, 'getControllerConfig')
     .then(response => onSuccess(response, 'config', onResolve, processConfig))
     .catch(err => onError(err, onReject));
 };
 
 // Get aggregator config
-export const getAggregatorConfig = (networkName, onResolve, onReject) => {
+export const getAggregatorConfig = (
+  networkName: string,
+  onResolve: (?$Shape<AggregatorConfigType>) => any,
+  onReject: string => any,
+) => {
   return apiServiceRequest(networkName, 'getAggregatorConfig')
     .then(response => onSuccess(response, 'config', onResolve, processConfig))
     .catch(err => onError(err, onReject));
 };
 
 // Get node config metadata
-export const getConfigMetadata = (networkName, onResolve, onReject) => {
+export const getConfigMetadata = (
+  networkName: string,
+  onResolve: (?$Shape<NodeConfigType>) => any,
+  onReject: string => any,
+) => {
   apiServiceRequest(networkName, 'getConfigMetadata')
     .then(response => onSuccess(response, 'metadata', onResolve))
     .catch(err => onError(err, onReject));
@@ -120,9 +163,9 @@ export const getConfigMetadata = (networkName, onResolve, onReject) => {
 
 // Get controller config metadata
 export const getControllerConfigMetadata = (
-  networkName,
-  onResolve,
-  onReject,
+  networkName: string,
+  onResolve: (?$Shape<ControllerConfigType>) => any,
+  onReject: string => any,
 ) => {
   apiServiceRequest(networkName, 'getControllerConfigMetadata')
     .then(response => onSuccess(response, 'metadata', onResolve))
@@ -131,9 +174,9 @@ export const getControllerConfigMetadata = (
 
 // Get aggregator config metadata
 export const getAggregatorConfigMetadata = (
-  networkName,
-  onResolve,
-  onReject,
+  networkName: string,
+  onResolve: (?$Shape<AggregatorConfigType>) => any,
+  onReject: string => any,
 ) => {
   apiServiceRequest(networkName, 'getAggregatorConfigMetadata')
     .then(response => onSuccess(response, 'metadata', onResolve))
@@ -142,10 +185,10 @@ export const getAggregatorConfigMetadata = (
 
 // Set network overrides
 export const setNetworkOverridesConfig = (
-  networkName,
-  networkOverridesConfig,
-  onResolve,
-  onReject,
+  networkName: string,
+  networkOverridesConfig: NodeConfigType,
+  onResolve: () => any,
+  onReject: string => any,
 ) => {
   const data = {overrides: JSON.stringify(networkOverridesConfig)};
   apiServiceRequest(networkName, 'setNetworkOverridesConfig', data)
@@ -155,10 +198,10 @@ export const setNetworkOverridesConfig = (
 
 // Set node overrides
 export const setNodeOverridesConfig = (
-  networkName,
-  nodeOverridesConfig,
-  onResolve,
-  onReject,
+  networkName: string,
+  nodeOverridesConfig: {[string]: NodeConfigType},
+  onResolve: () => any,
+  onReject: string => any,
 ) => {
   const data = {overrides: JSON.stringify(nodeOverridesConfig)};
   apiServiceRequest(networkName, 'setNodeOverridesConfig', data)
@@ -168,10 +211,10 @@ export const setNodeOverridesConfig = (
 
 // Set controller config
 export const setControllerConfig = (
-  networkName,
-  controllerConfig,
-  onResolve,
-  onReject,
+  networkName: string,
+  controllerConfig: ControllerConfigType,
+  onResolve: () => any,
+  onReject: string => any,
 ) => {
   const data = {config: JSON.stringify(controllerConfig)};
   apiServiceRequest(networkName, 'setControllerConfig', data)
@@ -181,10 +224,10 @@ export const setControllerConfig = (
 
 // Set aggregator config
 export const setAggregatorConfig = (
-  networkName,
-  aggregatorConfig,
-  onResolve,
-  onReject,
+  networkName: string,
+  aggregatorConfig: ControllerConfigType,
+  onResolve: () => any,
+  onReject: string => any,
 ) => {
   const data = {config: JSON.stringify(aggregatorConfig)};
   apiServiceRequest(networkName, 'setAggregatorConfig', data)
@@ -194,10 +237,10 @@ export const setAggregatorConfig = (
 
 // Send a configuration bundle to a node (via nodeupdate)
 export const sendConfigBundleToNode = (
-  macAddr,
-  config,
-  onResolve,
-  onReject,
+  macAddr: string,
+  config: ?string,
+  onResolve: () => any,
+  onReject: string => any,
 ) => {
   const data = {node_mac: macAddr, node_config: config};
   nodeupdateServerRequest('nms_pop', data)
@@ -206,9 +249,15 @@ export const sendConfigBundleToNode = (
 };
 
 // Get configuration bundle status for a node (via nodeupdate)
-export const getConfigBundleStatus = (macAddr, onResolve, onReject) => {
+export const getConfigBundleStatus = (
+  macAddr: string,
+  onResolve: (?$Shape<NodeConfigStatusType>) => any,
+  onReject: string => any,
+) => {
   const data = {node_mac: macAddr};
   nodeupdateServerRequest('nms_pop_status', data)
-    .then(response => onResolve && onResolve(response.data.ObjectServed))
+    .then(response => {
+      onResolve && onResolve(response.data.ObjectServed);
+    })
     .catch(err => onReject && onReject(err));
 };
