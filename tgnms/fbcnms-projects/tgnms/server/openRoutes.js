@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 // NOTE: Prefix-based routes, meaning if a url starts with a string from this
@@ -10,6 +11,8 @@ export default [
   '/favicon.ico',
   '/static/dist/vendor',
   '/static/dist/login',
+  // protected by middleware/otp
+  '/static/tg-binaries',
   '/static/css',
   '/static/fonts',
   '/static/images',

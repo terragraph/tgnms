@@ -24,6 +24,7 @@ const session = require('express-session');
 const staticDist = require('fbcnms-webpack-config/staticDist').default;
 
 const webpackSmartMiddleware = configureWebpackSmartMiddleware();
+import {otpMiddleware} from '../server/middleware/otp';
 const {
   refreshTopologies,
   getAllNetworkConfigs,
@@ -81,6 +82,12 @@ app.set('view engine', 'pug');
 
 // Routes
 app.use(access());
+// tg-binaries is an open route, protect it with otp middleware
+app.use(
+  '/static/tg-binaries',
+  otpMiddleware(),
+  express.static(path.join(__dirname, '..', 'static')),
+);
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 app.use('/api/v1', require('../server/api/v1/routes'));
 app.use('/apiservice', require('../server/apiservice/routes'));

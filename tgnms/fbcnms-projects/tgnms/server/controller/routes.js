@@ -6,8 +6,8 @@
 
 const express = require('express');
 const fs = require('fs');
+const {generateAndStoreOtp} = require('../middleware/otp');
 const querystring = require('querystring');
-
 const router = express.Router();
 
 // set up the upgrade images path
@@ -40,14 +40,16 @@ router.post(
       ? process.env.E2E_DL_URL
       : req.protocol + '://' + req.get('host');
     const uriPath = querystring.escape(req.file.filename);
-    const imageUrl = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}`;
 
-    res.setHeader('Content-Type', 'application/json');
-    res.send(
-      JSON.stringify({
-        imageUrl,
-      }),
-    );
+    generateAndStoreOtp().then(token => {
+      const imageUrl = `${urlPrefix}${NETWORK_UPGRADE_IMAGES_REL_PATH}/${uriPath}?token=${token}`;
+      res.setHeader('Content-Type', 'application/json');
+      res.send(
+        JSON.stringify({
+          imageUrl,
+        }),
+      );
+    });
   },
 );
 
