@@ -33,7 +33,7 @@ async def handle_get_topologies_after(request: web.Request) -> web.Response:
         (Topology.name == name) & (Topology.datetime > datetime_obj)
     )
 
-    client = MySQLClient.get_instance()
+    client = MySQLClient()
     async with client.lease() as conn:
         cursor = await conn.execute(query)
         results = await cursor.fetchall()

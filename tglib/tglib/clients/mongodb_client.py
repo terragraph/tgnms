@@ -56,7 +56,7 @@ class MongoDBClient(BaseClient):
 
         try:
             server_info = await self._motor_client.server_info()
-        except PyMongoError as e:
+        except PyMongoError:
             return HealthCheckResult(
                 client="MongoDBClient",
                 healthy=False,

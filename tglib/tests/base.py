@@ -5,6 +5,7 @@ import logging
 import unittest
 
 from tests.dict_utils_tests import DictUtilsTests
+from tests.ip_utils_tests import IPUtilsTests
 from tests.prometheus_tests import PrometheusClientTests
 
 

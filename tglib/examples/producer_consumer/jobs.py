@@ -3,14 +3,18 @@
 
 from typing import List
 
-from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric
+from tglib.clients.prometheus_client import (
+    PrometheusClient,
+    PrometheusMetric,
+    create_query,
+)
 
 
 async def add_x(start_time: int, metric_name: str, x: int) -> None:
     """Add 'x' to the latest value of 'metric_name'"""
-    client = PrometheusClient.get_instance()
+    client = PrometheusClient(timeout=2)
 
-    query = client.create_query(metric=metric_name)
+    query = create_query(metric=metric_name)
     response = await client.query_latest(query)
     assert response["status"] == "success"
 

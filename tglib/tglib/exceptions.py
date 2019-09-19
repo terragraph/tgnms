@@ -33,24 +33,6 @@ class ClientError(TGLibError):
     pass
 
 
-class ClientUninitializedError(ClientError):
-    """Raised if a get_instance is called before the client is initialized."""
-
-    def __init__(self, msg: Optional[str] = None):
-        if msg is None:
-            msg = "Cannot fetch singleton instance prior to initialization"
-        super().__init__(msg)
-
-
-class ClientMultipleInitializationError(ClientError):
-    """Raised if a client is initialized more than once."""
-
-    def __init__(self, msg: Optional[str] = None):
-        if msg is None:
-            msg = "Cannot initialize client more than once"
-        super().__init__(msg)
-
-
 class ClientRestartError(ClientError):
     """Raised if a client is started while already running."""
 

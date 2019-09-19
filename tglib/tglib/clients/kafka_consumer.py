@@ -2,7 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-from typing import Dict, Tuple
+from typing import Dict, Optional
 
 from aiokafka import AIOKafkaConsumer
 from kafka.errors import KafkaError
@@ -16,56 +16,55 @@ from tglib.exceptions import (
 )
 
 
-class KafkaConsumer(BaseClient, AIOKafkaConsumer):
-    def __init__(self, config: Dict) -> None:
-        if "kafka" not in config:
-            raise ConfigError("Missing required 'kafka' key")
+class KafkaConsumer(BaseClient):
+    _consumer: Optional[AIOKafkaConsumer] = None
 
-        kafka_params = config["kafka"]
-        if not isinstance(kafka_params, dict):
-            raise ConfigError("Config value for 'kafka' is not object")
-
-        required_params = ["bootstrap_servers"]
-        if not all(param in kafka_params for param in required_params):
-            raise ConfigError(
-                f"Missing one or more required 'kafka' params: {required_params}"
-            )
-
-        try:
-            super().__init__(loop=asyncio.get_event_loop(), **kafka_params)
-        except KafkaError as e:
-            raise ConfigError("'kafka' params are malformed") from e
-
-        self._started = False
-
-    async def start(self) -> None:
-        if self._started:
+    @classmethod
+    async def start(cls, config: Dict) -> None:
+        if cls._consumer is not None:
             raise ClientRestartError()
 
-        self._started = True
+        kafka_params = config.get("kafka")
+        required_params = ["bootstrap_servers"]
+
+        if kafka_params is None:
+            raise ConfigError("Missing required 'kafka' key")
+        if not isinstance(kafka_params, dict):
+            raise ConfigError("Config value for 'kafka' is not object")
+        if not all(param in kafka_params for param in required_params):
+            raise ConfigError(f"Missing one or more required params: {required_params}")
+
         try:
-            await AIOKafkaConsumer.start(self)
+            cls._consumer = AIOKafkaConsumer(
+                loop=asyncio.get_event_loop, **kafka_params
+            )
+            await cls._consumer.start()
         except KafkaError as e:
             raise ClientRuntimeError() from e
 
-    async def stop(self) -> None:
-        if not self._started:
+    @classmethod
+    async def stop(cls) -> None:
+        if cls._consumer is None:
             raise ClientStoppedError()
 
-        self._started = False
-        try:
-            await AIOKafkaConsumer.stop(self)
-        except KafkaError as e:
-            raise ClientRuntimeError() from e
+        await cls._consumer.stop()
 
-    async def health_check(self) -> HealthCheckResult:
-        if not self._started:
+    @classmethod
+    async def health_check(cls) -> HealthCheckResult:
+        if cls._consumer is None:
             raise ClientStoppedError()
 
         try:
-            await self.topics()
-            return HealthCheckResult(client="KafkaConsumer", healthy=True)
+            await cls._consumer.topics()
+            return HealthCheckResult(client=cls.__name__, healthy=True)
         except KafkaError:
             return HealthCheckResult(
-                client="KafkaConsumer", healthy=False, msg="Could not fetch topics list"
+                client=cls.__name__, healthy=False, msg="Could not fetch topics list"
             )
+
+    @property
+    def consumer(self) -> AIOKafkaConsumer:
+        if self._consumer is None:
+            raise ClientStoppedError()
+
+        return self._consumer

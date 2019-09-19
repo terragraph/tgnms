@@ -3,8 +3,8 @@
 
 """
 This example shows how to supply additional routes to the 'init' function. The
-'main' function makes a 'getTopology' request for the 'Tower X' controller every
-hour and saves the results to a MySQL table called 'Topology'.
+'main' function makes a 'getTopology' request for each controller every hour and
+saves the results to a MySQL table called 'Topology'.
 """
 
 import asyncio
@@ -26,17 +26,20 @@ from routes import routes
 async def main(config: Dict) -> None:
     """Make a periodic 'getTopology' API request and store the results in MySQL."""
     topology_fetch_interval_s = config["topology_fetch_interval_s"]
-    name = config["controller_name"]
 
-    api_client = APIServiceClient.get_instance()
-    mysql_client = MySQLClient.get_instance()
+    api_client = APIServiceClient(timeout=1)
+    mysql_client = MySQLClient()
 
     while True:
         now = datetime.datetime.now()
-        topo = await api_client.make_api_request(name, "getTopology")
+        results = await api_client.request_all("getTopology")
+        values = [
+            {"name": name, "topo": topo, "datetime": now}
+            for name, topo in results.items()
+        ]
 
+        query = insert(Topology).values(values)
         async with mysql_client.lease() as conn:
-            query = insert(Topology).values(name=name, topo=topo, datetime=now)
             await conn.execute(query)
             await conn.connection.commit()
 

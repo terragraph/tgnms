@@ -21,59 +21,51 @@ from tglib.exceptions import (
 from tglib.utils.serialization import thrift2json
 
 
-class KafkaProducer(BaseClient, AIOKafkaProducer):
-    def __init__(self, config: Dict) -> None:
-        if "kafka" not in config:
-            raise ConfigError("Missing required 'kafka' key")
+class KafkaProducer(BaseClient):
+    _producer: Optional[AIOKafkaProducer] = None
 
-        kafka_params = config["kafka"]
-        if not isinstance(kafka_params, dict):
-            raise ConfigError("Config value for 'kafka' is not object")
-
-        required_params = ["bootstrap_servers"]
-        if not all(param in kafka_params for param in required_params):
-            raise ConfigError(
-                f"Missing one or more required 'kafka' params: {required_params}"
-            )
-
-        try:
-            super().__init__(loop=asyncio.get_event_loop(), **kafka_params)
-        except KafkaError as e:
-            raise ConfigError("'kafka' params are malformed") from e
-
-        self._started = False
-
-    async def start(self) -> None:
-        if self._started:
+    @classmethod
+    async def start(cls, config: Dict) -> None:
+        if cls._producer is not None:
             raise ClientRestartError()
 
-        self._started = True
+        kafka_params = config.get("kafka")
+        required_params = ["bootstrap_servers"]
+
+        if kafka_params is None:
+            raise ConfigError("Missing required 'kafka' key")
+        if not isinstance(kafka_params, dict):
+            raise ConfigError("Config value for 'kafka' is not object")
+        if not all(param in kafka_params for param in required_params):
+            raise ConfigError(f"Missing one or more required params: {required_params}")
+
         try:
-            await AIOKafkaProducer.start(self)
+            cls._producer = AIOKafkaProducer(
+                loop=asyncio.get_event_loop, **kafka_params
+            )
+            await cls._producer.start()
         except KafkaError as e:
             raise ClientRuntimeError() from e
 
-    async def stop(self) -> None:
-        if not self._started:
+    @classmethod
+    async def stop(cls) -> None:
+        if cls._producer is None:
             raise ClientStoppedError()
 
-        self._started = False
-        try:
-            await AIOKafkaProducer.stop(self)
-        except KafkaError as e:
-            raise ClientRuntimeError() from e
+        await cls._producer.stop()
 
-    async def health_check(self) -> HealthCheckResult:
-        if not self._started:
+    @classmethod
+    async def health_check(cls) -> HealthCheckResult:
+        if cls._producer is None:
             raise ClientStoppedError()
 
         try:
             # This is a hack -- need a better way to assess connection health
-            await self.partitions_for("stats")
-            return HealthCheckResult(client="KafkaProducer", healthy=True)
+            await cls._producer.partitions_for("stats")
+            return HealthCheckResult(client=cls.__name__, healthy=True)
         except KafkaError:
             return HealthCheckResult(
-                client="KafkaConsumer",
+                client=cls.__name__,
                 healthy=False,
                 msg="Could not fetch 'stats' partitions",
             )
@@ -92,7 +84,7 @@ class KafkaProducer(BaseClient, AIOKafkaProducer):
         node_name: Optional[str] = None,
     ) -> bool:
         """Log an event to the Kafka events topic."""
-        if not self._started:
+        if self._producer is None:
             raise ClientStoppedError()
 
         if category not in EventCategory._VALUES_TO_NAMES:
@@ -128,7 +120,7 @@ class KafkaProducer(BaseClient, AIOKafkaProducer):
         event.nodeName = node_name
 
         bytes = thrift2json(event)
-        await self.send("events", bytes)
+        await self._producer.send("events", bytes)
         return True
 
     async def log_event_dict(

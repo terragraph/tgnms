@@ -49,7 +49,7 @@ async def handle_get_version(request: web.Request) -> web.Response:
 async def handle_get_metrics(request: web.Request) -> web.Response:
     """Return Prometheus metrics for the specified interval (404 if not available)."""
     interval = int(request.match_info["interval"])
-    metrics = PrometheusClient.get_instance().poll_metrics(interval)
+    metrics = PrometheusClient.poll_metrics(interval)
 
     if metrics is None:
         raise web.HTTPNotFound(text=f"No metrics queue available for {interval}s")

@@ -17,7 +17,7 @@ from tglib.clients.kafka_producer import KafkaProducer
 from tglib.clients.mongodb_client import MongoDBClient
 from tglib.clients.mysql_client import MySQLClient
 from tglib.clients.prometheus_client import PrometheusClient
-from tglib.exceptions import ClientError, ConfigError, DuplicateRouteError
+from tglib.exceptions import ConfigError, DuplicateRouteError, TGLibError
 from tglib.routes import routes
 from tglib.utils.dict import deep_update
 
@@ -58,6 +58,7 @@ def init(
     # Create web application object
     app = web.Application()
     app["main"] = main
+    app["config"] = config
 
     # Initialize routes for the HTTP server
     app.add_routes(routes)
@@ -82,17 +83,17 @@ def init(
     # Initialize the clients
     app["clients"] = []
     if Client.API_SERVICE_CLIENT in clients:
-        app["clients"].append(APIServiceClient(config))
+        app["clients"].append(APIServiceClient)
     if Client.KAFKA_CONSUMER in clients:
-        app["clients"].append(KafkaConsumer(config))
+        app["clients"].append(KafkaConsumer)
     if Client.KAFKA_PRODUCER in clients:
-        app["clients"].append(KafkaProducer(config))
+        app["clients"].append(KafkaProducer)
     if Client.MONGODB_CLIENT in clients:
-        app["clients"].append(MongoDBClient(config))
+        app["clients"].append(MongoDBClient)
     if Client.MYSQL_CLIENT in clients:
-        app["clients"].append(MySQLClient(config))
+        app["clients"].append(MySQLClient)
     if Client.PROMETHEUS_CLIENT in clients:
-        app["clients"].append(PrometheusClient(config))
+        app["clients"].append(PrometheusClient)
 
     app.on_startup.append(start_background_tasks)
     app.on_cleanup.append(stop_background_tasks)
@@ -101,14 +102,21 @@ def init(
 
 async def start_background_tasks(app: web.Application) -> None:
     """Start the clients and create the main_wrapper and shutdown_listener tasks."""
-    try:
-        tasks = [client.start() for client in app["clients"]]
-        await asyncio.gather(*tasks)
-    except ClientError:
-        # Shutdown the clients if any of them fail to start
-        tasks = [client.stop() for client in app["clients"]]
-        await asyncio.gather(*tasks)
-        raise
+    start_tasks = [client.start(app["config"]) for client in app["clients"]]
+    stop_tasks = []
+
+    failure = None
+    for client, start_result in zip(
+        app["clients"], await asyncio.gather(*start_tasks, return_exceptions=True)
+    ):
+        if isinstance(start_result, TGLibError):
+            failure = start_result
+            stop_tasks.append(client.stop())
+
+    # Shutdown the clients if any of them fail to start
+    if failure is not None:
+        await asyncio.gather(*stop_tasks)
+        raise failure
 
     app["main_wrapper_task"] = asyncio.create_task(main_wrapper(app))
     app["shutdown_listener_task"] = asyncio.create_task(shutdown_listener(app))
@@ -119,14 +127,14 @@ async def stop_background_tasks(app: web.Application) -> None:
     try:
         app["shutdown_listener_task"].cancel()
         await app["shutdown_listener_task"]
-    except asyncio.CancelledError as e:
+    except asyncio.CancelledError:
         pass
 
     if not app["main_wrapper_task"].done():
         try:
             app["main_wrapper_task"].cancel()
             await app["main_wrapper_task"]
-        except asyncio.CancelledError as e:
+        except asyncio.CancelledError:
             pass
 
     tasks = [client.stop() for client in app["clients"]]

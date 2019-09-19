@@ -4,7 +4,7 @@
 from typing import Dict, Optional
 
 import pymysql
-from aiomysql.sa import Engine, SAConnection, create_engine
+from aiomysql.sa import Engine, create_engine
 
 from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
@@ -16,53 +16,53 @@ from tglib.exceptions import (
 
 
 class MySQLClient(BaseClient):
-    def __init__(self, config: Dict) -> None:
-        if "mysql" not in config:
-            raise ConfigError("Missing required 'mysql' key")
+    _engine: Optional[Engine] = None
 
-        mysql_params = config["mysql"]
-        if not isinstance(mysql_params, dict):
-            raise ConfigError("Config value for 'mysql' is not an object")
-
-        required_params = ["host", "port", "user", "password", "db"]
-        if not all(param in mysql_params for param in required_params):
-            raise ConfigError(
-                f"Missing one or more required 'mysql' params: {required_params}"
-            )
-
-        self._mysql_params = mysql_params
-        self._engine: Optional[Engine] = None
-
-    async def start(self) -> None:
-        if self._engine is not None:
+    @classmethod
+    async def start(cls, config: Dict) -> None:
+        if cls._engine is not None:
             raise ClientRestartError()
 
+        mysql_params = config.get("mysql")
+        required_params = ["host", "port", "user", "password", "db"]
+
+        if mysql_params is None:
+            raise ConfigError("Missing required 'mysql' key")
+        if not isinstance(mysql_params, dict):
+            raise ConfigError("Value for 'mysql' is not an object")
+        if not all(param in mysql_params for param in required_params):
+            raise ConfigError(f"Missing one or more required params: {required_params}")
+
         try:
-            self._engine = await create_engine(**self._mysql_params)
+            cls._engine = await create_engine(**mysql_params)
         except pymysql.OperationalError as e:
             raise ClientRuntimeError() from e
 
-    async def stop(self) -> None:
-        if self._engine is None:
+    @classmethod
+    async def stop(cls) -> None:
+        if cls._engine is None:
             raise ClientStoppedError()
 
-        self._engine.close()
-        await self._engine.wait_closed()
-        self._engine = None
+        cls._engine.close()
+        await cls._engine.wait_closed()
+        cls._engine = None
 
-    async def health_check(self) -> HealthCheckResult:
-        if self._engine is None:
+    @classmethod
+    async def health_check(cls) -> HealthCheckResult:
+        if cls._engine is None:
             raise ClientStoppedError()
 
-        if self._engine.freesize > 0:
-            return HealthCheckResult(client="MySQLClient", healthy=True)
+        if cls._engine.freesize > 0:
+            return HealthCheckResult(client=cls.__name__, healthy=True)
         else:
             return HealthCheckResult(
-                client="MySQLClient", healthy=False, msg="No connections available"
+                client=cls.__name__, healthy=False, msg="No connections available"
             )
 
-    def lease(self) -> SAConnection:
-        """Return a connection from the engine. Use with async context manager."""
+    def lease(self):
+        """Get a connection from the connection pool.
+
+        Returns an 'SAConnection' when used with an async context manager."""
         if self._engine is None:
             raise ClientStoppedError()
 

@@ -2,13 +2,10 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import copy
-import ipaddress
 import logging
-from typing import Dict, Optional, cast
+from typing import Dict, List, Optional, cast
 
 import aiohttp
-import pymysql
 
 from tglib.clients.base_client import BaseClient, HealthCheckResult
 from tglib.exceptions import (
@@ -17,102 +14,105 @@ from tglib.exceptions import (
     ClientStoppedError,
     ConfigError,
 )
+from tglib.utils.ip import format_address
 
 
 class APIServiceClient(BaseClient):
-    def __init__(self, config: Dict) -> None:
-        if "mysql" not in config:
-            raise ConfigError("Missing required 'mysql' key")
+    _networks: Optional[Dict[str, str]] = None
+    _session: Optional[aiohttp.ClientSession] = None
 
-        if not isinstance(config["mysql"], dict):
-            raise ConfigError("Config value for 'mysql' is not object")
+    def __init__(self, timeout: int) -> None:
+        self.timeout = timeout
 
-        # timeout is for HTTP get/post
-        self.timeout = 1
-
-        # Make a deep copy to avoid altering 'config' for other clients
-        mysql_params = copy.deepcopy(config["mysql"])
-        mysql_params["db"] = "cxl"
-
-        required_params = ["host", "port", "user", "password", "db"]
-        if not all(param in mysql_params for param in required_params):
-            raise ConfigError(
-                f"Missing one or more required 'mysql' params: {required_params}"
-            )
-
-        try:
-            connection = pymysql.connect(
-                cursorclass=pymysql.cursors.DictCursor, **mysql_params
-            )
-
-            with connection.cursor() as cursor:
-                query = (
-                    "SELECT name, api_ip, api_port FROM topology "
-                    "JOIN controller ON primary_controller=controller.id"
-                )
-
-                cursor.execute(query)
-                results = cursor.fetchall()
-
-                self._controllers: Dict = {}
-                for result in results:
-                    try:
-                        ip = f"[{ipaddress.IPv6Address(result['api_ip'])}]"
-                    except ipaddress.AddressValueError:
-                        ip = result["api_ip"]
-                    self._controllers[result["name"]] = f"{ip}:{result['api_port']}"
-
-        except pymysql.MySQLError as e:
-            raise ClientRuntimeError() from e
-        finally:
-            connection.close()
-
-        self._session: Optional[aiohttp.ClientSession] = None
-
-    async def start(self) -> None:
-        if self._session is not None:
+    @classmethod
+    async def start(cls, config: Dict) -> None:
+        if cls._session is not None:
             raise ClientRestartError()
 
-        self._session = aiohttp.ClientSession()
+        api_params = config.get("apiservice")
+        required_params = ["nms"]
 
-    async def stop(self) -> None:
-        if self._session is None:
-            raise ClientStoppedError()
+        if api_params is None:
+            raise ConfigError("Missing required 'apiservice' key")
+        if not isinstance(api_params, dict):
+            raise ConfigError("Value for 'apiservice' is not an object")
+        if not all(param in api_params for param in required_params):
+            raise ConfigError(f"Missing one or more required params: {required_params}")
 
-        await self._session.close()
-        self._session = None
-
-    async def health_check(self) -> HealthCheckResult:
-        if self._session is None:
-            raise ClientStoppedError()
-
-        tasks = [
-            self.make_api_request(name, "getTopology")
-            for name, _ in self._controllers.items()
-        ]
+        addr = format_address(**api_params["nms"])
+        url = f"http://{addr}/api/v1/networks"
+        cls._session = aiohttp.ClientSession()
 
         try:
-            await asyncio.gather(*tasks)
-            return HealthCheckResult(client="APIServiceClient", healthy=True)
-        except ClientRuntimeError as e:
+            async with cls._session.get(url, timeout=1) as resp:
+                if resp.status != 200:
+                    raise ClientRuntimeError(msg=f"{resp.reason} ({resp.status})")
+
+                cls._networks = {
+                    network["name"]: format_address(
+                        network["primary"]["api_ip"], network["primary"]["api_port"]
+                    )
+                    for network in await resp.json()
+                }
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            raise ClientRuntimeError(msg=f"{url} is unavailable") from e
+
+    @classmethod
+    async def stop(cls) -> None:
+        if cls._session is None:
+            raise ClientStoppedError()
+
+        await cls._session.close()
+        cls._session = None
+
+    @classmethod
+    async def health_check(cls) -> HealthCheckResult:
+        # Use 'getTopology' endpoint to test if API service is alive
+        async def get_topology(addr: str) -> bool:
+            if cls._session is None:
+                raise ClientStoppedError()
+
+            url = f"http://{addr}/api/getTopology"
+            try:
+                async with cls._session.post(url, timeout=1) as resp:
+                    if resp.status == 200:
+                        return True
+
+                    return False
+            except (aiohttp.ClientError, asyncio.TimeoutError):
+                return False
+
+        if cls._networks is None:
+            raise ClientStoppedError()
+
+        tasks = [get_topology(addr) for addr in cls._networks.values()]
+        if any(await asyncio.gather(*tasks)):
+            return HealthCheckResult(client=cls.__name__, healthy=True)
+        else:
             return HealthCheckResult(
-                client="APIServiceClient", healthy=False, msg=f"{str(e)}"
+                client=cls.__name__, healthy=False, msg="All clients are unavailable"
             )
 
-    async def make_api_request(
-        self, topology_name: str, endpoint: str, params: Optional[Dict] = {}
-    ) -> Dict:
-        """Make a request to API service for a given a specific topology, endpoint, and params."""
-        if self._session is None:
+    @property
+    def names(self) -> List[str]:
+        if self._networks is None:
             raise ClientStoppedError()
 
-        if topology_name not in self._controllers:
-            raise ClientRuntimeError(msg=f"{topology_name} does not exist")
+        return list(self._networks.keys())
+
+    async def request(self, name: str, endpoint: str, params: Dict = {}) -> Dict:
+        """Make a request to a specific addr, endpoint, and params."""
+        if self._networks is None or self._session is None:
+            raise ClientStoppedError()
+
+        addr = self._networks.get(name)
+        if addr is None:
+            raise ClientRuntimeError(msg=f"{name} does not exist")
+
+        url = f"http://{addr}/api/{endpoint}"
+        logging.debug(f"Requesting from {url} with params {params}")
 
         try:
-            url = f"http://{self._controllers[topology_name]}/api/{endpoint}"
-            logging.debug(f"Requesting from API service {url}")
-
             async with self._session.post(
                 url, json=params, timeout=self.timeout
             ) as resp:
@@ -120,9 +120,45 @@ class APIServiceClient(BaseClient):
                     return cast(Dict, await resp.json())
 
                 raise ClientRuntimeError(
-                    msg=f"Request to {topology_name} failed: {resp.reason} ({resp.status})"
+                    msg=f"API Service request failed {resp.reason} ({resp.status})"
                 )
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError(
-                msg=f"API service for {topology_name} is unavailable"
-            ) from e
+            raise ClientRuntimeError(msg=f"API Service at {addr} is unavailable") from e
+
+    async def request_all(
+        self, endpoint: str, params_map: Dict[str, Dict] = {}
+    ) -> Dict[str, Dict]:
+        """Make a request to the given endpoint for all networks.
+
+        params_map is a dictionary of network names to params. The default post
+        param '{}' is used for networks not present in params_map."""
+        if self._networks is None:
+            raise ClientStoppedError()
+
+        tasks = []
+        for name in self._networks.keys():
+            if name in params_map:
+                tasks.append(self.request(name, endpoint, params_map[name]))
+            else:
+                tasks.append(self.request(name, endpoint))
+
+        return dict(zip(self._networks.keys(), await asyncio.gather(*tasks)))
+
+    async def request_many(
+        self, endpoint: str, params_map: Dict[str, Dict]
+    ) -> Dict[str, Dict]:
+        """Make a request to the given endpoint for several networks.
+
+        params_map is a dictionary of network names to params. No request is
+        sent for networks not present in params_map."""
+        if self._networks is None:
+            raise ClientStoppedError()
+
+        tasks = []
+        for name, params in params_map.items():
+            if name not in self._networks:
+                continue
+
+            tasks.append(self.request(name, endpoint, params))
+
+        return dict(zip(params_map.keys(), await asyncio.gather(*tasks)))

@@ -15,6 +15,7 @@ from tglib.exceptions import (
     ClientStoppedError,
     ConfigError,
 )
+from tglib.utils.ip import format_address
 
 
 @dataclasses.dataclass
@@ -27,112 +28,122 @@ class PrometheusMetric:
     value: Union[int, float]
 
 
+def normalize(string: str) -> str:
+    """Remove invalid characters in order to be Prometheus compliant."""
+    return (
+        string.replace(".", "_")
+        .replace("-", "_")
+        .replace("/", "_")
+        .replace("[", "_")
+        .replace("]", "_")
+    )
+
+
+def create_query(metric_name: str, labels: Dict[str, Any]) -> str:
+    """Form a Prometheus query from the metric_name and labels."""
+    label_list = [] if "intervalSec" in labels else ['intervalSec="30"']
+
+    for name, val in labels.items():
+        if isinstance(val, Pattern):
+            label_list.append(f'{name}=~"{val.pattern}"')
+        else:
+            label_list.append(f'{name}="{val}"')
+
+    label_query = ",".join(label_list)
+    return normalize(f"{metric_name}{{{label_query}}}")
+
+
 class PrometheusClient(BaseClient):
-    def __init__(self, config: Dict) -> None:
-        if "prometheus" not in config:
-            raise ConfigError("Missing required 'prometheus' key")
+    _addr: Optional[str] = None
+    _max_queue_size: Optional[int] = None
+    _stats_map: Optional[Dict[int, List[List[PrometheusMetric]]]] = None
+    _session: Optional[aiohttp.ClientSession] = None
 
-        prom_params = config["prometheus"]
-        if not isinstance(prom_params, dict):
-            raise ConfigError("Config value for 'prometheus' is not object")
+    def __init__(self, timeout: int) -> None:
+        self.timeout = timeout
 
-        required_params = ["host", "port", "max_queue_size", "intervals"]
-        if not all(param in prom_params for param in required_params):
-            raise ConfigError(
-                f"Missing one or more required 'prometheus' params: {required_params}"
-            )
-
-        self._host = prom_params["host"]
-        self._port = prom_params["port"]
-        self._max_queue_size = prom_params["max_queue_size"]
-        self._stats_map: Dict[int, List[List[PrometheusMetric]]] = {
-            i: [] for i in prom_params["intervals"]
-        }
-        self._session: Optional[aiohttp.ClientSession] = None
-
-    async def start(self) -> None:
-        if self._session is not None:
+    @classmethod
+    async def start(cls, config: Dict) -> None:
+        if cls._session is not None:
             raise ClientRestartError()
 
-        self._session = aiohttp.ClientSession()
+        prom_params = config.get("prometheus")
+        required_params = ["host", "port", "max_queue_size", "intervals"]
 
-    async def stop(self) -> None:
-        if self._session is None:
+        if prom_params is None:
+            raise ConfigError("Missing required 'prometheus' key")
+        if not isinstance(prom_params, dict):
+            raise ConfigError("Config value for 'prometheus' is not object")
+        if not all(param in prom_params for param in required_params):
+            raise ConfigError(f"Missing one or more required params: {required_params}")
+
+        cls._addr = format_address(prom_params["host"], prom_params["port"])
+        cls._max_queue_size = prom_params["max_queue_size"]
+        cls._stats_map = {i: [] for i in prom_params["intervals"]}
+        cls._session = aiohttp.ClientSession()
+
+    @classmethod
+    async def stop(cls) -> None:
+        if cls._session is None:
             raise ClientStoppedError()
 
-        await self._session.close()
-        self._session = None
+        await cls._session.close()
+        cls._session = None
 
-    async def health_check(self) -> HealthCheckResult:
-        if self._session is None:
+    @classmethod
+    async def health_check(cls) -> HealthCheckResult:
+        if cls._session is None:
             raise ClientStoppedError()
 
-        url = f"http://{self._host}:{self._port}/api/v1/status/config"
+        url = f"http://{cls._addr}/api/v1/status/config"
         try:
-            async with self._session.get(url) as resp:
+            async with cls._session.get(url, timeout=1) as resp:
                 if resp.status == 200:
-                    return HealthCheckResult(client="PrometheusClient", healthy=True)
+                    return HealthCheckResult(client=cls.__name__, healthy=True)
 
                 return HealthCheckResult(
-                    client="PrometheusClient",
+                    client=cls.__name__,
                     healthy=False,
                     msg=f"{resp.reason} ({resp.status})",
                 )
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             return HealthCheckResult(
-                client="PrometheusClient", healthy=False, msg=f"{str(e)}"
+                client=cls.__name__, healthy=False, msg=f"{str(e)}"
             )
-
-    def normalize(self, string: str) -> str:
-        """Remove invalid characters in order to be Prometheus compliant."""
-        return (
-            string.replace(".", "_")
-            .replace("-", "_")
-            .replace("/", "_")
-            .replace("[", "_")
-            .replace("]", "_")
-        )
-
-    def create_query(self, metric_name: str, labels: Dict[str, Any]) -> str:
-        """Form a Prometheus query from the metric_name and labels."""
-        label_list = [] if "intervalSec" in labels else ['intervalSec="30"']
-
-        for name, val in labels.items():
-            if isinstance(val, Pattern):
-                label_list.append(f'{name}=~"{val.pattern}"')
-            else:
-                label_list.append(f'{name}="{val}"')
-
-        label_query = ",".join(label_list)
-        return self.normalize(f"{metric_name}{{{label_query}}}")
 
     async def query_range(self, query: str, start: int, end: int, step: str) -> Dict:
         """Return the data for the given query and range."""
-        if self._session is None:
+        if self._addr is None or self._session is None:
             raise ClientStoppedError()
 
         if start > end:
             raise ValueError("Start time cannot be after end time")
 
-        url = f"http://{self._host}:{self._port}/api/v1/query_range"
+        url = f"http://{self._addr}/api/v1/query_range"
         params = {"query": query, "start": start, "end": end, "step": step}
+        logging.debug(f"Requesting from {url} with params {params}")
 
         try:
-            async with self._session.get(url, params=params) as resp:
+            async with self._session.get(
+                url, params=params, timeout=self.timeout
+            ) as resp:
                 return cast(Dict, await resp.json())
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             raise ClientRuntimeError() from e
 
     async def query_latest(self, query: str) -> Dict:
         """Return the latest datum for the given query."""
-        if self._session is None:
+        if self._addr is None or self._session is None:
             raise ClientStoppedError()
 
-        url = f"http://{self._host}:{self._port}/api/v1/query"
+        url = f"http://{self._addr}/api/v1/query"
         params = {"query": query}
+        logging.debug(f"Requesting from {url} with params {params}")
 
         try:
-            async with self._session.get(url, params=params) as resp:
+            async with self._session.get(
+                url, params=params, timeout=self.timeout
+            ) as resp:
                 return cast(Dict, await resp.json())
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             raise ClientRuntimeError() from e
@@ -145,32 +156,40 @@ class PrometheusClient(BaseClient):
         """Return the latest timestamp emission for the given query."""
         return await self.query_latest(f"timestamp({query})")
 
-    def write_metrics(self, interval_sec: int, metrics: List[PrometheusMetric]) -> bool:
+    @classmethod
+    def write_metrics(cls, interval_sec: int, metrics: List[PrometheusMetric]) -> bool:
         """Add metrics to the provided interval_sec metric queue."""
-        if interval_sec not in self._stats_map:
+        if cls._max_queue_size is None or cls._stats_map is None:
+            raise ClientStoppedError()
+
+        if interval_sec not in cls._stats_map:
             logging.error(f"No metrics queue available for {interval_sec}s")
             return False
 
-        queue = self._stats_map[interval_sec]
-        if len(queue) >= self._max_queue_size:
+        queue = cls._stats_map[interval_sec]
+        if len(queue) >= cls._max_queue_size:
             logging.error(f"The {interval_sec}s metrics queue is full.")
             return False
 
         queue.append(metrics)
         return True
 
-    def poll_metrics(self, interval_sec: int) -> Optional[List[str]]:
+    @classmethod
+    def poll_metrics(cls, interval_sec: int) -> Optional[List[str]]:
         """Remove and return metrics for the given interval_sec."""
-        if interval_sec not in self._stats_map:
+        if cls._max_queue_size is None or cls._stats_map is None:
+            raise ClientStoppedError()
+
+        if interval_sec not in cls._stats_map:
             logging.error(f"No metrics queue available for {interval_sec}s")
             return None
 
         datapoints = []
-        queue = self._stats_map[interval_sec]
+        queue = cls._stats_map[interval_sec]
 
         for metric_list in queue:
             for metric in metric_list:
-                query = self.create_query(metric.name, metric.labels)
+                query = create_query(metric.name, metric.labels)
                 datapoints.append(f"{query} {metric.value} {metric.time}")
 
         queue.clear()

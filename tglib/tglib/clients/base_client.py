@@ -5,9 +5,6 @@ import abc
 import dataclasses
 from typing import Dict, Optional
 
-from tglib.exceptions import ClientMultipleInitializationError, ClientUninitializedError
-
-
 @dataclasses.dataclass
 class HealthCheckResult:
     client: str
@@ -15,37 +12,18 @@ class HealthCheckResult:
     msg: Optional[str] = None
 
 
-class ABCMetaSingleton(abc.ABCMeta):
-    _instances: Dict = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-            return cls._instances[cls]
-
-        raise ClientMultipleInitializationError()
-
-
-class BaseClient(metaclass=ABCMetaSingleton):
-    @classmethod
-    def get_instance(cls):
-        """Get the singleton instance."""
-        if cls not in cls._instances:
-            raise ClientUninitializedError()
-
-        return cls._instances[cls]
-
-    @abc.abstractmethod
-    async def start(self) -> None:
+class BaseClient(abc.ABC):
+    @abc.abstractclassmethod
+    async def start(cls, config: Dict) -> None:
         """Start underlying resources for the client."""
         pass
 
-    @abc.abstractmethod
-    async def stop(self) -> None:
+    @abc.abstractclassmethod
+    async def stop(cls) -> None:
         """Cleanly stop the resources for the client."""
         pass
 
-    @abc.abstractmethod
-    async def health_check(self) -> HealthCheckResult:
+    @abc.abstractclassmethod
+    async def health_check(cls) -> HealthCheckResult:
         """Evaluate the health of the client."""
         pass
