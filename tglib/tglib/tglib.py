@@ -97,6 +97,14 @@ def init(
 
     app.on_startup.append(start_background_tasks)
     app.on_cleanup.append(stop_background_tasks)
+
+    try:
+        from aiohttp_swagger import setup_swagger
+
+        setup_swagger(app)
+    except ImportError:
+        pass
+
     web.run_app(app)
 
 

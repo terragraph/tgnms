@@ -84,7 +84,7 @@ setup(
         # Pin thrift to version pulled in Dockerfile
         "thrift==0.11.0",
     ],
-    extras_require={"ci": ["ptr"]},
+    extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     cmdclass={"build_thrift": BuildThriftCommand},
     test_suite=ptr_params["test_suite"],
 )
