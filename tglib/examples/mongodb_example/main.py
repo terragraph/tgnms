@@ -4,14 +4,17 @@
 """
 This example shows how to use the tglib 'init' function to create a simple
 microservice which writes and reads to a MongoDB instance using tglib's MongoDB
-client. To access the MongoDB client, call MongoDBClient.get_instance(). To
-access the underlying database, call get_db() on the MongoDBClient
-instance. To create a session, which can be used for logical ordering of db
-operations, call get_session().
+client. To access the MongoDB client, call MongoDBClient(). To
+access the underlying database, the MongoDBClient's db property. To create a
+session, which can be used for logical ordering of db operations, use
+MongoDBClient's session property.
 
 For more information about using this client to perform database
 operations see
 https://motor.readthedocs.io/en/stable/api-asyncio/asyncio_motor_database.html
+
+For more information on using this client to generate db session see
+https://motor.readthedocs.io/en/stable/api-asyncio/asyncio_motor_client_session.html
 """
 
 
@@ -27,14 +30,9 @@ from tglib.tglib import Client, init
 
 async def main(config: Dict) -> None:
     """Get the MongoDB client and perform some db operations with it."""
-    client = MongoDBClient.get_instance()
 
     # Access the db
-    db = client.get_db()
-
-    # Start a session to edit the given db
-    # (this is optional and only needed for transactions or causal consistency)
-    session = await client.get_session()
+    db = MongoDBClient().db
 
     # Create a new collection in this db called "test_collection"
     db.create_collection("test_collection")
@@ -45,21 +43,12 @@ async def main(config: Dict) -> None:
     result = await collection.insert_one(original_doc)
     print(f"Inserted document's id: {repr(result.inserted_id)}")
 
-    # Use a transaction to atomically delete the old document
-    # from this collection and write a new one
-    async with session.start_transaction():
-        await collection.delete_one({"x": 1}, session=session)
-        await collection.insert_one({"x": 2}, session=session)
-
     # Query for documents in the collection where 'x' > 1
     async for doc in collection.find({"x": {"$gt": 1}}):
         pprint(doc)
 
     # Remove example collection
     await db.drop_collection("test_collection")
-
-    # Close the session
-    await session.close_session()
 
 
 if __name__ == "__main__":

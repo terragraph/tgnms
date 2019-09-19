@@ -20,7 +20,15 @@ from tglib.exceptions import (
 
 
 class MongoDBClient(BaseClient):
-    def __init__(self, config: Dict) -> None:
+    _motor_client: Optional[AsyncIOMotorClient] = None
+    _db: Optional[AsyncIOMotorDatabase] = None
+    _session: Optional[AsyncIOMotorClientSession] = None
+
+    @classmethod
+    async def start(cls, config: Dict) -> None:
+        if cls._motor_client is not None:
+            raise ClientRestartError()
+
         if "mongodb" not in config:
             raise ConfigError("Missing required 'mongodb' key")
 
@@ -34,28 +42,27 @@ class MongoDBClient(BaseClient):
                 f"Missing one or more required 'mongodb' params: {required_params}"
             )
 
-        self._mongodb_params: Dict = mongodb_params
-        self._motor_client: Optional[AsyncIOMotorClient] = None
-        self._db: Optional[AsyncIOMotorDatabase] = None
-        self._db_name: str = self._mongodb_params["db"]
-        del self._mongodb_params["db"]
+        db_name = mongodb_params.pop("db")
 
-    async def start(self) -> None:
-        if self._motor_client is not None:
-            raise ClientRestartError()
+        try:
+            cls._motor_client = AsyncIOMotorClient(**mongodb_params)
+            cls._db = cls._motor_client[db_name]
+        except PyMongoError as e:
+            raise ClientRuntimeError("Failed to create MongoDB client") from e
 
-        self._motor_client = AsyncIOMotorClient(**self._mongodb_params)
-        self._db = self._motor_client[self._db_name]
+    @classmethod
+    async def stop(cls) -> None:
+        if cls._session is not None:
+            await cls._session.close_session()
+        cls._motor_client = None
 
-    async def stop(self) -> None:
-        self._motor_client = None
-
-    async def health_check(self) -> HealthCheckResult:
-        if self._motor_client is None:
+    @classmethod
+    async def health_check(cls) -> HealthCheckResult:
+        if cls._motor_client is None:
             raise ClientStoppedError()
 
         try:
-            server_info = await self._motor_client.server_info()
+            server_info = await cls._motor_client.server_info()
         except PyMongoError:
             return HealthCheckResult(
                 client="MongoDBClient",
@@ -72,16 +79,21 @@ class MongoDBClient(BaseClient):
                 msg="MongoDB server info is malformed",
             )
 
-    def get_db(self) -> AsyncIOMotorDatabase:
+    @property
+    def db(self) -> AsyncIOMotorDatabase:
         """Return the db object to perform db operations."""
         if self._motor_client is None:
             raise ClientStoppedError()
 
         return self._db
 
-    async def get_session(self) -> AsyncIOMotorClientSession:
+    @property
+    async def session(self) -> AsyncIOMotorClientSession:
         """Return a session to organize atomic db operations."""
         if self._motor_client is None:
             raise ClientStoppedError()
 
-        return await self._motor_client.start_session()
+        if self._session is None:
+            self._session = await self._motor_client.start_session()
+
+        return self._session

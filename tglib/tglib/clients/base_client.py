@@ -5,6 +5,7 @@ import abc
 import dataclasses
 from typing import Dict, Optional
 
+
 @dataclasses.dataclass
 class HealthCheckResult:
     client: str
