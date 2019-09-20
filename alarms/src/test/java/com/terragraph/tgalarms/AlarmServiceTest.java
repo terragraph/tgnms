@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -263,7 +262,7 @@ class AlarmServiceTest {
 		final String entityDN = "dn";
 
 		// Add an alarm rule on CN nodes only
-		JSONObject attributeFilter = new JSONObject();
+		Map<String, Object> attributeFilter = new HashMap<>();
 		attributeFilter.put("/node_type", "CN");
 		AlarmRule rule = new AlarmRule(
 			"alarm-NODE-CN",

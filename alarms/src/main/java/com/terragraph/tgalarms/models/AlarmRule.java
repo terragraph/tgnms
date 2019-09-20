@@ -6,7 +6,7 @@
 package com.terragraph.tgalarms.models;
 
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -58,7 +58,7 @@ public class AlarmRule {
 		private Set<String> entityFilter;
 
 		/** The set of attribute filters on which to apply this rule (must match any, not all). */
-		public Set<JSONObject> attributeFilter;
+		public Set<Map<String, Object>> attributeFilter;
 
 		/** Return the event levels at which a corresponding alarm should be raised. */
 		public Set<EventLevel> getRaiseOnLevel() { return raiseOnLevel; }
@@ -94,7 +94,7 @@ public class AlarmRule {
 		 * Return the set of attribute filters on which to apply this rule (must match any, not all).
 		 * @return the attribute filters, or an empty set if disabled
 		 */
-		public Set<JSONObject> getAttributeFilter() { return attributeFilter; }
+		public Set<Map<String, Object>> getAttributeFilter() { return attributeFilter; }
 
 		@Override
 		public int hashCode() {
@@ -175,7 +175,7 @@ public class AlarmRule {
 				opts.entityFilter = entityFilter;
 				return this;
 			}
-			public Builder setAttributeFilter(Set<JSONObject> attributeFilter) {
+			public Builder setAttributeFilter(Set<Map<String, Object>> attributeFilter) {
 				opts.attributeFilter = attributeFilter;
 				return this;
 			}
@@ -254,15 +254,12 @@ public class AlarmRule {
 	}
 
 	/** Return whether the given object matches a filter, containing a map of JSON pointers to expected values. */
-	private boolean matchesAttributeFilter(JSONObject filter, JSONObject o) {
-		Iterator<String> keys = filter.keys();
-		while (keys.hasNext()) {
-			String key = keys.next();
-			Object val = filter.get(key);
-			JSONPointer pointer = new JSONPointer(key);
+	private boolean matchesAttributeFilter(Map<String, Object> filter, JSONObject o) {
+		for (Map.Entry<String, Object> entry : filter.entrySet()) {
+			JSONPointer pointer = new JSONPointer(entry.getKey());
 			try {
 				Object queryVal = pointer.queryFrom(o);
-				if (queryVal == null || !queryVal.equals(val)) {
+				if (queryVal == null || !queryVal.equals(entry.getValue())) {
 					return false;
 				}
 			} catch (JSONPointerException e) {

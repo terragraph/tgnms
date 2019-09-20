@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 /**
  * Alarm structure.
  */
@@ -123,12 +125,15 @@ public class Alarm {
 	}
 
 	/** Return whether this is an active alarm. */
+	@Hidden
 	public boolean isActive() { return severity != AlarmSeverity.OFF; }
 
 	/** Return whether this is a "hidden" alarm (e.g. sub-alarms for "aggregation" alarms). */
+	@Hidden
 	public boolean isHidden() { return alarmType == AlarmType.HIDDEN; }
 
 	/** Return whether this is an "aggregation" alarm. */
+	@Hidden
 	public boolean isAggregation() { return alarmType == AlarmType.AGGREGATION; }
 
 	@Override

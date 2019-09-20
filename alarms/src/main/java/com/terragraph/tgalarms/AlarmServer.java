@@ -27,6 +27,7 @@ import com.terragraph.tgalarms.models.AlarmRule;
 import com.terragraph.tgalarms.models.Event;
 import com.terragraph.tgalarms.models.EventWriterRequest;
 
+import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -92,7 +93,8 @@ public class AlarmServer {
 		// Configure API docs hosting
 		Spark.staticFiles.location("/public");
 		Spark.redirect.get("/docs", "/docs/");
-		Spark.get("/docs/openapi.yaml", this::genOpenApi);
+		Spark.get("/docs/openapi.yaml", this::getOpenApiYaml);
+		Spark.get("/docs/openapi.json", this::getOpenApiJson);
 
 		// Install routes
 		Spark.before(this::beforeFilter);
@@ -278,8 +280,8 @@ public class AlarmServer {
 		return "";
 	}
 
-	/** Generate an OpenAPI 3.0 YAML document. */
-	private String genOpenApi(spark.Request request, spark.Response response) {
+	/** Generates and caches the OpenAPI object (if not already cached). */
+	private void genOpenApi() {
 		if (openApi == null) {
 			// Find all annotated classes
 			Reflections reflections = new Reflections(this.getClass().getName());
@@ -290,9 +292,19 @@ public class AlarmServer {
 			Reader reader = new Reader(new OpenAPI());
 			this.openApi = reader.read(apiClasses);
 		}
+	}
 
-		// Return OpenAPI spec as YAML
+	/** Return an OpenAPI 3.0 YAML document. */
+	private String getOpenApiYaml(spark.Request request, spark.Response response) {
+		genOpenApi();
 		response.type(MediaType.TEXT_PLAIN);
 		return Yaml.pretty(openApi);
+	}
+
+	/** Return an OpenAPI 3.0 JSON document. */
+	private String getOpenApiJson(spark.Request request, spark.Response response) {
+		genOpenApi();
+		response.type(MediaType.APPLICATION_JSON);
+		return Json.pretty(openApi);
 	}
 }

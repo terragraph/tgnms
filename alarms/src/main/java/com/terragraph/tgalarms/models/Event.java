@@ -12,6 +12,8 @@ import org.json.JSONObject;
 
 import com.google.gson.Gson;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 /**
  * Event structure (see thrift::Event).
  */
@@ -61,6 +63,7 @@ public class Event {
 	}
 
 	/** Return the "details" field as a JSON object, or null if invalid. */
+	@Hidden
 	public JSONObject getDetailsJson() {
 		try {
 			return details.isEmpty() ? null : new JSONObject(details);

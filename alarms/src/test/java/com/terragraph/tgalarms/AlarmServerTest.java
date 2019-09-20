@@ -182,6 +182,19 @@ public class AlarmServerTest {
 	}
 
 	@Test
+	@Order(4)
+	void testDocsEndpoints() throws Exception {
+		// Index page paths
+		assertTrue(Unirest.get(endpoint("/docs")).asString().isSuccess());
+		assertTrue(Unirest.get(endpoint("/docs/")).asString().isSuccess());
+		assertTrue(Unirest.get(endpoint("/docs/index.html")).asString().isSuccess());
+
+		// OpenAPI YAML/JSON
+		assertTrue(Unirest.get(endpoint("/docs/openapi.yaml")).asString().isSuccess());
+		assertTrue(Unirest.get(endpoint("/docs/openapi.json")).asJson().isSuccess());
+	}
+
+	@Test
 	@Order(100)
 	void testFailureCases() throws Exception {
 		// Add a rule
