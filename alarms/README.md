@@ -26,29 +26,9 @@ $ java -jar tg-alarms.jar [-h]
 The command-line interface is implemented using [picocli].
 
 ## HTTP Interface
-The following HTTP endpoints are exposed via a [Spark] server. The HTTP server
-can be disabled by setting the flag `--disable-http-server`.
-
-> `GET /alarms`
->
-> Return an array of all active alarms.
-
-> `GET /rules`
->
-> Return an array of all alarm rules.
-
-> `POST /add_rule` - with alarm rule as POST data (refer to `AlarmRule.java`)
->
-> Add a new alarm rule.
-
-> `POST /del_rule` - with POST data `name=rule_name` (application/x-www-form-urlencoded)
->
-> Delete an existing alarm rule.
-
-> `POST /events_writer` - with events as POST data (refer to `EventWriterRequest.java`)
->
-> Process a list of input events (not integrated with Kafka).
-> Only enabled if the `--enable-events-writer` flag is set.
+The service exposes HTTP endpoints via a [Spark] server (unless the
+`--disable-http-server` flag is set). API documentation is available at `/docs`
+(in OpenAPI 3.0 format).
 
 [Kafka Streams]: https://kafka.apache.org/documentation/streams/
 [Apache Maven]: https://maven.apache.org/
