@@ -223,6 +223,8 @@ class AlarmServiceTest {
 		final String entity2 = "test.p2";
 
 		// Add an alarm rule
+		Map<String, Object> eventFilter = new HashMap<>();
+		eventFilter.put("entity", entity1);
 		AlarmRule rule = new AlarmRule(
 			"alarm-NODE",
 			"Node status alarm",
@@ -231,7 +233,7 @@ class AlarmServiceTest {
 			new AlarmRuleOptions.Builder()
 				.setRaiseOnLevel(new HashSet<>(Arrays.asList(EventLevel.FATAL)))
 				.setClearOnLevel(new HashSet<>(Arrays.asList(EventLevel.INFO, EventLevel.WARNING)))
-				.setEntityFilter(new HashSet<>(Arrays.asList(entity1)))
+				.setEventFilter(new HashSet<>(Arrays.asList(eventFilter)))
 				.build()
 		);
 		service.addAlarmRule(rule);
@@ -255,14 +257,18 @@ class AlarmServiceTest {
 
 	@Test
 	@Order(103)
-	void testAttributeFilters() throws Exception {
+	void testFilters() throws Exception {
 		AlarmService service = new AlarmService();
 		final int eventId = Event.EventId.NODE_STATUS.getId();
 		final String entityCN = "cn";
 		final String entityDN = "dn";
+		final String topology1 = "topology1";
+		final String topology2 = "topology2";
 
 		// Add an alarm rule on CN nodes only
+		Map<String, Object> eventFilter = new HashMap<>();
 		Map<String, Object> attributeFilter = new HashMap<>();
+		eventFilter.put("topologyName", topology1);
 		attributeFilter.put("/node_type", "CN");
 		AlarmRule rule = new AlarmRule(
 			"alarm-NODE-CN",
@@ -270,6 +276,7 @@ class AlarmServiceTest {
 			eventId,
 			AlarmSeverity.CRITICAL,
 			new AlarmRuleOptions.Builder()
+				.setEventFilter(new HashSet<>(Arrays.asList(eventFilter)))
 				.setAttributeFilter(new HashSet<>(Arrays.asList(attributeFilter)))
 				.build()
 		);
@@ -277,19 +284,36 @@ class AlarmServiceTest {
 
 		// Send an ERROR event (nothing happens - attribute doesn't match)
 		Event eventDN = new Event(eventId, entityDN, EventLevel.ERROR);
+		eventDN.topologyName = topology1;
 		eventDN.details = "{\"name\":\"dn\",\"status\":\"OFFLINE\",\"node_type\":\"DN\"}";
 		service.processEvent(eventDN);
 		assertTrue(service.getAlarms().isEmpty());
 
 		// Send an ERROR event (nothing happens - no attribute)
+		Event eventEmptyDetails = new Event(eventId, entityCN, EventLevel.ERROR);
+		eventEmptyDetails.details = "{}";
+		service.processEvent(eventEmptyDetails);
+		assertTrue(service.getAlarms().isEmpty());
+
+		// Send an ERROR event (nothing happens - malformed details)
 		Event eventMalformed = new Event(eventId, entityCN, EventLevel.ERROR);
-		eventMalformed.details = "{}";
+		eventMalformed.details = "{asdf}";
 		service.processEvent(eventMalformed);
 		assertTrue(service.getAlarms().isEmpty());
 
-		// Send an ERROR event (generates an alarm - attribute matches)
+		// Send an ERROR event (nothing happens - no topology name)
 		Event eventCN = new Event(eventId, entityCN, EventLevel.ERROR);
 		eventCN.details = "{\"name\":\"cn\",\"status\":\"OFFLINE\",\"node_type\":\"CN\"}";
+		service.processEvent(eventCN);
+		assertTrue(service.getAlarms().isEmpty());
+
+		// Send an ERROR event (nothing happens - topology doesn't match)
+		eventCN.topologyName = topology2;
+		service.processEvent(eventCN);
+		assertTrue(service.getAlarms().isEmpty());
+
+		// Send an ERROR event (generates an alarm - attribute matches)
+		eventCN.topologyName = topology1;
 		service.processEvent(eventCN);
 		assertEquals(1, service.getAlarms().size());
 	}

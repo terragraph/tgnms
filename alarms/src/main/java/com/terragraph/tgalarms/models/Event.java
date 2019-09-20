@@ -7,12 +7,7 @@ package com.terragraph.tgalarms.models;
 
 import java.util.Arrays;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.google.gson.Gson;
-
-import io.swagger.v3.oas.annotations.Hidden;
 
 /**
  * Event structure (see thrift::Event).
@@ -27,6 +22,8 @@ public class Event {
 	public String entity;
 	public String nodeId;
 	public int eventId;
+	public String topologyName;
+	public String nodeName;
 
 	/** Construct an empty event. */
 	public Event() {}
@@ -50,6 +47,8 @@ public class Event {
 		this.entity = other.entity;
 		this.nodeId = other.nodeId;
 		this.eventId = other.eventId;
+		this.topologyName = other.topologyName;
+		this.nodeName = other.nodeName;
 	}
 
 	/** Return the event level as an enum. */
@@ -60,16 +59,6 @@ public class Event {
 	/** Return the event ID as an enum. */
 	public EventId getEventId() {
 		return EventId.fromId(eventId);
-	}
-
-	/** Return the "details" field as a JSON object, or null if invalid. */
-	@Hidden
-	public JSONObject getDetailsJson() {
-		try {
-			return details.isEmpty() ? null : new JSONObject(details);
-		} catch (JSONException e) {
-			return null;
-		}
 	}
 
 	/** Event levels (see thrift::EventLevel). */
@@ -118,9 +107,11 @@ public class Event {
 		result = prime * result + eventId;
 		result = prime * result + level;
 		result = prime * result + ((nodeId == null) ? 0 : nodeId.hashCode());
+		result = prime * result + ((nodeName == null) ? 0 : nodeName.hashCode());
 		result = prime * result + ((reason == null) ? 0 : reason.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + (int) (timestamp ^ (timestamp >>> 32));
+		result = prime * result + ((topologyName == null) ? 0 : topologyName.hashCode());
 		return result;
 	}
 
@@ -154,6 +145,11 @@ public class Event {
 				return false;
 		} else if (!nodeId.equals(other.nodeId))
 			return false;
+		if (nodeName == null) {
+			if (other.nodeName != null)
+				return false;
+		} else if (!nodeName.equals(other.nodeName))
+			return false;
 		if (reason == null) {
 			if (other.reason != null)
 				return false;
@@ -165,6 +161,11 @@ public class Event {
 		} else if (!source.equals(other.source))
 			return false;
 		if (timestamp != other.timestamp)
+			return false;
+		if (topologyName == null) {
+			if (other.topologyName != null)
+				return false;
+		} else if (!topologyName.equals(other.topologyName))
 			return false;
 		return true;
 	}

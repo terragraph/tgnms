@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONPointer;
 import org.json.JSONPointerException;
@@ -54,8 +55,8 @@ public class AlarmRule {
 		/** The minimum number of different entities which must match this rule before an alarm is raised. */
 		private int aggregation = 0;
 
-		/** The set of entities that this rule applies to. */
-		private Set<String> entityFilter;
+		/** The set of event property filters that this rule applies to (must match any, not all). */
+		private Set<Map<String, Object>> eventFilter;
 
 		/** The set of attribute filters on which to apply this rule (must match any, not all). */
 		public Set<Map<String, Object>> attributeFilter;
@@ -85,10 +86,10 @@ public class AlarmRule {
 		public int getAggregation() { return aggregation; }
 
 		/**
-		 * Return the set of entities that this rule applies to.
+		 * Return the set of event property filters on which to apply this rule (must match any, not all).
 		 * @return the entities, or an empty set if disabled
 		 */
-		public Set<String> getEntityFilter() { return entityFilter; }
+		public Set<Map<String, Object>> getEventFilter() { return eventFilter; }
 
 		/**
 		 * Return the set of attribute filters on which to apply this rule (must match any, not all).
@@ -104,7 +105,7 @@ public class AlarmRule {
 			result = prime * result + ((attributeFilter == null) ? 0 : attributeFilter.hashCode());
 			result = prime * result + clearDelay;
 			result = prime * result + ((clearOnLevel == null) ? 0 : clearOnLevel.hashCode());
-			result = prime * result + ((entityFilter == null) ? 0 : entityFilter.hashCode());
+			result = prime * result + ((eventFilter == null) ? 0 : eventFilter.hashCode());
 			result = prime * result + raiseDelay;
 			result = prime * result + ((raiseOnLevel == null) ? 0 : raiseOnLevel.hashCode());
 			return result;
@@ -133,10 +134,10 @@ public class AlarmRule {
 					return false;
 			} else if (!clearOnLevel.equals(other.clearOnLevel))
 				return false;
-			if (entityFilter == null) {
-				if (other.entityFilter != null)
+			if (eventFilter == null) {
+				if (other.eventFilter != null)
 					return false;
-			} else if (!entityFilter.equals(other.entityFilter))
+			} else if (!eventFilter.equals(other.eventFilter))
 				return false;
 			if (raiseDelay != other.raiseDelay)
 				return false;
@@ -171,8 +172,8 @@ public class AlarmRule {
 				opts.aggregation = aggregation;
 				return this;
 			}
-			public Builder setEntityFilter(Set<String> entityFilter) {
-				opts.entityFilter = entityFilter;
+			public Builder setEventFilter(Set<Map<String, Object>> eventFilter) {
+				opts.eventFilter = eventFilter;
 				return this;
 			}
 			public Builder setAttributeFilter(Set<Map<String, Object>> attributeFilter) {
@@ -191,8 +192,8 @@ public class AlarmRule {
 					opts.clearOnLevel = new HashSet<>();
 					opts.clearOnLevel.add(EventLevel.INFO);
 				}
-				if (opts.entityFilter == null) {
-					opts.entityFilter = new HashSet<>();
+				if (opts.eventFilter == null) {
+					opts.eventFilter = new HashSet<>();
 				}
 				if (opts.attributeFilter == null) {
 					opts.attributeFilter = new HashSet<>();
@@ -237,16 +238,38 @@ public class AlarmRule {
 		if (eventId != event.eventId) {
 			return false;
 		}
-		if (
-			options.entityFilter != null &&
-			!options.entityFilter.isEmpty() &&
-			!options.entityFilter.contains(event.entity)
-		) {
-			return false;
+		if (options.eventFilter != null && !options.eventFilter.isEmpty()) {
+			JSONObject o;
+			try {
+				o = new JSONObject(new Gson().toJson(event));
+			} catch (JSONException e) {
+				return false;
+			}
+			if (!options.eventFilter.stream().anyMatch(filter -> this.matchesEventFilter(filter, o))) {
+				return false;
+			}
 		}
 		if (options.attributeFilter != null && !options.attributeFilter.isEmpty()) {
-			JSONObject o = event.getDetailsJson();
+			if (event.details.isEmpty()) {
+				return false;
+			}
+			JSONObject o;
+			try {
+				o = new JSONObject(event.details);
+			} catch (JSONException e) {
+				return false;
+			}
 			if (!options.attributeFilter.stream().anyMatch(filter -> this.matchesAttributeFilter(filter, o))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Return whether the given event matches a filter, containing a map of fields to expected values. */
+	private boolean matchesEventFilter(Map<String, Object> filter, JSONObject o) {
+		for (Map.Entry<String, Object> entry : filter.entrySet()) {
+			if (!o.has(entry.getKey()) || !o.get(entry.getKey()).equals(entry.getValue())) {
 				return false;
 			}
 		}
