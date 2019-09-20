@@ -202,6 +202,18 @@ app.get('*', (req, res) => {
 });
 
 (async function main() {
+  // loop and wait for a database connection
+  for (;;) {
+    try {
+      await sequelize.authenticate();
+      break;
+    } catch (error) {
+      logger.error('NMS could not connect to database', error);
+      // if connecting to the database fails, wait 2 seconds before retrying
+      await new Promise(res => setTimeout(res, 2000));
+    }
+  }
+
   try {
     // Run DB migrations
     await runMigrations();
