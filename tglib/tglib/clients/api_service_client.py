@@ -126,12 +126,18 @@ class APIServiceClient(BaseClient):
             raise ClientRuntimeError(msg=f"API Service at {addr} is unavailable") from e
 
     async def request_all(
-        self, endpoint: str, params_map: Dict[str, Dict] = {}
+        self,
+        endpoint: str,
+        params_map: Dict[str, Dict] = {},
+        return_exceptions: bool = False,
     ) -> Dict[str, Dict]:
         """Make a request to the given endpoint for all networks.
 
         params_map is a dictionary of network names to params. The default post
-        param '{}' is used for networks not present in params_map."""
+        param '{}' is used for networks not present in params_map.
+
+        return_exceptions is a boolean flag for returning exceptions as objects
+        instead of raising the first one. It is disabled by default."""
         if self._networks is None:
             raise ClientStoppedError()
 
@@ -142,15 +148,26 @@ class APIServiceClient(BaseClient):
             else:
                 tasks.append(self.request(name, endpoint))
 
-        return dict(zip(self._networks.keys(), await asyncio.gather(*tasks)))
+        return dict(
+            zip(
+                self._networks.keys(),
+                await asyncio.gather(*tasks, return_exceptions=return_exceptions),
+            )
+        )
 
     async def request_many(
-        self, endpoint: str, params_map: Dict[str, Dict]
+        self,
+        endpoint: str,
+        params_map: Dict[str, Dict],
+        return_exceptions: bool = False,
     ) -> Dict[str, Dict]:
         """Make a request to the given endpoint for several networks.
 
         params_map is a dictionary of network names to params. No request is
-        sent for networks not present in params_map."""
+        sent for networks not present in params_map.
+
+        return_exceptions is a boolean flag for returning exceptions as objects
+        instead of raising the first one. It is disabled by default."""
         if self._networks is None:
             raise ClientStoppedError()
 
@@ -161,4 +178,9 @@ class APIServiceClient(BaseClient):
 
             tasks.append(self.request(name, endpoint, params))
 
-        return dict(zip(params_map.keys(), await asyncio.gather(*tasks)))
+        return dict(
+            zip(
+                params_map.keys(),
+                await asyncio.gather(*tasks, return_exceptions=return_exceptions),
+            )
+        )
