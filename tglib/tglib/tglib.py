@@ -119,6 +119,7 @@ async def start_background_tasks(app: web.Application) -> None:
     ):
         if isinstance(start_result, TGLibError):
             failure = start_result
+        else:
             stop_tasks.append(client.stop())
 
     # Shutdown the clients if any of them fail to start
