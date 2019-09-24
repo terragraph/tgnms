@@ -284,6 +284,11 @@ public class AlarmService {
 		return alarmRules.values();
 	}
 
+	/** Returns the alarm rule with the given name, or null if none. */
+	public AlarmRule getAlarmRule(String name) {
+		return alarmRules.get(name);
+	}
+
 	/** Returns all existing alarm rules applicable to the given event. */
 	private List<AlarmRule> getAlarmRules(Event event) {
 		return alarmRules.values().stream().filter(rule -> rule.matchesEvent(event)).collect(Collectors.toList());

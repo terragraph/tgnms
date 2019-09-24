@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.terragraph.tgalarms.kafka.KafkaPipe;
+import com.terragraph.tgalarms.prometheus.AlertmanagerClient;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -72,6 +73,24 @@ public class Launcher implements Runnable {
 	)
 	private String kafkaSinkTopic = "alarms";
 
+	@Option(
+		names = { "--alertmanager-server" },
+		description = "Prometheus Alertmanager host (default: ${DEFAULT-VALUE})"
+	)
+	private String prometheusAlertmanagerHost = "";
+
+	@Option(
+		names = { "--alertmanager-port" },
+		description = "Prometheus Alertmanager port (default: ${DEFAULT-VALUE})"
+	)
+	private int prometheusAlertmanagerPort = 9093;
+
+	@Option(
+		names = { "--alertmanager-push-interval" },
+		description = "Prometheus Alertmanager push interval, in seconds (default: ${DEFAULT-VALUE})"
+	)
+	private int prometheusAlertmanagerPushIntervalSec = 30;
+
 	/** Run the alarm service. */
 	private void runImpl() throws Exception {
 		// Instantiate service and load rules
@@ -89,6 +108,16 @@ public class Launcher implements Runnable {
 		if (!disableHttpServer) {
 			AlarmServer server = new AlarmServer(service, port, enableEventsWriterEndpoint);
 			server.start();
+		}
+
+		// Start Alertmanager pusher
+		if (!prometheusAlertmanagerHost.isEmpty()) {
+			AlertmanagerClient client = new AlertmanagerClient(
+				service,
+				prometheusAlertmanagerHost,
+				prometheusAlertmanagerPort
+			);
+			client.start(prometheusAlertmanagerPushIntervalSec, 2 /* initialDelay */);
 		}
 	}
 

@@ -61,6 +61,10 @@ class AlarmServiceTest {
 		Collection<AlarmRule> rules = service.getAlarmRules();
 		assertEquals(1, rules.size());
 		assertEquals(rule, rules.iterator().next());
+		assertEquals(rule, service.getAlarmRule(rule.getName()));
+
+		// Retrieve bogus alarm rule (should fail)
+		assertEquals(null, service.getAlarmRule("blah"));
 
 		// Try to add the same alarm again (should fail)
 		ruleAdded = service.addAlarmRule(rule);

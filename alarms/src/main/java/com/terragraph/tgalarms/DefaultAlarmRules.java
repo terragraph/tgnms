@@ -25,10 +25,7 @@ public class DefaultAlarmRules {
 				new AlarmRuleOptions.Builder().setRaiseDelay(30).setClearDelay(30).build()
 			),
 			new AlarmRule(
-				"alarm-GPS_SYNC", "GPS is not in sync", EventId.GPS_SYNC.getId(), AlarmSeverity.MAJOR
-			),
-			new AlarmRule(
-				"alarm-DRIVER_DEVICE_STATUS", "Device is down", EventId.DRIVER_DEVICE_STATUS.getId(), AlarmSeverity.MINOR
+				"alarm-GPS_SYNC", "GPS is not in sync", EventId.GPS_SYNC.getId(), AlarmSeverity.MINOR
 			),
 			new AlarmRule(
 				"alarm-UPGRADE_PREPARE", "Upgrades - PREPARE stage failed", EventId.UPGRADE_PREPARE.getId(), AlarmSeverity.MINOR

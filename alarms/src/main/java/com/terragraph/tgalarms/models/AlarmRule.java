@@ -38,6 +38,12 @@ public class AlarmRule {
 	/** Additional alarm options. */
 	private AlarmRuleOptions options;
 
+	/** Extra labels. */
+	private Map<String, String> extraLabels;
+
+	/** Extra annotations. */
+	private Map<String, String> extraAnnotations;
+
 	/** Alarm rule options. */
 	public static class AlarmRuleOptions {
 		/** The event levels at which a corresponding alarm should be raised. */
@@ -203,7 +209,6 @@ public class AlarmRule {
 		}
 	}
 
-
 	/** Create an alarm rule with default options. */
 	public AlarmRule(String name, String description, int eventId, AlarmSeverity severity) {
 		this(name, description, eventId, severity, new AlarmRuleOptions.Builder().build());
@@ -211,11 +216,26 @@ public class AlarmRule {
 
 	/** Create an alarm rule with the given options. */
 	public AlarmRule(String name, String description, int eventId, AlarmSeverity severity, AlarmRuleOptions opts) {
+		this(name, description, eventId, severity, opts, null, null);
+	}
+
+	/** Create an alarm rule with the given options. */
+	public AlarmRule(
+		String name,
+		String description,
+		int eventId,
+		AlarmSeverity severity,
+		AlarmRuleOptions opts,
+		Map<String, String> extraLabels,
+		Map<String, String> extraAnnotations
+	) {
 		this.name = name;
 		this.description = description;
 		this.eventId = eventId;
 		this.severity = severity;
 		this.options = opts;
+		this.extraLabels = extraLabels;
+		this.extraAnnotations = extraAnnotations;
 	}
 
 	/** Return the unique alarm rule name. */
@@ -232,6 +252,12 @@ public class AlarmRule {
 
 	/** Return the additional alarm options. */
 	public AlarmRuleOptions getOptions() { return options; }
+
+	/** Return extra labels (if any). */
+	public Map<String, String> getExtraLabels() { return extraLabels; }
+
+	/** Return extra annotations (if any). */
+	public Map<String, String> getExtraAnnotations() { return extraAnnotations; }
 
 	/** Return whether the rule matches the given event. */
 	public boolean matchesEvent(Event event) {
@@ -314,6 +340,8 @@ public class AlarmRule {
 		int result = 1;
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + eventId;
+		result = prime * result + ((extraAnnotations == null) ? 0 : extraAnnotations.hashCode());
+		result = prime * result + ((extraLabels == null) ? 0 : extraLabels.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((options == null) ? 0 : options.hashCode());
 		result = prime * result + ((severity == null) ? 0 : severity.hashCode());
@@ -335,6 +363,16 @@ public class AlarmRule {
 		} else if (!description.equals(other.description))
 			return false;
 		if (eventId != other.eventId)
+			return false;
+		if (extraAnnotations == null) {
+			if (other.extraAnnotations != null)
+				return false;
+		} else if (!extraAnnotations.equals(other.extraAnnotations))
+			return false;
+		if (extraLabels == null) {
+			if (other.extraLabels != null)
+				return false;
+		} else if (!extraLabels.equals(other.extraLabels))
 			return false;
 		if (name == null) {
 			if (other.name != null)
