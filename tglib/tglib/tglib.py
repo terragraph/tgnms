@@ -55,10 +55,11 @@ def init(
     except OSError as e:
         raise ConfigError("Failed to load configuration files") from e
 
-    # Create web application object
+    # Create web application object and shutdown event
     app = web.Application()
     app["main"] = main
     app["config"] = config
+    app["shutdown_event"] = asyncio.Event()
 
     # Initialize routes for the HTTP server
     app.add_routes(routes)
@@ -76,9 +77,6 @@ def init(
                     raise DuplicateRouteError(route.method, route.path)
 
         app.add_routes(extra_routes)
-
-    # Create the shutdown event
-    app["shutdown_event"] = asyncio.Event()
 
     # Initialize the clients
     app["clients"] = []
@@ -111,21 +109,21 @@ def init(
 async def start_background_tasks(app: web.Application) -> None:
     """Start the clients and create the main_wrapper and shutdown_listener tasks."""
     start_tasks = [client.start(app["config"]) for client in app["clients"]]
-    stop_tasks = []
 
-    failure = None
-    for client, start_result in zip(
+    good, bad = [], []
+    for client, result in zip(
         app["clients"], await asyncio.gather(*start_tasks, return_exceptions=True)
     ):
-        if isinstance(start_result, TGLibError):
-            failure = start_result
+        if isinstance(result, TGLibError):
+            bad.append(result)
         else:
-            stop_tasks.append(client.stop())
+            good.append(client)
 
-    # Shutdown the clients if any of them fail to start
-    if failure is not None:
+    if bad:
+        # Shutdown the successful clients if any have failed to start
+        stop_tasks = [client.stop() for client in good]
         await asyncio.gather(*stop_tasks)
-        raise failure
+        raise bad[0]
 
     app["main_wrapper_task"] = asyncio.create_task(main_wrapper(app))
     app["shutdown_listener_task"] = asyncio.create_task(shutdown_listener(app))
