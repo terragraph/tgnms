@@ -18,23 +18,41 @@ public class DefaultAlarmRules {
 	public static AlarmRule[] get() {
 		return new AlarmRule[] {
 			new AlarmRule(
-				"alarm-NODE_STATUS", "Node is offline", EventId.NODE_STATUS.getId(), AlarmSeverity.MAJOR
+				"Status: Node is offline",
+				"The node is not reachable.",
+				EventId.NODE_STATUS.getId(),
+				AlarmSeverity.MAJOR
 			),
 			new AlarmRule(
-				"alarm-LINK_STATUS", "Link is offline", EventId.LINK_STATUS.getId(), AlarmSeverity.MAJOR,
+				"Status: Link is offline",
+				"The wireless link has been down for at least 30 seconds.",
+				EventId.LINK_STATUS.getId(),
+				AlarmSeverity.MAJOR,
 				new AlarmRuleOptions.Builder().setRaiseDelay(30).setClearDelay(30).build()
 			),
 			new AlarmRule(
-				"alarm-GPS_SYNC", "GPS is not in sync", EventId.GPS_SYNC.getId(), AlarmSeverity.MINOR
+				"Status: GPS synchronization failed",
+				"The GPS is not in sync.",
+				EventId.GPS_SYNC.getId(),
+				AlarmSeverity.MINOR
 			),
 			new AlarmRule(
-				"alarm-UPGRADE_PREPARE", "Upgrades - PREPARE stage failed", EventId.UPGRADE_PREPARE.getId(), AlarmSeverity.MINOR
+				"Software upgrade: Prepare failed",
+				"The prepare (download and flash) phase of a software upgrade failed.",
+				EventId.UPGRADE_PREPARE.getId(),
+				AlarmSeverity.MINOR
 			),
 			new AlarmRule(
-				"alarm-UPGRADE_COMMIT", "Upgrades - COMMIT stage failed", EventId.UPGRADE_COMMIT.getId(), AlarmSeverity.MINOR
+				"Software upgrade: Commit failed",
+				"The commit (update boot partition and reboot) phase of a software upgrade failed.",
+				EventId.UPGRADE_COMMIT.getId(),
+				AlarmSeverity.MINOR
 			),
 			new AlarmRule(
-				"alarm-MINION_SET_CONFIG", "Failed to update node config", EventId.MINION_SET_CONFIG.getId(), AlarmSeverity.MINOR
+				"Configuration: Node configuration failed",
+				"The node failed to apply node configuration changes.",
+				EventId.MINION_SET_CONFIG.getId(),
+				AlarmSeverity.MINOR
 			),
 		};
 	}
