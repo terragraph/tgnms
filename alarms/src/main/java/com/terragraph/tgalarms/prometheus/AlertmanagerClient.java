@@ -143,7 +143,7 @@ public class AlertmanagerClient {
 			.filter(e -> e.topologyName != null)
 			.findAny();
 		if (eventWithTopology.isPresent()) {
-			alert.labels.put("topologyName", eventWithTopology.get().topologyName);
+			alert.labels.put("network", eventWithTopology.get().topologyName);
 		}
 		if (rule.getExtraLabels() != null) {
 			rule.getExtraLabels().entrySet().forEach(entry ->
