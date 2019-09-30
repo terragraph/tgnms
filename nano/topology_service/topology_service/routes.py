@@ -12,27 +12,54 @@ topo_routes = web.RouteTableDef()
 @topo_routes.post("/topology_history")
 async def get_topology_history(request: web.Request) -> web.json_response:
     """
-    Return a list of last 'count' number of topologies from MongoDB.
-    Expected body: {'count': <int value>}
+    ---
+    description: Fetch a list of last "count" number of topologies from MongoDB.
+    tags:
+    - History
+    produces:
+    - application/json
+    parameters:
+    - in: body
+      name: body
+      description: Body of fetch topology history api endpoint.
+      required: true
+      schema:
+        type: object
+        properties:
+          topology_name:
+            type: string
+            description: Name of the network.
+          count:
+            type: integer
+            description: Number of topology entries to fetch.
+        required:
+        - topology_name
+        - count
+    responses:
+      "200":
+        description: Successful operation. Returns list of last 'count' number of topologies from MongoDB.
+      "400":
+        description: Invalid or missing parameters.
     """
     body = await request.json()
 
-    try:
-        count = int(body.get("count"))
-    except (ValueError, TypeError) as err:
-        raise web.HTTPBadRequest(text=f"Unable to parse 'count' param: {err}")
-
-    if count < 1:
+    # Get the number of topology entries to be fetched
+    count = body.get("count")
+    if count is None:
+        raise web.HTTPBadRequest(text="Missing required 'count' param")
+    if not isinstance(count, int) or count < 1:
         raise web.HTTPBadRequest(
-            text="Number of topology to be fetched has to be positive natural number, "
-            "greater than 1."
+            text="Invalid value for 'count': Must be integer greater than 1"
         )
 
-    mongodb_client: MongoDBClient = MongoDBClient.get_instance()
+    # Get the network name
+    topology_name = body.get("topology_name")
+    if topology_name is None:
+        raise web.HTTPBadRequest(text="Missing required 'topology_name' param")
 
     # Access the db
-    db = mongodb_client.get_db()
-    collection = db.topology
+    db = MongoDBClient().db
+    collection = db[topology_name]
 
     result = []
     # Query the last 'count' number of topologies from newest to oldest

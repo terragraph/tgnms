@@ -10,6 +10,7 @@ from typing import Dict
 
 from tglib.clients.api_service_client import APIServiceClient
 from tglib.clients.mongodb_client import MongoDBClient
+from tglib.exceptions import ClientRuntimeError
 from tglib.tglib import Client, init
 
 from topology_service.routes import topo_routes
@@ -19,33 +20,38 @@ async def main(config: Dict) -> None:
     """
     Use `getTopology` API request to fetch the latest topology in
     every `fetch_interval` seconds and stores results in MongoDB.
-    Topology stored in `topology_service` database, `topology` collection.
+    Topology stored in `topology_service` database.
     """
+    logging.info("#### Starting topology fetch service ####")
+
+    logging.debug(f"Service config: {config}")
     fetch_interval: int = config["fetch_interval_s"]
-    network_name: str = config["network_name"]
-
-    # get client objects
-    api_service_client = APIServiceClient.get_instance()
-    mongodb_client = MongoDBClient.get_instance()
-
-    # Access the db
-    db = mongodb_client.get_db()
-    collection = db.topology
 
     while True:
-        topology: Dict = await api_service_client.make_api_request(
-            topology_name=network_name, endpoint="getTopology"
+        # Get latest topology for all networks from API service
+        logging.info("Requesting topologies for all networks from API service.")
+        all_topologies: Dict = await APIServiceClient(timeout=1).request_all(
+            endpoint="getTopology", return_exceptions=True
         )
 
-        # add timestamp field to topology
-        topology["timestamp"] = f"{datetime.datetime.now()}"
+        now = str(datetime.datetime.now())
+        for topology_name, topology in all_topologies.items():
+            if not isinstance(topology, ClientRuntimeError):
+                # Access the db
+                db = MongoDBClient().db
+                collection = db[topology_name]
 
-        # store fetched topology in MongoDB
-        result = await collection.insert_one(topology)
-        logging.info(
-            "Data written to 'topology' collection, "
-            f"insert_id = {repr(result.inserted_id)}"
-        )
+                # Add timestamp field to topology
+                topology["timestamp"] = now
+
+                # Store fetched topology in MongoDB
+                result = await collection.insert_one(topology)
+                logging.info(
+                    f"Topology of {topology_name} is stored in {topology_name}"
+                    f"collection, insert_id = {repr(result.inserted_id)}"
+                )
+            else:
+                logging.error(f"Error in fetching topology for {topology_name}.")
 
         # Sleep until next invocation time
         await asyncio.sleep(fetch_interval)
