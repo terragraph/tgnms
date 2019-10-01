@@ -116,6 +116,7 @@ export function mockNetworkConfig(
     },
     wireless_controller_stats: {},
     controller_error: null,
+    topologyConfig: {},
   };
 
   return Object.assign(config, overrides || {});

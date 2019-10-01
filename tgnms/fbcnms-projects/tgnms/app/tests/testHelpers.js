@@ -28,10 +28,11 @@ export function renderWithRouter(
   {
     route = '/',
     history = createMemoryHistory({initialEntries: [route]}),
+    ...renderArgs //arguments specific to @testing-library/react.render
   }: {route?: string, history?: any} = {},
 ) {
   return {
-    ...render(<Router history={history}>{ui}</Router>),
+    ...render(<Router history={history}>{ui}</Router>, renderArgs),
     history,
   };
 }

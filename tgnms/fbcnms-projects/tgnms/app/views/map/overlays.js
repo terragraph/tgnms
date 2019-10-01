@@ -50,7 +50,7 @@ const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
     type: 'ignition_status',
     id: 'ignition_status',
   },
-  ...(window.CONFIG.env.STATS_BACKEND === 'prometheus'
+  ...(window.CONFIG?.env?.STATS_BACKEND === 'prometheus'
     ? {}
     : {
         link_health: {

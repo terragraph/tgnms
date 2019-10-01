@@ -23,6 +23,7 @@ import React from 'react';
 import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {TopologyElementType} from './constants/NetworkConstants.js';
+import {buildTopologyMaps} from './helpers/TopologyHelpers';
 import {createQuery, increase} from './apiutils/PrometheusAPIUtil';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -245,7 +246,7 @@ class NetworkUI extends React.Component<Props, State> {
 
   processNetworkConfig = (networkConfig, networkName) => {
     // Update state with new network config
-    const topologyMaps = this.buildTopologyMaps(networkConfig.topology);
+    const topologyMaps = buildTopologyMaps(networkConfig.topology);
     const topologyState = this.cleanTopologyState(topologyMaps);
     this.setState({
       networkConfig,
@@ -260,27 +261,6 @@ class NetworkUI extends React.Component<Props, State> {
       this.state.networkHealthTimeWindowHrs,
     );
     this.updateNetworkAnalyzer(networkName);
-  };
-
-  buildTopologyMaps = topology => {
-    // Build maps from topology element arrays
-    const nodeMap = {};
-    const linkMap = {};
-    const siteMap = {};
-    const siteToNodesMap = {};
-    topology.sites.forEach(site => {
-      siteMap[site.name] = site;
-      siteToNodesMap[site.name] = new Set();
-    });
-    topology.nodes.forEach(node => {
-      nodeMap[node.name] = node;
-      siteToNodesMap[node.site_name].add(node.name);
-    });
-    topology.links.forEach(link => {
-      linkMap[link.name] = link;
-    });
-
-    return {nodeMap, linkMap, siteMap, siteToNodesMap};
   };
 
   cleanTopologyState = topologyMaps => {

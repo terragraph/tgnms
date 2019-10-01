@@ -36,14 +36,10 @@ export type NetworkContextType = {|
   refreshNetworkConfig: () => void,
 
   // Topology maps
-  nodeMap: {
-    [string]: NodeType,
-  },
-  linkMap: {[string]: LinkType & LinkMeta},
+  nodeMap: NodeMap,
+  linkMap: LinkMap,
   siteMap: SiteMap,
-  siteToNodesMap: {
-    [string]: Set<string>,
-  },
+  siteToNodesMap: SiteToNodesMap,
   // Topology elements
   selectedElement: ?Element,
   pinnedElements: Array<Element>,
@@ -177,6 +173,16 @@ export type Element = {|
 
 export type SiteMap = {
   [string]: Site,
+};
+
+export type NodeMap = {
+  [string]: NodeType,
+};
+
+export type LinkMap = {[string]: LinkType & LinkMeta};
+
+export type SiteToNodesMap = {
+  [string]: Set<string>,
 };
 
 export type Site = {|
