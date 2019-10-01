@@ -227,7 +227,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
           },
           {
             label: 'View in Grafana',
-            icon: <GrafanaIcon />,
+            icon: <GrafanaIcon gray={true} />,
             component: props => (
               <GrafanaLink
                 {...props}
