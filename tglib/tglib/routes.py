@@ -6,7 +6,6 @@ import json
 import logging
 
 from aiohttp import web
-
 from tglib import __version__
 from tglib.clients.prometheus_client import PrometheusClient
 from tglib.exceptions import ClientStoppedError
@@ -135,8 +134,12 @@ async def handle_get_config(request: web.Request) -> web.Response:
         with open("./service_config.json") as f:
             config = json.load(f)
             return web.json_response(config)
+    except json.JSONDecodeError:
+        raise web.HTTPInternalServerError(
+            text="Existing configuration is not valid JSON"
+        )
     except OSError:
-        raise web.HTTPInternalServerError(text="Failed to load config file")
+        raise web.HTTPInternalServerError(text="Failed to load existing configuration")
 
 
 @routes.post("/config/set")
@@ -239,6 +242,10 @@ async def handle_update_config(request: web.Request) -> web.Response:
         # Trigger the shutdown event
         request.app["shutdown_event"].set()
         return web.Response(text="Successfully updated configuration")
+    except json.JSONDecodeError:
+        raise web.HTTPInternalServerError(
+            text="Existing configuration is not valid JSON"
+        )
     except OSError:
         raise web.HTTPInternalServerError(text="Failed to update configuration")
 

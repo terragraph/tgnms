@@ -52,8 +52,10 @@ def init(
 
             if "overrides" in service_config:
                 deep_update(config, service_config["overrides"])
+    except json.JSONDecodeError as e:
+        raise ConfigError("Configuration file is not valid JSON") from e
     except OSError as e:
-        raise ConfigError("Failed to load configuration files") from e
+        raise ConfigError("Failed to load configuration file") from e
 
     # Create web application object and shutdown event
     app = web.Application()
