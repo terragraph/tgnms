@@ -8,9 +8,13 @@
  * @format
  */
 
+import type {ExpressRequest} from 'express';
 import type {OpenidClient} from './oidcTypes';
 
+import User from './User';
+import axios from 'axios';
 import {ERROR_KEYS, createExpectedError, isSocketTimeoutError} from './errors';
+import {KEYCLOAK_HOST, KEYCLOAK_REALM} from '../config';
 import {TokenSet} from 'openid-client';
 
 const logger = require('../log')(module);
@@ -30,6 +34,21 @@ export default async function ensureAccessToken(
   params: EnsureAccessTokenParams,
 ): Promise<any> {
   const {resolveClient, resolveUserFromTokenSet} = params;
+  const openidClient = await resolveClient(req);
+  if (!openidClient) {
+    throw createExpectedError(ERROR_KEYS.remoteDown);
+  }
+
+  try {
+    const apiTokenUser = await getApiTokenSet(req);
+    if (apiTokenUser) {
+      await asyncLogin(req, apiTokenUser);
+      return apiTokenUser;
+    }
+  } catch (e) {
+    // swallow the error and continue to passport authentication
+  }
+
   const passportUser = req.session?.passport?.user;
   if (!passportUser) {
     throw createExpectedError(ERROR_KEYS.noSession);
@@ -40,13 +59,7 @@ export default async function ensureAccessToken(
   }
 
   logger.info(`refreshing expired access token`);
-  const openidClient = await resolveClient(req);
-
-  if (!openidClient) {
-    throw createExpectedError(ERROR_KEYS.remoteDown);
-  }
-
-  //refresh also validates the token
+  // refresh also validates the token
   try {
     const refreshed = await openidClient.refresh(tokenSet.refresh_token);
     logger.info(`access token refreshed`);
@@ -82,4 +95,29 @@ function asyncLogin(req: any, user: any): Promise<any> {
       resolve();
     });
   });
+}
+
+/*
+ * Retrieves a user's authorization info from a bearer token. Validates the
+ * token before resolving. This does not handle token refresh
+ */
+async function getApiTokenSet(req: ExpressRequest): Promise<User> {
+  const authHeader = req.header('Authorization');
+  if (!authHeader) {
+    return Promise.reject(new Error('Missing Authorization header'));
+  }
+  if (authHeader.indexOf('Bearer ') === -1) {
+    return Promise.reject(new Error('Malformed Authorization header'));
+  }
+  if (!(KEYCLOAK_HOST && KEYCLOAK_REALM)) {
+    return Promise.reject(new Error('Invalid keycloak configuration'));
+  }
+  const response = await axios({
+    method: 'GET',
+    url: `${KEYCLOAK_HOST}/auth/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo`,
+    headers: {
+      Authorization: authHeader,
+    },
+  });
+  return response.data;
 }

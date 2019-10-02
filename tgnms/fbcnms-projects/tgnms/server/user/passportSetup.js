@@ -15,11 +15,12 @@ import {Strategy as OpenidStrategy} from 'openid-client';
 import {initOidcClient} from './oidc';
 
 passport.serializeUser((user: ApplicationUser, done) => {
+  const serialized = user.__getTokenSet ? user.__getTokenSet() : user;
   /**
    * the token set contains the encoded claims,
    * so we serialize that instead of the user.
    */
-  done(null, user.__getTokenSet());
+  done(null, serialized);
 });
 
 passport.deserializeUser((req, serializedTokenSet, done) => {

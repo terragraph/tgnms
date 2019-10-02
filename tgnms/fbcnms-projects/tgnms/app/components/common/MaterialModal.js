@@ -60,9 +60,11 @@ class MaterialModal extends React.Component {
           ) : null}
           {modalContent}
         </DialogContent>
-        <DialogActions classes={{root: classes.dialogActions}}>
-          {modalActions}
-        </DialogActions>
+        {modalActions && (
+          <DialogActions classes={{root: classes.dialogActions}}>
+            {modalActions}
+          </DialogActions>
+        )}
       </Dialog>
     );
   }

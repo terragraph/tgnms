@@ -10,12 +10,14 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import EditIcon from '@material-ui/icons/Edit';
 import FileDownloadIcon from '@material-ui/icons/CloudDownload';
 import IconButton from '@material-ui/core/IconButton';
+import InstallerAppConfig from '../../components/installerapp/InstallerAppConfig';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import LoadingBox from '../../components/common/LoadingBox';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import MobileFriendlyIcon from '@material-ui/icons/MobileFriendly';
 import ModalNmsConfigForm from './ModalNmsConfigForm';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import NetworkContext from '../../NetworkContext';
@@ -316,7 +318,10 @@ class NmsConfig extends React.Component {
           <PlaylistAddIcon className={classes.leftIcon} />
           Create Network
         </Button>
-
+        <InstallerAppConfig variant="outlined" className={classes.button}>
+          <MobileFriendlyIcon className={classes.leftIcon} />
+          Installer App Setup
+        </InstallerAppConfig>
         <Paper className={classes.paper} elevation={2}>
           <Table className={classes.table}>
             <TableHead>

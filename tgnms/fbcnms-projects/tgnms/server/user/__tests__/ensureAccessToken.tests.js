@@ -20,6 +20,13 @@ import User from '../User';
 import ensureAccessToken from '../ensureAccessToken';
 import {__TESTSONLY_setOidcClient, awaitClient} from '../oidc';
 import {isExpectedError} from '../errors';
+jest.mock('axios');
+const axiosMock: any = require('axios');
+
+jest.mock('../../config', () => ({
+  KEYCLOAK_HOST: 'keycloak',
+  KEYCLOAK_REALM: 'tgnms',
+}));
 
 const accessTokenParams = {
   resolveClient: awaitClient,
@@ -29,6 +36,7 @@ const accessTokenParams = {
 beforeEach(() => {
   TokenSet.mockClear();
   Client.mockClear();
+  __TESTSONLY_setOidcClient(new Client());
 });
 test('rejects with error if there is no login session', () => {
   const mockRequest = {};
@@ -40,6 +48,7 @@ test('rejects with error if there is no login session', () => {
 test('if tokenset is not expired, resolves with the token', () => {
   new TokenSet().expired.mockReturnValueOnce(false);
   const mockRequest = {
+    header: jest.fn(() => 'Bearer faketoken'),
     session: {
       passport: {
         user: {},
@@ -68,6 +77,7 @@ test('if token set is expired, retrieves a new one using refresh token', () => {
     });
 
   const mockRequest = {
+    header: jest.fn(() => 'Bearer faketoken'),
     session: {
       passport: {
         user: {},
@@ -88,6 +98,7 @@ test('if token set is expired, retrieves a new one using refresh token', () => {
 
 test('if the refresh token is expired, returns an expected error', () => {
   const mockRequest = {
+    header: jest.fn(() => 'Bearer faketoken'),
     session: {
       passport: {
         user: {},
@@ -101,6 +112,64 @@ test('if the refresh token is expired, returns an expected error', () => {
   return ensureAccessToken(mockRequest, accessTokenParams).catch(error => {
     expect(isExpectedError(error.name)).toBe(true);
     expect(mockRequest.logIn).not.toHaveBeenCalled();
+  });
+});
+
+describe('Bearer token', () => {
+  test('if no authorization header and no passport user, throws an error', () => {
+    const mockRequest = {
+      header: jest.fn(() => null),
+      logIn: jest.fn(() => {
+        throw new Error(); // shouldn't get here
+      }),
+    };
+    return ensureAccessToken(mockRequest, accessTokenParams)
+      .then(() => {
+        throw new Error('should not get here');
+      })
+      .catch(_error => {
+        expect(mockRequest.logIn).not.toHaveBeenCalled();
+      });
+  });
+
+  test('if authorization header is present but malformed, throws an error', () => {
+    const mockRequest = {
+      header: jest.fn(() => 'test123'),
+      logIn: jest.fn(() => {
+        throw new Error(); // shouldn't get here
+      }),
+    };
+    return ensureAccessToken(mockRequest, accessTokenParams)
+      .then(() => {
+        throw new Error('should not get here');
+      })
+      .catch(_error => {
+        expect(mockRequest.logIn).not.toHaveBeenCalled();
+      });
+  });
+
+  test('if authorization header is present and valid, invokes openid client validation methods', () => {
+    const clientMock = new Client();
+    __TESTSONLY_setOidcClient(clientMock);
+
+    const tokenSet = TokenSet.mockImplementationOnce(() => {
+      return {
+        expired: () => false,
+      };
+    });
+    clientMock.decryptIdToken.mockResolvedValue(tokenSet);
+    clientMock.validateIdToken.mockResolvedValue(tokenSet);
+    axiosMock.mockResolvedValue({
+      data: getFakeUser(),
+    });
+
+    const mockRequest = {
+      header: jest.fn(() => 'Bearer faketoken'),
+      logIn: jest.fn((user, callback) => callback()),
+    };
+    return ensureAccessToken(mockRequest, accessTokenParams).then(() => {
+      expect(mockRequest.logIn).toHaveBeenCalled();
+    });
   });
 });
 

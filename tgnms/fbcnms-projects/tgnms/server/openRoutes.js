@@ -11,6 +11,7 @@ export default [
   '/favicon.ico',
   '/static/dist/vendor',
   '/static/dist/login',
+  '/mobileapp/clientconfig',
   // protected by middleware/otp
   '/static/tg-binaries',
   '/static/css',
