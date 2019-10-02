@@ -1,0 +1,25 @@
+version: '3.6'
+
+services:
+  default_routes_service:
+    image: secure.cxl-terragraph.com:443/default_routes_service:latest
+    restart: always
+    env_file:
+      - ./env/default_route.env
+    volumes:
+      - ./docker_volumes/logs:/nano/default_routes_service/logs
+      - ./docker_volumes/default_routes/service_config.json:/usr/local/nano/default_routes_service/service_config.json
+      - ./docker_volumes/tglib/config.json:/usr/local/nano/default_routes_service/config.json
+      - ./mysql_init_scripts/default_routes_service.sql:/usr/local/nano/default_routes_service/default_routes_service.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "mysql -h$${MYSQL_HOST} -u$${MYSQL_USER} -p$${MYSQL_PASS} < default_routes_service.sql && python default_routes_service/main.py"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+networks:
+  terragraph_net:
+    external: true

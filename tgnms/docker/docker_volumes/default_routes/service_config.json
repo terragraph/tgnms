@@ -1,0 +1,10 @@
+{
+  "overrides": {
+    "mysql": {
+      "db": "default_route_service",
+      "user": "default_route_user",
+      "password": "bj5q4aslzm"
+    }
+  },
+  "fetch_interval_s": 30
+}
