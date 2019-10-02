@@ -23,7 +23,9 @@ export default function InstallerAppConfig(props: Props) {
         open={isOpen}
         onClose={() => setIsOpen(false)}
         modalTitle="Mobile App Setup"
-        modalContent={<FBCMobileAppConfigView endpoint="/mobileapp/qrcode" />}
+        modalContent={
+          <FBCMobileAppConfigView endpoint="/mobileapp/clientconfig" />
+        }
       />
     </>
   );

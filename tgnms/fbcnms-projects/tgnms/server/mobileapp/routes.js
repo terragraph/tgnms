@@ -6,7 +6,6 @@
  */
 
 const express = require('express');
-import generateQRCode from '@fbcnms/mobileapp/generateQRCode';
 import {CLIENT_ROOT_URL, KEYCLOAK_HOST, KEYCLOAK_REALM} from '../config';
 import type {FBCMobileAppConfig} from '@fbcnms/mobileapp/FBCMobileAppConfig';
 
@@ -17,12 +16,6 @@ const router = express.Router();
  */
 router.get('/clientconfig', (req, res) => {
   getFbcMobileConfig().then(conf => res.json(conf));
-});
-
-router.get('/qrcode', (req, res) => {
-  return getFbcMobileConfig().then(config => {
-    return generateQRCode(JSON.stringify(config)).then(qr => res.send(qr));
-  });
 });
 
 async function getFbcMobileConfig(): Promise<FBCMobileAppConfig> {

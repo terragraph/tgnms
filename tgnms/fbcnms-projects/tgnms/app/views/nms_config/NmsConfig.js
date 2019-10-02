@@ -320,7 +320,7 @@ class NmsConfig extends React.Component {
         </Button>
         <InstallerAppConfig variant="outlined" className={classes.button}>
           <MobileFriendlyIcon className={classes.leftIcon} />
-          Installer App Setup
+          Mobile App Setup
         </InstallerAppConfig>
         <Paper className={classes.paper} elevation={2}>
           <Table className={classes.table}>
