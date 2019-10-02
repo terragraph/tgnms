@@ -3,8 +3,8 @@
 The default route service captures the history of default route changes for all
 nodes in the Terragraph network. The service periodically invokes the E2E
 controller's `getDefaultRoutes` API endpoint to fetch the latest default routes.
-It then stores the results in MySQL. The default fetch interval is 600 seconds,
-however this value can be modified using either the `/config/update` or
+It then stores the results in MySQL. The default fetch interval is **30**
+seconds, however this value can be modified using either the `/config/update` or
 `config/set` API endpoints in `tglib`.
 
 The routes are stored in the `default_route_history` and `default_route_current`
