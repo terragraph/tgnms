@@ -14,7 +14,7 @@ tables (schemas below).
 The `default_route_history` table stores the history of routes for each node.
 
 | Column          | Description                                           |
-|-------------------------------------------------------------------------|
+|-----------------|-------------------------------------------------------|
 | `id`            | Entry ID                                              |
 | `topology_name` | The topology the node belongs to                      |
 | `node_name`     | The node the default routes belong to                 |
@@ -28,7 +28,7 @@ The `default_route_history` table stores the history of routes for each node.
 The `default_route_current` table stores stores the current state for each node.
 
 | Column             | Description                                            |
-|-----------------------------------------------------------------------------|
+|--------------------|--------------------------------------------------------|
 | `id`               | Entry ID                                               |
 | `topology_name`    | The topology the node belongs to                       |
 | `node_name`        | The node the default routes belong to                  |
