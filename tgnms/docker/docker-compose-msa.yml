@@ -16,6 +16,24 @@ services:
         max-size: "20m"
         max-file: "10"
 
+  topology_service:
+    image: secure.cxl-terragraph.com:443/topology_service:latest
+    restart: always
+    volumes:
+      - ./docker_volumes/logs:/nano/topology_service/logs
+      - ./docker_volumes/topology_service/service_config.json:/usr/local/nano/topology_service/service_config.json
+      - ./docker_volumes/tglib/config.json:/usr/local/nano/topology_service/config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "python topology_service/main.py"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    depends_on:
+      - mongodb
+
   default_routes_service:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
     restart: always
