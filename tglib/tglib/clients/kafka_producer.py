@@ -41,7 +41,7 @@ class KafkaProducer(BaseClient):
 
         try:
             cls._producer = AIOKafkaProducer(
-                loop=asyncio.get_event_loop, **kafka_params
+                loop=asyncio.get_event_loop(), **kafka_params
             )
             await cls._producer.start()
         except KafkaError as e:
