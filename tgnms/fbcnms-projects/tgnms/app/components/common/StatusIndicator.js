@@ -34,6 +34,7 @@ export const StatusIndicatorColor = {
   RED: '#d63031',
   YELLOW: '#f1c40f',
   BLACK: '#333333',
+  GREY: '#9e9e9e',
 };
 
 export default function StatusIndicator(props: Props) {

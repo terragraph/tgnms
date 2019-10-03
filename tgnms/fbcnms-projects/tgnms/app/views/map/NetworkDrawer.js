@@ -848,6 +848,7 @@ class NetworkDrawer extends React.Component<
               formType={addNodeFormType}
               initialParams={this.state.addNodeParams}
               ctrlVersion={controller_version}
+              networkConfig={context.networkConfig}
               networkName={networkName}
               topology={topology}
             />

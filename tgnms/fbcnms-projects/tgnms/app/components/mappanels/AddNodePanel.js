@@ -8,10 +8,12 @@
 import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import EditRadioMacs from './EditRadioMacs';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
+import swal from 'sweetalert2';
 import {
   NodeTypeValueMap,
   PolarityTypeValueMap as PolarityType,
@@ -31,7 +33,6 @@ import {
 import {
   getEditIcon,
   sendTopologyBuilderRequest,
-  sendTopologyEditRequest,
 } from '../../helpers/MapPanelHelpers';
 import {isEqual} from 'lodash';
 import {
@@ -42,11 +43,17 @@ import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {EditNodeParams} from './MapPanelTypes';
-
+import type {NetworkConfig} from '../../NetworkContext';
 import type {
   PolarityTypeType,
   TopologyType,
 } from '../../../shared/types/Topology';
+
+export type ApiRequestAttemptsType = {
+  networkName: string,
+  apiMethod: string,
+  data: Object,
+};
 
 type InputType = {
   _editable?: boolean,
@@ -55,6 +62,8 @@ type InputType = {
   label: string,
   menuItems?: Array<Object>,
   required: boolean,
+  networkConfig?: ?NetworkConfig,
+  networkName?: ?string,
   value: string,
 };
 
@@ -81,6 +90,7 @@ type Props = {
   expanded: boolean,
   formType: string,
   initialParams: Object,
+  networkConfig: NetworkConfig,
   networkName: string,
   onPanelChange: () => any,
   onClose: () => any,
@@ -94,6 +104,8 @@ type State = {
   wlan_mac_addrs: string,
   showAdvanced: boolean,
   node_polarity: PolarityTypeType,
+  wlanMacEdits: Array<ApiRequestAttemptsType>,
+  error: boolean,
 };
 
 class AddNodePanel extends React.Component<Props, State> {
@@ -118,6 +130,8 @@ class AddNodePanel extends React.Component<Props, State> {
       rxGolayIdx: null,
 
       ...props.initialParams,
+      wlanMacEdits: [],
+      error: false,
     };
   }
 
@@ -132,9 +146,29 @@ class AddNodePanel extends React.Component<Props, State> {
     }
   }
 
+  renderRadioMacs(input, state, setState) {
+    const {label, required, networkConfig, networkName} = input;
+    return (
+      <EditRadioMacs
+        key="editRadioMacs"
+        radioMacs={state.wlan_mac_addrs}
+        label={label}
+        macAddr={state.mac_addr}
+        required={required}
+        networkConfig={networkConfig}
+        name={state.name}
+        networkName={networkName ? networkName : ''}
+        onRadioMacChange={radioMacChanges =>
+          setState({wlanMacEdits: radioMacChanges})
+        }
+        submitButtonStatus={error => setState({error: error})}
+      />
+    );
+  }
+
   onSubmit() {
     const {initialParams, onClose, networkName, formType} = this.props;
-
+    const {wlanMacEdits} = this.state;
     const node = {
       name: this.state.name.trim(),
       is_primary: this.state.is_primary,
@@ -159,6 +193,7 @@ class AddNodePanel extends React.Component<Props, State> {
         onSuccess: onClose,
       });
     } else if (formType === FormType.EDIT) {
+      const apiRequestAttempts = [];
       if (node.mac_addr !== initialParams.mac_addr) {
         // Set MAC address first via a separate API call
         const setMac = {
@@ -166,58 +201,99 @@ class AddNodePanel extends React.Component<Props, State> {
           nodeMac: node.mac_addr,
           force: false,
         };
-        sendTopologyEditRequest(
-          networkName,
-          'setNodeMacAddress',
-          setMac,
-          'node',
-          {
-            // Send /editNode request only if successful
-            onResultsOverride: ({success, msg}, successSwal, failureSwal) => {
-              if (success) {
-                // don't post to /editNode if no changes
-                if (!this.nodeFormChanged()) {
-                  successSwal(msg);
-                  onClose();
-                  return;
-                }
-                const data = {
-                  nodeName: initialParams.name,
-                  newNode: node,
-                };
-                apiServiceRequest(networkName, 'editNode', data)
-                  .then(_result => {
-                    successSwal(msg);
-                    onClose();
-                  })
-                  .catch(error => {
-                    // TODO - If this fails, the first call isn't reverted and
-                    // generally bad things will happen. :(
-                    failureSwal(getErrorTextFromE2EAck(error));
-                  });
-              } else {
-                failureSwal(msg);
-              }
-            },
-          },
-        );
-      } else if (this.nodeFormChanged()) {
-        // Only send /editNode request
+        apiRequestAttempts.push({
+          networkName: networkName,
+          apiMethod: 'setNodeMacAddress',
+          data: setMac,
+        });
+      }
+      if (wlanMacEdits.length > 0) {
+        // Set Radio MAC address second via separate API calls
+        apiRequestAttempts.push(...wlanMacEdits);
+      }
+      if (this.nodeFormChanged()) {
+        // send /editNode request thrid
         const data = {
           nodeName: initialParams.name,
           newNode: node,
         };
-        sendTopologyEditRequest(networkName, 'editNode', data, 'node', {
-          onSuccess: onClose,
+        apiRequestAttempts.push({
+          networkName: networkName,
+          apiMethod: 'editNode',
+          data: data,
+        });
+      }
+
+      if (apiRequestAttempts.length > 0) {
+        swal({
+          title: 'Are You Sure?',
+          text: 'You are making changes to a node in this topology.',
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          confirmButtonText: 'Confirm',
+          showLoaderOnConfirm: true,
+          inputClass: 'swal-input',
+          preConfirm: () =>
+            Promise.all(
+              apiRequestAttempts.map(
+                apiRequestAttempt =>
+                  new Promise((resolve, reject) => {
+                    const {networkName, apiMethod, data} = apiRequestAttempt;
+                    apiServiceRequest(networkName, apiMethod, data)
+                      .then(_response =>
+                        resolve({
+                          success: true,
+                        }),
+                      )
+                      .catch(er =>
+                        reject({
+                          success: false,
+                          msg: getErrorTextFromE2EAck(er),
+                        }),
+                      );
+                  }),
+              ),
+            )
+              .then(_response => ({success: true}))
+              .catch(err => err),
+        }).then(result => {
+          if (result.dismiss) {
+            return;
+          }
+
+          if (result.value.success) {
+            swal({
+              title: 'Success!',
+              type: 'success',
+              text: 'The changes to this node were saved sucessfully.',
+            });
+            onClose();
+          } else {
+            swal({
+              title: 'Failed!',
+              // @format and flow lint disagree on format here
+              // prettier-ignore
+              html: `The node could not be saved.<p><tt>${
+                result.value.msg
+              }</tt></p>`,
+              type: 'error',
+            });
+          }
         });
       }
     }
   }
 
   renderForm() {
-    const {classes, ctrlVersion, formType} = this.props;
-    const {showAdvanced} = this.state;
-
+    const {
+      classes,
+      ctrlVersion,
+      formType,
+      networkConfig,
+      networkName,
+    } = this.props;
+    const {error, showAdvanced} = this.state;
     // Change form based on form type
     const submitButtonText =
       formType === FormType.EDIT ? 'Save Changes' : 'Add Node';
@@ -267,11 +343,22 @@ class AddNodePanel extends React.Component<Props, State> {
       },
       {
         func: createTextInput,
-        label: 'MAC Address',
+        label: 'Node MAC Address',
         value: 'mac_addr',
         required: false,
         _editable: true,
       },
+      useNodeWlanMacs(ctrlVersion)
+        ? {
+            func: this.renderRadioMacs,
+            label: 'Radio MAC Address',
+            value: 'wlan_mac_addrs',
+            required: false,
+            networkConfig: networkConfig,
+            networkName: networkName,
+            _editable: true,
+          }
+        : {},
       {
         func: createReactSelectInput,
         label: 'Site',
@@ -329,20 +416,6 @@ class AddNodePanel extends React.Component<Props, State> {
             },
           ]
         : []),
-      ...(useNodeWlanMacs(ctrlVersion)
-        ? [
-            {
-              // TODO support editing this!
-              func: createTextInput,
-              label: 'WLAN MAC Addresses',
-              helperText:
-                'MAC addresses of all WLAN interfaces, ' +
-                'as comma-separated values.',
-              value: 'wlan_mac_addrs',
-              required: false,
-            },
-          ]
-        : []),
       {
         func: createNumericInput,
         label: 'Azimuth',
@@ -385,6 +458,7 @@ class AddNodePanel extends React.Component<Props, State> {
         <div>
           <Button
             className={classes.button}
+            disabled={error}
             variant="contained"
             color="primary"
             size="small"
@@ -437,7 +511,6 @@ class AddNodePanel extends React.Component<Props, State> {
     const keysToCheck = new Set([
       'name',
       'is_primary',
-      'wlan_mac_addrs',
       'pop_node',
       'site_name',
       'ant_azimuth',
