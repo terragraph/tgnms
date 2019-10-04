@@ -18,9 +18,7 @@
     "//": "Query limit",
     "query_limit": 150,
     "//": "Time gap (seconds) between every state-machine check",
-    "time_gap": 10,
-    "//": "Time gap (seconds) between every API visit to fetch default route for all nodes",
-    "get_default_routes": null
+    "time_gap": 10
   },
   "//": "Prometheus related config",
   "targets": {

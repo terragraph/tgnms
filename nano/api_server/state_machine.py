@@ -6,7 +6,6 @@ from threading import Thread
 from base import app
 from modules.util_mongo_db import LOCAL_ZONE, get_current_datetime
 from perform_single_test import perform_single_test
-from services.default_routes_service import get_default_routes
 from services.weather_service import perform_weather_fetch
 
 
@@ -42,11 +41,6 @@ def state_machine_backend(event):
                 ptr,
             ),
         )
-
-        # if get_default_routes is configured, start get default routes service
-        if app.config["get_default_routes"]:
-            default_routes_proc = Thread(target=get_default_routes, args=[ptr])
-            default_routes_proc.start()
 
         # if weather_info_fetch_interval is configured, start weather data service
         if app.config["weather_info_fetch_interval"]:

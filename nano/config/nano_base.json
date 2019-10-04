@@ -39,8 +39,6 @@
     "tmp_folder": "/tmp",
     "//": "api server log file name",
     "api_server_log_file": "/nano_api_sm.log",
-    "//": "Time gap (seconds) between every API visit to fetch default route for all nodes",
-    "get_default_routes": null,
     "//": "Time gap (seconds) between every API visit to fetch weather station info",
     "weather_info_fetch_interval": null,
     "//": "Debug mode",

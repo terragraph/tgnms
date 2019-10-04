@@ -27,7 +27,6 @@ class E2EAPI(object):
             "scan_status": "/api/getScanStatus",
             "start_scan": "/api/startScan",
             "set_fw_log_config": "/api/setFwLogConfig",
-            "get_default_routes": "/api/getDefaultRoutes",
         }
 
         # api url

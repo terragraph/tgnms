@@ -29,17 +29,6 @@ def main():
         ),
     )
     parser.add_argument(
-        "--get-default-routes",
-        dest="get_default_routes",
-        action="store",
-        type=int,
-        help=(
-            "specify the time gap (seconds) between every API visit "
-            "to fetch default route for all nodes of the network; "
-            "recommended value is 600 seconds"
-        ),
-    )
-    parser.add_argument(
         "--weather-info-fetch-interval",
         dest="weather_info_fetch_interval",
         action="store",
@@ -115,7 +104,6 @@ def _configure_api_server(api_args, target_args):
     app.config["fp"] = api_args["folder_path"]
     app.config["network_name"] = api_args["name"].lower()
     app.config["tmp_folder"] = api_args["tmp_folder"]
-    app.config["get_default_routes"] = api_args["get_default_routes"]
     app.config["weather_info_fetch_interval"] = api_args["weather_info_fetch_interval"]
 
     # Prometheus related config
