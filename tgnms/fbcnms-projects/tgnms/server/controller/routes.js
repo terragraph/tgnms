@@ -15,7 +15,7 @@ const NETWORK_UPGRADE_IMAGES_REL_PATH = '/static/tg-binaries';
 const NETWORK_UPGRADE_IMAGES_FULL_PATH =
   process.cwd() + NETWORK_UPGRADE_IMAGES_REL_PATH;
 if (!fs.existsSync(NETWORK_UPGRADE_IMAGES_FULL_PATH)) {
-  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_FULL_PATH);
+  fs.mkdirSync(NETWORK_UPGRADE_IMAGES_FULL_PATH, {recursive: true});
 }
 
 // multer + configuration
