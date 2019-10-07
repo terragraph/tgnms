@@ -318,7 +318,7 @@ function manualTesting(elm) {
   testtype = testtype.substring(postFix.length, testtype.length);
   var duration = $('#tests-manual-duration').val();
   var rate = $('#tests-manual-rate').val();
-  if (testtype == "multihop" || testtype == "iperf-p2p" || testtype == "ping-p2p") {
+  if (testtype == "multihop" || testtype == "iperf-p2p") {
     if (duration == "") {
       alert("Invalid input for traffic duration");
     } else if (rate == "") {
@@ -386,7 +386,7 @@ function setSchedule(elm) {
   var testtype = $('#tests-test-type').val();
   var duration = $('#tests-schedule-duration').val();
   var rate = $('#tests-schedule-rate').val();
-  if (testtype == "multihop" || testtype == "iperf-p2p" || testtype == "ping-p2p") {
+  if (testtype == "multihop" || testtype == "iperf-p2p") {
     if (duration == "") {
       alert("Invalid input for traffic duration");
     } else if (rate == "") {
