@@ -33,7 +33,7 @@ import {shallowEqual} from '../../helpers/ConfigHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import type {NetworkConfig} from '../../NetworkContext';
-import type {NodeType} from '../../../shared/types/Topology';
+import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
 
 const styles = theme => ({
   header: {
@@ -115,7 +115,7 @@ type Props = {
   networkConfig: NetworkConfig,
   onChangeEditorType: boolean => any,
   selectedNodeInfo: ?Object,
-  onSelectNode: NodeType => any,
+  onSelectNode: NodeConfigStatusType => any,
   baseConfigs: ?Object,
   selectedImage: ?string,
   onSelectImage: string => void,

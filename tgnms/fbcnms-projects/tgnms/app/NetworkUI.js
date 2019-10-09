@@ -144,7 +144,7 @@ class NetworkUI extends React.Component<Props, State> {
     if (networkName !== prevNetworkName) {
       // clear the network config when network name changes
       this.setState({
-        networkConfig: ({}: NetworkConfig),
+        networkConfig: ({}: NetworkConfigType),
         isReloading: false,
         nodeMap: {},
         linkMap: {},

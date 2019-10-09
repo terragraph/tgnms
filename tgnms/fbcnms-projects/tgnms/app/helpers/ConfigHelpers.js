@@ -2,10 +2,11 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
-import {ConfigLayer} from '../constants/ConfigConstants.js';
-import {NodeTypeValueMap as NodeType} from '../../shared/types/Topology';
+import {ConfigConstraint, ConfigLayer} from '../constants/ConfigConstants.js';
+import {NodeTypeValueMap} from '../../shared/types/Topology';
 import {
   cloneDeep,
   forOwn,
@@ -17,6 +18,20 @@ import {
   set,
 } from 'lodash';
 import {isNodeAlive} from './NetworkHelpers';
+import {objectEntriesTypesafe} from './ObjectHelpers';
+import type {AggregatorConfigType} from '../../shared/types/Aggregator';
+import type {ControllerConfigType} from '../../shared/types/Controller';
+import type {NetworkConfig} from '../NetworkContext';
+
+export type NodeConfigStatusType = {
+  name: string,
+  macAddr: string,
+  isAlive: boolean,
+  version: ?string,
+  hardwareBoardId: ?string,
+  hasOverride: boolean,
+  isCn: boolean,
+};
 
 /**
  * Process a list of config layers with metadata, and return a data structure
@@ -47,28 +62,39 @@ import {isNodeAlive} from './NetworkHelpers';
  *   ... <more values>
  * ]
  */
-export const processConfigs = (configLayers, metadata, keys = []) => {
+export const processConfigs = (
+  configLayers: Array<{
+    id: string,
+    value: ?Object,
+  }>,
+  metadata: Object,
+  keys: Array<string> = [],
+) => {
   const entries = [];
 
   // Find all config fields via object union
   const stackedFields = [...configLayers].reduce((stacked, config) => {
-    return isPlainObject(config.value)
+    return isPlainObject(config.value) &&
+      typeof config.value !== 'number' &&
+      config.value !== null &&
+      config.value !== undefined
       ? [...stacked, ...Object.keys(config.value)]
       : stacked;
   }, []);
-  const configFields = [...new Set(stackedFields)];
+  const configFields = Array.from(new Set(stackedFields));
 
   // Loop through the config fields...
   configFields.forEach(fieldName => {
     keys.push(fieldName);
 
     // Get values per layer and field metadata
-    const nextLayers = configLayers.map(layer => ({
+    const nextLayers = configLayers.map<{
+      id: string,
+      value: ?(ControllerConfigType | AggregatorConfigType),
+    }>(layer => ({
       ...layer,
       value:
-        layer.value && layer.value.hasOwnProperty(fieldName)
-          ? layer.value[fieldName]
-          : null,
+        layer.value && layer.value[fieldName] ? layer.value[fieldName] : null,
     }));
     const hasDescendents = nextLayers.find(layer => isPlainObject(layer.value));
     const fieldMetadata = getMetadata(metadata, fieldName);
@@ -107,10 +133,13 @@ export const processConfigs = (configLayers, metadata, keys = []) => {
 /**
  * Return a sorted list of nodes in the topology as structured objects.
  */
-export const getTopologyNodeList = (networkConfig, nodeOverridesConfig) => {
+export const getTopologyNodeList = (
+  networkConfig: NetworkConfig,
+  nodeOverridesConfig: ?$Shape<NetworkConfig>,
+) => {
   const {topology, status_dump} = networkConfig;
 
-  const nodeList = topology.nodes.map(node => {
+  const nodeList = topology.nodes.map<NodeConfigStatusType>(node => {
     const statusReport = status_dump.statusReports[node.mac_addr];
     return {
       name: node.name,
@@ -119,10 +148,11 @@ export const getTopologyNodeList = (networkConfig, nodeOverridesConfig) => {
       version: (statusReport && statusReport.version) || null,
       hardwareBoardId: (statusReport && statusReport.hardwareBoardId) || null,
       hasOverride:
-        nodeOverridesConfig &&
+        nodeOverridesConfig !== undefined &&
+        nodeOverridesConfig !== null &&
         nodeOverridesConfig.hasOwnProperty(node.name) &&
         !isEmpty(nodeOverridesConfig[node.name]),
-      isCn: node.node_type === NodeType.CN,
+      isCn: node.node_type === NodeTypeValueMap.CN,
     };
   });
   nodeList.sort((a, b) => a.name.localeCompare(b.name));
@@ -134,7 +164,7 @@ export const getTopologyNodeList = (networkConfig, nodeOverridesConfig) => {
  * Return a list of all image version strings for the given topology
  * (for use in config-related API calls).
  */
-export const getNodeVersions = networkConfig => {
+export const getNodeVersions = (networkConfig: NetworkConfig) => {
   const {topology, status_dump} = networkConfig;
   if (!topology || !topology.nodes) {
     return [];
@@ -143,13 +173,13 @@ export const getNodeVersions = networkConfig => {
   const imageVersions = topology.nodes
     .filter(node => status_dump.statusReports.hasOwnProperty(node.mac_addr))
     .map(node => status_dump.statusReports[node.mac_addr].version);
-  return [...new Set(imageVersions)];
+  return Array.from<string>(new Set(imageVersions));
 };
 
 /**
  * Validate a config value based on constraints in the metadata.
  */
-export const validateField = (value, metadata) => {
+export const validateField = (value: number | string | boolean, metadata: Object) => {
   const {intVal, floatVal, strVal} = metadata;
 
   let error = false;
@@ -171,7 +201,7 @@ export const validateField = (value, metadata) => {
   return !error;
 };
 
-const validateNumber = (value, constraints) => {
+const validateNumber = (value: number, constraints: ConfigConstraint) => {
   // Validate a numeric config field
   if (value !== undefined && (typeof value !== 'number' || isNaN(value))) {
     return false;
@@ -242,7 +272,7 @@ const validateString = (value, constraints) => {
 /**
  * Recursively sort a config object alphabetically.
  */
-export const sortConfig = config => {
+export const sortConfig = (config: ?{}) => {
   if (config === null || config === undefined) {
     return config;
   }
@@ -275,7 +305,7 @@ const alphabeticalSort = (a, b) => {
  * @param  {Object} obj
  * @return {Object}
  */
-export const cleanupObject = obj => {
+export const cleanupObject = (obj: Object) => {
   if (isEmpty(obj)) {
     return null;
   }
@@ -342,14 +372,14 @@ export const shallowEqual = (objA: mixed, objB: mixed): boolean => {
 /**
  * Return the string form of the given object.
  */
-export const stringifyConfig = obj => {
+export const stringifyConfig = (obj: Object) => {
   return JSON.stringify(obj, null, 2);
 };
 
 /**
  * Get the metadata associated with the given field (recursively).
  */
-export const getFieldMetadata = (metadata, field) => {
+export const getFieldMetadata = (metadata: Object, field: string) => {
   let fieldMetadata = metadata;
   for (const fieldName of field) {
     fieldMetadata = getMetadata(fieldMetadata, fieldName);
@@ -363,7 +393,7 @@ export const getFieldMetadata = (metadata, field) => {
 /**
  * Get the metadata associated with the given field name.
  */
-export const getMetadata = (metadata, fieldName) => {
+export const getMetadata = (metadata: Object, fieldName: string) => {
   if (!metadata) {
     return null;
   }
@@ -401,9 +431,12 @@ export const getMetadata = (metadata, fieldName) => {
 /**
  * Construct a fake config object from the given metadata (traversing objects).
  */
-export const constructConfigFromMetadata = (metadata, keys = []) => {
+export const constructConfigFromMetadata = (
+  metadata: Object,
+  keys: Array<string> = [],
+) => {
   const obj = {};
-  Object.entries(metadata).forEach(([key, val]) => {
+  objectEntriesTypesafe<string, Object>(metadata).forEach(([key, val]) => {
     if (!isPlainObject(val)) {
       return; // shouldn't happen
     }
