@@ -8,14 +8,19 @@
 const express = require('express');
 import {CLIENT_ROOT_URL, KEYCLOAK_HOST, KEYCLOAK_REALM} from '../config';
 import type {FBCMobileAppConfig} from '@fbcnms/mobileapp/FBCMobileAppConfig';
-
+const logger = require('../log')(module);
 const router = express.Router();
 
 /*
  * Warning: This is an open route, only display public information here
  */
 router.get('/clientconfig', (req, res) => {
-  getFbcMobileConfig().then(conf => res.json(conf));
+  getFbcMobileConfig()
+    .then(conf => res.json(conf))
+    .catch(err => {
+      logger.error(err);
+      return res.status(500).send({error: err.message});
+    });
 });
 
 async function getFbcMobileConfig(): Promise<FBCMobileAppConfig> {
