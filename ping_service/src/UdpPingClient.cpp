@@ -43,15 +43,15 @@ using namespace facebook::gorilla;
 using facebook::terragraph::thrift::StatusDump;
 
 DEFINE_int32(topology_refresh_interval_s, 60, "Topology refresh interval");
-DEFINE_int32(ping_interval_s, 3, "Interval at which pings are sent");
-DEFINE_int32(num_packets, 20, "Number of packets to send per ping interval");
+DEFINE_int32(ping_interval_s, 10, "Interval at which ping sweeps are started");
+DEFINE_int32(num_packets, 10, "Number of packets to send to each host per ping sweep");
 DEFINE_int32(num_sender_threads, 1, "Number of sender threads");
 DEFINE_int32(num_receiver_threads, 1, "Number of receiver threads");
 DEFINE_int32(target_port, 31338, "Target port");
 DEFINE_int32(cooldown_time_s, 1, "Cooldown time");
 DEFINE_int32(port_count, 64, "Number of ports to ping from");
 DEFINE_int32(base_port, 25000, "The starting UDP port to bind to");
-DEFINE_int32(pinger_rate, 5000, "The rate we ping with");
+DEFINE_int32(pinger_rate_pps, 5, "Rate at which hosts are probed in pings per second");
 DEFINE_int32(socket_buffer_size, 425984, "Socket buffer size to send/recv");
 DEFINE_string(src_ip, "", "The IP source address to use in probe");
 DEFINE_string(src_if, "eth0", "The interface to use if src_ip is not defined");
@@ -410,7 +410,7 @@ int main(int argc, char* argv[]) {
   config.num_sender_threads = FLAGS_num_sender_threads;
   config.num_receiver_threads = FLAGS_num_receiver_threads;
   config.pinger_cooldown_time = FLAGS_cooldown_time_s;
-  config.pinger_rate = FLAGS_pinger_rate;
+  config.pinger_rate = FLAGS_pinger_rate_pps;
   config.socket_buffer_size = FLAGS_socket_buffer_size;
   config.src_port_count = FLAGS_port_count;
   config.base_src_port = FLAGS_base_port;

@@ -444,24 +444,19 @@ void UdpSender::pingAllTargets() {
     }
 
     auto elapsed = duration_cast<std::chrono::microseconds>(finish - start);
+    auto delay = duration_cast<std::chrono::microseconds>(
+        std::chrono::duration<double>(1.0 / config_.pinger_rate));
 
-    // Calculate the pps we achieved in this sweep
-    double pps = std::ceil((1000000.0 / elapsed.count()) * packetsSent);
-
-    FB_LOG_EVERY_MS(INFO, 1000)
-        << "Ping sweep took: " << elapsed.count() << " usec, sent "
-        << packetsSent << " packets, pps was " << pps << " target pps is "
-        << config_.pinger_rate / numSenders_;
+    FB_LOG_EVERY_MS(INFO, 1000) << "Ping sweep took: " << elapsed.count()
+                                << " usec, sent " << packetsSent << " packets";
 
     // Wait to hit the desired pps goal
-    if (pps > config_.pinger_rate / numSenders_) {
-      double delay = std::ceil(
-          numSenders_ * packetsSent * 1000000.0 / config_.pinger_rate);
-      auto delayUsec = std::chrono::microseconds(to<int64_t>(delay)) - elapsed;
+    if (delay > elapsed) {
+      auto sleepTime = delay - elapsed;
       FB_LOG_EVERY_MS(INFO, 1000)
-          << "Sleeping for " << delayUsec.count() << " usecs";
+          << "Sleeping for " << sleepTime.count() << " usecs";
       /* sleep override */
-      std::this_thread::sleep_for(delayUsec);
+      std::this_thread::sleep_for(sleepTime);
     }
 
   } // while
