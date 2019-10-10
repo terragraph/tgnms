@@ -386,6 +386,7 @@ class ModalPrepare extends React.Component<Props, State> {
               </InsetPaper>
 
               <MaterialReactSelect
+                id="imageSelector"
                 isClearable
                 onChange={this.handleSelectImage}
                 options={imageOptions}
