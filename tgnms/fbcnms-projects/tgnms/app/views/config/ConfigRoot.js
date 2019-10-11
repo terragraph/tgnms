@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import AddIcon from '@material-ui/icons/Add';
@@ -18,7 +19,11 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {ConfigLayer} from '../../constants/ConfigConstants';
+import {
+  ConfigLayer,
+  E2EConfigMode,
+  NetworkConfigMode,
+} from '../../constants/ConfigConstants';
 import {
   cleanupObject,
   processConfigs,
@@ -28,6 +33,10 @@ import {cloneDeep, isEqual, set, unset} from 'lodash';
 import {isPunctuation} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {NetworkConfig} from '../../NetworkContext';
+import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
+import type {NodeConfigType} from '../../../shared/types/NodeConfig';
 
 const styles = theme => ({
   root: {
@@ -85,23 +94,36 @@ const styles = theme => ({
 });
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   networkName: string,
-  networkConfig: Object,
-  editModes: Object, // NetworkConfigMode or E2EConfigMode
-  initialEditMode: string, // from editModes
-  setParentState: Function, // parent's this.setState() - TODO - HACK! remove...
-  getSidebarProps: Function, // editMode => {}
-  getRequests: Function, // (bool) => [{func, key, data}, ...]
-  getConfigLayers: Function, // string => []
-  getConfigMetadata: Function, // string => {}
-  getConfigOverrides: Function, // string => {}
-  onSubmitDraft: Function, // (string, Object, Function, Function) => void
-  onEditModeChanged: ?Function, // string => void
-  onSelectNode: ?Function, // (nodeInfo{}, Function) => void
-  onSelectImage: ?Function, // (string, Function) => void
-  onSelectHardwareType: ?Function, // (string, Function) => void
-  onSetConfigBase: ?Function, // (bool, Function) => void
+  networkConfig: NetworkConfig,
+  editModes: E2EConfigMode | NetworkConfigMode,
+  initialEditMode: ?string, // from editModes
+  // parent's this.setState() - TODO - HACK! remove...
+  setParentState: ({[string]: string}, () => any) => any,
+  getSidebarProps: string => {
+    editMode: string,
+    selectedNodeInfo?: ?NodeConfigStatusType,
+    baseConfigs?: ?{[string]: $Shape<NodeConfigType>},
+    hardwareBaseConfigs?: ?{[string]: {[string]: $Shape<NodeConfigType>}},
+    selectedImage?: ?string,
+    selectedHardwareType?: ?string,
+    topologyNodeList?: ?Array<NodeConfigStatusType>,
+    useMetadataBase?: boolean,
+  },
+  getRequests: boolean => Array<Object>,
+  getConfigLayers: string => Array<{
+    id: string,
+    value: ?Object,
+  }>,
+  getConfigMetadata: string => ?Object,
+  getConfigOverrides: string => ?Object,
+  onSubmitDraft: (string, Object, () => any, (string) => any) => any,
+  onEditModeChanged: ?(string) => any,
+  onSelectNode?: (?NodeConfigStatusType, () => any) => any,
+  onSelectImage?: ?(string, () => any) => any,
+  onSelectHardwareType?: ?(string, () => any) => any,
+  onSetConfigBase?: ?(boolean, () => any) => any,
 };
 
 type State = {
@@ -208,7 +230,7 @@ class ConfigRoot extends React.Component<Props, State> {
       this.setState({configData: []});
       return;
     }
-    layers.push({id: ConfigLayer.DRAFT, value: draftConfig});
+    layers.push({id: ConfigLayer.DRAFT, value: draftConfig || {}});
 
     // Process configs
     const metadata = getConfigMetadata(editMode);

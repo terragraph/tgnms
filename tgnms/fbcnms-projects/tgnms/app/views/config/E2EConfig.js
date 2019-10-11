@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import ConfigRoot from './ConfigRoot';
@@ -16,22 +17,27 @@ import {
   setAggregatorConfig,
   setControllerConfig,
 } from '../../apiutils/ConfigAPIUtil';
+
+import type {AggregatorConfigType} from '../../../shared/types/Aggregator';
+import type {ControllerConfigType} from '../../../shared/types/Controller';
+import type {NetworkConfig} from '../../NetworkContext';
+
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {};
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   networkName: string,
-  networkConfig: Object,
+  networkConfig: NetworkConfig,
 };
 
 type State = {
-  controllerConfig: ?Object,
-  aggregatorConfig: ?Object,
-  controllerConfigMetadata: ?Object,
-  aggregatorConfigMetadata: ?Object,
+  controllerConfig: ?ControllerConfigType,
+  aggregatorConfig: ?AggregatorConfigType,
+  controllerConfigMetadata: ?ControllerConfigType,
+  aggregatorConfigMetadata: ?AggregatorConfigType,
   useMetadataBase: boolean,
 };
 
@@ -99,6 +105,7 @@ class E2EConfig extends React.Component<Props, State> {
   };
 
   getConfigLayers = editMode => {
+    // Value not used currently
     // Return the current config layers
     const {controllerConfig, aggregatorConfig} = this.state;
     const baseLayer = this.getBaseLayer(editMode);
@@ -109,9 +116,9 @@ class E2EConfig extends React.Component<Props, State> {
         id: ConfigLayer.E2E,
         value:
           editMode === E2EConfigMode.CONTROLLER
-            ? controllerConfig
+            ? controllerConfig || {}
             : editMode === E2EConfigMode.AGGREGATOR
-            ? aggregatorConfig
+            ? aggregatorConfig || {}
             : {},
       },
     ];

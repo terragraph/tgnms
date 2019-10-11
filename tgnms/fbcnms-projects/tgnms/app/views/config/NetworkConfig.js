@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import ConfigRoot from './ConfigRoot';
@@ -13,6 +14,7 @@ import {
   NetworkConfigMode,
   SELECTED_NODE_QUERY_PARAM,
 } from '../../constants/ConfigConstants';
+import {History} from 'history';
 import {cloneDeep, get, merge} from 'lodash';
 import {
   getAutoOverridesConfig,
@@ -32,22 +34,27 @@ import {
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {NetworkConfig as NetworkConfigType} from '../../NetworkContext';
+import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
+import type {NodeConfigType} from '../../../shared/types/NodeConfig';
+
 const styles = {};
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
+  history: History,
   networkName: string,
-  networkConfig: Object,
+  networkConfig: NetworkConfigType,
 };
 
 type State = {
-  baseConfigs: ?Object,
-  hardwareBaseConfigs: ?Object,
-  autoOverridesConfig: ?Object,
-  networkOverridesConfig: ?Object,
-  nodeOverridesConfig: ?Object,
-  configMetadata: ?Object,
-  selectedNodeInfo: ?Object,
+  autoOverridesConfig: ?{[string]: $Shape<NodeConfigType>},
+  baseConfigs: ?{[string]: $Shape<NodeConfigType>},
+  configMetadata: ?{[string]: $Shape<NodeConfigType>},
+  hardwareBaseConfigs: ?{[string]: {[string]: $Shape<NodeConfigType>}},
+  networkOverridesConfig: ?$Shape<NodeConfigType>,
+  nodeOverridesConfig: ?{[string]: $Shape<NodeConfigType>},
+  selectedNodeInfo: ?NodeConfigStatusType,
   selectedImage: string,
   selectedHardwareType: string,
 };
@@ -84,6 +91,8 @@ class NetworkConfig extends React.Component<Props, State> {
       selectedHardwareType: DEFAULT_HARDWARE_BASE_KEY,
     };
   }
+
+  refreshNodeupdateStatusInterval: ?IntervalID = null;
 
   componentDidMount() {
     this.refreshNodeupdateBundleStatus();
@@ -124,7 +133,6 @@ class NetworkConfig extends React.Component<Props, State> {
           ) {
             // Delete status for node on error
             const newNodeInfo = {...selectedNodeInfo};
-            delete newNodeInfo.nodeupdateBundleServed;
             this.setState({selectedNodeInfo: newNodeInfo});
           }
         },
@@ -213,7 +221,7 @@ class NetworkConfig extends React.Component<Props, State> {
       // No node possible to select
       return null;
     }
-    const baseConfig = baseConfigs[imageVersion];
+    const baseConfig = baseConfigs ? baseConfigs[imageVersion] : {};
     const hardwareOverrides = get(
       hardwareBaseConfigs,
       [hardwareType, imageVersion],
@@ -242,18 +250,26 @@ class NetworkConfig extends React.Component<Props, State> {
       ...(editMode === NetworkConfigMode.NETWORK
         ? [
             // Network-only layers
-            {id: ConfigLayer.NETWORK, value: networkOverridesConfig},
+            {id: ConfigLayer.NETWORK, value: networkOverridesConfig || {}},
           ]
         : [
             // Node layers
             {
               id: ConfigLayer.AUTO_NODE,
-              value: get(autoOverridesConfig, selectedNodeInfo.name, {}),
+              value: get(
+                autoOverridesConfig,
+                selectedNodeInfo ? selectedNodeInfo.name : '',
+                {},
+              ),
             },
-            {id: ConfigLayer.NETWORK, value: networkOverridesConfig},
+            {id: ConfigLayer.NETWORK, value: networkOverridesConfig || {}},
             {
               id: ConfigLayer.NODE,
-              value: get(nodeOverridesConfig, selectedNodeInfo.name, {}),
+              value: get(
+                nodeOverridesConfig,
+                selectedNodeInfo ? selectedNodeInfo.name : '',
+                {},
+              ),
             },
           ]),
     ];
