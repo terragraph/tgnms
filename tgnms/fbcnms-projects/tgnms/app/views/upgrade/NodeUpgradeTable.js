@@ -8,6 +8,7 @@
 import Checkbox from '@material-ui/core/Checkbox';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalCommit from './ModalCommit';
+import ModalFullUpgrade from './ModalFullUpgrade';
 import ModalPrepare from './ModalPrepare';
 import ModalReset from './ModalReset';
 import NodeUpgradeTableEntry from './NodeUpgradeTableEntry';
@@ -221,6 +222,12 @@ class NodeUpgradeTable extends React.Component<Props, State> {
               </div>
               <div className={classes.spacer} />
               <div className={classes.flexContainer}>
+                <ModalFullUpgrade
+                  controllerVersion={getVersion(this.props.controllerVersion)}
+                  excluded={this.getExcludedNodes()}
+                  selected={selected}
+                  networkName={networkName}
+                />
                 <ModalPrepare
                   controllerVersion={getVersion(this.props.controllerVersion)}
                   selected={selected}
