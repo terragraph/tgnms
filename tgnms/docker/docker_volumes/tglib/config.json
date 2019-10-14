@@ -19,7 +19,6 @@
   "prometheus": {
     "host": "prometheus",
     "port": 9090,
-    "max_queue_size": 100,
     "intervals": [30]
   }
 }
