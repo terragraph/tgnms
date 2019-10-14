@@ -114,7 +114,8 @@ const ScheduleNetworkTest = withStyles(styles)(
         <form
           className={classes.root}
           autoComplete="off"
-          onSubmit={this.handleFormSubmit}>
+          onSubmit={this.handleFormSubmit}
+          data-testid="schedule-networktest-form">
           {this.state.networkTestSchema === null &&
             !this.state.loadingFailed && <LoadingBox fullScreen={false} />}
           {this.state.networkTestSchema != null ? (
@@ -364,7 +365,11 @@ export function ScheduleNetworkTestModal(props: Props) {
 }
 
 function runTestAsap(formData: testApi.ScheduleNetworkTestFormData) {
-  const startAsap = parseInt(formData.arguments['asap'].value) !== 0;
+  const arg = formData.arguments['asap'];
+  if (!arg) {
+    return false;
+  }
+  const startAsap = parseInt(arg.value) === 1;
   return startAsap;
 }
 
