@@ -2,14 +2,15 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
+import * as React from 'react';
 import CustomSnackbar from '../../components/common/CustomSnackbar';
 import InfoIcon from '@material-ui/icons/Info';
 import LoadingBox from '../../components/common/LoadingBox';
 import NetworkContext from '../../NetworkContext';
 import Paper from '@material-ui/core/Paper';
-import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import axios from 'axios';
 import {createReactSelectInput} from '../../helpers/FormHelpers';
@@ -68,22 +69,26 @@ const styles = theme => ({
 const MAX_LOG_LINES = 200;
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   networkName: string,
 };
 
 type State = {
   notification: UINotification,
+  logFile: string,
   logFiles: ?Array<string>,
-  nodeLogs: ?Array<string>,
+  macAddr: string,
+  nodeLogs: Array<string>,
   nodeLogsLoading: boolean,
 };
 
 class NodeLogs extends React.Component<Props, State> {
   state = {
     notification: {open: false},
+    logFile: '',
     logFiles: null,
-    nodeLogs: null,
+    macAddr: '',
+    nodeLogs: [],
     nodeLogsLoading: false,
   };
 
@@ -114,16 +119,18 @@ class NodeLogs extends React.Component<Props, State> {
     const wsUriBase = new URL(wsProto + '//' + window.location.host);
     const wsUri = new URL(`/nodelogs/${macAddr}/${logFile}`, wsUriBase);
 
-    const ws = new WebSocket(wsUri);
+    const ws = new WebSocket(String(wsUri));
     ws.addEventListener('open', () => this.setState({nodeLogsLoading: false}));
-    ws.addEventListener('message', ev => this.addLogLine(ev.data));
+    ws.addEventListener('message', (ev: MessageEvent) =>
+      this.addLogLine(ev.data),
+    );
   };
 
   addLogLine = line => {
     // Append a log line, and remove old lines after crossing MAX_LOG_LINES
     const {nodeLogs} = this.state;
 
-    nodeLogs.push(line);
+    nodeLogs.push(String(line));
     while (nodeLogs.length > MAX_LOG_LINES) {
       nodeLogs.shift();
     }
@@ -152,7 +159,7 @@ class NodeLogs extends React.Component<Props, State> {
         value: 'macAddr',
         selectOptions: nodeOptions,
         onChange: macAddr => {
-          this.setState({logFile: '', logFiles: null, nodeLogs: null});
+          this.setState({logFile: '', logFiles: null, nodeLogs: []});
           this.onFetchNodeLogList(macAddr);
         },
       },
@@ -211,7 +218,7 @@ class NodeLogs extends React.Component<Props, State> {
     );
   }
 
-  renderContext = (networkContext): ?React.Element => {
+  renderContext = (networkContext): ?React.Node => {
     const {classes} = this.props;
     const {notification} = this.state;
     const {networkConfig} = networkContext;

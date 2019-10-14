@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import React from 'react';
@@ -21,19 +22,13 @@ const styles = () => ({
 });
 
 type Props = {
-  classes: Object,
-  networkName: String,
+  classes: {[string]: string},
+  networkName: string,
 };
 
 const {GRAFANA_URL} = window.CONFIG.env;
 
-class NetworkDashboards extends React.Component<Props, State> {
-  state = {};
-
-  constructor(props) {
-    super(props);
-  }
-
+class NetworkDashboards extends React.Component<Props> {
   render() {
     const {classes, networkName} = this.props;
     const grafanaUrl = `${GRAFANA_URL}network-health?orgId=1&var-networkName=${networkName}&theme=light&kiosk=tv`;
