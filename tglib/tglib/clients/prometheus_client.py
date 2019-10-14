@@ -165,7 +165,7 @@ class PrometheusClient(BaseClient):
             return False
 
         curr_metrics = cls._metrics_map[interval_sec]
-        cls._metrics_map[interval_sec] = {**metrics, **curr_metrics}
+        cls._metrics_map[interval_sec] = {**curr_metrics, **metrics}
         return True
 
     @classmethod

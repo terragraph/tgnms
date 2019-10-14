@@ -183,6 +183,22 @@ class PrometheusClientTests(asynctest.TestCase):
         # This call returns an empty list because no metrics were written in between
         self.assertEqual(len(PrometheusClient.poll_metrics(interval)), 0)
 
+    def test_redundant_write_metrics(self) -> None:
+        interval = self.config["prometheus"]["intervals"][0]
+        metrics = {}
+
+        id = create_query(metric_name="foo")
+        PrometheusClient.write_metrics(
+            interval, {id: PrometheusMetric(time=0, value=0)}
+        )
+        PrometheusClient.write_metrics(
+            interval, {id: PrometheusMetric(time=0, value=100)}
+        )
+
+        datapoints = PrometheusClient.poll_metrics(interval)
+        self.assertEqual(len(datapoints), 1)
+        self.assertEqual(datapoints[0], 'foo{intervalSec="30"} 100 0')
+
     def test_poll_metrics_empty_queue(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]
         self.assertEqual(len(PrometheusClient.poll_metrics(interval)), 0)
