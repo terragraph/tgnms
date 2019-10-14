@@ -21,12 +21,7 @@ class PrometheusClientTests(asynctest.TestCase):
         self.mock_session = mock_session
         self.timeout = 1
         self.config = {
-            "prometheus": {
-                "host": "prometheus",
-                "port": 9090,
-                "max_queue_size": 100,
-                "intervals": [30],
-            }
+            "prometheus": {"host": "prometheus", "port": 9090, "intervals": [30]}
         }
 
         await PrometheusClient.start(self.config)
@@ -161,13 +156,12 @@ class PrometheusClientTests(asynctest.TestCase):
 
     def test_write_metrics(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]
+        metrics = {}
 
-        metric = PrometheusMetric(name="metric", time=0, labels={}, value=0)
-        for _ in range(self.config["prometheus"]["max_queue_size"]):
-            self.assertTrue(PrometheusClient.write_metrics(interval, [metric]))
-
-        # Metrics queue is full so this write should fail
-        self.assertFalse(PrometheusClient.write_metrics(interval, [metric]))
+        for i in range(10):
+            id = create_query(metric_name="foo", labels={"number": i})
+            metrics[id] = PrometheusMetric(time=0, value=i)
+            self.assertTrue(PrometheusClient.write_metrics(interval, metrics))
 
     def test_write_metrics_invalid_interval(self) -> None:
         bad_interval = 11
@@ -176,13 +170,15 @@ class PrometheusClientTests(asynctest.TestCase):
 
     def test_poll_metrics(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]
-        max_queue_size = self.config["prometheus"]["max_queue_size"]
+        metrics = {}
 
-        metric = PrometheusMetric(name="metric", time=0, labels={}, value=0)
-        for _ in range(max_queue_size):
-            self.assertTrue(PrometheusClient.write_metrics(interval, [metric]))
+        for i in range(10):
+            id = create_query(metric_name="foo", labels={"number": i})
+            metrics[id] = PrometheusMetric(time=0, value=i)
+            self.assertTrue(PrometheusClient.write_metrics(interval, metrics))
 
-        self.assertEqual(len(PrometheusClient.poll_metrics(interval)), max_queue_size)
+        datapoints = PrometheusClient.poll_metrics(interval)
+        self.assertEqual(len(datapoints), 10)
 
         # This call returns an empty list because no metrics were written in between
         self.assertEqual(len(PrometheusClient.poll_metrics(interval)), 0)

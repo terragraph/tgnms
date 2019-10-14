@@ -22,9 +22,7 @@ from tglib.utils.ip import format_address
 class PrometheusMetric:
     """Representation of a single Prometheus metric."""
 
-    name: str
     time: Union[int, float]
-    labels: Dict[str, Any]
     value: Union[int, float]
 
 
@@ -39,11 +37,11 @@ def normalize(string: str) -> str:
     )
 
 
-def create_query(metric_name: str, labels: Dict[str, Any]) -> str:
+def create_query(metric_name: str, labels: Dict[str, Any] = {}) -> str:
     """Form a Prometheus query from the metric_name and labels."""
     label_list = [] if "intervalSec" in labels else ['intervalSec="30"']
 
-    for name, val in labels.items():
+    for name, val in sorted(labels.items()):
         if isinstance(val, Pattern):
             label_list.append(f'{name}=~"{val.pattern}"')
         else:
@@ -55,8 +53,7 @@ def create_query(metric_name: str, labels: Dict[str, Any]) -> str:
 
 class PrometheusClient(BaseClient):
     _addr: Optional[str] = None
-    _max_queue_size: Optional[int] = None
-    _stats_map: Optional[Dict[int, List[List[PrometheusMetric]]]] = None
+    _metrics_map: Optional[Dict[int, Dict[str, PrometheusMetric]]] = None
     _session: Optional[aiohttp.ClientSession] = None
 
     def __init__(self, timeout: int) -> None:
@@ -68,7 +65,7 @@ class PrometheusClient(BaseClient):
             raise ClientRestartError()
 
         prom_params = config.get("prometheus")
-        required_params = ["host", "port", "max_queue_size", "intervals"]
+        required_params = ["host", "port", "intervals"]
 
         if prom_params is None:
             raise ConfigError("Missing required 'prometheus' key")
@@ -78,8 +75,7 @@ class PrometheusClient(BaseClient):
             raise ConfigError(f"Missing one or more required params: {required_params}")
 
         cls._addr = format_address(prom_params["host"], prom_params["port"])
-        cls._max_queue_size = prom_params["max_queue_size"]
-        cls._stats_map = {i: [] for i in prom_params["intervals"]}
+        cls._metrics_map = {int(i): {} for i in prom_params["intervals"]}
         cls._session = aiohttp.ClientSession()
 
     @classmethod
@@ -157,40 +153,36 @@ class PrometheusClient(BaseClient):
         return await self.query_latest(f"timestamp({query})")
 
     @classmethod
-    def write_metrics(cls, interval_sec: int, metrics: List[PrometheusMetric]) -> bool:
-        """Add metrics to the provided interval_sec metric queue."""
-        if cls._max_queue_size is None or cls._stats_map is None:
+    def write_metrics(
+        cls, interval_sec: int, metrics: Dict[str, PrometheusMetric]
+    ) -> bool:
+        """Add new/update metrics to the given 'interval_sec' metric map."""
+        if cls._metrics_map is None:
             raise ClientStoppedError()
 
-        if interval_sec not in cls._stats_map:
-            logging.error(f"No metrics queue available for {interval_sec}s")
+        if interval_sec not in cls._metrics_map:
+            logging.error(f"No metrics map available for {interval_sec}s")
             return False
 
-        queue = cls._stats_map[interval_sec]
-        if len(queue) >= cls._max_queue_size:
-            logging.error(f"The {interval_sec}s metrics queue is full.")
-            return False
-
-        queue.append(metrics)
+        curr_metrics = cls._metrics_map[interval_sec]
+        cls._metrics_map[interval_sec] = {**metrics, **curr_metrics}
         return True
 
     @classmethod
     def poll_metrics(cls, interval_sec: int) -> Optional[List[str]]:
         """Remove and return metrics for the given interval_sec."""
-        if cls._max_queue_size is None or cls._stats_map is None:
+        if cls._metrics_map is None:
             raise ClientStoppedError()
 
-        if interval_sec not in cls._stats_map:
-            logging.error(f"No metrics queue available for {interval_sec}s")
+        if interval_sec not in cls._metrics_map:
+            logging.error(f"No metrics map available for {interval_sec}s")
             return None
 
         datapoints = []
-        queue = cls._stats_map[interval_sec]
+        metrics = cls._metrics_map[interval_sec]
 
-        for metric_list in queue:
-            for metric in metric_list:
-                query = create_query(metric.name, metric.labels)
-                datapoints.append(f"{query} {metric.value} {metric.time}")
+        for query, metric in metrics.items():
+            datapoints.append(f"{query} {metric.value} {metric.time}")
 
-        queue.clear()
+        metrics.clear()
         return datapoints

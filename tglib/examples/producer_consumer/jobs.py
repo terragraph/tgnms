@@ -14,21 +14,15 @@ async def add_x(start_time: int, metric_name: str, x: int) -> None:
     """Add 'x' to the latest value of 'metric_name'"""
     client = PrometheusClient(timeout=2)
 
-    query = create_query(metric=metric_name)
+    query = create_query(metric_name=metric_name)
     response = await client.query_latest(query)
     assert response["status"] == "success"
 
-    metrics: List[PrometheusMetric] = []
+    metrics: Dict[str, PrometheusMetric] = {}
     for result in response["data"]["result"]:
-        metric = result["metric"]
+        labels = result["metric"]
         value = result["value"][1]
-        metrics.append(
-            PrometheusMetric(
-                name=f"{metric_name}_plus_{x}",
-                time=start_time,
-                labels=metric,
-                value=value + x,
-            )
-        )
+        id = create_query(metric_name=f"{metric_name}_plus_{x}", labels=labels)
+        metrics[id] = PrometheusMetric(time=start_time, value=value + x)
 
     client.write_metrics(interval_sec=30, metrics=metrics)
