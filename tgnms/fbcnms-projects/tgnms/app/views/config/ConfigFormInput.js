@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import MenuItem from '@material-ui/core/MenuItem';
@@ -21,10 +22,10 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = {};
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   metadata: Object,
-  value: string | number | boolean,
-  label: ?string,
+  value: ?(string | number | boolean),
+  label?: ?string,
   onChange: Function, // value => void
 };
 

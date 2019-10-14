@@ -66,7 +66,7 @@ export const getBaseConfig = (
 // Get hardware base config
 export const getHardwareBaseConfig = (
   networkName: string,
-  data: {hwBoardIds: [], swVersions: []},
+  data: {hwBoardIds: Array<string>, swVersions: Array<string>},
   onResolve: (?{[string]: {[string]: $Shape<NodeConfigType>}}) => any,
   onReject: string => any,
 ) => {
@@ -119,7 +119,7 @@ export const getNodeOverridesConfig = (
 // Get full node config
 export const getFullNodeConfig = (
   networkName: string,
-  data: {nodeNames: [], configPaths: []},
+  data: {node: string, swVersion: string, hwBoardId: string},
   onResolve: (?{[string]: $Shape<NodeConfigType>}) => any,
   onReject: string => any,
 ) => {
@@ -240,7 +240,7 @@ export const sendConfigBundleToNode = (
   macAddr: string,
   config: ?string,
   onResolve: () => any,
-  onReject: string => any,
+  onReject: Object => any,
 ) => {
   const data = {node_mac: macAddr, node_config: config};
   nodeupdateServerRequest('nms_pop', data)

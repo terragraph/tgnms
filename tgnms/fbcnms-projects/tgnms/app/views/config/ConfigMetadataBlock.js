@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import React from 'react';
@@ -28,12 +29,12 @@ const styles = theme => ({
 });
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   metadata: Object,
-  textClassName: ?string,
+  textClassName?: string,
 };
 
-class ConfigMetadataBlock extends React.Component<Props, State> {
+class ConfigMetadataBlock extends React.Component<Props> {
   renderDescription(metadata) {
     // Render the config field description
     const {classes, textClassName} = this.props;
@@ -142,7 +143,7 @@ class ConfigMetadataBlock extends React.Component<Props, State> {
             ? ConfigConstraint[k]
             : k;
           const values = isString(v)
-            ? v
+            ? String(v)
             : JSON.stringify(Array.isArray(v) && v.length === 1 ? v[0] : v);
           return (
             <Typography key={k} className={textClassName} variant="body2">

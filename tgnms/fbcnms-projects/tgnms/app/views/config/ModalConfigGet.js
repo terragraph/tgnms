@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
@@ -25,6 +26,9 @@ import {
 } from '../../apiutils/ConfigAPIUtil';
 import {stringifyConfig} from '../../helpers/ConfigHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {NetworkConfig} from '../../NetworkContext';
+import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
 
 const styles = theme => ({
   root: {
@@ -72,12 +76,12 @@ const initStatePartial = Object.freeze({
 });
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   isOpen: boolean,
-  onClose: Function,
-  networkConfig: Object,
+  onClose: () => any,
+  networkConfig: NetworkConfig,
   networkName: string,
-  nodeInfo: ?Object,
+  nodeInfo: NodeConfigStatusType,
 };
 
 type State = {
@@ -86,11 +90,12 @@ type State = {
   selectedHardwareType: string,
   defaultImage: string,
   defaultHardwareType: string,
-  baseConfigs: ?Object,
-  hardwareBaseConfigs: ?Object,
+  baseConfigs: ?Array<string>,
+  hardwareBaseConfigs: ?Array<string>,
   error: ?string,
   pendingNodeupdateReq: boolean,
   sendToNodeupdateSuccess: boolean,
+  nodeupdateState: string,
 };
 
 class ModalConfigGet extends React.Component<Props, State> {
@@ -104,6 +109,9 @@ class ModalConfigGet extends React.Component<Props, State> {
     // Base configs - only load these once (not every onEnter)
     baseConfigs: null,
     hardwareBaseConfigs: null,
+    error: null,
+    pendingNodeupdateReq: false,
+    sendToNodeupdateSuccess: false,
   };
 
   isBaseConfigLoaded = () => {
@@ -116,19 +124,26 @@ class ModalConfigGet extends React.Component<Props, State> {
     // Fetch all base configs from the controller
     const {networkName} = this.props;
 
-    const data = {};
+    const data = {hwBoardIds: [], swVersions: []};
     const onError = error => this.setState({error});
     getBaseConfig(
       networkName,
       data,
-      baseConfigs => this.setState({baseConfigs: Object.keys(baseConfigs)}),
+      baseConfigs =>
+        this.setState({
+          baseConfigs: baseConfigs ? Object.keys(baseConfigs) : null,
+        }),
       onError,
     );
     getHardwareBaseConfig(
       networkName,
       data,
       hardwareBaseConfigs =>
-        this.setState({hardwareBaseConfigs: Object.keys(hardwareBaseConfigs)}),
+        this.setState({
+          hardwareBaseConfigs: hardwareBaseConfigs
+            ? Object.keys(hardwareBaseConfigs)
+            : null,
+        }),
       onError,
     );
   };
@@ -164,7 +179,7 @@ class ModalConfigGet extends React.Component<Props, State> {
       () => this.setState({nodeupdateState: SendToNodeupdateState.SUCCESS}),
       err => {
         console.error(
-          err?.response?.statusText || 'Failed to send configuration to node.',
+          err.response?.statusText || 'Failed to send configuration to node.',
         );
         this.setState({nodeupdateState: SendToNodeupdateState.FAILURE});
       },
@@ -218,10 +233,10 @@ class ModalConfigGet extends React.Component<Props, State> {
     } = this.state;
 
     const baseConfigOptions = baseConfigs
-      ? [...new Set([...baseConfigs, defaultImage])]
+      ? Array.from(new Set([...baseConfigs, defaultImage]))
       : [defaultImage];
     const hardwareBaseConfigOptions = hardwareBaseConfigs
-      ? [...new Set([...hardwareBaseConfigs, defaultHardwareType])]
+      ? Array.from(new Set([...hardwareBaseConfigs, defaultHardwareType]))
       : [defaultHardwareType];
     const inputs = [
       {

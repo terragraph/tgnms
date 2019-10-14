@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import ConfigTableEntry from './ConfigTableEntry';
@@ -58,16 +59,18 @@ const columns = Object.freeze([
 ]);
 
 type Props = {
-  classes: Object,
-  data: Array<Object>,
-  onDraftChange: Function, // (field[], value) => void
-  selectedField: Array<String>,
-  onSelectField: Function, // (field[]) => void
+  classes: {[string]: string},
+  data: ?Array<Object>,
+  onDraftChange: (?Array<string>, ?(string | number)) => any,
+  selectedField: ?Array<string>,
+  onSelectField: (?Array<string>) => any,
 };
 
 type State = {
-  order: string,
-  orderBy: string,
+  order: $Values<typeof TableOrder>,
+  orderBy: Array<string>,
+  searchValue: string,
+  searchFilter: string,
 };
 
 class ConfigTable extends React.Component<Props, State> {
@@ -158,7 +161,7 @@ class ConfigTable extends React.Component<Props, State> {
                       className={classes.header}
                       key={col.label}
                       sortDirection={
-                        this.state.orderBy === col.orderBy
+                        col.orderBy && this.state.orderBy === col.orderBy
                           ? this.state.order
                           : false
                       }>

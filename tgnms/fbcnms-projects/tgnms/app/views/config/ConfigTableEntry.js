@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import AssistantIcon from '@material-ui/icons/Assistant';
@@ -121,21 +122,21 @@ const styles = theme => ({
 });
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   field: Array<string>,
-  layers: Array<Object>,
+  layers: Array<{id: string, value: ?(string | number)}>,
   hasOverride: boolean,
   hasTopLevelOverride: boolean,
   metadata: Object,
-  onDraftChange: Function, // (field[], value) => void
-  onSelect: Function, // (field[]) => void
+  onDraftChange: (?Array<string>, ?(string | number | boolean)) => any,
+  onSelect: (?Array<string>) => any,
   isSelected: boolean,
   isVisible: boolean,
   colSpan: number,
 };
 
 type State = {
-  localInputValue: string | number | boolean,
+  localInputValue: ?(string | number | boolean),
   localParsedInputValue: string | number | boolean | null,
   lazyInit: boolean,
 };
@@ -371,9 +372,10 @@ class ConfigTableEntry extends React.Component<Props, State> {
     const {classes, layers, hasTopLevelOverride} = this.props;
     const {localInputValue} = this.state;
     const draftValueExists = this.hasDraftValue(layers);
-    // NOTE: double equals (==) is intentional to handle string/int values
-    const localEqualsDraft = localInputValue == this.getDraftValue(layers, '');
-    const localEqualsField = localInputValue == this.getFieldValue(layers, '');
+    const localEqualsDraft =
+      String(localInputValue) === String(this.getDraftValue(layers, ''));
+    const localEqualsField =
+      String(localInputValue) === String(this.getFieldValue(layers, ''));
 
     const actions = [
       {

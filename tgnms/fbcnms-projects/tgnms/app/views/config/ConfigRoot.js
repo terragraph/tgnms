@@ -574,7 +574,7 @@ class ConfigRoot extends React.Component<Props, State> {
               isOpen={showAddFieldModal}
               onSubmit={this.handleDraftChange}
               onClose={this.handleCloseAddFieldModal}
-              data={configData}
+              data={configData || []}
               configMetadata={getConfigMetadata(editMode) || {}}
             />
           </>

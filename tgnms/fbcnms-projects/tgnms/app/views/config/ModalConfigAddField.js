@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
@@ -24,6 +25,7 @@ import {
 import {createSelectInput, createTextInput} from '../../helpers/FormHelpers';
 import {debounce, difference, isPlainObject} from 'lodash';
 import {getFieldMetadata, validateField} from '../../helpers/ConfigHelpers';
+import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -60,10 +62,10 @@ const initState = Object.freeze({
 });
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   isOpen: boolean,
-  onClose: Function,
-  onSubmit: Function,
+  onClose: () => any,
+  onSubmit: (Array<string>, string | number | boolean) => any,
   data: Array<Object>,
   configMetadata: Object,
 };
@@ -74,8 +76,8 @@ type State = {
   value: string | number | boolean,
   parsedValue: string | number | boolean | null,
   fieldMetadata: ?Object,
-  formErrors: Object,
-  fieldAutocomplete: Array<Object>, // [{key: string, isBaseType: bool}]
+  formErrors: {fieldName: ?string, type: ?string, value: ?string},
+  fieldAutocomplete: Array<{key: string, isBaseType: boolean}>,
 };
 
 // Autocomplete debounce interval (in ms)
@@ -164,7 +166,7 @@ class ModalConfigAddField extends React.Component<Props, State> {
     }
 
     // Filter by the last part of the field
-    const results = Object.entries(metadata)
+    const results = objectEntriesTypesafe<string, {[string]: string}>(metadata)
       .filter(([k, v]) => {
         const key = k.toLowerCase();
         return isPlainObject(v) && key.startsWith(query) && key !== query;

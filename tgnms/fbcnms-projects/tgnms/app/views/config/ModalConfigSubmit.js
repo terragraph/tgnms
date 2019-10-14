@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
@@ -10,6 +11,9 @@ import React from 'react';
 import classNames from 'classnames';
 import {diffJson} from 'diff';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {AggregatorConfigType} from '../../../shared/types/Aggregator';
+import type {ControllerConfigType} from '../../../shared/types/Controller';
 
 const styles = theme => ({
   root: {
@@ -34,19 +38,15 @@ const styles = theme => ({
 });
 
 type Props = {
-  classes: Object,
+  classes: {[string]: string},
   isOpen: boolean,
-  onClose: Function,
-  onSubmit: Function,
-  draftConfig: ?Object,
-  configOverrides: ?Object,
+  onClose: () => any,
+  onSubmit: () => any,
+  draftConfig: ?(ControllerConfigType | AggregatorConfigType | {}),
+  configOverrides: ?(ControllerConfigType | AggregatorConfigType | {}),
 };
 
-type State = {};
-
-class ModalConfigSubmit extends React.Component<Props, State> {
-  state = {};
-
+class ModalConfigSubmit extends React.Component<Props> {
   handleSubmit = () => {
     // Submit the draft
     const {onSubmit, onClose} = this.props;

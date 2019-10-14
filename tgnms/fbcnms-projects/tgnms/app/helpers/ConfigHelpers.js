@@ -179,7 +179,10 @@ export const getNodeVersions = (networkConfig: NetworkConfig) => {
 /**
  * Validate a config value based on constraints in the metadata.
  */
-export const validateField = (value: number | string | boolean, metadata: Object) => {
+export const validateField = (
+  value: ?number | string | boolean,
+  metadata: Object,
+) => {
   const {intVal, floatVal, strVal} = metadata;
 
   let error = false;
@@ -379,7 +382,10 @@ export const stringifyConfig = (obj: Object) => {
 /**
  * Get the metadata associated with the given field (recursively).
  */
-export const getFieldMetadata = (metadata: Object, field: string) => {
+export const getFieldMetadata = (
+  metadata: Object,
+  field: string | Array<string>,
+) => {
   let fieldMetadata = metadata;
   for (const fieldName of field) {
     fieldMetadata = getMetadata(fieldMetadata, fieldName);
