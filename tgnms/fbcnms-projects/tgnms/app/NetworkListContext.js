@@ -8,14 +8,14 @@
 import React from 'react';
 import type {NetworkConfig} from './NetworkContext';
 
-type NetworkList = {
+export type NetworkList = {
   [networkName: string]: NetworkConfig,
 };
 
 export type NetworkListContextType = {|
   networkList: NetworkList,
   waitForNetworkListRefresh: () => any,
-  getNetworkName: () => string,
+  getNetworkName: () => ?string,
   changeNetworkName: (name: string) => any,
 |};
 

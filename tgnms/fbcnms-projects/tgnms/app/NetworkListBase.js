@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import AuthorizedRoute from './components/common/AuthorizedRoute';
@@ -11,17 +12,27 @@ import NetworkUI from './NetworkUI';
 import NmsConfig from './views/nms_config/NmsConfig';
 import React from 'react';
 import axios from 'axios';
+import {History} from 'history';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {objectValuesTypesafe} from './helpers/ObjectHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import {withTranslation} from 'react-i18next';
+
+import type {NetworkConfig} from './NetworkContext';
+import type {NetworkList} from './NetworkListContext';
+
+type NetworkListType = NetworkConfig & {name: string};
+
 // Pick a network if no network is requested in URL
 // This will choose any alive controller, otherwise redirect to /config
-function getDefaultNetworkName(networkList) {
+function getDefaultNetworkName(networkList: {[string]: NetworkListType}) {
   if (!networkList || !Object.keys(networkList).length) {
     return null;
   }
-  const network = Object.values(networkList).find(cfg => cfg.controller_online);
+  const network = objectValuesTypesafe<NetworkListType>(networkList).find(
+    cfg => cfg.controller_online,
+  );
   return network ? network.name : null;
 }
 const defaultNetworkName = getDefaultNetworkName(window.CONFIG.networks);
@@ -54,14 +65,20 @@ const REFRESH_INTERVAL = window.CONFIG.refresh_interval
   ? window.CONFIG.refresh_interval
   : 5000;
 
+type Props = {
+  classes: {[string]: string},
+  history: History,
+  location: Object,
+};
+
+type State = {networkList: ?NetworkList};
+
 class NetworkListBase extends React.Component<Props, State> {
+  _refreshNetworkListInterval;
+
   state = {
     networkList: null,
   };
-
-  constructor(props) {
-    super(props);
-  }
 
   componentDidMount() {
     // fetch initial network list
@@ -128,7 +145,7 @@ class NetworkListBase extends React.Component<Props, State> {
     return (
       <NetworkListContext.Provider
         value={{
-          networkList: this.state.networkList,
+          networkList: this.state.networkList || {},
           // Wait until topology is refreshed before rendering routes
           waitForNetworkListRefresh: this.waitForNetworkListRefresh,
           // Get/set network name

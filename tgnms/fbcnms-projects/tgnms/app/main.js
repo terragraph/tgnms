@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import './common/axiosConfig';
@@ -19,16 +20,19 @@ import {hot} from 'react-hot-loader';
 
 /* eslint-disable-next-line no-undef */
 const HotNetworkListBase = hot(module)(NetworkListBase);
+const root = document.getElementById('root');
 
-ReactDOM.render(
-  <BrowserRouter>
-    <WebSocketProvider>
-      <MaterialTheme>
-        <Suspense fallback={<LoadingBox fullScreen={false} />}>
-          <HotNetworkListBase />
-        </Suspense>
-      </MaterialTheme>
-    </WebSocketProvider>
-  </BrowserRouter>,
-  document.getElementById('root'),
-);
+if (root) {
+  ReactDOM.render(
+    <BrowserRouter>
+      <WebSocketProvider>
+        <MaterialTheme>
+          <Suspense fallback={<LoadingBox fullScreen={false} />}>
+            <HotNetworkListBase />
+          </Suspense>
+        </MaterialTheme>
+      </WebSocketProvider>
+    </BrowserRouter>,
+    root,
+  );
+}
