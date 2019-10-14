@@ -136,19 +136,19 @@ class LinksLayer extends React.Component<Props> {
       }
       return clr;
     }
-    if (overlay.type === 'golay') {
+    if (overlay.type === 'golay' && typeof values === 'number') {
       if (values === undefined) {
         return LinkOverlayColors.metric.missing.color;
       }
       return INDEX_COLORS[values];
     }
-    if (overlay.type === 'channel') {
+    if (overlay.type === 'channel' && typeof values === 'number') {
       if (values === undefined) {
         return LinkOverlayColors.metric.missing.color;
       }
       return INDEX_COLORS[values];
     }
-    if (overlay.type === 'superframe') {
+    if (overlay.type === 'superframe' && typeof values === 'number') {
       if (values !== undefined && SUPERFRAME_COLORS.hasOwnProperty(values)) {
         return SUPERFRAME_COLORS[values];
       }

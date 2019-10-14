@@ -882,7 +882,7 @@ class NetworkDrawer extends React.Component<
                 if (addSiteFormType === FormType.EDIT && !selectedElement) {
                   context.setSelected(
                     TopologyElementType.SITE,
-                    this.state.addSiteParams.name,
+                    this.state.addSiteParams.name || '',
                   );
                 }
 

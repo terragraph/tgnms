@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import blue from '@material-ui/core/colors/blue';
@@ -71,9 +72,9 @@ export const INDEX_COLORS = [
 
 // colors per control superframe
 export const SUPERFRAME_COLORS = {
-  0: 'hsl(170,50%,50%)',
-  1: 'hsl(30,50%,50%)',
-  255: 'hsl(200,50%,50%)',
+  [0]: 'hsl(170,50%,50%)',
+  [1]: 'hsl(30,50%,50%)',
+  [255]: 'hsl(200,50%,50%)',
 };
 
 export const NETWORK_TEST_HEALTH_COLOR_RANGE = [

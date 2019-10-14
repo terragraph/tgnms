@@ -29,6 +29,7 @@ import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
 import type {
+  Element,
   LinkMeta,
   NetworkConfig as NetworkConfigType,
   NetworkHealth,
@@ -78,10 +79,10 @@ type State = {
   networkLinkIgnitionAttempts: Object,
   networkHealthTimeWindowHrs: number,
   nodeMap: {[string]: Node},
-  pinnedElements: Array<TopologyElementType>,
+  pinnedElements: Array<Element>,
   siteMap: SiteMap,
   siteToNodesMap: {[string]: Set<string>},
-  selectedElement: TopologyElementType,
+  selectedElement: ?Element,
 };
 
 class NetworkUI extends React.Component<Props, State> {

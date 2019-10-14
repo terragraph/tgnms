@@ -97,7 +97,7 @@ type Props = {
   classes: {[string]: string},
   networkName: string,
   networkConfig: NetworkConfig,
-  editModes: E2EConfigMode | NetworkConfigMode,
+  editModes: typeof E2EConfigMode | typeof NetworkConfigMode,
   initialEditMode: ?string, // from editModes
   // parent's this.setState() - TODO - HACK! remove...
   setParentState: ({[string]: string}, () => any) => any,

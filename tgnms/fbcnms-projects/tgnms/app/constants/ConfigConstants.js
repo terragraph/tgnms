@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 /** Config layers for nodes. */
@@ -34,6 +35,14 @@ export const ConfigConstraint = Object.freeze({
   intRanges: 'Integer ranges',
   floatRanges: 'Float ranges',
 });
+
+export type ConfigConstraintType = {
+  allowedRanges: Array<Array<number>>,
+  allowedValues: Array<number>,
+  regexMatches: Array<number>,
+  intRanges: Array<Array<number>>,
+  floatRanges: Array<Array<number>>,
+};
 
 /** Config metadata base types (i.e. non-recursive). */
 export const ConfigBaseTypes = Object.freeze([

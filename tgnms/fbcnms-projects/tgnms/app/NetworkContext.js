@@ -43,7 +43,7 @@ export type NetworkContextType = {|
   // Topology elements
   selectedElement: ?Element,
   pinnedElements: Array<Element>,
-  setSelected: ($Values<typeof TopologyElementType>, ?string) => void,
+  setSelected: ($Values<typeof TopologyElementType>, string) => void,
   removeElement: ($Values<typeof TopologyElementType>, string) => void,
   togglePin: ToggleTopologyElement,
   toggleExpanded: ToggleTopologyElement,
@@ -168,7 +168,7 @@ export type LinkMeta = {
 export type Element = {|
   expanded: boolean,
   name: string,
-  type: string,
+  type: $Values<typeof TopologyElementType>,
 |};
 
 export type SiteMap = {

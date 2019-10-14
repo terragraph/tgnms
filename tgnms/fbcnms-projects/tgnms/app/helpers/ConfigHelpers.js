@@ -5,7 +5,7 @@
  * @flow
  */
 
-import {ConfigConstraint, ConfigLayer} from '../constants/ConfigConstants.js';
+import {ConfigLayer} from '../constants/ConfigConstants.js';
 import {NodeTypeValueMap} from '../../shared/types/Topology';
 import {
   cloneDeep,
@@ -19,7 +19,9 @@ import {
 } from 'lodash';
 import {isNodeAlive} from './NetworkHelpers';
 import {objectEntriesTypesafe} from './ObjectHelpers';
+
 import type {AggregatorConfigType} from '../../shared/types/Aggregator';
+import type {ConfigConstraintType} from '../constants/ConfigConstants';
 import type {ControllerConfigType} from '../../shared/types/Controller';
 import type {NetworkConfig} from '../NetworkContext';
 
@@ -204,7 +206,10 @@ export const validateField = (
   return !error;
 };
 
-const validateNumber = (value: number, constraints: ConfigConstraint) => {
+const validateNumber = (
+  value: number,
+  constraints: $Shape<ConfigConstraintType>,
+) => {
   // Validate a numeric config field
   if (value !== undefined && (typeof value !== 'number' || isNaN(value))) {
     return false;
