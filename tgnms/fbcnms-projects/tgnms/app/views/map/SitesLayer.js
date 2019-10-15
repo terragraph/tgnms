@@ -2,9 +2,9 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Feature, Layer, Popup} from 'react-mapbox-gl';
 import {
@@ -19,7 +19,24 @@ import {
   mapboxShouldAcceptClick,
 } from '../../helpers/NetworkHelpers';
 import {isNodeAlive, renderSnrWithIcon} from '../../helpers/NetworkHelpers';
+import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {
+  NearbyNodes,
+  TopologyScanInfo,
+} from '../../components/mappanels/MapPanelTypes';
+import type {
+  NodeType as Node,
+  TopologyType,
+} from '../../../shared/types/Topology';
+import type {
+  NodeMap,
+  OfflineWhiteListType,
+  SiteToNodesMap,
+  TopologyConfig,
+} from '../../NetworkContext';
+import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
 
 const styles = {
   iconBottom: {
@@ -58,7 +75,31 @@ const SEARCH_NEARBY_SITE_COLOR = '#eee';
 const SEARCH_NEARBY_STROKE_COLOR = '#aec6cf';
 const SEARCH_NEARBY_STROKE_WIDTH = 5;
 
-class SitesLayer extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  onSiteMouseEnter?: string => any,
+  onSiteMouseLeave?: string => any,
+  topology: TopologyType,
+  topologyConfig: TopologyConfig,
+  ctrlVersion: string,
+  selectedSites: {[string]: string},
+  onSelectSiteChange: string => any,
+  offlineWhitelist: OfflineWhiteListType,
+  nodeMap?: NodeMap,
+  siteToNodesMap?: SiteToNodesMap,
+  plannedSite?: PlannedSite,
+  onPlannedSiteMoved?: Object => any,
+  overlay: string,
+  nearbyNodes: NearbyNodes,
+  hiddenSites: Set<string>,
+  routes: {
+    links: {},
+    node: ?Node,
+    nodes: Set<string>,
+  },
+};
+
+class SitesLayer extends React.Component<Props> {
   getSitePolarityColor(siteNodes) {
     const {ctrlVersion, topologyConfig} = this.props;
 
@@ -130,9 +171,12 @@ class SitesLayer extends React.Component {
 
   getSiteColor(site) {
     const {overlay, nodeMap, siteToNodesMap, routes, topology} = this.props;
-    const siteNodes = [...siteToNodesMap[site.name]].map(
-      nodeName => nodeMap[nodeName],
-    );
+    const siteNodes =
+      siteToNodesMap && nodeMap
+        ? Array.from(siteToNodesMap[site.name]).map(
+            nodeName => nodeMap[nodeName],
+          )
+        : [];
 
     // if viewing route overlay, only color in route nodes
     if (routes.nodes && routes.nodes.size !== 0) {
@@ -216,10 +260,14 @@ class SitesLayer extends React.Component {
         );
 
         // Check for special properties, and render "inner" circles if needed
-        const siteNodes = [...siteToNodesMap[site.name]];
+        const siteNodes = siteToNodesMap
+          ? Array.from(siteToNodesMap[site.name])
+          : [];
         const hasPop =
+          nodeMap !== undefined &&
           siteNodes.find(nodeName => nodeMap[nodeName].pop_node) !== undefined;
         const hasCn =
+          nodeMap !== undefined &&
           siteNodes.find(
             nodeName => nodeMap[nodeName].node_type === NodeType.CN,
           ) !== undefined;
@@ -273,42 +321,44 @@ class SitesLayer extends React.Component {
     // Draw "nearby" sites (from topology scan)
     // Also render node popups here
     const nearbyNodePopups = [];
-    Object.entries(nearbyNodes).forEach(([txNode, responders]) => {
-      if (responders) {
-        responders.forEach(responder => {
-          const location = responder.responderInfo.pos;
-          const key = 'nearby-' + txNode + '-' + responder.responderInfo.addr;
-          if (location) {
-            features.push(
-              <Feature
-                key={key}
-                onMouseEnter={onSiteMouseEnter}
-                onMouseLeave={onSiteMouseLeave}
-                coordinates={[location.longitude, location.latitude]}
-                properties={{
-                  siteColor: SEARCH_NEARBY_SITE_COLOR,
-                  circleRadius: CIRCLE_RADIUS,
-                  strokeColor: SEARCH_NEARBY_STROKE_COLOR,
-                  strokeWidth: SEARCH_NEARBY_STROKE_WIDTH,
-                }}
-              />,
-            );
-            nearbyNodePopups.push(
-              <Popup
-                key={key + '-popup'}
-                coordinates={[location.longitude, location.latitude]}>
-                <div>
-                  {renderSnrWithIcon(responder.bestSnr, {
-                    classes: {root: classes.iconBottom},
-                  })}
-                  {responder.responderInfo.addr}
-                </div>
-              </Popup>,
-            );
-          }
-        });
-      }
-    });
+    objectEntriesTypesafe<string, Array<TopologyScanInfo>>(nearbyNodes).forEach(
+      ([txNode, responders]) => {
+        if (responders !== null || responders !== undefined) {
+          responders.forEach(responder => {
+            const location = responder.responderInfo.pos;
+            const key = 'nearby-' + txNode + '-' + responder.responderInfo.addr;
+            if (location) {
+              features.push(
+                <Feature
+                  key={key}
+                  onMouseEnter={onSiteMouseEnter}
+                  onMouseLeave={onSiteMouseLeave}
+                  coordinates={[location.longitude, location.latitude]}
+                  properties={{
+                    siteColor: SEARCH_NEARBY_SITE_COLOR,
+                    circleRadius: CIRCLE_RADIUS,
+                    strokeColor: SEARCH_NEARBY_STROKE_COLOR,
+                    strokeWidth: SEARCH_NEARBY_STROKE_WIDTH,
+                  }}
+                />,
+              );
+              nearbyNodePopups.push(
+                <Popup
+                  key={key + '-popup'}
+                  coordinates={[location.longitude, location.latitude]}>
+                  <div>
+                    {renderSnrWithIcon(responder.bestSnr, {
+                      classes: {root: classes.iconBottom},
+                    })}
+                    {responder.responderInfo.addr}
+                  </div>
+                </Popup>,
+              );
+            }
+          });
+        }
+      },
+    );
 
     return (
       <>
@@ -325,23 +375,5 @@ class SitesLayer extends React.Component {
     );
   }
 }
-
-SitesLayer.propTypes = {
-  onSiteMouseEnter: PropTypes.func,
-  onSiteMouseLeave: PropTypes.func,
-  topology: PropTypes.object.isRequired,
-  topologyConfig: PropTypes.object.isRequired,
-  ctrlVersion: PropTypes.string,
-  selectedSites: PropTypes.object.isRequired, // {siteName: thrift::Site}
-  onSelectSiteChange: PropTypes.func.isRequired,
-  nodeMap: PropTypes.object,
-  siteToNodesMap: PropTypes.object,
-  plannedSite: PropTypes.object,
-  onPlannedSiteMoved: PropTypes.func,
-  overlay: PropTypes.string.isRequired,
-  nearbyNodes: PropTypes.object,
-  hiddenSites: PropTypes.instanceOf(Set),
-  routes: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles)(SitesLayer);

@@ -2,16 +2,22 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Popup} from 'react-mapbox-gl';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {TopologyType} from '../../../shared/types/Topology';
+
 const styles = {};
 
-class SitePopupsLayer extends React.Component {
+type Props = {
+  topology: TopologyType,
+};
+
+class SitePopupsLayer extends React.Component<Props> {
   render() {
     const {topology} = this.props;
     return topology.sites.map(site => (
@@ -23,9 +29,5 @@ class SitePopupsLayer extends React.Component {
     ));
   }
 }
-
-SitePopupsLayer.propTypes = {
-  topology: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles)(SitePopupsLayer);

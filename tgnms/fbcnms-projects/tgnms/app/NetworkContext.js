@@ -86,13 +86,15 @@ export type NetworkConfig = {
   upgrade_state: UpgradeStateDumpType,
   topology: TopologyType,
   topologyConfig: TopologyConfig,
-  offline_whitelist: {
-    links: Map<string, boolean>,
-    nodes: Map<string, boolean>,
-  },
+  offline_whitelist: OfflineWhiteListType,
   wireless_controller: WirelessController,
   wireless_controller_stats: {|[string]: WirelessControllerStats|},
   controller_error: ?string,
+};
+
+export type OfflineWhiteListType = {
+  links: Map<string, boolean>,
+  nodes: Map<string, boolean>,
 };
 
 export type WirelessController = {

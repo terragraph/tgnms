@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import React from 'react';
@@ -25,7 +26,9 @@ const PAINT_LAYER = {
   'fill-extrusion-opacity': 0.6,
 };
 
-class BuildingsLayer extends React.Component {
+type Props = {};
+
+class BuildingsLayer extends React.Component<Props> {
   render() {
     return (
       <Layer
@@ -40,7 +43,5 @@ class BuildingsLayer extends React.Component {
     );
   }
 }
-
-BuildingsLayer.propTypes = {};
 
 export default withStyles(styles)(BuildingsLayer);

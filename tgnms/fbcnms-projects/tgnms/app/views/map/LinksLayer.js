@@ -8,6 +8,7 @@
 import type {
   Element,
   IgnitionState,
+  OfflineWhiteListType,
   SiteMap,
   TopologyConfig,
 } from '../../NetworkContext';
@@ -92,10 +93,7 @@ type Props = {
   onSelectLinkChange: string => any,
   onLinkMouseEnter: string => any,
   onLinkMouseLeave: string => any,
-  offlineWhitelist: {
-    links: {[string]: boolean},
-    nodes: {[string]: boolean},
-  },
+  offlineWhitelist: OfflineWhiteListType,
 };
 
 type CnLinkInfoMap = {
