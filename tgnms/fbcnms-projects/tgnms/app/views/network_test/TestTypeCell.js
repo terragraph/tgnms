@@ -1,10 +1,13 @@
-
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow
+ */
 
 import * as React from 'react';
 
-import {
-  TEST_TYPE,
-} from '../../../shared/dto/TestExecution';
+import {TEST_TYPE} from '../../../shared/dto/TestExecution';
 import {makeStyles} from '@material-ui/styles';
 
 const useTestTypeStyles = makeStyles({
@@ -13,9 +16,9 @@ const useTestTypeStyles = makeStyles({
   },
 });
 
-export default function TestTypeCell({test_code}) {
+export default function TestTypeCell({test_code}: {test_code: string}) {
   const classes = useTestTypeStyles();
-  const testTypeText = convertTestCodeToString(test_code)
+  const testTypeText = convertTestCodeToString(test_code);
   return (
     <span className={classes.cell} title={`Test Code: ${test_code}`}>
       {testTypeText}
@@ -23,10 +26,10 @@ export default function TestTypeCell({test_code}) {
   );
 }
 
-export function convertTestCodeToString(test_code:string){
+export function convertTestCodeToString(test_code: string) {
   let testTypeText = TEST_TYPE[test_code];
   if (!testTypeText) {
     testTypeText = test_code;
   }
-  return testTypeText
+  return testTypeText;
 }
