@@ -13,7 +13,7 @@ const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 // NOTE: Login is disabled by default until its deployed publicly
 const LOGIN_ENABLED = envBool(process.env.LOGIN_ENABLED, false);
 const SSO_ENABLED = envBool(process.env.SSO_ENABLED, false);
-
+const SESSION_MAX_AGE_MS = envInt(process.env.SESSION_MAX_AGE_MS);
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
 const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
@@ -82,7 +82,7 @@ const DEVELOPMENT = process.env.NODE_ENV !== 'production';
 //   'kafka-host1:9092,kafka-host2:9092'
 const KAFKA_HOSTS = process.env.KAFKA_HOSTS;
 
-function envBool(envVar: ?string, defaultValue: boolean) {
+function envBool(envVar: ?string, defaultValue?: boolean) {
   if (typeof envVar === 'undefined') {
     return defaultValue;
   }
@@ -100,7 +100,7 @@ function envBool(envVar: ?string, defaultValue: boolean) {
   return defaultValue;
 }
 
-function envInt(envVar: ?string, defaultValue: number) {
+function envInt(envVar: ?string, defaultValue?: number) {
   if (typeof envVar === 'undefined') {
     return defaultValue;
   }
@@ -153,4 +153,5 @@ module.exports = {
   LOCALES_DIR,
   DEVELOPMENT,
   KAFKA_HOSTS,
+  SESSION_MAX_AGE_MS,
 };

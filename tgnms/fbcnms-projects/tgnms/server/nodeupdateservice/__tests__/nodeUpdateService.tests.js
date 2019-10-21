@@ -6,15 +6,10 @@
  */
 import express from 'express';
 import request from 'supertest';
-const {API_REQUEST_TIMEOUT} = require('../../config');
 jest.mock('request');
 const requestMock = require('request');
 
 describe("/list - get a list of a suite's releases", () => {
-  beforeEach(() => {
-    jest.setTimeout(API_REQUEST_TIMEOUT);
-  });
-
   // Test proper response is received for good inputs
   test('/list: all required params present', async () => {
     requestMock.mockImplementationOnce((input, done) => {

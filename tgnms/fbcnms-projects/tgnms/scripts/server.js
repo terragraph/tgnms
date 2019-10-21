@@ -10,6 +10,7 @@ if (!process.env.NODE_ENV) {
 } else {
   process.env.BABEL_ENV = process.env.NODE_ENV;
 }
+import {LOGIN_ENABLED, SESSION_MAX_AGE_MS} from '../server/config';
 
 const bodyParser = require('body-parser');
 const compression = require('compression');
@@ -62,8 +63,7 @@ app.use(
     saveUninitialized: true,
     unset: 'destroy',
     rolling: true,
-    // should be <= the refresh token's timeout
-    maxAge: 30 * 60 * 1000, // 30 minutes
+    maxAge: configureSessionMaxAge(),
     store,
   }),
 );
@@ -263,4 +263,29 @@ function configureWebpackSmartMiddleware() {
   const webpackSmartMiddleware = require('@fbcnms/express-middleware/webpackSmartMiddleware')
     .default;
   return webpackSmartMiddleware;
+}
+
+function configureSessionMaxAge() {
+  // Custom max age takes precedence
+  if (typeof SESSION_MAX_AGE_MS === 'number') {
+    return SESSION_MAX_AGE_MS;
+  }
+
+  const DAY = 24 * 60 * 60 * 1000;
+  /*
+   * If login is enabled, delegate to Keycloak's access/refresh expiry.
+   * We set the maxAge to a date far in the future because returning
+   * null/undefined means that it's a "browser session",
+   * and will end once the user's browser is closed.
+   *
+   */
+  if (LOGIN_ENABLED) {
+    return 365 * DAY; // 1 year
+  }
+
+  /*
+   * If the user has not provided a custom age, and login is disabled, set it to
+   * one day.
+   */
+  return DAY; // 1 day
 }
