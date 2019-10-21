@@ -20,12 +20,12 @@ setup(
     url="http://github.com/facebookexternal/terragraph-apps/",
     author="Cory Modlin",
     author_email="cmodlin@fb.com",
-    classifiers=(
+    classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.5",
         "Development Status :: 3 - Alpha",
-    ),
+    ],
     entry_points={"console_scripts": ["grafana_cli = utilities.grafana_init:cli"]},
     python_requires=">=3.5",
     install_requires=["click", "requests>=2.19.1"],
