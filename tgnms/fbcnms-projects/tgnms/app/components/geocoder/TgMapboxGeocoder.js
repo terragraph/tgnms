@@ -2,16 +2,18 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MapboxGeocoder from './MapboxGeocoder';
-import PropTypes from 'prop-types';
 import React from 'react';
-import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
+import mapboxgl from 'mapbox-gl';
+import {LinkTypeValueMap} from '../../../shared/types/Topology';
 import {TopologyElementType} from '../../constants/NetworkConstants';
+import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {
   getLinkIcon,
   getNodeIcon,
@@ -19,13 +21,36 @@ import {
 } from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {Feature} from '../../../../inventory/app/components/map/geocoder/MapGeocoder';
+import type {
+  LinkMap,
+  LinkMeta,
+  NodeMap,
+  Site,
+  SiteMap,
+} from '../../NetworkContext';
+import type {LinkType, NodeType} from '../../../shared/types/Topology';
+import type {StatusReportType} from '../../../shared/types/Controller';
+
 const styles = {
   listItemIcon: {
     marginRight: 0,
   },
 };
 
-class TgMapboxGeocoder extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  accessToken: string,
+  mapRef: ?mapboxgl.Map,
+  onSelectFeature: ($Shape<Feature>) => any,
+  onSelectTopologyElement: (string, string) => any,
+  nodeMap: NodeMap,
+  linkMap: LinkMap,
+  siteMap: SiteMap,
+  statusReports: ?{[string]: StatusReportType},
+};
+
+class TgMapboxGeocoder extends React.Component<Props> {
   searchInMap(query, map, filter) {
     // Performs a case-insensitive substring lookup in the given map
     // TODO - return multiple results?
@@ -76,7 +101,7 @@ class TgMapboxGeocoder extends React.Component {
     if (siteMap) {
       const {el, matchIdx, matchLen} = this.searchInMap(query, siteMap);
       if (el) {
-        const location = el.location;
+        const location = convertType<Site>(el).location;
         addMatch({
           type: TopologyElementType.SITE,
           name: el.name,
@@ -90,7 +115,7 @@ class TgMapboxGeocoder extends React.Component {
     if (nodeMap) {
       const {el, matchIdx, matchLen} = this.searchInMap(query, nodeMap);
       if (el) {
-        const location = siteMap[el.site_name].location;
+        const location = siteMap[convertType<NodeType>(el).site_name].location;
         addMatch({
           type: TopologyElementType.NODE,
           name: el.name,
@@ -102,7 +127,8 @@ class TgMapboxGeocoder extends React.Component {
       }
 
       // Match by MAC address
-      const macMatch = Object.values(nodeMap).find(
+
+      const macMatch = objectValuesTypesafe<NodeType>(nodeMap).find(
         node =>
           node.mac_addr.toLowerCase() === query ||
           (node.wlan_mac_addrs &&
@@ -121,11 +147,13 @@ class TgMapboxGeocoder extends React.Component {
       }
 
       // Match by IP address
-      const ipMatch = Object.keys(statusReports).find(
-        mac => statusReports[mac].ipv6Address.toLowerCase() === query,
-      );
+      const ipMatch = statusReports
+        ? Object.keys(statusReports).find(
+            mac => statusReports[mac].ipv6Address.toLowerCase() === query,
+          )
+        : null;
       if (ipMatch) {
-        const ipMatchNode = Object.values(nodeMap).find(
+        const ipMatchNode = objectValuesTypesafe<NodeType>(nodeMap).find(
           node => node.mac_addr === ipMatch,
         );
         if (ipMatchNode) {
@@ -146,7 +174,9 @@ class TgMapboxGeocoder extends React.Component {
       let searchResult = this.searchInMap(
         query,
         linkMap,
-        link => link.link_type !== LinkType.ETHERNET,
+        link =>
+          convertType<LinkType & LinkMeta>(link).link_type !==
+          LinkTypeValueMap.ETHERNET,
       );
       if (!searchResult.el) {
         // No results, so retry with wired links
@@ -156,8 +186,8 @@ class TgMapboxGeocoder extends React.Component {
       const {el, matchIdx, matchLen} = searchResult;
       if (el) {
         // Fake location = midpoint of link
-        const aNode = nodeMap[el.a_node_name];
-        const zNode = nodeMap[el.z_node_name];
+        const aNode = nodeMap[convertType<LinkType>(el).a_node_name];
+        const zNode = nodeMap[convertType<LinkType>(el).z_node_name];
         const aLocation = siteMap[aNode.site_name].location;
         const zLocation = siteMap[zNode.site_name].location;
         const location = {...aLocation};
@@ -245,19 +275,5 @@ class TgMapboxGeocoder extends React.Component {
     );
   }
 }
-
-TgMapboxGeocoder.propTypes = {
-  classes: PropTypes.object.isRequired,
-  accessToken: PropTypes.string.isRequired,
-  mapRef: PropTypes.object,
-  onSelectFeature: PropTypes.func.isRequired,
-
-  // related to topology elements
-  onSelectTopologyElement: PropTypes.func,
-  nodeMap: PropTypes.object,
-  linkMap: PropTypes.object,
-  siteMap: PropTypes.object,
-  statusReports: PropTypes.object,
-};
 
 export default withStyles(styles)(TgMapboxGeocoder);

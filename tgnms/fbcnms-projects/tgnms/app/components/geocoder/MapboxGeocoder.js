@@ -2,17 +2,24 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Paper from '@material-ui/core/Paper';
-import PropTypes from 'prop-types';
 import React from 'react';
 import SearchBar from '../common/SearchBar';
 import axios from 'axios';
+import mapboxgl from 'mapbox-gl';
+import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {
+  Feature,
+  Result,
+} from '../../../../inventory/app/components/map/geocoder/MapGeocoder';
 
 const styles = {
   root: {
@@ -27,11 +34,34 @@ const styles = {
   },
 };
 
-class MapboxGeocoder extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  accessToken: string,
+  mapRef: ?mapboxgl.Map,
+  onSelectFeature: Feature => any,
+  getCustomResults: string => any,
+  shouldSearchPlaces: (Array<Result>) => any,
+  onRenderResult: (Object, () => any) => any,
+  apiEndpoint: string,
+  searchDebounceMs: number,
+};
+
+type State = {
+  value: string,
+  isLoading: boolean,
+  results: Array<{feature: Object}>,
+};
+
+class MapboxGeocoder extends React.Component<Props, State> {
   state = {
     value: '',
     isLoading: false,
     results: [], // {feature: obj}, or custom structures via getCustomResults()
+  };
+
+  static defaultProps = {
+    apiEndpoint: 'https://api.mapbox.com/geocoding/v5/mapbox.places/',
+    searchDebounceMs: 200,
   };
 
   getResults = query => {
@@ -65,7 +95,7 @@ class MapboxGeocoder extends React.Component {
       access_token: accessToken,
       ...this.getProximity(),
     };
-    const encodedParams = Object.entries(params)
+    const encodedParams = objectEntriesTypesafe<string, string>(params)
       .map(kv => kv.map(encodeURIComponent).join('='))
       .join('&');
     const uri =
@@ -181,33 +211,5 @@ class MapboxGeocoder extends React.Component {
     );
   }
 }
-
-MapboxGeocoder.propTypes = {
-  classes: PropTypes.object.isRequired,
-  accessToken: PropTypes.string.isRequired,
-  mapRef: PropTypes.object,
-  onSelectFeature: PropTypes.func.isRequired,
-
-  // Mapbox geocoding API: https://www.mapbox.com/api-documentation/#geocoding
-  apiEndpoint: PropTypes.string,
-
-  // Debounce searches at this interval
-  searchDebounceMs: PropTypes.number,
-
-  // (query : str) => results : arr of obj
-  getCustomResults: PropTypes.func,
-
-  // If getCustomResults is defined, should we search for default places?
-  // (customResults : arr of obj) => bool
-  shouldSearchPlaces: PropTypes.func,
-
-  // (result : obj, handleClearInput : func) => <ListItem> or null
-  onRenderResult: PropTypes.func,
-};
-
-MapboxGeocoder.defaultProps = {
-  apiEndpoint: 'https://api.mapbox.com/geocoding/v5/mapbox.places/',
-  searchDebounceMs: 200,
-};
 
 export default withStyles(styles)(MapboxGeocoder);

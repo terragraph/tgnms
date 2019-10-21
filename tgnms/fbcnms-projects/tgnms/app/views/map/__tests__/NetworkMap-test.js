@@ -22,6 +22,10 @@ beforeEach(() => {
   initWindowConfig();
 });
 
+jest.mock('mapbox-gl', () => ({
+  Map: () => ({}),
+}));
+
 const commonProps = {
   /*
    * NetworkMap only uses bounds on the networkConfig passed as props.
