@@ -106,6 +106,7 @@ app.use('/nodelogs', require('../server/nodelogs/routes'));
 app.use('/translations', require('../server/translations/routes'));
 app.use('/websockets', require('../server/websockets/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
+app.use('/healthcheck', require('../server/healthcheck/routes'));
 
 // First-time stuff
 topologyPeriodic.startPeriodicTasks();
@@ -223,14 +224,6 @@ app.get('*', (req, res) => {
   } catch (error) {
     logger.error('Unable to run migrations/seeds:', error);
   }
-  try {
-    // Load network list
-    await reloadInstanceConfig();
-    // Refresh all topologies
-    await refreshTopologies();
-  } catch (error) {
-    logger.error('Unable to load initial network list:', error);
-  }
 
   app.listen(port, '', err => {
     if (err) {
@@ -245,6 +238,15 @@ app.get('*', (req, res) => {
     }
     logger.info('=========> LISTENING ON PORT %s', port);
   });
+
+  try {
+    // Load network list
+    await reloadInstanceConfig();
+    // Refresh all topologies
+    await refreshTopologies();
+  } catch (error) {
+    logger.error('Unable to load initial network list:', error);
+  }
 })();
 
 function configureWebpackSmartMiddleware() {

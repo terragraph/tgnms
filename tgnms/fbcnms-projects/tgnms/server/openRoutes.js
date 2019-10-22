@@ -12,6 +12,7 @@ export default [
   '/static/dist/vendor',
   '/static/dist/login',
   '/mobileapp/clientconfig',
+  '/healthcheck',
   // protected by middleware/otp
   '/static/tg-binaries',
   '/static/css',
