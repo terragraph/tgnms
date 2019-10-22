@@ -29,7 +29,6 @@ DEFINE_string(
     kafka_link_stats_group_id,
     "health_service",
     "Kafka link stats group id");
-DEFINE_double(fw_uptime_slope, 39, "Expected counter rate for fw_uptime key");
 
 using apache::thrift::SimpleJSONSerializer;
 using std::chrono::duration_cast;
@@ -59,6 +58,8 @@ void NetworkHealthService::consume(const std::string& topicName) {
   cppkafka::Configuration kafkaConfig = {
       {"metadata.broker.list", brokerEndpointList_},
       {"group.id", FLAGS_kafka_link_stats_group_id},
+      // necessary for a single thread to keep up with a few hundred nodes
+      {"enable.auto.commit", true},
   };
   folly::Optional<cppkafka::TopicPartitionList> assignedPartitionList{
       folly::none};
@@ -98,14 +99,7 @@ void NetworkHealthService::consume(const std::string& topicName) {
         }
       } else {
         const std::string statMsg = msg.get_payload();
-        if (assignedPartitionList.hasValue()) {
-          VLOG(2) << "Topic: " << topicName
-                  << ", group: " << *assignedPartitionList
-                  << ", msg: " << statMsg;
-        } else {
-          VLOG(2) << "Topic: " << topicName << ", msg: " << statMsg;
-        }
-        // Decode JSON and add to Prometheus queue
+        // Decode stat JSON
         auto stat =
             SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
                 statMsg);
@@ -115,9 +109,18 @@ void NetworkHealthService::consume(const std::string& topicName) {
         // skip non-health metrics
         if (!healthKeys_.count(keyName)) {
           VLOG(4) << "Dropping non-health key: " << keyName;
-          kafkaConsumer.commit(msg);
           continue;
         }
+        if (assignedPartitionList.hasValue()) {
+          VLOG(2) << "Topic: " << topicName
+                  << ", group: " << *assignedPartitionList
+                  << ", msg: " << statMsg << ", delay: "
+                  << (StatsUtils::getDurationString(
+                         StatsUtils::getTimeInMs() / 1000 - stat.timestamp));
+        } else {
+          VLOG(2) << "Topic: " << topicName << ", msg: " << statMsg;
+        }
+
         std::string macAddr = stat.entity;
         std::transform(
             macAddr.begin(), macAddr.end(), macAddr.begin(), ::tolower);
@@ -126,7 +129,6 @@ void NetworkHealthService::consume(const std::string& topicName) {
             metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
         if (!nodeKeyInfo) {
           VLOG(1) << "No cache for: " << macAddr << "/" << keyName;
-          kafkaConsumer.commit(msg);
           continue;
         }
         if (nodeKeyInfo->topologyName.empty()) {
@@ -134,13 +136,19 @@ void NetworkHealthService::consume(const std::string& topicName) {
           continue;
         }
         // record sample for batch processing
-        linkHealthStats_[nodeKeyInfo->topologyName][nodeKeyInfo->linkName]
-                        [keyName][nodeKeyInfo->linkDirection][stat.timestamp] =
-                            stat.value;
-        // Mark the message as committed
-        // We can miss processing part of the queue this way, so we need to be
-        // careful to process as much data prior to the commit
-        kafkaConsumer.commit(msg);
+        LinkStatsByDirection* linkStatsByDirection =
+            &linkHealthStats_[nodeKeyInfo->topologyName][nodeKeyInfo->linkName];
+        LinkStatsByTime* linkStats;
+        if (nodeKeyInfo->linkDirection == stats::LinkDirection::LINK_A) {
+          linkStats = &linkStatsByDirection->linkA;
+        } else {
+          linkStats = &linkStatsByDirection->linkZ;
+        }
+        if (keyName == "fw_uptime") {
+          (*linkStats)[stat.timestamp].fwUptime = stat.value;
+        } else if (keyName == "link_avail") {
+          (*linkStats)[stat.timestamp].linkAvail = stat.value;
+        }
       }
     }
     time_t nowInMs = StatsUtils::getTimeInMs();
@@ -166,145 +174,36 @@ void NetworkHealthService::linkHealthUpdater() {
     const std::string& topologyName = topologyNamePair.first;
     for (auto& linkPair : topologyNamePair.second) {
       const std::string& linkName = linkPair.first;
-      for (auto& shortNamePair : linkPair.second) {
-        // only use fw_uptime
-        if (shortNamePair.first != "fw_uptime") {
-          continue;
+      LinkStatsByDirection& linkStats = linkPair.second;
+      // TODO - use both sides of the link for health
+      if (!linkStats.linkA.empty()) {
+        folly::Optional<stats::EventDescription> lastEvent;
+        // find the last event from DB
+        auto linkNameIt = linkState->find(linkName);
+        if (linkNameIt != linkState->end()) {
+          auto linkDirIt = linkNameIt->second.find(stats::LinkDirection::LINK_A);
+          if (linkDirIt != linkNameIt->second.end()) {
+            lastEvent = linkDirIt->second;
+          }
         }
-        // process events separately for each link direction
-        for (auto& linkDirPair : shortNamePair.second) {
-          processFwUptimeHealth(
-              topologyName,
-              linkName,
-              linkDirPair.first /* link direction */,
-              linkDirPair.second /* data points */,
-              *linkState /* last known link state from DB */);
+        auto eventList =
+            NetworkHealthUtils::processLinkStats(lastEvent, linkStats.linkA);
+        if (lastEvent) {
+          LOG(INFO) << "Last event: " << lastEvent->dbId;
+        } else {
+          LOG(INFO) << "No last event.";
         }
+        LOG(INFO) << "Event list for " << linkName;
+        for (const auto& linkEvent : eventList) {
+          LOG(INFO) << "\tEvent: " << linkEvent.startTime << " <-> "
+                    << linkEvent.endTime << " | "
+                    << _LinkStateType_VALUES_TO_NAMES.at(linkEvent.linkState);
+        }
+        NetworkHealthUtils::updateLinkEventRecords(
+            topologyName, linkName, stats::LinkDirection::LINK_A, eventList);
       }
     }
   }
-}
-
-bool NetworkHealthService::markLinkOnline(
-    const std::string& topologyName,
-    const std::string& linkName,
-    const stats::LinkDirection& linkDir,
-    const LinkStateMap& linkStateMap,
-    const stats::LinkStateType& linkState,
-    const long counterValue,
-    const time_t startTs,
-    const time_t endTs) noexcept {
-  // no data for link
-  folly::Optional<stats::EventDescription> lastState;
-  // fetch last state
-  auto lastLinkState = linkStateMap.find(linkName);
-  if (lastLinkState != linkStateMap.end()) {
-    auto lastLinkDirState = lastLinkState->second.find(linkDir);
-    if (lastLinkDirState != lastLinkState->second.end()) {
-      lastState = lastLinkDirState->second;
-    }
-  }
-  auto mysqlInstance = MySqlClient::getInstance();
-  if (!lastState) {
-    // insert new event
-    mysqlInstance->addLinkState(
-        topologyName,
-        linkName,
-        linkDir,
-        stats::LinkStateType::LINK_UP,
-        startTs,
-        endTs);
-    return true;
-  } else {
-    // event exists for this link + direction
-    const time_t tsDiff = endTs - lastState->endTime;
-    const long expectedValue = tsDiff * FLAGS_fw_uptime_slope;
-    // end ts already newer, skip
-    if (tsDiff <= 0) {
-      return false;
-    }
-    // update existing if covers period since last end time
-    if (counterValue > expectedValue) {
-      mysqlInstance->updateLinkState(lastState->dbId, endTs);
-    } else {
-      // insert new if not fully covered window
-      mysqlInstance->addLinkState(
-          topologyName,
-          linkName,
-          linkDir,
-          stats::LinkStateType::LINK_UP,
-          startTs,
-          endTs);
-      return true;
-    }
-  }
-  return false;
-}
-
-void NetworkHealthService::processFwUptimeHealth(
-    const std::string& topologyName,
-    const std::string& linkName,
-    const stats::LinkDirection& linkDirection,
-    std::map<time_t /* ts */, double /* value */>& fwUptimeDatapoints,
-    const LinkStateMap& linkState) {
-  if (fwUptimeDatapoints.empty()) {
-    return;
-  }
-  auto mysqlInstance = MySqlClient::getInstance();
-  // fast-track the update by only using the last value when possible
-  if (fwUptimeDatapoints.size() >= 2) {
-    const double tsDiff =
-        (--fwUptimeDatapoints.end())->first - fwUptimeDatapoints.begin()->first;
-    const double lastValue = (--fwUptimeDatapoints.end())->second;
-    const double valueDiff = lastValue - fwUptimeDatapoints.begin()->second;
-    const double valueRate = valueDiff / tsDiff;
-    // is this check good enough? or should we ensure no rolls too?
-    if (valueRate >= FLAGS_fw_uptime_slope) {
-      const time_t startTs =
-          (--fwUptimeDatapoints.end())->first /* latest time */ -
-          lastValue / FLAGS_fw_uptime_slope;
-        bool needsRefresh = markLinkOnline(
-          topologyName,
-          linkName,
-          linkDirection,
-          linkState,
-          stats::LinkStateType::LINK_UP,
-          lastValue /* counter value */,
-          startTs,
-          (--fwUptimeDatapoints.end())->first /* end ts */);
-      fwUptimeDatapoints.clear();
-      // we aren't updating the table cache after adding an entry, so
-      // subsequent writes could generate duplicate ids
-      return;
-    }
-  }
-
-  // loop over each <ts, value> pair to determine if the interval
-  // was online
-  for (const auto& timePair : fwUptimeDatapoints) {
-    const time_t ts = timePair.first;
-    const double counterValue = (double)timePair.second;
-    if (counterValue == 0) {
-      // link not online, nothing to do
-      continue;
-    }
-    const time_t startTs = ts - (counterValue / FLAGS_fw_uptime_slope);
-    bool needsRefresh = markLinkOnline(
-        topologyName,
-        linkName,
-        linkDirection,
-        linkState,
-        stats::LinkStateType::LINK_UP,
-        counterValue,
-        startTs,
-        ts /* end ts */);
-    if (needsRefresh) {
-      // exit function to force db refresh before next run
-      return;
-    }
-  }
-  // clean-up records
-  fwUptimeDatapoints.clear();
 }
 
 } // namespace gorilla

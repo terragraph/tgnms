@@ -25,8 +25,6 @@ set(QUERY_SRCS
     ApiServiceClient.cpp
     ApiServiceClient.h
     CurlUtil.h
-    EventProcessor.cpp
-    EventProcessor.h
     KafkaStatsService.cpp
     KafkaStatsService.h
     MetricCache.cpp
@@ -35,6 +33,8 @@ set(QUERY_SRCS
     MySqlClient.h
     NetworkHealthService.cpp
     NetworkHealthService.h
+    NetworkHealthUtils.cpp
+    NetworkHealthUtils.h
     PrometheusUtils.cpp
     PrometheusUtils.h
     QueryServiceFactory.cpp
@@ -54,8 +54,6 @@ set(QUERY_SRCS
 )
 
 set(QUERY_HANDLER_SRCS
-    handlers/EventsHandler.cpp
-    handlers/EventsHandler.h
     handlers/LogsWriteHandler.cpp
     handlers/LogsWriteHandler.h
     handlers/NotFoundHandler.cpp
@@ -108,5 +106,8 @@ target_link_libraries(
     ${SNAPPY}
 )
 
-# TODO - fix these
-#add_subdirectory(tests)
+# Prevent overriding the parent project's compiler/linker
+# settings on Windows
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+add_subdirectory(tests)

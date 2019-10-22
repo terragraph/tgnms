@@ -9,7 +9,6 @@
 
 #include "QueryServiceFactory.h"
 
-#include "handlers/EventsHandler.h"
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
 #include "handlers/PrometheusMetricsHandler.h"
@@ -42,12 +41,6 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     return new LogsWriteHandler();
   } else if (path == "/wireless_controller_stats") {
     return new WirelessControllerStatsHandler();
-  } else if (path == "/events_query") {
-    // The true input indicates that we should fetch the events instead
-    // of adding new ones to the database
-    return new EventsHandler(true);
-  } else if (path == "/events_writer") {
-    return new EventsHandler(false);
   } else if (path == "/metrics/30s") {
     return new PrometheusMetricsHandler(30);
   } else if (path == "/metrics/1s") {

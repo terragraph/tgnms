@@ -129,43 +129,50 @@ void KafkaStatsService::start(const std::string& topicName) {
       continue;
     }
     // poll for new messages
-    cppkafka::Message msg = kafkaConsumer.poll(timeoutMs /* 1 second */);
-    if (msg) {
-      if (msg.get_error()) {
-        // Ignore EOF notifications from rdkafka
-        if (!msg.is_eof()) {
-          LOG(ERROR) << "[" << consumerId_
-                     << "] Received error notification: " << msg.get_error();
-        }
-      } else {
-        const std::string statMsg = msg.get_payload();
-        if (assignedPartitionList.hasValue()) {
-          VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
-                  << ", group: " << *assignedPartitionList
-                  << ", msg: " << statMsg;
+    try {
+      cppkafka::Message msg = kafkaConsumer.poll(timeoutMs /* 1 second */);
+      if (msg) {
+        if (msg.get_error()) {
+          // Ignore EOF notifications from rdkafka
+          if (!msg.is_eof()) {
+            LOG(ERROR) << "[" << consumerId_
+                       << "] Received error notification: " << msg.get_error();
+          }
         } else {
-          VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
-                  << ", msg: " << statMsg;
-        }
-        // Decode JSON and add to Prometheus queue
-        auto stat =
-            SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
-                statMsg);
-        statQueue.push_back(stat);
-        // generate a new stat for the link stats pipeline if a friendly/short
-        // name exists for this metric
-        auto friendlyMetric = getFriendlyMetric(stat);
-        if (friendlyMetric) {
-          VLOG(2) << "Adding friendly metric: " << friendlyMetric->key
-                  << " for " << stat.key;
-          statQueue.push_back(*friendlyMetric);
-          // produce message back to link stats topic
-          std::string friendlyMetricStr =
-              SimpleJSONSerializer::serialize<std::string>(*friendlyMetric);
-          linkStatsBuilder.payload(friendlyMetricStr);
-          linkStatsProducer.produce(linkStatsBuilder);
+          const std::string statMsg = msg.get_payload();
+          if (assignedPartitionList.hasValue()) {
+            VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
+                    << ", group: " << *assignedPartitionList
+                    << ", msg: " << statMsg;
+          } else {
+            VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
+                    << ", msg: " << statMsg;
+          }
+          // Decode JSON and add to Prometheus queue
+          auto stat =
+              SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
+                  statMsg);
+          statQueue.push_back(stat);
+          // generate a new stat for the link stats pipeline if a friendly/short
+          // name exists for this metric
+          auto friendlyMetric = getFriendlyMetric(stat);
+          if (friendlyMetric) {
+            VLOG(2) << "Adding friendly metric: " << friendlyMetric->key
+                    << ", key: " << stat.key
+                    << ", ts: " << friendlyMetric->timestamp;
+            statQueue.push_back(*friendlyMetric);
+            // produce message back to link stats topic
+            std::string friendlyMetricStr =
+                SimpleJSONSerializer::serialize<std::string>(*friendlyMetric);
+            linkStatsBuilder.payload(friendlyMetricStr);
+            linkStatsProducer.produce(linkStatsBuilder);
+          }
         }
       }
+    } catch (const cppkafka::HandleException& ex) {
+      LOG(ERROR) << "Kafka error: " << ex.what();
+    } catch (const std::exception& ex) {
+      LOG(ERROR) << "Unknown error: " << ex.what();
     }
     time_t batchTimeElapsed = StatsUtils::getTimeInMs() - lastRun;
     // update last time batch ran

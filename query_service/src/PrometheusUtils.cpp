@@ -152,8 +152,6 @@ bool PrometheusUtils::writeNodeStats(
             PrometheusConsts::LABEL_SITE_NAME,
             nodeInfo->second.site_name)};
     std::string prometheusKeyName = formatPrometheusKeyName(keyName);
-    metricList.emplace_back(Metric(
-        prometheusKeyName, stat.timestamp * 1000, labelTags, stat.value));
     // extra meta-data for short keys
     auto nodeKeyCache = metricCacheInstance->getNodeMetricCache(macAddr);
     if (nodeKeyCache) {
@@ -175,6 +173,8 @@ bool PrometheusUtils::writeNodeStats(
         }
       }
     }
+    metricList.emplace_back(Metric(
+        prometheusKeyName, stat.timestamp * 1000, labelTags, stat.value));
   }
   return enqueueMetrics(intervalSec, metricList);
 }

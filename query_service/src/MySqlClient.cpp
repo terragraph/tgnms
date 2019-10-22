@@ -362,99 +362,6 @@ bool MySqlClient::writeScanResponses(
   return true;
 }
 
-void MySqlClient::addEvents(
-    const query::NodeEvents& nodeEvents,
-    const std::string& topologyName) {
-  auto stmt =
-      "INSERT INTO `event_log` "
-      "(`mac`, `name`, `topologyName`, `source`, `timestamp`, `reason`, "
-      "`details`, `category`, `level`, `subcategory`) "
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  auto connection = openConnection();
-  if (!connection) {
-    LOG(ERROR) << "Unable to open MySQL connection.";
-    return;
-  }
-  try {
-    for (const auto& event : nodeEvents.events) {
-      auto category = folly::get_default(
-          query::_EventCategory_VALUES_TO_NAMES, event.category, "UNKNOWN");
-      auto subcategory = folly::get_default(
-          query::_EventSubcategory_VALUES_TO_NAMES,
-          event.subcategory,
-          "UNKNOWN");
-      auto level = folly::get_default(
-          query::_EventLevel_VALUES_TO_NAMES, event.level, "UNKNOWN");
-      std::unique_ptr<sql::PreparedStatement> prep_stmt(
-          (*connection)->prepareStatement(std::move(stmt)));
-      prep_stmt->setString(1, nodeEvents.mac);
-      prep_stmt->setString(2, nodeEvents.name);
-      prep_stmt->setString(3, topologyName);
-      prep_stmt->setString(4, event.source);
-      prep_stmt->setUInt(5, event.timestamp);
-      prep_stmt->setString(6, event.reason);
-      prep_stmt->setString(7, event.details);
-      prep_stmt->setString(8, category);
-      prep_stmt->setString(9, level);
-      prep_stmt->setString(10, subcategory);
-      prep_stmt->execute();
-    }
-  } catch (sql::SQLException& e) {
-    LOG(ERROR) << "addEvents ERR: " << e.what();
-    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
-  }
-}
-
-folly::dynamic MySqlClient::getEvents(
-    const query::EventsQueryRequest& request) {
-  auto eventQuery = folly::sformat(
-      "SELECT * FROM `event_log` WHERE "
-      "topologyName = \"{}\" "
-      "{}{}{}"
-      "AND timestamp >= {} "
-      "ORDER BY id DESC LIMIT {}",
-      request.topologyName,
-      request.category.empty()
-          ? ""
-          : folly::sformat("AND category = \"{}\" ", request.category),
-      request.subcategory.empty()
-          ? ""
-          : folly::sformat("AND subcategory = \"{}\" ", request.subcategory),
-      request.level.empty()
-          ? ""
-          : folly::sformat("AND level = \"{}\" ", request.level),
-      request.timestamp,
-      request.maxResults);
-
-  folly::dynamic events = folly::dynamic::array;
-  auto connection = openConnection();
-  if (!connection) {
-    LOG(ERROR) << "Unable to open MySQL connection.";
-    return events;
-  }
-  try {
-    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
-    std::unique_ptr<sql::ResultSet> res(
-        stmt->executeQuery(std::move(eventQuery)));
-    while (res->next()) {
-      events.push_back(
-          folly::dynamic::object("mac", res->getString("mac").asStdString())(
-              "name", res->getString("name").asStdString())(
-              "source", res->getString("source").asStdString())(
-              "timestamp", res->getInt("timestamp"))(
-              "reason", res->getString("reason").asStdString())(
-              "details", res->getString("details").asStdString())(
-              "category", res->getString("category").asStdString())(
-              "subcategory", res->getString("subcategory").asStdString())(
-              "level", res->getString("level").asStdString()));
-    }
-  } catch (sql::SQLException& e) {
-    LOG(ERROR) << "getEvents ERR: " << e.what();
-    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
-  }
-  return events;
-}
-
 folly::Optional<LinkStateMap>
 MySqlClient::refreshLatestLinkState() noexcept {
   try {
@@ -492,11 +399,14 @@ MySqlClient::refreshLatestLinkState() noexcept {
           : stats::LinkDirection::LINK_Z;
       long startTs = res->getInt("startTs");
       long endTs = res->getInt("endTs");
+      std::string eventType = res->getString("eventType");
       // add link metric to temp map
       stats::EventDescription linkStateDescr;
       linkStateDescr.dbId = keyId;
-      // convert from DB string enum
-      linkStateDescr.linkState = stats::LinkStateType::LINK_UP;
+      // convert from DB string enum('LINK_UP','LINK_UP_DATADOWN')
+      linkStateDescr.linkState = eventType == "LINK_UP"
+          ? stats::LinkStateType::LINK_UP
+          : stats::LinkStateType::LINK_UP_DATADOWN;
       linkStateDescr.startTime = startTs;
       linkStateDescr.endTime = endTs;
       linkStateMap[linkName][linkDir] = linkStateDescr;
@@ -511,6 +421,7 @@ MySqlClient::refreshLatestLinkState() noexcept {
 
 void
 MySqlClient::updateLinkState(const long keyId, const time_t endTs) noexcept {
+  VLOG(2) << "updateLinkState(" << keyId << ", " << endTs << ")";
   auto stmt =
       "UPDATE `link_event` SET `endTs` = FROM_UNIXTIME(?) WHERE `id` = ?";
   auto connection = openConnection();
@@ -542,6 +453,11 @@ MySqlClient::addLinkState(
       "INSERT INTO `link_event` "
       "(`topologyName`, `linkName`, `linkDirection`, `eventType`, `startTs`, "
       "`endTs`) VALUES (?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?))";
+  VLOG(2) << "addLinkState(" << topologyName << ", " << linkName << ", "
+          << (linkDir == stats::LinkDirection::LINK_A ? "A" : "Z") << ", "
+          << folly::get_default(
+                 stats::_LinkStateType_VALUES_TO_NAMES, linkState, "UNKNOWN")
+          << ", " << startTs << ", " << endTs << ")";
   auto connection = openConnection();
   if (!connection) {
     LOG(ERROR) << "Unable to open MySQL connection.";
