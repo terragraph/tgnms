@@ -7,7 +7,7 @@
 
 import React from 'react';
 import {BinaryStarFsmStateValueMap} from '../shared/types/Controller';
-import {TopologyElementType} from './constants/NetworkConstants';
+import {TopologyElementType, WAC_TYPES} from './constants/NetworkConstants';
 import type {
   LinkType,
   LocationType,
@@ -98,8 +98,8 @@ export type OfflineWhiteListType = {
 };
 
 export type WirelessController = {
-  id: number,
-  type: 'ruckus',
+  id?: number,
+  type: $Values<typeof WAC_TYPES>,
   url: string,
   username: string,
   password: string,
@@ -132,9 +132,10 @@ export type IgnitionCandidate = {|
 export type E2EController = {|
   api_ip: string,
   api_port: number,
-  controller_online: boolean,
+  controller_online?: boolean,
+  e2e_ip?: string,
   e2e_port: number,
-  id: number,
+  id?: number,
 |};
 
 export type ControllerHAState = $Values<typeof BinaryStarFsmStateValueMap>;

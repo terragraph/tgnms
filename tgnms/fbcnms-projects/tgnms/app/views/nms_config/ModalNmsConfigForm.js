@@ -2,16 +2,17 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
 import MaterialModal from '../../components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkListContext from '../../NetworkListContext';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import isIp from 'is-ip';
+import {WAC_TYPES} from '../../constants/NetworkConstants';
 import {
   createNumericInput,
   createSelectInput,
@@ -20,6 +21,20 @@ import {
 } from '../../helpers/FormHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {NetworkListType} from '../../NetworkListBase';
+
+type InputType = {
+  _heading?: string,
+  autoFocus?: boolean,
+  func: (InputType, State, Object) => any,
+  label?: string,
+  menuItems?: Array<Object>,
+  placeholder?: ?string,
+  required?: boolean,
+  step?: number,
+  value?: string,
+};
 
 const styles = theme => ({
   button: {
@@ -49,11 +64,43 @@ const DEFAULT_CONTROLLER_CONFIG = Object.freeze({
   e2e_ip: '',
 });
 
-// TODO - define this elsewhere?
-const WAC_TYPES = Object.freeze({
-  none: 'none',
-  ruckus: 'ruckus',
-});
+type Props = {
+  classes: {[string]: string},
+  open: boolean,
+  networkConfig: NetworkListType,
+  onClose: () => any,
+  onCreateNetwork: (
+    $Shape<NetworkListType>,
+    () => any,
+    ?({}) => any,
+    ?({}) => any,
+  ) => any,
+  onEditNetwork: (
+    $Shape<NetworkListType>,
+    () => any,
+    ?({}) => any,
+    ?({}) => any,
+  ) => any,
+  networkList: NetworkListType,
+  type: $Values<typeof FormType>,
+};
+
+type State = {
+  network: string,
+  primaryApiIp: string,
+  primaryE2eIp: string,
+  primaryApiPort: number,
+  primaryE2ePort: number,
+  backupApiIp: string,
+  backupE2eIp: string,
+  backupApiPort: number,
+  backupE2ePort: number,
+  wacType: $Values<typeof WAC_TYPES>,
+  wacUrl: string,
+  wacUsername: string,
+  wacPassword: string,
+  formErrors: {},
+};
 
 class ModalNmsConfigForm extends React.Component<Props, State> {
   constructor(props) {
@@ -85,9 +132,13 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       backupE2eIp: networkConfig.backup.e2e_ip || '',
       backupApiPort: networkConfig.backup.api_port,
       backupE2ePort: networkConfig.backup.e2e_port,
-      wacType: networkConfig.wireless_controller?.type || WAC_TYPES.none,
-      wacUrl: networkConfig.wireless_controller?.url || '',
-      wacUsername: networkConfig.wireless_controller?.username || '',
+      wacType: networkConfig.wireless_controller.type || WAC_TYPES.none,
+      wacUrl: networkConfig.wireless_controller
+        ? networkConfig.wireless_controller.url
+        : '',
+      wacUsername: networkConfig.wireless_controller
+        ? networkConfig.wireless_controller.username
+        : '',
       wacPassword: '' /* we don't pass this from the server */,
 
       formErrors: {},
@@ -183,6 +234,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
 
     // Construct request
     const data = {
+      id: -1,
       name: network.trim(),
       primary: {
         api_ip: primaryApiIp ? primaryApiIp.trim() : '',
@@ -237,7 +289,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
         : '?';
 
     // Create inputs
-    const inputs = [
+    const inputs: Array<InputType> = [
       {
         func: createTextInput,
         label: 'Network',
@@ -245,7 +297,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
         required: true,
         autoFocus: true,
       },
-      {_heading: 'Primary Controller'},
+      {_heading: 'Primary Controller', func: () => null},
       {
         func: createTextInput,
         label: 'Primary API IPv6',
@@ -272,7 +324,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
         step: 1,
         required: true,
       },
-      {_heading: 'Backup Controller'},
+      {_heading: 'Backup Controller', func: () => null},
       {
         func: createTextInput,
         label: 'Backup API IPv6',
@@ -295,7 +347,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
         value: 'backupE2ePort',
         step: 1,
       },
-      {_heading: 'Wireless AP Controller'},
+      {_heading: 'Wireless AP Controller', func: () => null},
       {
         func: createSelectInput,
         label: 'AP Type',
@@ -354,7 +406,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
                   {input.func({...input}, this.state, this.setState.bind(this))}
                   {formErrors.hasOwnProperty(input.value) ? (
                     <Typography variant="subtitle2" className={classes.red}>
-                      {formErrors[input.value]}
+                      {input.value ? formErrors[input.value] : null}
                     </Typography>
                   ) : null}
                 </React.Fragment>
@@ -382,16 +434,5 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
     );
   };
 }
-
-ModalNmsConfigForm.propTypes = {
-  classes: PropTypes.object.isRequired,
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  type: PropTypes.oneOf(Object.keys(FormType)),
-  networkConfig: PropTypes.object,
-  onCreateNetwork: PropTypes.func.isRequired,
-  onEditNetwork: PropTypes.func.isRequired,
-  networkList: PropTypes.object,
-};
 
 export default withStyles(styles, {withTheme: true})(ModalNmsConfigForm);

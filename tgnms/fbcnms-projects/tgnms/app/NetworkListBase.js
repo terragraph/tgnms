@@ -22,7 +22,7 @@ import {withTranslation} from 'react-i18next';
 import type {NetworkConfig} from './NetworkContext';
 import type {NetworkList} from './NetworkListContext';
 
-type NetworkListType = NetworkConfig & {name: string};
+export type NetworkListType = NetworkConfig & {name: string};
 
 // Pick a network if no network is requested in URL
 // This will choose any alive controller, otherwise redirect to /config
