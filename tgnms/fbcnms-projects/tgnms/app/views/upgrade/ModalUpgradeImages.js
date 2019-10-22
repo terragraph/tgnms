@@ -15,7 +15,6 @@ import LinkIcon from '@material-ui/icons/Link';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MaterialModal from '../../components/common/MaterialModal';
-import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalImageList from './ModalImageList';
 import React from 'react';
@@ -33,6 +32,11 @@ import {
   UploadStatus,
 } from '../../constants/UpgradeConstants';
 import {
+  DownloadStatus as SoftwarePortalDownloadStatus,
+  getWebSocketGroupName,
+} from '../../../shared/dto/SoftwarePortalDownload';
+import {WebSocketMessage} from '../../../shared/dto/WebSockets';
+import {
   apiServiceRequest,
   apiServiceRequestWithConfirmation,
   getErrorTextFromE2EAck,
@@ -42,15 +46,15 @@ import {
   fetchUpgradeImages,
 } from '../../helpers/UpgradeHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
-
+import {useWebSocketGroup} from '../../WebSocketContext';
 import {withStyles} from '@material-ui/core/styles';
+import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
+import type {
+  SoftwarePortalDownloadMessage,
+  ImageIdentifier as SoftwarePortalImageIdentifier,
+} from '../../../shared/dto/SoftwarePortalDownload';
 
 import type {UpgradeImageType} from '../../../shared/types/Controller';
-
-export type SoftwareImageType = UpgradeImageType & {
-  versionNumber?: string,
-  sha1?: string,
-};
 
 const styles = theme => ({
   dialogTitle: {
@@ -82,6 +86,10 @@ const styles = theme => ({
   softwareImageHeader: {
     paddingTop: '12px',
   },
+  listItemIcon: {
+    marginRight: theme.spacing(2),
+    minWidth: 'unset',
+  },
 });
 
 type Props = {|
@@ -91,12 +99,11 @@ type Props = {|
 
 type State = {|
   isOpen: boolean,
-  menuAnchorEl: ?HTMLAnchorElement,
-  menuImage: ?SoftwareImageType,
   upgradeImages: Array<SoftwareImageType>,
   softwarePortalImages: Array<SoftwareImageType>,
   uploadProgress: number,
   uploadStatus: string,
+  softwarePortalUpload: ?SoftwarePortalImageIdentifier,
 |};
 
 class ModalUpgradeImages extends React.Component<Props, State> {
@@ -107,14 +114,12 @@ class ModalUpgradeImages extends React.Component<Props, State> {
 
   state = {
     isOpen: false,
-    menuAnchorEl: null,
-    menuImage: null,
-
     // upgrade images properties
     upgradeImages: [],
     softwarePortalImages: [],
     uploadProgress: 0,
     uploadStatus: UploadStatus.NONE,
+    softwarePortalUpload: null,
   };
 
   componentDidMount = () => {
@@ -186,24 +191,27 @@ class ModalUpgradeImages extends React.Component<Props, State> {
       });
       this.setState({uploadStatus: UploadStatus.FAILURE});
     } finally {
-      // Revert upload status to none after brief delay
-      setTimeout(() => {
-        this.setState({uploadStatus: UploadStatus.NONE});
-      }, REVERT_UPGRADE_IMAGE_STATUS);
-
-      this.handleFetchImages();
+      this.imageUploadComplete();
     }
   };
 
-  handleDeleteImage() {
+  imageUploadComplete() {
+    // Revert upload status to none after brief delay
+    setTimeout(() => {
+      this.setState({uploadStatus: UploadStatus.NONE});
+    }, REVERT_UPGRADE_IMAGE_STATUS);
+
+    this.handleFetchImages();
+  }
+
+  handleDeleteImage(image: UpgradeImageType) {
     // Delete the selected image
     const {networkName} = this.props;
-    const {menuImage} = this.state;
-    const data = {name: menuImage?.name};
+    const data = {name: image.name};
 
     apiServiceRequestWithConfirmation(networkName, 'delUpgradeImage', data, {
       desc: `The following image will be deleted from the server:
-        <p><em>${menuImage?.name || ''}</em></p>`,
+        <p><em>${image.name || ''}</em></p>`,
       descType: 'html',
       getSuccessStr: _msg => 'The image was deleted.',
       successType: 'text',
@@ -221,23 +229,55 @@ class ModalUpgradeImages extends React.Component<Props, State> {
     this.setState({isOpen: false});
   };
 
-  handleCopyMagnetURI() {
+  handleCopyMagnetURI(magnetUri: string) {
     // Copy the magnet URI for the selected image
-    copy(this.state.menuImage?.magnetUri);
+    copy(magnetUri);
   }
 
-  handleMenuClose() {
-    // Close the actions menu
-    this.setState({menuAnchorEl: null, menuImage: null});
-  }
+  handleSoftwarePortalUpload = async (image: SoftwareImageType) => {
+    const {networkName} = this.props;
+    const softwarePortalUpload: SoftwarePortalImageIdentifier = {
+      release: image.versionNumber || '',
+      name: image.fileName || '',
+      networkName: networkName,
+    };
+    const response = await axios.post(
+      '/controller/softwarePortalImage',
+      softwarePortalUpload,
+    );
+    try {
+      await apiServiceRequest(networkName, 'addUpgradeImage', response.data);
+      this.setState({
+        softwarePortalUpload,
+      });
+    } catch (err) {
+      swal({
+        type: 'error',
+        title: 'Uploading from Software Portal failed',
+        text: `Image upload command failed with the following message:\n\n${err.message}.`,
+      });
+    }
+  };
 
-  handleAnchorClick = (
-    menuAnchorEl: HTMLAnchorElement,
-    menuImage: SoftwareImageType,
-  ) => {
+  handleSoftwarePortalUploadProgress = (progress: number) => {
     this.setState({
-      menuAnchorEl,
-      menuImage,
+      uploadStatus: UploadStatus.UPLOADING,
+      uploadProgress: progress,
+    });
+  };
+
+  handleSoftwarePortalUploadFinished = () => {
+    this.setState({
+      uploadStatus: UploadStatus.SUCCESS,
+      uploadProgress: 0,
+    });
+    this.imageUploadComplete();
+  };
+
+  handleSoftwarePortalUploadError = () => {
+    this.setState({
+      uploadStatus: UploadStatus.FAILURE,
+      uploadProgress: 0,
     });
   };
 
@@ -278,7 +318,8 @@ class ModalUpgradeImages extends React.Component<Props, State> {
             <Tooltip title="Refresh List" placement="top">
               <IconButton
                 className={classNames(classes.rightIcon, classes.button)}
-                onClick={this.handleFetchImages}>
+                onClick={this.handleFetchImages}
+                data-testid="refresh-images">
                 <RefreshIcon />
               </IconButton>
             </Tooltip>
@@ -289,13 +330,7 @@ class ModalUpgradeImages extends React.Component<Props, State> {
 
   render() {
     const {classes} = this.props;
-    const {
-      menuAnchorEl,
-      isOpen,
-      upgradeImages,
-      softwarePortalImages,
-    } = this.state;
-
+    const {isOpen, upgradeImages, softwarePortalImages} = this.state;
     return (
       <div>
         <Button
@@ -308,6 +343,7 @@ class ModalUpgradeImages extends React.Component<Props, State> {
           classes={{dialogTitle: classes.dialogTitle}}
           open={isOpen}
           onClose={this.handleClose}
+          data-testid="upgrade-modal"
           modalTitle={this.renderUploadProgressBar()}
           modalContent={
             upgradeImages.length === 0 ? (
@@ -319,8 +355,28 @@ class ModalUpgradeImages extends React.Component<Props, State> {
                 <Typography variant="subtitle1">Uploaded Images</Typography>
                 <ModalImageList
                   upgradeImages={upgradeImages}
-                  checksumType="MD5"
-                  onClick={this.handleAnchorClick}
+                  menuItems={[
+                    <MenuItem
+                      key="copymagneturi"
+                      onClick={(image: UpgradeImageType) => {
+                        this.handleCopyMagnetURI(image.magnetUri);
+                      }}>
+                      <ListItemIcon classes={{root: classes.listItemIcon}}>
+                        <LinkIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Copy Magnet URI" />
+                    </MenuItem>,
+                    <MenuItem
+                      key="deleteimage"
+                      onClick={(image: UpgradeImageType) => {
+                        this.handleDeleteImage(image);
+                      }}>
+                      <ListItemIcon classes={{root: classes.listItemIcon}}>
+                        <DeleteForeverIcon className={classes.deleteIcon} />
+                      </ListItemIcon>
+                      <ListItemText primary="Delete Image" />
+                    </MenuItem>,
+                  ]}
                 />
                 {isFeatureEnabled('SOFTWARE_PORTAL_ENABLED') ? (
                   <>
@@ -332,37 +388,31 @@ class ModalUpgradeImages extends React.Component<Props, State> {
                     </Typography>
                     <ModalImageList
                       upgradeImages={softwarePortalImages}
-                      checksumType="SHA1"
-                      onClick={this.handleAnchorClick}
+                      menuItems={[
+                        <MenuItem
+                          key="handleupload"
+                          onClick={this.handleSoftwarePortalUpload}>
+                          <ListItemIcon classes={{root: classes.listItemIcon}}>
+                            <LinkIcon />
+                          </ListItemIcon>
+                          <ListItemText primary="Upload to Controller" />
+                        </MenuItem>,
+                      ]}
                     />
+                    {this.state.softwarePortalUpload && (
+                      <SoftwarePortalUploadWatcher
+                        uploadRequest={this.state.softwarePortalUpload}
+                        onUploadProgress={
+                          this.handleSoftwarePortalUploadProgress
+                        }
+                        onUploadFinished={
+                          this.handleSoftwarePortalUploadFinished
+                        }
+                        onUploadError={this.handleSoftwarePortalUploadError}
+                      />
+                    )}
                   </>
                 ) : null}
-
-                <Menu
-                  anchorEl={menuAnchorEl}
-                  open={Boolean(menuAnchorEl)}
-                  onClose={() => this.handleMenuClose()}>
-                  <MenuItem
-                    onClick={() => {
-                      this.handleCopyMagnetURI();
-                      this.handleMenuClose();
-                    }}>
-                    <ListItemIcon>
-                      <LinkIcon />
-                    </ListItemIcon>
-                    <ListItemText inset primary="Copy Magnet URI" />
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      this.handleDeleteImage();
-                      this.handleMenuClose();
-                    }}>
-                    <ListItemIcon>
-                      <DeleteForeverIcon className={classes.deleteIcon} />
-                    </ListItemIcon>
-                    <ListItemText inset primary="Delete Image" />
-                  </MenuItem>
-                </Menu>
               </>
             )
           }
@@ -378,6 +428,39 @@ class ModalUpgradeImages extends React.Component<Props, State> {
       </div>
     );
   }
+}
+
+function SoftwarePortalUploadWatcher({
+  uploadRequest,
+  onUploadProgress,
+  onUploadFinished,
+  onUploadError,
+}: {
+  uploadRequest: SoftwarePortalImageIdentifier,
+  onUploadProgress: (progress: number) => any,
+  onUploadError: () => any,
+  onUploadFinished: () => any,
+}) {
+  const groupName = React.useMemo(() => getWebSocketGroupName(uploadRequest), [
+    uploadRequest,
+  ]);
+  useWebSocketGroup(
+    groupName,
+    ({payload}: WebSocketMessage<SoftwarePortalDownloadMessage>) => {
+      if (payload.status === SoftwarePortalDownloadStatus.DOWNLOADING) {
+        const progress =
+          typeof payload.progressPct === 'number'
+            ? payload.progressPct
+            : parseFloat(payload.progressPct);
+        onUploadProgress(Math.round(progress * 100));
+      } else if (payload.status === SoftwarePortalDownloadStatus.FINISHED) {
+        onUploadFinished();
+      } else if (payload.status === SoftwarePortalDownloadStatus.ERROR) {
+        onUploadError();
+      }
+    },
+  );
+  return null;
 }
 
 export default withStyles(styles)(ModalUpgradeImages);

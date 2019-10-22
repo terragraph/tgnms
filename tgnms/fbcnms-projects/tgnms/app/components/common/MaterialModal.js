@@ -43,6 +43,7 @@ class MaterialModal extends React.Component {
       open,
       onClose,
       onEnter,
+      ...paperProps
     } = this.props;
 
     return (
@@ -50,7 +51,10 @@ class MaterialModal extends React.Component {
         open={open}
         onClose={onClose}
         onEnter={onEnter}
-        PaperProps={{classes: {root: classNames(classes.paper, className)}}}>
+        PaperProps={{
+          classes: {root: classNames(classes.paper, className)},
+          ...(paperProps || {}),
+        }}>
         <DialogTitle classes={{root: classes.dialogTitle}}>
           {modalTitle}
         </DialogTitle>

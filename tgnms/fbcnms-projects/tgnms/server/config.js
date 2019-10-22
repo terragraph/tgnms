@@ -59,7 +59,7 @@ const NODEUPDATE_AUTH_TOKEN = process.env.NODEUPDATE_AUTH_TOKEN || '';
 
 // URL and auth token for Terragraph's software portal
 const SOFTWARE_PORTAL_URL =
-  process.env.SOFOTWARE_PORTAL_URL || 'https://sw.terragraph.link';
+  process.env.SOFTWARE_PORTAL_URL || 'https://sw.terragraph.link';
 const SOFTWARE_PORTAL_API_TOKEN =
   process.env.SOFTWARE_PORTAL_API_TOKEN || 'K__AjuA9ii_Mwq7FYV00PWS-e6Y';
 const SOFTWARE_PORTAL_API_ID = process.env.SOFTWARE_PORTAL_API_ID || 'tgdev';

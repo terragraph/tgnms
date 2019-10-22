@@ -35,8 +35,7 @@ import {
 import {ctrlVerAfter, shortenVersionString} from '../../helpers/VersionHelper';
 import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
 import {withStyles} from '@material-ui/core/styles';
-
-import type {UpgradeImageType} from '../../../shared/types/Controller';
+import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
 import type {Version} from '../../helpers/VersionHelper';
 
 const styles = theme => ({
@@ -95,11 +94,11 @@ type State = {
   isParallel: boolean,
   maxConnections: number,
   retryLimit: number,
-  selectedImage: ?UpgradeImageType,
+  selectedImage: ?SoftwareImageType,
   showAdvanced: boolean,
   skipFailure: boolean,
   timeout: number,
-  upgradeImages: Array<UpgradeImageType>,
+  upgradeImages: Array<SoftwareImageType>,
   uploadLimit: number,
 };
 

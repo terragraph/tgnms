@@ -13,11 +13,12 @@ export default [
   '/static/dist/login',
   '/mobileapp/clientconfig',
   '/healthcheck',
-  // protected by middleware/otp
-  '/static/tg-binaries',
   '/static/css',
   '/static/fonts',
   '/static/images',
   '/user/login',
   '/user/logout',
+  // protected by middleware/otp
+  '/static/tg-binaries',
+  '/nodeupdateservice/downloadimage',
 ];

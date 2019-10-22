@@ -10,10 +10,7 @@ import axios from 'axios';
 /** Make a nodeupdate server request. */
 export const nodeupdateServerRequest = (
   apiMethod: string,
-  data: {
-    node_mac: string,
-    node_config?: ?string,
-  },
+  data: Object,
   config?: {}, //no current call of nodeupdateServerRequest declares config
 ): Promise<any> => {
   // All nodeupdate requests are POST, and expect at least an empty dict.

@@ -2,17 +2,29 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
 } from '../apiutils/ServiceAPIUtil';
-
 import {nodeupdateServerRequest} from '../apiutils/NodeupdateAPIUtil';
+import {objectEntriesTypesafe} from './ObjectHelpers';
+import type {UpgradeImageType} from '../../shared/types/Controller';
+
+export type SoftwareImageType = {|
+  versionNumber?: string,
+  fileName?: string,
+  uploadedDate?: Date,
+  ...UpgradeImageType,
+|};
 
 /** Fetches upgrade images. */
-export function fetchUpgradeImages(networkName, onResponse) {
+export function fetchUpgradeImages(
+  networkName: string,
+  onResponse: (images: Array<SoftwareImageType>) => any,
+) {
   apiServiceRequest(networkName, 'listUpgradeImages')
     .then(response => {
       // Sort images by name
@@ -29,22 +41,40 @@ export function fetchUpgradeImages(networkName, onResponse) {
     });
 }
 
+export type SoftwarePortalFile = {
+  description: string,
+  filesize: number,
+  shasum: string,
+  uploaded_by: string,
+  uploaded_date: number,
+  url: string,
+};
+
 /* fetches image data from the software portal */
-export function fetchSoftwarePortalImages(data, onResponse) {
+export function fetchSoftwarePortalImages(
+  data: {suite: string},
+  onResponse: (Array<SoftwareImageType>) => any,
+) {
   nodeupdateServerRequest('list', data)
     .then(response => {
-      const images = Object.entries(response.data).reduce(
-        (images, imageData) => {
-          const release = imageData[0];
-          const metadata = imageData[1]['tg-update-armada39x.bin'];
+      const images = objectEntriesTypesafe<
+        string,
+        {[string]: SoftwarePortalFile},
+      >(response.data).reduce(
+        (images: Array<SoftwareImageType>, [release, files]) => {
+          const fileName = 'tg-update-armada39x.bin';
+          const metadata = files[fileName];
 
+          const uploadedDate = new Date(0);
+          uploadedDate.setUTCSeconds(metadata.uploaded_date);
           return images.concat({
             name: `Software Portal Image Release ${release}`,
             magnetUri: '',
             md5: '',
-            sha1: metadata.shasum,
-            hardwareBoarIds: [],
+            hardwareBoardIds: [],
             versionNumber: release,
+            fileName: fileName,
+            uploadedDate: uploadedDate,
           });
         },
         [],

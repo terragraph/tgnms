@@ -151,7 +151,7 @@ export class ApiServiceClient {
       return response;
     } catch (error) {
       if (error.response) {
-        logger.error(
+        logger.debug(
           'received status %s for url %s',
           error.response.status,
           apiUrl,

@@ -36,9 +36,7 @@ router.post(
   /\/uploadUpgradeBinary$/i,
   upload.single('binary'),
   (req, res, _next) => {
-    const urlPrefix = process.env.E2E_DL_URL
-      ? process.env.E2E_DL_URL
-      : req.protocol + '://' + req.get('host');
+    const urlPrefix = getUrlPrefix(req);
     const uriPath = querystring.escape(req.file.filename);
 
     generateAndStoreOtp().then(token => {
@@ -52,5 +50,33 @@ router.post(
     });
   },
 );
+
+router.post('/softwarePortalImage', (req, res) => {
+  const {release, name, networkName} = req.body;
+  if (!release || !name || !networkName) {
+    return res.status(400).send();
+  }
+  const urlPrefix = getUrlPrefix(req);
+
+  generateAndStoreOtp().then(token => {
+    // /downloadimage/release/image
+    const imageUrl = `${urlPrefix}/nodeupdateservice/downloadimage/${querystring.escape(
+      networkName,
+    )}/${querystring.escape(release)}/${querystring.escape(
+      name,
+    )}?token=${token}`;
+
+    return res.json({
+      imageUrl: imageUrl,
+    });
+  });
+});
+
+function getUrlPrefix(req) {
+  const urlPrefix = process.env.E2E_DL_URL
+    ? process.env.E2E_DL_URL
+    : req.protocol + '://' + req.get('host');
+  return urlPrefix;
+}
 
 module.exports = router;
