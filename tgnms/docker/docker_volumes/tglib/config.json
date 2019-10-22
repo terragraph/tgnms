@@ -2,7 +2,7 @@
   "apiservice": {
     "nms": {
       "host": "nms",
-      "port": 8080
+      "port": 80
     }
   },
   "kafka": {
