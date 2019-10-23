@@ -284,7 +284,7 @@ services:
         max-file: "10"
 
   udp_ping_client:
-    image: secure.cxl-terragraph.com:443/beringei:latest
+    image: secure.cxl-terragraph.com:443/cpp_backends:latest
     env_file:
       - ./env/mysql.env
     restart: unless-stopped
@@ -292,7 +292,7 @@ services:
       - "31338:31338/udp"
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && beringei/tools/ping_service/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS}"]
+    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && bin/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS}"]
     logging:
       driver: "json-file"
       options:
