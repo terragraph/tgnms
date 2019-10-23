@@ -132,7 +132,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       backupE2eIp: networkConfig.backup.e2e_ip || '',
       backupApiPort: networkConfig.backup.api_port,
       backupE2ePort: networkConfig.backup.e2e_port,
-      wacType: networkConfig.wireless_controller.type || WAC_TYPES.none,
+      wacType: networkConfig.wireless_controller?.type || WAC_TYPES.none,
       wacUrl: networkConfig.wireless_controller
         ? networkConfig.wireless_controller.url
         : '',

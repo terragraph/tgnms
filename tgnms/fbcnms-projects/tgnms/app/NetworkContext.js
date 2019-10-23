@@ -87,7 +87,7 @@ export type NetworkConfig = {
   topology: TopologyType,
   topologyConfig: TopologyConfig,
   offline_whitelist: OfflineWhiteListType,
-  wireless_controller: WirelessController,
+  wireless_controller: ?WirelessController,
   wireless_controller_stats: {|[string]: WirelessControllerStats|},
   controller_error: ?string,
 };
