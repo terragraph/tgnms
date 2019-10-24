@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
@@ -20,6 +21,25 @@ import {
 } from 'react-virtualized';
 import {DebounceInput} from 'react-debounce-input';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {NetworkContextType} from '../../NetworkContext';
+
+type ColumnType = {
+  filter?: boolean,
+  isKey?: boolean,
+  key: string,
+  label: string,
+  sortFunc?: (Object, Object, $Values<typeof SortDirection>, string) => number,
+  render?: (
+    val: any,
+    row: Object,
+    style: {[string]: string},
+    additionalParams: {context: NetworkContextType},
+  ) => any,
+  sort?: boolean,
+  width?: number,
+  hidden?: boolean,
+};
 
 const borderThickness = 1;
 const paddingLeftRight = 25;
@@ -64,13 +84,46 @@ const styles = theme => {
   };
 };
 
-class CustomTable extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  columns: Array<ColumnType>,
+  striped?: boolean,
+  hover?: boolean,
+  data: ?Array<Object>,
+  sortBy?: string,
+  sortDirection?: $Values<typeof SortDirection>,
+  headerHeight: number,
+  overscanRowCount: number,
+  rowHeight: number,
+  additionalRenderParams?: {context: NetworkContextType},
+  onRowSelect: Object => any,
+  trClassName?: Object,
+  selected?: Array<Object>,
+  onSortChange?: (string, $Values<typeof SortDirection>) => any,
+};
+
+type State = {
+  filters: {},
+  hoveredRowIndex: number,
+  sortBy: ?string,
+  sortDirection: $Values<typeof SortDirection>,
+};
+
+class CustomTable extends React.Component<Props, State> {
   state = {
     filters: {},
     hoveredRowIndex: -1,
     sortBy: null,
     sortDirection: SortDirection.ASC,
   };
+
+  static defaultProps = {
+    striped: true,
+    hover: true,
+  };
+
+  headerGridRef: {current: Object};
+  bodyGridRef: {current: Object};
 
   constructor(props) {
     super(props);
@@ -85,7 +138,7 @@ class CustomTable extends React.Component {
     const sortBy = this.props.sortBy || this.state.sortBy;
     const sortDirection = this.props.sortDirection || this.state.sortDirection;
 
-    let displayedData = data.slice();
+    let displayedData = data ? data.slice() : [];
     // Filter data
     if (filters) {
       displayedData = CustomTable._applyFiltersToData(displayedData, filters);
@@ -135,8 +188,12 @@ class CustomTable extends React.Component {
         <div className={classes.autosizerInnerContainer}>
           <AutoSizer
             onResize={() => {
-              this.headerGridRef.current.recomputeGridSize();
-              this.bodyGridRef.current.recomputeGridSize();
+              if (this.headerGridRef.current) {
+                this.headerGridRef.current.recomputeGridSize();
+              }
+              if (this.bodyGridRef.current) {
+                this.bodyGridRef.current.recomputeGridSize();
+              }
             }}>
             {({height, width}) => {
               return (
@@ -363,7 +420,11 @@ class CustomTable extends React.Component {
         style={newStyles}
         className={classNames}
         onClick={event =>
-          this._headerClicked(event, {columnIndex, dataKey, rowIndex}, columns)
+          this._headerClicked(
+            event,
+            {columnIndex, dataKey, _rowIndex: rowIndex},
+            columns,
+          )
         }>
         <div style={contentStyle} className={classes.gridRowCellContent}>
           <div className="CustomTable__HeaderRowCell__Title">
@@ -474,10 +535,5 @@ class CustomTable extends React.Component {
     });
   }
 }
-
-CustomTable.defaultProps = {
-  striped: true,
-  hover: true,
-};
 
 export default withStyles(styles, {withTheme: true})(CustomTable);

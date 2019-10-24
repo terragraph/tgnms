@@ -2,10 +2,10 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
-import PropTypes from 'prop-types';
-import React from 'react';
+import * as React from 'react';
 import classNames from 'classnames';
 import warning from 'warning';
 import {withStyles} from '@material-ui/core/styles';
@@ -34,7 +34,16 @@ const styles = theme => {
   };
 };
 
-class InsetPaper extends React.Component {
+type Props = {
+  children: React.Node,
+  classes: {[string]: string},
+  className: string,
+  component: string | Function,
+  depression: number,
+  rounded: boolean,
+};
+
+class InsetPaper extends React.Component<Props> {
   static defaultProps = {
     component: 'div',
     depression: 2,
@@ -66,14 +75,5 @@ class InsetPaper extends React.Component {
     return <Component className={className} {...other} />;
   }
 }
-
-InsetPaper.propTypes = {
-  children: PropTypes.node,
-  classes: PropTypes.object.isRequired,
-  className: PropTypes.string,
-  component: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-  depression: PropTypes.number,
-  rounded: PropTypes.bool,
-};
 
 export default withStyles(styles)(InsetPaper);

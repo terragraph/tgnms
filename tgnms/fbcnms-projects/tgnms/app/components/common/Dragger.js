@@ -2,9 +2,9 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
-import PropTypes from 'prop-types';
 import React from 'react';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
@@ -32,7 +32,19 @@ const Direction = Object.freeze({
   vertical: 'vertical',
 });
 
-class Dragger extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  direction: string,
+  minSize: number,
+  maxSize: number,
+  onResize: number => any,
+};
+
+type State = {
+  isResizing: boolean,
+};
+
+class Dragger extends React.Component<Props, State> {
   state = {
     isResizing: false,
   };
@@ -60,7 +72,7 @@ class Dragger extends React.Component {
     e.preventDefault();
   };
 
-  handleMousemove = e => {
+  handleMousemove = (e: MouseEvent) => {
     // Only resize if mouse was clicked on the dragger
     const {direction, minSize, maxSize, onResize} = this.props;
     const {isResizing} = this.state;
@@ -72,14 +84,16 @@ class Dragger extends React.Component {
     e.preventDefault();
 
     // Compute new offset (and clamp within bounds)
-    const offset =
-      direction === Direction.horizontal
-        ? document.body.offsetWidth - (e.clientX - document.body.offsetLeft)
-        : document.body.offsetHeight - (e.clientY - document.body.offsetTop);
-    onResize(this.clamp(offset, minSize, maxSize));
+    if (document.body !== null) {
+      const offset =
+        direction === Direction.horizontal
+          ? document.body.offsetWidth - (e.clientX - document.body.offsetLeft)
+          : document.body.offsetHeight - (e.clientY - document.body.offsetTop);
+      onResize(this.clamp(offset, minSize, maxSize));
+    }
   };
 
-  handleMouseup = _e => {
+  handleMouseup = (_e: MouseEvent) => {
     // Disable resizing after mouse is up
     this.setState({isResizing: false});
   };
@@ -94,13 +108,5 @@ class Dragger extends React.Component {
     );
   }
 }
-
-Dragger.propTypes = {
-  classes: PropTypes.object.isRequired,
-  direction: PropTypes.oneOf(Object.keys(Direction)).isRequired,
-  minSize: PropTypes.number.isRequired,
-  maxSize: PropTypes.number.isRequired,
-  onResize: PropTypes.func,
-};
 
 export default withStyles(styles)(Dragger);

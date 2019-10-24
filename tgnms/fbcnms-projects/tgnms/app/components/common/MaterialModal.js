@@ -2,15 +2,15 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
+import * as React from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import PropTypes from 'prop-types';
-import React from 'react';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -31,7 +31,20 @@ const styles = theme => ({
   },
 });
 
-class MaterialModal extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  className?: string,
+  theme?: Object,
+  open: ?boolean,
+  onClose?: () => any,
+  onEnter?: () => any,
+  modalTitle?: React.Node,
+  modalContent?: React.Node,
+  modalContentText?: React.Node,
+  modalActions?: React.Node,
+};
+
+class MaterialModal extends React.Component<Props> {
   render() {
     const {
       classes,
@@ -48,7 +61,7 @@ class MaterialModal extends React.Component {
 
     return (
       <Dialog
-        open={open}
+        open={open || false}
         onClose={onClose}
         onEnter={onEnter}
         PaperProps={{
@@ -64,7 +77,7 @@ class MaterialModal extends React.Component {
           ) : null}
           {modalContent}
         </DialogContent>
-        {modalActions && (
+        {modalActions !== null && (
           <DialogActions classes={{root: classes.dialogActions}}>
             {modalActions}
           </DialogActions>
@@ -73,18 +86,5 @@ class MaterialModal extends React.Component {
     );
   }
 }
-
-MaterialModal.propTypes = {
-  classes: PropTypes.object.isRequired,
-  className: PropTypes.string,
-  theme: PropTypes.object.isRequired,
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func,
-  onEnter: PropTypes.func,
-  modalTitle: PropTypes.node,
-  modalContent: PropTypes.node,
-  modalContentText: PropTypes.node,
-  modalActions: PropTypes.node,
-};
 
 export default withStyles(styles, {withTheme: true})(MaterialModal);
