@@ -243,18 +243,20 @@ services:
       - bqs
 
   networktest:
-    image: secure.cxl-terragraph.com:443/analytics:latest
+    image: secure.cxl-terragraph.com:443/networktest:latest
     env_file:
       - ./env/mysql.env
       - ./env/django.env
     restart: always
     volumes:
       - ./docker_volumes/logs:/analytics/logs
+      - ./docker_volumes/tglib/config.json:/usr/local/nms/network_test/network_test/config.json
+      - ./docker_volumes/network_test/service_config.json:/usr/local/nms/network_test/network_test/service_config.json
     ports:
-      - "8000:8000"
+      - "8000:8080"
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "cd /usr/local/nms/network_test/network_test; until nc -z db 3306; do sleep 1; done && python manage.py migrate && python clean_up_db.py && python entry.py -i 0.0.0.0 -p 8000"]
+    command: ["/bin/sh", "-c", "cd /usr/local/nms/network_test/network_test; until nc -z db 3306; do sleep 1; done && python manage.py migrate && python clean_up_db.py && python entry.py"]
     logging:
       driver: "json-file"
       options:
