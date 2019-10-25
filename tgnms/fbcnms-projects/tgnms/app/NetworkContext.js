@@ -107,6 +107,7 @@ export type WirelessController = {
 
 export type WirelessControllerStats = {
   clientCount: number,
+  lastSeenTime: number,
 };
 
 type Coordinate = [number, number];

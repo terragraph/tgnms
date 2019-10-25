@@ -2,19 +2,23 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import FormGroup from '@material-ui/core/FormGroup';
 import MenuItem from '@material-ui/core/MenuItem';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import {getShowRoutesIcon} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {NodeMap, Site} from '../../NetworkContext';
+import type {NodeType, TopologyType} from '../../../shared/types/Topology';
+import type {Routes} from './MapPanelTypes';
 
 const styles = theme => ({
   iconCentered: {
@@ -34,7 +38,25 @@ const styles = theme => ({
   },
 });
 
-class ShowRoutePanel extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  networkName: string,
+  topology: TopologyType,
+  node: NodeType,
+  nodeMap: NodeMap,
+  site: Site,
+  onClose: () => any,
+  ...Routes,
+};
+
+type State = {
+  expanded: boolean,
+  isLoading: boolean,
+  errorMsg: ?string,
+  selectedDstNode: string,
+};
+
+class ShowRoutePanel extends React.Component<Props, State> {
   state = {
     expanded: true,
 
@@ -45,6 +67,8 @@ class ShowRoutePanel extends React.Component {
     // selected destination node
     selectedDstNode: '',
   };
+
+  _isMounted: boolean;
 
   componentDidMount() {
     // TODO Directly cancel promises instead (e.g. via axios.CancelToken)
@@ -220,14 +244,5 @@ class ShowRoutePanel extends React.Component {
     );
   }
 }
-
-ShowRoutePanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  onClose: PropTypes.func.isRequired,
-  networkName: PropTypes.string.isRequired,
-  topology: PropTypes.object.isRequired,
-  routes: PropTypes.object.isRequired,
-  onUpdateRoutes: PropTypes.func.isRequired,
-};
 
 export default withStyles(styles)(ShowRoutePanel);

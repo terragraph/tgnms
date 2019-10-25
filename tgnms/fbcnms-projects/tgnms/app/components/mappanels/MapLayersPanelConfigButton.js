@@ -1,4 +1,10 @@
-import PropTypes from 'prop-types';
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow
+ */
+
 import React from 'react';
 
 import Button from '@material-ui/core/Button';
@@ -12,6 +18,8 @@ import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
 
 import 'rc-slider/assets/index.css';
 import Slider from 'rc-slider';
+
+import type {ChangeOverlayRange, Overlay} from '../../views/map/overlays';
 
 const Range = Slider.createSliderWithTooltip(Slider.Range);
 
@@ -35,7 +43,20 @@ const sortNumber = (a, b) => {
   return a - b;
 };
 
-class MapLayersPanelConfigButton extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  changeOverlayRange: ChangeOverlayRange,
+  legendConfig: Object,
+  overlay: {range: Array<number>, ...Overlay},
+};
+
+type State = {
+  isEditing: boolean,
+  tempRange: Array<number>,
+  lastRange: Array<number>,
+};
+
+class MapLayersPanelConfigButton extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     const {range} = this.props.overlay;
@@ -147,7 +168,11 @@ class MapLayersPanelConfigButton extends React.Component {
               <div>
                 <Range
                   min={Math.min(overlay.bounds[0], overlay.bounds[1])}
-                  max={Math.max(overlay.bounds[0], overlay.bounds[1])}
+                  max={
+                    overlay.bounds
+                      ? Math.max(overlay.bounds[0], overlay.bounds[1])
+                      : 0
+                  }
                   allowCross={false}
                   step={0.1}
                   value={tempRange}
@@ -204,11 +229,5 @@ class MapLayersPanelConfigButton extends React.Component {
     );
   }
 }
-
-MapLayersPanelConfigButton.propTypes = {
-  changeOverlayRange: PropTypes.func.isRequired,
-  legendConfig: PropTypes.object.isRequired,
-  overlay: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles)(MapLayersPanelConfigButton);

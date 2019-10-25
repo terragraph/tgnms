@@ -17,12 +17,14 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
+import {convertType} from '../../helpers/ObjectHelpers';
 import {has} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 import type {
   MapLayerConfig,
   OverlayConfig,
 } from '../../views/map/NetworkMapTypes';
+import type {Overlay} from '../../views/map/overlays';
 
 const styles = theme => ({
   formContainer: {
@@ -158,7 +160,7 @@ class MapLayersPanel extends React.Component<
           <MapLayersPanelConfigButton
             changeOverlayRange={changeOverlayRange}
             legendConfig={legendConfig}
-            overlay={overlay}
+            overlay={convertType<{range: Array<number>, ...Overlay}>(overlay)}
           />
         )}
       </div>

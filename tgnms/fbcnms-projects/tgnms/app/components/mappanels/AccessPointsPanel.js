@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
@@ -10,14 +11,19 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import PropTypes from 'prop-types';
 import React from 'react';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {formatNumber, toTitleCase} from '../../helpers/StringHelpers';
+import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
+import type {TopologyType} from '../../../shared/types/Topology';
+import type {
+  WirelessController,
+  WirelessControllerStats,
+} from '../../NetworkContext';
 
 const styles = theme => ({
   sectionSpacer: {
@@ -28,9 +34,18 @@ const styles = theme => ({
 // 'lastSeenTime' from now before declaring a WAP as dead
 const WAP_LIVENESS_THRESHOLD_MS = 5 * 60 * 1000;
 
-class AccessPointsPanel extends React.Component {
-  state = {};
+type Props = {
+  classes: {[string]: string},
+  expanded: boolean,
+  onPanelChange: () => any,
+  onClose: () => any,
+  onSelectSite: string => any,
+  topology: TopologyType,
+  wirelessController: ?WirelessController,
+  wirelessControllerStats: {[string]: WirelessControllerStats},
+};
 
+class AccessPointsPanel extends React.Component<Props> {
   renderAccessPointList(waps) {
     // Render the given list of access points
     return (
@@ -100,18 +115,18 @@ class AccessPointsPanel extends React.Component {
       }
     });
     const matchedSitesCount = Object.keys(matchedSites).length;
-    const waps = Object.entries(wirelessControllerStats).map(
-      ([wapName, wapStats]) => {
-        const siteName = matchedSites.hasOwnProperty(wapName)
-          ? matchedSites[wapName]
-          : null;
-        return {
-          name: siteName || wapName,
-          stats: wapStats,
-          hasSiteMatch: !!siteName,
-        };
-      },
-    );
+    const waps = objectEntriesTypesafe<string, WirelessControllerStats>(
+      wirelessControllerStats,
+    ).map(([wapName, wapStats]) => {
+      const siteName = matchedSites.hasOwnProperty(wapName)
+        ? matchedSites[wapName]
+        : null;
+      return {
+        name: siteName || wapName,
+        stats: wapStats,
+        hasSiteMatch: !!siteName,
+      };
+    });
     sortBy(waps, [wap => wap.stats.clientCount]);
 
     const type = toTitleCase(wirelessController.type);
@@ -159,16 +174,5 @@ class AccessPointsPanel extends React.Component {
     );
   }
 }
-
-AccessPointsPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onSelectSite: PropTypes.func.isRequired,
-  topology: PropTypes.object.isRequired,
-  wirelessController: PropTypes.object,
-  wirelessControllerStats: PropTypes.object,
-};
 
 export default withStyles(styles)(AccessPointsPanel);

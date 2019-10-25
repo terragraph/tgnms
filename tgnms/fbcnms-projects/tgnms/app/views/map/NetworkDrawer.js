@@ -46,6 +46,7 @@ import type {
   Routes,
 } from '../../components/mappanels/MapPanelTypes';
 import type {Element, NetworkContextType} from '../../NetworkContext';
+import type {LocationType} from '../../../shared/types/Topology';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
 import type {Theme, WithStyles} from '@material-ui/core';
 
@@ -127,9 +128,7 @@ type State = {
   // -> initial params?
   addNodeParams: $Shape<EditNodeParams>,
   addLinkParams: {},
-  addSiteParams: {
-    name?: string,
-  },
+  addSiteParams: $Shape<LocationType & {name: string}>,
   addNodeFormType: $Values<typeof FormType>,
   addSiteFormType: $Values<typeof FormType>,
   // -> closing?

@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -19,7 +20,6 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
@@ -42,6 +42,14 @@ import {
   getSearchNearbyIcon,
 } from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {
+  EditNodeParams,
+  NearbyNodes,
+} from '../../components/mappanels/MapPanelTypes';
+import type {LocationType} from '../../../shared/types/Topology';
+import type {NodeType, TopologyType} from '../../../shared/types/Topology';
+import type {Site} from '../../NetworkContext';
 
 const styles = theme => ({
   iconCentered: {
@@ -91,7 +99,39 @@ const styles = theme => ({
   },
 });
 
-class SearchNearbyPanel extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  onClose: () => any,
+  networkName: string,
+  topology: TopologyType,
+  node: NodeType,
+  site: Site,
+  nearbyNodes: NearbyNodes,
+  onUpdateNearbyNodes: NearbyNodes => any,
+  onAddNode: ($Shape<EditNodeParams>) => any,
+  onAddLink: ({
+    linkNode1: string,
+    linkNode2: string,
+    link_type: $Values<typeof LinkType>,
+  }) => any,
+  onAddSite: ($Shape<LocationType & {name: string}>) => any,
+};
+
+type State = {
+  expanded: boolean,
+  actionsAnchorEl: ?HTMLElement,
+  actionsData: {
+    macAddr: string,
+    isResponder: boolean,
+    location?: $Shape<LocationType & {name: string}>,
+  },
+  expandedLists: {responderAddr?: boolean},
+  isLoading: boolean,
+  lastResponseTime: ?Date,
+  errorMsg: ?string,
+};
+
+class SearchNearbyPanel extends React.Component<Props, State> {
   state = {
     expanded: true,
 
@@ -105,6 +145,8 @@ class SearchNearbyPanel extends React.Component {
     lastResponseTime: null,
     errorMsg: null,
   };
+
+  _isMounted: boolean;
 
   componentDidMount() {
     // TODO Directly cancel promises instead (e.g. via axios.CancelToken)
@@ -226,18 +268,29 @@ class SearchNearbyPanel extends React.Component {
 
       if (rxNode) {
         // Show node name if it is in the topology
-        options.push({label: rxNode.name, icon: getNodeIcon(), disabled: true});
+        options.push({
+          label: rxNode.name,
+          icon: getNodeIcon(),
+          func: () => {},
+          disabled: true,
+        });
       } else {
         options.push({
           label: 'Add Node',
           icon: getNodeIcon(),
           func: () => onAddNode({mac_addr: actionsData.macAddr}),
+          disabled: false,
         });
       }
       if (actionsData.isResponder) {
         if (link) {
           // Show link name if it is in the topology
-          options.push({label: link.name, icon: getLinkIcon(), disabled: true});
+          options.push({
+            label: link.name,
+            icon: getLinkIcon(),
+            func: () => {},
+            disabled: true,
+          });
         } else if (rxNode) {
           // Render 'Add Link' button if node is present, but link is not
           options.push({
@@ -249,6 +302,7 @@ class SearchNearbyPanel extends React.Component {
                 linkNode2: rxNode.name,
                 link_type: LinkType.WIRELESS,
               }),
+            disabled: false,
           });
         }
 
@@ -257,7 +311,8 @@ class SearchNearbyPanel extends React.Component {
           options.push({
             label: 'Add Site',
             icon: getAddSiteIcon(),
-            func: () => onAddSite(actionsData.location),
+            func: () => onAddSite(actionsData.location || {}),
+            disabled: false,
           });
         }
       }
@@ -315,51 +370,52 @@ class SearchNearbyPanel extends React.Component {
       : '(no location data reported)';
 
     // Adjacent nodes
-    const adjacencies = adjs.length ? (
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <List component="div" disablePadding>
-          {adjs.map(macAddr => {
-            const existingAdjNode = this.findNodeInTopology(macAddr);
-            return (
-              <ListItem
-                key={macAddr}
-                className={classes.adjacentNodeListItem}
-                button
-                dense
-                aria-haspopup={true}
-                onClick={ev =>
-                  this.setState({
-                    actionsAnchorEl: ev.currentTarget,
-                    actionsData: {macAddr, isResponder: false},
-                  })
-                }>
-                <ListItemIcon>
-                  <LinearScaleIcon />
-                </ListItemIcon>
-                <ListItemText
-                  classes={{root: classes.nearbyNodesListItemText}}
-                  primary={macAddr}
-                  primaryTypographyProps={{
-                    variant: 'button',
-                    classes: {button: classes.adjacentNodesText},
-                  }}
-                  secondary={
-                    existingAdjNode ? (
-                      <span>
-                        Node: <strong>{existingAdjNode.name}</strong>
-                      </span>
-                    ) : null
-                  }
-                  secondaryTypographyProps={{
-                    classes: {root: classes.adjacentNodesText},
-                  }}
-                />
-              </ListItem>
-            );
-          })}
-        </List>
-      </Collapse>
-    ) : null;
+    const adjacencies =
+      adjs && adjs.length ? (
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {adjs.map(macAddr => {
+              const existingAdjNode = this.findNodeInTopology(macAddr);
+              return (
+                <ListItem
+                  key={macAddr}
+                  className={classes.adjacentNodeListItem}
+                  button
+                  dense
+                  aria-haspopup={true}
+                  onClick={ev =>
+                    this.setState({
+                      actionsAnchorEl: ev.currentTarget,
+                      actionsData: {macAddr, isResponder: false},
+                    })
+                  }>
+                  <ListItemIcon>
+                    <LinearScaleIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    classes={{root: classes.nearbyNodesListItemText}}
+                    primary={macAddr}
+                    primaryTypographyProps={{
+                      variant: 'button',
+                      classes: {button: classes.adjacentNodesText},
+                    }}
+                    secondary={
+                      existingAdjNode ? (
+                        <span>
+                          Node: <strong>{existingAdjNode.name}</strong>
+                        </span>
+                      ) : null
+                    }
+                    secondaryTypographyProps={{
+                      classes: {root: classes.adjacentNodesText},
+                    }}
+                  />
+                </ListItem>
+              );
+            })}
+          </List>
+        </Collapse>
+      ) : null;
 
     return (
       <React.Fragment key={addr}>
@@ -371,7 +427,11 @@ class SearchNearbyPanel extends React.Component {
           onClick={ev =>
             this.setState({
               actionsAnchorEl: ev.currentTarget,
-              actionsData: {macAddr: addr, isResponder: true, location: pos},
+              actionsData: {
+                macAddr: addr,
+                isResponder: true,
+                location: {...pos, name: ''},
+              },
             })
           }>
           <ListItemIcon>{renderSnrWithIcon(bestSnr)}</ListItemIcon>
@@ -508,19 +568,5 @@ class SearchNearbyPanel extends React.Component {
     );
   }
 }
-
-SearchNearbyPanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  onClose: PropTypes.func.isRequired,
-  networkName: PropTypes.string.isRequired,
-  topology: PropTypes.object.isRequired,
-  node: PropTypes.object.isRequired,
-  site: PropTypes.object.isRequired,
-  nearbyNodes: PropTypes.object,
-  onUpdateNearbyNodes: PropTypes.func.isRequired,
-  onAddNode: PropTypes.func.isRequired,
-  onAddLink: PropTypes.func.isRequired,
-  onAddSite: PropTypes.func.isRequired,
-};
 
 export default withStyles(styles)(SearchNearbyPanel);

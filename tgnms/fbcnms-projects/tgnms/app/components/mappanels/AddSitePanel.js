@@ -2,12 +2,12 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import Button from '@material-ui/core/Button';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import InfoIcon from '@material-ui/icons/Info';
-import PropTypes from 'prop-types';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {
@@ -22,6 +22,8 @@ import {
 } from '../../helpers/MapPanelHelpers';
 import {isEqual} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
+import type {LocationType} from '../../../shared/types/Topology';
+import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
 
 const styles = theme => ({
   button: {
@@ -46,7 +48,28 @@ const FormType = Object.freeze({
   EDIT: 'EDIT',
 });
 
-class AddSitePanel extends React.Component {
+type Props = {
+  classes: {[string]: string},
+  className?: string,
+  expanded: boolean,
+  onPanelChange: () => any,
+  onClose: () => any,
+  formType: $Values<typeof FormType>,
+  initialParams: $Shape<LocationType & {name: string}>,
+  networkName: string,
+  plannedSite: PlannedSite,
+  onUpdatePlannedSite: ($Shape<PlannedSite>) => any,
+};
+
+type State = {
+  name: string,
+  latitude: number,
+  longitude: number,
+  altitude: number,
+  accuracy: number,
+};
+
+class AddSitePanel extends React.Component<Props, State> {
   constructor(props) {
     super(props);
 
@@ -147,7 +170,8 @@ class AddSitePanel extends React.Component {
         value: 'latitude',
         required: true,
         step: 0.00001,
-        onChange: val => this.onFormPositionChange({latitude: val}),
+        onChange: val =>
+          this.onFormPositionChange({latitude: val, longitude: null}),
       },
       {
         func: createNumericInput,
@@ -155,7 +179,8 @@ class AddSitePanel extends React.Component {
         value: 'longitude',
         required: true,
         step: 0.00001,
-        onChange: val => this.onFormPositionChange({longitude: val}),
+        onChange: val =>
+          this.onFormPositionChange({longitude: val, latitude: null}),
       },
       {
         func: createNumericInput,
@@ -237,18 +262,5 @@ class AddSitePanel extends React.Component {
     );
   }
 }
-
-AddSitePanel.propTypes = {
-  classes: PropTypes.object.isRequired,
-  className: PropTypes.string,
-  expanded: PropTypes.bool.isRequired,
-  onPanelChange: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  formType: PropTypes.oneOf(Object.keys(FormType)),
-  initialParams: PropTypes.object,
-  networkName: PropTypes.string.isRequired,
-  plannedSite: PropTypes.object,
-  onUpdatePlannedSite: PropTypes.func,
-};
 
 export default withStyles(styles)(AddSitePanel);

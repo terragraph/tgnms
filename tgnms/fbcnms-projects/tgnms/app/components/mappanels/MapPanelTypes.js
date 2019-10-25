@@ -12,14 +12,21 @@ export type TopologyScanInfo = {
   responderInfo: {
     pos: LocationType,
     addr: string,
+    adjs?: Array<string>,
   },
+  bestTxAngle?: number,
+  bestRxAngle?: number,
 };
 
 export type Routes = {|
   node: ?NodeType,
   links: {[string]: number},
   nodes: Set<NodeType>,
-  onUpdateRoutes: ($Shape<Routes>) => any,
+  onUpdateRoutes: ({
+    node: ?string,
+    links: {[string]: number},
+    nodes: Set<NodeType>,
+  }) => any,
   routes: {
     node: string,
   },
