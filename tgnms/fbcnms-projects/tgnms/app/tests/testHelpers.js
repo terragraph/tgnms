@@ -51,7 +51,7 @@ export function setTestUser(user: $Shape<User>) {
   window.CONFIG.user = user;
 }
 
-export function TestApp({children}: {children: React.Element<any>}) {
+export function TestApp({children}: {children: React.Node}) {
   i18next.use(initReactI18next).init({});
   return <MaterialTheme>{children}</MaterialTheme>;
 }
