@@ -88,7 +88,7 @@ class TimeSeries(object):
 
 class PrometheusReader:
     def __init__(self, topologies: List[Dict], timeout: Optional[int] = 30):
-        client = PrometheusClient.get_instance()
+        client = PrometheusClient(timeout)
 
         # this is a horrendous hack - but all of this will be replaced with
         # prometheus_client - so don't worry

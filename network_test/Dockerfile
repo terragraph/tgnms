@@ -1,10 +1,9 @@
 # Pull base image
-FROM tglib:latest
+FROM secure.cxl-terragraph.com:443/tglib:latest
 
 ARG WORKDIR=/usr/local/nms
 
-RUN apt-get update && apt-get install -y \
-  netcat
+RUN apt-get update && apt-get install -y netcat
 
 # Copy Analytics source files into docker container
 WORKDIR $WORKDIR
