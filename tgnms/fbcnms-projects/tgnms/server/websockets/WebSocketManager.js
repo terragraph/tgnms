@@ -74,7 +74,7 @@ export default class WebSocketManager {
    *   The server can poll the node logs only once and redistribute them to
    *   multiple users.
    */
-  joinGroup = (name: string, socket: Object) => {
+  joinGroup = (name: string, socket: WebSocket) => {
     if (!this.groups[name]) {
       this.groups[name] = this.createGroup(name);
     }
@@ -148,7 +148,12 @@ export default class WebSocketManager {
           return socket.terminate();
         }
         data.isAlive = false;
-        socket.ping(noop);
+        try {
+          socket.ping(noop);
+        } catch (err) {
+          logger.error(err, socket);
+          socket.terminate();
+        }
       }
     }, 5000);
   };

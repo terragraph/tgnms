@@ -135,6 +135,18 @@ describe('heartbeats', () => {
     expect(manager.groups['test1'].sockets.size).toBe(1);
     expect(manager.groups['test2'].sockets.size).toBe(1);
   });
+
+  test('if ping throws an error, socket is terminated', () => {
+    manager.startHeartbeatChecker();
+    const socket = new MockWebSocket();
+    socket.ping = jest.fn(() => {
+      throw new Error();
+    });
+    manager.joinGroups(['test1', 'test2'], socket);
+    jest.runOnlyPendingTimers();
+    expect(socket.ping).toHaveBeenCalled();
+    expect(socket.terminate).toHaveBeenCalled();
+  });
 });
 
 class MockWebSocket extends EventEmitter {
