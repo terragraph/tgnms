@@ -159,6 +159,7 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
         <PlotlyGraph
           key={'graph-' + pos}
           containerId="statsBoxDiv"
+          dataValidator={this.dataValidator}
           endTsMs={endTs * 1000}
           startTsMs={startTs * 1000}
           title={graphKey.value}
@@ -168,6 +169,17 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
         />
       );
     });
+  }
+
+  dataValidator(response: string): boolean {
+    if (
+      !response.data ||
+      !response.data.result ||
+      response.data.result.length === 0
+    ) {
+      return false;
+    }
+    return true;
   }
 
   render() {
@@ -180,6 +192,7 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
           <Typography variant="subtitle1">Prometheus Query</Typography>
           <MaterialReactSelect
             async={true}
+            id={'key-name-drop-down'}
             // prevent caching results since we use 'filter by links' for
             // additional filtering
             cacheOptions={false}

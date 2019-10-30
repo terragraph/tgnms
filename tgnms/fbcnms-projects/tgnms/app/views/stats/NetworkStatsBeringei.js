@@ -48,6 +48,43 @@ const styles = theme => ({
   },
 });
 
+const plotlyDataFormatter = (oldGraphData, graphData) => {
+  if (graphData && graphData.points && graphData.points[0]) {
+    let traces = [];
+    // If there is already plotly data (lines are already on the graph),
+    // then refresh the trace's x and y data, otherwise make new traces
+    if (oldGraphData && oldGraphData.length !== 0) {
+      traces = oldGraphData.map(trace => ({
+        ...trace,
+        x: [],
+        y: [],
+      }));
+    } else {
+      // Create the correct number of trace (line) objects
+      for (let i = 0; i < graphData.points[0].length - 1; i++) {
+        traces.push({
+          mode: 'line',
+          name: graphData.columns[i + 1].substr(0, GRAPH_LINE_NAME_MAX_LENGTH),
+          type: 'scatter',
+          x: [], // Will contain the timestamp
+          y: [], // Will contain the data
+        });
+      }
+    }
+
+    // Populate the x and y data for each of the traces from the points
+    graphData.points.forEach(point => {
+      point[0] = new Date(point[0]);
+      for (let i = 1; i < point.length; i++) {
+        const trace = traces[i - 1];
+        trace.x.push(point[0]); // Push the timestamp contained at point[0]
+        trace.y.push(point[i]); // Push the data
+      }
+    });
+    return traces;
+  }
+};
+
 type Props = {
   classes: Object,
   networkConfig: Object,
@@ -143,44 +180,12 @@ class NetworkStatsBeringei extends React.Component<Props, State> {
     });
   };
 
-  plotlyDataFormatter(oldGraphData, graphData) {
-    if (graphData && graphData.points && graphData.points[0]) {
-      let traces = [];
-      // If there is already plotly data (lines are already on the graph),
-      // then refresh the trace's x and y data, otherwise make new traces
-      if (oldGraphData && oldGraphData.length !== 0) {
-        traces = oldGraphData.map(trace => ({
-          ...trace,
-          x: [],
-          y: [],
-        }));
-      } else {
-        // Create the correct number of trace (line) objects
-        for (let i = 0; i < graphData.points[0].length - 1; i++) {
-          traces.push({
-            mode: 'line',
-            name: graphData.columns[i + 1].substr(
-              0,
-              GRAPH_LINE_NAME_MAX_LENGTH,
-            ),
-            type: 'scatter',
-            x: [], // Will contain the timestamp
-            y: [], // Will contain the data
-          });
-        }
-      }
-
-      // Populate the x and y data for each of the traces from the points
-      graphData.points.forEach(point => {
-        point[0] = new Date(point[0]);
-        for (let i = 1; i < point.length; i++) {
-          const trace = traces[i - 1];
-          trace.x.push(point[0]); // Push the timestamp contained at point[0]
-          trace.y.push(point[i]); // Push the data
-        }
-      });
-      return traces;
+  dataValidator(response: string): boolean {
+    if (!response.columns || response.columns.length <= 1) {
+      // first column is 'time', ensure there's data
+      return false;
     }
+    return true;
   }
 
   renderGraphs() {
@@ -219,7 +224,8 @@ class NetworkStatsBeringei extends React.Component<Props, State> {
           title={graphKey.label}
           queryUrl={'/metrics/multi_chart'}
           options={graphOpts}
-          dataFormatter={this.plotlyDataFormatter}
+          dataFormatter={plotlyDataFormatter}
+          dataValidator={this.dataValidator}
         />
       );
     });

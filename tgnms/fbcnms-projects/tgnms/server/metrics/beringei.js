@@ -49,12 +49,22 @@ router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
 });
 
 // newer charting, for multi-linechart/row
-router.post('/multi_chart', (req, res, _next) => {
+router.get('/multi_chart', (req, res, _next) => {
   // proxy query
   const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
+  // re-construct the query since all params are strings
+  const query = {
+    ...req.query,
+    aggregation: Number.parseInt(req.query.aggregation),
+    outputFormat: Number.parseInt(req.query.outputFormat),
+    maxResults: Number.parseInt(req.query.maxResults),
+    maxDataPoints: Number.parseInt(req.query.maxDataPoints),
+    dsIntervalSec: Number.parseInt(req.query.dsIntervalSec),
+    minAgo: Number.parseInt(req.query.minAgo),
+  };
   request.post(
     {
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(query),
       url: chartUrl,
     },
     (err, httpResponse, _body) => {

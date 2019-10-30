@@ -4,10 +4,11 @@
  * @format
  */
 
-import PropTypes from 'prop-types';
+import LoadingBox from '../../components/common/LoadingBox';
 import React from 'react';
 import axios from 'axios';
 import equals from 'equals';
+import {withStyles} from '@material-ui/core/styles';
 
 // load the basic bundle of plotly to avoid bundle bloat
 // includes scatter, pie, and bar
@@ -24,7 +25,39 @@ const GRAPH_GAP_WIDTH = 20;
 // refresh interval (ms)
 const GRAPH_REFRESH_INTERVAL_MS = 10000;
 
-export default class PlotlyGraph extends React.Component {
+const styles = {
+  loadingWrapper: {
+    display: 'inline-flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    height: GRAPH_HEIGHT,
+    width: MIN_GRAPH_WIDTH,
+  },
+};
+
+type Props = {
+  dataFormatter: func,
+  dataValidator: func,
+  startTsMs: number,
+  endTsMs: number,
+  containerId: string,
+  queryUrl: string,
+  options: object,
+  title: string,
+};
+
+type State = {
+  data: any,
+  dataCounter: number,
+  indicator: string,
+  plotlyData: any,
+  relayout: boolean,
+  xasixEnd: any,
+  xaxisStart: any,
+  showLegend: boolean,
+};
+
+class PlotlyGraph extends React.Component<Props, State> {
   constructor(props, context) {
     super(props, context);
     this.chartRequest = undefined;
@@ -98,12 +131,13 @@ export default class PlotlyGraph extends React.Component {
   }
 
   refreshData() {
-    const {options, queryUrl} = this.props;
+    const {dataFormatter, dataValidator, options, queryUrl} = this.props;
 
     axios
       .get(queryUrl, {params: options})
       .then(resp => {
-        if (!resp.data) {
+        // TODO - should use dataValidator to show an error instead of loading
+        if (!resp.data || !dataValidator(resp.data)) {
           this.setState({
             data: null,
             indicator: 'NO_DATA',
@@ -111,7 +145,7 @@ export default class PlotlyGraph extends React.Component {
         } else {
           // process data to fit format for Plotly
           const graphData = resp.data;
-          const traces = this.props.dataFormatter(
+          const traces = dataFormatter(
             this.state.plotlyData /* old data */,
             graphData /* new data */,
           );
@@ -150,8 +184,8 @@ export default class PlotlyGraph extends React.Component {
   }
 
   render() {
-    const {xaxisStart, xaxisEnd} = this.state;
-    const {containerId, endTsMs, startTsMs, title} = this.props;
+    const {indicator, xaxisStart, xaxisEnd} = this.state;
+    const {classes, containerId, endTsMs, startTsMs, title} = this.props;
     // Format time
     // Format height and width of graph
     let width = MIN_GRAPH_WIDTH;
@@ -166,7 +200,11 @@ export default class PlotlyGraph extends React.Component {
         width = MIN_GRAPH_WIDTH;
       }
     }
-    return (
+    return indicator !== 'LOADED' ? (
+      <div className={classes.loadingWrapper}>
+        <LoadingBox fullScreen={false} />
+      </div>
+    ) : (
       <div className="dashboard-plotly-wrapper" style={{display: 'inline'}}>
         <Plot
           data={this.state.plotlyData}
@@ -207,12 +245,4 @@ export default class PlotlyGraph extends React.Component {
   }
 }
 
-PlotlyGraph.propTypes = {
-  dataFormatter: PropTypes.func.isRequired,
-  startTsMs: PropTypes.number.isRequired,
-  endTsMs: PropTypes.number.isRequired,
-  containerId: PropTypes.string.isRequired,
-  queryUrl: PropTypes.string.isRequired,
-  options: PropTypes.object.isRequired,
-  title: PropTypes.string.isRequired,
-};
+export default withStyles(styles)(PlotlyGraph);
