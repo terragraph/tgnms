@@ -539,6 +539,7 @@ class ConfigRoot extends React.Component<Props, State> {
           <>
             <AppBar className={classes.appBar} color="default">
               <Tabs
+                data-testid="config-root-tabs"
                 value={editMode}
                 indicatorColor="primary"
                 textColor="primary"
