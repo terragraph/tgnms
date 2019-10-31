@@ -1,5 +1,5 @@
 # Pull base image
-FROM tglib:latest
+FROM secure.cxl-terragraph.com:443/tglib:latest
 
 ARG WORKDIR=/usr/local/nano/default_routes_service/
 
