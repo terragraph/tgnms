@@ -18,7 +18,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <curl/curl.h>
+#include <folly/Format.h>
 #include <folly/IPAddress.h>
 #include <folly/Synchronized.h>
 #include <folly/init/Init.h>
@@ -54,7 +54,7 @@ DEFINE_int32(base_port, 25000, "The starting UDP port to bind to");
 DEFINE_int32(pinger_rate_pps, 5, "Rate at which hosts are probed in pings per second");
 DEFINE_int32(socket_buffer_size, 425984, "Socket buffer size to send/recv");
 DEFINE_string(src_ip, "", "The IP source address to use in probe");
-DEFINE_string(src_if, "eth0", "The interface to use if src_ip is not defined");
+DEFINE_string(src_if, "", "The interface to use if src_ip is not defined");
 DEFINE_string(http_ip, "::", "IP/Hostname to bind HTTP server to");
 DEFINE_int32(http_port, 3047, "Port to listen on with HTTP protocol");
 DEFINE_int32(num_http_threads, 1, "Number of HTTP server threads to listen on");
@@ -101,26 +101,29 @@ std::string getAddressFromInterface() {
   }
 
   for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-    if (ifa->ifa_addr == nullptr) {
+    // Skip v4 addresses
+    if (ifa->ifa_addr == nullptr || ifa->ifa_addr->sa_family != AF_INET6) {
       continue;
     }
 
-    if (ifa->ifa_addr->sa_family == AF_INET6 &&
-        FLAGS_src_if.compare(ifa->ifa_name) == 0) {
-      char str[INET6_ADDRSTRLEN];
-      if (inet_ntop(
-              AF_INET6,
-              &((struct sockaddr_in6*)ifa->ifa_addr)->sin6_addr,
-              str,
-              INET6_ADDRSTRLEN)) {
-        return str;
-      }
+    if (!FLAGS_src_if.empty() && FLAGS_src_if.compare(ifa->ifa_name) != 0) {
+      continue;
+    }
+
+    char str[INET6_ADDRSTRLEN];
+    auto s6 = (struct sockaddr_in6*)ifa->ifa_addr;
+
+    // Find the global scope address
+    if (!IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr) &&
+        !IN6_IS_ADDR_LOOPBACK(&s6->sin6_addr) &&
+        inet_ntop(AF_INET6, &s6->sin6_addr, str, INET6_ADDRSTRLEN)) {
+      return str;
     }
   }
 
   freeifaddrs(ifaddr);
 
-  // Return something that will throw an error, if we get here we've failed
+  // Return something that will throw an error
   return "";
 }
 
@@ -385,9 +388,6 @@ int main(int argc, char* argv[]) {
        proxygen::HTTPServer::Protocol::HTTP},
   };
 
-  // Initialize curl thread un-safe operations
-  curl_global_init(CURL_GLOBAL_ALL);
-
   proxygen::HTTPServerOptions options;
   options.threads = static_cast<size_t>(FLAGS_num_http_threads);
   options.idleTimeout = std::chrono::milliseconds(60000);
@@ -418,15 +418,17 @@ int main(int argc, char* argv[]) {
   // If not provided, find the source address from an interface
   folly::IPAddress srcIp;
   try {
-    if (!FLAGS_src_ip.empty()) {
-      srcIp = folly::IPAddress(FLAGS_src_ip);
-    } else {
+    if (FLAGS_src_ip.empty()) {
       srcIp = folly::IPAddress(getAddressFromInterface());
+    } else {
+      srcIp = folly::IPAddress(FLAGS_src_ip);
     }
   } catch (const folly::IPAddressFormatException& e) {
     srcIp = folly::IPAddress("::1");
     LOG(WARNING) << "We are using the IPv6 loopback address";
   }
+
+  VLOG(2) << "Using source addr: " << srcIp;
 
   UdpPinger pinger(config, srcIp);
   folly::Synchronized<std::vector<UdpTestPlan>> testPlans;

@@ -9,17 +9,16 @@
 
 #pragma once
 
-#include "CurlUtil.h"
+#include <string>
 
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
-
-#include <folly/Format.h>
+#include <curl/curl.h>
 #include <folly/Optional.h>
-#include <folly/String.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
+#include <gflags/gflags.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-using apache::thrift::SimpleJSONSerializer;
+#include "CurlUtil.h"
+
+DECLARE_int32(api_service_request_timeout_s);
 
 namespace facebook {
 namespace gorilla {
@@ -30,67 +29,50 @@ class ApiServiceClient {
 
   template <class T>
   static folly::Optional<T> fetchApiService(
-      const std::string& ipAddress,
+      const std::string& host,
       int port,
       const std::string& endpoint,
       const std::string& postData) {
-    T returnStruct;
-    try {
-      CURL* curl = curl_easy_init();
-      if (!curl) {
-        throw std::runtime_error("Unable to initialize CURL");
-      }
-
-      std::string url = folly::sformat(
-          "http://{}:{}/{}",
-          ApiServiceClient::formatAddress(ipAddress),
-          port,
-          endpoint);
-
-      VLOG(1) << "API service fetch to " << url << " with post data "
-              << postData << " (TCP/IP address:port is " << ipAddress << ":"
-              << port << ")";
-
-      // We can't verify the peer with our current image/lack of certs
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-      curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postData.length());
-      curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
-      curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
-      curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-      curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1L /* 1 second */);
-
-      // Read data from request
-      struct HTTPDataStruct dataChunk;
-      dataChunk.data = (char*)malloc(1);
-      dataChunk.size = 0;
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curlWriteCb);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&dataChunk);
-      CURLcode res = curl_easy_perform(curl);
-
-      // Cleanup
-      curl_easy_cleanup(curl);
-      returnStruct = SimpleJSONSerializer::deserialize<T>(folly::StringPiece(
-          reinterpret_cast<const char*>(dataChunk.data), dataChunk.size));
-      free(dataChunk.data);
-
-      if (res != CURLE_OK) {
-        LOG(WARNING) << "CURL error for endpoint " << url << ": "
-                     << curl_easy_strerror(res);
-        return folly::none;
-      }
-    } catch (const std::exception& e) {
-      LOG(ERROR) << "Error reading from API service: "
-                 << folly::exceptionStr(e);
+    // Get a curl handle
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+      LOG(ERROR) << "Failed to initialize CURL object";
       return folly::none;
     }
 
-    return returnStruct;
+    std::string addr = formatAddress(host, port, endpoint);
+    VLOG(3) << "POST request to " << addr << " with data " << postData;
+
+    // Set the URL and other curl options
+    curl_easy_setopt(curl, CURLOPT_URL, addr.c_str());
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);  // Only for https
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);  // Only for https
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)postData.length());
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)FLAGS_api_service_request_timeout_s);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteStringCb);
+
+    std::string s;
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+
+    // Perform the request and check for errors, res will get the return code
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK) {
+      LOG(ERROR) << "CURL request failed for " << addr << ": "
+                 << curl_easy_strerror(res);
+      return folly::none;
+    }
+
+    return apache::thrift::SimpleJSONSerializer::deserialize<T>(s);
   }
 
  private:
-  static std::string formatAddress(const std::string& address);
+  static std::string
+  formatAddress(const std::string& host, int port, const std::string& endpoint);
 };
+
 } // namespace gorilla
 } // namespace facebook

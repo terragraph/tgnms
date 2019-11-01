@@ -9,10 +9,12 @@
 
 #pragma once
 
-#include <curl/curl.h>
-#include <cstring>
 #include <stdlib.h>
+
+#include <cstring>
 #include <string>
+
+#include <curl/curl.h>
 
 extern "C" {
 struct HTTPDataStruct {
@@ -45,6 +47,8 @@ struct CurlResponse {
   std::string header;
   std::string body;
 };
+
+size_t curlWriteStringCb(void* ptr, size_t size, size_t nmemb, std::string* s);
 
 } // namespace gorilla
 } // namespace facebook

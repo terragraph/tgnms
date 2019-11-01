@@ -24,6 +24,7 @@ set(QUERY_SRCS
     AggregatorService.h
     ApiServiceClient.cpp
     ApiServiceClient.h
+    CurlUtil.cpp
     CurlUtil.h
     KafkaStatsService.cpp
     KafkaStatsService.h

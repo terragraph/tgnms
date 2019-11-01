@@ -9,22 +9,32 @@
 
 #include "ApiServiceClient.h"
 
+#include <folly/Format.h>
 #include <folly/IPAddress.h>
+
+DEFINE_int32(
+    api_service_request_timeout_s,
+    5,
+    "Maximum time the request is allowed to take");
 
 namespace facebook {
 namespace gorilla {
 
 ApiServiceClient::ApiServiceClient() {}
 
-std::string ApiServiceClient::formatAddress(const std::string& address) {
+std::string ApiServiceClient::formatAddress(
+    const std::string& host,
+    int port,
+    const std::string& endpoint) {
   try {
-    auto ipAddr = folly::IPAddress(address);
-    if (ipAddr.isV6()) {
-      return folly::sformat("[{}]", address);
+    auto ip = folly::IPAddress(host);
+    if (ip.isV6()) {
+      return folly::sformat("http://[{}]:{}/{}", host, port, endpoint);
     }
-  } catch (const folly::IPAddressFormatException& ex) {
+  } catch (const folly::IPAddressFormatException&) {
   }
-  return address;
+
+  return folly::sformat("http://{}:{}/{}", host, port, endpoint);
 }
 
 } // namespace gorilla
