@@ -1,7 +1,7 @@
 {
   "Notification Menu Toggle": "Notification Menu Toggle",
   "open_drawer": "Open drawer",
-  "_t": "Fri Sep 06 2019 13:23:23 GMT-0700 (Pacific Daylight Time)",
+  "_t": "Thu Oct 31 2019 10:16:51 GMT-0700 (Pacific Daylight Time)",
   "not_selected": "Not Selected",
   "network": "Network",
   "no_networks_defined": "No networks defined.",
@@ -69,5 +69,6 @@
   "length": "Length",
   "ignition_attempts_1day": "Ignition Attempts (1d)",
   "<0></0>": "<0></0>",
-  "Query Service": "Query Service"
+  "Query Service": "Query Service",
+  "Network Tests": "Network Tests"
 }
