@@ -29,13 +29,16 @@ const logger = require('../log')(module);
 const router = express.Router();
 
 router.get(
-  '/link_health/:topologyName/:timeWindowHours',
+  '/link_health/:topologyName/:timeWindowHours?',
   async (req, res, _next) => {
     const {topologyName} = req.params;
     const timeWindowHours = Number.parseInt(req.params.timeWindowHours);
     let networkLinkHealth = false;
     // use cache if using default interval
-    if (timeWindowHours === LINK_HEALTH_TIME_WINDOW_HOURS) {
+    if (
+      timeWindowHours === LINK_HEALTH_TIME_WINDOW_HOURS ||
+      isNaN(timeWindowHours)
+    ) {
       networkLinkHealth = getNetworkLinkHealth(topologyName);
     } else if (STATS_BACKEND === 'prometheus') {
       // query for non-default health window

@@ -537,11 +537,11 @@ function refreshWirelessControllerCache(topologyName) {
   );
 }
 
-function refreshNetworkHealth(topologyName) {
+async function refreshNetworkHealth(topologyName) {
   if (STATS_BACKEND === 'prometheus') {
-    cacheNetworkHealthFromDb(topologyName, LINK_HEALTH_TIME_WINDOW_HOURS);
+    await cacheNetworkHealthFromDb(topologyName, LINK_HEALTH_TIME_WINDOW_HOURS);
   } else {
-    cacheNetworkHealthFromBeringei(topologyName);
+    await cacheNetworkHealthFromBeringei(topologyName);
   }
 }
 async function cacheNetworkHealthFromDb(topologyName, timeWindowHours) {
