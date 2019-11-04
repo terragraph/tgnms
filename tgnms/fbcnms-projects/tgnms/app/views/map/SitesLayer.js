@@ -323,7 +323,7 @@ class SitesLayer extends React.Component<Props> {
     const nearbyNodePopups = [];
     objectEntriesTypesafe<string, Array<TopologyScanInfo>>(nearbyNodes).forEach(
       ([txNode, responders]) => {
-        if (responders !== null || responders !== undefined) {
+        if (responders) {
           responders.forEach(responder => {
             const location = responder.responderInfo.pos;
             const key = 'nearby-' + txNode + '-' + responder.responderInfo.addr;
