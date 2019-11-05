@@ -6,14 +6,19 @@
  */
 
 require('dotenv').config();
+const {
+  optionalInt,
+  requiredBool,
+  requiredInt,
+} = require('./helpers/configHelpers');
 
-const API_REQUEST_TIMEOUT = envInt(process.env.API_REQUEST_TIMEOUT, 5000);
+const API_REQUEST_TIMEOUT = requiredInt(process.env.API_REQUEST_TIMEOUT, 5000);
 
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 // NOTE: Login is disabled by default until its deployed publicly
-const LOGIN_ENABLED = envBool(process.env.LOGIN_ENABLED, false);
-const SSO_ENABLED = envBool(process.env.SSO_ENABLED, false);
-const SESSION_MAX_AGE_MS = envInt(process.env.SESSION_MAX_AGE_MS);
+const LOGIN_ENABLED = requiredBool(process.env.LOGIN_ENABLED, false);
+const SSO_ENABLED = requiredBool(process.env.SSO_ENABLED, false);
+const SESSION_MAX_AGE_MS = optionalInt(process.env.SESSION_MAX_AGE_MS);
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
 const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
@@ -82,39 +87,24 @@ const DEVELOPMENT = process.env.NODE_ENV !== 'production';
 //   'kafka-host1:9092,kafka-host2:9092'
 const KAFKA_HOSTS = process.env.KAFKA_HOSTS;
 
-function envBool(envVar: ?string, defaultValue?: boolean) {
-  if (typeof envVar === 'undefined') {
-    return defaultValue;
-  }
-  // empty env vars like ENABLE_X are still considered true
-  if (envVar === 'true' || envVar === '') {
-    return true;
-  }
-  if (envVar === 'false') {
-    return false;
-  }
-  console.error(
-    `Invalid environment variable. Expected: boolean string, Actual: ${envVar ||
-      'undefined'}`,
-  );
-  return defaultValue;
-}
+// AlertManager and associated services to manager alert-related configs
+const ALERTMANAGER_HOST = process.env.ALERTMANAGER_HOST || 'alertmanager';
+const ALERTMANAGER_PORT = requiredInt(process.env.ALERTMANAGER_PORT, 9093);
+// Prometheus config writing utils are within the same docker container
+const PROMETHEUS_CONFIG_HOST =
+  process.env.PROMETHEUS_CONFIG_HOST || 'prometheus_config_manager';
+const PROM_ALERTCONFIG_PORT = requiredInt(
+  process.env.PROM_ALERTCONFIG_PORT,
+  9100,
+);
+const ALERTMANAGER_CONFIG_PORT = requiredInt(
+  process.env.ALERTMANAGER_CONFIG_PORT,
+  9101,
+);
 
-function envInt(envVar: ?string, defaultValue?: number) {
-  if (typeof envVar === 'undefined') {
-    return defaultValue;
-  }
-  const parsed = parseInt(envVar);
-  if (isNaN(parsed)) {
-    console.error(
-      `Invalid environment variable. Expected: integer, Actual: ${envVar ||
-        'undefined'}`,
-    );
-    return defaultValue;
-  }
-
-  return parsed;
-}
+// TG-specific service for generating alerts from events
+const TG_ALARM_HOST = process.env.TG_ALARM_HOST || 'tg_alarms';
+const TG_ALARM_PORT = requiredInt(process.env.TG_ALARM_PORT, 40000);
 
 module.exports = {
   API_REQUEST_TIMEOUT,
@@ -154,4 +144,12 @@ module.exports = {
   DEVELOPMENT,
   KAFKA_HOSTS,
   SESSION_MAX_AGE_MS,
+  // alertmanager
+  ALERTMANAGER_CONFIG_PORT,
+  ALERTMANAGER_HOST,
+  ALERTMANAGER_PORT,
+  PROMETHEUS_CONFIG_HOST,
+  PROM_ALERTCONFIG_PORT,
+  TG_ALARM_HOST,
+  TG_ALARM_PORT,
 };

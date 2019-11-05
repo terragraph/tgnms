@@ -20,6 +20,7 @@ export const FeatureFlags: {[string]: () => boolean} = {
     window.CONFIG.env.SERVICE_AVAILABILITY_ENABLED === 'true',
   SOFTWARE_PORTAL_ENABLED: () =>
     window.CONFIG.env.hasOwnProperty('SOFTWARE_PORTAL_URL'),
+  ALARMS_ENABLED: () => window.CONFIG.env.ALARMS_ENABLED,
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {

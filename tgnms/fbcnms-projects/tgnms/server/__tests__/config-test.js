@@ -58,14 +58,14 @@ describe('NMS Server config', () => {
       const {API_REQUEST_TIMEOUT} = require('../config');
       expect(API_REQUEST_TIMEOUT).toBe(5000);
     });
-    test('if LOGIN_ENABLED=kitty, value is 5000', () => {
+    test('if API_REQUEST_TIMEOUT=kitty, value is 5000', () => {
       const consoleMock = mockConsole();
       setEnv('API_REQUEST_TIMEOUT', 'kitty');
       const {API_REQUEST_TIMEOUT} = require('../config');
       expect(API_REQUEST_TIMEOUT).toBe(5000);
       expect(consoleMock.error).toHaveBeenCalled();
     });
-    test('if LOGIN_ENABLED=1000, value is 1000 (number)', () => {
+    test('if API_REQUEST_TIMEOUT=1000, value is 1000 (number)', () => {
       setEnv('API_REQUEST_TIMEOUT', '1000');
       const {API_REQUEST_TIMEOUT} = require('../config');
       expect(API_REQUEST_TIMEOUT).toBe(1000);

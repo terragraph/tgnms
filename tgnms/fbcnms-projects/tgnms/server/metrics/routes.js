@@ -11,7 +11,7 @@ const router = express.Router();
 
 // restrict metric routes based on backend
 if (STATS_BACKEND === 'prometheus') {
-  router.use('', require('./prometheus'));
+  router.use('', require('./routes_prometheus'));
 } else {
   router.use('', require('./beringei'));
 }

@@ -105,6 +105,7 @@ app.use('/network_test', require('../server/network_test/routes'));
 app.use('/nodelogs', require('../server/nodelogs/routes'));
 app.use('/translations', require('../server/translations/routes'));
 app.use('/websockets', require('../server/websockets/routes'));
+app.use('/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
 app.use('/healthcheck', require('../server/healthcheck/routes'));
 
@@ -163,6 +164,7 @@ app.get('*', (req, res) => {
     'NOTIFICATION_MENU_ENABLED',
     'SERVICE_AVAILABILITY_ENABLED',
     'SOFTWARE_PORTAL_URL',
+    'ALARMS_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

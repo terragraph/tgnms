@@ -18,6 +18,7 @@ import NetworkStatsPrometheus from './views/stats/NetworkStatsPrometheus';
 import NetworkTables from './views/tables/NetworkTables';
 import NetworkTest from './views/network_test/NetworkTest';
 import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
+import NmsAlarms from './views/alarms/NmsAlarms';
 import NodeLogs from './views/logs/NodeLogs';
 import React from 'react';
 import axios from 'axios';
@@ -493,6 +494,10 @@ class NetworkUI extends React.Component<Props, State> {
                   {...routeProps}
                 />
               )}
+            />
+            <Route
+              path={`/alarms/:networkName/:tabName?`}
+              render={() => <NmsAlarms networkName={networkName} />}
             />
             <AuthorizedRoute
               permissions={['UPGRADE_READ', 'UPGRADE_WRITE']}

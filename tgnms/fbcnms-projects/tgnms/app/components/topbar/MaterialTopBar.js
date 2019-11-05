@@ -4,6 +4,7 @@
  * @format
  */
 
+import AlarmIcon from '@material-ui/icons/Alarm';
 import AppBar from '@material-ui/core/AppBar';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BarChartIcon from '@material-ui/icons/BarChart';
@@ -146,6 +147,12 @@ const VIEWS = [
   {name: 'Map', icon: <MapIcon />, viewName: 'map'},
   {name: 'Tables', icon: <TableChartIcon />, viewName: 'tables'},
   {name: 'Stats', icon: <BarChartIcon />, viewName: 'stats'},
+  {
+    name: 'Alarms',
+    icon: <AlarmIcon />,
+    viewName: 'alarms',
+    hideCondition: () => !isFeatureEnabled('ALARMS_ENABLED'),
+  },
   {
     name: 'Logs',
     icon: <CodeIcon />,

@@ -70,5 +70,6 @@
   "ignition_attempts_1day": "Ignition Attempts (1d)",
   "<0></0>": "<0></0>",
   "Query Service": "Query Service",
-  "Network Tests": "Network Tests"
+  "Alarms": "Alarms",
+  "link_ignition": "Link Ignition"
 }
