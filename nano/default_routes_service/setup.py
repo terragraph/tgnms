@@ -29,4 +29,7 @@ setup(
     install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
+    entry_points={
+        "console_scripts": ["default_routes_service = default_routes_service.main:main"]
+    },
 )

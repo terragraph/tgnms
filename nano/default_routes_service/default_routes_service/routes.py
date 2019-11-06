@@ -12,8 +12,7 @@ from aiomysql.sa.result import RowProxy
 from sqlalchemy.sql import func, select
 from tglib.clients.mysql_client import MySQLClient
 
-
-from default_routes_service.models import DefaultRouteHistory  # isort:skip
+from .models import DefaultRouteHistory
 
 
 routes = web.RouteTableDef()

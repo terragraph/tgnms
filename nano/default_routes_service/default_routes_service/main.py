@@ -16,15 +16,11 @@ from tglib.clients.mysql_client import MySQLClient
 from tglib.exceptions import ClientRuntimeError
 from tglib.tglib import Client, init
 
-
-from default_routes_service.models import (  # isort:skip
-    DefaultRouteCurrent,
-    DefaultRouteHistory,
-)
-from default_routes_service.routes import routes  # isort:skip
+from .models import DefaultRouteCurrent, DefaultRouteHistory
+from .routes import routes
 
 
-async def main(config: Dict) -> None:
+async def async_main(config: Dict) -> None:
     """
     Use `getDefaultRoutes` API request to fetch default routes across all
     networks every fetch_interval seconds and store the results in MySQL.
@@ -293,7 +289,7 @@ async def _insert_or_update_current_table(
         await conn.execute(query)
 
 
-if __name__ == "__main__":
+def main() -> None:
     try:
         with open("./service_config.json") as file:
             config = json.load(file)
@@ -301,4 +297,8 @@ if __name__ == "__main__":
         logging.exception(f"Failed to parse service configuration file: {err}")
         sys.exit(1)
 
-    init(lambda: main(config), {Client.API_SERVICE_CLIENT, Client.MYSQL_CLIENT}, routes)
+    init(
+        lambda: async_main(config),
+        {Client.API_SERVICE_CLIENT, Client.MYSQL_CLIENT},
+        routes,
+    )
