@@ -56,6 +56,42 @@ def parse_input_params(request: web.Request) -> Tuple[str, str, datetime, dateti
 @routes.get("/routes/history")
 async def handle_get_default_routes_history(request: web.Request) -> web.Response:
     """
+    ---
+    description: Analyze default routes history for any node/all nodes of the network
+    tags:
+      - Routes
+    produces:
+      - application/json
+    parameters:
+      - in: query
+        name: topology_name
+        description: Name of the network.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: node_name
+        description: Name of the node. Will fetch info for all nodes if not specified.
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: start_time
+        description: Start time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: end_time
+        description: End time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Successful operation. Returns analyzed default routes history.
+      "400":
+        description: Invalid or missing parameters.
     """
     # parse and validate input params
     topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
@@ -127,6 +163,42 @@ def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
 @routes.get("/routes/util")
 async def handle_compute_routes_utilization(request: web.Request) -> web.Response:
     """
+    ---
+    description: Calculate percentage of time each route took for a node/all nodes in the specified time window.
+    tags:
+      - Routes
+    produces:
+      - application/json
+    parameters:
+      - in: query
+        name: topology_name
+        description: Name of the network.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: node_name
+        description: Name of the node. Will fetch info for all nodes if not specified.
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: start_time
+        description: Start time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: end_time
+        description: End time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Successful operation. Returns routes time utilization.
+      "400":
+        description: Invalid or missing parameters.
     """
     # parse and validate input params
     topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
@@ -205,6 +277,42 @@ def _compute_routes_utilization_impl(raw_routes_data: List[RowProxy]) -> Dict:
 @routes.get("/routes/pop_util")
 async def handle_compute_pop_utilization(request: web.Request) -> web.Response:
     """
+    ---
+    description: Calculate percentage of time a node/all nodes were connected to POP node in the specified time window.
+    tags:
+      - Routes
+    produces:
+      - application/json
+    parameters:
+      - in: query
+        name: topology_name
+        description: Name of the network.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: node_name
+        description: Name of the node. Will fetch info for all nodes if not specified.
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: start_time
+        description: Start time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: end_time
+        description: End time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Successful operation. Returns POP node time percentage info.
+      "400":
+        description: Invalid or missing parameters.
     """
     # parse and validate input params
     topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
@@ -291,6 +399,42 @@ def _compute_pop_utilization_impl(raw_routes_data: List[RowProxy]) -> Dict:
 @routes.get("/routes/ecmp_toggles")
 async def handle_count_ecmp_toggles(request: web.Request) -> web.Response:
     """
+    ---
+    description: Calculate the number of times there was a switch between ECMP and non-ECMP routes in the specified time window.
+    tags:
+      - Routes
+    produces:
+      - application/json
+    parameters:
+      - in: query
+        name: topology_name
+        description: Name of the network.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: node_name
+        description: Name of the node. Will fetch info for all nodes if not specified.
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: start_time
+        description: Start time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: end_time
+        description: End time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Successful operation. Returns total number of ecmp toggles.
+      "400":
+        description: Invalid or missing parameters.
     """
     # parse and validate input params
     topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
@@ -363,6 +507,42 @@ def _count_ecmp_toggles_impl(raw_routes_data: List[RowProxy]) -> Dict:
 @routes.get("/routes/hop_count")
 async def handle_default_routes_hop_count(request: web.Request) -> web.Response:
     """
+    ---
+    description: Calculate maximum and muminum number of hops from node to POP in the time window.
+    tags:
+      - Routes
+    produces:
+      - application/json
+    parameters:
+      - in: query
+        name: topology_name
+        description: Name of the network.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: node_name
+        description: Name of the node. Will fetch info for all nodes if not specified.
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: start_time
+        description: Start time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: end_time
+        description: End time of time window, in ISO 8601 format.
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Successful operation. Returns maximum and muminum number of hops.
+      "400":
+        description: Invalid or missing parameters.
     """
     # parse and validate input params
     topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
