@@ -15,4 +15,7 @@ WORKDIR $WORKDIR
 COPY nano/default_routes_service .
 
 # Install default_routes_service
-RUN pip install .
+RUN pip install -e .[ci]
+
+# Run unit tests
+RUN python setup.py test

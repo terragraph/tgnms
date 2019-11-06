@@ -149,7 +149,7 @@ def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
     }
     """
     # dictionary to track routes history
-    routes_history = {}
+    routes_history: Dict[str, Dict] = {}
 
     for row in raw_routes_data:
         if row["node_name"] in routes_history:
@@ -241,7 +241,7 @@ def _compute_routes_utilization_impl(raw_routes_data: List[RowProxy]) -> Dict:
     }
     """
     # dictionary to track count of routes of each node
-    routes_count_per_node = {}
+    routes_count_per_node: Dict[str, Dict] = {}
 
     for row in raw_routes_data:
         node_name = row["node_name"]
@@ -357,7 +357,7 @@ def _compute_pop_utilization_impl(raw_routes_data: List[RowProxy]) -> Dict:
     }
     """
     # dictionary to track count of PoP nodes of each node
-    pop_count_per_node = {}
+    pop_count_per_node: Dict[str, Dict] = {}
 
     for row in raw_routes_data:
         node_name = row["node_name"]
@@ -481,7 +481,7 @@ def _count_ecmp_toggles_impl(raw_routes_data: List[RowProxy]) -> Dict:
     }
     """
     # dictionary to track ecmp toggle count info of each node
-    ecmp_toggles = {}
+    ecmp_toggles: Dict[str, Dict] = {}
 
     for row in raw_routes_data:
         node_name = row["node_name"]
@@ -548,19 +548,16 @@ async def handle_default_routes_hop_count(request: web.Request) -> web.Response:
     topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
 
     # get entries for all nodes between start and end time
-    query = (
-        select(
-            [
-                DefaultRouteHistory.node_name,
-                func.max(DefaultRouteHistory.hop_count).label("max"),
-                func.min(DefaultRouteHistory.hop_count).label("min"),
-            ]
-        )
-        .where(
-            (DefaultRouteHistory.topology_name == topology_name)
-            & (DefaultRouteHistory.last_updated >= start_time_obj)
-            & (DefaultRouteHistory.last_updated <= end_time_obj)
-        )
+    query = select(
+        [
+            DefaultRouteHistory.node_name,
+            func.max(DefaultRouteHistory.hop_count).label("max"),
+            func.min(DefaultRouteHistory.hop_count).label("min"),
+        ]
+    ).where(
+        (DefaultRouteHistory.topology_name == topology_name)
+        & (DefaultRouteHistory.last_updated >= start_time_obj)
+        & (DefaultRouteHistory.last_updated <= end_time_obj)
     )
 
     # fetch info for a specific node, if provided

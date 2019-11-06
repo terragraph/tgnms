@@ -181,8 +181,10 @@ async def _fetch_prev_routes(network_name: str, node_name: str) -> List:
     logging.debug(f"Query for routes of {node_name} in database: {str(query)}")
     async with MySQLClient().lease() as conn:
         cursor = await conn.execute(query)
-        prev_routes = await cursor.fetchone()
-    return prev_routes["routes"] if prev_routes else []
+        results = await cursor.fetchone()
+
+    prev_routes: List = results["routes"] if results else []
+    return prev_routes
 
 
 async def _insert_history_table(
@@ -224,8 +226,10 @@ async def _insert_history_table(
         & (DefaultRouteHistory.node_name == node_name)
     )
     cursor = await conn.execute(query)
-    history_table_query_id = await cursor.fetchone()
-    return history_table_query_id["max_id"]
+    results = await cursor.fetchone()
+
+    history_table_query_id: int = results["max_id"]
+    return history_table_query_id
 
 
 async def _insert_or_update_current_table(

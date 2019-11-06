@@ -2,12 +2,13 @@
 # Copyright 2004-present Facebook. All Rights Reserved
 
 import datetime
+from typing import Any
 
 from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 
-Base = declarative_base()
+Base = declarative_base()  # type: Any
 
 
 class DefaultRouteHistory(Base):
