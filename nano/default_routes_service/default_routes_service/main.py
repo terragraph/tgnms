@@ -47,11 +47,11 @@ async def main(config: Dict) -> None:
         )
 
         for topology_name, topology in all_topologies.items():
-            if not isinstance(topology, ClientRuntimeError):
+            if isinstance(topology, ClientRuntimeError):
+                logging.error(f"Error in fetching topology for {topology_name}.")
+            else:
                 # get default routes, analyze them and store results in MySQL
                 tasks.append(asyncio.create_task(_main_impl(topology_name, topology)))
-            else:
-                logging.error(f"Error in fetching topology for {topology_name}.")
 
         # sleep until next invocation time
         await asyncio.sleep(fetch_interval)
@@ -103,10 +103,6 @@ async def _main_impl(network_name: str, topology: Dict) -> None:
             f"node: {node_name}; topology name: {network_name}, "
             f"routes: {default_routes}"
         )
-
-        # skip if the node has no default routes (offline)
-        if not default_routes:
-            continue
 
         coroutines.append(
             _analyze_node(
@@ -201,10 +197,11 @@ async def _insert_history_table(
     # calculate the number of wireless hops from the node to pop
     # "hop_count" is the same for every route in default_routes
     hop_count = 0
-    for src, dst in zip(default_routes[0], default_routes[0][1:]):
-        hop = tuple(sorted((src, dst)))
-        if hop in wireless_link_set:
-            hop_count += 1
+    if default_routes:
+        for src, dst in zip(default_routes[0], default_routes[0][1:]):
+            hop = tuple(sorted((src, dst)))
+            if hop in wireless_link_set:
+                hop_count += 1
 
     # add node to default_route_history table
     query = insert(DefaultRouteHistory).values(
