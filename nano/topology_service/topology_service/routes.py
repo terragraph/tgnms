@@ -6,10 +6,10 @@ from pymongo import DESCENDING
 from tglib.clients.mongodb_client import MongoDBClient
 
 
-topo_routes = web.RouteTableDef()
+routes = web.RouteTableDef()
 
 
-@topo_routes.post("/topology_history")
+@routes.post("/topology_history")
 async def get_topology_history(request: web.Request) -> web.json_response:
     """
     ---

@@ -13,10 +13,10 @@ from tglib.clients.mongodb_client import MongoDBClient
 from tglib.exceptions import ClientRuntimeError
 from tglib.tglib import Client, init
 
-from topology_service.routes import topo_routes
+from .routes import routes
 
 
-async def main(config: Dict) -> None:
+async def async_main(config: Dict) -> None:
     """
     Use `getTopology` API request to fetch the latest topology in
     every `fetch_interval` seconds and stores results in MongoDB.
@@ -57,7 +57,7 @@ async def main(config: Dict) -> None:
         await asyncio.sleep(fetch_interval)
 
 
-if __name__ == "__main__":
+def main() -> None:
     try:
         with open("./service_config.json") as file:
             config = json.load(file)
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     init(
-        lambda: main(config),
+        lambda: async_main(config),
         {Client.API_SERVICE_CLIENT, Client.MONGODB_CLIENT},
-        topo_routes,
+        routes,
     )

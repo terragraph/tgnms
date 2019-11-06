@@ -11,3 +11,6 @@ COPY ./.flake8 .
 
 # Install topology_service
 RUN pip install .
+
+# Start the service
+CMD ["topology_service"]
