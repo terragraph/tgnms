@@ -12,7 +12,8 @@ RUN apt-get install -y default-mysql-client
 WORKDIR $WORKDIR
 
 # Copy default routes service source files into docker container
-COPY nano/default_routes_service .
+COPY ./nano/default_routes_service .
+COPY ./.flake8 .
 
 # Install default_routes_service
 RUN pip install -e .[ci]

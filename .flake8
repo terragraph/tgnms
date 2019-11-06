@@ -2,7 +2,7 @@
 select = B,C,E,F,P,T4,W,B9
 max-line-length = 88
 
-ignore = W503,E501,F401,W605
+ignore = E999,W503,E501,F401,W605
 exclude =
   .git,
   .hg,
