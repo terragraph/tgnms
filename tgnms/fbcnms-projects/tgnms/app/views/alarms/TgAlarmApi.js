@@ -84,8 +84,9 @@ function useApi<TParams: {...}, TResponse>(
   useEffect(() => {
     async function makeRequest() {
       try {
+        const parsed = JSON.parse(jsonParams);
         setIsLoading(true);
-        const res = await func(params);
+        const res = await func(parsed);
         setResponse(res);
         setError(null);
         setIsLoading(false);
@@ -96,7 +97,7 @@ function useApi<TParams: {...}, TResponse>(
       }
     }
     makeRequest();
-  }, [jsonParams, func, cacheCounter, params]);
+  }, [jsonParams, func, cacheCounter]);
 
   return {
     error,
