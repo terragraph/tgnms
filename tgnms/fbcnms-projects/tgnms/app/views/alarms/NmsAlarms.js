@@ -2,21 +2,21 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
+import * as React from 'react';
 import Alarms from '@fbcnms/alarms/components/Alarms';
 import MenuItem from '@material-ui/core/MenuItem';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../NetworkContext';
 import NetworkListContext from '../../NetworkListContext';
-import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import defaultTheme from '@fbcnms/ui/theme/default';
-import {AlarmAPIUrls, AlarmServiceAPIUrls} from './TgAlarmApi.js';
+import {AlarmServiceAPIUrls, TgApiUtil} from './TgAlarmApi.js';
 import {EventIdValueMap} from '../../../shared/types/Event';
 import {SnackbarProvider} from 'notistack';
-import {createMuiTheme, withStyles} from '@material-ui/core/styles';
+import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = () => ({
   root: {
@@ -24,14 +24,6 @@ const styles = () => ({
     flexFlow: 'column',
     display: 'flex',
     overflow: 'auto',
-  },
-});
-
-// Use palette from fbcnms
-const alarmsTheme = createMuiTheme({
-  palette: defaultTheme.palette,
-  overrides: {
-    MuiButton: defaultTheme.overrides.MuiButton,
   },
 });
 
@@ -84,7 +76,7 @@ const getTgAlarmServiceRuleOptions = (networkName, networkNameList) => ({
           select
           value={getValue('eventId')}
           onChange={event => updateAlertConfig('eventId', event.target.value)}>
-          {Object.entries(EventIdValueMap)
+          {objectEntriesTypesafe<string, number>(EventIdValueMap)
             .sort()
             .map(([eventId, val]) => (
               <MenuItem key={val} value={val}>
@@ -130,6 +122,11 @@ const getTgAlarmServiceRuleOptions = (networkName, networkNameList) => ({
   },
 });
 
+type Props = {
+  classes: {[string]: string},
+  networkName: string,
+};
+
 class NmsAlarms extends React.Component<Props> {
   // Return axios config to delete a TG alarm service rule
   deleteAlarmServiceRule = (match, rule) => {
@@ -156,33 +153,31 @@ class NmsAlarms extends React.Component<Props> {
     );
   }
 
-  renderContext = (listContext, _networkContext): ?React.Element => {
+  renderContext = (listContext, _networkContext): React.Node => {
     const {classes, networkName} = this.props;
     return (
       <div className={classes.root}>
-        <MuiStylesThemeProvider theme={alarmsTheme}>
-          <SnackbarProvider
-            maxSnack={3}
-            autoHideDuration={10000}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}>
-            <Alarms
-              apiUrls={AlarmAPIUrls}
-              onFetchAdditionalAlertRules={this.fetchAdditionalAlertRules}
-              onDeleteAdditionalAlertRule={this.deleteAlarmServiceRule}
-              additionalAlertRuleOptions={getTgAlarmServiceRuleOptions(
-                networkName,
-                Object.keys(listContext.networkList),
-              )}
-              makeTabLink={({match, keyName}) =>
-                `/alarms/${match.params.networkName}/${keyName}`
-              }
-              experimentalTabsEnabled={true}
-            />
-          </SnackbarProvider>
-        </MuiStylesThemeProvider>
+        <SnackbarProvider
+          maxSnack={3}
+          autoHideDuration={10000}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}>
+          <Alarms
+            apiUtil={TgApiUtil}
+            onFetchAdditionalAlertRules={this.fetchAdditionalAlertRules}
+            onDeleteAdditionalAlertRule={this.deleteAlarmServiceRule}
+            additionalAlertRuleOptions={getTgAlarmServiceRuleOptions(
+              networkName,
+              Object.keys(listContext.networkList),
+            )}
+            makeTabLink={({match, keyName}) =>
+              `/alarms/${match.params.networkName || ''}/${keyName}`
+            }
+            experimentalTabsEnabled={true}
+          />
+        </SnackbarProvider>
       </div>
     );
   };

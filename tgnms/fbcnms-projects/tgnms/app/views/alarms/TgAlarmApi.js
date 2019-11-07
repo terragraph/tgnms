@@ -2,28 +2,115 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
-import type {Match} from 'react-router-dom';
-export const AM_BASE_URL = '/alarms';
+import axios from 'axios';
+import {useEffect, useState} from 'react';
+import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
+import type {AxiosXHRConfig} from 'axios';
 
-export const AlarmAPIUrls = {
-  viewFiringAlerts: (_nid: string | Match) => `${AM_BASE_URL}/alerts`,
-  viewReceivers: (_nid: string | Match) => `${AM_BASE_URL}/receivers`,
-  viewRoutes: (_nid: string | Match) => `${AM_BASE_URL}/routes`,
-  viewSilences: (_nid: string | Match) => `${AM_BASE_URL}/silences`,
-  // get count of matching metrics
-  viewMatchingAlerts: (_nid: string | Match, alertName: string) =>
-    `${AM_BASE_URL}/matching_alerts/${alertName}`,
-  alertConfig: (_nid: string | Match) => `${AM_BASE_URL}/alert_config`,
-  updateAlertConfig: (_nid: string | Match, alertName: string) =>
-    `${AM_BASE_URL}/${alertName}`,
-  //bulkAlertConfig: (_nid: string | Match) => `${AM_BASE_URL}/bulk`,
-  receiverConfig: (_nid: string | Match) => `${AM_BASE_URL}/alert_receiver`,
-  receiverUpdate: (_nid: string | Match, receiverName: string) =>
-    `${AM_BASE_URL}/${receiverName}`,
-  routeConfig: (_nid: string | Match) => `${AM_BASE_URL}/route`,
+export const AM_BASE_URL = '/alarms';
+export const TgApiUtil: ApiUtil = {
+  useAlarmsApi: useApi,
+  viewFiringAlerts: _req =>
+    makeRequest({
+      url: `${AM_BASE_URL}/alerts`,
+    }),
+  viewMatchingAlerts: ({expression}) =>
+    makeRequest({url: `${AM_BASE_URL}/matching_alerts/${expression}`}),
+  createAlertRule: ({rule}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/alert_config`,
+      method: 'POST',
+      data: rule,
+    }),
+  editAlertRule: ({rule}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/alert_config/${rule.alert}`,
+      data: rule,
+      method: 'PUT',
+    }),
+  getAlertRules: _req =>
+    makeRequest({
+      url: `${AM_BASE_URL}/alert_config`,
+      method: 'GET',
+    }),
+  deleteAlertRule: ({ruleName}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/alert_config`,
+      method: 'DELETE',
+      params: {
+        alert_name: ruleName,
+      },
+    }),
+
+  // suppressions
+  getSuppressions: _req =>
+    makeRequest({
+      url: `${AM_BASE_URL}/silences`,
+      method: 'GET',
+    }),
+
+  // receivers
+  getReceivers: _req =>
+    makeRequest({
+      url: `${AM_BASE_URL}/receivers`,
+      method: 'GET',
+    }),
+
+  // routes
+  getRoutes: _req =>
+    makeRequest({
+      url: `${AM_BASE_URL}/routes`,
+      method: 'GET',
+    }),
 };
+
+function useApi<TParams: {...}, TResponse>(
+  func: TParams => Promise<TResponse>,
+  params: TParams,
+  cacheCounter?: string | number,
+): {
+  response: ?TResponse,
+  error: ?Error,
+  isLoading: boolean,
+} {
+  const [response, setResponse] = useState();
+  const [error, setError] = useState<?Error>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const jsonParams = JSON.stringify(params);
+
+  useEffect(() => {
+    async function makeRequest() {
+      try {
+        setIsLoading(true);
+        const res = await func(params);
+        setResponse(res);
+        setError(null);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err);
+        setResponse(null);
+        setIsLoading(false);
+      }
+    }
+    makeRequest();
+  }, [jsonParams, func, cacheCounter, params]);
+
+  return {
+    error,
+    response,
+    isLoading,
+  };
+}
+
+async function makeRequest<TParams, TResponse>(
+  axiosConfig: AxiosXHRConfig<TParams, TResponse>,
+): Promise<TResponse> {
+  const response = await axios(axiosConfig);
+  return response.data;
+}
 
 // TG Alarm Service
 export const AlarmServiceAPIUrls = {

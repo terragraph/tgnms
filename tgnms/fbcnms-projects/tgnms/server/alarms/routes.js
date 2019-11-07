@@ -55,6 +55,32 @@ router.post('/alert_config', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.put('/alert_config/:alertName', (req, res) => {
+  const {alertName} = req.params;
+  if (!alertName) {
+    return res.status(400).json({error: 'invalid alertName'});
+  }
+  const params = {
+    uri: formatPrometheusAlertConfigUrl(`/0/alert/${alertName}`),
+    method: req.method,
+    json: req.body,
+  };
+  return createRequest(params)
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res));
+});
+
+router.delete('/alert_config', (req, res) => {
+  const params = {
+    uri: formatPrometheusAlertConfigUrl(`/0/alert`),
+    method: req.method,
+    qs: req.query,
+  };
+  return createRequest(params)
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res));
+});
+
 router.get('/alert_config', (req, res) => {
   const params = {
     uri: formatPrometheusAlertConfigUrl(`/0/alert`),
