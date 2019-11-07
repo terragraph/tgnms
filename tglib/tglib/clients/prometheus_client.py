@@ -127,13 +127,19 @@ class PrometheusClient(BaseClient):
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             raise ClientRuntimeError() from e
 
-    async def query_latest(self, query: str) -> Dict:
-        """Return the latest datum for the given query."""
+    async def query_latest(self, query: str, time: Optional[int] = None) -> Dict:
+        """Return the latest datum for the given query.
+
+           The current Prometheus server time is used as default if no
+           evaluation timestamp is provided."""
         if self._addr is None or self._session is None:
             raise ClientStoppedError()
 
         url = f"http://{self._addr}/api/v1/query"
-        params = {"query": query}
+        params = {"query": query}  # type: Dict[str, Any]
+        if time is not None:
+            params["time"] = time
+
         logging.debug(f"Requesting from {url} with params {params}")
 
         try:
@@ -148,9 +154,12 @@ class PrometheusClient(BaseClient):
         """Return timestamp emissions corresponding to the query and range."""
         return await self.query_range(f"timestamp({query})", start, end, step)
 
-    async def query_latest_ts(self, query: str) -> Dict:
-        """Return the latest timestamp emission for the given query."""
-        return await self.query_latest(f"timestamp({query})")
+    async def query_latest_ts(self, query: str, time: Optional[int] = None) -> Dict:
+        """Return the latest timestamp emission for the given query.
+
+           The current Prometheus server time is used as default if no
+           evaluation timestamp is provided."""
+        return await self.query_latest(f"timestamp({query})", time)
 
     @classmethod
     def write_metrics(
