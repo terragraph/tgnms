@@ -25,6 +25,13 @@ const theme = createMuiTheme({
       main: amber[500],
       dark: amber[800],
     },
+    // symphony theming
+    secondary: {
+      main: '#303846',
+    },
+    grey: {
+      '50': '#e4f0f6',
+    },
   },
 });
 
