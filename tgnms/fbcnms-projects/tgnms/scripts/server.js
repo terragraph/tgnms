@@ -165,6 +165,7 @@ app.get('*', (req, res) => {
     'SERVICE_AVAILABILITY_ENABLED',
     'SOFTWARE_PORTAL_URL',
     'ALARMS_ENABLED',
+    'EVENTS_V1_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

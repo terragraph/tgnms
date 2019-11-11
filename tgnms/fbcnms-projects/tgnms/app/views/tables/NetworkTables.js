@@ -166,14 +166,16 @@ class NetworkTables extends React.Component<Props, State> {
             to={`${match.url}/${TABLE_TYPE.links}${location.search}`}
             value={TABLE_TYPE.links}
           />
-          <Tab
-            classes={{root: classes.tabRoot, selected: classes.tabSelected}}
-            disableRipple
-            label="Events"
-            component={Link}
-            to={`${match.url}/${TABLE_TYPE.events}${location.search}`}
-            value={TABLE_TYPE.events}
-          />
+          {isFeatureEnabled('EVENTS_V1_ENABLED') && (
+            <Tab
+              classes={{root: classes.tabRoot, selected: classes.tabSelected}}
+              disableRipple
+              label="Events"
+              component={Link}
+              to={`${match.url}/${TABLE_TYPE.events}${location.search}`}
+              value={TABLE_TYPE.events}
+            />
+          )}
           {isFeatureEnabled('NETWORK_TEST_ENABLED') && (
             <Tab
               classes={{root: classes.tabRoot, selected: classes.tabSelected}}
