@@ -4,9 +4,19 @@
 from setuptools import setup
 
 
+ptr_params = {
+    "entry_point_module": "topology_service/main",
+    "test_suite": "tests.base",
+    "test_suite_timeout": 600,
+    "required_coverage": {"tests/base.py": 100, "TOTAL": 100},
+    "run_flake8": True,
+    "run_black": True,
+    "run_mypy": True,
+}
+
 setup(
     name="topology_service",
-    version="2019.11.6",
+    version="2019.11.8",
     packages=["topology_service"],
     install_requires=["aiohttp", "pymongo"],
     entry_points={"console_scripts": ["topology_service = topology_service.main:main"]},

@@ -10,7 +10,7 @@ routes = web.RouteTableDef()
 
 
 @routes.post("/topology_history")
-async def get_topology_history(request: web.Request) -> web.json_response:
+async def get_topology_history(request: web.Request) -> web.Response:
     """
     ---
     description: Fetch a list of last "count" number of topologies from MongoDB.
