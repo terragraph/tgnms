@@ -4,7 +4,8 @@
  * @format
  * @flow
  */
-const {getSitesAsKML} = require('./model');
+
+import {getSitesAsKML} from './model';
 const express = require('express');
 const router = express.Router();
 

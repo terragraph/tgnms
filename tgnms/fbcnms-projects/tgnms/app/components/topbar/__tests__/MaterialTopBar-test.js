@@ -5,6 +5,8 @@
  * @flow
  */
 
+import type {NetworkListContextType} from '../../../NetworkListContext';
+
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import MaterialTopBar from '../MaterialTopBar';
@@ -16,7 +18,6 @@ import {
   renderWithRouter,
 } from '../../../tests/testHelpers';
 import {cleanup, fireEvent} from '@testing-library/react';
-import type {NetworkListContextType} from '../../../NetworkListContext';
 
 beforeEach(() => {
   initWindowConfig({env: {}});
@@ -84,17 +85,17 @@ describe('Network Menu', () => {
     children: React.Element<any>,
     listContextValue?: $Shape<NetworkListContextType>,
   }) {
+    const value: NetworkListContextType = {
+      waitForNetworkListRefresh: () => {},
+      getNetworkName: () => '',
+      // changeNetworkName is a terrible name for what this actually does
+      changeNetworkName: name => name,
+      networkList: {},
+      ...listContextValue,
+    };
     return (
       <TestApp {...props}>
-        <NetworkListContext.Provider
-          value={{
-            waitForNetworkListRefresh: () => {},
-            getNetworkName: () => '',
-            // changeNetworkName is a terrible name for what this actually does
-            changeNetworkName: name => name,
-            networkList: {},
-            ...(listContextValue || {}),
-          }}>
+        <NetworkListContext.Provider value={value}>
           {children}
         </NetworkListContext.Provider>
       </TestApp>

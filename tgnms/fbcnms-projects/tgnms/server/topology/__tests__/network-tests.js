@@ -182,7 +182,8 @@ function mockNode(overrides?: $Shape<NodeType>): NodeType {
     site_name: 'site-1',
     ant_azimuth: 0,
     ant_elevation: 0,
-    ...(overrides || {}),
+    wlan_mac_addrs: [],
+    ...overrides,
   };
 }
 
@@ -196,6 +197,6 @@ function mockLink(overrides?: $Shape<LinkType>): LinkType {
     linkup_attempts: 0,
     a_node_mac: 'ff:aa:bb:cc:dd',
     z_node_mac: 'ff:aa:bb:cc:dd',
-    ...(overrides || {}),
+    ...overrides,
   };
 }

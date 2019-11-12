@@ -224,7 +224,7 @@ export function mockLink(overrides?: $Shape<LinkType>): LinkType {
     a_node_mac: 'aa:aa:aa:aa:aa',
     z_node_mac: 'bb:bb:bb:bb:bb',
     is_backup_cn_link: false,
-    ...(overrides || {}),
+    ...overrides,
   };
 }
 
@@ -239,6 +239,7 @@ export function mockNode(overrides?: $Shape<NodeType>): NodeType {
     site_name: '',
     ant_azimuth: 0,
     ant_elevation: 0,
-    ...(overrides || {}),
+    wlan_mac_addrs: [],
+    ...overrides,
   };
 }

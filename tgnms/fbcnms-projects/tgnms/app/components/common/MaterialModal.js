@@ -66,6 +66,7 @@ class MaterialModal extends React.Component<Props> {
         onEnter={onEnter}
         PaperProps={{
           classes: {root: classNames(classes.paper, className)},
+          // $FlowFixMe: paperProps is inexact
           ...(paperProps || {}),
         }}>
         <DialogTitle classes={{root: classes.dialogTitle}}>

@@ -83,7 +83,7 @@ export const getExecutionsByNetworkName = ({
 }: {
   networkName: string,
   afterDate?: string,
-  testType?: string,
+  testType?: ?string,
   protocol?: string,
 }): Promise<TablePage<TestExecutionDto>> => {
   const url = new URL('/network_test/executions', window.location);

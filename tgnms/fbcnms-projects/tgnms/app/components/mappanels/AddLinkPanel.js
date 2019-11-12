@@ -304,6 +304,7 @@ class AddLinkPanel extends React.Component<Props, State> {
     this.setState({
       ...this.state,
       ...{
+        // $FlowFixMe Set state for each field
         [macStateKey]: defaultMacAddr,
       },
     });

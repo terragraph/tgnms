@@ -153,6 +153,7 @@ export function requestWithConfirmation(
     confirmButtonText: 'Confirm',
     showLoaderOnConfirm: true,
     inputClass: 'swal-input',
+    // $FlowFixMe: Multiple spread can lead to performance issues
     ...checkboxProps,
     ...choiceProps,
     preConfirm: value => {

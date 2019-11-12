@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {BackgroundRequest, Request} from '../apiServiceClient';
+
 import {ApiServiceClient} from '../apiServiceClient';
 const TokenSet = jest.genMockFromModule('openid-client/lib/token_set');
 import axiosMock from 'axios';
@@ -205,7 +207,9 @@ describe('User Requests', () => {
   });
 });
 
-function fakeBackgroundRequest(merge?: Object) {
+function fakeBackgroundRequest(
+  merge?: $Shape<BackgroundRequest>,
+): $Shape<BackgroundRequest> {
   return {
     networkName: '',
     isPrimaryController: true,
@@ -217,7 +221,7 @@ function fakeBackgroundRequest(merge?: Object) {
   };
 }
 
-function fakeUserRequest(merge?: Object) {
+function fakeUserRequest(merge?: $Shape<Request>): $Shape<Request> {
   return {
     host: 'test',
     port: '8080',

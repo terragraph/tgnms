@@ -8,7 +8,7 @@ const logger = require('../log')(module);
 const {getNetworkState} = require('../topology/model');
 const xml2js = require('xml2js');
 
-function getSitesAsKML(networkName: string) {
+export function getSitesAsKML(networkName: string) {
   const builder = new xml2js.Builder();
   const xmlAsJson = {kml: [{Document: []}]};
   const networkState = getNetworkState(networkName);
@@ -29,5 +29,3 @@ function getSitesAsKML(networkName: string) {
     return null;
   }
 }
-
-module.exports = {getSitesAsKML};
