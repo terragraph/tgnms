@@ -8,7 +8,7 @@
 import express from 'express';
 import request from 'supertest';
 
-test('throws a 500 error if configuration is missing', async () => {
+test.skip('throws a 500 error if configuration is missing', async () => {
   const errorLogMock = jest.fn();
   jest.doMock('../../log', () => _module => ({
     error: errorLogMock,
