@@ -6,7 +6,7 @@
     }
   },
   "kafka": {
-    "bootstrap_servers": ["kafka:9096"]
+    "bootstrap_servers": ["kafka:9092"]
   },
   "mongodb": {
     "host": "mongodb",
