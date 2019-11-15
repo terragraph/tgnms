@@ -103,9 +103,7 @@ void NetworkHealthService::consume(const std::string& topicName) {
         auto stat =
             SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
                 statMsg);
-        std::string keyName = stat.key;
-        std::transform(
-            keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
+        std::string keyName = StatsUtils::toLowerCase(stat.key);
         // skip non-health metrics
         if (!healthKeys_.count(keyName)) {
           VLOG(4) << "Dropping non-health key: " << keyName;
@@ -121,9 +119,7 @@ void NetworkHealthService::consume(const std::string& topicName) {
           VLOG(2) << "Topic: " << topicName << ", msg: " << statMsg;
         }
 
-        std::string macAddr = stat.entity;
-        std::transform(
-            macAddr.begin(), macAddr.end(), macAddr.begin(), ::tolower);
+        std::string macAddr = StatsUtils::toLowerCase(stat.entity);
         // lookup meta-data for node
         auto nodeKeyInfo =
             metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);

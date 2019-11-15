@@ -10,6 +10,7 @@
 #include "MetricCache.h"
 
 #include "MySqlClient.h"
+#include "StatsUtils.h"
 #include "TopologyStore.h"
 
 #include <folly/MacAddress.h>
@@ -18,6 +19,8 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <iostream>
 #include <regex>
+
+using namespace facebook::terragraph;
 
 using apache::thrift::SimpleJSONSerializer;
 using std::chrono::duration_cast;
@@ -51,7 +54,7 @@ folly::Optional<stats::KeyMetaData> MetricCache::getKeyDataByNodeKey(
   return folly::none;
 }
 
-folly::Optional<std::pair<std::string, query::Node>>
+folly::Optional<std::pair<std::string, thrift::Node>>
 MetricCache::getNodeByMacAddr(const std::string& macAddr) {
   auto nodeLookupLock = nodeByMac_.rlock();
   auto nodeIt = nodeLookupLock->find(macAddr);
@@ -72,10 +75,8 @@ MetricCache::getNodeMetricCache(const std::string& macAddr) {
   return folly::none;
 }
 
-void MetricCache::updateMetricNames(const query::Topology& request) {
-  folly::dynamic nodeData;
-  std::map<std::string /* node name */, query::Node> nodesByName;
-  std::unordered_set<std::string> macNodes;
+void MetricCache::updateMetricNames(const thrift::Topology& request) {
+  std::map<std::string /* node name */, thrift::Node> nodesByName;
 
   if (request.nodes.empty()) {
     LOG(ERROR) << "No nodes in topology, failing request";
@@ -86,15 +87,29 @@ void MetricCache::updateMetricNames(const query::Topology& request) {
     if (node.mac_addr.empty()) {
       continue;
     }
-    auto macAddr = node.mac_addr;
-    std::transform(macAddr.begin(), macAddr.end(), macAddr.begin(), ::tolower);
+    auto macAddr = StatsUtils::toLowerCase(node.mac_addr);
     // index mac -> node
     {
       auto nodeByMacLock = nodeByMac_.wlock();
       // record the topology name + node struct
       (*nodeByMacLock)[macAddr] = std::make_pair(request.name, node);
     }
-    macNodes.insert(macAddr);
+    if (!node.wlan_mac_addrs.empty()) {
+      // index each radio mac
+      {
+        auto nodeByMacLock = nodeByMac_.wlock();
+        for (const auto& radioMacAddr : node.wlan_mac_addrs) {
+          std::string radioMacAddrLC = StatsUtils::toLowerCase(radioMacAddr);
+          // record the topology name + node struct
+          if (!(*nodeByMacLock).count(radioMacAddrLC)) {
+            VLOG(1) << "Adding radio mac: " << radioMacAddrLC << " for "
+                    << node.mac_addr;
+            (*nodeByMacLock)[radioMacAddrLC] =
+                std::make_pair(request.name, node);
+          }
+        }
+      }
+    }
     nodesByName[node.name] = node;
   }
   auto mySqlClient = MySqlClient::getInstance();
@@ -104,43 +119,33 @@ void MetricCache::updateMetricNames(const query::Topology& request) {
     for (auto& link : request.links) {
       VLOG(3) << "Link: " << link.name;
       // skip wired links
-      if (link.link_type != query::LinkType::WIRELESS) {
+      if (link.link_type != thrift::LinkType::WIRELESS) {
         continue;
       }
       auto aNode = nodesByName[link.a_node_name];
       auto zNode = nodesByName[link.z_node_name];
       for (const auto& linkMetric : allLinkMetrics) {
-        folly::dynamic linkMetrics =
-            createLinkMetric(aNode, zNode, linkMetric.second);
-        if (!linkMetrics.count("keys")) {
+        folly::Optional<NodeLinkMetrics> linkMetrics =
+            createLinkMetric(link, linkMetric.second);
+        if (!linkMetrics) {
           continue;
         }
-        for (auto& key : linkMetrics["keys"]) {
-          auto node = SimpleJSONSerializer::deserialize<query::Node>(
-              key["node"].asString());
-
-          auto mac = node.mac_addr;
-          auto keyName = key["keyName"].asString();
-          // match case
-          std::transform(
-              keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
+        for (auto& key : linkMetrics.value().keys) {
+          auto radioMac = StatsUtils::toLowerCase(key.radioMac);
+          auto keyName = StatsUtils::toLowerCase(key.keyName);
           // short name should already be tagged
-          stats::KeyMetaData& keyData =
-              (*nodeKeyLookupLock)[mac][keyName];
+          VLOG(2) << "Adding key mapping " << keyName << " -> "
+                  << linkMetric.first << " for radio mac: " << radioMac;
+          stats::KeyMetaData& keyData = (*nodeKeyLookupLock)[radioMac][keyName];
           // push key data for link metric
           keyData.topologyName = request.name;
           keyData.linkName = link.name;
           keyData.shortName = linkMetric.first;
-          keyData.linkDirection =
-              (stats::LinkDirection)(key["linkDirection"].asInt());
-          // update the unit
-          if (key.count("unit")) {
-            stats::KeyUnit unit = (stats::KeyUnit)(key["unit"].asInt());
-            keyData.unit = unit;
-          }
+          keyData.linkDirection = key.linkDirection;
           // copy to short key name for lookups
-          (*nodeKeyLookupLock)[mac][linkMetric.first] = keyData;
-          VLOG(3) << "\tLoaded key: [" << mac << "][" << keyData.shortName << "]";
+          (*nodeKeyLookupLock)[radioMac][linkMetric.first] = keyData;
+          VLOG(3) << "\tLoaded key: [" << radioMac << "][" << keyData.shortName
+                  << "]";
         }
       }
     }
@@ -148,30 +153,28 @@ void MetricCache::updateMetricNames(const query::Topology& request) {
 }
 
 // TODO - convert this to thrift struct
-folly::dynamic MetricCache::createLinkMetric(
-    const query::Node& aNode,
-    const query::Node& zNode,
+folly::Optional<NodeLinkMetrics> MetricCache::createLinkMetric(
+    const thrift::Link& link,
     const stats::LinkMetric& linkMetric) {
-  if (aNode.mac_addr.empty() || zNode.mac_addr.empty()) {
-    VLOG(1) << "Empty MAC for link " << aNode.name << " <-> " << zNode.name;
-    return folly::dynamic::object();
+  // link should always have a_node_mac + z_node_mac
+  if (link.a_node_mac.empty() || link.z_node_mac.empty()) {
+    VLOG(1) << "Empty MAC for link " << link.name;
+    return folly::none;
   }
-  return folly::dynamic::object("title", linkMetric.shortName)(
-      "description", linkMetric.description)("scale", NULL)(
-      "keys",
-      folly::dynamic::array(
-          folly::dynamic::object(
-              "node", SimpleJSONSerializer::serialize<std::string>(aNode))(
-              "keyName",
-              linkMetric.keyPrefix + "." + zNode.mac_addr + "." +
-                  linkMetric.keyName)(
-              "linkDirection", (int)stats::LinkDirection::LINK_A),
-          folly::dynamic::object(
-              "node", SimpleJSONSerializer::serialize<std::string>(zNode))(
-              "keyName",
-              linkMetric.keyPrefix + "." + aNode.mac_addr + "." +
-                  linkMetric.keyName)(
-              "linkDirection", (int)stats::LinkDirection::LINK_Z)));
+  NodeLinkMetrics nodeLinkMetrics(linkMetric.shortName, linkMetric.description);
+  // a-side
+  std::string keyNameLinkA = folly::sformat(
+      "{}.{}.{}", linkMetric.keyPrefix, link.z_node_mac, linkMetric.keyName);
+  NodeLinkMetricKey keyLinkA(
+      link.a_node_mac, keyNameLinkA, stats::LinkDirection::LINK_A);
+
+  // z-side
+  std::string keyNameLinkZ = folly::sformat(
+      "{}.{}.{}", linkMetric.keyPrefix, link.a_node_mac, linkMetric.keyName);
+  NodeLinkMetricKey keyLinkZ(
+      link.z_node_mac, keyNameLinkZ, stats::LinkDirection::LINK_Z);
+  nodeLinkMetrics.keys = {keyLinkA, keyLinkZ};
+  return nodeLinkMetrics;
 }
 
 } // namespace gorilla

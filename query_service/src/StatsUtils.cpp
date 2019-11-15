@@ -37,6 +37,11 @@ std::string StatsUtils::getDurationString(const time_t durationInSeconds) {
   return folly::sformat("{} sec", durationInSeconds);
 }
 
+std::string StatsUtils::toLowerCase(const std::string& str) {
+  std::string newStr{str};
+  std::transform(newStr.begin(), newStr.end(), newStr.begin(), ::tolower);
+  return newStr;
+}
 
 } // namespace gorilla
 } // namespace facebook

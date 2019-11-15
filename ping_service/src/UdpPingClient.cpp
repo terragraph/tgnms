@@ -150,7 +150,8 @@ std::vector<UdpTestPlan> getTestPlans() {
       continue;
     }
 
-    auto topology = ApiServiceClient::fetchApiService<query::Topology>(
+    auto topology = ApiServiceClient::fetchApiService<
+        facebook::terragraph::thrift::Topology>(
         topologyConfig.second->primary_controller.ip,
         topologyConfig.second->primary_controller.api_port,
         "api/getTopology",
@@ -175,7 +176,8 @@ std::vector<UdpTestPlan> getTestPlans() {
             testPlan.target.name = node.name;
             testPlan.target.site = node.site_name;
             testPlan.target.network = topology->name;
-            testPlan.target.is_cn = node.node_type == query::NodeType::CN;
+            testPlan.target.is_cn =
+                node.node_type == facebook::terragraph::thrift::NodeType::CN;
             testPlan.target.is_pop = node.pop_node;
             testPlan.numPackets = FLAGS_num_packets;
             testPlans.push_back(std::move(testPlan));

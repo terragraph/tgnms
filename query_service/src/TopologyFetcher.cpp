@@ -22,9 +22,9 @@
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
-
 DEFINE_int32(topology_refresh_interval, 30, "Topology refresh interval");
+
+using namespace facebook::terragraph;
 
 using apache::thrift::SimpleJSONSerializer;
 
@@ -56,11 +56,11 @@ void TopologyFetcher::refreshTopologyCache() {
   auto topologyInstance = TopologyStore::getInstance();
   // fetch cached topologies
   for (auto topologyConfig : mySqlClient->getTopologyConfigs()) {
-    auto topology = ApiServiceClient::fetchApiService<query::Topology>(
-        topologyConfig.second->primary_controller.ip,
-        topologyConfig.second->primary_controller.api_port,
-        "api/getTopology",
-        "{}" /* post data */);
+    auto topology = ApiServiceClient::fetchApiService<thrift::Topology>(
+          topologyConfig.second->primary_controller.ip,
+          topologyConfig.second->primary_controller.api_port,
+          "api/getTopology",
+          "{}" /* post data */);
     if (!topology) {
       LOG(INFO) << "Failed to fetch topology for "
                 << topologyConfig.second->name;

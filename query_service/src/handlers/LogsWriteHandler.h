@@ -10,7 +10,6 @@
 #pragma once
 
 #include <folly/Memory.h>
-#include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 #include <proxygen/httpserver/RequestHandler.h>
 

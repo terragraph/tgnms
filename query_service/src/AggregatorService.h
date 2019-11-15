@@ -38,7 +38,7 @@ class AggregatorService {
   // query and log topology based metrics (nodes & links online)
   void fetchAndLogTopologyMetrics(
       std::vector<Metric>& aggValues,
-      const query::Topology& topology);
+      const terragraph::thrift::Topology& topology);
   // query and log wireless controller metrics
   void fetchAndLogWirelessControllerMetrics(
       std::vector<Metric>& aggValues,

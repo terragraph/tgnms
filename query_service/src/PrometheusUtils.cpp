@@ -10,6 +10,7 @@
 #include "PrometheusUtils.h"
 
 #include "MetricCache.h"
+#include "StatsUtils.h"
 
 #include "consts/PrometheusConsts.h"
 
@@ -122,8 +123,7 @@ bool PrometheusUtils::writeNodeStats(
   auto metricCacheInstance = MetricCache::getInstance();
   // loop over input metric list
   for (const auto& stat : statQueue) {
-    std::string macAddr = stat.entity;
-    std::transform(macAddr.begin(), macAddr.end(), macAddr.begin(), ::tolower);
+    std::string macAddr = StatsUtils::toLowerCase(stat.entity);
     // lookup meta-data for node
     auto nodeInfo = metricCacheInstance->getNodeByMacAddr(macAddr);
     if (!nodeInfo) {
@@ -131,8 +131,7 @@ bool PrometheusUtils::writeNodeStats(
               << ", dropping stats request";
       continue;
     }
-    std::string keyName = stat.key;
-    std::transform(keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
+    std::string keyName = StatsUtils::toLowerCase(stat.key);
     std::vector<std::string> labelTags = {
         PrometheusUtils::formatNetworkLabel(nodeInfo->first),
         folly::sformat(
@@ -147,6 +146,10 @@ bool PrometheusUtils::writeNodeStats(
             PROMETHEUS_METRIC_FORMAT,
             PrometheusConsts::LABEL_NODE_NAME,
             nodeInfo->second.name),
+        folly::sformat(
+            PROMETHEUS_METRIC_FORMAT,
+            PrometheusConsts::LABEL_NODE_IS_POP,
+            nodeInfo->second.pop_node ? "true" : "false"),
         folly::sformat(
             PROMETHEUS_METRIC_FORMAT,
             PrometheusConsts::LABEL_SITE_NAME,

@@ -9,6 +9,8 @@
 
 #include "MySqlClient.h"
 
+#include "StatsUtils.h"
+
 #include <unistd.h>
 #include <utility>
 
@@ -154,16 +156,11 @@ void MySqlClient::refreshLinkMetrics() noexcept {
     LinkMetricMap linkMetricMapTmp{};
     while (res->next()) {
       int64_t keyId = res->getInt("id");
-      std::string name = res->getString("name");
-      std::string keyName = res->getString("key_name");
-      std::string keyPrefix = res->getString("key_prefix");
+      std::string name = StatsUtils::toLowerCase(res->getString("name"));
+      std::string keyName = StatsUtils::toLowerCase(res->getString("key_name"));
+      std::string keyPrefix =
+          StatsUtils::toLowerCase(res->getString("key_prefix"));
       std::string description = res->getString("description");
-
-      std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-      std::transform(
-          keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
-      std::transform(
-          keyPrefix.begin(), keyPrefix.end(), keyPrefix.begin(), ::tolower);
 
       // add link metric to temp map
       stats::LinkMetric linkMetric;

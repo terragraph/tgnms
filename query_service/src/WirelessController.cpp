@@ -9,6 +9,8 @@
 
 #include "WirelessController.h"
 
+#include "StatsUtils.h"
+
 #include <folly/Conv.h>
 #include <folly/String.h>
 #include <folly/dynamic.h>
@@ -74,9 +76,8 @@ folly::dynamic WirelessController::ruckusControllerStats(
     if (apListObjIt != apListObj.items().end()) {
       long totalClientCount = 0L;
       for (const auto& apItem : apListObjIt->second) {
-        std::string apName = apItem["name"].asString();
-        std::transform(apName.begin(), apName.end(), apName.begin(), ::tolower);
-        std::string macAddr = apItem["mac"].asString();
+        std::string apName = StatsUtils::toLowerCase(apItem["name"].asString());
+        std::string macAddr = StatsUtils::toLowerCase(apItem["mac"].asString());
         // fetch details for each ap
         struct CurlResponse apDetailsResp =
             WirelessController::ruckusControllerRequest(

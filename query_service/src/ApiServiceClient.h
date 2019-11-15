@@ -66,7 +66,12 @@ class ApiServiceClient {
       return folly::none;
     }
 
-    return apache::thrift::SimpleJSONSerializer::deserialize<T>(s);
+    try {
+      return apache::thrift::SimpleJSONSerializer::deserialize<T>(s);
+    } catch (const apache::thrift::protocol::TProtocolException& ex) {
+      LOG(ERROR) << "Unable to decode JSON: " << s;
+      return folly::none;
+    }
   }
 
  private:

@@ -39,6 +39,7 @@ const std::set<std::string> RUCKUS_SKIP_LABELS = {"approvedTime",
                                                   "clientCount",
                                                   "lastSeenTime",
                                                   "uptime"};
+using namespace facebook::terragraph;
 
 using std::chrono::duration_cast;
 using std::chrono::seconds;
@@ -84,7 +85,7 @@ void AggregatorService::doPeriodicWork() {
 
 void AggregatorService::fetchAndLogTopologyMetrics(
     std::vector<Metric>& aggValues,
-    const query::Topology& topology) {
+    const thrift::Topology& topology) {
   LOG(INFO) << "\tTopology: " << topology.name;
   if (topology.name.empty() || topology.nodes.empty() ||
       topology.links.empty()) {
@@ -101,9 +102,9 @@ void AggregatorService::fetchAndLogTopologyMetrics(
       "{}=\"{}\"",
       PrometheusConsts::LABEL_DATA_INTERVAL,
       FLAGS_agg_time_period);
-  std::unordered_map<std::string, query::Node> nodeNameMap{};
+  std::unordered_map<std::string, thrift::Node> nodeNameMap{};
   for (const auto& node : topology.nodes) {
-    onlineNodes += (node.status != query::NodeStatusType::OFFLINE);
+    onlineNodes += (node.status != thrift::NodeStatusType::OFFLINE);
     if (node.pop_node) {
       popNodes++;
     }
@@ -130,7 +131,7 @@ void AggregatorService::fetchAndLogTopologyMetrics(
         "node_online",
         ts,
         nodeLabels,
-        (int)(node.status != query::NodeStatusType::OFFLINE)));
+        (int)(node.status != thrift::NodeStatusType::OFFLINE)));
   }
   std::vector<std::string> topologyLabels = {networkLabel, intervalLabel};
   aggValues.emplace_back(
@@ -148,15 +149,15 @@ void AggregatorService::fetchAndLogTopologyMetrics(
   int wirelessLinks = 0;
   int onlineLinks = 0;
   for (const auto& link : topology.links) {
-    if (link.link_type != query::LinkType::WIRELESS) {
+    if (link.link_type != thrift::LinkType::WIRELESS) {
       continue;
     }
     wirelessLinks++;
     onlineLinks += link.is_alive;
     // check if either side of the link is a CN
     bool hasCnNode =
-        (nodeNameMap.at(link.a_node_name).node_type == query::NodeType::CN ||
-         nodeNameMap.at(link.z_node_name).node_type == query::NodeType::CN);
+        (nodeNameMap.at(link.a_node_name).node_type == thrift::NodeType::CN ||
+         nodeNameMap.at(link.z_node_name).node_type == thrift::NodeType::CN);
     // meta-data per link
     std::vector<std::string> linkMetaData = {
         networkLabel,

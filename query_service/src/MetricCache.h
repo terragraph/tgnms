@@ -12,18 +12,41 @@
 #include <folly/Memory.h>
 #include <folly/Singleton.h>
 #include <folly/Synchronized.h>
-#include <folly/dynamic.h>
 #include <folly/futures/Future.h>
+#include <folly/Optional.h>
 
-#include "if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
+#include "if/gen-cpp2/Stats_types_custom_protocol.h"
+#include "if/gen-cpp2/Topology_types_custom_protocol.h"
 
 #define MAC_ADDR_LEN 17
 
 using namespace facebook::stats;
+using namespace facebook::terragraph;
 
 namespace facebook {
 namespace gorilla {
+
+struct NodeLinkMetricKey {
+  explicit NodeLinkMetricKey(
+      const std::string& radioMac,
+      const std::string& keyName,
+      const stats::LinkDirection& linkDirection)
+      : radioMac(radioMac), keyName(keyName), linkDirection(linkDirection){};
+  std::string radioMac;
+  std::string keyName;
+  stats::LinkDirection linkDirection;
+};
+
+struct NodeLinkMetrics {
+  explicit NodeLinkMetrics(
+      const std::string& title,
+      const std::string& description)
+      : title(title), description(description), keys({}){};
+  std::string title;
+  std::string description;
+  std::vector<NodeLinkMetricKey> keys;
+};
 
 using MetricCacheMap = folly::Synchronized<std::unordered_map<
     std::string, /* MAC addr */
@@ -37,19 +60,18 @@ class MetricCache {
 
   static std::shared_ptr<MetricCache> getInstance();
 
-  void updateMetricNames(const query::Topology& request);
+  void updateMetricNames(const thrift::Topology& request);
 
-  // TODO - no folly dynamic
-  folly::dynamic createLinkMetric(
-      const query::Node& aNode,
-      const query::Node& zNode,
+  // generate link metric meta-data for quick stream processing lookups
+  folly::Optional<NodeLinkMetrics> createLinkMetric(
+      const thrift::Link& link,
       const stats::LinkMetric& linkMetric);
 
   folly::Optional<stats::KeyMetaData> getKeyDataByNodeKey(
       const std::string& nodeMac,
       const std::string& keyName) const;
 
-  folly::Optional<std::pair<std::string, query::Node>> getNodeByMacAddr(
+  folly::Optional<std::pair<std::string, thrift::Node>> getNodeByMacAddr(
       const std::string& macAddr);
 
   folly::Optional<
@@ -60,7 +82,7 @@ class MetricCache {
   // Tag Node struct per MAC
   folly::Synchronized<std::unordered_map<
       std::string /* MAC addr */,
-      std::pair<std::string /* topology name */, query::Node>>>
+      std::pair<std::string /* topology name */, thrift::Node>>>
       nodeByMac_;
   // --- Metrics per node --- //
   // map node mac -> key names

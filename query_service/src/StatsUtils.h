@@ -22,6 +22,7 @@ class StatsUtils {
   static time_t getTimeInMs();
   static time_t getTimeInSeconds();
   static std::string getDurationString(const time_t durationInSeconds);
+  static std::string toLowerCase(const std::string& str);
 
 };
 

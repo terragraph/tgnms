@@ -13,7 +13,6 @@
 #include <folly/Optional.h>
 #include <folly/Singleton.h>
 #include <folly/Synchronized.h>
-#include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 
 #include "if/gen-cpp2/Controller_types_custom_protocol.h"

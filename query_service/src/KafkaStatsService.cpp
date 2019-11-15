@@ -64,10 +64,8 @@ KafkaStatsService::~KafkaStatsService() {
 folly::Optional<terragraph::thrift::AggrStat>
 KafkaStatsService::getFriendlyMetric(const terragraph::thrift::AggrStat& stat) {
   auto metricCacheInstance = MetricCache::getInstance();
-  std::string macAddr = stat.entity;
-  std::transform(macAddr.begin(), macAddr.end(), macAddr.begin(), ::tolower);
-  std::string keyName = stat.key;
-  std::transform(keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
+  std::string macAddr = StatsUtils::toLowerCase(stat.entity);
+  std::string keyName = StatsUtils::toLowerCase(stat.key);
   // lookup meta-data for node
   auto nodeKeyInfo = metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
   if (!nodeKeyInfo || nodeKeyInfo->shortName.empty()) {
