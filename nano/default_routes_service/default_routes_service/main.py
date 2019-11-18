@@ -9,8 +9,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple
 
 from aiomysql.sa import SAConnection
-from facebook.gorilla.Topology.ttypes import LinkType
 from sqlalchemy.sql import desc, exists, func, insert, join, select, update
+from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients.api_service_client import APIServiceClient
 from tglib.clients.mysql_client import MySQLClient
 from tglib.exceptions import ClientRuntimeError
