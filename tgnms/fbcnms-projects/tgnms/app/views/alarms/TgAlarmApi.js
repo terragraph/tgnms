@@ -65,6 +65,12 @@ export const TgApiUtil: ApiUtil = {
       url: `${AM_BASE_URL}/routes`,
       method: 'GET',
     }),
+
+  // metric series
+  getMetricSeries: _req => {
+    console.warn('not implemented');
+    return Promise.resolve([]);
+  },
 };
 
 function useApi<TParams: {...}, TResponse>(

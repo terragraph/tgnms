@@ -176,6 +176,7 @@ class NmsAlarms extends React.Component<Props> {
               `/alarms/${match.params.networkName || ''}/${keyName}`
             }
             experimentalTabsEnabled={true}
+            thresholdEditorEnabled={false}
           />
         </SnackbarProvider>
       </div>
