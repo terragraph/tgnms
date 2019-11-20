@@ -109,8 +109,15 @@ describe('messageGroup', () => {
 });
 
 describe('heartbeats', () => {
-  test('if the manager does not receive heartbeats, the socket is terminated', () => {
+  beforeEach(() => {
     manager.startHeartbeatChecker();
+  });
+
+  afterEach(() => {
+    manager.stopHeartbeatChecker();
+  });
+
+  test('if the manager does not receive heartbeats, the socket is terminated', () => {
     const socket = new MockWebSocket();
     manager.joinGroups(['test1', 'test2'], socket);
     jest.runOnlyPendingTimers();
@@ -122,7 +129,6 @@ describe('heartbeats', () => {
   });
 
   test('if the manager does receive heartbeats, do not terminate the socket', () => {
-    manager.startHeartbeatChecker();
     const socket = new MockWebSocket();
     socket.ping = jest.fn(() => socket.emit('pong'));
     manager.joinGroups(['test1', 'test2'], socket);
@@ -137,7 +143,6 @@ describe('heartbeats', () => {
   });
 
   test('if ping throws an error, socket is terminated', () => {
-    manager.startHeartbeatChecker();
     const socket = new MockWebSocket();
     socket.ping = jest.fn(() => {
       throw new Error();

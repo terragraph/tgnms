@@ -24,6 +24,8 @@ export default class WebSocketManager {
   // additional data about a websocket
   socketData: Map<WebSocket, SocketData> = new Map();
 
+  heartbeatChecker = null;
+
   /*
    * Allows clients to call websocket manager functions. By sending websocket
    * commands, the client can join groups and leave groups dynamically.
@@ -142,7 +144,10 @@ export default class WebSocketManager {
    * a pong response, terminate them.
    */
   startHeartbeatChecker = () => {
-    setInterval(() => {
+    if (this.heartbeatChecker !== null) {
+      throw new Error('HeartbeatChecker already running');
+    }
+    this.heartbeatChecker = setInterval(() => {
       for (const [socket, data] of this.socketData.entries()) {
         if (data.isAlive === false) {
           return socket.terminate();
@@ -156,6 +161,14 @@ export default class WebSocketManager {
         }
       }
     }, 5000);
+  };
+
+  stopHeartbeatChecker = () => {
+    if (this.heartbeatChecker === null) {
+      throw new Error('HeartbeatChecker is not running');
+    }
+    clearInterval(this.heartbeatChecker);
+    this.heartbeatChecker = null;
   };
 
   createGroup = (name: string) => ({name, sockets: new Set()});
