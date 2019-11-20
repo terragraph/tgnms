@@ -6,8 +6,10 @@
  */
 import * as React from 'react';
 import MaterialTheme from '../MaterialTheme';
+import MomentUtils from '@date-io/moment';
 import NetworkContext from '../NetworkContext';
 import i18next from 'i18next';
+import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
 import {act, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
@@ -54,6 +56,14 @@ export function setTestUser(user: $Shape<User>) {
 export function TestApp({children}: {children: React.Node}) {
   i18next.use(initReactI18next).init({});
   return <MaterialTheme>{children}</MaterialTheme>;
+}
+
+export function MuiPickersWrapper({children}: {children: React.Node}) {
+  return (
+    <MuiPickersUtilsProvider utils={MomentUtils}>
+      {children}
+    </MuiPickersUtilsProvider>
+  );
 }
 
 export function NetworkContextWrapper({

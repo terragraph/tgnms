@@ -11,10 +11,12 @@ import '@fbcnms/babel-register/polyfill';
 
 import LoadingBox from './components/common/LoadingBox';
 import MaterialTheme from './MaterialTheme';
+import MomentUtils from '@date-io/moment';
 import NetworkListBase from './NetworkListBase';
 import React, {Suspense} from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
+import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {WebSocketProvider} from './WebSocketContext';
 import {hot} from 'react-hot-loader';
 
@@ -27,9 +29,11 @@ if (root) {
     <BrowserRouter>
       <WebSocketProvider>
         <MaterialTheme>
-          <Suspense fallback={<LoadingBox fullScreen={false} />}>
-            <HotNetworkListBase />
-          </Suspense>
+          <MuiPickersUtilsProvider utils={MomentUtils}>
+            <Suspense fallback={<LoadingBox fullScreen={false} />}>
+              <HotNetworkListBase />
+            </Suspense>
+          </MuiPickersUtilsProvider>
         </MaterialTheme>
       </WebSocketProvider>
     </BrowserRouter>,
