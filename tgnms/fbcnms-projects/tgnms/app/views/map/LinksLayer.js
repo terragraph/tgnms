@@ -363,7 +363,7 @@ class LinksLayer extends React.Component<Props> {
   getNearbyCoverageCoordinates(
     txLocation,
     responders: Array<TopologyScanInfo>,
-  ) {
+  ): Array<Array<number>> {
     /**
      * Steps:
      * 1. Determine best responder with valid SNR for each TX node that has
@@ -622,6 +622,10 @@ class LinksLayer extends React.Component<Props> {
             txLocation,
             responders,
           );
+
+          if (coordinates.length < 2) {
+            return;
+          }
 
           // add to list of figures
           searchNearbyCoverageFeatures.push(
