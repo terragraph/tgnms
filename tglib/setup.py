@@ -15,11 +15,15 @@ class BuildThriftCommand(distutils.cmd.Command):
     """A custom command to build thrift type definitions from thrift files."""
 
     description = "Build thrift type definitions"
-    user_options = [("path=", None, "path to thrift files")]
+    user_options = [
+        ("path=", None, "path to thrift files"),
+        ("out-path=", None, "output path for thrift files"),
+    ]
 
     def initialize_options(self):
         """Set default values for options."""
         self.path = "./if"
+        self.out_path = "."
 
     def finalize_options(self):
         """Post-process options."""
@@ -44,7 +48,7 @@ class BuildThriftCommand(distutils.cmd.Command):
                 f.truncate()
 
             # Run the thrift command
-            command = ["/usr/local/bin/thrift", "--gen", "py", "-out", "."]
+            command = ["/usr/local/bin/thrift", "--gen", "py", "-out", self.out_path]
             command.append(file)
             self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
             subprocess.check_call(command)
