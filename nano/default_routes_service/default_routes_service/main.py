@@ -72,15 +72,29 @@ async def _main_impl(network_name: str, topology: Dict) -> None:
     logging.info(
         f"Requesting default routes for all nodes of {network_name} from API service."
     )
-    results: Dict = await APIServiceClient(timeout=1).request(
-        name=network_name,
-        endpoint="getDefaultRoutes",
-        params={"nodes": [node["name"] for node in topology["nodes"]]},
-    )
-    all_nodes_default_routes: Optional[Dict] = results.get("defaultRoutes")
+    all_nodes_default_routes: Dict = {}
+    nodes: List = []
+    batch_size: int = 10
+
+    for i, node in enumerate(topology["nodes"], 1):
+        if i % batch_size == 0:
+            # fetch default routes for batch_size number of nodes
+            all_nodes_default_routes.update(
+                await _fetch_default_routes(network_name, nodes)
+            )
+            # reset the list of nodes
+            nodes.clear()
+        else:
+            nodes.append(node["name"])
+
+    # run again for the remainder of nodes
+    if nodes:
+        all_nodes_default_routes.update(
+            await _fetch_default_routes(network_name, nodes)
+        )
 
     # if default routes for the network does not exist, return
-    if all_nodes_default_routes is None:
+    if not all_nodes_default_routes:
         logging.error(f"Unable to fetch the default routes for {network_name}.")
         return
 
@@ -107,6 +121,13 @@ async def _main_impl(network_name: str, topology: Dict) -> None:
         )
 
     await asyncio.gather(*coroutines)
+
+
+async def _fetch_default_routes(network_name: str, nodes: List) -> Dict:
+    results: Dict = await APIServiceClient(timeout=5).request(
+        name=network_name, endpoint="getDefaultRoutes", params={"nodes": nodes}
+    )
+    return results.get("defaultRoutes", {})
 
 
 async def _analyze_node(
