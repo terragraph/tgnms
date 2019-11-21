@@ -232,17 +232,8 @@ async def _insert_history_table(
     logging.debug(
         f"Query for inserting routes into history table for {node_name}: {str(query)}"
     )
-    await conn.execute(query)
-
-    # TODO: (spurav) T54333906 refactor default route service hackery
-    query = select([func.max(DefaultRouteHistory.id).label("max_id")]).where(
-        (DefaultRouteHistory.topology_name == network_name)
-        & (DefaultRouteHistory.node_name == node_name)
-    )
-    cursor = await conn.execute(query)
-    results = await cursor.fetchone()
-
-    history_table_query_id: int = results["max_id"]
+    result = await conn.execute(query)
+    history_table_query_id: int = result.lastrowid
     return history_table_query_id
 
 
