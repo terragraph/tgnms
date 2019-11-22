@@ -66,10 +66,19 @@ class ApiServiceClient {
       return folly::none;
     }
 
+    if (s.empty()) {
+      LOG(ERROR) << "Empty response from " << addr;
+      return folly::none;
+    }
+
     try {
       return apache::thrift::SimpleJSONSerializer::deserialize<T>(s);
     } catch (const apache::thrift::protocol::TProtocolException& ex) {
       LOG(ERROR) << "Unable to decode JSON: " << s;
+      return folly::none;
+    } catch (const std::exception& ex) {
+      LOG(ERROR) << "Unknown failure fetching topology: " << ex.what()
+                 << ", JSON: " << s;
       return folly::none;
     }
   }
