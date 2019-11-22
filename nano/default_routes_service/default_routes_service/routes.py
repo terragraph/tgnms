@@ -33,16 +33,26 @@ def parse_input_params(request: web.Request) -> Tuple[str, str, datetime, dateti
     # get and validate start time
     if start_time is None:
         raise web.HTTPBadRequest(text="Missing required 'start_time' param")
+    # drop ms if needed
+    start_time = start_time.split(".")[0] + "Z" if "." in start_time else start_time
     if not re.match(datetime_re, start_time):
         raise web.HTTPBadRequest(text="'start_time' param is not valid ISO 8601")
-    start_time_obj = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+    try:
+        start_time_obj = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError as err:
+        raise web.HTTPBadRequest(text=str(err))
 
     # get and validate end time
     if end_time is None:
         raise web.HTTPBadRequest(text="Missing required 'end_time' param")
+    # drop ms if needed
+    end_time = end_time.split(".")[0] + "Z" if "." in end_time else end_time
     if not re.match(datetime_re, end_time):
         raise web.HTTPBadRequest(text="'end_time' param is not valid ISO 8601")
-    end_time_obj = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
+    try:
+        end_time_obj = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError as err:
+        raise web.HTTPBadRequest(text=str(err))
 
     if start_time_obj >= end_time_obj:
         raise web.HTTPBadRequest(

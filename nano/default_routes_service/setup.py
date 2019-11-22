@@ -9,7 +9,7 @@ ptr_params = {
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
     "required_coverage": {
-        "default_routes_service/routes.py": 50,
+        "default_routes_service/routes.py": 47,
         "tests/base.py": 100,
         "tests/ecmp_toggle.py": 100,
         "tests/pop_utilization.py": 100,
